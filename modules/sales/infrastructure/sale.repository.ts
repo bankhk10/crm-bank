@@ -185,6 +185,9 @@ export async function findSaleById(id: string) {
         include: { changedBy: true },
         orderBy: { changedAt: "desc" },
       },
+      shipments: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 }

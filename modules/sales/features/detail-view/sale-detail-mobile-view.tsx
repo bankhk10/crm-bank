@@ -174,6 +174,11 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
     const shippingCompanyName = sa.sender_name || "-";
     const formatThaiDate = (d: any) => d ? format(new Date(d), "dd MMM yyyy", { locale: th }) : "-";
 
+    const latestShipment = sale.shipments?.[0];
+    const displayCreditDueDate = latestShipment?.dueDate ?? sale.creditDueDate;
+    const displayPaymentDate = latestShipment?.paymentDate ?? (sale as any).paymentDate;
+    const displayDeliveryDate = latestShipment?.scheduledDate ?? sale.deliveryDate;
+
     return (
         <div className="min-h-screen">
             {/* ── Hero Header ──────────────────────────────────────────────── */}
@@ -269,12 +274,12 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                             <DetailItem
                                 icon={<Calendar className="h-4 w-4 text-gray-400" />}
                                 label="วันครบกำหนดชำระ"
-                                value={formatThaiDate(sale.creditDueDate)}
+                                value={formatThaiDate(displayCreditDueDate)}
                             />
                             <DetailItem
                                 icon={<CreditCard className="h-4 w-4 text-gray-400" />}
                                 label="วันที่ชำระเงิน"
-                                value={formatThaiDate(sale.paymentDate)}
+                                value={formatThaiDate(displayPaymentDate)}
                             />
                         </div>
                     </div>
@@ -299,7 +304,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                         {(sale.deliveryMethod === "FACTORY_DELIVERY" || sale.deliveryMethod === "SALES_DELIVERY") && (
                             <>
                                 <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="ที่อยู่จัดส่งสินค้า" value={shippingAddress || "-"} />
-                                <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่งสินค้า" value={formatThaiDate(sale.deliveryDate)} />
+                                <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่งสินค้า" value={formatThaiDate(displayDeliveryDate)} />
                             </>
                         )}
 
@@ -307,7 +312,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                             <>
                                 <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่มารับสินค้า" value={formatThaiDate(sale.requestedDeliveryDate)} />
                                 <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="สถานที่รับสินค้า" value={receivingAddress || "-"} />
-                                <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่งสินค้า" value={formatThaiDate(sale.deliveryDate)} />
+                                <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่งสินค้า" value={formatThaiDate(displayDeliveryDate)} />
                             </>
                         )}
 
@@ -316,7 +321,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                 <DetailItem icon={<Truck className="h-4 w-4 text-gray-400" />} label="ชื่อบริษัทขนส่ง" value={shippingCompanyName} />
                                 <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="ที่อยู่บริษัทขนส่ง" value={senderAddress || "-"} />
                                 <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="ที่อยู่จัดส่งสินค้า" value={shippingAddress || "-"} />
-                                <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่งสินค้า" value={formatThaiDate(sale.deliveryDate)} />
+                                <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่งสินค้า" value={formatThaiDate(displayDeliveryDate)} />
                             </>
                         )}
 

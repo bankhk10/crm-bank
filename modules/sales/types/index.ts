@@ -56,9 +56,17 @@ export interface SaleWithRelations extends Sale {
     companyAddressId?: string | null;
     billingCustomerAddressId?: string | null;
     shippingCustomerAddressId?: string | null;
-    pickupCompanyAddressId?: string | null;
     shippingCompanyAddressId?: string | null;
   } | null;
+  shipments?: Array<{
+    id: string;
+    dueDate: Date | null;
+    paymentDate: Date | null;
+    actualDate: Date | null;
+    scheduledDate: Date | null;
+    status: string;
+    createdAt: Date;
+  }>;
 }
 
 export interface SaleItemWithProduct extends SaleItem {
