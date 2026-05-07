@@ -217,6 +217,36 @@ export function SaleSummaryCard({
                     </div>
                 </div>
             </div>
+
+            {sale.notes && (
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <SectionHeader
+                        icon={<FileText className="h-6 w-6" />}
+                        title="หมายเหตุ"
+                        variant="dark"
+                    />
+                    <div className="p-6">
+                        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                            {sale.notes}
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {sale.otherCostsDescription && (
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <SectionHeader
+                        icon={<Info className="h-6 w-6" />}
+                        title="รายละเอียดส่วนลดหน้าบิล"
+                        variant="dark"
+                    />
+                    <div className="p-6">
+                        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                            {sale.otherCostsDescription}
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
