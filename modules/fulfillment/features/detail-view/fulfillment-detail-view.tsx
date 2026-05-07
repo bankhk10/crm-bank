@@ -262,9 +262,7 @@ export default function FulfillmentDetailPage({
                 );
                 setSaleOrderRef(data.sale.saleOrderRef || "");
                 // Auto-set mode based on hasPartialDelivery flag
-                if (data.sale.hasPartialDelivery) {
-                    setShipmentMode("split");
-                }
+                setShipmentMode(data.sale.hasPartialDelivery ? "split" : "normal");
             } catch (err) {
                 if (!isActive) return;
                 setError(err instanceof Error ? err.message : "Failed to fetch sale");
@@ -378,6 +376,7 @@ export default function FulfillmentDetailPage({
                 saleOrderRef: saleOrderRef || null,
                 lotAllocations:
                     lotAllocationsValid && !isLotLocked ? lotAllocations : undefined,
+                hasPartialDelivery: isSplitMode,
             });
 
             if (!result.success) {
@@ -400,6 +399,7 @@ export default function FulfillmentDetailPage({
                 setNotes(data.sale.notes || "");
                 setShippingCompanyId(data.sale.saleAddress?.shippingCompanyAddressId || "");
                 setSaleOrderRef(data.sale.saleOrderRef || "");
+                setShipmentMode(data.sale.hasPartialDelivery ? "split" : "normal");
             }
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
@@ -460,7 +460,7 @@ export default function FulfillmentDetailPage({
                         <button
                             type="button"
                             onClick={() => setShipmentMode("normal")}
-                            disabled={sale.hasPartialDelivery || !!deliveryDate}
+                            disabled={(sale.hasPartialDelivery && shipments.length > 0) || !!deliveryDate}
                             className={`flex-1 flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-all ${!isSplitMode
                                 ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
                                 : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
@@ -494,7 +494,7 @@ export default function FulfillmentDetailPage({
                             )}
                         </button>
                     </div>
-                    {sale.hasPartialDelivery && !isSplitMode && (
+                    {sale.hasPartialDelivery && shipments.length > 0 && !isSplitMode && (
                         <p className="px-6 pb-4 text-xs text-amber-600">
                             * มีการสร้าง Shipment แล้ว ไม่สามารถเปลี่ยนกลับเป็นจัดส่งปกติได้
                         </p>

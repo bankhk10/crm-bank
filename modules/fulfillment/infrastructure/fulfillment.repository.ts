@@ -20,6 +20,7 @@ export interface UpdateFulfillmentData {
   lotAllocations?: LotAllocation[];
   shippingCompanyId?: string | null;
   saleOrderRef?: string | null;
+  hasPartialDelivery?: boolean;
   changedById: string;
 }
 
@@ -45,6 +46,7 @@ export const FulfillmentRepository = {
       lotAllocations,
       shippingCompanyId,
       saleOrderRef,
+      hasPartialDelivery,
       changedById,
     } = data;
 
@@ -143,6 +145,11 @@ export const FulfillmentRepository = {
     // 7. Sale Order Reference
     if (saleOrderRef !== undefined) {
       updateData.saleOrderRef = saleOrderRef || null;
+    }
+
+    // 8. Partial Delivery Flag
+    if (hasPartialDelivery !== undefined) {
+      updateData.hasPartialDelivery = hasPartialDelivery;
     }
 
     // Add history if status changed

@@ -18,6 +18,7 @@ export const ObjectWithStatuses = z.object({
     .optional(),
   shippingCompanyId: z.string().nullable().optional(),
   saleOrderRef: z.string().nullable().optional(),
+  hasPartialDelivery: z.boolean().optional(),
 });
 
 export const updateFulfillmentSchema = ObjectWithStatuses.refine(
