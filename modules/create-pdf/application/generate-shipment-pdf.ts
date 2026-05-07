@@ -145,14 +145,22 @@ export async function createShipmentDeliveryNotePdf(
     paymentDate: safeFormatDate(sale.paymentDate, "d MMMM yyyy"),
 
     contactName: sale.employee?.name || "-",
-    items: shipment.items.map((si) => ({
-      productCode: si.saleItem.productCode || "-",
-      productName: si.saleItem.name || "-",
-      quantity: si.quantity,
-      unit: si.saleItem.unit || "-",
-      unitPrice: Number(si.unitPrice ?? 0),
-      totalPrice: Number(si.totalPrice ?? 0),
-    })),
+    items: shipment.items.map((si) => {
+      const packageSize = Number(si.saleItem.packageSizePerBox || si.saleItem.product?.packageSizePerBox || 1);
+      const unitPrice = Number(si.unitPrice ?? 0);
+      const cartonPrice = unitPrice * packageSize;
+      return {
+        code: si.saleItem.productCode || "-",
+        description: si.saleItem.name || "-",
+        quantity: si.quantity,
+        unit: si.saleItem.unit || "-",
+        packageSizePerBox: packageSize,
+        price: unitPrice,
+        cartonPrice: cartonPrice,
+        total: Number(si.totalPrice ?? 0),
+        promotionBudget: Number(si.saleItem.promotionBudget || 0),
+      };
+    }),
     subtotalAmount: Number(shipment.totalAmount ?? 0), // Use shipment's total
     shippingDiscount: 0, // usually not tracked per shipment
     billDiscount: 0, // usually not tracked per shipment
