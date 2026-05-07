@@ -166,8 +166,14 @@ export async function createShipmentDeliveryNotePdf(
     billDiscount: 0, // usually not tracked per shipment
     otherCostsDescription: null,
     totalAmount: Number(shipment.totalAmount ?? 0),
-    promotionalBudgetTotal: 0, // Usually budget is sale-level
-    budgetDetails: [],
+    promotionalBudgetTotal: shipment.items.reduce((sum, si) => {
+      return sum + (Number(si.quantity || 0) * Number(si.saleItem.promotionBudget || 0));
+    }, 0),
+    budgetDetails: (sale.budgetDetails || []).map((budget: any) => ({
+      type: budget.type,
+      amount: Number(budget.usedAmount || budget.receivedAmount || 0),
+      description: budget.description,
+    })),
     title: "ใบจัดส่งสินค้า",
     status: shipment.status,
     notes: shipment.notes,
