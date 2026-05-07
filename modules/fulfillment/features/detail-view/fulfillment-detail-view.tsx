@@ -761,7 +761,7 @@ export default function FulfillmentDetailPage({
                     </div>
                 )} {/* end !isSplitMode — ข้อมูลการชำระเงิน */}
 
-                {!isSplitMode && (
+                {!isSplitMode && !["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED", "CANCELLED"].includes(status) && (
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                         <SectionHeader icon={<Package className="h-6 w-6" />} title="ข้อมูลสต็อกสินค้า" />
                         <div className="p-6 space-y-3">
