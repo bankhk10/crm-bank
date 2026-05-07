@@ -746,7 +746,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                 {/* Right Side: Monetization */}
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center text-gray-500 px-2">
-                                        <span className="text-sm font-medium">รวมเป็นเงิน (Subtotal)</span>
+                                        <span className="text-sm font-medium">รวมเป็นเงิน</span>
                                         <span className="text-lg font-bold text-gray-700">
                                             ฿{Number(sale.subtotalAmount).toLocaleString("th-TH", {
                                                 minimumFractionDigits: 2,
@@ -756,7 +756,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
 
                                     {Number(sale.shippingCost) > 0 && (
                                         <div className="flex justify-between items-center px-2">
-                                            <span className="text-sm font-medium text-gray-500">ส่วนลดค่าขนส่ง (Shipping Discount)</span>
+                                            <span className="text-sm font-medium text-gray-500">ส่วนลดค่าขนส่ง</span>
                                             <span className="text-lg font-bold text-rose-500">
                                                 - ฿{Number(sale.shippingCost).toLocaleString("th-TH", {
                                                     minimumFractionDigits: 2,
@@ -767,7 +767,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
 
                                     {Number(sale.otherCosts) > 0 && (
                                         <div className="flex justify-between items-center px-2">
-                                            <span className="text-sm font-medium text-gray-500">ส่วนลดหน้าบิล (Other Discount)</span>
+                                            <span className="text-sm font-medium text-gray-500">ส่วนลดหน้าบิล</span>
                                             <span className="text-lg font-bold text-rose-500">
                                                 - ฿{Number(sale.otherCosts).toLocaleString("th-TH", {
                                                     minimumFractionDigits: 2,
@@ -780,7 +780,6 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                         <div className="flex justify-between items-end bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                                             <div className="flex flex-col">
                                                 <span className="text-xl uppercase text-gray-600 font-black mb-1">ยอดสุทธิ</span>
-                                                <span className="text-[10px] text-gray-400">Total Net Amount</span>
                                             </div>
                                             <div className="text-right">
                                                 <span className="text-4xl font-black text-[#28a717]">
