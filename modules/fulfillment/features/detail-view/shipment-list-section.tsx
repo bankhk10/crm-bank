@@ -252,22 +252,45 @@ function ShipmentCard({
               })}
             </TableBody>
           </Table>
-          {/* Total row */}
-          <div className="flex items-center justify-between border-t bg-muted/20 px-3 py-2">
-            <span className="text-xs text-muted-foreground">
-              {shipment.items.length} รายการ · {totalItems} ชิ้น
-            </span>
-            <span className="text-xs font-bold text-purple-700 dark:text-purple-300">
-              มูลค่ารวม: ฿{(() => {
-                const total = shipment.items.reduce((sum, item) => {
-                  const unitPrice = Number(item.unitPrice ?? 0);
-                  const packSize = parseFloat(item.saleItem.packageSizePerBox?.toString() || "1");
-                  const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
-                  return sum + item.quantity * unitPrice * multiplier;
-                }, 0);
-                return total.toLocaleString("th-TH", { minimumFractionDigits: 2 });
-              })()}
-            </span>
+          {/* Total row and Discounts */}
+          <div className="border-t bg-muted/20 px-3 py-2 space-y-1.5">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>มูลค่ารวมสินค้า:</span>
+              <span>
+                ฿{(() => {
+                  const subtotal = shipment.items.reduce((sum, item) => {
+                    const unitPrice = Number(item.unitPrice ?? 0);
+                    const packSize = parseFloat(item.saleItem.packageSizePerBox?.toString() || "1");
+                    const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+                    return sum + item.quantity * unitPrice * multiplier;
+                  }, 0);
+                  return subtotal.toLocaleString("th-TH", { minimumFractionDigits: 2 });
+                })()}
+              </span>
+            </div>
+
+            {Number(shipment.shippingDiscount || 0) > 0 && (
+              <div className="flex items-center justify-between text-xs text-red-600 dark:text-red-400">
+                <span>ส่วนลดค่าขนส่ง:</span>
+                <span>-฿{Number(shipment.shippingDiscount).toLocaleString("th-TH", { minimumFractionDigits: 2 })}</span>
+              </div>
+            )}
+
+            {Number(shipment.billDiscount || 0) > 0 && (
+              <div className="flex items-center justify-between text-xs text-red-600 dark:text-red-400">
+                <span>ส่วนลดหน้าบิล:</span>
+                <span>-฿{Number(shipment.billDiscount).toLocaleString("th-TH", { minimumFractionDigits: 2 })}</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between border-t border-muted-foreground/20 pt-1.5">
+              <span className="text-xs text-muted-foreground">
+                {shipment.items.length} รายการ · {totalItems} ชิ้น
+              </span>
+              <span className="text-sm font-bold text-purple-700 dark:text-purple-300">
+                ยอดสุทธิ: ฿{totalAmount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+              </span>
+            </div>
           </div>
         </div>
 
