@@ -412,7 +412,7 @@ export function CreateShipmentDialog({
                 placeholder="0.00"
                 className="h-9"
                 {...register("shippingDiscount")}
-                disabled={isCompleted}
+                disabled={isDelivered}
               />
             </div>
 
@@ -429,7 +429,7 @@ export function CreateShipmentDialog({
                 placeholder="0.00"
                 className="h-9"
                 {...register("billDiscount")}
-                disabled={isCompleted}
+                disabled={isDelivered}
               />
             </div>
           </div>
