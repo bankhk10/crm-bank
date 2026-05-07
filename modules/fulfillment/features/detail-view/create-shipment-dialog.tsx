@@ -28,6 +28,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import type { RemainingByItem, ShipmentRecord } from "../../types/types";
 import { createShipmentAction, updateShipmentAction, deleteShipmentAction } from "../../server/actions";
@@ -76,6 +86,7 @@ export function CreateShipmentDialog({
   shipment,
 }: CreateShipmentDialogProps) {
   const [open, setOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isPending, startTransition] = useTransition();
   const isEdit = !!shipment;
 
@@ -184,11 +195,16 @@ export function CreateShipmentDialog({
   };
 
   const handleDelete = () => {
-    if (!shipment || !confirm("คุณต้องการลบการจัดส่งนี้ใช่หรือไม่?")) return;
+    setShowDeleteConfirm(true);
+  };
+
+  const executeDelete = () => {
+    if (!shipment) return;
     startTransition(async () => {
       const result = await deleteShipmentAction(shipment.id);
       if (result.success) {
         toast.success("ลบการจัดส่งแล้ว");
+        setShowDeleteConfirm(false);
         setOpen(false);
         onCreated();
       } else {
@@ -435,6 +451,45 @@ export function CreateShipmentDialog({
 
         </form>
       </DialogContent>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent className="border-red-100 dark:border-red-900/30">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
+                <Trash2 className="h-5 w-5" />
+              </div>
+              <div>
+                <AlertDialogTitle>ยืนยันการลบการจัดส่ง</AlertDialogTitle>
+                <AlertDialogDescription>
+                  คุณต้องการลบการจัดส่งครั้งที่ {shipment?.shipmentNumber} ใช่หรือไม่?
+                </AlertDialogDescription>
+              </div>
+            </div>
+            <div className="mt-2 rounded-md bg-muted p-3 text-sm text-muted-foreground">
+              การดำเนินการนี้ไม่สามารถย้อนกลับได้ ข้อมูลการจัดส่งและรายการสินค้าในรอบนี้จะถูกลบออกถาวร
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                executeDelete();
+              }}
+              disabled={isPending}
+              className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+            >
+              {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="mr-2 h-4 w-4" />
+              )}
+              ยืนยันการลบ
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
