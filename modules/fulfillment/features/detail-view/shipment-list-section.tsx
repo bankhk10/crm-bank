@@ -323,18 +323,8 @@ function ShipmentCard({
             >
               <Link href={`/fulfillment/shipments/${shipment.id}/detail?saleId=${shipment.saleId}`}>
                 <LayoutList className="h-3 w-3" />
-                ดูรายละเอียด
+                ดู PDF
               </Link>
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 gap-1.5 text-xs"
-              disabled={isPending}
-              onClick={handleDownloadPdf}
-            >
-              <FileDown className="h-3 w-3" />
-              PDF ใบจัดส่ง
             </Button>
           </div>
         </div>
