@@ -83,24 +83,38 @@ export async function updateShipmentUseCase(
     // 1. อัพเดท Shipment record
     await ShipmentRepository.updateShipment(shipmentId, updatePayload, tx);
 
-    // 2. เมื่อ IN_TRANSIT: หักสต็อก + นับ Invoice + ตรวจสอบส่งครบหรือยัง
-    if (newStatus === "IN_TRANSIT") {
+    // 2. หักสต็อกเมื่อเริ่มจัดส่ง (เปลี่ยนจาก PENDING ไป IN_TRANSIT หรือข้ามไป COMPLETED)
+    if (prevStatus === "PENDING" && (newStatus === "IN_TRANSIT" || newStatus === "COMPLETED")) {
       // หักสต็อกตามจำนวนที่จัดส่งในรอบนี้ (FIFO)
       await confirmStockDeductionForShipmentUseCase(shipmentId, tx);
+    }
 
+    // อัพเดทสถานะการจัดส่งของ Sale เมื่อสถานะ Shipment เปลี่ยนไปในทางที่ก้าวหน้าขึ้น
+    if (newStatus === "IN_TRANSIT" || newStatus === "DELIVERED" || newStatus === "COMPLETED") {
       // ตรวจสอบว่าทุก SaleItem ถูก ship ครบแล้วหรือยัง
       const isFullyDelivered = await ShipmentRepository.isFullyDelivered(sale.id, tx);
 
-      await tx.sale.update({
-        where: { id: sale.id },
-        data: {
-          status: isFullyDelivered ? "DELIVERY_COMPLETED" : "PARTIALLY_DELIVERED",
-          // ตั้ง deliveryDate ของ Sale เมื่อส่งครบ
-          ...(isFullyDelivered && {
-            deliveryDate: updatePayload.scheduledDate ?? new Date(),
-          }),
-        },
-      });
+      let newSaleDeliveryStatus = sale.status;
+      if (sale.status !== "COMPLETED") {
+        if (isFullyDelivered) {
+          newSaleDeliveryStatus = "DELIVERY_COMPLETED";
+        } else if (newStatus === "IN_TRANSIT" || newStatus === "DELIVERED" || newStatus === "COMPLETED") {
+          newSaleDeliveryStatus = "PARTIALLY_DELIVERED";
+        }
+      }
+
+      if (newSaleDeliveryStatus !== sale.status) {
+        await tx.sale.update({
+          where: { id: sale.id },
+          data: {
+            status: newSaleDeliveryStatus as any,
+            // ตั้ง deliveryDate ของ Sale เมื่อส่งครบ
+            ...(isFullyDelivered && {
+              deliveryDate: updatePayload.actualDate ?? updatePayload.scheduledDate ?? new Date(),
+            }),
+          },
+        });
+      }
     }
 
     // 3. เมื่อ DELIVERED: บันทึก actualDate เท่านั้น (ไม่ต้องหักสต็อกซ้ำ ทำไปแล้วที่ IN_TRANSIT)
@@ -149,8 +163,8 @@ export async function updateShipmentUseCase(
     }
 
     // 5. ตรวจสอบ paymentDate ครบทุก Shipment → เปลี่ยน Sale.status เป็น COMPLETED
-    // ทำงานเมื่อมีการอัพเดท paymentDate (ไม่ว่าจะเป็นการ set ใหม่หรือมีอยู่แล้ว)
-    if (validatedData.paymentDate !== undefined) {
+    // ทำงานเมื่อมีการอัพเดท paymentDate หรือเปลี่ยนสถานะเป็น COMPLETED
+    if (validatedData.paymentDate !== undefined || newStatus === "COMPLETED") {
       const currentSaleForPayment = await tx.sale.findUnique({
         where: { id: sale.id },
         select: { status: true },
