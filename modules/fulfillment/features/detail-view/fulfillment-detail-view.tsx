@@ -172,7 +172,8 @@ const getValidationError = (params: {
     if (
         lotAllocations.length > 0 &&
         !lotAllocationsValid &&
-        status !== "WAITING_FOR_CORRECTION"
+        status !== "WAITING_FOR_CORRECTION" &&
+        status !== "AWAITING_DELIVERY"
     ) {
         return "กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการ";
     }
