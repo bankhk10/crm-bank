@@ -171,8 +171,7 @@ const getValidationError = (params: {
     if (
         lotAllocations.length > 0 &&
         !lotAllocationsValid &&
-        status !== "WAITING_FOR_CORRECTION" &&
-        status !== "AWAITING_DELIVERY"
+        !["WAITING_FOR_CORRECTION", "AWAITING_DELIVERY", "AWAITING_PAYMENT", "PAID"].includes(status)
     ) {
         return "กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการ";
     }
@@ -461,7 +460,7 @@ export default function FulfillmentDetailPage({
                         <button
                             type="button"
                             onClick={() => setShipmentMode("normal")}
-                            disabled={sale.hasPartialDelivery || (!!deliveryDate && status === "DELIVERED")}
+                            disabled={sale.hasPartialDelivery || !!deliveryDate}
                             className={`flex-1 flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-all ${!isSplitMode
                                 ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
                                 : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
@@ -479,7 +478,7 @@ export default function FulfillmentDetailPage({
                         <button
                             type="button"
                             onClick={() => setShipmentMode("split")}
-                            disabled={!!deliveryDate && status === "DELIVERED"}
+                            disabled={!!deliveryDate}
                             className={`flex-1 flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-all ${isSplitMode
                                 ? "border-purple-500 bg-purple-50 text-purple-700 shadow-sm"
                                 : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
