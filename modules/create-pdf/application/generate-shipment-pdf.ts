@@ -142,7 +142,7 @@ export async function createShipmentDeliveryNotePdf(
       "-",
     deliveryDate: safeFormatDate(shipment.scheduledDate || sale.deliveryDate, "d MMMM yyyy"),
     dueDate: safeFormatDate(shipment.dueDate, "d MMMM yyyy"),
-    paymentDate: safeFormatDate(sale.paymentDate, "d MMMM yyyy"),
+    paymentDate: safeFormatDate(shipment.paymentDate, "d MMMM yyyy"),
 
     contactName: sale.employee?.name || "-",
     items: shipment.items.map((si) => {
