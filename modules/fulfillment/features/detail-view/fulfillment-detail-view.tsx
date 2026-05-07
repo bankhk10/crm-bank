@@ -171,7 +171,7 @@ const getValidationError = (params: {
     if (
         lotAllocations.length > 0 &&
         !lotAllocationsValid &&
-        !["WAITING_FOR_CORRECTION", "AWAITING_DELIVERY", "AWAITING_PAYMENT", "PAID"].includes(status)
+        !["WAITING_FOR_CORRECTION", "AWAITING_DELIVERY", "AWAITING_PAYMENT", "PAID", "CANCELLED"].includes(status)
     ) {
         return "กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการ";
     }
@@ -772,7 +772,7 @@ export default function FulfillmentDetailPage({
                                     onAllocationsChange={handleLotAllocationsChange}
                                     disabled={
                                         submitting ||
-                                        status != "CANCELLED" ||
+                                        status === "CANCELLED" ||
                                         (saleData &&
                                             LOT_LOCKED_STATUSES.includes(
                                                 saleData.sale.status,
