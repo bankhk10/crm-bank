@@ -448,7 +448,7 @@ export default function FulfillmentDetailPage({
             <ItemsCard sale={sale} />
 
             {/* ===== ตัวเลือกรูปแบบการจัดส่ง ===== */}
-            {/* {["APPROVED", "AWAITING_PAYMENT", "PAID", "AWAITING_DELIVERY", "DELIVERED", "DELIVERY_COMPLETED", "PARTIALLY_DELIVERED"].includes(sale.status) && (
+            {["APPROVED", "AWAITING_PAYMENT", "PAID", "AWAITING_DELIVERY", "DELIVERED", "DELIVERY_COMPLETED", "PARTIALLY_DELIVERED"].includes(sale.status) && (
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
                         <div className="flex items-center gap-2 mb-1">
@@ -501,7 +501,7 @@ export default function FulfillmentDetailPage({
                         </p>
                     )}
                 </div>
-            )} */}
+            )}
 
             {/* Split Shipment Section */}
             {isSplitMode && (
