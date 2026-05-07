@@ -172,7 +172,12 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
     });
 
     const shippingCompanyName = sa.sender_name || "-";
-    const formatThaiDate = (d: any) => d ? format(new Date(d), "dd MMM yyyy", { locale: th }) : "-";
+    const formatThaiDate = (d: any) => {
+        if (!d) return "-";
+        const date = new Date(d);
+        const beYear = date.getFullYear() + 543;
+        return format(date, `dd MMM ${beYear}`, { locale: th });
+    };
 
     const latestShipment = sale.shipments?.[0];
     const displayCreditDueDate = latestShipment?.dueDate ?? sale.creditDueDate;
@@ -242,9 +247,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                             <DetailItem
                                 icon={<Calendar className="h-4 w-4 text-gray-400" />}
                                 label="วันที่ออเดอร์"
-                                value={format(new Date(sale.saleDate), "dd MMM yyyy", {
-                                    locale: th,
-                                })}
+                                value={formatThaiDate(sale.saleDate)}
                             />
                         </div>
                     </div>
