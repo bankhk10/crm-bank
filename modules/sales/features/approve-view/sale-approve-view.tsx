@@ -292,6 +292,25 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                     </div>
                 )}
 
+                {sale.otherCostsDescription && (
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                        <SectionHeader
+                            icon={<FileText className="h-6 w-6" />}
+                            title="รายละเอียดส่วนลดหน้าบิล"
+                            variant="dark"
+                        />
+                        <div className="p-6">
+                            {sale.otherCostsDescription ? (
+                                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                    {sale.otherCostsDescription}
+                                </p>
+                            ) : (
+                                <p className="text-sm text-gray-400 italic">ไม่มีรายละเอียดส่วนลดหน้าบิล</p>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {/* Price Change Warning */}
                 {priceWarnings.length > 0 && (
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
@@ -923,7 +942,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
 
             {/* APPROVE DIALOG */}
             <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
-                <DialogContent 
+                <DialogContent
                     className="w-[calc(100%-2rem)] sm:max-w-md"
                     onOpenAutoFocus={(e) => e.preventDefault()}
                 >
@@ -966,7 +985,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
 
             {/* REJECT DIALOG */}
             <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-                <DialogContent 
+                <DialogContent
                     className="w-[calc(100%-2rem)] sm:max-w-md"
                     onOpenAutoFocus={(e) => e.preventDefault()}
                 >
