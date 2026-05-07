@@ -2,6 +2,9 @@ import { db } from "@/lib/db";
 import { ShipmentRepository } from "../infrastructure/shipment.repository";
 import { updateShipmentSchema } from "./shipment-validations";
 import { confirmStockDeductionForShipmentUseCase } from "@/modules/products/application";
+import { restoreCreditLimit } from "@/modules/sales/application/order-management";
+import { finalizePointsForSaleUseCase as finalizePointsForSale } from "@/modules/points";
+import { finalizePromotionalBudgetForSaleUseCase as finalizePromotionalBudgetForSale } from "@/modules/credit-limits/application";
 
 /**
  * Use Case: Update a Shipment's status and metadata.
@@ -211,10 +214,26 @@ export async function updateShipmentUseCase(
               ...(latestPaymentDate && { paymentDate: latestPaymentDate }),
             },
           });
+
+          // คืนวงเงินเครดิตเมื่อออเดอร์เสร็จสิ้น (ได้รับชำระเงินครบทุกยอด)
+          await restoreCreditLimit(sale.id, tx);
+
         }
       }
     }
   });
+  
+  const updatedShipment = await ShipmentRepository.getShipmentById(shipmentId);
 
-  return ShipmentRepository.getShipmentById(shipmentId);
+  // คำนวณแต้มและงบส่งเสริมการขายที่ได้รับ เมื่อออเดอร์เสร็จสิ้นสมบูรณ์
+  if (updatedShipment?.sale?.status === "COMPLETED") {
+    try {
+      await finalizePointsForSale(updatedShipment.sale.id);
+      await finalizePromotionalBudgetForSale(updatedShipment.sale.id);
+    } catch (error) {
+      console.error("Error finalizing sale points or budget:", error);
+    }
+  }
+
+  return updatedShipment;
 }

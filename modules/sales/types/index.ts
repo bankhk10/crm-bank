@@ -368,6 +368,7 @@ export const IMMUTABLE_STATUSES: SaleStatus[] = [
 export const CREDIT_PAYMENT_TERMS: PaymentTerm[] = [
   "CREDIT_90",
   "CREDIT_OVER_90",
+  "CASH_7",
 ];
 
 export function isImmutableStatus(status: SaleStatus): boolean {

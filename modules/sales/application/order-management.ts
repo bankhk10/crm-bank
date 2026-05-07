@@ -10,9 +10,9 @@ import {
 } from "../types";
 
 /**
- * Internal: Restores customer credit limit when an order is cancelled/expired/overdue
+ * Internal: Restores customer credit limit when an order is cancelled/expired/overdue/completed
  */
-async function restoreCreditLimit(
+export async function restoreCreditLimit(
   saleId: string,
   tx: Prisma.TransactionClient,
 ) {
