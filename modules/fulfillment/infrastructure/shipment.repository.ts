@@ -66,7 +66,10 @@ export const ShipmentRepository = {
     });
 
     // รวมมูลค่าทั้งหมดของรอบส่งนี้
-    const totalAmount = itemsWithPrice.reduce((sum, i) => sum + i.totalPrice, 0);
+    const subtotal = itemsWithPrice.reduce((sum, i) => sum + i.totalPrice, 0);
+    const shippingDiscount = data.shippingDiscount ?? 0;
+    const billDiscount = data.billDiscount ?? 0;
+    const totalAmount = Math.max(0, subtotal - shippingDiscount - billDiscount);
 
     return client.shipment.create({
       data: {
@@ -188,43 +191,58 @@ export const ShipmentRepository = {
 
     // Handle items update if provided
     let totalAmountUpdate = {};
-    if (data.items) {
-      // ดึง unitPrice และ packageSizePerBox จาก SaleItem เพื่อคำนวณราคาใหม่
-      const saleItemIds = data.items.map((i) => i.saleItemId);
-      const saleItems = await client.saleItem.findMany({
-        where: { id: { in: saleItemIds } },
-        select: { id: true, unitPrice: true, packageSizePerBox: true },
-      });
-      const itemMap = new Map(saleItems.map((si) => [si.id, si]));
-
-      const itemsWithPrice = data.items.map((item) => {
-        const si = itemMap.get(item.saleItemId);
-        const unitPrice = Number(si?.unitPrice ?? 0);
-        const packSize = parseFloat(si?.packageSizePerBox?.toString() || "1");
-        const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
-
-        const totalPrice = unitPrice * multiplier * item.quantity;
-        return { ...item, unitPrice, totalPrice };
+    if (data.items || data.shippingDiscount !== undefined || data.billDiscount !== undefined) {
+      const currentShipment = await client.shipment.findUnique({
+        where: { id: shipmentId },
+        include: { items: true },
       });
 
-      const totalAmount = itemsWithPrice.reduce((sum, i) => sum + i.totalPrice, 0);
-      totalAmountUpdate = { totalAmount };
+      const shippingDiscount = data.shippingDiscount !== undefined ? (data.shippingDiscount || 0) : Number(currentShipment?.shippingDiscount || 0);
+      const billDiscount = data.billDiscount !== undefined ? (data.billDiscount || 0) : Number(currentShipment?.billDiscount || 0);
 
-      // ลบรายการเก่าออกก่อน
-      await client.shipmentItem.deleteMany({
-        where: { shipmentId },
-      });
+      let subtotal = 0;
 
-      // สร้างรายการใหม่
-      await client.shipmentItem.createMany({
-        data: itemsWithPrice.map((item) => ({
-          shipmentId,
-          saleItemId: item.saleItemId,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          totalPrice: item.totalPrice,
-        })),
-      });
+      if (data.items) {
+        // ดึง unitPrice และ packageSizePerBox จาก SaleItem เพื่อคำนวณราคาใหม่
+        const saleItemIds = data.items.map((i) => i.saleItemId);
+        const saleItems = await client.saleItem.findMany({
+          where: { id: { in: saleItemIds } },
+          select: { id: true, unitPrice: true, packageSizePerBox: true },
+        });
+        const itemMap = new Map(saleItems.map((si) => [si.id, si]));
+
+        const itemsWithPrice = data.items.map((item) => {
+          const si = itemMap.get(item.saleItemId);
+          const unitPrice = Number(si?.unitPrice ?? 0);
+          const packSize = parseFloat(si?.packageSizePerBox?.toString() || "1");
+          const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+
+          const totalPrice = unitPrice * multiplier * item.quantity;
+          return { ...item, unitPrice, totalPrice };
+        });
+
+        subtotal = itemsWithPrice.reduce((sum, i) => sum + i.totalPrice, 0);
+
+        // ลบรายการเก่าออกก่อน
+        await client.shipmentItem.deleteMany({
+          where: { shipmentId },
+        });
+
+        // สร้างรายการใหม่
+        await client.shipmentItem.createMany({
+          data: itemsWithPrice.map((item) => ({
+            shipmentId,
+            saleItemId: item.saleItemId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            totalPrice: item.totalPrice,
+          })),
+        });
+      } else {
+        subtotal = currentShipment?.items.reduce((sum, i) => sum + Number(i.totalPrice), 0) || 0;
+      }
+
+      totalAmountUpdate = { totalAmount: Math.max(0, subtotal - shippingDiscount - billDiscount) };
     }
 
     return client.shipment.update({
