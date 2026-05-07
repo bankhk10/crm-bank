@@ -275,10 +275,6 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
       <div class="doc-meta">
         <p class="doc-title-th">${safeValue(data.title)}</p>
         <p class="doc-title-en">DELIVERY NOTE</p>
-        <div class="doc-no-box" style="margin-bottom: 4px;">
-          <span class="label">การจัดส่งครั้งที่:</span>
-          <span class="value">${data.shipmentNumber}</span>
-        </div>
         <div class="doc-no-box">
           <span class="label">${title}:</span>
           <span class="value">${documentNumber ?? "-"}</span>
