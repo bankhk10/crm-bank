@@ -117,7 +117,7 @@ export async function createShipmentDeliveryNotePdf(
 
   const deliveryData: any = {
     invoiceNumber: sale.saleNumber || "-",
-    saleOrderRef: sale.saleOrderRef,
+    saleOrderRef: shipment.salesOrderNumber || sale.saleOrderRef,
     shipmentNumber: shipment.shipmentNumber,
     date: safeFormatDate(sale.saleDate, "d MMMM yyyy"),
     customerName: sa.company_name || sale.customer?.name || "-",
