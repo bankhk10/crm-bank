@@ -1070,6 +1070,8 @@ model Shipment {
   shippingCompanyId String? // FK to ShippingCompany
   notes             String? // หมายเหตุ
   totalAmount       Decimal        @default(0) @db.Decimal(15, 2) // มูลค่าสินค้าในรอบนี้
+  shippingDiscount  Decimal        @default(0) @db.Decimal(15, 2) // ส่วนลดค่าขนส่ง
+  billDiscount      Decimal        @default(0) @db.Decimal(15, 2) // ส่วนลดหน้าบิล
   createdById       String
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt

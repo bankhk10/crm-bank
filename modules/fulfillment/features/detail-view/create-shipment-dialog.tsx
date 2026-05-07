@@ -50,6 +50,8 @@ const formSchema = z.object({
   salesOrderNumber: z.string().optional(),
   shippingCompanyId: z.string().optional(),
   notes: z.string().optional(),
+  shippingDiscount: z.coerce.number().min(0).optional(),
+  billDiscount: z.coerce.number().min(0).optional(),
   quantities: z.record(z.string(), z.coerce.number().int().min(0)),
 });
 
@@ -131,6 +133,8 @@ export function CreateShipmentDialog({
       salesOrderNumber: isEdit ? shipment.salesOrderNumber || "" : "",
       shippingCompanyId: isEdit ? shipment.shippingCompanyId || "" : "",
       notes: isEdit ? shipment.notes || "" : "",
+      shippingDiscount: isEdit ? Number(shipment.shippingDiscount || 0) : 0,
+      billDiscount: isEdit ? Number(shipment.billDiscount || 0) : 0,
       quantities: defaultQuantities,
     },
   });
@@ -176,6 +180,8 @@ export function CreateShipmentDialog({
       salesOrderNumber: data.salesOrderNumber || null,
       shippingCompanyId: isDelivered ? undefined : (data.shippingCompanyId || null),
       notes: data.notes || null,
+      shippingDiscount: data.shippingDiscount || 0,
+      billDiscount: data.billDiscount || 0,
     };
 
     startTransition(async () => {
@@ -225,6 +231,8 @@ export function CreateShipmentDialog({
           salesOrderNumber: "",
           shippingCompanyId: "",
           notes: "",
+          shippingDiscount: 0,
+          billDiscount: 0,
           quantities: defaultQuantities,
         });
       }
@@ -385,6 +393,42 @@ export function CreateShipmentDialog({
                 type="date"
                 className="h-9"
                 {...register("paymentDate")}
+                disabled={isCompleted}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {/* Shipping Discount */}
+            <div className="space-y-1.5">
+              <Label htmlFor="shippingDiscount" className="text-sm">
+                ส่วนลดค่าขนส่ง (บาท)
+              </Label>
+              <Input
+                id="shippingDiscount"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                className="h-9"
+                {...register("shippingDiscount")}
+                disabled={isCompleted}
+              />
+            </div>
+
+            {/* Bill Discount */}
+            <div className="space-y-1.5">
+              <Label htmlFor="billDiscount" className="text-sm">
+                ส่วนลดหน้าบิล (บาท)
+              </Label>
+              <Input
+                id="billDiscount"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                className="h-9"
+                {...register("billDiscount")}
                 disabled={isCompleted}
               />
             </div>

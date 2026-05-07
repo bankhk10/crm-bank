@@ -79,6 +79,8 @@ export async function createShipmentUseCase(
         salesOrderNumber: validatedData.salesOrderNumber ?? null,
         shippingCompanyId: validatedData.shippingCompanyId ?? null,
         notes: validatedData.notes ?? null,
+        shippingDiscount: validatedData.shippingDiscount ?? 0,
+        billDiscount: validatedData.billDiscount ?? 0,
         createdById: userId,
         items: validatedData.items,
       },

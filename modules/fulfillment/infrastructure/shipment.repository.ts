@@ -7,6 +7,8 @@ export interface CreateShipmentData {
   salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
   notes?: string | null;
+  shippingDiscount?: number | null;
+  billDiscount?: number | null;
   createdById: string;
   items: Array<{ saleItemId: string; quantity: number }>;
 }
@@ -20,6 +22,8 @@ export interface UpdateShipmentData {
   salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
   notes?: string | null;
+  shippingDiscount?: number | null;
+  billDiscount?: number | null;
   items?: Array<{ saleItemId: string; quantity: number }>;
 }
 
@@ -76,6 +80,8 @@ export const ShipmentRepository = {
         shippingCompanyId: data.shippingCompanyId ?? null,
         notes: data.notes ?? null,
         totalAmount,
+        shippingDiscount: data.shippingDiscount ?? 0,
+        billDiscount: data.billDiscount ?? 0,
         createdById: data.createdById,
         items: {
           create: itemsWithPrice.map((item) => ({
@@ -232,6 +238,8 @@ export const ShipmentRepository = {
         ...(data.salesOrderNumber !== undefined && { salesOrderNumber: data.salesOrderNumber }),
         ...(data.shippingCompanyId !== undefined && { shippingCompanyId: data.shippingCompanyId }),
         ...(data.notes !== undefined && { notes: data.notes }),
+        ...(data.shippingDiscount !== undefined && { shippingDiscount: data.shippingDiscount }),
+        ...(data.billDiscount !== undefined && { billDiscount: data.billDiscount }),
         ...totalAmountUpdate,
       },
       include: {

@@ -19,6 +19,8 @@ export const createShipmentSchema = z.object({
   salesOrderNumber: z.string().nullable().optional(),
   shippingCompanyId: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
+  shippingDiscount: z.number().nullable().optional(),
+  billDiscount: z.number().nullable().optional(),
 });
 
 // ──────────────────────────────────────────
@@ -34,6 +36,8 @@ export const updateShipmentSchema = z.object({
   salesOrderNumber: z.string().nullable().optional(),
   shippingCompanyId: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
+  shippingDiscount: z.number().nullable().optional(),
+  billDiscount: z.number().nullable().optional(),
   items: z.array(createShipmentItemSchema).optional(),
 });
 

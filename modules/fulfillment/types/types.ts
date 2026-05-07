@@ -115,6 +115,8 @@ export interface ShipmentRecord {
   shippingCompanyId: string | null;
   notes: string | null;
   totalAmount: number;
+  shippingDiscount: number;
+  billDiscount: number;
   createdById: string;
   createdAt: string | Date;
   updatedAt: string | Date;
@@ -136,6 +138,8 @@ export interface CreateShipmentInput {
   salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
   notes?: string | null;
+  shippingDiscount?: number | null;
+  billDiscount?: number | null;
 }
 
 export interface UpdateShipmentInput {
@@ -147,6 +151,8 @@ export interface UpdateShipmentInput {
   salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
   notes?: string | null;
+  shippingDiscount?: number | null;
+  billDiscount?: number | null;
 }
 
 export interface RemainingByItem {

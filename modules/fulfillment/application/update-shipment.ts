@@ -71,6 +71,8 @@ export async function updateShipmentUseCase(
       salesOrderNumber: validatedData.salesOrderNumber,
     }),
     ...(validatedData.notes !== undefined && { notes: validatedData.notes }),
+    ...(validatedData.shippingDiscount !== undefined && { shippingDiscount: validatedData.shippingDiscount }),
+    ...(validatedData.billDiscount !== undefined && { billDiscount: validatedData.billDiscount }),
     ...(validatedData.items !== undefined && { items: validatedData.items }),
   };
 
