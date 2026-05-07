@@ -369,36 +369,6 @@ export function CreateShipmentDialog({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Sales Order Number */}
-            <div className="space-y-1.5">
-              <Label htmlFor="salesOrderNumber" className="text-sm">
-                เลขที่คำสั่งขาย
-              </Label>
-              <Input
-                id="salesOrderNumber"
-                placeholder="เช่น SO-2024-001"
-                className="h-9"
-                {...register("salesOrderNumber")}
-                disabled={isCompleted}
-              />
-            </div>
-
-            {/* Payment Date */}
-            <div className="space-y-1.5">
-              <Label htmlFor="paymentDate" className="text-sm">
-                วันที่ชำระเงิน
-              </Label>
-              <Input
-                id="paymentDate"
-                type="date"
-                className="h-9"
-                {...register("paymentDate")}
-                disabled={isCompleted}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             {/* Shipping Discount */}
             <div className="space-y-1.5">
               <Label htmlFor="shippingDiscount" className="text-sm">
@@ -430,6 +400,37 @@ export function CreateShipmentDialog({
                 className="h-9"
                 {...register("billDiscount")}
                 disabled={isDelivered}
+              />
+            </div>
+          </div>
+
+
+          <div className="grid grid-cols-2 gap-4">
+            {/* Sales Order Number */}
+            <div className="space-y-1.5">
+              <Label htmlFor="salesOrderNumber" className="text-sm">
+                เลขที่คำสั่งขาย
+              </Label>
+              <Input
+                id="salesOrderNumber"
+                placeholder="เช่น SO-2024-001"
+                className="h-9"
+                {...register("salesOrderNumber")}
+                disabled={isCompleted}
+              />
+            </div>
+
+            {/* Payment Date */}
+            <div className="space-y-1.5">
+              <Label htmlFor="paymentDate" className="text-sm">
+                วันที่ชำระเงิน
+              </Label>
+              <Input
+                id="paymentDate"
+                type="date"
+                className="h-9"
+                {...register("paymentDate")}
+                disabled={isCompleted}
               />
             </div>
           </div>
