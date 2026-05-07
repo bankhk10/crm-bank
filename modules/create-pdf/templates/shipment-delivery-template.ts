@@ -43,6 +43,10 @@ function formatCurrency(value: number): string {
   return value.toLocaleString("th-TH", { minimumFractionDigits: 2 });
 }
 
+function formatNumber(value?: number | null) {
+  return Number(value || 0).toLocaleString("th-TH");
+}
+
 
 export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): string {
   const logoPath = path.join(process.cwd(), "public", "images", "logo_pdf.png");
@@ -52,21 +56,34 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
     base64Logo = "data:image/png;base64," + bitmap.toString("base64");
   }
 
+  const cssPath = path.join(
+    process.cwd(),
+    "modules",
+    "create-pdf",
+    "templates",
+    "invoice.css",
+  );
+
+  let cssContent = "";
+  if (fs.existsSync(cssPath)) {
+    cssContent = fs.readFileSync(cssPath, "utf-8");
+  }
+
   const itemsHtml = data.items
     .map(
       (item, index) => `
-      <tr>
-        <td style="text-align: center; padding: 6px 8px; border-bottom: 1px solid #e5e7eb;">${index + 1}</td>
-        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb;">
-          <div style="font-weight: 600; font-size: 11px;">${safeValue(item.productCode)}</div>
-          <div style="font-size: 10px; color: #6b7280;">${safeValue(item.productName)}</div>
-        </td>
-        <td style="text-align: center; padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${item.quantity}</td>
-        <td style="text-align: center; padding: 6px 8px; border-bottom: 1px solid #e5e7eb; color: #6b7280;">${safeValue(item.unit)}</td>
-        <td style="text-align: right; padding: 6px 8px; border-bottom: 1px solid #e5e7eb; color: #6b7280;">${formatCurrency(item.unitPrice)}</td>
-        <td style="text-align: right; padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #4c1d95;">${formatCurrency(item.totalPrice)}</td>
-      </tr>
-    `,
+        <tr>
+          <td class="text-center">${index + 1}</td>
+          <td class="text-left">
+            <div style="font-weight: 600;">${safeValue(item.productCode)}</div>
+            <div style="font-size: 10px; color: #6b7280;">${safeValue(item.productName)}</div>
+          </td>
+          <td class="text-center">${formatNumber(item.quantity)}</td>
+          <td class="text-center">${safeValue(item.unit)}</td>
+          <td class="text-center">${formatNumber(item.unitPrice)}</td>
+          <td class="text-center total-cell">${formatNumber(item.totalPrice)}</td>
+        </tr>
+      `,
     )
     .join("");
 
@@ -75,159 +92,174 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ใบจัดส่งสินค้า - ${safeValue(data.saleNumber)} ครั้งที่ ${data.shipmentNumber}</title>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Sarabun', sans-serif; font-size: 12px; color: #1f2937; background: #fff; }
-    .page { max-width: 800px; margin: 0 auto; padding: 32px; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-    .company-block { display: flex; align-items: center; gap: 12px; }
-    .company-logo { width: 60px; height: 60px; object-fit: contain; }
-    .company-name { font-size: 14px; font-weight: 700; color: #111827; }
-    .company-sub { font-size: 10px; color: #6b7280; }
-    .doc-meta { text-align: right; }
-    .doc-title { font-size: 18px; font-weight: 800; color: #7c3aed; margin-bottom: 4px; }
-    .doc-subtitle { font-size: 11px; color: #6b7280; }
-    .doc-no-box { margin-top: 8px; background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 6px; padding: 6px 12px; display: inline-block; }
-    .doc-no-label { font-size: 10px; color: #7c3aed; }
-    .doc-no-value { font-size: 14px; font-weight: 700; color: #5b21b6; }
-    .divider { height: 2px; background: linear-gradient(to right, #7c3aed, #c4b5fd); margin: 16px 0; border-radius: 1px; }
-    .section { margin-bottom: 16px; }
-    .section-title { font-size: 11px; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #e9d5ff; }
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 8px; padding: 12px; }
-    .info-grid.full { grid-template-columns: 1fr; }
-    .info-item { display: flex; flex-direction: column; gap: 2px; }
-    .info-label { font-size: 9px; font-weight: 600; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.05em; }
-    .info-value { font-size: 11px; color: #1f2937; font-weight: 500; }
-    .shipment-badge { display: inline-flex; align-items: center; gap: 6px; background: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 700; margin-bottom: 16px; }
-    .shipment-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #7c3aed; }
-    table { width: 100%; border-collapse: collapse; }
-    thead tr { background: #7c3aed; color: white; }
-    thead th { padding: 8px 8px; font-size: 10px; font-weight: 600; letter-spacing: 0.03em; }
-    .footer-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
-    .signature-box { border: 1px solid #e9d5ff; border-radius: 8px; padding: 12px; text-align: center; }
-    .signature-line { border-top: 1px dashed #c4b5fd; margin: 32px 8px 8px; }
-    .signature-label { font-size: 9px; color: #7c3aed; text-transform: uppercase; font-weight: 600; }
-    .notes-box { background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 10px 14px; margin-top: 12px; }
-    .notes-label { font-size: 9px; font-weight: 700; color: #a16207; text-transform: uppercase; margin-bottom: 4px; }
-    .notes-text { font-size: 11px; color: #78350f; }
+    ${cssContent}
   </style>
 </head>
 <body>
   <div class="page">
-    <!-- Header -->
     <div class="header">
       <div class="company-block">
         ${base64Logo ? `<img src="${base64Logo}" alt="logo" class="company-logo" />` : ""}
-        <div>
-          <div class="company-name">บริษัท คร็อพ ซายน์ จำกัด</div>
-          <div class="company-sub">CROP SCIENCES CO., LTD.</div>
-          <div class="company-sub">โทร. 02-618-4522</div>
+        <div class="company-text">
+          <h1>บริษัท คร็อพ ซายน์ จำกัด</h1>
+          <h2>CROP SCIENCES CO., LTD.</h2>
+          <p>เลขที่ 22 อาคารไอซีจี ถนนพระรามที่ 6 แขวงพญาไท เขตพญาไท กรุงเทพฯ 10400</p>
+          <div class="company-contact">โทร. 02-618-4522 &nbsp;&nbsp; แฟกซ์ 02-618-4530 &nbsp;&nbsp;www.cropsciences.co.th </div>
         </div>
       </div>
+
       <div class="doc-meta">
-        <div class="doc-title">ใบจัดส่งสินค้า</div>
-        <div class="doc-subtitle">DELIVERY NOTE</div>
+        <p class="doc-title-th">ใบจัดส่งสินค้า</p>
+        <p class="doc-title-en">DELIVERY NOTE</p>
         <div class="doc-no-box">
-          <div class="doc-no-label">เลขที่ออเดอร์</div>
-          <div class="doc-no-value">${safeValue(data.saleOrderRef || data.saleNumber)}</div>
+          <span class="label">เลขที่ออเดอร์:</span>
+          <span class="value">${safeValue(data.saleOrderRef || data.saleNumber)}</span>
         </div>
       </div>
     </div>
 
-    <div class="divider"></div>
+    <div class="top-divider"></div>
 
-    <!-- Shipment badge -->
-    <div class="shipment-badge">
-      <span class="dot"></span>
-      การจัดส่งครั้งที่ ${data.shipmentNumber} &nbsp;|&nbsp; วันพิมพ์: ${safeValue(data.printedDate)}
+    <!-- ข้อมูลลูกค้า -->
+    <div class="section">
+      <div class="section-title">ข้อมูลลูกค้า</div>
+      <div class="section-box">
+        <div class="info-row">
+          <div class="info-col" style="flex: 2;">
+            <span class="info-label">ชื่อลูกค้า</span>
+            <span>${safeValue(data.customerName)}</span>
+          </div>
+          <div class="info-col no-border" style="flex: 2; display: flex; gap: 24px;">
+            <div>
+              <span class="info-label">รหัสลูกค้า:</span>
+              <span>${safeValue(data.customerCode)}</span>
+            </div>
+            <div>
+              <span class="info-label">เบอร์โทรศัพท์:</span>
+              <span>${safeValue(data.customerPhone)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-col full">
+            <span class="info-label">ที่อยู่จัดส่ง</span>
+            <span>${safeValue(data.customerAddress)}</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Info grid -->
+    <!-- ข้อมูลการจัดส่ง -->
     <div class="section">
       <div class="section-title">ข้อมูลการจัดส่ง</div>
-      <div class="info-grid">
-        <div class="info-item">
-          <span class="info-label">ลูกค้า</span>
-          <span class="info-value">${safeValue(data.customerName)}</span>
+      <div class="sales-grid">
+        <div class="sales-row row-order-info">
+          <div class="sales-cell">
+            <span class="info-label">การจัดส่งครั้งที่:</span>
+            <span>${data.shipmentNumber}</span>
+          </div>
+          <div class="sales-cell">
+            <span class="info-label">บริษัทขนส่ง:</span>
+            <span>${safeValue(data.shippingCompanyName)}</span>
+          </div>
+          <div class="sales-cell">
+            <span class="info-label">สถานะ:</span>
+            <span>${safeValue(data.shipmentStatus)}</span>
+          </div>
         </div>
-        <div class="info-item">
-          <span class="info-label">รหัสลูกค้า</span>
-          <span class="info-value">${safeValue(data.customerCode)}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">บริษัทขนส่ง</span>
-          <span class="info-value">${safeValue(data.shippingCompanyName)}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">เบอร์โทร</span>
-          <span class="info-value">${safeValue(data.customerPhone)}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">วันกำหนดส่ง</span>
-          <span class="info-value">${safeValue(data.scheduledDate)}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">วันส่งจริง</span>
-          <span class="info-value">${safeValue(data.actualDate)}</span>
+        <div class="sales-row row-delivery-info">
+          <div class="sales-cell">
+            <span class="info-label">วันกำหนดส่ง:</span>
+            <span>${safeValue(data.scheduledDate)}</span>
+          </div>
+          <div class="sales-cell">
+            <span class="info-label">วันส่งจริง:</span>
+            <span>${safeValue(data.actualDate)}</span>
+          </div>
+          <div class="sales-cell">
+            <span class="info-label">วันพิมพ์:</span>
+            <span>${safeValue(data.printedDate)}</span>
+          </div>
         </div>
       </div>
-      ${data.customerAddress ? `
-      <div class="info-grid full" style="margin-top: 8px;">
-        <div class="info-item">
-          <span class="info-label">ที่อยู่จัดส่ง</span>
-          <span class="info-value">${safeValue(data.customerAddress)}</span>
-        </div>
-      </div>` : ""}
     </div>
 
-    <!-- Items table -->
-    <div class="section">
-      <div class="section-title">รายการสินค้าในการจัดส่งครั้งนี้</div>
-      <table>
+    <!-- ตารางสินค้า -->
+    <div class="product-table-wrap">
+      <table class="product-table">
         <thead>
           <tr>
-            <th style="width: 5%; text-align: center;">ลำดับ</th>
-            <th style="width: 40%; text-align: left; padding-left: 8px;">สินค้า</th>
-            <th style="width: 12%; text-align: center;">จำนวน</th>
-            <th style="width: 10%; text-align: center;">หน่วย</th>
-            <th style="width: 16%; text-align: right; padding-right: 8px;">ราคา/หน่วย</th>
-            <th style="width: 17%; text-align: right; padding-right: 8px;">รวม (บาท)</th>
+            <th style="width: 5%;">ลำดับ</th>
+            <th class="text-left" style="width: 40%;">สินค้า</th>
+            <th style="width: 12%;">จำนวน</th>
+            <th style="width: 10%;">หน่วย</th>
+            <th style="width: 16%;">ราคา/หน่วย</th>
+            <th style="width: 17%;">รวม (บาท)</th>
           </tr>
         </thead>
         <tbody>
           ${itemsHtml}
         </tbody>
-        <tfoot>
-          <tr style="background: #f5f3ff; border-top: 2px solid #7c3aed;">
-            <td colspan="5" style="padding: 8px; text-align: right; font-weight: 700; font-size: 12px; color: #4c1d95;">มูลค่ารวมในการจัดส่งครั้งนี้</td>
-            <td style="padding: 8px; text-align: right; font-weight: 800; font-size: 13px; color: #4c1d95; padding-right: 8px;">฿${formatCurrency(data.totalAmount)}</td>
-          </tr>
-        </tfoot>
       </table>
     </div>
 
-
-    ${data.notes ? `
-    <div class="notes-box">
-      <div class="notes-label">หมายเหตุ</div>
-      <div class="notes-text">${safeValue(data.notes)}</div>
-    </div>` : ""}
-
-    <!-- Signatures -->
-    <div class="footer-section" style="margin-top: 32px;">
-      <div class="signature-box">
-        <div class="signature-label">ผู้ส่งสินค้า</div>
-        <div class="signature-line"></div>
-        <div style="font-size: 10px; color: #6b7280;">( ................................... )</div>
-        <div style="font-size: 9px; color: #9ca3af; margin-top: 4px;">วันที่: .................................</div>
+    <!-- สรุปยอด -->
+    <div class="summary-wrap">
+      <div class="summary-box" style="margin-left: auto;">
+        <div class="summary-row grand-total">
+          <span>มูลค่ารวมในการจัดส่งครั้งนี้</span>
+          <span>฿${formatNumber(data.totalAmount)}</span>
+        </div>
       </div>
-      <div class="signature-box">
-        <div class="signature-label">ผู้รับสินค้า</div>
-        <div class="signature-line"></div>
-        <div style="font-size: 10px; color: #6b7280;">( ................................... )</div>
-        <div style="font-size: 9px; color: #9ca3af; margin-top: 4px;">วันที่: .................................</div>
+    </div>
+
+    ${data.notes
+      ? `
+    <div class="notes-section">
+      <span class="notes-label">หมายเหตุ:</span>
+      <span>${data.notes}</span>
+    </div>
+    `
+      : ""
+    }
+
+    <!-- ลายเซ็น -->
+    <div class="signature-section">
+      <div class="signature-card">
+        <div class="signature-title">ผู้ส่งสินค้า</div>
+        <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
+          <div class="dot-line" style="position: relative;"></div>
+        </div>
+        <div class="sign-row" style="position: relative; margin-top: 25px;">
+          <span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">
+            ( .................................................... )
+          </span>
+        </div>
+        <div class="sign-row" style="position: relative; margin-top: -5px;">
+          <span>วันที่</span>
+          <div class="dot-line" style="position: relative;"></div>
+        </div>
+      </div>
+
+      <div class="signature-card">
+        <div class="signature-title">ผู้รับสินค้า</div>
+        <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
+          <div class="dot-line" style="position: relative;"></div>
+        </div>
+        <div class="sign-row" style="position: relative; margin-top: 25px;">
+          <span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">
+            ( .................................................... )
+          </span>
+        </div>
+        <div class="sign-row" style="position: relative; margin-top: -5px;">
+          <span>วันที่</span>
+          <div class="dot-line" style="position: relative;"></div>
+        </div>
       </div>
     </div>
   </div>
