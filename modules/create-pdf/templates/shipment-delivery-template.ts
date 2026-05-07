@@ -2,35 +2,65 @@ import fs from "fs";
 import path from "path";
 
 export interface ShipmentDeliveryData {
-  // Sale info
-  saleNumber: string;
-  saleOrderRef?: string | null;
-  // Shipment info
   shipmentNumber: number;
-  scheduledDate: string;
-  actualDate: string;
-  shipmentStatus: string;
-  // Customer info
+  invoiceNumber: string;
+  saleOrderRef?: string;
+  status?: string;
+  date: string;
   customerName: string;
   customerCode?: string;
-  customerPhone?: string;
-  customerAddress?: string;
-  // Shipping info
+  customerPhone: string;
+  customerAddress: string;
+  billingAddress: string;
+
+  otherCostsDescription?: string;
+  deliveryMethod: string;
+  deliveryMethodRaw?: string;
+  shippingAddress: string;
+  receivingAddress: string;
   shippingCompanyName: string;
-  // Items
+  senderAddress: string;
+
+  paymentTerm: string;
+  deliveryDate: string;
+  requestedDeliveryDate?: string;
+  shippingCustomerAddressId?: string;
+  creditDueDate: string;
+  paymentDate: string;
+
   items: {
-    productCode: string;
-    productName: string;
+    code: string;
+    packageSizePerBox: number;
+    description: string;
     quantity: number;
     unit: string;
-    unitPrice: number;
-    totalPrice: number;
+    price: number;
+    cartonPrice: number;
+    total: number;
+    promotionBudget?: number;
   }[];
+  contactName: string;
+  subtotalAmount: number;
+  shippingDiscount: number;
+  billDiscount: number;
   totalAmount: number;
-  // Meta
-  notes?: string | null;
-  createdByName?: string;
-  printedDate: string;
+  promotionalBudgetTotal: number;
+  budgetDetails?: {
+    type: string;
+    amount: number;
+    description?: string;
+  }[];
+  title: string;
+  notes?: string;
+  signatureDate?: string; // Legacy field
+  signatureImage?: string; // Legacy field
+  preparedBySignatureDate?: string;
+  preparedBySignatureImage?: string;
+  checkedBySignatureDate?: string;
+  checkedBySignatureImage?: string;
+  approvedBySignatureDate?: string;
+  approvedBySignatureImage?: string;
+  approvedByName?: string;
 }
 
 function safeValue(value?: string | number | null) {
@@ -39,14 +69,126 @@ function safeValue(value?: string | number | null) {
   return text ? text : "-";
 }
 
-function formatCurrency(value: number): string {
-  return value.toLocaleString("th-TH", { minimumFractionDigits: 2 });
+function getImageBase64(url?: string | null): string {
+  if (!url) return "";
+  if (url.startsWith("data:image/")) return url;
+
+  try {
+    const relativePath = url.replace(/^\//, "");
+    const fullPath = path.join(process.cwd(), "public", relativePath);
+    if (fs.existsSync(fullPath)) {
+      const bitmap = fs.readFileSync(fullPath);
+      const ext = path.extname(fullPath).replace(".", "") || "png";
+      return `data:image/${ext};base64,${bitmap.toString("base64")}`;
+    }
+  } catch (err) {
+    console.error("Error reading image for PDF:", url, err);
+  }
+  return "";
 }
 
 function formatNumber(value?: number | null) {
   return Number(value || 0).toLocaleString("th-TH");
 }
 
+function renderDeliveryRows(data: ShipmentDeliveryData): string {
+  const hasPaymentDate = data.paymentDate && data.paymentDate !== "-";
+
+  let html = ``;
+
+  if (data.deliveryMethodRaw === "FACTORY_DELIVERY" || data.deliveryMethodRaw === "SALES_DELIVERY") {
+    html += `
+      <div class="sales-row two-cols">
+        <div class="sales-cell">
+          <span class="info-label">วิธีจัดส่ง:</span>
+          <span>${safeValue(data.deliveryMethod)}</span>
+        </div>
+        <div class="sales-cell">
+          <span class="info-label">ที่อยู่จัดส่งสินค้า:</span>
+          <span>${safeValue(data.shippingAddress)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  if (data.deliveryMethodRaw === "CUSTOMER_PICKUP") {
+    html += `
+      <div class="sales-row two-cols">
+        <div class="sales-cell">
+          <span class="info-label">วิธีจัดส่ง:</span>
+          <span>${safeValue(data.deliveryMethod)}</span>
+        </div>
+        <div class="sales-cell">
+          <span class="info-label">วันที่มารับสินค้า:</span>
+          <span>${safeValue(data.requestedDeliveryDate)}</span>
+        </div>
+      </div>
+      <div class="sales-row" style="grid-template-columns: 1fr;">
+        <div class="sales-cell">
+          <span class="info-label">สถานที่รับสินค้า:</span>
+          <span>${safeValue(data.receivingAddress)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  if (data.deliveryMethodRaw === "COURIER") {
+    html += `
+      <div class="sales-row two-cols">
+        <div class="sales-cell">
+          <span class="info-label">วิธีจัดส่ง:</span>
+          <span>${safeValue(data.deliveryMethod)}</span>
+        </div>
+        <div class="sales-cell">
+          <span class="info-label">ชื่อบริษัทขนส่ง:</span>
+          <span>${safeValue(data.shippingCompanyName)}</span>
+        </div>
+      </div>
+      <div class="sales-row" style="grid-template-columns: 1fr;">
+        <div class="sales-cell">
+          <span class="info-label">ที่อยู่บริษัทขนส่ง:</span>
+          <span>${safeValue(data.senderAddress)}</span>
+        </div>
+      </div>
+      <div class="sales-row" style="grid-template-columns: 1fr;">
+        <div class="sales-cell">
+          <span class="info-label">ที่อยู่จัดส่งสินค้า:</span>
+          <span>${safeValue(data.shippingAddress)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  html += `
+    <div class="sales-row row-delivery-info">
+        <div class="sales-cell">
+          <span class="info-label">วันที่จัดส่ง:</span>
+          <span>${safeValue(data.deliveryDate)}</span>
+        </div>
+        <div class="sales-cell">
+          <span class="info-label">ครบกำหนดชำระ:</span>
+          <span>${safeValue(data.creditDueDate)}</span>
+        </div>
+        <div class="sales-cell">
+          <span class="info-label">ผู้ขาย:</span>
+          <span>${safeValue(data.contactName)}</span>
+        </div>
+     </div>
+  `;
+
+  if (hasPaymentDate) {
+    html += `
+      <div class="sales-row row-payment-info">
+        <div class="sales-cell">
+          <span class="info-label">วันที่ชำระเงิน:</span>
+          <span>${safeValue(data.paymentDate)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  return html;
+}
 
 export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): string {
   const logoPath = path.join(process.cwd(), "public", "images", "logo_pdf.png");
@@ -69,23 +211,40 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
     cssContent = fs.readFileSync(cssPath, "utf-8");
   }
 
+  const documentNumber =
+    data.saleOrderRef != null
+      ? safeValue(data.saleOrderRef || data.invoiceNumber)
+      : safeValue(data.invoiceNumber);
+
+  const title =
+    data.saleOrderRef != null
+      ? "เลขที่คำสั่งขาย"
+      : "เลขที่ออเดอร์";
   const itemsHtml = data.items
     .map(
       (item, index) => `
         <tr>
           <td class="text-center">${index + 1}</td>
           <td class="text-left">
-            <div style="font-weight: 600;">${safeValue(item.productCode)}</div>
-            <div style="font-size: 10px; color: #6b7280;">${safeValue(item.productName)}</div>
+            <div>${safeValue(item.description)}</div>
+            ${item.promotionBudget && item.promotionBudget > 0
+          ? `<div style="font-size: 8px; color: #059669;">งบส่งเสริมการขาย: ฿${formatNumber(item.promotionBudget)} / ลัง (รวม ฿${formatNumber(item.promotionBudget * item.quantity)})</div>`
+          : ""
+        }
           </td>
           <td class="text-center">${formatNumber(item.quantity)}</td>
           <td class="text-center">${safeValue(item.unit)}</td>
-          <td class="text-center">${formatNumber(item.unitPrice)}</td>
-          <td class="text-center total-cell">${formatNumber(item.totalPrice)}</td>
+          <td class="text-center">${formatNumber(item.packageSizePerBox)}</td>
+          <td class="text-center">${formatNumber(item.price)}</td>
+          <td class="text-center">${formatNumber(item.cartonPrice)}</td>
+          <td class="text-center total-cell">${formatNumber(item.total)}</td>
         </tr>
       `,
     )
     .join("");
+
+  const preparedSign = getImageBase64(data.preparedBySignatureImage || data.signatureImage);
+  const approvedSign = getImageBase64(data.approvedBySignatureImage);
 
   return `
 <!DOCTYPE html>
@@ -93,8 +252,9 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ใบจัดส่งสินค้า - ${safeValue(data.saleNumber)} ครั้งที่ ${data.shipmentNumber}</title>
+  <title>${safeValue(data.title)} - ${safeValue(data.invoiceNumber)}</title>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
   <style>
     ${cssContent}
   </style>
@@ -113,11 +273,15 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
       </div>
 
       <div class="doc-meta">
-        <p class="doc-title-th">ใบจัดส่งสินค้า</p>
+        <p class="doc-title-th">${safeValue(data.title)}</p>
         <p class="doc-title-en">DELIVERY NOTE</p>
+        <div class="doc-no-box" style="margin-bottom: 4px;">
+          <span class="label">การจัดส่งครั้งที่:</span>
+          <span class="value">${data.shipmentNumber}</span>
+        </div>
         <div class="doc-no-box">
-          <span class="label">เลขที่ออเดอร์:</span>
-          <span class="value">${safeValue(data.saleOrderRef || data.saleNumber)}</span>
+          <span class="label">${title}:</span>
+          <span class="value">${documentNumber ?? "-"}</span>
         </div>
       </div>
     </div>
@@ -130,7 +294,7 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
       <div class="section-box">
         <div class="info-row">
           <div class="info-col" style="flex: 2;">
-            <span class="info-label">ชื่อลูกค้า</span>
+            <span class="info-label">ชื่อบริษัท</span>
             <span>${safeValue(data.customerName)}</span>
           </div>
           <div class="info-col no-border" style="flex: 2; display: flex; gap: 24px;">
@@ -147,45 +311,41 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
 
         <div class="info-row">
           <div class="info-col full">
-            <span class="info-label">ที่อยู่จัดส่ง</span>
+            <span class="info-label">ที่อยู่บริษัท</span>
             <span>${safeValue(data.customerAddress)}</span>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-col full">
+            <span class="info-label">ที่อยู่วางบิล</span>
+            <span>${safeValue(data.billingAddress)}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ข้อมูลการจัดส่ง -->
+    <!-- ข้อมูลการขาย -->
     <div class="section">
-      <div class="section-title">ข้อมูลการจัดส่ง</div>
+      <div class="section-title">ข้อมูลการขาย</div>
       <div class="sales-grid">
         <div class="sales-row row-order-info">
           <div class="sales-cell">
-            <span class="info-label">การจัดส่งครั้งที่:</span>
-            <span>${data.shipmentNumber}</span>
+            <span class="info-label">วันที่ออเดอร์:</span>
+            <span>${safeValue(data.date)}</span>
           </div>
+          ${data.saleOrderRef != null ? `
           <div class="sales-cell">
-            <span class="info-label">บริษัทขนส่ง:</span>
-            <span>${safeValue(data.shippingCompanyName)}</span>
+            <span class="info-label">เลขที่ออเดอร์:</span>
+            <span>${safeValue(data.invoiceNumber)}</span>
           </div>
-          <div class="sales-cell">
-            <span class="info-label">สถานะ:</span>
-            <span>${safeValue(data.shipmentStatus)}</span>
+          ` : ""}
+          <div class="sales-cell" ${data.saleOrderRef == null ? 'style="grid-column: span 2;"' : ""}>
+            <span class="info-label">เงื่อนไขการชำระเงิน:</span>
+            <span>${safeValue(data.paymentTerm)}</span>
           </div>
         </div>
-        <div class="sales-row row-delivery-info">
-          <div class="sales-cell">
-            <span class="info-label">วันกำหนดส่ง:</span>
-            <span>${safeValue(data.scheduledDate)}</span>
-          </div>
-          <div class="sales-cell">
-            <span class="info-label">วันส่งจริง:</span>
-            <span>${safeValue(data.actualDate)}</span>
-          </div>
-          <div class="sales-cell">
-            <span class="info-label">วันพิมพ์:</span>
-            <span>${safeValue(data.printedDate)}</span>
-          </div>
-        </div>
+        ${renderDeliveryRows(data)}
       </div>
     </div>
 
@@ -194,12 +354,14 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
       <table class="product-table">
         <thead>
           <tr>
-            <th style="width: 5%;">ลำดับ</th>
-            <th class="text-left" style="width: 40%;">สินค้า</th>
-            <th style="width: 12%;">จำนวน</th>
-            <th style="width: 10%;">หน่วย</th>
-            <th style="width: 16%;">ราคา/หน่วย</th>
-            <th style="width: 17%;">รวม (บาท)</th>
+            <th style="width: 4%;">ลำดับ</th>
+            <th class="text-left" style="width: 35%;">รายละเอียดสินค้า</th>
+            <th style="width: 10%;">จำนวน</th>
+            <th style="width: 8%;">หน่วย</th>
+            <th style="width: 5%;">บรรจุ</th>
+            <th style="width: 12%;">ราคา/หน่วย</th>
+            <th style="width: 11%;">ราคา/ลัง</th>
+            <th style="width: 15%;">ราคารวม</th>
           </tr>
         </thead>
         <tbody>
@@ -210,10 +372,40 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
 
     <!-- สรุปยอด -->
     <div class="summary-wrap">
-      <div class="summary-box" style="margin-left: auto;">
+      <div class="promotional-budget-summary">
+        ${data.promotionalBudgetTotal > 0 ? `งบส่งเสริมการขายรวม: ${formatNumber(data.promotionalBudgetTotal)} THB` : ""}
+      </div>
+      <div class="summary-box">
+        <div class="summary-row">
+          <span>รวมเป็นเงิน</span>
+          <span>${formatNumber(data.subtotalAmount)} THB</span>
+        </div>
+
+
+
+        ${data.shippingDiscount > 0
+      ? `
+          <div class="summary-row">
+            <span>ส่วนลดค่าขนส่ง</span>
+            <span style="color: red;">-${formatNumber(data.shippingDiscount)} THB</span>
+          </div>
+        `
+      : ""
+    }
+
+        ${data.billDiscount > 0
+      ? `
+          <div class="summary-row">
+            <span>ส่วนลดหน้าบิล</span>
+            <span style="color: red;">-${formatNumber(data.billDiscount)} THB</span>
+          </div>
+        `
+      : ""
+    }
+
         <div class="summary-row grand-total">
-          <span>มูลค่ารวมในการจัดส่งครั้งนี้</span>
-          <span>฿${formatNumber(data.totalAmount)}</span>
+          <span>ยอดรวมทั้งสิ้น</span>
+          <span>${formatNumber(data.totalAmount)} THB</span>
         </div>
       </div>
     </div>
@@ -228,37 +420,73 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
       : ""
     }
 
+    ${data.budgetDetails && data.budgetDetails.length > 0
+      ? `
+    <div class="notes-section">
+      <span class="notes-label">งบส่งเสริมการขาย:</span>
+      <div style="margin-left: 20px;">
+        ${data.budgetDetails.map(budget => `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span>${budget.type === 'SALES_PROMOTION' ? 'งบส่งเสริมการขาย (ระบุช่องเก็บ)' : 'งบส่งเสริมการตลาด (ระบุช่องเก็บ)'} 
+              ${budget.description ? ` - ${budget.description}` : ''}
+            </span>
+            <span style="font-weight: 600;">฿${formatNumber(budget.amount)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    `
+      : ""
+    }
+    
+    ${data.otherCostsDescription
+      ? `
+    <div class="notes-section">
+      <span class="notes-label">รายละเอียดส่วนลดหน้าบิล:</span>
+      <span>${data.otherCostsDescription}</span>
+    </div>
+    `
+      : ""
+    }
+
     <!-- ลายเซ็น -->
     <div class="signature-section">
       <div class="signature-card">
-        <div class="signature-title">ผู้ส่งสินค้า</div>
+        <div class="signature-title">พนักงานขาย</div>
         <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
-          <div class="dot-line" style="position: relative;"></div>
+          <div class="dot-line" style="position: relative;">
+            ${preparedSign ? `<img src="${preparedSign}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
+          </div>
         </div>
-        <div class="sign-row" style="position: relative; margin-top: 25px;">
-          <span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">
-            ( .................................................... )
-          </span>
-        </div>
+          <div class="sign-row" style="position: relative; margin-top: 25px;">
+            <span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">
+            ( ${safeValue(data.contactName)} )
+            </span>
+          </div>
         <div class="sign-row" style="position: relative; margin-top: -5px;">
           <span>วันที่</span>
-          <div class="dot-line" style="position: relative;"></div>
+          <div class="dot-line" style="position: relative;">
+            ${data.preparedBySignatureDate ? `<span style="position: absolute; bottom: 2px; left: 45%; transform: translateX(-50%); white-space: nowrap;">${data.preparedBySignatureDate}</span>` : ""}
+          </div>
         </div>
       </div>
-
       <div class="signature-card">
-        <div class="signature-title">ผู้รับสินค้า</div>
+        <div class="signature-title">ผจก.แผนกบริหารงานขาย</div>
         <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
-          <div class="dot-line" style="position: relative;"></div>
+          <div class="dot-line" style="position: relative;">
+            ${approvedSign ? `<img src="${approvedSign}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
+          </div>
         </div>
         <div class="sign-row" style="position: relative; margin-top: 25px;">
           <span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">
-            ( .................................................... )
+            ${data.approvedByName && data.approvedByName !== "-" ? `( ${data.approvedByName} )` : ""}
           </span>
         </div>
         <div class="sign-row" style="position: relative; margin-top: -5px;">
           <span>วันที่</span>
-          <div class="dot-line" style="position: relative;"></div>
+          <div class="dot-line" style="position: relative;">
+            ${data.approvedBySignatureDate && data.approvedBySignatureDate !== "-" ? `<span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">${data.approvedBySignatureDate}</span>` : ""}
+          </div>
         </div>
       </div>
     </div>

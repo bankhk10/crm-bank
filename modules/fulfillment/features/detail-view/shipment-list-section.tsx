@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { toast } from "sonner";
+import Link from "next/link";
 import {
   Package,
   Truck,
@@ -12,6 +13,7 @@ import {
   Clock,
   FileDown,
   ArrowRight,
+  LayoutList,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -311,16 +313,30 @@ function ShipmentCard({
               ยืนยันส่งเสร็จแล้ว
             </Button>
           )}
-          <Button
-            size="sm"
-            variant="ghost"
-            className="ml-auto h-7 gap-1.5 text-xs"
-            disabled={isPending}
-            onClick={handleDownloadPdf}
-          >
-            <FileDown className="h-3 w-3" />
-            PDF ใบจัดส่ง
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 gap-1.5 border-purple-200 text-purple-700 hover:bg-purple-50 text-xs"
+              disabled={isPending}
+              asChild
+            >
+              <Link href={`/fulfillment/shipments/${shipment.id}/detail?saleId=${shipment.saleId}`}>
+                <LayoutList className="h-3 w-3" />
+                ดูรายละเอียด
+              </Link>
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 gap-1.5 text-xs"
+              disabled={isPending}
+              onClick={handleDownloadPdf}
+            >
+              <FileDown className="h-3 w-3" />
+              PDF ใบจัดส่ง
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

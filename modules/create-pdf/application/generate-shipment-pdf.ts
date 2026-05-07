@@ -20,11 +20,14 @@ function safeFormatDate(d: Date | string | null | undefined, fmt = "d MMMM yyyy"
   }
 }
 
-const SHIPMENT_STATUS_LABEL: Record<string, string> = {
-  PENDING: "รอดำเนินการ",
-  IN_TRANSIT: "ระหว่างขนส่ง",
-  DELIVERED: "ส่งเสร็จแล้ว",
-  CANCELLED: "ยกเลิก",
+import { findSaleById } from "@/modules/sales/infrastructure/sale.repository";
+import { PaymentTermLabels } from "@/modules/sales/types";
+
+const DELIVERY_METHOD_MAP: Record<string, string> = {
+  SALES_DELIVERY: "พนักงานขายจัดส่งสินค้า",
+  FACTORY_DELIVERY: "ส่งโดยรถโรงงาน",
+  CUSTOMER_PICKUP: "ลูกค้ามารับสินค้าเอง",
+  COURIER: "ส่งโดยบริษัทขนส่ง",
 };
 
 /**
@@ -33,45 +36,20 @@ const SHIPMENT_STATUS_LABEL: Record<string, string> = {
 export async function createShipmentDeliveryNotePdf(
   shipmentId: string,
 ): Promise<Buffer> {
-  // ดึงข้อมูล Shipment พร้อม relations ที่ต้องการ
   const shipment = await db.shipment.findUnique({
     where: { id: shipmentId },
     include: {
       items: {
         include: {
           saleItem: {
-            select: {
-              id: true,
-              productCode: true,
-              name: true,
-              unit: true,
-              quantity: true,
-            },
+            include: {
+              product: true,
+            }
           },
         },
       },
       shippingCompany: {
         select: { id: true, name: true, phone: true },
-      },
-      sale: {
-        select: {
-          id: true,
-          saleNumber: true,
-          saleOrderRef: true,
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              customerCode: true,
-              phone: true,
-              addressLine: true,
-              subdistrict: true,
-              district: true,
-              province: true,
-              postalCode: true,
-            },
-          },
-        },
       },
     },
   });
@@ -80,29 +58,93 @@ export async function createShipmentDeliveryNotePdf(
     throw new Error(`Shipment ${shipmentId} not found`);
   }
 
-  const { sale } = shipment;
-  const customer = sale.customer;
+  const sale = await findSaleById(shipment.saleId);
+  if (!sale) {
+    throw new Error(`Sale ${shipment.saleId} not found`);
+  }
 
-  const customerAddress = formatAddress({
-    addressLine: customer?.addressLine,
-    subdistrict: customer?.subdistrict,
-    district: customer?.district,
-    province: customer?.province,
-    postalCode: customer?.postalCode,
+  const sa = sale.saleAddress || {} as any;
+
+  const customerAddress = sa.address_line
+    ? formatAddress({
+      addressLine: sa.address_line,
+      subdistrict: sa.address_subdistrict,
+      district: sa.address_district,
+      province: sa.address_province,
+      postalCode: sa.address_code,
+    })
+    : formatAddress({
+      addressLine: sale.customer?.addressLine,
+      subdistrict: sale.customer?.subdistrict,
+      district: sale.customer?.district,
+      province: sale.customer?.province,
+      postalCode: sale.customer?.postalCode,
+    });
+
+  const billingAddress = sa.billing_address_line
+    ? formatAddress({
+      addressLine: sa.billing_address_line,
+      subdistrict: sa.billing_subdistrict,
+      district: sa.billing_district,
+      province: sa.billing_province,
+      postalCode: sa.billing_postal_code,
+    })
+    : customerAddress;
+
+  const shippingAddress = formatAddress({
+    addressLine: sa.shipping_address_line,
+    subdistrict: sa.shipping_subdistrict,
+    district: sa.shipping_district,
+    province: sa.shipping_province,
+    postalCode: sa.shipping_postal_code,
   });
 
-  const deliveryData: ShipmentDeliveryData = {
-    saleNumber: sale.saleNumber || "-",
+  const receivingAddress = formatAddress({
+    addressLine: sa.receiving_address_line,
+    subdistrict: sa.receiving_subdistrict,
+    district: sa.receiving_district,
+    province: sa.receiving_province,
+    postalCode: sa.receiving_postal_code,
+  });
+
+  const senderAddress = formatAddress({
+    addressLine: sa.sender_line,
+    subdistrict: sa.sender_subdistrict,
+    district: sa.sender_district,
+    province: sa.sender_province,
+    postalCode: sa.sender_postal_code,
+  });
+
+  const deliveryData: any = {
+    invoiceNumber: sale.saleNumber || "-",
     saleOrderRef: sale.saleOrderRef,
     shipmentNumber: shipment.shipmentNumber,
-    scheduledDate: safeFormatDate(shipment.scheduledDate),
-    actualDate: safeFormatDate(shipment.actualDate),
-    shipmentStatus: SHIPMENT_STATUS_LABEL[shipment.status] || shipment.status,
-    customerName: customer?.name || "-",
-    customerCode: customer?.customerCode || "-",
-    customerPhone: customer?.phone || "-",
+    date: safeFormatDate(sale.saleDate, "d MMMM yyyy"),
+    customerName: sa.company_name || sale.customer?.name || "-",
+    customerCode: sale.customer?.customerCode || "-",
+    customerPhone: sa.company_phone || sale.customer?.phone || "-",
     customerAddress: customerAddress || "-",
-    shippingCompanyName: shipment.shippingCompany?.name || "-",
+    billingAddress: billingAddress || "-",
+
+    deliveryMethod:
+      DELIVERY_METHOD_MAP[sale.deliveryMethod as string] || sale.deliveryMethod || "-",
+    deliveryMethodRaw: sale.deliveryMethod || "-",
+    shippingAddress: shippingAddress || "-",
+    receivingAddress: receivingAddress || "-",
+    shippingCompanyName: shipment.shippingCompany?.name || sa.sender_name || "-",
+    senderAddress: senderAddress || "-",
+    requestedDeliveryDate: safeFormatDate(sale.requestedDeliveryDate, "d MMMM yyyy"),
+    shippingCustomerAddressId: sa.shippingCustomerAddressId || "-",
+
+    paymentTerm:
+      PaymentTermLabels[sale.paymentTerm as keyof typeof PaymentTermLabels] ||
+      sale.paymentTerm ||
+      "-",
+    deliveryDate: safeFormatDate(shipment.actualDate || shipment.scheduledDate || sale.deliveryDate, "d MMMM yyyy"),
+    creditDueDate: safeFormatDate(sale.creditDueDate, "d MMMM yyyy"),
+    paymentDate: safeFormatDate(sale.paymentDate, "d MMMM yyyy"),
+
+    contactName: sale.employee?.name || "-",
     items: shipment.items.map((si) => ({
       productCode: si.saleItem.productCode || "-",
       productName: si.saleItem.name || "-",
@@ -111,12 +153,25 @@ export async function createShipmentDeliveryNotePdf(
       unitPrice: Number(si.unitPrice ?? 0),
       totalPrice: Number(si.totalPrice ?? 0),
     })),
+    subtotalAmount: Number(shipment.totalAmount ?? 0), // Use shipment's total
+    shippingDiscount: 0, // usually not tracked per shipment
+    billDiscount: 0, // usually not tracked per shipment
+    otherCostsDescription: null,
     totalAmount: Number(shipment.totalAmount ?? 0),
+    promotionalBudgetTotal: 0, // Usually budget is sale-level
+    budgetDetails: [],
+    title: "ใบจัดส่งสินค้า",
+    status: shipment.status,
     notes: shipment.notes,
-    printedDate: safeFormatDate(new Date()),
+    preparedBySignatureDate: safeFormatDate(sale.preparedBySignatureDate, "d MMMM yyyy"),
+    preparedBySignatureImage: sale.preparedBySignatureImage,
+    checkedBySignatureDate: safeFormatDate(sale.checkedBySignatureDate, "d MMMM yyyy"),
+    checkedBySignatureImage: sale.checkedBySignatureImage,
+    approvedBySignatureDate: safeFormatDate(sale.approvedBySignatureDate, "d MMMM yyyy"),
+    approvedBySignatureImage: sale.approvedBySignatureImage,
+    approvedByName: sale.approvedBy?.name || "-",
   };
 
-
-  const html = renderShipmentDeliveryTemplate(deliveryData);
+  const html = renderShipmentDeliveryTemplate(deliveryData as unknown as ShipmentDeliveryData);
   return generatePdfFromHtml(html);
 }

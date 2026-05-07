@@ -1,16 +1,21 @@
 import { NextResponse, NextRequest } from "next/server";
 import { createPdfFromSaleData, createSpecialPdfFromSaleData } from "@/modules/create-pdf/application/generate-pdf";
+import { createShipmentDeliveryNotePdf } from "@/modules/create-pdf/application/generate-shipment-pdf";
 import { getSaleAction } from "@/modules/sales/server/actions";
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const saleId = searchParams.get("saleId");
+    const shipmentId = searchParams.get("shipmentId");
 
     let pdfBuffer: Buffer;
-    let filename = "sample-invoice.pdf";
+    let filename = "document.pdf";
 
-    if (saleId) {
+    if (shipmentId) {
+      pdfBuffer = await createShipmentDeliveryNotePdf(shipmentId);
+      filename = `shipment-${shipmentId}.pdf`;
+    } else if (saleId) {
       // ดึงข้อมูลจริงจากระบบ
       const saleResult = await getSaleAction(saleId);
       if (!saleResult.success || !saleResult.sale) {
