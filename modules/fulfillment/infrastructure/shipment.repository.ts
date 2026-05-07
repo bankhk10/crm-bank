@@ -256,8 +256,8 @@ export const ShipmentRepository = {
         ...(data.salesOrderNumber !== undefined && { salesOrderNumber: data.salesOrderNumber }),
         ...(data.shippingCompanyId !== undefined && { shippingCompanyId: data.shippingCompanyId }),
         ...(data.notes !== undefined && { notes: data.notes }),
-        ...(data.shippingDiscount !== undefined && { shippingDiscount: data.shippingDiscount }),
-        ...(data.billDiscount !== undefined && { billDiscount: data.billDiscount }),
+        ...(data.shippingDiscount !== undefined && { shippingDiscount: data.shippingDiscount ?? 0 }),
+        ...(data.billDiscount !== undefined && { billDiscount: data.billDiscount ?? 0 }),
         ...totalAmountUpdate,
       },
       include: {
