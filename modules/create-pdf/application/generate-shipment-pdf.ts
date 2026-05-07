@@ -140,8 +140,8 @@ export async function createShipmentDeliveryNotePdf(
       PaymentTermLabels[sale.paymentTerm as keyof typeof PaymentTermLabels] ||
       sale.paymentTerm ||
       "-",
-    deliveryDate: safeFormatDate(shipment.actualDate || shipment.scheduledDate || sale.deliveryDate, "d MMMM yyyy"),
-    creditDueDate: safeFormatDate(sale.creditDueDate, "d MMMM yyyy"),
+    deliveryDate: safeFormatDate(shipment.scheduledDate || sale.deliveryDate, "d MMMM yyyy"),
+    dueDate: safeFormatDate(shipment.dueDate, "d MMMM yyyy"),
     paymentDate: safeFormatDate(sale.paymentDate, "d MMMM yyyy"),
 
     contactName: sale.employee?.name || "-",

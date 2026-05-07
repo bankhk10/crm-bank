@@ -25,7 +25,7 @@ export interface ShipmentDeliveryData {
   deliveryDate: string;
   requestedDeliveryDate?: string;
   shippingCustomerAddressId?: string;
-  creditDueDate: string;
+  dueDate: string;
   paymentDate: string;
 
   items: {
@@ -167,7 +167,7 @@ function renderDeliveryRows(data: ShipmentDeliveryData): string {
         </div>
         <div class="sales-cell">
           <span class="info-label">ครบกำหนดชำระ:</span>
-          <span>${safeValue(data.creditDueDate)}</span>
+          <span>${safeValue(data.dueDate)}</span>
         </div>
         <div class="sales-cell">
           <span class="info-label">ผู้ขาย:</span>
