@@ -215,8 +215,9 @@ export async function confirmStockDeductionUseCase(
       }
 
       if (deductedFromLots < requestedQty) {
+        const productName = (item as any).name || item.productId;
         throw new Error(
-          `Insufficient stock. Requested ${requestedQty}, but only ${deductedFromLots} available for product ${item.productId}`
+          `สินค้าในคลังไม่พอ: สินค้า '${productName}' ต้องการ ${requestedQty} แต่มีพร้อมส่งเพียง ${deductedFromLots}`
         );
       }
 
@@ -501,9 +502,9 @@ export async function confirmStockDeductionForShipmentUseCase(
       }
 
       if (deductedFromLots < requestedQty) {
+        const productName = (shipmentItem.saleItem as any).name || productId;
         throw new Error(
-          `Insufficient stock for partial shipment. Requested ${requestedQty}, ` +
-            `but only ${deductedFromLots} available for product ${productId}`,
+          `สินค้าในคลังไม่พอสำหรับการจัดส่งบางส่วน: สินค้า '${productName}' ต้องการ ${requestedQty} แต่มีพร้อมส่งเพียง ${deductedFromLots}`
         );
       }
 
