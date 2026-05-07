@@ -161,10 +161,10 @@ export async function createShipmentDeliveryNotePdf(
         promotionBudget: Number(si.saleItem.promotionBudget || 0),
       };
     }),
-    subtotalAmount: Number(shipment.totalAmount ?? 0), // Use shipment's total
-    shippingDiscount: 0, // usually not tracked per shipment
-    billDiscount: 0, // usually not tracked per shipment
-    otherCostsDescription: null,
+    subtotalAmount: shipment.items.reduce((sum, si) => sum + Number(si.totalPrice ?? 0), 0),
+    shippingDiscount: Number(shipment.shippingDiscount ?? 0),
+    billDiscount: Number(shipment.billDiscount ?? 0),
+    otherCostsDescription: sale.otherCostsDescription,
     totalAmount: Number(shipment.totalAmount ?? 0),
     promotionalBudgetTotal: shipment.items.reduce((sum, si) => {
       return sum + (Number(si.quantity || 0) * Number(si.saleItem.promotionBudget || 0));
