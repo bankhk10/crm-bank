@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Eye, ClipboardList } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "../../ui/fulfillment-status-badge";
 import { ActionButton } from "@/components/custom/action-button";
 import { TruncatedCell } from "@/components/custom/truncated-cell";
@@ -16,7 +17,7 @@ export function useFulfillmentColumns() {
             {
                 accessorKey: "saleNumber",
                 header: "เลขที่ออเดอร์",
-                meta: { width: 140 },
+                meta: { width: 120 },
                 cell: (info) => (
                     <span className="font-medium text-slate-700">
                         {info.getValue() as string}
@@ -24,14 +25,41 @@ export function useFulfillmentColumns() {
                 ),
             },
             {
-                accessorKey: "saleOrderRef",
+                id: "saleOrderRefCombined",
                 header: "เลขที่คำสั่งขาย",
-                meta: { width: 140 },
-                cell: (info) => (
-                    <span className="font-medium text-slate-700">
-                        {info.getValue() as string}
-                    </span>
-                ),
+                meta: { width: 120 },
+                cell: ({ row }) => {
+                    const saleOrderRef = row.original.saleOrderRef;
+                    const shipments = row.original.shipments || [];
+                    const shipmentSoNumbers = shipments
+                        .map((s) => s.salesOrderNumber)
+                        .filter(Boolean) as string[];
+
+                    if (!saleOrderRef && shipmentSoNumbers.length === 0) return "-";
+
+                    return (
+                        <div className="flex flex-col gap-1 py-1">
+                            {saleOrderRef && (
+                                <div className="truncate max-w-[120px]" title={saleOrderRef}>
+                                    {saleOrderRef}
+                                </div>
+                            )}
+                            {shipmentSoNumbers.length > 0 && (
+                                <div className="flex flex-wrap gap-1 max-w-[150px]">
+                                    {shipmentSoNumbers.map((num, idx) => (
+                                        <Badge
+                                            key={idx}
+                                            variant="outline"
+                                            className="px-3 py-2 h-4 font-normal bg-slate-50/50 text-slate-800 border-slate-200"
+                                        >
+                                            {num}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    );
+                },
             },
             {
                 accessorKey: "saleDate",
