@@ -653,9 +653,7 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
                       >
                         {isVisible && <CheckCircle2 className="w-2.5 h-2.5 text-purple-600" />}
                       </span>
-                      {group.group === 'A : สินค้าขายดี' && 'A'}
-                      {group.group === 'B : สินค้ารอง' && 'B'}
-                      {group.group === 'C : สินค้าตามฤดูกาล' && 'C'}
+                      {group.group}
                     </button>
                   );
                 })}
