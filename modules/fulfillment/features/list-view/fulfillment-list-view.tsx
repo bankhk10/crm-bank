@@ -12,13 +12,21 @@ import { FulfillmentTable } from "./fulfillment-table";
 import type { SaleRecord } from "../../types/types";
 
 const FULFILLMENT_STATUSES = [
+  "PENDING",
+  "PENDING_APPROVAL",
   "APPROVED",
+  "REJECTED",
   "AWAITING_PAYMENT",
   "PAID",
   "AWAITING_DELIVERY",
-  "PARTIALLY_DELIVERED",
   "DELIVERED",
   "DELIVERY_COMPLETED",
+  "PARTIALLY_DELIVERED",
+  "EXPIRED",
+  "OVERDUE",
+  "WAITING_FOR_CORRECTION",
+  "CANCELLED",
+  "COMPLETED",
 ];
 
 export default function FulfillmentPage() {
@@ -39,7 +47,7 @@ export default function FulfillmentPage() {
     query: "",
   });
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [statusFilter, setStatusFilter] = useState<string>("APPROVED");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
   useEffect(() => {
     const isExtendingEmpty =

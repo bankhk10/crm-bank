@@ -46,13 +46,21 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
 
     const FULFILLMENT_STATUS_OPTIONS = [
         { value: "ALL", label: "ทั้งหมด" },
+        { value: "PENDING", label: STATUS_STYLE.PENDING.label },
+        { value: "PENDING_APPROVAL", label: STATUS_STYLE.PENDING_APPROVAL.label },
         { value: "APPROVED", label: STATUS_STYLE.APPROVED.label },
+        { value: "REJECTED", label: STATUS_STYLE.REJECTED.label },
         { value: "AWAITING_PAYMENT", label: STATUS_STYLE.AWAITING_PAYMENT.label },
         { value: "PAID", label: STATUS_STYLE.PAID.label },
         { value: "AWAITING_DELIVERY", label: STATUS_STYLE.AWAITING_DELIVERY.label },
         { value: "PARTIALLY_DELIVERED", label: STATUS_STYLE.PARTIALLY_DELIVERED.label },
         { value: "DELIVERED", label: STATUS_STYLE.DELIVERED.label },
         { value: "DELIVERY_COMPLETED", label: STATUS_STYLE.DELIVERY_COMPLETED.label },
+        { value: "EXPIRED", label: STATUS_STYLE.EXPIRED.label },
+        { value: "OVERDUE", label: STATUS_STYLE.OVERDUE.label },
+        { value: "WAITING_FOR_CORRECTION", label: STATUS_STYLE.WAITING_FOR_CORRECTION.label },
+        { value: "CANCELLED", label: STATUS_STYLE.CANCELLED.label },
+        { value: "COMPLETED", label: STATUS_STYLE.COMPLETED.label },
     ];
 
     const toolbar = (
