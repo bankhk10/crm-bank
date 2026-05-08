@@ -46,7 +46,7 @@ export default function FulfillmentPage() {
     query: "",
   });
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("APPROVED");
 
   useEffect(() => {
     const isExtendingEmpty =
