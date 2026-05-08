@@ -34,7 +34,7 @@ export function useSaleColumns(
                 accessorKey: "saleNumber",
                 header: "เลขที่ออเดอร์",
                 cell: (info) => <TruncatedCell value={info.getValue() as string} />,
-                meta: { minWidth: 130, width: 130, maxWidth: 130, align: "left" },
+                meta: { minWidth: 120, width: 120, maxWidth: 120, align: "left" },
             },
             {
                 id: "saleOrderRefCombined",
@@ -51,7 +51,7 @@ export function useSaleColumns(
                     return (
                         <div className="flex flex-col gap-1 py-1">
                             {saleOrderRef && (
-                                <div className="text-xs font-medium text-slate-700 truncate max-w-[140px]" title={saleOrderRef}>
+                                <div className="truncate max-w-[120px]" title={saleOrderRef}>
                                     {saleOrderRef}
                                 </div>
                             )}
@@ -61,7 +61,7 @@ export function useSaleColumns(
                                         <Badge
                                             key={idx}
                                             variant="outline"
-                                            className="text-[10px] px-1 py-0 h-4 font-normal bg-slate-50/50 text-slate-500 border-slate-200"
+                                            className="px-3 py-2 h-4 font-normal bg-slate-50/50 text-slate-800 border-slate-200"
                                         >
                                             {num}
                                         </Badge>
@@ -71,7 +71,7 @@ export function useSaleColumns(
                         </div>
                     );
                 },
-                meta: { minWidth: 160, width: 160, maxWidth: 200, align: "left" },
+                meta: { minWidth: 120, width: 120, maxWidth: 150, align: "left" },
             },
             {
                 accessorKey: "customer.name",
