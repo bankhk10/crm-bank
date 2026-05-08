@@ -37,37 +37,41 @@ export function useSaleColumns(
                 meta: { minWidth: 130, width: 130, maxWidth: 130, align: "left" },
             },
             {
-                accessorKey: "saleOrderRef",
+                id: "saleOrderRefCombined",
                 header: "เลขที่คำสั่งขาย",
-                cell: (info) => <TruncatedCell value={info.getValue() as string} />,
-                meta: { minWidth: 130, width: 130, maxWidth: 130, align: "left" },
-            },
-            {
-                id: "shipmentSalesOrderNumbers",
-                header: "เลขที่คำสั่งขาย (จัดส่ง)",
                 cell: ({ row }) => {
+                    const saleOrderRef = row.original.saleOrderRef;
                     const shipments = row.original.shipments || [];
-                    const soNumbers = shipments
+                    const shipmentSoNumbers = shipments
                         .map((s) => s.salesOrderNumber)
                         .filter(Boolean) as string[];
 
-                    if (soNumbers.length === 0) return "-";
+                    if (!saleOrderRef && shipmentSoNumbers.length === 0) return "-";
 
                     return (
-                        <div className="flex flex-wrap gap-1 max-w-[150px]">
-                            {soNumbers.map((num, idx) => (
-                                <Badge
-                                    key={idx}
-                                    variant="secondary"
-                                    className="text-[10px] px-1 py-0 h-4 font-normal"
-                                >
-                                    {num}
-                                </Badge>
-                            ))}
+                        <div className="flex flex-col gap-1 py-1">
+                            {saleOrderRef && (
+                                <div className="text-xs font-medium text-slate-700 truncate max-w-[140px]" title={saleOrderRef}>
+                                    {saleOrderRef}
+                                </div>
+                            )}
+                            {shipmentSoNumbers.length > 0 && (
+                                <div className="flex flex-wrap gap-1 max-w-[150px]">
+                                    {shipmentSoNumbers.map((num, idx) => (
+                                        <Badge
+                                            key={idx}
+                                            variant="outline"
+                                            className="text-[10px] px-1 py-0 h-4 font-normal bg-slate-50/50 text-slate-500 border-slate-200"
+                                        >
+                                            {num}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     );
                 },
-                meta: { minWidth: 150, width: 150, maxWidth: 200, align: "left" },
+                meta: { minWidth: 160, width: 160, maxWidth: 200, align: "left" },
             },
             {
                 accessorKey: "customer.name",
