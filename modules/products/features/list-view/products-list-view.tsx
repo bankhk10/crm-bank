@@ -9,6 +9,7 @@ import {
   ProductsTable,
   listProductsAction,
   deleteProductAction,
+  getProductFormOptionsAction,
   type ProductRecord,
 } from "@/modules/products";
 import { Package } from "lucide-react";
@@ -40,19 +41,30 @@ export default function ProductsListView() {
   const perPage = Number(searchParams.get("perPage")) || PAGINATION.DEFAULT_PER_PAGE;
   const query = searchParams.get("q") || "";
   const status = searchParams.get("status") || "";
+  const unit = searchParams.get("unit") || "";
 
   // Draft filters for UI input
-  const [filterDraft, setFilterDraft] = useState({ query, status });
+  const [filterDraft, setFilterDraft] = useState({ query, status, unit });
+  const [unitOptions, setUnitOptions] = useState<{ value: string; label: string }[]>([]);
 
   // Sync draft with URL if it changes from outside
   useEffect(() => {
-    setFilterDraft({ query, status });
-  }, [query, status]);
+    setFilterDraft({ query, status, unit });
+  }, [query, status, unit]);
+
+  // Fetch unit options
+  useEffect(() => {
+    getProductFormOptionsAction().then((options) => {
+      if (options?.units) {
+        setUnitOptions(options.units);
+      }
+    });
+  }, []);
 
   const [deleteCandidate, setDeleteCandidate] = useState<ProductRecord | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const handleApplyFilters = useCallback((newParams: { q?: string; status?: string; page?: number; perPage?: number }) => {
+  const handleApplyFilters = useCallback((newParams: { q?: string; status?: string; unit?: string; page?: number; perPage?: number }) => {
     const params = new URLSearchParams(searchParams.toString());
 
     if (newParams.q !== undefined) {
@@ -63,6 +75,11 @@ export default function ProductsListView() {
     if (newParams.status !== undefined) {
       if (newParams.status) params.set("status", newParams.status);
       else params.delete("status");
+    }
+
+    if (newParams.unit !== undefined) {
+      if (newParams.unit) params.set("unit", newParams.unit);
+      else params.delete("unit");
     }
 
     if (newParams.page !== undefined) params.set("page", String(newParams.page));
@@ -77,13 +94,14 @@ export default function ProductsListView() {
     handleApplyFilters({
       q: filterDraft.query,
       status: filterDraft.status,
+      unit: filterDraft.unit,
       page: 1,
     });
   }, [filterDraft, handleApplyFilters]);
 
   // Debounced search
   useEffect(() => {
-    const isTyping = filterDraft.query !== query || filterDraft.status !== status;
+    const isTyping = filterDraft.query !== query || filterDraft.status !== status || filterDraft.unit !== unit;
     if (!isTyping) return;
 
     const delay = 400;
@@ -103,6 +121,7 @@ export default function ProductsListView() {
         perPage,
         q: query.trim() || undefined,
         status: status.trim() || undefined,
+        unit: unit.trim() || undefined,
       });
       setProducts((result.products ?? []) as ProductRecord[]);
       setTotal(typeof result.total === "number" ? result.total : 0);
@@ -111,7 +130,7 @@ export default function ProductsListView() {
     } finally {
       setLoading(false);
     }
-  }, [page, perPage, query, status, canView]);
+  }, [page, perPage, query, status, unit, canView]);
 
   // Fetch products
   useEffect(() => {
@@ -225,8 +244,10 @@ export default function ProductsListView() {
             searchValue={filterDraft.query}
             onSearchChange={(value) => setFilterDraft(prev => ({ ...prev, query: value }))}
             onSearchSubmit={handleSearchSubmit}
-            statusFilter={filterDraft.status}
             onStatusFilterChange={(value) => setFilterDraft(prev => ({ ...prev, status: value }))}
+            unitFilter={filterDraft.unit}
+            onUnitFilterChange={(value) => setFilterDraft(prev => ({ ...prev, unit: value }))}
+            units={unitOptions}
             pagination={{
               page,
               perPage,

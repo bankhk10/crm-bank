@@ -37,6 +37,9 @@ export function ProductsTable(props: ProductsTableProps) {
         onSearchSubmit,
         statusFilter,
         onStatusFilterChange,
+        unitFilter,
+        onUnitFilterChange,
+        units = [],
         pagination,
     } = props;
 
@@ -57,27 +60,53 @@ export function ProductsTable(props: ProductsTableProps) {
                 onSearchChange={onSearchChange}
                 onSearchSubmit={onSearchSubmit}
                 filters={
-                    <div className="space-y-2">
-                        <label className="text-base font-medium leading-none mx-1">สถานะ</label>
-                        <div className="mt-1">
-                            <Select
-                                value={statusFilter || ALL_STATUS_VALUE}
-                                onValueChange={(v) =>
-                                    onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
-                                }
-                            >
-                                <SelectTrigger className="text-base w-full">
-                                    <SelectValue placeholder="ทั้งหมด" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value={ALL_STATUS_VALUE}>ทั้งหมด</SelectItem>
-                                    {Object.entries(STATUS_STYLE).map(([key, { label }]) => (
-                                        <SelectItem key={key} value={key}>
-                                            {label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="space-y-2 flex-1">
+                            <label className="text-base font-medium leading-none mx-1">สถานะ</label>
+                            <div className="mt-1">
+                                <Select
+                                    value={statusFilter || ALL_STATUS_VALUE}
+                                    onValueChange={(v) =>
+                                        onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
+                                    }
+                                >
+                                    <SelectTrigger className="text-base w-full">
+                                        <SelectValue placeholder="ทั้งหมด" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={ALL_STATUS_VALUE}>ทั้งหมด</SelectItem>
+                                        {Object.entries(STATUS_STYLE).map(([key, { label }]) => (
+                                            <SelectItem key={key} value={key}>
+                                                {label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2 flex-1">
+                            <label className="text-base font-medium leading-none mx-1">หน่วยนับ</label>
+                            <div className="mt-1">
+                                <Select
+                                    value={unitFilter || ALL_STATUS_VALUE}
+                                    onValueChange={(v) =>
+                                        onUnitFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
+                                    }
+                                >
+                                    <SelectTrigger className="text-base w-full">
+                                        <SelectValue placeholder="ทั้งหมด" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={ALL_STATUS_VALUE}>ทั้งหมด</SelectItem>
+                                        {units.map((unit) => (
+                                            <SelectItem key={unit.value} value={unit.value}>
+                                                {unit.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     </div>
                 }

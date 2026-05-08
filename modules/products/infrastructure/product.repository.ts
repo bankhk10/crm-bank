@@ -11,6 +11,7 @@ export type ListProductsParams = {
   perPage?: number;
   q?: string;
   status?: string;
+  unit?: string;
   from?: Date;
   to?: Date;
 };
@@ -23,7 +24,7 @@ export type ListProductsParams = {
  * Retrieve a paginated list of products with optional search, status & date filtering.
  */
 export async function findProducts(params: ListProductsParams) {
-  const { page = 1, perPage = 12, q, status, from, to } = params;
+  const { page = 1, perPage = 12, q, status, unit, from, to } = params;
 
   const where: Prisma.ProductWhereInput = { deletedAt: null };
 
@@ -56,6 +57,10 @@ export async function findProducts(params: ListProductsParams) {
 
   if (status && (status === "ACTIVE" || status === "INACTIVE")) {
     where.status = status;
+  }
+
+  if (unit && unit.trim()) {
+    where.unit = unit.trim();
   }
 
   if (from || to) {

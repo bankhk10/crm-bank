@@ -277,5 +277,8 @@ export interface ProductsTableProps {
   onSearchSubmit?: () => void;
   statusFilter?: string;
   onStatusFilterChange?: (status: string) => void;
+  unitFilter?: string;
+  onUnitFilterChange?: (unit: string) => void;
+  units?: { value: string; label: string }[];
   pagination: ProductsPagination;
 }
