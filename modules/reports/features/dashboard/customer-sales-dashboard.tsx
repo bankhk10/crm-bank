@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, useTransition } from "react";
-import { format, startOfToday, endOfToday, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, parseISO } from "date-fns";
+import { format, startOfToday, endOfToday, startOfMonth, endOfMonth, subMonths, startOfQuarter, endOfQuarter, startOfYear, endOfYear, parseISO } from "date-fns";
 import DatePicker from "@/components/custom/DatePicker";
 import { DetailHero } from "@/components/custom/detail-hero";
 import { SectionHeader } from "@/components/custom/section-header";
@@ -54,6 +54,13 @@ const quickDateRanges = [
     getValue: () => ({
       from: startOfMonth(new Date()),
       to: endOfMonth(new Date()),
+    }),
+  },
+  {
+    label: "เดือนที่แล้ว",
+    getValue: () => ({
+      from: startOfMonth(subMonths(new Date(), 1)),
+      to: endOfMonth(subMonths(new Date(), 1)),
     }),
   },
   {
