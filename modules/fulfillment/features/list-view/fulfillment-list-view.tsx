@@ -13,7 +13,6 @@ import type { SaleRecord } from "../../types/types";
 
 const FULFILLMENT_STATUSES = [
   "PENDING",
-  "PENDING_APPROVAL",
   "APPROVED",
   "REJECTED",
   "AWAITING_PAYMENT",

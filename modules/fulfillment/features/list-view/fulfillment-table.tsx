@@ -47,7 +47,6 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
     const FULFILLMENT_STATUS_OPTIONS = [
         { value: "ALL", label: "ทั้งหมด" },
         { value: "PENDING", label: STATUS_STYLE.PENDING.label },
-        { value: "PENDING_APPROVAL", label: STATUS_STYLE.PENDING_APPROVAL.label },
         { value: "APPROVED", label: STATUS_STYLE.APPROVED.label },
         { value: "REJECTED", label: STATUS_STYLE.REJECTED.label },
         { value: "AWAITING_PAYMENT", label: STATUS_STYLE.AWAITING_PAYMENT.label },
