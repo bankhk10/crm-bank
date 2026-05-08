@@ -603,7 +603,7 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
                 </div>
                 <div>
                   <CardTitle className="text-sm sm:text-base md:text-lg font-bold text-slate-800">
-                    ยอดขายตามประเภท (ABC Code)
+                    ยอดขายตามประเภท ( ABC )
                   </CardTitle>
                   <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 font-medium">
                     แสดง {visibleGroups.size}/{productGroupData.length} ประเภท
@@ -653,7 +653,9 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
                       >
                         {isVisible && <CheckCircle2 className="w-2.5 h-2.5 text-purple-600" />}
                       </span>
-                      {group.group}
+                      {group.group === 'A : สินค้าขายดี' && 'A'}
+                      {group.group === 'B : สินค้ารอง' && 'B'}
+                      {group.group === 'C : สินค้าตามฤดูกาล' && 'C'}
                     </button>
                   );
                 })}
