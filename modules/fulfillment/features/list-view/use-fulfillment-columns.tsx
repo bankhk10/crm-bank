@@ -94,7 +94,7 @@ export function useFulfillmentColumns() {
                 header: () => <div className="text-right">ยอดรวม</div>,
                 meta: { width: 140 },
                 cell: (info) => (
-                    <div className="font-medium">
+                    <div>
                         ฿{Number(info.getValue()).toLocaleString()}
                     </div>
                 ),
