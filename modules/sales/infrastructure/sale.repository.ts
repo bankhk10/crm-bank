@@ -70,6 +70,16 @@ const listIncludes = {
     },
   },
   saleAddress: true,
+  shipments: {
+    select: {
+      id: true,
+      salesOrderNumber: true,
+      status: true,
+    },
+    orderBy: {
+      shipmentNumber: "asc",
+    },
+  },
 } as const;
 
 // ─────────────────────────────────────────────
@@ -98,6 +108,14 @@ export async function findSales(params: ListSalesParams) {
   if (search) {
     where.OR = [
       { saleNumber: { contains: search, mode: "insensitive" } },
+      { saleOrderRef: { contains: search, mode: "insensitive" } },
+      {
+        shipments: {
+          some: {
+            salesOrderNumber: { contains: search, mode: "insensitive" },
+          },
+        },
+      },
       { customer: { name: { contains: search, mode: "insensitive" } } },
       {
         customer: {

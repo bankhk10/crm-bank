@@ -64,6 +64,7 @@ export interface SaleWithRelations extends Sale {
     paymentDate: Date | null;
     actualDate: Date | null;
     scheduledDate: Date | null;
+    salesOrderNumber: string | null;
     status: string;
     createdAt: Date;
   }>;

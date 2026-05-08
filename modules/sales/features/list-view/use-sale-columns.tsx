@@ -43,6 +43,33 @@ export function useSaleColumns(
                 meta: { minWidth: 130, width: 130, maxWidth: 130, align: "left" },
             },
             {
+                id: "shipmentSalesOrderNumbers",
+                header: "เลขที่คำสั่งขาย (จัดส่ง)",
+                cell: ({ row }) => {
+                    const shipments = row.original.shipments || [];
+                    const soNumbers = shipments
+                        .map((s) => s.salesOrderNumber)
+                        .filter(Boolean) as string[];
+
+                    if (soNumbers.length === 0) return "-";
+
+                    return (
+                        <div className="flex flex-wrap gap-1 max-w-[150px]">
+                            {soNumbers.map((num, idx) => (
+                                <Badge
+                                    key={idx}
+                                    variant="secondary"
+                                    className="text-[10px] px-1 py-0 h-4 font-normal"
+                                >
+                                    {num}
+                                </Badge>
+                            ))}
+                        </div>
+                    );
+                },
+                meta: { minWidth: 150, width: 150, maxWidth: 200, align: "left" },
+            },
+            {
                 accessorKey: "customer.name",
                 header: "ชื่อลูกค้า",
                 cell: (info) => <TruncatedCell value={info.getValue() as string} />,
