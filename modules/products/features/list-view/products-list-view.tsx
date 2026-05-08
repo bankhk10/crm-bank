@@ -10,6 +10,7 @@ import {
   listProductsAction,
   deleteProductAction,
   getProductFormOptionsAction,
+  ALL_STATUS_VALUE,
   type ProductRecord,
 } from "@/modules/products";
 import { Package } from "lucide-react";
@@ -40,8 +41,10 @@ export default function ProductsListView() {
   const page = Number(searchParams.get("page")) || PAGINATION.DEFAULT_PAGE;
   const perPage = Number(searchParams.get("perPage")) || PAGINATION.DEFAULT_PER_PAGE;
   const query = searchParams.get("q") || "";
-  const status = searchParams.get("status") || "";
-  const unit = searchParams.get("unit") || "";
+  
+  // Explicitly handle defaults and 'All' state
+  const status = searchParams.get("status") || "ACTIVE";
+  const unit = searchParams.get("unit") || "กล่อง";
 
   // Draft filters for UI input
   const [filterDraft, setFilterDraft] = useState({ query, status, unit });
@@ -73,13 +76,11 @@ export default function ProductsListView() {
     }
 
     if (newParams.status !== undefined) {
-      if (newParams.status) params.set("status", newParams.status);
-      else params.delete("status");
+      params.set("status", newParams.status || ALL_STATUS_VALUE);
     }
 
     if (newParams.unit !== undefined) {
-      if (newParams.unit) params.set("unit", newParams.unit);
-      else params.delete("unit");
+      params.set("unit", newParams.unit || ALL_STATUS_VALUE);
     }
 
     if (newParams.page !== undefined) params.set("page", String(newParams.page));
@@ -120,8 +121,8 @@ export default function ProductsListView() {
         page,
         perPage,
         q: query.trim() || undefined,
-        status: status.trim() || undefined,
-        unit: unit.trim() || undefined,
+        status: (status === ALL_STATUS_VALUE || !status) ? undefined : status,
+        unit: (unit === ALL_STATUS_VALUE || !unit) ? undefined : unit,
       });
       setProducts((result.products ?? []) as ProductRecord[]);
       setTotal(typeof result.total === "number" ? result.total : 0);
@@ -244,6 +245,7 @@ export default function ProductsListView() {
             searchValue={filterDraft.query}
             onSearchChange={(value) => setFilterDraft(prev => ({ ...prev, query: value }))}
             onSearchSubmit={handleSearchSubmit}
+            statusFilter={filterDraft.status}
             onStatusFilterChange={(value) => setFilterDraft(prev => ({ ...prev, status: value }))}
             unitFilter={filterDraft.unit}
             onUnitFilterChange={(value) => setFilterDraft(prev => ({ ...prev, unit: value }))}
