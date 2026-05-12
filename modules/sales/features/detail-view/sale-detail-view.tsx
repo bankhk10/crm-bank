@@ -94,30 +94,14 @@ export function SaleDetailView({ id, type }: { id: string, type?: string }) {
         <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-50">
             <div className="bg-white/80 max-w-5xl mx-auto px-4 py-3 flex items-center justify-between shadow-sm rounded-xl">
                 <div className="flex items-center gap-2">
-                    {/* ปุ่มกลับไปหน้ารายการขาย */}
+                    {/* ปุ่มย้อนกลับ */}
                     <Button
                         variant="ghost"
                         className="text-slate-600 hover:text-slate-900"
-                        asChild
+                        onClick={() => router.back()}
                     >
-                        <Link href="/sales">
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            ข้อมูลการขาย
-                        </Link>
-                    </Button>
-
-                    {/* ปุ่มดูหน้ารายละเอียด (mobile view) */}
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                        asChild
-                    >
-                        <Link href={`/sales/${sale.id}`}>
-                            <LayoutList className="h-4 w-4 mr-1.5" />
-                            <span className="hidden sm:inline">ดูรายละเอียด</span>
-                            <span className="sm:hidden">รายละเอียด</span>
-                        </Link>
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        ย้อนกลับ
                     </Button>
                 </div>
 
