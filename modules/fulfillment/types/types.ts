@@ -24,8 +24,8 @@ export interface FulfillmentTableProps {
   onPerPageChange?: (perPage: number) => void;
   onClear?: () => void;
   currentUserId?: string;
-  statusFilter?: string;
-  onStatusFilterChange?: (value: string) => void;
+  statusFilter?: string[];
+  onStatusFilterChange?: (value: string[]) => void;
   // Permissions (Added for consistency, check if used)
   canView?: boolean;
   canEdit?: boolean;

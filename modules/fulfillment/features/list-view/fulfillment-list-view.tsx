@@ -46,7 +46,7 @@ export default function FulfillmentPage() {
     query: "",
   });
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [statusFilter, setStatusFilter] = useState<string>("APPROVED");
+  const [statusFilter, setStatusFilter] = useState<string[]>(["APPROVED"]);
 
   useEffect(() => {
     const isExtendingEmpty =
@@ -82,7 +82,7 @@ export default function FulfillmentPage() {
     setFilterDraft({ query: "" });
     setAppliedFilters({ query: "" });
     setDateRange(undefined);
-    setStatusFilter("APPROVED");
+    setStatusFilter(["APPROVED"]);
     setPage(1);
   };
 
@@ -96,7 +96,9 @@ export default function FulfillmentPage() {
 
       try {
         const statusesToQuery =
-          statusFilter === "ALL" ? FULFILLMENT_STATUSES : [statusFilter];
+          !statusFilter || statusFilter.length === 0 || statusFilter.includes("ALL")
+            ? FULFILLMENT_STATUSES
+            : statusFilter;
 
         const result = await getFulfillmentsAction({
           page,

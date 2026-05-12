@@ -57,6 +57,10 @@ export function MultiSelect({
     const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
 
+    React.useEffect(() => {
+        setSelectedValues(defaultValue);
+    }, [defaultValue]);
+
     const handleUnselect = (value: string) => {
         const newSelectedValues = selectedValues.filter((v) => v !== value);
         setSelectedValues(newSelectedValues);
