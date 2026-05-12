@@ -70,7 +70,7 @@ export function useFulfillmentColumns() {
                     if (!val) return "-";
                     const date = new Date(val);
                     const year = date.getFullYear() + 543;
-                    return format(date, `d MMM ${year}`, {
+                    return format(date, `d MMM ${year} HH:mm น.`, {
                         locale: th,
                     });
                 },

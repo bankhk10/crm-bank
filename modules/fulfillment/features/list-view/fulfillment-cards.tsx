@@ -73,7 +73,7 @@ export function FulfillmentCards({
                                     {(() => {
                                         const date = new Date(sale.saleDate);
                                         const year = date.getFullYear() + 543;
-                                        return format(date, `d MMM ${year.toString().slice(-2)}`, { locale: th });
+                                        return format(date, `d MMM ${year.toString().slice(-2)} HH:mm น.`, { locale: th });
                                     })()}
                                 </div>
                             </div>
