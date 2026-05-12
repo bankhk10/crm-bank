@@ -817,7 +817,7 @@ export default function FulfillmentDetailPage({
                                 disabled={submitting}
                             >
                                 <X className="h-4 w-4" />
-                                ยกเลิก
+                                ย้อนกลับ
                             </Button>
                             <Button
                                 type="submit"
