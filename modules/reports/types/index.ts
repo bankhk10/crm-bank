@@ -413,3 +413,38 @@ export interface SalespersonDetailReportData {
   }[];
   currentYear: number;
 }
+
+// ==========================================
+// MONTHLY SALES OVERVIEW
+// ==========================================
+
+export interface MonthlySalesOverviewData {
+  year: number;
+  months: {
+    month: number;
+    monthName: string;
+    monthShort: string;
+    totalSales: number;
+    totalOrders: number;
+    salesNoteAmount: number;
+    salesNoteCount: number;
+    invoiceAmount: number;
+    invoiceCount: number;
+  }[];
+  totals: {
+    totalSales: number;
+    totalOrders: number;
+    salesNoteAmount: number;
+    salesNoteCount: number;
+    invoiceAmount: number;
+    invoiceCount: number;
+  };
+  currentMonthHighlight: {
+    month: number;
+    monthName: string;
+    totalSales: number;
+    salesNoteAmount: number;
+    invoiceAmount: number;
+  } | null;
+}
+

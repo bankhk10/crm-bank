@@ -8,4 +8,5 @@ export * from "./get-salesperson-detail-report";
 export * from "./report-options";
 export * from "./get-sales-report";
 export * from "./get-executive-dashboard-report";
+export * from "./get-monthly-sales-overview";
 

@@ -74,6 +74,10 @@ export async function getOrderHistoryAction(
   return app.getOrderHistory(year, type, entityId, limit);
 }
 
+export async function getMonthlySalesOverviewAction(year: number) {
+  return app.getMonthlySalesOverview(year);
+}
+
 export async function getSalespersonDetailReportAction(employeeId: string) {
   return app.getSalespersonDetailReport(employeeId);
 }

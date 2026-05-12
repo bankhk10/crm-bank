@@ -808,3 +808,142 @@ export const findManyProductsData = prisma.product.findMany.bind(
 );
 export const findManyTradeNameGroupsData =
   prisma.tradeNameGroup.findMany.bind(prisma.tradeNameGroup);
+
+// ==========================================
+// MONTHLY SALES OVERVIEW (Report List View)
+// ==========================================
+
+/**
+ * ยอดขายรวม (Total Sales) ตาม requestedDeliveryDate กรุ๊ปรายเดือน
+ * ไม่นับ CANCELLED
+ */
+export async function findMonthlyTotalSalesByYear(year: number) {
+  const start = new Date(year, 0, 1);
+  const end = new Date(year, 11, 31, 23, 59, 59);
+
+  const result = (await prisma.$queryRaw`
+    SELECT 
+      CAST(EXTRACT(MONTH FROM "requestedDeliveryDate") AS INTEGER) as month,
+      SUM("totalAmount") as "totalAmountSum",
+      COUNT("id") as "orderCount"
+    FROM "Sale"
+    WHERE "requestedDeliveryDate" >= ${start}
+      AND "requestedDeliveryDate" <= ${end}
+      AND "deletedAt" IS NULL
+      AND "status" NOT IN ('CANCELLED')
+    GROUP BY EXTRACT(MONTH FROM "requestedDeliveryDate")
+    ORDER BY month ASC
+  `) as any[];
+
+  return result.map((r) => ({
+    month: Number(r.month),
+    totalAmount: Number(r.totalAmountSum || 0),
+    orderCount: Number(r.orderCount || 0),
+  }));
+}
+
+/**
+ * ยอด SalesNote ตาม saleDate กรุ๊ปรายเดือน
+ * ไม่นับ CANCELLED
+ */
+export async function findMonthlySalesNoteSalesByYear(year: number) {
+  const start = new Date(year, 0, 1);
+  const end = new Date(year, 11, 31, 23, 59, 59);
+
+  const result = (await prisma.$queryRaw`
+    SELECT 
+      CAST(EXTRACT(MONTH FROM "saleDate") AS INTEGER) as month,
+      SUM("totalAmount") as "totalAmountSum",
+      COUNT("id") as "orderCount"
+    FROM "Sale"
+    WHERE "saleDate" >= ${start}
+      AND "saleDate" <= ${end}
+      AND "deletedAt" IS NULL
+      AND "status" NOT IN ('CANCELLED')
+    GROUP BY EXTRACT(MONTH FROM "saleDate")
+    ORDER BY month ASC
+  `) as any[];
+
+  return result.map((r) => ({
+    month: Number(r.month),
+    totalAmount: Number(r.totalAmountSum || 0),
+    orderCount: Number(r.orderCount || 0),
+  }));
+}
+
+/**
+ * ยอด Invoice ตาม Shipment ที่ส่งเสร็จแล้ว (DELIVERED/IN_TRANSIT/COMPLETED) กรุ๊ปรายเดือน
+ * ใช้ scheduledDate → actualDate → sale.requestedDeliveryDate เป็น fallback
+ * + Sale ที่ไม่มี Shipment (flow เก่า) ที่มี invoice status
+ */
+export async function findMonthlyInvoiceSalesByYear(year: number) {
+  const start = new Date(year, 0, 1);
+  const end = new Date(year, 11, 31, 23, 59, 59);
+
+  // 1. Shipment-based invoice
+  const shipmentResult = (await prisma.$queryRaw`
+    SELECT 
+      CAST(EXTRACT(MONTH FROM COALESCE(
+        sh."scheduledDate", 
+        sh."actualDate", 
+        s."requestedDeliveryDate"
+      )) AS INTEGER) as month,
+      SUM(sh."totalAmount") as "totalAmountSum",
+      COUNT(sh."id") as "shipmentCount"
+    FROM "Shipment" sh
+    JOIN "Sale" s ON sh."saleId" = s."id"
+    WHERE sh."status" IN ('DELIVERED', 'IN_TRANSIT', 'COMPLETED')
+      AND s."deletedAt" IS NULL
+      AND COALESCE(sh."scheduledDate", sh."actualDate", s."requestedDeliveryDate") >= ${start}
+      AND COALESCE(sh."scheduledDate", sh."actualDate", s."requestedDeliveryDate") <= ${end}
+    GROUP BY EXTRACT(MONTH FROM COALESCE(sh."scheduledDate", sh."actualDate", s."requestedDeliveryDate"))
+    ORDER BY month ASC
+  `) as any[];
+
+  // 2. Legacy: Sale ที่ไม่มี Shipment เลย + status invoice
+  const legacyResult = (await prisma.$queryRaw`
+    SELECT 
+      CAST(EXTRACT(MONTH FROM COALESCE(
+        s."deliveryDate", 
+        s."requestedDeliveryDate",
+        s."saleDate"
+      )) AS INTEGER) as month,
+      SUM(s."totalAmount") as "totalAmountSum",
+      COUNT(s."id") as "orderCount"
+    FROM "Sale" s
+    WHERE s."deletedAt" IS NULL
+      AND s."status" IN ('PAID', 'DELIVERED', 'DELIVERY_COMPLETED', 'COMPLETED')
+      AND NOT EXISTS (SELECT 1 FROM "Shipment" sh WHERE sh."saleId" = s."id")
+      AND COALESCE(s."deliveryDate", s."requestedDeliveryDate", s."saleDate") >= ${start}
+      AND COALESCE(s."deliveryDate", s."requestedDeliveryDate", s."saleDate") <= ${end}
+    GROUP BY EXTRACT(MONTH FROM COALESCE(s."deliveryDate", s."requestedDeliveryDate", s."saleDate"))
+    ORDER BY month ASC
+  `) as any[];
+
+  // Merge both results by month
+  const monthMap = new Map<number, { totalAmount: number; count: number }>();
+
+  for (const r of shipmentResult) {
+    const m = Number(r.month);
+    const existing = monthMap.get(m) || { totalAmount: 0, count: 0 };
+    existing.totalAmount += Number(r.totalAmountSum || 0);
+    existing.count += Number(r.shipmentCount || 0);
+    monthMap.set(m, existing);
+  }
+
+  for (const r of legacyResult) {
+    const m = Number(r.month);
+    const existing = monthMap.get(m) || { totalAmount: 0, count: 0 };
+    existing.totalAmount += Number(r.totalAmountSum || 0);
+    existing.count += Number(r.orderCount || 0);
+    monthMap.set(m, existing);
+  }
+
+  return Array.from(monthMap.entries())
+    .map(([month, data]) => ({
+      month,
+      totalAmount: data.totalAmount,
+      invoiceCount: data.count,
+    }))
+    .sort((a, b) => a.month - b.month);
+}
