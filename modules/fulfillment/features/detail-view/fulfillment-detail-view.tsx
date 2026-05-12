@@ -16,7 +16,6 @@ import {
     Save,
     Truck,
     X,
-    ExternalLink,
     SplitSquareVertical,
     ArrowRightLeft,
 } from "lucide-react";
@@ -794,20 +793,18 @@ export default function FulfillmentDetailPage({
                                 asChild
                                 className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white h-10 font-medium px-6 shadow-md shadow-blue-500/20 rounded-xl"
                             >
-                                <Link href={`/sales/${sale.id}/detail`} target="_blank">
+                                <Link href={`/sales/${sale.id}/detail`}>
                                     <FileText className="h-4 w-4 mr-2" />
                                     ดูเอกสาร PDF
-                                    <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
                                 </Link>
                             </Button>
                             <Button
                                 asChild
                                 className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white h-10 font-medium px-6 shadow-md shadow-amber-500/20 rounded-xl"
                             >
-                                <Link href={`/sales/${sale.id}/special-detail`} target="_blank">
+                                <Link href={`/sales/${sale.id}/special-detail`}>
                                     <FileText className="h-4 w-4 mr-2" />
                                     ดูเอกสารพิเศษ PDF
-                                    <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
                                 </Link>
                             </Button>
                             <Button
@@ -849,20 +846,18 @@ export default function FulfillmentDetailPage({
                                 asChild
                                 className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white h-10 font-medium px-6 shadow-md shadow-blue-500/20 rounded-xl"
                             >
-                                <Link href={`/sales/${sale.id}/detail`} target="_blank">
+                                <Link href={`/sales/${sale.id}/detail`}>
                                     <FileText className="h-4 w-4 mr-2" />
                                     ดูเอกสาร PDF
-                                    <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
                                 </Link>
                             </Button>
                             <Button
                                 asChild
                                 className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white h-10 font-medium px-6 shadow-md shadow-amber-500/20 rounded-xl"
                             >
-                                <Link href={`/sales/${sale.id}/special-detail`} target="_blank">
+                                <Link href={`/sales/${sale.id}/special-detail`}>
                                     <FileText className="h-4 w-4 mr-2" />
                                     ดูเอกสารพิเศษ PDF
-                                    <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
                                 </Link>
                             </Button>
                             <Button
