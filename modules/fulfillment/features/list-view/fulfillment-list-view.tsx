@@ -82,7 +82,7 @@ export default function FulfillmentPage() {
     setFilterDraft({ query: "" });
     setAppliedFilters({ query: "" });
     setDateRange(undefined);
-    setStatusFilter(["APPROVED"]);
+    setStatusFilter([]);
     setPage(1);
   };
 
