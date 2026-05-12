@@ -15,6 +15,7 @@ import {
     Gift,
     TrendingDown,
     Info,
+    MapPin,
 } from "lucide-react";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
@@ -22,6 +23,7 @@ import { th } from "date-fns/locale";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { formatAddress } from "@/lib/address-utils";
 import {
     PaymentTermLabels,
     SaleStatusLabels,
@@ -326,6 +328,94 @@ export function CreditInfoCard({
                         ฿{creditInfo.currentSaleAmount.toLocaleString()}
                     </p>
                 </div>
+            </div>
+        </div>
+    );
+}
+
+export function DeliveryInfoCard({ sale }: { sale: Sale }) {
+    const sa = (sale as any).saleAddress || {};
+
+    const shippingAddress = formatAddress({
+        addressLine: sa.shipping_address_line,
+        subdistrict: sa.shipping_subdistrict,
+        district: sa.shipping_district,
+        province: sa.shipping_province,
+        postalCode: sa.shipping_postal_code,
+    });
+
+    const receivingAddress = formatAddress({
+        addressLine: sa.receiving_address_line,
+        subdistrict: sa.receiving_subdistrict,
+        district: sa.receiving_district,
+        province: sa.receiving_province,
+        postalCode: sa.receiving_postal_code,
+    });
+
+    const senderAddress = formatAddress({
+        addressLine: sa.sender_line,
+        subdistrict: sa.sender_subdistrict,
+        district: sa.sender_district,
+        province: sa.sender_province,
+        postalCode: sa.sender_postal_code,
+    });
+
+    const shippingCompanyName = sa.sender_name || "-";
+
+    const latestShipment = sale.shipments?.[0];
+    const displayDeliveryDate = latestShipment?.scheduledDate ?? sale.deliveryDate;
+
+    return (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+            <SectionHeader
+                icon={<Truck className="h-6 w-6" />}
+                title="ข้อมูลการจัดส่ง"
+            />
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                {sale.deliveryMethod && (
+                    <DetailItem
+                        icon={<Truck className="h-4 w-4 text-gray-400" />}
+                        label="วิธีจัดส่ง"
+                        value={sale.deliveryMethod === "SALES_DELIVERY" ? "พนักงานขายจัดส่งสินค้า" : sale.deliveryMethod === "FACTORY_DELIVERY" ? "ส่งโดยรถโรงงาน" : sale.deliveryMethod === "CUSTOMER_PICKUP" ? "ลูกค้ามารับสินค้าเอง" : sale.deliveryMethod === "COURIER" ? "ส่งโดยบริษัทขนส่ง" : sale.deliveryMethod}
+                    />
+                )}
+
+                {(sale.deliveryMethod === "FACTORY_DELIVERY" || sale.deliveryMethod === "SALES_DELIVERY") && (
+                    <>
+                        <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="ที่อยู่จัดส่งสินค้า" value={shippingAddress || "-"} />
+                        <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่งสินค้า" value={formatThaiDate(displayDeliveryDate)} />
+                    </>
+                )}
+
+                {sale.deliveryMethod === "CUSTOMER_PICKUP" && (
+                    <>
+                        <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่มารับสินค้า" value={formatThaiDate(sale.requestedDeliveryDate)} />
+                        <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="สถานที่รับสินค้า" value={receivingAddress || "-"} />
+                        <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่งสินค้า" value={formatThaiDate(displayDeliveryDate)} />
+                    </>
+                )}
+
+                {sale.deliveryMethod === "COURIER" && (
+                    <>
+                        <DetailItem icon={<Truck className="h-4 w-4 text-gray-400" />} label="ชื่อบริษัทขนส่ง" value={shippingCompanyName} />
+                        <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="ที่อยู่บริษัทขนส่ง" value={senderAddress || "-"} />
+                        <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="ที่อยู่จัดส่งสินค้า" value={shippingAddress || "-"} />
+                        <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่งสินค้า" value={formatThaiDate(displayDeliveryDate)} />
+                    </>
+                )}
+
+                {!sale.deliveryMethod && (sale.customer?.addressLine || sale.customer?.province) && (
+                    <DetailItem
+                        icon={<MapPin className="h-4 w-4 text-gray-400" />}
+                        label="ที่อยู่จัดส่ง"
+                        value={[
+                            sale.customer?.addressLine,
+                            sale.customer?.district,
+                            sale.customer?.province,
+                            sale.customer?.postalCode,
+                        ].filter(Boolean).join(" ") || "-"}
+                    />
+                )}
             </div>
         </div>
     );

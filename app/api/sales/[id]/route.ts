@@ -44,6 +44,7 @@ export async function GET(
         employee: true,
         createdBy: true,
         approvedBy: true,
+        saleAddress: true,
 
         items: {
           include: {
@@ -62,6 +63,9 @@ export async function GET(
             changedBy: true,
           },
           orderBy: { changedAt: "desc" },
+        },
+        shipments: {
+          orderBy: { createdAt: "desc" },
         },
       },
     });

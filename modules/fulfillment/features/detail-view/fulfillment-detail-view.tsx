@@ -45,6 +45,7 @@ import {
     PermissionDenied,
     SaleSummaryCard,
     StockWarningAlert,
+    DeliveryInfoCard,
 } from "./fulfillment-detail-sections";
 import { ShipmentListSection } from "./shipment-list-section";
 import { CreateShipmentDialog } from "./create-shipment-dialog";
@@ -443,6 +444,8 @@ export default function FulfillmentDetailPage({
             {stockWarnings.length > 0 && !skipStockCheck && !isSplitMode && (
                 <StockWarningAlert stockWarnings={stockWarnings} />
             )}
+
+            <DeliveryInfoCard sale={sale} />
 
             <ItemsCard sale={sale} />
 
