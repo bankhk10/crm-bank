@@ -100,7 +100,7 @@ function MonthlySalesOverviewSection() {
       for (const m of d.months) { max = Math.max(max, getVal(m)); }
     }
     return max;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortedYears, dataMap, viewMode]);
 
   return (
@@ -240,7 +240,7 @@ function MonthlySalesOverviewSection() {
               </tbody>
               <tfoot>
                 <tr className="bg-slate-900 text-white font-semibold">
-                  <td className="py-3.5 px-4 rounded-bl-xl text-sm">รวมทั้งปี</td>
+                  <td className="py-3.5 px-2 rounded-bl-xl text-sm">รวมทั้งปี</td>
                   {sortedYears.map((y, i) => {
                     const d = dataMap[y];
                     const total = d ? d.months.reduce((s, m) => s + getVal(m), 0) : 0;
