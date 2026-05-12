@@ -9,6 +9,12 @@ import {
 import Link from "next/link";
 import { DetailHero } from "@/components/custom/detail-hero";
 import { SectionHeader } from "@/components/custom/section-header";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { getMonthlySalesOverviewAction } from "../../server/actions";
 import type { MonthlySalesOverviewData } from "../../types";
 
@@ -115,18 +121,20 @@ function MonthlySalesOverviewSection() {
             </div>
           ))}
           {availableYearsToAdd.length > 0 && selectedYears.length < 4 && (
-            <div className="relative group">
-              <button className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border border-dashed border-slate-300 text-slate-500 hover:border-slate-400 hover:bg-slate-50 transition-all">
-                <Plus className="h-3 w-3" /> เพิ่มปี
-              </button>
-              <div className="absolute top-full left-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-20 hidden group-hover:block min-w-[120px]">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border border-dashed border-slate-300 text-slate-500 hover:border-slate-400 hover:bg-slate-50 transition-all cursor-pointer">
+                  <Plus className="h-3 w-3" /> เพิ่มปี
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-32">
                 {availableYearsToAdd.map(y => (
-                  <button key={y} onClick={() => addYear(y)} className="w-full text-left px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">
+                  <DropdownMenuItem key={y} onClick={() => addYear(y)} className="cursor-pointer text-xs py-2">
                     พ.ศ. {y + 543}
-                  </button>
+                  </DropdownMenuItem>
                 ))}
-              </div>
-            </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
 
