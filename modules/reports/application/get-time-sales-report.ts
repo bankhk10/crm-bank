@@ -68,14 +68,15 @@ export async function getTimeSalesReport(
   // Get ALL sales for this trend range (for monthly charts)
   const allTrendSales = await repo.findManySalesData({
     where: {
-      saleDate: { gte: fetchStart, lte: fetchEnd },
+      requestedDeliveryDate: { gte: fetchStart, lte: fetchEnd },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED"] },
       ...scopeFilter,
     },
     select: {
       id: true,
       saleDate: true,
+      requestedDeliveryDate: true,
       totalAmount: true,
       createdAt: true,
       customerId: true,
@@ -84,8 +85,8 @@ export async function getTimeSalesReport(
 
   // Filter for the SPECIFIC range selected (for KPIs and Daily/Other tables)
   const sales = allTrendSales.filter(s => {
-    const d = s.saleDate;
-    return d >= start && d <= end;
+    const d = s.requestedDeliveryDate;
+    return d && d >= start && d <= end;
   });
 
   // Get customer provinces for region calculation
@@ -99,9 +100,9 @@ export async function getTimeSalesReport(
   // Get previous period sales for growth calculation
   const previousSales = await repo.aggregateSalesData({
     where: {
-      saleDate: { gte: previousStart, lte: previousEnd },
+      requestedDeliveryDate: { gte: previousStart, lte: previousEnd },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED"] },
       ...scopeFilter,
     },
     _sum: { totalAmount: true },
@@ -120,8 +121,10 @@ export async function getTimeSalesReport(
   const dayOfWeekMap = new Map<number, { sales: number; orders: number }>();
 
   for (const sale of sales) {
-    const dateKey = format(sale.saleDate, "yyyy-MM-dd");
-    const dayOfWeek = sale.saleDate.getDay();
+    const targetDate = sale.requestedDeliveryDate;
+    if (!targetDate) continue;
+    const dateKey = format(targetDate, "yyyy-MM-dd");
+    const dayOfWeek = targetDate.getDay();
 
     if (!dailyMap.has(dateKey)) {
       dailyMap.set(dateKey, { sales: 0, orders: 0 });
@@ -152,7 +155,9 @@ export async function getTimeSalesReport(
   // Monthly data (Always at least 12 months of the year)
   const monthlyMap = new Map<string, { sales: number; orders: number }>();
   for (const sale of allTrendSales) {
-    const monthKey = format(sale.saleDate, "yyyy-MM");
+    const targetDate = sale.requestedDeliveryDate;
+    if (!targetDate) continue;
+    const monthKey = format(targetDate, "yyyy-MM");
     if (!monthlyMap.has(monthKey)) {
       monthlyMap.set(monthKey, { sales: 0, orders: 0 });
     }
@@ -175,7 +180,9 @@ export async function getTimeSalesReport(
   // Yearly data
   const yearlyMap = new Map<number, { sales: number; orders: number }>();
   for (const sale of sales) {
-    const year = sale.saleDate.getFullYear();
+    const targetDate = sale.requestedDeliveryDate;
+    if (!targetDate) continue;
+    const year = targetDate.getFullYear();
     if (!yearlyMap.has(year)) {
       yearlyMap.set(year, { sales: 0, orders: 0 });
     }
@@ -215,7 +222,9 @@ export async function getTimeSalesReport(
   // Seasonality (Quarterly)
   const quarterlyMap = new Map<number, { sales: number; orders: number }>();
   for (const sale of sales) {
-    const month = sale.saleDate.getMonth();
+    const targetDate = sale.requestedDeliveryDate;
+    if (!targetDate) continue;
+    const month = targetDate.getMonth();
     const quarter = Math.floor(month / 3) + 1;
     if (!quarterlyMap.has(quarter)) {
       quarterlyMap.set(quarter, { sales: 0, orders: 0 });
