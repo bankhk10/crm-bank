@@ -1132,18 +1132,30 @@ export function ProductManageForm({ productId }: { productId: string }) {
                   กลับไปหน้ารายการสินค้า
                 </button>
 
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-8">
                   <div className="relative group">
                     <div className="absolute inset-0 bg-white/20 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-300" />
                     <div className="relative p-5 bg-white rounded-2xl shadow-xl ring-1 ring-black/5 transform transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
                       <Package className="h-9 w-9 sm:h-11 sm:w-11 text-red-600" />
                     </div>
                   </div>
-                  <div className="relative flex items-center gap-3 px-3 py-2 rounded-2xl bg-black/20 text-white border border-white/10 backdrop-blur-md shadow-inner mt-3">
-                    <Tag className="h-5 w-5 text-yellow-300 shrink-0" />
-                    <div className="flex flex-col">
-                      <span className="text-sm sm:text-base font-bold leading-tight">{product.name}</span>
-                      <span className="text-xs sm:text-sm text-white/80 font-medium mt-0.5">{product.productCode}</span>
+
+                  <div className="flex-1 text-center sm:text-left space-y-4">
+                    <div className="space-y-1">
+                      <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white drop-shadow-md">
+                        จัดการสินค้า
+                      </h1>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-white text-xs sm:text-sm border border-white/20 backdrop-blur-md shadow-sm">
+                        <Tag className="h-4 w-4 text-yellow-300" />
+                        <span className="font-semibold">{product.name}</span>
+                      </div>
+                      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 text-white text-xs sm:text-sm border border-white/10 backdrop-blur-sm">
+                        <span className="font-medium text-white">รหัสสินค้า :</span>
+                        <span className="font-bold">{product.productCode}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
