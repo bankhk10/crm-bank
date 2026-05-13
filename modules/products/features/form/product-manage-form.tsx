@@ -818,10 +818,10 @@ const StockLotsSection: React.FC<
                   placeholder={lot.id ? "" : ""}
                   value={lot.lotNumber || ""}
                   onChange={(e) =>
-                    updateStockLot(index, "lotNumber", e.target.value)
+                    updateStockLot(index, "lotNumber", e.target.value.toUpperCase())
                   }
                   disabled={saving || !!lot.id}
-                  className={`h-10 ${lot.id ? "bg-muted cursor-not-allowed" : ""}`}
+                  className={`h-10 uppercase ${lot.id ? "bg-muted cursor-not-allowed" : ""}`}
                 />
               </div>
               <div className="space-y-1.5">
