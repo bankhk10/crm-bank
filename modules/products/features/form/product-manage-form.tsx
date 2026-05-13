@@ -1136,19 +1136,11 @@ export function ProductManageForm({ productId }: { productId: string }) {
                       <Package className="h-9 w-9 sm:h-11 sm:w-11 text-red-600" />
                     </div>
                   </div>
-
-                  <div className="flex-1 text-center sm:text-left space-y-3">
-                    <div className="space-y-1">
-                      <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white drop-shadow-md">
-                        จัดการสินค้า
-                      </h1>
-                    </div>
-
-                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 pt-2">
-                      <div className="relative flex items-center gap-2 px-5 py-2 rounded-full bg-black/20 text-white text-sm sm:text-base border border-white/10 backdrop-blur-md shadow-inner">
-                        <Tag className="h-4 w-4 text-yellow-300" />
-                        <span className="font-medium">{product.name}</span>
-                      </div>
+                  <div className="relative flex items-center gap-3 px-3 py-2 rounded-2xl bg-black/20 text-white border border-white/10 backdrop-blur-md shadow-inner mt-3">
+                    <Tag className="h-5 w-5 text-yellow-300 shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-sm sm:text-base font-bold leading-tight">{product.name}</span>
+                      <span className="text-xs sm:text-sm text-white/80 font-medium mt-0.5">{product.productCode}</span>
                     </div>
                   </div>
                 </div>
