@@ -14,7 +14,8 @@ export async function updateFulfillmentUseCase(
     throw new Error("Sale not found");
   }
 
-  // Business Logic: DELIVERED or DELIVERY_COMPLETED requires delivery date
+  // Business Logic: Remove mandatory delivery date check as requested by user
+  /*
   if (
     validatedData.status === "DELIVERED" ||
     validatedData.status === "DELIVERY_COMPLETED"
@@ -29,6 +30,7 @@ export async function updateFulfillmentUseCase(
       );
     }
   }
+  */
 
   return FulfillmentRepository.updateFulfillment(id, {
     ...validatedData,

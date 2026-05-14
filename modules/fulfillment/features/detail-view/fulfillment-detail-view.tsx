@@ -70,11 +70,7 @@ const DELIVERY_STATUSES = [
     "COMPLETED",
 ];
 
-const DELIVERY_DATE_REQUIRED_STATUSES = [
-    "DELIVERED",
-    "DELIVERY_COMPLETED",
-    "COMPLETED",
-];
+const DELIVERY_DATE_REQUIRED_STATUSES: string[] = [];
 
 const LOT_LOCKED_STATUSES = ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"];
 const BLOCKED_WHEN_IN_TRANSIT = [
@@ -136,6 +132,7 @@ const getValidationError = (params: {
         lotAllocationsValid,
     } = params;
 
+    /*
     if (status === "COMPLETED") {
         if (!paymentDate) {
             return "กรุณาระบุวันที่ชำระเงินเมื่อสถานะเป็น 'เสร็จสิ้น'";
@@ -150,6 +147,11 @@ const getValidationError = (params: {
         !deliveryDate
     ) {
         return `กรุณาระบุวันที่จัดส่งของเมื่อสถานะเป็น '${getDeliveryStatusLabel(status)}'`;
+    }
+    */
+
+    if (status === "COMPLETED" && !paymentDate) {
+        return "กรุณาระบุวันที่ชำระเงินเมื่อสถานะเป็น 'เสร็จสิ้น'";
     }
 
     if (status === "CANCELLED" && !notes.trim()) {
@@ -652,7 +654,6 @@ export default function FulfillmentDetailPage({
                                         <DatePicker
                                             value={deliveryDate}
                                             onChange={(val) => {
-                                                if (!val && deliveryDate) return;
                                                 setDeliveryDate(val || "");
                                             }}
                                             label=""
