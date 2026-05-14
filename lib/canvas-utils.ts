@@ -34,7 +34,8 @@ export async function getCroppedImg(
   rotation = 0,
   flip = { horizontal: false, vertical: false },
   targetWidth?: number,
-  targetHeight?: number
+  targetHeight?: number,
+  quality = 0.8
 ): Promise<Blob> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -97,6 +98,7 @@ export async function getCroppedImg(
     // Use high quality image smoothing
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
+
     ctx.drawImage(
       tempCanvas,
       0,
@@ -117,10 +119,78 @@ export async function getCroppedImg(
 
   // As a blob
   return new Promise((resolve, reject) => {
-    canvas.toBlob((file) => {
-      // resolve(URL.createObjectURL(file!));
-      if (file) resolve(file);
-      else reject(new Error("Canvas is empty"));
-    }, "image/jpeg");
+    canvas.toBlob(
+      (file) => {
+        if (file) resolve(file);
+        else reject(new Error("Canvas is empty"));
+      },
+      "image/webp",
+      quality
+    );
+  });
+}
+
+/**
+ * Compresses an image file by resizing it and reducing quality.
+ */
+export async function compressImage(
+  file: File,
+  options: {
+    maxWidth?: number;
+    maxHeight?: number;
+    quality?: number;
+    type?: string;
+  } = {}
+): Promise<File> {
+  const {
+    maxWidth = 1920,
+    maxHeight = 1920,
+    quality = 0.8,
+    type = "image/webp", // Use webp to preserve transparency and compress well
+  } = options;
+
+  // If not an image, return as is
+  if (!file.type.startsWith("image/")) {
+    return file;
+  }
+
+  const image = await createImage(URL.createObjectURL(file));
+  let { width, height } = image;
+
+  // Calculate new dimensions
+  if (width > maxWidth || height > maxHeight) {
+    const ratio = Math.min(maxWidth / width, maxHeight / height);
+    width = Math.round(width * ratio);
+    height = Math.round(height * ratio);
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("No 2d context");
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(image, 0, 0, width, height);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(
+            new File([blob], file.name, {
+              type,
+              lastModified: Date.now(),
+            })
+          );
+        } else {
+          reject(new Error("Canvas is empty"));
+        }
+      },
+      type,
+      quality
+    );
   });
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import {
   useFileUpload,
+  formatBytes,
   type FileMetadata,
   type FileWithPreview,
 } from "@/hooks/use-file-upload";
@@ -18,7 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Cropper, { type Area } from "react-easy-crop";
-import { getCroppedImg } from "@/lib/canvas-utils";
+import { getCroppedImg, compressImage } from "@/lib/canvas-utils";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,7 @@ interface GalleryUploadProps {
   initialFiles?: FileMetadata[];
   disabled?: boolean;
   targetSize?: { width: number; height: number };
+  quality?: number;
 }
 
 export default function GalleryUpload({
@@ -49,13 +51,30 @@ export default function GalleryUpload({
   initialFiles = [],
   disabled = false,
   targetSize,
+  quality = 0.8,
 }: GalleryUploadProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [cropQueue, setCropQueue] = useState<FileWithPreview[]>([]);
 
-  const handleFilesAdded = (addedFiles: FileWithPreview[]) => {
+  const handleFilesAdded = async (addedFiles: FileWithPreview[]) => {
     if (targetSize) {
       setCropQueue((prev) => [...prev, ...addedFiles]);
+    } else {
+      // If no target size, still compress the images
+      for (const fileItem of addedFiles) {
+        if (fileItem.file instanceof File && fileItem.file.type.startsWith("image/")) {
+          try {
+            const compressedFile = await compressImage(fileItem.file, {
+              quality,
+              maxWidth: 1920, // Default max width
+              maxHeight: 1920, // Default max height
+            });
+            updateFile(fileItem.id, compressedFile);
+          } catch (error) {
+            console.error("Compression error:", error);
+          }
+        }
+      }
     }
   };
 
@@ -126,7 +145,8 @@ export default function GalleryUpload({
         0,
         { horizontal: false, vertical: false },
         targetSize?.width,
-        targetSize?.height
+        targetSize?.height,
+        quality
       );
 
       const fileName =
@@ -197,7 +217,7 @@ export default function GalleryUpload({
       {files.length > 0 && (
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           {files.map((fileItem) => (
-            <div key={fileItem.id} className="group relative aspect-square bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center p-1">
+            <div key={fileItem.id} className="group relative aspect-square rounded-lg border border-gray-200 flex items-center justify-center p-1 overflow-hidden">
               {isImage(fileItem.file) && fileItem.preview ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -210,6 +230,11 @@ export default function GalleryUpload({
                   <ImageIcon className="h-8 w-8 text-muted-foreground" />
                 </div>
               )}
+
+              {/* File Size Badge */}
+              <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/20 text-white text-[10px] font-medium rounded backdrop-blur-[2px]">
+                {formatBytes(fileItem.file.size)}
+              </div>
 
               {/* Action Buttons - Always Visible */}
               <div className="absolute top-2 right-2 flex gap-1">
@@ -350,7 +375,7 @@ export default function GalleryUpload({
               {targetSize ? `(${targetSize.width}x${targetSize.height})` : ""}
             </DialogTitle>
           </DialogHeader>
-          <div className="relative h-[400px] w-full bg-slate-900 rounded-md overflow-hidden">
+          <div className="relative h-[400px] w-full rounded-md overflow-hidden border border-gray-200" style={{ backgroundImage: 'linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)', backgroundSize: '20px 20px', backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px' }}>
             {cropFile && (
               <Cropper
                 image={cropFile.url}
