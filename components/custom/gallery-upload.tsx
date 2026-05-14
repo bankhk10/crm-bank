@@ -14,7 +14,6 @@ import {
   TriangleAlert,
   Upload,
   XIcon,
-  ZoomInIcon,
   CropIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -53,7 +52,6 @@ export default function GalleryUpload({
   targetSize,
   quality = 0.8,
 }: GalleryUploadProps) {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [cropQueue, setCropQueue] = useState<FileWithPreview[]>([]);
 
   const handleFilesAdded = async (addedFiles: FileWithPreview[]) => {
@@ -238,19 +236,6 @@ export default function GalleryUpload({
 
               {/* Action Buttons - Always Visible */}
               <div className="absolute top-2 right-2 flex gap-1">
-                {/* View Button */}
-                {fileItem.preview && (
-                  <Button
-                    type="button"
-                    onClick={() => setSelectedImage(fileItem.preview!)}
-                    variant="secondary"
-                    size="icon-sm"
-                    disabled={disabled}
-                    className="h-7 w-7 bg-white/90 hover:bg-white shadow-md"
-                  >
-                    <ZoomInIcon className="h-4 w-4" />
-                  </Button>
-                )}
 
                 {/* Crop Button */}
                 {isImage(fileItem.file) && fileItem.preview && (
@@ -325,32 +310,6 @@ export default function GalleryUpload({
         </Alert>
       )}
 
-      {/* Image Preview Modal */}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm transition-all duration-300 p-4"
-          onClick={() => setSelectedImage(null)}
-        >
-          <div className="relative max-h-full max-w-full">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={selectedImage}
-              alt="Preview"
-              className="max-h-full max-w-full rounded-lg object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
-            <Button
-              type="button"
-              onClick={() => setSelectedImage(null)}
-              variant="secondary"
-              size="icon-sm"
-              className="absolute end-2 top-2"
-            >
-              <XIcon className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* Crop Modal */}
       <Dialog
@@ -389,9 +348,6 @@ export default function GalleryUpload({
             )}
           </div>
           <DialogFooter className="gap-2">
-            <div className="mr-auto text-sm text-gray-500 flex items-center">
-              ซูม: {((zoom - 1) * 100).toFixed(0)}%
-            </div>
             <Button variant="outline" type="button" onClick={handleCropCancel}>
               ยกเลิก
             </Button>
