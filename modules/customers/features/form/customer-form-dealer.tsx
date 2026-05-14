@@ -932,7 +932,6 @@ export default function CustomerFormDealer({
       <div className="md:col-span-2 mt-6 mx-2">
         <GalleryUpload
           maxFiles={5}
-          maxSize={5 * 1024 * 1024}
           accept="image/*"
           multiple={true}
           disabled={loading}

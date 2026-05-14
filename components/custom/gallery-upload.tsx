@@ -41,7 +41,7 @@ interface GalleryUploadProps {
 
 export default function GalleryUpload({
   maxFiles = 5,
-  maxSize = 5 * 1024 * 1024, // 5MB
+  maxSize = 20 * 1024 * 1024, // 20MB
   accept = "image/*",
   multiple = true,
   className,

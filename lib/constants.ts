@@ -26,7 +26,7 @@ export const DATE_FORMATS = {
  * File upload limits and allowed types
  */
 export const UPLOAD_LIMITS = {
-  MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
+  MAX_FILE_SIZE: 20 * 1024 * 1024, // 20MB
   MAX_FILES: 10,
   ALLOWED_IMAGE_TYPES: ["image/jpeg", "image/png", "image/webp", "image/gif"],
 } as const;
