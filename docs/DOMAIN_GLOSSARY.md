@@ -162,7 +162,7 @@ Unique constraint: one SaleItem = one PointHistory
 
 ### Regions (ภาค)
 - ภาคเหนือ (Northern)
-- ภาคตะวันออกเฉียงเหนือ (Northeastern)  
+- ภาคอีสาน (Northeastern)  
 - ภาคกลาง (Central)
 - ภาคตะวันออก (Eastern)
 - ภาคตะวันตก (Western)

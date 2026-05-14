@@ -1109,7 +1109,7 @@ model ShipmentItem {
 // เป้ายอดขายรายภาค
 model RegionSalesTarget {
   id           String  @id @default(cuid())
-  region       String // ภาคเหนือ, ภาคตะวันออกเฉียงเหนือ, ภาคตะวันตก, ภาคกลาง, ภาคใต้
+  region       String // ภาคเหนือ, ภาคอีสาน, ภาคตะวันตก, ภาคกลาง, ภาคใต้
   year         Int // ปี พ.ศ. หรือ ค.ศ.
   month        Int? // เดือน (1-12), null = เป้าหมายรายปี
   targetAmount Decimal @db.Decimal(15, 2) // เป้ายอดขาย (บาท)

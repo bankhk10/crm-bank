@@ -58,7 +58,7 @@ async function main() {
   }
 
   const abcTypes = await prisma.productABCTypes.findMany();
-  const regions = ["ภาคเหนือ", "ภาคตะวันออกเฉียงเหนือ", "ภาคกลาง", "ภาคตะวันออก", "ภาคตะวันตก", "ภาคใต้"];
+  const regions = ["ภาคเหนือ", "ภาคอีสาน", "ภาคกลาง", "ภาคตะวันออก", "ภาคตะวันตก", "ภาคใต้"];
   
   const currentYear = new Date().getFullYear();
 

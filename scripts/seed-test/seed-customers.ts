@@ -28,7 +28,7 @@ const customersToSeed = [
     district: "เมืองนครราชสีมา",
     subdistrict: "ในเมือง",
     postalCode: "30000",
-    region: "ภาคตะวันออกเฉียงเหนือ",
+    region: "ภาคอีสาน",
 
     status: CustomerStatus.ACTIVE,
     contactPerson: "คุณสมพงษ์",
