@@ -654,7 +654,7 @@ export function SaleForm({
             </div>
 
             {/* Credit Info */}
-            {selectedCustomer && <CustomerCreditInfo customer={selectedCustomer} />}
+            {selectedCustomer && paymentTerm !== "PREPAID" && <CustomerCreditInfo customer={selectedCustomer} />}
 
             {/* Payment Terms Section */}
             <SectionHeader title="เงื่อนไขการชำระเงิน" color="gray" />
