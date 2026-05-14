@@ -197,13 +197,13 @@ export default function GalleryUpload({
       {files.length > 0 && (
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           {files.map((fileItem) => (
-            <div key={fileItem.id} className="group relative aspect-square">
+            <div key={fileItem.id} className="group relative aspect-square bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center p-1">
               {isImage(fileItem.file) && fileItem.preview ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={fileItem.preview}
                   alt={fileItem.file.name}
-                  className="h-full w-full rounded-lg border object-cover"
+                  className="h-full w-full object-contain rounded-md"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center rounded-lg border bg-muted">

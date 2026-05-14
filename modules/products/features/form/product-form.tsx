@@ -778,14 +778,13 @@ export function ProductForm({
 
         <div className="md:col-span-2 mt-2 mx-2">
           <GalleryUpload
-            maxFiles={5}
+            maxFiles={10}
             accept="image/*"
             multiple={true}
             disabled={loading}
             initialFiles={convertToFileMetadata(initialData?.images || [])}
             onFilesChange={(files) => setUploadedFiles(files)}
-            // Enforce 1080x1080 size
-            targetSize={{ width: 1080, height: 1080 }}
+            maxSize={20 * 1024 * 1024} // 20MB limit
           />
         </div>
       </div>

@@ -298,7 +298,7 @@ export default function ProductDetailView() {
                         <button
                           key={image.id}
                           onClick={() => setActiveImageIndex(index)}
-                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === activeImageIndex
+                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all duration-200 bg-white flex items-center justify-center p-1 ${index === activeImageIndex
                             ? "border-blue-500 ring-2 ring-blue-200"
                             : "border-gray-200 hover:border-blue-300"
                             }`}
@@ -306,7 +306,7 @@ export default function ProductDetailView() {
                           <img
                             src={image.url}
                             alt={`${product.name} ${index + 1}`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                           />
                         </button>
                       ))}
