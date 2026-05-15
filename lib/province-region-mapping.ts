@@ -14,6 +14,7 @@ export const regionMapping: Record<string, string[]> = {
     "พิจิตร",
     "กำแพงเพชร",
     "เพชรบูรณ์",
+    "ตาก",
   ],
   ภาคอีสาน: [
     "ขอนแก่น",
@@ -47,7 +48,6 @@ export const regionMapping: Record<string, string[]> = {
     "สระแก้ว",
   ],
   ภาคตะวันตก: [
-    "ตาก",
     "ราชบุรี",
     "กาญจนบุรี",
     "สุพรรณบุรี",
