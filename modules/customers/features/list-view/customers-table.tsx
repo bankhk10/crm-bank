@@ -319,8 +319,9 @@ export function CustomersTable({
               }}
               getRowCanExpand={(row) => {
                 const customer = row.original;
+                const subDealers = (customer as any).subDealers || [];
                 const hasChildren =
-                  data && data.some((d) => d.parentDealerId === customer.id);
+                  subDealers.length > 0 || (data && data.some((d) => d.parentDealerId === customer.id));
                 return hasChildren && customer.customerType === "DEALER";
               }}
             />

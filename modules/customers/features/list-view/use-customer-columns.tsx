@@ -36,8 +36,9 @@ export function useCustomerColumns(
                 },
                 cell: ({ row }) => {
                     const orig = row.original;
+                    const subDealers = (orig as any).subDealers || [];
                     const hasChildren =
-                        !!data && data.some((d) => d.parentDealerId === orig.id);
+                        subDealers.length > 0 || (!!data && data.some((d) => d.parentDealerId === orig.id));
                     // Only show expander for dealers that have sub-dealers
                     const showExpander = hasChildren && orig.customerType === "DEALER";
 
