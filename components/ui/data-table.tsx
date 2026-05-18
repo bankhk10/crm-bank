@@ -41,6 +41,8 @@ export interface DataTableProps<TData, TValue> {
   getRowCanExpand?: (row: Row<TData>) => boolean;
   emptyState?: DataTableEmptyState;
   className?: string;
+  /** Optional function to get row unique ID */
+  getRowId?: (row: TData, index: number) => string;
 }
 
 export function DataTable<TData, TValue>({
@@ -56,6 +58,7 @@ export function DataTable<TData, TValue>({
     description: "ลองปรับเงื่อนไขหรือสร้างรายการใหม่",
   },
   className,
+  getRowId,
 }: DataTableProps<TData, TValue>) {
   // TanStack's useReactTable manages internal refs and must be created per render.
   // Add local sorting state and sorted row model so headers can toggle sort.
@@ -71,6 +74,7 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     manualPagination: true,
+    getRowId: getRowId || ((row: any, index: number) => row.id ?? row.uuid ?? String(index)),
     ...(renderSubComponent || getRowCanExpand ? { getExpandedRowModel: getExpandedRowModel() } : {}),
     ...(getRowCanExpand ? { getRowCanExpand } : {}),
   });

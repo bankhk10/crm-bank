@@ -38,6 +38,8 @@ export interface CustomTableProps<TData, TValue = any> {
   renderSubComponent?: (props: { row: Row<TData> }) => React.ReactNode;
   /** Optional function to decide whether a row can expand */
   getRowCanExpand?: (row: Row<TData>) => boolean;
+  /** Optional function to get row unique ID */
+  getRowId?: (row: TData, index: number) => string;
 }
 
 function DefaultPagination({
@@ -128,6 +130,7 @@ export function CustomTable<TData, TValue = any>(
     className,
     renderSubComponent,
     getRowCanExpand,
+    getRowId,
   } = props;
 
   const builtFooter = pagination ? (
@@ -143,6 +146,7 @@ export function CustomTable<TData, TValue = any>(
       footer={builtFooter}
       renderSubComponent={renderSubComponent as any}
       getRowCanExpand={getRowCanExpand as any}
+      getRowId={getRowId as any}
       emptyState={emptyState}
       className={className}
     />
