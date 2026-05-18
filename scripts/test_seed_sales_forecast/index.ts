@@ -57,9 +57,6 @@ async function main() {
     throw new Error("No products found in DB. Please seed products first.");
   }
 
-  const abcTypes = await prisma.productABCTypes.findMany();
-  const regions = ["ภาคเหนือ", "ภาคอีสาน", "ภาคกลาง", "ภาคตะวันออก", "ภาคตะวันตก", "ภาคใต้"];
-  
   const currentYear = new Date().getFullYear();
 
   for (let month = 1; month <= 12; month++) {
@@ -87,76 +84,6 @@ async function main() {
         createdById: user.id
       }
     });
-
-    // ==========================================
-    // 2. Region Sales Targets
-    // ==========================================
-    for (const region of regions) {
-      const randomRegionTarget = 500000 + Math.floor(Math.random() * 500000);
-      await prisma.regionSalesTarget.upsert({
-        where: {
-          region_year_month: { region, year: currentYear, month }
-        },
-        update: {
-          targetAmount: randomRegionTarget,
-          notes: "ปรับเป้ายอดขายรายภาค"
-        },
-        create: {
-          region,
-          year: currentYear,
-          month,
-          targetAmount: randomRegionTarget,
-          notes: `เป้าหมายยอดขายประจำเดือน ${month} ภูมิภาค ${region}`,
-          createdById: user.id
-        }
-      });
-    }
-
-    // ==========================================
-    // 3. Product Group (ABC Type) Sales Targets
-    // ==========================================
-    for (const abc of abcTypes) {
-      const randomGroupTarget = 300000 + Math.floor(Math.random() * 300000);
-      await prisma.productGroupSalesTarget.upsert({
-        where: {
-          productGroup_year_month: { productGroup: abc.id, year: currentYear, month }
-        },
-        update: {
-          targetAmount: randomGroupTarget
-        },
-        create: {
-          productGroup: abc.id,
-          year: currentYear,
-          month,
-          targetAmount: randomGroupTarget,
-          notes: `เป้าหมายยอดขายประเภท (ABC Code) ${abc.name}`,
-          createdById: user.id
-        }
-      });
-    }
-
-    // ==========================================
-    // 4. Product Sales Targets
-    // ==========================================
-    for (const product of products) {
-      const randomProductTarget = 50000 + Math.floor(Math.random() * 100000);
-      await prisma.productSalesTarget.upsert({
-        where: {
-          productId_year_month: { productId: product.id, year: currentYear, month }
-        },
-        update: {
-          targetAmount: randomProductTarget
-        },
-        create: {
-          productId: product.id,
-          year: currentYear,
-          month,
-          targetAmount: randomProductTarget,
-          notes: `เป้าหมายยอดขายสินค้า ${product.name}`,
-          createdById: user.id
-        }
-      });
-    }
 
     // ==========================================
     // 5. Detailed Sales Targets (By Employee & Store)
