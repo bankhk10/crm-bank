@@ -326,7 +326,7 @@ export async function processSalesTargetImport(
         select: { id: true, name: true, employeeCode: true },
       }),
       db.customer.findMany({
-        select: { id: true, name: true, customerCode: true },
+        select: { id: true, name: true, customerCode: true, region: true },
       }),
       db.product.findMany({
         select: {
@@ -506,10 +506,19 @@ export async function processSalesTargetImport(
           where: { salesTargetId: existing.id },
         });
 
+        // ดึงข้อมูลภูมิภาคจากร้านค้าแรกในรายการนำเข้า
+        let region: string | null = null;
+        if (storesData.length > 0) {
+          const firstStore = storesData[0];
+          const cust = customers.find((c) => c.id === firstStore.customerId);
+          region = cust?.region ?? null;
+        }
+
         // Update with new data
         const updated = await db.salesTarget.update({
           where: { id: existing.id },
           data: {
+            region,
             stores: {
               create: storesData.map((store) => ({
                 customerId: store.customerId,
@@ -554,12 +563,21 @@ export async function processSalesTargetImport(
 
         updatedCount++;
       } else {
+        // ดึงข้อมูลภูมิภาคจากร้านค้าแรกในรายการนำเข้า
+        let region: string | null = null;
+        if (storesData.length > 0) {
+          const firstStore = storesData[0];
+          const cust = customers.find((c) => c.id === firstStore.customerId);
+          region = cust?.region ?? null;
+        }
+
         // Create new target
         const created = await db.salesTarget.create({
           data: {
             year: group.year,
             month: group.month,
             employeeId: group.employeeId,
+            region,
             createdById: userId,
             stores: {
               create: storesData.map((store) => ({

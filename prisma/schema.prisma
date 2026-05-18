@@ -1330,10 +1330,11 @@ model Notification {
 
 // เป้าหมายการขาย: 1 record ต่อ 1 เดือน ต่อ 1 พนักงาน
 model SalesTarget {
-  id         String @id @default(cuid())
+  id         String  @id @default(cuid())
   year       Int
   month      Int
-  employeeId String // พนักงาน
+  employeeId String  // พนักงาน
+  region     String? // ภูมิภาค โดยอ้างอิงจากร้านค้า
 
   employee Employee             @relation(fields: [employeeId], references: [id])
   stores   SalesTargetStore[]

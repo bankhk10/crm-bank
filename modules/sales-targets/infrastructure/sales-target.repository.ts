@@ -183,9 +183,21 @@ export async function createSalesTarget(data: {
 }) {
   const { stores, ...targetData } = data;
 
+  // ดึงข้อมูลภูมิภาคจากร้านค้าแรกในรายการ
+  let region: string | null = null;
+  if (stores.length > 0) {
+    const firstStore = stores[0];
+    const customer = await db.customer.findUnique({
+      where: { id: firstStore.customerId },
+      select: { region: true }
+    });
+    region = customer?.region ?? null;
+  }
+
   const target = await db.salesTarget.create({
     data: {
       ...targetData,
+      region,
       stores: {
         create: stores.map((store) => ({
           customerId: store.customerId,
@@ -252,10 +264,22 @@ export async function updateSalesTarget(
     where: { salesTargetId: id },
   });
 
+  // ดึงข้อมูลภูมิภาคจากร้านค้าแรกในรายการ
+  let region: string | null = null;
+  if (stores.length > 0) {
+    const firstStore = stores[0];
+    const customer = await db.customer.findUnique({
+      where: { id: firstStore.customerId },
+      select: { region: true }
+    });
+    region = customer?.region ?? null;
+  }
+
   const target = await db.salesTarget.update({
     where: { id },
     data: {
       ...targetData,
+      region,
       stores: {
         create: stores.map((store) => ({
           customerId: store.customerId,

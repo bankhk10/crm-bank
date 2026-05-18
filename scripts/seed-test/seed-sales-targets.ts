@@ -47,6 +47,7 @@ async function main() {
       year: currentYear,
       month: currentMonth,
       employeeId: employee.id,
+      region: customer1.region,
       createdById: employee.id,
       stores: {
         create: [

@@ -43,6 +43,7 @@ export interface DetailedTarget {
   year: number;
   month: number;
   employeeId: string;
+  region?: string | null;
   createdById?: string | null;
   employee?: {
     id: string;

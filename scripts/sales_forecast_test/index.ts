@@ -66,6 +66,7 @@ async function main() {
         year: currentYear,
         month: month,
         employeeId: employee.id,
+        region: customers[0]?.region ?? null,
         createdById: user.id,
       }
     });

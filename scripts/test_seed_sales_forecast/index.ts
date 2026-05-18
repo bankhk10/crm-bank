@@ -97,6 +97,8 @@ async function main() {
         dealerCustomers[((empIndex * 2) + 1) % dealerCustomers.length]
       ];
 
+      const targetRegion = assignedCustomers[0]?.region ?? null;
+
       // Use upsert to avoid Unique constraint conflicts
       let detailedTarget = await prisma.salesTarget.findUnique({
         where: {
@@ -124,12 +126,14 @@ async function main() {
           }
         },
         update: {
+          region: targetRegion,
           createdById: user.id
         },
         create: {
           year: currentYear,
           month,
           employeeId: employee.id,
+          region: targetRegion,
           createdById: user.id
         }
       });
