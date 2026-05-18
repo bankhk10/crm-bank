@@ -47,6 +47,7 @@ export async function updateEmployeeUseCase(id: string, rawData: unknown) {
     firstName: data.firstName ?? undefined,
     lastName: data.lastName ?? undefined,
     employeeCode: data.employeeCode ?? undefined,
+    nickname: data.nickname ?? undefined,
     phone: data.phone ?? undefined,
     birthDate: birthDate && !isNaN(birthDate.getTime()) ? birthDate : undefined,
     addressLine: data.addressLine ?? undefined,

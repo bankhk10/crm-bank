@@ -58,7 +58,7 @@ export function EmployeeTable({
     const toolbar = (
         <div className="space-y-4 mb-6">
             <TableToolbar
-                searchPlaceholder="รหัสพนักงาน, ชื่อ-นามสกุล, อีเมล, เบอร์โทรศัพท์"
+                searchPlaceholder="รหัสพนักงาน, ชื่อ-นามสกุล, ชื่อเล่น, อีเมล, เบอร์โทรศัพท์"
                 searchValue={searchValue ?? ""}
                 onSearchChange={onSearchChange ?? (() => { })}
                 onSearchSubmit={onSearchSubmit}

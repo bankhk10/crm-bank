@@ -62,6 +62,7 @@ export async function createEmployeeUseCase(rawData: unknown) {
     firstName: data.firstName || undefined,
     lastName: data.lastName || undefined,
     employeeCode: data.employeeCode || undefined,
+    nickname: data.nickname || undefined,
     phone: data.phone || undefined,
     birthDate: !isNaN(birthDate?.getTime() ?? NaN) ? birthDate : undefined,
     addressLine: data.addressLine || undefined,

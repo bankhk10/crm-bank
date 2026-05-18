@@ -29,6 +29,7 @@ export async function findEmployees(params: ListEmployeesParams) {
   if (q) {
     where.OR = [
       { name: { contains: q, mode: "insensitive" } },
+      { nickname: { contains: q, mode: "insensitive" } },
       { email: { contains: q, mode: "insensitive" } },
       { employeeCode: { contains: q, mode: "insensitive" } },
     ];

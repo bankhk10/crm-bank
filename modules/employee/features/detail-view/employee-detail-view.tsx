@@ -173,7 +173,7 @@ export default function EmployeeDetailView() {
             <DetailHero
                 backUrl="/employee"
                 backLabel="หน้ารายการพนักงาน"
-                title={employee.name || ""}
+                title={employee.name ? `${employee.name}${employee.nickname ? ` (${employee.nickname})` : ""}` : ""}
                 icon={<User className="h-8 w-8 sm:h-10 sm:w-10 text-white" />}
                 accentColor="#B91C1C"
                 badges={
@@ -243,6 +243,11 @@ export default function EmployeeDetailView() {
                             title="ข้อมูลส่วนตัว"
                         />
                         <div className="p-6 space-y-1 divide-y divide-gray-50">
+                            <DetailItem
+                                icon={<User className="h-4 w-4 text-gray-400" />}
+                                label="ชื่อเล่น"
+                                value={employee.nickname}
+                            />
                             <DetailItem
                                 icon={<Mail className="h-4 w-4 text-gray-400" />}
                                 label="อีเมล"

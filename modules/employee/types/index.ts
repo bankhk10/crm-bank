@@ -10,6 +10,7 @@ export interface Employee {
   phone: string;
   companyId: string;
   employeeCode?: string;
+  nickname?: string | null;
   status?: string;
   position?: {
     id: string;
@@ -37,6 +38,7 @@ export type EmployeeDetail = {
 
   // Extended fields
   employeeCode?: string | null;
+  nickname?: string | null;
   birthDate?: string | null;
   addressLine?: string | null;
   province?: string | null;

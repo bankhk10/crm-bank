@@ -45,6 +45,18 @@ export function useEmployeeColumns(
                 cell: ({ row }) => <TruncatedCell value={row.original.name ?? "-"} />,
             },
             {
+                accessorKey: "nickname",
+                header: "ชื่อเล่น",
+                meta: {
+                    headerAlign: "left",
+                    minWidth: 100,
+                    width: 120,
+                    maxWidth: 120,
+                    align: "left",
+                },
+                cell: ({ row }) => <TruncatedCell value={row.original.nickname ?? "-"} />,
+            },
+            {
                 accessorKey: "email",
                 header: "อีเมล",
                 meta: {

@@ -95,7 +95,7 @@ export function EmployeeCards({
                                     </span>
                                     <div>
                                         <div className="text-base font-semibold text-slate-900 line-clamp-1">
-                                            {emp.name}
+                                            {emp.name} {emp.nickname ? `(${emp.nickname})` : ""}
                                         </div>
                                         <div className="text-xs text-slate-500">
                                             {emp.position?.name ?? "ไม่ระบุตำแหน่ง"}
