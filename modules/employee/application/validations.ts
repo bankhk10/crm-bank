@@ -16,6 +16,7 @@ export const employeeSchema = z.object({
   prefix: z.string().nullable().optional(),
   firstName: z.string().min(1, "กรุณากรอกชื่อ"),
   lastName: z.string().min(1, "กรุณากรอกนามสกุล"),
+  nickname: z.string().nullable().optional(),
   employeeCode: z.string().nullable().optional(),
   email: z.string().email("รูปแบบอีเมลไม่ถูกต้อง"),
   phone: z.string().nullable().optional(),

@@ -54,6 +54,7 @@ export default function EmployeeForm({
             prefix: initial.prefix ?? "",
             firstName: initial.firstName ?? "",
             lastName: initial.lastName ?? "",
+            nickname: initial.nickname ?? "",
             employeeCode: initial.employeeCode ?? "",
             email: initial.email ?? "",
             phone: initial.phone ?? "",
@@ -166,7 +167,7 @@ export default function EmployeeForm({
                 ข้อมูลส่วนตัว
             </h3>
 
-            <div className="grid gap-x-4 gap-y-3 md:grid-cols-6 mt-6">
+            <div className="grid gap-x-4 gap-y-3 md:grid-cols-8 mt-6">
                 <Controller
                     control={control}
                     name="employeeCode"
@@ -222,6 +223,21 @@ export default function EmployeeForm({
                             onBlur={field.onBlur}
                             required
                             error={errors.lastName?.message}
+                            containerClassName="md:col-span-2"
+                        />
+                    )}
+                />
+
+                <Controller
+                    control={control}
+                    name="nickname"
+                    render={({ field }) => (
+                        <FormInput
+                            label="ชื่อเล่น"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            error={errors.nickname?.message}
                             containerClassName="md:col-span-2"
                         />
                     )}
