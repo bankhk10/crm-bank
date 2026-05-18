@@ -33,10 +33,20 @@ export interface ProductForecastEntry {
   totalQuantity: number;
 }
 
+export interface ABCForecastEntry {
+  abcCode: string;
+  abcName: string;
+  month: number;
+  totalAmount: number;
+  totalQuantity: number;
+}
+
 export interface SalesForecastResponse {
   personal: PersonalForecastEntry[];
   tradeNameGroup: TradeNameForecastEntry[];
   product: ProductForecastEntry[];
+  abc: ABCForecastEntry[];
   actualSales: Array<{ month: number; totalAmount: number }>;
   tradeNameGroupLabels: Record<string, string>;
+  abcLabels: Record<string, string>;
 }

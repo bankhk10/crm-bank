@@ -27,14 +27,17 @@ export async function findSalesTargetsWithDetails(year: number, month: number | 
           },
           items: {
             include: {
-              product: {
+                product: {
                 select: {
                   id: true,
                   productCode: true,
                   name: true,
                   tradeNameGroup: {
                     select: { code: true }
-                  }
+                  },
+                  productABCType: {
+                    select: { code: true, name: true }
+                  },
                 },
               },
             },
@@ -160,6 +163,14 @@ export async function findTradeNameGroups() {
   return prisma.tradeNameGroup.findMany({
     where: { deletedAt: null },
     select: { code: true, description: true },
+    orderBy: { code: "asc" },
+  });
+}
+
+export async function findProductABCTypes() {
+  return prisma.productABCTypes.findMany({
+    where: { deletedAt: null },
+    select: { code: true, name: true },
     orderBy: { code: "asc" },
   });
 }

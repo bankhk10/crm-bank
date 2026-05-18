@@ -19,6 +19,7 @@ import { useSalesForecast } from "@/hooks/use-sales-forecast";
 import { PersonalForecastSection } from "./components/PersonalForecastSection";
 import { TradeNameForecastSection } from "./components/TradeNameForecastSection";
 import { ProductForecastSection } from "./components/ProductForecastSection";
+import { ABCForecastSection } from "./components/ABCForecastSection";
 
 const MONTHS = [
   "ม.ค.",
@@ -68,6 +69,7 @@ export default function SalesForecastDashboard() {
   const {
     data: forecastData,
     tradeNameGroupLabels,
+    abcLabels,
     loading: forecastLoading,
     error: forecastError,
     refresh: refreshForecast,
@@ -246,6 +248,39 @@ export default function SalesForecastDashboard() {
     );
   }, [forecastData]);
 
+  const abcForecastRows = useMemo(() => {
+    if (!forecastData?.abc) return [];
+
+    const map: Record<
+      string,
+      {
+        abcCode: string;
+        abcName: string;
+        totalAmount: number;
+        totalQuantity: number;
+      }
+    > = {};
+
+    forecastData.abc.forEach((entry) => {
+      const code = entry.abcCode;
+      const name = abcLabels[code] || entry.abcName || code || "ไม่ระบุประเภท";
+      if (!map[code]) {
+        map[code] = {
+          abcCode: code,
+          abcName: name,
+          totalAmount: 0,
+          totalQuantity: 0,
+        };
+      }
+      map[code].totalAmount += entry.totalAmount;
+      map[code].totalQuantity += entry.totalQuantity;
+    });
+
+    return Object.values(map).sort((a, b) =>
+      a.abcCode.localeCompare(b.abcCode),
+    );
+  }, [forecastData, abcLabels]);
+
   // Calculate summary stats
   const totalActual = performanceData.reduce((sum, d) => sum + d.actual, 0);
   const totalTarget = performanceData.reduce((sum, d) => sum + d.target, 0);
@@ -359,6 +394,7 @@ export default function SalesForecastDashboard() {
           <TabsList className="bg-white/80 backdrop-blur-sm shadow-sm border border-slate-200/60 p-1.5 rounded-xl h-auto">
             <TabsTrigger value="overview" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">ภาพรวม</TabsTrigger>
             <TabsTrigger value="personal" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">พนักงาน</TabsTrigger>
+            <TabsTrigger value="abc" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">ประเภท (ABC)</TabsTrigger>
             <TabsTrigger value="group" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">กลุ่มชื่อการค้า</TabsTrigger>
             <TabsTrigger value="product" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">สินค้า</TabsTrigger>
           </TabsList>
@@ -533,6 +569,15 @@ export default function SalesForecastDashboard() {
             monthOptions={monthOptions}
             selectedMonth={personalMonth}
             onMonthChange={setPersonalMonth}
+            formatCurrency={formatFullCurrency}
+            loading={forecastLoading}
+            error={forecastError}
+          />
+        </TabsContent>
+
+        <TabsContent value="abc" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
+          <ABCForecastSection
+            data={abcForecastRows}
             formatCurrency={formatFullCurrency}
             loading={forecastLoading}
             error={forecastError}

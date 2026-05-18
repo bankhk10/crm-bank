@@ -3,6 +3,7 @@ import {
   findSalesTargetsWithDetails,
   findActualSalesWithShipments,
   findTradeNameGroups,
+  findProductABCTypes,
 } from "../infrastructure/sales-forecast.repository";
 
 const buildEmployeeName = (employee: {
@@ -30,11 +31,12 @@ export async function getSalesForecastUseCase(
 
   const groupsPromise = findTradeNameGroups();
 
-  const [targets, salesData, groups] = (await Promise.all([
+  const [targets, salesData, groups, abcTypes] = (await Promise.all([
     targetsPromise,
     salesPromise,
     groupsPromise,
-  ])) as [any[], any, any[]];
+    findProductABCTypes(),
+  ])) as [any[], any, any[], any[]];
 
   // Process sales summary
   // สำหรับ Split Shipment: นับแต่ละ Shipment ตาม scheduledDate (วันที่จัดส่งของ)
@@ -71,6 +73,7 @@ export async function getSalesForecastUseCase(
   const personalMap = new Map<string, any>();
   const tradeNameGroupMap = new Map<string, any>();
   const productMap = new Map<string, any>();
+  const abcMap = new Map<string, any>();
 
   targets.forEach((target) => {
     const employeeName = buildEmployeeName(target.employee);
@@ -125,6 +128,25 @@ export async function getSalesForecastUseCase(
           groupEntry.totalQuantity += quantity;
         }
 
+        // ABC Type grouping
+        const abcCode = (item.product as any).productABCType?.code || "unassigned";
+        const abcName = (item.product as any).productABCType?.name || "ไม่ระบุประเภท";
+        const abcKey = `${abcCode}-${target.month}`;
+        if (!abcMap.has(abcKey)) {
+          abcMap.set(abcKey, {
+            abcCode,
+            abcName,
+            month: target.month,
+            totalAmount: 0,
+            totalQuantity: 0,
+          });
+        }
+        const abcEntry = abcMap.get(abcKey);
+        if (abcEntry) {
+          abcEntry.totalAmount += amount;
+          abcEntry.totalQuantity += quantity;
+        }
+
         const productKey = `${item.productId}-${target.month}`;
         if (!productMap.has(productKey)) {
           productMap.set(productKey, {
@@ -156,6 +178,9 @@ export async function getSalesForecastUseCase(
   const product = Array.from(productMap.values()).sort((a, b) =>
     a.productName.localeCompare(b.productName),
   );
+  const abc = Array.from(abcMap.values()).sort((a, b) =>
+    a.abcCode.localeCompare(b.abcCode),
+  );
 
   // Create group labels map
   const tradeNameGroupLabels = groups.reduce<Record<string, string>>((acc, g) => {
@@ -163,11 +188,19 @@ export async function getSalesForecastUseCase(
     return acc;
   }, {});
 
+  // Create ABC labels map
+  const abcLabels = abcTypes.reduce<Record<string, string>>((acc, t) => {
+    acc[t.code] = t.name;
+    return acc;
+  }, {});
+
   return {
     personal,
     tradeNameGroup,
     product,
+    abc,
     actualSales,
     tradeNameGroupLabels,
+    abcLabels,
   };
 }
