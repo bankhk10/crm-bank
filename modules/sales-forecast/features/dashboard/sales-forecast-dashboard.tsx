@@ -225,6 +225,7 @@ export default function SalesForecastDashboard() {
         tradeNameGroup: string | null;
         totalAmount: number;
         totalQuantity: number;
+        totalVolume: number;
       }
     > = {};
 
@@ -237,10 +238,12 @@ export default function SalesForecastDashboard() {
           tradeNameGroup: entry.tradeNameGroup,
           totalAmount: 0,
           totalQuantity: 0,
+          totalVolume: 0,
         };
       }
       map[entry.productId].totalAmount += entry.totalAmount;
       map[entry.productId].totalQuantity += entry.totalQuantity;
+      map[entry.productId].totalVolume += entry.totalVolume || 0;
     });
 
     return Object.values(map).sort((a, b) =>

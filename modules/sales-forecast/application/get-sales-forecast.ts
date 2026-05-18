@@ -95,6 +95,7 @@ export async function getSalesForecastUseCase(
       store.items.forEach((item: any) => {
         const amount = Number(item.targetAmount || 0);
         const quantity = item.qtyPerBox || 0;
+        const volume = quantity * Number(item.product.totalPackageSizePerBox || 0);
 
         const personalEntry = personalMap.get(personalKey);
         if (personalEntry) {
@@ -157,6 +158,7 @@ export async function getSalesForecastUseCase(
             month: target.month,
             totalAmount: 0,
             totalQuantity: 0,
+            totalVolume: 0,
           });
         }
 
@@ -164,6 +166,7 @@ export async function getSalesForecastUseCase(
         if (productEntry) {
           productEntry.totalAmount += amount;
           productEntry.totalQuantity += quantity;
+          productEntry.totalVolume += volume;
         }
       });
     });

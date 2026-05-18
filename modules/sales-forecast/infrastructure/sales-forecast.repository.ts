@@ -38,6 +38,7 @@ export async function findSalesTargetsWithDetails(year: number, month: number | 
                   productABCType: {
                     select: { code: true, name: true }
                   },
+                  totalPackageSizePerBox: true,
                 },
               },
             },

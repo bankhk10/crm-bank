@@ -31,6 +31,7 @@ export interface ProductForecastEntry {
   month: number;
   totalAmount: number;
   totalQuantity: number;
+  totalVolume: number;
 }
 
 export interface ABCForecastEntry {

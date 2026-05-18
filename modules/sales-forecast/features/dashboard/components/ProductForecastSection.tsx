@@ -11,6 +11,7 @@ interface ProductForecastRow {
   tradeNameGroup: string | null;
   totalAmount: number;
   totalQuantity: number;
+  totalVolume: number;
 }
 
 interface ProductForecastSectionProps {
@@ -117,9 +118,16 @@ export const ProductForecastSection = ({
                   <p className="mt-3 text-lg font-semibold text-teal-700">
                     {formatCurrency(row.totalAmount)}
                   </p>
-                  <p className="text-xs text-slate-400">
-                    จำนวนสินค้า {row.totalQuantity.toLocaleString()} รายการ
-                  </p>
+                  <div className="flex flex-col gap-1 mt-1">
+                    <p className="text-xs text-slate-400">
+                      จำนวนสินค้า {row.totalQuantity.toLocaleString()} รายการ
+                    </p>
+                    {row.totalVolume > 0 && (
+                      <p className="text-xs text-slate-400">
+                        ปริมาณรวม {row.totalVolume.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ลิตร/กก.
+                      </p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
