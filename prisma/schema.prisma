@@ -787,6 +787,7 @@ model Sale {
   id          String      @id @default(cuid()) // รหัสเอกสารการขาย (Primary Key)
   saleNumber  String      @unique // เลขที่เอกสาร (เช่น SN-202310-001)
   customerId  String // รหัสลูกค้า
+  region      String? // ภูมิภาคของลูกค้า/ร้านค้า
   employeeId  String // รหัสพนักงานขายที่ดูแล (เซลส์)
   status      SaleStatus  @default(PENDING) // สถานะบันทึกการขาย (เช่น รออนุมัติ, อนุมัติแล้ว)
   paymentTerm PaymentTerm // เงื่อนไขการชำระเงิน (เช่น เงินสด, เครดิต)

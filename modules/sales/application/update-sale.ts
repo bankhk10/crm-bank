@@ -113,6 +113,7 @@ export async function updateSaleUseCase(
   const sale = await updateSale(id, {
     existingSale,
     customerId: body.customerId,
+    region: targetCustomer?.region || null,
     employeeId: body.employeeId,
     paymentTerm: body.paymentTerm,
     creditDays: body.creditDays,

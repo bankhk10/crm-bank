@@ -278,6 +278,7 @@ export async function findUserById(userId: string) {
 export async function createSale(data: {
   saleNumber: string;
   customerId: string;
+  region?: string | null;
   employeeId: string;
   paymentTerm: string;
   creditDays?: number;
@@ -381,6 +382,7 @@ export async function createSale(data: {
     data: {
       saleNumber: data.saleNumber,
       customerId: data.customerId,
+      region: data.region,
       employeeId: data.employeeId,
       status: "PENDING_APPROVAL",
       paymentTerm: data.paymentTerm as PaymentTerm,
@@ -517,6 +519,7 @@ export async function updateSale(
   data: {
     existingSale: any;
     customerId: string;
+    region?: string | null;
     employeeId: string;
     paymentTerm: string;
     creditDays?: number;
@@ -647,6 +650,7 @@ export async function updateSale(
       where: { id },
       data: {
         customerId: data.customerId,
+        region: data.region,
         employeeId: data.employeeId,
         paymentTerm: data.paymentTerm as PaymentTerm,
         creditDays: data.creditDays,

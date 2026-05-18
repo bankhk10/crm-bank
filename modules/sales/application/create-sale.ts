@@ -167,6 +167,7 @@ export async function createSaleUseCase(
   const sale = await createSale({
     saleNumber,
     customerId: body.customerId,
+    region: customer.region,
     employeeId: body.employeeId,
     paymentTerm: body.paymentTerm,
     creditDays: body.creditDays,
