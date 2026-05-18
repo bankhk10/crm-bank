@@ -95,7 +95,13 @@ export async function getSalesForecastUseCase(
       store.items.forEach((item: any) => {
         const amount = Number(item.targetAmount || 0);
         const quantity = item.qtyPerBox || 0;
-        const volume = quantity * Number(item.product.totalPackageSizePerBox || 0);
+        let baseVolume = quantity * Number(item.product.totalPackageSizePerBox || 0);
+        
+        const unit = (item.product.packageSizeUnit || item.product.unit || "").trim().toLowerCase();
+        if (['ml', 'cc', 'g', 'กรัม', 'ซีซี', 'มล.', 'มล', 'g.', 'ml.'].includes(unit)) {
+          baseVolume = baseVolume / 1000;
+        }
+        const volume = baseVolume;
 
         const personalEntry = personalMap.get(personalKey);
         if (personalEntry) {

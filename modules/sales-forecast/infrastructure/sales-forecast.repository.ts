@@ -39,6 +39,8 @@ export async function findSalesTargetsWithDetails(year: number, month: number | 
                     select: { code: true, name: true }
                   },
                   totalPackageSizePerBox: true,
+                  packageSizeUnit: true,
+                  unit: true,
                 },
               },
             },
