@@ -41,6 +41,7 @@ export const regionMapping: Record<string, string[]> = {
   ],
   ภาคตะวันออก: [
     "ชลบุรี",
+    "ระยอง",
     "จันทบุรี",
     "ตราด",
     "ฉะเชิงเทรา",
@@ -86,7 +87,6 @@ export const regionMapping: Record<string, string[]> = {
     "ปัตตานี",
     "ยะลา",
     "นราธิวาส",
-    "ระยอง",
   ],
 };
 
