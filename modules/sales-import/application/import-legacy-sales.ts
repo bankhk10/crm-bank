@@ -17,13 +17,31 @@ const MONTH_MAP: Record<string, number> = {
 };
 
 function getMonthNumber(monthStr: string | number): number {
-  if (typeof monthStr === "number") return monthStr;
-  const cleaned = monthStr.toString().trim().slice(0, 3); // matching short english months easily if they have trailing spaces
-  // exact match
-  if (MONTH_MAP[monthStr.trim()]) return MONTH_MAP[monthStr.trim()];
-  // short match
-  const matched = Object.keys(MONTH_MAP).find(k => k.toLowerCase().startsWith(cleaned.toLowerCase()));
-  return matched ? MONTH_MAP[matched] : 1;
+  if (typeof monthStr === "number") {
+    return monthStr >= 1 && monthStr <= 12 ? monthStr : 1;
+  }
+  const trimmed = monthStr.toString().trim();
+  // Try direct number
+  const num = parseInt(trimmed, 10);
+  if (!isNaN(num) && num >= 1 && num <= 12) return num;
+
+  const keys = Object.keys(MONTH_MAP);
+  
+  // 1. Try exact case-insensitive match
+  const exactMatch = keys.find(k => k.toLowerCase() === trimmed.toLowerCase());
+  if (exactMatch) return MONTH_MAP[exactMatch];
+
+  // 2. Try prefix match
+  const cleanedShort = trimmed.toLowerCase().slice(0, 3);
+  const prefixMatch = keys.find(k => {
+    const kLower = k.toLowerCase();
+    if (kLower.match(/^[a-z]{3}$/)) {
+      return cleanedShort === kLower;
+    }
+    return kLower.startsWith(trimmed.toLowerCase()) || trimmed.toLowerCase().startsWith(kLower);
+  });
+
+  return prefixMatch ? MONTH_MAP[prefixMatch] : 1;
 }
 
 export async function processLegacySalesFile(

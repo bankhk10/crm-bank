@@ -371,7 +371,7 @@ export default function SalesTargetImportView() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
                     { name: "ปี", desc: "พ.ศ. / ค.ศ." },
-                    { name: "เดือน", desc: "1-12 / ชื่อ" },
+                    { name: "เดือน", desc: "ตัวย่อภาษาอังกฤษ (เช่น Jan, Feb)" },
                     { name: "รหัสพนักงาน", desc: "Employee Code" },
                     { name: "รหัสร้านค้า", desc: "Customer Code" },
                     { name: "รหัสสินค้า", desc: "Product Code" },

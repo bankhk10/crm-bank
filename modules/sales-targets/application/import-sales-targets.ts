@@ -66,13 +66,25 @@ function parseMonth(monthStr: string | number): number | null {
   // Try direct number
   const num = parseInt(trimmed, 10);
   if (!isNaN(num) && num >= 1 && num <= 12) return num;
-  // Try name
-  if (MONTH_MAP[trimmed]) return MONTH_MAP[trimmed];
-  // Try partial match
-  const matched = Object.keys(MONTH_MAP).find((k) =>
-    k.toLowerCase().startsWith(trimmed.toLowerCase()),
-  );
-  return matched ? MONTH_MAP[matched] : null;
+  
+  // Try mapping keys case-insensitively
+  const keys = Object.keys(MONTH_MAP);
+  
+  // 1. Try exact case-insensitive match
+  const exactMatch = keys.find(k => k.toLowerCase() === trimmed.toLowerCase());
+  if (exactMatch) return MONTH_MAP[exactMatch];
+
+  // 2. Try prefix match (e.g., if trimmed starts with key or key starts with trimmed)
+  const cleanedShort = trimmed.toLowerCase().slice(0, 3);
+  const prefixMatch = keys.find(k => {
+    const kLower = k.toLowerCase();
+    if (kLower.match(/^[a-z]{3}$/)) {
+      return cleanedShort === kLower;
+    }
+    return kLower.startsWith(trimmed.toLowerCase()) || trimmed.toLowerCase().startsWith(kLower);
+  });
+  
+  return prefixMatch ? MONTH_MAP[prefixMatch] : null;
 }
 
 function normalizeYear(year: number): number {
@@ -92,10 +104,10 @@ export function generateSalesTargetTemplate(): ArrayBuffer {
 
   // Example data rows
   const exampleRows = [
-    [2569, 5, "EMP001", "CUST001", "PRD001", 10, 1500, 15000],
-    [2569, 5, "EMP001", "CUST001", "PRD002", 5, 2000, 10000],
-    [2569, 5, "EMP001", "CUST002", "PRD001", 8, 1500, 12000],
-    [2569, 6, "EMP002", "CUST003", "PRD003", 20, 800, 16000],
+    [2569, "May", "EMP001", "CUST001", "PRD001", 10, 1500, 15000],
+    [2569, "May", "EMP001", "CUST001", "PRD002", 5, 2000, 10000],
+    [2569, "May", "EMP001", "CUST002", "PRD001", 8, 1500, 12000],
+    [2569, "Jun", "EMP002", "CUST003", "PRD003", 20, 800, 16000],
   ];
 
   const data = [headers, ...exampleRows];
@@ -121,7 +133,7 @@ export function generateSalesTargetTemplate(): ArrayBuffer {
     [""],
     ["คอลัมน์", "คำอธิบาย", "ตัวอย่าง"],
     ["ปี", "ปี พ.ศ. หรือ ค.ศ. (ระบบรองรับทั้งสองแบบ)", "2569 หรือ 2026"],
-    ["เดือน", "เดือน 1-12 หรือชื่อเดือนภาษาไทย", "5 หรือ พฤษภาคม"],
+    ["เดือน", "ตัวย่อเดือนภาษาอังกฤษ (เช่น Jan, Feb, Mar, ...)", "May"],
     ["รหัสพนักงาน", "รหัสพนักงานขายในระบบ (Employee Code)", "EMP001"],
     ["รหัสร้านค้า", "รหัสลูกค้า/ร้านค้าในระบบ (Customer Code)", "CUST001"],
     ["รหัสสินค้า", "รหัสสินค้าในระบบ (Product Code)", "PRD001"],
