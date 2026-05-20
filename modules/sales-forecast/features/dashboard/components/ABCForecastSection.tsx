@@ -58,10 +58,16 @@ export const ABCForecastSection = ({
     [data],
   );
 
-  const sortedData = useMemo(
-    () => [...data].sort((a, b) => b.totalAmount - a.totalAmount),
-    [data],
-  );
+  const sortedData = useMemo(() => {
+    const order: Record<string, number> = { A: 1, B: 2, C: 3 };
+    return [...data].sort((a, b) => {
+      const codeA = a.abcCode?.toUpperCase() || "";
+      const codeB = b.abcCode?.toUpperCase() || "";
+      const valA = order[codeA] ?? 99;
+      const valB = order[codeB] ?? 99;
+      return valA - valB;
+    });
+  }, [data]);
 
   return (
     <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
