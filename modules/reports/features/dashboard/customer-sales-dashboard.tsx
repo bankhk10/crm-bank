@@ -236,9 +236,6 @@ export function CustomerSalesDashboard() {
           <TableCell className="text-center font-bold text-green-700">
             {formatTHB(c.totalSales)}
           </TableCell>
-          <TableCell className="text-center font-medium text-slate-700">
-            {hasSubDealers ? formatTHB(subDealerSales) : "-"}
-          </TableCell>
           <TableCell className="text-center font-bold text-blue-700">
             {formatTHB(grandTotalSales)}
           </TableCell>
@@ -536,16 +533,15 @@ export function CustomerSalesDashboard() {
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="overflow-auto max-h-[600px]">
-                      <Table className="min-w-[1100px]">
+                      <Table className="min-w-[1000px]">
                         <TableHeader className="sticky top-0 bg-white/95 backdrop-blur z-10">
                           <TableRow className="border-b border-slate-200">
                             <TableHead className="font-semibold text-slate-700">ลำดับ</TableHead>
                             <TableHead className="font-semibold text-slate-700">ลูกค้า</TableHead>
                             <TableHead className="font-semibold text-slate-700">ประเภท</TableHead>
                             <TableHead className="font-semibold text-slate-700">ภูมิภาค</TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">ยอดขาย</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">ยอดขายรวม</TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">ยอดขายรวมลูก</TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">ยอดขายรวมทั้งหมด</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">ออเดอร์รวม</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">รายละเอียด</TableHead>
                           </TableRow>
@@ -553,7 +549,7 @@ export function CustomerSalesDashboard() {
                         <TableBody>
                           {topLevelCustomers.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={9} className="text-center py-10">
+                              <TableCell colSpan={8} className="text-center py-10">
                                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
                                   <Users className="h-10 w-10 opacity-20" />
                                   <p>ไม่พบข้อมูลลูกค้า</p>
