@@ -167,9 +167,20 @@ export function CustomerSalesDashboard() {
     }
   });
 
+  // Map of customer ID -> sum of sales of its subdealers (child shops)
+  const subDealerSalesMap = new Map<string, number>();
+  topCustomers.forEach((c) => {
+    if (c.parentDealerId) {
+      const currentSum = subDealerSalesMap.get(c.parentDealerId) || 0;
+      subDealerSalesMap.set(c.parentDealerId, currentSum + c.totalSales);
+    }
+  });
+
   const renderCustomerRow = (c: typeof topCustomers[0], index: number, isSubDealer = false, parentIndex?: number) => {
     const hasSubDealers = subDealersMap.has(c.id);
     const isExpanded = expandedDealers.has(c.id);
+    const subDealerSales = subDealerSalesMap.get(c.id) || 0;
+    const grandTotalSales = c.totalSales + subDealerSales;
 
     return (
       <Fragment key={c.id}>
@@ -224,6 +235,12 @@ export function CustomerSalesDashboard() {
           <TableCell className="text-slate-600">{c.province && c.province !== "-" ? `${c.province} (${c.region})` : c.region}</TableCell>
           <TableCell className="text-center font-bold text-green-700">
             {formatTHB(c.totalSales)}
+          </TableCell>
+          <TableCell className="text-center font-medium text-slate-700">
+            {hasSubDealers ? formatTHB(subDealerSales) : "-"}
+          </TableCell>
+          <TableCell className="text-center font-bold text-blue-700">
+            {formatTHB(grandTotalSales)}
           </TableCell>
           <TableCell className="text-center text-slate-700 font-medium">
             {c.orderCount}
@@ -519,7 +536,7 @@ export function CustomerSalesDashboard() {
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="overflow-auto max-h-[600px]">
-                      <Table className="min-w-[900px]">
+                      <Table className="min-w-[1100px]">
                         <TableHeader className="sticky top-0 bg-white/95 backdrop-blur z-10">
                           <TableRow className="border-b border-slate-200">
                             <TableHead className="font-semibold text-slate-700">ลำดับ</TableHead>
@@ -527,6 +544,8 @@ export function CustomerSalesDashboard() {
                             <TableHead className="font-semibold text-slate-700">ประเภท</TableHead>
                             <TableHead className="font-semibold text-slate-700">ภูมิภาค</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">ยอดขายรวม</TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">ยอดขายรวมลูก</TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">ยอดขายรวมทั้งหมด</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">ออเดอร์รวม</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">รายละเอียด</TableHead>
                           </TableRow>
