@@ -202,3 +202,11 @@ export async function findCustomerByCode(code: string) {
     where: { customerCode: code, deletedAt: null },
   });
 }
+
+export async function checkCustomerCodeExists(code: string) {
+  return db.customer.findUnique({
+    where: { customerCode: code },
+    select: { id: true, customerCode: true, deletedAt: true },
+  });
+}
+

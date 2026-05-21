@@ -77,6 +77,8 @@ export default function CustomerNewView() {
                     if (result.success) {
                       toast.success("สร้างตัวแทนจำหน่ายเรียบร้อยแล้ว");
                       router.push("/customers");
+                    } else {
+                      toast.error(result.error || "ไม่สามารถสร้างตัวแทนจำหน่ายได้");
                     }
                     return result;
                   }}
@@ -92,6 +94,8 @@ export default function CustomerNewView() {
                     if (result.success) {
                       toast.success("สร้างตัวแทนจำหน่ายย่อยเรียบร้อยแล้ว");
                       router.push("/customers");
+                    } else {
+                      toast.error(result.error || "ไม่สามารถสร้างตัวแทนจำหน่ายย่อยได้");
                     }
                     return result;
                   }}
@@ -107,6 +111,8 @@ export default function CustomerNewView() {
                     if (result.success) {
                       toast.success("สร้างเกษตรกรเรียบร้อยแล้ว");
                       router.push("/customers");
+                    } else {
+                      toast.error(result.error || "ไม่สามารถสร้างเกษตรกรได้");
                     }
                     return result;
                   }}
@@ -122,6 +128,8 @@ export default function CustomerNewView() {
                     if (result.success) {
                       toast.success("สร้างนายหน้าเรียบร้อยแล้ว");
                       router.push("/customers");
+                    } else {
+                      toast.error(result.error || "ไม่สามารถสร้างนายหน้าได้");
                     }
                     return result;
                   }}

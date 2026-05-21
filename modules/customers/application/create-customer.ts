@@ -3,6 +3,7 @@ import { customerSchema } from "./validations";
 import {
   getHighestCustomerCode,
   createCustomer,
+  checkCustomerCodeExists,
 } from "../infrastructure/customer.repository";
 
 export async function createCustomerUseCase(input: any, createdById: string) {
@@ -87,6 +88,16 @@ export async function createCustomerUseCase(input: any, createdById: string) {
 
     const runningNumberStr = String(runningNumber).padStart(4, "0");
     customerCode = `${pattern}${runningNumberStr}`;
+  } else {
+    // Check if the provided customer code already exists (including soft-deleted)
+    const existing = await checkCustomerCodeExists(customerCode);
+    if (existing) {
+      if (existing.deletedAt) {
+        throw new Error(`รหัสลูกค้านี้ (${customerCode}) เคยถูกใช้งานแล้วแต่ถูกลบไปในระบบ ไม่สามารถใช้ซ้ำได้`);
+      } else {
+        throw new Error(`รหัสลูกค้านี้ (${customerCode}) มีอยู่ในระบบแล้ว`);
+      }
+    }
   }
 
   // Map to Prisma create data
