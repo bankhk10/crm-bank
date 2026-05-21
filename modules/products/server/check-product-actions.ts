@@ -125,8 +125,8 @@ export async function checkProductDataAction(formData: FormData) {
         const packageSizeUnit = String(row["หน่วยขนาดบรรจุ"] || "").trim();
         const packageSizePerBoxRaw = row["จำนวนบรรจุต่อลัง (ชิ้น)"] || row["จำนวนบรรจุต่อลัง"];
 
-        const packageSize = packageSizeRaw != null ? Number(packageSizeRaw) : null;
-        const packageSizePerBox = packageSizePerBoxRaw != null ? Number(packageSizePerBoxRaw) : null;
+        const packageSize = (packageSizeRaw != null && packageSizeRaw !== "") ? Number(packageSizeRaw) : null;
+        const packageSizePerBox = (packageSizePerBoxRaw != null && packageSizePerBoxRaw !== "") ? Number(packageSizePerBoxRaw) : null;
 
         if (productCode) {
             productCodesSet.add(productCode);
@@ -254,9 +254,20 @@ export async function checkProductDataAction(formData: FormData) {
         if (discrepancies.length > 0) {
             mismatchedProducts.push({
                 rowNum: ep.rowNum,
+                productId: dbProduct.id,
                 productCode: dbProduct.productCode,
                 tradeName: dbProduct.name,
-                discrepancies
+                discrepancies,
+                rawExcelData: {
+                    name: ep.tradeName || undefined,
+                    commonName: ep.commonName || undefined,
+                    productGroup: ep.productGroup || undefined,
+                    tradeNameGroup: ep.tradeNameGroup || undefined,
+                    abcCode: ep.abcCode || undefined,
+                    packageSize: ep.packageSize,
+                    packageSizeUnit: ep.packageSizeUnit || undefined,
+                    packageSizePerBox: ep.packageSizePerBox,
+                }
             });
         } else {
             matchedProducts.push({
@@ -280,3 +291,78 @@ export async function checkProductDataAction(formData: FormData) {
     return { success: false, message: error.message || "เกิดข้อผิดพลาดในการตรวจสอบไฟล์" };
   }
 }
+
+export async function syncProductDataAction(selectedProducts: any[]) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  if (!selectedProducts || selectedProducts.length === 0) {
+    return { success: false, message: "ไม่มีรายการที่เลือกสำหรับอัปเดต" };
+  }
+
+  try {
+    let updatedCount = 0;
+    
+    // Process sequentially or using transaction. 
+    // Since we might need to find or create groups/categories by name, we do it one by one to avoid complex concurrent inserts.
+    for (const item of selectedProducts) {
+       const { productId, rawExcelData } = item;
+       if (!productId || !rawExcelData) continue;
+
+       const updateData: any = {};
+
+       if (rawExcelData.name) updateData.name = rawExcelData.name;
+       if (rawExcelData.commonName) updateData.commonName = rawExcelData.commonName;
+       if (rawExcelData.packageSize !== null && rawExcelData.packageSize !== undefined) updateData.packageSize = rawExcelData.packageSize;
+       if (rawExcelData.packageSizeUnit) updateData.packageSizeUnit = rawExcelData.packageSizeUnit;
+       if (rawExcelData.packageSizePerBox !== null && rawExcelData.packageSizePerBox !== undefined) updateData.packageSizePerBox = rawExcelData.packageSizePerBox;
+
+       // Handle relations by name
+       if (rawExcelData.productGroup) {
+          let group = await db.productGroup.findFirst({ where: { name: rawExcelData.productGroup } });
+          if (!group) {
+              group = await db.productGroup.findFirst({ where: { code: rawExcelData.productGroup } });
+          }
+          if (group) {
+             updateData.productGroupId = group.id;
+          }
+       }
+
+       if (rawExcelData.tradeNameGroup) {
+          let tGroup = await db.tradeNameGroup.findFirst({ where: { description: rawExcelData.tradeNameGroup } });
+          if (!tGroup) {
+              tGroup = await db.tradeNameGroup.findFirst({ where: { code: rawExcelData.tradeNameGroup } });
+          }
+          if (tGroup) {
+             updateData.tradeNameGroupId = tGroup.id;
+          }
+       }
+
+       if (rawExcelData.abcCode) {
+          let abc = await db.productABCTypes.findFirst({ where: { code: rawExcelData.abcCode } });
+          if (!abc) {
+              abc = await db.productABCTypes.findFirst({ where: { name: rawExcelData.abcCode } });
+          }
+          if (abc) {
+             updateData.productABCTypeId = abc.id;
+          }
+       }
+
+       if (Object.keys(updateData).length > 0) {
+          await db.product.update({
+             where: { id: productId },
+             data: updateData
+          });
+          updatedCount++;
+       }
+    }
+
+    return { success: true, message: `อัปเดตข้อมูลสำเร็จ ${updatedCount} รายการ` };
+  } catch (error: any) {
+    console.error("Sync error:", error);
+    return { success: false, message: error.message || "เกิดข้อผิดพลาดในการอัปเดตข้อมูล" };
+  }
+}
+
