@@ -59,6 +59,9 @@ export { ProductManageForm } from "./features/form/product-manage-form";
 export { default as ProductNewView } from "./features/form/product-new-view";
 export { default as ProductEditView } from "./features/form/product-edit-view";
 
+// Features - Check Product
+export { CheckProductView } from "./features/check-product-view";
+
 // Features - Settings View
 export { default as BrandSettingsView } from "./features/settings-view/brand-settings-view";
 export { default as CategorySettingsView } from "./features/settings-view/category-settings-view";
