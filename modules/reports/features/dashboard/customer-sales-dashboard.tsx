@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, useTransition } from "react";
+import { useId, useState, useTransition, Fragment } from "react";
 import { format, startOfToday, endOfToday, startOfMonth, endOfMonth, subMonths, startOfQuarter, endOfQuarter, startOfYear, endOfYear, parseISO } from "date-fns";
 import DatePicker from "@/components/custom/DatePicker";
 import { DetailHero } from "@/components/custom/detail-hero";
@@ -37,6 +37,8 @@ import {
   UserCheck,
   Calendar,
   Loader2,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { KpiCard } from "../../ui/kpi-card";
@@ -99,6 +101,21 @@ export function CustomerSalesDashboard() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersPanelId = useId();
 
+  // Keep track of expanded parent dealers
+  const [expandedDealers, setExpandedDealers] = useState<Set<string>>(new Set());
+
+  const toggleDealer = (id: string) => {
+    setExpandedDealers((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
   const handleFetchReport = () => {
     startTransition(async () => {
       const filter: DateRangeFilter = {
@@ -133,6 +150,101 @@ export function CustomerSalesDashboard() {
       (c.province &&
         c.province.toLowerCase().includes(searchQuery.toLowerCase())),
   );
+
+  // Group sub-shops (subdealers) under their parent dealers
+  const filteredCustomerIds = new Set(filteredCustomers.map((c) => c.id));
+  const subDealersMap = new Map<string, typeof filteredCustomers>();
+  const topLevelCustomers: typeof filteredCustomers = [];
+
+  filteredCustomers.forEach((c) => {
+    if (c.parentDealerId && filteredCustomerIds.has(c.parentDealerId)) {
+      if (!subDealersMap.has(c.parentDealerId)) {
+        subDealersMap.set(c.parentDealerId, []);
+      }
+      subDealersMap.get(c.parentDealerId)!.push(c);
+    } else {
+      topLevelCustomers.push(c);
+    }
+  });
+
+  const renderCustomerRow = (c: typeof topCustomers[0], index: number, isSubDealer = false, parentIndex?: number) => {
+    const hasSubDealers = subDealersMap.has(c.id);
+    const isExpanded = expandedDealers.has(c.id);
+
+    return (
+      <Fragment key={c.id}>
+        <TableRow
+          className={cn(
+            "transition-colors",
+            isSubDealer ? "bg-slate-50/40 hover:bg-slate-100/60" : "hover:bg-slate-50/50"
+          )}
+        >
+          <TableCell>
+            <Badge
+              variant="outline"
+              className={cn(
+                !isSubDealer && index < 3 ? "bg-red-50 text-red-700 border-red-200" : "",
+                isSubDealer ? "bg-slate-100 text-slate-500 border-transparent text-[10px]" : ""
+              )}
+            >
+              {isSubDealer ? `${parentIndex! + 1}.${index + 1}` : index + 1}
+            </Badge>
+          </TableCell>
+          <TableCell>
+            <div className="flex items-center gap-2">
+              {!isSubDealer && hasSubDealers && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 hover:bg-slate-200 rounded-md"
+                  onClick={() => toggleDealer(c.id)}
+                >
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4 text-slate-500" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-slate-500" />
+                  )}
+                </Button>
+              )}
+              {/* visually indent sub-dealers */}
+              <div className={cn(isSubDealer && "pl-6 flex items-center gap-1.5")}>
+                {isSubDealer && <span className="text-slate-400 font-mono">└─</span>}
+                <div>
+                  <p className={cn("font-medium text-slate-900", isSubDealer && "text-slate-700 text-sm")}>{c.name}</p>
+                  <p className="text-xs text-slate-500">{c.code}</p>
+                </div>
+              </div>
+            </div>
+          </TableCell>
+          <TableCell>
+            <Badge variant="outline" className={cn(isSubDealer ? "bg-zinc-50 border-zinc-200 text-zinc-600" : "bg-slate-50 text-slate-600")}>
+              {customerTypeLabels[c.type] || c.type}
+            </Badge>
+          </TableCell>
+          <TableCell className="text-slate-600">{c.province && c.province !== "-" ? `${c.province} (${c.region})` : c.region}</TableCell>
+          <TableCell className="text-center font-bold text-green-700">
+            {formatTHB(c.totalSales)}
+          </TableCell>
+          <TableCell className="text-center text-slate-700 font-medium">
+            {c.orderCount}
+          </TableCell>
+          <TableCell className="text-center">
+            <Link href={`/reports/customer-sales/${c.id}`}>
+              <Button variant="ghost" size="sm" className="hover:bg-green-50 hover:text-green-700 rounded-lg">
+                <Eye className="h-4 w-4 mr-1.5" />
+              </Button>
+            </Link>
+          </TableCell>
+        </TableRow>
+        {/* Render children sub-dealers if expanded */}
+        {!isSubDealer && isExpanded && hasSubDealers &&
+          subDealersMap.get(c.id)!.map((sub, subIndex) =>
+            renderCustomerRow(sub, subIndex, true, index)
+          )
+        }
+      </Fragment>
+    );
+  };
 
   const filteredSalespersons = salespersonPerf.filter(
     (s) =>
@@ -420,7 +532,7 @@ export function CustomerSalesDashboard() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {filteredCustomers.length === 0 ? (
+                          {topLevelCustomers.length === 0 ? (
                             <TableRow>
                               <TableCell colSpan={9} className="text-center py-10">
                                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -430,45 +542,7 @@ export function CustomerSalesDashboard() {
                               </TableCell>
                             </TableRow>
                           ) : (
-                            filteredCustomers.map((c, i) => (
-                              <TableRow key={c.id} className="hover:bg-slate-50/50 transition-colors">
-                                <TableCell>
-                                  <Badge
-                                    variant="outline"
-                                    className={
-                                      i < 3 ? "bg-red-50 text-red-700 border-red-200" : ""
-                                    }
-                                  >
-                                    {i + 1}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell>
-                                  <div>
-                                    <p className="font-medium text-slate-900">{c.name}</p>
-                                    <p className="text-xs text-slate-500">{c.code}</p>
-                                  </div>
-                                </TableCell>
-                                <TableCell>
-                                  <Badge variant="outline" className="bg-slate-50 text-slate-600">
-                                    {customerTypeLabels[c.type] || c.type}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="text-slate-600">{c.region}</TableCell>
-                                <TableCell className="text-center font-bold text-green-700">
-                                  {formatTHB(c.totalSales)}
-                                </TableCell>
-                                <TableCell className="text-center text-slate-700 font-medium">
-                                  {c.orderCount}
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <Link href={`/reports/customer-sales/${c.id}`}>
-                                    <Button variant="ghost" size="sm" className="hover:bg-green-50 hover:text-green-700 rounded-lg">
-                                      <Eye className="h-4 w-4 mr-1.5" />
-                                    </Button>
-                                  </Link>
-                                </TableCell>
-                              </TableRow>
-                            ))
+                            topLevelCustomers.map((c, i) => renderCustomerRow(c, i))
                           )}
                         </TableBody>
                       </Table>

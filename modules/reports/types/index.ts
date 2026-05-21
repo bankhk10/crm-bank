@@ -166,6 +166,7 @@ export interface CustomerSalesReportData {
     purchaseFrequency: number;
     lifetimeValue: number;
     lastPurchaseDate?: string;
+    parentDealerId?: string | null;
   }[];
   customerTypeBreakdown: {
     type: string;

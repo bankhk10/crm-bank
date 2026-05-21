@@ -65,6 +65,7 @@ export async function getCustomerSalesReport(
       name: true,
       customerType: true,
       province: true,
+      parentDealerId: true,
     },
   });
 
@@ -100,6 +101,7 @@ export async function getCustomerSalesReport(
           name: true,
           customerType: true,
           province: true,
+          parentDealerId: true,
         },
       })
     : [];
@@ -162,6 +164,7 @@ export async function getCustomerSalesReport(
       lastPurchaseDate: lastPurchaseMap.get(id)
         ? format(lastPurchaseMap.get(id)!, "dd/MM/yyyy")
         : undefined,
+      parentDealerId: customer?.parentDealerId || null,
     };
   }).sort((a, b) => b.totalSales - a.totalSales);
 
