@@ -325,6 +325,15 @@ export async function syncProductDataAction(selectedProducts: any[]) {
           if (!group) {
               group = await db.productGroup.findFirst({ where: { code: rawExcelData.productGroup } });
           }
+          if (!group) {
+              // Auto-create
+              group = await db.productGroup.create({
+                  data: {
+                      code: rawExcelData.productGroup,
+                      name: rawExcelData.productGroup
+                  }
+              });
+          }
           if (group) {
              updateData.productGroupId = group.id;
           }
@@ -335,6 +344,15 @@ export async function syncProductDataAction(selectedProducts: any[]) {
           if (!tGroup) {
               tGroup = await db.tradeNameGroup.findFirst({ where: { code: rawExcelData.tradeNameGroup } });
           }
+          if (!tGroup) {
+              // Auto-create
+              tGroup = await db.tradeNameGroup.create({
+                  data: {
+                      code: rawExcelData.tradeNameGroup,
+                      description: rawExcelData.tradeNameGroup
+                  }
+              });
+          }
           if (tGroup) {
              updateData.tradeNameGroupId = tGroup.id;
           }
@@ -344,6 +362,15 @@ export async function syncProductDataAction(selectedProducts: any[]) {
           let abc = await db.productABCTypes.findFirst({ where: { code: rawExcelData.abcCode } });
           if (!abc) {
               abc = await db.productABCTypes.findFirst({ where: { name: rawExcelData.abcCode } });
+          }
+          if (!abc) {
+              // Auto-create
+              abc = await db.productABCTypes.create({
+                  data: {
+                      code: rawExcelData.abcCode,
+                      name: rawExcelData.abcCode
+                  }
+              });
           }
           if (abc) {
              updateData.productABCTypeId = abc.id;
