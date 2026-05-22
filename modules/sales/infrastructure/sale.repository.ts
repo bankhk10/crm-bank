@@ -1,4 +1,4 @@
-import { Prisma, SaleStatus, PaymentTerm } from "@/lib/db";
+import { Prisma, SaleStatus, PaymentTerm, ProductStatus } from "@/lib/db";
 import { db } from "@/lib/db";
 import { releaseStockUseCase as releaseStock } from "@/modules/products/application";
 
@@ -310,12 +310,18 @@ export async function createSale(data: {
     name?: string | null;
     commonName?: string | null;
     unit?: string | null;
-    productGroup?: string | null;
+    productGroupId?: string | null;
     brand?: string | null;
     packageSize?: number | string | null;
     packageSizeUnit?: string | null;
     packageSizePerBox?: number | string | null;
     totalPackageSizePerBox?: number | string | null;
+    status?: ProductStatus | null;
+    usedForPlants?: string[];
+    salesPoint?: string | null;
+    properties?: string | null;
+    categoryId?: string | null;
+    parentId?: string | null;
     price?: number | null;
     cartonPrice?: number | null;
     promotionBudget?: number | null;
@@ -418,12 +424,18 @@ export async function createSale(data: {
           name: item.name,
           commonName: item.commonName,
           unit: item.unit,
-          productGroup: item.productGroup,
+          productGroupId: item.productGroupId,
           brand: item.brand,
           packageSize: item.packageSize,
           packageSizeUnit: item.packageSizeUnit,
           packageSizePerBox: item.packageSizePerBox,
           totalPackageSizePerBox: item.totalPackageSizePerBox,
+          status: item.status,
+          usedForPlants: item.usedForPlants,
+          salesPoint: item.salesPoint,
+          properties: item.properties,
+          categoryId: item.categoryId,
+          parentId: item.parentId,
           price: item.price != null ? new Prisma.Decimal(item.price) : null,
           cartonPrice:
             item.cartonPrice != null
@@ -550,12 +562,18 @@ export async function updateSale(
       name?: string | null;
       commonName?: string | null;
       unit?: string | null;
-      productGroup?: string | null;
+      productGroupId?: string | null;
       brand?: string | null;
       packageSize?: string | null;
       packageSizeUnit?: string | null;
       packageSizePerBox?: string | null;
       totalPackageSizePerBox?: string | null;
+      status?: ProductStatus | null;
+      usedForPlants?: string[];
+      salesPoint?: string | null;
+      properties?: string | null;
+      categoryId?: string | null;
+      parentId?: string | null;
       price?: number | null;
       cartonPrice?: number | null;
       promotionBudget?: number | null;
@@ -686,12 +704,18 @@ export async function updateSale(
             name: item.name,
             commonName: item.commonName,
             unit: item.unit,
-            productGroup: item.productGroup,
+            productGroupId: item.productGroupId,
             brand: item.brand,
             packageSize: item.packageSize,
             packageSizeUnit: item.packageSizeUnit,
             packageSizePerBox: item.packageSizePerBox,
             totalPackageSizePerBox: item.totalPackageSizePerBox,
+            status: item.status,
+            usedForPlants: item.usedForPlants,
+            salesPoint: item.salesPoint,
+            properties: item.properties,
+            categoryId: item.categoryId,
+            parentId: item.parentId,
             price: item.price != null ? new Prisma.Decimal(item.price) : null,
             cartonPrice:
               item.cartonPrice != null

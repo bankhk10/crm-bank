@@ -188,7 +188,7 @@ async function main() {
         name: product.name,
         commonName: product.commonName || "Common Name",
         unit: product.unit || "Box",
-        productGroup: product.productGroup?.name || "Product Group",
+        productGroupId: product.productGroupId,
         brand: product.brand || "Mock Brand",
         packageSize: product.packageSize || 1,
         packageSizeUnit: product.packageSizeUnit || "L",

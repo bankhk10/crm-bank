@@ -892,19 +892,25 @@ model SaleItem {
   name                   String?
   commonName             String?
   unit                   String?
-  productGroup           String?
+  productGroupId         String? // Snapshot of productGroupId
   productABCTypeId       String? // Snapshot of productABCTypeId
   tradeNameGroupId       String? // Snapshot of tradeNameGroupId
+  categoryId             String? // Snapshot of categoryId
   brand                  String?
   packageSize            Decimal? @db.Decimal(15, 3)
   packageSizeUnit        String?
   packageSizePerBox      Decimal? @db.Decimal(15, 3)
   totalPackageSizePerBox Decimal? @db.Decimal(15, 3)
+  status                 ProductStatus?
+  usedForPlants          String[]
+  salesPoint             String?
+  properties             String?
   price                  Decimal? @db.Decimal(15, 2)
   cartonPrice            Decimal? @db.Decimal(15, 2)
   promotionBudget        Decimal? @db.Decimal(15, 2)
   pointPerUnit           Int?
   productChain           String?
+  parentId               String? // Snapshot of parentId
 
   quantity      Int
   unitPrice     Decimal  @db.Decimal(15, 2)
