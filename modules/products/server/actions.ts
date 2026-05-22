@@ -34,7 +34,7 @@ export async function listProductsAction(params: ListProductsParams) {
     const result = await listProductsUseCase(params);
     // Serialize Decimal fields (price, cartonPrice, promotionBudget) for client
     return JSON.parse(JSON.stringify(result));
-  } catch (_err) {
+  } catch {
     return { products: [], total: 0 };
   }
 }
@@ -56,7 +56,7 @@ export async function getProductAction(id: string) {
       };
     }
     return result;
-  } catch (_err) {
+  } catch {
     return { success: false, error: "Failed to fetch" };
   }
 }
@@ -200,7 +200,7 @@ export async function deleteProductAction(id: string) {
     await softDeleteProduct(id);
     revalidatePath("/products");
     return { success: true };
-  } catch (_err) {
+  } catch {
     return { success: false, error: "Failed to delete product." };
   }
 }
@@ -215,7 +215,7 @@ export async function getProductFormOptionsAction() {
 
   try {
     return await getProductFormOptionsUseCase();
-  } catch (_err) {
+  } catch {
     return null;
   }
 }
