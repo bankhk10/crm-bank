@@ -19,6 +19,7 @@ export async function downloadProductCheckTemplateAction() {
         productGroup: true,
         tradeNameGroup: true,
         productABCType: true,
+        category: true,
       },
       orderBy: { productCode: "asc" }
     });
@@ -29,6 +30,7 @@ export async function downloadProductCheckTemplateAction() {
         "รหัสสินค้า (Product Code) *": p.productCode || "",
         "ชื่อการค้า (Trade Name)": p.name || "",
         "ชื่อสามัญ (Common Name)": p.commonName || "",
+        "หมวดสินค้า (Product Category)": p.category?.description || p.category?.code || "",
         "กลุ่มสินค้า (Product Group)": p.productGroup?.name || p.productGroup?.code || "",
         "กลุ่มชื่อการค้า (Trade Name Group)": p.tradeNameGroup?.description || p.tradeNameGroup?.code || "",
         "ประเภท (ABC Code)": p.productABCType?.code || p.productABCType?.name || "",
@@ -42,6 +44,7 @@ export async function downloadProductCheckTemplateAction() {
           "รหัสสินค้า (Product Code) *": "P-001",
           "ชื่อการค้า (Trade Name)": "ตัวอย่างสินค้า 1",
           "ชื่อสามัญ (Common Name)": "สารสามัญ 1",
+          "หมวดสินค้า (Product Category)": "หมวดตัวอย่าง",
           "กลุ่มสินค้า (Product Group)": "เคมีเกษตร",
           "กลุ่มชื่อการค้า (Trade Name Group)": "กลุ่มตัวอย่าง",
           "ประเภท (ABC Code)": "A",
@@ -58,6 +61,7 @@ export async function downloadProductCheckTemplateAction() {
       { wch: 25 }, // รหัสสินค้า
       { wch: 35 }, // ชื่อการค้า
       { wch: 30 }, // ชื่อสามัญ
+      { wch: 25 }, // หมวดสินค้า
       { wch: 25 }, // กลุ่มสินค้า
       { wch: 30 }, // กลุ่มชื่อการค้า
       { wch: 15 }, // ประเภท
@@ -117,6 +121,7 @@ export async function checkProductDataAction(formData: FormData) {
         const productCode = String(row["รหัสสินค้า (Product Code) *"] || row["Product Code"] || row["รหัสสินค้า"] || "").trim();
         const tradeName = String(row["ชื่อการค้า (Trade Name)"] || row["ชื่อการค้า"] || "").trim();
         const commonName = String(row["ชื่อสามัญ (Common Name)"] || row["ชื่อสามัญ"] || "").trim();
+        const category = String(row["หมวดสินค้า (Product Category)"] || row["หมวดสินค้า"] || "").trim();
         const productGroup = String(row["กลุ่มสินค้า (Product Group)"] || row["กลุ่มสินค้า"] || "").trim();
         const tradeNameGroup = String(row["กลุ่มชื่อการค้า (Trade Name Group)"] || row["กลุ่มชื่อการค้า"] || "").trim();
         const abcCode = String(row["ประเภท (ABC Code)"] || row["ประเภท"] || "").trim();
@@ -137,6 +142,7 @@ export async function checkProductDataAction(formData: FormData) {
             productCode,
             tradeName,
             commonName,
+            category,
             productGroup,
             tradeNameGroup,
             abcCode,
@@ -161,7 +167,8 @@ export async function checkProductDataAction(formData: FormData) {
         include: {
             productGroup: true,
             tradeNameGroup: true,
-            productABCType: true
+            productABCType: true,
+            category: true
         }
     });
 
@@ -204,6 +211,14 @@ export async function checkProductDataAction(formData: FormData) {
         // 2. Common Name
         if (ep.commonName && (dbProduct.commonName || "") !== ep.commonName) {
             discrepancies.push({ field: "ชื่อสามัญ", excelValue: ep.commonName, dbValue: dbProduct.commonName || "-" });
+        }
+
+        // 2.1 Product Category
+        if (ep.category) {
+            const dbCategory = dbProduct.category?.description || dbProduct.category?.code || "";
+            if (dbCategory !== ep.category) {
+                discrepancies.push({ field: "หมวดสินค้า", excelValue: ep.category, dbValue: dbCategory || "-" });
+            }
         }
 
         // 3. Product Group
@@ -261,6 +276,7 @@ export async function checkProductDataAction(formData: FormData) {
                 rawExcelData: {
                     name: ep.tradeName || undefined,
                     commonName: ep.commonName || undefined,
+                    category: ep.category || undefined,
                     productGroup: ep.productGroup || undefined,
                     tradeNameGroup: ep.tradeNameGroup || undefined,
                     abcCode: ep.abcCode || undefined,
@@ -320,6 +336,25 @@ export async function syncProductDataAction(selectedProducts: any[]) {
        if (rawExcelData.packageSizePerBox !== null && rawExcelData.packageSizePerBox !== undefined) updateData.packageSizePerBox = rawExcelData.packageSizePerBox;
 
        // Handle relations by name
+       if (rawExcelData.category) {
+          let cat = await db.productCategory.findFirst({ where: { description: rawExcelData.category } });
+          if (!cat) {
+              cat = await db.productCategory.findFirst({ where: { code: rawExcelData.category } });
+          }
+          if (!cat) {
+              // Auto-create
+              cat = await db.productCategory.create({
+                  data: {
+                      code: rawExcelData.category,
+                      description: rawExcelData.category
+                  }
+              });
+          }
+          if (cat) {
+             updateData.categoryId = cat.id;
+          }
+       }
+
        if (rawExcelData.productGroup) {
           let group = await db.productGroup.findFirst({ where: { name: rawExcelData.productGroup } });
           if (!group) {
