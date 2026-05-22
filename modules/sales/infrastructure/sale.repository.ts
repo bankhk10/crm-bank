@@ -326,7 +326,7 @@ export async function createSale(data: {
     cartonPrice?: number | null;
     promotionBudget?: number | null;
     pointPerUnit?: number | null;
-    productChain?: string | null;
+    productABCTypeName?: string | null;
     productABCTypeId?: string | null;
     tradeNameGroupId?: string | null;
 
@@ -446,7 +446,7 @@ export async function createSale(data: {
               ? new Prisma.Decimal(item.promotionBudget)
               : null,
           pointPerUnit: item.pointPerUnit,
-          productChain: item.productChain,
+          productABCTypeName: item.productABCTypeName,
           productABCTypeId: item.productABCTypeId,
           tradeNameGroupId: item.tradeNameGroupId,
 
@@ -578,7 +578,7 @@ export async function updateSale(
       cartonPrice?: number | null;
       promotionBudget?: number | null;
       pointPerUnit?: number | null;
-      productChain?: string | null;
+      productABCTypeName?: string | null;
       productABCTypeId?: string | null;
       tradeNameGroupId?: string | null;
 
@@ -726,7 +726,7 @@ export async function updateSale(
                 ? new Prisma.Decimal(item.promotionBudget)
                 : null,
             pointPerUnit: item.pointPerUnit,
-            productChain: item.productChain,
+            productABCTypeName: item.productABCTypeName,
             productABCTypeId: item.productABCTypeId,
             tradeNameGroupId: item.tradeNameGroupId,
 

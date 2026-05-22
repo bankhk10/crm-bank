@@ -198,7 +198,7 @@ async function main() {
         cartonPrice: product.cartonPrice || 10000,
         promotionBudget: product.promotionBudget || 100,
         pointPerUnit: product.pointPerUnit || 10,
-        productChain: "Chain Details",
+        productABCTypeName: "Chain Details",
 
         quantity: qty,
         unitPrice: unitPrice,

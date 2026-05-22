@@ -244,7 +244,7 @@ export async function createSaleUseCase(
         promotionBudget:
           item.promotionBudget != null ? Number(item.promotionBudget) : 0,
         pointPerUnit: product?.pointPerUnit,
-        productChain: product?.productABCType?.name,
+        productABCTypeName: product?.productABCType?.name,
 
         quantity: item.quantity,
         unitPrice: item.unitPrice,

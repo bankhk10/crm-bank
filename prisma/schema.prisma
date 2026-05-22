@@ -909,7 +909,7 @@ model SaleItem {
   cartonPrice            Decimal? @db.Decimal(15, 2)
   promotionBudget        Decimal? @db.Decimal(15, 2)
   pointPerUnit           Int?
-  productChain           String?
+  productABCTypeName     String? // Snapshot of ProductABCType name
   parentId               String? // Snapshot of parentId
 
   quantity      Int
