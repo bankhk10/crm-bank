@@ -251,6 +251,8 @@ export async function findProductsByIds(productIds: string[]) {
       stockLots: { where: { isUsed: false } },
       productABCType: true,
       productGroup: true,
+      category: true,
+      tradeNameGroup: true,
     },
   });
 }
@@ -311,6 +313,7 @@ export async function createSale(data: {
     commonName?: string | null;
     unit?: string | null;
     productGroupId?: string | null;
+    productGroupName?: string | null;
     brand?: string | null;
     packageSize?: number | string | null;
     packageSizeUnit?: string | null;
@@ -321,6 +324,7 @@ export async function createSale(data: {
     salesPoint?: string | null;
     properties?: string | null;
     categoryId?: string | null;
+    categoryName?: string | null;
     parentId?: string | null;
     price?: number | null;
     cartonPrice?: number | null;
@@ -329,6 +333,7 @@ export async function createSale(data: {
     productABCTypeName?: string | null;
     productABCTypeId?: string | null;
     tradeNameGroupId?: string | null;
+    tradeNameGroupName?: string | null;
 
     quantity: number;
     unitPrice: number;
@@ -425,6 +430,7 @@ export async function createSale(data: {
           commonName: item.commonName,
           unit: item.unit,
           productGroupId: item.productGroupId,
+          productGroupName: item.productGroupName,
           brand: item.brand,
           packageSize: item.packageSize,
           packageSizeUnit: item.packageSizeUnit,
@@ -435,6 +441,7 @@ export async function createSale(data: {
           salesPoint: item.salesPoint,
           properties: item.properties,
           categoryId: item.categoryId,
+          categoryName: item.categoryName,
           parentId: item.parentId,
           price: item.price != null ? new Prisma.Decimal(item.price) : null,
           cartonPrice:
@@ -449,6 +456,7 @@ export async function createSale(data: {
           productABCTypeName: item.productABCTypeName,
           productABCTypeId: item.productABCTypeId,
           tradeNameGroupId: item.tradeNameGroupId,
+          tradeNameGroupName: item.tradeNameGroupName,
 
           quantity: item.quantity,
           unitPrice: new Prisma.Decimal(item.unitPrice),
@@ -563,6 +571,7 @@ export async function updateSale(
       commonName?: string | null;
       unit?: string | null;
       productGroupId?: string | null;
+      productGroupName?: string | null;
       brand?: string | null;
       packageSize?: string | null;
       packageSizeUnit?: string | null;
@@ -573,6 +582,7 @@ export async function updateSale(
       salesPoint?: string | null;
       properties?: string | null;
       categoryId?: string | null;
+      categoryName?: string | null;
       parentId?: string | null;
       price?: number | null;
       cartonPrice?: number | null;
@@ -581,6 +591,7 @@ export async function updateSale(
       productABCTypeName?: string | null;
       productABCTypeId?: string | null;
       tradeNameGroupId?: string | null;
+      tradeNameGroupName?: string | null;
 
       quantity: number;
       unitPrice: number;
@@ -705,6 +716,7 @@ export async function updateSale(
             commonName: item.commonName,
             unit: item.unit,
             productGroupId: item.productGroupId,
+            productGroupName: item.productGroupName,
             brand: item.brand,
             packageSize: item.packageSize,
             packageSizeUnit: item.packageSizeUnit,
@@ -715,6 +727,7 @@ export async function updateSale(
             salesPoint: item.salesPoint,
             properties: item.properties,
             categoryId: item.categoryId,
+            categoryName: item.categoryName,
             parentId: item.parentId,
             price: item.price != null ? new Prisma.Decimal(item.price) : null,
             cartonPrice:
@@ -729,6 +742,7 @@ export async function updateSale(
             productABCTypeName: item.productABCTypeName,
             productABCTypeId: item.productABCTypeId,
             tradeNameGroupId: item.tradeNameGroupId,
+            tradeNameGroupName: item.tradeNameGroupName,
 
             quantity: item.quantity,
             unitPrice: new Prisma.Decimal(item.unitPrice),
