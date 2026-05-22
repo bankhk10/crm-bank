@@ -63,7 +63,7 @@ export async function findEntityAuditHistory(
   return prisma.auditLog.findMany({
     where: { entityType, entityId },
     orderBy: { timestamp: "desc" },
-    take: 100,
+    take: 1000,
     include: {
       user: {
         select: { id: true, name: true, email: true },

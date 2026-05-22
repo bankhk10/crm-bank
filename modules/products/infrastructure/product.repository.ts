@@ -542,7 +542,7 @@ export async function findUnits() {
   return db.unit.findMany({
     where: { deletedAt: null },
     orderBy: { code: "asc" },
-    take: 100,
+    take: 1000,
   });
 }
 
@@ -550,7 +550,7 @@ export async function findTradeNameGroups() {
   return db.tradeNameGroup.findMany({
     where: { deletedAt: null },
     orderBy: { code: "asc" },
-    take: 100,
+    take: 1000,
     include: {
       category: {
         select: { id: true, code: true, description: true },
@@ -563,7 +563,7 @@ export async function findBrands() {
   return db.brand.findMany({
     where: { deletedAt: null },
     orderBy: { code: "asc" },
-    take: 100,
+    take: 1000,
   });
 }
 
@@ -571,7 +571,7 @@ export async function findProductGroups() {
   return db.productGroup.findMany({
     where: { deletedAt: null },
     orderBy: { code: "asc" },
-    take: 100,
+    take: 1000,
   });
 }
 
@@ -579,7 +579,7 @@ export async function findPlants() {
   return db.plant.findMany({
     where: { deletedAt: null },
     orderBy: { code: "asc" },
-    take: 100,
+    take: 1000,
   });
 }
 
@@ -587,7 +587,7 @@ export async function findProductCategories() {
   return db.productCategory.findMany({
     where: { deletedAt: null },
     orderBy: { code: "asc" },
-    take: 100,
+    take: 1000,
   });
 }
 
@@ -595,6 +595,6 @@ export async function findProductABCTypes() {
   return db.productABCTypes.findMany({
     where: { deletedAt: null },
     orderBy: { name: "asc" },
-    take: 100,
+    take: 1000,
   });
 }
