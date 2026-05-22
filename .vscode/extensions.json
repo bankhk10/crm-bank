@@ -4,6 +4,13 @@
     "dbaeumer.vscode-eslint",
     "bradlc.vscode-tailwindcss",
     "prisma.prisma",
-    "heybourn.headwind"
+    "heybourn.headwind",
+
+    "usernamehw.errorlens",
+    "yoavbls.pretty-ts-errors",
+    "eamodio.gitlens",
+    "christian-kohler.path-intellisense",
+    "formulahendry.auto-rename-tag",
+    "wayou.vscode-todo-highlight"
   ]
 }
