@@ -13,7 +13,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  ArrowLeft,
   Package,
   Tag,
   Layers,
@@ -46,8 +45,8 @@ export default function ProductDetailView() {
   const { productId } = useParams() as { productId: string };
   const router = useRouter();
   const { hasPermission, isLoading: permissionLoading } = usePermission("product.view");
-  const canEdit = usePermission("product.edit").hasPermission("product.edit") || usePermission("product.manage").hasPermission("product.manage");
-  const canDelete = usePermission("product.delete").hasPermission("product.delete");
+  const canEdit = hasPermission("product.edit") || hasPermission("product.manage");
+  const canDelete = hasPermission("product.delete");
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
