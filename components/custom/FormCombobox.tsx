@@ -108,10 +108,9 @@ export function FormCombobox({
                 {options.map((option) => (
                   <CommandItem
                     key={option.value}
-                    value={option.value}
-                    keywords={[option.label, option.label.replace(/\s+/g, "")]}
-                    onSelect={(currentValue) => {
-                      onChange(currentValue === value ? "" : currentValue);
+                    value={option.label}
+                    onSelect={() => {
+                      onChange(option.value === value ? "" : option.value);
                       setOpen(false);
                     }}
                   >
