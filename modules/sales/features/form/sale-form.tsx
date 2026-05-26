@@ -245,18 +245,20 @@ export function SaleForm({
 
         // Reset to main address if delivery method changed
         if (deliveryMethod !== prevDeliveryMethod && selectedCustomer) {
-            if (deliveryMethod !== "CUSTOMER_PICKUP") {
-                setShippingAddress(buildCustomerShippingAddress(selectedCustomer));
-                setSelectedAddressId("primary");
+            timer = setTimeout(() => {
+                if (deliveryMethod !== "CUSTOMER_PICKUP") {
+                    setShippingAddress(buildCustomerShippingAddress(selectedCustomer));
+                    setSelectedAddressId("primary");
 
-                // Clear courier/pickup specific fields
-                setPickupCompanyId("");
-                if (deliveryMethod !== "COURIER") {
-                    setShippingCompanyId("");
-                    setCustomShippingAddress("");
+                    // Clear courier/pickup specific fields
+                    setPickupCompanyId("");
+                    if (deliveryMethod !== "COURIER") {
+                        setShippingCompanyId("");
+                        setCustomShippingAddress("");
+                    }
                 }
-            }
-            setPrevDeliveryMethod(deliveryMethod);
+                setPrevDeliveryMethod(deliveryMethod);
+            }, 0);
         }
 
         if (deliveryMethod === "CUSTOMER_PICKUP") {
