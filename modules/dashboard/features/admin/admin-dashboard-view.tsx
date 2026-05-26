@@ -81,7 +81,12 @@ interface PeriodSwitcherProps {
   variant?: "light" | "dark";
 }
 
-function PeriodSwitcher({ value, onChange, options, variant = "light" }: PeriodSwitcherProps) {
+function PeriodSwitcher({
+  value,
+  onChange,
+  options,
+  variant = "light",
+}: PeriodSwitcherProps) {
   const base =
     variant === "dark"
       ? "bg-white/10 border border-white/20"
@@ -101,8 +106,9 @@ function PeriodSwitcher({ value, onChange, options, variant = "light" }: PeriodS
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}
-          className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-200 ${value === opt.value ? activeClass : inactiveClass
-            }`}
+          className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-200 ${
+            value === opt.value ? activeClass : inactiveClass
+          }`}
         >
           {opt.label}
         </button>
@@ -128,7 +134,17 @@ const tooltipStyle = {
   backdropFilter: "blur(12px)",
 };
 
-function RegionChart({ regionData }: { regionData: { region: string; lastYearInvoice: number; target: number; salesNote: number; invoice: number }[] }) {
+function RegionChart({
+  regionData,
+}: {
+  regionData: {
+    region: string;
+    lastYearInvoice: number;
+    target: number;
+    salesNote: number;
+    invoice: number;
+  }[];
+}) {
   const isMobile = useIsMobile();
   const chartHeight = isMobile ? Math.max(280, regionData.length * 80) : 320;
 
@@ -136,9 +152,23 @@ function RegionChart({ regionData }: { regionData: { region: string; lastYearInv
     return (
       <CardContent className="pt-2 px-1" style={{ height: chartHeight }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={regionData} layout="vertical" margin={{ left: 4, right: 16, top: 5, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
-            <XAxis type="number" tickFormatter={(v) => formatCompact(v)} fontSize={10} tickLine={false} axisLine={false} />
+          <BarChart
+            data={regionData}
+            layout="vertical"
+            margin={{ left: 4, right: 16, top: 5, bottom: 5 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              horizontal={false}
+              stroke="#E2E8F0"
+            />
+            <XAxis
+              type="number"
+              tickFormatter={(v) => formatCompact(v)}
+              fontSize={10}
+              tickLine={false}
+              axisLine={false}
+            />
             <YAxis
               type="category"
               dataKey="region"
@@ -146,21 +176,50 @@ function RegionChart({ regionData }: { regionData: { region: string; lastYearInv
               tickLine={false}
               axisLine={false}
               width={72}
-              tick={({ x, y, payload }: { x: number; y: number; payload: { value: string } }) => {
+              tick={({
+                x,
+                y,
+                payload,
+              }: {
+                x: number;
+                y: number;
+                payload: { value: string };
+              }) => {
                 const MAX_CHARS = 10;
                 const raw: string = payload.value.replace(/^ภาค/, "");
-                const label = raw.length > MAX_CHARS ? raw.slice(0, MAX_CHARS) + "…" : raw;
+                const label =
+                  raw.length > MAX_CHARS ? raw.slice(0, MAX_CHARS) + "…" : raw;
                 return (
-                  <text x={68} y={y} dy="0.35em" textAnchor="end" fontSize={10} fill="#64748b">
+                  <text
+                    x={68}
+                    y={y}
+                    dy="0.35em"
+                    textAnchor="end"
+                    fontSize={10}
+                    fill="#64748b"
+                  >
                     {label}
                   </text>
                 );
               }}
             />
-            <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} contentStyle={tooltipStyle} formatter={(value: number) => formatNumber(value)} />
-            <Legend wrapperStyle={{ fontSize: 10, paddingTop: 10 }} iconSize={8} />
+            <Tooltip
+              cursor={{ fill: "rgba(0,0,0,0.04)" }}
+              contentStyle={tooltipStyle}
+              formatter={(value: number) => formatNumber(value)}
+            />
+            <Legend
+              wrapperStyle={{ fontSize: 10, paddingTop: 10 }}
+              iconSize={8}
+            />
             {CHART_BARS.map((b) => (
-              <Bar key={b.dataKey} dataKey={b.dataKey} name={b.name} fill={b.fill} radius={[0, 4, 4, 0]} />
+              <Bar
+                key={b.dataKey}
+                dataKey={b.dataKey}
+                name={b.name}
+                fill={b.fill}
+                radius={[0, 4, 4, 0]}
+              />
             ))}
           </BarChart>
         </ResponsiveContainer>
@@ -171,14 +230,47 @@ function RegionChart({ regionData }: { regionData: { region: string; lastYearInv
   return (
     <CardContent className="h-[280px] md:h-[320px] lg:h-[350px] pt-4 px-4">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={regionData} margin={{ left: 0, right: 5, top: 5, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-          <XAxis dataKey="region" fontSize={10} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
-          <YAxis tickFormatter={(v) => `${v / 1000}k`} fontSize={10} tickLine={false} axisLine={false} width={50} tick={{ fill: "#94a3b8" }} />
-          <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} contentStyle={tooltipStyle} formatter={(value: number) => formatNumber(value)} />
-          <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} iconSize={10} />
+        <BarChart
+          data={regionData}
+          margin={{ left: 0, right: 5, top: 5, bottom: 5 }}
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            vertical={false}
+            stroke="#E2E8F0"
+          />
+          <XAxis
+            dataKey="region"
+            fontSize={10}
+            tickLine={false}
+            axisLine={false}
+            tick={{ fill: "#94a3b8" }}
+          />
+          <YAxis
+            tickFormatter={(v) => `${v / 1000}k`}
+            fontSize={10}
+            tickLine={false}
+            axisLine={false}
+            width={50}
+            tick={{ fill: "#94a3b8" }}
+          />
+          <Tooltip
+            cursor={{ fill: "rgba(0,0,0,0.04)" }}
+            contentStyle={tooltipStyle}
+            formatter={(value: number) => formatNumber(value)}
+          />
+          <Legend
+            wrapperStyle={{ fontSize: 11, paddingTop: 12 }}
+            iconSize={10}
+          />
           {CHART_BARS.map((b) => (
-            <Bar key={b.dataKey} dataKey={b.dataKey} name={b.name} fill={b.fill} radius={[4, 4, 0, 0]} />
+            <Bar
+              key={b.dataKey}
+              dataKey={b.dataKey}
+              name={b.name}
+              fill={b.fill}
+              radius={[4, 4, 0, 0]}
+            />
           ))}
         </BarChart>
       </ResponsiveContainer>
@@ -186,7 +278,17 @@ function RegionChart({ regionData }: { regionData: { region: string; lastYearInv
   );
 }
 
-function ProductGroupChart({ filteredProductGroupData }: { filteredProductGroupData: { group: string; lastYearInvoice: number; target: number; salesNote: number; invoice: number }[] }) {
+function ProductGroupChart({
+  filteredProductGroupData,
+}: {
+  filteredProductGroupData: {
+    group: string;
+    lastYearInvoice: number;
+    target: number;
+    salesNote: number;
+    invoice: number;
+  }[];
+}) {
   const isMobile = useIsMobile();
 
   if (filteredProductGroupData.length === 0) {
@@ -197,27 +299,65 @@ function ProductGroupChart({ filteredProductGroupData }: { filteredProductGroupD
             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-100 to-violet-100 flex items-center justify-center">
               <Package className="w-8 h-8 text-purple-400" />
             </div>
-            <p className="text-sm text-slate-400 font-medium">กรุณาเลือกประเภท (ABC Code) ที่ต้องการแสดง</p>
+            <p className="text-sm text-slate-400 font-medium">
+              กรุณาเลือกประเภท (ABC Code) ที่ต้องการแสดง
+            </p>
           </div>
         </div>
       </CardContent>
     );
   }
 
-  const chartHeight = isMobile ? Math.max(280, filteredProductGroupData.length * 80) : 320;
+  const chartHeight = isMobile
+    ? Math.max(280, filteredProductGroupData.length * 80)
+    : 320;
 
   if (isMobile) {
     return (
       <CardContent className="pt-2 px-1" style={{ height: chartHeight }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={filteredProductGroupData} layout="vertical" margin={{ left: 4, right: 16, top: 5, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
-            <XAxis type="number" tickFormatter={(v) => formatCompact(v)} fontSize={10} tickLine={false} axisLine={false} />
-            <YAxis type="category" dataKey="group" fontSize={10} tickLine={false} axisLine={false} width={80} />
-            <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} contentStyle={tooltipStyle} formatter={(value: number) => formatNumber(value)} />
-            <Legend wrapperStyle={{ fontSize: 10, paddingTop: 10 }} iconSize={8} />
+          <BarChart
+            data={filteredProductGroupData}
+            layout="vertical"
+            margin={{ left: 4, right: 16, top: 5, bottom: 5 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              horizontal={false}
+              stroke="#E2E8F0"
+            />
+            <XAxis
+              type="number"
+              tickFormatter={(v) => formatCompact(v)}
+              fontSize={10}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="group"
+              fontSize={10}
+              tickLine={false}
+              axisLine={false}
+              width={80}
+            />
+            <Tooltip
+              cursor={{ fill: "rgba(0,0,0,0.04)" }}
+              contentStyle={tooltipStyle}
+              formatter={(value: number) => formatNumber(value)}
+            />
+            <Legend
+              wrapperStyle={{ fontSize: 10, paddingTop: 10 }}
+              iconSize={8}
+            />
             {CHART_BARS.map((b) => (
-              <Bar key={b.dataKey} dataKey={b.dataKey} name={b.name} fill={b.fill} radius={[0, 4, 4, 0]} />
+              <Bar
+                key={b.dataKey}
+                dataKey={b.dataKey}
+                name={b.name}
+                fill={b.fill}
+                radius={[0, 4, 4, 0]}
+              />
             ))}
           </BarChart>
         </ResponsiveContainer>
@@ -228,14 +368,47 @@ function ProductGroupChart({ filteredProductGroupData }: { filteredProductGroupD
   return (
     <CardContent className="h-[280px] md:h-[320px] lg:h-[350px] pt-4 px-4">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={filteredProductGroupData} margin={{ left: 0, right: 5, top: 5, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-          <XAxis dataKey="group" fontSize={10} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
-          <YAxis tickFormatter={(v) => `${v / 1000}k`} fontSize={10} tickLine={false} axisLine={false} width={50} tick={{ fill: "#94a3b8" }} />
-          <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} contentStyle={tooltipStyle} formatter={(value: number) => formatNumber(value)} />
-          <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} iconSize={10} />
+        <BarChart
+          data={filteredProductGroupData}
+          margin={{ left: 0, right: 5, top: 5, bottom: 5 }}
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            vertical={false}
+            stroke="#E2E8F0"
+          />
+          <XAxis
+            dataKey="group"
+            fontSize={10}
+            tickLine={false}
+            axisLine={false}
+            tick={{ fill: "#94a3b8" }}
+          />
+          <YAxis
+            tickFormatter={(v) => `${v / 1000}k`}
+            fontSize={10}
+            tickLine={false}
+            axisLine={false}
+            width={50}
+            tick={{ fill: "#94a3b8" }}
+          />
+          <Tooltip
+            cursor={{ fill: "rgba(0,0,0,0.04)" }}
+            contentStyle={tooltipStyle}
+            formatter={(value: number) => formatNumber(value)}
+          />
+          <Legend
+            wrapperStyle={{ fontSize: 11, paddingTop: 12 }}
+            iconSize={10}
+          />
           {CHART_BARS.map((b) => (
-            <Bar key={b.dataKey} dataKey={b.dataKey} name={b.name} fill={b.fill} radius={[4, 4, 0, 0]} />
+            <Bar
+              key={b.dataKey}
+              dataKey={b.dataKey}
+              name={b.name}
+              fill={b.fill}
+              radius={[4, 4, 0, 0]}
+            />
           ))}
         </BarChart>
       </ResponsiveContainer>
@@ -249,13 +422,18 @@ interface AdminDashboardViewProps {
 }
 
 /* ================= Component ================= */
-export default function AdminDashboardView({ initialData }: AdminDashboardViewProps) {
-  const [dashboardData, setDashboardData] = useState<DashboardData>(initialData);
+export default function AdminDashboardView({
+  initialData,
+}: AdminDashboardViewProps) {
+  const [dashboardData, setDashboardData] =
+    useState<DashboardData>(initialData);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date>(new Date());
   const { periodData, ytd } = dashboardData;
-  const [overviewPeriod, setOverviewPeriod] = useState<DashboardPeriod>("month");
+  const [overviewPeriod, setOverviewPeriod] =
+    useState<DashboardPeriod>("month");
   const [regionPeriod, setRegionPeriod] = useState<DashboardPeriod>("month");
-  const [productGroupPeriod, setProductGroupPeriod] = useState<DashboardPeriod>("month");
+  const [productGroupPeriod, setProductGroupPeriod] =
+    useState<DashboardPeriod>("month");
 
   const periodOptions: { value: DashboardPeriod; label: string }[] = [
     { value: "day", label: "วัน" },
@@ -307,15 +485,21 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
     [productGroupData, visibleGroups],
   );
 
-  const percent = target.target > 0 ? Math.round((target.current / target.target) * 100) : 0;
+  const percent =
+    target.target > 0 ? Math.round((target.current / target.target) * 100) : 0;
   const remaining = target.target - target.current;
-  const ytdPercent = ytd.target > 0 ? Math.min(Math.round((ytd.total / ytd.target) * 100), 100) : 0;
+  const ytdPercent =
+    ytd.target > 0
+      ? Math.min(Math.round((ytd.total / ytd.target) * 100), 100)
+      : 0;
 
   useEffect(() => {
     let isActive = true;
     const refreshDashboard = async () => {
       try {
-        const response = await fetch("/api/dashboard/admin", { cache: "no-store" });
+        const response = await fetch("/api/dashboard/admin", {
+          cache: "no-store",
+        });
         if (!response.ok) return;
         const nextData: DashboardData = await response.json();
         if (!isActive) return;
@@ -336,7 +520,6 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
 
   return (
     <div className="min-h-screen bg-[#f0f2f8] px-3 py-4 sm:p-6 md:p-8 lg:p-10 space-y-5 sm:space-y-7 lg:space-y-8">
-
       {/* ================= Header - Mobile First ================= */}
       <div className="flex flex-col gap-3 sm:gap-4">
         {/* Title */}
@@ -365,12 +548,6 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
 
         {/* Period Switcher & Last updated */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-4">
-          <PeriodSwitcher
-            value={overviewPeriod}
-            onChange={setOverviewPeriod}
-            options={periodOptions}
-            variant="light"
-          />
           <div className="inline-flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-slate-600 bg-white/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-sm border border-slate-200/60">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse" />
             <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -384,12 +561,17 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
               })}
             </span>
           </div>
+          <PeriodSwitcher
+            value={overviewPeriod}
+            onChange={setOverviewPeriod}
+            options={periodOptions}
+            variant="light"
+          />
         </div>
       </div>
 
       {/* ================= KPI Cards ================= */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
-
         {/* Monthly Sales Card */}
         <Card className="relative overflow-hidden rounded-2xl sm:rounded-3xl border-0 bg-white shadow-lg shadow-slate-200/60 hover:shadow-xl hover:shadow-blue-200/50 hover:-translate-y-0.5 transition-all duration-300 group sm:col-span-2 xl:col-span-1">
           {/* Top accent bar */}
@@ -470,10 +652,11 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
               </div>
               <div className="w-full h-2 rounded-full bg-slate-700 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-700 ${remaining <= 0
-                    ? "bg-gradient-to-r from-emerald-400 to-green-500"
-                    : "bg-gradient-to-r from-blue-400 to-indigo-500"
-                    }`}
+                  className={`h-full rounded-full transition-all duration-700 ${
+                    remaining <= 0
+                      ? "bg-gradient-to-r from-emerald-400 to-green-500"
+                      : "bg-gradient-to-r from-blue-400 to-indigo-500"
+                  }`}
                   style={{ width: `${Math.min(percent, 100)}%` }}
                 />
               </div>
@@ -481,27 +664,43 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
 
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <div className="p-2.5 sm:p-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-center">
-                <p className="text-[10px] sm:text-xs text-slate-400 mb-1">ส่วนต่าง</p>
+                <p className="text-[10px] sm:text-xs text-slate-400 mb-1">
+                  ส่วนต่าง
+                </p>
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${remaining <= 0
-                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                    : "bg-red-500/20 text-red-400 border border-red-500/30"
-                    }`}
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${
+                    remaining <= 0
+                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                      : "bg-red-500/20 text-red-400 border border-red-500/30"
+                  }`}
                 >
-                  {remaining <= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                  {remaining <= 0 ? "+" : "-"}{formatTHBWithCompact(Math.abs(remaining))}
+                  {remaining <= 0 ? (
+                    <ArrowUpRight className="w-3 h-3" />
+                  ) : (
+                    <ArrowDownRight className="w-3 h-3" />
+                  )}
+                  {remaining <= 0 ? "+" : "-"}
+                  {formatTHBWithCompact(Math.abs(remaining))}
                 </span>
               </div>
               <div className="p-2.5 sm:p-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-center">
-                <p className="text-[10px] sm:text-xs text-slate-400 mb-1">เปอร์เซ็นต์</p>
+                <p className="text-[10px] sm:text-xs text-slate-400 mb-1">
+                  เปอร์เซ็นต์
+                </p>
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${remaining <= 0
-                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                    : "bg-red-500/20 text-red-400 border border-red-500/30"
-                    }`}
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${
+                    remaining <= 0
+                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                      : "bg-red-500/20 text-red-400 border border-red-500/30"
+                  }`}
                 >
-                  {remaining <= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                  {remaining <= 0 ? "+" : "-"}{Math.abs(percent - 100)}%
+                  {remaining <= 0 ? (
+                    <ArrowUpRight className="w-3 h-3" />
+                  ) : (
+                    <ArrowDownRight className="w-3 h-3" />
+                  )}
+                  {remaining <= 0 ? "+" : "-"}
+                  {Math.abs(percent - 100)}%
                 </span>
               </div>
             </div>
@@ -551,19 +750,30 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
 
             <div className="mt-4 flex items-center justify-between">
               <div
-                className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold px-2.5 py-1.5 rounded-full border ${ytd.growthPercent >= 0
-                  ? "text-emerald-700 bg-emerald-50 border-emerald-100"
-                  : "text-rose-700 bg-rose-50 border-rose-100"
-                  }`}
+                className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold px-2.5 py-1.5 rounded-full border ${
+                  ytd.growthPercent >= 0
+                    ? "text-emerald-700 bg-emerald-50 border-emerald-100"
+                    : "text-rose-700 bg-rose-50 border-rose-100"
+                }`}
               >
-                {ytd.growthPercent >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                {ytd.growthPercent >= 0 ? "+" : ""}{ytd.growthPercent}%
-                <span className="text-slate-400 font-normal ml-0.5">จากปีที่แล้ว</span>
+                {ytd.growthPercent >= 0 ? (
+                  <ArrowUpRight className="w-3 h-3" />
+                ) : (
+                  <ArrowDownRight className="w-3 h-3" />
+                )}
+                {ytd.growthPercent >= 0 ? "+" : ""}
+                {ytd.growthPercent}%
+                <span className="text-slate-400 font-normal ml-0.5">
+                  จากปีที่แล้ว
+                </span>
               </div>
               <div className="text-right">
                 <p className="text-[10px] sm:text-xs text-slate-400">คงเหลือ</p>
-                <p className={`text-xs sm:text-sm font-black ${ytd.total >= ytd.target ? "text-emerald-600" : "text-red-500"}`}>
-                  {ytd.total >= ytd.target ? "+" : "-"}{formatCurrency(Math.abs(ytd.target - ytd.total))}
+                <p
+                  className={`text-xs sm:text-sm font-black ${ytd.total >= ytd.target ? "text-emerald-600" : "text-red-500"}`}
+                >
+                  {ytd.total >= ytd.target ? "+" : "-"}
+                  {formatCurrency(Math.abs(ytd.target - ytd.total))}
                 </p>
               </div>
             </div>
@@ -573,7 +783,6 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
 
       {/* ================= Charts ================= */}
       <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:gap-6">
-
         {/* Region Chart */}
         <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white shadow-lg overflow-hidden">
           <CardHeader className="pb-3 sm:pb-4 border-b border-slate-100/80">
@@ -634,7 +843,9 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
                   onClick={toggleAllGroups}
                   className="text-[10px] sm:text-xs text-purple-600 hover:text-purple-700 font-bold transition-colors hover:underline"
                 >
-                  {visibleGroups.size === productGroupData.length ? "ซ่อนทั้งหมด" : "เลือกทั้งหมด"}
+                  {visibleGroups.size === productGroupData.length
+                    ? "ซ่อนทั้งหมด"
+                    : "เลือกทั้งหมด"}
                 </button>
               </div>
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -647,17 +858,23 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
                       className={`
                         inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold
                         transition-all duration-200 border
-                        ${isVisible
-                          ? "bg-gradient-to-r from-purple-500 to-violet-600 text-white border-transparent shadow-md shadow-purple-200"
-                          : "bg-white text-slate-500 border-slate-200 hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700"
+                        ${
+                          isVisible
+                            ? "bg-gradient-to-r from-purple-500 to-violet-600 text-white border-transparent shadow-md shadow-purple-200"
+                            : "bg-white text-slate-500 border-slate-200 hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700"
                         }
                       `}
                     >
                       <span
-                        className={`w-3.5 h-3.5 flex items-center justify-center rounded-full border-2 transition-colors ${isVisible ? "bg-white border-white" : "border-slate-300"
-                          }`}
+                        className={`w-3.5 h-3.5 flex items-center justify-center rounded-full border-2 transition-colors ${
+                          isVisible
+                            ? "bg-white border-white"
+                            : "border-slate-300"
+                        }`}
                       >
-                        {isVisible && <CheckCircle2 className="w-2.5 h-2.5 text-purple-600" />}
+                        {isVisible && (
+                          <CheckCircle2 className="w-2.5 h-2.5 text-purple-600" />
+                        )}
                       </span>
                       {group.group}
                     </button>
@@ -666,7 +883,9 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
               </div>
             </div>
           </CardHeader>
-          <ProductGroupChart filteredProductGroupData={filteredProductGroupData} />
+          <ProductGroupChart
+            filteredProductGroupData={filteredProductGroupData}
+          />
         </Card>
       </div>
     </div>
