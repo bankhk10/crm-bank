@@ -437,8 +437,8 @@ export default function SalesDashboardView({
 
   const periodOptions: { value: DashboardPeriod; label: string }[] = [
     { value: "day", label: "วันนี้" },
-    { value: "month", label: "เดือน" },
-    { value: "year", label: "ปี" },
+    { value: "month", label: "เดือนนี้" },
+    { value: "year", label: "ปีนี้" },
   ];
 
   const periodLabels: Record<DashboardPeriod, string> = {
