@@ -596,7 +596,7 @@ export default function SalesDashboardView({
           </div>
         </div>
 
-        {/* Period Switcher & Last updated */}
+        {/* Period Switcher */}
         <div className="flex flex-col sm:flex-row items-center justify-end gap-3 px-4 sm:px-4">
           <PeriodSwitcher
             value={overviewPeriod}
