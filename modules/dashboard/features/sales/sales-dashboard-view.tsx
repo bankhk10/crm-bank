@@ -104,15 +104,14 @@ function PeriodSwitcher({
       : "text-slate-500 hover:text-slate-700 hover:bg-white/60";
 
   return (
-    <div
-      className={`inline-flex items-center rounded-xl p-1 gap-0.5 ${base}`}
-    >
+    <div className={`inline-flex items-center rounded-xl p-1 gap-0.5 ${base}`}>
       {options.map((opt) => (
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}
-          className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-200 ${value === opt.value ? activeClass : inactiveClass
-            }`}
+          className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-200 ${
+            value === opt.value ? activeClass : inactiveClass
+          }`}
         >
           {opt.label}
         </button>
@@ -496,9 +495,7 @@ export default function SalesDashboardView({
   >(() => new Set(tradeNameGroupData.map((p) => p.group)));
 
   useEffect(() => {
-    setVisibleTradeNameGroups(
-      new Set(tradeNameGroupData.map((p) => p.group)),
-    );
+    setVisibleTradeNameGroups(new Set(tradeNameGroupData.map((p) => p.group)));
   }, [tradeNameGroupData]);
 
   const toggleTradeNameGroup = (group: string) => {
@@ -524,15 +521,12 @@ export default function SalesDashboardView({
   };
 
   const filteredTradeNameGroupData = useMemo(
-    () =>
-      tradeNameGroupData.filter((p) => visibleTradeNameGroups.has(p.group)),
+    () => tradeNameGroupData.filter((p) => visibleTradeNameGroups.has(p.group)),
     [tradeNameGroupData, visibleTradeNameGroups],
   );
 
   const percent =
-    target.target > 0
-      ? Math.round((target.current / target.target) * 100)
-      : 0;
+    target.target > 0 ? Math.round((target.current / target.target) * 100) : 0;
   const remaining = target.target - target.current;
   const ytdPercent =
     ytd.target > 0
@@ -602,8 +596,14 @@ export default function SalesDashboardView({
           </div>
         </div>
 
-        {/* Last updated */}
-        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 justify-end px-4 sm:px-4">
+        {/* Period Switcher & Last updated */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-4">
+          <PeriodSwitcher
+            value={overviewPeriod}
+            onChange={setOverviewPeriod}
+            options={periodOptions}
+            variant="light"
+          />
           <div className="inline-flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-slate-600 bg-white/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-sm border border-slate-200/60">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse" />
             <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -640,10 +640,11 @@ export default function SalesDashboardView({
                 </CardTitle>
               </div>
               <div
-                className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${monthlySales.growthPercent >= 0
+                className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${
+                  monthlySales.growthPercent >= 0
                     ? "text-emerald-700 bg-emerald-50 border border-emerald-100"
                     : "text-rose-700 bg-rose-50 border border-rose-100"
-                  }`}
+                }`}
               >
                 {monthlySales.growthPercent >= 0 ? (
                   <ArrowUpRight className="w-3 h-3" />
@@ -712,10 +713,11 @@ export default function SalesDashboardView({
               </div>
               <div className="w-full h-2 rounded-full bg-slate-700 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-700 ${remaining <= 0
+                  className={`h-full rounded-full transition-all duration-700 ${
+                    remaining <= 0
                       ? "bg-gradient-to-r from-emerald-400 to-green-500"
                       : "bg-gradient-to-r from-teal-400 to-emerald-500"
-                    }`}
+                  }`}
                   style={{ width: `${Math.min(percent, 100)}%` }}
                 />
               </div>
@@ -727,10 +729,11 @@ export default function SalesDashboardView({
                   ส่วนต่าง
                 </p>
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${remaining <= 0
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${
+                    remaining <= 0
                       ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                       : "bg-red-500/20 text-red-400 border border-red-500/30"
-                    }`}
+                  }`}
                 >
                   {remaining <= 0 ? (
                     <ArrowUpRight className="w-3 h-3" />
@@ -746,10 +749,11 @@ export default function SalesDashboardView({
                   เปอร์เซ็นต์
                 </p>
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${remaining <= 0
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${
+                    remaining <= 0
                       ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                       : "bg-red-500/20 text-red-400 border border-red-500/30"
-                    }`}
+                  }`}
                 >
                   {remaining <= 0 ? (
                     <ArrowUpRight className="w-3 h-3" />
@@ -807,10 +811,11 @@ export default function SalesDashboardView({
 
             <div className="mt-4 flex items-center justify-between">
               <div
-                className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold px-2.5 py-1.5 rounded-full border ${ytd.growthPercent >= 0
+                className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold px-2.5 py-1.5 rounded-full border ${
+                  ytd.growthPercent >= 0
                     ? "text-emerald-700 bg-emerald-50 border-emerald-100"
                     : "text-rose-700 bg-rose-50 border-rose-100"
-                  }`}
+                }`}
               >
                 {ytd.growthPercent >= 0 ? (
                   <ArrowUpRight className="w-3 h-3" />
@@ -826,10 +831,11 @@ export default function SalesDashboardView({
               <div className="text-right">
                 <p className="text-[10px] sm:text-xs text-slate-400">คงเหลือ</p>
                 <p
-                  className={`text-xs sm:text-sm font-black ${ytd.total >= ytd.target
+                  className={`text-xs sm:text-sm font-black ${
+                    ytd.total >= ytd.target
                       ? "text-emerald-600"
                       : "text-red-500"
-                    }`}
+                  }`}
                 >
                   {ytd.total >= ytd.target ? "+" : "-"}
                   {formatCurrency(Math.abs(ytd.target - ytd.total))}
@@ -926,16 +932,6 @@ export default function SalesDashboardView({
         </Card>
       </div>
 
-      {/* ================= Period Switcher Row ================= */}
-      <div className="flex justify-center">
-        <PeriodSwitcher
-          value={overviewPeriod}
-          onChange={setOverviewPeriod}
-          options={periodOptions}
-          variant="light"
-        />
-      </div>
-
       {/* ================= Charts ================= */}
       <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:gap-6">
         {/* Product Group Chart */}
@@ -988,17 +984,19 @@ export default function SalesDashboardView({
                       className={`
                         inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold
                         transition-all duration-200 border
-                        ${isVisible
-                          ? "bg-gradient-to-r from-purple-500 to-violet-600 text-white border-transparent shadow-md shadow-purple-200"
-                          : "bg-white text-slate-500 border-slate-200 hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700"
+                        ${
+                          isVisible
+                            ? "bg-gradient-to-r from-purple-500 to-violet-600 text-white border-transparent shadow-md shadow-purple-200"
+                            : "bg-white text-slate-500 border-slate-200 hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700"
                         }
                       `}
                     >
                       <span
-                        className={`w-3.5 h-3.5 flex items-center justify-center rounded-full border-2 transition-colors ${isVisible
+                        className={`w-3.5 h-3.5 flex items-center justify-center rounded-full border-2 transition-colors ${
+                          isVisible
                             ? "bg-white border-white"
                             : "border-slate-300"
-                          }`}
+                        }`}
                       >
                         {isVisible && (
                           <CheckCircle2 className="w-2.5 h-2.5 text-purple-600" />
@@ -1067,17 +1065,19 @@ export default function SalesDashboardView({
                       className={`
                         inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold
                         transition-all duration-200 border
-                        ${isVisible
-                          ? "bg-gradient-to-r from-indigo-500 to-blue-600 text-white border-transparent shadow-md shadow-indigo-200"
-                          : "bg-white text-slate-500 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
+                        ${
+                          isVisible
+                            ? "bg-gradient-to-r from-indigo-500 to-blue-600 text-white border-transparent shadow-md shadow-indigo-200"
+                            : "bg-white text-slate-500 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
                         }
                       `}
                     >
                       <span
-                        className={`w-3.5 h-3.5 flex items-center justify-center rounded-full border-2 transition-colors ${isVisible
+                        className={`w-3.5 h-3.5 flex items-center justify-center rounded-full border-2 transition-colors ${
+                          isVisible
                             ? "bg-white border-white"
                             : "border-slate-300"
-                          }`}
+                        }`}
                       >
                         {isVisible && (
                           <CheckCircle2 className="w-2.5 h-2.5 text-indigo-600" />
