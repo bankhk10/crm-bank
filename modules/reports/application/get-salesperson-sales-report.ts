@@ -51,10 +51,18 @@ export async function getSalespersonSalesReport(
   // Build scope filter
   const scopeFilter = await buildScopeFilter(session, viewScope);
 
+  const employeeScopeFilter: any = {};
+  if (scopeFilter.employeeId) {
+    employeeScopeFilter.id = scopeFilter.employeeId;
+  } else if (scopeFilter.employee) {
+    employeeScopeFilter.departmentId = scopeFilter.employee.departmentId;
+  }
+
   // 1. Get all employees
   const allEmployees = await repo.findManyEmployeesData({
     where: {
       deletedAt: null,
+      ...employeeScopeFilter,
     },
     select: {
       id: true,

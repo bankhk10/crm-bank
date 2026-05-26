@@ -50,14 +50,21 @@ export async function getCustomerSalesReport(
   const monthCount = Math.max(1, dayCount / 30);
 
   // Build scope filter
-  // Build scope filter
   const scopeFilter = await buildScopeFilter(session, viewScope);
+
+  const customerScopeFilter: any = {};
+  if (scopeFilter.employeeId) {
+    customerScopeFilter.responsibleEmployeeId = scopeFilter.employeeId;
+  } else if (scopeFilter.employee) {
+    customerScopeFilter.responsibleEmployee = scopeFilter.employee;
+  }
 
   // 1. Get all dealers
   const allDealers = await repo.findManyCustomersData({
     where: {
       customerType: "DEALER",
       deletedAt: null,
+      ...customerScopeFilter,
     },
     select: {
       id: true,
@@ -213,6 +220,7 @@ export async function getCustomerSalesReport(
   // New vs returning customers
   const customersWithFirstPurchase = await repo.findManyCustomersData({
     where: {
+      ...customerScopeFilter,
       sales: {
         some: {
           saleDate: { gte: start, lte: end },
@@ -291,6 +299,7 @@ export async function getCustomerSalesReport(
   // Inactive customers (no purchase in selected period but had previous purchases)
   const inactiveCustomersData = await repo.findManyCustomersData({
     where: {
+      ...customerScopeFilter,
       sales: {
         some: {
           saleDate: { lt: start },
