@@ -1,17 +1,24 @@
 "use client";
 
 import { useId, useState, useTransition, Fragment } from "react";
-import { format, startOfToday, endOfToday, startOfMonth, endOfMonth, subMonths, startOfQuarter, endOfQuarter, startOfYear, endOfYear, parseISO } from "date-fns";
+import {
+  format,
+  startOfToday,
+  endOfToday,
+  startOfMonth,
+  endOfMonth,
+  subMonths,
+  startOfQuarter,
+  endOfQuarter,
+  startOfYear,
+  endOfYear,
+  parseISO,
+} from "date-fns";
 import DatePicker from "@/components/custom/DatePicker";
 import { DetailHero } from "@/components/custom/detail-hero";
 import { SectionHeader } from "@/components/custom/section-header";
 import { ClearSearchButton } from "@/components/custom/ClearSearchButton";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -94,15 +101,19 @@ export function CustomerSalesDashboard() {
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
   });
-  const [customerData, setCustomerData] = useState<CustomerSalesReportData | null>(null);
-  const [salespersonData, setSalespersonData] = useState<SalespersonReportData | null>(null);
+  const [customerData, setCustomerData] =
+    useState<CustomerSalesReportData | null>(null);
+  const [salespersonData, setSalespersonData] =
+    useState<SalespersonReportData | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("customers");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersPanelId = useId();
 
   // Keep track of expanded parent dealers
-  const [expandedDealers, setExpandedDealers] = useState<Set<string>>(new Set());
+  const [expandedDealers, setExpandedDealers] = useState<Set<string>>(
+    new Set(),
+  );
 
   const toggleDealer = (id: string) => {
     setExpandedDealers((prev) => {
@@ -124,7 +135,7 @@ export function CustomerSalesDashboard() {
       };
       const [custData, salesData] = await Promise.all([
         getCustomerSalesReportAction(filter),
-        getSalespersonSalesReportAction(filter)
+        getSalespersonSalesReportAction(filter),
       ]);
       setCustomerData(custData);
       setSalespersonData(salesData);
@@ -176,7 +187,12 @@ export function CustomerSalesDashboard() {
     }
   });
 
-  const renderCustomerRow = (c: typeof topCustomers[0], index: number, isSubDealer = false, parentIndex?: number) => {
+  const renderCustomerRow = (
+    c: (typeof topCustomers)[0],
+    index: number,
+    isSubDealer = false,
+    parentIndex?: number,
+  ) => {
     const hasSubDealers = subDealersMap.has(c.id);
     const isExpanded = expandedDealers.has(c.id);
     const subDealerSales = subDealerSalesMap.get(c.id) || 0;
@@ -187,15 +203,21 @@ export function CustomerSalesDashboard() {
         <TableRow
           className={cn(
             "transition-colors",
-            isSubDealer ? "bg-slate-50/40 hover:bg-slate-100/60" : "hover:bg-slate-50/50"
+            isSubDealer
+              ? "bg-slate-50/40 hover:bg-slate-100/60"
+              : "hover:bg-slate-50/50",
           )}
         >
           <TableCell>
             <Badge
               variant="outline"
               className={cn(
-                !isSubDealer && index < 3 ? "bg-red-50 text-red-700 border-red-200" : "",
-                isSubDealer ? "bg-slate-100 text-slate-500 border-transparent text-[10px]" : ""
+                !isSubDealer && index < 3
+                  ? "bg-red-50 text-red-700 border-red-200"
+                  : "",
+                isSubDealer
+                  ? "bg-slate-100 text-slate-500 border-transparent text-[10px]"
+                  : "",
               )}
             >
               {isSubDealer ? `${parentIndex! + 1}.${index + 1}` : index + 1}
@@ -218,21 +240,43 @@ export function CustomerSalesDashboard() {
                 </Button>
               )}
               {/* visually indent sub-dealers */}
-              <div className={cn(isSubDealer && "pl-6 flex items-center gap-1.5")}>
-                {isSubDealer && <span className="text-slate-400 font-mono">└─</span>}
+              <div
+                className={cn(isSubDealer && "pl-6 flex items-center gap-1.5")}
+              >
+                {isSubDealer && (
+                  <span className="text-slate-400 font-mono">└─</span>
+                )}
                 <div>
-                  <p className={cn("font-medium text-slate-900", isSubDealer && "text-slate-700 text-sm")}>{c.name}</p>
+                  <p
+                    className={cn(
+                      "font-medium text-slate-900",
+                      isSubDealer && "text-slate-700 text-sm",
+                    )}
+                  >
+                    {c.name}
+                  </p>
                   <p className="text-xs text-slate-500">{c.code}</p>
                 </div>
               </div>
             </div>
           </TableCell>
           <TableCell>
-            <Badge variant="outline" className={cn(isSubDealer ? "bg-zinc-50 border-zinc-200 text-zinc-600" : "bg-slate-50 text-slate-600")}>
+            <Badge
+              variant="outline"
+              className={cn(
+                isSubDealer
+                  ? "bg-zinc-50 border-zinc-200 text-zinc-600"
+                  : "bg-slate-50 text-slate-600",
+              )}
+            >
               {customerTypeLabels[c.type] || c.type}
             </Badge>
           </TableCell>
-          <TableCell className="text-slate-600">{c.province && c.province !== "-" ? `${c.province} (${c.region})` : c.region}</TableCell>
+          <TableCell className="text-slate-600">
+            {c.province && c.province !== "-"
+              ? `${c.province} (${c.region})`
+              : c.region}
+          </TableCell>
           <TableCell className="text-center font-bold text-green-700">
             {formatTHB(c.totalSales)}
           </TableCell>
@@ -244,18 +288,25 @@ export function CustomerSalesDashboard() {
           </TableCell>
           <TableCell className="text-center">
             <Link href={`/reports/customer-sales/${c.id}`}>
-              <Button variant="ghost" size="sm" className="hover:bg-green-50 hover:text-green-700 rounded-lg">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hover:bg-green-50 hover:text-green-700 rounded-lg"
+              >
                 <Eye className="h-4 w-4 mr-1.5" />
               </Button>
             </Link>
           </TableCell>
         </TableRow>
         {/* Render children sub-dealers if expanded */}
-        {!isSubDealer && isExpanded && hasSubDealers &&
-          subDealersMap.get(c.id)!.map((sub, subIndex) =>
-            renderCustomerRow(sub, subIndex, true, index)
-          )
-        }
+        {!isSubDealer &&
+          isExpanded &&
+          hasSubDealers &&
+          subDealersMap
+            .get(c.id)!
+            .map((sub, subIndex) =>
+              renderCustomerRow(sub, subIndex, true, index),
+            )}
       </Fragment>
     );
   };
@@ -267,7 +318,10 @@ export function CustomerSalesDashboard() {
       s.department.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const totalCustomerSales = topCustomers.reduce((sum, c) => sum + c.totalSales, 0);
+  const totalCustomerSales = topCustomers.reduce(
+    (sum, c) => sum + c.totalSales,
+    0,
+  );
   const totalSalespersonSales = salespersonPerf.reduce(
     (sum, s) => sum + s.totalSales,
     0,
@@ -285,7 +339,8 @@ export function CustomerSalesDashboard() {
           customerData && (
             <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-white/90 bg-white/10 border border-white/10 px-3 py-1 rounded-full uppercase tracking-wider">
               <Users className="h-3.5 w-3.5 text-[#60A5FA]" />
-              {format(dateRange.from, "dd/MM/yyyy")} – {format(dateRange.to, "dd/MM/yyyy")}
+              {format(dateRange.from, "dd/MM/yyyy")} –{" "}
+              {format(dateRange.to, "dd/MM/yyyy")}
             </span>
           )
         }
@@ -315,8 +370,9 @@ export function CustomerSalesDashboard() {
 
             <div
               id={filtersPanelId}
-              className={`mb-4 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap lg:flex-nowrap sm:items-end gap-3 sm:gap-4 ${filtersOpen ? "block" : "hidden"
-                } sm:flex`}
+              className={`mb-4 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap lg:flex-nowrap sm:items-end gap-3 sm:gap-4 ${
+                filtersOpen ? "block" : "hidden"
+              } sm:flex`}
             >
               {/* Start Date */}
               <div className="w-full sm:w-44">
@@ -394,9 +450,7 @@ export function CustomerSalesDashboard() {
                       กำลังโหลด...
                     </>
                   ) : (
-                    <>
-                      ตกลง
-                    </>
+                    <>ตกลง</>
                   )}
                 </Button>
                 {customerData && (
@@ -447,8 +501,14 @@ export function CustomerSalesDashboard() {
             {/* KPI Cards: mobile=1 col, sm=2 cols, lg=4 cols */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <KpiCard
-                label={activeTab === "customers" ? "ยอดซื้อสูงสุด" : "ยอดขายสูงสุด"}
-                value={activeTab === "customers" ? topCustomers[0]?.name || "-" : salespersonPerf[0]?.name || "-"}
+                label={
+                  activeTab === "customers" ? "ยอดซื้อสูงสุด" : "ยอดขายสูงสุด"
+                }
+                value={
+                  activeTab === "customers"
+                    ? topCustomers[0]?.name || "-"
+                    : salespersonPerf[0]?.name || "-"
+                }
                 icon={Award}
                 gradient="bg-gradient-to-br from-red-600 to-red-700"
                 ring="shadow-lg shadow-red-600/20"
@@ -457,7 +517,11 @@ export function CustomerSalesDashboard() {
 
               <KpiCard
                 label={`ยอดขายรวม`}
-                value={activeTab === "customers" ? formatTHB(totalCustomerSales) : formatTHB(totalSalespersonSales)}
+                value={
+                  activeTab === "customers"
+                    ? formatTHB(totalCustomerSales)
+                    : formatTHB(totalSalespersonSales)
+                }
                 icon={TrendingUp}
                 gradient="bg-gradient-to-br from-slate-900 to-slate-800"
                 ring="shadow-lg shadow-slate-900/20"
@@ -474,7 +538,11 @@ export function CustomerSalesDashboard() {
               />
 
               <KpiCard
-                label={activeTab === "customers" ? "จำนวนลูกค้าทั้งหมด" : "จำนวนพนักงานขายทั้งหมด"}
+                label={
+                  activeTab === "customers"
+                    ? "จำนวนลูกค้าทั้งหมด"
+                    : "จำนวนพนักงานขายทั้งหมด"
+                }
                 value={`${formatNumber(activeTab === "customers" ? topCustomers.length : salespersonPerf.length)} รายการ`}
                 icon={Users}
                 gradient="bg-gradient-to-br from-slate-800 to-slate-900"
@@ -483,8 +551,11 @@ export function CustomerSalesDashboard() {
               />
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6 space-y-5">
-
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="mt-6 space-y-5"
+            >
               <TabsList className="h-auto p-1.5 rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-md shadow-sm flex flex-wrap gap-1">
                 <TabsTrigger
                   value="customers"
@@ -527,7 +598,10 @@ export function CustomerSalesDashboard() {
                       <Users className="h-5 w-5 text-red-600" />
                       ข้อมูลการขายของลูกค้า
                     </CardTitle>
-                    <Badge variant="secondary" className="text-xs sm:text-sm bg-slate-100 text-slate-700 hover:bg-slate-200">
+                    <Badge
+                      variant="secondary"
+                      className="text-xs sm:text-sm bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    >
                       {filteredCustomers.length} ลูกค้า
                     </Badge>
                   </CardHeader>
@@ -536,20 +610,39 @@ export function CustomerSalesDashboard() {
                       <Table className="min-w-[1000px]">
                         <TableHeader className="sticky top-0 bg-white/95 backdrop-blur z-10">
                           <TableRow className="border-b border-slate-200">
-                            <TableHead className="font-semibold text-slate-700">ลำดับ</TableHead>
-                            <TableHead className="font-semibold text-slate-700">ลูกค้า</TableHead>
-                            <TableHead className="font-semibold text-slate-700">ประเภท</TableHead>
-                            <TableHead className="font-semibold text-slate-700">ภูมิภาค</TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">ยอดขาย</TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">ยอดขายรวม</TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">ออเดอร์รวม</TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">รายละเอียด</TableHead>
+                            <TableHead className="font-semibold text-slate-700">
+                              ลำดับ
+                            </TableHead>
+                            <TableHead className="font-semibold text-slate-700">
+                              ลูกค้า
+                            </TableHead>
+                            <TableHead className="font-semibold text-slate-700">
+                              ประเภท
+                            </TableHead>
+                            <TableHead className="font-semibold text-slate-700">
+                              ภูมิภาค
+                            </TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">
+                              ยอดขาย
+                            </TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">
+                              ยอดขายรวม
+                            </TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">
+                              ออเดอร์รวม
+                            </TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">
+                              รายละเอียด
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {topLevelCustomers.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={8} className="text-center py-10">
+                              <TableCell
+                                colSpan={8}
+                                className="text-center py-10"
+                              >
                                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
                                   <Users className="h-10 w-10 opacity-20" />
                                   <p>ไม่พบข้อมูลลูกค้า</p>
@@ -557,7 +650,9 @@ export function CustomerSalesDashboard() {
                               </TableCell>
                             </TableRow>
                           ) : (
-                            topLevelCustomers.map((c, i) => renderCustomerRow(c, i))
+                            topLevelCustomers.map((c, i) =>
+                              renderCustomerRow(c, i),
+                            )
                           )}
                         </TableBody>
                       </Table>
@@ -572,7 +667,7 @@ export function CustomerSalesDashboard() {
                       <span>เลื่อนตารางในแนวนอนเพื่อดูข้อมูลทั้งหมด</span>
                     </div>
                     <div className="text-slate-400 italic">
-                      คลิก "ดู" เพื่อดูรายละเอียดเชิงลึก
+                      คลิก &quot;ดู&quot; เพื่อดูรายละเอียดเชิงลึก
                     </div>
                   </div>
                 </Card>
@@ -585,7 +680,10 @@ export function CustomerSalesDashboard() {
                       <UserCheck className="h-5 w-5 text-red-600" />
                       ข้อมูลการขายของพนักงาน
                     </CardTitle>
-                    <Badge variant="secondary" className="text-xs sm:text-sm bg-slate-100 text-slate-700 hover:bg-slate-200">
+                    <Badge
+                      variant="secondary"
+                      className="text-xs sm:text-sm bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    >
                       {filteredSalespersons.length} คน
                     </Badge>
                   </CardHeader>
@@ -594,12 +692,24 @@ export function CustomerSalesDashboard() {
                       <Table className="min-w-[800px]">
                         <TableHeader className="sticky top-0 bg-white/95 backdrop-blur z-10">
                           <TableRow className="border-b border-slate-200">
-                            <TableHead className="w-[80px] font-semibold text-slate-700">ลำดับ</TableHead>
-                            <TableHead className="font-semibold text-slate-700">พนักงานขาย</TableHead>
-                            <TableHead className="font-semibold text-slate-700">แผนก</TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">ยอดขายรวม</TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">จำนวนออเดอร์</TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">รายละเอียด</TableHead>
+                            <TableHead className="w-[80px] font-semibold text-slate-700">
+                              ลำดับ
+                            </TableHead>
+                            <TableHead className="font-semibold text-slate-700">
+                              พนักงานขาย
+                            </TableHead>
+                            <TableHead className="font-semibold text-slate-700">
+                              แผนก
+                            </TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">
+                              ยอดขายรวม
+                            </TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">
+                              จำนวนออเดอร์
+                            </TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">
+                              รายละเอียด
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -617,7 +727,10 @@ export function CustomerSalesDashboard() {
                             </TableRow>
                           ) : (
                             filteredSalespersons.map((s, idx) => (
-                              <TableRow key={s.id} className="hover:bg-slate-50/50 transition-colors">
+                              <TableRow
+                                key={s.id}
+                                className="hover:bg-slate-50/50 transition-colors"
+                              >
                                 <TableCell>
                                   <Badge
                                     variant="outline"
@@ -641,7 +754,10 @@ export function CustomerSalesDashboard() {
                                   </div>
                                 </TableCell>
                                 <TableCell>
-                                  <Badge variant="outline" className="font-normal border-slate-200 bg-slate-50 text-slate-600">
+                                  <Badge
+                                    variant="outline"
+                                    className="font-normal border-slate-200 bg-slate-50 text-slate-600"
+                                  >
                                     {s.department}
                                   </Badge>
                                 </TableCell>
@@ -653,7 +769,11 @@ export function CustomerSalesDashboard() {
                                 </TableCell>
                                 <TableCell className="text-center">
                                   <Link href={`/reports/salesperson/${s.id}`}>
-                                    <Button variant="ghost" size="sm" className="hover:bg-red-50 hover:text-red-700 rounded-lg">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="hover:bg-red-50 hover:text-red-700 rounded-lg"
+                                    >
                                       <Eye className="h-4 w-4 mr-1.5" />
                                     </Button>
                                   </Link>
