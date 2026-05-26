@@ -436,7 +436,7 @@ export default function SalesDashboardView({
     useState<DashboardPeriod>("month");
 
   const periodOptions: { value: DashboardPeriod; label: string }[] = [
-    { value: "day", label: "วัน" },
+    { value: "day", label: "วันนี้" },
     { value: "month", label: "เดือน" },
     { value: "year", label: "ปี" },
   ];
@@ -597,26 +597,13 @@ export default function SalesDashboardView({
         </div>
 
         {/* Period Switcher & Last updated */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-4">
+        <div className="flex flex-col sm:flex-row items-center justify-end gap-3 px-4 sm:px-4">
           <PeriodSwitcher
             value={overviewPeriod}
             onChange={setOverviewPeriod}
             options={periodOptions}
             variant="light"
           />
-          <div className="inline-flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-slate-600 bg-white/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-sm border border-slate-200/60">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse" />
-            <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden xs:inline">อัปเดตล่าสุด </span>
-            <span className="font-medium">
-              {lastUpdatedAt.toLocaleString("th-TH", {
-                day: "numeric",
-                month: "short",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </span>
-          </div>
         </div>
       </div>
 
