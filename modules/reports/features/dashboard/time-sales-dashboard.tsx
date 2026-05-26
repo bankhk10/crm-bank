@@ -73,6 +73,7 @@ import {
   Pie,
   Cell,
   Area,
+  AreaChart,
   ComposedChart,
   Line,
 } from "recharts";
@@ -393,57 +394,43 @@ export function TimeSalesDashboard() {
                   <CardContent className="p-4 sm:p-6">
                     <div className="h-[320px] sm:h-[400px]">
                       <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={reportData.dailyData}>
+                        <AreaChart data={reportData.dailyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                           <defs>
                             <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#24c143ff" stopOpacity={0.25} />
-                              <stop offset="95%" stopColor="#24c143ff" stopOpacity={0.01} />
+                              <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                              <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                             </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                          <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                          <YAxis
-                            yAxisId="sales"
-                            tickFormatter={formatShortTHB}
-                            tick={{ fontSize: 11 }}
-                            tickLine={false}
-                            axisLine={false}
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fontSize: 11, fill: "#64748b" }} 
+                            tickLine={false} 
+                            axisLine={false} 
+                            dy={10} 
                           />
                           <YAxis
-                            yAxisId="orders"
-                            orientation="right"
-                            tick={{ fontSize: 11 }}
+                            tickFormatter={formatShortTHB}
+                            tick={{ fontSize: 11, fill: "#64748b" }}
                             tickLine={false}
                             axisLine={false}
+                            dx={-10}
                           />
                           <Tooltip
-                            contentStyle={chartTooltipStyle}
-                            formatter={(value: number, name: string) =>
-                              name === "ยอดขาย"
-                                ? [formatTHB(value), name]
-                                : [formatNumber(value), name]
-                            }
+                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                            formatter={(value: number, name: string) => [formatTHB(value), name]}
+                            labelStyle={{ color: '#64748b', marginBottom: '4px', fontSize: '12px', fontWeight: '500' }}
                           />
-                          <Legend />
                           <Area
-                            yAxisId="sales"
                             type="monotone"
                             dataKey="sales"
                             name="ยอดขาย"
-                            stroke="#24c143ff"
-                            strokeWidth={2.5}
+                            stroke="#ef4444"
+                            strokeWidth={3}
                             fill="url(#salesGrad)"
+                            activeDot={{ r: 6, fill: "#ef4444", stroke: "#fff", strokeWidth: 2 }}
                           />
-                          <Line
-                            yAxisId="orders"
-                            type="monotone"
-                            dataKey="orders"
-                            name="ออเดอร์"
-                            stroke="#0f8dbbff"
-                            strokeWidth={2}
-                            dot={false}
-                          />
-                        </ComposedChart>
+                        </AreaChart>
                       </ResponsiveContainer>
                     </div>
                   </CardContent>
