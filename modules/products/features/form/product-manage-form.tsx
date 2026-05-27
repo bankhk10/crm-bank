@@ -839,8 +839,8 @@ const StockLotsSection: React.FC<
                       updateStockLot(index, "quantity", val);
                     }
                   }}
-                  disabled={saving || !!(lot.id && lot.isUsed)}
-                  className="h-10"
+                  disabled={saving || !!lot.id}
+                  className={`h-10 ${lot.id ? "bg-muted cursor-not-allowed" : ""}`}
                   onWheel={(e) => e.currentTarget.blur()}
                 />
               </div>
