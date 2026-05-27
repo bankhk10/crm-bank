@@ -2,8 +2,14 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { getProductAction, manageProductAction } from "@/modules/products/server/actions";
-import { downloadStockLotTemplateAction, parseStockLotsAction } from "../../server/import-actions";
+import {
+  getProductAction,
+  manageProductAction,
+} from "@/modules/products/server/actions";
+import {
+  downloadStockLotTemplateAction,
+  parseStockLotsAction,
+} from "../../server/import-actions";
 import { toast } from "sonner";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -33,7 +39,10 @@ import {
   Upload,
 } from "lucide-react";
 import DatePicker from "@/components/custom/DatePicker";
-import type { Product, ProductManagementFormData } from "@/modules/products/types";
+import type {
+  Product,
+  ProductManagementFormData,
+} from "@/modules/products/types";
 import { STORAGE_LOCATION_OPTIONS as storageOptions } from "@/modules/products/types";
 
 // ----------------------------------------------------------------------
@@ -160,9 +169,8 @@ const PriceManagementSection: React.FC<SectionProps> = ({
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    cartonPrice: e.target.value !== ""
-                      ? Number(e.target.value)
-                      : 0,
+                    cartonPrice:
+                      e.target.value !== "" ? Number(e.target.value) : 0,
                   }))
                 }
                 disabled={saving}
@@ -194,9 +202,8 @@ const PriceManagementSection: React.FC<SectionProps> = ({
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    promotionBudget: e.target.value !== ""
-                      ? Number(e.target.value)
-                      : 0,
+                    promotionBudget:
+                      e.target.value !== "" ? Number(e.target.value) : 0,
                   }))
                 }
                 disabled={saving}
@@ -644,7 +651,7 @@ const StockLotsSection: React.FC<
         if (res.success && res.data) {
           setFormData((prev) => ({
             ...prev,
-            stockLots: [...prev.stockLots, ...res.data]
+            stockLots: [...prev.stockLots, ...res.data],
           }));
           toast.success(`นำเข้าสต็อกสำเร็จ ${res.data.length} รายการ`);
           if (res.errors && res.errors.length > 0) {
@@ -719,35 +726,6 @@ const StockLotsSection: React.FC<
               type="button"
               variant="outline"
               size="sm"
-              onClick={handleDownloadTemplate}
-              disabled={saving || importing}
-              className="h-9 border-slate-300 text-slate-600 hover:bg-slate-50 transition-all"
-            >
-              <Download className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">โหลดแม่แบบ</span>
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={saving || importing}
-              className="h-9 border-blue-500 text-blue-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-500 transition-all"
-            >
-              <input type="file" className="hidden" accept=".xlsx,.xls" ref={fileInputRef} onChange={handleFileChange} />
-              {importing ? (
-                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-              ) : (
-                <Upload className="h-4 w-4 mr-1" />
-              )}
-              <span className="hidden sm:inline">{importing ? "กำลังนำเข้า..." : "นำเข้า(Excel)"}</span>
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
               onClick={addStockLot}
               disabled={saving || importing}
               className="h-9 border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-500 transition-all"
@@ -780,12 +758,15 @@ const StockLotsSection: React.FC<
             <div className="bg-muted/30 px-4 py-3 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span
-                  className={`text-sm font-bold px-2 py-1 rounded ${lot.id
-                    ? "bg-indigo-100 text-indigo-700"
-                    : "bg-green-100 text-green-700"
-                    }`}
+                  className={`text-sm font-bold px-2 py-1 rounded ${
+                    lot.id
+                      ? "bg-indigo-100 text-indigo-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
                 >
-                  {lot.id ? 'LOT NO. : ' + lot.lotNumber : `Lot-${index + 1} (ใหม่)`}
+                  {lot.id
+                    ? "LOT NO. : " + lot.lotNumber
+                    : `Lot-${index + 1} (ใหม่)`}
                 </span>
                 {lot.isUsed && (
                   <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full border border-red-200">
@@ -818,7 +799,11 @@ const StockLotsSection: React.FC<
                   placeholder={lot.id ? "" : ""}
                   value={lot.lotNumber || ""}
                   onChange={(e) =>
-                    updateStockLot(index, "lotNumber", e.target.value.toUpperCase())
+                    updateStockLot(
+                      index,
+                      "lotNumber",
+                      e.target.value.toUpperCase(),
+                    )
                   }
                   disabled={saving || !!lot.id}
                   className={`h-10 uppercase ${lot.id ? "bg-muted cursor-not-allowed" : ""}`}
@@ -874,23 +859,6 @@ const StockLotsSection: React.FC<
                   />
                 </div>
               </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">
-                  วันหมดอายุ
-                </Label>
-                <div className="h-10">
-                  <DatePicker
-                    value={lot.expiryDate || undefined}
-                    onChange={(v) =>
-                      updateStockLot(index, "expiryDate", v || undefined)
-                    }
-                    disabled={saving || !!(lot.id && lot.isUsed)}
-                    className="h-10"
-                  />
-                </div>
-              </div>
-
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
                   สถานที่จัดเก็บ
@@ -979,8 +947,10 @@ export function ProductManageForm({ productId }: { productId: string }) {
     const fetchProduct = async () => {
       try {
         const res = await getProductAction(productId);
-        if (!res.success) throw new Error(res.error || "ไม่สามารถโหลดข้อมูลสินค้าได้");
-        if (!("product" in res) || !res.product) throw new Error("ไม่สามารถโหลดข้อมูลสินค้าได้");
+        if (!res.success)
+          throw new Error(res.error || "ไม่สามารถโหลดข้อมูลสินค้าได้");
+        if (!("product" in res) || !res.product)
+          throw new Error("ไม่สามารถโหลดข้อมูลสินค้าได้");
         const productData = res.product;
         setProduct(productData);
 
@@ -1153,7 +1123,9 @@ export function ProductManageForm({ productId }: { productId: string }) {
                         <span className="font-semibold">{product.name}</span>
                       </div>
                       <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 text-white text-xs sm:text-sm border border-white/10 backdrop-blur-sm">
-                        <span className="font-medium text-white">รหัสสินค้า :</span>
+                        <span className="font-medium text-white">
+                          รหัสสินค้า :
+                        </span>
                         <span className="font-bold">{product.productCode}</span>
                       </div>
                     </div>
