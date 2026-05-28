@@ -718,11 +718,11 @@ const StockLotsSection: React.FC<
   return (
     <Card>
       <SectionHeader
-        title="จัดการสต็อกสินค้า"
+        title="ข้อมูลสินค้าคงคลัง"
         icon={Package}
         action={
           <div className="flex items-center gap-2">
-            <Button
+            {/* <Button
               type="button"
               variant="outline"
               size="sm"
@@ -733,7 +733,7 @@ const StockLotsSection: React.FC<
               <Plus className="h-4 w-4 mr-1" />
               <span className="hidden sm:inline">เพิ่มสต็อกสินค้า</span>
               <span className="sm:hidden">เพิ่ม</span>
-            </Button>
+            </Button> */}
           </div>
         }
       />
@@ -742,7 +742,7 @@ const StockLotsSection: React.FC<
         <div className="p-2 bg-green-100 rounded-lg mr-3">
           <Package className="h-5 w-5 text-green-600" />
         </div>
-        <span className="font-medium">ผลรวมจำนวนคงเหลือ:</span>
+        <span className="font-medium">จำนวนสินค้าคงหลัง:</span>
         <span className="ml-2 text-2xl font-bold text-green-600">
           {getTotalStock()}
         </span>
@@ -831,7 +831,7 @@ const StockLotsSection: React.FC<
               </div> */}
 
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">คงเหลือ</Label>
+                <Label className="text-xs text-muted-foreground">จำนวน</Label>
                 <Input
                   type="number"
                   value={lot.quantity}
@@ -846,7 +846,7 @@ const StockLotsSection: React.FC<
 
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  วันที่นำเข้า
+                  อัพเดทล่าสุด
                 </Label>
                 <div className="h-10">
                   <DatePicker
