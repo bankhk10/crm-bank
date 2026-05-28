@@ -809,7 +809,7 @@ const StockLotsSection: React.FC<
                   className={`h-10 uppercase ${lot.id ? "bg-muted cursor-not-allowed" : ""}`}
                 />
               </div>
-              <div className="space-y-1.5">
+              {/* <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
                   รับเข้า
                 </Label>
@@ -828,7 +828,7 @@ const StockLotsSection: React.FC<
                   className={`h-10 ${lot.id ? "bg-muted cursor-not-allowed" : ""}`}
                   onWheel={(e) => e.currentTarget.blur()}
                 />
-              </div>
+              </div> */}
 
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">คงเหลือ</Label>
