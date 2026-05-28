@@ -765,8 +765,8 @@ const StockLotsSection: React.FC<
                   }`}
                 >
                   {lot.id
-                    ? "LOT NO. : " + lot.lotNumber
-                    : `Lot-${index + 1} (ใหม่)`}
+                    ? `${index + 1}. LOT NO. : ${lot.lotNumber}`
+                    : `${index + 1}. Lot-${index + 1} (ใหม่)`}
                 </span>
                 {lot.isUsed && (
                   <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full border border-red-200">
@@ -984,17 +984,24 @@ export function ProductManageForm({ productId }: { productId: string }) {
               notes: item.notes || "",
             })) || [],
           stockLots:
-            productData.stockLots?.map((lot: any) => ({
-              id: lot.id,
-              lotNumber: lot.lotNumber,
-              quantity: lot.quantity,
-              initialQuantity: lot.initialQuantity ?? lot.quantity,
-              importDate: lot.importDate,
-              expiryDate: lot.expiryDate || undefined,
-              storageLocation: lot.storageLocation || "",
-              notes: lot.notes || "",
-              isUsed: lot.isUsed,
-            })) || [],
+            (productData.stockLots || [])
+              .map((lot: any) => ({
+                id: lot.id,
+                lotNumber: lot.lotNumber,
+                quantity: lot.quantity,
+                initialQuantity: lot.initialQuantity ?? lot.quantity,
+                importDate: lot.importDate,
+                expiryDate: lot.expiryDate || undefined,
+                storageLocation: lot.storageLocation || "",
+                notes: lot.notes || "",
+                isUsed: lot.isUsed,
+                createdAt: lot.createdAt,
+              }))
+              .sort((a, b) => {
+                const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return dateA - dateB;
+              }),
         });
       } catch (err) {
         setError((err as Error).message);
