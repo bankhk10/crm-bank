@@ -882,7 +882,7 @@ const StockLotsSection: React.FC<
                   </SelectContent>
                 </Select>
               </div>
-
+              {/* 
               <div className="sm:col-span-2 lg:col-span-5 space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
                   หมายเหตุ
@@ -897,7 +897,7 @@ const StockLotsSection: React.FC<
                   disabled={saving || !!(lot.id && lot.isUsed)}
                   className="h-10"
                 />
-              </div>
+              </div> */}
             </div>
           </div>
         ))}
@@ -983,25 +983,24 @@ export function ProductManageForm({ productId }: { productId: string }) {
               price: item.price ? Number(item.price) : undefined,
               notes: item.notes || "",
             })) || [],
-          stockLots:
-            (productData.stockLots || [])
-              .map((lot: any) => ({
-                id: lot.id,
-                lotNumber: lot.lotNumber,
-                quantity: lot.quantity,
-                initialQuantity: lot.initialQuantity ?? lot.quantity,
-                importDate: lot.importDate,
-                expiryDate: lot.expiryDate || undefined,
-                storageLocation: lot.storageLocation || "",
-                notes: lot.notes || "",
-                isUsed: lot.isUsed,
-                createdAt: lot.createdAt,
-              }))
-              .sort((a, b) => {
-                const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-                const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-                return dateA - dateB;
-              }),
+          stockLots: (productData.stockLots || [])
+            .map((lot: any) => ({
+              id: lot.id,
+              lotNumber: lot.lotNumber,
+              quantity: lot.quantity,
+              initialQuantity: lot.initialQuantity ?? lot.quantity,
+              importDate: lot.importDate,
+              expiryDate: lot.expiryDate || undefined,
+              storageLocation: lot.storageLocation || "",
+              notes: lot.notes || "",
+              isUsed: lot.isUsed,
+              createdAt: lot.createdAt,
+            }))
+            .sort((a, b) => {
+              const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+              const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+              return dateA - dateB;
+            }),
         });
       } catch (err) {
         setError((err as Error).message);
