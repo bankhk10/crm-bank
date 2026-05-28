@@ -394,7 +394,6 @@ export async function importBulkStockAction(formData: FormData, isPreview: boole
                  where: {
                    productId: row.productId,
                    lotNumber: row.lotNumber,
-                   importDate: row.importDate
                  }
              });
 
@@ -406,7 +405,7 @@ export async function importBulkStockAction(formData: FormData, isPreview: boole
                 : (existingLot ? existingLot.quantity : Number(row.importQuantityRaw));
                 
              let importQty = existingLot 
-                ? existingLot.initialQuantity
+                ? (row.importQuantityRaw !== undefined && row.importQuantityRaw !== "" ? Number(row.importQuantityRaw) : existingLot.initialQuantity)
                 : (row.importQuantityRaw !== undefined && row.importQuantityRaw !== "" 
                     ? Number(row.importQuantityRaw) 
                     : Number(row.remainingQuantityRaw));
@@ -419,13 +418,9 @@ export async function importBulkStockAction(formData: FormData, isPreview: boole
                  importQuantity: importQty,
                  remainingQuantity: remainingQty,
                  importDate: row.importDate.toISOString().split("T")[0],
-                 expiryDate: existingLot
-                     ? (existingLot.expiryDate ? existingLot.expiryDate.toISOString().split("T")[0] : "")
-                     : (row.expiryDate ? row.expiryDate.toISOString().split("T")[0] : (row.expiryDateRaw || "")),
-                 storageLocation: existingLot
-                     ? (existingLot.storageLocation || "คลังบางเลน")
-                     : ((row.storageLocationRaw !== undefined && row.storageLocationRaw !== "") ? row.storageLocation : "คลังบางเลน"),
-                 notes: existingLot ? (existingLot.notes || "") : (row.notes || ""),
+                 expiryDate: row.expiryDate ? row.expiryDate.toISOString().split("T")[0] : (existingLot?.expiryDate ? existingLot.expiryDate.toISOString().split("T")[0] : ""),
+                 storageLocation: (row.storageLocationRaw !== undefined && row.storageLocationRaw !== "") ? row.storageLocation : (existingLot?.storageLocation || "คลังบางเลน"),
+                 notes: row.notesRaw !== undefined ? row.notes : (existingLot?.notes || ""),
              });
         }
         
@@ -449,26 +444,42 @@ export async function importBulkStockAction(formData: FormData, isPreview: boole
                  where: {
                    productId: row.productId,
                    lotNumber: row.lotNumber,
-                   importDate: row.importDate
                  }
              });
 
              if (existingLot) {
                  // Update
-                 const dataToUpdate: any = {};
+                 const dataToUpdate: any = {
+                     importDate: row.importDate,
+                 };
                  
                  if (row.remainingQuantityRaw !== undefined && row.remainingQuantityRaw !== "") {
                      const qty = Number(row.remainingQuantityRaw);
                      if (!isNaN(qty) && qty >= 0) dataToUpdate.quantity = qty;
                  }
-
-                 if (Object.keys(dataToUpdate).length > 0) {
-                     await tx.productStockLot.update({
-                         where: { id: existingLot.id },
-                         data: dataToUpdate
-                     });
-                     updatedCount++;
+                 
+                 if (row.importQuantityRaw !== undefined && row.importQuantityRaw !== "") {
+                     const qty = Number(row.importQuantityRaw);
+                     if (!isNaN(qty) && qty >= 0) dataToUpdate.initialQuantity = qty;
                  }
+                 
+                 if (row.expiryDateRaw !== undefined) {
+                     dataToUpdate.expiryDate = row.expiryDate;
+                 }
+                 
+                 if (row.storageLocationRaw !== undefined && row.storageLocationRaw !== "") {
+                     dataToUpdate.storageLocation = row.storageLocation;
+                 }
+                 
+                 if (row.notesRaw !== undefined) {
+                     dataToUpdate.notes = row.notes;
+                 }
+
+                 await tx.productStockLot.update({
+                     where: { id: existingLot.id },
+                     data: dataToUpdate
+                 });
+                 updatedCount++;
              } else {
                  // Create
                  let importQty = row.importQuantityRaw !== undefined && row.importQuantityRaw !== "" 
