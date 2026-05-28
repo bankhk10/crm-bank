@@ -93,6 +93,7 @@ model User {
   deletedAt    DateTime?
   departmentId String?
   positionId   String?
+  lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 

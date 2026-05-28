@@ -129,6 +129,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new InactiveAccountError();
         }
 
+        // Update last login time
+        await db.user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: new Date() },
+        });
+
         const rolePermissions = user.userRoles.flatMap(
           (userRole) => userRole.role.permissions,
         );

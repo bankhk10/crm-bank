@@ -65,6 +65,11 @@ export async function findEmployees(params: ListEmployeesParams) {
             name: true,
           },
         },
+        user: {
+          select: {
+            lastLoginAt: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * perPage,

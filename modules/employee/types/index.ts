@@ -21,6 +21,9 @@ export interface Employee {
     id: string;
     name: string;
   };
+  user?: {
+    lastLoginAt?: Date | string | null;
+  };
 }
 
 /**

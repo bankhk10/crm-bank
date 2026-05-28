@@ -1,10 +1,12 @@
 import React from "react";
-import { Eye, Edit, Trash2 } from "lucide-react";
+import { Eye, Edit, Trash2, Moon } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { TruncatedCell } from "@/components/custom/truncated-cell";
 import { ActionButton } from "@/components/custom/action-button";
 import { Employee } from "../../types";
 import { EmployeeStatusBadge } from "../../ui/employee-status-badge";
+import { formatDistanceToNow, differenceInDays } from "date-fns";
+import { th } from "date-fns/locale";
 
 export function useEmployeeColumns(
     onDeleteRequest: (employee: Employee) => void,
@@ -99,6 +101,39 @@ export function useEmployeeColumns(
                         }
                     />
                 ),
+            },
+            {
+                accessorKey: "lastLogin",
+                header: "เข้าใช้งานล่าสุด",
+                meta: {
+                    headerAlign: "left",
+                    minWidth: 160,
+                    width: 180,
+                    maxWidth: 200,
+                    align: "left",
+                },
+                cell: ({ row }) => {
+                    const lastLoginAt = row.original.user?.lastLoginAt;
+                    if (!lastLoginAt) return <span className="text-gray-400">-</span>;
+
+                    const loginDate = new Date(lastLoginAt);
+                    const daysSinceLogin = differenceInDays(new Date(), loginDate);
+                    const isInactive = daysSinceLogin >= 7;
+
+                    return (
+                        <div className="flex flex-col gap-1.5 py-1">
+                             <span className="text-sm">
+                                 {formatDistanceToNow(loginDate, { addSuffix: true, locale: th })}
+                             </span>
+                             {isInactive && (
+                                 <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full w-fit border border-amber-200 shadow-sm transition-all hover:bg-amber-100">
+                                     <Moon className="w-3 h-3 fill-amber-600/20" />
+                                     <span className="text-xs font-medium">ไม่ออนไลน์ {daysSinceLogin} วัน</span>
+                                 </div>
+                             )}
+                        </div>
+                    );
+                },
             },
             {
                 accessorKey: "status",
