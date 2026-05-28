@@ -164,19 +164,62 @@ export async function downloadBulkStockTemplateAction() {
   try {
     const wb = XLSX.utils.book_new();
 
-    // Data rows
-    const data = [
-      {
+    const products = await db.product.findMany({
+      where: { deletedAt: null, status: "ACTIVE" },
+      include: {
+        stockLots: {
+          where: { isUsed: false }
+        }
+      },
+      orderBy: { productCode: "asc" }
+    });
+
+    const data: any[] = [];
+    const formatDate = (date: Date) => date.toISOString().split("T")[0];
+
+    products.forEach((p) => {
+      if (p.stockLots && p.stockLots.length > 0) {
+        p.stockLots.forEach((lot) => {
+          data.push({
+            "รหัสสินค้า (Product Code) *": p.productCode,
+            "ชื่อสินค้า (Product Name)": p.name,
+            "เลขที่ล็อต (Lot Number) *": lot.lotNumber,
+            "รับเข้า (Import Quantity) *": lot.initialQuantity,
+            "จำนวนคงเหลือ (Remaining Quantity)": lot.quantity,
+            "วันที่นำเข้า (Import Date)": formatDate(lot.importDate),
+            "วันหมดอายุ (Expiry Date)": lot.expiryDate ? formatDate(lot.expiryDate) : "",
+            "สถานที่จัดเก็บ (Storage)": lot.storageLocation || "",
+            "หมายเหตุ (Notes)": lot.notes || "",
+          });
+        });
+      } else {
+        data.push({
+          "รหัสสินค้า (Product Code) *": p.productCode,
+          "ชื่อสินค้า (Product Name)": p.name,
+          "เลขที่ล็อต (Lot Number) *": "",
+          "รับเข้า (Import Quantity) *": "",
+          "จำนวนคงเหลือ (Remaining Quantity)": "",
+          "วันที่นำเข้า (Import Date)": "",
+          "วันหมดอายุ (Expiry Date)": "",
+          "สถานที่จัดเก็บ (Storage)": "",
+          "หมายเหตุ (Notes)": "",
+        });
+      }
+    });
+
+    if (data.length === 0) {
+      data.push({
         "รหัสสินค้า (Product Code) *": "P-001",
         "ชื่อสินค้า (Product Name)": "ตัวอย่างสินค้า 1",
         "เลขที่ล็อต (Lot Number) *": "L-2026-001",
-        "จำนวนนำเข้า (Quantity) *": 100,
+        "จำนวนนำเข้า (Import Quantity) *": 100,
+        "จำนวนคงเหลือ (Remaining Quantity)": 100,
         "วันที่นำเข้า (Import Date)": "2026-04-17",
         "วันหมดอายุ (Expiry Date)": "2027-04-17",
         "สถานที่จัดเก็บ (Storage)": "คลังบางเลน",
         "หมายเหตุ (Notes)": "First bulk lot",
-      },
-    ];
+      });
+    }
 
     const ws = XLSX.utils.json_to_sheet(data);
 
@@ -184,7 +227,8 @@ export async function downloadBulkStockTemplateAction() {
       { wch: 25 }, // รหัสสินค้า
       { wch: 35 }, // ชื่อสินค้า
       { wch: 25 }, // ล็อต
-      { wch: 15 }, // จำนวน
+      { wch: 25 }, // จำนวนนำเข้า
+      { wch: 25 }, // จำนวนคงเหลือ
       { wch: 18 }, // นำเข้า
       { wch: 18 }, // หมดอายุ
       { wch: 20 }, // จัดเก็บ
@@ -206,7 +250,7 @@ export async function downloadBulkStockTemplateAction() {
 /**
  * Parse and Process uploaded Bulk Stock Excel file
  */
-export async function importBulkStockAction(formData: FormData) {
+export async function importBulkStockAction(formData: FormData, isPreview: boolean = false) {
   const session = await auth();
   if (!session?.user) {
     return { success: false, message: "Unauthorized" };
@@ -252,9 +296,20 @@ export async function importBulkStockAction(formData: FormData) {
       return `${yyyy}-${mm}-${dd}`;
     };
 
+    // Helper to find a value by possible keys, ignoring spaces
+    const getVal = (row: any, keys: string[]) => {
+        const rowKeys = Object.keys(row);
+        for (const k of rowKeys) {
+            if (keys.includes(k.trim())) {
+                return row[k];
+            }
+        }
+        return undefined;
+    };
+
     // Pre-fetch all products to avoid N+1 queries during validation
     const productCodesSet = new Set(rawData.map((r: any) => 
-      String(r["รหัสสินค้า (Product Code) *"] || r["Product Code"] || r["รหัสสินค้า"] || "")
+      String(getVal(r, ["รหัสสินค้า (Product Code) *", "Product Code", "รหัสสินค้า"]) || "").trim()
     ).filter(Boolean));
 
     const productsMap = new Map();
@@ -271,15 +326,16 @@ export async function importBulkStockAction(formData: FormData) {
     for (let i = 0; i < rawData.length; i++) {
         const row: any = rawData[i];
         
-        const productCode = String(row["รหัสสินค้า (Product Code) *"] || row["Product Code"] || row["รหัสสินค้า"] || "").trim();
-        const lotNumber = String(row["เลขที่ล็อต (Lot Number) *"] || row["Lot Number"] || row["Lot"] || row["เลขที่ล็อต"] || "").trim();
-        const quantityRaw = row["จำนวนนำเข้า (Quantity) *"] || row["Quantity"] || row["จำนวนนำเข้า"] || row["จำนวน"];
+        const productCode = String(getVal(row, ["รหัสสินค้า (Product Code) *", "Product Code", "รหัสสินค้า"]) || "").trim();
+        const lotNumber = String(getVal(row, ["เลขที่ล็อต (Lot Number) *", "Lot Number", "Lot", "เลขที่ล็อต", "เลขที่LOT"]) || "").trim();
+        const importQuantityRaw = getVal(row, ["รับเข้า (Import Quantity) *", "รับเข้า", "จำนวนนำเข้า (Import Quantity) *", "จำนวนนำเข้า (Quantity) *", "Quantity", "จำนวนนำเข้า"]);
+        const remainingQuantityRaw = getVal(row, ["จำนวนคงเหลือ (Remaining Quantity)", "จำนวนคงเหลือ", "จำนวน"]);
         
-        const importDateRaw = row["วันที่นำเข้า (Import Date)"] || row["Import Date"] || row["วันที่นำเข้า"];
-        const expiryDateRaw = row["วันหมดอายุ (Expiry Date)"] || row["Expiry Date"] || row["วันหมดอายุ"];
+        const importDateRaw = getVal(row, ["วันที่นำเข้า (Import Date)", "Import Date", "วันที่นำเข้า", "วันที่รับเข้า"]);
+        const expiryDateRaw = getVal(row, ["วันหมดอายุ (Expiry Date)", "Expiry Date", "วันหมดอายุ"]);
         
-        const storageLocation = String(row["สถานที่จัดเก็บ (Storage)"] || row["Storage"] || row["สถานที่จัดเก็บ"] || "").trim();
-        const notes = String(row["หมายเหตุ (Notes)"] || row["Notes"] || row["หมายเหตุ"] || "").trim();
+        const storageLocation = getVal(row, ["สถานที่จัดเก็บ (Storage)", "Storage", "สถานที่จัดเก็บ", "พื้นที่จัดเก็บ", "คลัง"]);
+        const notes = getVal(row, ["หมายเหตุ (Notes)", "Notes", "หมายเหตุ"]);
 
         if (!productCode) {
             errors.push(`แถวที่ ${i + 2}: ขาดรหัสสินค้า`);
@@ -297,30 +353,91 @@ export async function importBulkStockAction(formData: FormData) {
             continue;
         }
 
-        const quantity = Number(quantityRaw);
-        if (isNaN(quantity) || quantity <= 0) {
-            errors.push(`แถวที่ ${i + 2}: จำนวนนำเข้าต้องเป็นตัวเลขมากกว่า 0 (สินค้า ${productCode})`);
-            continue;
+        const importDateStr = excelDateToJSDate(importDateRaw);
+        if (!importDateStr) {
+             errors.push(`แถวที่ ${i + 2}: ขาดวันที่นำเข้า สำหรับรหัสสินค้า [${productCode}]`);
+             continue;
         }
 
-        const importDateStr = excelDateToJSDate(importDateRaw) || new Date().toISOString().split("T")[0];
         const expiryDateStr = excelDateToJSDate(expiryDateRaw) || undefined;
 
         validRows.push({
             productId,
             productCode,
             lotNumber,
-            quantity,
+            importQuantityRaw,
+            remainingQuantityRaw,
             importDate: new Date(importDateStr),
+            expiryDateRaw,
             expiryDate: expiryDateStr ? new Date(expiryDateStr) : null,
-            storageLocation,
-            notes,
+            storageLocationRaw: storageLocation,
+            storageLocation: storageLocation 
+                ? (String(storageLocation).trim() === "BL" ? "คลังบางเลน" : String(storageLocation).trim()) 
+                : "คลังบางเลน",
+            notesRaw: notes,
+            notes: notes ? String(notes).trim() : "",
             rowNum: i + 2
         });
     }
 
     if (validRows.length === 0) {
         return { success: false, message: "ไม่พบข้อมูลที่ถูกต้องในไฟล์", errors };
+    }
+
+    if (isPreview) {
+        const previewItems = [];
+        let pCreatedCount = 0;
+        let pUpdatedCount = 0;
+        
+        for (const row of validRows) {
+             const existingLot = await db.productStockLot.findFirst({
+                 where: {
+                   productId: row.productId,
+                   lotNumber: row.lotNumber,
+                   importDate: row.importDate
+                 }
+             });
+
+             const action = existingLot ? "UPDATE" : "CREATE";
+             if (existingLot) pUpdatedCount++; else pCreatedCount++;
+
+             let remainingQty = row.remainingQuantityRaw !== undefined && row.remainingQuantityRaw !== "" 
+                ? Number(row.remainingQuantityRaw) 
+                : (existingLot ? existingLot.quantity : Number(row.importQuantityRaw));
+                
+             let importQty = existingLot 
+                ? existingLot.initialQuantity
+                : (row.importQuantityRaw !== undefined && row.importQuantityRaw !== "" 
+                    ? Number(row.importQuantityRaw) 
+                    : Number(row.remainingQuantityRaw));
+
+             previewItems.push({
+                 rowNum: row.rowNum,
+                 productCode: row.productCode,
+                 lotNumber: row.lotNumber,
+                 action,
+                 importQuantity: importQty,
+                 remainingQuantity: remainingQty,
+                 importDate: row.importDate.toISOString().split("T")[0],
+                 expiryDate: existingLot
+                     ? (existingLot.expiryDate ? existingLot.expiryDate.toISOString().split("T")[0] : "")
+                     : (row.expiryDate ? row.expiryDate.toISOString().split("T")[0] : (row.expiryDateRaw || "")),
+                 storageLocation: existingLot
+                     ? (existingLot.storageLocation || "คลังบางเลน")
+                     : ((row.storageLocationRaw !== undefined && row.storageLocationRaw !== "") ? row.storageLocation : "คลังบางเลน"),
+                 notes: existingLot ? (existingLot.notes || "") : (row.notes || ""),
+             });
+        }
+        
+        return { 
+           success: true, 
+           isPreview: true,
+           previewItems,
+           createdCount: pCreatedCount,
+           updatedCount: pUpdatedCount,
+           totalRows: validRows.length,
+           errors 
+        };
     }
 
     // Process valid rows
@@ -332,35 +449,50 @@ export async function importBulkStockAction(formData: FormData) {
                  where: {
                    productId: row.productId,
                    lotNumber: row.lotNumber,
-                   isUsed: false // allow update only if not used, or we just update quantity
+                   importDate: row.importDate
                  }
              });
 
              if (existingLot) {
                  // Update
-                 await tx.productStockLot.update({
-                     where: { id: existingLot.id },
-                     data: {
-                         quantity: row.quantity,
-                         // Option: if they really mean "add to stock", maybe it should be quantity + row.quantity. 
-                         // But usually template implies "setting" the quantity to this new value or resetting.
-                         // For safety, let's treat it as setting/updating.
-                         initialQuantity: row.quantity,
-                         importDate: row.importDate,
-                         expiryDate: row.expiryDate,
-                         storageLocation: row.storageLocation,
-                         notes: row.notes,
-                     }
-                 });
-                 updatedCount++;
+                 const dataToUpdate: any = {};
+                 
+                 if (row.remainingQuantityRaw !== undefined && row.remainingQuantityRaw !== "") {
+                     const qty = Number(row.remainingQuantityRaw);
+                     if (!isNaN(qty) && qty >= 0) dataToUpdate.quantity = qty;
+                 }
+
+                 if (Object.keys(dataToUpdate).length > 0) {
+                     await tx.productStockLot.update({
+                         where: { id: existingLot.id },
+                         data: dataToUpdate
+                     });
+                     updatedCount++;
+                 }
              } else {
                  // Create
+                 let importQty = row.importQuantityRaw !== undefined && row.importQuantityRaw !== "" 
+                     ? Number(row.importQuantityRaw) 
+                     : Number(row.remainingQuantityRaw);
+                     
+                 let remainingQty = row.remainingQuantityRaw !== undefined && row.remainingQuantityRaw !== "" 
+                     ? Number(row.remainingQuantityRaw) 
+                     : Number(row.importQuantityRaw);
+                 
+                 if (isNaN(importQty) || importQty < 0) {
+                     throw new Error(`การสร้างล็อตใหม่ จำนวนต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป`);
+                 }
+                 
+                 if (isNaN(remainingQty)) {
+                     remainingQty = importQty;
+                 }
+                 
                  await tx.productStockLot.create({
                      data: {
                          productId: row.productId,
                          lotNumber: row.lotNumber,
-                         quantity: row.quantity,
-                         initialQuantity: row.quantity,
+                         quantity: remainingQty,
+                         initialQuantity: importQty,
                          importDate: row.importDate,
                          expiryDate: row.expiryDate,
                          storageLocation: row.storageLocation,

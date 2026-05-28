@@ -25,7 +25,7 @@ import {
   downloadBulkStockTemplateAction,
 } from "../../server/import-actions";
 
-type Step = "upload" | "result";
+type Step = "upload" | "preview" | "result";
 
 export default function ProductStockImportView() {
   const [step, setStep] = useState<Step>("upload");
@@ -91,7 +91,7 @@ export default function ProductStockImportView() {
     }
   };
 
-  const handleImport = async () => {
+  const handlePreview = async () => {
     if (!file) {
       toast.error("กรุณาเลือกไฟล์");
       return;
@@ -102,7 +102,32 @@ export default function ProductStockImportView() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await importBulkStockAction(formData);
+      const res = await importBulkStockAction(formData, true);
+      setResult(res);
+      setStep(res.success && res.isPreview ? "preview" : "result");
+
+      if (!res.success) {
+        toast.error(res.message || "เกิดข้อผิดพลาด");
+      }
+    } catch {
+      toast.error("เกิดข้อผิดพลาดในการพรีวิวข้อมูล");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmImport = async () => {
+    if (!file) {
+      toast.error("ไม่มีไฟล์ให้ประมวลผล");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await importBulkStockAction(formData, false);
       setResult(res);
       setStep("result");
 
@@ -153,8 +178,8 @@ export default function ProductStockImportView() {
 
         {/* Step Indicator */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          {["อัปโหลดไฟล์", "ผลลัพธ์"].map((label, idx) => {
-            const stepMap: Step[] = ["upload", "result"];
+          {["อัปโหลดไฟล์", "พรีวิว", "ผลลัพธ์"].map((label, idx) => {
+            const stepMap: Step[] = ["upload", "preview", "result"];
             const isActive = stepMap[idx] === step;
             const isPast = stepMap.indexOf(step) > idx;
             return (
@@ -310,19 +335,19 @@ export default function ProductStockImportView() {
 
             <div className="flex justify-end">
               <Button
-                onClick={handleImport}
+                onClick={handlePreview}
                 disabled={!file || loading}
                 className="bg-blue-600 hover:bg-blue-700 text-white h-11 px-8"
               >
                 {loading ? (
                   <>
                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    กำลังประมวลผล...
+                    กำลังเตรียมพรีวิว...
                   </>
                 ) : (
                   <>
-                    <Play className="h-4 w-4 mr-2" />
-                    ประมวลผลการนำเข้า
+                    <Eye className="h-4 w-4 mr-2" />
+                    ดูตัวอย่างการนำเข้า
                   </>
                 )}
               </Button>
@@ -330,7 +355,125 @@ export default function ProductStockImportView() {
           </div>
         )}
 
-        {/* ─────────────────── STEP 2: RESULT ─────────────────── */}
+        {/* ─────────────────── STEP 2: PREVIEW ─────────────────── */}
+        {step === "preview" && result && result.isPreview && (
+          <div className="max-w-4xl mx-auto space-y-6">
+            <Card className="border-blue-200">
+              <CardHeader className="pb-3 border-b bg-slate-50 rounded-t-xl">
+                <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                  <Eye className="h-5 w-5 text-blue-500" />
+                  พรีวิวข้อมูลก่อนนำเข้า
+                </CardTitle>
+                <p className="text-sm text-slate-500 mt-1">ตรวจสอบความถูกต้องก่อนกดยืนยันการบันทึกข้อมูลจริง</p>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="grid grid-cols-3 gap-4 p-4 border-b bg-white">
+                    <div className="text-center">
+                        <p className="text-2xl font-bold text-slate-700">{result.totalRows}</p>
+                        <p className="text-xs text-slate-500">จำนวนทั้งหมด</p>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-2xl font-bold text-blue-600">{result.createdCount}</p>
+                        <p className="text-xs text-slate-500">สร้างใหม่</p>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-2xl font-bold text-amber-500">{result.updatedCount}</p>
+                        <p className="text-xs text-slate-500">อัปเดต</p>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto max-h-[400px]">
+                  <table className="w-full text-sm text-left">
+                    <thead className="text-xs text-slate-600 bg-slate-100 sticky top-0 z-10">
+                      <tr>
+                        <th className="px-4 py-3">แถว</th>
+                        <th className="px-4 py-3">สถานะ</th>
+                        <th className="px-4 py-3 whitespace-nowrap">รหัสสินค้า</th>
+                        <th className="px-4 py-3 whitespace-nowrap">ล็อต</th>
+                        <th className="px-4 py-3 whitespace-nowrap text-right">รับเข้า</th>
+                        <th className="px-4 py-3 whitespace-nowrap text-right">คงเหลือ</th>
+                        <th className="px-4 py-3 whitespace-nowrap">วันที่นำเข้า</th>
+                        <th className="px-4 py-3 whitespace-nowrap">วันหมดอายุ</th>
+                        <th className="px-4 py-3 whitespace-nowrap">สถานที่จัดเก็บ</th>
+                        <th className="px-4 py-3">หมายเหตุ</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {result.previewItems?.map((item: any, idx: number) => (
+                        <tr key={idx} className="hover:bg-slate-50">
+                          <td className="px-4 py-3 font-medium text-slate-500">{item.rowNum}</td>
+                          <td className="px-4 py-3">
+                            {item.action === "CREATE" ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                สร้างใหม่
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                                อัปเดต
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">{item.productCode}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">{item.lotNumber}</td>
+                          <td className="px-4 py-3 whitespace-nowrap text-right">{item.importQuantity}</td>
+                          <td className="px-4 py-3 whitespace-nowrap text-right font-medium text-blue-600">{item.remainingQuantity}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">{item.importDate}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">{item.expiryDate || "-"}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">{item.storageLocation || "-"}</td>
+                          <td className="px-4 py-3 truncate max-w-[150px]" title={item.notes}>{item.notes || "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+
+            {result.errors && result.errors.length > 0 && (
+              <Card className="border-red-200 bg-red-50/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2 text-red-700">
+                    <AlertTriangle className="h-4 w-4" />
+                    พบข้อผิดพลาดบางรายการ ({result.errors.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {result.errors.map((err: string, idx: number) => (
+                      <p key={idx} className="text-sm text-red-800">
+                        • {err}
+                      </p>
+                    ))}
+                  </div>
+                  <p className="text-xs text-red-600 mt-2 font-medium">
+                    * รายการที่มีข้อผิดพลาดจะไม่ถูกนำเข้า คุณสามารถกดยืนยันเพื่อนำเข้าเฉพาะรายการที่ถูกต้อง หรือกดยกเลิกเพื่อแก้ไขไฟล์ก่อนได้
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="flex justify-between mt-6">
+              <Button variant="outline" onClick={handleReset} disabled={loading}>
+                ยกเลิก
+              </Button>
+              <Button onClick={handleConfirmImport} disabled={loading || result.previewItems?.length === 0} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                {loading ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    กำลังบันทึก...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    ยืนยันการนำเข้า
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* ─────────────────── STEP 3: RESULT ─────────────────── */}
         {step === "result" && result && (
           <div className="max-w-3xl mx-auto space-y-6">
             <Card

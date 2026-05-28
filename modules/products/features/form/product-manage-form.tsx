@@ -680,7 +680,7 @@ const StockLotsSection: React.FC<
           initialQuantity: 1,
           importDate: new Date().toISOString().split("T")[0],
           expiryDate: undefined,
-          storageLocation: "",
+          storageLocation: "คลังบางเลน",
           notes: "",
         },
       ],
@@ -811,7 +811,7 @@ const StockLotsSection: React.FC<
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  จำนวนนำเข้า
+                  รับเข้า
                 </Label>
                 <Input
                   type="number"
