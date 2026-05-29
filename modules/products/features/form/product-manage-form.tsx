@@ -996,7 +996,7 @@ export function ProductManageForm({ productId }: { productId: string }) {
               isUsed: lot.isUsed,
               createdAt: lot.createdAt,
             }))
-            .sort((a, b) => {
+            .sort((a: any, b: any) => {
               const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
               const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
               return dateA - dateB;
