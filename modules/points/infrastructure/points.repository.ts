@@ -12,6 +12,16 @@ export const PointsRepository = {
   },
 
   /**
+   * Delete points history for a specific sale
+   */
+  async deleteHistoryBySaleId(saleId: string, tx?: Prisma.TransactionClient) {
+    const client = tx || db;
+    return client.employeePointHistory.deleteMany({
+      where: { saleId },
+    });
+  },
+
+  /**
    * Check if points have already been processed for this sale
    */
   async hasHistoryForSale(saleId: string, tx?: Prisma.TransactionClient) {

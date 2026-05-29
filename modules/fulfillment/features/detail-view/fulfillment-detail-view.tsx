@@ -117,7 +117,7 @@ const getDeliveryStatusLabel = (value: string) =>
 
 const getValidationError = (params: {
     status: string;
-    currentStatus?: string;
+    isStockDeducted: boolean;
     paymentDate: string;
     deliveryDate: string;
     notes: string;
@@ -127,7 +127,7 @@ const getValidationError = (params: {
 }) => {
     const {
         status,
-        currentStatus,
+        isStockDeducted,
         paymentDate,
         deliveryDate,
         notes,
@@ -169,13 +169,14 @@ const getValidationError = (params: {
         return "กรุณาระบุหมายเหตุเมื่อยกเลิกรายการขาย";
     }
 
-    const skipStockCheck =
-        !!currentStatus && DELIVERY_STATUSES.includes(currentStatus);
+    const isTargetDeducting = 
+        ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(status) || 
+        (status === "AWAITING_DELIVERY" && !!deliveryDate);
 
     if (
         stockWarnings.length > 0 &&
-        DELIVERY_STATUSES.includes(status) &&
-        !skipStockCheck
+        isTargetDeducting &&
+        !isStockDeducted
     ) {
         const productNames = stockWarnings.map((w) => w.productName).join(", ");
         return `ไม่สามารถเปลี่ยนสถานะเป็นจัดส่งหรือเสร็จสิ้นได้ เนื่องจากสินค้าสต็อกไม่เพียงพอ: ${productNames}`;
@@ -184,9 +185,10 @@ const getValidationError = (params: {
     if (
         lotAllocations.length > 0 &&
         !lotAllocationsValid &&
-        !["WAITING_FOR_CORRECTION", "AWAITING_DELIVERY", "AWAITING_PAYMENT", "PAID", "CANCELLED"].includes(status)
+        isTargetDeducting &&
+        !isStockDeducted
     ) {
-        return "กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการ";
+        return "กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการเพื่อตัดสต็อก";
     }
 
     return null;
@@ -360,7 +362,7 @@ export default function FulfillmentDetailPage({
 
         const validationError = getValidationError({
             status,
-            currentStatus: saleData?.sale.status,
+            isStockDeducted: !!(saleData?.sale as any)?.isStockDeducted,
             paymentDate,
             deliveryDate,
             notes,
@@ -376,8 +378,7 @@ export default function FulfillmentDetailPage({
         }
 
         try {
-            const isLotLocked =
-                saleData && LOT_LOCKED_STATUSES.includes(saleData.sale.status);
+            const isLotLocked = !!(saleData?.sale as any)?.isStockDeducted;
 
             const result = await updateFulfillmentAction(id, {
                 status,
@@ -609,36 +610,15 @@ export default function FulfillmentDetailPage({
                                         </SelectTrigger>
                                         <SelectContent className="rounded-xl">
                                             {FULFILLMENT_STATUSES.map((st) => {
-                                                const isDeliveryStatus =
-                                                    DELIVERY_STATUSES.includes(st);
-                                                const isDisabledDueToStock =
-                                                    isDeliveryStatus &&
-                                                    stockWarnings.length > 0 &&
-                                                    !skipStockCheck;
-                                                const isDisabledDueToTransit =
-                                                    isInTransit &&
-                                                    BLOCKED_WHEN_IN_TRANSIT.includes(st);
-                                                const isDisabledDueToDeliveryDate =
-                                                    !!deliveryDate &&
-                                                    (st === "WAITING_FOR_CORRECTION" ||
-                                                        st === "APPROVED");
-                                                const isDisabled =
-                                                    isDisabledDueToStock ||
-                                                    isDisabledDueToTransit ||
-                                                    isDisabledDueToDeliveryDate;
-
                                                 return (
                                                     <SelectItem
                                                         key={st}
                                                         value={st}
-                                                        className={`rounded-lg ${isDisabled ? "opacity-50" : ""}`}
-                                                        disabled={isDisabled}
+                                                        className="rounded-lg"
                                                     >
                                                         {SaleStatusLabels[
                                                             st as keyof typeof SaleStatusLabels
                                                         ] || st}
-                                                        {isDisabledDueToStock &&
-                                                            " (สต็อกไม่พอ)"}
                                                     </SelectItem>
                                                 );
                                             })}
@@ -787,10 +767,7 @@ export default function FulfillmentDetailPage({
                                     disabled={
                                         submitting ||
                                         status === "CANCELLED" ||
-                                        (saleData &&
-                                            LOT_LOCKED_STATUSES.includes(
-                                                saleData.sale.status,
-                                            ))
+                                        !!(saleData?.sale as any)?.isStockDeducted
                                     }
                                 />
                             </div>

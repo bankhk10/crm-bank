@@ -114,7 +114,7 @@ export async function releaseStockUseCase(
     throw new Error("Sale not found");
   }
 
-  const hadDeliveryDate = !!sale.deliveryDate && ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(sale.status);
+  const hadDeliveryDate = (sale as any).isStockDeducted;
 
   const release = async (client: Prisma.TransactionClient) => {
     for (const item of sale.items) {
@@ -216,8 +216,8 @@ export async function confirmStockDeductionUseCase(
 
       if (deductedFromLots < requestedQty) {
         const productName = (item as any).name || item.productId;
-        throw new Error(
-          `สินค้าในคลังไม่พอ: สินค้า '${productName}' ต้องการ ${requestedQty} แต่มีพร้อมส่งเพียง ${deductedFromLots}`
+        console.warn(
+          `[Warning] สินค้าในคลังไม่พอ: สินค้า '${productName}' ต้องการ ${requestedQty} แต่มีพร้อมส่งเพียง ${deductedFromLots}. ข้ามการตัด LOT ที่ขาด แต่ตัดยอดรวมไปแล้ว.`
         );
       }
 
@@ -335,9 +335,9 @@ export async function confirmStockDeductionWithLotsUseCase(
         throw new Error(`LOT ${lotId} not found`);
       }
       if (lot.quantity < totalRequested) {
-        throw new Error(
-          `LOT ${lot.lotNumber} has insufficient quantity: ` +
-            `available ${lot.quantity}, total requested across items ${totalRequested}`,
+        console.warn(
+          `[Warning] LOT ${lot.lotNumber} has insufficient quantity: ` +
+            `available ${lot.quantity}, total requested across items ${totalRequested}. Proceeding with negative inventory.`
         );
       }
     }
@@ -363,9 +363,9 @@ export async function confirmStockDeductionWithLotsUseCase(
           throw new Error(`LOT ${alloc.lotId} not found`);
         }
         if (lot.quantity < alloc.quantity) {
-          throw new Error(
-            `LOT ${lot.lotNumber} has insufficient quantity: ` +
-              `available ${lot.quantity}, requested ${alloc.quantity}`,
+          console.warn(
+            `[Warning] LOT ${lot.lotNumber} has insufficient quantity: ` +
+              `available ${lot.quantity}, requested ${alloc.quantity}. Proceeding with negative inventory.`
           );
         }
         if (lot.productId !== item.productId) {
@@ -503,8 +503,8 @@ export async function confirmStockDeductionForShipmentUseCase(
 
       if (deductedFromLots < requestedQty) {
         const productName = (shipmentItem.saleItem as any).name || productId;
-        throw new Error(
-          `สินค้าในคลังไม่พอสำหรับการจัดส่งบางส่วน: สินค้า '${productName}' ต้องการ ${requestedQty} แต่มีพร้อมส่งเพียง ${deductedFromLots}`
+        console.warn(
+          `[Warning] สินค้าในคลังไม่พอสำหรับการจัดส่งบางส่วน: สินค้า '${productName}' ต้องการ ${requestedQty} แต่มีพร้อมส่งเพียง ${deductedFromLots}. ข้ามการตัด LOT ที่ขาด.`
         );
       }
 

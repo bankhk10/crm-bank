@@ -1,6 +1,7 @@
 import { Prisma, SaleStatus, PaymentTerm, ProductStatus } from "@/lib/db";
 import { db } from "@/lib/db";
 import { releaseStockUseCase as releaseStock } from "@/modules/products/application";
+import { revertPointsForSaleUseCase as revertPointsForSale } from "@/modules/points";
 
 // ─────────────────────────────────────────────
 // Types
@@ -670,9 +671,10 @@ export async function updateSale(
       }
     }
 
-    // If reverting to PENDING, release stock
+    // If reverting to PENDING, release stock and revert points
     if (data.needsReapproval) {
       await releaseStock(id, tx);
+      await revertPointsForSale(id, tx);
     }
 
     return tx.sale.update({

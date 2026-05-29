@@ -807,6 +807,7 @@ model Sale {
   deliveryUpdateCount   Int       @default(0) // จำนวนครั้งที่อัปเดตวันส่ง
   maxDeliveryUpdates    Int       @default(3) // จำนวนครั้งสูงสุดที่อนุญาตให้แก้ไขวันส่ง
   isDeliveryLocked      Boolean   @default(false) // ล็อคการแก้ไขวันที่จัดส่ง/ใบสั่งซื้อ
+  isStockDeducted       Boolean   @default(false) // ระบุว่าเอกสารนี้มีการตัดสต็อกไปแล้วหรือไม่
   orderExpiryDate       DateTime? // วันที่ใบสั่งซื้อหมดอายุ (เช่น อนุมัติ + 3 วัน)
   lastDeliveryUpdate    DateTime? // วันที่อัปเดตวันส่งล่าสุด
   deliveryMethod        String? // วิธีการจัดส่ง (เช่น SALES_DELIVERY พนักงานส่ง, CUSTOMER_PICKUP ลูกค้ารับเอง)

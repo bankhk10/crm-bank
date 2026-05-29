@@ -58,3 +58,32 @@ export async function finalizePointsForSaleUseCase(saleId: string) {
     return saleTotalPoints;
   });
 }
+
+/**
+ * Use Case: Revert points for a sale (e.g. when sale is edited and requires re-approval).
+ * Deducts points from employee summary and deletes history.
+ */
+export async function revertPointsForSaleUseCase(saleId: string, tx?: Prisma.TransactionClient) {
+  const dbClient = tx || db;
+  
+  // 1. Check if points exist
+  const hasHistory = await PointsRepository.hasHistoryForSale(saleId, dbClient);
+  if (!hasHistory) return;
+
+  // 2. Get total points awarded for this sale
+  const totalPoints = await PointsRepository.getPointsSumForSale(saleId, dbClient);
+  
+  // 3. Get the employee ID for this sale
+  const sale = await dbClient.sale.findUnique({
+    where: { id: saleId },
+    select: { employeeId: true }
+  });
+  
+  if (!sale) return;
+
+  // 4. Decrement summary (pass negative value to increment)
+  await PointsRepository.upsertSummary(sale.employeeId, -totalPoints, dbClient);
+  
+  // 5. Delete history records
+  await PointsRepository.deleteHistoryBySaleId(saleId, dbClient);
+}

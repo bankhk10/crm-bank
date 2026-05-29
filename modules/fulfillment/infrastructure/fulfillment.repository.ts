@@ -60,26 +60,14 @@ export const FulfillmentRepository = {
       }
     }
 
-    // Protect against modifying LOTs if already delivered
     const targetStatus = status || sale.status;
-    const isCurrentlyDelivered = [
-      "DELIVERED",
-      "DELIVERY_COMPLETED",
-      "COMPLETED",
-    ].includes(sale.status);
-    const isStayingDelivered = [
-      "DELIVERED",
-      "DELIVERY_COMPLETED",
-      "COMPLETED",
-    ].includes(targetStatus);
 
     if (
-      isCurrentlyDelivered &&
-      isStayingDelivered &&
+      sale.isStockDeducted &&
       lotAllocations !== undefined
     ) {
       throw new Error(
-        "ไม่สามารถแก้ไข LOT สินค้าได้หลังจากสถานะเป็น 'ระหว่างขนส่ง' หรือ 'เสร็จสิ้น'",
+        "ไม่สามารถแก้ไข LOT สินค้าได้หลังจากระบบทำการตัดสต็อกไปแล้ว",
       );
     }
 
@@ -139,7 +127,11 @@ export const FulfillmentRepository = {
 
     // 6. Shipping Company
     if (shippingCompanyId !== undefined) {
-      updateData.shippingCompanyId = shippingCompanyId || null;
+      if (shippingCompanyId) {
+        updateData.shippingCompany = { connect: { id: shippingCompanyId } };
+      } else {
+        updateData.shippingCompany = { disconnect: true };
+      }
     }
 
     // 7. Sale Order Reference
@@ -177,6 +169,7 @@ export const FulfillmentRepository = {
       if (shouldReleaseResources) {
         // 1. Release stock (return to available)
         await releaseStock(id, tx);
+        updateData.isStockDeducted = false;
 
         // 2. Restore credit limit (for non-PREPAID and not yet paid)
         if (sale.paymentTerm !== "PREPAID" && !sale.paymentDate) {
@@ -201,15 +194,15 @@ export const FulfillmentRepository = {
       }
 
       if (!shouldReleaseResources) {
-        // Handle stock status transition based on delivery date and status change
         const targetStatus = status || sale.status;
-        const isDeliveryStatus = (st: string) => ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(st);
-        
         const newDate = deliveryDate !== undefined ? (deliveryDate ? new Date(deliveryDate) : null) : sale.deliveryDate;
-        const oldDate = sale.deliveryDate;
 
-        const oldWasDeducted = !!oldDate && isDeliveryStatus(sale.status) && sale.status !== "CANCELLED";
-        const newShouldBeDeducted = !!newDate && isDeliveryStatus(targetStatus) && targetStatus !== "CANCELLED";
+        const isDeductingState = (st: string, date: Date | null) => 
+          ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(st) || 
+          (st === "AWAITING_DELIVERY" && !!date);
+
+        const oldWasDeducted = sale.isStockDeducted;
+        const newShouldBeDeducted = isDeductingState(targetStatus, newDate) && targetStatus !== "CANCELLED";
 
         if (!oldWasDeducted && newShouldBeDeducted) {
           if (lotAllocations && lotAllocations.length > 0) {
@@ -217,8 +210,10 @@ export const FulfillmentRepository = {
           } else {
             await confirmStockDeduction(id, tx);
           }
+          updateData.isStockDeducted = true;
         } else if (oldWasDeducted && !newShouldBeDeducted) {
           await revertStockDeductionFromLots(id, tx);
+          updateData.isStockDeducted = false;
         } else if (
           oldWasDeducted && 
           newShouldBeDeducted && 
