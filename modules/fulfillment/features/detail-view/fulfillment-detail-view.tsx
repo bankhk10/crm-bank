@@ -265,6 +265,11 @@ export default function FulfillmentDetailPage({
                 const data = (await res.json()) as SaleDetailResponse;
                 if (!isActive) return;
 
+                if (data.sale.status === "COMPLETED" || data.sale.status === "CANCELLED") {
+                    router.push("/fulfillment");
+                    return;
+                }
+
                 setSaleData(data);
                 setStockWarnings(data.stockWarnings || []);
                 setStatus(data.sale.status);
@@ -414,6 +419,10 @@ export default function FulfillmentDetailPage({
                 setShippingCompanyId(data.sale.saleAddress?.shippingCompanyAddressId || "");
                 setSaleOrderRef(data.sale.saleOrderRef || "");
                 setShipmentMode(data.sale.hasPartialDelivery ? "split" : "normal");
+            }
+            
+            if (status === "COMPLETED" || status === "CANCELLED") {
+                router.push("/fulfillment");
             }
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");

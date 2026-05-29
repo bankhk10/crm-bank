@@ -139,12 +139,14 @@ export function useFulfillmentColumns() {
                                 label="รายละเอียด"
                                 colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
                             />
-                            <ActionButton
-                                href={`/fulfillment/${sale.id}`}
-                                icon={ClipboardList}
-                                label="จัดการคำสั่งขาย"
-                                colorClass="text-green-700 hover:text-white border-green-200 hover:border-green-400 hover:bg-green-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
-                            />
+                            {sale.status !== "COMPLETED" && sale.status !== "CANCELLED" && (
+                                <ActionButton
+                                    href={`/fulfillment/${sale.id}`}
+                                    icon={ClipboardList}
+                                    label="จัดการคำสั่งขาย"
+                                    colorClass="text-green-700 hover:text-white border-green-200 hover:border-green-400 hover:bg-green-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+                                />
+                            )}
                         </div>
                     );
                 },
