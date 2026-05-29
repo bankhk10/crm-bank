@@ -170,7 +170,7 @@ const getValidationError = (params: {
     }
 
     const isTargetDeducting = 
-        ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(status) || 
+        ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(status) || 
         (status === "AWAITING_DELIVERY" && !!deliveryDate);
 
     if (

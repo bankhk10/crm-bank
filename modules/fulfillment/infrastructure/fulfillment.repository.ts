@@ -198,7 +198,7 @@ export const FulfillmentRepository = {
         const newDate = deliveryDate !== undefined ? (deliveryDate ? new Date(deliveryDate) : null) : sale.deliveryDate;
 
         const isDeductingState = (st: string, date: Date | null) => 
-          ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(st) || 
+          ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(st) || 
           (st === "AWAITING_DELIVERY" && !!date);
 
         const oldWasDeducted = sale.isStockDeducted;
