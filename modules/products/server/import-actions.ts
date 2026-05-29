@@ -49,7 +49,10 @@ export async function downloadStockLotTemplateAction() {
     return { success: true, data: base64Str };
   } catch (error: any) {
     console.error("Template error:", error);
-    return { success: false, message: error.message || "เกิดข้อผิดพลาดในการสร้าง Template" };
+    return {
+      success: false,
+      message: error.message || "เกิดข้อผิดพลาดในการสร้าง Template",
+    };
   }
 }
 
@@ -106,49 +109,71 @@ export async function parseStockLotsAction(formData: FormData) {
     };
 
     for (let i = 0; i < rawData.length; i++) {
-        const row: any = rawData[i];
-        
-        const lotNumber = row["เลขที่ล็อต (Lot Number) *"] || row["Lot Number"] || row["Lot"] || row["เลขที่ล็อต"];
-        const quantityRaw = row["จำนวนนำเข้า (Quantity) *"] || row["Quantity"] || row["จำนวนนำเข้า"] || row["จำนวน"];
-        const importDateRaw = row["วันที่นำเข้า (Import Date)"] || row["Import Date"] || row["วันที่นำเข้า"];
-        const expiryDateRaw = row["วันหมดอายุ (Expiry Date)"] || row["Expiry Date"] || row["วันหมดอายุ"];
-        const storageLocation = row["สถานที่จัดเก็บ (Storage)"] || row["Storage"] || row["สถานที่จัดเก็บ"];
-        const notes = row["หมายเหตุ (Notes)"] || row["Notes"] || row["หมายเหตุ"] || "";
+      const row: any = rawData[i];
 
-        if (!lotNumber) {
-            errors.push(`แถวที่ ${i + 2}: ขาดเลขที่ล็อต`);
-            continue;
-        }
+      const lotNumber =
+        row["เลขที่ล็อต (Lot Number) *"] ||
+        row["Lot Number"] ||
+        row["Lot"] ||
+        row["เลขที่ล็อต"];
+      const quantityRaw =
+        row["จำนวนนำเข้า (Quantity) *"] ||
+        row["Quantity"] ||
+        row["จำนวนนำเข้า"] ||
+        row["จำนวน"];
+      const importDateRaw =
+        row["วันที่นำเข้า (Import Date)"] ||
+        row["Import Date"] ||
+        row["วันที่นำเข้า"];
+      const expiryDateRaw =
+        row["วันหมดอายุ (Expiry Date)"] ||
+        row["Expiry Date"] ||
+        row["วันหมดอายุ"];
+      const storageLocation =
+        row["สถานที่จัดเก็บ (Storage)"] ||
+        row["Storage"] ||
+        row["สถานที่จัดเก็บ"];
+      const notes =
+        row["หมายเหตุ (Notes)"] || row["Notes"] || row["หมายเหตุ"] || "";
 
-        const quantity = Number(quantityRaw);
-        if (isNaN(quantity) || quantity <= 0) {
-            errors.push(`แถวที่ ${i + 2}: จำนวนนำเข้าต้องเป็นตัวเลขมากกว่า 0`);
-            continue;
-        }
+      if (!lotNumber) {
+        errors.push(`แถวที่ ${i + 2}: ขาดเลขที่ล็อต`);
+        continue;
+      }
 
-        const importDateStr = excelDateToJSDate(importDateRaw) || new Date().toISOString().split("T")[0];
-        const expiryDateStr = excelDateToJSDate(expiryDateRaw) || undefined;
+      const quantity = Number(quantityRaw);
+      if (isNaN(quantity) || quantity <= 0) {
+        errors.push(`แถวที่ ${i + 2}: จำนวนนำเข้าต้องเป็นตัวเลขมากกว่า 0`);
+        continue;
+      }
 
-        parsedLots.push({
-            lotNumber: String(lotNumber),
-            quantity,
-            initialQuantity: quantity,
-            importDate: importDateStr,
-            expiryDate: expiryDateStr,
-            storageLocation: storageLocation ? String(storageLocation) : "",
-            notes: String(notes),
-        });
+      const importDateStr =
+        excelDateToJSDate(importDateRaw) ||
+        new Date().toISOString().split("T")[0];
+      const expiryDateStr = excelDateToJSDate(expiryDateRaw) || undefined;
+
+      parsedLots.push({
+        lotNumber: String(lotNumber),
+        quantity,
+        initialQuantity: quantity,
+        importDate: importDateStr,
+        expiryDate: expiryDateStr,
+        storageLocation: storageLocation ? String(storageLocation) : "",
+        notes: String(notes),
+      });
     }
 
     if (parsedLots.length === 0) {
-        return { success: false, message: "ไม่พบข้อมูลที่ถูกต้องในไฟล์", errors };
+      return { success: false, message: "ไม่พบข้อมูลที่ถูกต้องในไฟล์", errors };
     }
 
     return { success: true, data: parsedLots, errors };
-
   } catch (error: any) {
     console.error("Parse error:", error);
-    return { success: false, message: error.message || "เกิดข้อผิดพลาดในการอ่านไฟล์" };
+    return {
+      success: false,
+      message: error.message || "เกิดข้อผิดพลาดในการอ่านไฟล์",
+    };
   }
 }
 
@@ -168,10 +193,10 @@ export async function downloadBulkStockTemplateAction() {
       where: { deletedAt: null, status: "ACTIVE" },
       include: {
         stockLots: {
-          where: { isUsed: false }
-        }
+          where: { isUsed: false },
+        },
       },
-      orderBy: { productCode: "asc" }
+      orderBy: { productCode: "asc" },
     });
 
     const data: any[] = [];
@@ -187,7 +212,9 @@ export async function downloadBulkStockTemplateAction() {
             "รับเข้า (Import Quantity) *": lot.initialQuantity,
             "จำนวนคงเหลือ (Remaining Quantity)": lot.quantity,
             "วันที่นำเข้า (Import Date)": formatDate(lot.importDate),
-            "วันหมดอายุ (Expiry Date)": lot.expiryDate ? formatDate(lot.expiryDate) : "",
+            "วันหมดอายุ (Expiry Date)": lot.expiryDate
+              ? formatDate(lot.expiryDate)
+              : "",
             "สถานที่จัดเก็บ (Storage)": lot.storageLocation || "",
             "หมายเหตุ (Notes)": lot.notes || "",
           });
@@ -243,14 +270,20 @@ export async function downloadBulkStockTemplateAction() {
     return { success: true, data: base64Str };
   } catch (error: any) {
     console.error("Template error:", error);
-    return { success: false, message: error.message || "เกิดข้อผิดพลาดในการสร้าง Template" };
+    return {
+      success: false,
+      message: error.message || "เกิดข้อผิดพลาดในการสร้าง Template",
+    };
   }
 }
 
 /**
  * Parse and Process uploaded Bulk Stock Excel file
  */
-export async function importBulkStockAction(formData: FormData, isPreview: boolean = false) {
+export async function importBulkStockAction(
+  formData: FormData,
+  isPreview: boolean = false,
+) {
   const session = await auth();
   if (!session?.user) {
     return { success: false, message: "Unauthorized" };
@@ -298,268 +331,364 @@ export async function importBulkStockAction(formData: FormData, isPreview: boole
 
     // Helper to find a value by possible keys, ignoring spaces
     const getVal = (row: any, keys: string[]) => {
-        const rowKeys = Object.keys(row);
-        for (const k of rowKeys) {
-            if (keys.includes(k.trim())) {
-                return row[k];
-            }
+      const rowKeys = Object.keys(row);
+      for (const k of rowKeys) {
+        if (keys.includes(k.trim())) {
+          return row[k];
         }
-        return undefined;
+      }
+      return undefined;
     };
 
     // Pre-fetch all products to avoid N+1 queries during validation
-    const productCodesSet = new Set(rawData.map((r: any) => 
-      String(getVal(r, ["รหัสสินค้า (Product Code) *", "Product Code", "รหัสสินค้า"]) || "").trim()
-    ).filter(Boolean));
+    const productCodesSet = new Set(
+      rawData
+        .map((r: any) =>
+          String(
+            getVal(r, [
+              "รหัสสินค้า (Product Code) *",
+              "Product Code",
+              "รหัสสินค้า",
+            ]) || "",
+          ).trim(),
+        )
+        .filter(Boolean),
+    );
 
     const productsMap = new Map();
     if (productCodesSet.size > 0) {
       const existingProducts = await db.product.findMany({
-        where: { productCode: { in: Array.from(productCodesSet) }, deletedAt: null },
-        select: { id: true, productCode: true }
+        where: {
+          productCode: { in: Array.from(productCodesSet) },
+          deletedAt: null,
+        },
+        select: { id: true, productCode: true },
       });
-      existingProducts.forEach(p => productsMap.set(p.productCode, p.id));
+      existingProducts.forEach((p) => productsMap.set(p.productCode, p.id));
     }
 
     const validRows = [];
 
     for (let i = 0; i < rawData.length; i++) {
-        const row: any = rawData[i];
-        
-        const productCode = String(getVal(row, ["รหัสสินค้า (Product Code) *", "Product Code", "รหัสสินค้า"]) || "").trim();
-        const lotNumber = String(getVal(row, ["เลขที่ล็อต (Lot Number) *", "Lot Number", "Lot", "เลขที่ล็อต", "เลขที่LOT"]) || "").trim();
-        const importQuantityRaw = getVal(row, ["รับเข้า (Import Quantity) *", "รับเข้า", "จำนวนนำเข้า (Import Quantity) *", "จำนวนนำเข้า (Quantity) *", "Quantity", "จำนวนนำเข้า"]);
-        const remainingQuantityRaw = getVal(row, ["จำนวนคงเหลือ (Remaining Quantity)", "จำนวนคงเหลือ", "จำนวน"]);
-        
-        const importDateRaw = getVal(row, ["วันที่นำเข้า (Import Date)", "Import Date", "วันที่นำเข้า", "วันที่รับเข้า"]);
-        const expiryDateRaw = getVal(row, ["วันหมดอายุ (Expiry Date)", "Expiry Date", "วันหมดอายุ"]);
-        
-        const storageLocation = getVal(row, ["สถานที่จัดเก็บ (Storage)", "Storage", "สถานที่จัดเก็บ", "พื้นที่จัดเก็บ", "คลัง"]);
-        const notes = getVal(row, ["หมายเหตุ (Notes)", "Notes", "หมายเหตุ"]);
+      const row: any = rawData[i];
 
-        if (!productCode) {
-            errors.push(`แถวที่ ${i + 2}: ขาดรหัสสินค้า`);
-            continue;
-        }
+      const productCode = String(
+        getVal(row, [
+          "รหัสสินค้า (Product Code) *",
+          "Product Code",
+          "รหัสสินค้า",
+        ]) || "",
+      ).trim();
+      const lotNumber = String(
+        getVal(row, [
+          "เลขที่ล็อต (Lot Number) *",
+          "Lot Number",
+          "Lot",
+          "เลขที่ล็อต",
+          "เลขที่LOT",
+        ]) || "",
+      ).trim();
+      const importQuantityRaw = getVal(row, [
+        "รับเข้า (Import Quantity) *",
+        "รับเข้า",
+        "จำนวนนำเข้า (Import Quantity) *",
+        "จำนวนนำเข้า (Quantity) *",
+        "Quantity",
+        "จำนวนนำเข้า",
+      ]);
+      const remainingQuantityRaw = getVal(row, [
+        "จำนวนคงเหลือ (Remaining Quantity)",
+        "จำนวนคงเหลือ",
+        "จำนวน",
+      ]);
 
-        const productId = productsMap.get(productCode);
-        if (!productId) {
-            errors.push(`แถวที่ ${i + 2}: ไม่พบรหัสสินค้า [${productCode}]ในระบบ`);
-            continue;
-        }
+      const importDateRaw = getVal(row, [
+        "วันที่นำเข้า (Import Date)",
+        "Import Date",
+        "วันที่นำเข้า",
+        "อัปเดทล่าสุด",
+      ]);
+      const expiryDateRaw = getVal(row, [
+        "วันหมดอายุ (Expiry Date)",
+        "Expiry Date",
+        "วันหมดอายุ",
+      ]);
 
-        if (!lotNumber) {
-            errors.push(`แถวที่ ${i + 2}: ขาดเลขที่ล็อต สำหรับรหัสสินค้า [${productCode}]`);
-            continue;
-        }
+      const storageLocation = getVal(row, [
+        "สถานที่จัดเก็บ (Storage)",
+        "Storage",
+        "สถานที่จัดเก็บ",
+        "พื้นที่จัดเก็บ",
+        "คลัง",
+      ]);
+      const notes = getVal(row, ["หมายเหตุ (Notes)", "Notes", "หมายเหตุ"]);
 
-        const importDateStr = excelDateToJSDate(importDateRaw);
-        if (!importDateStr) {
-             errors.push(`แถวที่ ${i + 2}: ขาดวันที่นำเข้า สำหรับรหัสสินค้า [${productCode}]`);
-             continue;
-        }
+      if (!productCode) {
+        errors.push(`แถวที่ ${i + 2}: ขาดรหัสสินค้า`);
+        continue;
+      }
 
-        const expiryDateStr = excelDateToJSDate(expiryDateRaw) || undefined;
+      const productId = productsMap.get(productCode);
+      if (!productId) {
+        errors.push(`แถวที่ ${i + 2}: ไม่พบรหัสสินค้า [${productCode}]ในระบบ`);
+        continue;
+      }
 
-        validRows.push({
-            productId,
-            productCode,
-            lotNumber,
-            importQuantityRaw,
-            remainingQuantityRaw,
-            importDate: new Date(importDateStr),
-            expiryDateRaw,
-            expiryDate: expiryDateStr ? new Date(expiryDateStr) : null,
-            storageLocationRaw: storageLocation,
-            storageLocation: storageLocation 
-                ? (String(storageLocation).trim() === "BL" ? "คลังบางเลน" : String(storageLocation).trim()) 
-                : "คลังบางเลน",
-            notesRaw: notes,
-            notes: notes ? String(notes).trim() : "",
-            rowNum: i + 2
-        });
+      if (!lotNumber) {
+        errors.push(
+          `แถวที่ ${i + 2}: ขาดเลขที่ล็อต สำหรับรหัสสินค้า [${productCode}]`,
+        );
+        continue;
+      }
+
+      const importDateStr = excelDateToJSDate(importDateRaw);
+      if (!importDateStr) {
+        errors.push(
+          `แถวที่ ${i + 2}: ขาดวันที่นำเข้า สำหรับรหัสสินค้า [${productCode}]`,
+        );
+        continue;
+      }
+
+      const expiryDateStr = excelDateToJSDate(expiryDateRaw) || undefined;
+
+      validRows.push({
+        productId,
+        productCode,
+        lotNumber,
+        importQuantityRaw,
+        remainingQuantityRaw,
+        importDate: new Date(importDateStr),
+        expiryDateRaw,
+        expiryDate: expiryDateStr ? new Date(expiryDateStr) : null,
+        storageLocationRaw: storageLocation,
+        storageLocation: storageLocation
+          ? String(storageLocation).trim() === "BL"
+            ? "คลังบางเลน"
+            : String(storageLocation).trim()
+          : "คลังบางเลน",
+        notesRaw: notes,
+        notes: notes ? String(notes).trim() : "",
+        rowNum: i + 2,
+      });
     }
 
     if (validRows.length === 0) {
-        return { success: false, message: "ไม่พบข้อมูลที่ถูกต้องในไฟล์", errors };
+      return { success: false, message: "ไม่พบข้อมูลที่ถูกต้องในไฟล์", errors };
     }
 
     if (isPreview) {
-        const previewItems = [];
-        let pCreatedCount = 0;
-        let pUpdatedCount = 0;
-        
-        for (const row of validRows) {
-             const existingLot = await db.productStockLot.findFirst({
-                 where: {
-                   productId: row.productId,
-                   lotNumber: row.lotNumber,
-                 }
-             });
+      const previewItems = [];
+      let pCreatedCount = 0;
+      let pUpdatedCount = 0;
 
-             const action = existingLot ? "UPDATE" : "CREATE";
-             if (existingLot) pUpdatedCount++; else pCreatedCount++;
+      for (const row of validRows) {
+        const existingLot = await db.productStockLot.findFirst({
+          where: {
+            productId: row.productId,
+            lotNumber: row.lotNumber,
+          },
+        });
 
-             let remainingQty = row.remainingQuantityRaw !== undefined && row.remainingQuantityRaw !== "" 
-                ? Number(row.remainingQuantityRaw) 
-                : (existingLot ? existingLot.quantity : Number(row.importQuantityRaw));
-                
-             let importQty = existingLot 
-                ? (row.importQuantityRaw !== undefined && row.importQuantityRaw !== "" ? Number(row.importQuantityRaw) : existingLot.initialQuantity)
-                : (row.importQuantityRaw !== undefined && row.importQuantityRaw !== "" 
-                    ? Number(row.importQuantityRaw) 
-                    : Number(row.remainingQuantityRaw));
+        const action = existingLot ? "UPDATE" : "CREATE";
+        if (existingLot) pUpdatedCount++;
+        else pCreatedCount++;
 
-             previewItems.push({
-                 rowNum: row.rowNum,
-                 productCode: row.productCode,
-                 lotNumber: row.lotNumber,
-                 action,
-                 importQuantity: importQty,
-                 remainingQuantity: remainingQty,
-                 importDate: row.importDate.toISOString().split("T")[0],
-                 expiryDate: row.expiryDate ? row.expiryDate.toISOString().split("T")[0] : (existingLot?.expiryDate ? existingLot.expiryDate.toISOString().split("T")[0] : ""),
-                 storageLocation: (row.storageLocationRaw !== undefined && row.storageLocationRaw !== "") ? row.storageLocation : (existingLot?.storageLocation || "คลังบางเลน"),
-                 notes: row.notesRaw !== undefined ? row.notes : (existingLot?.notes || ""),
-             });
-        }
-        
-        return { 
-           success: true, 
-           isPreview: true,
-           previewItems,
-           createdCount: pCreatedCount,
-           updatedCount: pUpdatedCount,
-           totalRows: validRows.length,
-           errors 
-        };
+        const remainingQty =
+          row.remainingQuantityRaw !== undefined &&
+          row.remainingQuantityRaw !== ""
+            ? Number(row.remainingQuantityRaw)
+            : existingLot
+              ? existingLot.quantity
+              : Number(row.importQuantityRaw);
+
+        const importQty = existingLot
+          ? row.importQuantityRaw !== undefined && row.importQuantityRaw !== ""
+            ? Number(row.importQuantityRaw)
+            : existingLot.initialQuantity
+          : row.importQuantityRaw !== undefined && row.importQuantityRaw !== ""
+            ? Number(row.importQuantityRaw)
+            : Number(row.remainingQuantityRaw);
+
+        previewItems.push({
+          rowNum: row.rowNum,
+          productCode: row.productCode,
+          lotNumber: row.lotNumber,
+          action,
+          importQuantity: importQty,
+          remainingQuantity: remainingQty,
+          importDate: row.importDate.toISOString().split("T")[0],
+          expiryDate: row.expiryDate
+            ? row.expiryDate.toISOString().split("T")[0]
+            : existingLot?.expiryDate
+              ? existingLot.expiryDate.toISOString().split("T")[0]
+              : "",
+          storageLocation:
+            row.storageLocationRaw !== undefined &&
+            row.storageLocationRaw !== ""
+              ? row.storageLocation
+              : existingLot?.storageLocation || "คลังบางเลน",
+          notes:
+            row.notesRaw !== undefined ? row.notes : existingLot?.notes || "",
+        });
+      }
+
+      return {
+        success: true,
+        isPreview: true,
+        previewItems,
+        createdCount: pCreatedCount,
+        updatedCount: pUpdatedCount,
+        totalRows: validRows.length,
+        errors,
+      };
     }
 
     // Process valid rows
     for (const row of validRows) {
-       try {
-          await db.$transaction(async (tx) => {
-             // 1. Check if lot exists
-             const existingLot = await tx.productStockLot.findFirst({
-                 where: {
-                   productId: row.productId,
-                   lotNumber: row.lotNumber,
-                 }
-             });
-
-             if (existingLot) {
-                 // Update
-                 const dataToUpdate: any = {
-                     importDate: row.importDate,
-                 };
-                 
-                 if (row.remainingQuantityRaw !== undefined && row.remainingQuantityRaw !== "") {
-                     const qty = Number(row.remainingQuantityRaw);
-                     if (!isNaN(qty) && qty >= 0) dataToUpdate.quantity = qty;
-                 }
-                 
-                 if (row.importQuantityRaw !== undefined && row.importQuantityRaw !== "") {
-                     const qty = Number(row.importQuantityRaw);
-                     if (!isNaN(qty) && qty >= 0) dataToUpdate.initialQuantity = qty;
-                 }
-                 
-                 if (row.expiryDateRaw !== undefined) {
-                     dataToUpdate.expiryDate = row.expiryDate;
-                 }
-                 
-                 if (row.storageLocationRaw !== undefined && row.storageLocationRaw !== "") {
-                     dataToUpdate.storageLocation = row.storageLocation;
-                 }
-                 
-                 if (row.notesRaw !== undefined) {
-                     dataToUpdate.notes = row.notes;
-                 }
-
-                 await tx.productStockLot.update({
-                     where: { id: existingLot.id },
-                     data: dataToUpdate
-                 });
-                 updatedCount++;
-             } else {
-                 // Create
-                 let importQty = row.importQuantityRaw !== undefined && row.importQuantityRaw !== "" 
-                     ? Number(row.importQuantityRaw) 
-                     : Number(row.remainingQuantityRaw);
-                     
-                 let remainingQty = row.remainingQuantityRaw !== undefined && row.remainingQuantityRaw !== "" 
-                     ? Number(row.remainingQuantityRaw) 
-                     : Number(row.importQuantityRaw);
-                 
-                 if (isNaN(importQty) || importQty < 0) {
-                     throw new Error(`การสร้างล็อตใหม่ จำนวนต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป`);
-                 }
-                 
-                 if (isNaN(remainingQty)) {
-                     remainingQty = importQty;
-                 }
-                 
-                 await tx.productStockLot.create({
-                     data: {
-                         productId: row.productId,
-                         lotNumber: row.lotNumber,
-                         quantity: remainingQty,
-                         initialQuantity: importQty,
-                         importDate: row.importDate,
-                         expiryDate: row.expiryDate,
-                         storageLocation: row.storageLocation,
-                         notes: row.notes,
-                         isUsed: false,
-                     }
-                 });
-                 createdCount++;
-             }
-
-             // 2. Sync physical Balance for the ProductStock
-             // Recalculate balance for this product
-             const allLots = await tx.productStockLot.findMany({
-                 where: { productId: row.productId, isUsed: false }
-             });
-
-             const physicalBalance = allLots.reduce((sum, lot) => sum + lot.quantity, 0);
-
-             const currentStock = await tx.productStock.findUnique({
-                 where: { productId: row.productId }
-             });
-
-             const currentReserved = currentStock?.reservedQuantity || 0;
-             const availableQuantity = physicalBalance - currentReserved;
-
-             await tx.productStock.upsert({
-                 where: { productId: row.productId },
-                 create: {
-                     productId: row.productId,
-                     availableQuantity: physicalBalance,
-                     reservedQuantity: 0,
-                     physicalBalance: physicalBalance,
-                 },
-                 update: {
-                     availableQuantity: availableQuantity,
-                     physicalBalance: physicalBalance,
-                 }
-             });
+      try {
+        await db.$transaction(async (tx) => {
+          // 1. Check if lot exists
+          const existingLot = await tx.productStockLot.findFirst({
+            where: {
+              productId: row.productId,
+              lotNumber: row.lotNumber,
+            },
           });
-       } catch (err: any) {
-           errors.push(`แถวที่ ${row.rowNum}: เกิดข้อผิดพลาดในการบันทึก [${row.productCode}] - ${err.message}`);
-       }
+
+          if (existingLot) {
+            // Update
+            const dataToUpdate: any = {
+              importDate: row.importDate,
+            };
+
+            if (
+              row.remainingQuantityRaw !== undefined &&
+              row.remainingQuantityRaw !== ""
+            ) {
+              const qty = Number(row.remainingQuantityRaw);
+              if (!isNaN(qty) && qty >= 0) dataToUpdate.quantity = qty;
+            }
+
+            if (
+              row.importQuantityRaw !== undefined &&
+              row.importQuantityRaw !== ""
+            ) {
+              const qty = Number(row.importQuantityRaw);
+              if (!isNaN(qty) && qty >= 0) dataToUpdate.initialQuantity = qty;
+            }
+
+            if (row.expiryDateRaw !== undefined) {
+              dataToUpdate.expiryDate = row.expiryDate;
+            }
+
+            if (
+              row.storageLocationRaw !== undefined &&
+              row.storageLocationRaw !== ""
+            ) {
+              dataToUpdate.storageLocation = row.storageLocation;
+            }
+
+            if (row.notesRaw !== undefined) {
+              dataToUpdate.notes = row.notes;
+            }
+
+            await tx.productStockLot.update({
+              where: { id: existingLot.id },
+              data: dataToUpdate,
+            });
+            updatedCount++;
+          } else {
+            // Create
+            const importQty =
+              row.importQuantityRaw !== undefined &&
+              row.importQuantityRaw !== ""
+                ? Number(row.importQuantityRaw)
+                : Number(row.remainingQuantityRaw);
+
+            let remainingQty =
+              row.remainingQuantityRaw !== undefined &&
+              row.remainingQuantityRaw !== ""
+                ? Number(row.remainingQuantityRaw)
+                : Number(row.importQuantityRaw);
+
+            if (isNaN(importQty) || importQty < 0) {
+              throw new Error(
+                `การสร้างล็อตใหม่ จำนวนต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป`,
+              );
+            }
+
+            if (isNaN(remainingQty)) {
+              remainingQty = importQty;
+            }
+
+            await tx.productStockLot.create({
+              data: {
+                productId: row.productId,
+                lotNumber: row.lotNumber,
+                quantity: remainingQty,
+                initialQuantity: importQty,
+                importDate: row.importDate,
+                expiryDate: row.expiryDate,
+                storageLocation: row.storageLocation,
+                notes: row.notes,
+                isUsed: false,
+              },
+            });
+            createdCount++;
+          }
+
+          // 2. Sync physical Balance for the ProductStock
+          // Recalculate balance for this product
+          const allLots = await tx.productStockLot.findMany({
+            where: { productId: row.productId, isUsed: false },
+          });
+
+          const physicalBalance = allLots.reduce(
+            (sum, lot) => sum + lot.quantity,
+            0,
+          );
+
+          const currentStock = await tx.productStock.findUnique({
+            where: { productId: row.productId },
+          });
+
+          const currentReserved = currentStock?.reservedQuantity || 0;
+          const availableQuantity = physicalBalance - currentReserved;
+
+          await tx.productStock.upsert({
+            where: { productId: row.productId },
+            create: {
+              productId: row.productId,
+              availableQuantity: physicalBalance,
+              reservedQuantity: 0,
+              physicalBalance: physicalBalance,
+            },
+            update: {
+              availableQuantity: availableQuantity,
+              physicalBalance: physicalBalance,
+            },
+          });
+        });
+      } catch (err: any) {
+        errors.push(
+          `แถวที่ ${row.rowNum}: เกิดข้อผิดพลาดในการบันทึก [${row.productCode}] - ${err.message}`,
+        );
+      }
     }
 
-    return { 
-       success: true, 
-       message: `นำเข้าสำเร็จทั้งหมด ${createdCount + updatedCount} รายการ`, 
-       totalRows: validRows.length,
-       createdCount,
-       updatedCount,
-       errors 
+    return {
+      success: true,
+      message: `นำเข้าสำเร็จทั้งหมด ${createdCount + updatedCount} รายการ`,
+      totalRows: validRows.length,
+      createdCount,
+      updatedCount,
+      errors,
     };
-
   } catch (error: any) {
     console.error("Import error:", error);
-    return { success: false, message: error.message || "เกิดข้อผิดพลาดในการนำเข้าไฟล์" };
+    return {
+      success: false,
+      message: error.message || "เกิดข้อผิดพลาดในการนำเข้าไฟล์",
+    };
   }
 }
-
