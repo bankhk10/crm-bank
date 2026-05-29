@@ -70,7 +70,11 @@ const DELIVERY_STATUSES = [
     "COMPLETED",
 ];
 
-const DELIVERY_DATE_REQUIRED_STATUSES: string[] = [];
+const DELIVERY_DATE_REQUIRED_STATUSES: string[] = [
+    "DELIVERED",
+    "DELIVERY_COMPLETED",
+    "COMPLETED",
+];
 
 const LOT_LOCKED_STATUSES = ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"];
 const BLOCKED_WHEN_IN_TRANSIT = [
@@ -152,6 +156,13 @@ const getValidationError = (params: {
 
     if (status === "COMPLETED" && !paymentDate) {
         return "กรุณาระบุวันที่ชำระเงินเมื่อสถานะเป็น 'เสร็จสิ้น'";
+    }
+
+    if (
+        ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(status) &&
+        !deliveryDate
+    ) {
+        return `กรุณาระบุวันที่จัดส่งของเมื่อสถานะเป็น '${getDeliveryStatusLabel(status)}'`;
     }
 
     if (status === "CANCELLED" && !notes.trim()) {
