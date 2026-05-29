@@ -21,6 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { FormCombobox } from "@/components/custom/FormCombobox";
 import { SaleStatusLabels, type SaleStatus } from "@/modules/sales/types";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
@@ -54,6 +55,9 @@ export function SalesTable(props: SalesTableProps) {
         onStatusFilterChange,
         canEditItem,
         canDeleteItem,
+        customerId,
+        onCustomerIdChange,
+        customers = [],
     } = props;
 
     const columns = useSaleColumns(
@@ -83,14 +87,14 @@ export function SalesTable(props: SalesTableProps) {
                 className="p-3 sm:p-4"
                 filters={
                     <div className="flex flex-col lg:flex-row gap-4 items-end w-full">
-                        <div className="space-y-2 w-full lg:w-[400px]">
+                        <div className="space-y-2 w-full lg:w-[280px]">
                             <label className="mx-1 mb-1 font-medium text-base text-gray-900 block"> {/* เพิ่ม block เพื่อให้ label คุมบรรทัด */}
                                 ค้นหา
                             </label>
                             <div className="relative mt-1">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                 <Input
-                                    placeholder="เลขที่ใบขาย, ชื่อลูกค้า..."
+                                    placeholder="เลขที่ใบขาย, ชื่อสินค้า..."
                                     value={searchValue ?? ""}
                                     onChange={(e) => onSearchChange?.(e.target.value)}
                                     onKeyDown={(e) => {
@@ -99,6 +103,20 @@ export function SalesTable(props: SalesTableProps) {
                                     className="pl-9 h-11 w-full bg-white text-base border-gray-300 focus:ring-2"
                                 />
                             </div>
+                        </div>
+                        <div className="w-full lg:w-[280px]">
+                            <FormCombobox
+                                label="ลูกค้า"
+                                value={customerId || ""}
+                                onChange={(val) => onCustomerIdChange?.(val)}
+                                options={customers.map((customer) => ({
+                                    value: customer.id,
+                                    label: `${customer.name}`,
+                                }))}
+                                placeholder="ลูกค้าทั้งหมด"
+                                searchPlaceholder="ค้นหาลูกค้า..."
+                                emptyText="ไม่พบลูกค้า"
+                            />
                         </div>
                         <div className="flex flex-col sm:flex-row flex-wrap lg:flex-nowrap gap-4 w-full lg:w-auto items-end">
                             <div className="space-y-2 w-full lg:w-48">
@@ -167,12 +185,13 @@ export function SalesTable(props: SalesTableProps) {
                                     }}
                                 />
                             </div>
-                            {(searchValue || statusFilter || dateRange?.from || dateRange?.to) && (
+                            {(searchValue || statusFilter || dateRange?.from || dateRange?.to || customerId) && (
                                 <div className="flex items-end">
                                     <ClearSearchButton onClick={() => {
                                         onSearchChange?.("");
                                         onStatusFilterChange?.(undefined);
                                         onDateRangeChange?.(undefined);
+                                        onCustomerIdChange?.("");
                                     }} />
                                 </div>
                             )}
