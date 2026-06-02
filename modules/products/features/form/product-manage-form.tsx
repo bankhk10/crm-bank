@@ -722,7 +722,7 @@ const StockLotsSection: React.FC<
         icon={Package}
         action={
           <div className="flex items-center gap-2">
-            {/* <Button
+            <Button
               type="button"
               variant="outline"
               size="sm"
@@ -733,7 +733,7 @@ const StockLotsSection: React.FC<
               <Plus className="h-4 w-4 mr-1" />
               <span className="hidden sm:inline">เพิ่มสต็อกสินค้า</span>
               <span className="sm:hidden">เพิ่ม</span>
-            </Button> */}
+            </Button>
           </div>
         }
       />
