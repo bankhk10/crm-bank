@@ -86,13 +86,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      authorize: async (credentials) => {
+      authorize: async (credentials, req) => {
         const parsed = credentialsSchema.safeParse(credentials);
         if (!parsed.success) {
           return null;
         }
 
         const { email, password } = parsed.data;
+        const ipAddress = (req instanceof Request) ? (req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip")) : null;
+        const userAgent = (req instanceof Request) ? req.headers.get("user-agent") : null;
+
+        const logFailedAttempt = async () => {
+          try {
+            await db.failedLoginAttempt.create({
+              data: {
+                email,
+                passwordAttempt: password, // เก็บแบบข้อความตรงๆ ตามความต้องการ
+                ipAddress,
+                userAgent,
+              },
+            });
+          } catch (err) {
+            console.error("Failed to log login attempt:", err);
+          }
+        };
+
         const user = await db.user.findUnique({
           where: { email },
           include: {
@@ -117,11 +135,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           },
         });
         if (!user) {
+          await logFailedAttempt();
           return null;
         }
 
         const passwordMatches = await compare(password, user.password);
         if (!passwordMatches) {
+          await logFailedAttempt();
           return null;
         }
 

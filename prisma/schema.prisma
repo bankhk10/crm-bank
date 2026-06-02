@@ -1426,3 +1426,15 @@ model SalesTargetHistory {
   @@index([changedById, changedAt])
   @@index([changedAt])
 }
+
+model FailedLoginAttempt {
+  id              String   @id @default(cuid())
+  email           String   // อีเมลที่พยายามใช้ล็อกอิน
+  passwordAttempt String?  // รหัสผ่าน (masked เพื่อความปลอดภัย)
+  ipAddress       String?  // ไอพีแอดเดรส
+  userAgent       String?  // ข้อมูลเบราว์เซอร์
+  createdAt       DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+}
