@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 
 export default function ProductNewView() {
   const router = useRouter();
-  const { hasPermission, isLoading } = usePermission("product.create");
+  const { allowed: hasPermission, isLoading } = usePermission("product.create");
 
   if (isLoading) {
     return (
