@@ -503,8 +503,8 @@ export async function confirmStockDeductionForShipmentUseCase(
 
       if (deductedFromLots < requestedQty) {
         const productName = (shipmentItem.saleItem as any).name || productId;
-        console.warn(
-          `[Warning] สินค้าในคลังไม่พอสำหรับการจัดส่งบางส่วน: สินค้า '${productName}' ต้องการ ${requestedQty} แต่มีพร้อมส่งเพียง ${deductedFromLots}. ข้ามการตัด LOT ที่ขาด.`
+        throw new Error(
+          `ไม่สามารถยืนยันจัดส่งได้ เนื่องจากสินค้าสต็อกไม่เพียงพอ: ${productName} (ต้องการ ${requestedQty} แต่มีพร้อมส่งเพียง ${deductedFromLots})`
         );
       }
 
