@@ -55,7 +55,7 @@ export default function EmployeeListView() {
             setDeleteCandidate(null);
             router.refresh();
         } catch (error: any) {
-            setError(error.message || String(error));
+            toast.error(error.message || String(error));
         } finally {
             setActionLoading(false);
         }
