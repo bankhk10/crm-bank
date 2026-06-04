@@ -679,9 +679,7 @@ export function CustomerSalesDashboard() {
                             <TableHead className="font-semibold text-slate-700">
                               พนักงานขาย
                             </TableHead>
-                            <TableHead className="font-semibold text-slate-700">
-                              แผนก
-                            </TableHead>
+
                             <TableHead className="text-center font-semibold text-slate-700">
                               ยอดขายรวม
                             </TableHead>
@@ -697,7 +695,7 @@ export function CustomerSalesDashboard() {
                           {filteredSalespersons.length === 0 ? (
                             <TableRow>
                               <TableCell
-                                colSpan={7}
+                                colSpan={6}
                                 className="h-32 text-center py-10"
                               >
                                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -733,14 +731,6 @@ export function CustomerSalesDashboard() {
                                       {s.employeeCode}
                                     </p>
                                   </div>
-                                </TableCell>
-                                <TableCell>
-                                  <Badge
-                                    variant="outline"
-                                    className="font-normal border-slate-200 bg-slate-50 text-slate-600"
-                                  >
-                                    {s.department}
-                                  </Badge>
                                 </TableCell>
                                 <TableCell className="text-center font-bold text-green-700">
                                   {formatTHB(s.totalSales)}

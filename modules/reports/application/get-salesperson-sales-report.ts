@@ -62,6 +62,7 @@ export async function getSalespersonSalesReport(
   const allEmployees = await repo.findManyEmployeesData({
     where: {
       deletedAt: null,
+      status: "ACTIVE",
       ...employeeScopeFilter,
     },
     select: {
@@ -91,14 +92,12 @@ export async function getSalespersonSalesReport(
   const salesMap = new Map(employeeSales.map((es) => [es.employeeId, es]));
 
   // 3. Get customer count per employee
-  const allInitialEmployeeIds = Array.from(
-    new Set([...employeeIdsFromSales, ...allEmployees.map((e) => e.id)]),
-  );
+  const activeEmployeeIds = allEmployees.map((e) => e.id);
 
   const customerCounts = await repo.groupSalesData({
     by: ["employeeId", "customerId"],
     where: {
-      employeeId: { in: allInitialEmployeeIds },
+      employeeId: { in: activeEmployeeIds },
       saleDate: { gte: start, lte: end },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
@@ -114,7 +113,7 @@ export async function getSalespersonSalesReport(
     customerCountMap.get(cc.employeeId)!.add(cc.customerId);
   }
 
-  const salespersonPerformance = allInitialEmployeeIds.map((id) => {
+  const salespersonPerformance = activeEmployeeIds.map((id) => {
     const employee = salespersonMap.get(id);
     const es = salesMap.get(id);
     const totalSales = Number(es?._sum.totalAmount || 0);
