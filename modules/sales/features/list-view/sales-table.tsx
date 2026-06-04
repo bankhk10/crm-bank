@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear } from "date-fns";
 import DatePicker from "@/components/custom/DatePicker";
 import {
     BadgeDollarSign,
@@ -30,6 +30,30 @@ import { PageHeader } from "@/components/custom/page-header";
 import { useSaleColumns } from "./use-sale-columns";
 import { SalesCards } from "./sales-cards";
 import type { SalesTableProps } from "../../types";
+
+const quickDateRanges = [
+    {
+        label: "เดือนนี้",
+        getValue: () => ({
+            from: startOfMonth(new Date()),
+            to: endOfMonth(new Date()),
+        }),
+    },
+    {
+        label: "ไตรมาสนี้",
+        getValue: () => ({
+            from: startOfQuarter(new Date()),
+            to: endOfQuarter(new Date()),
+        }),
+    },
+    {
+        label: "ปีนี้",
+        getValue: () => ({
+            from: startOfYear(new Date()),
+            to: endOfYear(new Date()),
+        }),
+    },
+];
 
 export function SalesTable(props: SalesTableProps) {
     const {
@@ -184,6 +208,28 @@ export function SalesTable(props: SalesTableProps) {
                                         }
                                     }}
                                 />
+                            </div>
+                            <div className="grid gap-1.5 w-full sm:w-auto">
+                                <label className="font-medium text-base text-gray-900 mx-1">
+                                    ช่วงเวลา
+                                </label>
+                                <div className="flex flex-wrap gap-1.5 mt-1">
+                                    {quickDateRanges.map((r) => (
+                                        <Button
+                                            key={r.label}
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-11 text-sm px-3 bg-white hover:bg-slate-50 hover:border-slate-300 transition-colors"
+                                            onClick={() => {
+                                                const { from, to } = r.getValue();
+                                                onDateRangeChange?.({ from, to });
+                                            }}
+                                        >
+                                            {r.label}
+                                        </Button>
+                                    ))}
+                                </div>
                             </div>
                             {(searchValue || statusFilter || dateRange?.from || dateRange?.to || customerId) && (
                                 <div className="flex items-end">
