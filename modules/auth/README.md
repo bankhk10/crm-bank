@@ -6,11 +6,11 @@
 
 ```text
 modules/auth/
-├── application/          # Business logic เช่น ระบบ Force Logout
-├── features/             # UI Components (Login, Register)
-├── infrastructure/       # การตั้งค่า NextAuth และ Logging
-├── server/               # Server Actions สำหรับการจัดการผู้ใช้
-├── types/                # Type definitions และ Module augmentation
+├── application/          # Business logic เช่น ระบบ Force Logout (force-logout.service.ts)
+├── features/             # UI Components (Login, Register และ Session Timeout Warning)
+├── infrastructure/       # การตั้งค่า NextAuth และ Logging ความปลอดภัย
+├── server/               # (ว่าง) สำหรับรองรับ Server Actions ในอนาคต
+├── types/                # Type definitions และ Module augmentation (ขยายข้อมูล Session/JWT)
 └── index.ts              # จุด Export หลักของโมดูล
 ```
 
@@ -32,6 +32,10 @@ modules/auth/
 - บันทึกประวัติการ Login สำเร็จ/ล้มเหลว
 - บันทึกข้อมูล IP Address และ User Agent เพื่อความปลอดภัย
 - มีระบบป้องกันการ Brute Force เบื้องต้น (Login Blocking)
+
+### 5. ระบบเตือนการหมดอายุ Session (Session Timeout Warning)
+- ระบบตรวจสอบและแสดงหน้าต่างเตือนเมื่อใกล้หมดอายุการใช้งานของ Session เพื่อให้ผู้ใช้งานเตรียมตัวหรือกดต่อเวลาใช้งาน
+
 
 ## การใช้งาน
 
