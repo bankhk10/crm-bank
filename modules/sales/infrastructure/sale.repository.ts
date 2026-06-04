@@ -123,6 +123,20 @@ export async function findSales(params: ListSalesParams) {
           customerCode: { contains: search, mode: "insensitive" },
         },
       },
+      {
+        items: {
+          some: {
+            tradeNameGroupName: { contains: search, mode: "insensitive" },
+          },
+        },
+      },
+      {
+        items: {
+          some: {
+            name: { contains: search, mode: "insensitive" },
+          },
+        },
+      },
     ];
   }
 

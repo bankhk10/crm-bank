@@ -18,7 +18,10 @@ import { BadgeDollarSign } from "lucide-react";
 import { SalesTable } from "@/modules/sales/features/list-view/sales-table";
 import { PageHeader } from "@/components/custom/page-header";
 import type { SaleRecord } from "@/modules/sales/types";
-import { listSalesAction, deleteSaleAction } from "@/modules/sales/server/actions";
+import {
+  listSalesAction,
+  deleteSaleAction,
+} from "@/modules/sales/server/actions";
 import type { SaleStatus } from "@/modules/sales/types";
 
 export default function SalesListView() {
@@ -52,7 +55,7 @@ export default function SalesListView() {
 
       return scopeAllowed;
     },
-    [canEditScope, canEditBase]
+    [canEditScope, canEditBase],
   );
 
   const canDeleteItem = useCallback(
@@ -69,7 +72,7 @@ export default function SalesListView() {
 
       return scopeAllowed;
     },
-    [canDeleteScope, canDeleteBase]
+    [canDeleteScope, canDeleteBase],
   );
 
   const [sales, setSales] = useState<SaleRecord[]>([]);
@@ -87,9 +90,28 @@ export default function SalesListView() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [status, setStatus] = useState<SaleStatus | undefined>(undefined);
   const [deleteCandidate, setDeleteCandidate] = useState<SaleRecord | null>(
-    null
+    null,
   );
   const [actionLoading, setActionLoading] = useState(false);
+  const [filterCustomers, setFilterCustomers] = useState<any[]>([]);
+  const [customerId, setCustomerId] = useState<string>("");
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const custRes = await fetch("/api/customers?perPage=1000");
+        if (custRes.ok) {
+          const data = await custRes.json();
+          setFilterCustomers(data.customers || data);
+        }
+      } catch (error) {
+        console.error("Error fetching filter options:", error);
+      }
+    };
+    if (canView) {
+      fetchOptions();
+    }
+  }, [canView]);
 
   useEffect(() => {
     const isExtendingEmpty =
@@ -133,6 +155,7 @@ export default function SalesListView() {
         dateFrom: dateRange?.from?.toISOString(),
         dateTo: dateRange?.to?.toISOString(),
         status: status || undefined,
+        customerId: customerId || undefined,
       });
 
       if (!res.success) {
@@ -147,7 +170,7 @@ export default function SalesListView() {
     } finally {
       setLoading(false);
     }
-  }, [page, perPage, appliedFilters, dateRange, status]);
+  }, [page, perPage, appliedFilters, dateRange, status, customerId]);
 
   useEffect(() => {
     if (canView) {
@@ -239,6 +262,12 @@ export default function SalesListView() {
             userDepartmentId={user?.departmentId}
             canEditItem={canEditItem}
             canDeleteItem={canDeleteItem}
+            customerId={customerId}
+            onCustomerIdChange={(val) => {
+              setCustomerId(val);
+              setPage(1);
+            }}
+            customers={filterCustomers}
           />
         </div>
       </div>

@@ -658,4 +658,7 @@ export interface SalesTableProps {
   userDepartmentId?: string | null;
   canEditItem?: (item: SaleRecord) => boolean;
   canDeleteItem?: (item: SaleRecord) => boolean;
+  customerId?: string;
+  onCustomerIdChange?: (value: string) => void;
+  customers?: any[];
 }
