@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { format, parseISO, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear } from "date-fns";
+import { format, parseISO, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subMonths } from "date-fns";
 import DatePicker from "@/components/custom/DatePicker";
 import {
     BadgeDollarSign,
@@ -38,6 +38,16 @@ const quickDateRanges = [
             from: startOfMonth(new Date()),
             to: endOfMonth(new Date()),
         }),
+    },
+    {
+        label: "เดือนที่แล้ว",
+        getValue: () => {
+            const lastMonth = subMonths(new Date(), 1);
+            return {
+                from: startOfMonth(lastMonth),
+                to: endOfMonth(lastMonth),
+            };
+        },
     },
     {
         label: "ไตรมาสนี้",
