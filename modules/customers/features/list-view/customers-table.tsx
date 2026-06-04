@@ -54,7 +54,6 @@ export function CustomersTable({
   canDelete = false,
   canEditItem,
   canDeleteItem,
-  currentUserId,
 }: CustomersTableProps) {
   const { hasPermission } = usePermission("menu.customers");
 

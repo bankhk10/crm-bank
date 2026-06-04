@@ -1,7 +1,6 @@
 import { startOfDay, endOfDay } from "date-fns";
 import { Prisma } from "@/lib/db";
 import { db } from "@/lib/db";
-import { getRegionByProvince } from "@/lib/province-region-mapping";
 
 export type ListCustomersParams = {
   page?: number;
