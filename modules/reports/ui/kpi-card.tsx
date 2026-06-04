@@ -45,7 +45,7 @@ export function KpiCard({
         ${topBorderClass}
       `}
     >
-      <CardContent className="p-4 sm:p-5">
+      <CardContent>
         <div className="flex items-start gap-3">
           {/* Content */}
           <div className="flex-1 min-w-0">
@@ -63,8 +63,8 @@ export function KpiCard({
               className="
                 mt-2
                 text-sm
-                sm:text-lg
-                lg:text-xl
+                sm:text-sm
+                lg:text-lg
                 font-bold
                 text-slate-900
                 leading-snug
@@ -75,11 +75,7 @@ export function KpiCard({
               {value}
             </h3>
 
-            {sub && (
-              <div className="mt-2 text-xs sm:text-sm">
-                {sub}
-              </div>
-            )}
+            {sub && <div className="mt-2 text-xs sm:text-sm">{sub}</div>}
 
             {barColor && barWidth && (
               <div className="mt-3 h-2 rounded-full bg-slate-100 overflow-hidden">
