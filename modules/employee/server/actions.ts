@@ -11,8 +11,6 @@ import {
 } from "../application";
 import { softDeleteEmployee, type ListEmployeesParams } from "../infrastructure/employee.repository";
 
-const resourcePath = "/api/employee";
-
 export async function createEmployeeAction(rawData: unknown) {
   const session = await auth();
 
@@ -80,7 +78,7 @@ export async function deleteEmployeeAction(id: string) {
     await softDeleteEmployee(id);
     revalidatePath("/employee");
     return { success: true };
-  } catch (_err) {
+  } catch {
     return { success: false, error: "Failed to delete employee." };
   }
 }
@@ -96,7 +94,7 @@ export async function getEmployeesAction(params: ListEmployeesParams = {}) {
       employees: JSON.parse(JSON.stringify(result.employees)),
       total: result.total,
     };
-  } catch (_err) {
+  } catch {
     return { success: false, employees: [], total: 0 };
   }
 }
@@ -108,7 +106,7 @@ export async function getEmployeeAction(id: string) {
   try {
     const result = await getEmployeeDetailUseCase(id);
     return result;
-  } catch (_err) {
+  } catch {
     return { success: false, error: "Failed to fetch" };
   }
 }
@@ -123,7 +121,7 @@ export async function getAllEmployeesAction() {
       success: true,
       employees: JSON.parse(JSON.stringify(result.employees)),
     };
-  } catch (_err) {
+  } catch {
     return { success: false, employees: [] };
   }
 }

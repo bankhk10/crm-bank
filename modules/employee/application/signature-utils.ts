@@ -14,7 +14,7 @@ export async function handleSignatureUpload(signature?: string | null): Promise<
       const match = signature.match(/^data:(image\/\w+);base64,(.+)$/);
       if (!match) return signature;
 
-      const [_, mimeType, base64Data] = match;
+      const [, mimeType, base64Data] = match;
       const buffer = Buffer.from(base64Data, "base64");
       
       // We can use 'employees/signatures' as the folder

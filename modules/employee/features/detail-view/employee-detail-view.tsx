@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-    ArrowLeft,
     User,
     Phone,
     Mail,
@@ -31,7 +30,6 @@ import {
     ExternalLink,
     Search,
     FileText,
-    Pencil,
     Trash2,
     Edit,
 } from "lucide-react";

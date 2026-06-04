@@ -14,12 +14,16 @@ modules/[MODULE_NAME]/
  ┃ ┣ detail-view/
  ┃ ┃ ┗ [MODULE]-detail-view.tsx
  ┃ ┣ form/
+ ┃ ┃ ┣ [MODULE]-edit-view.tsx
+ ┃ ┃ ┣ [MODULE]-form-wrapper.tsx
  ┃ ┃ ┣ [MODULE]-form.tsx
- ┃ ┃ ┗ [MODULE]-form-wrapper.tsx
+ ┃ ┃ ┗ [MODULE]-new-view.tsx
  ┃ ┗ list-view/
- ┃   ┣ [MODULE]-table.tsx          (รวม toolbar inline)
  ┃   ┣ [MODULE]-cards.tsx
- ┃   ┗ use-[MODULE]-columns.tsx
+ ┃   ┣ [MODULE]-list-view.tsx
+ ┃   ┣ [MODULE]-table.tsx          (รวม toolbar inline)
+ ┃   ┣ use-[MODULE]-columns.tsx
+ ┃   ┗ use-[MODULE]-list.ts        (แยก state / data fetching logic)
  ┃
  ┣ application/                   ← use cases (business logic)
  ┃ ┣ create-[MODULE].ts           (complex use case → แยกไฟล์)

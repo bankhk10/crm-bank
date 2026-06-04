@@ -46,7 +46,6 @@ export default function EmployeeForm({
         control,
         handleSubmit,
         setValue,
-        reset,
         formState: { isSubmitting, errors },
     } = useForm<EmployeeUpdateFormValues>({
         resolver: zodResolver(employeeUpdateSchema),
