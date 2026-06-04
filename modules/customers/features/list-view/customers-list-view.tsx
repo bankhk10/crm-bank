@@ -1,13 +1,16 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { UserCog } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { PageHeader } from "@/components/custom/page-header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { DeleteDialog } from "@/components/custom/delete-dialog";
 import { CustomersTable } from "./customers-table";
 import { useCustomersList } from "./use-customers-list";
+import { deleteCustomerAction } from "../../server/actions";
+import { toast } from "sonner";
 import type { CustomerRecord } from "../../types";
 
 export default function CustomersListView() {
@@ -32,7 +35,6 @@ export default function CustomersListView() {
     hasPermission("customer.delete.farmer") ||
     hasPermission("customer.delete.broker");
   const canView = !isLoading && allowed;
-  const user = useCurrentUser();
 
   // Create callbacks for checking edit/delete permissions per item based on access scope
   const canEditItem = React.useCallback(
@@ -82,6 +84,27 @@ export default function CustomersListView() {
     setAppliedFilters,
     handleSearchSubmit,
   } = useCustomersList(canView);
+
+  const [deleteTarget, setDeleteTarget] = useState<CustomerRecord | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setActionLoading(true);
+    try {
+      const res = await deleteCustomerAction(deleteTarget.id);
+      if (!res.success) throw new Error(res.error || "Delete failed");
+
+      setDeleteTarget(null);
+      toast.success("ลบข้อมูลลูกค้าสำเร็จ");
+      setAppliedFilters({ ...appliedFilters });
+    } catch (err) {
+      const error = err as Error;
+      toast.error(error.message || String(error));
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -139,10 +162,27 @@ export default function CustomersListView() {
             canDelete={canDeleteBase}
             canEditItem={canEditItem}
             canDeleteItem={canDeleteItem}
-            currentUserId={user?.id}
+            onDeleteRequest={(c) => setDeleteTarget(c)}
           />
         </div>
       </div>
+
+      <DeleteDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        onConfirm={handleDelete}
+        title="ยืนยันการลบ"
+        description={
+          <>
+            คุณต้องการลบลูกค้า <b>{deleteTarget?.name}</b> ใช่หรือไม่? <br />
+            การกระทำนี้ไม่สามารถย้อนกลับได้
+          </>
+        }
+        isDeleting={actionLoading}
+        confirmText={actionLoading ? "กำลังลบ..." : "ลบลูกค้า"}
+      />
     </section>
   );
 }

@@ -82,6 +82,9 @@ modules/[MODULE_NAME]/
   - `TruncatedCell` → `@/components/custom/truncated-cell`
   - `ActionButton` → `@/components/custom/action-button`
   - `DetailItem` → `@/components/custom/detail-item`
+- **Smart vs Dumb Components**: 
+  - ให้ `[MODULE]-list-view.tsx` (ตัวแม่) เป็นคนถือ State หลัก (เช่น `deleteTarget`, `actionLoading`) รวมถึง Dialog สำหรับยืนยันการทำ Action ต่างๆ และเป็นคนเรียก Server Action โดยตรง
+  - ให้ `[MODULE]-table.tsx` เป็นแค่ UI (Dumb Component) รับแค่ Callback `onDeleteRequest` ห้ามเอา Dialog หรือ Server Action ไปฝังใน table เด็ดขาด
 
 ### 5. Barrel Exports (`index.ts`)
 

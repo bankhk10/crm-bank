@@ -2,22 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Eye, Edit, PlusCircle, Trash2 } from "lucide-react";
+import { Eye, Edit, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
@@ -27,15 +14,8 @@ import { CustomersCards } from "./customers-cards";
 import { CustomerTypeBadge } from "../../ui/customer-type-badge";
 import { CustomerStatusBadge } from "../../ui/customer-status-badge";
 import { ActionButton } from "@/components/custom/action-button";
-import {
-  ALL_FILTER_VALUE,
-  ALL_STATUS_VALUE,
-  CUSTOMER_TYPE_STYLE,
-  STATUS_STYLE,
-} from "../../constants";
+import { STATUS_STYLE, CUSTOMER_TYPE_STYLE, ALL_FILTER_VALUE, ALL_STATUS_VALUE } from "../../constants";
 import { usePermission } from "@/hooks/use-permission";
-import { deleteCustomerAction } from "../../server/actions";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function CustomersTable({
   data,
@@ -48,12 +28,12 @@ export function CustomersTable({
   filterDraft,
   setFilterDraft,
   onSearchSubmit,
-  onRefresh,
   canCreate = false,
   canEdit = false,
   canDelete = false,
   canEditItem,
   canDeleteItem,
+  onDeleteRequest,
 }: CustomersTableProps) {
   const { hasPermission } = usePermission("menu.customers");
 
@@ -64,29 +44,8 @@ export function CustomersTable({
 
   // Base permissions from props override internal ones if provided
 
-  const [error, setError] = React.useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<CustomerRecord | null>(null);
-  const [actionLoading, setActionLoading] = React.useState(false);
-
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    setActionLoading(true);
-    try {
-      const res = await deleteCustomerAction(deleteTarget.id);
-      if (!res.success) throw new Error(res.error || "Delete failed");
-
-      setDeleteTarget(null);
-      if (onRefresh) onRefresh();
-    } catch (err) {
-      const error = err as Error;
-      setError(error.message || String(error));
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   const columns = useCustomerColumns(
-    (emp) => setDeleteTarget(emp as CustomerRecord),
+    (emp) => { if (onDeleteRequest) onDeleteRequest(emp as CustomerRecord); },
     canDelete,
     canEdit,
     data,
@@ -204,11 +163,6 @@ export function CustomersTable({
 
   return (
     <div className="space-y-6">
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       <ResponsiveDataView
         breakpoint="lg"
@@ -219,7 +173,7 @@ export function CustomersTable({
             loading={loading}
             canDelete={canDelete}
             canEdit={canEdit}
-            onDeleteRequest={(c) => setDeleteTarget(c as CustomerRecord)}
+            onDeleteRequest={(c) => { if (onDeleteRequest) onDeleteRequest(c as CustomerRecord); }}
             canEditItem={canEditItem}
             canDeleteItem={canDeleteItem}
             pagination={pagination}
@@ -327,40 +281,6 @@ export function CustomersTable({
           </div>
         }
       />
-
-      <Dialog
-        open={Boolean(deleteTarget)}
-        onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null);
-        }}
-      >
-        <DialogContent className="sm:max-w-[420px] rounded-lg border-0 shadow-2xl">
-          <DialogTitle className="text-xl font-bold text-red-600 flex items-center gap-2">
-            <Trash2 className="h-5 w-5" /> ยืนยันการลบ
-          </DialogTitle>
-          <DialogDescription className="text-base text-slate-600 mt-2">
-            คุณต้องการลบลูกค้า <b>{deleteTarget?.name}</b> ใช่หรือไม่? <br />
-            การกระทำนี้ไม่สามารถย้อนกลับได้
-          </DialogDescription>
-          <DialogFooter className="mt-6 gap-2 sm:gap-0 flex justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setDeleteTarget(null)}
-              className="rounded-full"
-            >
-              ยกเลิก
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={actionLoading}
-              className="rounded-full bg-red-600 hover:bg-red-700"
-            >
-              {actionLoading ? "กำลังลบ..." : "ลบลูกค้า"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -155,6 +155,7 @@ export interface CustomersTableProps {
   canDelete?: boolean;
   canEditItem?: (item: CustomerRecord) => boolean;
   canDeleteItem?: (item: CustomerRecord) => boolean;
+  onDeleteRequest?: (item: CustomerRecord) => void;
   currentUserId?: string;
 }
 

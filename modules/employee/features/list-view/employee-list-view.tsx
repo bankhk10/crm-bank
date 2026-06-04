@@ -4,17 +4,10 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { EmployeeTable } from "./employee-table";
 import { PageHeader } from "@/components/custom/page-header";
-import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-} from "@/components/ui/dialog";
-import { Users, Trash2 } from "lucide-react";
+import { Users } from "lucide-react";
+import { DeleteDialog } from "@/components/custom/delete-dialog";
 import { deleteEmployeeAction } from "@/modules/employee/server/actions";
 import { toast } from "sonner";
 import { useEmployeeList } from "./use-employee-list";
@@ -118,41 +111,22 @@ export default function EmployeeListView() {
                 </div>
             </div>
 
-            {/* Delete Dialog */}
-            <Dialog 
-                open={Boolean(deleteCandidate)} 
+            <DeleteDialog
+                open={Boolean(deleteCandidate)}
                 onOpenChange={(open) => {
                     if (!open) setDeleteCandidate(null);
                 }}
-            >
-                <DialogContent className="sm:max-w-[420px] rounded-lg border-0 shadow-2xl">
-                    <DialogTitle className="text-xl font-bold text-red-600 flex items-center gap-2">
-                        <Trash2 className="h-5 w-5" /> ลบพนักงาน
-                    </DialogTitle>
-                    <DialogDescription className="text-base text-slate-600">
+                onConfirm={handleDelete}
+                title="ลบพนักงาน"
+                description={
+                    <>
                         คุณต้องการลบพนักงาน <b>{deleteCandidate?.name}</b> ใช่หรือไม่? <br />
                         การกระทำนี้ไม่สามารถย้อนกลับได้
-                    </DialogDescription>
-                    <DialogFooter className="mt-6 gap-2 sm:gap-0">
-                        <Button
-                            variant="outline"
-                            onClick={() => setDeleteCandidate(null)}
-                            disabled={actionLoading}
-                            className="rounded-full"
-                        >
-                            ยกเลิก
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={actionLoading}
-                            className="rounded-full bg-red-600 hover:bg-red-700"
-                        >
-                            {actionLoading ? "กำลังลบ..." : "ยืนยันการลบ"}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                    </>
+                }
+                isDeleting={actionLoading}
+                confirmText={actionLoading ? "กำลังลบ..." : "ยืนยันการลบ"}
+            />
         </section>
     );
 }
