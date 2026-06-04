@@ -88,13 +88,6 @@ const quickDateRanges = [
   },
 ];
 
-const customerTypeLabels: Record<string, string> = {
-  DEALER: "ดีลเลอร์",
-  SUBDEALER: "ซับดีลเลอร์",
-  FARMER: "เกษตรกร",
-  BROKER: "นายหน้า",
-};
-
 export function CustomerSalesDashboard() {
   const [isPending, startTransition] = useTransition();
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
