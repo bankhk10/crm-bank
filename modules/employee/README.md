@@ -10,15 +10,19 @@ employee/
  ┃ ┣ detail-view/
  ┃ ┃ ┗ employee-detail-view.tsx
  ┃ ┣ form/
+ ┃ ┃ ┣ employee-edit-view.tsx
+ ┃ ┃ ┣ employee-form-wrapper.tsx
  ┃ ┃ ┣ employee-form.tsx
- ┃ ┃ ┗ employee-form-wrapper.tsx
+ ┃ ┃ ┗ employee-new-view.tsx
  ┃ ┗ list-view/
- ┃   ┣ employee-table.tsx          (includes toolbar inline)
  ┃   ┣ employee-cards.tsx
+ ┃   ┣ employee-list-view.tsx
+ ┃   ┣ employee-table.tsx          (includes toolbar inline)
  ┃   ┗ use-employee-columns.tsx
  ┃
  ┣ application/                   ⭐ use cases (business logic)
  ┃ ┣ create-employee.ts           create use case (complex)
+ ┃ ┣ signature-utils.ts           signature upload/processing utils
  ┃ ┣ update-employee.ts           update use case (complex)
  ┃ ┣ validations.ts               Zod schemas
  ┃ ┗ index.ts                     ⭐ facade + inline use cases
