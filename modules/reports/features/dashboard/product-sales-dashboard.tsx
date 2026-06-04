@@ -86,9 +86,8 @@ export function ProductSalesDashboard() {
   const [reportData, setReportData] = useState<ProductSalesReportData | null>(
     null,
   );
-  const [groupReportData, setGroupReportData] = useState<ProductGroupSalesReportData | null>(
-    null,
-  );
+  const [groupReportData, setGroupReportData] =
+    useState<ProductGroupSalesReportData | null>(null);
   const [activeTab, setActiveTab] = useState("top-products");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [volumeUnit, setVolumeUnit] = useState<"L" | "ML" | "KG" | "G">("L");
@@ -102,7 +101,7 @@ export function ProductSalesDashboard() {
       };
       const [prodData, groupData] = await Promise.all([
         getProductSalesReportAction(filter),
-        getProductGroupSalesReportAction(filter)
+        getProductGroupSalesReportAction(filter),
       ]);
       setReportData(prodData);
       setGroupReportData(groupData);
@@ -123,8 +122,9 @@ export function ProductSalesDashboard() {
   };
 
   const sortedGroups =
-    groupReportData?.groupPerformance.sort((a, b) => b.totalSales - a.totalSales) ||
-    [];
+    groupReportData?.groupPerformance.sort(
+      (a, b) => b.totalSales - a.totalSales,
+    ) || [];
   const sortedAbcSales =
     reportData?.abcSales?.slice().sort((a, b) => b.totalSales - a.totalSales) ||
     [];
@@ -171,13 +171,14 @@ export function ProductSalesDashboard() {
           reportData && (
             <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-white/90 bg-white/10 border border-white/10 px-3 py-1 rounded-full uppercase tracking-wider">
               <Package className="h-3.5 w-3.5 text-[#60A5FA]" />
-              {format(dateRange.from, "dd/MM/yyyy")} – {format(dateRange.to, "dd/MM/yyyy")}
+              {format(dateRange.from, "dd/MM/yyyy")} –{" "}
+              {format(dateRange.to, "dd/MM/yyyy")}
             </span>
           )
         }
       />
 
-      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-7">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* ── Filter Card ── */}
         <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden -py-6">
           <SectionHeader
@@ -201,8 +202,9 @@ export function ProductSalesDashboard() {
 
             <div
               id={filtersPanelId}
-              className={`mb-4 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap lg:flex-nowrap sm:items-end gap-3 sm:gap-4 ${filtersOpen ? "block" : "hidden"
-                } sm:flex`}
+              className={`mb-4 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap lg:flex-nowrap sm:items-end gap-3 sm:gap-4 ${
+                filtersOpen ? "block" : "hidden"
+              } sm:flex`}
             >
               {/* Start Date */}
               <div className="w-full sm:w-44">
@@ -280,9 +282,7 @@ export function ProductSalesDashboard() {
                       กำลังโหลด...
                     </>
                   ) : (
-                    <>
-                      ตกลง
-                    </>
+                    <>ตกลง</>
                   )}
                 </Button>
                 {reportData && (
