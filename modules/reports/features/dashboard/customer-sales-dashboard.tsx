@@ -260,18 +260,7 @@ export function CustomerSalesDashboard() {
               </div>
             </div>
           </TableCell>
-          <TableCell>
-            <Badge
-              variant="outline"
-              className={cn(
-                isSubDealer
-                  ? "bg-zinc-50 border-zinc-200 text-zinc-600"
-                  : "bg-slate-50 text-slate-600",
-              )}
-            >
-              {customerTypeLabels[c.type] || c.type}
-            </Badge>
-          </TableCell>
+
           <TableCell className="text-slate-600">
             {c.province && c.province !== "-"
               ? `${c.province} (${c.region})`
@@ -616,9 +605,7 @@ export function CustomerSalesDashboard() {
                             <TableHead className="font-semibold text-slate-700">
                               ลูกค้า
                             </TableHead>
-                            <TableHead className="font-semibold text-slate-700">
-                              ประเภท
-                            </TableHead>
+
                             <TableHead className="font-semibold text-slate-700">
                               ภูมิภาค
                             </TableHead>
@@ -640,7 +627,7 @@ export function CustomerSalesDashboard() {
                           {topLevelCustomers.length === 0 ? (
                             <TableRow>
                               <TableCell
-                                colSpan={8}
+                                colSpan={7}
                                 className="text-center py-10"
                               >
                                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
