@@ -681,6 +681,12 @@ export function CustomerSalesDashboard() {
                             </TableHead>
 
                             <TableHead className="text-center font-semibold text-slate-700">
+                              Sales Note
+                            </TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">
+                              Invoice
+                            </TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">
                               ยอดขายรวม
                             </TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">
@@ -695,7 +701,7 @@ export function CustomerSalesDashboard() {
                           {filteredSalespersons.length === 0 ? (
                             <TableRow>
                               <TableCell
-                                colSpan={6}
+                                colSpan={8}
                                 className="h-32 text-center py-10"
                               >
                                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -731,6 +737,12 @@ export function CustomerSalesDashboard() {
                                       {s.employeeCode}
                                     </p>
                                   </div>
+                                </TableCell>
+                                <TableCell className="text-center font-medium text-orange-600">
+                                  {formatTHB(s.salesNoteAmount)}
+                                </TableCell>
+                                <TableCell className="text-center font-medium text-blue-600">
+                                  {formatTHB(s.invoiceAmount)}
                                 </TableCell>
                                 <TableCell className="text-center font-bold text-green-700">
                                   {formatTHB(s.totalSales)}

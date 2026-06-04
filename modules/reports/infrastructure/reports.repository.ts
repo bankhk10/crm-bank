@@ -947,3 +947,85 @@ export async function findMonthlyInvoiceSalesByYear(year: number) {
     }))
     .sort((a, b) => a.month - b.month);
 }
+
+export async function groupInvoiceSalesByEmployeeInPeriod(
+  start: Date,
+  end: Date,
+  options: any,
+) {
+  let queryShipment = Prisma.sql`
+    SELECT 
+      s."employeeId",
+      SUM(sh."totalAmount") as "amount",
+      COUNT(sh."id") as "count"
+    FROM "Shipment" sh
+    JOIN "Sale" s ON sh."saleId" = s."id"
+    WHERE sh."status" IN ('DELIVERED', 'IN_TRANSIT', 'COMPLETED')
+      AND s."deletedAt" IS NULL
+      AND COALESCE(sh."scheduledDate", sh."actualDate", s."requestedDeliveryDate") >= ${start}
+      AND COALESCE(sh."scheduledDate", sh."actualDate", s."requestedDeliveryDate") <= ${end}
+  `;
+
+  let queryLegacy = Prisma.sql`
+    SELECT 
+      s."employeeId",
+      SUM(s."totalAmount") as "amount",
+      COUNT(s."id") as "count"
+    FROM "Sale" s
+    WHERE s."deletedAt" IS NULL
+      AND s."status" IN ('PAID', 'DELIVERED', 'DELIVERY_COMPLETED', 'COMPLETED')
+      AND NOT EXISTS (SELECT 1 FROM "Shipment" sh WHERE sh."saleId" = s."id")
+      AND COALESCE(s."deliveryDate", s."requestedDeliveryDate", s."saleDate") >= ${start}
+      AND COALESCE(s."deliveryDate", s."requestedDeliveryDate", s."saleDate") <= ${end}
+  `;
+
+  if (options.employeeId) {
+    if (typeof options.employeeId === "object" && options.employeeId.in) {
+      queryShipment = Prisma.sql`${queryShipment} AND s."employeeId" = ANY(${options.employeeId.in}::text[])`;
+      queryLegacy = Prisma.sql`${queryLegacy} AND s."employeeId" = ANY(${options.employeeId.in}::text[])`;
+    } else {
+      queryShipment = Prisma.sql`${queryShipment} AND s."employeeId" = ${options.employeeId}`;
+      queryLegacy = Prisma.sql`${queryLegacy} AND s."employeeId" = ${options.employeeId}`;
+    }
+  }
+
+  if (options.employee?.departmentId) {
+    const deptCondition = Prisma.sql` AND EXISTS (
+      SELECT 1 FROM "Employee" e 
+      WHERE e.id = s."employeeId" 
+      AND e."departmentId" = ${options.employee.departmentId}
+    )`;
+    queryShipment = Prisma.sql`${queryShipment} ${deptCondition}`;
+    queryLegacy = Prisma.sql`${queryLegacy} ${deptCondition}`;
+  }
+
+  queryShipment = Prisma.sql`${queryShipment} GROUP BY s."employeeId"`;
+  queryLegacy = Prisma.sql`${queryLegacy} GROUP BY s."employeeId"`;
+
+  const shipmentResult = (await prisma.$queryRaw(queryShipment)) as any[];
+  const legacyResult = (await prisma.$queryRaw(queryLegacy)) as any[];
+
+  const map = new Map<string, { amount: number; count: number }>();
+
+  for (const r of shipmentResult) {
+    const empId = String(r.employeeId);
+    map.set(empId, {
+      amount: Number(r.amount || 0),
+      count: Number(r.count || 0),
+    });
+  }
+
+  for (const r of legacyResult) {
+    const empId = String(r.employeeId);
+    const existing = map.get(empId) || { amount: 0, count: 0 };
+    existing.amount += Number(r.amount || 0);
+    existing.count += Number(r.count || 0);
+    map.set(empId, existing);
+  }
+
+  return Array.from(map.entries()).map(([employeeId, data]) => ({
+    employeeId,
+    totalAmount: data.amount,
+    invoiceCount: data.count,
+  }));
+}

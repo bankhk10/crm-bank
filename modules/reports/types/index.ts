@@ -205,6 +205,10 @@ export interface SalespersonReportData {
     avgOrderValue: number;
     customerCount: number;
     conversionRate: number;
+    salesNoteAmount: number;
+    salesNoteCount: number;
+    invoiceAmount: number;
+    invoiceCount: number;
   }[];
   topSalesperson: {
     id: string;

@@ -113,11 +113,21 @@ export async function getSalespersonSalesReport(
     customerCountMap.get(cc.employeeId)!.add(cc.customerId);
   }
 
+  // 3.5 Get Invoice Sales per employee
+  const invoiceSales = await repo.groupInvoiceSalesByEmployeeInPeriod(
+    start,
+    end,
+    scopeFilter,
+  );
+  const invoiceSalesMap = new Map(invoiceSales.map((i) => [i.employeeId, i]));
+
   const salespersonPerformance = activeEmployeeIds.map((id) => {
     const employee = salespersonMap.get(id);
     const es = salesMap.get(id);
     const totalSales = Number(es?._sum.totalAmount || 0);
     const orderCount = es?._count || 0;
+    
+    const invoiceData = invoiceSalesMap.get(id);
 
     return {
       id,
@@ -129,6 +139,10 @@ export async function getSalespersonSalesReport(
       avgOrderValue: orderCount > 0 ? totalSales / orderCount : 0,
       customerCount: customerCountMap.get(id)?.size || 0,
       conversionRate: 100, // Placeholder
+      salesNoteAmount: totalSales,
+      salesNoteCount: orderCount,
+      invoiceAmount: invoiceData?.totalAmount || 0,
+      invoiceCount: invoiceData?.invoiceCount || 0,
     };
   }).sort((a, b) => b.totalSales - a.totalSales);
 
