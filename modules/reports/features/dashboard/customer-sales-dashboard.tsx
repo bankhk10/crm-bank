@@ -278,11 +278,12 @@ export function CustomerSalesDashboard() {
           <TableCell className="text-center">
             <Link href={`/reports/customer-sales/${c.id}`}>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="hover:bg-green-50 hover:text-green-700 rounded-lg"
+                className="h-8 px-3 border-green-200 hover:border-green-300 text-green-700 bg-green-50/50 hover:bg-green-50 rounded-lg text-xs font-semibold transition-all inline-flex items-center gap-1.5"
               >
-                <Eye className="h-4 w-4 mr-1.5" />
+                <Eye className="h-3.5 w-3.5" />
+                ดูรายละเอียด
               </Button>
             </Link>
           </TableCell>
