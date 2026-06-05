@@ -41,8 +41,10 @@ function Calendar({
       formatters={( {
         formatMonthDropdown: (date: Date) =>
           date.toLocaleDateString("th-TH", { month: "short" }).replaceAll(".", ""),
-        formatWeekdayName: (date: Date) =>
-          date.toLocaleDateString("th-TH", { weekday: "short" }).replaceAll(".", ""),
+        formatWeekdayName: (date: Date) => {
+          const days = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
+          return days[date.getDay()];
+        },
         formatCaption: (date: Date) =>
           `${date.toLocaleDateString("th-TH", { month: "long" })} ${
             date.getFullYear() + 543
