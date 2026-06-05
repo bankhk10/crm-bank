@@ -265,7 +265,7 @@ export async function approveSaleUseCase(
       },
     });
 
-    return { success: true as const, sale: updated };
+    return { success: true as const, sale: updated, existingSale: sale };
   });
 }
 
@@ -300,5 +300,5 @@ export async function rejectSaleUseCase(
     },
   });
 
-  return { success: true as const, sale: updated };
+  return { success: true as const, sale: updated, existingSale: sale };
 }

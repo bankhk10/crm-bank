@@ -5,6 +5,8 @@ import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { applyDataScope } from "@/lib/data-scope";
 import type { SaleFormData } from "@/modules/sales/types";
 import type { SaleStatus, PaymentTerm } from "@/lib/db";
+import { auditLogger } from "@/lib/logger/audit-logger";
+import { createActionLogger } from "@/lib/logger/middleware";
 import {
   createSaleUseCase,
   updateSaleUseCase,
@@ -49,10 +51,18 @@ export async function createSaleAction(data: SaleFormData) {
   if (!session?.user?.id) {
     return { success: false, error: "Unauthorized" };
   }
+  const { context } = createActionLogger("createSale", session as any);
 
   try {
     const result = await createSaleUseCase(data, session.user.id);
-    if (result.success) {
+    if (result.success && result.sale) {
+      await auditLogger.logCreate(
+        "Sale",
+        result.sale.id,
+        JSON.parse(JSON.stringify(result.sale)),
+        context,
+        { module: "sales", entityName: result.sale.saleNumber }
+      );
       revalidatePath("/sales");
     }
     return serializeData(result);
@@ -69,10 +79,19 @@ export async function updateSaleAction(id: string, data: SaleFormData) {
   if (!session?.user?.id) {
     return { success: false, error: "Unauthorized" };
   }
+  const { context } = createActionLogger("updateSale", session as any);
 
   try {
     const result = await updateSaleUseCase(id, data, session.user.id);
-    if (result.success) {
+    if (result.success && result.sale && result.existingSale) {
+      await auditLogger.logUpdate(
+        "Sale",
+        result.sale.id,
+        JSON.parse(JSON.stringify(result.existingSale)),
+        JSON.parse(JSON.stringify(result.sale)),
+        context,
+        { module: "sales", entityName: result.sale.saleNumber }
+      );
       revalidatePath("/sales");
       revalidatePath(`/sales/${id}`);
       revalidatePath(`/sales/${id}/edit`);
@@ -91,12 +110,20 @@ export async function deleteSaleAction(id: string) {
   if (!session?.user?.id) {
     return { success: false, error: "Unauthorized" };
   }
+  const { context } = createActionLogger("deleteSale", session as any);
 
   try {
     const deleted = await deleteSaleUseCase(id, session.user.id);
     if (!deleted) {
       return { success: false, error: "Sale not found" };
     }
+    await auditLogger.logDelete(
+      "Sale",
+      deleted.id,
+      JSON.parse(JSON.stringify(deleted)),
+      context,
+      { module: "sales", entityName: deleted.saleNumber }
+    );
     revalidatePath("/sales");
     return { success: true };
   } catch (_err) {
@@ -166,9 +193,20 @@ export async function approveSaleAction(id: string, notes?: string) {
   const session = await auth();
   if (!session?.user?.id)
     return { success: false as const, error: "Unauthorized" };
+  const { context } = createActionLogger("approveSale", session as any);
 
   try {
     const result = await approveSaleUseCase(id, session.user.id, notes);
+    if (result.success && result.sale && result.existingSale) {
+      await auditLogger.logApprove(
+        "Sale",
+        result.sale.id,
+        JSON.parse(JSON.stringify(result.existingSale)),
+        JSON.parse(JSON.stringify(result.sale)),
+        context,
+        { module: "sales", entityName: result.sale.saleNumber }
+      );
+    }
     revalidatePath("/sales");
     revalidatePath(`/sales/${id}`);
     return serializeData(result);
@@ -184,9 +222,20 @@ export async function rejectSaleAction(id: string, reason: string) {
   const session = await auth();
   if (!session?.user?.id)
     return { success: false as const, error: "Unauthorized" };
+  const { context } = createActionLogger("rejectSale", session as any);
 
   try {
     const result = await rejectSaleUseCase(id, session.user.id, reason);
+    if (result.success && result.sale && result.existingSale) {
+      await auditLogger.logReject(
+        "Sale",
+        result.sale.id,
+        JSON.parse(JSON.stringify(result.existingSale)),
+        JSON.parse(JSON.stringify(result.sale)),
+        context,
+        { module: "sales", entityName: result.sale.saleNumber, errorMessage: reason }
+      );
+    }
     revalidatePath("/sales");
     revalidatePath(`/sales/${id}`);
     return serializeData(result);
