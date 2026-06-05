@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import {
   User,
+  Eye,
   UserCheck,
   Phone,
   Mail,
@@ -50,6 +51,12 @@ import { DetailItem } from "@/components/custom/detail-item";
 import { KpiCard } from "../../ui/kpi-card";
 import Link from "next/link";
 import type { SalespersonDetailReportData } from "@/modules/reports/types";
+import CustomTable from "@/components/custom/custom-table";
+import { ColumnDef } from "@tanstack/react-table";
+import { TruncatedCell } from "@/components/custom/truncated-cell";
+import { ActionButton } from "@/components/custom/action-button";
+import { SaleStatusBadge } from "@/modules/sales/ui/sale-status-badge";
+import type { SaleStatus } from "@/modules/sales/types";
 
 // ─── Formatters ─────────────────────────────
 const formatTHB = (n: number) =>
@@ -142,6 +149,66 @@ function MiniBarChart({
   );
 }
 
+// ─── Columns ───────────────────────────────
+const recentSalesColumns: ColumnDef<any>[] = [
+  {
+    accessorKey: "saleNumber",
+    header: "เลขที่",
+    cell: (info) => <TruncatedCell value={info.getValue() as string} />,
+    meta: { minWidth: 120, width: 120, maxWidth: 120, align: "left" },
+  },
+  {
+    accessorKey: "customerName",
+    header: "ลูกค้า",
+    cell: ({ row }) => (
+      <div>
+        <p className="font-medium text-sm">{row.original.customerName}</p>
+        <p className="text-xs text-slate-500">{row.original.customerCode}</p>
+      </div>
+    ),
+    meta: { minWidth: 150, width: 150, maxWidth: 150, align: "left" },
+  },
+  {
+    accessorKey: "saleDate",
+    header: "วันที่",
+    cell: (info) => <span className="text-sm">{info.getValue() as string}</span>,
+    meta: { minWidth: 100, width: 100, maxWidth: 100, align: "left" },
+  },
+  {
+    accessorKey: "status",
+    header: "สถานะ",
+    cell: (info) => {
+      const status = info.getValue() as SaleStatus;
+      return <SaleStatusBadge status={status} />;
+    },
+    meta: { minWidth: 100, width: 120, align: "left" },
+  },
+  {
+    accessorKey: "totalAmount",
+    header: "มูลค่า",
+    cell: (info) => (
+      <span className="font-semibold text-emerald-600">
+        {formatTHB(info.getValue() as number)}
+      </span>
+    ),
+    meta: { minWidth: 110, width: 110, maxWidth: 110, align: "right" },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => (
+      <div className="flex items-center justify-end gap-2 pr-4">
+        <ActionButton
+          href={`/sales/${row.original.id}`}
+          icon={Eye}
+          label="ดูรายละเอียด"
+          colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
+        />
+      </div>
+    ),
+    meta: { minWidth: 80, width: 80, align: "right" },
+  },
+];
+
 // ─── Component ─────────────────────────────
 interface SalespersonDetailViewProps {
   employeeId: string;
@@ -155,6 +222,10 @@ export default function SalespersonDetailView({
   const [data, setData] = useState<SalespersonDetailReportData | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Pagination for Recent Sales
+  const [salesPage, setSalesPage] = useState(1);
+  const [salesPerPage, setSalesPerPage] = useState(10);
 
   const fetchData = useCallback(async () => {
     if (!employeeId) return;
@@ -209,6 +280,13 @@ export default function SalespersonDetailView({
       </div>
     );
   }
+
+  // Pagination logic for Recent Sales
+  const recentSalesTotal = data.recentSales.length;
+  const recentSalesSliced = data.recentSales.slice(
+    (salesPage - 1) * salesPerPage,
+    salesPage * salesPerPage
+  );
 
   const { employee, kpi } = data;
 
@@ -775,61 +853,28 @@ export default function SalespersonDetailView({
                       </CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                      <Table className="min-w-[700px]">
-                        <TableHeader>
-                          <TableRow className="bg-slate-50/50">
-                            <TableHead>เลขที่</TableHead>
-                            <TableHead>ลูกค้า</TableHead>
-                            <TableHead>วันที่</TableHead>
-                            <TableHead>สถานะ</TableHead>
-                            <TableHead className="text-right">มูลค่า</TableHead>
-                            <TableHead className="w-[50px]" />
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {data.recentSales.length === 0 ? (
-                            <TableRow>
-                              <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                                <ShoppingCart className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                                ยังไม่มีประวัติการขาย
-                              </TableCell>
-                            </TableRow>
-                          ) : (
-                            data.recentSales.map((sale) => (
-                              <TableRow key={sale.id} className="hover:bg-slate-50/50">
-                                <TableCell className="font-medium text-sm">
-                                  {sale.saleNumber}
-                                </TableCell>
-                                <TableCell>
-                                  <p className="font-medium text-sm">{sale.customerName}</p>
-                                  <p className="text-xs text-slate-500">{sale.customerCode}</p>
-                                </TableCell>
-                                <TableCell className="text-sm">{sale.saleDate}</TableCell>
-                                <TableCell>
-                                  <Badge
-                                    className={`${statusColors[sale.status] || "bg-gray-100"} border-0 text-[10px]`}
-                                  >
-                                    {sale.statusLabel}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="text-right font-semibold text-emerald-600">
-                                  {formatTHB(sale.totalAmount)}
-                                </TableCell>
-                                <TableCell>
-                                  <Link href={`/sales/${sale.id}`}>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                      <ExternalLink className="h-3.5 w-3.5" />
-                                    </Button>
-                                  </Link>
-                                </TableCell>
-                              </TableRow>
-                            ))
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
+                  <CardContent className="p-0 border-0">
+                    <CustomTable
+                      columns={recentSalesColumns}
+                      data={recentSalesSliced}
+                      className="w-full border-0 shadow-none"
+                      toolbar={<></>}
+                      pagination={{
+                        page: salesPage,
+                        perPage: salesPerPage,
+                        total: recentSalesTotal,
+                        onPageChange: setSalesPage,
+                        onPerPageChange: (newPerPage) => {
+                          setSalesPerPage(newPerPage);
+                          setSalesPage(1);
+                        },
+                        perPageOptions: [5, 10, 20],
+                      }}
+                      emptyState={{
+                        title: "ยังไม่มีประวัติการขาย",
+                        description: "ลูกค้ารายนี้ยังไม่มีการสั่งซื้อสินค้าใดๆ",
+                      }}
+                    />
                   </CardContent>
                 </Card>
               </TabsContent>
