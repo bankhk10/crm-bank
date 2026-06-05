@@ -101,7 +101,11 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <UserCog className="h-4 w-4" />,
     children: [
       { href: "/customers", label: "ข้อมูลลูกค้า" },
-      { href: "/credit-limits", label: "จัดการวงเงินลูกค้า", permissionKey: "menu.credit_limits" },
+      {
+        href: "/credit-limits",
+        label: "จัดการวงเงินลูกค้า",
+        permissionKey: "menu.credit_limits",
+      },
       // { href: "/temporary-credit-limits", label: "วงเงินเครดิตชั่วคราว", permissionKey: "menu.temporary_credit_limits" },
     ],
   },
@@ -130,9 +134,10 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <ShieldCheck className="h-4 w-4" />,
   },
   {
-    href: "https://docs.google.com/document/d/1Jo8RL9S1fwIqEJQc0xASSLnZp8ElkQ8J7G1T9NvGqkc/edit?usp=sharing",
+    // href: "https://docs.google.com/document/d/1Jo8RL9S1fwIqEJQc0xASSLnZp8ElkQ8J7G1T9NvGqkc/edit?usp=sharing",
+    href: "/manual",
     label: "คู่มือ",
     icon: <BookOpen className="h-4 w-4" />,
-    target: "_blank",
+    // target: "_blank",
   },
 ];
