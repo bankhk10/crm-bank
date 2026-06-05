@@ -95,7 +95,9 @@ export type AuditableEntity =
   | "Employee"
   | "Company"
   | "Department"
-  | "Position";
+  | "Position"
+  | "Fulfillment"
+  | "Shipment";
 
 // Actions that require audit logging
 export const AUDITABLE_ACTIONS: Record<AuditableEntity, AuditAction[]> = {
@@ -111,6 +113,8 @@ export const AUDITABLE_ACTIONS: Record<AuditableEntity, AuditAction[]> = {
   Company: ["CREATE", "UPDATE", "DELETE"],
   Department: ["CREATE", "UPDATE", "DELETE"],
   Position: ["CREATE", "UPDATE", "DELETE"],
+  Fulfillment: ["UPDATE"],
+  Shipment: ["CREATE", "UPDATE", "DELETE"],
 };
 
 // ==========================================

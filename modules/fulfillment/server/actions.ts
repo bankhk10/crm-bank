@@ -10,8 +10,10 @@ import {
   getShipmentsUseCase,
   getShipmentByIdUseCase,
   deleteShipmentUseCase,
-
 } from "../application";
+import { FulfillmentRepository } from "../infrastructure/fulfillment.repository";
+import { auditLogger } from "@/lib/logger/audit-logger";
+import { createActionLogger } from "@/lib/logger/middleware";
 import { findSales } from "@/modules/sales/infrastructure/sale.repository";
 import { createShipmentDeliveryNotePdf } from "@/modules/create-pdf/application/generate-shipment-pdf";
 
@@ -43,9 +45,22 @@ export async function updateFulfillmentAction(id: string, payload: unknown) {
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
+  const { context } = createActionLogger("updateFulfillment", session as any);
 
   try {
+    const existingSale = await FulfillmentRepository.getSaleById(id);
     const sale = await updateFulfillmentUseCase(id, session.user.id, payload);
+
+    if (existingSale && sale) {
+      await auditLogger.logUpdate(
+        "Fulfillment",
+        sale.id,
+        JSON.parse(JSON.stringify(existingSale)),
+        JSON.parse(JSON.stringify(sale)),
+        context,
+        { module: "fulfillment", entityName: sale.saleNumber }
+      );
+    }
 
     revalidatePath(`/sales/${id}`);
     revalidatePath("/fulfillment");
@@ -137,9 +152,18 @@ export async function getShipmentsAction(saleId: string) {
 export async function createShipmentAction(saleId: string, payload: unknown) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  const { context } = createActionLogger("createShipment", session as any);
 
   try {
     const shipment = await createShipmentUseCase(saleId, session.user.id, payload);
+    
+    await auditLogger.logCreate(
+      "Shipment",
+      shipment.id,
+      JSON.parse(JSON.stringify(shipment)),
+      context,
+      { module: "fulfillment", entityName: `Shipment #${shipment.shipmentNumber}` }
+    );
     revalidatePath(`/fulfillment/${saleId}`);
     revalidatePath("/fulfillment");
     return { success: true, data: serializeData(shipment) };
@@ -155,9 +179,22 @@ export async function createShipmentAction(saleId: string, payload: unknown) {
 export async function updateShipmentAction(shipmentId: string, payload: unknown) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  const { context } = createActionLogger("updateShipment", session as any);
 
   try {
+    const existingShipment = await getShipmentByIdUseCase(shipmentId);
     const shipment = await updateShipmentUseCase(shipmentId, session.user.id, payload);
+    
+    if (existingShipment && shipment) {
+      await auditLogger.logUpdate(
+        "Shipment",
+        shipment.id,
+        JSON.parse(JSON.stringify(existingShipment)),
+        JSON.parse(JSON.stringify(shipment)),
+        context,
+        { module: "fulfillment", entityName: `Shipment #${shipment.shipmentNumber}` }
+      );
+    }
     if (shipment?.sale?.id) {
       revalidatePath(`/fulfillment/${shipment.sale.id}`);
       revalidatePath("/fulfillment");
@@ -192,12 +229,21 @@ export async function generateShipmentPdfAction(shipmentId: string) {
 export async function deleteShipmentAction(shipmentId: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  const { context } = createActionLogger("deleteShipment", session as any);
 
   try {
     const shipment = await getShipmentByIdUseCase(shipmentId);
     if (!shipment) throw new Error("ไม่พบการจัดส่ง");
     
     await deleteShipmentUseCase(shipmentId, session.user.id);
+    
+    await auditLogger.logDelete(
+      "Shipment",
+      shipmentId,
+      JSON.parse(JSON.stringify(shipment)),
+      context,
+      { module: "fulfillment", entityName: `Shipment #${shipment.shipmentNumber}` }
+    );
     
     if (shipment.saleId) {
       revalidatePath(`/fulfillment/${shipment.saleId}`);
