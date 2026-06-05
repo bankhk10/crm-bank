@@ -35,3 +35,13 @@ export interface AppLogFilter {
   limit?: number;
   offset?: number;
 }
+
+export interface LogStats {
+  auditLogs: { total: number; today: number };
+  securityLogs: { total: number; today: number };
+  highRiskEvents: number;
+  failedLoginsThisWeek: number;
+  errorsThisWeek: number;
+}
+
+export type LogEntry = Record<string, any>;

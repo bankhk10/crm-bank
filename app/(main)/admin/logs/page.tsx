@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { redirect } from "next/navigation";
-import LogViewerClient from "./log-viewer-client";
+import { LogsListView } from "@/modules/logs";
 
 export const metadata = {
   title: "Log Viewer | Admin",
@@ -37,7 +37,7 @@ export default async function LogViewerPage() {
       </div>
 
       <Suspense fallback={<LogViewerSkeleton />}>
-        <LogViewerClient />
+        <LogsListView />
       </Suspense>
     </div>
   );
