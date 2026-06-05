@@ -10,13 +10,14 @@ export async function findAuditLogs(filter: AuditLogFilter = {}) {
     entityType,
     action,
     userId,
+    search,
     startDate,
     endDate,
     limit = 50,
     offset = 0,
   } = filter;
 
-  const where = {
+  const where: any = {
     ...(entityType && { entityType }),
     ...(action && { action }),
     ...(userId && { userId }),
@@ -27,6 +28,14 @@ export async function findAuditLogs(filter: AuditLogFilter = {}) {
       },
     }),
   };
+
+  if (search) {
+    where.OR = [
+      { userName: { contains: search, mode: "insensitive" } },
+      { userEmail: { contains: search, mode: "insensitive" } },
+      { entityName: { contains: search, mode: "insensitive" } },
+    ];
+  }
 
   const logs = await prisma.auditLog.findMany({
     where,
@@ -82,6 +91,7 @@ export async function findSecurityLogs(filter: SecurityLogFilter = {}) {
     severity,
     userId,
     ipAddress,
+    search,
     minRiskScore,
     startDate,
     endDate,
@@ -89,7 +99,7 @@ export async function findSecurityLogs(filter: SecurityLogFilter = {}) {
     offset = 0,
   } = filter;
 
-  const where = {
+  const where: any = {
     ...(eventType && { eventType }),
     ...(severity && { severity }),
     ...(userId && { userId }),
@@ -102,6 +112,14 @@ export async function findSecurityLogs(filter: SecurityLogFilter = {}) {
       },
     }),
   };
+
+  if (search) {
+    where.OR = [
+      { user: { name: { contains: search, mode: "insensitive" } } },
+      { user: { email: { contains: search, mode: "insensitive" } } },
+      { ipAddress: { contains: search, mode: "insensitive" } },
+    ];
+  }
 
   const logs = await prisma.securityLog.findMany({
     where,
@@ -159,13 +177,14 @@ export async function findApplicationLogs(filter: AppLogFilter = {}) {
     level,
     module,
     requestId,
+    search,
     startDate,
     endDate,
     limit = 100,
     offset = 0,
   } = filter;
 
-  const where = {
+  const where: any = {
     ...(level && { level }),
     ...(module && { module }),
     ...(requestId && { requestId }),
@@ -176,6 +195,13 @@ export async function findApplicationLogs(filter: AppLogFilter = {}) {
       },
     }),
   };
+
+  if (search) {
+    where.OR = [
+      { message: { contains: search, mode: "insensitive" } },
+      { module: { contains: search, mode: "insensitive" } },
+    ];
+  }
 
   const logs = await prisma.applicationLog.findMany({
     where,

@@ -84,6 +84,7 @@ export function LogsListView() {
           offset,
           ...(entityTypeFilter !== "all" && { entityType: entityTypeFilter }),
           ...(actionFilter !== "all" && { action: actionFilter as any }),
+          ...(searchQuery && { search: searchQuery }),
         };
         const result = await getAuditLogsAction(filter);
         setLogs(result.logs);
@@ -96,6 +97,7 @@ export function LogsListView() {
           ...(eventTypeFilter !== "all" && {
             eventType: eventTypeFilter as any,
           }),
+          ...(searchQuery && { search: searchQuery }),
         };
         const result = await getSecurityLogsAction(filter);
         setLogs(result.logs);
@@ -105,6 +107,7 @@ export function LogsListView() {
           limit: pageSize,
           offset,
           ...(severityFilter !== "all" && { level: severityFilter as any }),
+          ...(searchQuery && { search: searchQuery }),
         };
         const result = await getApplicationLogsAction(filter);
         setLogs(result.logs);
@@ -124,6 +127,7 @@ export function LogsListView() {
     actionFilter,
     severityFilter,
     eventTypeFilter,
+    searchQuery,
   ]);
 
   useEffect(() => {
@@ -188,6 +192,12 @@ export function LogsListView() {
                   placeholder="ค้นหา..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      setPage(1);
+                      handleRefresh();
+                    }
+                  }}
                   className="pl-10 w-48"
                 />
               </div>

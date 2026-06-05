@@ -8,6 +8,7 @@ export interface AuditLogFilter {
   entityType?: string;
   action?: AuditAction;
   userId?: string;
+  search?: string;
   startDate?: Date;
   endDate?: Date;
   limit?: number;
@@ -19,6 +20,7 @@ export interface SecurityLogFilter {
   severity?: LogSeverity;
   userId?: string;
   ipAddress?: string;
+  search?: string;
   minRiskScore?: number;
   startDate?: Date;
   endDate?: Date;
@@ -30,6 +32,7 @@ export interface AppLogFilter {
   level?: LogSeverity;
   module?: string;
   requestId?: string;
+  search?: string;
   startDate?: Date;
   endDate?: Date;
   limit?: number;
