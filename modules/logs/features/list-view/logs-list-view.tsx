@@ -232,6 +232,8 @@ export function LogsListView() {
                     <SelectItem value="Product">Product</SelectItem>
                     <SelectItem value="User">User</SelectItem>
                     <SelectItem value="CreditLimit">CreditLimit</SelectItem>
+                    <SelectItem value="Fulfillment">Fulfillment</SelectItem>
+                    <SelectItem value="Shipment">Shipment</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={actionFilter} onValueChange={setActionFilter}>
