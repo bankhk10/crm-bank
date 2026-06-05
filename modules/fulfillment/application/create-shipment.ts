@@ -64,6 +64,29 @@ export async function createShipmentUseCase(
 
   // 5. สร้าง Shipment ใน transaction
   const shipment = await db.$transaction(async (tx) => {
+    // Calculate total price and subtotal
+    const saleItemIds = validatedData.items.map((i) => i.saleItemId);
+    const saleItems = await tx.saleItem.findMany({
+      where: { id: { in: saleItemIds } },
+      select: { id: true, unitPrice: true, packageSizePerBox: true },
+    });
+    const priceItemMap = new Map(saleItems.map((si) => [si.id, si]));
+
+    const itemsWithPrice = validatedData.items.map((item) => {
+      const si = priceItemMap.get(item.saleItemId);
+      const unitPrice = Number(si?.unitPrice ?? 0);
+      const packSize = parseFloat(si?.packageSizePerBox?.toString() || "1");
+      const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+
+      const totalPrice = unitPrice * multiplier * item.quantity;
+      return { ...item, unitPrice, totalPrice };
+    });
+
+    const subtotal = itemsWithPrice.reduce((sum, i) => sum + i.totalPrice, 0);
+    const shippingDiscount = validatedData.shippingDiscount ?? 0;
+    const billDiscount = validatedData.billDiscount ?? 0;
+    const totalAmount = Math.max(0, subtotal - shippingDiscount - billDiscount);
+
     const newShipment = await ShipmentRepository.createShipment(
       saleId,
       {
@@ -79,10 +102,11 @@ export async function createShipmentUseCase(
         salesOrderNumber: validatedData.salesOrderNumber ?? null,
         shippingCompanyId: validatedData.shippingCompanyId ?? null,
         notes: validatedData.notes ?? null,
-        shippingDiscount: validatedData.shippingDiscount ?? 0,
-        billDiscount: validatedData.billDiscount ?? 0,
+        shippingDiscount,
+        billDiscount,
         createdById: userId,
-        items: validatedData.items,
+        items: itemsWithPrice,
+        totalAmount,
       },
       tx,
     );

@@ -50,41 +50,87 @@ export async function updateShipmentUseCase(
     }
   }
 
-  // Build update payload
-  const updatePayload: Parameters<typeof ShipmentRepository.updateShipment>[1] = {
-    ...(newStatus && { status: newStatus }),
-    ...(validatedData.scheduledDate !== undefined && {
-      scheduledDate: validatedData.scheduledDate
-        ? new Date(validatedData.scheduledDate)
-        : null,
-    }),
-    ...(validatedData.actualDate !== undefined && {
-      actualDate: validatedData.actualDate ? new Date(validatedData.actualDate) : null,
-    }),
-    ...(validatedData.shippingCompanyId !== undefined && {
-      shippingCompanyId: validatedData.shippingCompanyId,
-    }),
-    ...(validatedData.paymentDate !== undefined && {
-      paymentDate: validatedData.paymentDate ? new Date(validatedData.paymentDate) : null,
-    }),
-    ...(validatedData.dueDate !== undefined && {
-      dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : null,
-    }),
-    ...(validatedData.salesOrderNumber !== undefined && {
-      salesOrderNumber: validatedData.salesOrderNumber,
-    }),
-    ...(validatedData.notes !== undefined && { notes: validatedData.notes }),
-    ...(validatedData.shippingDiscount !== undefined && { shippingDiscount: validatedData.shippingDiscount }),
-    ...(validatedData.billDiscount !== undefined && { billDiscount: validatedData.billDiscount }),
-    ...(validatedData.items !== undefined && { items: validatedData.items }),
-  };
-
-  // ถ้าเปลี่ยนเป็น DELIVERED และไม่มี actualDate → ใช้เวลาปัจจุบัน
-  if (newStatus === "DELIVERED" && !updatePayload.actualDate) {
-    updatePayload.actualDate = new Date();
-  }
-
   await db.$transaction(async (tx) => {
+    // Build update payload
+    const updatePayload: Parameters<typeof ShipmentRepository.updateShipment>[1] = {
+      ...(newStatus && { status: newStatus }),
+      ...(validatedData.scheduledDate !== undefined && {
+        scheduledDate: validatedData.scheduledDate
+          ? new Date(validatedData.scheduledDate)
+          : null,
+      }),
+      ...(validatedData.actualDate !== undefined && {
+        actualDate: validatedData.actualDate ? new Date(validatedData.actualDate) : null,
+      }),
+      ...(validatedData.shippingCompanyId !== undefined && {
+        shippingCompanyId: validatedData.shippingCompanyId,
+      }),
+      ...(validatedData.paymentDate !== undefined && {
+        paymentDate: validatedData.paymentDate ? new Date(validatedData.paymentDate) : null,
+      }),
+      ...(validatedData.dueDate !== undefined && {
+        dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : null,
+      }),
+      ...(validatedData.salesOrderNumber !== undefined && {
+        salesOrderNumber: validatedData.salesOrderNumber,
+      }),
+      ...(validatedData.notes !== undefined && { notes: validatedData.notes }),
+      ...(validatedData.shippingDiscount !== undefined && { shippingDiscount: validatedData.shippingDiscount }),
+      ...(validatedData.billDiscount !== undefined && { billDiscount: validatedData.billDiscount }),
+    };
+
+    // Calculate total amount if items or discounts are updated
+    if (
+      validatedData.items ||
+      validatedData.shippingDiscount !== undefined ||
+      validatedData.billDiscount !== undefined
+    ) {
+      const shippingDiscount =
+        validatedData.shippingDiscount !== undefined
+          ? validatedData.shippingDiscount || 0
+          : Number(shipment.shippingDiscount || 0);
+      const billDiscount =
+        validatedData.billDiscount !== undefined
+          ? validatedData.billDiscount || 0
+          : Number(shipment.billDiscount || 0);
+
+      let subtotal = 0;
+
+      if (validatedData.items) {
+        const saleItemIds = validatedData.items.map((i) => i.saleItemId);
+        const saleItems = await tx.saleItem.findMany({
+          where: { id: { in: saleItemIds } },
+          select: { id: true, unitPrice: true, packageSizePerBox: true },
+        });
+        const itemMap = new Map(saleItems.map((si) => [si.id, si]));
+
+        const itemsWithPrice = validatedData.items.map((item) => {
+          const si = itemMap.get(item.saleItemId);
+          const unitPrice = Number(si?.unitPrice ?? 0);
+          const packSize = parseFloat(si?.packageSizePerBox?.toString() || "1");
+          const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+
+          const totalPrice = unitPrice * multiplier * item.quantity;
+          return { ...item, unitPrice, totalPrice };
+        });
+
+        subtotal = itemsWithPrice.reduce((sum, i) => sum + i.totalPrice, 0);
+        updatePayload.items = itemsWithPrice;
+      } else {
+        subtotal = shipment.items.reduce(
+          (sum, i) => sum + Number(i.totalPrice),
+          0,
+        );
+      }
+
+      updatePayload.totalAmount = Math.max(0, subtotal - shippingDiscount - billDiscount);
+    }
+
+    // ถ้าเปลี่ยนเป็น DELIVERED และไม่มี actualDate → ใช้เวลาปัจจุบัน
+    if (newStatus === "DELIVERED" && !updatePayload.actualDate && !shipment.actualDate) {
+      updatePayload.actualDate = new Date();
+    }
+
     // 1. อัพเดท Shipment record
     await ShipmentRepository.updateShipment(shipmentId, updatePayload, tx);
 
@@ -115,7 +161,7 @@ export async function updateShipmentUseCase(
             status: newSaleDeliveryStatus as any,
             // ตั้ง deliveryDate ของ Sale เมื่อส่งครบ
             ...(isFullyDelivered && {
-              deliveryDate: updatePayload.actualDate ?? updatePayload.scheduledDate ?? new Date(),
+              deliveryDate: updatePayload.actualDate ?? updatePayload.scheduledDate ?? shipment.actualDate ?? shipment.scheduledDate ?? new Date(),
             }),
           },
         });
