@@ -28,6 +28,7 @@
 - **CustomerImage**: รูปลูกค้า
 - **CreditLimit**: วงเงินเครดิตถาวร
 - **TemporaryCreditLimit**: วงเงินเครดิตชั่วคราว (มี request/approve)
+- **PromotionalBudget / PromotionalBudgetDetail**: งบประมาณส่งเสริมการขายและการตลาดรายปี
 
 ### 2.3 Products & Inventory
 
@@ -42,6 +43,8 @@
 - **Sale**: ใบขาย (สถานะ + การชำระเงิน + จัดส่ง)
 - **SaleItem / SaleItemLot**: รายการสินค้าและ LOT ที่ใช้
 - **SaleStatusHistory**: ประวัติสถานะใบขาย
+- **ShippingCompany / CustomerShippingCompany**: บริษัทขนส่งที่ให้บริการลูกค้า
+- **Shipment**: รายการจัดส่งสินค้า (รองรับ Split Shipment)
 
 ### 2.5 Points & Reporting
 
@@ -66,6 +69,7 @@
 ```
 PENDING → PENDING_APPROVAL → APPROVED → AWAITING_PAYMENT → PAID
 → AWAITING_DELIVERY → DELIVERED → DELIVERY_COMPLETED → COMPLETED
+(Note: AWAITING_DELIVERY can also go to PARTIALLY_DELIVERED if split shipment)
 
 Alternative:
 - PENDING_APPROVAL → REJECTED / WAITING_FOR_CORRECTION
@@ -85,6 +89,11 @@ Alternative:
 - `CustomerStatus`: ACTIVE, INACTIVE, SUSPENDED
 - `CreditLimitStatus`: ACTIVE, SUSPENDED, EXPIRED
 - `TemporaryCreditStatus`: PENDING, APPROVED, REJECTED, EXPIRED
+- `PromotionalBudgetType`: SALES_PROMOTION, MARKETING
+
+### 3.5 Fulfillment
+
+- `ShippingCompanyStatus`: ACTIVE, INACTIVE
 
 ### 3.4 RBAC Access
 

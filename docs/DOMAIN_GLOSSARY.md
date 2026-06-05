@@ -21,9 +21,9 @@
 
 ### Customer
 ลูกค้า | Fields: `id`, `customerCode`, `customerType`, `name`, `status`
-- Types: `DEALER` → `SUBDEALER` → `FARMER` / `BROKER`
+- Types: `DEALER` → `SUBDEALER` → `FARMER` (uses `farmPlots` JSON) / `BROKER`
 - Unique: `customerCode`
-- Related: CreditLimit, Sale, parentDealer, responsibleEmployee
+- Related: CreditLimit, PromotionalBudget, ShippingCompany, Sale, parentDealer, responsibleEmployee
 
 ### Company
 บริษัท | Fields: `id`, `name`, `companyCode`, `status`
@@ -40,6 +40,14 @@
 - Unique: `saleNumber`
 - Related: Customer, Employee, SaleItem[], StatusHistory[]
 
+### PromotionalBudget
+งบโปรโมชั่น | Fields: `id`, `customerId`, `year`, `salesPromotionLimit`, `marketingLimit`
+- Related: Customer, PromotionalBudgetDetail[]
+
+### ShippingCompany
+บริษัทขนส่ง | Fields: `id`, `name`, `status`
+- Related: CustomerShippingCompany[], Sale[], Shipment[]
+
 ---
 
 ## 2. Status Definitions
@@ -48,6 +56,7 @@
 ```
 PENDING → PENDING_APPROVAL → APPROVED → AWAITING_PAYMENT → PAID → AWAITING_DELIVERY
 → DELIVERED → DELIVERY_COMPLETED → COMPLETED
+(Note: AWAITING_DELIVERY can also go to PARTIALLY_DELIVERED if split shipment)
 
 Alternative:
 - PENDING_APPROVAL → REJECTED
@@ -65,6 +74,7 @@ Alternative:
 | PAID | ชำระเงินแล้ว | Deliver |
 | AWAITING_DELIVERY | รอจัดส่ง | Mark delivered |
 | DELIVERED | ระหว่างขนส่ง | Confirm |
+| PARTIALLY_DELIVERED | ส่งบางส่วนแล้ว | Confirm rest of shipments |
 | DELIVERY_COMPLETED | ส่งเสร็จแล้ว | Complete |
 | COMPLETED | เสร็จสิ้น | Terminal |
 | CANCELLED | ยกเลิก | Terminal |
