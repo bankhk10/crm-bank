@@ -216,13 +216,13 @@ export function CustomerSalesDashboard() {
               {isSubDealer ? `${parentIndex! + 1}.${index + 1}` : index + 1}
             </Badge>
           </TableCell>
-          <TableCell>
-            <div className="flex items-center gap-2">
+          <TableCell className="max-w-[200px] sm:max-w-none">
+            <div className="flex items-center gap-2 min-w-0">
               {!isSubDealer && hasSubDealers && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 hover:bg-slate-200 rounded-md"
+                  className="h-6 w-6 p-0 shrink-0 hover:bg-slate-200 rounded-md"
                   onClick={() => toggleDealer(c.id)}
                 >
                   {isExpanded ? (
@@ -234,21 +234,22 @@ export function CustomerSalesDashboard() {
               )}
               {/* visually indent sub-dealers */}
               <div
-                className={cn(isSubDealer && "pl-6 flex items-center gap-1.5")}
+                className={cn("min-w-0", isSubDealer && "pl-6 flex items-center gap-1.5")}
               >
                 {isSubDealer && (
-                  <span className="text-slate-400 font-mono">└─</span>
+                  <span className="text-slate-400 font-mono shrink-0">└─</span>
                 )}
-                <div>
+                <div className="min-w-0">
                   <p
                     className={cn(
-                      "font-medium text-slate-900",
+                      "font-medium text-slate-900 truncate",
                       isSubDealer && "text-slate-700 text-sm",
                     )}
+                    title={c.name}
                   >
                     {c.name}
                   </p>
-                  <p className="text-xs text-slate-500">{c.code}</p>
+                  <p className="text-xs text-slate-500 truncate" title={c.code}>{c.code}</p>
                 </div>
               </div>
             </div>
@@ -554,24 +555,24 @@ export function CustomerSalesDashboard() {
                   <UserCheck className="w-4 h-4 mr-1" />
                   ข้อมูลการขายของพนักงาน
                 </TabsTrigger>
-
-                {/* Search query box inside filter panel to streamline UI */}
-                <div className="space-y-1.5 w-full sm:w-auto flex-1 min-w-[400px] mx-4">
-                  <div className="relative h-10">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder={
-                        activeTab === "customers"
-                          ? "ค้นหาลูกค้า"
-                          : "ค้นหาพนักงานขาย"
-                      }
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 h-10"
-                    />
-                  </div>
-                </div>
               </TabsList>
+
+              {/* Search query box moved below TabsList */}
+              <div className="w-full sm:max-w-[400px]">
+                <div className="relative h-10">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={
+                      activeTab === "customers"
+                        ? "ค้นหาลูกค้า..."
+                        : "ค้นหาพนักงานขาย..."
+                    }
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 h-10 w-full bg-white shadow-sm border-slate-200"
+                  />
+                </div>
+              </div>
 
               <TabsContent value="customers">
                 {/* Table */}
@@ -728,12 +729,12 @@ export function CustomerSalesDashboard() {
                                     {idx + 1}
                                   </Badge>
                                 </TableCell>
-                                <TableCell>
-                                  <div>
-                                    <p className="font-semibold text-slate-900 leading-tight">
+                                <TableCell className="max-w-[200px] sm:max-w-none">
+                                  <div className="min-w-0">
+                                    <p className="font-semibold text-slate-900 leading-tight truncate" title={s.name}>
                                       {s.name}
                                     </p>
-                                    <p className="text-xs text-slate-500 mt-0.5">
+                                    <p className="text-xs text-slate-500 mt-0.5 truncate" title={s.employeeCode}>
                                       {s.employeeCode}
                                     </p>
                                   </div>
