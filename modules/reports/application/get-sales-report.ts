@@ -1,7 +1,6 @@
 import { ReportType } from "../types";
 import { DataAccessLevel } from "@/lib/db";
 import { startOfYear, endOfYear, format } from "date-fns";
-import { auth } from "@/modules/auth/infrastructure/next-auth";
 import * as repo from "../infrastructure/reports.repository";
 
 // Helper to get team employee IDs (employees with same manager)
@@ -14,9 +13,7 @@ async function getTeamEmployeeIds(session: {
   return repo.findTeamEmployeeIds(employeeId, managerId);
 }
 
-export async function getFilterOptions() {
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
+export async function getFilterOptions(session: any) {
 
   const viewScope =
     session.user.dataAccessByResource["report"] ||
@@ -62,12 +59,11 @@ export async function getFilterOptions() {
 export async function getReportSummary(
   year: number,
   type: ReportType,
+  session: any,
   entityId?: string,
 ) {
   if (!entityId) return null;
 
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
 
   const viewScope =
     session.user.dataAccessByResource["report"] ||
@@ -172,13 +168,12 @@ export async function getReportSummary(
 export async function getOrderHistory(
   year: number,
   type: ReportType,
+  session: any,
   entityId?: string,
-  limit = 50,
+  limit: number = 10,
 ) {
   if (!entityId) return [];
 
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
 
   const viewScope =
     session.user.dataAccessByResource["report"] ||

@@ -1,16 +1,14 @@
 import { db as prisma } from "@/lib/db";
 import * as repo from "../infrastructure/reports.repository";
 import { format, differenceInDays } from "date-fns";
-import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { DataAccessLevel } from "@/lib/db";
 import { getTeamEmployeeIds } from "./helpers";
+import { CustomerListItem, SalespersonListItem } from "../types";
 
 // REPORT FILTER OPTIONS
 // ============================================
 
-export async function getReportFilterOptions() {
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
+export async function getReportFilterOptions(session: any) {
 
   const viewScope =
     session.user.dataAccessByResource["report"] ||
@@ -106,23 +104,9 @@ export async function getReportFilterOptions() {
 // CUSTOMER LIST FOR CUSTOMER REPORT PAGE
 // ============================================
 
-export interface CustomerListItem {
-  id: string;
-  code: string;
-  name: string;
-  type: string;
-  province: string;
-  totalSales: number;
-  orderCount: number;
-  avgOrderValue: number;
-  purchaseFrequency: number;
-  lifetimeValue: number;
-  lastPurchaseDate?: string;
-}
 
-export async function getAllCustomersForReport(): Promise<CustomerListItem[]> {
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
+
+export async function getAllCustomersForReport(session: any): Promise<CustomerListItem[]> {
 
   const viewScope =
     session.user.dataAccessByResource["report"] ||
@@ -247,24 +231,11 @@ export async function getAllCustomersForReport(): Promise<CustomerListItem[]> {
 // SALESPERSON LIST FOR SALESPERSON REPORT PAGE
 // ============================================
 
-export interface SalespersonListItem {
-  id: string;
-  name: string;
-  employeeCode: string;
-  department: string;
-  totalSales: number;
-  orderCount: number;
-  avgOrderValue: number;
-  customerCount: number;
-  totalPoints: number;
-  lastSaleDate?: string;
-}
 
-export async function getAllSalespersonsForReport(): Promise<
+
+export async function getAllSalespersonsForReport(session: any): Promise<
   SalespersonListItem[]
 > {
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
 
   const viewScope =
     session.user.dataAccessByResource["report"] ||

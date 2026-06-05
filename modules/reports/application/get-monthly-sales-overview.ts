@@ -1,5 +1,4 @@
 import * as repo from "../infrastructure/reports.repository";
-import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { MonthlySalesOverviewData } from "../types";
 
 const THAI_MONTHS = [
@@ -32,11 +31,7 @@ const THAI_MONTHS_SHORT = [
   "ธ.ค.",
 ];
 
-export async function getMonthlySalesOverview(
-  year: number,
-): Promise<MonthlySalesOverviewData> {
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
+export async function getMonthlySalesOverview(year: number, session: any): Promise<MonthlySalesOverviewData> {
 
   // Fetch all three datasets in parallel
   const [totalSales, salesNotes, invoices] = await Promise.all([

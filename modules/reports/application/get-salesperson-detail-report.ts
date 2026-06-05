@@ -1,7 +1,6 @@
 import * as repo from "../infrastructure/reports.repository";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { DataAccessLevel } from "@/lib/db";
 import { buildScopeFilter } from "./helpers";
 import type { SalespersonDetailReportData } from "../types";
@@ -10,11 +9,7 @@ import type { SalespersonDetailReportData } from "../types";
 // SALESPERSON DETAIL REPORT
 // ============================================
 
-export async function getSalespersonDetailReport(
-  employeeId: string,
-): Promise<SalespersonDetailReportData | null> {
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
+export async function getSalespersonDetailReport(employeeId: string, session: any): Promise<SalespersonDetailReportData | null> {
 
   const viewScope =
     session.user.dataAccessByResource["report"] ||

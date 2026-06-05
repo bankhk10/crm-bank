@@ -2,35 +2,48 @@
 
 import * as app from "../application";
 import { DateRangeFilter, ReportType } from "../types";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
+
+async function getAuthSession() {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+  return session;
+}
 
 // ==========================================
 // Main Reports
 // ==========================================
 
 export async function getTimeSalesReportAction(filter: DateRangeFilter) {
-  return app.getTimeSalesReport(filter);
+  const session = await getAuthSession();
+  return app.getTimeSalesReport(filter, session);
 }
 
 export async function getProductSalesReportAction(filter: DateRangeFilter) {
-  return app.getProductSalesReport(filter);
+  const session = await getAuthSession();
+  return app.getProductSalesReport(filter, session);
 }
 
 export async function getProductGroupSalesReportAction(
   filter: DateRangeFilter,
 ) {
-  return app.getProductGroupSalesReport(filter);
+  const session = await getAuthSession();
+  return app.getProductGroupSalesReport(filter, session);
 }
 
 export async function getCustomerSalesReportAction(filter: DateRangeFilter) {
-  return app.getCustomerSalesReport(filter);
+  const session = await getAuthSession();
+  return app.getCustomerSalesReport(filter, session);
 }
 
 export async function getSalespersonSalesReportAction(filter: DateRangeFilter) {
-  return app.getSalespersonSalesReport(filter);
+  const session = await getAuthSession();
+  return app.getSalespersonSalesReport(filter, session);
 }
 
 export async function getExecutiveDashboardReportAction(filter: DateRangeFilter) {
-  return app.getExecutiveDashboardReport(filter);
+  const session = await getAuthSession();
+  return app.getExecutiveDashboardReport(filter, session);
 }
 
 // ==========================================
@@ -38,15 +51,18 @@ export async function getExecutiveDashboardReportAction(filter: DateRangeFilter)
 // ==========================================
 
 export async function getReportFilterOptionsAction() {
-  return app.getReportFilterOptions();
+  const session = await getAuthSession();
+  return app.getReportFilterOptions(session);
 }
 
 export async function getAllCustomersForReportAction() {
-  return app.getAllCustomersForReport();
+  const session = await getAuthSession();
+  return app.getAllCustomersForReport(session);
 }
 
 export async function getAllSalespersonsForReportAction() {
-  return app.getAllSalespersonsForReport();
+  const session = await getAuthSession();
+  return app.getAllSalespersonsForReport(session);
 }
 
 // ==========================================
@@ -54,7 +70,8 @@ export async function getAllSalespersonsForReportAction() {
 // ==========================================
 
 export async function getFilterOptionsAction() {
-  return app.getFilterOptions();
+  const session = await getAuthSession();
+  return app.getFilterOptions(session);
 }
 
 export async function getReportSummaryAction(
@@ -62,7 +79,8 @@ export async function getReportSummaryAction(
   type: ReportType,
   entityId?: string,
 ) {
-  return app.getReportSummary(year, type, entityId);
+  const session = await getAuthSession();
+  return app.getReportSummary(year, type, session, entityId);
 }
 
 export async function getOrderHistoryAction(
@@ -71,13 +89,16 @@ export async function getOrderHistoryAction(
   entityId?: string,
   limit?: number,
 ) {
-  return app.getOrderHistory(year, type, entityId, limit);
+  const session = await getAuthSession();
+  return app.getOrderHistory(year, type, session, entityId, limit);
 }
 
 export async function getMonthlySalesOverviewAction(year: number) {
-  return app.getMonthlySalesOverview(year);
+  const session = await getAuthSession();
+  return app.getMonthlySalesOverview(year, session);
 }
 
 export async function getSalespersonDetailReportAction(employeeId: string) {
-  return app.getSalespersonDetailReport(employeeId);
+  const session = await getAuthSession();
+  return app.getSalespersonDetailReport(employeeId, session);
 }

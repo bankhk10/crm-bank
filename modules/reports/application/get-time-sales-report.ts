@@ -17,19 +17,14 @@ import {
   getDayOfWeekThai,
   getQuarterLabel,
   getRegionFromProvince,
-} from "../utils";
-import { auth } from "@/modules/auth/infrastructure/next-auth";
+} from "./utils";
 import { DateRangeFilter, TimeSalesReportData } from "../types";
 import { buildScopeFilter } from "./helpers";
 
 // 1. TIME-BASED SALES REPORT
 // ============================================
 
-export async function getTimeSalesReport(
-  filter: DateRangeFilter,
-): Promise<TimeSalesReportData> {
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
+export async function getTimeSalesReport(filter: DateRangeFilter, session: any): Promise<TimeSalesReportData> {
 
   const viewScope =
     session.user.dataAccessByResource["report"] ||

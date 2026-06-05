@@ -10,16 +10,11 @@ import {
   parseISO,
 } from "date-fns";
 import { th } from "date-fns/locale";
-import { getDateRange, getRegionFromProvince } from "../utils";
-import { auth } from "@/modules/auth/infrastructure/next-auth";
+import { getDateRange, getRegionFromProvince } from "./utils";
 import { DateRangeFilter, ExecutiveDashboardData } from "../types";
 import { buildScopeFilter } from "./helpers";
 
-export async function getExecutiveDashboardReport(
-  filter: DateRangeFilter,
-): Promise<ExecutiveDashboardData> {
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
+export async function getExecutiveDashboardReport(filter: DateRangeFilter, session: any): Promise<ExecutiveDashboardData> {
 
   const viewScope =
     session.user.dataAccessByResource["report"] ||

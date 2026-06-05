@@ -15,8 +15,7 @@ import {
   subDays,
 } from "date-fns";
 import { th } from "date-fns/locale";
-import { getDateRange, getDayOfWeekThai, getQuarterLabel, getRegionFromProvince } from "../utils";
-import { auth } from "@/modules/auth/infrastructure/next-auth";
+import { getDateRange, getDayOfWeekThai, getQuarterLabel, getRegionFromProvince } from "./utils";
 import { DataAccessLevel } from "@/lib/db";
 import {
   DateRangeFilter,
@@ -32,11 +31,7 @@ import { getTeamEmployeeIds, buildScopeFilter } from "./helpers";
 // 4. CUSTOMER SALES REPORT
 // ============================================
 
-export async function getCustomerSalesReport(
-  filter: DateRangeFilter,
-): Promise<CustomerSalesReportData> {
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
+export async function getCustomerSalesReport(filter: DateRangeFilter, session: any): Promise<CustomerSalesReportData> {
 
   const viewScope =
     session.user.dataAccessByResource["report"] ||
