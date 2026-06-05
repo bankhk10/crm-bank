@@ -209,6 +209,54 @@ const recentSalesColumns: ColumnDef<any>[] = [
   },
 ];
 
+const pointsColumns: ColumnDef<any>[] = [
+  {
+    accessorKey: "saleNumber",
+    header: "เลขที่ขาย",
+    cell: (info) => <TruncatedCell value={info.getValue() as string} />,
+    meta: { minWidth: 120, width: 120, maxWidth: 120, align: "left" },
+  },
+  {
+    accessorKey: "productName",
+    header: "สินค้า",
+    cell: ({ row }) => (
+      <div>
+        <p className="text-sm">{row.original.productName}</p>
+        <p className="text-xs text-slate-500">{row.original.productCode}</p>
+      </div>
+    ),
+    meta: { minWidth: 150, width: 150, align: "left" },
+  },
+  {
+    accessorKey: "quantity",
+    header: "จำนวน",
+    cell: (info) => formatNumber(info.getValue() as number),
+    meta: { minWidth: 80, width: 80, align: "right" },
+  },
+  {
+    accessorKey: "pointPerUnit",
+    header: "คะแนน/หน่วย",
+    cell: (info) => <span className="text-muted-foreground">{formatNumber(info.getValue() as number)}</span>,
+    meta: { minWidth: 100, width: 100, align: "right" },
+  },
+  {
+    accessorKey: "totalPoints",
+    header: "คะแนนรวม",
+    cell: (info) => (
+      <span className="font-bold text-yellow-600">
+        +{formatNumber(info.getValue() as number)}
+      </span>
+    ),
+    meta: { minWidth: 100, width: 100, align: "right" },
+  },
+  {
+    accessorKey: "saleDate",
+    header: "วันที่",
+    cell: (info) => <span className="text-xs text-muted-foreground">{info.getValue() as string}</span>,
+    meta: { minWidth: 100, width: 100, align: "center" },
+  },
+];
+
 // ─── Component ─────────────────────────────
 interface SalespersonDetailViewProps {
   employeeId: string;
@@ -226,6 +274,10 @@ export default function SalespersonDetailView({
   // Pagination for Recent Sales
   const [salesPage, setSalesPage] = useState(1);
   const [salesPerPage, setSalesPerPage] = useState(10);
+
+  // Pagination for Points History
+  const [pointsPage, setPointsPage] = useState(1);
+  const [pointsPerPage, setPointsPerPage] = useState(10);
 
   const fetchData = useCallback(async () => {
     if (!employeeId) return;
@@ -286,6 +338,13 @@ export default function SalespersonDetailView({
   const recentSalesSliced = data.recentSales.slice(
     (salesPage - 1) * salesPerPage,
     salesPage * salesPerPage
+  );
+
+  // Pagination logic for Points History
+  const pointsTotal = data.pointHistory.length;
+  const pointsSliced = data.pointHistory.slice(
+    (pointsPage - 1) * pointsPerPage,
+    pointsPage * pointsPerPage
   );
 
   const { employee, kpi } = data;
@@ -881,62 +940,37 @@ export default function SalespersonDetailView({
 
               {/* ══════════ Tab: Points History ══════════ */}
               <TabsContent value="points" className="m-0 p-4 sm:p-6">
-                {data.pointHistory.length > 0 ? (
-                  <Card className="border border-slate-100">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Star className="h-4 w-4 text-yellow-500" />
-                        ประวัติคะแนนสะสม
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <div className="overflow-x-auto">
-                        <Table className="min-w-[600px]">
-                          <TableHeader>
-                            <TableRow className="bg-slate-50/50">
-                              <TableHead>เลขที่ขาย</TableHead>
-                              <TableHead>สินค้า</TableHead>
-                              <TableHead className="text-right">จำนวน</TableHead>
-                              <TableHead className="text-right">คะแนน/หน่วย</TableHead>
-                              <TableHead className="text-right">คะแนนรวม</TableHead>
-                              <TableHead className="text-center">วันที่</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {data.pointHistory.slice(0, 50).map((ph) => (
-                              <TableRow key={ph.id} className="hover:bg-slate-50/50">
-                                <TableCell className="font-medium text-sm">
-                                  {ph.saleNumber}
-                                </TableCell>
-                                <TableCell>
-                                  <p className="text-sm">{ph.productName}</p>
-                                  <p className="text-xs text-slate-500">{ph.productCode}</p>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  {formatNumber(ph.quantity)}
-                                </TableCell>
-                                <TableCell className="text-right text-muted-foreground">
-                                  {formatNumber(ph.pointPerUnit)}
-                                </TableCell>
-                                <TableCell className="text-right font-bold text-yellow-600">
-                                  +{formatNumber(ph.totalPoints)}
-                                </TableCell>
-                                <TableCell className="text-center text-xs text-muted-foreground">
-                                  {ph.saleDate}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Star className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                    <p>ไม่มีประวัติคะแนนสะสม</p>
-                  </div>
-                )}
+                <Card className="border border-slate-100">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Star className="h-4 w-4 text-yellow-500" />
+                      ประวัติคะแนนสะสม
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0 border-0">
+                    <CustomTable
+                      columns={pointsColumns}
+                      data={pointsSliced}
+                      className="w-full border-0 shadow-none"
+                      toolbar={<></>}
+                      pagination={{
+                        page: pointsPage,
+                        perPage: pointsPerPage,
+                        total: pointsTotal,
+                        onPageChange: setPointsPage,
+                        onPerPageChange: (newPerPage) => {
+                          setPointsPerPage(newPerPage);
+                          setPointsPage(1);
+                        },
+                        perPageOptions: [5, 10, 20],
+                      }}
+                      emptyState={{
+                        title: "ไม่มีประวัติคะแนนสะสม",
+                        description: "ยังไม่มีข้อมูลคะแนนสะสมสำหรับพนักงานรายนี้",
+                      }}
+                    />
+                  </CardContent>
+                </Card>
               </TabsContent>
             </div>
           </Tabs>
