@@ -124,7 +124,7 @@ export function LogsTable({
                 <>
                   <TableCell>
                     <Badge className={getEventTypeColor(log.eventType)}>
-                      {log.eventType.replace(/_/g, " ")}
+                      {log.eventType?.replace(/_/g, " ") || "-"}
                     </Badge>
                   </TableCell>
                   <TableCell>
