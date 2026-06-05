@@ -39,6 +39,7 @@ export async function listSalesUseCase(params: ListSalesParams) {
 
 export { createSaleUseCase } from "./create-sale";
 export { updateSaleUseCase } from "./update-sale";
+export { deleteSaleUseCase } from "./delete-sale";
 export {
   getSaleDetailForApproval,
   approveSaleUseCase,

@@ -12,6 +12,8 @@ import {
 } from "../infrastructure/sale.repository";
 import { db } from "@/lib/db";
 import { buildExplodedSaleAddresses } from "./address-builder";
+import { releaseStockUseCase as releaseStock } from "@/modules/products/application";
+import { revertPointsForSaleUseCase as revertPointsForSale } from "@/modules/points";
 
 // ─────────────────────────────────────────────
 // Helpers
@@ -109,99 +111,133 @@ export async function updateSaleUseCase(
     targetCustomer,
   );
 
-  // 8. Persist
-  const sale = await updateSale(id, {
-    existingSale,
-    customerId: body.customerId,
-    region: targetCustomer?.region || null,
-    employeeId: body.employeeId,
-    paymentTerm: body.paymentTerm,
-    creditDays: body.creditDays,
-    creditDueDate: body.creditDueDate ? new Date(body.creditDueDate) : null,
-    usePromotionalCredit: body.usePromotionalCredit,
-    promotionalCreditUsed: body.promotionalCreditUsed,
-    deliveryMethod: body.deliveryMethod,
-    pickupCompanyId: body.pickupCompanyId,
-    shippingCompanyId: body.shippingCompanyId,
-    saleDate: new Date(body.saleDate),
-    requestedDeliveryDate: body.requestedDeliveryDate
-      ? new Date(body.requestedDeliveryDate)
-      : null,
-    deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
-    deliveryUpdateCount: newDeliveryUpdateCount,
-    billingAddress: body.billingAddress,
-    useCustomShipping: body.useCustomShipping,
-    selectedAddressId: body.selectedAddressId,
+  // 8. Persist and orchestrate credit/stock in a transaction
+  const sale = await db.$transaction(async (tx) => {
+    // 8.1 Return credit limit if sale was approved and used credit
+    if (needsReapproval && existingSale.paymentTerm !== "PREPAID") {
+      const creditLimit = await tx.creditLimit.findFirst({
+        where: {
+          customerId: existingSale.customerId,
+          status: "ACTIVE",
+          deletedAt: null,
+        },
+      });
 
-    // Pass SaleAddress relation fields
-    companyAddressId: body.companyAddressId,
-    billingCustomerAddressId: body.billingCustomerAddressId,
-    shippingCustomerAddressId:
-      body.shippingCustomerAddressId || body.selectedAddressId,
-    pickupCompanyAddressId: body.pickupCompanyAddressId || body.pickupCompanyId || null,
-    shippingCompanyAddressId:
-      body.shippingCompanyAddressId || body.shippingCompanyId || null,
+      if (creditLimit) {
+        await tx.creditLimit.update({
+          where: { id: creditLimit.id },
+          data: {
+            usedAmount: { decrement: existingSale.totalAmount },
+            availableAmount: { increment: existingSale.totalAmount },
+          },
+        });
+      }
+    }
 
-    // Snapshots: Exploded Address Fields
-    ...explodedAddresses,
+    // 8.2 If reverting to PENDING, release stock and revert points
+    if (needsReapproval) {
+      await releaseStock(id, tx);
+      await revertPointsForSale(id, tx);
+    }
 
-    subtotalAmount: subtotal,
-    shippingCost: body.shippingCost,
-    otherCosts: body.otherCosts,
-    otherCostsDescription: body.otherCostsDescription,
-    totalAmount: total,
-    notes: body.notes,
-    userId,
-    needsReapproval,
-    items: body.items.map((item) => {
-      const product = productMap.get(item.productId);
-      const multiplier = getPackMultiplier(product?.packageSizePerBox as any);
-      return {
-        productId: item.productId,
-        // Product Snapshot
-        productCode: product?.productCode,
-        name: product?.name,
-        commonName: product?.commonName,
-        unit: product?.unit,
-        productGroupId: product?.productGroupId,
-        productGroupName: product?.productGroup?.name,
-        productABCTypeId: product?.productABCTypeId,
-        tradeNameGroupId: product?.tradeNameGroupId,
-        tradeNameGroupName: product?.tradeNameGroup?.description,
-        categoryId: product?.categoryId,
-        categoryName: product?.category?.description,
-        brand: product?.brand,
-        packageSize: product?.packageSize as any,
-        packageSizeUnit: product?.packageSizeUnit,
-        packageSizePerBox: product?.packageSizePerBox as any,
-        totalPackageSizePerBox: product?.totalPackageSizePerBox as any,
-        status: product?.status,
-        usedForPlants: product?.usedForPlants || [],
-        salesPoint: product?.salesPoint,
-        properties: product?.properties,
-        parentId: product?.parentId,
-        price: product?.price != null ? Number(product.price) : null,
-        cartonPrice: (() => {
-          const packSize = parseFloat(product?.packageSizePerBox?.toString() || "0");
-          if (!isNaN(packSize) && packSize > 0) {
-            return item.unitPrice * packSize;
-          }
-          return product?.cartonPrice != null
-            ? Number(product.cartonPrice)
-            : null;
-        })(),
-        promotionBudget:
-          item.promotionBudget != null ? Number(item.promotionBudget) : 0,
-        pointPerUnit: product?.pointPerUnit,
-        productABCTypeName: product?.productABCType?.name,
+    // 8.3 Update sale record
+    return updateSale(
+      id,
+      {
+        existingSale,
+        customerId: body.customerId,
+        region: targetCustomer?.region || null,
+        employeeId: body.employeeId,
+        paymentTerm: body.paymentTerm,
+        creditDays: body.creditDays,
+        creditDueDate: body.creditDueDate ? new Date(body.creditDueDate) : null,
+        usePromotionalCredit: body.usePromotionalCredit,
+        promotionalCreditUsed: body.promotionalCreditUsed,
+        deliveryMethod: body.deliveryMethod,
+        pickupCompanyId: body.pickupCompanyId,
+        shippingCompanyId: body.shippingCompanyId,
+        saleDate: new Date(body.saleDate),
+        requestedDeliveryDate: body.requestedDeliveryDate
+          ? new Date(body.requestedDeliveryDate)
+          : null,
+        deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
+        deliveryUpdateCount: newDeliveryUpdateCount,
+        billingAddress: body.billingAddress,
+        useCustomShipping: body.useCustomShipping,
+        selectedAddressId: body.selectedAddressId,
 
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        originalPrice: item.originalPrice,
-        priceModified: item.priceModified,
-        totalPrice: item.quantity * item.unitPrice * multiplier,
-      };
-    }),
+        // Pass SaleAddress relation fields
+        companyAddressId: body.companyAddressId,
+        billingCustomerAddressId: body.billingCustomerAddressId,
+        shippingCustomerAddressId:
+          body.shippingCustomerAddressId || body.selectedAddressId,
+        pickupCompanyAddressId: body.pickupCompanyAddressId || body.pickupCompanyId || null,
+        shippingCompanyAddressId:
+          body.shippingCompanyAddressId || body.shippingCompanyId || null,
+
+        // Snapshots: Exploded Address Fields
+        ...explodedAddresses,
+
+        subtotalAmount: subtotal,
+        shippingCost: body.shippingCost,
+        otherCosts: body.otherCosts,
+        otherCostsDescription: body.otherCostsDescription,
+        totalAmount: total,
+        notes: body.notes,
+        userId,
+        needsReapproval,
+        items: body.items.map((item) => {
+          const product = productMap.get(item.productId);
+          const multiplier = getPackMultiplier(product?.packageSizePerBox as any);
+          return {
+            productId: item.productId,
+            // Product Snapshot
+            productCode: product?.productCode,
+            name: product?.name,
+            commonName: product?.commonName,
+            unit: product?.unit,
+            productGroupId: product?.productGroupId,
+            productGroupName: product?.productGroup?.name,
+            productABCTypeId: product?.productABCTypeId,
+            tradeNameGroupId: product?.tradeNameGroupId,
+            tradeNameGroupName: product?.tradeNameGroup?.description,
+            categoryId: product?.categoryId,
+            categoryName: product?.category?.description,
+            brand: product?.brand,
+            packageSize: product?.packageSize as any,
+            packageSizeUnit: product?.packageSizeUnit,
+            packageSizePerBox: product?.packageSizePerBox as any,
+            totalPackageSizePerBox: product?.totalPackageSizePerBox as any,
+            status: product?.status,
+            usedForPlants: product?.usedForPlants || [],
+            salesPoint: product?.salesPoint,
+            properties: product?.properties,
+            parentId: product?.parentId,
+            price: product?.price != null ? Number(product.price) : null,
+            cartonPrice: (() => {
+              const packSize = parseFloat(product?.packageSizePerBox?.toString() || "0");
+              if (!isNaN(packSize) && packSize > 0) {
+                return item.unitPrice * packSize;
+              }
+              return product?.cartonPrice != null
+                ? Number(product.cartonPrice)
+                : null;
+            })(),
+            promotionBudget:
+              item.promotionBudget != null ? Number(item.promotionBudget) : 0,
+            pointPerUnit: product?.pointPerUnit,
+            productABCTypeName: product?.productABCType?.name,
+
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            originalPrice: item.originalPrice,
+            priceModified: item.priceModified,
+            totalPrice: item.quantity * item.unitPrice * multiplier,
+          };
+        }),
+      },
+      tx,
+    );
   });
 
   return { success: true as const, sale, existingSale };

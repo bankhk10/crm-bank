@@ -10,8 +10,8 @@ import {
   updateSaleUseCase,
   getSaleDetailUseCase,
   listSalesUseCase,
+  deleteSaleUseCase,
 } from "../application";
-import { softDeleteSale } from "../infrastructure/sale.repository";
 import {
   getSaleDetailForApproval,
   approveSaleUseCase,
@@ -93,7 +93,7 @@ export async function deleteSaleAction(id: string) {
   }
 
   try {
-    const deleted = await softDeleteSale(id, session.user.id);
+    const deleted = await deleteSaleUseCase(id, session.user.id);
     if (!deleted) {
       return { success: false, error: "Sale not found" };
     }
