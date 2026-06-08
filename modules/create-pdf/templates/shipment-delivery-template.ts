@@ -370,11 +370,8 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
     <!-- สรุปยอด -->
     <div class="summary-wrap" style="align-items: flex-start;">
       <div class="left-summary-area" style="flex: 1; margin-left: 15px; margin-right: 20px;">
-        <div class="promotional-budget-summary" style="margin-left: 0; margin-bottom: ${data.pendingItems && data.pendingItems.length > 0 ? '8px' : '4px'};">
-          ${data.promotionalBudgetTotal > 0 ? `งบส่งเสริมการขายรวม: ${formatNumber(data.promotionalBudgetTotal)} THB` : ""}
-        </div>
         ${data.pendingItems && data.pendingItems.length > 0 ? `
-        <div class="pending-items-box" style="margin-top: 4px;">
+        <div class="pending-items-box" style="margin-bottom: ${data.promotionalBudgetTotal > 0 ? '8px' : '4px'};">
           <span class="notes-label" style="font-size: 12px;">สินค้าที่ยังค้างจัดส่ง:</span>
           <div style="margin-left: 20px; margin-top: 4px; font-size: 12px; color: #374151;">
             ${data.pendingItems.map(item => `
@@ -386,6 +383,9 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
           </div>
         </div>
         ` : ""}
+        <div class="promotional-budget-summary" style="margin-left: 0; margin-top: 4px;">
+          ${data.promotionalBudgetTotal > 0 ? `งบส่งเสริมการขายรวม: ${formatNumber(data.promotionalBudgetTotal)} THB` : ""}
+        </div>
       </div>
       <div class="summary-box">
         <div class="summary-row">
