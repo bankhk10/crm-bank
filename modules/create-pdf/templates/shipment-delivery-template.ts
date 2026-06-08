@@ -386,6 +386,12 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
         <div class="promotional-budget-summary" style="margin-left: 0; margin-top: 4px;">
           ${data.promotionalBudgetTotal > 0 ? `งบส่งเสริมการขายรวม: ${formatNumber(data.promotionalBudgetTotal)} THB` : ""}
         </div>
+        ${data.otherCostsDescription ? `
+        <div style="margin-top: 4px; font-size: 12px; color: #374151;">
+          <span class="notes-label" style="font-size: 12px;">รายละเอียดส่วนลดหน้าบิล:</span>
+          <span>${data.otherCostsDescription}</span>
+        </div>
+        ` : ""}
       </div>
       <div class="summary-box">
         <div class="summary-row">
@@ -451,15 +457,6 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
       : ""
     }
     
-    ${data.otherCostsDescription
-      ? `
-    <div class="notes-section">
-      <span class="notes-label">รายละเอียดส่วนลดหน้าบิล:</span>
-      <span>${data.otherCostsDescription}</span>
-    </div>
-    `
-      : ""
-    }
 
     <!-- ลายเซ็น -->
     <div class="signature-section">
