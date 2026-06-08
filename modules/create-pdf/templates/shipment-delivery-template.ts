@@ -368,9 +368,24 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
     </div>
 
     <!-- สรุปยอด -->
-    <div class="summary-wrap">
-      <div class="promotional-budget-summary">
-        ${data.promotionalBudgetTotal > 0 ? `งบส่งเสริมการขายรวม: ${formatNumber(data.promotionalBudgetTotal)} THB` : ""}
+    <div class="summary-wrap" style="align-items: flex-start;">
+      <div class="left-summary-area" style="flex: 1; margin-left: 15px; margin-right: 20px;">
+        <div class="promotional-budget-summary" style="margin-left: 0; margin-bottom: ${data.pendingItems && data.pendingItems.length > 0 ? '8px' : '4px'};">
+          ${data.promotionalBudgetTotal > 0 ? `งบส่งเสริมการขายรวม: ${formatNumber(data.promotionalBudgetTotal)} THB` : ""}
+        </div>
+        ${data.pendingItems && data.pendingItems.length > 0 ? `
+        <div class="pending-items-box" style="margin-top: 4px;">
+          <span class="notes-label" style="font-size: 12px;">สินค้าที่ยังค้างจัดส่ง:</span>
+          <div style="margin-left: 20px; margin-top: 4px; font-size: 12px; color: #374151;">
+            ${data.pendingItems.map(item => `
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px; max-width: 280px;">
+                <span>${item.description}</span>
+                <span style="font-weight: 600;">${formatNumber(item.pendingQty)} ชิ้น</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ""}
       </div>
       <div class="summary-box">
         <div class="summary-row">
@@ -417,38 +432,20 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
       : ""
     }
 
-    ${(data.budgetDetails && data.budgetDetails.length > 0) || (data.pendingItems && data.pendingItems.length > 0)
+    ${data.budgetDetails && data.budgetDetails.length > 0
       ? `
-    <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 8px;">
-      ${data.budgetDetails && data.budgetDetails.length > 0 ? `
-      <div class="notes-section" style="flex: 1; margin-bottom: 0;">
-        <span class="notes-label">งบส่งเสริมการขาย:</span>
-        <div style="margin-left: 20px;">
-          ${data.budgetDetails.map(budget => `
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <span>${budget.type === 'SALES_PROMOTION' ? 'งบส่งเสริมการขาย (ระบุช่องเก็บ)' : 'งบส่งเสริมการตลาด (ระบุช่องเก็บ)'} 
-                ${budget.description ? ` - ${budget.description}` : ''}
-              </span>
-              <span style="font-weight: 600;">฿${formatNumber(budget.amount)}</span>
-            </div>
-          `).join('')}
-        </div>
+    <div class="notes-section">
+      <span class="notes-label">งบส่งเสริมการขาย:</span>
+      <div style="margin-left: 20px;">
+        ${data.budgetDetails.map(budget => `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span>${budget.type === 'SALES_PROMOTION' ? 'งบส่งเสริมการขาย (ระบุช่องเก็บ)' : 'งบส่งเสริมการตลาด (ระบุช่องเก็บ)'} 
+              ${budget.description ? ` - ${budget.description}` : ''}
+            </span>
+            <span style="font-weight: 600;">฿${formatNumber(budget.amount)}</span>
+          </div>
+        `).join('')}
       </div>
-      ` : '<div style="flex: 1;"></div>'}
-
-      ${data.pendingItems && data.pendingItems.length > 0 ? `
-      <div class="notes-section" style="flex: 1; margin-bottom: 0;">
-        <span class="notes-label">สินค้าที่ยังค้างจัดส่ง:</span>
-        <div style="margin-left: 20px;">
-          ${data.pendingItems.map(item => `
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <span>${item.description}</span>
-              <span style="font-weight: 600;">${formatNumber(item.pendingQty)} ชิ้น</span>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-      ` : '<div style="flex: 1;"></div>'}
     </div>
     `
       : ""
