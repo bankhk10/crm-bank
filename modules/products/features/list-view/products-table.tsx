@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { PlusCircle, Eye, Edit } from "lucide-react";
+import { PlusCircle, Eye, Edit, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -205,7 +205,7 @@ export function ProductsTable(props: ProductsTableProps) {
                                                 )}
                                             </div>
 
-                                            <div className="w-24 px-2 flex justify-end items-center gap-1">
+                                            <div className="w-auto px-2 flex justify-end items-center gap-1">
                                                 {canView && (
                                                     <ActionButton
                                                         href={`/products/${child.id}`}
@@ -220,6 +220,14 @@ export function ProductsTable(props: ProductsTableProps) {
                                                         icon={Edit}
                                                         label="แก้ไข"
                                                         colorClass="text-purple-600 border-transparent hover:bg-purple-50 shadow-none p-1.5 rounded-md"
+                                                    />
+                                                )}
+                                                {canManage && (
+                                                    <ActionButton
+                                                        href={`/products/${child.id}/manage`}
+                                                        icon={Settings}
+                                                        label="จัดการ"
+                                                        colorClass="text-green-600 border-transparent hover:bg-green-50 shadow-none p-1.5 rounded-md"
                                                     />
                                                 )}
                                             </div>
