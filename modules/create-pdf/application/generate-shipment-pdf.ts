@@ -66,7 +66,11 @@ export async function createShipmentDeliveryNotePdf(
   const sa = sale.saleAddress || {} as any;
 
   const allShipments = await db.shipment.findMany({
-    where: { saleId: shipment.saleId, status: { not: "CANCELLED" } },
+    where: { 
+      saleId: shipment.saleId, 
+      status: { not: "CANCELLED" },
+      shipmentNumber: { lte: shipment.shipmentNumber }
+    },
     include: { items: true },
   });
 
