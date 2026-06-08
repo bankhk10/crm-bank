@@ -61,6 +61,7 @@ export interface ShipmentDeliveryData {
   approvedBySignatureDate?: string;
   approvedBySignatureImage?: string;
   approvedByName?: string;
+  pendingItems?: { description: string; pendingQty: number }[];
 }
 
 function safeValue(value?: string | number | null) {
@@ -416,20 +417,38 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
       : ""
     }
 
-    ${data.budgetDetails && data.budgetDetails.length > 0
+    ${(data.budgetDetails && data.budgetDetails.length > 0) || (data.pendingItems && data.pendingItems.length > 0)
       ? `
-    <div class="notes-section">
-      <span class="notes-label">งบส่งเสริมการขาย:</span>
-      <div style="margin-left: 20px;">
-        ${data.budgetDetails.map(budget => `
-          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-            <span>${budget.type === 'SALES_PROMOTION' ? 'งบส่งเสริมการขาย (ระบุช่องเก็บ)' : 'งบส่งเสริมการตลาด (ระบุช่องเก็บ)'} 
-              ${budget.description ? ` - ${budget.description}` : ''}
-            </span>
-            <span style="font-weight: 600;">฿${formatNumber(budget.amount)}</span>
-          </div>
-        `).join('')}
+    <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 8px;">
+      ${data.budgetDetails && data.budgetDetails.length > 0 ? `
+      <div class="notes-section" style="flex: 1; margin-bottom: 0;">
+        <span class="notes-label">งบส่งเสริมการขาย:</span>
+        <div style="margin-left: 20px;">
+          ${data.budgetDetails.map(budget => `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span>${budget.type === 'SALES_PROMOTION' ? 'งบส่งเสริมการขาย (ระบุช่องเก็บ)' : 'งบส่งเสริมการตลาด (ระบุช่องเก็บ)'} 
+                ${budget.description ? ` - ${budget.description}` : ''}
+              </span>
+              <span style="font-weight: 600;">฿${formatNumber(budget.amount)}</span>
+            </div>
+          `).join('')}
+        </div>
       </div>
+      ` : '<div style="flex: 1;"></div>'}
+
+      ${data.pendingItems && data.pendingItems.length > 0 ? `
+      <div class="notes-section" style="flex: 1; margin-bottom: 0;">
+        <span class="notes-label">สินค้าที่ยังค้างจัดส่ง:</span>
+        <div style="margin-left: 20px;">
+          ${data.pendingItems.map(item => `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span>${item.description}</span>
+              <span style="font-weight: 600;">${formatNumber(item.pendingQty)} ชิ้น</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      ` : '<div style="flex: 1;"></div>'}
     </div>
     `
       : ""

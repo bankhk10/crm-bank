@@ -65,6 +65,22 @@ export async function createShipmentDeliveryNotePdf(
 
   const sa = sale.saleAddress || {} as any;
 
+  const allShipments = await db.shipment.findMany({
+    where: { saleId: shipment.saleId, status: { not: "CANCELLED" } },
+    include: { items: true },
+  });
+
+  const pendingItems = sale.items.map((si: any) => {
+    const shippedQty = allShipments.reduce((sum, sh) => {
+      const shItem = sh.items.find((i: any) => i.saleItemId === si.id);
+      return sum + (shItem ? shItem.quantity : 0);
+    }, 0);
+    return {
+      description: si.product?.name || si.name || "-",
+      pendingQty: si.quantity - shippedQty,
+    };
+  }).filter((item: any) => item.pendingQty > 0);
+
   const customerAddress = sa.address_line
     ? formatAddress({
       addressLine: sa.address_line,
@@ -184,6 +200,7 @@ export async function createShipmentDeliveryNotePdf(
     approvedBySignatureDate: safeFormatDate(sale.approvedBySignatureDate, "d MMMM yyyy"),
     approvedBySignatureImage: sale.approvedBySignatureImage,
     approvedByName: sale.approvedBy?.name || "-",
+    pendingItems,
   };
 
   const html = renderShipmentDeliveryTemplate(deliveryData as unknown as ShipmentDeliveryData);
