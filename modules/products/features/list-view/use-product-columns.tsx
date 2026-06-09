@@ -119,10 +119,10 @@ export function useProductColumns(
         header: "ราคาต่อหน่วย",
         meta: {
           headerAlign: "right",
-          minWidth: 100,
-          width: 100,
-          maxWidth: 110,
-          align: "right",
+          minWidth: 90,
+          width: 90,
+          maxWidth: 120,
+          align: "center",
         },
         cell: ({ row }) => {
           const price = row.original.price;
