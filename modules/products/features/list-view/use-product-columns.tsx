@@ -25,7 +25,7 @@ function StockBadge({
 }) {
   return (
     <span
-      className={`inline-flex items-center justify-center min-w-[3rem] rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums ${colorClass}`}
+      className={`inline-flex items-center justify-center min-w-[3rem] rounded-full px-2.5 py-0.5 text-[13px] font-medium tabular-nums shadow-sm ${colorClass}`}
     >
       {value.toLocaleString()}
     </span>
@@ -85,9 +85,9 @@ export function useProductColumns(
           <div className="flex flex-col py-0.5 gap-0.5">
             <TruncatedCell
               value={row.original.name ?? "-"}
-              className="text-sm font-semibold text-slate-800"
+              className="text-[15px] font-medium text-slate-900"
             />
-            <span className="text-[11px] font-medium text-slate-400 tracking-wide">
+            <span className="text-xs font-medium text-slate-500">
               {row.original.productCode ?? "-"}
             </span>
           </div>
@@ -107,7 +107,7 @@ export function useProductColumns(
           align: "center",
         },
         cell: ({ row }) => (
-          <span className="text-sm text-slate-600">
+          <span className="inline-flex text-[13px] font-medium text-slate-600 bg-slate-100/80 px-2.5 py-0.5 rounded-md">
             {row.original.unit ?? "-"}
           </span>
         ),
@@ -129,7 +129,7 @@ export function useProductColumns(
           if (price == null)
             return <span className="text-sm text-slate-400">-</span>;
           return (
-            <span className="text-sm font-semibold text-emerald-700 tabular-nums whitespace-nowrap">
+            <span className="text-[15px] font-medium text-emerald-700 tabular-nums whitespace-nowrap">
               ฿
               {Number(price).toLocaleString("th-TH", {
                 minimumFractionDigits: 2,

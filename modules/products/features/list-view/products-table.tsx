@@ -34,32 +34,32 @@ function ChildProductRow({
     canManage: boolean;
 }) {
     return (
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0 rounded-lg bg-white border border-slate-200 px-4 py-3 shadow-sm hover:border-blue-200 hover:shadow-md transition-all">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0 rounded-xl bg-white border border-slate-200/80 px-4 py-3.5 shadow-sm hover:border-slate-300 hover:shadow-md transition-all">
             {/* Product Info */}
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-                <span className="flex-shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-500 ring-1 ring-blue-100">
+            <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                <span className="flex-shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-50 text-slate-500 ring-1 ring-slate-200/60 shadow-sm">
                     <Package className="h-4 w-4" />
                 </span>
-                <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-800 truncate">{child.name}</p>
-                    <p className="text-[11px] font-medium text-slate-400 tracking-wide">{child.productCode}</p>
+                <div className="min-w-0 flex flex-col justify-center">
+                    <p className="text-[14px] font-medium text-slate-900 truncate">{child.name}</p>
+                    <p className="text-xs text-slate-500 truncate mt-0.5">{child.productCode}</p>
                 </div>
             </div>
 
             {/* Meta chips */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 sm:mx-4">
                 {child.cartonPrice != null && (
-                    <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-full px-2.5 py-0.5 ring-1 ring-emerald-100 tabular-nums">
+                    <span className="text-[13px] font-medium text-emerald-700 bg-emerald-50/80 rounded-full px-2.5 py-0.5 ring-1 ring-emerald-100/50 tabular-nums whitespace-nowrap shadow-sm">
                         ฿{Number(child.cartonPrice).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
                     </span>
                 )}
                 {child.unit && (
-                    <span className="text-xs text-slate-500 bg-slate-100 rounded-full px-2.5 py-0.5">
+                    <span className="text-[13px] font-medium text-slate-600 bg-slate-100/80 rounded-full px-2.5 py-0.5 whitespace-nowrap shadow-sm">
                         {child.unit}
                     </span>
                 )}
                 {child.status && (
-                    <ProductStatusBadge status={child.status} className="text-[11px] px-2 py-0.5" />
+                    <ProductStatusBadge status={child.status} className="text-xs px-2 py-0.5 shadow-sm" />
                 )}
             </div>
 
@@ -229,11 +229,11 @@ export function ProductsTable(props: ProductsTableProps) {
                         return (
                             <div className="bg-slate-50 border-t border-slate-200">
                                 {/* Sub-row header */}
-                                <div className="px-6 py-2 flex items-center gap-2 border-b border-slate-200/80">
-                                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                <div className="px-6 py-2.5 flex items-center gap-2 border-b border-slate-200/80 bg-slate-50/50">
+                                    <span className="text-xs font-semibold text-slate-600 tracking-wider">
                                         สินค้าย่อย
                                     </span>
-                                    <span className="inline-flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">
+                                    <span className="inline-flex items-center justify-center h-[18px] min-w-[18px] px-1 rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold shadow-sm">
                                         {children.length}
                                     </span>
                                 </div>
