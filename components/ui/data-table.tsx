@@ -89,7 +89,7 @@ export function DataTable<TData, TValue>({
     <div className={cn("space-y-4", className)}>
       {toolbar}
 
-      <div className="relative rounded-md border overflow-x-auto">
+      <div className="relative rounded-md border overflow-hidden overflow-x-auto">
         <div className={`transition-opacity duration-200 ${contentOpacityClass}`}>
           <Table>
             <TableHeader>
