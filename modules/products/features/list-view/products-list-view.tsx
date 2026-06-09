@@ -23,9 +23,14 @@ export default function ProductsListView() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const { hasPermission, allowed, isLoading: checkingPermission } = usePermission("menu.products");
+  const {
+    hasPermission,
+    allowed,
+    isLoading: checkingPermission,
+  } = usePermission("menu.products");
   const canCreate = hasPermission("product.create");
-  const canView = (!checkingPermission && allowed) || hasPermission("product.view");
+  const canView =
+    (!checkingPermission && allowed) || hasPermission("product.view");
   const canUpdate = hasPermission("product.edit");
   const canDelete = hasPermission("product.delete");
   const canManage = hasPermission("product.manage");
@@ -38,16 +43,19 @@ export default function ProductsListView() {
 
   // URL State
   const page = Number(searchParams.get("page")) || PAGINATION.DEFAULT_PAGE;
-  const perPage = Number(searchParams.get("perPage")) || PAGINATION.DEFAULT_PER_PAGE;
+  const perPage =
+    Number(searchParams.get("perPage")) || PAGINATION.DEFAULT_PER_PAGE;
   const query = searchParams.get("q") || "";
-  
+
   // Explicitly handle defaults and 'All' state
   const status = searchParams.get("status") || "ACTIVE";
   const unit = searchParams.get("unit") || "กล่อง";
 
   // Draft filters for UI input
   const [filterDraft, setFilterDraft] = useState({ query, status, unit });
-  const [unitOptions, setUnitOptions] = useState<{ value: string; label: string }[]>([]);
+  const [unitOptions, setUnitOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
 
   // Sync draft with URL if it changes from outside
   useEffect(() => {
@@ -63,32 +71,45 @@ export default function ProductsListView() {
     });
   }, []);
 
-  const [deleteCandidate, setDeleteCandidate] = useState<ProductRecord | null>(null);
+  const [deleteCandidate, setDeleteCandidate] = useState<ProductRecord | null>(
+    null,
+  );
   const [actionLoading, setActionLoading] = useState(false);
 
-  const handleApplyFilters = useCallback((newParams: { q?: string; status?: string; unit?: string; page?: number; perPage?: number }) => {
-    const params = new URLSearchParams(searchParams.toString());
+  const handleApplyFilters = useCallback(
+    (newParams: {
+      q?: string;
+      status?: string;
+      unit?: string;
+      page?: number;
+      perPage?: number;
+    }) => {
+      const params = new URLSearchParams(searchParams.toString());
 
-    if (newParams.q !== undefined) {
-      if (newParams.q) params.set("q", newParams.q.trim());
-      else params.delete("q");
-    }
+      if (newParams.q !== undefined) {
+        if (newParams.q) params.set("q", newParams.q.trim());
+        else params.delete("q");
+      }
 
-    if (newParams.status !== undefined) {
-      params.set("status", newParams.status || ALL_STATUS_VALUE);
-    }
+      if (newParams.status !== undefined) {
+        params.set("status", newParams.status || ALL_STATUS_VALUE);
+      }
 
-    if (newParams.unit !== undefined) {
-      params.set("unit", newParams.unit || ALL_STATUS_VALUE);
-    }
+      if (newParams.unit !== undefined) {
+        params.set("unit", newParams.unit || ALL_STATUS_VALUE);
+      }
 
-    if (newParams.page !== undefined) params.set("page", String(newParams.page));
-    if (newParams.perPage !== undefined) params.set("perPage", String(newParams.perPage));
+      if (newParams.page !== undefined)
+        params.set("page", String(newParams.page));
+      if (newParams.perPage !== undefined)
+        params.set("perPage", String(newParams.perPage));
 
-    startTransition(() => {
-      router.push(`${pathname}?${params.toString()}`);
-    });
-  }, [pathname, router, searchParams]);
+      startTransition(() => {
+        router.push(`${pathname}?${params.toString()}`);
+      });
+    },
+    [pathname, router, searchParams],
+  );
 
   const handleSearchSubmit = useCallback(() => {
     handleApplyFilters({
@@ -101,7 +122,10 @@ export default function ProductsListView() {
 
   // Debounced search
   useEffect(() => {
-    const isTyping = filterDraft.query !== query || filterDraft.status !== status || filterDraft.unit !== unit;
+    const isTyping =
+      filterDraft.query !== query ||
+      filterDraft.status !== status ||
+      filterDraft.unit !== unit;
     if (!isTyping) return;
 
     const delay = 400;
@@ -120,8 +144,8 @@ export default function ProductsListView() {
         page,
         perPage,
         q: query.trim() || undefined,
-        status: (status === ALL_STATUS_VALUE || !status) ? undefined : status,
-        unit: (unit === ALL_STATUS_VALUE || !unit) ? undefined : unit,
+        status: status === ALL_STATUS_VALUE || !status ? undefined : status,
+        unit: unit === ALL_STATUS_VALUE || !unit ? undefined : unit,
       });
       setProducts((result.products ?? []) as ProductRecord[]);
       setTotal(typeof result.total === "number" ? result.total : 0);
@@ -189,13 +213,20 @@ export default function ProductsListView() {
           />
           <div className="relative z-10 w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl ring-1 ring-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-200">
             {/* Icon */}
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 ring-1 ring-red-100 mb-4">
-              <AlertTriangle className="h-6 w-6 text-red-600" />
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 ring-1 ring-red-100">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+
+              <h3 className="text-lg font-semibold text-slate-900">
+                ยืนยันการลบสินค้า
+              </h3>
             </div>
-            <h3 className="text-lg font-semibold text-slate-900">ยืนยันการลบสินค้า</h3>
             <p className="mt-1.5 text-sm text-slate-500">
               คุณต้องการลบ{" "}
-              <span className="font-semibold text-slate-700">{deleteCandidate.name}</span>{" "}
+              <span className="font-semibold text-slate-700">
+                {deleteCandidate.name}
+              </span>{" "}
               ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้
             </p>
             <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5">
@@ -249,19 +280,27 @@ export default function ProductsListView() {
             canManage={canManage}
             onDeleteRequest={setDeleteCandidate}
             searchValue={filterDraft.query}
-            onSearchChange={(value) => setFilterDraft(prev => ({ ...prev, query: value }))}
+            onSearchChange={(value) =>
+              setFilterDraft((prev) => ({ ...prev, query: value }))
+            }
             onSearchSubmit={handleSearchSubmit}
             statusFilter={filterDraft.status}
-            onStatusFilterChange={(value) => setFilterDraft(prev => ({ ...prev, status: value }))}
+            onStatusFilterChange={(value) =>
+              setFilterDraft((prev) => ({ ...prev, status: value }))
+            }
             unitFilter={filterDraft.unit}
-            onUnitFilterChange={(value) => setFilterDraft(prev => ({ ...prev, unit: value }))}
+            onUnitFilterChange={(value) =>
+              setFilterDraft((prev) => ({ ...prev, unit: value }))
+            }
             units={unitOptions}
             pagination={{
               page,
               perPage,
               total,
-              onPageChange: (nextPage) => handleApplyFilters({ page: nextPage }),
-              onPerPageChange: (nextPerPage) => handleApplyFilters({ perPage: nextPerPage, page: 1 }),
+              onPageChange: (nextPage) =>
+                handleApplyFilters({ page: nextPage }),
+              onPerPageChange: (nextPerPage) =>
+                handleApplyFilters({ perPage: nextPerPage, page: 1 }),
               perPageOptions: [...PAGINATION.PER_PAGE_OPTIONS],
             }}
           />
