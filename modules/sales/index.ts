@@ -17,7 +17,6 @@ export * from "./ui/sale-status-badge";
 // Features - List View
 export { default as SalesListView } from "./features/list-view/sales-list-view";
 export * from "./features/list-view/sales-table";
-export * from "./features/list-view/sales-cards";
 export * from "./features/list-view/use-sale-columns";
 
 // Features - Form

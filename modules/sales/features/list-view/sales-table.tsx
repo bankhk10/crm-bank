@@ -35,10 +35,8 @@ import { FormCombobox } from "@/components/custom/FormCombobox";
 import { SaleStatusLabels, type SaleStatus } from "@/modules/sales/types";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
-import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
 import { PageHeader } from "@/components/custom/page-header";
 import { useSaleColumns } from "./use-sale-columns";
-import { SalesCards } from "./sales-cards";
 import type { SalesTableProps } from "../../types";
 
 const quickDateRanges = [
@@ -293,39 +291,22 @@ export function SalesTable(props: SalesTableProps) {
   );
 
   return (
-    <div className="space-y-6">
-      <ResponsiveDataView
-        breakpoint="xl"
-        toolbar={toolbar}
-        cards={
-          <SalesCards
-            data={sales}
-            loading={loading}
-            canApprove={canApprove}
-            canEdit={canEdit}
-            canDelete={canDelete}
-            currentUserId={currentUserId}
-            onDelete={onDelete}
-            pagination={pagination}
-            canEditItem={canEditItem}
-            canDeleteItem={canDeleteItem}
-          />
-        }
-        table={
-          <CustomTable
-            columns={columns}
-            data={sales}
-            loading={loading}
-            pagination={pagination}
-            toolbar={<></>}
-            emptyState={{
-              title: "ยังไม่มีรายการขาย",
-              description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างรายการขายใหม่",
-            }}
-            className="w-full"
-          />
-        }
-      />
+    <div className="space-y-4">
+      {toolbar}
+      <div className="w-full">
+        <CustomTable
+          columns={columns}
+          data={sales}
+          loading={loading}
+          pagination={pagination}
+          toolbar={<></>}
+          emptyState={{
+            title: "ยังไม่มีรายการขาย",
+            description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างรายการขายใหม่",
+          }}
+          className="w-full"
+        />
+      </div>
     </div>
   );
 }
