@@ -44,52 +44,45 @@ export function useProductColumns(
 ) {
   return React.useMemo<ColumnDef<ProductRecord>[]>(
     () => [
-      // ── Expander ──────────────────────────────────────────
-      {
-        id: "expander",
-        header: () => null,
-        meta: {
-          width: 40,
-          align: "center",
-        },
-        cell: ({ row }) =>
-          row.getCanExpand() ? (
-            <button
-              onClick={row.getToggleExpandedHandler()}
-              className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-              aria-label={
-                row.getIsExpanded() ? "ซ่อนสินค้าย่อย" : "แสดงสินค้าย่อย"
-              }
-            >
-              {row.getIsExpanded() ? (
-                <ChevronUpIcon className="h-4 w-4" />
-              ) : (
-                <ChevronDownIcon className="h-4 w-4" />
-              )}
-            </button>
-          ) : null,
-      },
-
       // ── ชื่อสินค้า ──────────────────────────────────────
       {
         accessorKey: "name",
         header: "ชื่อสินค้า",
         meta: {
           headerAlign: "left",
-          minWidth: 280,
-          width: 280,
-          maxWidth: 320,
+          minWidth: 320,
+          width: 320,
+          maxWidth: 360,
           align: "left",
         },
         cell: ({ row }) => (
-          <div className="flex flex-col py-0.5 gap-0.5">
-            <TruncatedCell
-              value={row.original.name ?? "-"}
-              className="text-[15px] font-medium text-slate-900"
-            />
-            <span className="text-xs font-medium text-slate-500">
-              {row.original.productCode ?? "-"}
-            </span>
+          <div className="flex items-center gap-3">
+            {row.getCanExpand() ? (
+              <button
+                onClick={row.getToggleExpandedHandler()}
+                className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer flex-shrink-0"
+                aria-label={
+                  row.getIsExpanded() ? "ซ่อนสินค้าย่อย" : "แสดงสินค้าย่อย"
+                }
+              >
+                {row.getIsExpanded() ? (
+                  <ChevronUpIcon className="h-4 w-4" />
+                ) : (
+                  <ChevronDownIcon className="h-4 w-4" />
+                )}
+              </button>
+            ) : (
+              <div className="w-6 flex-shrink-0"></div>
+            )}
+            <div className="flex flex-col py-0.5 gap-0.5 min-w-0">
+              <TruncatedCell
+                value={row.original.name ?? "-"}
+                className="text-[15px] font-medium text-slate-900"
+              />
+              <span className="text-xs font-medium text-slate-500 truncate">
+                {row.original.productCode ?? "-"}
+              </span>
+            </div>
           </div>
         ),
       },
