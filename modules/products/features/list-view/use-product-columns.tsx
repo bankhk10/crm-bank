@@ -49,10 +49,10 @@ export function useProductColumns(
         accessorKey: "name",
         header: "ชื่อสินค้า",
         meta: {
-          headerAlign: "left",
-          minWidth: 320,
-          width: 320,
-          maxWidth: 360,
+          headerAlign: "center",
+          minWidth: 300,
+          width: 300,
+          maxWidth: 350,
           align: "left",
         },
         cell: ({ row }) => (
