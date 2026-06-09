@@ -119,9 +119,9 @@ export function useProductColumns(
         header: "ราคาต่อหน่วย",
         meta: {
           headerAlign: "right",
-          minWidth: 130,
-          width: 130,
-          maxWidth: 160,
+          minWidth: 100,
+          width: 100,
+          maxWidth: 110,
           align: "right",
         },
         cell: ({ row }) => {
