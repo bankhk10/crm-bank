@@ -119,9 +119,9 @@ export function useProductColumns(
         header: "ราคาต่อหน่วย",
         meta: {
           headerAlign: "right",
-          minWidth: 110,
-          width: 110,
-          maxWidth: 130,
+          minWidth: 130,
+          width: 130,
+          maxWidth: 160,
           align: "right",
         },
         cell: ({ row }) => {
@@ -129,7 +129,7 @@ export function useProductColumns(
           if (price == null)
             return <span className="text-sm text-slate-400">-</span>;
           return (
-            <span className="text-sm font-semibold text-emerald-700 tabular-nums">
+            <span className="text-sm font-semibold text-emerald-700 tabular-nums whitespace-nowrap">
               ฿
               {Number(price).toLocaleString("th-TH", {
                 minimumFractionDigits: 2,
