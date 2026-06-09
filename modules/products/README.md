@@ -20,7 +20,6 @@ modules/products/
  ┃ ┃ ┗ product-form.tsx
  ┃ ┗ list-view/
  ┃   ┣ products-table.tsx              (includes toolbar inline)
- ┃   ┣ products-cards.tsx
  ┃   ┗ use-product-columns.tsx
  ┣ ui/                                ← module-specific UI components
  ┃ ┗ product-status-badge.tsx

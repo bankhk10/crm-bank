@@ -46,7 +46,6 @@ export { ProductStatusBadge, statusStyle } from "./ui/product-status-badge";
 
 // Features - List View
 export { ProductsTable } from "./features/list-view/products-table";
-export { ProductsCards } from "./features/list-view/products-cards";
 export { useProductColumns } from "./features/list-view/use-product-columns";
 export { default as ProductsListView } from "./features/list-view/products-list-view";
 
