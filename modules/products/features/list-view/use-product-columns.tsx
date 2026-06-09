@@ -90,11 +90,11 @@ export function useProductColumns(
                 accessorKey: "unit",
                 header: "หน่วยนับ",
                 meta: {
-                    headerAlign: "left",
-                    minWidth: 90,
-                    width: 90,
-                    maxWidth: 110,
-                    align: "left",
+                    headerAlign: "center",
+                    minWidth: 70,
+                    width: 70,
+                    maxWidth: 90,
+                    align: "center",
                 },
                 cell: ({ row }) => (
                     <span className="text-sm text-slate-600">
