@@ -18,7 +18,6 @@ export * from "./ui/company-card";
 
 // Features - List View
 export * from "./features/list-view/companies-table";
-export * from "./features/list-view/companies-cards";
 export * from "./features/list-view/use-company-columns";
 export { default as CompaniesListView } from "./features/list-view/companies-list-view";
 export * from "./features/list-view/companies-kanban-board";

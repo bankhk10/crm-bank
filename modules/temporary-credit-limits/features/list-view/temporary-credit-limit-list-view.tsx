@@ -163,7 +163,7 @@ export default function TemporaryCreditLimitListView() {
   }
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-6 pb-24 md:pb-8">
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>

@@ -5,8 +5,6 @@ import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
-import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
-import { CompaniesCards } from "./companies-cards";
 import { useCompanyColumns } from "@/modules/companies/features/list-view/use-company-columns";
 import type { CompaniesTableProps } from "@/modules/companies/types/types";
 
@@ -48,28 +46,18 @@ export function CompaniesTable(props: CompaniesTableProps) {
     );
 
     return (
-        <ResponsiveDataView
-            breakpoint="md"
-            toolbar={toolbar}
-            cards={
-                <CompaniesCards
-                    data={data}
-                    loading={loading}
-                    canEdit={canEdit}
-                    canDelete={canDelete}
-                    onDeleteRequest={onDeleteRequest}
-                    pagination={pagination}
-                />
-            }
-            table={
+        <div className="space-y-4">
+            {toolbar}
+            <div className="w-full">
                 <CustomTable
                     data={data}
                     columns={columns}
                     loading={loading}
                     pagination={pagination}
                     toolbar={<></>}
+                    className="w-full"
                 />
-            }
-        />
+            </div>
+        </div>
     );
 }

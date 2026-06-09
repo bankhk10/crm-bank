@@ -7,7 +7,6 @@ import { PlusCircle, Upload } from "lucide-react";
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
 import { DeleteDialog } from "@/components/custom/delete-dialog";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import { ClearSearchButton } from "@/components/custom/ClearSearchButton";
@@ -15,7 +14,6 @@ import { usePermission } from "@/hooks/use-permission";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { DetailedTarget } from "../../types";
 import { useSalesTargetColumns } from "./use-sales-target-columns";
-import { SalesTargetCards } from "./sales-target-cards";
 import { MONTHS } from "../../constants";
 
 // ---------------------------------------------------------------------------
@@ -228,39 +226,21 @@ export function SalesTargetTable({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <ResponsiveDataView
-        breakpoint="lg"
-        toolbar={toolbar}
-        cards={
-          <SalesTargetCards
-            data={paginatedData}
-            loading={loading}
-            canDelete={canDelete}
-            canEdit={canEdit}
-            canView={canView}
-            canEditItem={canEditItem}
-            canDeleteItem={canDeleteItem}
-            onView={onView}
-            onCopy={onCopy}
-            onDelete={(id) => setDeleteTargetId(id)}
-            pagination={paginationInfo}
-          />
-        }
-        table={
-          <CustomTable
-            columns={columns}
-            data={paginatedData}
-            loading={loading}
-            pagination={paginationInfo}
-            toolbar={<></>}
-            emptyState={{
-              title: "ไม่พบข้อมูลเป้าหมาย",
-              description: "ลองปรับตัวกรอง หรือเพิ่มเป้าหมายใหม่",
-            }}
-            className="w-full"
-          />
-        }
-      />
+      {toolbar}
+      <div className="w-full">
+        <CustomTable
+          columns={columns}
+          data={paginatedData}
+          loading={loading}
+          pagination={paginationInfo}
+          toolbar={<></>}
+          emptyState={{
+            title: "ไม่พบข้อมูลเป้าหมาย",
+            description: "ลองปรับตัวกรอง หรือเพิ่มเป้าหมายใหม่",
+          }}
+          className="w-full"
+        />
+      </div>
 
       {/* Delete Confirm Dialog */}
       <DeleteDialog

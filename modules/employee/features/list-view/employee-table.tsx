@@ -6,10 +6,8 @@ import { PlusCircle } from "lucide-react";
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
 import { TableToolbar } from "@/components/custom/table-toolbar";
-import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
 import { Employee } from "../../types";
 import { useEmployeeColumns } from "./use-employee-columns";
-import { EmployeeCards } from "./employee-cards";
 
 type EmployeeTableProps = {
     employees: Employee[];
@@ -91,36 +89,22 @@ export function EmployeeTable({
     };
 
     return (
-        <div className="space-y-6">
-            <ResponsiveDataView
-                breakpoint="xl"
-                toolbar={toolbar}
-                cards={
-                    <EmployeeCards
-                        data={employees}
-                        loading={loading ?? false}
-                        canDelete={canDelete}
-                        canEdit={canEdit}
-                        canView={canView}
-                        onDeleteRequest={(emp) => onDelete?.(emp)}
-                        pagination={pagination}
-                    />
-                }
-                table={
-                    <CustomTable
-                        columns={columns}
-                        data={employees}
-                        loading={loading ?? false}
-                        pagination={pagination}
-                        toolbar={<></>}
-                        emptyState={{
-                            title: "ไม่พบข้อมูลพนักงาน",
-                            description: "ลองปรับคำค้นหา หรือเพิ่มพนักงานใหม่",
-                        }}
-                        className="w-full"
-                    />
-                }
-            />
+        <div className="space-y-4">
+            {toolbar}
+            <div className="w-full">
+                <CustomTable
+                    columns={columns}
+                    data={employees}
+                    loading={loading ?? false}
+                    pagination={pagination}
+                    toolbar={<></>}
+                    emptyState={{
+                        title: "ไม่พบข้อมูลพนักงาน",
+                        description: "ลองปรับคำค้นหา หรือเพิ่มพนักงานใหม่",
+                    }}
+                    className="w-full"
+                />
+            </div>
         </div>
     );
 }

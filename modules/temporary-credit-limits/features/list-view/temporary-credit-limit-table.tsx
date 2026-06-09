@@ -16,10 +16,8 @@ import { Calendar } from "@/components/ui/calendar";
 
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
-import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
 import type { TemporaryCreditLimitTableProps } from "../../types";
 import { useTemporaryCreditLimitColumns } from "./use-temporary-credit-limit-columns";
-import { TemporaryCreditLimitCards } from "./temporary-credit-limit-cards";
 
 export function TemporaryCreditLimitTable(
     props: TemporaryCreditLimitTableProps
@@ -113,21 +111,9 @@ export function TemporaryCreditLimitTable(
     );
 
     return (
-        <ResponsiveDataView
-            breakpoint="xl"
-            toolbar={toolbar}
-            cards={
-                <TemporaryCreditLimitCards
-                    data={data}
-                    loading={loading}
-                    canApprove={canApprove}
-                    canEdit={canEdit}
-                    canDelete={canDelete}
-                    onDelete={onDelete}
-                    pagination={pagination}
-                />
-            }
-            table={
+        <div className="space-y-4">
+            {toolbar}
+            <div className="w-full">
                 <CustomTable
                     columns={columns}
                     data={data}
@@ -140,7 +126,7 @@ export function TemporaryCreditLimitTable(
                     }}
                     className="w-full"
                 />
-            }
-        />
+            </div>
+        </div>
     );
 }

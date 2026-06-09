@@ -8,8 +8,6 @@ import { cn } from "@/lib/utils";
 import DatePicker from "@/components/custom/DatePicker";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
-import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
-import { FulfillmentCards } from "./fulfillment-cards";
 import { useFulfillmentColumns } from "./use-fulfillment-columns";
 import type { FulfillmentTableProps } from "../../types/types";
 import { ClearSearchButton } from "@/components/custom/ClearSearchButton";
@@ -154,25 +152,18 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
     };
 
     return (
-        <ResponsiveDataView
-            breakpoint="md"
-            toolbar={toolbar}
-            cards={
-                <FulfillmentCards
-                    data={sales}
-                    loading={loading}
-                    pagination={pagination}
-                />
-            }
-            table={
+        <div className="space-y-4">
+            {toolbar}
+            <div className="w-full">
                 <CustomTable
                     data={sales}
                     columns={columns}
                     loading={loading}
                     pagination={pagination}
                     toolbar={<></>}
+                    className="w-full"
                 />
-            }
-        />
+            </div>
+        </div>
     );
 }

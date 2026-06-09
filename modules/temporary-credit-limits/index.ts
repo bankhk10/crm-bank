@@ -19,7 +19,6 @@ export { default as TemporaryCreditLimitEditView } from "./features/form/tempora
 
 // Features / List View
 export * from "./features/list-view/temporary-credit-limit-table";
-export * from "./features/list-view/temporary-credit-limit-cards";
 export * from "./features/list-view/use-temporary-credit-limit-columns";
 export { default as TemporaryCreditLimitListView } from "./features/list-view/temporary-credit-limit-list-view";
 

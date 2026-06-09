@@ -273,7 +273,7 @@ export default function SalesTargetsListView() {
   }
 
   return (
-    <div className="bg-white shadow-sm sm:rounded-lg">
+    <div className="bg-white shadow-sm sm:rounded-lg pb-24 md:pb-8">
       <div className="p-6">
         <PageHeader
           icon={Target}
