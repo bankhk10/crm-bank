@@ -237,7 +237,7 @@ export function SalesTable(props: SalesTableProps) {
                   }}
                 />
               </div>
-              <div className="grid gap-1.5 w-full sm:w-auto">
+              {/* <div className="grid gap-1.5 w-full sm:w-auto">
                 <label className="font-medium text-base text-gray-900 mx-1">
                   ช่วงเวลา
                 </label>
@@ -258,7 +258,7 @@ export function SalesTable(props: SalesTableProps) {
                     </Button>
                   ))}
                 </div>
-              </div>
+              </div> */}
               {(searchValue ||
                 statusFilter ||
                 dateRange?.from ||
