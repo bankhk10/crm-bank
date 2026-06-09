@@ -66,7 +66,7 @@ function DefaultPagination({
           : "ไม่มีข้อมูลให้แสดง"}
       </span>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+      <div className="flex flex-row items-center justify-between w-full md:w-auto gap-4 mt-2 md:mt-0">
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <Select
             value={String(pagination.perPage)}
