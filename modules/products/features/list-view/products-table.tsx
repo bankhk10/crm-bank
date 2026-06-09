@@ -210,8 +210,8 @@ export function ProductsTable(props: ProductsTableProps) {
         <div className="space-y-4">
             {toolbar}
 
-            {/* Table — scrollable on small screens */}
-            <div className="w-full overflow-x-auto rounded-lg">
+            {/* Table — scrollable internally */}
+            <div className="w-full">
                 <CustomTable
                     columns={columns}
                     data={data}
@@ -260,7 +260,7 @@ export function ProductsTable(props: ProductsTableProps) {
                         title: "ยังไม่มีสินค้า",
                         description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างสินค้าใหม่",
                     }}
-                    className="w-full min-w-[700px]"
+                    className="w-full"
                 />
             </div>
         </div>
