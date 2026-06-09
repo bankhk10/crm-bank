@@ -137,7 +137,7 @@ export function DataTable<TData, TValue>({
                                         title={headerTitle}
                                         aria-label={headerTitle ? `Sort by ${headerTitle}` : undefined}
                                         onClick={header.column.getToggleSortingHandler()}
-                                        className="relative w-full flex items-center justify-center min-w-0"
+                                        className="relative w-full flex items-center justify-center min-w-0 px-6"
                                       >
                                         <span className="truncate" title={headerTitle}>
                                           {flexRender(header.column.columnDef.header, header.getContext())}

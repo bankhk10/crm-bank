@@ -145,9 +145,9 @@ export function useProductColumns(
         header: "ทั้งหมด",
         meta: {
           headerAlign: "center",
-          minWidth: 90,
-          width: 90,
-          maxWidth: 100,
+          minWidth: 120,
+          width: 120,
+          maxWidth: 140,
           align: "center",
         },
         cell: ({ row }) => {
@@ -168,9 +168,9 @@ export function useProductColumns(
         enableSorting: false,
         meta: {
           headerAlign: "center",
-          minWidth: 75,
-          width: 75,
-          maxWidth: 85,
+          minWidth: 90,
+          width: 90,
+          maxWidth: 110,
           align: "center",
         },
         cell: ({ row }) => {
@@ -192,9 +192,9 @@ export function useProductColumns(
         accessorFn: (row) => row.availableQuantity ?? 0,
         meta: {
           headerAlign: "center",
-          minWidth: 90,
-          width: 90,
-          maxWidth: 100,
+          minWidth: 120,
+          width: 120,
+          maxWidth: 140,
           align: "center",
         },
         cell: ({ row }) => {
