@@ -124,7 +124,7 @@ export function DataTable<TData, TValue>({
                           <TableHead
                             key={header.id}
                             style={style}
-                            className={cn("whitespace-nowrap bg-slate-50 text-base font-semibold text-slate-700 h-14", headerAlignClass)}
+                            className={cn("whitespace-nowrap bg-slate-50 text-base font-semibold text-slate-700 h-14 border-r border-slate-200 last:border-r-0", headerAlignClass)}
                           >
                             {header.isPlaceholder ? null : (
                               header.column.getCanSort() ? (
@@ -286,7 +286,7 @@ export function DataTable<TData, TValue>({
                         const stickyClass = colMeta?.sticky === "right" ? "shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.1)]" : "";
 
                         return (
-                          <TableCell key={cell.id} title={cellTitle} style={style} className={cn(alignClass, stickyClass)}>
+                          <TableCell key={cell.id} title={cellTitle} style={style} className={cn(alignClass, stickyClass, "border-r border-slate-100 last:border-r-0")}>
                             {cellContent}
                           </TableCell>
                         );

@@ -13,11 +13,10 @@ import {
   ALL_STATUS_VALUE,
   type ProductRecord,
 } from "@/modules/products";
-import { Package } from "lucide-react";
+import { Package, Upload, AlertTriangle } from "lucide-react";
 import { PageHeader } from "@/components/custom/page-header";
 import { PAGINATION } from "@/lib/constants";
 import { toast } from "sonner";
-import { Upload } from "lucide-react";
 
 export default function ProductsListView() {
   const router = useRouter();
@@ -183,26 +182,33 @@ export default function ProductsListView() {
 
       {/* Delete confirm dialog */}
       {deleteCandidate && (
-        <div className="fixed inset-0 min-h-screen z-50 flex items-center justify-center">
+        <div className="fixed inset-0 min-h-screen z-50 flex items-end sm:items-center justify-center p-4">
           <div
-            className="bg-black/50 absolute inset-0"
+            className="bg-black/40 backdrop-blur-sm absolute inset-0 transition-opacity"
             onClick={() => setDeleteCandidate(null)}
           />
-          <div className="relative z-10 w-full max-w-md bg-white rounded-lg p-6 shadow-lg">
-            <h3 className="text-lg font-semibold">ยืนยันการลบ</h3>
-            <p className="mt-2 text-sm text-slate-600">
-              คุณต้องการลบสินค้า <strong>{deleteCandidate.name}</strong>{" "}
+          <div className="relative z-10 w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl ring-1 ring-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-200">
+            {/* Icon */}
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 ring-1 ring-red-100 mb-4">
+              <AlertTriangle className="h-6 w-6 text-red-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900">ยืนยันการลบสินค้า</h3>
+            <p className="mt-1.5 text-sm text-slate-500">
+              คุณต้องการลบ{" "}
+              <span className="font-semibold text-slate-700">{deleteCandidate.name}</span>{" "}
               ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้
             </p>
-            <div className="mt-4 flex justify-end gap-2">
+            <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5">
               <Button
                 variant="outline"
+                className="w-full sm:w-auto"
                 onClick={() => setDeleteCandidate(null)}
               >
                 ยกเลิก
               </Button>
               <Button
                 variant="destructive"
+                className="w-full sm:w-auto gap-2"
                 onClick={handleDelete}
                 disabled={actionLoading}
               >
@@ -213,8 +219,8 @@ export default function ProductsListView() {
         </div>
       )}
 
-      <div className="bg-white shadow-sm sm:rounded-lg">
-        <div className="p-6">
+      <div className="bg-white shadow-sm sm:rounded-xl ring-1 ring-slate-200/80">
+        <div className="p-4 md:p-6">
           <PageHeader
             icon={Package}
             iconClassName="text-blue-600"
