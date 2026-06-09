@@ -455,7 +455,7 @@ export default function FulfillmentDetailPage({
         <CreditInfoCard creditInfo={saleData.creditInfo} />
       )}
 
-      {stockWarnings.length > 0 && !skipStockCheck && !isSplitMode && (
+      {stockWarnings.length > 0 && !skipStockCheck && !isSplitMode && !(saleData?.sale as any)?.isStockDeducted && (
         <StockWarningAlert stockWarnings={stockWarnings} />
       )}
 
