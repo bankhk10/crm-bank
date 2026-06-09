@@ -2,7 +2,6 @@ export * from "./types";
 
 export * from "./features/list-view/customers-table";
 export { default as CustomersListView } from "./features/list-view/customers-list-view";
-export * from "./features/list-view/customers-cards";
 export * from "./features/detail-view/customer-detail-panel";
 export * from "./features/detail-view/parent-dealer-info";
 export { default as CustomerDetailView } from "./features/detail-view/customer-detail-view";

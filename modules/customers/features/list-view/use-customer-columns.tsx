@@ -25,55 +25,48 @@ export function useCustomerColumns(
     return React.useMemo<ColumnDef<CustomerRecord>[]>(
         () => [
             {
-                id: "expander",
-                header: "",
+                accessorKey: "customerCode",
+                header: "รหัสลูกค้า",
                 meta: {
-                    width: 36,
-                    minWidth: 36,
-                    maxWidth: 36,
-                    align: "center",
-                    headerAlign: "center",
+                    headerAlign: "left",
+                    minWidth: 150,
+                    width: 150,
+                    maxWidth: 200,
+                    align: "left",
                 },
                 cell: ({ row }) => {
                     const orig = row.original;
                     const subDealers = (orig as any).subDealers || [];
                     const hasChildren =
                         subDealers.length > 0 || (!!data && data.some((d) => d.parentDealerId === orig.id));
-                    // Only show expander for dealers that have sub-dealers
                     const showExpander = hasChildren && orig.customerType === "DEALER";
 
-                    if (!showExpander) return <div className="p-1" />;
-
                     return (
-                        <button
-                            type="button"
-                            onClick={() => row.toggleExpanded?.()}
-                            aria-label={row.getIsExpanded() ? "ย่อ" : "ขยาย"}
-                            className="p-1 rounded hover:bg-slate-100"
-                        >
-                            <ChevronDown
-                                className={cn(
-                                    "h-4 w-4 transition-transform",
-                                    row.getIsExpanded() ? "rotate-180" : "rotate-0"
-                                )}
+                        <div className="flex items-center gap-2">
+                            {showExpander ? (
+                                <button
+                                    type="button"
+                                    onClick={() => row.toggleExpanded?.()}
+                                    aria-label={row.getIsExpanded() ? "ย่อ" : "ขยาย"}
+                                    className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0"
+                                >
+                                    <ChevronDown
+                                        className={cn(
+                                            "h-4 w-4 transition-transform",
+                                            row.getIsExpanded() ? "rotate-180" : "rotate-0"
+                                        )}
+                                    />
+                                </button>
+                            ) : (
+                                <div className="w-6 flex-shrink-0" />
+                            )}
+                            <TruncatedCell
+                                value={row.original.customerCode ?? "-"}
+                                className="font-medium text-slate-900"
                             />
-                        </button>
+                        </div>
                     );
                 },
-            },
-            {
-                accessorKey: "customerCode",
-                header: "รหัสลูกค้า",
-                meta: {
-                    headerAlign: "left",
-                    minWidth: 100,
-                    width: 130,
-                    maxWidth: 130,
-                    align: "left",
-                },
-                cell: ({ row }) => (
-                    <TruncatedCell value={row.original.customerCode ?? "-"} />
-                ),
             },
             {
                 accessorKey: "name",
