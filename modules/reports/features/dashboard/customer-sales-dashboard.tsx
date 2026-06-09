@@ -180,6 +180,18 @@ export function CustomerSalesDashboard() {
     }
   });
 
+  // Sort topLevelCustomers by grandTotalSales descending
+  topLevelCustomers.sort((a, b) => {
+    const aGrandTotal = a.totalSales + (subDealerSalesMap.get(a.id) || 0);
+    const bGrandTotal = b.totalSales + (subDealerSalesMap.get(b.id) || 0);
+    return bGrandTotal - aGrandTotal;
+  });
+
+  // Sort subDealers by totalSales descending
+  subDealersMap.forEach((subDealers) => {
+    subDealers.sort((a, b) => b.totalSales - a.totalSales);
+  });
+
   const renderCustomerRow = (
     c: (typeof topCustomers)[0],
     index: number,
@@ -300,7 +312,7 @@ export function CustomerSalesDashboard() {
       s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.employeeCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.department.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  ).sort((a, b) => b.totalSales - a.totalSales);
 
   const totalCustomerSales = topCustomers.reduce(
     (sum, c) => sum + c.totalSales,
