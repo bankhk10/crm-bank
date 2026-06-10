@@ -296,8 +296,8 @@ export function SalesTable(props: SalesTableProps) {
     <div className="space-y-4">
       {toolbar}
 
-      {/* Card layout: mobile & tablet (< lg) */}
-      <div className="block lg:hidden">
+      {/* Card layout: mobile (all) + tablet portrait */}
+      <div className="block [@media(min-width:768px)_and_(orientation:landscape)]:hidden">
         <SaleCardList
           sales={sales}
           loading={loading}
@@ -316,8 +316,8 @@ export function SalesTable(props: SalesTableProps) {
         />
       </div>
 
-      {/* Table layout: desktop (>= lg) */}
-      <div className="hidden lg:block w-full">
+      {/* Table layout: tablet landscape + desktop */}
+      <div className="hidden [@media(min-width:768px)_and_(orientation:landscape)]:block w-full">
         <CustomTable
           columns={columns}
           data={sales}
