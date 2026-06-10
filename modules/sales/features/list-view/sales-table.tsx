@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FormCombobox } from "@/components/custom/FormCombobox";
+import { MultiSelect } from "@/components/custom/multi-select";
 import { SaleStatusLabels, type SaleStatus } from "@/modules/sales/types";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
@@ -148,18 +149,18 @@ export function SalesTable(props: SalesTableProps) {
                 />
               </div>
             </div>
-            <div className="w-full lg:w-[350px]">
-              <FormCombobox
-                label="ลูกค้า"
-                value={customerId || ""}
-                onChange={(val) => onCustomerIdChange?.(val)}
+            <div className="w-full lg:w-[350px] space-y-2">
+              <label className="mx-1 mb-1 font-medium text-base text-gray-900 block">ลูกค้า</label>
+              <MultiSelect
                 options={customers.map((customer) => ({
                   value: customer.id,
                   label: `${customer.name}`,
                 }))}
+                onValueChange={(val) => onCustomerIdChange?.(val)}
+                defaultValue={Array.isArray(customerId) ? customerId : (typeof customerId === "string" && customerId ? [customerId] : [])}
                 placeholder="ลูกค้าทั้งหมด"
-                searchPlaceholder="ค้นหาลูกค้า..."
-                emptyText="ไม่พบลูกค้า"
+                emptyIndicator="ไม่พบลูกค้า"
+                className="bg-white"
               />
             </div>
             <div className="flex flex-col sm:flex-row flex-wrap lg:flex-nowrap gap-4 w-full lg:w-auto items-end">
@@ -261,14 +262,14 @@ export function SalesTable(props: SalesTableProps) {
                 statusFilter ||
                 dateRange?.from ||
                 dateRange?.to ||
-                customerId) && (
+                (Array.isArray(customerId) ? customerId.length > 0 : customerId)) && (
                 <div className="flex items-end">
                   <ClearSearchButton
                     onClick={() => {
                       onSearchChange?.("");
                       onStatusFilterChange?.(undefined);
                       onDateRangeChange?.(undefined);
-                      onCustomerIdChange?.("");
+                      onCustomerIdChange?.([]);
                     }}
                   />
                 </div>

@@ -160,7 +160,7 @@ export default function SalesListView() {
             canDeleteItem={canDeleteItem}
             customerId={customerId}
             onCustomerIdChange={(val) => {
-              setCustomerId(val);
+              setCustomerId(Array.isArray(val) ? val : val ? [val] : []);
               setPage(1);
             }}
             customers={filterCustomers}

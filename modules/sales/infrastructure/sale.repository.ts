@@ -12,7 +12,7 @@ export type ListSalesParams = {
   perPage?: number;
   search?: string;
   status?: SaleStatus | SaleStatus[];
-  customerId?: string;
+  customerId?: string | string[];
   employeeId?: string;
   paymentTerm?: PaymentTerm;
   dateFrom?: string;
@@ -144,7 +144,9 @@ export async function findSales(params: ListSalesParams) {
     where.status = Array.isArray(status) ? { in: status } : status;
   }
 
-  if (customerId) where.customerId = customerId;
+  if (customerId) {
+    where.customerId = Array.isArray(customerId) ? { in: customerId } : customerId;
+  }
   if (employeeId) where.employeeId = employeeId;
   if (paymentTerm) where.paymentTerm = paymentTerm;
 

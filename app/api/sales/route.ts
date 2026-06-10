@@ -58,7 +58,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (filters.customerId) {
-      where.customerId = filters.customerId;
+      where.customerId = Array.isArray(filters.customerId) 
+        ? { in: filters.customerId } 
+        : filters.customerId;
     }
 
     if (filters.employeeId) {

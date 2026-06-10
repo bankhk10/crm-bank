@@ -231,7 +231,7 @@ export interface CreditInfo {
 export interface SalesFilterParams {
   search?: string;
   status?: SaleStatus;
-  customerId?: string;
+  customerId?: string | string[];
   employeeId?: string;
   paymentTerm?: PaymentTerm;
   dateFrom?: string;
@@ -658,7 +658,7 @@ export interface SalesTableProps {
   userDepartmentId?: string | null;
   canEditItem?: (item: SaleRecord) => boolean;
   canDeleteItem?: (item: SaleRecord) => boolean;
-  customerId?: string;
-  onCustomerIdChange?: (value: string) => void;
+  customerId?: string | string[];
+  onCustomerIdChange?: (value: string | string[]) => void;
   customers?: any[];
 }

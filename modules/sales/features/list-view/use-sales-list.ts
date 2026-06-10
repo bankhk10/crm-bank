@@ -24,7 +24,7 @@ export function useSalesList({ canView }: UseSalesListProps) {
   const [actionLoading, setActionLoading] = useState(false);
   
   const [filterCustomers, setFilterCustomers] = useState<any[]>([]);
-  const [customerId, setCustomerId] = useState<string>("");
+  const [customerId, setCustomerId] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -85,7 +85,7 @@ export function useSalesList({ canView }: UseSalesListProps) {
         dateFrom: dateRange?.from?.toISOString(),
         dateTo: dateRange?.to?.toISOString(),
         status: status || undefined,
-        customerId: customerId || undefined,
+        customerId: customerId.length > 0 ? customerId : undefined,
       });
 
       if (!res.success) {

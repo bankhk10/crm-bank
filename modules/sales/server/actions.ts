@@ -148,7 +148,7 @@ export async function listSalesAction(params: {
   perPage?: number;
   search?: string;
   status?: SaleStatus;
-  customerId?: string;
+  customerId?: string | string[];
   employeeId?: string;
   paymentTerm?: PaymentTerm;
   dateFrom?: string;
