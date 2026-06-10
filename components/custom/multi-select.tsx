@@ -115,7 +115,7 @@ export function MultiSelect({
                     key={value}
                     variant="secondary"
                     className={cn(
-                      "mr-1 mb-1 max-w-[calc(100%-10px)]",
+                      "mr-1 mb-1 max-w-[calc(100%-10px)] font-normal text-sm py-0.5",
                       badgeAnimationClass,
                     )}
                   >

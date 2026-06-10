@@ -153,7 +153,7 @@ export function SalesTable(props: SalesTableProps) {
               </div>
               {/* ลูกค้า */}
               <div>
-                <label className="mx-1 text-base font-medium block">
+                <label className="mx-2 mb-1 text-base font-medium text-gray-900 block">
                   ลูกค้า
                 </label>
                 <MultiSelect
@@ -171,7 +171,7 @@ export function SalesTable(props: SalesTableProps) {
                   }
                   placeholder="ลูกค้าทั้งหมด"
                   emptyIndicator="ไม่พบลูกค้า"
-                  className="bg-white"
+                  className="bg-white font-normal !mt-0 text-base"
                 />
               </div>
 
@@ -254,7 +254,7 @@ export function SalesTable(props: SalesTableProps) {
               </div>
               {/* ช่วงเวลา */}
               <div className="space-y-1">
-                <label className="font-medium text-sm text-gray-700 mx-1 block">
+                <label className="text-base font-medium mx-1 block">
                   ช่วงเวลา
                 </label>
                 <div className="flex flex-wrap gap-1.5">
