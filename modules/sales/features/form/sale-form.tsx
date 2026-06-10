@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import DatePicker from "@/components/custom/DatePicker";
 import {
-    FormInput,
-    FormSelect,
-    FormCombobox,
-    FormTextarea,
+  FormInput,
+  FormSelect,
+  FormCombobox,
+  FormTextarea,
 } from "@/components/custom/form-components";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -17,756 +17,767 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 
 // New modular imports
 import {
-    DeliveryMethodSection,
-    SaleItemRow,
-    SaleSummary,
-    ProductDetailModal,
-    CustomerCreditInfo,
-    SectionHeader,
-    FormActionButtons,
-    SaleConfirmDialog,
+  DeliveryMethodSection,
+  SaleItemRow,
+  SaleSummary,
+  ProductDetailModal,
+  CustomerCreditInfo,
+  SectionHeader,
+  FormActionButtons,
+  SaleConfirmDialog,
 } from "./forms";
 import type { SaleConfirmData } from "./forms";
 import { useSaleFormData } from "./use-sale-form-data";
 import {
-    useSaleFormValidation,
-    isCreditBasedPayment,
-    getCreditDaysForTerm,
+  useSaleFormValidation,
+  isCreditBasedPayment,
+  getCreditDaysForTerm,
 } from "./use-sale-form-validation";
 import { useSaleItems } from "./use-sale-items";
 import {
-    parseAddress,
-    buildCustomerShippingAddress,
-    buildCompanyAddress,
-    formatAddress,
+  parseAddress,
+  buildCustomerShippingAddress,
+  buildCompanyAddress,
+  formatAddress,
 } from "@/lib/address-utils";
 import type {
-    SaleFormProps,
-    SaleFormCustomer,
-    SaleFormProduct,
-    PaymentTermType,
-    DeliveryMethodType,
+  SaleFormProps,
+  SaleFormCustomer,
+  SaleFormProduct,
+  PaymentTermType,
+  DeliveryMethodType,
 } from "../../types";
 
 export function SaleForm({
-    initialData,
-    onSubmit,
-    isEdit = false,
-    onCancel,
+  initialData,
+  onSubmit,
+  isEdit = false,
+  onCancel,
 }: SaleFormProps) {
-    const router = useRouter();
-    const currentUser = useCurrentUser();
-    const isAdmin =
-        currentUser?.roles?.includes("admin") ||
-        currentUser?.roles?.includes("administrator") ||
-        false;
-    const isManager = currentUser?.roles?.includes("sales_manager") || false;
-    const isSaleAdmin = currentUser?.roles?.includes("sales_admin") || false;
-    const canSelectOtherEmployees = isAdmin || isManager || isSaleAdmin;
-    const isSalesEmployee = currentUser?.roles?.includes("sales_employee") || false;
-    const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState<string[]>([]);
-    const [warnings, setWarnings] = useState<string[]>([]);
-    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const router = useRouter();
+  const currentUser = useCurrentUser();
+  const isAdmin =
+    currentUser?.roles?.includes("admin") ||
+    currentUser?.roles?.includes("administrator") ||
+    false;
+  const isManager = currentUser?.roles?.includes("sales_manager") || false;
+  const isSaleAdmin = currentUser?.roles?.includes("sales_admin") || false;
+  const canSelectOtherEmployees = isAdmin || isManager || isSaleAdmin;
+  const isSalesEmployee =
+    currentUser?.roles?.includes("sales_employee") || false;
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [warnings, setWarnings] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-    // Load data using hook
-    const { customers, employees, products, companies } = useSaleFormData();
+  // Load data using hook
+  const { customers, employees, products, companies } = useSaleFormData();
 
-    // Validation hook
-    const { validateForm } = useSaleFormValidation();
+  // Validation hook
+  const { validateForm } = useSaleFormValidation();
 
-    // Form state
-    const [customerId, setCustomerId] = useState(initialData?.customerId || "");
-    const [employeeId, setEmployeeId] = useState(
-        initialData?.employeeId || (!isEdit ? currentUser?.employeeId : "") || "",
-    );
-    const [pickupCompanyId, setPickupCompanyId] = useState(
-        initialData?.pickupCompanyId || "",
-    );
-    const [shippingCompanyId, setShippingCompanyId] = useState(
-        initialData?.shippingCompanyId || "",
+  // Form state
+  const [customerId, setCustomerId] = useState(initialData?.customerId || "");
+  const [employeeId, setEmployeeId] = useState(
+    initialData?.employeeId || (!isEdit ? currentUser?.employeeId : "") || "",
+  );
+  const [pickupCompanyId, setPickupCompanyId] = useState(
+    initialData?.pickupCompanyId || "",
+  );
+  const [shippingCompanyId, setShippingCompanyId] = useState(
+    initialData?.shippingCompanyId || "",
+  );
+
+  const [paymentTerm, setPaymentTerm] = useState<PaymentTermType>(
+    initialData?.paymentTerm || "CREDIT_90",
+  );
+  const [creditDays, setCreditDays] = useState(initialData?.creditDays || 90);
+  const [saleDate, setSaleDate] = useState(
+    initialData?.saleDate || new Date().toISOString().split("T")[0],
+  );
+  const creditDueDate = null;
+  const [usePromotionalCredit, setUsePromotionalCredit] = useState(
+    initialData?.usePromotionalCredit || false,
+  );
+  const [promotionalCreditUsed, setPromotionalCreditUsed] = useState(
+    initialData?.promotionalCreditUsed || 0,
+  );
+  const [requestedDeliveryDate, setRequestedDeliveryDate] = useState(
+    initialData?.requestedDeliveryDate || "",
+  );
+  const [deliveryDate, setDeliveryDate] = useState(
+    initialData?.deliveryDate || "",
+  );
+
+  // Address state
+  const [parsedBilling] = useState(() =>
+    parseAddress(initialData?.billingAddress || ""),
+  );
+  const [billingAddress, setBillingAddress] = useState(
+    initialData?.billingAddress || "",
+  );
+  const [billingStreet, setBillingStreet] = useState(parsedBilling.street);
+  const [billingThaiAddress, setBillingThaiAddress] = useState(
+    parsedBilling.thaiAddress,
+  );
+  const [shippingAddress, setShippingAddress] = useState(
+    initialData?.shippingAddress || "",
+  );
+  const [customShippingAddress, setCustomShippingAddress] = useState(
+    initialData?.shippingAddress || "",
+  );
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethodType>(
+    initialData?.deliveryMethod || "SALES_DELIVERY",
+  );
+  const [prevDeliveryMethod, setPrevDeliveryMethod] =
+    useState<DeliveryMethodType>(
+      initialData?.deliveryMethod || "SALES_DELIVERY",
     );
 
-    const [paymentTerm, setPaymentTerm] = useState<PaymentTermType>(
-        initialData?.paymentTerm || "CREDIT_90",
-    );
-    const [creditDays, setCreditDays] = useState(initialData?.creditDays || 90);
-    const [saleDate, setSaleDate] = useState(
-        initialData?.saleDate || new Date().toISOString().split("T")[0],
-    );
-    const creditDueDate = null;
-    const [usePromotionalCredit, setUsePromotionalCredit] = useState(
-        initialData?.usePromotionalCredit || false,
-    );
-    const [promotionalCreditUsed, setPromotionalCreditUsed] = useState(
-        initialData?.promotionalCreditUsed || 0,
-    );
-    const [requestedDeliveryDate, setRequestedDeliveryDate] = useState(
-        initialData?.requestedDeliveryDate || "",
-    );
-    const [deliveryDate, setDeliveryDate] = useState(
-        initialData?.deliveryDate || "",
-    );
+  // Address selection state
+  const [selectedAddressId, setSelectedAddressId] = useState<string>(
+    initialData?.selectedAddressId || "",
+  );
+  const [shippingCost, setShippingCost] = useState(
+    initialData?.shippingCost || 0,
+  );
+  const [otherCosts, setOtherCosts] = useState(initialData?.otherCosts || 0);
+  const [otherCostsDescription, setOtherCostsDescription] = useState(
+    initialData?.otherCostsDescription || "",
+  );
+  const [notes, setNotes] = useState(initialData?.notes || "");
 
-    // Address state
-    const [parsedBilling] = useState(() =>
-        parseAddress(initialData?.billingAddress || ""),
-    );
-    const [billingAddress, setBillingAddress] = useState(
-        initialData?.billingAddress || "",
-    );
-    const [billingStreet, setBillingStreet] = useState(parsedBilling.street);
-    const [billingThaiAddress, setBillingThaiAddress] = useState(
-        parsedBilling.thaiAddress,
-    );
-    const [shippingAddress, setShippingAddress] = useState(
-        initialData?.shippingAddress || "",
-    );
-    const [customShippingAddress, setCustomShippingAddress] = useState(
-        initialData?.shippingAddress || "",
-    );
-    const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethodType>(
-        initialData?.deliveryMethod || "SALES_DELIVERY",
-    );
-    const [prevDeliveryMethod, setPrevDeliveryMethod] = useState<DeliveryMethodType>(
-        initialData?.deliveryMethod || "SALES_DELIVERY",
-    );
+  // Sale items using hook
+  const { items, addItem, removeItem, updateItem, setItems, subtotal } =
+    useSaleItems({
+      initialItems: initialData?.items || [],
+      products,
+    });
 
-    // Address selection state
-    const [selectedAddressId, setSelectedAddressId] = useState<string>(
-        initialData?.selectedAddressId || "",
-    );
-    const [shippingCost, setShippingCost] = useState(
-        initialData?.shippingCost || 0,
-    );
-    const [otherCosts, setOtherCosts] = useState(initialData?.otherCosts || 0);
-    const [otherCostsDescription, setOtherCostsDescription] = useState(
-        initialData?.otherCostsDescription || "",
-    );
-    const [notes, setNotes] = useState(initialData?.notes || "");
+  // Calculate total
+  const total = subtotal - shippingCost - otherCosts;
 
-    // Sale items using hook
-    const { items, addItem, removeItem, updateItem, setItems, subtotal } =
-        useSaleItems({
-            initialItems: initialData?.items || [],
-            products,
+  // Calculate total promotional budget from editable item values
+  const promotionalBudgetTotal = items.reduce((sum, item) => {
+    const budgetPerCarton = item.promotionBudget ?? 0;
+    return sum + item.quantity * budgetPerCarton;
+  }, 0);
+
+  // Selected customer
+  const [selectedCustomer, setSelectedCustomer] =
+    useState<SaleFormCustomer | null>(null);
+
+  // Product detail modal
+  const [selectedProductDetail, setSelectedProductDetail] =
+    useState<SaleFormProduct | null>(null);
+
+  // Confirm dialog
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmData, setConfirmData] = useState<SaleConfirmData | null>(null);
+  const [pendingSubmitArgs, setPendingSubmitArgs] = useState<
+    Parameters<typeof onSubmit>[0] | null
+  >(null);
+
+  // Auto-fill employeeId for current user (if they have an employeeId)
+  useEffect(() => {
+    if (!isEdit && !employeeId && currentUser?.employeeId) {
+      const timer = setTimeout(() => {
+        setEmployeeId(currentUser.employeeId || "");
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [currentUser, isEdit, employeeId]);
+
+  // Helper to update customer details when customer changes
+  const updateCustomerDetails = (newCustomerId: string) => {
+    if (!newCustomerId) {
+      setSelectedCustomer(null);
+      return;
+    }
+
+    const customer = customers.find((c) => c.id === newCustomerId);
+    setSelectedCustomer(customer || null);
+
+    const isInitialCustomer = initialData?.customerId === newCustomerId;
+    const shouldUpdateAddress = customer && (!isEdit || !isInitialCustomer);
+
+    if (shouldUpdateAddress) {
+      setBillingAddress(customer.billingAddress || "");
+      const parsedBill = parseAddress(customer.billingAddress || "");
+      setBillingStreet(parsedBill.street);
+      setBillingThaiAddress(parsedBill.thaiAddress);
+      setShippingAddress(buildCustomerShippingAddress(customer));
+      setSelectedAddressId("primary");
+    }
+  };
+
+  // Initialize selectedCustomer on mount if needed
+  useEffect(() => {
+    if (customerId && !selectedCustomer) {
+      const customer = customers.find((c) => c.id === customerId);
+      if (customer) {
+        const timer = setTimeout(() => {
+          setSelectedCustomer(customer);
+        }, 0);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [customerId, customers, selectedCustomer]);
+
+  // Combine billing address parts
+  useEffect(() => {
+    const fullAddress = formatAddress({
+      addressLine: billingStreet,
+      subdistrict: billingThaiAddress.subdistrict,
+      district: billingThaiAddress.district,
+      province: billingThaiAddress.province,
+      postalCode: billingThaiAddress.postalCode,
+    });
+
+    if (fullAddress && fullAddress !== "-") {
+      const timer = setTimeout(() => {
+        setBillingAddress(fullAddress);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [billingStreet, billingThaiAddress]);
+
+  // Handle delivery method changes
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    // Reset to main address if delivery method changed
+    if (deliveryMethod !== prevDeliveryMethod && selectedCustomer) {
+      timer = setTimeout(() => {
+        if (deliveryMethod !== "CUSTOMER_PICKUP") {
+          setShippingAddress(buildCustomerShippingAddress(selectedCustomer));
+          setSelectedAddressId("primary");
+
+          // Clear courier/pickup specific fields
+          setPickupCompanyId("");
+          if (deliveryMethod !== "COURIER") {
+            setShippingCompanyId("");
+            setCustomShippingAddress("");
+          }
+        }
+        setPrevDeliveryMethod(deliveryMethod);
+      }, 0);
+    }
+
+    if (deliveryMethod === "CUSTOMER_PICKUP") {
+      if (pickupCompanyId) {
+        const company = companies.find((c) => c.id === pickupCompanyId);
+        if (company) {
+          const fullAddress = buildCompanyAddress(company);
+          timer = setTimeout(() => {
+            setShippingAddress(fullAddress);
+            setCustomShippingAddress(fullAddress);
+          }, 0);
+        }
+      } else {
+        timer = setTimeout(() => {
+          setShippingAddress("");
+          setCustomShippingAddress("");
+        }, 0);
+      }
+    } else if (deliveryMethod === "COURIER") {
+      timer = setTimeout(() => {
+        // If switching to courier from a state that had pickupCompanyId
+        if (pickupCompanyId) {
+          setCustomShippingAddress("");
+          setPickupCompanyId("");
+          setShippingCompanyId("");
+
+          // We already handled main address reset above for all changes
+        }
+      }, 0);
+    } else if (
+      (deliveryMethod === "SALES_DELIVERY" ||
+        deliveryMethod === "FACTORY_DELIVERY") &&
+      selectedCustomer
+    ) {
+      timer = setTimeout(() => {
+        // If switching from a state that had pickupCompanyId
+        if (pickupCompanyId) {
+          setPickupCompanyId("");
+        }
+      }, 0);
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [
+    pickupCompanyId,
+    deliveryMethod,
+    prevDeliveryMethod,
+    companies,
+    selectedCustomer,
+  ]);
+
+  // Auto-select shipping company in edit mode if address matches
+  useEffect(() => {
+    if (
+      deliveryMethod === "COURIER" &&
+      selectedCustomer?.shippingCompanies &&
+      !shippingCompanyId &&
+      customShippingAddress
+    ) {
+      const matchingCompany = selectedCustomer.shippingCompanies.find((sc) => {
+        const company = sc.shippingCompany;
+        const structuredAddr = buildCompanyAddress({
+          addressLine: company.addressLine || undefined,
+          subdistrict: company.subdistrict || undefined,
+          district: company.district || undefined,
+          province: company.province || undefined,
+          postalCode: company.postalCode || undefined,
         });
 
-    // Calculate total
-    const total = subtotal - shippingCost - otherCosts;
+        const fullAddress = structuredAddr || company.address || "";
+        return fullAddress === customShippingAddress;
+      });
 
-    // Calculate total promotional budget from editable item values
-    const promotionalBudgetTotal = items.reduce((sum, item) => {
-        const budgetPerCarton = item.promotionBudget ?? 0;
-        return sum + item.quantity * budgetPerCarton;
-    }, 0);
+      if (matchingCompany) {
+        const timer = setTimeout(() => {
+          setShippingCompanyId(matchingCompany.shippingCompany.id);
+        }, 0);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [
+    deliveryMethod,
+    selectedCustomer,
+    shippingCompanyId,
+    customShippingAddress,
+  ]);
 
-    // Selected customer
-    const [selectedCustomer, setSelectedCustomer] =
-        useState<SaleFormCustomer | null>(null);
+  // Handle payment term change
+  const handlePaymentTermChange = (value: PaymentTermType) => {
+    setPaymentTerm(value);
+    setCreditDays(getCreditDaysForTerm(value));
+  };
 
-    // Product detail modal
-    const [selectedProductDetail, setSelectedProductDetail] =
-        useState<SaleFormProduct | null>(null);
+  const handleAddressSelect = (addressId: string, fullAddress: string) => {
+    setSelectedAddressId(addressId);
+    setShippingAddress(fullAddress);
+    setFieldErrors((prev) => ({ ...prev, shippingAddress: "" }));
+    setErrors([]);
+  };
 
-    // Confirm dialog
-    const [confirmOpen, setConfirmOpen] = useState(false);
-    const [confirmData, setConfirmData] = useState<SaleConfirmData | null>(null);
-    const [pendingSubmitArgs, setPendingSubmitArgs] = useState<Parameters<typeof onSubmit>[0] | null>(null);
+  // Handle custom address input
+  const handleUseCustomAddress = () => {
+    setSelectedAddressId("");
+  };
 
-    // Auto-fill employeeId for current user (if they have an employeeId)
-    useEffect(() => {
-        if (!isEdit && !employeeId && currentUser?.employeeId) {
-            const timer = setTimeout(() => {
-                setEmployeeId(currentUser.employeeId || "");
-            }, 0);
-            return () => clearTimeout(timer);
-        }
-    }, [currentUser, isEdit, employeeId]);
+  // Label helpers
+  const getPaymentTermLabel = (term: string): string => {
+    const labels: Record<string, string> = {
+      CREDIT_90: "ส่งสินค้าก่อน (เครดิต 90 วัน)",
+      CASH_7: "ชำระเงินสด (เครดิต 7 วัน)",
+      PREPAID: "ชำระเงินก่อนส่งสินค้า (โอนเงินก่อนส่งสินค้า)",
+      CREDIT_OVER_90: "ส่งสินค้าก่อน (เครดิตมากกว่า 90 วัน)",
+    };
+    return labels[term] || term;
+  };
 
-    // Helper to update customer details when customer changes
-    const updateCustomerDetails = (newCustomerId: string) => {
-        if (!newCustomerId) {
-            setSelectedCustomer(null);
-            return;
-        }
+  const getDeliveryMethodLabel = (method: string): string => {
+    const labels: Record<string, string> = {
+      SALES_DELIVERY: "พนักงานขายจัดส่งสินค้า",
+      FACTORY_DELIVERY: "ส่งโดยรถโรงงาน",
+      CUSTOMER_PICKUP: "ลูกค้ามารับสินค้าเอง",
+      COURIER: "ส่งโดยบริษัทขนส่ง",
+    };
+    return labels[method] || method;
+  };
 
-        const customer = customers.find((c) => c.id === newCustomerId);
-        setSelectedCustomer(customer || null);
+  // Handle form submission — validate then open confirm dialog
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loading) return;
 
-        const isInitialCustomer = initialData?.customerId === newCustomerId;
-        const shouldUpdateAddress = customer && (!isEdit || !isInitialCustomer);
+    setErrors([]);
+    setWarnings([]);
+    setFieldErrors({});
 
-        if (shouldUpdateAddress) {
-            setBillingAddress(customer.billingAddress || "");
-            const parsedBill = parseAddress(customer.billingAddress || "");
-            setBillingStreet(parsedBill.street);
-            setBillingThaiAddress(parsedBill.thaiAddress);
-            setShippingAddress(buildCustomerShippingAddress(customer));
-            setSelectedAddressId("primary");
-        }
+    // Build state object for validation
+    const formState = {
+      customerId,
+      employeeId,
+      pickupCompanyId,
+      paymentTerm,
+      creditDays,
+      creditDueDate,
+      saleDate,
+      usePromotionalCredit,
+      promotionalCreditUsed,
+      requestedDeliveryDate,
+      deliveryDate,
+      billingAddress,
+      shippingAddress,
+      customShippingAddress,
+      deliveryMethod,
+      shippingCompanyId,
+      items,
+      shippingCost,
+      otherCosts,
+      otherCostsDescription,
+      notes,
     };
 
-    // Initialize selectedCustomer on mount if needed
-    useEffect(() => {
-        if (customerId && !selectedCustomer) {
-            const customer = customers.find((c) => c.id === customerId);
-            if (customer) {
-                const timer = setTimeout(() => {
-                    setSelectedCustomer(customer);
-                }, 0);
-                return () => clearTimeout(timer);
+    // Validate
+    const validation = validateForm(formState, {
+      selectedCustomer,
+      products,
+      total,
+    });
+
+    setErrors(validation.errors);
+    setWarnings(validation.warnings);
+    setFieldErrors(validation.fieldErrors);
+
+    if (validation.errors.length > 0) {
+      setTimeout(() => {
+        const fieldsToScroll = [
+          "customerId",
+          "employeeId",
+          "paymentTerm",
+          "saleDate",
+          "requestedDeliveryDate",
+          "pickupCompanyId",
+          "shippingCompanyId",
+          "customShippingAddress",
+          "shippingAddress",
+          "items",
+        ];
+
+        for (const field of fieldsToScroll) {
+          if (validation.fieldErrors[field]) {
+            const elId = field === "customerId" ? "customer-combobox" : field;
+            const el = document.getElementById(elId);
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth", block: "center" });
+              el.focus();
+              break;
             }
-        }
-    }, [customerId, customers, selectedCustomer]);
-
-    // Combine billing address parts
-    useEffect(() => {
-        const fullAddress = formatAddress({
-            addressLine: billingStreet,
-            subdistrict: billingThaiAddress.subdistrict,
-            district: billingThaiAddress.district,
-            province: billingThaiAddress.province,
-            postalCode: billingThaiAddress.postalCode,
-        });
-
-        if (fullAddress && fullAddress !== "-") {
-            const timer = setTimeout(() => {
-                setBillingAddress(fullAddress);
-            }, 0);
-            return () => clearTimeout(timer);
-        }
-    }, [billingStreet, billingThaiAddress]);
-
-    // Handle delivery method changes
-
-    useEffect(() => {
-        let timer: NodeJS.Timeout;
-
-        // Reset to main address if delivery method changed
-        if (deliveryMethod !== prevDeliveryMethod && selectedCustomer) {
-            timer = setTimeout(() => {
-                if (deliveryMethod !== "CUSTOMER_PICKUP") {
-                    setShippingAddress(buildCustomerShippingAddress(selectedCustomer));
-                    setSelectedAddressId("primary");
-
-                    // Clear courier/pickup specific fields
-                    setPickupCompanyId("");
-                    if (deliveryMethod !== "COURIER") {
-                        setShippingCompanyId("");
-                        setCustomShippingAddress("");
-                    }
-                }
-                setPrevDeliveryMethod(deliveryMethod);
-            }, 0);
+          }
         }
 
-        if (deliveryMethod === "CUSTOMER_PICKUP") {
-            if (pickupCompanyId) {
-                const company = companies.find((c) => c.id === pickupCompanyId);
-                if (company) {
-                    const fullAddress = buildCompanyAddress(company);
-                    timer = setTimeout(() => {
-                        setShippingAddress(fullAddress);
-                        setCustomShippingAddress(fullAddress);
-                    }, 0);
-                }
-            } else {
-                timer = setTimeout(() => {
-                    setShippingAddress("");
-                    setCustomShippingAddress("");
-                }, 0);
+        // Check for item specific errors if no top-level errors matched
+        const hasItemError = Object.keys(validation.fieldErrors).some((key) =>
+          key.startsWith("item_"),
+        );
+        if (hasItemError) {
+          const firstItemErrorKey = Object.keys(validation.fieldErrors).find(
+            (key) => key.startsWith("item_"),
+          );
+          if (firstItemErrorKey) {
+            const el = document.getElementById(firstItemErrorKey);
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth", block: "center" });
+              el.focus();
             }
-        } else if (deliveryMethod === "COURIER") {
-            timer = setTimeout(() => {
-                // If switching to courier from a state that had pickupCompanyId
-                if (pickupCompanyId) {
-                    setCustomShippingAddress("");
-                    setPickupCompanyId("");
-                    setShippingCompanyId("");
-
-                    // We already handled main address reset above for all changes
-                }
-            }, 0);
-        } else if (
-            (deliveryMethod === "SALES_DELIVERY" || deliveryMethod === "FACTORY_DELIVERY") &&
-            selectedCustomer
-        ) {
-            timer = setTimeout(() => {
-                // If switching from a state that had pickupCompanyId
-                if (pickupCompanyId) {
-                    setPickupCompanyId("");
-                }
-            }, 0);
+          }
         }
+      }, 100);
+      return;
+    }
 
-        return () => {
-            if (timer) clearTimeout(timer);
-        };
-    }, [
-        pickupCompanyId,
-        deliveryMethod,
-        prevDeliveryMethod,
-        companies,
-        selectedCustomer,
-    ]);
+    // Build submit args
+    const now = new Date();
+    const saleDateWithTime = (() => {
+      if (!saleDate) return saleDate;
+      const [year, month, day] = saleDate.split("-").map(Number);
+      const dateWithTime = new Date(
+        year,
+        month - 1,
+        day,
+        now.getHours(),
+        now.getMinutes(),
+        now.getSeconds(),
+      );
+      return dateWithTime.toISOString();
+    })();
 
-    // Auto-select shipping company in edit mode if address matches
-    useEffect(() => {
-        if (
-            deliveryMethod === "COURIER" &&
-            selectedCustomer?.shippingCompanies &&
-            !shippingCompanyId &&
-            customShippingAddress
-        ) {
-            const matchingCompany = selectedCustomer.shippingCompanies.find((sc) => {
-                const company = sc.shippingCompany;
-                const structuredAddr = buildCompanyAddress({
-                    addressLine: company.addressLine || undefined,
-                    subdistrict: company.subdistrict || undefined,
-                    district: company.district || undefined,
-                    province: company.province || undefined,
-                    postalCode: company.postalCode || undefined,
-                });
+    const isCreditPayment = isCreditBasedPayment(paymentTerm);
 
-                const fullAddress = structuredAddr || company.address || "";
-                return fullAddress === customShippingAddress;
-            });
-
-            if (matchingCompany) {
-                const timer = setTimeout(() => {
-                    setShippingCompanyId(matchingCompany.shippingCompany.id);
-                }, 0);
-                return () => clearTimeout(timer);
-            }
-        }
-    }, [
-        deliveryMethod,
-        selectedCustomer,
-        shippingCompanyId,
-        customShippingAddress,
-    ]);
-
-    // Handle payment term change
-    const handlePaymentTermChange = (value: PaymentTermType) => {
-        setPaymentTerm(value);
-        setCreditDays(getCreditDaysForTerm(value));
+    const submitArgs: Parameters<typeof onSubmit>[0] = {
+      customerId,
+      employeeId,
+      paymentTerm,
+      creditDays: isCreditPayment ? creditDays : undefined,
+      creditDueDate: null,
+      usePromotionalCredit,
+      promotionalCreditUsed: usePromotionalCredit
+        ? promotionalCreditUsed
+        : undefined,
+      saleDate: saleDateWithTime,
+      requestedDeliveryDate: requestedDeliveryDate || undefined,
+      deliveryDate: deliveryDate || undefined,
+      billingAddress,
+      shippingAddress,
+      useCustomShipping: false,
+      deliveryMethod,
+      selectedAddressId: selectedAddressId || undefined,
+      pickupCompanyId:
+        deliveryMethod === "CUSTOMER_PICKUP" ? pickupCompanyId : undefined,
+      shippingCompanyId:
+        deliveryMethod === "COURIER" ? shippingCompanyId : undefined,
+      items,
+      shippingCost,
+      otherCosts,
+      otherCostsDescription,
+      notes,
     };
 
-    const handleAddressSelect = (addressId: string, fullAddress: string) => {
-        setSelectedAddressId(addressId);
-        setShippingAddress(fullAddress);
-        setFieldErrors((prev) => ({ ...prev, shippingAddress: "" }));
-        setErrors([]);
+    // Build confirm data
+    const customer = customers.find((c) => c.id === customerId);
+    const employee = employees.find((e) => e.id === employeeId);
+
+    const data: SaleConfirmData = {
+      customerName: customer
+        ? `${customer.name} (${customer.customerCode})`
+        : customerId,
+      employeeName: employee?.name || employeeId,
+      paymentTermLabel: getPaymentTermLabel(paymentTerm),
+      saleDate,
+      requestedDeliveryDate: requestedDeliveryDate || undefined,
+      deliveryMethodLabel: getDeliveryMethodLabel(deliveryMethod),
+      shippingAddress,
+      items,
+      products,
+      subtotal,
+      shippingCost,
+      otherCosts,
+      otherCostsDescription: otherCostsDescription || undefined,
+      total,
+      promotionalBudgetTotal,
+      notes: notes || undefined,
     };
 
-    // Handle custom address input
-    const handleUseCustomAddress = () => {
-        setSelectedAddressId("");
-    };
+    setPendingSubmitArgs(submitArgs);
+    setConfirmData(data);
+    setConfirmOpen(true);
+  };
 
-    // Label helpers
-    const getPaymentTermLabel = (term: string): string => {
-        const labels: Record<string, string> = {
-            CREDIT_90: "ส่งสินค้าก่อน (เครดิต 90 วัน)",
-            CASH_7: "ชำระเงินสด (เครดิต 7 วัน)",
-            PREPAID: "ชำระเงินก่อนส่งสินค้า (โอนเงินก่อนส่งสินค้า)",
-            CREDIT_OVER_90: "ส่งสินค้าก่อน (เครดิตมากกว่า 90 วัน)",
-        };
-        return labels[term] || term;
-    };
+  // Called when user clicks "ยืนยันบันทึก" inside the dialog
+  const handleConfirm = async () => {
+    if (!pendingSubmitArgs) return;
+    setLoading(true);
+    try {
+      await onSubmit(pendingSubmitArgs);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "เกิดข้อผิดพลาดในการบันทึกข้อมูล";
+      setErrors([errorMessage]);
+      setConfirmOpen(false);
+      setLoading(false);
+    }
+  };
 
-    const getDeliveryMethodLabel = (method: string): string => {
-        const labels: Record<string, string> = {
-            SALES_DELIVERY: "พนักงานขายจัดส่งสินค้า",
-            FACTORY_DELIVERY: "ส่งโดยรถโรงงาน",
-            CUSTOMER_PICKUP: "ลูกค้ามารับสินค้าเอง",
-            COURIER: "ส่งโดยบริษัทขนส่ง",
-        };
-        return labels[method] || method;
-    };
+  const handleCancel = onCancel ?? (() => router.back());
 
-    // Handle form submission — validate then open confirm dialog
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (loading) return;
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="w-full max-w-[2000px] mx-auto space-y-4 sm:space-y-6 lg:space-y-8"
+      noValidate
+    >
+      {/* Warnings */}
+      {warnings.length > 0 && (
+        <Alert className="border-2 border-yellow-400 bg-yellow-50">
+          <AlertDescription>
+            <ul className="list-disc pl-4 space-y-1">
+              {warnings.map((warning, i) => (
+                <li key={i} className="text-sm sm:text-base text-yellow-800">
+                  {warning}
+                </li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
 
-        setErrors([]);
-        setWarnings([]);
-        setFieldErrors({});
+      {/* Customer & Employee Section */}
+      <SectionHeader
+        title="ข้อมูลลูกค้าและพนักงาน"
+        color="gray"
+        className="mt-6"
+      />
 
-        // Build state object for validation
-        const formState = {
-            customerId,
-            employeeId,
-            pickupCompanyId,
-            paymentTerm,
-            creditDays,
-            creditDueDate,
-            saleDate,
-            usePromotionalCredit,
-            promotionalCreditUsed,
-            requestedDeliveryDate,
-            deliveryDate,
-            billingAddress,
-            shippingAddress,
-            customShippingAddress,
-            deliveryMethod,
-            shippingCompanyId,
-            items,
-            shippingCost,
-            otherCosts,
-            otherCostsDescription,
-            notes,
-        };
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
+        <FormCombobox
+          id="customer-combobox"
+          label="ลูกค้า"
+          value={customerId}
+          onChange={(val) => {
+            setCustomerId(val);
+            updateCustomerDetails(val);
+            setFieldErrors((prev) => ({ ...prev, customerId: "" }));
+            setErrors([]);
+          }}
+          options={customers
+            .filter((customer) => {
+              if (isSalesEmployee && !canSelectOtherEmployees) {
+                return (
+                  customer.responsibleEmployeeId === currentUser?.employeeId ||
+                  (isEdit && customer.id === initialData?.customerId)
+                );
+              }
+              return true;
+            })
+            .map((customer) => ({
+              value: customer.id,
+              label: `${customer.customerCode ? `${customer.customerCode} - ` : ""}${customer.name}`,
+            }))}
+          placeholder="เลือกลูกค้า"
+          searchPlaceholder="ค้นหาลูกค้า..."
+          emptyText="ไม่พบลูกค้า"
+          required
+          error={fieldErrors.customerId}
+        />
 
-        // Validate
-        const validation = validateForm(formState, {
-            selectedCustomer,
-            products,
-            total,
-        });
+        <FormCombobox
+          id="employeeId"
+          label="พนักงานขาย"
+          value={employeeId}
+          onChange={(val) => {
+            setEmployeeId(val);
+            setFieldErrors((prev) => ({ ...prev, employeeId: "" }));
+            setErrors([]);
+          }}
+          options={employees.map((employee) => ({
+            value: employee.id,
+            label: employee.name,
+          }))}
+          placeholder="เลือกพนักงานขาย"
+          searchPlaceholder="ค้นหาพนักงานขาย..."
+          emptyText="ไม่พบพนักงานขาย"
+          disabled={!canSelectOtherEmployees}
+          required
+          error={fieldErrors.employeeId}
+        />
+      </div>
 
-        setErrors(validation.errors);
-        setWarnings(validation.warnings);
-        setFieldErrors(validation.fieldErrors);
+      {/* Credit Info */}
+      {selectedCustomer && paymentTerm !== "PREPAID" && (
+        <CustomerCreditInfo customer={selectedCustomer} />
+      )}
 
-        if (validation.errors.length > 0) {
-            setTimeout(() => {
-                const fieldsToScroll = [
-                    "customerId",
-                    "employeeId",
-                    "paymentTerm",
-                    "saleDate",
-                    "requestedDeliveryDate",
-                    "pickupCompanyId",
-                    "shippingCompanyId",
-                    "customShippingAddress",
-                    "shippingAddress",
-                    "items"
-                ];
+      {/* Payment Terms Section */}
+      <SectionHeader title="เงื่อนไขการชำระเงิน" color="gray" />
 
-                for (const field of fieldsToScroll) {
-                    if (validation.fieldErrors[field]) {
-                        const elId = field === "customerId" ? "customer-combobox" : field;
-                        const el = document.getElementById(elId);
-                        if (el) {
-                            el.scrollIntoView({ behavior: "smooth", block: "center" });
-                            el.focus();
-                            break;
-                        }
-                    }
-                }
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+        <FormSelect
+          id="paymentTerm"
+          label="เงื่อนไขการชำระเงิน"
+          value={paymentTerm}
+          onChange={(val) => handlePaymentTermChange(val as PaymentTermType)}
+          options={[
+            { value: "CREDIT_90", label: "ส่งสินค้าก่อน (เครดิต 90 วัน)" },
+            { value: "CASH_7", label: "ชำระเงินสด (เครดิต 7 วัน)" },
+            {
+              value: "PREPAID",
+              label: "ชำระเงินก่อนส่งสินค้า (โอนเงินก่อนส่งสินค้า)",
+            },
+            ...(isAdmin || isSaleAdmin
+              ? [
+                  {
+                    value: "CREDIT_OVER_90",
+                    label: "ส่งสินค้าก่อน (เครดิตมากกว่า 90 วัน)",
+                  },
+                ]
+              : []),
+          ]}
+          placeholder="เลือกเงื่อนไข"
+          groupLabel="เงื่อนไข"
+          required
+        />
 
-                // Check for item specific errors if no top-level errors matched
-                const hasItemError = Object.keys(validation.fieldErrors).some(key => key.startsWith("item_"));
-                if (hasItemError) {
-                    const firstItemErrorKey = Object.keys(validation.fieldErrors)
-                        .find(key => key.startsWith("item_"));
-                    if (firstItemErrorKey) {
-                        const el = document.getElementById(firstItemErrorKey);
-                        if (el) {
-                            el.scrollIntoView({ behavior: "smooth", block: "center" });
-                            el.focus();
-                        }
-                    }
-                }
-            }, 100);
-            return;
-        }
-
-        // Build submit args
-        const now = new Date();
-        const saleDateWithTime = (() => {
-            if (!saleDate) return saleDate;
-            const [year, month, day] = saleDate.split("-").map(Number);
-            const dateWithTime = new Date(
-                year,
-                month - 1,
-                day,
-                now.getHours(),
-                now.getMinutes(),
-                now.getSeconds(),
-            );
-            return dateWithTime.toISOString();
-        })();
-
-        const isCreditPayment = isCreditBasedPayment(paymentTerm);
-
-        const submitArgs: Parameters<typeof onSubmit>[0] = {
-            customerId,
-            employeeId,
-            paymentTerm,
-            creditDays: isCreditPayment ? creditDays : undefined,
-            creditDueDate: null,
-            usePromotionalCredit,
-            promotionalCreditUsed: usePromotionalCredit
-                ? promotionalCreditUsed
-                : undefined,
-            saleDate: saleDateWithTime,
-            requestedDeliveryDate: requestedDeliveryDate || undefined,
-            deliveryDate: deliveryDate || undefined,
-            billingAddress,
-            shippingAddress,
-            useCustomShipping: false,
-            deliveryMethod,
-            selectedAddressId: selectedAddressId || undefined,
-            pickupCompanyId:
-                deliveryMethod === "CUSTOMER_PICKUP" ? pickupCompanyId : undefined,
-            shippingCompanyId:
-                deliveryMethod === "COURIER" ? shippingCompanyId : undefined,
-            items,
-            shippingCost,
-            otherCosts,
-            otherCostsDescription,
-            notes,
-        };
-
-        // Build confirm data
-        const customer = customers.find((c) => c.id === customerId);
-        const employee = employees.find((e) => e.id === employeeId);
-
-        const data: SaleConfirmData = {
-            customerName: customer
-                ? `${customer.name} (${customer.customerCode})`
-                : customerId,
-            employeeName: employee?.name || employeeId,
-            paymentTermLabel: getPaymentTermLabel(paymentTerm),
-            saleDate,
-            requestedDeliveryDate: requestedDeliveryDate || undefined,
-            deliveryMethodLabel: getDeliveryMethodLabel(deliveryMethod),
-            shippingAddress,
-            items,
-            products,
-            subtotal,
-            shippingCost,
-            otherCosts,
-            otherCostsDescription: otherCostsDescription || undefined,
-            total,
-            promotionalBudgetTotal,
-            notes: notes || undefined,
-        };
-
-        setPendingSubmitArgs(submitArgs);
-        setConfirmData(data);
-        setConfirmOpen(true);
-    };
-
-    // Called when user clicks "ยืนยันบันทึก" inside the dialog
-    const handleConfirm = async () => {
-        if (!pendingSubmitArgs) return;
-        setLoading(true);
-        try {
-            await onSubmit(pendingSubmitArgs);
-        } catch (error: unknown) {
-            const errorMessage =
-                error instanceof Error
-                    ? error.message
-                    : "เกิดข้อผิดพลาดในการบันทึกข้อมูล";
-            setErrors([errorMessage]);
-            setConfirmOpen(false);
-            setLoading(false);
-        }
-    };
-
-
-
-    const handleCancel = onCancel ?? (() => router.back());
-
-    return (
-        <form
-            onSubmit={handleSubmit}
-            className="w-full max-w-[2000px] mx-auto space-y-4 sm:space-y-6 lg:space-y-8"
-            noValidate
-        >
-            {/* Warnings */}
-            {warnings.length > 0 && (
-                <Alert className="border-2 border-yellow-400 bg-yellow-50">
-                    <AlertDescription>
-                        <ul className="list-disc pl-4 space-y-1">
-                            {warnings.map((warning, i) => (
-                                <li key={i} className="text-sm sm:text-base text-yellow-800">
-                                    {warning}
-                                </li>
-                            ))}
-                        </ul>
-                    </AlertDescription>
-                </Alert>
-            )}
-
-            {/* Customer & Employee Section */}
-            <SectionHeader
-                title="ข้อมูลลูกค้าและพนักงาน"
-                color="gray"
-                className="mt-6"
+        {deliveryMethod !== "CUSTOMER_PICKUP" &&
+          deliveryMethod !== "COURIER" && (
+            <DatePicker
+              id="requestedDeliveryDate"
+              label="วันที่ต้องการของ"
+              value={requestedDeliveryDate}
+              onChange={(val) => {
+                setRequestedDeliveryDate(val || "");
+                setFieldErrors((prev) => ({
+                  ...prev,
+                  requestedDeliveryDate: "",
+                }));
+                setErrors([]);
+              }}
+              placeholder=""
+              required
+              error={fieldErrors.requestedDeliveryDate}
             />
+          )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
-                <FormCombobox
-                    id="customer-combobox"
-                    label="ลูกค้า"
-                    value={customerId}
-                    onChange={(val) => {
-                        setCustomerId(val);
-                        updateCustomerDetails(val);
-                        setFieldErrors((prev) => ({ ...prev, customerId: "" }));
-                        setErrors([]);
-                    }}
-                    options={customers
-                        .filter((customer) => {
-                            if (isSalesEmployee && !canSelectOtherEmployees) {
-                                return (
-                                    customer.responsibleEmployeeId === currentUser?.employeeId ||
-                                    (isEdit && customer.id === initialData?.customerId)
-                                );
-                            }
-                            return true;
-                        })
-                        .map((customer) => ({
-                            value: customer.id,
-                            label: `${customer.customerCode ? `${customer.customerCode} - ` : ""}${customer.name}`,
-                        }))}
-                    placeholder="เลือกลูกค้า"
-                    searchPlaceholder="ค้นหาลูกค้า..."
-                    emptyText="ไม่พบลูกค้า"
-                    required
-                    error={fieldErrors.customerId}
-                />
+        <div>
+          <DatePicker
+            id="saleDate"
+            label="วันที่ออเดอร์"
+            value={saleDate}
+            onChange={(val) => {
+              setSaleDate(val || "");
+              setFieldErrors((prev) => ({ ...prev, saleDate: "" }));
+              setErrors([]);
+            }}
+            placeholder=""
+            disabled={!isAdmin && !isSaleAdmin}
+            required
+            error={fieldErrors.saleDate}
+          />
+          {fieldErrors.saleDate && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.saleDate}</p>
+          )}
+        </div>
+      </div>
 
-                <FormCombobox
-                    id="employeeId"
-                    label="พนักงานขาย"
-                    value={employeeId}
-                    onChange={(val) => {
-                        setEmployeeId(val);
-                        setFieldErrors((prev) => ({ ...prev, employeeId: "" }));
-                        setErrors([]);
-                    }}
-                    options={employees.map((employee) => ({
-                        value: employee.id,
-                        label: employee.name,
-                    }))}
-                    placeholder="เลือกพนักงานขาย"
-                    searchPlaceholder="ค้นหาพนักงานขาย..."
-                    emptyText="ไม่พบพนักงานขาย"
-                    disabled={!canSelectOtherEmployees}
-                    required
-                    error={fieldErrors.employeeId}
-                />
-            </div>
+      {/* Delivery Section */}
+      <SectionHeader title="การจัดส่งและที่อยู่" color="gray" />
 
-            {/* Credit Info */}
-            {selectedCustomer && paymentTerm !== "PREPAID" && <CustomerCreditInfo customer={selectedCustomer} />}
+      <DeliveryMethodSection
+        value={deliveryMethod}
+        onChange={setDeliveryMethod}
+        customer={selectedCustomer}
+        selectedAddressId={selectedAddressId}
+        onAddressSelect={handleAddressSelect}
+        onUseCustomAddress={handleUseCustomAddress}
+        companies={companies}
+        pickupCompanyId={pickupCompanyId}
+        onPickupCompanyChange={(val) => {
+          setPickupCompanyId(val);
+          setFieldErrors((prev) => ({ ...prev, pickupCompanyId: "" }));
+          setErrors([]);
+        }}
+        shippingCompanyId={shippingCompanyId}
+        onShippingCompanyChange={setShippingCompanyId}
+        requestedDeliveryDate={requestedDeliveryDate}
+        onRequestedDeliveryDateChange={setRequestedDeliveryDate}
+        shippingAddress={shippingAddress}
+        customShippingAddress={customShippingAddress}
+        onCustomShippingAddressChange={setCustomShippingAddress}
+        fieldErrors={fieldErrors}
+        onFieldErrorClear={(field) => {
+          setFieldErrors((prev) => ({ ...prev, [field]: "" }));
+          setErrors([]);
+        }}
+      />
 
-            {/* Payment Terms Section */}
-            <SectionHeader title="เงื่อนไขการชำระเงิน" color="gray" />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
-                <FormSelect
-                    id="paymentTerm"
-                    label="เงื่อนไขการชำระเงิน"
-                    value={paymentTerm}
-                    onChange={(val) => handlePaymentTermChange(val as PaymentTermType)}
-                    options={[
-                        { value: "CREDIT_90", label: "ส่งสินค้าก่อน (เครดิต 90 วัน)" },
-                        { value: "CASH_7", label: "ชำระเงินสด (เครดิต 7 วัน)" },
-                        {
-                            value: "PREPAID",
-                            label: "ชำระเงินก่อนส่งสินค้า (โอนเงินก่อนส่งสินค้า)",
-                        },
-                        ...(isAdmin || isSaleAdmin
-                            ? [
-                                {
-                                    value: "CREDIT_OVER_90",
-                                    label: "ส่งสินค้าก่อน (เครดิตมากกว่า 90 วัน)",
-                                },
-                            ]
-                            : []),
-                    ]}
-                    placeholder="เลือกเงื่อนไข"
-                    groupLabel="เงื่อนไข"
-                    required
-                />
-
-                {deliveryMethod !== "CUSTOMER_PICKUP" &&
-                    deliveryMethod !== "COURIER" && (
-                        <DatePicker
-                            id="requestedDeliveryDate"
-                            label="วันที่ต้องการของ"
-                            value={requestedDeliveryDate}
-                            onChange={(val) => {
-                                setRequestedDeliveryDate(val || "");
-                                setFieldErrors((prev) => ({ ...prev, requestedDeliveryDate: "" }));
-                                setErrors([]);
-                            }}
-                            placeholder=""
-                            required
-                            error={fieldErrors.requestedDeliveryDate}
-                        />
-                    )}
-
-                <div>
-                    <DatePicker
-                        id="saleDate"
-                        label="วันที่ออเดอร์"
-                        value={saleDate}
-                        onChange={(val) => {
-                            setSaleDate(val || "");
-                            setFieldErrors((prev) => ({ ...prev, saleDate: "" }));
-                            setErrors([]);
-                        }}
-                        placeholder=""
-                        disabled={!isAdmin && !isSaleAdmin}
-                        required
-                        error={fieldErrors.saleDate}
-                    />
-                    {fieldErrors.saleDate && (
-                        <p className="text-xs text-red-600 mt-1">{fieldErrors.saleDate}</p>
-                    )}
-                </div>
-            </div>
-
-            {/* Delivery Section */}
-            <SectionHeader title="การจัดส่งและที่อยู่" color="gray" />
-
-            <DeliveryMethodSection
-                value={deliveryMethod}
-                onChange={setDeliveryMethod}
-                customer={selectedCustomer}
-                selectedAddressId={selectedAddressId}
-                onAddressSelect={handleAddressSelect}
-                onUseCustomAddress={handleUseCustomAddress}
-                companies={companies}
-                pickupCompanyId={pickupCompanyId}
-                onPickupCompanyChange={(val) => {
-                    setPickupCompanyId(val);
-                    setFieldErrors((prev) => ({ ...prev, pickupCompanyId: "" }));
-                    setErrors([]);
-                }}
-                shippingCompanyId={shippingCompanyId}
-                onShippingCompanyChange={setShippingCompanyId}
-                requestedDeliveryDate={requestedDeliveryDate}
-                onRequestedDeliveryDateChange={setRequestedDeliveryDate}
-                shippingAddress={shippingAddress}
-                customShippingAddress={customShippingAddress}
-                onCustomShippingAddressChange={setCustomShippingAddress}
-                fieldErrors={fieldErrors}
-                onFieldErrorClear={(field) => {
-                    setFieldErrors((prev) => ({ ...prev, [field]: "" }));
-                    setErrors([]);
-                }}
-            />
-
-            {/* Products Section */}
-            <SectionHeader id="items" title="รายการสินค้า" color="gray">
-                <Button
-                    type="button"
-                    onClick={() => {
-                        addItem();
-                        setFieldErrors((prev) => ({ ...prev, items: "" }));
-                        setErrors([]);
-                    }}
-                    className="
+      {/* Products Section */}
+      <SectionHeader id="items" title="รายการสินค้า" color="gray">
+        <Button
+          type="button"
+          onClick={() => {
+            addItem();
+            setFieldErrors((prev) => ({ ...prev, items: "" }));
+            setErrors([]);
+          }}
+          className="
           bg-emerald-600 hover:bg-emerald-700
           text-white font-semibold
           rounded-xl sm:rounded-lg
@@ -776,178 +787,181 @@ export function SaleForm({
           transition-all duration-200
           w-full sm:w-auto
         "
+        >
+          <Plus className="h-5 w-5 sm:h-4 sm:w-4" />
+          เพิ่มรายการ
+        </Button>
+      </SectionHeader>
+
+      {fieldErrors.items && (
+        <p className="text-sm text-red-600 mt-2">{fieldErrors.items}</p>
+      )}
+
+      <div className="space-y-4 mt-6">
+        {items.map((item, index) => (
+          <SaleItemRow
+            key={index}
+            id={`item_${index}_productId`}
+            item={item}
+            index={index}
+            products={products}
+            onUpdate={updateItem}
+            onRemove={removeItem}
+            onShowDetails={setSelectedProductDetail}
+            fieldError={fieldErrors[`item_${index}_productId`]}
+            onClearError={() => {
+              setFieldErrors((prev) => ({
+                ...prev,
+                [`item_${index}_productId`]: "",
+              }));
+              setErrors([]);
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Promotional Budget Section */}
+      {items.some((item) => item.productId) && (
+        <>
+          <SectionHeader title="งบส่งเสริมการขาย" color="gray" />
+          <div className="space-y-3 mt-2">
+            {items.map((item, originalIndex) => {
+              if (!item.productId) return null;
+              const product = products.find((p) => p.id === item.productId);
+              if (!product) return null;
+              const budgetPerCarton = item.promotionBudget ?? 0;
+              const itemBudget = item.quantity * budgetPerCarton;
+              return (
+                <div
+                  key={originalIndex}
+                  className="flex flex-col sm:flex-row sm:items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-lg px-4 py-3"
                 >
-                    <Plus className="h-5 w-5 sm:h-4 sm:w-4" />
-                    เพิ่มรายการ
-                </Button>
-            </SectionHeader>
-
-            {fieldErrors.items && (
-                <p className="text-sm text-red-600 mt-2">{fieldErrors.items}</p>
-            )}
-
-            <div className="space-y-4 mt-6">
-                {items.map((item, index) => (
-                    <SaleItemRow
-                        key={index}
-                        id={`item_${index}_productId`}
-                        item={item}
-                        index={index}
-                        products={products}
-                        onUpdate={updateItem}
-                        onRemove={removeItem}
-                        onShowDetails={setSelectedProductDetail}
-                        fieldError={fieldErrors[`item_${index}_productId`]}
-                        onClearError={() => {
-                            setFieldErrors((prev) => ({
-                                ...prev,
-                                [`item_${index}_productId`]: "",
-                            }));
-                            setErrors([]);
-                        }}
+                  <span className="flex-1 text-sm font-medium text-gray-700">
+                    {product.name}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-gray-500 whitespace-nowrap">
+                      เก็บงบส่งเสริมการขาย
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      value={item.promotionBudget ?? ""}
+                      onChange={(e) =>
+                        updateItem(
+                          originalIndex,
+                          "promotionBudget",
+                          e.target.value !== "" ? Number(e.target.value) : null,
+                        )
+                      }
+                      onWheel={(e) => e.currentTarget.blur()}
+                      className="w-28 h-9 rounded-md border border-emerald-300 bg-white px-3 text-sm text-right focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                      placeholder="0.00"
                     />
-                ))}
+                  </div>
+                  <div className="text-sm font-semibold text-emerald-700 text-right min-w-[110px]">
+                    {item.quantity} ลัง = ฿
+                    {itemBudget.toLocaleString("th-TH", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+            <div className="flex justify-between font-bold text-base text-emerald-800 bg-emerald-100 border border-emerald-200 rounded-lg px-4 py-3">
+              <span>งบส่งเสริมการขายรวมทั้งหมด</span>
+              <span>
+                ฿
+                {promotionalBudgetTotal.toLocaleString("th-TH", {
+                  minimumFractionDigits: 2,
+                })}
+              </span>
             </div>
+          </div>
+        </>
+      )}
 
-            {/* Promotional Budget Section */}
-            {items.some((item) => item.productId) && (
-                <>
-                    <SectionHeader title="งบส่งเสริมการขาย" color="gray" />
-                    <div className="space-y-3 mt-2">
-                        {items.map((item, originalIndex) => {
-                            if (!item.productId) return null;
-                            const product = products.find((p) => p.id === item.productId);
-                            if (!product) return null;
-                            const budgetPerCarton = item.promotionBudget ?? 0;
-                            const itemBudget = item.quantity * budgetPerCarton;
-                            return (
-                                <div
-                                    key={originalIndex}
-                                    className="flex flex-col sm:flex-row sm:items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-lg px-4 py-3"
-                                >
-                                    <span className="flex-1 text-sm font-medium text-gray-700">
-                                        {product.name}
-                                    </span>
-                                    <div className="flex items-center gap-2">
-                                        <label className="text-xs text-gray-500 whitespace-nowrap">
-                                            เก็บงบส่งเสริมการขาย
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min={0}
-                                            step={0.01}
-                                            value={item.promotionBudget ?? ""}
-                                            onChange={(e) =>
-                                                updateItem(
-                                                    originalIndex,
-                                                    "promotionBudget",
-                                                    e.target.value !== ""
-                                                        ? Number(e.target.value)
-                                                        : null,
-                                                )
-                                            }
-                                            onWheel={(e) => e.currentTarget.blur()}
-                                            className="w-28 h-9 rounded-md border border-emerald-300 bg-white px-3 text-sm text-right focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                                            placeholder="0.00"
-                                        />
-                                    </div>
-                                    <div className="text-sm font-semibold text-emerald-700 text-right min-w-[110px]">
-                                        {item.quantity} ลัง = ฿{itemBudget.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                        <div className="flex justify-between font-bold text-base text-emerald-800 bg-emerald-100 border border-emerald-200 rounded-lg px-4 py-3">
-                            <span>งบส่งเสริมการขายรวมทั้งหมด</span>
-                            <span>฿{promotionalBudgetTotal.toLocaleString("th-TH", { minimumFractionDigits: 2 })}</span>
-                        </div>
-                    </div>
-                </>
-            )}
+      {/* Discounts Section */}
+      <SectionHeader title="ส่วนลดและหมายเหตุ" color="gray" />
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
+        <FormInput
+          label="ส่วนลดค่าขนส่ง"
+          type="number"
+          value={String(shippingCost)}
+          onChange={(e) => setShippingCost(Number(e.target.value))}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        <FormInput
+          label="ส่วนลดหน้าบิล"
+          type="number"
+          value={String(otherCosts)}
+          onChange={(e) => setOtherCosts(Number(e.target.value))}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+      </div>
 
-            {/* Discounts Section */}
-            <SectionHeader title="ส่วนลดและหมายเหตุ" color="gray" />
+      {otherCosts > 0 && (
+        <FormInput
+          label="รายละเอียดส่วนลดหน้าบิล"
+          value={otherCostsDescription}
+          onChange={(e) => setOtherCostsDescription(e.target.value)}
+        />
+      )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
-                <FormInput
-                    label="ส่วนลดค่าขนส่ง"
-                    type="number"
-                    value={String(shippingCost)}
-                    onChange={(e) => setShippingCost(Number(e.target.value))}
-                    onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-                />
-                <FormInput
-                    label="ส่วนลดหน้าบิล"
-                    type="number"
-                    value={String(otherCosts)}
-                    onChange={(e) => setOtherCosts(Number(e.target.value))}
-                    onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-                />
-            </div>
+      <FormTextarea
+        label="หมายเหตุ"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        rows={3}
+      />
 
-            {otherCosts > 0 && (
-                <FormInput
-                    label="รายละเอียดส่วนลดหน้าบิล"
-                    value={otherCostsDescription}
-                    onChange={(e) => setOtherCostsDescription(e.target.value)}
-                />
-            )}
+      {/* Summary Section */}
+      <SectionHeader title="สรุปยอดรวม" color="gray" />
 
-            <FormTextarea
-                label="หมายเหตุ"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-            />
+      <SaleSummary
+        subtotal={subtotal}
+        shippingCost={shippingCost}
+        otherCosts={otherCosts}
+        total={total}
+        promotionalBudgetTotal={promotionalBudgetTotal}
+      />
 
-            {/* Summary Section */}
-            <SectionHeader title="สรุปยอดรวม" color="gray" />
+      {/* Errors */}
+      {errors.length > 0 && (
+        <Alert className="border-2 border-red-400 bg-red-50">
+          <AlertDescription>
+            <ul className="list-disc pl-4 space-y-1">
+              {errors.map((error, i) => (
+                <li key={i} className="text-sm sm:text-base text-red-800">
+                  {error}
+                </li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
 
-            <SaleSummary
-                subtotal={subtotal}
-                shippingCost={shippingCost}
-                otherCosts={otherCosts}
-                total={total}
-                promotionalBudgetTotal={promotionalBudgetTotal}
-            />
+      {/* Action Buttons */}
+      <FormActionButtons loading={loading} onCancel={handleCancel} />
 
-            {/* Errors */}
-            {errors.length > 0 && (
-                <Alert className="border-2 border-red-400 bg-red-50">
-                    <AlertDescription>
-                        <ul className="list-disc pl-4 space-y-1">
-                            {errors.map((error, i) => (
-                                <li key={i} className="text-sm sm:text-base text-red-800">
-                                    {error}
-                                </li>
-                            ))}
-                        </ul>
-                    </AlertDescription>
-                </Alert>
-            )}
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        product={selectedProductDetail}
+        onClose={() => setSelectedProductDetail(null)}
+      />
 
-            {/* Action Buttons */}
-            <FormActionButtons loading={loading} onCancel={handleCancel} />
-
-
-
-            {/* Product Detail Modal */}
-            <ProductDetailModal
-                product={selectedProductDetail}
-                onClose={() => setSelectedProductDetail(null)}
-            />
-
-            {/* Confirm Dialog */}
-            <SaleConfirmDialog
-                open={confirmOpen}
-                data={confirmData}
-                loading={loading}
-                onConfirm={handleConfirm}
-                onClose={() => setConfirmOpen(false)}
-            />
-        </form>
-    );
+      {/* Confirm Dialog */}
+      <SaleConfirmDialog
+        open={confirmOpen}
+        data={confirmData}
+        loading={loading}
+        onConfirm={handleConfirm}
+        onClose={() => setConfirmOpen(false)}
+      />
+    </form>
+  );
 }
 
 export default SaleForm;
