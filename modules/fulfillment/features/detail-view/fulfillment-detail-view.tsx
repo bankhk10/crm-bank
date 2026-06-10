@@ -35,7 +35,7 @@ import { usePermission } from "@/hooks/use-permission";
 import { SaleStatusLabels } from "@/modules/sales/types";
 import type { SaleDetailResponse, StockWarning } from "@/modules/sales/types";
 
-import { LotSelector } from "../../features/form/lot-selector";
+import { SimpleStockView } from "./components/simple-stock-view";
 import {
   updateFulfillmentAction,
   getShipmentsAction,
@@ -816,17 +816,9 @@ export default function FulfillmentDetailPage({
                 title="ข้อมูลสต็อกสินค้า"
               />
               <div className="p-6 space-y-3">
-                {/* 8. LOT Selection - Always show for selecting stock lots */}
+                {/* 8. Simple Stock View */}
                 <div className="space-y-3 group/field">
-                  <LotSelector
-                    saleId={id}
-                    onAllocationsChange={handleLotAllocationsChange}
-                    disabled={
-                      submitting ||
-                      status === "CANCELLED" ||
-                      !!(saleData?.sale as any)?.isStockDeducted
-                    }
-                  />
+                  <SimpleStockView saleId={id} />
                 </div>
               </div>
             </div>
