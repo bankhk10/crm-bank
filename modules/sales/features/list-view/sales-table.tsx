@@ -12,6 +12,7 @@ import {
   startOfYear,
   endOfYear,
   subMonths,
+  isSameDay,
 } from "date-fns";
 import DatePicker from "@/components/custom/DatePicker";
 import {
@@ -258,21 +259,34 @@ export function SalesTable(props: SalesTableProps) {
                   ช่วงเวลา
                 </label>
                 <div className="flex flex-wrap gap-1.5">
-                  {quickDateRanges.map((r) => (
-                    <Button
-                      key={r.label}
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-10 text-sm px-3 bg-white hover:bg-slate-50 hover:border-slate-300 transition-colors"
-                      onClick={() => {
-                        const { from, to } = r.getValue();
-                        onDateRangeChange?.({ from, to });
-                      }}
-                    >
-                      {r.label}
-                    </Button>
-                  ))}
+                  {quickDateRanges.map((r) => {
+                    const { from, to } = r.getValue();
+                    const isActive =
+                      dateRange?.from &&
+                      dateRange?.to &&
+                      isSameDay(dateRange.from, from) &&
+                      isSameDay(dateRange.to, to);
+
+                    return (
+                      <Button
+                        key={r.label}
+                        type="button"
+                        variant={isActive ? "default" : "outline"}
+                        size="sm"
+                        className={cn(
+                          "h-10 text-sm px-3 transition-colors",
+                          isActive
+                            ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                            : "bg-white hover:bg-slate-50 hover:border-slate-300",
+                        )}
+                        onClick={() => {
+                          onDateRangeChange?.({ from, to });
+                        }}
+                      >
+                        {r.label}
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
               {/* ล้างค้นหา */}
