@@ -131,12 +131,11 @@ export function SalesTable(props: SalesTableProps) {
         className="p-3 sm:p-4"
         filters={
           <div className="space-y-4 w-full">
-
             {/* แถว 1: ค้นหา + ลูกค้า + สถานะ */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* ค้นหา */}
               <div className="space-y-1">
-                <label className="mx-1 font-medium text-sm text-gray-700 block">
+                <label className="mx-1 text-base font-medium block">
                   ค้นหา
                 </label>
                 <div className="relative">
@@ -148,20 +147,28 @@ export function SalesTable(props: SalesTableProps) {
                     onKeyDown={(e) => {
                       if (e.key === "Enter") onSearchSubmit?.();
                     }}
-                    className="pl-9 h-10 w-full bg-white text-sm border-gray-300 focus:ring-2"
+                    className="pl-9 h-11 w-full bg-white text-sm border-gray-300 focus:ring-2"
                   />
                 </div>
               </div>
               {/* ลูกค้า */}
-              <div className="space-y-1">
-                <label className="mx-1 font-medium text-sm text-gray-700 block">ลูกค้า</label>
+              <div>
+                <label className="mx-1 text-base font-medium block">
+                  ลูกค้า
+                </label>
                 <MultiSelect
                   options={customers.map((customer) => ({
                     value: customer.id,
                     label: `${customer.name}`,
                   }))}
                   onValueChange={(val) => onCustomerIdChange?.(val)}
-                  defaultValue={Array.isArray(customerId) ? customerId : (typeof customerId === "string" && customerId ? [customerId] : [])}
+                  defaultValue={
+                    Array.isArray(customerId)
+                      ? customerId
+                      : typeof customerId === "string" && customerId
+                        ? [customerId]
+                        : []
+                  }
                   placeholder="ลูกค้าทั้งหมด"
                   emptyIndicator="ไม่พบลูกค้า"
                   className="bg-white"
@@ -170,7 +177,7 @@ export function SalesTable(props: SalesTableProps) {
 
               {/* สถานะ */}
               <div className="space-y-1">
-                <label className="mx-1 font-medium text-sm text-gray-700 block">
+                <label className="mx-1 text-base font-medium block">
                   สถานะ
                 </label>
                 <Select
@@ -273,7 +280,9 @@ export function SalesTable(props: SalesTableProps) {
                 statusFilter ||
                 dateRange?.from ||
                 dateRange?.to ||
-                (Array.isArray(customerId) ? customerId.length > 0 : customerId)) && (
+                (Array.isArray(customerId)
+                  ? customerId.length > 0
+                  : customerId)) && (
                 <ClearSearchButton
                   onClick={() => {
                     onSearchChange?.("");
@@ -284,7 +293,6 @@ export function SalesTable(props: SalesTableProps) {
                 />
               )}
             </div>
-
           </div>
         }
       />
