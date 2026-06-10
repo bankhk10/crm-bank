@@ -199,7 +199,7 @@ export function SalesTable(props: SalesTableProps) {
             {/* แถว 2: วันที่ + ช่วงเวลา + ล้างค้นหา */}
             <div className="flex flex-wrap gap-3 items-end">
               {/* วันที่เริ่ม */}
-              <div className="flex-1 min-w-[150px]">
+              <div className="flex-1 min-w-[150px] lg:max-w-[220px]">
                 <DatePicker
                   label="วันที่เริ่ม"
                   placeholder="วันที่เริ่ม"
@@ -223,7 +223,7 @@ export function SalesTable(props: SalesTableProps) {
               </div>
 
               {/* วันที่สิ้นสุด */}
-              <div className="flex-1 min-w-[150px]">
+              <div className="flex-1 min-w-[150px] lg:max-w-[220px]">
                 <DatePicker
                   label="วันที่สิ้นสุด"
                   placeholder="วันที่สิ้นสุด"
