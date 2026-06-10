@@ -13,6 +13,7 @@ import {
   User,
   Calendar,
   CreditCard,
+  Building2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -132,7 +133,7 @@ function SaleCard({
       <div className="p-4 space-y-2.5">
         {/* Customer */}
         <div className="flex items-center gap-2">
-          <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
+          <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
           <span className="text-sm text-gray-700 truncate">
             {sale.customer?.name || "-"}
           </span>
@@ -331,8 +332,8 @@ export function SaleCardList({
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
           <p className="text-sm text-gray-500">
-            แสดง {(page - 1) * perPage + 1}–
-            {Math.min(page * perPage, total)} จาก {total} รายการ
+            แสดง {(page - 1) * perPage + 1}–{Math.min(page * perPage, total)}{" "}
+            จาก {total} รายการ
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -375,7 +376,7 @@ export function SaleCardList({
                 "px-2.5 py-1 rounded-md border text-sm transition-colors",
                 perPage === n
                   ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
+                  : "bg-white text-gray-600 border-gray-300 hover:border-blue-400",
               )}
             >
               {n}
