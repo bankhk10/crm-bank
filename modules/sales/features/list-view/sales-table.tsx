@@ -147,7 +147,7 @@ export function SalesTable(props: SalesTableProps) {
                     onKeyDown={(e) => {
                       if (e.key === "Enter") onSearchSubmit?.();
                     }}
-                    className="pl-9 h-11 w-full bg-white text-sm border-gray-300 focus:ring-2"
+                    className="pl-9 h-11 w-full bg-white border-gray-300 focus:ring-2"
                   />
                 </div>
               </div>
