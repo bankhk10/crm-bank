@@ -10,6 +10,7 @@ import {
   startOfMonth,
   endOfMonth,
   parseISO,
+  isSameDay,
 } from "date-fns";
 import DatePicker from "@/components/custom/DatePicker";
 
@@ -234,20 +235,33 @@ export function TimeSalesDashboard() {
                   ช่วงเวลา
                 </label>
                 <div className="flex flex-wrap gap-1.5">
-                  {quickDateRanges.map((r) => (
-                    <Button
-                      key={r.label}
-                      variant="outline"
-                      size="sm"
-                      className="h-10 text-xs px-3 bg-white hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-colors"
-                      onClick={() => {
-                        const { from, to } = r.getValue();
-                        setDateRange({ from, to });
-                      }}
-                    >
-                      {r.label}
-                    </Button>
-                  ))}
+                  {quickDateRanges.map((r) => {
+                    const { from, to } = r.getValue();
+                    const isActive =
+                      dateRange?.from &&
+                      dateRange?.to &&
+                      isSameDay(dateRange.from, from) &&
+                      isSameDay(dateRange.to, to);
+
+                    return (
+                      <Button
+                        key={r.label}
+                        variant={isActive ? "default" : "outline"}
+                        size="sm"
+                        className={cn(
+                          "h-10 text-xs px-3 transition-colors",
+                          isActive
+                            ? "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                            : "bg-white hover:bg-red-50 hover:border-red-300 hover:text-red-700",
+                        )}
+                        onClick={() => {
+                          setDateRange({ from, to });
+                        }}
+                      >
+                        {r.label}
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
 
