@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 interface ComboboxOption {
   value: string;
   label: string;
+  subLabel?: string;
 }
 
 interface FormComboboxProps {
@@ -43,7 +44,7 @@ interface FormComboboxProps {
 }
 
 const defaultLabelClass = "text-base font-medium mx-2";
-const defaultTriggerClass = "mt-1 h-11 text-base w-full justify-between";
+const defaultTriggerClass = "mt-1 min-h-[44px] h-auto py-2 text-base w-full justify-between";
 
 export function FormCombobox({
   id,
@@ -89,8 +90,11 @@ export function FormCombobox({
               error && "border-red-500 focus:ring-red-500 bg-red-50/10"
             )}
           >
-            <span className="truncate text-left flex-1">
-              {selectedOption ? selectedOption.label : placeholder}
+            <span className="text-left flex-1 flex flex-col justify-center min-w-0">
+              <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
+              {selectedOption?.subLabel && (
+                <span className="text-xs text-gray-500 truncate">{selectedOption.subLabel}</span>
+              )}
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -109,7 +113,11 @@ export function FormCombobox({
                   <CommandItem
                     key={option.value}
                     value={option.value}
-                    keywords={[option.label, option.label.replace(/\s+/g, "")]}
+                    keywords={[
+                      option.label, 
+                      option.label.replace(/\s+/g, ""),
+                      ...(option.subLabel ? [option.subLabel, option.subLabel.replace(/\s+/g, "")] : [])
+                    ]}
                     onSelect={(currentValue) => {
                       onChange(currentValue === value ? "" : currentValue);
                       setOpen(false);
@@ -117,11 +125,16 @@ export function FormCombobox({
                   >
                     <Check
                       className={cn(
-                        "mr-2 h-4 w-4",
+                        "mr-2 h-4 w-4 shrink-0",
                         value === option.value ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    {option.label}
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="truncate">{option.label}</span>
+                      {option.subLabel && (
+                        <span className="text-xs text-gray-500 truncate">{option.subLabel}</span>
+                      )}
+                    </div>
                   </CommandItem>
                 ))}
               </CommandGroup>
