@@ -130,69 +130,76 @@ export function SalesTable(props: SalesTableProps) {
         actionPosition="bottom"
         className="p-3 sm:p-4"
         filters={
-          <div className="flex flex-col lg:flex-row gap-4 items-end w-full">
-            <div className="space-y-2 w-full lg:w-[280px]">
-              <label className="mx-1 mb-1 font-medium text-base text-gray-900 block">
-                {" "}
-                {/* เพิ่ม block เพื่อให้ label คุมบรรทัด */}
-                ค้นหา
-              </label>
-              <div className="relative mt-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  placeholder="เลขที่ใบขาย, ชื่อสินค้า..."
-                  value={searchValue ?? ""}
-                  onChange={(e) => onSearchChange?.(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") onSearchSubmit?.();
-                  }}
-                  className="pl-9 h-11 w-full bg-white text-base border-gray-300 focus:ring-2"
-                />
-              </div>
-            </div>
-            <div className="w-full lg:w-[350px] space-y-2">
-              <label className="mx-1 mb-1 font-medium text-base text-gray-900 block">ลูกค้า</label>
-              <MultiSelect
-                options={customers.map((customer) => ({
-                  value: customer.id,
-                  label: `${customer.name}`,
-                }))}
-                onValueChange={(val) => onCustomerIdChange?.(val)}
-                defaultValue={Array.isArray(customerId) ? customerId : (typeof customerId === "string" && customerId ? [customerId] : [])}
-                placeholder="ลูกค้าทั้งหมด"
-                emptyIndicator="ไม่พบลูกค้า"
-                className="bg-white"
-              />
-            </div>
-            <div className="flex flex-col sm:flex-row flex-wrap lg:flex-nowrap gap-4 w-full lg:w-auto items-end">
-              <div className="space-y-2 w-full lg:w-48">
-                <label className="mx-1 mb-1 font-medium text-base text-gray-900">
-                  สถานะ
+          <div className="space-y-4 w-full">
+
+            {/* แถว 1: ค้นหา + ลูกค้า + สถานะ */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* ค้นหา */}
+              <div className="space-y-1">
+                <label className="mx-1 font-medium text-sm text-gray-700 block">
+                  ค้นหา
                 </label>
-                <div className="mt-1">
-                  <Select
-                    value={statusFilter || "ALL"}
-                    onValueChange={(value) =>
-                      onStatusFilterChange?.(
-                        value === "ALL" ? undefined : (value as SaleStatus),
-                      )
-                    }
-                  >
-                    <SelectTrigger className="w-full bg-white h-11 text-base">
-                      <SelectValue placeholder="ทุกสถานะ" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ALL">ทุกสถานะ</SelectItem>
-                      {Object.entries(SaleStatusLabels).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="เลขที่ใบขาย, ชื่อสินค้า..."
+                    value={searchValue ?? ""}
+                    onChange={(e) => onSearchChange?.(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") onSearchSubmit?.();
+                    }}
+                    className="pl-9 h-10 w-full bg-white text-sm border-gray-300 focus:ring-2"
+                  />
                 </div>
               </div>
-              <div className="w-full sm:w-44">
+              {/* ลูกค้า */}
+              <div className="space-y-1">
+                <label className="mx-1 font-medium text-sm text-gray-700 block">ลูกค้า</label>
+                <MultiSelect
+                  options={customers.map((customer) => ({
+                    value: customer.id,
+                    label: `${customer.name}`,
+                  }))}
+                  onValueChange={(val) => onCustomerIdChange?.(val)}
+                  defaultValue={Array.isArray(customerId) ? customerId : (typeof customerId === "string" && customerId ? [customerId] : [])}
+                  placeholder="ลูกค้าทั้งหมด"
+                  emptyIndicator="ไม่พบลูกค้า"
+                  className="bg-white"
+                />
+              </div>
+
+              {/* สถานะ */}
+              <div className="space-y-1">
+                <label className="mx-1 font-medium text-sm text-gray-700 block">
+                  สถานะ
+                </label>
+                <Select
+                  value={statusFilter || "ALL"}
+                  onValueChange={(value) =>
+                    onStatusFilterChange?.(
+                      value === "ALL" ? undefined : (value as SaleStatus),
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-full bg-white h-10 text-sm">
+                    <SelectValue placeholder="ทุกสถานะ" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">ทุกสถานะ</SelectItem>
+                    {Object.entries(SaleStatusLabels).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* แถว 2: วันที่ + ช่วงเวลา + ล้างค้นหา */}
+            <div className="flex flex-wrap gap-3 items-end">
+              {/* วันที่เริ่ม */}
+              <div className="flex-1 min-w-[150px]">
                 <DatePicker
                   label="วันที่เริ่ม"
                   placeholder="วันที่เริ่ม"
@@ -215,7 +222,8 @@ export function SalesTable(props: SalesTableProps) {
                 />
               </div>
 
-              <div className="w-full sm:w-44">
+              {/* วันที่สิ้นสุด */}
+              <div className="flex-1 min-w-[150px]">
                 <DatePicker
                   label="วันที่สิ้นสุด"
                   placeholder="วันที่สิ้นสุด"
@@ -237,18 +245,19 @@ export function SalesTable(props: SalesTableProps) {
                   }}
                 />
               </div>
-              <div className="grid gap-1.5 w-full sm:w-auto">
-                <label className="font-medium text-base text-gray-900 mx-1">
+              {/* ช่วงเวลา */}
+              <div className="space-y-1">
+                <label className="font-medium text-sm text-gray-700 mx-1 block">
                   ช่วงเวลา
                 </label>
-                <div className="flex flex-wrap gap-1.5 mt-1">
+                <div className="flex flex-wrap gap-1.5">
                   {quickDateRanges.map((r) => (
                     <Button
                       key={r.label}
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="h-11 text-sm px-3 bg-white hover:bg-slate-50 hover:border-slate-300 transition-colors"
+                      className="h-10 text-sm px-3 bg-white hover:bg-slate-50 hover:border-slate-300 transition-colors"
                       onClick={() => {
                         const { from, to } = r.getValue();
                         onDateRangeChange?.({ from, to });
@@ -259,23 +268,23 @@ export function SalesTable(props: SalesTableProps) {
                   ))}
                 </div>
               </div>
+              {/* ล้างค้นหา */}
               {(searchValue ||
                 statusFilter ||
                 dateRange?.from ||
                 dateRange?.to ||
                 (Array.isArray(customerId) ? customerId.length > 0 : customerId)) && (
-                <div className="flex items-end">
-                  <ClearSearchButton
-                    onClick={() => {
-                      onSearchChange?.("");
-                      onStatusFilterChange?.(undefined);
-                      onDateRangeChange?.(undefined);
-                      onCustomerIdChange?.([]);
-                    }}
-                  />
-                </div>
+                <ClearSearchButton
+                  onClick={() => {
+                    onSearchChange?.("");
+                    onStatusFilterChange?.(undefined);
+                    onDateRangeChange?.(undefined);
+                    onCustomerIdChange?.([]);
+                  }}
+                />
               )}
             </div>
+
           </div>
         }
       />
