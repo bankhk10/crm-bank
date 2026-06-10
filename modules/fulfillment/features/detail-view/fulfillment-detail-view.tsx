@@ -804,6 +804,7 @@ export default function FulfillmentDetailPage({
         )}{" "}
         {/* end !isSplitMode — ข้อมูลการชำระเงิน */}
         {!isSplitMode &&
+          !(saleData?.sale as any)?.isStockDeducted &&
           ![
             "DELIVERED",
             "DELIVERY_COMPLETED",
