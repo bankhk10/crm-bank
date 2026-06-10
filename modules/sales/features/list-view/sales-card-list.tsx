@@ -105,7 +105,7 @@ function SaleCard({
   const totalAmountFormatted = new Intl.NumberFormat("th-TH", {
     style: "currency",
     currency: "THB",
-  }).format(sale.totalAmount ?? 0);
+  }).format(Number(sale.totalAmount ?? 0));
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
