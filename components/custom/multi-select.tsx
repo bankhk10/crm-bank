@@ -113,14 +113,14 @@ export function MultiSelect({
                                     <Badge
                                         key={value}
                                         variant="secondary"
-                                        className={cn("mr-1 mb-1", badgeAnimationClass)}
+                                        className={cn("mr-1 mb-1 max-w-[calc(100%-10px)]", badgeAnimationClass)}
                                     >
                                         {IconComponent && (
-                                            <IconComponent className="h-4 w-4 mr-2" />
+                                            <IconComponent className="h-4 w-4 mr-2 flex-shrink-0" />
                                         )}
-                                        {option?.label}
+                                        <span className="truncate max-w-full">{option?.label}</span>
                                         <span
-                                            className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
+                                            className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer flex-shrink-0"
                                             onKeyDown={(e) => {
                                                 if (e.key === "Enter") {
                                                     handleUnselect(value);
@@ -147,7 +147,7 @@ export function MultiSelect({
                     </div>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-0" align="start">
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
                 <Command>
                     {searchable && (
                         <CommandInput placeholder="Search..." className="h-9" />
