@@ -38,6 +38,7 @@ import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { PageHeader } from "@/components/custom/page-header";
 import { useSaleColumns } from "./use-sale-columns";
+import { SaleCardList } from "./sales-card-list";
 import type { SalesTableProps } from "../../types";
 
 const quickDateRanges = [
@@ -294,7 +295,29 @@ export function SalesTable(props: SalesTableProps) {
   return (
     <div className="space-y-4">
       {toolbar}
-      <div className="w-full">
+
+      {/* Card layout: mobile & tablet (< lg) */}
+      <div className="block lg:hidden">
+        <SaleCardList
+          sales={sales}
+          loading={loading}
+          currentUserId={currentUserId}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canApprove={canApprove}
+          canEditItem={canEditItem}
+          canDeleteItem={canDeleteItem}
+          onDelete={onDelete}
+          page={page}
+          perPage={perPage}
+          total={total}
+          onPageChange={onPageChange}
+          onPerPageChange={onPerPageChange}
+        />
+      </div>
+
+      {/* Table layout: desktop (>= lg) */}
+      <div className="hidden lg:block w-full">
         <CustomTable
           columns={columns}
           data={sales}
