@@ -32,6 +32,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 import { SHIPMENT_STATUS_STYLE } from "../../constants";
 import type { ShipmentRecord, RemainingByItem } from "../../types/types";
@@ -338,26 +349,51 @@ function ShipmentCard({
               ยืนยันส่งเสร็จแล้ว
             </Button>
           )}
-          {shipment.status !== "CANCELLED" && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 gap-1.5 border-rose-200 text-rose-700 hover:bg-rose-50 text-xs"
-              disabled={isPending}
-              onClick={() => {
-                const isStockDeducted = ["IN_TRANSIT", "DELIVERED", "COMPLETED"].includes(shipment.status);
-                const msg = isStockDeducted 
-                  ? "ต้องการยกเลิกการจัดส่งนี้และคืนสต็อกสินค้าใช่หรือไม่?" 
-                  : "ต้องการยกเลิกการจัดส่งนี้ใช่หรือไม่?";
-                if (window.confirm(msg)) {
-                  handleStatusChange("CANCELLED");
-                }
-              }}
-            >
-              <XCircle className="h-3 w-3" />
-              {["IN_TRANSIT", "DELIVERED", "COMPLETED"].includes(shipment.status) ? "ยกเลิกและคืนสต็อก" : "ยกเลิกการจัดส่ง"}
-            </Button>
-          )}
+          {shipment.status !== "CANCELLED" && (() => {
+            const isStockDeducted = ["IN_TRANSIT", "DELIVERED", "COMPLETED"].includes(shipment.status);
+            const msg = isStockDeducted 
+              ? "ต้องการยกเลิกการจัดส่งนี้และคืนสต็อกสินค้าใช่หรือไม่?" 
+              : "ต้องการยกเลิกการจัดส่งนี้ใช่หรือไม่?";
+            const title = isStockDeducted ? "ยืนยันการยกเลิกและคืนสต็อก" : "ยืนยันการยกเลิกการจัดส่ง";
+            
+            return (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 gap-1.5 border-rose-200 text-rose-700 hover:bg-rose-50 text-xs"
+                    disabled={isPending}
+                  >
+                    <XCircle className="h-3 w-3" />
+                    {isStockDeducted ? "ยกเลิกและคืนสต็อก" : "ยกเลิกการจัดส่ง"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="rounded-2xl border-rose-100 shadow-xl shadow-rose-900/5">
+                  <AlertDialogHeader className="space-y-3">
+                    <AlertDialogTitle className="text-rose-600 flex items-center gap-2 text-lg">
+                      <XCircle className="h-5 w-5" />
+                      {title}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-gray-600 text-sm font-medium leading-relaxed">
+                      {msg}
+                      {isStockDeducted && <span className="block mt-1.5 text-rose-600/80 font-normal">ระบบจะคืนสต็อกสินค้ากลับเข้าสู่คลังโดยอัตโนมัติ</span>}
+                      <span className="block mt-2 text-xs text-gray-400 font-normal">คุณไม่สามารถย้อนกลับการกระทำนี้ได้</span>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter className="mt-6 border-t border-gray-100 pt-4">
+                    <AlertDialogCancel className="h-10 rounded-xl hover:bg-gray-100">ปิด</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => handleStatusChange("CANCELLED")}
+                      className="h-10 rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-sm shadow-rose-600/20"
+                    >
+                      ยืนยันการยกเลิก
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            );
+          })()}
           <div className="ml-auto flex items-center gap-2">
             <Button
               size="sm"
