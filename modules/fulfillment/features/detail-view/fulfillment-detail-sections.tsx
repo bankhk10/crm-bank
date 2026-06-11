@@ -531,7 +531,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                                         <div key={idx} className="text-[10px] text-gray-600 bg-purple-50 px-2 py-1 rounded-md inline-flex items-center gap-1 border border-purple-100">
                                                             <span className="font-bold text-purple-700">LOT: {alloc.lot?.lotNumber || "-"}</span>
                                                             <span className="text-purple-300">|</span>
-                                                            <span>จ.น.: {alloc.quantity}</span>
+                                                            <span>จำนวน: {alloc.quantity}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -749,7 +749,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                                             <div key={idx} className="text-[10px] text-gray-600 bg-purple-50 px-2 py-0.5 rounded-md inline-flex items-center gap-1.5 border border-purple-100">
                                                                 <span className="font-bold text-purple-700">LOT: {alloc.lot?.lotNumber || "-"}</span>
                                                                 <span className="text-purple-300">|</span>
-                                                                <span>จ.น.: {alloc.quantity}</span>
+                                                                <span>จำนวน: {alloc.quantity}</span>
                                                             </div>
                                                         ))}
                                                     </div>
