@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { ShipmentRepository } from "../infrastructure/shipment.repository";
 import { updateShipmentSchema } from "./shipment-validations";
-import { confirmStockDeductionForShipmentUseCase } from "@/modules/products/application";
+import { autoAssignLotsForShipmentUseCase } from "@/modules/products/application";
 import { restoreCreditLimit } from "@/modules/sales/application/order-management";
 import { finalizePointsForSaleUseCase as finalizePointsForSale } from "@/modules/points";
 import { finalizePromotionalBudgetForSaleUseCase as finalizePromotionalBudgetForSale } from "@/modules/credit-limits/application";
@@ -134,10 +134,10 @@ export async function updateShipmentUseCase(
     // 1. อัพเดท Shipment record
     await ShipmentRepository.updateShipment(shipmentId, updatePayload, tx);
 
-    // 2. หักสต็อกเมื่อเริ่มจัดส่ง (เปลี่ยนจาก PENDING ไป IN_TRANSIT หรือข้ามไป COMPLETED)
+    // 2. หักสต็อกเมื่อเริ่มจัดส่ง (ยกเลิกแล้ว: สต็อกถูกหักไปแล้วตอนเปลี่ยนสถานะเป็น AWAITING_DELIVERY)
+    // แต่ให้บันทึก LOT ที่ถูกดึงไปใช้ (FIFO) เพื่อใช้สำหรับ Traceability โดยไม่แจ้งเตือนแม้จำนวนจะไม่พอ
     if (prevStatus === "PENDING" && (newStatus === "IN_TRANSIT" || newStatus === "COMPLETED")) {
-      // หักสต็อกตามจำนวนที่จัดส่งในรอบนี้ (FIFO)
-      await confirmStockDeductionForShipmentUseCase(shipmentId, tx);
+      await autoAssignLotsForShipmentUseCase(shipmentId, tx);
     }
 
     // อัพเดทสถานะการจัดส่งของ Sale เมื่อสถานะ Shipment เปลี่ยนไปในทางที่ก้าวหน้าขึ้น
@@ -176,18 +176,7 @@ export async function updateShipmentUseCase(
       newStatus === "CANCELLED" &&
       (prevStatus === "IN_TRANSIT" || prevStatus === "DELIVERED" || prevStatus === "COMPLETED")
     ) {
-      // คืน reservedQuantity และ physicalBalance ต่อสินค้าแต่ละรายการในรอบนี้
-      for (const item of shipment.items) {
-        const productId = item.saleItem.productId;
-        await tx.productStock.update({
-          where: { productId },
-          data: {
-            reservedQuantity: { increment: item.quantity },
-            physicalBalance: { increment: item.quantity },
-            availableQuantity: { decrement: item.quantity },
-          },
-        });
-      }
+      // ยกเลิกการคืนสต็อกในระดับ Shipment เพราะสต็อกผูกกับสถานะ Sale แทน
 
       // Re-evaluate Sale.status หลังยกเลิก
       const isStillFullyDelivered = await ShipmentRepository.isFullyDelivered(

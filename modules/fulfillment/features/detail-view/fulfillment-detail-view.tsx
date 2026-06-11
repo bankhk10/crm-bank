@@ -166,23 +166,8 @@ const getValidationError = (params: {
     return "กรุณาระบุหมายเหตุเมื่อยกเลิกรายการขาย";
   }
 
-  const isTargetDeducting =
-    ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(status) ||
-    (status === "AWAITING_DELIVERY" && !!deliveryDate);
-
-  if (stockWarnings.length > 0 && isTargetDeducting && !isStockDeducted) {
-    const productNames = stockWarnings.map((w) => w.productName).join(", ");
-    return `ไม่สามารถเปลี่ยนสถานะได้ เนื่องจากสินค้าสต็อกไม่เพียงพอ: ${productNames}`;
-  }
-
-  if (
-    lotAllocations.length > 0 &&
-    !lotAllocationsValid &&
-    isTargetDeducting &&
-    !isStockDeducted
-  ) {
-    return "กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการเพื่อตัดสต็อก";
-  }
+  // ยกเลิกการตรวจสอบสต็อกและการเลือก LOT ตาม requirement ที่แจ้งว่า
+  // "หน้าจัดการข้อมูลคำสั่งขาย fulfillment จะไม่มีการแจ้งเตือน สต็อกไม่เพียงพอ เพราะจะไม่นำสต็อกสินค้ามาเช็ค"
 
   return null;
 };
@@ -454,13 +439,6 @@ export default function FulfillmentDetailPage({
       {sale.paymentTerm !== "PREPAID" && saleData.creditInfo && (
         <CreditInfoCard creditInfo={saleData.creditInfo} />
       )}
-
-      {stockWarnings.length > 0 &&
-        !skipStockCheck &&
-        !isSplitMode &&
-        !(saleData?.sale as any)?.isStockDeducted && (
-          <StockWarningAlert stockWarnings={stockWarnings} />
-        )}
 
       <DeliveryInfoCard sale={sale} />
 

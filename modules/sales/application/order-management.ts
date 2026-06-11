@@ -177,6 +177,7 @@ export async function updateDeliveryDateUseCase(
 ): Promise<DeliveryDateUpdateResult> {
   const sale = await prisma.sale.findUnique({
     where: { id: saleId },
+    include: { items: true },
   });
 
   if (!sale) {
@@ -230,6 +231,17 @@ export async function updateDeliveryDateUseCase(
             changedById: userId,
           },
         });
+
+        // Deduct both reservedQuantity and physicalBalance
+        for (const item of sale.items) {
+          await tx.productStock.updateMany({
+            where: { productId: item.productId },
+            data: {
+              reservedQuantity: { decrement: Number(item.quantity) },
+              physicalBalance: { decrement: Number(item.quantity) },
+            },
+          });
+        }
       }
     });
 

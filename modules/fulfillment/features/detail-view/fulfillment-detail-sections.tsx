@@ -525,6 +525,17 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                                     รายการพิเศษ
                                                 </Badge>
                                             )}
+                                            {item.lotAllocations && item.lotAllocations.length > 0 && (
+                                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                                    {item.lotAllocations.map((alloc: any, idx: number) => (
+                                                        <div key={idx} className="text-[10px] text-gray-600 bg-purple-50 px-2 py-1 rounded-md inline-flex items-center gap-1 border border-purple-100">
+                                                            <span className="font-bold text-purple-700">LOT: {alloc.lot?.lotNumber || "-"}</span>
+                                                            <span className="text-purple-300">|</span>
+                                                            <span>จ.น.: {alloc.quantity}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
@@ -730,6 +741,17 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold border border-orange-200">
                                                             <TrendingDown className="h-2.5 w-2.5" /> รายการพิเศษ
                                                         </span>
+                                                    </div>
+                                                )}
+                                                {item.lotAllocations && item.lotAllocations.length > 0 && (
+                                                    <div className="mt-2 flex flex-wrap gap-1.5">
+                                                        {item.lotAllocations.map((alloc: any, idx: number) => (
+                                                            <div key={idx} className="text-[10px] text-gray-600 bg-purple-50 px-2 py-0.5 rounded-md inline-flex items-center gap-1.5 border border-purple-100">
+                                                                <span className="font-bold text-purple-700">LOT: {alloc.lot?.lotNumber || "-"}</span>
+                                                                <span className="text-purple-300">|</span>
+                                                                <span>จ.น.: {alloc.quantity}</span>
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 )}
                                             </div>

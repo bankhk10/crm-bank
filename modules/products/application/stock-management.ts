@@ -114,31 +114,16 @@ export async function releaseStockUseCase(
     throw new Error("Sale not found");
   }
 
-  const hadDeliveryDate = (sale as any).isStockDeducted;
+  // We check isStockDeducted to know exactly if physical stock was deducted.
+  const didDeductPhysical = sale.isStockDeducted;
 
   const release = async (client: Prisma.TransactionClient) => {
     for (const item of sale.items) {
       const releaseQty = item.quantity;
 
-      if (hadDeliveryDate) {
-        const lot = await StockRepository.getFirstAvailableLot(
-          item.productId,
-          client,
-        );
-
-        if (lot) {
-          await StockRepository.updateLotQuantity(lot.id, releaseQty, client);
-        } else {
-          const anyLot = await StockRepository.getAnyLot(
-            item.productId,
-            client,
-          );
-
-          if (anyLot) {
-            await StockRepository.reactivateLot(anyLot.id, releaseQty, client);
-          }
-        }
-
+      if (didDeductPhysical) {
+        // Physical was deducted, so we restore physical.
+        // Reserved was already cleared, so we don't touch reserved.
         try {
           await StockRepository.updateProductStock(
             item.productId,
@@ -152,6 +137,7 @@ export async function releaseStockUseCase(
           console.warn(`Could not update product stock for ${item.productId}`);
         }
       } else {
+        // Only reserved was deducted, so we clear reserved.
         try {
           await StockRepository.updateProductStock(
             item.productId,
@@ -196,30 +182,8 @@ export async function confirmStockDeductionUseCase(
     for (const item of sale.items) {
       const requestedQty = item.quantity;
 
-      const lots = await StockRepository.getAvailableLots(
-        item.productId,
-        client,
-      );
-
-      let deductedFromLots = 0;
-      for (const lot of lots) {
-        if (deductedFromLots >= requestedQty) break;
-
-        const deduction = Math.min(
-          lot.quantity,
-          requestedQty - deductedFromLots,
-        );
-
-        await StockRepository.updateLotQuantity(lot.id, -deduction, client);
-        deductedFromLots += deduction;
-      }
-
-      if (deductedFromLots < requestedQty) {
-        const productName = (item as any).name || item.productId;
-        console.warn(
-          `[Warning] สินค้าในคลังไม่พอ: สินค้า '${productName}' ต้องการ ${requestedQty} แต่มีพร้อมส่งเพียง ${deductedFromLots}. ข้ามการตัด LOT ที่ขาด แต่ตัดยอดรวมไปแล้ว.`
-        );
-      }
+      // LOT deduction has been moved to autoAssignLotsForShipmentUseCase during Shipment.
+      // We no longer deduct LOT quantities here.
 
       await StockRepository.updateProductStock(
         item.productId,
@@ -463,11 +427,12 @@ export async function revertStockDeductionFromLotsUseCase(
 }
 
 /**
- * Use case: Confirms stock deduction for a specific Shipment (Partial Delivery).
- * Deducts only the quantities in ShipmentItem, not the full Sale quantity.
- * Uses FIFO lot selection — does NOT track specific lot per shipment (Q3=B).
+ * Use case: Auto-assigns LOTs for a specific Shipment (Partial Delivery) using FIFO.
+ * Does NOT throw errors if lot stock is insufficient. Allows negative LOT quantities.
+ * Does NOT update physicalBalance or availableQuantity (these are handled by status change to AWAITING_DELIVERY).
+ * Only records SaleItemLot for traceability.
  */
-export async function confirmStockDeductionForShipmentUseCase(
+export async function autoAssignLotsForShipmentUseCase(
   shipmentId: string,
   tx?: Prisma.TransactionClient,
 ) {
@@ -486,44 +451,65 @@ export async function confirmStockDeductionForShipmentUseCase(
 
   if (!shipment) throw new Error("Shipment not found");
 
-  const confirm = async (client: Prisma.TransactionClient) => {
+  const autoAssign = async (client: Prisma.TransactionClient) => {
     for (const shipmentItem of shipment.items) {
       const requestedQty = shipmentItem.quantity;
       const productId = shipmentItem.saleItem.productId;
 
-      const lots = await StockRepository.getAvailableLots(productId, client);
+      const lots = await StockRepository.getAvailableLotsOrderByDate(productId, client);
 
-      let deductedFromLots = 0;
+      let allocated = 0;
       for (const lot of lots) {
-        if (deductedFromLots >= requestedQty) break;
-        const deduction = Math.min(lot.quantity, requestedQty - deductedFromLots);
-        await StockRepository.updateLotQuantity(lot.id, -deduction, client);
-        deductedFromLots += deduction;
+        if (allocated >= requestedQty) break;
+        const remainingToAllocate = requestedQty - allocated;
+        
+        // Even if lot.quantity is small, we take up to remainingToAllocate
+        // If it goes negative, that's fine. We use Math.min only if lot has more than we need.
+        const deduction = Math.min(Math.max(0, lot.quantity), remainingToAllocate);
+        
+        if (deduction > 0) {
+          await StockRepository.updateLotQuantity(lot.id, -deduction, client);
+          await StockRepository.createSaleItemLot(
+            {
+              saleItemId: shipmentItem.saleItemId,
+              lotId: lot.id,
+              quantity: deduction,
+            },
+            client,
+          );
+          allocated += deduction;
+        }
       }
 
-      if (deductedFromLots < requestedQty) {
-        const productName = (shipmentItem.saleItem as any).name || productId;
-        throw new Error(
-          `ไม่สามารถยืนยันจัดส่งได้ เนื่องจากสินค้าสต็อกไม่เพียงพอ: ${productName} (ต้องการ ${requestedQty} แต่มีพร้อมส่งเพียง ${deductedFromLots})`
-        );
+      // If we still haven't allocated enough (all lots were 0 or no lots existed)
+      if (allocated < requestedQty) {
+        const remainingToAllocate = requestedQty - allocated;
+        
+        // Find ANY lot for this product, preferably the newest one
+        const anyLot = await StockRepository.getAnyLot(productId, client);
+        
+        if (anyLot) {
+          await StockRepository.updateLotQuantity(anyLot.id, -remainingToAllocate, client);
+          await StockRepository.createSaleItemLot(
+            {
+              saleItemId: shipmentItem.saleItemId,
+              lotId: anyLot.id,
+              quantity: remainingToAllocate,
+            },
+            client,
+          );
+        } else {
+          console.warn(`[Warning] No LOTs found for product ${productId}. Cannot auto-assign LOT for shipment.`);
+        }
       }
-
-      await StockRepository.updateProductStock(
-        productId,
-        {
-          reservedQuantityIncrement: -requestedQty,
-          physicalBalanceIncrement: -requestedQty,
-        },
-        client,
-      );
     }
   };
 
   if (tx) {
-    await confirm(tx);
+    await autoAssign(tx);
   } else {
     await prisma.$transaction(async (client) => {
-      await confirm(client);
+      await autoAssign(client);
     });
   }
 }

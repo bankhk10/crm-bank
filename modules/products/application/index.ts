@@ -98,7 +98,7 @@ export {
   revertStockDeductionUseCase,
   confirmStockDeductionWithLotsUseCase,
   revertStockDeductionFromLotsUseCase,
-  confirmStockDeductionForShipmentUseCase,
+  autoAssignLotsForShipmentUseCase,
 } from "./stock-management";
 
 // ─────────────────────────────────────────────

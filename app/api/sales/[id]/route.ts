@@ -56,6 +56,11 @@ export async function GET(
                 stock: true, // Include ProductStock for accurate available quantity
               },
             },
+            lotAllocations: {
+              include: {
+                lot: true,
+              },
+            },
           },
         },
         statusHistory: {
