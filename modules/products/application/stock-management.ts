@@ -118,28 +118,44 @@ export async function releaseStockUseCase(
   const didDeductPhysical = sale.isStockDeducted;
 
   const release = async (client: Prisma.TransactionClient) => {
+    // Determine shipped quantities for partial delivery
+    const shippedQtyMap = new Map<string, number>();
+    if (!didDeductPhysical && sale.hasPartialDelivery) {
+      const shipmentItems = await client.shipmentItem.findMany({
+        where: {
+          saleItemId: { in: sale.items.map(i => i.id) },
+          shipment: { status: { in: ["IN_TRANSIT", "DELIVERED", "COMPLETED"] } }
+        }
+      });
+      for (const si of shipmentItems) {
+        shippedQtyMap.set(si.saleItemId, (shippedQtyMap.get(si.saleItemId) || 0) + si.quantity);
+      }
+    }
+
+    // Restore lot quantities FIRST because we do it for both Normal and Partial flows
+    if (didDeductPhysical || sale.hasPartialDelivery) {
+      try {
+        const saleItemLots = await StockRepository.getSaleItemLots(saleId, client);
+        for (const saleItemLot of saleItemLots) {
+          await StockRepository.updateLotQuantity(
+            saleItemLot.lotId,
+            saleItemLot.quantity,
+            client,
+          );
+        }
+        await StockRepository.deleteSaleItemLots(saleId, client);
+      } catch (e) {
+        console.warn("Could not restore lots during releaseStockUseCase", e);
+      }
+    }
+
     for (const item of sale.items) {
       const releaseQty = item.quantity;
+      const shippedQty = shippedQtyMap.get(item.id) || 0;
 
-      if (didDeductPhysical) {
-        // Physical was deducted, so we restore physical.
-        // We also must restore the LOT quantities that were auto-assigned, and delete the SaleItemLot records.
-        try {
-          // Restore lot quantities
-          const saleItemLots = await StockRepository.getSaleItemLots(saleId, client);
-          for (const saleItemLot of saleItemLots) {
-            if (saleItemLot.saleItem.productId === item.productId) {
-              await StockRepository.updateLotQuantity(
-                saleItemLot.lotId,
-                saleItemLot.quantity,
-                client,
-              );
-            }
-          }
-
-          // Delete the SaleItemLot records for this sale
-          await StockRepository.deleteSaleItemLots(saleId, client);
-
+      try {
+        if (didDeductPhysical) {
+          // Normal Flow: physical was fully deducted.
           await StockRepository.updateProductStock(
             item.productId,
             {
@@ -148,12 +164,20 @@ export async function releaseStockUseCase(
             },
             client,
           );
-        } catch {
-          console.warn(`Could not update product stock for ${item.productId}`);
-        }
-      } else {
-        // Only reserved was deducted, so we clear reserved.
-        try {
+        } else if (shippedQty > 0) {
+          // Partial Delivery Flow: restore physical for what was shipped, clear remaining reserved
+          const remainingReserved = releaseQty - shippedQty;
+          await StockRepository.updateProductStock(
+            item.productId,
+            {
+              availableQuantityIncrement: releaseQty,
+              physicalBalanceIncrement: shippedQty,
+              reservedQuantityIncrement: -remainingReserved,
+            },
+            client,
+          );
+        } else {
+          // Only reserved was deducted (no shipments were sent)
           await StockRepository.updateProductStock(
             item.productId,
             {
@@ -162,9 +186,9 @@ export async function releaseStockUseCase(
             },
             client,
           );
-        } catch {
-          console.warn(`Could not update product stock for ${item.productId}`);
         }
+      } catch {
+        console.warn(`Could not update product stock for ${item.productId}`);
       }
     }
   };
@@ -483,12 +507,9 @@ export async function revertStockDeductionFromLotsUseCase(
 }
 
 /**
- * Use case: Auto-assigns LOTs for a specific Shipment (Partial Delivery) using FIFO.
- * Does NOT throw errors if lot stock is insufficient. Allows negative LOT quantities.
- * Does NOT update physicalBalance or availableQuantity (these are handled by status change to AWAITING_DELIVERY).
- * Only records SaleItemLot for traceability.
+ * Use case: Deducts physical stock and auto-assigns LOTs for a specific Shipment (Partial Delivery) using FIFO.
  */
-export async function autoAssignLotsForShipmentUseCase(
+export async function deductStockForShipmentUseCase(
   shipmentId: string,
   tx?: Prisma.TransactionClient,
 ) {
@@ -558,6 +579,16 @@ export async function autoAssignLotsForShipmentUseCase(
           console.warn(`[Warning] No LOTs found for product ${productId}. Cannot auto-assign LOT for shipment.`);
         }
       }
+
+      // Deduct Physical Stock for this ShipmentItem
+      await StockRepository.updateProductStock(
+        productId,
+        {
+          reservedQuantityIncrement: -requestedQty,
+          physicalBalanceIncrement: -requestedQty,
+        },
+        client,
+      );
     }
   };
 
@@ -570,3 +601,81 @@ export async function autoAssignLotsForShipmentUseCase(
   }
 }
 
+/**
+ * Use case: Reverts physical stock and restores LOT quantities (LIFO) when a Shipment is cancelled.
+ */
+export async function revertStockForShipmentUseCase(
+  shipmentId: string,
+  tx?: Prisma.TransactionClient,
+) {
+  const db = tx || prisma;
+
+  const shipment = await db.shipment.findUnique({
+    where: { id: shipmentId },
+    include: {
+      items: {
+        include: {
+          saleItem: true,
+        },
+      },
+    },
+  });
+
+  if (!shipment) throw new Error("Shipment not found");
+
+  const revert = async (client: Prisma.TransactionClient) => {
+    for (const shipmentItem of shipment.items) {
+      let quantityToRestore = shipmentItem.quantity;
+      const productId = shipmentItem.saleItem.productId;
+      const saleItemId = shipmentItem.saleItemId;
+
+      // 1. Restore Physical Stock
+      await StockRepository.updateProductStock(
+        productId,
+        {
+          reservedQuantityIncrement: shipmentItem.quantity,
+          physicalBalanceIncrement: shipmentItem.quantity,
+        },
+        client,
+      );
+
+      // 2. Restore LOTs using LIFO from SaleItemLot
+      // Get all SaleItemLots for this saleItem, ordered by latest updated
+      const saleItemLots = await client.saleItemLot.findMany({
+        where: { saleItemId: saleItemId },
+        orderBy: { updatedAt: 'desc' }
+      });
+
+      for (const saleItemLot of saleItemLots) {
+        if (quantityToRestore <= 0) break;
+
+        const restoreQty = Math.min(saleItemLot.quantity, quantityToRestore);
+        
+        if (restoreQty > 0) {
+          // Add back to LOT
+          await StockRepository.updateLotQuantity(saleItemLot.lotId, restoreQty, client);
+          
+          // Update SaleItemLot
+          if (saleItemLot.quantity === restoreQty) {
+            await client.saleItemLot.delete({ where: { id: saleItemLot.id } });
+          } else {
+            await client.saleItemLot.update({
+              where: { id: saleItemLot.id },
+              data: { quantity: { decrement: restoreQty } }
+            });
+          }
+
+          quantityToRestore -= restoreQty;
+        }
+      }
+    }
+  };
+
+  if (tx) {
+    await revert(tx);
+  } else {
+    await prisma.$transaction(async (client) => {
+      await revert(client);
+    });
+  }
+}

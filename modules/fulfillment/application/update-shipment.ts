@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { ShipmentRepository } from "../infrastructure/shipment.repository";
 import { updateShipmentSchema } from "./shipment-validations";
-import { autoAssignLotsForShipmentUseCase } from "@/modules/products/application";
+import { deductStockForShipmentUseCase, revertStockForShipmentUseCase } from "@/modules/products/application";
 import { restoreCreditLimit } from "@/modules/sales/application/order-management";
 import { finalizePointsForSaleUseCase as finalizePointsForSale } from "@/modules/points";
 import { finalizePromotionalBudgetForSaleUseCase as finalizePromotionalBudgetForSale } from "@/modules/credit-limits/application";
@@ -134,10 +134,13 @@ export async function updateShipmentUseCase(
     // 1. อัพเดท Shipment record
     await ShipmentRepository.updateShipment(shipmentId, updatePayload, tx);
 
-    // 2. หักสต็อกเมื่อเริ่มจัดส่ง (ยกเลิกแล้ว: สต็อกถูกหักไปแล้วตอนเปลี่ยนสถานะเป็น AWAITING_DELIVERY)
-    // LOT tracking is now also done at the Sale level during AWAITING_DELIVERY.
-    // We do not assign LOTs here to avoid double-assignment.
-
+    // 2. หักสต็อกเมื่อเริ่มจัดส่งสำหรับ Partial Delivery
+    if (
+      prevStatus === "PENDING" &&
+      (newStatus === "IN_TRANSIT" || newStatus === "DELIVERED" || newStatus === "COMPLETED")
+    ) {
+      await deductStockForShipmentUseCase(shipmentId, tx);
+    }
     // อัพเดทสถานะการจัดส่งของ Sale เมื่อสถานะ Shipment เปลี่ยนไปในทางที่ก้าวหน้าขึ้น
     if (newStatus === "IN_TRANSIT" || newStatus === "DELIVERED" || newStatus === "COMPLETED") {
       // ตรวจสอบว่าทุก SaleItem ถูก ship ครบแล้วหรือยัง
@@ -174,7 +177,8 @@ export async function updateShipmentUseCase(
       newStatus === "CANCELLED" &&
       (prevStatus === "IN_TRANSIT" || prevStatus === "DELIVERED" || prevStatus === "COMPLETED")
     ) {
-      // ยกเลิกการคืนสต็อกในระดับ Shipment เพราะสต็อกผูกกับสถานะ Sale แทน
+      // คืนสต็อกในระดับ Shipment เพราะเราหักสต็อกตาม Shipment ไปแล้ว
+      await revertStockForShipmentUseCase(shipmentId, tx);
 
       // Re-evaluate Sale.status หลังยกเลิก
       const isStillFullyDelivered = await ShipmentRepository.isFullyDelivered(
