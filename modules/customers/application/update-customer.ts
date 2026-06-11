@@ -40,6 +40,7 @@ export async function updateCustomerUseCase(id: string, input: any) {
   }
 
   const updateData: Record<string, unknown> = { ...parsed.data };
+  delete updateData.images; // Images are managed separately, do not pass to Prisma
 
   if (typeof updateData.province === "string") {
     updateData.region = getRegionByProvince(updateData.province as string);

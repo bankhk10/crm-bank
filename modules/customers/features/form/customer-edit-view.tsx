@@ -4,12 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
-import {
-  CustomerFormDealer,
-  CustomerFormSubdealer,
-  CustomerFormFarmer,
-  CustomerFormBroker,
-} from "@/modules/customers";
+import { CustomerForm } from "./CustomerForm";
 import { getCustomerDetailAction, updateCustomerAction } from "@/modules/customers/server/actions";
 
 export default function CustomerEditView() {
@@ -221,71 +216,17 @@ export default function CustomerEditView() {
             </div>
           ) : (
             <div>
-              {payload.customerType === "DEALER" && (
-                <CustomerFormDealer
-                  initial={payload}
-                  onSubmit={async (body: any) => {
-                    const result = await handleUpdate(body);
-                    return result;
-                  }}
-                  onCancel={() => router.push(`/customers`)}
-                  submitLabel="บันทึก"
-                  onSuccess={() => router.push(`/customers`)}
-                />
-              )}
-
-              {payload.customerType === "SUBDEALER" && (
-                <CustomerFormSubdealer
-                  initial={payload}
-                  onSubmit={async (body: any) => {
-                    const result = await handleUpdate(body);
-                    return result;
-                  }}
-                  onCancel={() => router.push(`/customers`)}
-                  submitLabel="บันทึก"
-                  onSuccess={() => router.push(`/customers`)}
-                />
-              )}
-
-              {payload.customerType === "FARMER" && (
-                <CustomerFormFarmer
-                  initial={payload}
-                  onSubmit={async (body: any) => {
-                    const result = await handleUpdate(body);
-                    return result;
-                  }}
-                  onCancel={() => router.push(`/customers`)}
-                  submitLabel="บันทึก"
-                  onSuccess={() => router.push(`/customers`)}
-                />
-              )}
-
-              {payload.customerType === "BROKER" && (
-                <CustomerFormBroker
-                  initial={payload}
-                  onSubmit={async (body: any) => {
-                    const result = await handleUpdate(body);
-                    return result;
-                  }}
-                  onCancel={() => router.push(`/customers`)}
-                  submitLabel="บันทึก"
-                  onSuccess={() => router.push(`/customers`)}
-                />
-              )}
-
-              {/* Fallback to dealer form if type missing */}
-              {!payload.customerType && (
-                <CustomerFormDealer
-                  initial={payload}
-                  onSubmit={async (body: any) => {
-                    const result = await handleUpdate(body);
-                    return result;
-                  }}
-                  onCancel={() => router.push(`/customers`)}
-                  submitLabel="บันทึก"
-                  onSuccess={() => router.push(`/customers`)}
-                />
-              )}
+              <CustomerForm
+                customerType={payload.customerType || "DEALER"}
+                initial={payload}
+                onSubmit={async (body: any) => {
+                  const result = await handleUpdate(body);
+                  return result;
+                }}
+                onCancel={() => router.push(`/customers`)}
+                submitLabel="บันทึก"
+                onSuccess={() => router.push(`/customers`)}
+              />
             </div>
           )}
         </div>

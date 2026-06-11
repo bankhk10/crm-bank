@@ -3,12 +3,9 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import {
-  CustomerFormDealer,
-  CustomerFormSubdealer,
-  CustomerFormFarmer,
-  CustomerFormBroker,
   type CustomerType,
 } from "@/modules/customers";
+import { CustomerForm } from "./CustomerForm";
 import { toast } from "sonner";
 import { createCustomerAction } from "@/modules/customers/server/actions";
 
@@ -70,73 +67,21 @@ export default function CustomerNewView() {
             </div>
           ) : (
             <div>
-              {selectedType === "DEALER" && (
-                <CustomerFormDealer
-                  onSubmit={async (payload: any) => {
-                    const result = await handleCreate(payload);
-                    if (result.success) {
-                      toast.success("สร้างตัวแทนจำหน่ายเรียบร้อยแล้ว");
-                      router.push("/customers");
-                    } else {
-                      toast.error(result.error || "ไม่สามารถสร้างตัวแทนจำหน่ายได้");
-                    }
-                    return result;
-                  }}
-                  onCancel={() => router.push("/customers")}
-                  submitLabel="บันทึก"
-                />
-              )}
-
-              {selectedType === "SUBDEALER" && (
-                <CustomerFormSubdealer
-                  onSubmit={async (payload: any) => {
-                    const result = await handleCreate(payload);
-                    if (result.success) {
-                      toast.success("สร้างตัวแทนจำหน่ายย่อยเรียบร้อยแล้ว");
-                      router.push("/customers");
-                    } else {
-                      toast.error(result.error || "ไม่สามารถสร้างตัวแทนจำหน่ายย่อยได้");
-                    }
-                    return result;
-                  }}
-                  onCancel={() => router.push("/customers")}
-                  submitLabel="บันทึก"
-                />
-              )}
-
-              {selectedType === "FARMER" && (
-                <CustomerFormFarmer
-                  onSubmit={async (payload: any) => {
-                    const result = await handleCreate(payload);
-                    if (result.success) {
-                      toast.success("สร้างเกษตรกรเรียบร้อยแล้ว");
-                      router.push("/customers");
-                    } else {
-                      toast.error(result.error || "ไม่สามารถสร้างเกษตรกรได้");
-                    }
-                    return result;
-                  }}
-                  onCancel={() => router.push("/customers")}
-                  submitLabel="บันทึก"
-                />
-              )}
-
-              {selectedType === "BROKER" && (
-                <CustomerFormBroker
-                  onSubmit={async (payload: any) => {
-                    const result = await handleCreate(payload);
-                    if (result.success) {
-                      toast.success("สร้างนายหน้าเรียบร้อยแล้ว");
-                      router.push("/customers");
-                    } else {
-                      toast.error(result.error || "ไม่สามารถสร้างนายหน้าได้");
-                    }
-                    return result;
-                  }}
-                  onCancel={() => router.push("/customers")}
-                  submitLabel="บันทึก"
-                />
-              )}
+              <CustomerForm
+                customerType={selectedType}
+                onSubmit={async (payload: any) => {
+                  const result = await handleCreate(payload);
+                  if (result.success) {
+                    toast.success(`สร้าง${typeLabels[selectedType]}เรียบร้อยแล้ว`);
+                    router.push("/customers");
+                  } else {
+                    toast.error(result.error || `ไม่สามารถสร้าง${typeLabels[selectedType]}ได้`);
+                  }
+                  return result;
+                }}
+                onCancel={() => router.push("/customers")}
+                submitLabel="บันทึก"
+              />
             </div>
           )}
         </div>

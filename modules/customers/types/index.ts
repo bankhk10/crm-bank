@@ -41,45 +41,17 @@ export interface CustomerRecord {
 
 // ============ Customer Form Types ============
 
+import { z } from "zod";
+import { customerBaseSchema } from "../application/validations";
+
 /**
  * Customer form payload for API submission
+ * Mapped closely to the Zod schema
  */
-export type CustomerPayload = {
-  customerCode: string;
-  customerType: CustomerType;
-  name: string;
-  prefix?: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  taxId?: string;
-  addressLine?: string;
-  province?: string;
-  region?: string;
-  district?: string;
-  subdistrict?: string;
-  postalCode?: string;
-  status?: string;
-  contactPerson?: string;
-  contactPhone?: string;
-  contactEmail?: string;
-  notes?: string;
-  birthDate?: string;
+export type CustomerFormData = z.infer<typeof customerBaseSchema>;
+
+export type CustomerPayload = CustomerFormData & {
   images?: any[];
-  shippingAddresses?: {
-    addressLine: string;
-    province: string;
-    district: string;
-    subdistrict: string;
-    postalCode: string;
-  }[];
-  contacts?: {
-    firstName: string;
-    lastName: string;
-    phone: string;
-    email: string;
-  }[];
 };
 
 /**

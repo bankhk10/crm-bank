@@ -5,6 +5,7 @@ import {
   createCustomer,
   checkCustomerCodeExists,
 } from "../infrastructure/customer.repository";
+import { generateCustomerCode } from "./generate-customer-code";
 
 export async function createCustomerUseCase(input: any, createdById: string) {
   // Normalize postal codes to strings
@@ -52,42 +53,7 @@ export async function createCustomerUseCase(input: any, createdById: string) {
   let customerCode = data.customerCode;
 
   if (!customerCode) {
-    const now = new Date();
-    const thaiDate = new Date(
-      now.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }),
-    );
-
-    const buddhistYear = thaiDate.getFullYear() + 543;
-    const yearSuffix = String(buddhistYear).slice(-2);
-    const month = String(thaiDate.getMonth() + 1).padStart(2, "0");
-
-    const prefixMap: Record<string, string> = {
-      FARMER: "F",
-      BROKER: "B",
-      DEALER: "D",
-      SUBDEALER: "S",
-    };
-    const prefix = prefixMap[data.customerType];
-    const pattern = `${prefix}${yearSuffix}${month}`;
-
-    const existingCustomers = await getHighestCustomerCode(pattern);
-
-    let runningNumber = 1;
-
-    if (existingCustomers.length > 0) {
-      const lastCode = existingCustomers[0].customerCode;
-      const lastRunningNumber = parseInt(lastCode.slice(-4), 10);
-      if (!isNaN(lastRunningNumber)) {
-        runningNumber = lastRunningNumber + 1;
-      }
-    }
-
-    if (runningNumber > 9999) {
-      throw new Error("Maximum customer codes reached for this month");
-    }
-
-    const runningNumberStr = String(runningNumber).padStart(4, "0");
-    customerCode = `${pattern}${runningNumberStr}`;
+    customerCode = await generateCustomerCode(data.customerType);
   } else {
     // Check if the provided customer code already exists (including soft-deleted)
     const existing = await checkCustomerCodeExists(customerCode);

@@ -14,13 +14,15 @@ modules/customers/
 │   ├── validations.ts
 │   ├── create-customer.ts
 │   ├── update-customer.ts
+│   ├── generate-customer-code.ts
+│   ├── customer-mapper.ts
 │   └── index.ts
 ├── server/             # Next.js Server Actions and Revalidation
 │   └── actions.ts
 ├── features/           # Feature-specific React Components
 │   ├── list-view/
 │   ├── detail-view/
-│   └── form/
+│   └── form/           # Centralized Customer Form and sections
 ├── ui/                 # Reusable UI components specific to customer module
 ├── types/              # TypeScript types and interfaces
 ├── constants.ts        # Module constants
@@ -43,7 +45,9 @@ Contains all direct database interactions using Prisma.
 Contains the core business logic, validations, and mapping.
 
 - **Validations (`validations.ts`)**: Zod schemas for input validation.
-- **Use Cases (`create-customer.ts`, `update-customer.ts`)**: Pure functions implementing business rules (e.g. generating customer code format based on type) and orchestrating repository calls.
+- **Use Cases (`create-customer.ts`, `update-customer.ts`)**: Pure functions implementing business rules and orchestrating repository calls.
+- **Customer Code Generation (`generate-customer-code.ts`)**: Generates custom running numbers based on the customer type (e.g. F69120001).
+- **Mapper (`customer-mapper.ts`)**: Standardizes the mapping from the UI Form Payload format to the Application Layer input.
 - **DTO Mapping**: Mapping database models to UI-friendly DTOs.
 
 ### 3. Server Layer (`server/`)
@@ -56,23 +60,23 @@ Next.js specific boundary for Server Actions.
 
 React components organized by feature and generic use.
 
-- **`features/`**: Complex business components (e.g. `CustomersTable`, Forms for different types of customers).
+- **`features/`**: Complex business components (e.g. `CustomersTable`, Forms).
 - **`ui/`**: Simple reusable visual components like `CustomerStatusBadge`.
 
 ---
 
 ## Feature Details
 
-### Customer Forms
+### Customer Form
 
-Located in `features/form/`. One form per customer type:
+The Customer Form architecture in `features/form/` has been highly centralized to reduce duplication and improve scalability:
 
-- `CustomerFormDealer`
-- `CustomerFormSubdealer`
-- `CustomerFormFarmer`
-- `CustomerFormBroker`
+- **`CustomerForm.tsx`**: The main container component. It sets up `react-hook-form`, `zodResolver`, and `FormProvider` to manage all state centrally.
+- **`sections/`**: Reusable generic blocks (e.g. `BasicInfoSection`, `ContactInfoSection`, `AddressSection`, `ImageGallerySection`) that extract state via `useFormContext()`.
+- **`specific/`**: Fields specific to a customer type (e.g. `DealerFields`, `FarmerFields`) rendered dynamically through a router (`SpecificSection`).
+- **`config/`**: Contains static configurations and default values.
 
-All share a common interface `CustomerFormProps` and are used via the Server Actions `createCustomerAction` and `updateCustomerAction`.
+This structure allows the system to easily support new customer types by just adding a new `*Fields.tsx` component and configuring it in the `SpecificSection` router without affecting the rest of the form.
 
 ---
 
