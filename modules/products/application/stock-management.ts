@@ -123,8 +123,23 @@ export async function releaseStockUseCase(
 
       if (didDeductPhysical) {
         // Physical was deducted, so we restore physical.
-        // Reserved was already cleared, so we don't touch reserved.
+        // We also must restore the LOT quantities that were auto-assigned, and delete the SaleItemLot records.
         try {
+          // Restore lot quantities
+          const saleItemLots = await StockRepository.getSaleItemLots(saleId, client);
+          for (const saleItemLot of saleItemLots) {
+            if (saleItemLot.saleItem.productId === item.productId) {
+              await StockRepository.updateLotQuantity(
+                saleItemLot.lotId,
+                saleItemLot.quantity,
+                client,
+              );
+            }
+          }
+
+          // Delete the SaleItemLot records for this sale
+          await StockRepository.deleteSaleItemLots(saleId, client);
+
           await StockRepository.updateProductStock(
             item.productId,
             {
@@ -182,8 +197,49 @@ export async function confirmStockDeductionUseCase(
     for (const item of sale.items) {
       const requestedQty = item.quantity;
 
-      // LOT deduction has been moved to autoAssignLotsForShipmentUseCase during Shipment.
-      // We no longer deduct LOT quantities here.
+      // Auto-assign LOTs (FIFO) for traceability without blocking on insufficient stock
+      const lots = await StockRepository.getAvailableLotsOrderByDate(item.productId, client);
+
+      let allocated = 0;
+      for (const lot of lots) {
+        if (allocated >= requestedQty) break;
+        const remainingToAllocate = requestedQty - allocated;
+        
+        // Take up to remainingToAllocate.
+        const deduction = Math.min(Math.max(0, lot.quantity), remainingToAllocate);
+        
+        if (deduction > 0) {
+          await StockRepository.updateLotQuantity(lot.id, -deduction, client);
+          await StockRepository.createSaleItemLot(
+            {
+              saleItemId: item.id,
+              lotId: lot.id,
+              quantity: deduction,
+            },
+            client,
+          );
+          allocated += deduction;
+        }
+      }
+
+      if (allocated < requestedQty) {
+        const remainingToAllocate = requestedQty - allocated;
+        const anyLot = await StockRepository.getAnyLot(item.productId, client);
+        
+        if (anyLot) {
+          await StockRepository.updateLotQuantity(anyLot.id, -remainingToAllocate, client);
+          await StockRepository.createSaleItemLot(
+            {
+              saleItemId: item.id,
+              lotId: anyLot.id,
+              quantity: remainingToAllocate,
+            },
+            client,
+          );
+        } else {
+          console.warn(`[Warning] No LOTs found for product ${item.productId}. Cannot auto-assign LOT.`);
+        }
+      }
 
       await StockRepository.updateProductStock(
         item.productId,

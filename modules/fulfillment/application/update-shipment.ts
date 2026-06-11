@@ -135,10 +135,8 @@ export async function updateShipmentUseCase(
     await ShipmentRepository.updateShipment(shipmentId, updatePayload, tx);
 
     // 2. หักสต็อกเมื่อเริ่มจัดส่ง (ยกเลิกแล้ว: สต็อกถูกหักไปแล้วตอนเปลี่ยนสถานะเป็น AWAITING_DELIVERY)
-    // แต่ให้บันทึก LOT ที่ถูกดึงไปใช้ (FIFO) เพื่อใช้สำหรับ Traceability โดยไม่แจ้งเตือนแม้จำนวนจะไม่พอ
-    if (prevStatus === "PENDING" && (newStatus === "IN_TRANSIT" || newStatus === "COMPLETED")) {
-      await autoAssignLotsForShipmentUseCase(shipmentId, tx);
-    }
+    // LOT tracking is now also done at the Sale level during AWAITING_DELIVERY.
+    // We do not assign LOTs here to avoid double-assignment.
 
     // อัพเดทสถานะการจัดส่งของ Sale เมื่อสถานะ Shipment เปลี่ยนไปในทางที่ก้าวหน้าขึ้น
     if (newStatus === "IN_TRANSIT" || newStatus === "DELIVERED" || newStatus === "COMPLETED") {

@@ -251,11 +251,20 @@ export async function createSaleItemLot(
 ) {
   const db = tx || prisma;
 
-  return db.saleItemLot.create({
-    data: {
+  return db.saleItemLot.upsert({
+    where: {
+      saleItemId_lotId: {
+        saleItemId: data.saleItemId,
+        lotId: data.lotId,
+      },
+    },
+    create: {
       saleItemId: data.saleItemId,
       lotId: data.lotId,
       quantity: data.quantity,
+    },
+    update: {
+      quantity: { increment: data.quantity },
     },
   });
 }
