@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { PlusCircle, Eye, Edit, Settings, Package } from "lucide-react";
+import { PlusCircle, Eye, Edit, Settings, Package, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -27,11 +27,13 @@ function ChildProductRow({
     canView,
     canUpdate,
     canManage,
+    canCreate,
 }: {
     child: any;
     canView: boolean;
     canUpdate: boolean;
     canManage: boolean;
+    canCreate: boolean;
 }) {
     return (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0 rounded-xl bg-white border border-slate-200/80 px-4 py-3.5 shadow-sm hover:border-slate-300 hover:shadow-md transition-all">
@@ -71,6 +73,14 @@ function ChildProductRow({
                         icon={Eye}
                         label="ดู"
                         colorClass="text-blue-600 border-transparent hover:bg-blue-50 shadow-none p-1.5 rounded-md"
+                    />
+                )}
+                {canCreate && (
+                    <ActionButton
+                        href={`/products/new?copyFrom=${child.id}`}
+                        icon={Copy}
+                        label="คัดลอก"
+                        colorClass="text-amber-600 border-transparent hover:bg-amber-50 shadow-none p-1.5 rounded-md"
                     />
                 )}
                 {canUpdate && (
@@ -123,7 +133,8 @@ export function ProductsTable(props: ProductsTableProps) {
         canView,
         canUpdate,
         canDelete,
-        canManage
+        canManage,
+        canCreate ?? false
     );
 
     // ───────── Toolbar ──────────
@@ -247,6 +258,7 @@ export function ProductsTable(props: ProductsTableProps) {
                                             canView={canView}
                                             canUpdate={canUpdate}
                                             canManage={canManage}
+                                            canCreate={canCreate ?? false}
                                         />
                                     ))}
                                 </div>

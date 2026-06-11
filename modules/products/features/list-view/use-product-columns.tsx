@@ -7,6 +7,7 @@ import {
   Settings,
   ChevronDownIcon,
   ChevronUpIcon,
+  Copy,
 } from "lucide-react";
 import { ProductRecord } from "../../types";
 import { ActionButton } from "@/components/custom/action-button";
@@ -41,6 +42,7 @@ export function useProductColumns(
   canUpdate: boolean,
   canDelete: boolean,
   canManage: boolean,
+  canCreate: boolean,
 ) {
   return React.useMemo<ColumnDef<ProductRecord>[]>(
     () => [
@@ -254,6 +256,14 @@ export function useProductColumns(
                   colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
                 />
               )}
+              {canCreate && (
+                <ActionButton
+                  href={`/products/new?copyFrom=${product.id}`}
+                  icon={Copy}
+                  label="คัดลอก"
+                  colorClass="text-amber-600 border-amber-100 hover:bg-amber-50 rounded-md"
+                />
+              )}
               {canUpdate && (
                 <ActionButton
                   href={`/products/${product.id}/edit`}
@@ -283,6 +293,6 @@ export function useProductColumns(
         },
       },
     ],
-    [canView, canUpdate, canManage, canDelete, onDeleteRequest],
+    [canView, canUpdate, canManage, canDelete, canCreate, onDeleteRequest],
   );
 }

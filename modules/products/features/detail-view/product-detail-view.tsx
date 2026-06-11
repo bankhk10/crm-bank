@@ -34,6 +34,7 @@ import {
   Hash,
   Edit,
   Trash2,
+  Copy,
 } from "lucide-react";
 import Link from "next/link";
 import { getProductAction, deleteProductAction, type Product } from "@/modules/products";
@@ -47,6 +48,7 @@ export default function ProductDetailView() {
   const { hasPermission, isLoading: permissionLoading } = usePermission("product.view");
   const canEdit = hasPermission("product.edit") || hasPermission("product.manage");
   const canDelete = hasPermission("product.delete");
+  const canCreate = hasPermission("product.create");
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -237,7 +239,19 @@ export default function ProductDetailView() {
           </>
         }
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {canCreate && (
+              <Button
+                size="sm"
+                className="h-10 px-4 sm:px-6 text-xs font-semibold bg-amber-500/20 hover:bg-amber-500/30 text-amber-50 border border-amber-500/30 rounded-xl backdrop-blur-md transition-all active:scale-[0.98]"
+                asChild
+              >
+                <Link href={`/products/new?copyFrom=${productId}`}>
+                  <Copy className="h-3.5 w-3.5 mr-2" />
+                  คัดลอก
+                </Link>
+              </Button>
+            )}
             {canEdit && (
               <Button
                 size="sm"

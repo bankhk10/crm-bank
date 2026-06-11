@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-export default function ProductNewView() {
+export default function ProductNewView({ initialData }: { initialData?: any }) {
   const router = useRouter();
   const { allowed: hasPermission, isLoading } = usePermission("product.create");
 
@@ -38,6 +38,7 @@ export default function ProductNewView() {
             </h5>
           </div>
           <ProductForm
+            initialData={initialData}
             onSubmit={async (payload) => {
               const result = await createProductAction(payload);
               return {
