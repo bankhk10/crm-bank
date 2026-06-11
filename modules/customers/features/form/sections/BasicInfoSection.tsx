@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import { LocateFixed, Loader2 } from "lucide-react";
-import { FormInput } from "@/components/custom/form-components";
+import { FormInput, FormSelect } from "@/components/custom/form-components";
+import { CUSTOMER_STATUS_OPTIONS } from "../../../constants";
 import { Button } from "@/components/ui/button";
 import { CustomerFormData } from "../../../types";
 
@@ -37,7 +38,7 @@ export function BasicInfoSection() {
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลบริษัท
       </h3>
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
         <FormInput
           label="รหัสลูกค้า"
           required
@@ -52,6 +53,20 @@ export function BasicInfoSection() {
           containerClassName="md:col-span-2"
           error={errors.name?.message as string}
           {...register("name")}
+        />
+
+        <Controller
+          name="status"
+          control={control}
+          render={({ field }) => (
+            <FormSelect
+              label="สถานะ"
+              value={field.value || "ACTIVE"}
+              onChange={field.onChange}
+              options={CUSTOMER_STATUS_OPTIONS}
+              error={errors.status?.message as string}
+            />
+          )}
         />
 
         <FormInput

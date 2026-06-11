@@ -5,6 +5,14 @@ import { useFormContext, Controller } from "react-hook-form";
 import { FormInput, FormSelect } from "@/components/custom/form-components";
 import { CustomerFormData, SelectOption } from "../../../types";
 
+const RELATIONSHIP_SCORE_OPTIONS: SelectOption[] = [
+  { value: "5", label: "5 - ดีเยี่ยม" },
+  { value: "4", label: "4 - ดี" },
+  { value: "3", label: "3 - ปานกลาง" },
+  { value: "2", label: "2 - แย่" },
+  { value: "1", label: "1 - แย่มาก" },
+];
+
 export function SubDealerFields() {
   const { register, control, formState: { errors } } = useFormContext<CustomerFormData>();
   const [employeeOptions, setEmployeeOptions] = useState<SelectOption[]>([]);
@@ -64,6 +72,20 @@ export function SubDealerFields() {
               onChange={field.onChange}
               options={dealerOptions}
               error={errors.parentDealerId?.message as string}
+            />
+          )}
+        />
+
+        <Controller
+          name="relationshipScore"
+          control={control}
+          render={({ field }) => (
+            <FormSelect
+              label="คะแนนความสัมพันธ์ (Relationship Score)"
+              value={field.value ? String(field.value) : ""}
+              onChange={field.onChange}
+              options={RELATIONSHIP_SCORE_OPTIONS}
+              error={errors.relationshipScore?.message as string}
             />
           )}
         />

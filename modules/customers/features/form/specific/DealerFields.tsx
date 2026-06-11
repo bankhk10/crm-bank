@@ -5,25 +5,40 @@ import { useFormContext, Controller } from "react-hook-form";
 import { FormInput, FormSelect } from "@/components/custom/form-components";
 import { CustomerFormData, SelectOption } from "../../../types";
 
+const RELATIONSHIP_SCORE_OPTIONS: SelectOption[] = [
+  { value: "5", label: "5 - ดีเยี่ยม" },
+  { value: "4", label: "4 - ดี" },
+  { value: "3", label: "3 - ปานกลาง" },
+  { value: "2", label: "2 - แย่" },
+  { value: "1", label: "1 - แย่มาก" },
+];
+
 export function DealerFields() {
   const { register, control, formState: { errors } } = useFormContext<CustomerFormData>();
   const [employeeOptions, setEmployeeOptions] = useState<SelectOption[]>([]);
+  const [dealerOptions, setDealerOptions] = useState<SelectOption[]>([]);
 
   useEffect(() => {
-    async function fetchEmployees() {
+    async function fetchOptions() {
       try {
         const { getEmployeesAction } = await import("@/modules/employee/server/actions");
-        const res = await getEmployeesAction({ perPage: 1000 });
-        const emps = (res.employees || []).map((e: any) => ({
+        const resEmp = await getEmployeesAction({ perPage: 1000 });
+        setEmployeeOptions((resEmp.employees || []).map((e: any) => ({
           value: e.id,
           label: e.name,
-        }));
-        setEmployeeOptions(emps);
+        })));
+
+        const resDealer = await fetch(`/api/customers?type=DEALER&perPage=1000`);
+        const dealerJson = await resDealer.json();
+        setDealerOptions((dealerJson.customers || []).map((c: any) => ({
+          value: c.id,
+          label: `${c.customerCode} - ${c.name}`,
+        })));
       } catch (err) {
         // ignore
       }
     }
-    fetchEmployees();
+    fetchOptions();
   }, []);
 
   return (
@@ -47,17 +62,36 @@ export function DealerFields() {
           )}
         />
         
-        <FormInput
-          label="คะแนนความสัมพันธ์ (Relationship Score)"
-          type="number"
-          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-          error={errors.relationshipScore?.message as string}
-          {...register("relationshipScore")}
+        <Controller
+          name="parentDealerId"
+          control={control}
+          render={({ field }) => (
+            <FormSelect
+              label="ร้านหลัก (Parent Dealer)"
+              value={field.value || ""}
+              onChange={field.onChange}
+              options={dealerOptions}
+              error={errors.parentDealerId?.message as string}
+            />
+          )}
+        />
+
+        <Controller
+          name="relationshipScore"
+          control={control}
+          render={({ field }) => (
+            <FormSelect
+              label="คะแนนความสัมพันธ์ (Relationship Score)"
+              value={field.value ? String(field.value) : ""}
+              onChange={field.onChange}
+              options={RELATIONSHIP_SCORE_OPTIONS}
+              error={errors.relationshipScore?.message as string}
+            />
+          )}
         />
 
         <FormInput
           label="หมายเหตุทางธุรกิจ"
-          containerClassName="md:col-span-2"
           error={errors.notes?.message as string}
           {...register("notes")}
         />
