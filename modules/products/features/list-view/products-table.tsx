@@ -28,12 +28,14 @@ function ChildProductRow({
     canUpdate,
     canManage,
     canCreate,
+    canCopy,
 }: {
     child: any;
     canView: boolean;
     canUpdate: boolean;
     canManage: boolean;
     canCreate: boolean;
+    canCopy: boolean;
 }) {
     return (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0 rounded-xl bg-white border border-slate-200/80 px-4 py-3.5 shadow-sm hover:border-slate-300 hover:shadow-md transition-all">
@@ -75,7 +77,7 @@ function ChildProductRow({
                         colorClass="text-blue-600 border-transparent hover:bg-blue-50 shadow-none p-1.5 rounded-md"
                     />
                 )}
-                {canCreate && (
+                {canCopy && (
                     <ActionButton
                         href={`/products/new?copyFrom=${child.id}`}
                         icon={Copy}
@@ -112,6 +114,7 @@ export function ProductsTable(props: ProductsTableProps) {
         data,
         loading,
         canCreate,
+        canCopy = false,
         canView = true,
         canUpdate = false,
         canDelete,
@@ -134,7 +137,7 @@ export function ProductsTable(props: ProductsTableProps) {
         canUpdate,
         canDelete,
         canManage,
-        canCreate ?? false
+        canCopy
     );
 
     // ───────── Toolbar ──────────
@@ -259,6 +262,7 @@ export function ProductsTable(props: ProductsTableProps) {
                                             canUpdate={canUpdate}
                                             canManage={canManage}
                                             canCreate={canCreate ?? false}
+                                            canCopy={canCopy}
                                         />
                                     ))}
                                 </div>

@@ -267,6 +267,7 @@ export interface ProductsTableProps {
   data: ProductRecord[];
   loading?: boolean;
   canCreate: boolean;
+  canCopy?: boolean;
   canView?: boolean;
   canUpdate?: boolean;
   canDelete: boolean;

@@ -34,6 +34,7 @@ export default function ProductsListView() {
   const canUpdate = hasPermission("product.edit");
   const canDelete = hasPermission("product.delete");
   const canManage = hasPermission("product.manage");
+  const canCopy = hasPermission("product.copy");
 
   const [products, setProducts] = useState<ProductRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -274,6 +275,7 @@ export default function ProductsListView() {
             data={products}
             loading={loading || isPending}
             canCreate={canCreate}
+            canCopy={canCopy}
             canView={canView}
             canUpdate={canUpdate}
             canDelete={canDelete}

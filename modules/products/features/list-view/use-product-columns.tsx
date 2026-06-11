@@ -42,7 +42,7 @@ export function useProductColumns(
   canUpdate: boolean,
   canDelete: boolean,
   canManage: boolean,
-  canCreate: boolean,
+  canCopy: boolean,
 ) {
   return React.useMemo<ColumnDef<ProductRecord>[]>(
     () => [
@@ -256,7 +256,7 @@ export function useProductColumns(
                   colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
                 />
               )}
-              {canCreate && (
+              {canCopy && (
                 <ActionButton
                   href={`/products/new?copyFrom=${product.id}`}
                   icon={Copy}
@@ -293,6 +293,6 @@ export function useProductColumns(
         },
       },
     ],
-    [canView, canUpdate, canManage, canDelete, canCreate, onDeleteRequest],
+    [canView, canUpdate, canManage, canDelete, canCopy, onDeleteRequest],
   );
 }
