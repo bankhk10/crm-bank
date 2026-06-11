@@ -103,7 +103,9 @@ function ShipmentCard({
             ? "ยืนยันจัดส่งแล้ว ตัดสต็อกและนับ Invoice เรียบร้อย"
             : newStatus === "DELIVERED"
               ? "ยืนยันส่งเสร็จแล้ว บันทึก actualDate เรียบร้อย"
-              : "อัพเดทสถานะแล้ว",
+              : newStatus === "CANCELLED"
+                ? "ยกเลิกการจัดส่งเรียบร้อย"
+                : "อัพเดทสถานะแล้ว",
         );
         onUpdated();
       } else {
@@ -334,6 +336,26 @@ function ShipmentCard({
             >
               <CheckCircle2 className="h-3 w-3" />
               ยืนยันส่งเสร็จแล้ว
+            </Button>
+          )}
+          {shipment.status !== "CANCELLED" && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 gap-1.5 border-rose-200 text-rose-700 hover:bg-rose-50 text-xs"
+              disabled={isPending}
+              onClick={() => {
+                const isStockDeducted = ["IN_TRANSIT", "DELIVERED", "COMPLETED"].includes(shipment.status);
+                const msg = isStockDeducted 
+                  ? "ต้องการยกเลิกการจัดส่งนี้และคืนสต็อกสินค้าใช่หรือไม่?" 
+                  : "ต้องการยกเลิกการจัดส่งนี้ใช่หรือไม่?";
+                if (window.confirm(msg)) {
+                  handleStatusChange("CANCELLED");
+                }
+              }}
+            >
+              <XCircle className="h-3 w-3" />
+              {["IN_TRANSIT", "DELIVERED", "COMPLETED"].includes(shipment.status) ? "ยกเลิกและคืนสต็อก" : "ยกเลิกการจัดส่ง"}
             </Button>
           )}
           <div className="ml-auto flex items-center gap-2">
