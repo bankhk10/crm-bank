@@ -136,6 +136,13 @@ export async function parseStockLotsAction(formData: FormData) {
       const notes =
         row["หมายเหตุ (Notes)"] || row["Notes"] || row["หมายเหตุ"] || "";
 
+      const status = String(row["สถานะ"] || row["Status"] || "")
+        .trim()
+        .toUpperCase();
+      if (status === "S" || status === "I") {
+        continue;
+      }
+
       if (!lotNumber) {
         errors.push(`แถวที่ ${i + 2}: ขาดเลขที่ล็อต`);
         continue;
@@ -422,6 +429,13 @@ export async function importBulkStockAction(
         "คลัง",
       ]);
       const notes = getVal(row, ["หมายเหตุ (Notes)", "Notes", "หมายเหตุ"]);
+
+      const status = String(getVal(row, ["สถานะ", "Status"]) || "")
+        .trim()
+        .toUpperCase();
+      if (status === "S" || status === "I") {
+        continue;
+      }
 
       if (!productCode) {
         errors.push(`แถวที่ ${i + 2}: ขาดรหัสสินค้า`);
