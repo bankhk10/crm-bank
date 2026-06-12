@@ -28,7 +28,7 @@ services:
       - crm-network
     user: root
     volumes:
-      - ../../public/uploads:/app/public/uploads
+      - /home/bank/crm-data/uploads:/app/public/uploads
     # Internal port only - Nginx จะ proxy มาที่นี่
     expose:
       - "3000"
@@ -64,6 +64,7 @@ services:
       - ../../nginx/logs:/var/log/nginx
       - certbot_data:/var/www/certbot:ro
       - certbot_certs:/etc/letsencrypt:ro
+      - /home/bank/crm-data/uploads:/usr/share/nginx/uploads:ro
     depends_on:
       app:
         condition: service_healthy
