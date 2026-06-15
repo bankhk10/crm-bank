@@ -715,6 +715,18 @@ model ProductImage {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
+model ShowProductImage {
+  id          String   @id @default(cuid())
+  url         String
+  filename    String
+  title       String?  // e.g. "สินค้าแนะนำ 1"
+  description String?  // e.g. "คุณภาพระดับพรีเมียม"
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model ProductFreeItem {
   id          String   @id @default(cuid())
   productId   String

@@ -2,45 +2,32 @@
 
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
-
+import {
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+} from "lucide-react";
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import Image from "next/image";
+import { EditCarouselDialog } from "./_components/edit-carousel-dialog";
+import { getAllShowProductImages } from "@/modules/products/server/show-product-actions";
+import { ShowProductImage } from "@prisma/client";
 
-// Product images from public/uploads/products
-const productImages = [
-  {
-    src: "/uploads/products/p-1.jpg",
-    title: "สินค้าแนะนำ 1",
-    description: "คุณภาพระดับพรีเมียม",
-  },
-  {
-    src: "/uploads/products/p-2.jpg",
-    title: "สินค้าแนะนำ 2",
-    description: "ราคาพิเศษสุดคุ้ม",
-  },
-  {
-    src: "/uploads/products/p-3.jpg",
-    title: "สินค้าแนะนำ 3",
-    description: "ของแท้ 100%",
-  },
-];
-
-function ProductCarousel() {
+function ProductCarousel({ images }: { images: ShowProductImage[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
   // Auto-slide every 5 seconds
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    if (!isAutoPlaying || images.length <= 1) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % productImages.length);
+      setCurrentIndex((prev) => (prev + 1) % images.length);
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, images.length]);
 
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
@@ -49,27 +36,27 @@ function ProductCarousel() {
   };
 
   const goToPrevious = () => {
-    setCurrentIndex(
-      (prev) => (prev - 1 + productImages.length) % productImages.length,
-    );
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
     setIsAutoPlaying(false);
     setTimeout(() => setIsAutoPlaying(true), 10000);
   };
 
   const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % productImages.length);
+    setCurrentIndex((prev) => (prev + 1) % images.length);
     setIsAutoPlaying(false);
     setTimeout(() => setIsAutoPlaying(true), 10000);
   };
+
+  if (images.length === 0) return null;
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background shadow-2xl">
       {/* Carousel Container */}
       <div className="relative h-[400px] md:h-[500px] lg:h-[600px]">
         {/* Images */}
-        {productImages.map((image, index) => (
+        {images.map((image, index) => (
           <div
-            key={index}
+            key={image.id}
             className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
               index === currentIndex
                 ? "opacity-100 scale-100"
@@ -77,8 +64,8 @@ function ProductCarousel() {
             }`}
           >
             <Image
-              src={image.src}
-              alt={image.title}
+              src={image.url}
+              alt={image.title || "Image"}
               fill
               className="object-cover"
               priority={index === 0}
@@ -102,54 +89,61 @@ function ProductCarousel() {
                     สินค้าแนะนำ
                   </span>
                 </div>
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 drop-shadow-lg">
-                  {image.title}
-                </h2>
-                <p className="text-lg md:text-xl text-white/90 max-w-2xl drop-shadow-md">
-                  {image.description}
-                </p>
+                {image.title && (
+                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 drop-shadow-lg">
+                    {image.title}
+                  </h2>
+                )}
+                {image.description && (
+                  <p className="text-lg md:text-xl text-white/90 max-w-2xl drop-shadow-md">
+                    {image.description}
+                  </p>
+                )}
               </div>
             </div>
           </div>
         ))}
 
         {/* Navigation Arrows */}
-        <button
-          onClick={goToPrevious}
-          className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full p-3 md:p-4 transition-all duration-300 hover:scale-110 group"
-          aria-label="Previous slide"
-        >
-          <ChevronLeft className="h-6 w-6 md:h-8 md:w-8 text-white group-hover:scale-110 transition-transform" />
-        </button>
-        <button
-          onClick={goToNext}
-          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full p-3 md:p-4 transition-all duration-300 hover:scale-110 group"
-          aria-label="Next slide"
-        >
-          <ChevronRight className="h-6 w-6 md:h-8 md:w-8 text-white group-hover:scale-110 transition-transform" />
-        </button>
-
-        {/* Dots Indicator */}
-        <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex gap-3">
-          {productImages.map((_, index) => (
+        {images.length > 1 && (
+          <>
             <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`transition-all duration-300 rounded-full ${
-                index === currentIndex
-                  ? "bg-white w-12 h-3"
-                  : "bg-white/50 hover:bg-white/70 w-3 h-3"
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
+              onClick={goToPrevious}
+              className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full p-3 md:p-4 transition-all duration-300 hover:scale-110 group"
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="h-6 w-6 md:h-8 md:w-8 text-white group-hover:scale-110 transition-transform" />
+            </button>
+            <button
+              onClick={goToNext}
+              className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full p-3 md:p-4 transition-all duration-300 hover:scale-110 group"
+              aria-label="Next slide"
+            >
+              <ChevronRight className="h-6 w-6 md:h-8 md:w-8 text-white group-hover:scale-110 transition-transform" />
+            </button>
+
+            {/* Dots Indicator */}
+            <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex gap-3">
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`transition-all duration-300 rounded-full ${
+                    index === currentIndex
+                      ? "bg-white w-12 h-3"
+                      : "bg-white/50 hover:bg-white/70 w-3 h-3"
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Auto-play indicator */}
-        {isAutoPlaying && (
+        {isAutoPlaying && images.length > 1 && (
           <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full px-4 py-2 flex items-center gap-2">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            {/* <span className="text-white text-sm font-medium">Auto</span> */}
           </div>
         )}
       </div>
@@ -158,9 +152,24 @@ function ProductCarousel() {
 }
 
 export default function EmployeeDashboardPage() {
-  const { hasPermission, isLoading } = usePermission("menu.show_product");
+  const { allowed, isLoading, hasPermission } =
+    usePermission("menu.show_product");
+  const [images, setImages] = useState<ShowProductImage[]>([]);
+  const [loadingImages, setLoadingImages] = useState(true);
 
-  if (!isLoading && !hasPermission) {
+  const loadImages = async () => {
+    const res = await getAllShowProductImages();
+    if (res.success && res.data) {
+      setImages(res.data);
+    }
+    setLoadingImages(false);
+  };
+
+  useEffect(() => {
+    loadImages();
+  }, []);
+
+  if (!isLoading && !allowed) {
     return (
       <div className="p-8">
         <Alert variant="destructive">
@@ -172,10 +181,28 @@ export default function EmployeeDashboardPage() {
     );
   }
 
+  const activeImages = images.filter((img) => img.isActive);
+  const canEdit = hasPermission("menu.show_product.edit");
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 p-4 md:p-8 space-y-6 md:space-y-8 rounded-2xl">
-      {/* Product Carousel */}
-      <ProductCarousel />
+      <div className="flex justify-between items-center mb-4">
+        {canEdit && (
+          <EditCarouselDialog initialImages={images} onUpdate={loadImages} />
+        )}
+      </div>
+
+      {loadingImages ? (
+        <div className="flex justify-center items-center h-64">
+          กำลังโหลด...
+        </div>
+      ) : activeImages.length > 0 ? (
+        <ProductCarousel images={activeImages} />
+      ) : (
+        <div className="text-center p-12 bg-white/50 rounded-2xl">
+          <p className="text-muted-foreground">ไม่มีรูปภาพสินค้าแนะนำ</p>
+        </div>
+      )}
     </div>
   );
 }
