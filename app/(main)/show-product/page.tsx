@@ -156,18 +156,26 @@ export default function EmployeeDashboardPage() {
     usePermission("menu.show_product");
   const [images, setImages] = useState<ShowProductImage[]>([]);
   const [loadingImages, setLoadingImages] = useState(true);
-
-  const loadImages = async () => {
-    const res = await getAllShowProductImages();
-    if (res.success && res.data) {
-      setImages(res.data);
-    }
-    setLoadingImages(false);
-  };
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    loadImages();
-  }, []);
+    let mounted = true;
+    getAllShowProductImages().then((res) => {
+      if (mounted) {
+        if (res.success && res.data) {
+          setImages(res.data);
+        }
+        setLoadingImages(false);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [refreshKey]);
+
+  const handleUpdate = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
 
   if (!isLoading && !allowed) {
     return (
@@ -188,7 +196,7 @@ export default function EmployeeDashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 p-4 md:p-8 space-y-6 md:space-y-8 rounded-2xl">
       <div className="flex justify-between items-center mb-4">
         {canEdit && (
-          <EditCarouselDialog initialImages={images} onUpdate={loadImages} />
+          <EditCarouselDialog initialImages={images} onUpdate={handleUpdate} />
         )}
       </div>
 
