@@ -5,78 +5,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 
 import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  CheckCircle2,
-  Circle,
-  Clock,
-  Bell,
-  Target,
-  TrendingUp,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-} from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import Image from "next/image";
-
-const myTasks = [
-  {
-    id: 1,
-    title: "เตรียมการนำเสนอการขาย",
-    deadline: "วันนี้",
-    status: "pending",
-    priority: "สูง",
-  },
-  {
-    id: 2,
-    title: "ติดตามลูกค้าบริษัท X",
-    deadline: "พรุ่งนี้",
-    status: "pending",
-    priority: "ปานกลาง",
-  },
-  {
-    id: 3,
-    title: "ส่งรายงานค่าใช้จ่าย",
-    deadline: "25 ธ.ค.",
-    status: "done",
-    priority: "ต่ำ",
-  },
-  {
-    id: 4,
-    title: "ทบทวนเป้าหมายไตรมาส 4",
-    deadline: "28 ธ.ค.",
-    status: "pending",
-    priority: "สูง",
-  },
-];
-
-const announcements = [
-  {
-    title: "ขอเชิญร่วมงานปาร์ตี้ประจำปี",
-    date: "30 ธ.ค.",
-    content: "มาร่วมเฉลิมฉลองประจำปีกับเรา!",
-  },
-  {
-    title: "ปิดปรับปรุงระบบ",
-    date: "05 ม.ค.",
-    content: "เซิร์ฟเวอร์จะปิดให้บริการเป็นเวลา 2 ชั่วโมง",
-  },
-];
-
-const priorityStyle: Record<string, string> = {
-  สูง: "bg-red-100 text-red-700",
-  ปานกลาง: "bg-amber-100 text-amber-700",
-  ต่ำ: "bg-emerald-100 text-emerald-700",
-};
 
 // Product images from public/uploads/products
 const productImages = [
@@ -120,7 +50,7 @@ function ProductCarousel() {
 
   const goToPrevious = () => {
     setCurrentIndex(
-      (prev) => (prev - 1 + productImages.length) % productImages.length
+      (prev) => (prev - 1 + productImages.length) % productImages.length,
     );
     setIsAutoPlaying(false);
     setTimeout(() => setIsAutoPlaying(true), 10000);
@@ -140,10 +70,11 @@ function ProductCarousel() {
         {productImages.map((image, index) => (
           <div
             key={index}
-            className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentIndex
-              ? "opacity-100 scale-100"
-              : "opacity-0 scale-105"
-              }`}
+            className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+              index === currentIndex
+                ? "opacity-100 scale-100"
+                : "opacity-0 scale-105"
+            }`}
           >
             <Image
               src={image.src}
@@ -159,10 +90,11 @@ function ProductCarousel() {
             {/* Content Overlay */}
             <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12 lg:p-16">
               <div
-                className={`transform transition-all duration-700 delay-300 ${index === currentIndex
-                  ? "translate-y-0 opacity-100"
-                  : "translate-y-8 opacity-0"
-                  }`}
+                className={`transform transition-all duration-700 delay-300 ${
+                  index === currentIndex
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-8 opacity-0"
+                }`}
               >
                 <div className="flex items-center gap-2 mb-4">
                   <Sparkles className="h-6 w-6 text-yellow-400 animate-pulse" />
@@ -203,10 +135,11 @@ function ProductCarousel() {
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`transition-all duration-300 rounded-full ${index === currentIndex
-                ? "bg-white w-12 h-3"
-                : "bg-white/50 hover:bg-white/70 w-3 h-3"
-                }`}
+              className={`transition-all duration-300 rounded-full ${
+                index === currentIndex
+                  ? "bg-white w-12 h-3"
+                  : "bg-white/50 hover:bg-white/70 w-3 h-3"
+              }`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}
@@ -233,9 +166,7 @@ export default function EmployeeDashboardPage() {
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Access Denied</AlertTitle>
-          <AlertDescription>
-            คุณไม่มีสิทธิ์เข้าถึงหน้าแรก
-          </AlertDescription>
+          <AlertDescription>คุณไม่มีสิทธิ์เข้าถึงหน้าแรก</AlertDescription>
         </Alert>
       </div>
     );
