@@ -58,14 +58,8 @@ export async function getSalesDashboardDataUseCase(
       employeeId,
       start,
       end,
-      [
-        "PENDING",
-        "PENDING_APPROVAL",
-        "WAITING_FOR_CORRECTION",
-        "APPROVED",
-        "AWAITING_PAYMENT",
-        "AWAITING_DELIVERY",
-      ],
+      undefined,
+      ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"],
     );
     const invoice = await salesRepo.aggregateSalesAmountByEmployee(
       employeeId,
@@ -157,13 +151,11 @@ export async function getSalesDashboardDataUseCase(
       "DELIVERY_COMPLETED",
       "COMPLETED",
     ];
-    const salesNoteStatuses = [
-      "PENDING",
-      "PENDING_APPROVAL",
-      "WAITING_FOR_CORRECTION",
-      "APPROVED",
-      "AWAITING_PAYMENT",
-      "AWAITING_DELIVERY",
+    const excludedStatuses = [
+      "CANCELLED",
+      "REJECTED",
+      "EXPIRED",
+      "OVERDUE",
     ];
 
     const buildProductGroupData = () => {
@@ -178,7 +170,7 @@ export async function getSalesDashboardDataUseCase(
           if (item.product.productABCTypeId === group) {
             const amount = Number(item.totalPrice);
             if (invoiceStatuses.includes(item.sale.status)) invoice += amount;
-            else if (salesNoteStatuses.includes(item.sale.status))
+            if (!excludedStatuses.includes(item.sale.status))
               salesNote += amount;
           }
         }
@@ -187,7 +179,7 @@ export async function getSalesDashboardDataUseCase(
             const amount = Number(item.totalPrice);
             if (invoiceStatuses.includes(item.sale.status))
               lastYearInvoice += amount;
-            else if (salesNoteStatuses.includes(item.sale.status))
+            if (!excludedStatuses.includes(item.sale.status))
               lastYearSalesNote += amount;
           }
         }
@@ -216,7 +208,7 @@ export async function getSalesDashboardDataUseCase(
           if (item.product.tradeNameGroupId === group) {
             const amount = Number(item.totalPrice);
             if (invoiceStatuses.includes(item.sale.status)) invoice += amount;
-            else if (salesNoteStatuses.includes(item.sale.status))
+            if (!excludedStatuses.includes(item.sale.status))
               salesNote += amount;
           }
         }
@@ -225,7 +217,7 @@ export async function getSalesDashboardDataUseCase(
             const amount = Number(item.totalPrice);
             if (invoiceStatuses.includes(item.sale.status))
               lastYearInvoice += amount;
-            else if (salesNoteStatuses.includes(item.sale.status))
+            if (!excludedStatuses.includes(item.sale.status))
               lastYearSalesNote += amount;
           }
         }
