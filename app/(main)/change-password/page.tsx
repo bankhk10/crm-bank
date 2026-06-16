@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -40,7 +40,6 @@ const formSchema = z
 type FormValues = z.infer<typeof formSchema>;
 
 export default function ChangePasswordPage() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<FormValues>({
@@ -76,7 +75,9 @@ export default function ChangePasswordPage() {
       });
       
       form.reset();
-      router.push("/dashboard");
+      setTimeout(() => {
+        signOut({ callbackUrl: "/login" });
+      }, 1500);
     } catch (error) {
       if (error instanceof Error) {
         toast.error("ไม่สามารถเปลี่ยนรหัสผ่านได้", {
