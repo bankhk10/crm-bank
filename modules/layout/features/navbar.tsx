@@ -3,8 +3,17 @@
 import { signOut } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
-import { Bell, LogOut, Menu, User } from "lucide-react";
+import { Bell, LogOut, Menu, User, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 import type { NavbarProps } from "../types";
 
 const NotificationBell = dynamic(
@@ -50,27 +59,40 @@ export default function Navbar({ user, onMenuClick }: NavbarProps) {
                 <NotificationBell />
                 <div className="hidden sm:block h-6 w-px bg-white/20 mx-1" />
 
-                <div className="flex items-center gap-3 pl-1">
-                    <div className="h-8 w-8 rounded-full bg-white/20 text-white flex items-center justify-center ring-2 ring-white/10">
-                        {userInitial ? (
-                            <span className="font-semibold text-sm">{userInitial}</span>
-                        ) : (
-                            <User className="h-4 w-4" />
-                        )}
-                    </div>
-                    <span className="hidden sm:block font-medium text-white max-w-[150px] truncate">
-                        {displayName}
-                    </span>
-                </div>
-
-                <Button
-                    variant="ghost"
-                    onClick={() => signOut({ callbackUrl: "/login" })}
-                    className="ml-2 p-2 text-white hover:text-white hover:bg-red-600 rounded-full transition-colors"
-                    title="Sign out"
-                >
-                    <LogOut className="h-5 w-5" />
-                </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="flex items-center gap-3 pl-1 pr-2 hover:bg-white/10 rounded-full transition-colors focus-visible:ring-0 focus-visible:ring-offset-0">
+                            <div className="h-8 w-8 rounded-full bg-white/20 text-white flex items-center justify-center ring-2 ring-white/10">
+                                {userInitial ? (
+                                    <span className="font-semibold text-sm">{userInitial}</span>
+                                ) : (
+                                    <User className="h-4 w-4" />
+                                )}
+                            </div>
+                            <span className="hidden sm:block font-medium text-white max-w-[150px] truncate">
+                                {displayName}
+                            </span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuLabel>บัญชีผู้ใช้</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                            <Link href="/change-password" className="cursor-pointer flex w-full items-center">
+                                <KeyRound className="mr-2 h-4 w-4" />
+                                <span>เปลี่ยนรหัสผ่าน</span>
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                            onClick={() => signOut({ callbackUrl: "/login" })}
+                            className="text-red-600 focus:text-red-600 cursor-pointer"
+                        >
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>ออกจากระบบ</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </nav>
     );
