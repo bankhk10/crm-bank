@@ -155,6 +155,34 @@ export function SalesForecastDashboard() {
     );
   }, [aggregatedData]);
 
+  const formatDiff = (diff: number) => {
+    if (diff < 0) {
+      return (
+        <span className="text-rose-600">- {new Intl.NumberFormat("th-TH").format(Math.abs(diff))}</span>
+      );
+    }
+    return (
+      <span className="text-emerald-500">{new Intl.NumberFormat("th-TH").format(diff)}</span>
+    );
+  };
+
+  const formatPercent = (percent: number | null) => {
+    if (percent === null) {
+      return <div className="text-emerald-500 w-full h-full py-3 px-4 flex items-center justify-end">#DIV/0!</div>;
+    }
+    const val = Math.round(percent * 100);
+    if (val < 0) {
+      return (
+        <div className="bg-rose-200 text-rose-700 w-full h-full py-3 px-4 flex items-center justify-end">
+          {val}%
+        </div>
+      );
+    }
+    return (
+      <div className="text-emerald-500 w-full h-full py-3 px-4 flex items-center justify-end">{val}%</div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-50/50 pb-12">
       <div className="mx-auto px-4 sm:px-6 lg:px-8 pt-8">
@@ -329,9 +357,6 @@ export function SalesForecastDashboard() {
                         {label}
                       </TableHead>
                     ))}
-                    <TableHead colSpan={2} className="text-center font-bold text-slate-800 bg-slate-100 border-x border-slate-300/50" rowSpan={1}>
-                      Grand Total
-                    </TableHead>
                   </TableRow>
                   <TableRow>
                     {timeLabels.map((label) => (
@@ -344,14 +369,6 @@ export function SalesForecastDashboard() {
                         </TableHead>
                       </Fragment>
                     ))}
-                    <Fragment key="gt-sub">
-                      <TableHead className="text-right text-xs font-bold text-slate-700 bg-slate-100 border-l border-slate-300/50 min-w-[120px]">
-                        Forecast
-                      </TableHead>
-                      <TableHead className="text-right text-xs font-bold text-emerald-700 bg-slate-100 border-r border-slate-300/50 min-w-[120px]">
-                        Invoice
-                      </TableHead>
-                    </Fragment>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -377,12 +394,7 @@ export function SalesForecastDashboard() {
                             </Fragment>
                           );
                         })}
-                        <TableCell className="text-right font-bold text-slate-700 bg-slate-50 border-l border-slate-300/30">
-                          {pData.totalForecast > 0 ? new Intl.NumberFormat("th-TH").format(pData.totalForecast) : "-"}
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-emerald-700 bg-slate-50 border-r border-slate-300/30">
-                          {pData.totalInvoice > 0 ? new Intl.NumberFormat("th-TH").format(pData.totalInvoice) : "-"}
-                        </TableCell>
+
                       </TableRow>
                     );
                   })}
@@ -401,17 +413,109 @@ export function SalesForecastDashboard() {
                           </TableCell>
                         </Fragment>
                       ))}
-                      <TableCell className="text-right font-bold text-slate-900 bg-slate-100 border-l border-slate-300/50">
-                        {grandTotalOfTotals.forecast > 0 ? new Intl.NumberFormat("th-TH").format(grandTotalOfTotals.forecast) : "-"}
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-emerald-800 bg-slate-100 border-r border-slate-300/50">
-                        {grandTotalOfTotals.invoice > 0 ? new Intl.NumberFormat("th-TH").format(grandTotalOfTotals.invoice) : "-"}
-                      </TableCell>
                     </TableRow>
                   )}
                   {selectedSalespersons.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={25} className="text-center py-10 text-slate-500">
+                        กรุณาเลือกพนักงานขายอย่างน้อย 1 คน
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+        {/* YTD Summary Section */}
+        <Card className="rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+          <CardHeader className="bg-white border-b border-slate-100">
+            <CardTitle className="text-base font-semibold text-slate-800 flex items-center justify-between">
+              <span>สรุปยอดขาย YTD</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto w-full scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+              <Table className="min-w-max border-collapse relative">
+                <TableHeader className="bg-slate-50 sticky top-0 z-20 shadow-[0_1px_0_0_#e2e8f0]">
+                  <TableRow>
+                    <TableHead className="font-bold text-slate-700 min-w-[150px] bg-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]" rowSpan={2}>
+                      Row Labels
+                    </TableHead>
+                    <TableHead colSpan={4} className="text-left font-bold text-slate-800 bg-amber-400 border-x border-slate-300/50" rowSpan={1}>
+                      YTD
+                    </TableHead>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead className="text-right text-xs font-bold text-slate-700 bg-amber-50 border-l border-slate-300/50 min-w-[120px]">
+                      Forecast
+                    </TableHead>
+                    <TableHead className="text-right text-xs font-bold text-emerald-700 bg-amber-50 border-x border-slate-300/50 min-w-[120px]">
+                      Invoice
+                    </TableHead>
+                    <TableHead className="text-right text-xs font-bold text-emerald-600 bg-amber-50 border-r border-slate-300/50 min-w-[120px]">
+                      Diff
+                    </TableHead>
+                    <TableHead className="text-right text-xs font-bold text-slate-700 bg-amber-50 border-r border-slate-300/50 min-w-[80px]">
+                      %
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedSalespersons.map((spId) => {
+                    const sp = MOCK_SALESPERSONS.find((s) => s.id === spId);
+                    const pData = getPersonTableData(spId);
+                    if (!sp || !pData) return null;
+
+                    const diff = pData.totalInvoice - pData.totalForecast;
+                    const percent = pData.totalForecast === 0 ? null : diff / pData.totalForecast;
+
+                    return (
+                      <TableRow key={sp.id} className="hover:bg-slate-50/50">
+                        <TableCell className="font-medium text-slate-700 bg-white sticky left-0 z-10 border-r border-slate-200/50 shadow-[1px_0_0_0_#f1f5f9]">
+                          {sp.name}
+                        </TableCell>
+                        <TableCell className="text-right text-slate-600 bg-slate-50 border-l border-slate-300/30">
+                          {pData.totalForecast > 0 ? new Intl.NumberFormat("th-TH").format(pData.totalForecast) : "-"}
+                        </TableCell>
+                        <TableCell className="text-right text-emerald-600 bg-slate-50 border-x border-slate-300/30">
+                          {pData.totalInvoice > 0 ? new Intl.NumberFormat("th-TH").format(pData.totalInvoice) : "-"}
+                        </TableCell>
+                        <TableCell className="text-right bg-slate-50 border-r border-slate-300/30">
+                          {formatDiff(diff)}
+                        </TableCell>
+                        <TableCell className="text-right bg-slate-50 border-r border-slate-300/30 p-0 align-middle">
+                          {formatPercent(percent)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  {selectedSalespersons.length > 0 && (() => {
+                    const gtDiff = grandTotalOfTotals.invoice - grandTotalOfTotals.forecast;
+                    const gtPercent = grandTotalOfTotals.forecast === 0 ? null : gtDiff / grandTotalOfTotals.forecast;
+                    return (
+                      <TableRow className="bg-slate-50 hover:bg-slate-50 sticky bottom-0 z-20 shadow-[0_-1px_0_0_#e2e8f0]">
+                        <TableCell className="font-bold text-slate-900 sticky left-0 z-30 bg-slate-50 border-r border-slate-200/50 shadow-[1px_0_0_0_#e2e8f0]">
+                          Grand Total
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-slate-900 bg-slate-100 border-l border-slate-300/50">
+                          {grandTotalOfTotals.forecast > 0 ? new Intl.NumberFormat("th-TH").format(grandTotalOfTotals.forecast) : "-"}
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-emerald-600 bg-slate-100 border-x border-slate-300/50">
+                          {grandTotalOfTotals.invoice > 0 ? new Intl.NumberFormat("th-TH").format(grandTotalOfTotals.invoice) : "-"}
+                        </TableCell>
+                        <TableCell className="text-right font-bold bg-slate-100 border-r border-slate-300/50">
+                          {formatDiff(gtDiff)}
+                        </TableCell>
+                        <TableCell className="text-right font-bold bg-slate-100 border-r border-slate-300/50 p-0 align-middle">
+                          {formatPercent(gtPercent)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })()}
+                  {selectedSalespersons.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-10 text-slate-500">
                         กรุณาเลือกพนักงานขายอย่างน้อย 1 คน
                       </TableCell>
                     </TableRow>
