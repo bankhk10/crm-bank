@@ -117,6 +117,18 @@ const permissionGroups: Record<string, PermissionGroup> = {
         resource: "report",
         menuPath: "/reports/salesperson",
       },
+      {
+        key: "report.sales_forecast",
+        name: "รายงานการขายเทียบคาดการณ์ยอดขาย",
+        resource: "report",
+        menuPath: "/reports/sales-forecast",
+      },
+      {
+        key: "report.executive_dashboard",
+        name: "รายงานภาพรวมผู้บริหาร",
+        resource: "report",
+        menuPath: "/reports/dashboard",
+      },
     ],
     actions: [
       {
@@ -1134,6 +1146,8 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "report.product_sales" },
     { key: "report.customer_sales" },
     { key: "report.salesperson" },
+    { key: "report.sales_forecast" },
+    { key: "report.executive_dashboard" },
     { key: "menu.temporary_credit_limits" },
     { key: "temporary_creditlimit.create" },
     { key: "menu.dashboard.manager" },
@@ -1204,6 +1218,8 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "report.product_group_sales" },
     { key: "report.customer_sales" },
     { key: "report.salesperson" },
+    { key: "report.sales_forecast" },
+    { key: "report.executive_dashboard" },
     // Sale permissions
     { key: "sale.create" },
     { key: "sale.edit" },
@@ -1344,6 +1360,8 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "report.product_group_sales" },
     { key: "report.customer_sales" },
     { key: "report.salesperson" },
+    { key: "report.sales_forecast" },
+    { key: "report.executive_dashboard" },
     { key: "report.export" },
     // View permissions - read-only access
     { key: "sale.view", dataAccess: "VIEW_ALL" },

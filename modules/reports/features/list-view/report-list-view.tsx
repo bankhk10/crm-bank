@@ -15,6 +15,7 @@ import {
   BarChart3,
   Plus,
   X,
+  Target,
 } from "lucide-react";
 import Link from "next/link";
 import { DetailHero } from "@/components/custom/detail-hero";
@@ -33,6 +34,7 @@ const categoryToHex: Record<string, string> = {
   time: "#3b82f6",
   product: "#10b981",
   "customer-salesperson": "#f59e0b",
+  "sales-forecast": "#8b5cf6",
 };
 
 const YEAR_COLORS = [
@@ -120,6 +122,19 @@ const reportCategories = [
       "รายชื่อลูกค้าซื้อสูงสุด (Top Customers)",
       "ผลงานพนักงานขายรายบุคคล (Performance)",
       "ความถี่ในการซื้อ และ มูลค่าลูกค้า",
+    ],
+  },
+  {
+    id: "sales-forecast",
+    title: "รายงานการขายเทียบกับคาดการณ์ยอดขาย",
+    description: "เปรียบเทียบยอดขายจริงกับเป้าหมาย/คาดการณ์",
+    icon: Target,
+    href: "/reports/sales-forecast",
+    permissionKey: "report.sales_forecast",
+    features: [
+      "เปรียบเทียบยอดขาย vs คาดการณ์",
+      "ความคืบหน้าของเป้าหมาย",
+      "วิเคราะห์แนวโน้มยอดขาย",
     ],
   },
 ];
