@@ -247,7 +247,10 @@ export function CustomerSalesDashboard() {
               )}
               {/* visually indent sub-dealers */}
               <div
-                className={cn("min-w-0", isSubDealer && "pl-6 flex items-center gap-1.5")}
+                className={cn(
+                  "min-w-0",
+                  isSubDealer && "pl-6 flex items-center gap-1.5",
+                )}
               >
                 {isSubDealer && (
                   <span className="text-slate-400 font-mono shrink-0">└─</span>
@@ -262,7 +265,9 @@ export function CustomerSalesDashboard() {
                   >
                     {c.name}
                   </p>
-                  <p className="text-xs text-slate-500 truncate" title={c.code}>{c.code}</p>
+                  <p className="text-xs text-slate-500 truncate" title={c.code}>
+                    {c.code}
+                  </p>
                 </div>
               </div>
             </div>
@@ -308,12 +313,14 @@ export function CustomerSalesDashboard() {
     );
   };
 
-  const filteredSalespersons = salespersonPerf.filter(
-    (s) =>
-      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.employeeCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.department.toLowerCase().includes(searchQuery.toLowerCase()),
-  ).sort((a, b) => b.totalSales - a.totalSales);
+  const filteredSalespersons = salespersonPerf
+    .filter(
+      (s) =>
+        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.employeeCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.department.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
+    .sort((a, b) => b.totalSales - a.totalSales);
 
   const totalCustomerSales = topCustomers.reduce(
     (sum, c) => sum + c.totalSales,
@@ -714,9 +721,6 @@ export function CustomerSalesDashboard() {
                               Invoice
                             </TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">
-                              ยอดขายรวม
-                            </TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">
                               จำนวนออเดอร์
                             </TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">
@@ -757,10 +761,16 @@ export function CustomerSalesDashboard() {
                                 </TableCell>
                                 <TableCell className="max-w-[200px] sm:max-w-none">
                                   <div className="min-w-0">
-                                    <p className="font-semibold text-slate-900 leading-tight truncate" title={s.name}>
+                                    <p
+                                      className="font-semibold text-slate-900 leading-tight truncate"
+                                      title={s.name}
+                                    >
                                       {s.name}
                                     </p>
-                                    <p className="text-xs text-slate-500 mt-0.5 truncate" title={s.employeeCode}>
+                                    <p
+                                      className="text-xs text-slate-500 mt-0.5 truncate"
+                                      title={s.employeeCode}
+                                    >
                                       {s.employeeCode}
                                     </p>
                                   </div>
@@ -770,9 +780,6 @@ export function CustomerSalesDashboard() {
                                 </TableCell>
                                 <TableCell className="text-center font-medium text-blue-600">
                                   {formatTHB(s.invoiceAmount)}
-                                </TableCell>
-                                <TableCell className="text-center font-bold text-green-700">
-                                  {formatTHB(s.totalSales)}
                                 </TableCell>
                                 <TableCell className="text-center font-medium text-slate-700">
                                   {formatNumber(s.orderCount)}
