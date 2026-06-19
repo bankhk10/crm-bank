@@ -53,11 +53,17 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function SalesForecastDashboard() {
-  const [salespersons, setSalespersons] = useState<{ id: string; name: string }[]>([]);
-  const [selectedSalespersons, setSelectedSalespersons] = useState<string[]>([]);
+  const [salespersons, setSalespersons] = useState<
+    { id: string; name: string }[]
+  >([]);
+  const [selectedSalespersons, setSelectedSalespersons] = useState<string[]>(
+    [],
+  );
   const [viewMode, setViewMode] = useState<"month" | "quarter">("month");
   const [selectedYear, setSelectedYear] = useState<string>("2026");
-  const [mockData, setMockData] = useState<Record<string, { month: number; forecast: number; invoice: number }[]>>({});
+  const [mockData, setMockData] = useState<
+    Record<string, { month: number; forecast: number; invoice: number }[]>
+  >({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -203,7 +209,9 @@ export function SalesForecastDashboard() {
                 <Filter className="w-5 h-5 text-slate-500" />
                 ตัวกรองข้อมูล
               </div>
-              {isLoading && <Loader2 className="w-5 h-5 text-violet-600 animate-spin" />}
+              {isLoading && (
+                <Loader2 className="w-5 h-5 text-violet-600 animate-spin" />
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
@@ -216,9 +224,7 @@ export function SalesForecastDashboard() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() =>
-                        setSelectedSalespersons(
-                          salespersons.map((sp) => sp.id),
-                        )
+                        setSelectedSalespersons(salespersons.map((sp) => sp.id))
                       }
                       className="text-xs font-medium text-violet-600 hover:text-violet-700 underline underline-offset-2 transition-colors"
                     >
@@ -440,7 +446,7 @@ export function SalesForecastDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto w-full max-h-[500px] scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+            <div className="overflow-x-auto w-full max-h-[550px] scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
               <Table className="min-w-max border-collapse relative">
                 <TableHeader className="bg-slate-50 sticky top-0 z-20 shadow-[0_1px_0_0_#e2e8f0]">
                   <TableRow>
@@ -459,6 +465,12 @@ export function SalesForecastDashboard() {
                         {label}
                       </TableHead>
                     ))}
+                    <TableHead
+                      colSpan={2}
+                      className="text-center font-bold text-slate-800 bg-indigo-50 border-x border-slate-200/50"
+                    >
+                      ยอดรวมทั้งปี
+                    </TableHead>
                   </TableRow>
                   <TableRow>
                     {timeLabels.map((label) => (
@@ -471,6 +483,12 @@ export function SalesForecastDashboard() {
                         </TableHead>
                       </Fragment>
                     ))}
+                    <TableHead className="text-right text-xs font-semibold text-slate-600 bg-indigo-50 border-l border-slate-200/50 min-w-[110px]">
+                      Forecast
+                    </TableHead>
+                    <TableHead className="text-right text-xs font-semibold text-emerald-600 bg-indigo-50 border-r border-slate-200/50 min-w-[110px]">
+                      Invoice
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -504,6 +522,20 @@ export function SalesForecastDashboard() {
                             </Fragment>
                           );
                         })}
+                        <TableCell className="text-right font-semibold text-slate-700 bg-indigo-50/30 border-l border-slate-200/50">
+                          {pData.totalForecast > 0
+                            ? new Intl.NumberFormat("th-TH").format(
+                                pData.totalForecast,
+                              )
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold text-emerald-600 bg-indigo-50/30 border-r border-slate-200/50">
+                          {pData.totalInvoice > 0
+                            ? new Intl.NumberFormat("th-TH").format(
+                                pData.totalInvoice,
+                              )
+                            : "-"}
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -530,12 +562,26 @@ export function SalesForecastDashboard() {
                           </TableCell>
                         </Fragment>
                       ))}
+                      <TableCell className="text-right font-bold text-slate-900 bg-indigo-100/50 border-l border-slate-300/50">
+                        {grandTotalOfTotals.forecast > 0
+                          ? new Intl.NumberFormat("th-TH").format(
+                              grandTotalOfTotals.forecast,
+                            )
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-emerald-700 bg-indigo-100/50 border-r border-slate-300/50">
+                        {grandTotalOfTotals.invoice > 0
+                          ? new Intl.NumberFormat("th-TH").format(
+                              grandTotalOfTotals.invoice,
+                            )
+                          : "-"}
+                      </TableCell>
                     </TableRow>
                   )}
                   {selectedSalespersons.length === 0 && (
                     <TableRow>
                       <TableCell
-                        colSpan={25}
+                        colSpan={27}
                         className="text-center py-10 text-slate-500"
                       >
                         กรุณาเลือกพนักงานขายอย่างน้อย 1 คน
