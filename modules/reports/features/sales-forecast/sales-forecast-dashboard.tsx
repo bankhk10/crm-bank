@@ -3,15 +3,20 @@
 import { useState, useMemo, Fragment } from "react";
 import { Target, Filter } from "lucide-react";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from "recharts";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart";
 import { DetailHero } from "@/components/custom/detail-hero";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -60,7 +65,7 @@ const generateMockDataForPerson = (seed: number) => {
     // Generate some somewhat realistic curves
     // e.g. forecast starts high and drops or fluctuates
     const baseForecast = 1000000 + Math.sin(seed + index) * 500000;
-    const baseInvoice = baseForecast * (0.6 + (Math.random() * 0.4)); // some variance
+    const baseInvoice = baseForecast * (0.6 + Math.random() * 0.4); // some variance
 
     // As seen in the picture, invoice might drop to zero after May
     const invoice = index < 5 ? Math.max(0, baseInvoice) : 0;
@@ -78,8 +83,19 @@ const MOCK_DATA = MOCK_SALESPERSONS.reduce(
     acc[sp.id] = generateMockDataForPerson(index);
     return acc;
   },
-  {} as Record<string, { month: string; forecast: number; invoice: number }[]>
+  {} as Record<string, { month: string; forecast: number; invoice: number }[]>,
 );
+
+const chartConfig = {
+  forecast: {
+    label: "Forecast",
+    color: "#3b82f6",
+  },
+  invoice: {
+    label: "Invoice",
+    color: "#10b981",
+  },
+} satisfies ChartConfig;
 
 export function SalesForecastDashboard() {
   const [selectedSalespersons, setSelectedSalespersons] = useState<string[]>([
@@ -151,24 +167,32 @@ export function SalesForecastDashboard() {
         acc.invoice += curr.invoice;
         return acc;
       },
-      { forecast: 0, invoice: 0 }
+      { forecast: 0, invoice: 0 },
     );
   }, [aggregatedData]);
 
   const formatDiff = (diff: number) => {
     if (diff < 0) {
       return (
-        <span className="text-rose-600">- {new Intl.NumberFormat("th-TH").format(Math.abs(diff))}</span>
+        <span className="text-rose-600">
+          - {new Intl.NumberFormat("th-TH").format(Math.abs(diff))}
+        </span>
       );
     }
     return (
-      <span className="text-emerald-500">{new Intl.NumberFormat("th-TH").format(diff)}</span>
+      <span className="text-emerald-500">
+        {new Intl.NumberFormat("th-TH").format(diff)}
+      </span>
     );
   };
 
   const formatPercent = (percent: number | null) => {
     if (percent === null) {
-      return <div className="text-emerald-500 w-full h-full py-3 px-4 flex items-center justify-end">#DIV/0!</div>;
+      return (
+        <div className="text-emerald-500 w-full h-full py-3 px-4 flex items-center justify-end">
+          #DIV/0!
+        </div>
+      );
     }
     const val = Math.round(percent * 100);
     if (val < 0) {
@@ -179,7 +203,9 @@ export function SalesForecastDashboard() {
       );
     }
     return (
-      <div className="text-emerald-500 w-full h-full py-3 px-4 flex items-center justify-end">{val}%</div>
+      <div className="text-emerald-500 w-full h-full py-3 px-4 flex items-center justify-end">
+        {val}%
+      </div>
     );
   };
 
@@ -242,10 +268,16 @@ export function SalesForecastDashboard() {
                   }}
                   className="justify-start bg-slate-100 p-1 rounded-lg"
                 >
-                  <ToggleGroupItem value="month" className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200">
+                  <ToggleGroupItem
+                    value="month"
+                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
+                  >
                     รายเดือน
                   </ToggleGroupItem>
-                  <ToggleGroupItem value="quarter" className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200">
+                  <ToggleGroupItem
+                    value="quarter"
+                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
+                  >
                     รายไตรมาส
                   </ToggleGroupItem>
                 </ToggleGroup>
@@ -262,78 +294,70 @@ export function SalesForecastDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 pb-2 pl-0">
-            <div className="h-[450px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={aggregatedData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="#e2e8f0"
-                  />
-                  <XAxis
-                    dataKey="month"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#64748b", fontSize: 12 }}
-                    dy={10}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#64748b", fontSize: 12 }}
-                    tickFormatter={(value) =>
-                      new Intl.NumberFormat("th-TH").format(value)
-                    }
-                    width={100}
-                  />
-                  <Tooltip
-                    formatter={(value: number, name: string) => [
-                      new Intl.NumberFormat("th-TH").format(value),
-                      name,
-                    ]}
-                    labelStyle={{ color: "#334155", fontWeight: "bold", marginBottom: "4px" }}
-                    contentStyle={{
-                      borderRadius: "8px",
-                      border: "none",
-                      boxShadow:
-                        "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-                    }}
-                  />
-                  <Legend
-                    verticalAlign="top"
-                    height={36}
-                    iconType="circle"
-                    wrapperStyle={{ paddingBottom: "20px" }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="forecast"
-                    name="Forecast"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    dot={{ r: 4, strokeWidth: 2, fill: "white" }}
-                    activeDot={{ r: 6, fill: "#3b82f6" }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="invoice"
-                    name="Invoice"
-                    stroke="#ef4444"
-                    strokeWidth={2}
-                    dot={{ r: 4, strokeWidth: 2, fill: "white" }}
-                    activeDot={{ r: 6, fill: "#ef4444" }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            {/* Custom axis label for Y axis to match "Sum of SALES VALUE(Baht)" */}
-            <div className="text-xs text-slate-500 absolute top-24 left-6">
-              Sum of SALES VALUE(Baht)
-            </div>
+            <ChartContainer config={chartConfig} className="h-[450px] w-full">
+              <AreaChart
+                data={aggregatedData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+              >
+                <defs>
+                  <linearGradient id="fillForecast" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--color-forecast)" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="var(--color-forecast)" stopOpacity={0.1} />
+                  </linearGradient>
+                  <linearGradient id="fillInvoice" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--color-invoice)" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="var(--color-invoice)" stopOpacity={0.1} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#e2e8f0"
+                />
+                <XAxis
+                  dataKey="month"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#64748b", fontSize: 12 }}
+                  dy={10}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#64748b", fontSize: 12 }}
+                  tickFormatter={(value) =>
+                    new Intl.NumberFormat("th-TH").format(value)
+                  }
+                  width={100}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent indicator="dot" />}
+                />
+                <ChartLegend content={<ChartLegendContent />} verticalAlign="top" wrapperStyle={{ paddingBottom: "20px" }} />
+                <Area
+                  type="monotone"
+                  dataKey="forecast"
+                  name="Forecast"
+                  stroke="var(--color-forecast)"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  fill="url(#fillForecast)"
+                  dot={{ r: 5, fill: "var(--color-forecast)", fillOpacity: 1, strokeWidth: 0 }}
+                  activeDot={{ r: 7, fill: "var(--color-forecast)", fillOpacity: 1, strokeWidth: 0 }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="invoice"
+                  name="Invoice"
+                  stroke="var(--color-invoice)"
+                  strokeWidth={2}
+                  fill="url(#fillInvoice)"
+                  dot={{ r: 4, strokeWidth: 2, fill: "white" }}
+                  activeDot={{ r: 6, fill: "var(--color-invoice)" }}
+                />
+              </AreaChart>
+            </ChartContainer>
           </CardContent>
         </Card>
 
@@ -349,11 +373,18 @@ export function SalesForecastDashboard() {
               <Table className="min-w-max border-collapse relative">
                 <TableHeader className="bg-slate-50 sticky top-0 z-20 shadow-[0_1px_0_0_#e2e8f0]">
                   <TableRow>
-                    <TableHead className="font-bold text-slate-700 min-w-[150px] bg-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]" rowSpan={2}>
+                    <TableHead
+                      className="font-bold text-slate-700 min-w-[150px] bg-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]"
+                      rowSpan={2}
+                    >
                       Row Labels
                     </TableHead>
                     {timeLabels.map((label) => (
-                      <TableHead key={label} colSpan={2} className="text-center font-bold text-slate-700 bg-slate-50 border-x border-slate-200/50">
+                      <TableHead
+                        key={label}
+                        colSpan={2}
+                        className="text-center font-bold text-slate-700 bg-slate-50 border-x border-slate-200/50"
+                      >
                         {label}
                       </TableHead>
                     ))}
@@ -386,15 +417,22 @@ export function SalesForecastDashboard() {
                           return (
                             <Fragment key={idx}>
                               <TableCell className="text-right text-slate-600 border-l border-slate-100/50">
-                                {mData.forecast > 0 ? new Intl.NumberFormat("th-TH").format(mData.forecast) : "-"}
+                                {mData.forecast > 0
+                                  ? new Intl.NumberFormat("th-TH").format(
+                                      mData.forecast,
+                                    )
+                                  : "-"}
                               </TableCell>
                               <TableCell className="text-right text-emerald-600 border-r border-slate-100/50">
-                                {mData.invoice > 0 ? new Intl.NumberFormat("th-TH").format(mData.invoice) : "-"}
+                                {mData.invoice > 0
+                                  ? new Intl.NumberFormat("th-TH").format(
+                                      mData.invoice,
+                                    )
+                                  : "-"}
                               </TableCell>
                             </Fragment>
                           );
                         })}
-
                       </TableRow>
                     );
                   })}
@@ -406,10 +444,18 @@ export function SalesForecastDashboard() {
                       {aggregatedData.map((mData) => (
                         <Fragment key={mData.month + "-total"}>
                           <TableCell className="text-right font-bold text-slate-900 border-l border-slate-200/50">
-                            {mData.forecast > 0 ? new Intl.NumberFormat("th-TH").format(mData.forecast) : "-"}
+                            {mData.forecast > 0
+                              ? new Intl.NumberFormat("th-TH").format(
+                                  mData.forecast,
+                                )
+                              : "-"}
                           </TableCell>
                           <TableCell className="text-right font-bold text-emerald-700 border-r border-slate-200/50">
-                            {mData.invoice > 0 ? new Intl.NumberFormat("th-TH").format(mData.invoice) : "-"}
+                            {mData.invoice > 0
+                              ? new Intl.NumberFormat("th-TH").format(
+                                  mData.invoice,
+                                )
+                              : "-"}
                           </TableCell>
                         </Fragment>
                       ))}
@@ -417,7 +463,10 @@ export function SalesForecastDashboard() {
                   )}
                   {selectedSalespersons.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={25} className="text-center py-10 text-slate-500">
+                      <TableCell
+                        colSpan={25}
+                        className="text-center py-10 text-slate-500"
+                      >
                         กรุณาเลือกพนักงานขายอย่างน้อย 1 คน
                       </TableCell>
                     </TableRow>
@@ -439,10 +488,17 @@ export function SalesForecastDashboard() {
               <Table className="min-w-max border-collapse relative">
                 <TableHeader className="bg-slate-50 sticky top-0 z-20 shadow-[0_1px_0_0_#e2e8f0]">
                   <TableRow>
-                    <TableHead className="font-bold text-slate-700 min-w-[150px] bg-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]" rowSpan={2}>
+                    <TableHead
+                      className="font-bold text-slate-700 min-w-[150px] bg-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]"
+                      rowSpan={2}
+                    >
                       Row Labels
                     </TableHead>
-                    <TableHead colSpan={4} className="text-left font-bold text-slate-800 bg-amber-400 border-x border-slate-300/50" rowSpan={1}>
+                    <TableHead
+                      colSpan={4}
+                      className="text-left font-bold text-slate-800 bg-amber-400 border-x border-slate-300/50"
+                      rowSpan={1}
+                    >
                       YTD
                     </TableHead>
                   </TableRow>
@@ -468,7 +524,10 @@ export function SalesForecastDashboard() {
                     if (!sp || !pData) return null;
 
                     const diff = pData.totalInvoice - pData.totalForecast;
-                    const percent = pData.totalForecast === 0 ? null : diff / pData.totalForecast;
+                    const percent =
+                      pData.totalForecast === 0
+                        ? null
+                        : diff / pData.totalForecast;
 
                     return (
                       <TableRow key={sp.id} className="hover:bg-slate-50/50">
@@ -476,10 +535,18 @@ export function SalesForecastDashboard() {
                           {sp.name}
                         </TableCell>
                         <TableCell className="text-right text-slate-600 bg-slate-50 border-l border-slate-300/30">
-                          {pData.totalForecast > 0 ? new Intl.NumberFormat("th-TH").format(pData.totalForecast) : "-"}
+                          {pData.totalForecast > 0
+                            ? new Intl.NumberFormat("th-TH").format(
+                                pData.totalForecast,
+                              )
+                            : "-"}
                         </TableCell>
                         <TableCell className="text-right text-emerald-600 bg-slate-50 border-x border-slate-300/30">
-                          {pData.totalInvoice > 0 ? new Intl.NumberFormat("th-TH").format(pData.totalInvoice) : "-"}
+                          {pData.totalInvoice > 0
+                            ? new Intl.NumberFormat("th-TH").format(
+                                pData.totalInvoice,
+                              )
+                            : "-"}
                         </TableCell>
                         <TableCell className="text-right bg-slate-50 border-r border-slate-300/30">
                           {formatDiff(diff)}
@@ -490,32 +557,49 @@ export function SalesForecastDashboard() {
                       </TableRow>
                     );
                   })}
-                  {selectedSalespersons.length > 0 && (() => {
-                    const gtDiff = grandTotalOfTotals.invoice - grandTotalOfTotals.forecast;
-                    const gtPercent = grandTotalOfTotals.forecast === 0 ? null : gtDiff / grandTotalOfTotals.forecast;
-                    return (
-                      <TableRow className="bg-slate-50 hover:bg-slate-50 sticky bottom-0 z-20 shadow-[0_-1px_0_0_#e2e8f0]">
-                        <TableCell className="font-bold text-slate-900 sticky left-0 z-30 bg-slate-50 border-r border-slate-200/50 shadow-[1px_0_0_0_#e2e8f0]">
-                          Grand Total
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-slate-900 bg-slate-100 border-l border-slate-300/50">
-                          {grandTotalOfTotals.forecast > 0 ? new Intl.NumberFormat("th-TH").format(grandTotalOfTotals.forecast) : "-"}
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-emerald-600 bg-slate-100 border-x border-slate-300/50">
-                          {grandTotalOfTotals.invoice > 0 ? new Intl.NumberFormat("th-TH").format(grandTotalOfTotals.invoice) : "-"}
-                        </TableCell>
-                        <TableCell className="text-right font-bold bg-slate-100 border-r border-slate-300/50">
-                          {formatDiff(gtDiff)}
-                        </TableCell>
-                        <TableCell className="text-right font-bold bg-slate-100 border-r border-slate-300/50 p-0 align-middle">
-                          {formatPercent(gtPercent)}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })()}
+                  {selectedSalespersons.length > 0 &&
+                    (() => {
+                      const gtDiff =
+                        grandTotalOfTotals.invoice -
+                        grandTotalOfTotals.forecast;
+                      const gtPercent =
+                        grandTotalOfTotals.forecast === 0
+                          ? null
+                          : gtDiff / grandTotalOfTotals.forecast;
+                      return (
+                        <TableRow className="bg-slate-50 hover:bg-slate-50 sticky bottom-0 z-20 shadow-[0_-1px_0_0_#e2e8f0]">
+                          <TableCell className="font-bold text-slate-900 sticky left-0 z-30 bg-slate-50 border-r border-slate-200/50 shadow-[1px_0_0_0_#e2e8f0]">
+                            Grand Total
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-slate-900 bg-slate-100 border-l border-slate-300/50">
+                            {grandTotalOfTotals.forecast > 0
+                              ? new Intl.NumberFormat("th-TH").format(
+                                  grandTotalOfTotals.forecast,
+                                )
+                              : "-"}
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-emerald-600 bg-slate-100 border-x border-slate-300/50">
+                            {grandTotalOfTotals.invoice > 0
+                              ? new Intl.NumberFormat("th-TH").format(
+                                  grandTotalOfTotals.invoice,
+                                )
+                              : "-"}
+                          </TableCell>
+                          <TableCell className="text-right font-bold bg-slate-100 border-r border-slate-300/50">
+                            {formatDiff(gtDiff)}
+                          </TableCell>
+                          <TableCell className="text-right font-bold bg-slate-100 border-r border-slate-300/50 p-0 align-middle">
+                            {formatPercent(gtPercent)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })()}
                   {selectedSalespersons.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-10 text-slate-500">
+                      <TableCell
+                        colSpan={5}
+                        className="text-center py-10 text-slate-500"
+                      >
                         กรุณาเลือกพนักงานขายอย่างน้อย 1 คน
                       </TableCell>
                     </TableRow>
