@@ -353,8 +353,8 @@ export function SalesForecastDashboard() {
                   stroke="var(--color-invoice)"
                   strokeWidth={2}
                   fill="url(#fillInvoice)"
-                  dot={{ r: 4, strokeWidth: 2, fill: "white" }}
-                  activeDot={{ r: 6, fill: "var(--color-invoice)" }}
+                  dot={{ r: 5, fill: "var(--color-invoice)", fillOpacity: 1, strokeWidth: 0 }}
+                  activeDot={{ r: 7, fill: "var(--color-invoice)", fillOpacity: 1, strokeWidth: 0 }}
                 />
               </AreaChart>
             </ChartContainer>
