@@ -626,14 +626,24 @@ export function SalesForecastDashboard() {
                 <TableBody>
                   {selectedSalespersons.map((spId) => {
                     const sp = salespersons.find((s) => s.id === spId);
-                    const pData = getPersonTableData(spId);
-                    if (!sp || !pData) return null;
+                    const spData = mockData[spId];
+                    if (!sp || !spData) return null;
 
-                    const diff = pData.totalInvoice - pData.totalForecast;
+                    const currentMonthIndex = new Date().getMonth();
+                    
+                    const ytdForecast = spData
+                      .slice(0, currentMonthIndex + 1)
+                      .reduce((sum, d) => sum + d.forecast, 0);
+                      
+                    const ytdInvoice = spData
+                      .slice(0, currentMonthIndex + 1)
+                      .reduce((sum, d) => sum + d.invoice, 0);
+
+                    const diff = ytdInvoice - ytdForecast;
                     const percent =
-                      pData.totalForecast === 0
+                      ytdForecast === 0
                         ? null
-                        : diff / pData.totalForecast;
+                        : diff / ytdForecast;
 
                     return (
                       <TableRow key={sp.id} className="hover:bg-slate-50/50">
@@ -641,16 +651,16 @@ export function SalesForecastDashboard() {
                           {sp.name}
                         </TableCell>
                         <TableCell className="text-right text-slate-600 bg-slate-50 border-l border-slate-300/30">
-                          {pData.totalForecast > 0
+                          {ytdForecast > 0
                             ? new Intl.NumberFormat("th-TH").format(
-                                pData.totalForecast,
+                                ytdForecast,
                               )
                             : "-"}
                         </TableCell>
                         <TableCell className="text-right text-emerald-600 bg-slate-50 border-x border-slate-300/30">
-                          {pData.totalInvoice > 0
+                          {ytdInvoice > 0
                             ? new Intl.NumberFormat("th-TH").format(
-                                pData.totalInvoice,
+                                ytdInvoice,
                               )
                             : "-"}
                         </TableCell>
@@ -665,29 +675,39 @@ export function SalesForecastDashboard() {
                   })}
                   {selectedSalespersons.length > 0 &&
                     (() => {
-                      const gtDiff =
-                        grandTotalOfTotals.invoice -
-                        grandTotalOfTotals.forecast;
+                      const currentMonthIndex = new Date().getMonth();
+                      let gtYtdForecast = 0;
+                      let gtYtdInvoice = 0;
+
+                      selectedSalespersons.forEach((spId) => {
+                        const spData = mockData[spId];
+                        if (spData) {
+                          gtYtdForecast += spData.slice(0, currentMonthIndex + 1).reduce((sum, d) => sum + d.forecast, 0);
+                          gtYtdInvoice += spData.slice(0, currentMonthIndex + 1).reduce((sum, d) => sum + d.invoice, 0);
+                        }
+                      });
+
+                      const gtDiff = gtYtdInvoice - gtYtdForecast;
                       const gtPercent =
-                        grandTotalOfTotals.forecast === 0
+                        gtYtdForecast === 0
                           ? null
-                          : gtDiff / grandTotalOfTotals.forecast;
+                          : gtDiff / gtYtdForecast;
                       return (
                         <TableRow className="bg-slate-50 hover:bg-slate-50 sticky bottom-0 z-20 shadow-[0_-1px_0_0_#e2e8f0]">
                           <TableCell className="font-bold text-slate-900 sticky left-0 z-30 bg-slate-50 border-r border-slate-200/50 shadow-[1px_0_0_0_#e2e8f0]">
                             ยอดรวม
                           </TableCell>
                           <TableCell className="text-right font-bold text-slate-900 bg-slate-100 border-l border-slate-300/50">
-                            {grandTotalOfTotals.forecast > 0
+                            {gtYtdForecast > 0
                               ? new Intl.NumberFormat("th-TH").format(
-                                  grandTotalOfTotals.forecast,
+                                  gtYtdForecast,
                                 )
                               : "-"}
                           </TableCell>
                           <TableCell className="text-right font-bold text-emerald-600 bg-slate-100 border-x border-slate-300/50">
-                            {grandTotalOfTotals.invoice > 0
+                            {gtYtdInvoice > 0
                               ? new Intl.NumberFormat("th-TH").format(
-                                  grandTotalOfTotals.invoice,
+                                  gtYtdInvoice,
                                 )
                               : "-"}
                           </TableCell>
