@@ -62,7 +62,6 @@ export function SalesForecastDashboard() {
 
   useEffect(() => {
     let isMounted = true;
-    setIsLoading(true);
     getSalesForecastDashboardData(parseInt(selectedYear, 10)).then((res) => {
       if (isMounted) {
         setSalespersons(res.employees);
@@ -261,7 +260,10 @@ export function SalesForecastDashboard() {
                   type="single"
                   value={selectedYear}
                   onValueChange={(val) => {
-                    if (val) setSelectedYear(val);
+                    if (val && val !== selectedYear) {
+                      setIsLoading(true);
+                      setSelectedYear(val);
+                    }
                   }}
                   className="justify-start bg-slate-100 p-1 rounded-lg"
                 >
