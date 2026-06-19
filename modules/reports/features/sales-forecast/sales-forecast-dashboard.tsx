@@ -97,7 +97,10 @@ export function SalesForecastDashboard() {
         acc[sp.id] = generateMockDataForPerson(index, selectedYear);
         return acc;
       },
-      {} as Record<string, { month: string; forecast: number; invoice: number }[]>,
+      {} as Record<
+        string,
+        { month: string; forecast: number; invoice: number }[]
+      >,
     );
   }, [selectedYear]);
 
@@ -229,7 +232,7 @@ export function SalesForecastDashboard() {
               ตัวกรองข้อมูล
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex flex-col sm:flex-row gap-8">
               <div className="flex-1">
                 <label className="text-sm font-medium text-slate-700 mb-3 block">
