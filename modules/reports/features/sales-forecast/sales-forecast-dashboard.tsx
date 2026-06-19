@@ -603,11 +603,11 @@ export function SalesForecastDashboard() {
                     <TableHead className="text-right text-xs font-bold text-emerald-700 bg-amber-50 border-x border-slate-300/50 min-w-[120px]">
                       Invoice
                     </TableHead>
-                    <TableHead className="text-right text-xs font-bold text-emerald-600 bg-amber-50 border-r border-slate-300/50 min-w-[120px]">
-                      Diff
+                    <TableHead className="text-right text-xs font-bold text-red-600 bg-amber-50 border-r border-slate-300/50 min-w-[120px]">
+                      Variance
                     </TableHead>
                     <TableHead className="text-right text-xs font-bold text-slate-700 bg-amber-50 border-r border-slate-300/50 min-w-[80px]">
-                      %
+                      Variance %
                     </TableHead>
                   </TableRow>
                 </TableHeader>
