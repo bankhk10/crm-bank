@@ -86,7 +86,7 @@ const chartConfig = {
 
 export function SalesForecastDashboard() {
   const [selectedSalespersons, setSelectedSalespersons] = useState<string[]>(
-    MOCK_SALESPERSONS.map((sp) => sp.id)
+    MOCK_SALESPERSONS.map((sp) => sp.id),
   );
   const [viewMode, setViewMode] = useState<"month" | "quarter">("month");
   const [selectedYear, setSelectedYear] = useState<string>("2024");
@@ -241,7 +241,11 @@ export function SalesForecastDashboard() {
                   </label>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setSelectedSalespersons(MOCK_SALESPERSONS.map(sp => sp.id))}
+                      onClick={() =>
+                        setSelectedSalespersons(
+                          MOCK_SALESPERSONS.map((sp) => sp.id),
+                        )
+                      }
                       className="text-xs font-medium text-violet-600 hover:text-violet-700 underline underline-offset-2 transition-colors"
                     >
                       เลือกทั้งหมด
@@ -276,32 +280,6 @@ export function SalesForecastDashboard() {
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-700 mb-3 block">
-                  มุมมองเวลา
-                </label>
-                <ToggleGroup
-                  type="single"
-                  value={viewMode}
-                  onValueChange={(val) => {
-                    if (val) setViewMode(val as "month" | "quarter");
-                  }}
-                  className="justify-start bg-slate-100 p-1 rounded-lg"
-                >
-                  <ToggleGroupItem
-                    value="month"
-                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
-                  >
-                    รายเดือน
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="quarter"
-                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
-                  >
-                    รายไตรมาส
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-700 mb-3 block">
                   ปี
                 </label>
                 <ToggleGroup
@@ -329,6 +307,32 @@ export function SalesForecastDashboard() {
                     className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
                   >
                     2025
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-3 block">
+                  มุมมองเวลา
+                </label>
+                <ToggleGroup
+                  type="single"
+                  value={viewMode}
+                  onValueChange={(val) => {
+                    if (val) setViewMode(val as "month" | "quarter");
+                  }}
+                  className="justify-start bg-slate-100 p-1 rounded-lg"
+                >
+                  <ToggleGroupItem
+                    value="month"
+                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
+                  >
+                    รายเดือน
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="quarter"
+                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
+                  >
+                    รายไตรมาส
                   </ToggleGroupItem>
                 </ToggleGroup>
               </div>
