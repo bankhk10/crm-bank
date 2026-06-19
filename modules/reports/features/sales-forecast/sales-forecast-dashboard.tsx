@@ -533,7 +533,7 @@ export function SalesForecastDashboard() {
                   {selectedSalespersons.length > 0 && (
                     <TableRow className="bg-slate-50 hover:bg-slate-50 sticky bottom-0 z-20 shadow-[0_-1px_0_0_#e2e8f0]">
                       <TableCell className="font-bold text-slate-900 sticky left-0 z-30 bg-slate-50 border-r border-slate-200/50 shadow-[1px_0_0_0_#e2e8f0]">
-                        Grand Total
+                        ยอดรวม
                       </TableCell>
                       {aggregatedData.map((mData) => (
                         <Fragment key={mData.month + "-total"}>
@@ -663,7 +663,7 @@ export function SalesForecastDashboard() {
                       return (
                         <TableRow className="bg-slate-50 hover:bg-slate-50 sticky bottom-0 z-20 shadow-[0_-1px_0_0_#e2e8f0]">
                           <TableCell className="font-bold text-slate-900 sticky left-0 z-30 bg-slate-50 border-r border-slate-200/50 shadow-[1px_0_0_0_#e2e8f0]">
-                            Grand Total
+                            ยอดรวม
                           </TableCell>
                           <TableCell className="text-right font-bold text-slate-900 bg-slate-100 border-l border-slate-300/50">
                             {grandTotalOfTotals.forecast > 0
