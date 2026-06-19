@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, Fragment } from "react";
-import { Target, Filter } from "lucide-react";
+import { useState, useMemo, Fragment, useEffect } from "react";
+import { Target, Filter, Loader2 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   ChartConfig,
@@ -22,19 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-const MOCK_SALESPERSONS = [
-  { id: "sp1", name: "เจน" },
-  { id: "sp2", name: "ตุ้ม" },
-  { id: "sp3", name: "ท็อป" },
-  { id: "sp4", name: "นุ่ม" },
-  { id: "sp5", name: "ปลั๊กไฟ" },
-  { id: "sp6", name: "ป๊อป" },
-  { id: "sp7", name: "ออฟฟิศ" },
-  { id: "sp8", name: "อ้อม" },
-  { id: "sp9", name: "แอ๋ว" },
-  { id: "sp10", name: "โอม" },
-];
+import { getSalesForecastDashboardData } from "../../application/get-sales-forecast-dashboard-data";
 
 const MONTHS = [
   "Jan",
@@ -53,26 +41,6 @@ const MONTHS = [
 
 const QUARTERS = ["Q1", "Q2", "Q3", "Q4"];
 
-// Mock data generator for a specific salesperson
-const generateMockDataForPerson = (seed: number, year: string) => {
-  const yearSeed = parseInt(year, 10);
-  return MONTHS.map((month, index) => {
-    // Generate some somewhat realistic curves
-    // e.g. forecast starts high and drops or fluctuates
-    const baseForecast = 1000000 + Math.sin(seed + yearSeed + index) * 500000;
-    const baseInvoice = baseForecast * (0.6 + Math.random() * 0.4); // some variance
-
-    // As seen in the picture, invoice might drop to zero after May
-    const invoice = index < 5 ? Math.max(0, baseInvoice) : 0;
-
-    return {
-      month,
-      forecast: Math.round(baseForecast),
-      invoice: Math.round(invoice),
-    };
-  });
-};
-
 const chartConfig = {
   forecast: {
     label: "Forecast",
@@ -85,23 +53,27 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function SalesForecastDashboard() {
-  const [selectedSalespersons, setSelectedSalespersons] = useState<string[]>(
-    MOCK_SALESPERSONS.map((sp) => sp.id),
-  );
+  const [salespersons, setSalespersons] = useState<{ id: string; name: string }[]>([]);
+  const [selectedSalespersons, setSelectedSalespersons] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"month" | "quarter">("month");
-  const [selectedYear, setSelectedYear] = useState<string>("2024");
+  const [selectedYear, setSelectedYear] = useState<string>("2026");
+  const [mockData, setMockData] = useState<Record<string, { month: number; forecast: number; invoice: number }[]>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
-  const mockData = useMemo(() => {
-    return MOCK_SALESPERSONS.reduce(
-      (acc, sp, index) => {
-        acc[sp.id] = generateMockDataForPerson(index, selectedYear);
-        return acc;
-      },
-      {} as Record<
-        string,
-        { month: string; forecast: number; invoice: number }[]
-      >,
-    );
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    getSalesForecastDashboardData(parseInt(selectedYear, 10)).then((res) => {
+      if (isMounted) {
+        setSalespersons(res.employees);
+        setMockData(res.data);
+        setSelectedSalespersons(res.employees.map((sp) => sp.id));
+        setIsLoading(false);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
   }, [selectedYear]);
 
   const timeLabels = viewMode === "month" ? MONTHS : QUARTERS;
@@ -227,9 +199,12 @@ export function SalesForecastDashboard() {
         {/* Filter Section */}
         <Card className="rounded-xl border border-slate-100 shadow-sm">
           <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
-            <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
-              <Filter className="w-5 h-5 text-slate-500" />
-              ตัวกรองข้อมูล
+            <CardTitle className="text-base font-semibold text-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Filter className="w-5 h-5 text-slate-500" />
+                ตัวกรองข้อมูล
+              </div>
+              {isLoading && <Loader2 className="w-5 h-5 text-violet-600 animate-spin" />}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
@@ -243,7 +218,7 @@ export function SalesForecastDashboard() {
                     <button
                       onClick={() =>
                         setSelectedSalespersons(
-                          MOCK_SALESPERSONS.map((sp) => sp.id),
+                          salespersons.map((sp) => sp.id),
                         )
                       }
                       className="text-xs font-medium text-violet-600 hover:text-violet-700 underline underline-offset-2 transition-colors"
@@ -267,7 +242,7 @@ export function SalesForecastDashboard() {
                   }}
                   className="flex flex-wrap justify-start gap-2"
                 >
-                  {MOCK_SALESPERSONS.map((sp) => (
+                  {salespersons.map((sp) => (
                     <ToggleGroupItem
                       key={sp.id}
                       value={sp.id}
@@ -291,12 +266,6 @@ export function SalesForecastDashboard() {
                   className="justify-start bg-slate-100 p-1 rounded-lg"
                 >
                   <ToggleGroupItem
-                    value="2023"
-                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
-                  >
-                    2023
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
                     value="2024"
                     className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
                   >
@@ -307,6 +276,12 @@ export function SalesForecastDashboard() {
                     className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
                   >
                     2025
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="2026"
+                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
+                  >
+                    2026
                   </ToggleGroupItem>
                 </ToggleGroup>
               </div>
@@ -498,7 +473,7 @@ export function SalesForecastDashboard() {
                 </TableHeader>
                 <TableBody>
                   {selectedSalespersons.map((spId) => {
-                    const sp = MOCK_SALESPERSONS.find((s) => s.id === spId);
+                    const sp = salespersons.find((s) => s.id === spId);
                     const pData = getPersonTableData(spId);
                     if (!sp || !pData) return null;
 
@@ -613,7 +588,7 @@ export function SalesForecastDashboard() {
                 </TableHeader>
                 <TableBody>
                   {selectedSalespersons.map((spId) => {
-                    const sp = MOCK_SALESPERSONS.find((s) => s.id === spId);
+                    const sp = salespersons.find((s) => s.id === spId);
                     const pData = getPersonTableData(spId);
                     if (!sp || !pData) return null;
 
