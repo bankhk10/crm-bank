@@ -203,17 +203,6 @@ export function SalesForecastDashboard() {
       <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Filter Section */}
         <Card className="rounded-xl border border-slate-100 shadow-sm">
-          <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
-            <CardTitle className="text-base font-semibold text-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Filter className="w-5 h-5 text-slate-500" />
-                ตัวกรองข้อมูล
-              </div>
-              {isLoading && (
-                <Loader2 className="w-5 h-5 text-violet-600 animate-spin" />
-              )}
-            </CardTitle>
-          </CardHeader>
           <CardContent className="pt-4">
             <div className="flex flex-col sm:flex-row gap-8">
               <div className="flex-1">
