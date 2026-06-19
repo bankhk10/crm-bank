@@ -2,13 +2,7 @@
 
 import { useState, useMemo, Fragment } from "react";
 import { Target, Filter } from "lucide-react";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   ChartConfig,
   ChartContainer,
@@ -301,12 +295,28 @@ export function SalesForecastDashboard() {
               >
                 <defs>
                   <linearGradient id="fillForecast" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-forecast)" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="var(--color-forecast)" stopOpacity={0.1} />
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-forecast)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-forecast)"
+                      stopOpacity={0.1}
+                    />
                   </linearGradient>
                   <linearGradient id="fillInvoice" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-invoice)" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="var(--color-invoice)" stopOpacity={0.1} />
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-invoice)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-invoice)"
+                      stopOpacity={0.1}
+                    />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -334,7 +344,11 @@ export function SalesForecastDashboard() {
                   cursor={false}
                   content={<ChartTooltipContent indicator="dot" />}
                 />
-                <ChartLegend content={<ChartLegendContent />} verticalAlign="top" wrapperStyle={{ paddingBottom: "20px" }} />
+                <ChartLegend
+                  content={<ChartLegendContent />}
+                  verticalAlign="top"
+                  wrapperStyle={{ paddingBottom: "20px" }}
+                />
                 <Area
                   type="monotone"
                   dataKey="forecast"
@@ -343,8 +357,18 @@ export function SalesForecastDashboard() {
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   fill="url(#fillForecast)"
-                  dot={{ r: 5, fill: "var(--color-forecast)", fillOpacity: 1, strokeWidth: 0 }}
-                  activeDot={{ r: 7, fill: "var(--color-forecast)", fillOpacity: 1, strokeWidth: 0 }}
+                  dot={{
+                    r: 5,
+                    fill: "var(--color-forecast)",
+                    fillOpacity: 1,
+                    strokeWidth: 0,
+                  }}
+                  activeDot={{
+                    r: 7,
+                    fill: "var(--color-forecast)",
+                    fillOpacity: 1,
+                    strokeWidth: 0,
+                  }}
                 />
                 <Area
                   type="monotone"
@@ -353,8 +377,18 @@ export function SalesForecastDashboard() {
                   stroke="var(--color-invoice)"
                   strokeWidth={2}
                   fill="url(#fillInvoice)"
-                  dot={{ r: 5, fill: "var(--color-invoice)", fillOpacity: 1, strokeWidth: 0 }}
-                  activeDot={{ r: 7, fill: "var(--color-invoice)", fillOpacity: 1, strokeWidth: 0 }}
+                  dot={{
+                    r: 5,
+                    fill: "var(--color-invoice)",
+                    fillOpacity: 1,
+                    strokeWidth: 0,
+                  }}
+                  activeDot={{
+                    r: 7,
+                    fill: "var(--color-invoice)",
+                    fillOpacity: 1,
+                    strokeWidth: 0,
+                  }}
                 />
               </AreaChart>
             </ChartContainer>
@@ -377,7 +411,7 @@ export function SalesForecastDashboard() {
                       className="font-bold text-slate-700 min-w-[150px] bg-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]"
                       rowSpan={2}
                     >
-                      Row Labels
+                      ชื่อ
                     </TableHead>
                     {timeLabels.map((label) => (
                       <TableHead
@@ -492,7 +526,7 @@ export function SalesForecastDashboard() {
                       className="font-bold text-slate-700 min-w-[150px] bg-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]"
                       rowSpan={2}
                     >
-                      Row Labels
+                      ชื่อ
                     </TableHead>
                     <TableHead
                       colSpan={4}
