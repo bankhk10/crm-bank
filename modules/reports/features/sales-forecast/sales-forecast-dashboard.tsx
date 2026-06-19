@@ -530,7 +530,7 @@ export function SalesForecastDashboard() {
                     </TableHead>
                     <TableHead
                       colSpan={4}
-                      className="text-left font-bold text-slate-800 bg-amber-400 border-x border-slate-300/50"
+                      className="text-center font-bold text-slate-800 bg-amber-400 border-x border-slate-300/50"
                       rowSpan={1}
                     >
                       YTD
