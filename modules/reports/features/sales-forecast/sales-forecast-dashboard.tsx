@@ -54,11 +54,12 @@ const MONTHS = [
 const QUARTERS = ["Q1", "Q2", "Q3", "Q4"];
 
 // Mock data generator for a specific salesperson
-const generateMockDataForPerson = (seed: number) => {
+const generateMockDataForPerson = (seed: number, year: string) => {
+  const yearSeed = parseInt(year, 10);
   return MONTHS.map((month, index) => {
     // Generate some somewhat realistic curves
     // e.g. forecast starts high and drops or fluctuates
-    const baseForecast = 1000000 + Math.sin(seed + index) * 500000;
+    const baseForecast = 1000000 + Math.sin(seed + yearSeed + index) * 500000;
     const baseInvoice = baseForecast * (0.6 + Math.random() * 0.4); // some variance
 
     // As seen in the picture, invoice might drop to zero after May
@@ -71,14 +72,6 @@ const generateMockDataForPerson = (seed: number) => {
     };
   });
 };
-
-const MOCK_DATA = MOCK_SALESPERSONS.reduce(
-  (acc, sp, index) => {
-    acc[sp.id] = generateMockDataForPerson(index);
-    return acc;
-  },
-  {} as Record<string, { month: string; forecast: number; invoice: number }[]>,
-);
 
 const chartConfig = {
   forecast: {
@@ -96,6 +89,17 @@ export function SalesForecastDashboard() {
     "sp2", // Default to "ตุ้ม"
   ]);
   const [viewMode, setViewMode] = useState<"month" | "quarter">("month");
+  const [selectedYear, setSelectedYear] = useState<string>("2024");
+
+  const mockData = useMemo(() => {
+    return MOCK_SALESPERSONS.reduce(
+      (acc, sp, index) => {
+        acc[sp.id] = generateMockDataForPerson(index, selectedYear);
+        return acc;
+      },
+      {} as Record<string, { month: string; forecast: number; invoice: number }[]>,
+    );
+  }, [selectedYear]);
 
   const timeLabels = viewMode === "month" ? MONTHS : QUARTERS;
 
@@ -105,7 +109,7 @@ export function SalesForecastDashboard() {
       let totalInvoice = 0;
 
       selectedSalespersons.forEach((spId) => {
-        const spData = MOCK_DATA[spId];
+        const spData = mockData[spId];
         if (!spData) return;
 
         if (viewMode === "month") {
@@ -126,10 +130,10 @@ export function SalesForecastDashboard() {
         invoice: totalInvoice,
       };
     });
-  }, [selectedSalespersons, viewMode, timeLabels]);
+  }, [selectedSalespersons, viewMode, timeLabels, mockData]);
 
   const getPersonTableData = (spId: string) => {
-    const rawData = MOCK_DATA[spId];
+    const rawData = mockData[spId];
     if (!rawData) return null;
 
     const periodsData = timeLabels.map((period, index) => {
@@ -276,6 +280,38 @@ export function SalesForecastDashboard() {
                   </ToggleGroupItem>
                 </ToggleGroup>
               </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-3 block">
+                  ปี
+                </label>
+                <ToggleGroup
+                  type="single"
+                  value={selectedYear}
+                  onValueChange={(val) => {
+                    if (val) setSelectedYear(val);
+                  }}
+                  className="justify-start bg-slate-100 p-1 rounded-lg"
+                >
+                  <ToggleGroupItem
+                    value="2023"
+                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
+                  >
+                    2023
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="2024"
+                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
+                  >
+                    2024
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="2025"
+                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
+                  >
+                    2025
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -284,7 +320,7 @@ export function SalesForecastDashboard() {
         <Card className="rounded-xl border border-slate-100 shadow-sm overflow-hidden">
           <CardHeader className="bg-white border-b border-slate-100">
             <CardTitle className="text-base font-semibold text-slate-800 flex items-center justify-between">
-              <span>กราฟเปรียบเทียบยอดขายและคาดการณ์ (ปี 2024)</span>
+              <span>กราฟเปรียบเทียบยอดขายและคาดการณ์ (ปี {selectedYear})</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 pb-2 pl-0">
