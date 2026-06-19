@@ -161,8 +161,8 @@ export function SalesForecastDashboard() {
   const formatPercent = (percent: number | null) => {
     if (percent === null) {
       return (
-        <div className="text-emerald-500 w-full h-full py-3 px-4 flex items-center justify-end">
-          #DIV/0!
+        <div className="text-slate-400 w-full h-full py-3 px-4 flex items-center justify-end">
+          -
         </div>
       );
     }
