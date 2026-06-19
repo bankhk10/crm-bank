@@ -85,9 +85,9 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function SalesForecastDashboard() {
-  const [selectedSalespersons, setSelectedSalespersons] = useState<string[]>([
-    "sp2", // Default to "ตุ้ม"
-  ]);
+  const [selectedSalespersons, setSelectedSalespersons] = useState<string[]>(
+    MOCK_SALESPERSONS.map((sp) => sp.id)
+  );
   const [viewMode, setViewMode] = useState<"month" | "quarter">("month");
   const [selectedYear, setSelectedYear] = useState<string>("2024");
 
@@ -235,14 +235,31 @@ export function SalesForecastDashboard() {
           <CardContent className="pt-4">
             <div className="flex flex-col sm:flex-row gap-8">
               <div className="flex-1">
-                <label className="text-sm font-medium text-slate-700 mb-3 block">
-                  พนักงานขาย (สามารถเลือกได้หลายคน)
-                </label>
+                <div className="flex flex-wrap items-center gap-4 mb-3">
+                  <label className="text-sm font-medium text-slate-700">
+                    พนักงานขาย (สามารถเลือกได้หลายคน)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setSelectedSalespersons(MOCK_SALESPERSONS.map(sp => sp.id))}
+                      className="text-xs font-medium text-violet-600 hover:text-violet-700 underline underline-offset-2 transition-colors"
+                    >
+                      เลือกทั้งหมด
+                    </button>
+                    <span className="text-slate-300">|</span>
+                    <button
+                      onClick={() => setSelectedSalespersons([])}
+                      className="text-xs font-medium text-slate-500 hover:text-slate-700 underline underline-offset-2 transition-colors"
+                    >
+                      ลบทั้งหมด
+                    </button>
+                  </div>
+                </div>
                 <ToggleGroup
                   type="multiple"
                   value={selectedSalespersons}
                   onValueChange={(val) => {
-                    if (val.length) setSelectedSalespersons(val);
+                    setSelectedSalespersons(val);
                   }}
                   className="flex flex-wrap justify-start gap-2"
                 >
