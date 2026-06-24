@@ -174,7 +174,7 @@ export function CreateShipmentDialog({
 
     const payload = {
       items,
-      scheduledDate: isDelivered ? undefined : (data.scheduledDate || null),
+      scheduledDate: data.scheduledDate || null,
       paymentDate: data.paymentDate || null,
       dueDate: data.dueDate || null,
       salesOrderNumber: data.salesOrderNumber || null,
@@ -346,7 +346,7 @@ export function CreateShipmentDialog({
                 className="h-9"
                 {...register("scheduledDate")}
                 onChange={onScheduledDateChange}
-                disabled={isDelivered}
+                disabled={isCompleted}
               />
             </div>
 
@@ -360,7 +360,7 @@ export function CreateShipmentDialog({
                 type="date"
                 className="h-9"
                 {...register("dueDate")}
-                disabled={isDelivered}
+                disabled={isCompleted}
               />
               <p className="text-[10px] text-muted-foreground">
                 คำนวณจาก วันจัดส่ง + {creditDays} วัน
