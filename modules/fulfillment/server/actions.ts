@@ -10,6 +10,7 @@ import {
   getShipmentsUseCase,
   getShipmentByIdUseCase,
   deleteShipmentUseCase,
+  exportPendingDeliveriesUseCase,
 } from "../application";
 import { FulfillmentRepository } from "../infrastructure/fulfillment.repository";
 import { auditLogger } from "@/lib/logger/audit-logger";
@@ -255,6 +256,22 @@ export async function deleteShipmentAction(shipmentId: string) {
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to delete shipment",
+    };
+  }
+}
+
+export async function exportPendingDeliveriesAction() {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  try {
+    const data = await exportPendingDeliveriesUseCase();
+    return { success: true, data: serializeData(data) };
+  } catch (error) {
+    console.error("exportPendingDeliveriesAction error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to export pending deliveries",
     };
   }
 }

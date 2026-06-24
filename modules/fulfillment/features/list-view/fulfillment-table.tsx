@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { format, parseISO } from "date-fns";
-import { Calendar as CalendarIcon, Search } from "lucide-react";
+import { Calendar as CalendarIcon, Search, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import DatePicker from "@/components/custom/DatePicker";
@@ -133,6 +133,14 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
                             {(searchValue || dateRange?.from || dateRange?.to || (statusFilter && (statusFilter.length > 1 || (statusFilter.length === 1 && statusFilter[0] !== "APPROVED")))) && (
                                 <div className="flex items-end">
                                     <ClearSearchButton onClick={onClear || (() => { })} />
+                                </div>
+                            )}
+                            {props.onExportPending && (
+                                <div className="flex items-end ml-auto">
+                                    <Button onClick={props.onExportPending} variant="outline" className="h-11">
+                                        <Download className="mr-2 h-4 w-4" />
+                                        Export สินค้าค้างส่ง
+                                    </Button>
                                 </div>
                             )}
                         </div>
