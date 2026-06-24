@@ -17,6 +17,7 @@ import {
   Target,
   Truck,
   BookOpen,
+  CalendarDays,
 } from "lucide-react";
 import type { SidebarNavItem } from "./types";
 
@@ -71,6 +72,17 @@ export const navigationItems: SidebarNavItem[] = [
     label: "จัดการคำสั่งขาย",
     permissionKey: "menu.fulfillment",
     icon: <ClipboardList className="h-4 w-4" />,
+  },
+  {
+    href: "/activity-plan",
+    label: "แผนกิจกรรม",
+    permissionKey: "menu.activity_plan",
+    icon: <CalendarDays className="h-4 w-4" />,
+    children: [
+      { href: "/activity-plan", label: "รายการแผนและอนุมัติ" },
+      { href: "/activity-plan/create", label: "สร้างแผนกิจกรรม" },
+      { href: "/activity-plan/settings", label: "ตั้งค่าสายอนุมัติ" },
+    ],
   },
   {
     href: "/products",

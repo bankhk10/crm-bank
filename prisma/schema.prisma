@@ -182,6 +182,10 @@ model Employee {
   salesTargets         SalesTarget[]
   pointSummary         EmployeePointSummary?
   pointHistories       EmployeePointHistory[]
+  activityPlansRequested         ActivityPlan[]                @relation("ActivityPlanRequester")
+  activityConfigRequesters       ActivityApprovalRouteConfig[] @relation("ConfigRequester")
+  activityConfigApprovers        ActivityApprovalRouteConfig[] @relation("ConfigApprover")
+  activityApprovalSteps          ActivityApprovalStep[]        @relation("StepApprover")
 }
 
 model Department {
@@ -1450,3 +1454,76 @@ model FailedLoginAttempt {
   @@index([email])
   @@index([createdAt])
 }
+
+enum ActivityPlanStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+}
+
+enum ActivityApprovalStepStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SKIPPED
+}
+
+enum BudgetCondition {
+  ALWAYS
+  SALES_ONLY
+  MARKETING_ONLY
+  ANY_BUDGET
+}
+
+model ActivityPlan {
+  id                 String             @id @default(cuid())
+  title              String
+  description        String?
+  startDate          DateTime
+  endDate            DateTime
+  useSalesBudget     Boolean            @default(false)
+  useMarketingBudget Boolean            @default(false)
+  requesterId        String
+  requesterRole      String
+  status             ActivityPlanStatus @default(DRAFT)
+  currentStepOrder   Int                @default(1)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  requester          Employee               @relation("ActivityPlanRequester", fields: [requesterId], references: [id], onDelete: Restrict)
+  approvalSteps      ActivityApprovalStep[]
+}
+
+model ActivityApprovalRouteConfig {
+  id              String          @id @default(cuid())
+  requesterId     String
+  stepName        String
+  stepOrder       Int
+  approverId      String
+  budgetCondition BudgetCondition @default(ALWAYS)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  requester       Employee        @relation("ConfigRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  approver        Employee        @relation("ConfigApprover", fields: [approverId], references: [id], onDelete: Cascade)
+}
+
+model ActivityApprovalStep {
+  id             String                     @id @default(cuid())
+  activityPlanId String
+  stepOrder      Int
+  requiredRole   String
+  approverId     String
+  status         ActivityApprovalStepStatus @default(PENDING)
+  actionDate     DateTime?
+  comments       String?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+
+  activityPlan   ActivityPlan               @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  approver       Employee                   @relation("StepApprover", fields: [approverId], references: [id], onDelete: Restrict)
+
+  @@unique([activityPlanId, stepOrder, requiredRole])
+}
+
