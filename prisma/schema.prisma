@@ -183,6 +183,7 @@ model Employee {
   pointSummary         EmployeePointSummary?
   pointHistories       EmployeePointHistory[]
   activityPlansRequested         ActivityPlan[]                @relation("ActivityPlanRequester")
+  activityPlansHelping           ActivityPlan[]                @relation("ActivityPlanHelpers")
   templateApprovals              ApprovalRouteStep[]           @relation("TemplateApprover")
   employeeApprovalRoutes         EmployeeApprovalRoute[]       @relation("EmployeeRoute")
   activityApprovalSteps          ActivityApprovalStep[]        @relation("StepApprover")
@@ -1491,6 +1492,7 @@ model ActivityPlan {
   updatedAt          DateTime           @updatedAt
 
   requester          Employee               @relation("ActivityPlanRequester", fields: [requesterId], references: [id], onDelete: Restrict)
+  helpers            Employee[]             @relation("ActivityPlanHelpers")
   approvalSteps      ActivityApprovalStep[]
 }
 

@@ -84,6 +84,28 @@ export default async function CreatePlanPage() {
             </select>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              ผู้ช่วยกิจกรรม (ถ้ามี)
+            </label>
+            <div className="border rounded-md p-2 max-h-40 overflow-y-auto space-y-2 bg-gray-50">
+              {employees.map((emp) => (
+                <label key={emp.id} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    name="helperIds"
+                    value={emp.id}
+                    className="rounded"
+                  />
+                  <span className="text-sm">{emp.name} ({emp.positionTitle || "ไม่มีตำแหน่ง"})</span>
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              ระบบจะส่งขออนุมัติไปยังผู้จัดการของผู้ช่วยกิจกรรมโดยอัตโนมัติ
+            </p>
+          </div>
+
           <Button type="submit">ส่งขออนุมัติ</Button>
         </form>
       </div>

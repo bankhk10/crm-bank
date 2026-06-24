@@ -17,6 +17,7 @@ export default async function ActivityPlanPage() {
   const plans = await db.activityPlan.findMany({
     include: {
       requester: true,
+      helpers: { select: { name: true } },
       approvalSteps: {
         include: { approver: true },
         orderBy: { stepOrder: "asc" },
@@ -73,6 +74,11 @@ export default async function ActivityPlanPage() {
                     <p className="text-xs text-gray-500 mt-2">
                       ผู้ขอ: {plan.requester.name}
                     </p>
+                    {plan.helpers.length > 0 && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        ผู้ช่วยกิจกรรม: {plan.helpers.map(h => h.name).join(", ")}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <span

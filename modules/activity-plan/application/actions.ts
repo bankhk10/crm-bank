@@ -9,6 +9,7 @@ export async function createActivityPlan(formData: FormData) {
   const requesterId = formData.get("requesterId") as string;
   const useSalesBudget = formData.get("useSalesBudget") === "true";
   const useMarketingBudget = formData.get("useMarketingBudget") === "true";
+  const helperIds = formData.getAll("helperIds") as string[];
 
   if (!title || !requesterId) {
     throw new Error("Missing required fields");
@@ -25,6 +26,9 @@ export async function createActivityPlan(formData: FormData) {
       useSalesBudget,
       useMarketingBudget,
       status: "PENDING_APPROVAL",
+      helpers: {
+        connect: helperIds.map(id => ({ id }))
+      }
     },
   });
 
@@ -77,7 +81,44 @@ export async function createActivityPlan(formData: FormData) {
     });
   }
 
-  // If no steps are required, auto-approve
+  // 5. Add dynamic steps for Helper's Managers
+  if (helperIds.length > 0) {
+    const helpers = await db.employee.findMany({
+      where: { id: { in: helperIds } },
+      select: { id: true, name: true, managerId: true }
+    });
+
+    const highestStepOrder = validSteps.length > 0 
+      ? Math.max(...validSteps.map(s => s.stepOrder)) 
+      : 0;
+
+    const helperStepOrder = highestStepOrder + 1; // Always happen after normal route
+
+    // Add unique managers
+    const managerIds = Array.from(new Set(helpers.map(h => h.managerId).filter(Boolean))) as string[];
+
+    for (const managerId of managerIds) {
+      // Find which helpers belong to this manager for comments/info
+      const helpingEmployees = helpers.filter(h => h.managerId === managerId).map(h => h.name).join(", ");
+      
+      await db.activityApprovalStep.create({
+        data: {
+          activityPlanId: plan.id,
+          stepOrder: helperStepOrder,
+          requiredRole: `ผจก.ของผู้ช่วย (${helpingEmployees})`,
+          approverId: managerId,
+          status: "PENDING",
+        }
+      });
+    }
+
+    // If we added helper steps and had no validSteps initially, we need to make sure we don't auto-approve
+    if (validSteps.length === 0 && managerIds.length > 0) {
+      validSteps.push({ stepOrder: helperStepOrder } as any);
+    }
+  }
+
+  // 6. Finalize plan status
   if (validSteps.length === 0) {
     await db.activityPlan.update({
       where: { id: plan.id },
