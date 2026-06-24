@@ -183,8 +183,8 @@ model Employee {
   pointSummary         EmployeePointSummary?
   pointHistories       EmployeePointHistory[]
   activityPlansRequested         ActivityPlan[]                @relation("ActivityPlanRequester")
-  activityConfigRequesters       ActivityApprovalRouteConfig[] @relation("ConfigRequester")
-  activityConfigApprovers        ActivityApprovalRouteConfig[] @relation("ConfigApprover")
+  templateApprovals              ApprovalRouteStep[]           @relation("TemplateApprover")
+  employeeApprovalRoutes         EmployeeApprovalRoute[]       @relation("EmployeeRoute")
   activityApprovalSteps          ActivityApprovalStep[]        @relation("StepApprover")
 }
 
@@ -1485,7 +1485,6 @@ model ActivityPlan {
   useSalesBudget     Boolean            @default(false)
   useMarketingBudget Boolean            @default(false)
   requesterId        String
-  requesterRole      String
   status             ActivityPlanStatus @default(DRAFT)
   currentStepOrder   Int                @default(1)
   createdAt          DateTime           @default(now())
@@ -1495,9 +1494,20 @@ model ActivityPlan {
   approvalSteps      ActivityApprovalStep[]
 }
 
-model ActivityApprovalRouteConfig {
+model ApprovalRouteTemplate {
+  id          String              @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  steps       ApprovalRouteStep[]
+  employees   EmployeeApprovalRoute[]
+}
+
+model ApprovalRouteStep {
   id              String          @id @default(cuid())
-  requesterId     String
+  templateId      String
   stepName        String
   stepOrder       Int
   approverId      String
@@ -1505,8 +1515,19 @@ model ActivityApprovalRouteConfig {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
-  requester       Employee        @relation("ConfigRequester", fields: [requesterId], references: [id], onDelete: Cascade)
-  approver        Employee        @relation("ConfigApprover", fields: [approverId], references: [id], onDelete: Cascade)
+  template        ApprovalRouteTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  approver        Employee              @relation("TemplateApprover", fields: [approverId], references: [id], onDelete: Restrict)
+}
+
+model EmployeeApprovalRoute {
+  id              String                @id @default(cuid())
+  employeeId      String                @unique
+  templateId      String
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  
+  employee        Employee              @relation("EmployeeRoute", fields: [employeeId], references: [id], onDelete: Cascade)
+  template        ApprovalRouteTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
 }
 
 model ActivityApprovalStep {
