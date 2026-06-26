@@ -196,7 +196,6 @@ export async function createShipmentDeliveryNotePdf(
     })),
     title: "ใบจัดส่งสินค้า",
     status: shipment.status,
-    notes: shipment.notes,
     preparedBySignatureDate: safeFormatDate(sale.preparedBySignatureDate, "d MMMM yyyy"),
     preparedBySignatureImage: sale.preparedBySignatureImage,
     checkedBySignatureDate: safeFormatDate(sale.checkedBySignatureDate, "d MMMM yyyy"),
@@ -204,6 +203,9 @@ export async function createShipmentDeliveryNotePdf(
     approvedBySignatureDate: safeFormatDate(sale.approvedBySignatureDate, "d MMMM yyyy"),
     approvedBySignatureImage: sale.approvedBySignatureImage,
     approvedByName: sale.approvedBy?.name || "-",
+    approverNotes: sale.approverNotes,
+    notes: sale.notes,
+    managerNotes: shipment.notes || sale.managerNotes,
     pendingItems,
   };
 

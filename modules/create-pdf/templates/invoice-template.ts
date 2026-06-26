@@ -51,6 +51,8 @@ export interface InvoiceData {
   }[];
   title: string;
   notes?: string;
+  approverNotes?: string;
+  managerNotes?: string;
   signatureDate?: string; // Legacy field
   signatureImage?: string; // Legacy field
   preparedBySignatureDate?: string;
@@ -405,11 +407,24 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       </div>
     </div>
 
-    ${data.notes
+    ${data.notes || data.approverNotes || data.managerNotes
       ? `
-    <div class="notes-section">
-      <span class="notes-label">หมายเหตุ:</span>
-      <span>${data.notes}</span>
+    <div class="notes-section" style="display: flex; flex-direction: column; gap: 8px;">
+      ${data.notes ? `
+      <div>
+        <span class="notes-label">หมายเหตุ (คนสร้าง):</span>
+        <span>${data.notes}</span>
+      </div>` : ''}
+      ${data.approverNotes ? `
+      <div>
+        <span class="notes-label">หมายเหตุ (คนอนุมัติ):</span>
+        <span>${data.approverNotes}</span>
+      </div>` : ''}
+      ${data.managerNotes ? `
+      <div>
+        <span class="notes-label">หมายเหตุ:</span>
+        <span>${data.managerNotes}</span>
+      </div>` : ''}
     </div>
     `
       : ""

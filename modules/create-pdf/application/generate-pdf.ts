@@ -153,6 +153,8 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
     approvedBySignatureDate: safeFormatDate(sale.approvedBySignatureDate, "d MMMM yyyy"),
     approvedBySignatureImage: sale.approvedBySignatureImage,
     approvedByName: sale.approvedBy?.name || "-",
+    approverNotes: sale.approverNotes,
+    managerNotes: sale.managerNotes,
   };
 
   const html = renderInvoiceTemplate(invoiceData);
@@ -280,6 +282,8 @@ export async function createSpecialPdfFromSaleData(sale: any): Promise<Buffer> {
     approvedBySignatureDate: safeFormatDate(sale.approvedBySignatureDate, "d MMMM yyyy"),
     approvedBySignatureImage: sale.approvedBySignatureImage,
     approvedByName: sale.approvedBy?.name || "-",
+    approverNotes: sale.approverNotes,
+    managerNotes: sale.managerNotes,
   };
 
   const html = renderSpecialInvoiceTemplate(invoiceData);
