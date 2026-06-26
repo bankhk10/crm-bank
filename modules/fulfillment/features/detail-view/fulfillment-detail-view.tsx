@@ -117,7 +117,7 @@ const getValidationError = (params: {
   isStockDeducted: boolean;
   paymentDate: string;
   deliveryDate: string;
-  notes: string;
+  managerNotes: string;
   stockWarnings: StockWarning[];
   lotAllocations: LotAllocation[];
   lotAllocationsValid: boolean;
@@ -127,7 +127,7 @@ const getValidationError = (params: {
     isStockDeducted,
     paymentDate,
     deliveryDate,
-    notes,
+    managerNotes,
     stockWarnings,
     lotAllocations,
     lotAllocationsValid,
@@ -162,7 +162,7 @@ const getValidationError = (params: {
     return `กรุณาระบุวันที่จัดส่งของเมื่อสถานะเป็น '${getDeliveryStatusLabel(status)}'`;
   }
 
-  if (status === "CANCELLED" && !notes.trim()) {
+  if (status === "CANCELLED" && !managerNotes.trim()) {
     return "กรุณาระบุหมายเหตุเมื่อยกเลิกรายการขาย";
   }
 
@@ -193,7 +193,7 @@ export default function FulfillmentDetailPage({
   const [deliveryDate, setDeliveryDate] = useState<string>("");
   const [dueDate, setDueDate] = useState<string>("");
   const [paymentDate, setPaymentDate] = useState<string>("");
-  const [notes, setNotes] = useState<string>("");
+  const [managerNotes, setManagerNotes] = useState<string>("");
   const [shippingCompanyId, setShippingCompanyId] = useState<string>("");
   const [saleOrderRef, setSaleOrderRef] = useState<string>("");
 
@@ -258,7 +258,7 @@ export default function FulfillmentDetailPage({
         setDeliveryDate(toInputDate(data.sale.deliveryDate));
         setDueDate(toInputDate(data.sale.creditDueDate));
         setPaymentDate(toInputDate(data.sale.paymentDate));
-        setNotes(data.sale.notes || "");
+        setManagerNotes(data.sale.managerNotes || "");
         setShippingCompanyId(
           data.sale.saleAddress?.shippingCompanyAddressId || "",
         );
@@ -351,7 +351,7 @@ export default function FulfillmentDetailPage({
       isStockDeducted: !!(saleData?.sale as any)?.isStockDeducted,
       paymentDate,
       deliveryDate,
-      notes,
+      managerNotes,
       stockWarnings,
       lotAllocations,
       lotAllocationsValid,
@@ -371,7 +371,7 @@ export default function FulfillmentDetailPage({
         deliveryDate,
         creditDueDate: dueDate,
         paymentDate,
-        notes,
+        managerNotes,
         shippingCompanyId: shippingCompanyId || null,
         saleOrderRef: saleOrderRef || null,
         lotAllocations:
@@ -396,7 +396,7 @@ export default function FulfillmentDetailPage({
         setDeliveryDate(toInputDate(data.sale.deliveryDate));
         setDueDate(toInputDate(data.sale.creditDueDate));
         setPaymentDate(toInputDate(data.sale.paymentDate));
-        setNotes(data.sale.notes || "");
+        setManagerNotes(data.sale.managerNotes || "");
         setShippingCompanyId(
           data.sale.saleAddress?.shippingCompanyAddressId || "",
         );
@@ -715,7 +715,7 @@ export default function FulfillmentDetailPage({
               {/* 6. Notes */}
               <div className="space-y-3 group/field">
                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 px-2">
-                  หมายเหตุ
+                  หมายเหตุ (คนจัดการคำสั่งขาย)
                   {status === "CANCELLED" && (
                     <span className="text-rose-600 ml-1">*</span>
                   )}
@@ -723,10 +723,10 @@ export default function FulfillmentDetailPage({
                 <textarea
                   className="flex min-h-[100px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm transition-all hover:border-[#B91C1C]/40 focus:border-[#B91C1C] focus:ring-4 focus:ring-[#B91C1C]/15 placeholder:text-gray-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                   placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  value={managerNotes}
+                  onChange={(e) => setManagerNotes(e.target.value)}
                 />
-                {status === "CANCELLED" && !notes.trim() && (
+                {status === "CANCELLED" && !managerNotes.trim() && (
                   <p className="text-xs text-rose-600 font-medium flex items-center gap-1.5 bg-rose-50 px-3 py-2 rounded-lg mt-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-rose-500 inline-block"></span>
                     จำเป็นต้องระบุหมายเหตุเมื่อยกเลิกรายการขาย

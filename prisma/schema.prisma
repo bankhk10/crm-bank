@@ -845,7 +845,9 @@ model Sale {
   saleOrderRef String? // เลขที่เอกสารอ้างอิง (เช่น PO จากลูกค้า, Ref จากระบบอื่น)
 
   // Notes (หมายเหตุ)
-  notes String? // หมายเหตุทั่วไป (Internal Note สำหรับเซลส์หรือออฟฟิศ)
+  notes         String? // หมายเหตุทั่วไป (คนสร้าง - เซลส์/ออฟฟิศ)
+  approverNotes String? // หมายเหตุคนอนุมัติ
+  managerNotes  String? // หมายเหตุคนจัดการคำสั่งขาย (Fulfillment)
 
   // Payment information (ข้อมูลการชำระเงิน)
   paymentDate  DateTime? // วันที่ชำระเงินจริง

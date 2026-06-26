@@ -28,7 +28,7 @@ export async function updateFulfillmentUseCase(
     deliveryDate,
     creditDueDate,
     paymentDate,
-    notes,
+    managerNotes,
     lotAllocations,
     shippingCompanyId,
     saleOrderRef,
@@ -102,9 +102,9 @@ export async function updateFulfillmentUseCase(
     updateData.paymentDate = paymentDate ? new Date(paymentDate) : null;
   }
 
-  // 5. Notes
-  if (notes !== undefined) {
-    updateData.notes = notes;
+  // 5. Notes (Manager Notes)
+  if (managerNotes !== undefined) {
+    updateData.managerNotes = managerNotes;
   }
 
   // 6. Shipping Company

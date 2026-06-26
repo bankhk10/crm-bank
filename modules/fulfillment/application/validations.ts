@@ -6,7 +6,7 @@ export const ObjectWithStatuses = z.object({
   deliveryDate: z.string().nullable().optional(),
   creditDueDate: z.string().nullable().optional(),
   paymentDate: z.string().nullable().optional(),
-  notes: z.string().optional(),
+  managerNotes: z.string().optional(),
   lotAllocations: z
     .array(
       z.object({
@@ -23,14 +23,14 @@ export const ObjectWithStatuses = z.object({
 
 export const updateFulfillmentSchema = ObjectWithStatuses.refine(
   (data) => {
-    if (data.status === "CANCELLED" && (!data.notes || !data.notes.trim())) {
+    if (data.status === "CANCELLED" && (!data.managerNotes || !data.managerNotes.trim())) {
       return false;
     }
     return true;
   },
   {
     message: "กรุณาระบุหมายเหตุเมื่อยกเลิกรายการขาย",
-    path: ["notes"],
+    path: ["managerNotes"],
   },
 );
 

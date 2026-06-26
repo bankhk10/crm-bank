@@ -253,6 +253,7 @@ export async function approveSaleUseCase(
       data: {
         status: "APPROVED",
         approvedById: userId,
+        approverNotes: notes || undefined,
         approvedBySignatureDate: new Date(),
         approvedBySignatureImage: approverEmployee?.signature || null,
         statusHistory: {
@@ -290,6 +291,7 @@ export async function rejectSaleUseCase(
     where: { id },
     data: {
       status: "REJECTED",
+      approverNotes: reason,
       statusHistory: {
         create: {
           status: "REJECTED",

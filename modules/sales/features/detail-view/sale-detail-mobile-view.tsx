@@ -717,17 +717,38 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                 </div>
 
                 {/* ── Notes ─────────────────────────────────────────────── */}
-                {sale.notes && (
+                {(sale.notes || (sale as any).approverNotes || (sale as any).managerNotes) && (
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                         <SectionHeader
                             icon={<FileText className="h-6 w-6" />}
                             title="หมายเหตุ"
                             variant="dark"
                         />
-                        <div className="p-6">
-                            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                                {sale.notes}
-                            </p>
+                        <div className="p-6 space-y-4">
+                            {sale.notes && (
+                                <div>
+                                    <h4 className="text-sm font-semibold text-gray-700 mb-1">หมายเหตุ (คนสร้าง)</h4>
+                                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                        {sale.notes}
+                                    </p>
+                                </div>
+                            )}
+                            {(sale as any).approverNotes && (
+                                <div>
+                                    <h4 className="text-sm font-semibold text-gray-700 mb-1">หมายเหตุ (คนอนุมัติ)</h4>
+                                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                        {(sale as any).approverNotes}
+                                    </p>
+                                </div>
+                            )}
+                            {(sale as any).managerNotes && (
+                                <div>
+                                    <h4 className="text-sm font-semibold text-gray-700 mb-1">หมายเหตุ (คนจัดการคำสั่งขาย)</h4>
+                                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                        {(sale as any).managerNotes}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
