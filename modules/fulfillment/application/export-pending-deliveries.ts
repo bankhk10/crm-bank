@@ -14,7 +14,10 @@ export async function exportPendingDeliveriesUseCase() {
         ],
       },
       deletedAt: null,
-      hasPartialDelivery: true,
+      OR: [
+        { hasPartialDelivery: true },
+        { status: "APPROVED" },
+      ],
     },
     include: {
       customer: true,
@@ -42,14 +45,6 @@ export async function exportPendingDeliveriesUseCase() {
   const pendingItems = [];
 
   for (const sale of sales) {
-    const sortedShipments = [...sale.shipments].sort(
-      (a, b) => b.shipmentNumber - a.shipmentNumber
-    );
-    const latestSalesOrderNumber =
-      sortedShipments.length > 0 && sortedShipments[0].salesOrderNumber
-        ? sortedShipments[0].salesOrderNumber
-        : "-";
-
     for (const item of sale.items) {
       let deliveredQty = 0;
       for (const shipment of sale.shipments) {
@@ -65,7 +60,7 @@ export async function exportPendingDeliveriesUseCase() {
 
       if (pendingQty > 0) {
         pendingItems.push({
-          latestSalesOrderNumber: latestSalesOrderNumber,
+          orderNumber: sale.saleNumber,
           customerName: sale.customer.name,
           productCodeAndName: `${item.product.productCode} - ${item.product.name}`,
           pendingQuantity: pendingQty,

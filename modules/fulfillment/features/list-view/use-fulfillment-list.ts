@@ -126,7 +126,7 @@ export function useFulfillmentList() {
       }
 
       const formattedData = response.data.map((item: any) => ({
-        "เลขที่คำสั่งขายล่าสุดของการจัดส่ง": item.latestSalesOrderNumber,
+        "เลขที่ออเดอร์": item.orderNumber,
         "ชื่อลูกค้า": item.customerName,
         "รหัส-ชื่อสินค้า": item.productCodeAndName,
         "จำนวนที่ค้างส่ง": item.pendingQuantity,
