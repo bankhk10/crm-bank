@@ -97,7 +97,10 @@ function renderDeliveryRows(data: SpecialInvoiceData): string {
 
   let html = ``;
 
-  if (data.deliveryMethodRaw === "FACTORY_DELIVERY" || data.deliveryMethodRaw === "SALES_DELIVERY") {
+  if (
+    data.deliveryMethodRaw === "FACTORY_DELIVERY" ||
+    data.deliveryMethodRaw === "SALES_DELIVERY"
+  ) {
     html += `
       <div class="sales-row two-cols">
         <div class="sales-cell">
@@ -217,10 +220,7 @@ export function renderSpecialInvoiceTemplate(data: SpecialInvoiceData): string {
       ? safeValue(data.saleOrderRef || data.invoiceNumber)
       : safeValue(data.invoiceNumber);
 
-  const title =
-    data.saleOrderRef != null
-      ? "เลขที่คำสั่งขาย"
-      : "เลขที่ออเดอร์";
+  const title = data.saleOrderRef != null ? "เลขที่คำสั่งขาย" : "เลขที่ออเดอร์";
   const itemsHtml = data.items
     .map(
       (item, index) => `
@@ -228,10 +228,11 @@ export function renderSpecialInvoiceTemplate(data: SpecialInvoiceData): string {
           <td class="text-center">${index + 1}</td>
           <td class="text-left">
             <div>${safeValue(item.description)}</div>
-            ${item.promotionBudget && item.promotionBudget > 0
-          ? `<div style="font-size: 8px; color: #059669;">งบส่งเสริมการขาย: ฿${formatNumber(item.promotionBudget)} / ลัง (รวม ฿${formatNumber(item.promotionBudget * item.quantity)})</div>`
-          : ""
-        }
+            ${
+              item.promotionBudget && item.promotionBudget > 0
+                ? `<div style="font-size: 8px; color: #059669;">งบส่งเสริมการขาย: ฿${formatNumber(item.promotionBudget)} / ลัง (รวม ฿${formatNumber(item.promotionBudget * item.quantity)})</div>`
+                : ""
+            }
           </td>
           <td class="text-center">${formatNumber(item.quantity)}</td>
           <td class="text-center">${safeValue(item.unit)}</td>
@@ -244,7 +245,9 @@ export function renderSpecialInvoiceTemplate(data: SpecialInvoiceData): string {
     )
     .join("");
 
-  const preparedSign = getImageBase64(data.preparedBySignatureImage || data.signatureImage);
+  const preparedSign = getImageBase64(
+    data.preparedBySignatureImage || data.signatureImage,
+  );
   const approvedSign = getImageBase64(data.approvedBySignatureImage);
 
   return `
@@ -349,12 +352,16 @@ export function renderSpecialInvoiceTemplate(data: SpecialInvoiceData): string {
             <span class="info-label">วันที่ออเดอร์:</span>
             <span>${safeValue(data.date)}</span>
           </div>
-          ${data.saleOrderRef != null ? `
+          ${
+            data.saleOrderRef != null
+              ? `
           <div class="sales-cell">
             <span class="info-label">เลขที่ออเดอร์:</span>
             <span>${safeValue(data.invoiceNumber)}</span>
           </div>
-          ` : ""}
+          `
+              : ""
+          }
           <div class="sales-cell" ${data.saleOrderRef == null ? 'style="grid-column: span 2;"' : ""}>
             <span class="info-label">เงื่อนไขการชำระเงิน:</span>
             <span>${safeValue(data.paymentTerm)}</span>
@@ -396,25 +403,27 @@ export function renderSpecialInvoiceTemplate(data: SpecialInvoiceData): string {
           <span>${formatNumber(data.subtotalAmount)} THB</span>
         </div>
 
-        ${data.shippingDiscount > 0
-      ? `
+        ${
+          data.shippingDiscount > 0
+            ? `
           <div class="summary-row">
             <span>ส่วนลดค่าขนส่ง</span>
             <span style="color: red;">-${formatNumber(data.shippingDiscount)} THB</span>
           </div>
         `
-      : ""
-    }
+            : ""
+        }
 
-        ${data.billDiscount > 0
-      ? `
+        ${
+          data.billDiscount > 0
+            ? `
           <div class="summary-row">
             <span>ส่วนลดหน้าบิล</span>
             <span style="color: red;">-${formatNumber(data.billDiscount)} THB</span>
           </div>
         `
-      : ""
-    }
+            : ""
+        }
 
         <div class="summary-row grand-total">
           <span>ยอดรวมทั้งสิ้น</span>
@@ -423,56 +432,75 @@ export function renderSpecialInvoiceTemplate(data: SpecialInvoiceData): string {
       </div>
     </div>
 
-    ${data.notes || data.approverNotes || data.managerNotes
-      ? `
+    ${
+      data.notes || data.approverNotes || data.managerNotes
+        ? `
     <div class="notes-section" style="display: flex; flex-direction: column; gap: 8px;">
-      ${data.notes ? `
-      <div>
-        <span class="notes-label">หมายเหตุ (คนสร้าง):</span>
-        <span>${data.notes}</span>
-      </div>` : ''}
-      ${data.approverNotes ? `
-      <div>
-        <span class="notes-label">หมายเหตุ (คนอนุมัติ):</span>
-        <span>${data.approverNotes}</span>
-      </div>` : ''}
-      ${data.managerNotes ? `
+      ${
+        data.notes
+          ? `
       <div>
         <span class="notes-label">หมายเหตุ:</span>
+        <span>${data.notes}</span>
+      </div>`
+          : ""
+      }
+      ${
+        data.approverNotes
+          ? `
+      <div>
+        <span class="notes-label">หมายเหตุ (ผู้อนุมัติ):</span>
+        <span>${data.approverNotes}</span>
+      </div>`
+          : ""
+      }
+      ${
+        data.managerNotes
+          ? `
+      <div>
+        <span class="notes-label">หมายเหตุ (ผู้จัดการคำสั่งขาย):</span>
         <span>${data.managerNotes}</span>
-      </div>` : ''}
+      </div>`
+          : ""
+      }
     </div>
     `
-      : ""
+        : ""
     }
 
-    ${data.budgetDetails && data.budgetDetails.length > 0
-      ? `
+    ${
+      data.budgetDetails && data.budgetDetails.length > 0
+        ? `
     <div class="notes-section">
       <span class="notes-label">งบส่งเสริมการขาย:</span>
       <div style="margin-left: 20px;">
-        ${data.budgetDetails.map(budget => `
+        ${data.budgetDetails
+          .map(
+            (budget) => `
           <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-            <span>${budget.type === 'SALES_PROMOTION' ? 'งบส่งเสริมการขาย (ระบุช่องเก็บ)' : 'งบส่งเสริมการตลาด (ระบุช่องเก็บ)'} 
-              ${budget.description ? ` - ${budget.description}` : ''}
+            <span>${budget.type === "SALES_PROMOTION" ? "งบส่งเสริมการขาย (ระบุช่องเก็บ)" : "งบส่งเสริมการตลาด (ระบุช่องเก็บ)"} 
+              ${budget.description ? ` - ${budget.description}` : ""}
             </span>
             <span style="font-weight: 600;">฿${formatNumber(budget.amount)}</span>
           </div>
-        `).join('')}
+        `,
+          )
+          .join("")}
       </div>
     </div>
     `
-      : ""
+        : ""
     }
     
-    ${data.otherCostsDescription
-      ? `
+    ${
+      data.otherCostsDescription
+        ? `
     <div class="notes-section">
       <span class="notes-label">รายละเอียดส่วนลดหน้าบิล:</span>
       <span>${data.otherCostsDescription}</span>
     </div>
     `
-      : ""
+        : ""
     }
 
     <!-- ลายเซ็น -->

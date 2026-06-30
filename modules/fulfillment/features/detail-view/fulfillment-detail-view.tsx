@@ -715,7 +715,7 @@ export default function FulfillmentDetailPage({
               {/* 6. Notes */}
               <div className="space-y-3 group/field">
                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 px-2">
-                  หมายเหตุ (คนจัดการคำสั่งขาย)
+                  หมายเหตุ (ผู้จัดการคำสั่งขาย)
                   {status === "CANCELLED" && (
                     <span className="text-rose-600 ml-1">*</span>
                   )}

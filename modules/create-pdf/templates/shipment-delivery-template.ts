@@ -99,7 +99,10 @@ function renderDeliveryRows(data: ShipmentDeliveryData): string {
 
   let html = ``;
 
-  if (data.deliveryMethodRaw === "FACTORY_DELIVERY" || data.deliveryMethodRaw === "SALES_DELIVERY") {
+  if (
+    data.deliveryMethodRaw === "FACTORY_DELIVERY" ||
+    data.deliveryMethodRaw === "SALES_DELIVERY"
+  ) {
     html += `
       <div class="sales-row two-cols">
         <div class="sales-cell">
@@ -193,7 +196,9 @@ function renderDeliveryRows(data: ShipmentDeliveryData): string {
   return html;
 }
 
-export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): string {
+export function renderShipmentDeliveryTemplate(
+  data: ShipmentDeliveryData,
+): string {
   const logoPath = path.join(process.cwd(), "public", "images", "logo_pdf.png");
   let base64Logo = "";
   if (fs.existsSync(logoPath)) {
@@ -219,10 +224,7 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
       ? safeValue(data.saleOrderRef || data.invoiceNumber)
       : safeValue(data.invoiceNumber);
 
-  const title =
-    data.saleOrderRef != null
-      ? "เลขที่คำสั่งขาย"
-      : "เลขที่ออเดอร์";
+  const title = data.saleOrderRef != null ? "เลขที่คำสั่งขาย" : "เลขที่ออเดอร์";
   const itemsHtml = data.items
     .map(
       (item, index) => `
@@ -230,10 +232,11 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
           <td class="text-center">${index + 1}</td>
           <td class="text-left">
             <div>${safeValue(item.description)}</div>
-            ${item.promotionBudget && item.promotionBudget > 0
-          ? `<div style="font-size: 8px; color: #059669;">งบส่งเสริมการขาย: ฿${formatNumber(item.promotionBudget)} / ลัง (รวม ฿${formatNumber(item.promotionBudget * item.quantity)})</div>`
-          : ""
-        }
+            ${
+              item.promotionBudget && item.promotionBudget > 0
+                ? `<div style="font-size: 8px; color: #059669;">งบส่งเสริมการขาย: ฿${formatNumber(item.promotionBudget)} / ลัง (รวม ฿${formatNumber(item.promotionBudget * item.quantity)})</div>`
+                : ""
+            }
           </td>
           <td class="text-center">${formatNumber(item.quantity)}</td>
           <td class="text-center">${safeValue(item.unit)}</td>
@@ -246,7 +249,9 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
     )
     .join("");
 
-  const preparedSign = getImageBase64(data.preparedBySignatureImage || data.signatureImage);
+  const preparedSign = getImageBase64(
+    data.preparedBySignatureImage || data.signatureImage,
+  );
   const approvedSign = getImageBase64(data.approvedBySignatureImage);
 
   return `
@@ -333,12 +338,16 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
             <span class="info-label">วันที่ออเดอร์:</span>
             <span>${safeValue(data.date)}</span>
           </div>
-          ${data.saleOrderRef != null ? `
+          ${
+            data.saleOrderRef != null
+              ? `
           <div class="sales-cell">
             <span class="info-label">เลขที่ออเดอร์:</span>
             <span>${safeValue(data.invoiceNumber)}</span>
           </div>
-          ` : ""}
+          `
+              : ""
+          }
           <div class="sales-cell" ${data.saleOrderRef == null ? 'style="grid-column: span 2;"' : ""}>
             <span class="info-label">เงื่อนไขการชำระเงิน:</span>
             <span>${safeValue(data.paymentTerm)}</span>
@@ -372,28 +381,40 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
     <!-- สรุปยอด -->
     <div class="summary-wrap" style="align-items: flex-start;">
       <div class="left-summary-area" style="flex: 1; margin-left: 15px; margin-right: 20px;">
-        ${data.pendingItems && data.pendingItems.length > 0 ? `
-        <div class="pending-items-box" style="margin-bottom: ${data.promotionalBudgetTotal > 0 ? '8px' : '4px'};">
+        ${
+          data.pendingItems && data.pendingItems.length > 0
+            ? `
+        <div class="pending-items-box" style="margin-bottom: ${data.promotionalBudgetTotal > 0 ? "8px" : "4px"};">
           <span class="notes-label" style="font-size: 12px;">สินค้าที่ยังค้างจัดส่ง:</span>
           <div style="margin-left: 20px; margin-top: 4px; font-size: 12px; color: #374151;">
-            ${data.pendingItems.map(item => `
+            ${data.pendingItems
+              .map(
+                (item) => `
               <div style="display: flex; justify-content: space-between; margin-bottom: 4px; max-width: 280px;">
                 <span>${item.description}</span>
                 <span style="font-weight: 600;">${formatNumber(item.pendingQty)} ชิ้น</span>
               </div>
-            `).join('')}
+            `,
+              )
+              .join("")}
           </div>
         </div>
-        ` : ""}
+        `
+            : ""
+        }
         <div class="promotional-budget-summary" style="margin-left: 0; margin-top: 4px;">
           ${data.promotionalBudgetTotal > 0 ? `งบส่งเสริมการขายรวม: ${formatNumber(data.promotionalBudgetTotal)} THB` : ""}
         </div>
-        ${data.otherCostsDescription ? `
+        ${
+          data.otherCostsDescription
+            ? `
         <div style="margin-top: 4px; font-size: 12px; color: #374151;">
           <span class="notes-label" style="font-size: 12px;">รายละเอียดส่วนลดหน้าบิล:</span>
           <span>${data.otherCostsDescription}</span>
         </div>
-        ` : ""}
+        `
+            : ""
+        }
       </div>
       <div class="summary-box">
         <div class="summary-row">
@@ -403,25 +424,27 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
 
 
 
-        ${data.shippingDiscount > 0
-      ? `
+        ${
+          data.shippingDiscount > 0
+            ? `
           <div class="summary-row">
             <span>ส่วนลดค่าขนส่ง</span>
             <span style="color: red;">-${formatNumber(data.shippingDiscount)} THB</span>
           </div>
         `
-      : ""
-    }
+            : ""
+        }
 
-        ${data.billDiscount > 0
-      ? `
+        ${
+          data.billDiscount > 0
+            ? `
           <div class="summary-row">
             <span>ส่วนลดหน้าบิล</span>
             <span style="color: red;">-${formatNumber(data.billDiscount)} THB</span>
           </div>
         `
-      : ""
-    }
+            : ""
+        }
 
         <div class="summary-row grand-total">
           <span>ยอดรวมทั้งสิ้น</span>
@@ -430,46 +453,64 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
       </div>
     </div>
 
-    ${data.notes || data.approverNotes || data.managerNotes
-      ? `
+    ${
+      data.notes || data.approverNotes || data.managerNotes
+        ? `
     <div class="notes-section" style="display: flex; flex-direction: column; gap: 8px;">
-      ${data.notes ? `
-      <div>
-        <span class="notes-label">หมายเหตุ (คนสร้าง):</span>
-        <span>${data.notes}</span>
-      </div>` : ''}
-      ${data.approverNotes ? `
-      <div>
-        <span class="notes-label">หมายเหตุ (คนอนุมัติ):</span>
-        <span>${data.approverNotes}</span>
-      </div>` : ''}
-      ${data.managerNotes ? `
+      ${
+        data.notes
+          ? `
       <div>
         <span class="notes-label">หมายเหตุ:</span>
+        <span>${data.notes}</span>
+      </div>`
+          : ""
+      }
+      ${
+        data.approverNotes
+          ? `
+      <div>
+        <span class="notes-label">หมายเหตุ (ผู้อนุมัติ):</span>
+        <span>${data.approverNotes}</span>
+      </div>`
+          : ""
+      }
+      ${
+        data.managerNotes
+          ? `
+      <div>
+        <span class="notes-label">หมายเหตุ (ผู้จัดการคำสั่งขาย):</span>
         <span>${data.managerNotes}</span>
-      </div>` : ''}
+      </div>`
+          : ""
+      }
     </div>
     `
-      : ""
+        : ""
     }
 
-    ${data.budgetDetails && data.budgetDetails.length > 0
-      ? `
+    ${
+      data.budgetDetails && data.budgetDetails.length > 0
+        ? `
     <div class="notes-section">
       <span class="notes-label">งบส่งเสริมการขาย:</span>
       <div style="margin-left: 20px;">
-        ${data.budgetDetails.map(budget => `
+        ${data.budgetDetails
+          .map(
+            (budget) => `
           <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-            <span>${budget.type === 'SALES_PROMOTION' ? 'งบส่งเสริมการขาย (ระบุช่องเก็บ)' : 'งบส่งเสริมการตลาด (ระบุช่องเก็บ)'} 
-              ${budget.description ? ` - ${budget.description}` : ''}
+            <span>${budget.type === "SALES_PROMOTION" ? "งบส่งเสริมการขาย (ระบุช่องเก็บ)" : "งบส่งเสริมการตลาด (ระบุช่องเก็บ)"} 
+              ${budget.description ? ` - ${budget.description}` : ""}
             </span>
             <span style="font-weight: 600;">฿${formatNumber(budget.amount)}</span>
           </div>
-        `).join('')}
+        `,
+          )
+          .join("")}
       </div>
     </div>
     `
-      : ""
+        : ""
     }
     
 
