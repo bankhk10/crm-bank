@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "PaymentTerm" ADD VALUE 'CASH_DISCOUNT_3_7';

@@ -79,7 +79,8 @@ Alternative:
 ### 3.2 PaymentTerm
 
 - `CREDIT_90`
-- `CASH_7`
+- `CASH_7` (ชำระเงินสด ไม่ลด (เครดิต 7 วัน ))
+- `CASH_DISCOUNT_3_7` (ชำระเงินสด ลด 3% (เครดิต 7 วัน))
 - `PREPAID`
 - `CREDIT_OVER_90`
 

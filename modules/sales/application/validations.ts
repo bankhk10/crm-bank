@@ -16,7 +16,7 @@ export const saleItemSchema = z.object({
 export const saleFormSchema = z.object({
   customerId: z.string().min(1, "กรุณาเลือกลูกค้า"),
   employeeId: z.string().min(1, "กรุณาเลือกพนักงานขาย"),
-  paymentTerm: z.enum(["CREDIT_90", "CASH_7", "PREPAID", "CREDIT_OVER_90"]),
+  paymentTerm: z.enum(["CREDIT_90", "CASH_7", "CASH_DISCOUNT_3_7", "PREPAID", "CREDIT_OVER_90"]),
   creditDays: z.number().optional(),
   creditDueDate: z.string().optional(),
   usePromotionalCredit: z.boolean().optional(),

@@ -101,9 +101,10 @@ Alternative:
 
 | Term | Thai | Credit Days |
 |------|------|-------------|
+| PREPAID | ชำระเงินก่อน | 0 |
+| CASH_7 | เงินสด ไม่ลด 7 วัน | 7 |
+| CASH_DISCOUNT_3_7 | เงินสด ลด 3% 7 วัน | 7 |
 | CREDIT_90 | เครดิต 90 วัน | 90 |
-| CASH_7 | เงินสด 7 วัน | 7 |
-| PREPAID | โอนก่อนส่ง | 0 |
 | CREDIT_OVER_90 | เครดิต >90 (Admin only) | >90 |
 
 ---

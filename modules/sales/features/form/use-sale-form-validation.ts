@@ -168,6 +168,7 @@ export function isCreditBasedPayment(paymentTerm: PaymentTermType): boolean {
   return (
     paymentTerm === "CREDIT_90" ||
     paymentTerm === "CASH_7" ||
+    paymentTerm === "CASH_DISCOUNT_3_7" ||
     paymentTerm === "CREDIT_OVER_90"
   );
 }
@@ -180,6 +181,7 @@ export function getCreditDaysForTerm(paymentTerm: PaymentTermType): number {
     case "CREDIT_90":
       return 90;
     case "CASH_7":
+    case "CASH_DISCOUNT_3_7":
       return 7;
     case "PREPAID":
       return 0;

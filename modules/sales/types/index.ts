@@ -275,7 +275,8 @@ export const SaleStatusLabels: Record<SaleStatus, string> = {
 
 export const PaymentTermLabels: Record<PaymentTerm, string> = {
   CREDIT_90: "ส่งสินค้าก่อน (เครดิต 90 วัน)",
-  CASH_7: "ชำระเงินสด (เครดิต 7 วัน)",
+  CASH_7: "ชำระเงินสด ไม่ลด (เครดิต 7 วัน )",
+  CASH_DISCOUNT_3_7: "ชำระเงินสด ลด 3% (เครดิต 7 วัน)",
   PREPAID: "ชำระเงินก่อนส่งสินค้า (โอนเงินก่อนส่งสินค้า)",
   CREDIT_OVER_90: "ส่งสินค้าก่อน (เครดิตมากกว่า 90 วัน)",
 };
@@ -370,6 +371,7 @@ export const CREDIT_PAYMENT_TERMS: PaymentTerm[] = [
   "CREDIT_90",
   "CREDIT_OVER_90",
   "CASH_7",
+  "CASH_DISCOUNT_3_7",
 ];
 
 export function isImmutableStatus(status: SaleStatus): boolean {
@@ -494,6 +496,7 @@ export interface SaleFormCompany {
 export type PaymentTermType =
   | "CREDIT_90"
   | "CASH_7"
+  | "CASH_DISCOUNT_3_7"
   | "PREPAID"
   | "CREDIT_OVER_90";
 

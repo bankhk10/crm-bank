@@ -66,7 +66,10 @@ const PAYMENT_TERM_MAP: Record<string, string> = {
   "เครดิต 90 วัน": "CREDIT_90",
   "CREDIT_90": "CREDIT_90",
   "เงินสด 7 วัน": "CASH_7",
+  "เงินสด ไม่ลด 7 วัน": "CASH_7",
+  "เงินสด ลด 3% 7 วัน": "CASH_DISCOUNT_3_7",
   "CASH_7": "CASH_7",
+  "CASH_DISCOUNT_3_7": "CASH_DISCOUNT_3_7",
   "ชำระเงินก่อน": "PREPAID",
   "PREPAID": "PREPAID",
   "เครดิตมากกว่า 90 วัน": "CREDIT_OVER_90",
@@ -75,7 +78,8 @@ const PAYMENT_TERM_MAP: Record<string, string> = {
 
 const PAYMENT_TERM_LABELS: Record<string, string> = {
   "CREDIT_90": "เครดิต 90 วัน",
-  "CASH_7": "เงินสด 7 วัน",
+  "CASH_7": "เงินสด ไม่ลด 7 วัน",
+  "CASH_DISCOUNT_3_7": "เงินสด ลด 3% 7 วัน",
   "PREPAID": "ชำระเงินก่อน",
   "CREDIT_OVER_90": "เครดิตมากกว่า 90 วัน",
 };
