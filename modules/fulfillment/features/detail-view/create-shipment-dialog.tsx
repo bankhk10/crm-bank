@@ -139,7 +139,7 @@ export function CreateShipmentDialog({
     ]),
   );
 
-  const { register, handleSubmit, control, reset, setValue, watch } =
+  const { register, handleSubmit, control, reset, setValue, watch, getValues } =
     useForm<FormValues>({
       resolver: zodResolver(formSchema),
       defaultValues: {
@@ -158,6 +158,8 @@ export function CreateShipmentDialog({
         shippingAddress: isEdit ? shipment.shippingAddress || "" : "",
       },
     });
+
+
 
   const scheduledDate = watch("scheduledDate");
   const useCustomDeliveryMethod = watch("useCustomDeliveryMethod");
@@ -197,6 +199,11 @@ export function CreateShipmentDialog({
       return;
     }
 
+    const formShippingCompanyId = data.shippingCompanyId || getValues("shippingCompanyId");
+    const formPickupCompanyId = data.pickupCompanyId || getValues("pickupCompanyId");
+    const formDeliveryMethod = data.deliveryMethod || getValues("deliveryMethod");
+    const formUseCustomDeliveryMethod = data.useCustomDeliveryMethod ?? getValues("useCustomDeliveryMethod");
+
     const payload = {
       items,
       scheduledDate: data.scheduledDate || null,
@@ -205,17 +212,20 @@ export function CreateShipmentDialog({
       salesOrderNumber: data.salesOrderNumber || null,
       shippingCompanyId: isDelivered
         ? undefined
-        : data.shippingCompanyId || null,
+        : formShippingCompanyId || null,
       shippingCompanyName: isDelivered
         ? undefined
-        : (data.shippingCompanyId && shippingCompanies?.find(c => c.id === data.shippingCompanyId)?.name) || null,
+        : (formShippingCompanyId && (
+            shippingCompanies?.find((c) => c.id === formShippingCompanyId)?.name ||
+            customer?.shippingCompanies?.find((sc: any) => sc.shippingCompany.id === formShippingCompanyId)?.shippingCompany?.name
+          )) || null,
       notes: data.notes || null,
       shippingDiscount: data.shippingDiscount || 0,
       billDiscount: data.billDiscount || 0,
-      useCustomDeliveryMethod: data.useCustomDeliveryMethod,
-      deliveryMethod: data.deliveryMethod,
-      pickupCompanyId: data.pickupCompanyId || null,
-      pickupCompanyName: (data.pickupCompanyId && companies?.find(c => c.id === data.pickupCompanyId)?.name) || null,
+      useCustomDeliveryMethod: formUseCustomDeliveryMethod,
+      deliveryMethod: formDeliveryMethod,
+      pickupCompanyId: formPickupCompanyId || null,
+      pickupCompanyName: (formPickupCompanyId && companies?.find(c => c.id === formPickupCompanyId)?.name) || null,
       shippingAddress: data.shippingAddress || null,
     };
 
