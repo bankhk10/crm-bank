@@ -7,7 +7,6 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { PlusCircle, Loader2, Edit2, Trash2 } from "lucide-react";
 
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,8 +42,11 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import type { RemainingByItem, ShipmentRecord } from "../../types/types";
-import { createShipmentAction, updateShipmentAction, deleteShipmentAction } from "../../server/actions";
-
+import {
+  createShipmentAction,
+  updateShipmentAction,
+  deleteShipmentAction,
+} from "../../server/actions";
 
 const DELIVERY_METHODS = [
   { value: "SALES_DELIVERY" as const, label: "พนักงานขาย", icon: "🚚" },
@@ -117,7 +119,9 @@ export function CreateShipmentDialog({
 
   // Filter available items: those with remaining qty OR those already in this shipment (if editing)
   const available = remainingByItem
-    .filter((i) => i.remainingQuantity > 0 || shipmentItemsMap.has(i.saleItemId))
+    .filter(
+      (i) => i.remainingQuantity > 0 || shipmentItemsMap.has(i.saleItemId),
+    )
     .map((item) => {
       const currentQty = shipmentItemsMap.get(item.saleItemId) || 0;
       return {
@@ -135,31 +139,25 @@ export function CreateShipmentDialog({
     ]),
   );
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    setValue,
-    watch,
-  } = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      scheduledDate: isEdit ? toDateInput(shipment.scheduledDate) : "",
-      paymentDate: isEdit ? toDateInput(shipment.paymentDate) : "",
-      dueDate: isEdit ? toDateInput(shipment.dueDate) : "",
-      salesOrderNumber: isEdit ? shipment.salesOrderNumber || "" : "",
-      shippingCompanyId: isEdit ? shipment.shippingCompanyId || "" : "",
-      notes: isEdit ? shipment.notes || "" : "",
-      shippingDiscount: isEdit ? Number(shipment.shippingDiscount || 0) : 0,
-      billDiscount: isEdit ? Number(shipment.billDiscount || 0) : 0,
-      quantities: defaultQuantities,
-      useCustomDeliveryMethod: isEdit ? !!shipment.deliveryMethod : false,
-      deliveryMethod: isEdit ? shipment.deliveryMethod || "" : "",
-      pickupCompanyId: isEdit ? shipment.pickupCompanyId || "" : "",
-      shippingAddress: isEdit ? shipment.shippingAddress || "" : "",
-    },
-  });
+  const { register, handleSubmit, control, reset, setValue, watch } =
+    useForm<FormValues>({
+      resolver: zodResolver(formSchema),
+      defaultValues: {
+        scheduledDate: isEdit ? toDateInput(shipment.scheduledDate) : "",
+        paymentDate: isEdit ? toDateInput(shipment.paymentDate) : "",
+        dueDate: isEdit ? toDateInput(shipment.dueDate) : "",
+        salesOrderNumber: isEdit ? shipment.salesOrderNumber || "" : "",
+        shippingCompanyId: isEdit ? shipment.shippingCompanyId || "" : "",
+        notes: isEdit ? shipment.notes || "" : "",
+        shippingDiscount: isEdit ? Number(shipment.shippingDiscount || 0) : 0,
+        billDiscount: isEdit ? Number(shipment.billDiscount || 0) : 0,
+        quantities: defaultQuantities,
+        useCustomDeliveryMethod: isEdit ? !!shipment.deliveryMethod : false,
+        deliveryMethod: isEdit ? shipment.deliveryMethod || "" : "",
+        pickupCompanyId: isEdit ? shipment.pickupCompanyId || "" : "",
+        shippingAddress: isEdit ? shipment.shippingAddress || "" : "",
+      },
+    });
 
   const scheduledDate = watch("scheduledDate");
   const useCustomDeliveryMethod = watch("useCustomDeliveryMethod");
@@ -178,7 +176,8 @@ export function CreateShipmentDialog({
     }
   };
 
-  const isDelivered = shipment?.status === "DELIVERED" || shipment?.status === "COMPLETED";
+  const isDelivered =
+    shipment?.status === "DELIVERED" || shipment?.status === "COMPLETED";
   const isCompleted = shipment?.status === "COMPLETED";
 
   const onSubmit = (data: FormValues) => {
@@ -187,11 +186,11 @@ export function CreateShipmentDialog({
     const items = isDelivered
       ? undefined
       : available
-        .map((item) => ({
-          saleItemId: item.saleItemId,
-          quantity: Number(data.quantities[item.saleItemId] ?? 0),
-        }))
-        .filter((item) => item.quantity > 0);
+          .map((item) => ({
+            saleItemId: item.saleItemId,
+            quantity: Number(data.quantities[item.saleItemId] ?? 0),
+          }))
+          .filter((item) => item.quantity > 0);
 
     if (!isDelivered && (!items || items.length === 0)) {
       toast.error("กรุณาระบุจำนวนสินค้าที่ต้องการส่งอย่างน้อย 1 รายการ");
@@ -204,7 +203,9 @@ export function CreateShipmentDialog({
       paymentDate: data.paymentDate || null,
       dueDate: data.dueDate || null,
       salesOrderNumber: data.salesOrderNumber || null,
-      shippingCompanyId: isDelivered ? undefined : (data.shippingCompanyId || null),
+      shippingCompanyId: isDelivered
+        ? undefined
+        : data.shippingCompanyId || null,
       notes: data.notes || null,
       shippingDiscount: data.shippingDiscount || 0,
       billDiscount: data.billDiscount || 0,
@@ -248,7 +249,6 @@ export function CreateShipmentDialog({
       }
     });
   };
-
 
   const handleOpenChange = (val: boolean) => {
     if (!isPending) {
@@ -300,7 +300,7 @@ export function CreateShipmentDialog({
         )}
       </DialogTrigger>
 
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-w-[120vw] h-[90vh] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isEdit ? (
@@ -322,7 +322,9 @@ export function CreateShipmentDialog({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Items quantities */}
           <div className="space-y-2">
-            <Label className="text-sm font-semibold">รายการสินค้าที่จะส่ง</Label>
+            <Label className="text-sm font-semibold">
+              รายการสินค้าที่จะส่ง
+            </Label>
             <div className="divide-y divide-border rounded-lg border">
               {available.map((item) => (
                 <div
@@ -330,7 +332,9 @@ export function CreateShipmentDialog({
                   className="flex items-center justify-between gap-3 p-3"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{item.productName}</p>
+                    <p className="truncate text-sm font-medium">
+                      {item.productName}
+                    </p>
                     <p className="truncate text-xs text-muted-foreground">
                       {item.productCode}
                     </p>
@@ -438,7 +442,6 @@ export function CreateShipmentDialog({
             </div>
           </div>
 
-
           <div className="grid grid-cols-2 gap-4">
             {/* Sales Order Number */}
             <div className="space-y-1.5">
@@ -509,9 +512,10 @@ export function CreateShipmentDialog({
                         }
                       }}
                       className={`group relative cursor-pointer rounded-xl border p-2.5 transition-all
-                        ${deliveryMethod === method.value
-                          ? "border-blue-500 bg-blue-50 shadow-sm"
-                          : "border-gray-200 hover:border-blue-300"
+                        ${
+                          deliveryMethod === method.value
+                            ? "border-blue-500 bg-blue-50 shadow-sm"
+                            : "border-gray-200 hover:border-blue-300"
                         } ${isCompleted ? "opacity-70 cursor-not-allowed" : ""}`}
                     >
                       <div className="flex items-center gap-2">
@@ -528,7 +532,9 @@ export function CreateShipmentDialog({
                           className="h-3.5 w-3.5 text-blue-600"
                         />
                         <div className="flex items-center gap-1.5">
-                          <span className="text-lg leading-none">{method.icon}</span>
+                          <span className="text-lg leading-none">
+                            {method.icon}
+                          </span>
                           <span className="text-xs font-medium text-gray-900 leading-tight">
                             {method.label}
                           </span>
@@ -547,25 +553,32 @@ export function CreateShipmentDialog({
                       value={pickupCompanyId}
                       onChange={(val) => {
                         setValue("pickupCompanyId", val);
-                        const selectedCompany = companies?.find(c => c.id === val);
+                        const selectedCompany = companies?.find(
+                          (c) => c.id === val,
+                        );
                         if (selectedCompany) {
-                           const structuredAddr = buildCompanyAddress({
-                               addressLine: selectedCompany.addressLine || undefined,
-                               subdistrict: selectedCompany.subdistrict || undefined,
-                               district: selectedCompany.district || undefined,
-                               province: selectedCompany.province || undefined,
-                               postalCode: selectedCompany.postalCode || undefined,
-                           });
-                           const fullAddress = structuredAddr || selectedCompany.address || "";
-                           setValue("shippingAddress", fullAddress);
+                          const structuredAddr = buildCompanyAddress({
+                            addressLine:
+                              selectedCompany.addressLine || undefined,
+                            subdistrict:
+                              selectedCompany.subdistrict || undefined,
+                            district: selectedCompany.district || undefined,
+                            province: selectedCompany.province || undefined,
+                            postalCode: selectedCompany.postalCode || undefined,
+                          });
+                          const fullAddress =
+                            structuredAddr || selectedCompany.address || "";
+                          setValue("shippingAddress", fullAddress);
                         } else {
-                           setValue("shippingAddress", "");
+                          setValue("shippingAddress", "");
                         }
                       }}
-                      options={companies?.map((c) => ({
-                        value: c.id,
-                        label: c.name,
-                      })) || []}
+                      options={
+                        companies?.map((c) => ({
+                          value: c.id,
+                          label: c.name,
+                        })) || []
+                      }
                       placeholder="เลือกสถานที่รับสินค้า"
                       searchPlaceholder="ค้นหาสถานที่..."
                       emptyText="ไม่พบสถานที่"
@@ -578,7 +591,9 @@ export function CreateShipmentDialog({
                         ที่อยู่สถานที่รับสินค้า
                       </Label>
                       <div className="flex min-h-[36px] items-center rounded-md border bg-gray-50 px-3 text-sm text-gray-700">
-                        <span className="block w-full truncate">{shippingAddress || "-"}</span>
+                        <span className="block w-full truncate">
+                          {shippingAddress || "-"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -586,7 +601,8 @@ export function CreateShipmentDialog({
 
                 {deliveryMethod === "COURIER" && (
                   <div className="mt-3 space-y-3 rounded-lg border bg-white p-3">
-                    {customer?.shippingCompanies && customer.shippingCompanies.length > 0 ? (
+                    {customer?.shippingCompanies &&
+                    customer.shippingCompanies.length > 0 ? (
                       <>
                         <FormCombobox
                           id="shippingCompanyId"
@@ -595,7 +611,7 @@ export function CreateShipmentDialog({
                           onChange={(val) => {
                             setValue("shippingCompanyId", val);
                             const selected = customer.shippingCompanies?.find(
-                              (sc: any) => sc.shippingCompany.id === val
+                              (sc: any) => sc.shippingCompany.id === val,
                             );
                             const sc = selected?.shippingCompany;
                             if (sc) {
@@ -606,36 +622,43 @@ export function CreateShipmentDialog({
                                 province: sc.province || undefined,
                                 postalCode: sc.postalCode || undefined,
                               });
-                              const fullAddress = structuredAddr || sc.address || "";
+                              const fullAddress =
+                                structuredAddr || sc.address || "";
                               setValue("shippingAddress", fullAddress);
                             } else {
                               setValue("shippingAddress", "");
                             }
                           }}
-                          options={customer.shippingCompanies.map((sc: any) => ({
-                            value: sc.shippingCompany.id,
-                            label: sc.shippingCompany.name,
-                          }))}
+                          options={customer.shippingCompanies.map(
+                            (sc: any) => ({
+                              value: sc.shippingCompany.id,
+                              label: sc.shippingCompany.name,
+                            }),
+                          )}
                           placeholder="เลือกบริษัทขนส่ง"
                           searchPlaceholder="ค้นหาบริษัทขนส่ง..."
                           emptyText="ไม่พบข้อมูลบริษัทขนส่ง"
                           disabled={isCompleted}
                           containerClassName="min-w-0"
                         />
-                        
+
                         {watch("shippingCompanyId") && (
                           <div className="min-w-0">
                             <Label className="mb-1.5 block text-xs font-medium">
                               ที่อยู่สำหรับส่งให้บริษัทขนส่ง
                             </Label>
                             <div className="flex min-h-[36px] items-center rounded-md border bg-gray-50 px-3 text-sm text-gray-700">
-                              <span className="block w-full truncate">{shippingAddress || "-"}</span>
+                              <span className="block w-full truncate">
+                                {shippingAddress || "-"}
+                              </span>
                             </div>
                           </div>
                         )}
                       </>
                     ) : (
-                      <p className="text-center text-sm text-red-600 py-2">ไม่มีข้อมูลบริษัทขนส่งที่เชื่อมโยงกับลูกค้ารายนี้</p>
+                      <p className="text-center text-sm text-red-600 py-2">
+                        ไม่มีข้อมูลบริษัทขนส่งที่เชื่อมโยงกับลูกค้ารายนี้
+                      </p>
                     )}
                   </div>
                 )}
@@ -701,7 +724,6 @@ export function CreateShipmentDialog({
               </Button>
             </div>
           </DialogFooter>
-
         </form>
       </DialogContent>
 
@@ -715,12 +737,14 @@ export function CreateShipmentDialog({
               <div>
                 <AlertDialogTitle>ยืนยันการลบการจัดส่ง</AlertDialogTitle>
                 <AlertDialogDescription>
-                  คุณต้องการลบการจัดส่งครั้งที่ {shipment?.shipmentNumber} ใช่หรือไม่?
+                  คุณต้องการลบการจัดส่งครั้งที่ {shipment?.shipmentNumber}{" "}
+                  ใช่หรือไม่?
                 </AlertDialogDescription>
               </div>
             </div>
             <div className="mt-2 rounded-md bg-muted p-3 text-sm text-muted-foreground">
-              การดำเนินการนี้ไม่สามารถย้อนกลับได้ ข้อมูลการจัดส่งและรายการสินค้าในรอบนี้จะถูกลบออกถาวร
+              การดำเนินการนี้ไม่สามารถย้อนกลับได้
+              ข้อมูลการจัดส่งและรายการสินค้าในรอบนี้จะถูกลบออกถาวร
             </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
