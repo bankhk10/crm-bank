@@ -330,7 +330,7 @@ export default function FulfillmentDetailPage({
         if (!isActive) return;
 
         if (res.companies) {
-          setCompanies(res.companies.filter((c: any) => c.status === "ACTIVE"));
+          setCompanies(res.companies);
         }
       } catch {
         // ignore
