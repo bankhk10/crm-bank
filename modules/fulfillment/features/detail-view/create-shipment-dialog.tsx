@@ -420,7 +420,6 @@ export function CreateShipmentDialog({
                 placeholder="0.00"
                 className="h-9"
                 {...register("shippingDiscount")}
-                disabled={isDelivered}
               />
             </div>
 
@@ -437,7 +436,6 @@ export function CreateShipmentDialog({
                 placeholder="0.00"
                 className="h-9"
                 {...register("billDiscount")}
-                disabled={isDelivered}
               />
             </div>
           </div>
@@ -710,7 +708,7 @@ export function CreateShipmentDialog({
               <Button
                 type="submit"
                 size="sm"
-                disabled={isPending || isCompleted}
+                disabled={isPending}
                 className={`gap-1.5 ${isEdit ? "bg-amber-600 hover:bg-amber-700" : "bg-purple-600 hover:bg-purple-700"}`}
               >
                 {isPending ? (
