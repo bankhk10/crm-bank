@@ -38,6 +38,7 @@ export interface ShipmentDeliveryData {
     cartonPrice: number;
     total: number;
     promotionBudget?: number;
+    abcCode?: string;
   }[];
   contactName: string;
   subtotalAmount: number;
@@ -238,6 +239,7 @@ export function renderShipmentDeliveryTemplate(
                 : ""
             }
           </td>
+          <td class="text-center">${safeValue(item.abcCode)}</td>
           <td class="text-center">${formatNumber(item.quantity)}</td>
           <td class="text-center">${safeValue(item.unit)}</td>
           <td class="text-center">${formatNumber(item.packageSizePerBox)}</td>
@@ -363,7 +365,8 @@ export function renderShipmentDeliveryTemplate(
         <thead>
           <tr>
             <th style="width: 4%;">ลำดับ</th>
-            <th class="text-left" style="width: 35%;">รายละเอียดสินค้า</th>
+            <th class="text-left" style="width: 25%;">รายละเอียดสินค้า</th>
+            <th style="width: 10%;">ประเภท</th>
             <th style="width: 10%;">จำนวน</th>
             <th style="width: 8%;">หน่วย</th>
             <th style="width: 5%;">บรรจุ</th>

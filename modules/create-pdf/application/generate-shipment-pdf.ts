@@ -185,6 +185,7 @@ export async function createShipmentDeliveryNotePdf(
         cartonPrice: cartonPrice,
         total: Number(si.totalPrice ?? 0),
         promotionBudget: Number(si.saleItem.promotionBudget || 0),
+        abcCode: si.saleItem.productABCTypeName || "-",
       };
     }),
     subtotalAmount: shipment.items.reduce((sum, si) => sum + Number(si.totalPrice ?? 0), 0),
