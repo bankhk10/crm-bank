@@ -135,6 +135,13 @@ export async function createShipmentDeliveryNotePdf(
     postalCode: sa.sender_postal_code,
   });
 
+  const deliveryMethodRaw = shipment.deliveryMethod || sale.deliveryMethod || "-";
+  const deliveryMethod = DELIVERY_METHOD_MAP[deliveryMethodRaw as string] || deliveryMethodRaw;
+  
+  const customReceivingAddress = (shipment.deliveryMethod === "CUSTOMER_PICKUP" && shipment.shippingAddress) ? shipment.shippingAddress : receivingAddress;
+  const customSenderAddress = (shipment.deliveryMethod === "COURIER" && shipment.shippingAddress) ? shipment.shippingAddress : senderAddress;
+  const customShippingCompanyName = (shipment.deliveryMethod === "COURIER" && shipment.shippingCompany?.name) ? shipment.shippingCompany.name : (sa.sender_name || "-");
+
   const deliveryData: any = {
     invoiceNumber: sale.saleNumber || "-",
     saleOrderRef: shipment.salesOrderNumber || sale.saleOrderRef,
@@ -146,13 +153,12 @@ export async function createShipmentDeliveryNotePdf(
     customerAddress: customerAddress || "-",
     billingAddress: billingAddress || "-",
 
-    deliveryMethod:
-      DELIVERY_METHOD_MAP[sale.deliveryMethod as string] || sale.deliveryMethod || "-",
-    deliveryMethodRaw: sale.deliveryMethod || "-",
+    deliveryMethod: deliveryMethod,
+    deliveryMethodRaw: deliveryMethodRaw,
     shippingAddress: shippingAddress || "-",
-    receivingAddress: receivingAddress || "-",
-    shippingCompanyName: shipment.shippingCompany?.name || sa.sender_name || "-",
-    senderAddress: senderAddress || "-",
+    receivingAddress: customReceivingAddress || "-",
+    shippingCompanyName: customShippingCompanyName || "-",
+    senderAddress: customSenderAddress || "-",
     requestedDeliveryDate: safeFormatDate(sale.requestedDeliveryDate, "d MMMM yyyy"),
     shippingCustomerAddressId: sa.shippingCustomerAddressId || "-",
 
