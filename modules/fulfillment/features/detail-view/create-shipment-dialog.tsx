@@ -159,8 +159,6 @@ export function CreateShipmentDialog({
       },
     });
 
-
-
   const scheduledDate = watch("scheduledDate");
   const useCustomDeliveryMethod = watch("useCustomDeliveryMethod");
   const deliveryMethod = watch("deliveryMethod");
@@ -199,10 +197,14 @@ export function CreateShipmentDialog({
       return;
     }
 
-    const formShippingCompanyId = data.shippingCompanyId || getValues("shippingCompanyId");
-    const formPickupCompanyId = data.pickupCompanyId || getValues("pickupCompanyId");
-    const formDeliveryMethod = data.deliveryMethod || getValues("deliveryMethod");
-    const formUseCustomDeliveryMethod = data.useCustomDeliveryMethod ?? getValues("useCustomDeliveryMethod");
+    const formShippingCompanyId =
+      data.shippingCompanyId || getValues("shippingCompanyId");
+    const formPickupCompanyId =
+      data.pickupCompanyId || getValues("pickupCompanyId");
+    const formDeliveryMethod =
+      data.deliveryMethod || getValues("deliveryMethod");
+    const formUseCustomDeliveryMethod =
+      data.useCustomDeliveryMethod ?? getValues("useCustomDeliveryMethod");
 
     const payload = {
       items,
@@ -215,17 +217,23 @@ export function CreateShipmentDialog({
         : formShippingCompanyId || null,
       shippingCompanyName: isDelivered
         ? undefined
-        : (formShippingCompanyId && (
-            shippingCompanies?.find((c) => c.id === formShippingCompanyId)?.name ||
-            customer?.shippingCompanies?.find((sc: any) => sc.shippingCompany.id === formShippingCompanyId)?.shippingCompany?.name
-          )) || null,
+        : (formShippingCompanyId &&
+            (shippingCompanies?.find((c) => c.id === formShippingCompanyId)
+              ?.name ||
+              customer?.shippingCompanies?.find(
+                (sc: any) => sc.shippingCompany.id === formShippingCompanyId,
+              )?.shippingCompany?.name)) ||
+          null,
       notes: data.notes || null,
       shippingDiscount: data.shippingDiscount || 0,
       billDiscount: data.billDiscount || 0,
       useCustomDeliveryMethod: formUseCustomDeliveryMethod,
       deliveryMethod: formDeliveryMethod,
       pickupCompanyId: formPickupCompanyId || null,
-      pickupCompanyName: (formPickupCompanyId && companies?.find(c => c.id === formPickupCompanyId)?.name) || null,
+      pickupCompanyName:
+        (formPickupCompanyId &&
+          companies?.find((c) => c.id === formPickupCompanyId)?.name) ||
+        null,
       shippingAddress: data.shippingAddress || null,
     };
 
