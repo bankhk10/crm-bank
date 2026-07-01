@@ -114,8 +114,10 @@ export interface ShipmentRecord {
   dueDate: string | Date | null;
   salesOrderNumber: string | null;
   shippingCompanyId: string | null;
+  shippingCompanyName: string | null;
   deliveryMethod: string | null;
   pickupCompanyId: string | null;
+  pickupCompanyName: string | null;
   shippingAddress: string | null;
   notes: string | null;
   totalAmount: number;
@@ -141,8 +143,10 @@ export interface CreateShipmentInput {
   dueDate?: string | null;
   salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
+  shippingCompanyName?: string | null;
   deliveryMethod?: string | null;
   pickupCompanyId?: string | null;
+  pickupCompanyName?: string | null;
   shippingAddress?: string | null;
   notes?: string | null;
   shippingDiscount?: number | null;
@@ -157,8 +161,10 @@ export interface UpdateShipmentInput {
   dueDate?: string | null;
   salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
+  shippingCompanyName?: string | null;
   deliveryMethod?: string | null;
   pickupCompanyId?: string | null;
+  pickupCompanyName?: string | null;
   shippingAddress?: string | null;
   notes?: string | null;
   shippingDiscount?: number | null;

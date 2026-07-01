@@ -206,13 +206,17 @@ export function CreateShipmentDialog({
       shippingCompanyId: isDelivered
         ? undefined
         : data.shippingCompanyId || null,
+      shippingCompanyName: isDelivered
+        ? undefined
+        : (data.shippingCompanyId && shippingCompanies?.find(c => c.id === data.shippingCompanyId)?.name) || null,
       notes: data.notes || null,
       shippingDiscount: data.shippingDiscount || 0,
       billDiscount: data.billDiscount || 0,
       useCustomDeliveryMethod: data.useCustomDeliveryMethod,
       deliveryMethod: data.deliveryMethod,
-      pickupCompanyId: data.pickupCompanyId,
-      shippingAddress: data.shippingAddress,
+      pickupCompanyId: data.pickupCompanyId || null,
+      pickupCompanyName: (data.pickupCompanyId && companies?.find(c => c.id === data.pickupCompanyId)?.name) || null,
+      shippingAddress: data.shippingAddress || null,
     };
 
     startTransition(async () => {

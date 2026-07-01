@@ -18,12 +18,14 @@ export const createShipmentSchema = z.object({
   dueDate: z.string().nullable().optional(),
   salesOrderNumber: z.string().nullable().optional(),
   shippingCompanyId: z.string().nullable().optional(),
+  shippingCompanyName: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
   shippingDiscount: z.number().nullable().optional(),
   billDiscount: z.number().nullable().optional(),
   useCustomDeliveryMethod: z.boolean().optional(),
   deliveryMethod: z.string().nullable().optional(),
   pickupCompanyId: z.string().nullable().optional(),
+  pickupCompanyName: z.string().nullable().optional(),
   shippingAddress: z.string().nullable().optional(),
 });
 
@@ -39,6 +41,7 @@ export const updateShipmentSchema = z.object({
   dueDate: z.string().nullable().optional(),
   salesOrderNumber: z.string().nullable().optional(),
   shippingCompanyId: z.string().nullable().optional(),
+  shippingCompanyName: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
   shippingDiscount: z.number().nullable().optional(),
   billDiscount: z.number().nullable().optional(),
@@ -46,6 +49,7 @@ export const updateShipmentSchema = z.object({
   useCustomDeliveryMethod: z.boolean().optional(),
   deliveryMethod: z.string().nullable().optional(),
   pickupCompanyId: z.string().nullable().optional(),
+  pickupCompanyName: z.string().nullable().optional(),
   shippingAddress: z.string().nullable().optional(),
 });
 

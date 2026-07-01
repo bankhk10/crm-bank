@@ -65,6 +65,9 @@ export async function updateShipmentUseCase(
       ...(validatedData.shippingCompanyId !== undefined && {
         shippingCompanyId: validatedData.shippingCompanyId,
       }),
+      ...(validatedData.shippingCompanyName !== undefined && {
+        shippingCompanyName: validatedData.shippingCompanyName,
+      }),
       ...(validatedData.paymentDate !== undefined && {
         paymentDate: validatedData.paymentDate ? new Date(validatedData.paymentDate) : null,
       }),
@@ -80,6 +83,7 @@ export async function updateShipmentUseCase(
       ...(validatedData.useCustomDeliveryMethod !== undefined && {
         deliveryMethod: validatedData.useCustomDeliveryMethod ? validatedData.deliveryMethod ?? null : null,
         pickupCompanyId: validatedData.useCustomDeliveryMethod ? validatedData.pickupCompanyId ?? null : null,
+        pickupCompanyName: validatedData.useCustomDeliveryMethod ? validatedData.pickupCompanyName ?? null : null,
         shippingAddress: validatedData.useCustomDeliveryMethod ? validatedData.shippingAddress ?? null : null,
       }),
     };

@@ -1094,10 +1094,12 @@ model Shipment {
   paymentDate       DateTime? // วันที่ชำระเงิน
   dueDate           DateTime? // วันครบกำหนดชำระ
   salesOrderNumber  String? // เลขที่คำสั่งขาย
-  shippingCompanyId String? // FK to ShippingCompany
-  deliveryMethod    String? // วิธีการจัดส่ง (เช่น SALES_DELIVERY พนักงานส่ง, CUSTOMER_PICKUP ลูกค้ารับเอง)
-  pickupCompanyId   String? // รหัสสถานที่รับสินค้าเอง
-  shippingAddress   String? // ที่อยู่สำหรับจัดส่ง
+  shippingCompanyId   String? // FK to ShippingCompany
+  shippingCompanyName String? // ชื่อบริษัทขนส่ง (Snapshotted)
+  deliveryMethod      String? // วิธีการจัดส่ง (เช่น SALES_DELIVERY พนักงานส่ง, CUSTOMER_PICKUP ลูกค้ารับเอง)
+  pickupCompanyId     String? // รหัสสถานที่รับสินค้าเอง
+  pickupCompanyName   String? // ชื่อสถานที่รับสินค้า (Snapshotted)
+  shippingAddress     String? // ที่อยู่สำหรับจัดส่ง
   notes             String? // หมายเหตุ
   totalAmount       Decimal        @default(0) @db.Decimal(15, 2) // มูลค่าสินค้าในรอบนี้
   shippingDiscount  Decimal        @default(0) @db.Decimal(15, 2) // ส่วนลดค่าขนส่ง

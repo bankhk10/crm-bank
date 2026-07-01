@@ -140,7 +140,7 @@ export async function createShipmentDeliveryNotePdf(
   
   const customReceivingAddress = (shipment.deliveryMethod === "CUSTOMER_PICKUP" && shipment.shippingAddress) ? shipment.shippingAddress : receivingAddress;
   const customSenderAddress = (shipment.deliveryMethod === "COURIER" && shipment.shippingAddress) ? shipment.shippingAddress : senderAddress;
-  const customShippingCompanyName = (shipment.deliveryMethod === "COURIER" && shipment.shippingCompany?.name) ? shipment.shippingCompany.name : (sa.sender_name || "-");
+  const customShippingCompanyName = (shipment.deliveryMethod === "COURIER" && (shipment.shippingCompanyName || shipment.shippingCompany?.name)) ? (shipment.shippingCompanyName || shipment.shippingCompany?.name) : (sa.sender_name || "-");
 
   const deliveryData: any = {
     invoiceNumber: sale.saleNumber || "-",
