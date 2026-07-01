@@ -552,7 +552,7 @@ export function CreateShipmentDialog({
                     <FormCombobox
                       id="pickupCompanyId"
                       label="สถานที่รับสินค้า (บริษัท/สาขา)"
-                      value={pickupCompanyId}
+                      value={pickupCompanyId || ""}
                       onChange={(val) => {
                         setValue("pickupCompanyId", val);
                         const selectedCompany = companies?.find(
