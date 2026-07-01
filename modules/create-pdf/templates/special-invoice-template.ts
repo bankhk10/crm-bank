@@ -560,6 +560,7 @@ export function renderSpecialInvoiceTemplate(data: SpecialInvoiceData): string {
           <span>วันที่</span>
           <div class="dot-line" style="position: relative;"></div>
         </div>
+          <div class="signature-title">ขอพิจารณาอนุมัติ</div>
       </div>
     </div>
   </div>
