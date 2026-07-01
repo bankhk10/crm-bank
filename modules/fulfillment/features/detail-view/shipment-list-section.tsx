@@ -6,7 +6,6 @@ import { th } from "date-fns/locale";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
-  Package,
   Truck,
   CheckCircle2,
   XCircle,
@@ -14,6 +13,8 @@ import {
   FileDown,
   ArrowRight,
   LayoutList,
+  MapPin,
+  Package,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -199,6 +200,27 @@ function ShipmentCard({
             </span>
           </div>
         </div>
+
+        {/* Delivery Method Info */}
+        {shipment.deliveryMethod && (
+          <div className="rounded-md bg-blue-50/50 p-3 text-xs border border-blue-100">
+            <div className="flex items-center gap-1.5 text-blue-700 font-medium mb-1.5">
+              <Truck className="h-3.5 w-3.5" />
+              <span>วิธีจัดส่งแบบกำหนดเอง: {shipment.deliveryMethod === "CUSTOMER_PICKUP" ? "ลูกค้ามารับสินค้าเอง" : shipment.deliveryMethod === "COURIER" ? "ส่งโดยบริษัทขนส่ง" : shipment.deliveryMethod === "SALES_DELIVERY" ? "พนักงานขายจัดส่งสินค้า" : shipment.deliveryMethod === "FACTORY_DELIVERY" ? "ส่งโดยรถโรงงาน" : shipment.deliveryMethod}</span>
+            </div>
+            {shipment.shippingAddress && (
+              <div className="flex items-start gap-1.5 text-muted-foreground mt-1 text-[11px]">
+                <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
+                <span>{shipment.shippingAddress}</span>
+              </div>
+            )}
+            {shipment.shippingCompanyId && shipment.deliveryMethod === "COURIER" && (
+              <div className="flex items-center gap-1.5 text-muted-foreground mt-1 text-[11px] ml-4.5">
+                <span>บ.ขนส่ง: {shippingCompanies.find(c => c.id === shipment.shippingCompanyId)?.name || shipment.shippingCompanyId}</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Items table */}
         <div className="overflow-hidden rounded-md border">

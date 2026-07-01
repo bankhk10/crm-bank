@@ -12,6 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { FormCombobox } from "@/components/custom/form-components";
+import { buildCompanyAddress } from "@/lib/address-utils";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +46,13 @@ import type { RemainingByItem, ShipmentRecord } from "../../types/types";
 import { createShipmentAction, updateShipmentAction, deleteShipmentAction } from "../../server/actions";
 
 
+const DELIVERY_METHODS = [
+  { value: "SALES_DELIVERY" as const, label: "พนักงานขาย", icon: "🚚" },
+  { value: "FACTORY_DELIVERY" as const, label: "รถโรงงาน", icon: "🏭" },
+  { value: "CUSTOMER_PICKUP" as const, label: "รับสินค้าเอง", icon: "🏬" },
+  { value: "COURIER" as const, label: "บริษัทขนส่ง", icon: "📦" },
+];
+
 const formSchema = z.object({
   scheduledDate: z.string().optional(),
   paymentDate: z.string().optional(),
@@ -53,6 +63,10 @@ const formSchema = z.object({
   shippingDiscount: z.coerce.number().min(0).optional(),
   billDiscount: z.coerce.number().min(0).optional(),
   quantities: z.record(z.string(), z.coerce.number().int().min(0)),
+  useCustomDeliveryMethod: z.boolean().optional(),
+  deliveryMethod: z.string().optional(),
+  pickupCompanyId: z.string().optional(),
+  shippingAddress: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -66,6 +80,8 @@ interface CreateShipmentDialogProps {
   saleId: string;
   remainingByItem: RemainingByItem[];
   shippingCompanies: ShippingCompany[];
+  customer?: any;
+  companies?: any[];
   onCreated: () => void;
   disabled?: boolean;
   creditDays?: number;
@@ -86,6 +102,8 @@ export function CreateShipmentDialog({
   disabled = false,
   creditDays = 0,
   shipment,
+  customer,
+  companies = [],
 }: CreateShipmentDialogProps) {
   const [open, setOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -136,10 +154,18 @@ export function CreateShipmentDialog({
       shippingDiscount: isEdit ? Number(shipment.shippingDiscount || 0) : 0,
       billDiscount: isEdit ? Number(shipment.billDiscount || 0) : 0,
       quantities: defaultQuantities,
+      useCustomDeliveryMethod: isEdit ? !!shipment.deliveryMethod : false,
+      deliveryMethod: isEdit ? shipment.deliveryMethod || "" : "",
+      pickupCompanyId: isEdit ? shipment.pickupCompanyId || "" : "",
+      shippingAddress: isEdit ? shipment.shippingAddress || "" : "",
     },
   });
 
   const scheduledDate = watch("scheduledDate");
+  const useCustomDeliveryMethod = watch("useCustomDeliveryMethod");
+  const deliveryMethod = watch("deliveryMethod");
+  const pickupCompanyId = watch("pickupCompanyId");
+  const shippingAddress = watch("shippingAddress");
 
   // Better way to handle effect in react-hook-form
   const onScheduledDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -182,6 +208,10 @@ export function CreateShipmentDialog({
       notes: data.notes || null,
       shippingDiscount: data.shippingDiscount || 0,
       billDiscount: data.billDiscount || 0,
+      useCustomDeliveryMethod: data.useCustomDeliveryMethod,
+      deliveryMethod: data.deliveryMethod,
+      pickupCompanyId: data.pickupCompanyId,
+      shippingAddress: data.shippingAddress,
     };
 
     startTransition(async () => {
@@ -234,6 +264,10 @@ export function CreateShipmentDialog({
           shippingDiscount: 0,
           billDiscount: 0,
           quantities: defaultQuantities,
+          useCustomDeliveryMethod: false,
+          deliveryMethod: "",
+          pickupCompanyId: "",
+          shippingAddress: "",
         });
       }
     }
@@ -433,6 +467,180 @@ export function CreateShipmentDialog({
                 disabled={isCompleted}
               />
             </div>
+          </div>
+
+          <div className="space-y-4 rounded-xl border border-gray-200 bg-gray-50/50 p-4">
+            <div className="flex items-center space-x-2">
+              <Controller
+                name="useCustomDeliveryMethod"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    id="useCustomDeliveryMethod"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isCompleted}
+                  />
+                )}
+              />
+              <Label
+                htmlFor="useCustomDeliveryMethod"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                ต้องการเปลี่ยนวิธีการจัดส่ง
+              </Label>
+            </div>
+
+            {useCustomDeliveryMethod && (
+              <div className="pt-4 space-y-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  {DELIVERY_METHODS.map((method) => (
+                    <div
+                      key={method.value}
+                      onClick={() => {
+                        if (isCompleted) return;
+                        setValue("deliveryMethod", method.value);
+                        if (method.value !== "CUSTOMER_PICKUP") {
+                          setValue("pickupCompanyId", "");
+                        }
+                        if (method.value !== "COURIER") {
+                          setValue("shippingCompanyId", "");
+                          setValue("shippingAddress", "");
+                        }
+                      }}
+                      className={`group relative cursor-pointer rounded-xl border p-2.5 transition-all
+                        ${deliveryMethod === method.value
+                          ? "border-blue-500 bg-blue-50 shadow-sm"
+                          : "border-gray-200 hover:border-blue-300"
+                        } ${isCompleted ? "opacity-70 cursor-not-allowed" : ""}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="deliveryMethod"
+                          value={method.value}
+                          checked={deliveryMethod === method.value}
+                          onChange={(e) => {
+                            if (isCompleted) return;
+                            setValue("deliveryMethod", e.target.value);
+                          }}
+                          disabled={isCompleted}
+                          className="h-3.5 w-3.5 text-blue-600"
+                        />
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-lg leading-none">{method.icon}</span>
+                          <span className="text-xs font-medium text-gray-900 leading-tight">
+                            {method.label}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Specific Fields based on method */}
+                {deliveryMethod === "CUSTOMER_PICKUP" && (
+                  <div className="mt-3 space-y-3 rounded-lg border bg-white p-3">
+                    <FormCombobox
+                      id="pickupCompanyId"
+                      label="สถานที่รับสินค้า (บริษัท/สาขา)"
+                      value={pickupCompanyId}
+                      onChange={(val) => {
+                        setValue("pickupCompanyId", val);
+                        const selectedCompany = companies?.find(c => c.id === val);
+                        if (selectedCompany) {
+                           const structuredAddr = buildCompanyAddress({
+                               addressLine: selectedCompany.addressLine || undefined,
+                               subdistrict: selectedCompany.subdistrict || undefined,
+                               district: selectedCompany.district || undefined,
+                               province: selectedCompany.province || undefined,
+                               postalCode: selectedCompany.postalCode || undefined,
+                           });
+                           const fullAddress = structuredAddr || selectedCompany.address || "";
+                           setValue("shippingAddress", fullAddress);
+                        } else {
+                           setValue("shippingAddress", "");
+                        }
+                      }}
+                      options={companies?.map((c) => ({
+                        value: c.id,
+                        label: c.name,
+                      })) || []}
+                      placeholder="เลือกสถานที่รับสินค้า"
+                      searchPlaceholder="ค้นหาสถานที่..."
+                      emptyText="ไม่พบสถานที่"
+                      disabled={isCompleted}
+                      containerClassName="min-w-0"
+                    />
+
+                    <div className="min-w-0">
+                      <Label className="mb-1.5 block text-xs font-medium">
+                        ที่อยู่สถานที่รับสินค้า
+                      </Label>
+                      <div className="flex min-h-[36px] items-center rounded-md border bg-gray-50 px-3 text-sm text-gray-700">
+                        <span className="block w-full truncate">{shippingAddress || "-"}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {deliveryMethod === "COURIER" && (
+                  <div className="mt-3 space-y-3 rounded-lg border bg-white p-3">
+                    {customer?.shippingCompanies && customer.shippingCompanies.length > 0 ? (
+                      <>
+                        <FormCombobox
+                          id="shippingCompanyId"
+                          label="เลือกบริษัทขนส่ง"
+                          value={watch("shippingCompanyId") || ""}
+                          onChange={(val) => {
+                            setValue("shippingCompanyId", val);
+                            const selected = customer.shippingCompanies?.find(
+                              (sc: any) => sc.shippingCompany.id === val
+                            );
+                            const sc = selected?.shippingCompany;
+                            if (sc) {
+                              const structuredAddr = buildCompanyAddress({
+                                addressLine: sc.addressLine || undefined,
+                                subdistrict: sc.subdistrict || undefined,
+                                district: sc.district || undefined,
+                                province: sc.province || undefined,
+                                postalCode: sc.postalCode || undefined,
+                              });
+                              const fullAddress = structuredAddr || sc.address || "";
+                              setValue("shippingAddress", fullAddress);
+                            } else {
+                              setValue("shippingAddress", "");
+                            }
+                          }}
+                          options={customer.shippingCompanies.map((sc: any) => ({
+                            value: sc.shippingCompany.id,
+                            label: sc.shippingCompany.name,
+                          }))}
+                          placeholder="เลือกบริษัทขนส่ง"
+                          searchPlaceholder="ค้นหาบริษัทขนส่ง..."
+                          emptyText="ไม่พบข้อมูลบริษัทขนส่ง"
+                          disabled={isCompleted}
+                          containerClassName="min-w-0"
+                        />
+                        
+                        {watch("shippingCompanyId") && (
+                          <div className="min-w-0">
+                            <Label className="mb-1.5 block text-xs font-medium">
+                              ที่อยู่สำหรับส่งให้บริษัทขนส่ง
+                            </Label>
+                            <div className="flex min-h-[36px] items-center rounded-md border bg-gray-50 px-3 text-sm text-gray-700">
+                              <span className="block w-full truncate">{shippingAddress || "-"}</span>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-center text-sm text-red-600 py-2">ไม่มีข้อมูลบริษัทขนส่งที่เชื่อมโยงกับลูกค้ารายนี้</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Notes */}

@@ -40,6 +40,7 @@ import {
   updateFulfillmentAction,
   getShipmentsAction,
 } from "../../server/actions";
+import { getCompaniesAction } from "@/modules/companies/server/actions";
 import {
   CreditInfoCard,
   ItemsCard,
@@ -200,6 +201,7 @@ export default function FulfillmentDetailPage({
   const [shippingCompanies, setShippingCompanies] = useState<
     ShippingCompanyOption[]
   >([]);
+  const [companies, setCompanies] = useState<any[]>([]);
 
   const [lotAllocations, setLotAllocations] = useState<LotAllocation[]>([]);
   const [lotAllocationsValid, setLotAllocationsValid] = useState(false);
@@ -321,6 +323,20 @@ export default function FulfillmentDetailPage({
     };
 
     loadShippingCompanies();
+
+    const loadCompanies = async () => {
+      try {
+        const res = await getCompaniesAction();
+        if (!isActive) return;
+
+        if (res.companies) {
+          setCompanies(res.companies.filter((c: any) => c.status === "ACTIVE"));
+        }
+      } catch {
+        // ignore
+      }
+    };
+    loadCompanies();
 
     return () => {
       isActive = false;
@@ -557,6 +573,8 @@ export default function FulfillmentDetailPage({
                 id: sc.id,
                 name: sc.name,
               }))}
+              customer={sale.customer}
+              companies={companies}
               onCreated={async () => {
                 await loadShipments();
                 const res = await fetch(`/api/sales/${id}`);
@@ -583,6 +601,8 @@ export default function FulfillmentDetailPage({
                 id: sc.id,
                 name: sc.name,
               }))}
+              customer={sale.customer}
+              companies={companies}
               creditDays={sale.creditDays || 0}
               onShipmentUpdated={async () => {
                 await loadShipments();

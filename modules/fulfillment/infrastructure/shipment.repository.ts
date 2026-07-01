@@ -12,6 +12,9 @@ export interface CreateShipmentData {
   billDiscount?: number | null;
   createdById: string;
   items: Array<{ saleItemId: string; quantity: number; unitPrice: number; totalPrice: number }>;
+  deliveryMethod?: string | null;
+  pickupCompanyId?: string | null;
+  shippingAddress?: string | null;
 }
 
 export interface UpdateShipmentData {
@@ -27,6 +30,9 @@ export interface UpdateShipmentData {
   shippingDiscount?: number | null;
   billDiscount?: number | null;
   items?: Array<{ saleItemId: string; quantity: number; unitPrice: number; totalPrice: number }>;
+  deliveryMethod?: string | null;
+  pickupCompanyId?: string | null;
+  shippingAddress?: string | null;
 }
 
 export const ShipmentRepository = {
@@ -62,6 +68,9 @@ export const ShipmentRepository = {
         totalAmount: data.totalAmount,
         shippingDiscount: data.shippingDiscount ?? 0,
         billDiscount: data.billDiscount ?? 0,
+        deliveryMethod: data.deliveryMethod ?? null,
+        pickupCompanyId: data.pickupCompanyId ?? null,
+        shippingAddress: data.shippingAddress ?? null,
         createdById: data.createdById,
         items: {
           create: data.items.map((item) => ({
@@ -198,6 +207,9 @@ export const ShipmentRepository = {
         ...(data.shippingDiscount !== undefined && { shippingDiscount: data.shippingDiscount ?? 0 }),
         ...(data.billDiscount !== undefined && { billDiscount: data.billDiscount ?? 0 }),
         ...(data.totalAmount !== undefined && { totalAmount: data.totalAmount }),
+        ...(data.deliveryMethod !== undefined && { deliveryMethod: data.deliveryMethod }),
+        ...(data.pickupCompanyId !== undefined && { pickupCompanyId: data.pickupCompanyId }),
+        ...(data.shippingAddress !== undefined && { shippingAddress: data.shippingAddress }),
       },
       include: {
         items: { include: { saleItem: true } },

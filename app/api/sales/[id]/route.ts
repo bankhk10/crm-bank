@@ -39,6 +39,11 @@ export async function GET(
               orderBy: { createdAt: "desc" },
               take: 1,
             },
+            shippingCompanies: {
+              include: {
+                shippingCompany: true,
+              },
+            },
           },
         },
         employee: true,

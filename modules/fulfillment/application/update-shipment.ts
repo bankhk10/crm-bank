@@ -77,6 +77,11 @@ export async function updateShipmentUseCase(
       ...(validatedData.notes !== undefined && { notes: validatedData.notes }),
       ...(validatedData.shippingDiscount !== undefined && { shippingDiscount: validatedData.shippingDiscount }),
       ...(validatedData.billDiscount !== undefined && { billDiscount: validatedData.billDiscount }),
+      ...(validatedData.useCustomDeliveryMethod !== undefined && {
+        deliveryMethod: validatedData.useCustomDeliveryMethod ? validatedData.deliveryMethod ?? null : null,
+        pickupCompanyId: validatedData.useCustomDeliveryMethod ? validatedData.pickupCompanyId ?? null : null,
+        shippingAddress: validatedData.useCustomDeliveryMethod ? validatedData.shippingAddress ?? null : null,
+      }),
     };
 
     // Calculate total amount if items or discounts are updated

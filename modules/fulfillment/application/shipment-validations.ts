@@ -21,6 +21,10 @@ export const createShipmentSchema = z.object({
   notes: z.string().nullable().optional(),
   shippingDiscount: z.number().nullable().optional(),
   billDiscount: z.number().nullable().optional(),
+  useCustomDeliveryMethod: z.boolean().optional(),
+  deliveryMethod: z.string().nullable().optional(),
+  pickupCompanyId: z.string().nullable().optional(),
+  shippingAddress: z.string().nullable().optional(),
 });
 
 // ──────────────────────────────────────────
@@ -39,6 +43,10 @@ export const updateShipmentSchema = z.object({
   shippingDiscount: z.number().nullable().optional(),
   billDiscount: z.number().nullable().optional(),
   items: z.array(createShipmentItemSchema).optional(),
+  useCustomDeliveryMethod: z.boolean().optional(),
+  deliveryMethod: z.string().nullable().optional(),
+  pickupCompanyId: z.string().nullable().optional(),
+  shippingAddress: z.string().nullable().optional(),
 });
 
 export type CreateShipmentInput = z.infer<typeof createShipmentSchema>;
