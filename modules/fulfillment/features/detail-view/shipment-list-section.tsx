@@ -59,6 +59,8 @@ interface ShipmentListSectionProps {
   shipments: ShipmentRecord[];
   remainingByItem: RemainingByItem[];
   shippingCompanies: Array<{ id: string; name: string }>;
+  companies: any[];
+  customer: any;
   creditDays: number;
   onShipmentUpdated: () => void;
 }
@@ -91,12 +93,16 @@ function ShipmentCard({
   shipment,
   remainingByItem,
   shippingCompanies,
+  companies,
+  customer,
   creditDays,
   onUpdated,
 }: {
   shipment: ShipmentRecord;
   remainingByItem: RemainingByItem[];
   shippingCompanies: Array<{ id: string; name: string }>;
+  companies: any[];
+  customer: any;
   creditDays: number;
   onUpdated: () => void;
 }) {
@@ -344,6 +350,8 @@ function ShipmentCard({
               shipment={shipment}
               remainingByItem={remainingByItem}
               shippingCompanies={shippingCompanies}
+              companies={companies}
+              customer={customer}
               creditDays={creditDays}
               onCreated={onUpdated}
             />
@@ -441,6 +449,8 @@ export function ShipmentListSection({
   shipments,
   remainingByItem,
   shippingCompanies,
+  companies,
+  customer,
   creditDays,
   onShipmentUpdated,
 }: ShipmentListSectionProps) {
@@ -485,6 +495,8 @@ export function ShipmentListSection({
               shipment={shipment}
               remainingByItem={remainingByItem}
               shippingCompanies={shippingCompanies}
+              companies={companies}
+              customer={customer}
               creditDays={creditDays}
               onUpdated={onShipmentUpdated}
             />
