@@ -14,7 +14,7 @@ export function ActivityFormTest() {
   const [activityZone, setActivityZone] = useState("Zone 1")
   const [useSalesPromo, setUseSalesPromo] = useState(false)
   const [useMarketingPromo, setUseMarketingPromo] = useState(false)
-  const [helperId, setHelperId] = useState("none")
+  const [helperIds, setHelperIds] = useState<string[]>([])
   const [editId, setEditId] = useState<string | null>(null)
   useEffect(() => {
     getEmployeesAction().then(emps => {
@@ -33,7 +33,7 @@ export function ActivityFormTest() {
           setUseSalesPromo(data.budgets.some((b: any) => b.budgetType === "SALES_PROMOTION"))
           setUseMarketingPromo(data.budgets.some((b: any) => b.budgetType === "MARKETING"))
           if (data.helpers && data.helpers.length > 0) {
-            setHelperId(data.helpers[0].employeeId)
+            setHelperIds(data.helpers.map((h: any) => h.employeeId))
           }
         }
       })
@@ -46,8 +46,7 @@ export function ActivityFormTest() {
     if (useSalesPromo) budgets.push({ budgetType: "SALES_PROMOTION", amount: 1000 })
     if (useMarketingPromo) budgets.push({ budgetType: "MARKETING", amount: 2000 })
 
-    const helpers = []
-    if (helperId && helperId !== "none") helpers.push({ employeeId: helperId, helperRole: "SALES" })
+    const helpers = helperIds.map(id => ({ employeeId: id, helperRole: "SALES" }))
 
     const data = {
       title: "Test Activity " + Date.now(),
@@ -101,14 +100,26 @@ export function ActivityFormTest() {
           </label>
         </div>
         <div className="space-y-2">
-          <Label>มีคนช่วยงานไหม?</Label>
-          <Select value={helperId} onValueChange={setHelperId}>
-            <SelectTrigger className="w-[200px]"><SelectValue placeholder="ไม่มี" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">(ไม่มีคนช่วย)</SelectItem>
-              {employees.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <Label>มีคนช่วยงานไหม? (เลือกได้หลายคน)</Label>
+          <div className="border p-3 rounded-md max-h-40 overflow-y-auto space-y-2 bg-white">
+            {employees.length === 0 && <div className="text-gray-500 text-sm">ไม่มีพนักงานให้เลือก</div>}
+            {employees.map(e => (
+              <label key={e.id} className="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="w-4 h-4"
+                  checked={helperIds.includes(e.id)} 
+                  onChange={(evt) => {
+                    if (evt.target.checked) setHelperIds([...helperIds, e.id])
+                    else setHelperIds(helperIds.filter(id => id !== e.id))
+                  }} 
+                />
+                <span className={e.id === creatorId ? "text-gray-400" : ""}>
+                  {e.name} {e.id === creatorId && "(คนสร้าง)"}
+                </span>
+              </label>
+            ))}
+          </div>
         </div>
         <Button onClick={handleCreateActivity}>{editId ? "บันทึกการแก้ไข (เริ่มสายอนุมัติใหม่)" : "จำลองสร้างกิจกรรม"}</Button>
       </CardContent>
