@@ -10,6 +10,8 @@ import { StatusBadge } from "../../ui/fulfillment-status-badge";
 import { ActionButton } from "@/components/custom/action-button";
 import { TruncatedCell } from "@/components/custom/truncated-cell";
 import type { SaleRecord } from "../../types/types";
+import { PaymentTermLabels } from "@/modules/sales/types";
+import { cn } from "@/lib/utils";
 
 export function useFulfillmentColumns() {
     const columns = useMemo<ColumnDef<SaleRecord>[]>(
@@ -122,6 +124,32 @@ export function useFulfillmentColumns() {
                         <div className="flex flex-col items-start gap-1">
                             <StatusBadge status={info.getValue() as string} />
                         </div>
+                    );
+                },
+            },
+            {
+                accessorKey: "paymentTerm",
+                header: "เงื่อนไขชำระ",
+                meta: { width: 120 },
+                cell: (info) => {
+                    const value = info.getValue() as string;
+                    const label = PaymentTermLabels[value as keyof typeof PaymentTermLabels] || value || "-";
+                    
+                    const styles: Record<string, string> = {
+                        CREDIT_90: "bg-blue-100 text-blue-800 border-blue-200",
+                        CASH_7: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        CASH_DISCOUNT_3_7: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        PREPAID: "bg-purple-100 text-purple-800 border-purple-200",
+                        CREDIT_OVER_90: "bg-orange-100 text-orange-800 border-orange-200",
+                    };
+                    const style = styles[value] || "bg-gray-100 text-gray-800 border-gray-200";
+
+                    return (
+                        <Badge variant="outline" className={cn("px-2.5 py-0.5 rounded-md font-medium whitespace-nowrap text-xs", style)}>
+                            <span className="block max-w-[150px] truncate" title={label}>
+                                {label}
+                            </span>
+                        </Badge>
                     );
                 },
             },
