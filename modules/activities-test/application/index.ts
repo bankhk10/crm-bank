@@ -159,7 +159,19 @@ export async function calculateAutoEscalationAndCreateActivity(data: any) {
     }
     
     for (const mgrRole of Array.from(helperManagers)) {
-      approvalTasks.push({ step: ActivityApprovalStep.HELPER, approverRole: mgrRole, status: ApprovalStatus.PENDING })
+      const isMgrInPosition = approvalTasks.some(t => t.approverRole === mgrRole && t.step === ActivityApprovalStep.POSITION)
+      const isCreatorMgrOrHigher = maxLevel >= 3 && (highestRole === mgrRole || highestRole === ActivityRole.SALES_DIRECTOR)
+      
+      if (isMgrInPosition || isCreatorMgrOrHigher) {
+        approvalTasks.push({ 
+          step: ActivityApprovalStep.HELPER, 
+          approverRole: mgrRole, 
+          status: ApprovalStatus.APPROVED, 
+          notes: 'Auto-approved (รวบยอดกับขั้น Position แล้ว)' 
+        })
+      } else {
+        approvalTasks.push({ step: ActivityApprovalStep.HELPER, approverRole: mgrRole, status: ApprovalStatus.PENDING })
+      }
     }
     
   } else if (status === ActivityStatus.PENDING_HELPER) {
