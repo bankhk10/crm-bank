@@ -5,7 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { PlusCircle, Loader2, Edit2, Trash2 } from "lucide-react";
+import { PlusCircle, Loader2, Edit2, Trash2, Calendar, Truck, CreditCard } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormCombobox } from "@/components/custom/form-components";
+import DatePicker from "@/components/custom/DatePicker";
 import { buildCompanyAddress } from "@/lib/address-utils";
 import {
   Dialog,
@@ -164,17 +165,6 @@ export function CreateShipmentDialog({
   const deliveryMethod = watch("deliveryMethod");
   const pickupCompanyId = watch("pickupCompanyId");
   const shippingAddress = watch("shippingAddress");
-
-  // Better way to handle effect in react-hook-form
-  const onScheduledDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setValue("scheduledDate", val);
-    if (val && creditDays >= 0) {
-      const date = new Date(val);
-      date.setDate(date.getDate() + creditDays);
-      setValue("dueDate", date.toISOString().split("T")[0]);
-    }
-  };
 
   const isDelivered =
     shipment?.status === "DELIVERED" || shipment?.status === "COMPLETED";
@@ -394,35 +384,48 @@ export function CreateShipmentDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Shipping date (Scheduled date) */}
-            <div className="space-y-1.5">
-              <Label htmlFor="scheduledDate" className="text-sm">
+            <div className="space-y-3 group/field">
+              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <Truck className="h-4 w-4 text-[#B91C1C]" />
                 วันที่จัดส่งของ
-              </Label>
-              <Input
-                id="scheduledDate"
-                type="date"
-                className="h-9"
-                {...register("scheduledDate")}
-                onChange={onScheduledDateChange}
-                disabled={isCompleted}
-              />
+              </label>
+              <div className="relative">
+                <DatePicker
+                  value={watch("scheduledDate")}
+                  onChange={(val) => {
+                    setValue("scheduledDate", val || "");
+                    if (val && creditDays >= 0) {
+                      const date = new Date(val);
+                      date.setDate(date.getDate() + creditDays);
+                      setValue("dueDate", date.toISOString().split("T")[0]);
+                    }
+                  }}
+                  label=""
+                  placeholder="เลือกวันที่จัดส่ง"
+                  disabled={isCompleted}
+                />
+              </div>
             </div>
 
             {/* Due Date */}
-            <div className="space-y-1.5">
-              <Label htmlFor="dueDate" className="text-sm">
+            <div className="space-y-3 group/field">
+              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-[#B91C1C]" />
                 วันครบกำหนดชำระ
-              </Label>
-              <Input
-                id="dueDate"
-                type="date"
-                className="h-9"
-                {...register("dueDate")}
-                disabled={isCompleted}
-              />
-              <p className="text-[10px] text-muted-foreground">
+              </label>
+              <div className="relative">
+                <DatePicker
+                  value={watch("dueDate")}
+                  onChange={(val) => setValue("dueDate", val || "")}
+                  label=""
+                  placeholder="เลือกวันครบกำหนด"
+                  disabled={isCompleted}
+                />
+              </div>
+              <p className="text-xs text-gray-500 flex items-center gap-1.5 bg-gray-50 px-3 py-2 rounded-lg">
+                <span className="h-1.5 w-1.5 rounded-full bg-gray-400 inline-block"></span>
                 คำนวณจาก วันจัดส่ง + {creditDays} วัน
               </p>
             </div>
@@ -478,17 +481,20 @@ export function CreateShipmentDialog({
             </div>
 
             {/* Payment Date */}
-            <div className="space-y-1.5">
-              <Label htmlFor="paymentDate" className="text-sm">
+            <div className="space-y-3 group/field">
+              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-[#B91C1C]" />
                 วันที่ชำระเงิน
-              </Label>
-              <Input
-                id="paymentDate"
-                type="date"
-                className="h-9"
-                {...register("paymentDate")}
-                disabled={isCompleted}
-              />
+              </label>
+              <div className="relative">
+                <DatePicker
+                  value={watch("paymentDate")}
+                  onChange={(val) => setValue("paymentDate", val || "")}
+                  label=""
+                  placeholder="เลือกวันที่ชำระเงิน"
+                  disabled={isCompleted}
+                />
+              </div>
             </div>
           </div>
 
