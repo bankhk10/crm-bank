@@ -136,8 +136,32 @@ export async function calculateAutoEscalationAndCreateActivity(data: any) {
 
   // Step 4: Helper Check
   if (data.helpers && data.helpers.length > 0) {
-    // Simplified: Just require Sales Admin Mgr if there are helpers
-    approvalTasks.push({ step: ActivityApprovalStep.HELPER, approverRole: ActivityRole.SALES_ADMIN_MANAGER, status: ApprovalStatus.PENDING })
+    const helperManagers = new Set<ActivityRole>()
+    
+    for (const h of data.helpers) {
+      const hRoles = await repo.getEmployeeZoneRoles(h.employeeId)
+      const hZoneRoles = hRoles.filter(r => r.zone === data.zone || r.zone === 'ALL')
+      
+      let hMaxLevel = -1
+      let hRole: ActivityRole = 'PROMOTER'
+      for (const zr of hZoneRoles) {
+        const lvl = getRoleLevel(zr.role)
+        if (lvl > hMaxLevel) { hMaxLevel = lvl; hRole = zr.role }
+      }
+      
+      h.helperRole = hRole // Update actual role
+      
+      if (hRole === ActivityRole.MARKETING || hRole === ActivityRole.MARKETING_MANAGER) {
+        helperManagers.add(ActivityRole.MARKETING_MANAGER)
+      } else {
+        helperManagers.add(ActivityRole.SALES_ADMIN_MANAGER)
+      }
+    }
+    
+    for (const mgrRole of Array.from(helperManagers)) {
+      approvalTasks.push({ step: ActivityApprovalStep.HELPER, approverRole: mgrRole, status: ApprovalStatus.PENDING })
+    }
+    
   } else if (status === ActivityStatus.PENDING_HELPER) {
     status = ActivityStatus.APPROVED
   }
