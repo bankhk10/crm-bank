@@ -182,6 +182,16 @@ model Employee {
   salesTargets         SalesTarget[]
   pointSummary         EmployeePointSummary?
   pointHistories       EmployeePointHistory[]
+
+  // Activity Approval Flow Relations
+  activityZoneRoles    EmployeeZoneRole[]
+  createdActivities    Activity[]
+  activityHelps        ActivityHelper[]
+  activityApprovals    ActivityApprovalTask[]
+  
+  // Supervisor and Assignment Relations
+  zoneSupervisees      EmployeeZoneRole[]     @relation("ZoneSupervisor")
+  assignedApprovals    ActivityApprovalTask[] @relation("TaskAssignedApprover")
 }
 
 model Department {
@@ -1457,4 +1467,122 @@ model FailedLoginAttempt {
 
   @@index([email])
   @@index([createdAt])
+}
+
+// ==========================================
+// ACTIVITY APPROVAL FLOW (ISOLATED TEST MODULE)
+// ==========================================
+
+enum ActivityRole {
+  PROMOTER
+  SALES
+  REGIONAL_MANAGER
+  MARKETING
+  MARKETING_MANAGER
+  SALES_ADMIN_MANAGER
+  SALES_DIRECTOR
+}
+
+enum ActivityStatus {
+  DRAFT
+  PENDING_POSITION
+  PENDING_BUDGET
+  PENDING_HELPER
+  APPROVED
+  REJECTED
+}
+
+enum ActivityBudgetType {
+  SALES_PROMOTION
+  MARKETING
+}
+
+enum ActivityApprovalStep {
+  POSITION
+  BUDGET_DEPT
+  BUDGET_DIRECTOR
+  HELPER
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model EmployeeZoneRole {
+  id         String       @id @default(cuid())
+  employeeId String
+  role       ActivityRole
+  zone       String       // e.g. "Zone 1", "Zone 2", "All"
+  supervisorId String?    // หัวหน้าสายตรงในเขต/ตำแหน่งนี้
+  isActive   Boolean      @default(true)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  supervisor Employee? @relation("ZoneSupervisor", fields: [supervisorId], references: [id], onDelete: SetNull)
+
+  @@unique([employeeId, role, zone])
+}
+
+model Activity {
+  id              String         @id @default(cuid())
+  title           String         // 1.ชื่อกิจกรรม
+  startDate       DateTime       // 2.วันและเวลาที่จัดกิจกรรม
+  endDate         DateTime
+  activityType    String         // 3.ประเภทกิจกรรม
+  locationDetails String         // 4.รายละเอียดพื้นที่จัดกิจกรรม
+  target          String         // 5.เป้าหมาย
+  details         String         // 6.รายละเอียดกิจกรรม
+  notes           String?        // 9.หมายเหตุเพิ่มเติม
+  zone            String         // เขต
+  
+  status          ActivityStatus @default(DRAFT)
+  
+  createdById     String         // ผู้สร้างกิจกรรม
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  createdBy       Employee               @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  budgets         ActivityBudget[]
+  helpers         ActivityHelper[]
+  approvalTasks   ActivityApprovalTask[]
+}
+
+model ActivityBudget {
+  id         String             @id @default(cuid())
+  activityId String
+  budgetType ActivityBudgetType // 7.ประเภทงบ
+  amount     Decimal            @default(0) @db.Decimal(15, 2)
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+}
+
+model ActivityHelper {
+  id         String       @id @default(cuid())
+  activityId String
+  employeeId String       // 8.รายชื่อพนักงานช่วยงานกิจกรรม
+  helperRole ActivityRole // ตำแหน่งของคนช่วยงาน (ใช้อ้างอิงว่าส่งให้ใครอนุมัติ)
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+}
+
+model ActivityApprovalTask {
+  id           String               @id @default(cuid())
+  activityId   String
+  step         ActivityApprovalStep // อยู่ใน Step ไหน
+  approverRole ActivityRole         // รอให้ตำแหน่งไหนอนุมัติ
+  status       ApprovalStatus       @default(PENDING)
+  notes        String?
+
+  approvedById String?              // ใครเป็นคนกดอนุมัติ
+  approvedAt   DateTime?
+  
+  assignedApproverId String?        // ระบุตัวบุคคลที่ต้องเป็นคนอนุมัติ
+
+  activity         Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  approvedBy       Employee? @relation(fields: [approvedById], references: [id], onDelete: SetNull)
+  assignedApprover Employee? @relation("TaskAssignedApprover", fields: [assignedApproverId], references: [id], onDelete: SetNull)
 }
