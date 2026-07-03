@@ -6,6 +6,7 @@ export interface CreateShipmentData {
   dueDate?: Date | null;
   salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
+  shippingCompanyName?: string | null;
   notes?: string | null;
   totalAmount: number;
   shippingDiscount?: number | null;
@@ -14,6 +15,7 @@ export interface CreateShipmentData {
   items: Array<{ saleItemId: string; quantity: number; unitPrice: number; totalPrice: number }>;
   deliveryMethod?: string | null;
   pickupCompanyId?: string | null;
+  pickupCompanyName?: string | null;
   shippingAddress?: string | null;
 }
 
@@ -25,6 +27,7 @@ export interface UpdateShipmentData {
   dueDate?: Date | null;
   salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
+  shippingCompanyName?: string | null;
   notes?: string | null;
   totalAmount?: number;
   shippingDiscount?: number | null;
@@ -32,6 +35,7 @@ export interface UpdateShipmentData {
   items?: Array<{ saleItemId: string; quantity: number; unitPrice: number; totalPrice: number }>;
   deliveryMethod?: string | null;
   pickupCompanyId?: string | null;
+  pickupCompanyName?: string | null;
   shippingAddress?: string | null;
 }
 
@@ -64,12 +68,14 @@ export const ShipmentRepository = {
         dueDate: data.dueDate ?? null,
         salesOrderNumber: data.salesOrderNumber ?? null,
         shippingCompanyId: data.shippingCompanyId ?? null,
+        shippingCompanyName: data.shippingCompanyName ?? null,
         notes: data.notes ?? null,
         totalAmount: data.totalAmount,
         shippingDiscount: data.shippingDiscount ?? 0,
         billDiscount: data.billDiscount ?? 0,
         deliveryMethod: data.deliveryMethod ?? null,
         pickupCompanyId: data.pickupCompanyId ?? null,
+        pickupCompanyName: data.pickupCompanyName ?? null,
         shippingAddress: data.shippingAddress ?? null,
         createdById: data.createdById,
         items: {
@@ -203,12 +209,14 @@ export const ShipmentRepository = {
         ...(data.dueDate !== undefined && { dueDate: data.dueDate }),
         ...(data.salesOrderNumber !== undefined && { salesOrderNumber: data.salesOrderNumber }),
         ...(data.shippingCompanyId !== undefined && { shippingCompanyId: data.shippingCompanyId }),
+        ...(data.shippingCompanyName !== undefined && { shippingCompanyName: data.shippingCompanyName }),
         ...(data.notes !== undefined && { notes: data.notes }),
         ...(data.shippingDiscount !== undefined && { shippingDiscount: data.shippingDiscount ?? 0 }),
         ...(data.billDiscount !== undefined && { billDiscount: data.billDiscount ?? 0 }),
         ...(data.totalAmount !== undefined && { totalAmount: data.totalAmount }),
         ...(data.deliveryMethod !== undefined && { deliveryMethod: data.deliveryMethod }),
         ...(data.pickupCompanyId !== undefined && { pickupCompanyId: data.pickupCompanyId }),
+        ...(data.pickupCompanyName !== undefined && { pickupCompanyName: data.pickupCompanyName }),
         ...(data.shippingAddress !== undefined && { shippingAddress: data.shippingAddress }),
       },
       include: {
