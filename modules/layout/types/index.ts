@@ -4,6 +4,7 @@
  */
 
 import type { ReactNode } from "react";
+import type { LoginAnnouncementItem } from "@/modules/login-announcements";
 
 /**
  * Sidebar child navigation item
@@ -64,4 +65,7 @@ export interface DashboardShellProps {
   displayName?: string | null;
   roles: string[];
   permissionKeys: string[];
+  /** Active login announcements for this user's roles (fetched server-side) */
+  announcements?: LoginAnnouncementItem[];
 }
+

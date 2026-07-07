@@ -5,18 +5,24 @@ import type { DashboardShellProps } from "../types";
 import Sidebar from "./sidebar";
 import Navbar from "./navbar";
 import { SessionTimeoutWarning } from "../../auth/features/session-timeout-warning/session-timeout-warning";
+import LoginAnnouncementPopup from "../../login-announcements/features/popup/login-announcement-popup";
 
 export default function DashboardShell({
     children,
     displayName,
     roles,
     permissionKeys,
+    announcements = [],
 }: DashboardShellProps) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     return (
         <div className="fixed inset-0 flex min-h-screen overflow-hidden bg-[#b92626]">
             <SessionTimeoutWarning />
+
+            {/* Post-login announcement popup slideshow */}
+            <LoginAnnouncementPopup items={announcements} />
+
             {/* Desktop Sidebar */}
             <Sidebar
                 permissionKeys={permissionKeys}
@@ -77,3 +83,4 @@ export default function DashboardShell({
         </div>
     );
 }
+
