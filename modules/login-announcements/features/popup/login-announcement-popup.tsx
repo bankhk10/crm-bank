@@ -65,43 +65,41 @@ export default function LoginAnnouncementPopup({
       aria-modal
       aria-label="ประกาศจากระบบ"
     >
-      {/* Modal card */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-fade-in-scale">
-        {/* Close button (same as Next for UX consistency) */}
+      {/* Content wrapper without background frame */}
+      <div className="relative flex flex-col items-center w-full max-w-3xl animate-in zoom-in-95 duration-300">
+        
+        {/* Floating Close Button */}
         <button
-          onClick={handleNext}
+          onClick={handleClose}
           aria-label="ปิด popup"
-          className="absolute top-3 right-3 z-10 rounded-full bg-black/40 text-white p-1.5 hover:bg-black/60 transition-colors"
+          className="absolute -top-3 -right-3 md:-top-5 md:-right-5 z-20 rounded-full bg-black/60 border border-white/20 backdrop-blur-md text-white p-2 shadow-lg hover:bg-black/80 transition-colors"
         >
-          <X className="w-4 h-4" />
+          <X className="w-5 h-5" />
         </button>
 
         {/* Counter badge (only when multiple slides) */}
         {items.length > 1 && (
-          <div className="absolute top-3 left-3 z-10 bg-black/40 text-white text-xs rounded-full px-2.5 py-0.5">
+          <div className="absolute top-3 left-3 z-20 bg-black/60 border border-white/20 backdrop-blur-md text-white text-sm rounded-full px-3 py-1 shadow-lg">
             {currentIndex + 1} / {items.length}
           </div>
         )}
 
-        {/* Image area */}
-        <div className="relative w-full aspect-video bg-gray-100">
-          <Image
-            src={current.imageUrl}
-            alt={current.title ?? `ประกาศ ${currentIndex + 1}`}
-            fill
-            className="object-contain"
-            priority
-          />
-        </div>
+        {/* Image (Responsive, no fixed aspect ratio wrapper) */}
+        <img
+          src={current.imageUrl}
+          alt={current.title ?? `ประกาศ ${currentIndex + 1}`}
+          className="max-w-full max-h-[75vh] w-auto h-auto rounded-xl shadow-2xl object-contain cursor-pointer"
+          onClick={handleNext}
+        />
 
-        {/* Footer */}
-        <div className="p-4 flex justify-end">
+        {/* Next / Close Button */}
+        <div className="mt-6 w-full flex justify-center">
           <Button
             id="announcement-popup-next-btn"
             onClick={handleNext}
-            className="bg-[#c62828] hover:bg-[#b71c1c] text-white px-8"
+            className="bg-[#c62828] hover:bg-[#b71c1c] text-white px-10 py-6 text-lg rounded-full shadow-xl shadow-red-900/30 transition-transform active:scale-95"
           >
-            {isLast ? "ปิด" : "ถัดไป"}
+            {isLast ? "รับทราบ" : "ถัดไป"}
           </Button>
         </div>
       </div>
