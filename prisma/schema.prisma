@@ -1458,3 +1458,19 @@ model FailedLoginAttempt {
   @@index([email])
   @@index([createdAt])
 }
+
+// ==========================================
+// LOGIN ANNOUNCEMENT (Post-Login Popup)
+// ==========================================
+
+model LoginAnnouncement {
+  id        String    @id @default(cuid())
+  imageUrl  String
+  title     String?
+  roles     String[]
+  sortOrder Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
