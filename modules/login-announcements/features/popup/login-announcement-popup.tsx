@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
-import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { LoginAnnouncementItem } from "../../infrastructure/login-announcement.repository";
 
@@ -68,14 +66,6 @@ export default function LoginAnnouncementPopup({
       {/* Content wrapper without background frame */}
       <div className="relative flex flex-col items-center w-full max-w-3xl animate-in zoom-in-95 duration-300">
         
-        {/* Floating Close Button */}
-        <button
-          onClick={handleClose}
-          aria-label="ปิด popup"
-          className="absolute -top-3 -right-3 md:-top-5 md:-right-5 z-20 rounded-full bg-black/60 border border-white/20 backdrop-blur-md text-white p-2 shadow-lg hover:bg-black/80 transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
 
         {/* Counter badge (only when multiple slides) */}
         {items.length > 1 && (
