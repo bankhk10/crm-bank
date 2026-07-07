@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Upload } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -64,6 +65,17 @@ export default function LoginAnnouncementForm({
     setSelectedRoles((prev) =>
       prev.includes(slug) ? prev.filter((r) => r !== slug) : [...prev, slug]
     );
+  };
+
+  const isAllRolesSelected =
+    availableRoles.length > 0 && selectedRoles.length === availableRoles.length;
+
+  const toggleAllRoles = () => {
+    if (isAllRolesSelected) {
+      setSelectedRoles([]);
+    } else {
+      setSelectedRoles(availableRoles.map((r) => r.slug));
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,34 +167,54 @@ export default function LoginAnnouncementForm({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Image Upload */}
           <div className="space-y-2">
-            <Label htmlFor="announcement-image-upload">รูปภาพ *</Label>
-            <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center">
+            <Label>รูปภาพ *</Label>
+            <label
+              htmlFor="announcement-image-upload"
+              className="relative flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50/50 hover:bg-gray-50 hover:border-blue-400 transition-all duration-200"
+            >
               {previewUrl ? (
-                <div className="relative w-full h-48">
-                  <Image
-                    src={previewUrl}
-                    alt="Preview"
-                    fill
-                    className="object-contain rounded"
-                  />
-                </div>
+                <>
+                  <div className="relative w-full h-48 mb-4">
+                    <Image
+                      src={previewUrl}
+                      alt="Preview"
+                      fill
+                      className="object-contain rounded-md shadow-sm"
+                    />
+                  </div>
+                  {!uploading && (
+                    <div className="flex items-center gap-2 text-sm text-blue-600 font-medium bg-blue-50 px-3 py-1.5 rounded-full">
+                      <Upload className="w-4 h-4" />
+                      เปลี่ยนรูปภาพ
+                    </div>
+                  )}
+                </>
               ) : (
-                <p className="text-gray-400 text-sm py-8">
-                  ยังไม่มีรูปภาพ – กดเลือกไฟล์ด้านล่าง
-                </p>
+                <div className="py-6 flex flex-col items-center text-center">
+                  <div className="p-3 bg-white rounded-full shadow-sm border border-gray-100 mb-4">
+                    <Upload className="w-8 h-8 text-blue-500" />
+                  </div>
+                  <p className="text-gray-700 font-medium mb-1">คลิกเพื่ออัปโหลดรูปภาพ</p>
+                  <p className="text-gray-400 text-sm">รองรับไฟล์ JPG, PNG, GIF</p>
+                </div>
               )}
+              
               <Input
                 id="announcement-image-upload"
                 type="file"
                 accept="image/*"
                 onChange={handleImageUpload}
                 disabled={uploading}
-                className="mt-2"
+                className="hidden"
               />
+              
               {uploading && (
-                <p className="text-sm text-gray-500 mt-1">กำลังอัปโหลด...</p>
+                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-lg z-10">
+                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                  <p className="text-sm text-blue-700 font-semibold animate-pulse">กำลังอัปโหลด...</p>
+                </div>
               )}
-            </div>
+            </label>
           </div>
 
           {/* Title */}
@@ -199,21 +231,31 @@ export default function LoginAnnouncementForm({
           </div>
 
           {/* Roles */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>แสดงให้ Role * (เลือกอย่างน้อย 1)</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {availableRoles.map((role) => (
-                <label
-                  key={role.slug}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <Checkbox
-                    checked={selectedRoles.includes(role.slug)}
-                    onCheckedChange={() => toggleRole(role.slug)}
-                  />
-                  <span className="text-sm">{role.name}</span>
-                </label>
-              ))}
+            <div className="bg-gray-50/50 border border-gray-100 rounded-lg p-4">
+              <label className="flex items-center gap-3 cursor-pointer pb-3 border-b border-gray-200 mb-3">
+                <Checkbox
+                  checked={isAllRolesSelected}
+                  onCheckedChange={toggleAllRoles}
+                />
+                <span className="text-sm font-semibold text-blue-700">เลือกทั้งหมด</span>
+              </label>
+
+              <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+                {availableRoles.map((role) => (
+                  <label
+                    key={role.slug}
+                    className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 p-1.5 -ml-1.5 rounded-md transition-colors"
+                  >
+                    <Checkbox
+                      checked={selectedRoles.includes(role.slug)}
+                      onCheckedChange={() => toggleRole(role.slug)}
+                    />
+                    <span className="text-sm text-gray-700">{role.name}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
 
