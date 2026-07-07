@@ -26,10 +26,13 @@ export default function LoginAnnouncementPopup({
 
   if (!mounted) return null;
 
-  const seen = !previewMode && sessionStorage.getItem("login_announcement_seen") === "true";
+  const seen =
+    !previewMode &&
+    sessionStorage.getItem("login_announcement_seen") === "true";
 
   // No popup when there are no items, all have been shown, or already seen/closed
-  if (items.length === 0 || currentIndex >= items.length || seen || isClosed) return null;
+  if (items.length === 0 || currentIndex >= items.length || seen || isClosed)
+    return null;
 
   const current = items[currentIndex];
   const isLast = currentIndex === items.length - 1;
@@ -62,14 +65,12 @@ export default function LoginAnnouncementPopup({
     >
       {/* Content wrapper without background frame */}
       <div className="relative flex flex-col items-center w-full max-w-3xl animate-in zoom-in-95 duration-300">
-        
-
         {/* Counter badge (only when multiple slides) */}
-        {items.length > 1 && (
+        {/* {items.length > 1 && (
           <div className="absolute top-3 left-3 z-20 bg-black/60 border border-white/20 backdrop-blur-md text-white text-sm rounded-full px-3 py-1 shadow-lg">
             {currentIndex + 1} / {items.length}
           </div>
-        )}
+        )} */}
 
         {/* Image (Responsive, no fixed aspect ratio wrapper) */}
         <img
