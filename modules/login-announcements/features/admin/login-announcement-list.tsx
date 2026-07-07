@@ -42,10 +42,12 @@ import type { LoginAnnouncementItem } from "../../infrastructure/login-announcem
 
 interface LoginAnnouncementListProps {
   initialItems: LoginAnnouncementItem[];
+  availableRoles: { slug: string; name: string }[];
 }
 
 export default function LoginAnnouncementList({
   initialItems,
+  availableRoles,
 }: LoginAnnouncementListProps) {
   const [items, setItems] = useState<LoginAnnouncementItem[]>(initialItems);
   const [isPending, startTransition] = useTransition();
@@ -174,11 +176,14 @@ export default function LoginAnnouncementList({
                   {/* Roles */}
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {item.roles.map((r) => (
-                        <Badge key={r} variant="secondary" className="text-xs">
-                          {r}
-                        </Badge>
-                      ))}
+                      {item.roles.map((r) => {
+                        const roleName = availableRoles.find((role) => role.slug === r)?.name || r;
+                        return (
+                          <Badge key={r} variant="secondary" className="text-xs">
+                            {roleName}
+                          </Badge>
+                        );
+                      })}
                     </div>
                   </TableCell>
 
@@ -244,6 +249,7 @@ export default function LoginAnnouncementList({
         onClose={() => setFormOpen(false)}
         onSuccess={refresh}
         item={editItem}
+        availableRoles={availableRoles}
       />
 
       {/* Delete Confirm Dialog */}

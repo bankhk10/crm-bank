@@ -19,19 +19,12 @@ import {
 } from "../../server/actions";
 import type { LoginAnnouncementItem } from "../../infrastructure/login-announcement.repository";
 
-// ─── Available Roles ──────────────────────────────────────────────────────────
-const AVAILABLE_ROLES = [
-  { slug: "admin", label: "Admin" },
-  { slug: "manager", label: "Manager" },
-  { slug: "employee", label: "Employee" },
-  { slug: "sales", label: "Sales" },
-];
-
 interface LoginAnnouncementFormProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
   item?: LoginAnnouncementItem | null;
+  availableRoles: { slug: string; name: string }[];
 }
 
 export default function LoginAnnouncementForm({
@@ -39,6 +32,7 @@ export default function LoginAnnouncementForm({
   onClose,
   onSuccess,
   item,
+  availableRoles,
 }: LoginAnnouncementFormProps) {
   const isEdit = Boolean(item);
   const [isPending, startTransition] = useTransition();
@@ -208,7 +202,7 @@ export default function LoginAnnouncementForm({
           <div className="space-y-2">
             <Label>แสดงให้ Role * (เลือกอย่างน้อย 1)</Label>
             <div className="grid grid-cols-2 gap-2">
-              {AVAILABLE_ROLES.map((role) => (
+              {availableRoles.map((role) => (
                 <label
                   key={role.slug}
                   className="flex items-center gap-2 cursor-pointer"
@@ -217,7 +211,7 @@ export default function LoginAnnouncementForm({
                     checked={selectedRoles.includes(role.slug)}
                     onCheckedChange={() => toggleRole(role.slug)}
                   />
-                  <span className="text-sm">{role.label}</span>
+                  <span className="text-sm">{role.name}</span>
                 </label>
               ))}
             </div>
