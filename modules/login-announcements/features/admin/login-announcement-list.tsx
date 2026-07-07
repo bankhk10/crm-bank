@@ -10,6 +10,7 @@ import {
   Plus,
   ToggleLeft,
   ToggleRight,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +39,7 @@ import {
   listAnnouncementsAction,
 } from "../../server/actions";
 import LoginAnnouncementForm from "./login-announcement-form";
+import LoginAnnouncementPopup from "../popup/login-announcement-popup";
 import type { LoginAnnouncementItem } from "../../infrastructure/login-announcement.repository";
 
 interface LoginAnnouncementListProps {
@@ -55,6 +57,9 @@ export default function LoginAnnouncementList({
   // Form dialog
   const [formOpen, setFormOpen] = useState(false);
   const [editItem, setEditItem] = useState<LoginAnnouncementItem | null>(null);
+
+  // Preview dialog
+  const [previewItem, setPreviewItem] = useState<LoginAnnouncementItem | null>(null);
 
   // Delete confirm
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -220,8 +225,18 @@ export default function LoginAnnouncementList({
                       <Button
                         size="sm"
                         variant="outline"
+                        onClick={() => setPreviewItem(item)}
+                        aria-label="ดูตัวอย่าง"
+                        title="ดูตัวอย่าง"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => openEdit(item)}
                         aria-label="แก้ไข"
+                        title="แก้ไข"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </Button>
@@ -231,6 +246,7 @@ export default function LoginAnnouncementList({
                         className="text-red-600 border-red-200 hover:bg-red-50"
                         onClick={() => setDeleteId(item.id)}
                         aria-label="ลบ"
+                        title="ลบ"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
@@ -251,6 +267,15 @@ export default function LoginAnnouncementList({
         item={editItem}
         availableRoles={availableRoles}
       />
+
+      {/* Preview Dialog */}
+      {previewItem && (
+        <LoginAnnouncementPopup
+          items={[previewItem]}
+          previewMode={true}
+          onPreviewClose={() => setPreviewItem(null)}
+        />
+      )}
 
       {/* Delete Confirm Dialog */}
       <AlertDialog

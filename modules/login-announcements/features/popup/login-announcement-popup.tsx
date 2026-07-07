@@ -8,21 +8,30 @@ import type { LoginAnnouncementItem } from "../../infrastructure/login-announcem
 
 interface LoginAnnouncementPopupProps {
   items: LoginAnnouncementItem[];
+  previewMode?: boolean;
+  onPreviewClose?: () => void;
 }
 
 export default function LoginAnnouncementPopup({
   items,
+  previewMode = false,
+  onPreviewClose,
 }: LoginAnnouncementPopupProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [hasSeen, setHasSeen] = useState(true);
+  const [hasSeen, setHasSeen] = useState(!previewMode); // If previewMode, default to false so it shows
 
   useEffect(() => {
+    if (previewMode) {
+      setHasSeen(false);
+      setCurrentIndex(0);
+      return;
+    }
     // Only show if not seen in the current browser session
     const seen = sessionStorage.getItem("login_announcement_seen");
     if (!seen) {
       setHasSeen(false);
     }
-  }, []);
+  }, [previewMode, items]);
 
   // No popup when there are no items, all have been shown, or already seen
   if (items.length === 0 || currentIndex >= items.length || hasSeen) return null;
@@ -30,12 +39,21 @@ export default function LoginAnnouncementPopup({
   const current = items[currentIndex];
   const isLast = currentIndex === items.length - 1;
 
-  const handleNext = () => {
-    const nextIndex = currentIndex + 1;
-    setCurrentIndex(nextIndex);
-    if (nextIndex >= items.length) {
+  const handleClose = () => {
+    if (previewMode) {
+      onPreviewClose?.();
+    } else {
       sessionStorage.setItem("login_announcement_seen", "true");
       setHasSeen(true);
+    }
+  };
+
+  const handleNext = () => {
+    const nextIndex = currentIndex + 1;
+    if (nextIndex >= items.length) {
+      handleClose();
+    } else {
+      setCurrentIndex(nextIndex);
     }
   };
 
