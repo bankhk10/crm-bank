@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,13 +43,28 @@ export default function LoginAnnouncementForm({
   const isEdit = Boolean(item);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState(item?.imageUrl ?? "");
-  const [title, setTitle] = useState(item?.title ?? "");
-  const [selectedRoles, setSelectedRoles] = useState<string[]>(
-    item?.roles ?? []
-  );
+  const [imageUrl, setImageUrl] = useState("");
+  const [title, setTitle] = useState("");
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState(item?.imageUrl ?? "");
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setImageUrl(item?.imageUrl ?? "");
+      setTitle(item?.title ?? "");
+      setSelectedRoles(item?.roles ?? []);
+      setPreviewUrl(item?.imageUrl ?? "");
+      setSelectedFile(null);
+      setError(null);
+    } else {
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, item]);
 
   const toggleRole = (slug: string) => {
     setSelectedRoles((prev) =>
@@ -57,34 +72,24 @@ export default function LoginAnnouncementForm({
     );
   };
 
-  const handleImageUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    try {
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const data = await res.json();
-      if (data.url) {
-        setImageUrl(data.url);
-        setPreviewUrl(data.url);
-      } else {
-        setError("อัปโหลดรูปภาพไม่สำเร็จ");
-      }
-    } catch {
-      setError("เกิดข้อผิดพลาดในการอัปโหลด");
-    } finally {
-      setUploading(false);
+    
+    // Clear old blob url if exists
+    if (previewUrl && previewUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(previewUrl);
     }
+
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    setImageUrl(""); // Clear old url to ensure we upload the new one
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!imageUrl) {
+    if (!imageUrl && !selectedFile) {
       setError("กรุณาอัปโหลดรูปภาพ");
       return;
     }
@@ -93,9 +98,32 @@ export default function LoginAnnouncementForm({
       return;
     }
 
+    setUploading(true);
+    let finalImageUrl = imageUrl;
+
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      try {
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        const data = await res.json();
+        if (data.url) {
+          finalImageUrl = data.url;
+        } else {
+          setError("อัปโหลดรูปภาพไม่สำเร็จ");
+          setUploading(false);
+          return;
+        }
+      } catch {
+        setError("เกิดข้อผิดพลาดในการอัปโหลด");
+        setUploading(false);
+        return;
+      }
+    }
+
     startTransition(async () => {
       const input = {
-        imageUrl,
+        imageUrl: finalImageUrl,
         title: title || undefined,
         roles: selectedRoles,
         isActive: true,
@@ -103,6 +131,8 @@ export default function LoginAnnouncementForm({
       const result = isEdit
         ? await updateAnnouncementAction(item!.id, input)
         : await createAnnouncementAction(input);
+        
+      setUploading(false);
       if (result.success) {
         onSuccess();
         onClose();
