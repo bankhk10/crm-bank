@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,14 +14,30 @@ export default function LoginAnnouncementPopup({
   items,
 }: LoginAnnouncementPopupProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [hasSeen, setHasSeen] = useState(true);
 
-  // No popup when there are no items or all have been shown
-  if (items.length === 0 || currentIndex >= items.length) return null;
+  useEffect(() => {
+    // Only show if not seen in the current browser session
+    const seen = sessionStorage.getItem("login_announcement_seen");
+    if (!seen) {
+      setHasSeen(false);
+    }
+  }, []);
+
+  // No popup when there are no items, all have been shown, or already seen
+  if (items.length === 0 || currentIndex >= items.length || hasSeen) return null;
 
   const current = items[currentIndex];
   const isLast = currentIndex === items.length - 1;
 
-  const handleNext = () => setCurrentIndex((prev) => prev + 1);
+  const handleNext = () => {
+    const nextIndex = currentIndex + 1;
+    setCurrentIndex(nextIndex);
+    if (nextIndex >= items.length) {
+      sessionStorage.setItem("login_announcement_seen", "true");
+      setHasSeen(true);
+    }
+  };
 
   return (
     /* Overlay */

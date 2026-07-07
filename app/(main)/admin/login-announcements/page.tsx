@@ -12,8 +12,8 @@ export default async function LoginAnnouncementsAdminPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const roles: string[] = session.user.roles ?? [];
-  if (!roles.includes("admin")) redirect("/dashboard");
+  const permissionKeys = session.user.permissionKeys ?? [];
+  if (!permissionKeys.includes("menu.announcements")) redirect("/dashboard");
 
   const items = await listAnnouncementsAction();
 

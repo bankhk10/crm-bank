@@ -605,6 +605,27 @@ const permissionGroups: Record<string, PermissionGroup> = {
   },
 
   // ─────────────────────────────────────────────
+  // 📢 Announcements (ประกาศ)
+  // ─────────────────────────────────────────────
+  announcements: {
+    menu: {
+      key: "menu.announcements",
+      name: "เมนูจัดการ Popup",
+      resource: "announcement",
+      menuPath: "/admin/login-announcements",
+    },
+    actions: [
+      {
+        key: "announcement.manage",
+        name: "จัดการ Popup หลัง Login",
+        resource: "announcement",
+        action: "manage",
+      },
+    ],
+  },
+
+
+  // ─────────────────────────────────────────────
   // ⚙️ Admin / System (ตั้งค่าระบบ)
   // ─────────────────────────────────────────────
   admin: {
@@ -1312,6 +1333,8 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "stock.lot.manage" },
     { key: "system.audit_log" },
     { key: "system.security_log" },
+    { key: "menu.announcements" },
+    { key: "announcement.manage" },
 
     {
       key: "data.sales_targets",
