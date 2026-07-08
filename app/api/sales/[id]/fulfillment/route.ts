@@ -114,7 +114,6 @@ export async function POST(
     }
 
     // 2. Delivery Date - with update count tracking
-    let shouldMarkOverdue = false; // Flag to mark as OVERDUE if exceeds max updates
 
     if (deliveryDate !== undefined) {
       const newDate = deliveryDate ? new Date(deliveryDate) : null;
@@ -133,22 +132,10 @@ export async function POST(
 
       // Increment update count only when changing existing date (not first time setting)
       if (isChangingDate) {
-        const maxUpdates = sale.maxDeliveryUpdates ?? 3;
         const newCount = sale.deliveryUpdateCount + 1;
-
-        if (newCount > maxUpdates) {
-          // Exceeds max updates → Mark as OVERDUE immediately
-          shouldMarkOverdue = true;
-          updateData.status = "OVERDUE";
-          updateData.isDeliveryLocked = true;
-          updateData.deliveryUpdateCount = newCount;
-          updateData.lastDeliveryUpdate = new Date();
-          // Don't update delivery date - keep it as is
-        } else {
-          updateData.deliveryUpdateCount = newCount;
-          updateData.lastDeliveryUpdate = new Date();
-          updateData.deliveryDate = newDate;
-        }
+        updateData.deliveryUpdateCount = newCount;
+        updateData.lastDeliveryUpdate = new Date();
+        updateData.deliveryDate = newDate;
       } else if (isAddingDate) {
         // First time setting delivery date
         updateData.lastDeliveryUpdate = new Date();
@@ -203,10 +190,8 @@ export async function POST(
     }
 
     const updatedSale = await prisma.$transaction(async (tx) => {
-      // Handle CANCELLED or OVERDUE status: Release stock and restore credit limit
       const shouldReleaseResources =
-        (status === "CANCELLED" && sale.status !== "CANCELLED") ||
-        (shouldMarkOverdue && sale.status !== "OVERDUE");
+        status === "CANCELLED" && sale.status !== "CANCELLED";
 
       if (shouldReleaseResources) {
         // 1. Release stock (return to available)

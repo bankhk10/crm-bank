@@ -66,7 +66,7 @@ Alternative:
 - PENDING_APPROVAL → REJECTED
 - PENDING_APPROVAL → WAITING_FOR_CORRECTION  
 - APPROVED / AWAITING_DELIVERY → CANCELLED (via auto-expiry if delivery date not specified within 3 days, or manual cancellation)
-- APPROVED / AWAITING_DELIVERY → OVERDUE (if delivery date changed > 3 times)
+- APPROVED / AWAITING_DELIVERY / PARTIALLY_DELIVERED / DELIVERY_COMPLETED → OVERDUE (if creditDueDate has passed without payment)
 ```
 
 | Status | Thai | Next Action |
@@ -80,7 +80,7 @@ Alternative:
 | DELIVERY_COMPLETED | ส่งเสร็จแล้ว | Complete |
 | COMPLETED | เสร็จสิ้น | Terminal |
 | CANCELLED | ยกเลิก | Terminal |
-| OVERDUE | เลยกำหนด | Terminal (แก้วันส่ง >3 ครั้ง) |
+| OVERDUE | เลยกำหนดครบชำระ | Terminal (เลยวันครบกำหนดชำระเงิน) |
 
 ### Customer Status
 | Status | Meaning | Can Order? |
@@ -148,7 +148,7 @@ Unique constraint: one SaleItem = one PointHistory
 
 ### Sale Rules
 ```
-- maxDeliveryUpdates = 3 (แก้เกิน = OVERDUE)
+- creditDueDate เลยวันปัจจุบัน = OVERDUE (เลยกำหนดครบชำระ)
 - orderExpiryDate = approvedAt + 3 วัน
 - ไม่ระบุ deliveryDate ภายใน 3 วัน = CANCELLED (ระบบยกเลิกอัตโนมัติ)
 ```

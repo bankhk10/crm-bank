@@ -115,30 +115,26 @@ export async function checkOverdueOrdersUseCase(): Promise<OrderCheckResult> {
   try {
     const overdueSales = await prisma.sale.findMany({
       where: {
-        status: "AWAITING_DELIVERY",
-        deliveryUpdateCount: { gte: ORDER_CONFIG.MAX_DELIVERY_UPDATES || 3 },
-        deliveryDate: { lt: now },
-        isDeliveryLocked: false,
+        status: {
+          in: ["APPROVED", "AWAITING_DELIVERY", "PARTIALLY_DELIVERED", "DELIVERY_COMPLETED"],
+        },
+        creditDueDate: { lt: now },
         deletedAt: null,
       },
       select: {
         id: true,
         saleNumber: true,
-        deliveryUpdateCount: true,
+        creditDueDate: true,
       },
     });
 
     for (const sale of overdueSales) {
       try {
         await prisma.$transaction(async (tx) => {
-          await releaseStock(sale.id, tx);
-          await restoreCreditLimit(sale.id, tx);
-
           await tx.sale.update({
             where: { id: sale.id },
             data: {
               status: "OVERDUE",
-              isDeliveryLocked: true,
             },
           });
 
@@ -146,7 +142,7 @@ export async function checkOverdueOrdersUseCase(): Promise<OrderCheckResult> {
             data: {
               saleId: sale.id,
               status: "OVERDUE",
-              notes: `ใบคำสั่งซื้อถูกปิดการแก้ไขเนื่องจากอัปเดตวันที่จัดส่ง ${sale.deliveryUpdateCount} ครั้งและยังไม่ได้จัดส่งตามกำหนด`,
+              notes: `ใบคำสั่งซื้อเปลี่ยนสถานะเป็นเลยกำหนดครบชำระเนื่องจากเลยกำหนดวันชำระเงิน (${sale.creditDueDate ? new Date(sale.creditDueDate).toLocaleDateString("th-TH") : "-"})`,
               changedById: "SYSTEM",
             },
           });
@@ -202,11 +198,6 @@ export async function updateDeliveryDateUseCase(
 
   try {
     await prisma.$transaction(async (tx) => {
-      if (newUpdateCount > maxUpdates && !isFirstDeliveryDate) {
-        throw new Error(
-          `ไม่สามารถอัปเดตวันที่จัดส่งได้อีก (ครง ${maxUpdates} ครั้งแล้ว)`,
-        );
-      }
 
       await tx.sale.update({
         where: { id: saleId },

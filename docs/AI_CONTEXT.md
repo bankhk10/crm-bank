@@ -139,7 +139,7 @@
 // Alternative paths:
 // PENDING_APPROVAL → REJECTED
 // APPROVED / AWAITING_DELIVERY → CANCELLED (via auto-expiry if delivery date not specified within 3 days, or manual cancellation)
-// APPROVED / AWAITING_DELIVERY → OVERDUE (if delivery date changed > 3 times)
+// APPROVED / AWAITING_DELIVERY / PARTIALLY_DELIVERED / DELIVERY_COMPLETED → OVERDUE (if creditDueDate has passed without payment)
 // PENDING_APPROVAL → WAITING_FOR_CORRECTION
 ```
 

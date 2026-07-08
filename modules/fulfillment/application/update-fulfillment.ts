@@ -54,7 +54,6 @@ export async function updateFulfillmentUseCase(
   }
 
   // 2. Delivery Date - with update count tracking
-  let shouldMarkOverdue = false;
 
   if (deliveryDate !== undefined) {
     const newDate = deliveryDate ? new Date(deliveryDate) : null;
@@ -68,22 +67,11 @@ export async function updateFulfillmentUseCase(
       throw new Error("ใบคำสั่งซื้อนี้ถูกล็อคการแก้ไขวันที่ระหว่างขนส่ง");
     }
 
-    // Increment update count only when changing existing date (not first time setting)
     if (isChangingDate) {
-      const maxUpdates = sale.maxDeliveryUpdates ?? 3;
       const newCount = sale.deliveryUpdateCount + 1;
-
-      if (newCount > maxUpdates) {
-        shouldMarkOverdue = true;
-        updateData.status = "OVERDUE";
-        updateData.isDeliveryLocked = true;
-        updateData.deliveryUpdateCount = newCount;
-        updateData.lastDeliveryUpdate = new Date();
-      } else {
-        updateData.deliveryUpdateCount = newCount;
-        updateData.lastDeliveryUpdate = new Date();
-        updateData.deliveryDate = newDate;
-      }
+      updateData.deliveryUpdateCount = newCount;
+      updateData.lastDeliveryUpdate = new Date();
+      updateData.deliveryDate = newDate;
     } else if (isAddingDate) {
       updateData.lastDeliveryUpdate = new Date();
       updateData.deliveryDate = newDate;
@@ -128,10 +116,7 @@ export async function updateFulfillmentUseCase(
 
   // Add history if status changed
   if (updateData.status && updateData.status !== sale.status) {
-    const historyNotes =
-      updateData.status === "OVERDUE"
-        ? `ใบคำสั่งซื้อถูกปิดการแก้ไขเนื่องจากอัปเดตวันที่จัดส่งเกิน ${sale.maxDeliveryUpdates ?? 3} ครั้ง`
-        : "Updated from fulfillment management";
+    const historyNotes = "Updated from fulfillment management";
 
     updateData.statusHistory = {
       create: {
@@ -143,10 +128,8 @@ export async function updateFulfillmentUseCase(
   }
 
   const updatedSale = await db.$transaction(async (tx: Prisma.TransactionClient) => {
-    // Handle CANCELLED or OVERDUE status: Release stock and restore credit limit
     const shouldReleaseResources =
-      (status === "CANCELLED" && sale.status !== "CANCELLED") ||
-      (shouldMarkOverdue && sale.status !== "OVERDUE");
+      status === "CANCELLED" && sale.status !== "CANCELLED";
 
     if (shouldReleaseResources) {
       // 1. Release stock (return to available)

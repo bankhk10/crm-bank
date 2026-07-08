@@ -21,7 +21,7 @@ export const SALE_STATUS_LABELS: Record<SaleStatus, string> = {
   AWAITING_DELIVERY: "รอดำเนินการจัดส่งสินค้า",
   DELIVERY_COMPLETED: "ส่งเสร็จแล้ว",
   PARTIALLY_DELIVERED: "ส่งบางส่วนแล้ว",
-  OVERDUE: "เลยกำหนด",
+  OVERDUE: "เลยกำหนดครบชำระ",
   WAITING_FOR_CORRECTION: "ส่งกลับให้แก้ไข",
   CANCELLED: "ยกเลิก",
   COMPLETED: "เสร็จสิ้น",
@@ -79,7 +79,7 @@ export const SALE_STATUS_STYLES: Record<
     dot: "bg-purple-500",
   },
   OVERDUE: {
-    label: "เลยกำหนด",
+    label: "เลยกำหนดครบชำระ",
     className:
       "bg-orange-100 text-orange-700 ring-1 ring-orange-300 dark:bg-orange-900/40 dark:text-orange-100",
     dot: "bg-orange-500",

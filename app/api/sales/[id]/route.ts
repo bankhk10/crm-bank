@@ -290,15 +290,6 @@ export async function PUT(
         new Date(body.deliveryDate).getTime() !==
         existingSale.deliveryDate.getTime())
     ) {
-      if (existingSale.deliveryUpdateCount >= 3) {
-        return NextResponse.json(
-          {
-            error:
-              "Maximum number of delivery date updates exceeded (3 times).",
-          },
-          { status: 400 },
-        );
-      }
       newDeliveryUpdateCount++;
     }
 

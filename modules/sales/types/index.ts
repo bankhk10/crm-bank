@@ -263,7 +263,7 @@ export const SaleStatusLabels: Record<SaleStatus, string> = {
   AWAITING_DELIVERY: "รอดำเนินการจัดส่งสินค้า",
   DELIVERY_COMPLETED: "ส่งเสร็จแล้ว",
   PARTIALLY_DELIVERED: "ส่งบางส่วนแล้ว",
-  OVERDUE: "เลยกำหนด",
+  OVERDUE: "เลยกำหนดครบชำระ",
   WAITING_FOR_CORRECTION: "ส่งกลับให้แก้ไข",
   CANCELLED: "ยกเลิก",
   COMPLETED: "เสร็จสิ้น",

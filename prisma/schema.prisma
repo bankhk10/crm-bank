@@ -779,7 +779,7 @@ enum SaleStatus {
   AWAITING_DELIVERY // รอดำเนินการจัดส่งสินค้า
   DELIVERY_COMPLETED // ส่งเสร็จแล้ว
   PARTIALLY_DELIVERED // ส่งบางส่วนแล้ว (มี Split Shipment)
-  OVERDUE // เลยกำหนด (อัปเดตวันส่งเกิน 3 ครั้ง)
+  OVERDUE // เลยกำหนดครบชำระ
   WAITING_FOR_CORRECTION // รอแก้ไข
   CANCELLED // ยกเลิก
   COMPLETED // เสร็จสิ้น

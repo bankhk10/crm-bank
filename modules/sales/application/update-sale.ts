@@ -71,12 +71,6 @@ export async function updateSaleUseCase(
       new Date(body.deliveryDate).getTime() !==
       existingSale.deliveryDate.getTime())
   ) {
-    if (existingSale.deliveryUpdateCount >= 3) {
-      return {
-        success: false as const,
-        error: "อัปเดตวันที่จัดส่งได้สูงสุด 3 ครั้งเท่านั้น",
-      };
-    }
     newDeliveryUpdateCount++;
   }
 

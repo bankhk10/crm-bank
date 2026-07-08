@@ -50,7 +50,7 @@ export const STATUS_STYLE: Record<
   },
 
   OVERDUE: {
-    label: "เลยกำหนด",
+    label: "เลยกำหนดครบชำระ",
     className:
       "bg-orange-100 text-orange-700 ring-1 ring-orange-300 dark:bg-orange-900/40 dark:text-orange-100",
     dot: "bg-orange-500",

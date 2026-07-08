@@ -240,7 +240,7 @@ const saleStatusLabels: Record<string, { label: string; color: string }> = {
   },
   COMPLETED: { label: "เสร็จสิ้น", color: "bg-green-100 text-green-800" },
   CANCELLED: { label: "ยกเลิก", color: "bg-red-100 text-red-800" },
-  OVERDUE: { label: "เลยกำหนด", color: "bg-rose-100 text-rose-800" },
+  OVERDUE: { label: "เลยกำหนดครบชำระ", color: "bg-rose-100 text-rose-800" },
 };
 
 const formatTHB = (n: number) =>

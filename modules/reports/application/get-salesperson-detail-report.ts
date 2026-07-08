@@ -257,7 +257,7 @@ export async function getSalespersonDetailReport(employeeId: string, session: an
     DELIVERY_COMPLETED: "ส่งเสร็จแล้ว",
     COMPLETED: "เสร็จสิ้น",
     CANCELLED: "ยกเลิก",
-    OVERDUE: "เลยกำหนด",
+    OVERDUE: "เลยกำหนดครบชำระ",
     WAITING_FOR_CORRECTION: "รอแก้ไข",
   };
 
