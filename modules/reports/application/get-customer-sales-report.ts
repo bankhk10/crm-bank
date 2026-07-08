@@ -77,7 +77,7 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
     where: {
       saleDate: { gte: start, lte: end },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
       ...scopeFilter,
     },
     _sum: { totalAmount: true },
@@ -118,7 +118,7 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
     where: {
       customerId: { in: allInitialIds },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
       ...scopeFilter,
     },
     _sum: { totalAmount: true },
@@ -133,7 +133,7 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
     where: {
       customerId: { in: allInitialIds },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
       ...scopeFilter,
     },
     _max: { saleDate: true },
@@ -176,7 +176,7 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
     where: {
       saleDate: { gte: start, lte: end },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
       ...scopeFilter,
     },
     _sum: { totalAmount: true },
@@ -220,7 +220,7 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
         some: {
           saleDate: { gte: start, lte: end },
           deletedAt: null,
-          status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+          status: { notIn: ["CANCELLED", "REJECTED"] },
           ...scopeFilter,
         },
       },
@@ -230,7 +230,7 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
       sales: {
         where: {
           deletedAt: null,
-          status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+          status: { notIn: ["CANCELLED", "REJECTED"] },
           ...scopeFilter,
         },
         orderBy: { saleDate: "asc" },
@@ -299,13 +299,13 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
         some: {
           saleDate: { lt: start },
           deletedAt: null,
-          status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+          status: { notIn: ["CANCELLED", "REJECTED"] },
           ...scopeFilter,
         },
         none: {
           saleDate: { gte: start, lte: end },
           deletedAt: null,
-          status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+          status: { notIn: ["CANCELLED", "REJECTED"] },
           ...scopeFilter,
         },
       },
@@ -317,7 +317,7 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
       sales: {
         where: {
           deletedAt: null,
-          status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+          status: { notIn: ["CANCELLED", "REJECTED"] },
           ...scopeFilter,
         },
         orderBy: { saleDate: "desc" },
@@ -335,7 +335,7 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
     where: {
       customerId: { in: inactiveIds },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
       ...scopeFilter,
     },
     _sum: { totalAmount: true },

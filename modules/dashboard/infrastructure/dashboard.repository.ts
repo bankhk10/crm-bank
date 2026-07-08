@@ -290,7 +290,7 @@ export async function aggregateDeliveredShipmentAmount(
   end: Date,
 ) {
   const INVOICE_SALE_STATUSES = [
-    "PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED",
+    "PAID", "DELIVERY_COMPLETED", "COMPLETED",
   ] as const;
 
   // 1. Shipment-based: sum Shipment.totalAmount ที่ส่งเสร็จแล้ว
@@ -341,7 +341,7 @@ export async function findDeliveredShipmentItemsWithDetails(
   end: Date,
 ) {
   const INVOICE_SALE_STATUSES = [
-    "PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED",
+    "PAID", "DELIVERY_COMPLETED", "COMPLETED",
   ];
 
   // 1. ShipmentItems จาก Shipment ที่ DELIVERED
@@ -429,7 +429,7 @@ export async function findDeliveredShipmentsWithProvince(
   end: Date,
 ) {
   const INVOICE_SALE_STATUSES = [
-    "PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED",
+    "PAID", "DELIVERY_COMPLETED", "COMPLETED",
   ];
 
   // 1. Shipment-based

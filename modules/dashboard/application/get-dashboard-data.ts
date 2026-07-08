@@ -374,13 +374,13 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
       "DELIVERY_COMPLETED",
       "PAID",
     ];
-    const failStatuses = ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"];
+    const failStatuses = ["CANCELLED", "REJECTED", "OVERDUE"];
     const progressStatuses = [
       "PENDING",
       "PENDING_APPROVAL",
       "WAITING_FOR_CORRECTION",
       "APPROVED",
-      "AWAITING_PAYMENT",
+      
       "AWAITING_DELIVERY",
     ];
 

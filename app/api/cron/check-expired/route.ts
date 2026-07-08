@@ -13,7 +13,7 @@ export async function GET() {
     const expiredSales = await prisma.sale.findMany({
       where: {
         status: {
-          in: ["APPROVED", "AWAITING_DELIVERY", "AWAITING_PAYMENT"],
+          in: ["APPROVED", "AWAITING_DELIVERY"],
         },
         deliveryDate: null, // Unknown delivery date
         requestedDeliveryDate: {
@@ -54,16 +54,16 @@ export async function GET() {
             }
           }
 
-          // Update status to EXPIRED
+          // Update status to CANCELLED
           await tx.sale.update({
             where: { id: sale.id },
             data: {
-              status: "EXPIRED",
+              status: "CANCELLED",
               statusHistory: {
                 create: {
-                  status: "EXPIRED",
+                  status: "CANCELLED",
                   notes:
-                    "System expired: Delivery date not set by requested date.",
+                    "System expired: Delivery date not set by requested date (Automatically Cancelled).",
                   changedById: "system-cron", // Indicate system change
                 },
               },

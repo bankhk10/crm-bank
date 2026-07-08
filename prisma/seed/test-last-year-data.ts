@@ -106,13 +106,10 @@ async function seedLastYearTestData() {
 
     const salesStatuses = [
       "COMPLETED",
-      "DELIVERED",
       "DELIVERY_COMPLETED",
       "PAID",
-      "PENDING",
       "PENDING_APPROVAL",
       "APPROVED",
-      "AWAITING_PAYMENT",
       "AWAITING_DELIVERY",
     ];
 
@@ -180,17 +177,14 @@ async function seedLastYearTestData() {
 
       // Track statistics
       const isSalesNote = [
-        "PENDING",
         "PENDING_APPROVAL",
         "WAITING_FOR_CORRECTION",
         "APPROVED",
-        "AWAITING_PAYMENT",
         "AWAITING_DELIVERY",
       ].includes(status);
 
       const isInvoice = [
         "PAID",
-        "DELIVERED",
         "DELIVERY_COMPLETED",
         "COMPLETED",
       ].includes(status);

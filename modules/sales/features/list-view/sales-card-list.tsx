@@ -68,7 +68,6 @@ function SaleCard({
   canDeleteItem?: (item: SaleRecord) => boolean;
   onDelete?: (sale: SaleRecord) => void;
 }) {
-  const isPending = sale.status === "PENDING";
   const isPendingApproval = sale.status === "PENDING_APPROVAL";
   const isRejected = sale.status === "REJECTED";
   const isWaitingForCorrection = sale.status === "WAITING_FOR_CORRECTION";
@@ -76,13 +75,13 @@ function SaleCard({
 
   const canEditThis = canEditItem
     ? canEditItem(sale) &&
-      (isPending || isPendingApproval || isRejected || isWaitingForCorrection)
+      (isPendingApproval || isRejected || isWaitingForCorrection)
     : (canEdit || isCreator) &&
-      (isPending || isPendingApproval || isRejected || isWaitingForCorrection);
+      (isPendingApproval || isRejected || isWaitingForCorrection);
 
   const canDeleteThis = canDeleteItem
-    ? canDeleteItem(sale) && (isPending || isPendingApproval)
-    : (canDelete || isCreator) && (isPending || isPendingApproval);
+    ? canDeleteItem(sale) && isPendingApproval
+    : (canDelete || isCreator) && isPendingApproval;
 
   const saleDate = sale.saleDate
     ? (() => {
@@ -203,7 +202,7 @@ function SaleCard({
             </Link>
           )}
 
-          {canApprove && (isPending || isPendingApproval) && (
+          {canApprove && isPendingApproval && (
             <Link href={`/sales/${sale.id}/approve`}>
               <Button
                 variant="outline"

@@ -47,7 +47,7 @@ export async function getExecutiveDashboardReport(filter: DateRangeFilter, sessi
       where: {
         saleDate: { gte: start, lte: end },
         deletedAt: null,
-        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        status: { notIn: ["CANCELLED", "REJECTED"] },
         ...scopeFilter,
       },
       select: {
@@ -61,7 +61,7 @@ export async function getExecutiveDashboardReport(filter: DateRangeFilter, sessi
       where: {
         saleDate: { gte: previousStart, lte: previousEnd },
         deletedAt: null,
-        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        status: { notIn: ["CANCELLED", "REJECTED"] },
         ...scopeFilter,
       },
       _sum: { totalAmount: true },
@@ -100,7 +100,7 @@ export async function getExecutiveDashboardReport(filter: DateRangeFilter, sessi
       sale: {
         saleDate: { gte: start, lte: end },
         deletedAt: null,
-        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        status: { notIn: ["CANCELLED", "REJECTED"] },
         ...scopeFilter,
       },
     },

@@ -88,7 +88,6 @@ export async function updateSaleUseCase(
   // 5. Determine if re-approval needed
   const needsReapproval =
     existingSale.status === "APPROVED" ||
-    existingSale.status === "AWAITING_PAYMENT" ||
     existingSale.status === "AWAITING_DELIVERY" ||
     existingSale.status === "REJECTED" ||
     existingSale.status === "WAITING_FOR_CORRECTION";

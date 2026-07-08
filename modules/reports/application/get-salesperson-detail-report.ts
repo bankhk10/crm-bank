@@ -89,7 +89,7 @@ export async function getSalespersonDetailReport(employeeId: string, session: an
       employeeId,
       saleDate: { gte: yearStart, lte: yearEnd },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
     },
   });
 
@@ -218,7 +218,7 @@ export async function getSalespersonDetailReport(employeeId: string, session: an
       employeeId,
       customerId: { in: customerIds },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
     },
     orderBy: { saleDate: "desc" },
     distinct: ["customerId"],
@@ -249,18 +249,14 @@ export async function getSalespersonDetailReport(employeeId: string, session: an
 
   // 7. Status breakdown
   const saleStatusLabels: Record<string, string> = {
-    PENDING: "รอดำเนินการ",
     PENDING_APPROVAL: "รออนุมัติ",
     APPROVED: "อนุมัติแล้ว",
     REJECTED: "ไม่อนุมัติ",
-    AWAITING_PAYMENT: "รอชำระเงิน",
     PAID: "ชำระเงินแล้ว",
     AWAITING_DELIVERY: "รอจัดส่ง",
-    DELIVERED: "ระหว่างขนส่ง",
     DELIVERY_COMPLETED: "ส่งเสร็จแล้ว",
     COMPLETED: "เสร็จสิ้น",
     CANCELLED: "ยกเลิก",
-    EXPIRED: "หมดอายุ",
     OVERDUE: "เลยกำหนด",
     WAITING_FOR_CORRECTION: "รอแก้ไข",
   };

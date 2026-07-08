@@ -154,7 +154,7 @@ async function main() {
       statusHistory: {
         create: [
           {
-            status: SaleStatus.PENDING,
+            status: SaleStatus.PENDING_APPROVAL,
             notes: "สร้างเอกสารเข้าระบบ",
             changedById: creator.id,
             changedAt: new Date(now.getTime() - 60000), // ก่อนหน้านี้ 1 นาที

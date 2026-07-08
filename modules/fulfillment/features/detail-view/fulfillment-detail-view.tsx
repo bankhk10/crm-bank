@@ -57,34 +57,29 @@ import type { ShipmentRecord, RemainingByItem } from "../../types/types";
 const FULFILLMENT_STATUSES = [
   "APPROVED",
   "WAITING_FOR_CORRECTION",
-  "AWAITING_PAYMENT",
   "PAID",
   "AWAITING_DELIVERY",
-  "DELIVERED",
   "DELIVERY_COMPLETED",
   "COMPLETED",
   "CANCELLED",
 ];
 
-const DELIVERY_STATUSES = ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"];
+const DELIVERY_STATUSES = ["DELIVERY_COMPLETED", "COMPLETED"];
 
 const DELIVERY_DATE_REQUIRED_STATUSES: string[] = [
-  "DELIVERED",
   "DELIVERY_COMPLETED",
   "COMPLETED",
 ];
 
-const LOT_LOCKED_STATUSES = ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"];
+const LOT_LOCKED_STATUSES = ["DELIVERY_COMPLETED", "COMPLETED"];
 const BLOCKED_WHEN_IN_TRANSIT = [
   "APPROVED",
   "WAITING_FOR_CORRECTION",
-  "AWAITING_PAYMENT",
   "PAID",
   "AWAITING_DELIVERY",
 ];
 
 const DELIVERY_STATUS_LABELS: Record<string, string> = {
-  DELIVERED: "ระหว่างขนส่ง",
   DELIVERY_COMPLETED: "ส่งเสร็จแล้ว",
   COMPLETED: "เสร็จสิ้น",
 };
@@ -443,7 +438,6 @@ export default function FulfillmentDetailPage({
   const skipStockCheck =
     !!saleData?.sale.status && DELIVERY_STATUSES.includes(saleData.sale.status);
   const isInTransit =
-    saleData?.sale.status === "DELIVERED" ||
     sale.status === "DELIVERY_COMPLETED" ||
     sale.status === "COMPLETED";
   const isSplitMode = shipmentMode === "split";
@@ -463,10 +457,8 @@ export default function FulfillmentDetailPage({
       {/* ===== ตัวเลือกรูปแบบการจัดส่ง ===== */}
       {[
         "APPROVED",
-        "AWAITING_PAYMENT",
         "PAID",
         "AWAITING_DELIVERY",
-        "DELIVERED",
         "DELIVERY_COMPLETED",
         "PARTIALLY_DELIVERED",
       ].includes(sale.status) && (

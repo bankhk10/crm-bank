@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         saleNumber,
         customerId: body.customerId,
         employeeId: body.employeeId,
-        status: "PENDING",
+        status: "PENDING_APPROVAL",
         paymentTerm: body.paymentTerm,
         creditDays: body.creditDays,
         saleDate: new Date(body.saleDate),
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
         },
         statusHistory: {
           create: {
-            status: "PENDING",
+            status: "PENDING_APPROVAL",
             notes: "Sale created",
             changedById: session.user.id,
           },
@@ -377,7 +377,7 @@ export async function PATCH_approve_example(request: NextRequest) {
       return NextResponse.json({ error: "Sale not found" }, { status: 404 });
     }
 
-    if (oldSale.status !== "PENDING") {
+    if (oldSale.status !== "PENDING_APPROVAL") {
       reqLogger.warn("Cannot approve non-pending sale", {
         module: "sales",
         metadata: { saleId, currentStatus: oldSale.status },

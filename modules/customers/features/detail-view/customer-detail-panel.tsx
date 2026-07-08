@@ -223,27 +223,23 @@ const customerStatusLabels: Record<string, { label: string; color: string }> = {
 };
 
 const saleStatusLabels: Record<string, { label: string; color: string }> = {
-  PENDING: { label: "รอดำเนินการ", color: "bg-gray-100 text-gray-800" },
   PENDING_APPROVAL: {
     label: "รออนุมัติ",
     color: "bg-amber-100 text-amber-800",
   },
   APPROVED: { label: "อนุมัติแล้ว", color: "bg-emerald-100 text-emerald-800" },
   REJECTED: { label: "ไม่อนุมัติ", color: "bg-red-100 text-red-800" },
-  AWAITING_PAYMENT: { label: "รอชำระเงิน", color: "bg-blue-100 text-blue-800" },
   PAID: { label: "ชำระเงินแล้ว", color: "bg-emerald-100 text-emerald-800" },
   AWAITING_DELIVERY: {
     label: "รอจัดส่ง",
     color: "bg-purple-100 text-purple-800",
   },
-  DELIVERED: { label: "ระหว่างขนส่ง", color: "bg-indigo-100 text-indigo-800" },
   DELIVERY_COMPLETED: {
     label: "ส่งเสร็จแล้ว",
     color: "bg-teal-100 text-teal-800",
   },
   COMPLETED: { label: "เสร็จสิ้น", color: "bg-green-100 text-green-800" },
   CANCELLED: { label: "ยกเลิก", color: "bg-red-100 text-red-800" },
-  EXPIRED: { label: "หมดอายุ", color: "bg-orange-100 text-orange-800" },
   OVERDUE: { label: "เลยกำหนด", color: "bg-rose-100 text-rose-800" },
 };
 

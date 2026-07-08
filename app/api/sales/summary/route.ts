@@ -24,7 +24,14 @@ export async function GET(request: NextRequest) {
     const endDate = new Date(year, 11, 31, 23, 59, 59);
 
     // Only count approved/completed sales
-    const validStatuses: SaleStatus[] = ["APPROVED", "PAID", "DELIVERED"];
+    const validStatuses: SaleStatus[] = [
+      "APPROVED",
+      "PAID",
+      "AWAITING_DELIVERY",
+      "DELIVERY_COMPLETED",
+      "COMPLETED",
+      "PARTIALLY_DELIVERED",
+    ];
 
     if (groupBy === "month") {
       // Group by month

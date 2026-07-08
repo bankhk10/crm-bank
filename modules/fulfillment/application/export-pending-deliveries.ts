@@ -5,9 +5,7 @@ export async function exportPendingDeliveriesUseCase() {
     where: {
       status: {
         in: [
-          "PENDING",
           "APPROVED",
-          "AWAITING_PAYMENT",
           "PAID",
           "AWAITING_DELIVERY",
           "PARTIALLY_DELIVERED",

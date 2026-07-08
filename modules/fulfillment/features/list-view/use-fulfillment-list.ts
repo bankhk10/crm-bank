@@ -5,16 +5,13 @@ import type { SaleRecord } from "../../types/types";
 import * as XLSX from "xlsx";
 
 const FULFILLMENT_STATUSES = [
-  "PENDING",
+  "PENDING_APPROVAL",
   "APPROVED",
   "REJECTED",
-  "AWAITING_PAYMENT",
   "PAID",
   "AWAITING_DELIVERY",
-  "DELIVERED",
   "DELIVERY_COMPLETED",
   "PARTIALLY_DELIVERED",
-  "EXPIRED",
   "OVERDUE",
   "WAITING_FOR_CORRECTION",
   "CANCELLED",

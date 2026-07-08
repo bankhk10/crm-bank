@@ -15,9 +15,7 @@ export async function deleteSaleUseCase(id: string, userId: string) {
     if (
       sale.paymentTerm !== "PREPAID" &&
       (sale.status === "APPROVED" ||
-        sale.status === "AWAITING_PAYMENT" ||
         sale.status === "AWAITING_DELIVERY" ||
-        sale.status === "DELIVERED" ||
         sale.status === "COMPLETED")
     ) {
       const creditLimit = await tx.creditLimit.findFirst({
@@ -42,7 +40,6 @@ export async function deleteSaleUseCase(id: string, userId: string) {
     // Return stock if sale was approved/allocated
     if (
       sale.status === "APPROVED" ||
-      sale.status === "AWAITING_PAYMENT" ||
       sale.status === "AWAITING_DELIVERY"
     ) {
       await releaseStock(id, tx);

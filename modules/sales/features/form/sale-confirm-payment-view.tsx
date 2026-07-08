@@ -128,12 +128,12 @@ export default function SaleConfirmPaymentView({ id }: SaleConfirmPaymentViewPro
 
   if (!sale) return null;
 
-  if (sale.status !== "AWAITING_PAYMENT") {
+  if (sale.status !== "AWAITING_DELIVERY") {
     return (
       <div className="container mx-auto py-8">
         <Alert>
           <AlertDescription>
-            รายการขายนี้ไม่อยู่ในสถานะรอการชำระเงิน
+            รายการขายนี้ไม่อยู่ในสถานะรอการชำระเงิน (ต้องผ่านการอนุมัติก่อน)
           </AlertDescription>
         </Alert>
         <Button

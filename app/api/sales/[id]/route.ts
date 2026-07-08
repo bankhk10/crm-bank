@@ -87,10 +87,8 @@ export async function GET(
     // Check if this sale has been approved (stock already allocated)
     const isApprovedOrder = [
       "APPROVED",
-      "AWAITING_PAYMENT",
       "PAID",
       "AWAITING_DELIVERY",
-      "DELIVERED",
       "DELIVERY_COMPLETED",
       "COMPLETED",
     ].includes(sale.status);
@@ -315,7 +313,6 @@ export async function PUT(
     // If sale is approved or rejected, reset to PENDING for re-approval
     const needsReapproval =
       existingSale.status === "APPROVED" ||
-      existingSale.status === "AWAITING_PAYMENT" ||
       existingSale.status === "AWAITING_DELIVERY" ||
       existingSale.status === "REJECTED" ||
       existingSale.status === "WAITING_FOR_CORRECTION";
@@ -517,9 +514,7 @@ export async function DELETE(
       if (
         sale.paymentTerm !== "PREPAID" &&
         (sale.status === "APPROVED" ||
-          sale.status === "AWAITING_PAYMENT" ||
           sale.status === "AWAITING_DELIVERY" ||
-          sale.status === "DELIVERED" ||
           sale.status === "COMPLETED")
       ) {
         const creditLimit = await tx.creditLimit.findFirst({
@@ -549,7 +544,6 @@ export async function DELETE(
       // Return stock if sale was approved/allocated
       if (
         sale.status === "APPROVED" ||
-        sale.status === "AWAITING_PAYMENT" ||
         sale.status === "AWAITING_DELIVERY"
       ) {
         await releaseStock(id, tx);

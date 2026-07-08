@@ -130,7 +130,7 @@ export async function getProductSalesReport(filter: DateRangeFilter, session: an
       sale: {
         saleDate: { gte: start, lte: end },
         deletedAt: null,
-        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        status: { notIn: ["CANCELLED", "REJECTED"] },
         ...scopeFilter,
       },
     },
@@ -376,7 +376,7 @@ export async function getProductSalesReport(filter: DateRangeFilter, session: an
       sale: {
         saleDate: { gte: ninetyDaysAgo },
         deletedAt: null,
-        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        status: { notIn: ["CANCELLED", "REJECTED"] },
         ...scopeFilter,
       },
     },
@@ -397,7 +397,7 @@ export async function getProductSalesReport(filter: DateRangeFilter, session: an
         where: {
           sale: {
             deletedAt: null,
-            status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+            status: { notIn: ["CANCELLED", "REJECTED"] },
             ...scopeFilter,
           },
         },

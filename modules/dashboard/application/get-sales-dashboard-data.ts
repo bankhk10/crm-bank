@@ -52,20 +52,20 @@ export async function getSalesDashboardDataUseCase(
       employeeId,
       start,
       end,
-      ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"],
+      ["CANCELLED", "REJECTED", "OVERDUE"],
     );
     const salesNote = await salesRepo.aggregateSalesAmountByEmployee(
       employeeId,
       start,
       end,
       undefined,
-      ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"],
+      ["CANCELLED", "REJECTED", "OVERDUE"],
     );
     const invoice = await salesRepo.aggregateSalesAmountByEmployee(
       employeeId,
       start,
       end,
-      ["PAID", "PARTIALLY_DELIVERED", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
+      ["PAID", "PARTIALLY_DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
     );
 
     return { total, salesNote, invoice };
@@ -100,13 +100,13 @@ export async function getSalesDashboardDataUseCase(
     employeeId,
     yearStart,
     yearEnd,
-    ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"],
+    ["CANCELLED", "REJECTED", "OVERDUE"],
   );
   const lastYtdTotal = await salesRepo.aggregateTotalSalesAmountByRequestedDateByEmployee(
     employeeId,
     lastYearStart,
     lastYearEnd,
-    ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"],
+    ["CANCELLED", "REJECTED", "OVERDUE"],
   );
 
   const ytdGrowth =
@@ -135,26 +135,25 @@ export async function getSalesDashboardDataUseCase(
       employeeId,
       start,
       end,
-      ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"],
+      ["CANCELLED", "REJECTED", "OVERDUE"],
     );
     const lastYearItems = await salesRepo.findSaleItemsByEmployee(
       employeeId,
       lastYearStart,
       lastYearEnd,
-      ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"],
+      ["CANCELLED", "REJECTED", "OVERDUE"],
     );
 
     const invoiceStatuses = [
       "PAID",
       "PARTIALLY_DELIVERED",
-      "DELIVERED",
       "DELIVERY_COMPLETED",
       "COMPLETED",
     ];
     const excludedStatuses = [
       "CANCELLED",
       "REJECTED",
-      "EXPIRED",
+      
       "OVERDUE",
     ];
 
@@ -281,13 +280,13 @@ export async function getSalesDashboardDataUseCase(
       "DELIVERY_COMPLETED",
       "PAID",
     ];
-    const failStatuses = ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"];
+    const failStatuses = ["CANCELLED", "REJECTED", "OVERDUE"];
     const progressStatuses = [
       "PENDING",
       "PENDING_APPROVAL",
       "WAITING_FOR_CORRECTION",
       "APPROVED",
-      "AWAITING_PAYMENT",
+      
       "AWAITING_DELIVERY",
     ];
 

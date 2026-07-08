@@ -106,10 +106,8 @@ export async function GET(
       status: {
         in: [
           "APPROVED",
-          "AWAITING_PAYMENT",
           "PAID",
           "AWAITING_DELIVERY",
-          "DELIVERED",
           "DELIVERY_COMPLETED",
           "COMPLETED",
         ],
@@ -129,10 +127,8 @@ export async function GET(
       status: {
         in: [
           "APPROVED",
-          "AWAITING_PAYMENT",
           "PAID",
           "AWAITING_DELIVERY",
-          "DELIVERED",
           "DELIVERY_COMPLETED",
           "COMPLETED",
         ],
@@ -191,10 +187,8 @@ export async function GET(
       status: {
         in: [
           "APPROVED",
-          "AWAITING_PAYMENT",
           "PAID",
           "AWAITING_DELIVERY",
-          "DELIVERED",
           "DELIVERY_COMPLETED",
           "COMPLETED",
         ],
@@ -225,10 +219,8 @@ export async function GET(
       status: {
         in: [
           "APPROVED",
-          "AWAITING_PAYMENT",
           "PAID",
           "AWAITING_DELIVERY",
-          "DELIVERED",
           "DELIVERY_COMPLETED",
           "COMPLETED",
         ],
@@ -249,10 +241,8 @@ export async function GET(
         status: {
           in: [
             "APPROVED",
-            "AWAITING_PAYMENT",
             "PAID",
             "AWAITING_DELIVERY",
-            "DELIVERED",
             "DELIVERY_COMPLETED",
             "COMPLETED",
           ],

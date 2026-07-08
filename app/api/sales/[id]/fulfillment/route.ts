@@ -69,16 +69,14 @@ export async function POST(
         updateData.paymentDate = new Date();
       }
 
-      // Validate: DELIVERED or DELIVERY_COMPLETED requires delivery date
-      if (status === "DELIVERED" || status === "DELIVERY_COMPLETED") {
+      // Validate: DELIVERY_COMPLETED requires delivery date
+      if (status === "DELIVERY_COMPLETED") {
         const finalDeliveryDate =
           deliveryDate !== undefined ? deliveryDate : sale.deliveryDate;
         if (!finalDeliveryDate) {
           return NextResponse.json(
             {
-              error: `กรุณาระบุวันที่จัดส่งสินค้าเมื่อสถานะเป็น '${
-                status === "DELIVERED" ? "ระหว่างขนส่ง" : "ส่งเสร็จแล้ว"
-              }'`,
+              error: "กรุณาระบุวันที่จัดส่งสินค้าเมื่อสถานะเป็น 'ส่งเสร็จแล้ว'",
             },
             { status: 400 },
           );
@@ -90,7 +88,6 @@ export async function POST(
     // If the *current* status is DELIVERED (or later), we should not allow modifying LOTs
     // unless we are also changing the status back to a non-delivered state.
     const isCurrentlyDelivered = [
-      "DELIVERED",
       "DELIVERY_COMPLETED",
       "COMPLETED",
     ].includes(sale.status);
@@ -98,7 +95,6 @@ export async function POST(
     // Check if we are staying in a delivered state
     const targetStatus = status || sale.status;
     const isStayingDelivered = [
-      "DELIVERED",
       "DELIVERY_COMPLETED",
       "COMPLETED",
     ].includes(targetStatus);

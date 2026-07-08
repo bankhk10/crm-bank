@@ -153,7 +153,6 @@ export function useSaleColumns(
                 header: "จัดการ",
                 cell: ({ row }) => {
                     const item = row.original;
-                    const isPending = item.status === "PENDING";
                     const isPendingApproval = item.status === "PENDING_APPROVAL";
                     const isRejected = item.status === "REJECTED";
                     const isWaitingForCorrection =
@@ -163,20 +162,18 @@ export function useSaleColumns(
                     // Use canEditItem callback if provided, otherwise fallback to simple logic
                     const canEditThis = canEditItem
                         ? canEditItem(item) &&
-                        (isPending ||
-                            isPendingApproval ||
+                        (isPendingApproval ||
                             isRejected ||
                             isWaitingForCorrection)
                         : (canEdit || isCreator) &&
-                        (isPending ||
-                            isPendingApproval ||
+                        (isPendingApproval ||
                             isRejected ||
                             isWaitingForCorrection);
 
                     // Use canDeleteItem callback if provided, otherwise fallback to simple logic
                     const canDeleteThis = canDeleteItem
-                        ? canDeleteItem(item) && (isPending || isPendingApproval)
-                        : (canDelete || isCreator) && (isPending || isPendingApproval);
+                        ? canDeleteItem(item) && isPendingApproval
+                        : (canDelete || isCreator) && isPendingApproval;
 
                     return (
                         <div className="flex items-center justify-center gap-2">
@@ -196,7 +193,7 @@ export function useSaleColumns(
                                 />
                             )}
 
-                            {canApprove && (isPending || isPendingApproval) && (
+                            {canApprove && isPendingApproval && (
                                 <>
                                     <ActionButton
                                         href={`/sales/${item.id}/approve`}

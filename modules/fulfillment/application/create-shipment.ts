@@ -27,7 +27,6 @@ export async function createShipmentUseCase(
   // 2. ตรวจสอบสถานะ Sale
   const allowedStatuses = [
     "APPROVED",
-    "AWAITING_PAYMENT",
     "PAID",
     "AWAITING_DELIVERY",
     "PARTIALLY_DELIVERED",
@@ -136,7 +135,6 @@ export async function createShipmentUseCase(
         "DELIVERY_COMPLETED",
         "AWAITING_DELIVERY",
         "PAID",
-        "AWAITING_PAYMENT",
       ];
 
       const currentSale = await tx.sale.findUnique({

@@ -32,20 +32,15 @@ export async function POST(
       return NextResponse.json({ error: "Sale not found" }, { status: 404 });
     }
 
-    if (sale.status !== "AWAITING_PAYMENT") {
+    if (sale.status !== "AWAITING_DELIVERY") {
       return NextResponse.json(
-        { error: "Sale is not awaiting payment" },
+        { error: "Sale is not awaiting delivery (must be approved first)" },
         { status: 400 }
       );
     }
 
-    // Determine next status
-    let nextStatus: "PAID" | "AWAITING_DELIVERY" | "DELIVERED";
-    if (body.deliveryDate) {
-      nextStatus = "DELIVERED";
-    } else {
-      nextStatus = "AWAITING_DELIVERY";
-    }
+    // Determine next status - since DELIVERED is deleted, it becomes PAID
+    const nextStatus = "PAID";
 
     const updatedSale = await prisma.sale.update({
       where: { id },
@@ -58,7 +53,7 @@ export async function POST(
         statusHistory: {
           create: {
             status: nextStatus,
-            notes: `Payment confirmed${body.deliveryDate ? " and delivery date set" : ""}`,
+            notes: `Payment confirmed`,
             changedById: session.user.id,
           },
         },

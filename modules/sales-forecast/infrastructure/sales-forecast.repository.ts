@@ -137,7 +137,7 @@ export async function findActualSalesWithShipments(startDate: Date, endDate: Dat
 
   // 2. Legacy: Sale ที่ไม่มี Shipment เลย
   const INVOICE_SALE_STATUSES: SaleStatus[] = [
-    "PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED",
+    "PAID", "DELIVERY_COMPLETED", "COMPLETED",
   ];
 
   const legacySales = await prisma.sale.findMany({

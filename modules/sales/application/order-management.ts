@@ -76,7 +76,7 @@ export async function checkExpiredOrdersUseCase(): Promise<OrderCheckResult> {
           await tx.sale.update({
             where: { id: sale.id },
             data: {
-              status: "EXPIRED",
+              status: "CANCELLED",
               isDeliveryLocked: true,
             },
           });
@@ -84,9 +84,9 @@ export async function checkExpiredOrdersUseCase(): Promise<OrderCheckResult> {
           await tx.saleStatusHistory.create({
             data: {
               saleId: sale.id,
-              status: "EXPIRED",
+              status: "CANCELLED",
               notes:
-                "ใบคำสั่งซื้อหมดอายุเนื่องจากไม่ได้ระบุวันที่จัดส่งภายในระยะเวลาที่กำหนด",
+                "ใบคำสั่งซื้อหมดอายุเนื่องจากไม่ได้ระบุวันที่จัดส่งภายในระยะเวลาที่กำหนด (ยกเลิกอัตโนมัติ)",
               changedById: "SYSTEM",
             },
           });

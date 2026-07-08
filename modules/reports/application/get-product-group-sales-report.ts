@@ -116,7 +116,7 @@ export async function getProductGroupSalesReport(filter: DateRangeFilter, sessio
           sale: {
             saleDate: { gte: start, lte: end },
             deletedAt: null,
-            status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+            status: { notIn: ["CANCELLED", "REJECTED"] },
             ...scopeFilter,
           },
         },
@@ -162,7 +162,7 @@ export async function getProductGroupSalesReport(filter: DateRangeFilter, sessio
           sale: {
             saleDate: { gte: start, lte: end },
             deletedAt: null,
-            status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+            status: { notIn: ["CANCELLED", "REJECTED"] },
             ...scopeFilter,
           },
         },
@@ -247,7 +247,7 @@ export async function getProductGroupSalesReport(filter: DateRangeFilter, sessio
               sale: {
                 saleDate: { gte: monthStart, lte: monthEnd },
                 deletedAt: null,
-                status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+                status: { notIn: ["CANCELLED", "REJECTED"] },
                 ...scopeFilter,
               },
             },
@@ -261,7 +261,7 @@ export async function getProductGroupSalesReport(filter: DateRangeFilter, sessio
               sale: {
                 saleDate: { gte: monthStart, lte: monthEnd },
                 deletedAt: null,
-                status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+                status: { notIn: ["CANCELLED", "REJECTED"] },
                 ...scopeFilter,
               },
             },

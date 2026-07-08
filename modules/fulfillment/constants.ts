@@ -4,12 +4,6 @@ export const STATUS_STYLE: Record<
   SaleStatus,
   { label: string; className: string; dot: string }
 > = {
-  PENDING: {
-    label: "รอดำเนินการ",
-    className:
-      "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-100",
-    dot: "bg-amber-500",
-  },
   PENDING_APPROVAL: {
     label: "รออนุมัติ",
     className:
@@ -28,12 +22,7 @@ export const STATUS_STYLE: Record<
       "bg-red-50 text-red-700 ring-1 ring-red-200 dark:bg-red-900/40 dark:text-red-100",
     dot: "bg-red-500",
   },
-  AWAITING_PAYMENT: {
-    label: "รอดำเนินการชำระเงิน",
-    className:
-      "bg-orange-50 text-orange-700 ring-1 ring-orange-200 dark:bg-orange-900/30 dark:text-orange-100",
-    dot: "bg-orange-500",
-  },
+
   PAID: {
     label: "ชำระเงินแล้ว",
     className:
@@ -46,12 +35,7 @@ export const STATUS_STYLE: Record<
       "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/30 dark:text-blue-100",
     dot: "bg-blue-500",
   },
-  DELIVERED: {
-    label: "ระหว่างขนส่ง",
-    className:
-      "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-100",
-    dot: "bg-indigo-500",
-  },
+
   DELIVERY_COMPLETED: {
     label: "ส่งเสร็จแล้ว",
     className:
@@ -64,12 +48,7 @@ export const STATUS_STYLE: Record<
       "bg-purple-50 text-purple-700 ring-1 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-100",
     dot: "bg-purple-500",
   },
-  EXPIRED: {
-    label: "หมดอายุ",
-    className:
-      "bg-gray-100 text-gray-600 ring-1 ring-gray-300 dark:bg-gray-800/50 dark:text-gray-300",
-    dot: "bg-gray-400",
-  },
+
   OVERDUE: {
     label: "เลยกำหนด",
     className:

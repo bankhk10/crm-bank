@@ -71,7 +71,7 @@ export async function findMonthlyTrendSummary(
     FROM "Sale"
     WHERE EXTRACT(YEAR FROM "saleDate") = ${year}
       AND "deletedAt" IS NULL
-      AND "status" NOT IN ('CANCELLED', 'REJECTED', 'EXPIRED')
+      AND "status" NOT IN ('CANCELLED', 'REJECTED')
   `;
 
   if (whereConstraint.customerId) {
@@ -111,7 +111,7 @@ export async function findProductBreakdownSummary(
     JOIN "Product" p ON si."productId" = p."id"
     WHERE EXTRACT(YEAR FROM s."saleDate") = ${year}
       AND s."deletedAt" IS NULL
-      AND s."status" NOT IN ('CANCELLED', 'REJECTED', 'EXPIRED')
+      AND s."status" NOT IN ('CANCELLED', 'REJECTED')
   `;
 
   if (whereConstraint.customerId) {
@@ -195,7 +195,7 @@ export async function findSalesInPeriod(
     where: {
       saleDate: { gte: start, lte: end },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
       ...scopeFilter,
     },
     select: {
@@ -224,7 +224,7 @@ export async function aggregateSalesAmountInPeriod(
     where: {
       saleDate: { gte: start, lte: end },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
       ...scopeFilter,
     },
     _sum: { totalAmount: true },
@@ -246,7 +246,7 @@ export async function groupProductSalesInPeriod(
       sale: {
         saleDate: { gte: start, lte: end },
         deletedAt: null,
-        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        status: { notIn: ["CANCELLED", "REJECTED"] },
         ...scopeFilter,
       },
     },
@@ -292,7 +292,7 @@ export async function groupDailySalesSummaryByMonthAndYear(
       AND s."saleDate" >= ${start}
       AND s."saleDate" <= ${end}
       AND s."deletedAt" IS NULL
-      AND s."status" NOT IN ('CANCELLED', 'REJECTED', 'EXPIRED')
+      AND s."status" NOT IN ('CANCELLED', 'REJECTED')
   `;
 
   if (options.employeeId) {
@@ -337,7 +337,7 @@ export async function groupAllProductsPeakPeriods(
       WHERE s."saleDate" >= ${start}
         AND s."saleDate" <= ${end}
         AND s."deletedAt" IS NULL
-        AND s."status" NOT IN ('CANCELLED', 'REJECTED', 'EXPIRED')
+        AND s."status" NOT IN ('CANCELLED', 'REJECTED')
   `;
 
   if (options.employeeId) {
@@ -418,7 +418,7 @@ export async function findRecentSoldProductIds(
       sale: {
         saleDate: { gte: ninetyDaysAgo },
         deletedAt: null,
-        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        status: { notIn: ["CANCELLED", "REJECTED"] },
         ...scopeFilter,
       },
     },
@@ -444,7 +444,7 @@ export async function findStagnantProducts(
         where: {
           sale: {
             deletedAt: null,
-            status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+            status: { notIn: ["CANCELLED", "REJECTED"] },
             ...scopeFilter,
           },
         },
@@ -488,7 +488,7 @@ export async function aggregateSaleItemsByProductIds(
       sale: {
         saleDate: { gte: start, lte: end },
         deletedAt: null,
-        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        status: { notIn: ["CANCELLED", "REJECTED"] },
         ...scopeFilter,
       },
     },
@@ -512,7 +512,7 @@ export async function groupOrderCountByProductIds(
       sale: {
         saleDate: { gte: start, lte: end },
         deletedAt: null,
-        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        status: { notIn: ["CANCELLED", "REJECTED"] },
         ...scopeFilter,
       },
     },
@@ -537,7 +537,7 @@ export async function groupDailySalesSummaryByGroupMonthYear(
       AND s."saleDate" >= ${start}
       AND s."saleDate" <= ${end}
       AND s."deletedAt" IS NULL
-      AND s."status" NOT IN ('CANCELLED', 'REJECTED', 'EXPIRED')
+      AND s."status" NOT IN ('CANCELLED', 'REJECTED')
   `;
 
   if (options.employeeId) {
@@ -614,7 +614,7 @@ export async function aggregateSalesKpiByEmployee(
       employeeId,
       saleDate: { gte: start, lte: end },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
     },
     _sum: { totalAmount: true },
     _count: true,
@@ -632,7 +632,7 @@ export async function countUniqueCustomersByEmployee(
       employeeId,
       saleDate: { gte: start, lte: end },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
     },
   });
   return result.length;
@@ -643,7 +643,7 @@ export async function getLastSaleDateByEmployee(employeeId: string) {
     where: {
       employeeId,
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
     },
     orderBy: { saleDate: "desc" },
     select: { saleDate: true },
@@ -663,7 +663,7 @@ export async function groupMonthlySalesByEmployee(
         lte: new Date(year, 11, 31, 23, 59, 59),
       },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
     },
     _sum: { totalAmount: true },
     _count: true,
@@ -682,7 +682,7 @@ export async function groupProductSalesByEmployee(
         employeeId,
         saleDate: { gte: start, lte: end },
         deletedAt: null,
-        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        status: { notIn: ["CANCELLED", "REJECTED"] },
       },
     },
     _sum: { totalPrice: true, quantity: true },
@@ -703,7 +703,7 @@ export async function groupCustomerSalesByEmployee(
       employeeId,
       saleDate: { gte: start, lte: end },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
     },
     _sum: { totalAmount: true },
     _count: true,
@@ -912,7 +912,7 @@ export async function findMonthlyInvoiceSalesByYear(year: number) {
       COUNT(s."id") as "orderCount"
     FROM "Sale" s
     WHERE s."deletedAt" IS NULL
-      AND s."status" IN ('PAID', 'DELIVERED', 'DELIVERY_COMPLETED', 'COMPLETED')
+      AND s."status" IN ('PAID', 'DELIVERY_COMPLETED', 'COMPLETED')
       AND NOT EXISTS (SELECT 1 FROM "Shipment" sh WHERE sh."saleId" = s."id")
       AND COALESCE(s."deliveryDate", s."requestedDeliveryDate", s."saleDate") >= ${start}
       AND COALESCE(s."deliveryDate", s."requestedDeliveryDate", s."saleDate") <= ${end}
@@ -973,7 +973,7 @@ export async function groupInvoiceSalesByEmployeeInPeriod(
       COUNT(s."id") as "count"
     FROM "Sale" s
     WHERE s."deletedAt" IS NULL
-      AND s."status" IN ('PAID', 'DELIVERED', 'DELIVERY_COMPLETED', 'COMPLETED')
+      AND s."status" IN ('PAID', 'DELIVERY_COMPLETED', 'COMPLETED')
       AND NOT EXISTS (SELECT 1 FROM "Shipment" sh WHERE sh."saleId" = s."id")
       AND COALESCE(s."deliveryDate", s."requestedDeliveryDate", s."saleDate") >= ${start}
       AND COALESCE(s."deliveryDate", s."requestedDeliveryDate", s."saleDate") <= ${end}

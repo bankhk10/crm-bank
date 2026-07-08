@@ -121,7 +121,7 @@ export async function getAllCustomersForReport(session: any): Promise<CustomerLi
   };
   const whereSales: any = {
     deletedAt: null,
-    status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+    status: { notIn: ["CANCELLED", "REJECTED"] },
   };
 
   if (viewScope === DataAccessLevel.VIEW_OWN) {
@@ -175,7 +175,7 @@ export async function getAllCustomersForReport(session: any): Promise<CustomerLi
     where: {
       customerId: { in: customerIds },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
       ...whereSales, // Apply scope to lifetime sales aggregation too
     },
     _sum: { totalAmount: true },
@@ -246,7 +246,7 @@ export async function getAllSalespersonsForReport(session: any): Promise<
 
   const whereSales: any = {
     deletedAt: null,
-    status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+    status: { notIn: ["CANCELLED", "REJECTED"] },
   };
 
   if (viewScope === DataAccessLevel.VIEW_OWN) {
@@ -286,7 +286,7 @@ export async function getAllSalespersonsForReport(session: any): Promise<
       sales: {
         where: {
           deletedAt: null,
-          status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+          status: { notIn: ["CANCELLED", "REJECTED"] },
           // No need to add scope here explicitly if product access is not scoped,
           // but we are finding employees.
           // Sales relation in employee should be filtered?
@@ -309,7 +309,7 @@ export async function getAllSalespersonsForReport(session: any): Promise<
     where: {
       employeeId: { in: employeeIds },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
       // Scope filter?
       // employeeIds are already filtered by scope.
     },

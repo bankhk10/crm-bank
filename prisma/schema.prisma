@@ -772,17 +772,13 @@ model ProductStockLot {
 }
 
 enum SaleStatus {
-  PENDING // รอดำเนินการ
   PENDING_APPROVAL // รออนุมัติ
   APPROVED // อนุมัติแล้ว
   REJECTED // ไม่อนุมัติ
-  AWAITING_PAYMENT // รอดำเนินการชำระเงิน
   PAID // ชำระเงินแล้ว
   AWAITING_DELIVERY // รอดำเนินการจัดส่งสินค้า
-  DELIVERED // ระหว่างขนส่ง
   DELIVERY_COMPLETED // ส่งเสร็จแล้ว
   PARTIALLY_DELIVERED // ส่งบางส่วนแล้ว (มี Split Shipment)
-  EXPIRED // หมดอายุ (ไม่ระบุวันส่ง + เลย 3 วัน)
   OVERDUE // เลยกำหนด (อัปเดตวันส่งเกิน 3 ครั้ง)
   WAITING_FOR_CORRECTION // รอแก้ไข
   CANCELLED // ยกเลิก
@@ -803,7 +799,7 @@ model Sale {
   customerId  String // รหัสลูกค้า
   region      String? // ภูมิภาคของลูกค้า/ร้านค้า
   employeeId  String // รหัสพนักงานขายที่ดูแล (เซลส์)
-  status      SaleStatus  @default(PENDING) // สถานะบันทึกการขาย (เช่น รออนุมัติ, อนุมัติแล้ว)
+  status      SaleStatus  @default(PENDING_APPROVAL) // สถานะบันทึกการขาย (เช่น รออนุมัติ, อนุมัติแล้ว)
   paymentTerm PaymentTerm // เงื่อนไขการชำระเงิน (เช่น เงินสด, เครดิต)
 
   // Credit information (ข้อมูลเครดิต)

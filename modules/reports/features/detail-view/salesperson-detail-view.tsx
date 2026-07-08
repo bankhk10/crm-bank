@@ -76,18 +76,14 @@ const formatShortTHB = (v: number) => {
 
 // ─── Status colors ──────────────────────────
 const statusColors: Record<string, string> = {
-  PENDING: "bg-gray-100 text-gray-800",
   PENDING_APPROVAL: "bg-amber-100 text-amber-800",
   APPROVED: "bg-emerald-100 text-emerald-800",
   REJECTED: "bg-red-100 text-red-800",
-  AWAITING_PAYMENT: "bg-blue-100 text-blue-800",
   PAID: "bg-emerald-100 text-emerald-800",
   AWAITING_DELIVERY: "bg-purple-100 text-purple-800",
-  DELIVERED: "bg-indigo-100 text-indigo-800",
   DELIVERY_COMPLETED: "bg-teal-100 text-teal-800",
   COMPLETED: "bg-green-100 text-green-800",
   CANCELLED: "bg-red-100 text-red-800",
-  EXPIRED: "bg-orange-100 text-orange-800",
   OVERDUE: "bg-red-100 text-red-800",
   WAITING_FOR_CORRECTION: "bg-yellow-100 text-yellow-800",
 };

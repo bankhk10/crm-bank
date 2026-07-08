@@ -31,7 +31,7 @@ export async function POST(
       return NextResponse.json({ error: "Sale not found" }, { status: 404 });
     }
 
-    if (sale.status !== "PENDING" && sale.status !== "PENDING_APPROVAL") {
+    if (sale.status !== "PENDING_APPROVAL") {
       return NextResponse.json(
         { error: "Sale is not pending approval" },
         { status: 400 },
@@ -39,12 +39,7 @@ export async function POST(
     }
 
     // Determine next status based on payment term
-    let nextStatus: "AWAITING_PAYMENT" | "AWAITING_DELIVERY";
-    if (sale.paymentTerm === "PREPAID") {
-      nextStatus = "AWAITING_PAYMENT";
-    } else {
-      nextStatus = "AWAITING_DELIVERY";
-    }
+    const nextStatus = "AWAITING_DELIVERY";
 
     const updatedSale = await prisma.$transaction(async (tx) => {
       // Check if customer has credit limit for credit sales
