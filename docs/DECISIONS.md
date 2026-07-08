@@ -252,19 +252,26 @@ for (const item of sale.items) {
 ### Rationale
 
 ```
-PENDING → PENDING_APPROVAL → APPROVED → DELIVERED → COMPLETED
-                ↓                ↓
-            REJECTED        CANCELLED
+PENDING_APPROVAL → APPROVED → AWAITING_DELIVERY → DELIVERY_COMPLETED → COMPLETED
+       ↓                              ↓                  ↓
+    REJECTED                      CANCELLED          CANCELLED
 ```
 
 ### Implementation
 
 ```typescript
 const validTransitions: Record<SaleStatus, SaleStatus[]> = {
-  PENDING: ["PENDING_APPROVAL"],
   PENDING_APPROVAL: ["APPROVED", "REJECTED", "WAITING_FOR_CORRECTION"],
-  APPROVED: ["AWAITING_DELIVERY", "CANCELLED", "EXPIRED", "OVERDUE"],
-  // ...
+  APPROVED: ["AWAITING_DELIVERY", "CANCELLED", "OVERDUE"],
+  AWAITING_DELIVERY: ["PAID", "DELIVERY_COMPLETED", "PARTIALLY_DELIVERED", "CANCELLED", "OVERDUE"],
+  PAID: ["DELIVERY_COMPLETED", "PARTIALLY_DELIVERED", "CANCELLED"],
+  PARTIALLY_DELIVERED: ["DELIVERY_COMPLETED", "CANCELLED"],
+  DELIVERY_COMPLETED: ["COMPLETED"],
+  REJECTED: [],
+  COMPLETED: [],
+  CANCELLED: [],
+  OVERDUE: [],
+  WAITING_FOR_CORRECTION: ["PENDING_APPROVAL"],
 };
 
 function canTransition(from: SaleStatus, to: SaleStatus): boolean {

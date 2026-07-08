@@ -54,31 +54,32 @@
 
 ### Sale Status Flow
 ```
-PENDING → PENDING_APPROVAL → APPROVED → AWAITING_PAYMENT → PAID → AWAITING_DELIVERY
-→ DELIVERED → DELIVERY_COMPLETED → COMPLETED
+Credit sales:
+PENDING_APPROVAL → APPROVED → AWAITING_DELIVERY → DELIVERY_COMPLETED → COMPLETED
+
+Prepaid sales:
+PENDING_APPROVAL → APPROVED → AWAITING_DELIVERY (Wait for payment) → PAID → DELIVERY_COMPLETED → COMPLETED
+
 (Note: AWAITING_DELIVERY can also go to PARTIALLY_DELIVERED if split shipment)
 
 Alternative:
 - PENDING_APPROVAL → REJECTED
 - PENDING_APPROVAL → WAITING_FOR_CORRECTION  
-- APPROVED → CANCELLED / EXPIRED / OVERDUE
+- APPROVED / AWAITING_DELIVERY → CANCELLED (via auto-expiry if delivery date not specified within 3 days, or manual cancellation)
+- APPROVED / AWAITING_DELIVERY → OVERDUE (if delivery date changed > 3 times)
 ```
 
 | Status | Thai | Next Action |
 |--------|------|-------------|
-| PENDING | รอดำเนินการ | Submit |
 | PENDING_APPROVAL | รออนุมัติ | Approve/Reject |
 | APPROVED | อนุมัติแล้ว | Deliver |
 | REJECTED | ไม่อนุมัติ | Terminal |
-| AWAITING_PAYMENT | รอชำระเงิน | Confirm payment |
 | PAID | ชำระเงินแล้ว | Deliver |
-| AWAITING_DELIVERY | รอจัดส่ง | Mark delivered |
-| DELIVERED | ระหว่างขนส่ง | Confirm |
+| AWAITING_DELIVERY | รอจัดส่ง | Complete shipment |
 | PARTIALLY_DELIVERED | ส่งบางส่วนแล้ว | Confirm rest of shipments |
 | DELIVERY_COMPLETED | ส่งเสร็จแล้ว | Complete |
 | COMPLETED | เสร็จสิ้น | Terminal |
 | CANCELLED | ยกเลิก | Terminal |
-| EXPIRED | หมดอายุ | Terminal (ไม่ระบุวันส่ง 3 วัน) |
 | OVERDUE | เลยกำหนด | Terminal (แก้วันส่ง >3 ครั้ง) |
 
 ### Customer Status
@@ -149,7 +150,7 @@ Unique constraint: one SaleItem = one PointHistory
 ```
 - maxDeliveryUpdates = 3 (แก้เกิน = OVERDUE)
 - orderExpiryDate = approvedAt + 3 วัน
-- ไม่ระบุ deliveryDate ภายใน 3 วัน = EXPIRED
+- ไม่ระบุ deliveryDate ภายใน 3 วัน = CANCELLED (ระบบยกเลิกอัตโนมัติ)
 ```
 
 ---

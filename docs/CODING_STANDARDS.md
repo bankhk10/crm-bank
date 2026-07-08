@@ -41,7 +41,7 @@ interface CreateSaleInput {
 
 // ✅ Use enums for fixed values
 enum SaleStatus {
-  PENDING = 'PENDING',
+  PENDING_APPROVAL = 'PENDING_APPROVAL',
   APPROVED = 'APPROVED'
 }
 ```
@@ -127,7 +127,7 @@ function calculateDiscount() {}
 
 // PascalCase for types and interfaces
 interface CustomerData {}
-type SaleStatus = "PENDING" | "APPROVED";
+type SaleStatus = "PENDING_APPROVAL" | "APPROVED";
 
 // SCREAMING_SNAKE_CASE for constants
 const MAX_DELIVERY_UPDATES = 3;
