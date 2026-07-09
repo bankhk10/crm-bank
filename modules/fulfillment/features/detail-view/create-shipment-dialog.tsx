@@ -70,6 +70,8 @@ const formSchema = z.object({
   deliveryMethod: z.string().optional(),
   pickupCompanyId: z.string().optional(),
   shippingAddress: z.string().optional(),
+  customerShippingAddress: z.string().optional(),
+  selectedAddressId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -140,6 +142,46 @@ export function CreateShipmentDialog({
     ]),
   );
 
+  const primaryAddressStr = customer
+    ? buildCompanyAddress({
+        addressLine: customer.shippingAddressLine || undefined,
+        subdistrict: customer.shippingSubdistrict || undefined,
+        district: customer.shippingDistrict || undefined,
+        province: customer.shippingProvince || undefined,
+        postalCode: customer.shippingPostalCode || undefined,
+      }) || customer.addressLine || ""
+    : "";
+
+  const addressOptions = [
+    { value: "primary", label: `ที่อยู่หลัก: ${primaryAddressStr || "-"}` },
+    ...(customer?.addresses?.map((addr: any, index: number) => {
+      const addrStr = buildCompanyAddress({
+        addressLine: addr.addressLine || undefined,
+        subdistrict: addr.subdistrict || undefined,
+        district: addr.district || undefined,
+        province: addr.province || undefined,
+        postalCode: addr.postalCode || undefined,
+      });
+      return {
+        value: addr.id,
+        label: `ที่อยู่เพิ่มเติม ${index + 1}: ${addrStr || "-"}`
+      };
+    }) || [])
+  ];
+
+  const defaultSelectedAddressId = isEdit && shipment?.customerShippingAddress
+    ? (customer?.addresses?.find((addr: any) => {
+        const addrStr = buildCompanyAddress({
+          addressLine: addr.addressLine || undefined,
+          subdistrict: addr.subdistrict || undefined,
+          district: addr.district || undefined,
+          province: addr.province || undefined,
+          postalCode: addr.postalCode || undefined,
+        });
+        return addrStr === shipment.customerShippingAddress;
+      })?.id || "primary")
+    : "primary";
+
   const { register, handleSubmit, control, reset, setValue, watch, getValues } =
     useForm<FormValues>({
       resolver: zodResolver(formSchema),
@@ -157,6 +199,8 @@ export function CreateShipmentDialog({
         deliveryMethod: isEdit ? shipment.deliveryMethod || "" : "",
         pickupCompanyId: isEdit ? shipment.pickupCompanyId || "" : "",
         shippingAddress: isEdit ? shipment.shippingAddress || "" : "",
+        customerShippingAddress: isEdit ? shipment.customerShippingAddress || "" : primaryAddressStr,
+        selectedAddressId: defaultSelectedAddressId,
       },
     });
 
@@ -225,6 +269,7 @@ export function CreateShipmentDialog({
           companies?.find((c) => c.id === formPickupCompanyId)?.name) ||
         null,
       shippingAddress: data.shippingAddress || null,
+      customerShippingAddress: data.customerShippingAddress || null,
     };
 
     startTransition(async () => {
@@ -280,6 +325,8 @@ export function CreateShipmentDialog({
           deliveryMethod: "",
           pickupCompanyId: "",
           shippingAddress: "",
+          customerShippingAddress: primaryAddressStr,
+          selectedAddressId: "primary",
         });
       }
     }
@@ -686,6 +733,65 @@ export function CreateShipmentDialog({
                         ไม่มีข้อมูลบริษัทขนส่งที่เชื่อมโยงกับลูกค้ารายนี้
                       </p>
                     )}
+                  </div>
+                )}
+
+                {/* Select Customer Shipping Address */}
+                {["COURIER", "SALES_DELIVERY", "FACTORY_DELIVERY"].includes(deliveryMethod || "") && (
+                  <div className="mt-3 space-y-3 rounded-lg border bg-white p-3">
+                    <Label className="block text-xs font-semibold text-gray-700">
+                      เลือกที่อยู่จัดส่งสินค้า (ของลูกค้า)
+                    </Label>
+                    <Controller
+                      name="selectedAddressId"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          disabled={isCompleted}
+                          value={field.value || "primary"}
+                          onValueChange={(val) => {
+                            field.onChange(val);
+                            if (val === "primary") {
+                              setValue("customerShippingAddress", primaryAddressStr);
+                            } else {
+                              const selectedAddr = customer?.addresses?.find((addr: any) => addr.id === val);
+                              if (selectedAddr) {
+                                const addrStr = buildCompanyAddress({
+                                  addressLine: selectedAddr.addressLine || undefined,
+                                  subdistrict: selectedAddr.subdistrict || undefined,
+                                  district: selectedAddr.district || undefined,
+                                  province: selectedAddr.province || undefined,
+                                  postalCode: selectedAddr.postalCode || undefined,
+                                });
+                                setValue("customerShippingAddress", addrStr || "");
+                              }
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-full text-xs">
+                            <SelectValue placeholder="เลือกที่อยู่จัดส่ง" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {addressOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                                <span className="block truncate max-w-[70vw]">{opt.label}</span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    
+                    <div className="min-w-0">
+                      <Label className="mb-1.5 block text-xs font-medium text-gray-500">
+                        ที่อยู่จัดส่งสินค้าที่จะแสดงในเอกสาร
+                      </Label>
+                      <div className="flex min-h-[36px] items-center rounded-md border bg-gray-50 px-3 text-xs text-gray-700">
+                        <span className="block w-full">
+                          {watch("customerShippingAddress") || "-"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

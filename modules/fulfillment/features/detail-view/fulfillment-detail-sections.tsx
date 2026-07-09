@@ -371,14 +371,43 @@ export function CreditInfoCard({
 
 export function DeliveryInfoCard({ sale }: { sale: Sale }) {
   const sa = (sale as any).saleAddress || {};
+  const latestShipment = sale.shipments?.[0];
 
-  const shippingAddress = formatAddress({
-    addressLine: sa.shipping_address_line,
-    subdistrict: sa.shipping_subdistrict,
-    district: sa.shipping_district,
-    province: sa.shipping_province,
-    postalCode: sa.shipping_postal_code,
-  });
+  const customerAddress = sa.address_line
+    ? formatAddress({
+        addressLine: sa.address_line,
+        subdistrict: sa.address_subdistrict,
+        district: sa.address_district,
+        province: sa.address_province,
+        postalCode: sa.address_code,
+      })
+    : formatAddress({
+        addressLine: sale.customer?.addressLine,
+        subdistrict: sale.customer?.subdistrict,
+        district: sale.customer?.district,
+        province: sale.customer?.province,
+        postalCode: sale.customer?.postalCode,
+      });
+
+  const shippingAddress = (latestShipment as any)?.customerShippingAddress
+    ? (latestShipment as any).customerShippingAddress
+    : (sa.shipping_address_line
+        ? formatAddress({
+            addressLine: sa.shipping_address_line,
+            subdistrict: sa.shipping_subdistrict,
+            district: sa.shipping_district,
+            province: sa.shipping_province,
+            postalCode: sa.shipping_postal_code,
+          })
+        : ((sale.customer as any)?.shippingAddressLine
+            ? formatAddress({
+                addressLine: (sale.customer as any).shippingAddressLine,
+                subdistrict: (sale.customer as any).shippingSubdistrict,
+                district: (sale.customer as any).shippingDistrict,
+                province: (sale.customer as any).shippingProvince,
+                postalCode: (sale.customer as any).shippingPostalCode,
+              })
+            : customerAddress));
 
   const receivingAddress = formatAddress({
     addressLine: sa.receiving_address_line,
@@ -398,7 +427,6 @@ export function DeliveryInfoCard({ sale }: { sale: Sale }) {
 
   const shippingCompanyName = sa.sender_name || "-";
 
-  const latestShipment = sale.shipments?.[0];
   const displayDeliveryDate =
     latestShipment?.scheduledDate ?? sale.deliveryDate;
 

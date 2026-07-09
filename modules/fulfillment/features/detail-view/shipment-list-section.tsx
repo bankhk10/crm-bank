@@ -217,7 +217,13 @@ function ShipmentCard({
             {shipment.shippingAddress && (
               <div className="flex items-start gap-1.5 text-muted-foreground mt-1 text-[11px]">
                 <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
-                <span>{shipment.shippingAddress}</span>
+                <span>{shipment.deliveryMethod === "COURIER" ? `ที่อยู่ขนส่ง: ${shipment.shippingAddress}` : shipment.shippingAddress}</span>
+              </div>
+            )}
+            {(shipment as any).customerShippingAddress && (
+              <div className="flex items-start gap-1.5 text-muted-foreground mt-1 text-[11px]">
+                <MapPin className="h-3 w-3 mt-0.5 shrink-0 text-emerald-600" />
+                <span>ที่อยู่ลูกค้า: {(shipment as any).customerShippingAddress}</span>
               </div>
             )}
             {shipment.shippingCompanyId && shipment.deliveryMethod === "COURIER" && (

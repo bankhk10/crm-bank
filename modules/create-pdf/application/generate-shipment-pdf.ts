@@ -111,13 +111,25 @@ export async function createShipmentDeliveryNotePdf(
     })
     : customerAddress;
 
-  const shippingAddress = formatAddress({
-    addressLine: sa.shipping_address_line,
-    subdistrict: sa.shipping_subdistrict,
-    district: sa.shipping_district,
-    province: sa.shipping_province,
-    postalCode: sa.shipping_postal_code,
-  });
+  const shippingAddress = shipment.customerShippingAddress
+    ? shipment.customerShippingAddress
+    : (sa.shipping_address_line
+        ? formatAddress({
+            addressLine: sa.shipping_address_line,
+            subdistrict: sa.shipping_subdistrict,
+            district: sa.shipping_district,
+            province: sa.shipping_province,
+            postalCode: sa.shipping_postal_code,
+          })
+        : ((sale.customer as any)?.shippingAddressLine
+            ? formatAddress({
+                addressLine: (sale.customer as any).shippingAddressLine,
+                subdistrict: (sale.customer as any).shippingSubdistrict,
+                district: (sale.customer as any).shippingDistrict,
+                province: (sale.customer as any).shippingProvince,
+                postalCode: (sale.customer as any).shippingPostalCode,
+              })
+            : customerAddress));
 
   const receivingAddress = formatAddress({
     addressLine: sa.receiving_address_line,

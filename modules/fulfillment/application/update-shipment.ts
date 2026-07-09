@@ -85,6 +85,7 @@ export async function updateShipmentUseCase(
         pickupCompanyId: validatedData.useCustomDeliveryMethod ? validatedData.pickupCompanyId ?? null : null,
         pickupCompanyName: validatedData.useCustomDeliveryMethod ? validatedData.pickupCompanyName ?? null : null,
         shippingAddress: validatedData.useCustomDeliveryMethod ? validatedData.shippingAddress ?? null : null,
+        customerShippingAddress: validatedData.useCustomDeliveryMethod ? validatedData.customerShippingAddress ?? null : null,
       }),
     };
 

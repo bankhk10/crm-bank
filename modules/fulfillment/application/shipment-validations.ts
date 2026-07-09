@@ -27,6 +27,7 @@ export const createShipmentSchema = z.object({
   pickupCompanyId: z.string().nullable().optional(),
   pickupCompanyName: z.string().nullable().optional(),
   shippingAddress: z.string().nullable().optional(),
+  customerShippingAddress: z.string().nullable().optional(),
 });
 
 // ──────────────────────────────────────────
@@ -51,6 +52,7 @@ export const updateShipmentSchema = z.object({
   pickupCompanyId: z.string().nullable().optional(),
   pickupCompanyName: z.string().nullable().optional(),
   shippingAddress: z.string().nullable().optional(),
+  customerShippingAddress: z.string().nullable().optional(),
 });
 
 export type CreateShipmentInput = z.infer<typeof createShipmentSchema>;

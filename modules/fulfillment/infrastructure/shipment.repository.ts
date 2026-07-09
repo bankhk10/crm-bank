@@ -17,6 +17,7 @@ export interface CreateShipmentData {
   pickupCompanyId?: string | null;
   pickupCompanyName?: string | null;
   shippingAddress?: string | null;
+  customerShippingAddress?: string | null;
 }
 
 export interface UpdateShipmentData {
@@ -37,6 +38,7 @@ export interface UpdateShipmentData {
   pickupCompanyId?: string | null;
   pickupCompanyName?: string | null;
   shippingAddress?: string | null;
+  customerShippingAddress?: string | null;
 }
 
 export const ShipmentRepository = {
@@ -77,6 +79,7 @@ export const ShipmentRepository = {
         pickupCompanyId: data.pickupCompanyId ?? null,
         pickupCompanyName: data.pickupCompanyName ?? null,
         shippingAddress: data.shippingAddress ?? null,
+        customerShippingAddress: data.customerShippingAddress ?? null,
         createdById: data.createdById,
         items: {
           create: data.items.map((item) => ({
@@ -218,6 +221,7 @@ export const ShipmentRepository = {
         ...(data.pickupCompanyId !== undefined && { pickupCompanyId: data.pickupCompanyId }),
         ...(data.pickupCompanyName !== undefined && { pickupCompanyName: data.pickupCompanyName }),
         ...(data.shippingAddress !== undefined && { shippingAddress: data.shippingAddress }),
+        ...(data.customerShippingAddress !== undefined && { customerShippingAddress: data.customerShippingAddress }),
       },
       include: {
         items: { include: { saleItem: true } },

@@ -1096,6 +1096,7 @@ model Shipment {
   pickupCompanyId     String? // รหัสสถานที่รับสินค้าเอง
   pickupCompanyName   String? // ชื่อสถานที่รับสินค้า (Snapshotted)
   shippingAddress     String? // ที่อยู่สำหรับจัดส่ง
+  customerShippingAddress String? // ที่อยู่จัดส่งลูกค้าปลายทาง (กรณีเลือกที่อยู่อื่น)
   notes             String? // หมายเหตุ
   totalAmount       Decimal        @default(0) @db.Decimal(15, 2) // มูลค่าสินค้าในรอบนี้
   shippingDiscount  Decimal        @default(0) @db.Decimal(15, 2) // ส่วนลดค่าขนส่ง

@@ -119,6 +119,7 @@ export interface ShipmentRecord {
   pickupCompanyId: string | null;
   pickupCompanyName: string | null;
   shippingAddress: string | null;
+  customerShippingAddress: string | null;
   notes: string | null;
   totalAmount: number;
   shippingDiscount: number;
@@ -148,6 +149,7 @@ export interface CreateShipmentInput {
   pickupCompanyId?: string | null;
   pickupCompanyName?: string | null;
   shippingAddress?: string | null;
+  customerShippingAddress?: string | null;
   notes?: string | null;
   shippingDiscount?: number | null;
   billDiscount?: number | null;
@@ -166,6 +168,7 @@ export interface UpdateShipmentInput {
   pickupCompanyId?: string | null;
   pickupCompanyName?: string | null;
   shippingAddress?: string | null;
+  customerShippingAddress?: string | null;
   notes?: string | null;
   shippingDiscount?: number | null;
   billDiscount?: number | null;

@@ -198,6 +198,7 @@ export async function findSaleById(id: string) {
             orderBy: { createdAt: "desc" },
             take: 1,
           },
+          addresses: true,
         },
       },
       employee: true,

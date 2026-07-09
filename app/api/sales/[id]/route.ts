@@ -44,6 +44,7 @@ export async function GET(
                 shippingCompany: true,
               },
             },
+            addresses: true,
           },
         },
         employee: true,
