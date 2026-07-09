@@ -5,7 +5,15 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { PlusCircle, Loader2, Edit2, Trash2, Calendar, Truck, CreditCard } from "lucide-react";
+import {
+  PlusCircle,
+  Loader2,
+  Edit2,
+  Trash2,
+  Calendar,
+  Truck,
+  CreditCard,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -149,7 +157,9 @@ export function CreateShipmentDialog({
         district: customer.shippingDistrict || undefined,
         province: customer.shippingProvince || undefined,
         postalCode: customer.shippingPostalCode || undefined,
-      }) || customer.addressLine || ""
+      }) ||
+      customer.addressLine ||
+      ""
     : "";
 
   const addressOptions = [
@@ -164,23 +174,24 @@ export function CreateShipmentDialog({
       });
       return {
         value: addr.id,
-        label: `ที่อยู่เพิ่มเติม ${index + 1}: ${addrStr || "-"}`
+        label: `ที่อยู่เพิ่มเติม ${index + 1}: ${addrStr || "-"}`,
       };
-    }) || [])
+    }) || []),
   ];
 
-  const defaultSelectedAddressId = isEdit && shipment?.customerShippingAddress
-    ? (customer?.addresses?.find((addr: any) => {
-        const addrStr = buildCompanyAddress({
-          addressLine: addr.addressLine || undefined,
-          subdistrict: addr.subdistrict || undefined,
-          district: addr.district || undefined,
-          province: addr.province || undefined,
-          postalCode: addr.postalCode || undefined,
-        });
-        return addrStr === shipment.customerShippingAddress;
-      })?.id || "primary")
-    : "primary";
+  const defaultSelectedAddressId =
+    isEdit && shipment?.customerShippingAddress
+      ? customer?.addresses?.find((addr: any) => {
+          const addrStr = buildCompanyAddress({
+            addressLine: addr.addressLine || undefined,
+            subdistrict: addr.subdistrict || undefined,
+            district: addr.district || undefined,
+            province: addr.province || undefined,
+            postalCode: addr.postalCode || undefined,
+          });
+          return addrStr === shipment.customerShippingAddress;
+        })?.id || "primary"
+      : "primary";
 
   const { register, handleSubmit, control, reset, setValue, watch, getValues } =
     useForm<FormValues>({
@@ -199,7 +210,9 @@ export function CreateShipmentDialog({
         deliveryMethod: isEdit ? shipment.deliveryMethod || "" : "",
         pickupCompanyId: isEdit ? shipment.pickupCompanyId || "" : "",
         shippingAddress: isEdit ? shipment.shippingAddress || "" : "",
-        customerShippingAddress: isEdit ? shipment.customerShippingAddress || "" : primaryAddressStr,
+        customerShippingAddress: isEdit
+          ? shipment.customerShippingAddress || ""
+          : primaryAddressStr,
         selectedAddressId: defaultSelectedAddressId,
       },
     });
@@ -737,7 +750,9 @@ export function CreateShipmentDialog({
                 )}
 
                 {/* Select Customer Shipping Address */}
-                {["COURIER", "SALES_DELIVERY", "FACTORY_DELIVERY"].includes(deliveryMethod || "") && (
+                {["COURIER", "SALES_DELIVERY", "FACTORY_DELIVERY"].includes(
+                  deliveryMethod || "",
+                ) && (
                   <div className="mt-3 space-y-3 rounded-lg border bg-white p-3">
                     <Label className="block text-xs font-semibold text-gray-700">
                       เลือกที่อยู่จัดส่งสินค้า (ของลูกค้า)
@@ -752,18 +767,29 @@ export function CreateShipmentDialog({
                           onValueChange={(val) => {
                             field.onChange(val);
                             if (val === "primary") {
-                              setValue("customerShippingAddress", primaryAddressStr);
+                              setValue(
+                                "customerShippingAddress",
+                                primaryAddressStr,
+                              );
                             } else {
-                              const selectedAddr = customer?.addresses?.find((addr: any) => addr.id === val);
+                              const selectedAddr = customer?.addresses?.find(
+                                (addr: any) => addr.id === val,
+                              );
                               if (selectedAddr) {
                                 const addrStr = buildCompanyAddress({
-                                  addressLine: selectedAddr.addressLine || undefined,
-                                  subdistrict: selectedAddr.subdistrict || undefined,
+                                  addressLine:
+                                    selectedAddr.addressLine || undefined,
+                                  subdistrict:
+                                    selectedAddr.subdistrict || undefined,
                                   district: selectedAddr.district || undefined,
                                   province: selectedAddr.province || undefined,
-                                  postalCode: selectedAddr.postalCode || undefined,
+                                  postalCode:
+                                    selectedAddr.postalCode || undefined,
                                 });
-                                setValue("customerShippingAddress", addrStr || "");
+                                setValue(
+                                  "customerShippingAddress",
+                                  addrStr || "",
+                                );
                               }
                             }
                           }}
@@ -773,25 +799,20 @@ export function CreateShipmentDialog({
                           </SelectTrigger>
                           <SelectContent>
                             {addressOptions.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                                <span className="block truncate max-w-[70vw]">{opt.label}</span>
+                              <SelectItem
+                                key={opt.value}
+                                value={opt.value}
+                                className="text-xs"
+                              >
+                                <span className="block truncate max-w-[70vw]">
+                                  {opt.label}
+                                </span>
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       )}
                     />
-                    
-                    <div className="min-w-0">
-                      <Label className="mb-1.5 block text-xs font-medium text-gray-500">
-                        ที่อยู่จัดส่งสินค้าที่จะแสดงในเอกสาร
-                      </Label>
-                      <div className="flex min-h-[36px] items-center rounded-md border bg-gray-50 px-3 text-xs text-gray-700">
-                        <span className="block w-full">
-                          {watch("customerShippingAddress") || "-"}
-                        </span>
-                      </div>
-                    </div>
                   </div>
                 )}
               </div>
