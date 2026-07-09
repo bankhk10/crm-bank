@@ -503,7 +503,7 @@ export function CreateShipmentDialog({
                 step="0.01"
                 min="0"
                 placeholder="0.00"
-                className="h-9"
+                className="h-10.5"
                 {...register("shippingDiscount")}
               />
             </div>
@@ -519,7 +519,7 @@ export function CreateShipmentDialog({
                 step="0.01"
                 min="0"
                 placeholder="0.00"
-                className="h-9"
+                className="h-10.5"
                 {...register("billDiscount")}
               />
             </div>
@@ -527,14 +527,14 @@ export function CreateShipmentDialog({
 
           <div className="grid grid-cols-2 gap-4">
             {/* Sales Order Number */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 mt-2">
               <Label htmlFor="salesOrderNumber" className="text-sm">
                 เลขที่คำสั่งขาย
               </Label>
               <Input
                 id="salesOrderNumber"
                 placeholder="เช่น SO-2024-001"
-                className="h-9"
+                className="h-10.5"
                 {...register("salesOrderNumber")}
                 disabled={isCompleted}
               />
