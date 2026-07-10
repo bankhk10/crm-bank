@@ -97,7 +97,7 @@ export async function getSalesForecastDashboardData(
       SUM(s."totalAmount") as "amount"
     FROM "Sale" s
     WHERE s."deletedAt" IS NULL
-      AND s."status" IN ('PAID', 'DELIVERED', 'DELIVERY_COMPLETED', 'COMPLETED')
+      AND s."status" IN ('PAID', 'DELIVERY_COMPLETED', 'COMPLETED')
       AND NOT EXISTS (SELECT 1 FROM "Shipment" sh WHERE sh."saleId" = s."id")
       AND COALESCE(s."deliveryDate", s."requestedDeliveryDate", s."saleDate") >= ${start}
       AND COALESCE(s."deliveryDate", s."requestedDeliveryDate", s."saleDate") <= ${end}
