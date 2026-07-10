@@ -58,6 +58,10 @@ async function main() {
           gte: startDate,
           lte: endDate,
         },
+        OR: [
+          { paymentDate: { gte: new Date('2026-01-01T11:27:21+07:00') } },
+          { paymentDate: null }
+        ],
       },
     },
     include: {
