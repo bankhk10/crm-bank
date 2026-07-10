@@ -5,9 +5,47 @@ async function main() {
   const isDryRun = process.argv.includes('--dry-run');
   console.log(`Starting sync... Mode: ${isDryRun ? 'DRY RUN (No database writes)' : 'LIVE UPDATE'}`);
 
-  const currentYear = new Date().getFullYear(); // 2026
-  const startDate = new Date(`${currentYear}-01-01T00:00:00.000Z`);
-  const endDate = new Date(`${currentYear}-12-31T23:59:59.999Z`);
+  const args = process.argv;
+  let startStr: string | undefined;
+  let endStr: string | undefined;
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--start' && i + 1 < args.length) {
+      startStr = args[i + 1];
+    } else if (args[i].startsWith('--start=')) {
+      startStr = args[i].split('=')[1];
+    }
+    if (args[i] === '--end' && i + 1 < args.length) {
+      endStr = args[i + 1];
+    } else if (args[i].startsWith('--end=')) {
+      endStr = args[i].split('=')[1];
+    }
+  }
+
+  let startDate: Date;
+  let endDate: Date;
+
+  if (startStr) {
+    if (isNaN(Date.parse(startStr))) {
+      console.error(`Invalid start date: ${startStr}`);
+      process.exit(1);
+    }
+    startDate = new Date(startStr.includes('T') ? startStr : `${startStr}T00:00:00.000Z`);
+  } else {
+    const currentYear = new Date().getFullYear();
+    startDate = new Date(`${currentYear}-01-01T00:00:00.000Z`);
+  }
+
+  if (endStr) {
+    if (isNaN(Date.parse(endStr))) {
+      console.error(`Invalid end date: ${endStr}`);
+      process.exit(1);
+    }
+    endDate = new Date(endStr.includes('T') ? endStr : `${endStr}T23:59:59.999Z`);
+  } else {
+    const currentYear = new Date().getFullYear();
+    endDate = new Date(`${currentYear}-12-31T23:59:59.999Z`);
+  }
 
   console.log(`Target saleDate range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
 
