@@ -20,6 +20,13 @@ import { PersonalForecastSection } from "./components/PersonalForecastSection";
 import { TradeNameForecastSection } from "./components/TradeNameForecastSection";
 import { ProductForecastSection } from "./components/ProductForecastSection";
 import { ABCForecastSection } from "./components/ABCForecastSection";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const MONTHS = [
   "ม.ค.",
@@ -65,7 +72,7 @@ type PerformanceEntry = {
 
 export default function SalesForecastDashboard() {
   const [year, setYear] = useState(new Date().getFullYear());
-  const [personalMonth, setPersonalMonth] = useState<string>("all");
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const {
     data: forecastData,
     tradeNameGroupLabels,
@@ -137,13 +144,18 @@ export default function SalesForecastDashboard() {
     [],
   );
 
+  const filteredPerformanceData = useMemo(() => {
+    if (selectedMonth === "all") return performanceData;
+    return performanceData.filter((d) => d.monthNumber === Number(selectedMonth));
+  }, [performanceData, selectedMonth]);
+
   const personalForecastRows = useMemo(() => {
     if (!forecastData?.personal) return [];
     const filtered =
-      personalMonth === "all"
+      selectedMonth === "all"
         ? forecastData.personal
         : forecastData.personal.filter(
-          (entry) => entry.month === Number(personalMonth),
+          (entry) => entry.month === Number(selectedMonth),
         );
 
     const map: Record<
@@ -178,10 +190,17 @@ export default function SalesForecastDashboard() {
     return Object.values(map).sort((a, b) =>
       a.employeeName.localeCompare(b.employeeName),
     );
-  }, [forecastData, personalMonth]);
+  }, [forecastData, selectedMonth]);
 
   const tradeNameForecastRows = useMemo(() => {
     if (!forecastData?.tradeNameGroup) return [];
+
+    const filtered =
+      selectedMonth === "all"
+        ? forecastData.tradeNameGroup
+        : forecastData.tradeNameGroup.filter(
+          (entry) => entry.month === Number(selectedMonth),
+        );
 
     // Use object for faster lookups
     const map: Record<
@@ -194,7 +213,7 @@ export default function SalesForecastDashboard() {
       }
     > = {};
 
-    forecastData.tradeNameGroup.forEach((entry) => {
+    filtered.forEach((entry) => {
       const code = entry.tradeNameGroup;
       const label = tradeNameGroupLabels[code] || code || "ไม่ระบุ";
       if (!map[code]) {
@@ -210,10 +229,17 @@ export default function SalesForecastDashboard() {
     });
 
     return Object.values(map).sort((a, b) => a.label.localeCompare(b.label));
-  }, [forecastData, tradeNameGroupLabels]);
+  }, [forecastData, tradeNameGroupLabels, selectedMonth]);
 
   const productForecastRows = useMemo(() => {
     if (!forecastData?.product) return [];
+
+    const filtered =
+      selectedMonth === "all"
+        ? forecastData.product
+        : forecastData.product.filter(
+          (entry) => entry.month === Number(selectedMonth),
+        );
 
     // Use object for faster lookups
     const map: Record<
@@ -229,7 +255,7 @@ export default function SalesForecastDashboard() {
       }
     > = {};
 
-    forecastData.product.forEach((entry) => {
+    filtered.forEach((entry) => {
       if (!map[entry.productId]) {
         map[entry.productId] = {
           productId: entry.productId,
@@ -249,10 +275,17 @@ export default function SalesForecastDashboard() {
     return Object.values(map).sort((a, b) =>
       a.productName.localeCompare(b.productName),
     );
-  }, [forecastData]);
+  }, [forecastData, selectedMonth]);
 
   const abcForecastRows = useMemo(() => {
     if (!forecastData?.abc) return [];
+
+    const filtered =
+      selectedMonth === "all"
+        ? forecastData.abc
+        : forecastData.abc.filter(
+          (entry) => entry.month === Number(selectedMonth),
+        );
 
     const map: Record<
       string,
@@ -264,7 +297,7 @@ export default function SalesForecastDashboard() {
       }
     > = {};
 
-    forecastData.abc.forEach((entry) => {
+    filtered.forEach((entry) => {
       const code = entry.abcCode;
       const name = abcLabels[code] || entry.abcName || code || "ไม่ระบุประเภท";
       if (!map[code]) {
@@ -282,17 +315,17 @@ export default function SalesForecastDashboard() {
     return Object.values(map).sort((a, b) =>
       a.abcCode.localeCompare(b.abcCode),
     );
-  }, [forecastData, abcLabels]);
+  }, [forecastData, abcLabels, selectedMonth]);
 
   // Calculate summary stats
-  const totalActual = performanceData.reduce((sum, d) => sum + d.actual, 0);
-  const totalTarget = performanceData.reduce((sum, d) => sum + d.target, 0);
+  const totalActual = filteredPerformanceData.reduce((sum, d) => sum + d.actual, 0);
+  const totalTarget = filteredPerformanceData.reduce((sum, d) => sum + d.target, 0);
   const actualVsTarget =
     totalTarget > 0 ? ((totalActual / totalTarget) * 100).toFixed(1) : "0";
 
   const totals = useMemo(
     () =>
-      performanceData.reduce(
+      filteredPerformanceData.reduce(
         (acc, entry) => ({
           target: acc.target + entry.target,
           actual: acc.actual + entry.actual,
@@ -308,7 +341,7 @@ export default function SalesForecastDashboard() {
           backlog: 0,
         },
       ),
-    [performanceData],
+    [filteredPerformanceData],
   );
 
   const formatPercent = (value: number) => `${value.toFixed(1)}%`;
@@ -350,8 +383,21 @@ export default function SalesForecastDashboard() {
           </div>
         </div>
 
-        {/* Year Selector & Refresh */}
-        <div className="flex items-center gap-3">
+        {/* Month & Year Selectors & Refresh */}
+        <div className="flex flex-wrap items-center gap-3">
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="w-[140px] h-10 rounded-xl bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-sm font-medium focus:ring-0 focus-visible:ring-0 focus-visible:outline-none">
+              <SelectValue placeholder="เลือกเดือน" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl bg-white/95 backdrop-blur-md border-slate-200/60">
+              {monthOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value} className="rounded-lg hover:bg-slate-50">
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-xl px-4 py-2 shadow-sm border border-slate-200/60">
             <button
               onClick={() => setYear((y) => y - 1)}
@@ -376,7 +422,7 @@ export default function SalesForecastDashboard() {
             }}
             variant="outline"
             size="icon"
-            className="rounded-xl"
+            className="rounded-xl h-10 w-10"
           >
             <RefreshCw className="w-4 h-4" />
           </Button>
@@ -495,12 +541,13 @@ export default function SalesForecastDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {performanceData.map((entry, index) => {
+                    {filteredPerformanceData.map((entry) => {
+                      const monthIdx = entry.monthNumber - 1;
                       const isCurrentMonth = entry.monthNumber === currentMonth;
-                      const isQuarterStart = index % 3 === 0;
+                      const isQuarterStart = monthIdx % 3 === 0;
                       const rowBg = isCurrentMonth
                         ? "bg-blue-50"
-                        : index % 2 === 0
+                        : monthIdx % 2 === 0
                           ? "bg-white"
                           : "bg-slate-50/50";
                       const backlogColor =
@@ -517,8 +564,8 @@ export default function SalesForecastDashboard() {
                           <td
                             className={`sticky left-0 z-10 border border-slate-200 px-3 py-2 text-left font-medium text-slate-700 ${rowBg} ${isCurrentMonth ? "text-blue-700" : ""}`}
                           >
-                            <span className="hidden lg:inline">{MONTHS_FULL[index]}</span>
-                            <span className="lg:hidden">{MONTHS[index]}</span>
+                            <span className="hidden lg:inline">{MONTHS_FULL[monthIdx]}</span>
+                            <span className="lg:hidden">{MONTHS[monthIdx]}</span>
                             {isCurrentMonth && (
                               <span className="ml-1 text-[12px] text-blue-500 bg-blue-100 px-1 rounded">
                                 ปัจจุบัน
@@ -543,7 +590,7 @@ export default function SalesForecastDashboard() {
                     {/* Summary row */}
                     <tr className="bg-slate-100 font-bold border-t-2 border-slate-300">
                       <td className="sticky left-0 z-10 border border-slate-200 pl-6 pr-3 py-2.5 text-left text-base text-slate-800 bg-slate-100">
-                        รวมทั้งปี
+                        {selectedMonth === "all" ? "รวมทั้งปี" : `รวมเดือน ${MONTHS_FULL[Number(selectedMonth) - 1]}`}
                       </td>
                       <td className="border border-slate-200 px-3 py-2.5 text-center text-slate-800">
                         {formatFullCurrency(totals.target)}
@@ -565,18 +612,18 @@ export default function SalesForecastDashboard() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="personal" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
-          <PersonalForecastSection
-            data={personalForecastRows}
-            year={year}
-            monthOptions={monthOptions}
-            selectedMonth={personalMonth}
-            onMonthChange={setPersonalMonth}
-            formatCurrency={formatFullCurrency}
-            loading={forecastLoading}
-            error={forecastError}
-          />
-        </TabsContent>
+      <TabsContent value="personal" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
+        <PersonalForecastSection
+          data={personalForecastRows}
+          year={year}
+          monthOptions={monthOptions}
+          selectedMonth={selectedMonth}
+          onMonthChange={setSelectedMonth}
+          formatCurrency={formatFullCurrency}
+          loading={forecastLoading}
+          error={forecastError}
+        />
+      </TabsContent>
 
         <TabsContent value="abc" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
           <ABCForecastSection
