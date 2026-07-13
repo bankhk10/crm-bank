@@ -1107,6 +1107,42 @@ export function TripPlanReport() {
                     </span>
                   </div>
                 </div>
+
+                {/* Target Goals & Required Records */}
+                <div className="border-t pt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* เป้าหมาย */}
+                  <div className="space-y-2">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                      เป้าหมาย
+                    </span>
+                    <div className="bg-amber-50/50 rounded-xl p-4 border border-amber-100/50 h-full">
+                      <p className="text-sm font-semibold text-amber-900 whitespace-pre-line leading-relaxed">
+                        {selectedPlan.targetGoal || "-"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* สิ่งที่ต้องบันทึก */}
+                  <div className="space-y-2">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                      สิ่งที่พนักงานต้องบันทึก
+                    </span>
+                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 h-full">
+                      {selectedPlan.recordFields && selectedPlan.recordFields.length > 0 ? (
+                        <ul className="text-xs font-semibold text-slate-700 space-y-1.5 list-none pl-0">
+                          {selectedPlan.recordFields.map((field, idx) => (
+                            <li key={idx} className="flex items-start gap-2 leading-relaxed">
+                              <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
+                              <span>{field}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-xs font-medium text-slate-500">-</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Footer */}
