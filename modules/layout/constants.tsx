@@ -141,6 +141,19 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <Megaphone className="h-4 w-4" />,
   },
   {
+    href: "/test-activity",
+    label: "ทดสอบกิจกรรม",
+    permissionKey: "menu.test_activity",
+    icon: <ClipboardList className="h-4 w-4" />,
+    children: [
+      {
+        href: "/test-activity/trip-plan",
+        label: "รายงานแผนการออกปฏิบัติงาน (Trip Plan)",
+        permissionKey: "menu.test_activity.trip_plan",
+      },
+    ],
+  },
+  {
     // href: "https://docs.google.com/document/d/1Jo8RL9S1fwIqEJQc0xASSLnZp8ElkQ8J7G1T9NvGqkc/edit?usp=sharing",
     href: "/manual",
     label: "คู่มือ",
