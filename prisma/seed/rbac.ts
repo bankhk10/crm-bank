@@ -772,6 +772,12 @@ const permissionGroups: Record<string, PermissionGroup> = {
         resource: "test_activity",
         menuPath: "/test-activity/activity-report",
       },
+      {
+        key: "menu.test_activity.budget_report",
+        name: "รายงานงบประมาณ (Budget Report)",
+        resource: "test_activity",
+        menuPath: "/test-activity/budget-report",
+      },
     ],
   },
 };
@@ -1143,6 +1149,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "menu.test_activity" },
     { key: "menu.test_activity.trip_plan" },
     { key: "menu.test_activity.activity_report" },
+    { key: "menu.test_activity.budget_report" },
   ];
 
   await prisma.rolePermission.createMany({
@@ -1231,6 +1238,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "menu.test_activity" },
     { key: "menu.test_activity.trip_plan" },
     { key: "menu.test_activity.activity_report" },
+    { key: "menu.test_activity.budget_report" },
   ];
 
   await prisma.rolePermission.createMany({
@@ -1379,6 +1387,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "menu.test_activity" },
     { key: "menu.test_activity.trip_plan" },
     { key: "menu.test_activity.activity_report" },
+    { key: "menu.test_activity.budget_report" },
     // Note: rbac.manage, menu.rbac, menu.admin, system.settings are excluded to differentiate from Administrator
   ];
 
@@ -1478,6 +1487,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "menu.test_activity" },
     { key: "menu.test_activity.trip_plan" },
     { key: "menu.test_activity.activity_report" },
+    { key: "menu.test_activity.budget_report" },
   ];
 
   await prisma.rolePermission.createMany({
@@ -1576,6 +1586,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "menu.test_activity" },
     { key: "menu.test_activity.trip_plan" },
     { key: "menu.test_activity.activity_report" },
+    { key: "menu.test_activity.budget_report" },
   ];
 
   await prisma.rolePermission.createMany({

@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CalendarRange, ClipboardCheck, ArrowRight } from "lucide-react";
+import { CalendarRange, ClipboardCheck, ArrowRight, Coins } from "lucide-react";
 
 export default async function TestActivityReportsPage() {
   const session = await auth();
@@ -35,7 +35,7 @@ export default async function TestActivityReportsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Card 1: Trip Plan */}
         <Link href="/test-activity/trip-plan" className="group">
           <Card className="h-full border border-slate-100 hover:border-indigo-200 hover:shadow-md transition-all duration-300 rounded-2xl overflow-hidden bg-white/50 backdrop-blur-sm group-hover:-translate-y-1">
@@ -84,6 +84,33 @@ export default async function TestActivityReportsPage() {
                 สรุปยอดสถิติผู้เข้าร่วมจริง ยอดจำหน่ายสินค้า ยอดลูกค้าใหม่ การเจริญเติบโตของแปลงสาธิต และอัตราบรรลุความสำเร็จรายพนักงาน
               </p>
               <div className="flex items-center text-xs font-bold text-emerald-600 mt-4 group-hover:translate-x-1 transition-transform duration-300">
+                เข้าชมรายงาน <ArrowRight className="h-3.5 w-3.5 ml-1" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        {/* Card 3: Budget Report */}
+        <Link href="/test-activity/budget-report" className="group">
+          <Card className="h-full border border-slate-100 hover:border-amber-200 hover:shadow-md transition-all duration-300 rounded-2xl overflow-hidden bg-white/50 backdrop-blur-sm group-hover:-translate-y-1">
+            <CardHeader className="p-6 pb-2 flex flex-row items-center gap-4">
+              <div className="p-3 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-600 group-hover:text-white transition-colors duration-300">
+                <Coins className="h-6 w-6" />
+              </div>
+              <div>
+                <CardTitle className="text-base font-bold text-slate-800">
+                  รายงานงบประมาณ (Budget Report)
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  วิเคราะห์ต้นทุนการจัดกิจกรรม
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6 pt-2 flex flex-col justify-between h-[120px]">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                วิเคราะห์การใช้งบประมาณรายกิจกรรม เปรียบเทียบงบจริงและงบตามแผนพร้อมรายงานค่าใช้จ่ายเบ็ดเตล็ดอื่นรายบุคคลและพื้นที่
+              </p>
+              <div className="flex items-center text-xs font-bold text-amber-600 mt-4 group-hover:translate-x-1 transition-transform duration-300">
                 เข้าชมรายงาน <ArrowRight className="h-3.5 w-3.5 ml-1" />
               </div>
             </CardContent>

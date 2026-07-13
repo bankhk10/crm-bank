@@ -27,6 +27,9 @@ export interface TripPlanMock {
   plotsCount: number;
   growthStage: string;
   problemsFound: string;
+  // Budget Report Fields
+  actualBudget: number;
+  otherExpenses: number;
 }
 
 export const targetTypeConfigs: Record<
@@ -207,6 +210,8 @@ const rawMockTripPlans = [
     plotsCount: 2,
     growthStage: "ระยะแตกกอ",
     problemsFound: "พบโรคใบไหม้ระบาดเล็กน้อยในบางแปลง",
+    actualBudget: 14500,
+    otherExpenses: 2500,
   },
   {
     id: "TP-2026-002",
@@ -234,6 +239,8 @@ const rawMockTripPlans = [
     plotsCount: 1,
     growthStage: "ระยะตั้งท้อง",
     problemsFound: "ขาดน้ำเล็กน้อยเนื่องจากฝนทิ้งช่วง",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
   {
     id: "TP-2026-003",
@@ -261,6 +268,8 @@ const rawMockTripPlans = [
     plotsCount: 0,
     growthStage: "ยังไม่ปลูก",
     problemsFound: "ไม่มี",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
   {
     id: "TP-2026-004",
@@ -288,6 +297,8 @@ const rawMockTripPlans = [
     plotsCount: 0,
     growthStage: "ระยะบำรุงต้น",
     problemsFound: "ไม่มี",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
   {
     id: "TP-2026-005",
@@ -315,6 +326,8 @@ const rawMockTripPlans = [
     plotsCount: 0,
     growthStage: "ระยะแตกกอ",
     problemsFound: "ไม่มี",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
   {
     id: "TP-2026-006",
@@ -342,6 +355,8 @@ const rawMockTripPlans = [
     plotsCount: 2,
     growthStage: "ระยะงอก",
     problemsFound: "พบวัชพืชหนาแน่นในแปลง",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
   {
     id: "TP-2026-007",
@@ -369,6 +384,8 @@ const rawMockTripPlans = [
     plotsCount: 4,
     growthStage: "ระยะเก็บเกี่ยว",
     problemsFound: "พบโรคเมล็ดด่างระบาดในบางมุมของแปลงสาธิต",
+    actualBudget: 36000,
+    otherExpenses: 4200,
   },
   {
     id: "TP-2026-008",
@@ -396,6 +413,8 @@ const rawMockTripPlans = [
     plotsCount: 3,
     growthStage: "ระยะสะสมแป้ง",
     problemsFound: "พบโรคใบด่างมันสำปะหลังระบาด",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
   {
     id: "TP-2026-009",
@@ -423,6 +442,8 @@ const rawMockTripPlans = [
     plotsCount: 1,
     growthStage: "ระยะบำรุงต้น",
     problemsFound: "ไม่มี",
+    actualBudget: 5800,
+    otherExpenses: 1200,
   },
   {
     id: "TP-2026-010",
@@ -450,6 +471,8 @@ const rawMockTripPlans = [
     plotsCount: 2,
     growthStage: "ระยะติดผล",
     problemsFound: "พบโรคแคงเกอร์ระบาดในส้มบางต้น",
+    actualBudget: 48000,
+    otherExpenses: 5500,
   },
   {
     id: "TP-2026-011",
@@ -477,6 +500,8 @@ const rawMockTripPlans = [
     plotsCount: 0,
     growthStage: "ระยะบำรุงต้น",
     problemsFound: "ไม่มี",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
   {
     id: "TP-2026-012",
@@ -504,6 +529,8 @@ const rawMockTripPlans = [
     plotsCount: 2,
     growthStage: "ระยะติดผล",
     problemsFound: "พบการเข้าทำลายของหนอนเจาะผลทุเรียน",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
   {
     id: "TP-2026-013",
@@ -531,6 +558,8 @@ const rawMockTripPlans = [
     plotsCount: 1,
     growthStage: "ระยะสุกแก่",
     problemsFound: "ไม่มี",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
   {
     id: "TP-2026-014",
@@ -558,6 +587,8 @@ const rawMockTripPlans = [
     plotsCount: 0,
     growthStage: "ระยะบำรุงต้น",
     problemsFound: "ไม่มี",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
   {
     id: "TP-2026-015",
@@ -585,6 +616,8 @@ const rawMockTripPlans = [
     plotsCount: 0,
     growthStage: "ระยะบำรุงต้น",
     problemsFound: "ไม่มี",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
   {
     id: "TP-2026-016",
@@ -612,6 +645,8 @@ const rawMockTripPlans = [
     plotsCount: 0,
     growthStage: "ระยะบำรุงต้น",
     problemsFound: "ไม่มี",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
   {
     id: "TP-2026-017",
@@ -639,6 +674,8 @@ const rawMockTripPlans = [
     plotsCount: 3,
     growthStage: "ระยะออกดอก",
     problemsFound: "พบโรคใบขีดสีส้มเล็กน้อย",
+    actualBudget: 24000,
+    otherExpenses: 3800,
   },
   {
     id: "TP-2026-018",
@@ -666,6 +703,8 @@ const rawMockTripPlans = [
     plotsCount: 0,
     growthStage: "ระยะบำรุงต้น",
     problemsFound: "ไม่มี",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
   {
     id: "TP-2026-019",
@@ -693,6 +732,8 @@ const rawMockTripPlans = [
     plotsCount: 0,
     growthStage: "ระยะบำรุงต้น",
     problemsFound: "ไม่มี",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
   {
     id: "TP-2026-020",
@@ -720,6 +761,8 @@ const rawMockTripPlans = [
     plotsCount: 1,
     growthStage: "ระยะสะสมแป้ง",
     problemsFound: "ไม่มี",
+    actualBudget: 0,
+    otherExpenses: 0,
   },
 ];
 
