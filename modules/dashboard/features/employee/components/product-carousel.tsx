@@ -2,20 +2,20 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import Image from "next/image";
 
-// Product images from public/uploads/products
+// Product images from public/images/products
 const productImages = [
   {
-    src: "/uploads/products/p-1.jpg",
+    src: "/images/products/p-1.jpg",
     title: "สินค้าแนะนำ 1",
     description: "คุณภาพระดับพรีเมียม",
   },
   {
-    src: "/uploads/products/p-2.jpg",
+    src: "/images/products/p-2.jpg",
     title: "สินค้าแนะนำ 2",
     description: "ราคาพิเศษสุดคุ้ม",
   },
   {
-    src: "/uploads/products/p-3.jpg",
+    src: "/images/products/p-3.jpg",
     title: "สินค้าแนะนำ 3",
     description: "ของแท้ 100%",
   },
