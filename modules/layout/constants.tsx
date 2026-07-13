@@ -147,13 +147,8 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <ClipboardList className="h-4 w-4" />,
     children: [
       {
-        href: "/test-activity/trip-plan",
-        label: "รายงานแผนการออกปฏิบัติงาน (Trip Plan)",
-        permissionKey: "menu.test_activity.trip_plan",
-      },
-      {
-        href: "/test-activity/activity-report",
-        label: "รายงานผลการดำเนินกิจกรรม (Activity Report)",
+        href: "/test-activity/reports",
+        label: "รายงาน",
         permissionKey: "menu.test_activity",
       },
     ],

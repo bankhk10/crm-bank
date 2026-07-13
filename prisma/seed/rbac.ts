@@ -755,6 +755,12 @@ const permissionGroups: Record<string, PermissionGroup> = {
     },
     subMenus: [
       {
+        key: "menu.test_activity.reports",
+        name: "รายงานกิจกรรม",
+        resource: "test_activity",
+        menuPath: "/test-activity/reports",
+      },
+      {
         key: "menu.test_activity.trip_plan",
         name: "รายงานแผนการออกปฏิบัติงาน (Trip Plan)",
         resource: "test_activity",
