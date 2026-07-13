@@ -1,0 +1,297 @@
+export interface TripPlanMock {
+  id: string;
+  activityDate: string;
+  responsible: string;
+  approver: string;
+  jobType: string;
+  activityName: string;
+  province: string;
+  district: string;
+  targetType: string;
+  budgetType: string;
+  budget: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'FINISHED';
+}
+
+export const mockTripPlans: TripPlanMock[] = [
+  {
+    id: "TP-2026-001",
+    activityDate: "2026-07-01",
+    responsible: "สมชาย ใจดี",
+    approver: "วิชัย มั่นคง",
+    jobType: "ออกพบลูกค้า",
+    activityName: "ออกบูธปุ๋ยตราร่มโพธิ์ ณ ตลาดสด",
+    province: "ขอนแก่น",
+    district: "เมืองขอนแก่น",
+    targetType: "เกษตรกร",
+    budgetType: "งบส่งเสริมการขาย",
+    budget: 15000,
+    status: "FINISHED"
+  },
+  {
+    id: "TP-2026-002",
+    activityDate: "2026-07-03",
+    responsible: "สมหญิง รักดี",
+    approver: "วิชัย มั่นคง",
+    jobType: "งานสัมมนา",
+    activityName: "สัมมนาให้ความรู้ปุ๋ยเคมีและอินทรีย์",
+    province: "เชียงใหม่",
+    district: "แม่ริม",
+    targetType: "ร้านค้ารายย่อย (Subdealer)",
+    budgetType: "งบส่งเสริมการตลาด",
+    budget: 45000,
+    status: "APPROVED"
+  },
+  {
+    id: "TP-2026-003",
+    activityDate: "2026-07-05",
+    responsible: "พิมพ์ใจ เรียนเก่ง",
+    approver: "สมพร ดีเลิศ",
+    jobType: "งานบูธและอีเวนต์",
+    activityName: "งานเทศกาลเกษตรพืชสวนโลกประจำจังหวัด",
+    province: "กรุงเทพฯ",
+    district: "ปทุมวัน",
+    targetType: "ร้านค้ารายใหญ่ (Dealer)",
+    budgetType: "งบส่งเสริมการขาย",
+    budget: 120000,
+    status: "PENDING"
+  },
+  {
+    id: "TP-2026-004",
+    activityDate: "2026-07-10",
+    responsible: "ปรีชา ขยันงาน",
+    approver: "สมพร ดีเลิศ",
+    jobType: "สำรวจตลาด",
+    activityName: "เดินตลาดสำรวจร้านจำหน่ายเคมีเกษตร",
+    province: "นครราชสีมา",
+    district: "ปากช่อง",
+    targetType: "ร้านค้ารายย่อย (Subdealer)",
+    budgetType: "งบส่งเสริมการตลาด",
+    budget: 8000,
+    status: "REJECTED"
+  },
+  {
+    id: "TP-2026-005",
+    activityDate: "2026-07-12",
+    responsible: "สมชาย ใจดี",
+    approver: "วิชัย มั่นคง",
+    jobType: "ออกพบลูกค้า",
+    activityName: "เยี่ยมเยียนร้านสยามค้าปุ๋ย มอบกระเช้า",
+    province: "ขอนแก่น",
+    district: "ชุมแพ",
+    targetType: "ร้านค้ารายใหญ่ (Dealer)",
+    budgetType: "งบส่งเสริมการตลาด",
+    budget: 5000,
+    status: "CANCELLED"
+  },
+  {
+    id: "TP-2026-006",
+    activityDate: "2026-07-15",
+    responsible: "สมหญิง รักดี",
+    approver: "วิชัย มั่นคง",
+    jobType: "ออกพบลูกค้า",
+    activityName: "พบปะกลุ่มเกษตรกรข้าวโพดโพนพิสัย",
+    province: "นครราชสีมา",
+    district: "เมืองนครราชสีมา",
+    targetType: "เกษตรกร",
+    budgetType: "งบส่งเสริมการขาย",
+    budget: 12000,
+    status: "APPROVED"
+  },
+  {
+    id: "TP-2026-007",
+    activityDate: "2026-07-18",
+    responsible: "พิมพ์ใจ เรียนเก่ง",
+    approver: "สมพร ดีเลิศ",
+    jobType: "งานสัมมนา",
+    activityName: "สาธิตการใช้เทคโนโลยีผสมปุ๋ยแม่นยำ",
+    province: "เชียงใหม่",
+    district: "เมืองเชียงใหม่",
+    targetType: "เกษตรกร",
+    budgetType: "งบส่งเสริมการตลาด",
+    budget: 35000,
+    status: "FINISHED"
+  },
+  {
+    id: "TP-2026-008",
+    activityDate: "2026-07-20",
+    responsible: "ปรีชา ขยันงาน",
+    approver: "สมพร ดีเลิศ",
+    jobType: "งานบูธและอีเวนต์",
+    activityName: "ออกบูธวันเกษตรไทย ยอดขายโปรโมชัน",
+    province: "กรุงเทพฯ",
+    district: "บางรัก",
+    targetType: "ร้านค้ารายย่อย (Subdealer)",
+    budgetType: "งบส่งเสริมการขาย",
+    budget: 85000,
+    status: "PENDING"
+  },
+  {
+    id: "TP-2026-009",
+    activityDate: "2026-07-22",
+    responsible: "สมชาย ใจดี",
+    approver: "วิชัย มั่นคง",
+    jobType: "สำรวจตลาด",
+    activityName: "เช็คราคาสินค้าคู่แข่งในพื้นที่เกษตรหลัก",
+    province: "ขอนแก่น",
+    district: "เมืองขอนแก่น",
+    targetType: "ร้านค้ารายย่อย (Subdealer)",
+    budgetType: "งบส่งเสริมการตลาด",
+    budget: 6000,
+    status: "FINISHED"
+  },
+  {
+    id: "TP-2026-010",
+    activityDate: "2026-07-25",
+    responsible: "สมหญิง รักดี",
+    approver: "วิชัย มั่นคง",
+    jobType: "งานสัมมนา",
+    activityName: "บรรยายทิศทางปุ๋ยอินทรีย์เคมี 2026",
+    province: "เชียงใหม่",
+    district: "แม่ริม",
+    targetType: "ร้านค้ารายใหญ่ (Dealer)",
+    budgetType: "งบส่งเสริมการขาย",
+    budget: 50000,
+    status: "FINISHED"
+  },
+  {
+    id: "TP-2026-011",
+    activityDate: "2026-07-27",
+    responsible: "พิมพ์ใจ เรียนเก่ง",
+    approver: "สมพร ดีเลิศ",
+    jobType: "ออกพบลูกค้า",
+    activityName: "ติดตามผลยอดขายปุ๋ยข้าวรอบแรก",
+    province: "กรุงเทพฯ",
+    district: "ปทุมวัน",
+    targetType: "ร้านค้ารายใหญ่ (Dealer)",
+    budgetType: "งบส่งเสริมการขาย",
+    budget: 20000,
+    status: "APPROVED"
+  },
+  {
+    id: "TP-2026-012",
+    activityDate: "2026-07-29",
+    responsible: "ปรีชา ขยันงาน",
+    approver: "สมพร ดีเลิศ",
+    jobType: "สำรวจตลาด",
+    activityName: "สำรวจปริมาณความต้องการซื้อปุ๋ยทุเรียน",
+    province: "นครราชสีมา",
+    district: "ปากช่อง",
+    targetType: "เกษตรกร",
+    budgetType: "งบส่งเสริมการตลาด",
+    budget: 9000,
+    status: "APPROVED"
+  },
+  {
+    id: "TP-2026-013",
+    activityDate: "2026-08-01",
+    responsible: "สมชาย ใจดี",
+    approver: "วิชัย มั่นคง",
+    jobType: "งานบูธและอีเวนต์",
+    activityName: "จัดเทศกาลลุ้นทองกับปุ๋ยตราร่มโพธิ์",
+    province: "ขอนแก่น",
+    district: "เมืองขอนแก่น",
+    targetType: "เกษตรกร",
+    budgetType: "งบส่งเสริมการขาย",
+    budget: 150000,
+    status: "PENDING"
+  },
+  {
+    id: "TP-2026-014",
+    activityDate: "2026-08-05",
+    responsible: "สมหญิง รักดี",
+    approver: "วิชัย มั่นคง",
+    jobType: "ออกพบลูกค้า",
+    activityName: "สัมภาษณ์ความพึงพอใจการใช้ผลิตภัณฑ์ข้าวโพด",
+    province: "เชียงใหม่",
+    district: "เมืองเชียงใหม่",
+    targetType: "เกษตรกร",
+    budgetType: "งบส่งเสริมการตลาด",
+    budget: 11000,
+    status: "APPROVED"
+  },
+  {
+    id: "TP-2026-015",
+    activityDate: "2026-08-08",
+    responsible: "พิมพ์ใจ เรียนเก่ง",
+    approver: "สมพร ดีเลิศ",
+    jobType: "งานสัมมนา",
+    activityName: "เปิดตัวสูตรปุ๋ยใหม่สำหรับสวนผลไม้",
+    province: "นครราชสีมา",
+    district: "ปากช่อง",
+    targetType: "ร้านค้ารายใหญ่ (Dealer)",
+    budgetType: "งบส่งเสริมการขาย",
+    budget: 65000,
+    status: "APPROVED"
+  },
+  {
+    id: "TP-2026-016",
+    activityDate: "2026-08-10",
+    responsible: "ปรีชา ขยันงาน",
+    approver: "สมพร ดีเลิศ",
+    jobType: "ออกพบลูกค้า",
+    activityName: "ติดตามร้านค้าตัวแทนย่อยเรื่องรอบบิลและสต็อก",
+    province: "กรุงเทพฯ",
+    district: "บางรัก",
+    targetType: "ร้านค้ารายย่อย (Subdealer)",
+    budgetType: "งบส่งเสริมการตลาด",
+    budget: 12000,
+    status: "PENDING"
+  },
+  {
+    id: "TP-2026-017",
+    activityDate: "2026-08-12",
+    responsible: "สมชาย ใจดี",
+    approver: "วิชัย มั่นคง",
+    jobType: "งานบูธและอีเวนต์",
+    activityName: "กิจกรรมสาธิตปุ๋ย ณ ตลาดน้ำโบราณ",
+    province: "ขอนแก่น",
+    district: "ชุมแพ",
+    targetType: "เกษตรกร",
+    budgetType: "งบส่งเสริมการขาย",
+    budget: 25000,
+    status: "FINISHED"
+  },
+  {
+    id: "TP-2026-018",
+    activityDate: "2026-08-15",
+    responsible: "สมหญิง รักดี",
+    approver: "วิชัย มั่นคง",
+    jobType: "สำรวจตลาด",
+    activityName: "ตรวจเช็คร้านค้าแอบอ้างสิทธิ์โปรโมชัน",
+    province: "เชียงใหม่",
+    district: "แม่ริม",
+    targetType: "ร้านค้ารายย่อย (Subdealer)",
+    budgetType: "งบส่งเสริมการตลาด",
+    budget: 7000,
+    status: "REJECTED"
+  },
+  {
+    id: "TP-2026-019",
+    activityDate: "2026-08-18",
+    responsible: "พิมพ์ใจ เรียนเก่ง",
+    approver: "สมพร ดีเลิศ",
+    jobType: "งานบูธและอีเวนต์",
+    activityName: "มินิคอนเสิร์ตโปรโมตปุ๋ยสวนส้ม",
+    province: "เชียงใหม่",
+    district: "เมืองเชียงใหม่",
+    targetType: "เกษตรกร",
+    budgetType: "งบส่งเสริมการขาย",
+    budget: 95000,
+    status: "PENDING"
+  },
+  {
+    id: "TP-2026-020",
+    activityDate: "2026-08-20",
+    responsible: "ปรีชา ขยันงาน",
+    approver: "สมพร ดีเลิศ",
+    jobType: "ออกพบลูกค้า",
+    activityName: "เจรจาขยายฐานการค้ากับร้านโคราชปุ๋ยทอง",
+    province: "นครราชสีมา",
+    district: "เมืองนครราชสีมา",
+    targetType: "ร้านค้ารายใหญ่ (Dealer)",
+    budgetType: "งบส่งเสริมการขาย",
+    budget: 38000,
+    status: "APPROVED"
+  }
+];
