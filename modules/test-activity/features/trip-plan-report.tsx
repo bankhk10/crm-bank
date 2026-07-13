@@ -439,84 +439,6 @@ export function TripPlanReport() {
               </Select>
             </div>
 
-            {/* ผู้อนุมัติ */}
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">
-                ผู้อนุมัติ
-              </label>
-              <Select
-                value={approver}
-                onValueChange={(val) => {
-                  setApprover(val);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full h-10 bg-white">
-                  <SelectValue placeholder="ทั้งหมด" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">ทั้งหมด</SelectItem>
-                  {uniqueOptions.approvers.map((a) => (
-                    <SelectItem key={a} value={a}>
-                      {a}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* จังหวัด */}
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">
-                จังหวัด
-              </label>
-              <Select
-                value={province}
-                onValueChange={(val) => {
-                  setProvince(val);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full h-10 bg-white">
-                  <SelectValue placeholder="ทั้งหมด" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">ทั้งหมด</SelectItem>
-                  {uniqueOptions.provinces.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {p}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* อำเภอ */}
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">
-                อำเภอ
-              </label>
-              <Select
-                value={district}
-                onValueChange={(val) => {
-                  setDistrict(val);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full h-10 bg-white">
-                  <SelectValue placeholder="ทั้งหมด" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">ทั้งหมด</SelectItem>
-                  {uniqueOptions.districts.map((d) => (
-                    <SelectItem key={d} value={d}>
-                      {d}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             {/* ประเภทเป้าหมาย */}
             <div className="grid gap-1.5">
               <label className="text-xs font-semibold text-muted-foreground">
@@ -568,17 +490,17 @@ export function TripPlanReport() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          <div className="mt-4 flex justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={resetFilters}
-              className="text-xs font-medium h-9 px-3"
-            >
-              <X className="h-4 w-4 mr-2" /> ล้างตัวกรอง
-            </Button>
+            <div className="mt-6 flex justify-start">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={resetFilters}
+                className="text-xs font-medium h-9 px-3"
+              >
+                <X className="h-4 w-4 mr-2" /> ล้างตัวกรอง
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -630,7 +552,7 @@ export function TripPlanReport() {
         <Card className="p-4 border shadow-sm rounded-2xl flex flex-col justify-between bg-rose-50/50">
           <div>
             <p className="text-xs font-semibold text-rose-900/60 uppercase">
-              ไม้อนุมัติ
+              ไม่อนุมัติ
             </p>
             <h3 className="text-2xl font-bold text-rose-900 mt-1">
               {kpiSummary.rejected}
