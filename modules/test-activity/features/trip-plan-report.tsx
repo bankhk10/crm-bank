@@ -903,8 +903,8 @@ export function TripPlanReport() {
                       >
                         {plan.activityName}
                       </TableCell>
-                      <TableCell className="text-xs px-4 py-3">
-                        {plan.targetType}
+                      <TableCell className="text-xs px-4 py-3 font-medium text-slate-700 max-w-xs truncate" title={`${plan.locationName} ต.${plan.subdistrict} อ.${plan.district} จ.${plan.province}`}>
+                        {plan.locationName} ต.{plan.subdistrict} อ.{plan.district} จ.{plan.province}
                       </TableCell>
                       <TableCell className="text-xs text-right px-4 py-3 font-semibold text-slate-900">
                         {new Intl.NumberFormat("th-TH").format(plan.budget)}
@@ -1057,14 +1057,24 @@ export function TripPlanReport() {
                     </span>
                   </div>
 
+                  {/* สถานที่ปฏิบัติงาน */}
+                  <div>
+                    <span className="text-xs font-medium text-slate-400 block mb-1">
+                      สถานที่ปฏิบัติงาน
+                    </span>
+                    <span className="text-sm font-semibold text-slate-800 flex items-start gap-1.5 mt-1">
+                      <MapPin className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
+                      <span>{selectedPlan.locationName}</span>
+                    </span>
+                  </div>
+
                   {/* พื้นที่ปฏิบัติงาน */}
                   <div>
                     <span className="text-xs font-medium text-slate-400 block mb-1">
                       พื้นที่ปฏิบัติงาน
                     </span>
-                    <span className="text-sm font-semibold text-slate-800 flex items-center gap-1.5 mt-1">
-                      <MapPin className="h-4 w-4 text-slate-400" />
-                      {selectedPlan.district}, {selectedPlan.province}
+                    <span className="text-sm font-semibold text-slate-800 block mt-1 pl-5">
+                      ต.{selectedPlan.subdistrict} อ.{selectedPlan.district} จ.{selectedPlan.province}
                     </span>
                   </div>
 
