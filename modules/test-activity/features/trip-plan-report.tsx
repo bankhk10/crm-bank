@@ -323,11 +323,6 @@ export function TripPlanReport() {
 
       {/* 1. Filters Card */}
       <Card className="rounded-2xl border bg-white/70 shadow-sm backdrop-blur-sm">
-        <CardHeader className="p-4 pb-0">
-          <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <Filter className="h-4 w-4" /> ตัวกรองรายงาน
-          </CardTitle>
-        </CardHeader>
         <CardContent className="p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {/* ช่วงวันที่ */}
@@ -1128,10 +1123,14 @@ export function TripPlanReport() {
                       สิ่งที่พนักงานต้องบันทึก
                     </span>
                     <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 h-full">
-                      {selectedPlan.recordFields && selectedPlan.recordFields.length > 0 ? (
+                      {selectedPlan.recordFields &&
+                      selectedPlan.recordFields.length > 0 ? (
                         <ul className="text-xs font-semibold text-slate-700 space-y-1.5 list-none pl-0">
                           {selectedPlan.recordFields.map((field, idx) => (
-                            <li key={idx} className="flex items-start gap-2 leading-relaxed">
+                            <li
+                              key={idx}
+                              className="flex items-start gap-2 leading-relaxed"
+                            >
                               <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
                               <span>{field}</span>
                             </li>
