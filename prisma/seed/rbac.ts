@@ -746,6 +746,22 @@ const permissionGroups: Record<string, PermissionGroup> = {
       },
     ],
   },
+  testActivity: {
+    menu: {
+      key: "menu.test_activity",
+      name: "เมนูทดสอบกิจกรรม",
+      resource: "test_activity",
+      menuPath: "/test-activity",
+    },
+    subMenus: [
+      {
+        key: "menu.test_activity.trip_plan",
+        name: "รายงานแผนการออกปฏิบัติงาน (Trip Plan)",
+        resource: "test_activity",
+        menuPath: "/test-activity/trip-plan",
+      },
+    ],
+  },
 };
 
 // ============================================================================
@@ -1112,6 +1128,8 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "sales_target.edit" },
     { key: "sales_target.view" },
     { key: "sales_target.delete" },
+    { key: "menu.test_activity" },
+    { key: "menu.test_activity.trip_plan" },
   ];
 
   await prisma.rolePermission.createMany({
@@ -1197,6 +1215,8 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "sales_target.delete" },
     { key: "sales_target.edit" },
     { key: "sales_target.create" },
+    { key: "menu.test_activity" },
+    { key: "menu.test_activity.trip_plan" },
   ];
 
   await prisma.rolePermission.createMany({
@@ -1342,6 +1362,8 @@ export async function seedRBAC(prisma: PrismaClient) {
       editAccess: "EDIT_ALL",
       deleteAccess: "DELETE_ALL",
     },
+    { key: "menu.test_activity" },
+    { key: "menu.test_activity.trip_plan" },
     // Note: rbac.manage, menu.rbac, menu.admin, system.settings are excluded to differentiate from Administrator
   ];
 
@@ -1438,6 +1460,8 @@ export async function seedRBAC(prisma: PrismaClient) {
       editAccess: "EDIT_NONE",
       deleteAccess: "DELETE_NONE",
     },
+    { key: "menu.test_activity" },
+    { key: "menu.test_activity.trip_plan" },
   ];
 
   await prisma.rolePermission.createMany({
@@ -1533,6 +1557,8 @@ export async function seedRBAC(prisma: PrismaClient) {
       deleteAccess: "DELETE_ALL",
     },
     { key: "menu.show_product" },
+    { key: "menu.test_activity" },
+    { key: "menu.test_activity.trip_plan" },
   ];
 
   await prisma.rolePermission.createMany({
