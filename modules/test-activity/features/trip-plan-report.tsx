@@ -951,10 +951,7 @@ export function TripPlanReport() {
                     ชื่อกิจกรรม
                   </TableHead>
                   <TableHead className="text-xs font-semibold px-4">
-                    จังหวัด
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold px-4">
-                    เป้าหมาย
+                    สถานที่
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-right px-4">
                     งบประมาณ
@@ -988,9 +985,6 @@ export function TripPlanReport() {
                         title={plan.activityName}
                       >
                         {plan.activityName}
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-3 font-medium text-slate-600">
-                        {plan.province}
                       </TableCell>
                       <TableCell className="text-xs px-4 py-3">
                         {plan.targetType}
