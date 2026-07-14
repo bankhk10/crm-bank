@@ -414,19 +414,30 @@ export function TripPlanReport() {
   return (
     <div className="space-y-6 pb-8">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
-        <div>
-          <div className="flex items-center gap-2.5 mb-1">
-            <span className="inline-flex items-center justify-center h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-md text-white">
-              <LayoutDashboard className="h-4.5 w-4.5" />
-            </span>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight">
-              รายงานแผนการออกปฏิบัติงาน
-            </h1>
+      <div className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-sm shadow-sm px-6 py-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 shadow-lg ring-4 ring-indigo-100">
+              <LayoutDashboard className="h-7 w-7 text-white" />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                  รายงานแผนการออกปฏิบัติงาน
+                </h1>
+
+                <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600 ring-1 ring-indigo-100">
+                  Trip Plan
+                </span>
+              </div>
+
+              <p className="max-w-2xl text-sm leading-6 text-slate-500">
+                วิเคราะห์ข้อมูล ติดตามผลการปฏิบัติงาน
+                และสรุปประสิทธิภาพของแผนการออกพบลูกค้า
+              </p>
+            </div>
           </div>
-          <p className="text-sm text-slate-400 ml-[52px]">
-            วิเคราะห์และสรุปผลแผนงาน Trip Plan
-          </p>
         </div>
       </div>
 
