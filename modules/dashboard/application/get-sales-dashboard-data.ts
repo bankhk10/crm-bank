@@ -125,11 +125,65 @@ export async function getSalesDashboardDataUseCase(
     label: g.description,
   }));
 
+  // Helper to fetch target items and construct maps for product groups and trade name groups
+  const getTargetMaps = async (year: number, month?: number | null) => {
+    const targetItems = await salesRepo.findSalesTargetItemsByEmployee(
+      employeeId,
+      year,
+      month,
+    );
+
+    const productGroupTargetMap = new Map<string, number>();
+    const tradeNameGroupTargetMap = new Map<string, number>();
+
+    for (const item of targetItems) {
+      const amount = Number(item.targetAmount || 0);
+      const abcId = item.product.productABCTypeId;
+      const tradeNameId = item.product.tradeNameGroupId;
+
+      if (abcId) {
+        productGroupTargetMap.set(
+          abcId,
+          (productGroupTargetMap.get(abcId) || 0) + amount,
+        );
+      }
+      if (tradeNameId) {
+        tradeNameGroupTargetMap.set(
+          tradeNameId,
+          (tradeNameGroupTargetMap.get(tradeNameId) || 0) + amount,
+        );
+      }
+    }
+
+    return { productGroupTargetMap, tradeNameGroupTargetMap };
+  };
+
+  const monthTargets = await getTargetMaps(currentYear, currentMonth);
+  const yearTargets = await getTargetMaps(currentYear);
+
+  const daysInMonth = getDaysInMonth(now);
+  const dayProductGroupTargetMap = new Map<string, number>();
+  const dayTradeNameGroupTargetMap = new Map<string, number>();
+
+  for (const [k, v] of monthTargets.productGroupTargetMap.entries()) {
+    dayProductGroupTargetMap.set(k, v / daysInMonth);
+  }
+  for (const [k, v] of monthTargets.tradeNameGroupTargetMap.entries()) {
+    dayTradeNameGroupTargetMap.set(k, v / daysInMonth);
+  }
+
+  const dayTargets = {
+    productGroupTargetMap: dayProductGroupTargetMap,
+    tradeNameGroupTargetMap: dayTradeNameGroupTargetMap,
+  };
+
   const getProductAndTradeNameGroupData = async (
     start: Date,
     end: Date,
     lastYearStart: Date,
     lastYearEnd: Date,
+    productGroupTargetMap: Map<string, number>,
+    tradeNameGroupTargetMap: Map<string, number>,
   ) => {
     const currentItems = await salesRepo.findSaleItemsByEmployee(
       employeeId,
@@ -153,13 +207,13 @@ export async function getSalesDashboardDataUseCase(
     const excludedStatuses = [
       "CANCELLED",
       "REJECTED",
-      
       "OVERDUE",
     ];
 
     const buildProductGroupData = () => {
       return productGroupOptions.map((groupOption) => {
         const group = groupOption.value;
+        const target = productGroupTargetMap.get(group) || 0;
         let salesNote = 0;
         let invoice = 0;
         let lastYearSalesNote = 0;
@@ -186,7 +240,7 @@ export async function getSalesDashboardDataUseCase(
         return {
           group: groupOption.label,
           code: groupOption.value,
-          target: 0,
+          target,
           salesNote,
           invoice,
           lastYearSalesNote,
@@ -198,6 +252,7 @@ export async function getSalesDashboardDataUseCase(
     const buildTradeNameGroupData = () => {
       return tradeNameGroupOptions.map((groupOption) => {
         const group = groupOption.value;
+        const target = tradeNameGroupTargetMap.get(group) || 0;
         let salesNote = 0;
         let invoice = 0;
         let lastYearSalesNote = 0;
@@ -224,7 +279,7 @@ export async function getSalesDashboardDataUseCase(
         return {
           group: groupOption.label,
           code: groupOption.value,
-          target: 0,
+          target,
           salesNote,
           invoice,
           lastYearSalesNote,
@@ -250,18 +305,24 @@ export async function getSalesDashboardDataUseCase(
       dayEnd,
       lastYearSameDayStart,
       lastYearSameDayEnd,
+      dayTargets.productGroupTargetMap,
+      dayTargets.tradeNameGroupTargetMap,
     ),
     getProductAndTradeNameGroupData(
       monthStart,
       monthEnd,
       lastYearSameMonthStart,
       lastYearSameMonthEnd,
+      monthTargets.productGroupTargetMap,
+      monthTargets.tradeNameGroupTargetMap,
     ),
     getProductAndTradeNameGroupData(
       yearStart,
       yearEnd,
       lastYearStart,
       lastYearEnd,
+      yearTargets.productGroupTargetMap,
+      yearTargets.tradeNameGroupTargetMap,
     ),
   ]);
 
@@ -324,7 +385,6 @@ export async function getSalesDashboardDataUseCase(
     currentYear,
   );
 
-  const daysInMonth = getDaysInMonth(now);
   const dailyTarget = monthlyTarget > 0 ? monthlyTarget / daysInMonth : 0;
 
   const periodData: Record<DashboardPeriod, SalesDashboardPeriodData> = {

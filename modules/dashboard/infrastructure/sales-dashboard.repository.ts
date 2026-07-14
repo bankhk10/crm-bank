@@ -134,6 +134,41 @@ export async function sumSalesTargetItemsByEmployee(
 }
 
 /**
+ * Find sales target items with product group/trade name details for a specific employee.
+ */
+export async function findSalesTargetItemsByEmployee(
+  employeeId: string,
+  year: number,
+  month?: number | null,
+) {
+  const whereClause: any = {
+    salesTargetStore: {
+      salesTarget: {
+        year,
+        employeeId,
+      },
+    },
+  };
+  if (month) {
+    whereClause.salesTargetStore.salesTarget.month = month;
+  }
+
+  return prisma.salesTargetItem.findMany({
+    where: whereClause,
+    select: {
+      targetAmount: true,
+      product: {
+        select: {
+          productABCTypeId: true,
+          tradeNameGroupId: true,
+        },
+      },
+    },
+  });
+}
+
+
+/**
  * Find sales with customer province for a specific employee.
  */
 export async function findSalesWithProvinceByEmployee(
