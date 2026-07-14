@@ -346,9 +346,9 @@ export async function seedProductMaster(prisma: PrismaClient) {
 
   // Create Product ABC Types (ประเภท (ABC Code))
   const abcTypes = [
-    { code: "A", name: "A", description: "สินค้าขายดี" },
-    { code: "B", name: "B", description: "สินค้ารอง" },
-    { code: "C", name: "C", description: "สินค้าตามฤดูกาล" },
+    { code: "A", name: "A", description: "" },
+    { code: "B", name: "B", description: "" },
+    { code: "C", name: "C", description: "" },
   ];
 
   for (const type of abcTypes) {
@@ -364,7 +364,7 @@ export async function seedProductMaster(prisma: PrismaClient) {
 
   // Create Brands
   await prisma.brand.createMany({
-    data: [{ code: "cropsciences", description: "Crop Science" }],
+    data: [{ code: "CS", description: "คร็อพ ซายน์ ตราปืนใหญ่" }],
     skipDuplicates: true,
   });
 
