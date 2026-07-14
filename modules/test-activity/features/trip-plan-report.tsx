@@ -4,9 +4,6 @@ import React, { useState, useMemo } from "react";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import {
   Select,
@@ -24,7 +21,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   PieChart,
   Pie,
   Cell,
@@ -41,17 +37,22 @@ import {
 import {
   Calendar,
   DollarSign,
-  Filter,
   CheckCircle2,
   XCircle,
   AlertCircle,
-  X,
   ChevronLeft,
   ChevronRight,
   MapPin,
   Target as TargetIcon,
   Eye,
   ClipboardList,
+  LayoutDashboard,
+  SlidersHorizontal,
+  RotateCcw,
+  Banknote,
+  Clock,
+  CheckCheck,
+  Ban,
 } from "lucide-react";
 import {
   Dialog,
@@ -60,17 +61,208 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const COLORS = [
-  "#0088FE",
-  "#00C49F",
-  "#FFBB28",
-  "#FF8042",
-  "#8884d8",
-  "#82ca9d",
+// ─── Palette ─────────────────────────────────────────────────────────────────
+const CHART_COLORS = [
+  "#6366f1",
+  "#06b6d4",
+  "#f59e0b",
+  "#10b981",
+  "#f43f5e",
+  "#8b5cf6",
+  "#3b82f6",
 ];
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const fmt = (n: number) => new Intl.NumberFormat("th-TH").format(n);
+
+const STATUS_CONFIG: Record<
+  TripPlanMock["status"],
+  { label: string; bg: string; text: string; border: string; dot: string }
+> = {
+  PENDING: {
+    label: "รออนุมัติ",
+    bg: "bg-amber-50",
+    text: "text-amber-700",
+    border: "border-amber-200",
+    dot: "bg-amber-400",
+  },
+  APPROVED: {
+    label: "อนุมัติแล้ว",
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    border: "border-emerald-200",
+    dot: "bg-emerald-500",
+  },
+  REJECTED: {
+    label: "ไม่อนุมัติ",
+    bg: "bg-rose-50",
+    text: "text-rose-700",
+    border: "border-rose-200",
+    dot: "bg-rose-500",
+  },
+  CANCELLED: {
+    label: "ยกเลิก",
+    bg: "bg-slate-100",
+    text: "text-slate-500",
+    border: "border-slate-200",
+    dot: "bg-slate-400",
+  },
+  FINISHED: {
+    label: "เสร็จสิ้น",
+    bg: "bg-sky-50",
+    text: "text-sky-700",
+    border: "border-sky-200",
+    dot: "bg-sky-500",
+  },
+};
+
+function StatusBadge({ status }: { status: TripPlanMock["status"] }) {
+  const cfg = STATUS_CONFIG[status];
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full border ${cfg.bg} ${cfg.text} ${cfg.border}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
+      {cfg.label}
+    </span>
+  );
+}
+
+// ─── Custom Tooltips ──────────────────────────────────────────────────────────
+function CustomBarTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-slate-900/95 backdrop-blur-sm text-white text-xs rounded-xl px-3 py-2 shadow-xl border border-white/10">
+      <p className="font-semibold mb-1 text-white/70">{label}</p>
+      {payload.map((p: any, i: number) => (
+        <p key={i} style={{ color: p.color || "#a5b4fc" }}>
+          {p.name}:{" "}
+          <span className="font-bold text-white">{p.value}</span>
+        </p>
+      ))}
+    </div>
+  );
+}
+
+function CustomPieTooltip({ active, payload }: any) {
+  if (!active || !payload?.length) return null;
+  const p = payload[0];
+  return (
+    <div className="bg-slate-900/95 backdrop-blur-sm text-white text-xs rounded-xl px-3 py-2 shadow-xl border border-white/10">
+      <p className="font-semibold">{p.name}</p>
+      <p className="text-indigo-300 font-bold">{fmt(p.value)} บาท</p>
+    </div>
+  );
+}
+
+// ─── KPI Card ─────────────────────────────────────────────────────────────────
+interface KpiCardProps {
+  label: string;
+  value: string | number;
+  sub: string;
+  icon: React.ReactNode;
+  gradient: string;
+}
+function KpiCard({ label, value, sub, icon, gradient }: KpiCardProps) {
+  return (
+    <div
+      className={`relative overflow-hidden rounded-2xl p-4 ${gradient} shadow-sm border border-white/50`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-white/70 truncate">
+            {label}
+          </p>
+          <p className="text-2xl font-extrabold text-white mt-1 leading-tight truncate">
+            {value}
+          </p>
+          <p className="text-[10px] text-white/55 mt-1">{sub}</p>
+        </div>
+        <div className="shrink-0 h-9 w-9 rounded-xl bg-white/20 flex items-center justify-center shadow-inner">
+          {icon}
+        </div>
+      </div>
+      {/* decorative circle */}
+      <div className="absolute -bottom-5 -right-5 h-20 w-20 rounded-full bg-white/10 pointer-events-none" />
+    </div>
+  );
+}
+
+// ─── Section Header ───────────────────────────────────────────────────────────
+function SectionHeader({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2.5 px-5 pt-4 pb-3">
+      <span className="flex items-center justify-center h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 shrink-0">
+        {icon}
+      </span>
+      <div>
+        <p className="text-sm font-bold text-slate-800">{title}</p>
+        {description && (
+          <p className="text-xs text-slate-400 leading-tight">{description}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Filter Select ────────────────────────────────────────────────────────────
+function FilterSelect({
+  label,
+  value,
+  onValueChange,
+  children,
+}: {
+  label: string;
+  value: string;
+  onValueChange: (v: string) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="grid gap-1">
+      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
+        {label}
+      </label>
+      <Select value={value} onValueChange={onValueChange}>
+        <SelectTrigger className="h-9 text-xs bg-white border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-400">
+          <SelectValue placeholder="ทั้งหมด" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">ทั้งหมด</SelectItem>
+          {children}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+// ─── Detail Field ─────────────────────────────────────────────────────────────
+function DetailField({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+        {label}
+      </p>
+      <div>{children}</div>
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export function TripPlanReport() {
-  // กรองผ่าน React States
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [jobType, setJobType] = useState("all");
@@ -82,64 +274,30 @@ export function TripPlanReport() {
   const [targetType, setTargetType] = useState("all");
   const [budgetType, setBudgetType] = useState("all");
   const [selectedPlan, setSelectedPlan] = useState<TripPlanMock | null>(null);
-
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 8;
 
-  // หา Unique Options สำหรับ Selects
-  const uniqueOptions = useMemo(() => {
-    const jobTypes = Array.from(new Set(mockTripPlans.map((d) => d.jobType)));
-    const statuses = Array.from(new Set(mockTripPlans.map((d) => d.status)));
-    const employees = Array.from(
-      new Set(mockTripPlans.map((d) => d.responsible)),
-    );
-    const approvers = Array.from(new Set(mockTripPlans.map((d) => d.approver)));
-    const provinces = Array.from(new Set(mockTripPlans.map((d) => d.province)));
-    const districts = Array.from(new Set(mockTripPlans.map((d) => d.district)));
-    const targetTypes = Array.from(
-      new Set(mockTripPlans.map((d) => d.targetType)),
-    );
-    const budgetTypes = Array.from(
-      new Set(mockTripPlans.map((d) => d.budgetType)),
-    );
+  const uniqueOptions = useMemo(() => ({
+    jobTypes: Array.from(new Set(mockTripPlans.map((d) => d.jobType))),
+    employees: Array.from(new Set(mockTripPlans.map((d) => d.responsible))),
+    targetTypes: Array.from(new Set(mockTripPlans.map((d) => d.targetType))),
+    budgetTypes: Array.from(new Set(mockTripPlans.map((d) => d.budgetType))),
+  }), []);
 
-    return {
-      jobTypes,
-      statuses,
-      employees,
-      approvers,
-      provinces,
-      districts,
-      targetTypes,
-      budgetTypes,
-    };
-  }, []);
-
-  // ล้างตัวกรอง
   const resetFilters = () => {
-    setStartDate("");
-    setEndDate("");
-    setJobType("all");
-    setStatus("all");
-    setResponsible("all");
-    setApprover("all");
-    setProvince("all");
-    setDistrict("all");
-    setTargetType("all");
-    setBudgetType("all");
+    setStartDate(""); setEndDate(""); setJobType("all"); setStatus("all");
+    setResponsible("all"); setApprover("all"); setProvince("all");
+    setDistrict("all"); setTargetType("all"); setBudgetType("all");
     setCurrentPage(1);
   };
 
-  // คำนวณกรองข้อมูล
   const filteredData = useMemo(() => {
     return mockTripPlans.filter((item) => {
       if (startDate && item.activityDate < startDate) return false;
       if (endDate && item.activityDate > endDate) return false;
       if (jobType !== "all" && item.jobType !== jobType) return false;
       if (status !== "all" && item.status !== status) return false;
-      if (responsible !== "all" && item.responsible !== responsible)
-        return false;
+      if (responsible !== "all" && item.responsible !== responsible) return false;
       if (approver !== "all" && item.approver !== approver) return false;
       if (province !== "all" && item.province !== province) return false;
       if (district !== "all" && item.district !== district) return false;
@@ -147,629 +305,298 @@ export function TripPlanReport() {
       if (budgetType !== "all" && item.budgetType !== budgetType) return false;
       return true;
     });
-  }, [
-    startDate,
-    endDate,
-    jobType,
-    status,
-    responsible,
-    approver,
-    province,
-    district,
-    targetType,
-    budgetType,
-  ]);
+  }, [startDate, endDate, jobType, status, responsible, approver, province, district, targetType, budgetType]);
 
-  // KPI Summary calculations
-  const kpiSummary = useMemo(() => {
-    const total = filteredData.length;
-    const pending = filteredData.filter((i) => i.status === "PENDING").length;
-    const approved = filteredData.filter((i) => i.status === "APPROVED").length;
-    const rejected = filteredData.filter((i) => i.status === "REJECTED").length;
-    const cancelled = filteredData.filter(
-      (i) => i.status === "CANCELLED",
-    ).length;
-    const finished = filteredData.filter((i) => i.status === "FINISHED").length;
-    const totalBudget = filteredData.reduce(
-      (acc, curr) => acc + curr.budget,
-      0,
-    );
+  const kpi = useMemo(() => ({
+    total: filteredData.length,
+    pending: filteredData.filter((i) => i.status === "PENDING").length,
+    approved: filteredData.filter((i) => i.status === "APPROVED").length,
+    rejected: filteredData.filter((i) => i.status === "REJECTED").length,
+    cancelled: filteredData.filter((i) => i.status === "CANCELLED").length,
+    finished: filteredData.filter((i) => i.status === "FINISHED").length,
+    totalBudget: filteredData.reduce((acc, cur) => acc + cur.budget, 0),
+  }), [filteredData]);
 
-    return {
-      total,
-      pending,
-      approved,
-      rejected,
-      cancelled,
-      finished,
-      totalBudget,
-    };
-  }, [filteredData]);
-
-  // Job Type Analytics Calculation
   const jobTypeAnalytics = useMemo(() => {
-    const groups: Record<
-      string,
-      { name: string; count: number; budget: number }
-    > = {};
+    const g: Record<string, { name: string; count: number }> = {};
     filteredData.forEach((item) => {
-      if (!groups[item.jobType]) {
-        groups[item.jobType] = { name: item.jobType, count: 0, budget: 0 };
-      }
-      groups[item.jobType].count += 1;
-      groups[item.jobType].budget += item.budget;
+      if (!g[item.jobType]) g[item.jobType] = { name: item.jobType, count: 0 };
+      g[item.jobType].count += 1;
     });
-    return Object.values(groups);
+    return Object.values(g);
   }, [filteredData]);
 
-  // Budget Type Analytics Calculation
   const budgetTypeAnalytics = useMemo(() => {
-    const groups: Record<
-      string,
-      { name: string; value: number; count: number }
-    > = {};
+    const g: Record<string, { name: string; value: number }> = {};
     filteredData.forEach((item) => {
-      if (!groups[item.budgetType]) {
-        groups[item.budgetType] = { name: item.budgetType, value: 0, count: 0 };
-      }
-      groups[item.budgetType].value += item.budget;
-      groups[item.budgetType].count += 1;
+      if (!g[item.budgetType]) g[item.budgetType] = { name: item.budgetType, value: 0 };
+      g[item.budgetType].value += item.budget;
     });
-    return Object.values(groups);
+    return Object.values(g);
   }, [filteredData]);
 
-  // Target Type Analytics Calculation
   const targetTypeAnalytics = useMemo(() => {
-    const groups: Record<string, { name: string; count: number }> = {};
+    const g: Record<string, { name: string; count: number }> = {};
     filteredData.forEach((item) => {
-      if (!groups[item.targetType]) {
-        groups[item.targetType] = { name: item.targetType, count: 0 };
-      }
-      groups[item.targetType].count += 1;
+      if (!g[item.targetType]) g[item.targetType] = { name: item.targetType, count: 0 };
+      g[item.targetType].count += 1;
     });
-    return Object.values(groups);
+    return Object.values(g);
   }, [filteredData]);
 
-  // Employee Analytics Calculation
   const employeeAnalytics = useMemo(() => {
-    const groups: Record<
-      string,
-      { name: string; count: number; budget: number }
-    > = {};
+    const g: Record<string, { name: string; count: number; budget: number }> = {};
     filteredData.forEach((item) => {
-      if (!groups[item.responsible]) {
-        groups[item.responsible] = {
-          name: item.responsible,
-          count: 0,
-          budget: 0,
-        };
-      }
-      groups[item.responsible].count += 1;
-      groups[item.responsible].budget += item.budget;
+      if (!g[item.responsible]) g[item.responsible] = { name: item.responsible, count: 0, budget: 0 };
+      g[item.responsible].count += 1;
+      g[item.responsible].budget += item.budget;
     });
-    return Object.values(groups).sort((a, b) => b.budget - a.budget);
+    return Object.values(g).sort((a, b) => b.budget - a.budget);
   }, [filteredData]);
 
-  // Area Analytics Calculation
   const areaAnalytics = useMemo(() => {
-    const groups: Record<
-      string,
-      { name: string; count: number; budget: number }
-    > = {};
+    const g: Record<string, { name: string; count: number; budget: number }> = {};
     filteredData.forEach((item) => {
-      if (!groups[item.province]) {
-        groups[item.province] = { name: item.province, count: 0, budget: 0 };
-      }
-      groups[item.province].count += 1;
-      groups[item.province].budget += item.budget;
+      if (!g[item.province]) g[item.province] = { name: item.province, count: 0, budget: 0 };
+      g[item.province].count += 1;
+      g[item.province].budget += item.budget;
     });
-    return Object.values(groups).sort((a, b) => b.budget - a.budget);
+    return Object.values(g).sort((a, b) => b.budget - a.budget);
   }, [filteredData]);
 
-  // Pagination Calculation
   const paginatedPlans = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredData.slice(startIndex, startIndex + itemsPerPage);
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredData.slice(start, start + itemsPerPage);
   }, [filteredData, currentPage]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-  // สี Badge สถานะ
-  const getStatusBadge = (status: TripPlanMock["status"]) => {
-    switch (status) {
-      case "PENDING":
-        return (
-          <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-            รออนุมัติ
-          </span>
-        );
-      case "APPROVED":
-        return (
-          <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-            อนุมัติแล้ว
-          </span>
-        );
-      case "REJECTED":
-        return (
-          <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-            ไม้อนุมัติ
-          </span>
-        );
-      case "CANCELLED":
-        return (
-          <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-slate-50 text-slate-500 border border-slate-200">
-            ยกเลิก
-          </span>
-        );
-      case "FINISHED":
-        return (
-          <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-            เสร็จสิ้น
-          </span>
-        );
-    }
-  };
-
+  // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-          รายงานแผนการออกปฏิบัติงาน (Trip Plan)
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          ข้อมูลสรุปและวิเคราะห์ผลการปฏิบัติงานของพนักงาน
-        </p>
+    <div className="space-y-6 pb-8">
+
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2.5 mb-1">
+            <span className="inline-flex items-center justify-center h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-md text-white">
+              <LayoutDashboard className="h-4.5 w-4.5" />
+            </span>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight">
+              รายงานแผนการออกปฏิบัติงาน
+            </h1>
+          </div>
+          <p className="text-sm text-slate-400 ml-[52px]">
+            วิเคราะห์และสรุปผลแผนงาน Trip Plan แบบ Real-time
+          </p>
+        </div>
+        <span className="ml-[52px] sm:ml-0 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 self-start sm:self-auto">
+          <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
+          {filteredData.length} รายการ
+        </span>
       </div>
 
-      {/* 1. Filters Card */}
-      <Card className="rounded-2xl border bg-white/70 shadow-sm backdrop-blur-sm">
+      {/* 1. Filter Card */}
+      <Card className="rounded-2xl border-0 shadow-md bg-white/80 backdrop-blur-sm overflow-hidden">
+        <div className="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-slate-100">
+          <SlidersHorizontal className="h-4 w-4 text-indigo-500" />
+          <p className="text-sm font-bold text-slate-700">ตัวกรองข้อมูล</p>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={resetFilters}
+            className="ml-auto h-8 px-3 text-xs font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-50 gap-1.5"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            ล้างตัวกรอง
+          </Button>
+        </div>
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {/* ช่วงวันที่ */}
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">
-                วันที่เริ่มต้น
-              </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+            <div className="grid gap-1">
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">วันที่เริ่มต้น</label>
               <input
                 type="date"
                 value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full h-10 px-3 py-2 border rounded-md text-sm bg-white"
+                onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
+                className="w-full h-9 px-3 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-400 transition"
               />
             </div>
-
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">
-                วันที่สิ้นสุด
-              </label>
+            <div className="grid gap-1">
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">วันที่สิ้นสุด</label>
               <input
                 type="date"
                 value={endDate}
-                onChange={(e) => {
-                  setEndDate(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full h-10 px-3 py-2 border rounded-md text-sm bg-white"
+                onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
+                className="w-full h-9 px-3 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-400 transition"
               />
             </div>
-
-            {/* ประเภทงาน */}
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">
-                ประเภทงาน
-              </label>
-              <Select
-                value={jobType}
-                onValueChange={(val) => {
-                  setJobType(val);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full h-10 bg-white">
-                  <SelectValue placeholder="ทั้งหมด" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">ทั้งหมด</SelectItem>
-                  {uniqueOptions.jobTypes.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {t}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* สถานะ */}
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">
-                สถานะ
-              </label>
-              <Select
-                value={status}
-                onValueChange={(val) => {
-                  setStatus(val);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full h-10 bg-white">
-                  <SelectValue placeholder="ทั้งหมด" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">ทั้งหมด</SelectItem>
-                  <SelectItem value="PENDING">รออนุมัติ</SelectItem>
-                  <SelectItem value="APPROVED">อนุมัติแล้ว</SelectItem>
-                  <SelectItem value="REJECTED">ไม้อนุมัติ</SelectItem>
-                  <SelectItem value="CANCELLED">ยกเลิก</SelectItem>
-                  <SelectItem value="FINISHED">เสร็จสิ้น</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* ผู้รับผิดชอบ */}
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">
-                ผู้รับผิดชอบ
-              </label>
-              <Select
-                value={responsible}
-                onValueChange={(val) => {
-                  setResponsible(val);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full h-10 bg-white">
-                  <SelectValue placeholder="ทั้งหมด" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">ทั้งหมด</SelectItem>
-                  {uniqueOptions.employees.map((e) => (
-                    <SelectItem key={e} value={e}>
-                      {e}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* ประเภทเป้าหมาย */}
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">
-                ประเภทเป้าหมาย
-              </label>
-              <Select
-                value={targetType}
-                onValueChange={(val) => {
-                  setTargetType(val);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full h-10 bg-white">
-                  <SelectValue placeholder="ทั้งหมด" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">ทั้งหมด</SelectItem>
-                  {uniqueOptions.targetTypes.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {t}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* ประเภทงบประมาณ */}
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">
-                ประเภทงบประมาณ
-              </label>
-              <Select
-                value={budgetType}
-                onValueChange={(val) => {
-                  setBudgetType(val);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full h-10 bg-white">
-                  <SelectValue placeholder="ทั้งหมด" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">ทั้งหมด</SelectItem>
-                  {uniqueOptions.budgetTypes.map((b) => (
-                    <SelectItem key={b} value={b}>
-                      {b}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="mt-6 flex justify-start">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={resetFilters}
-                className="text-xs font-medium h-9 px-3"
-              >
-                <X className="h-4 w-4 mr-2" /> ล้างตัวกรอง
-              </Button>
-            </div>
+            <FilterSelect label="ประเภทงาน" value={jobType} onValueChange={(v) => { setJobType(v); setCurrentPage(1); }}>
+              {uniqueOptions.jobTypes.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </FilterSelect>
+            <FilterSelect label="สถานะ" value={status} onValueChange={(v) => { setStatus(v); setCurrentPage(1); }}>
+              <SelectItem value="PENDING">รออนุมัติ</SelectItem>
+              <SelectItem value="APPROVED">อนุมัติแล้ว</SelectItem>
+              <SelectItem value="REJECTED">ไม่อนุมัติ</SelectItem>
+              <SelectItem value="CANCELLED">ยกเลิก</SelectItem>
+              <SelectItem value="FINISHED">เสร็จสิ้น</SelectItem>
+            </FilterSelect>
+            <FilterSelect label="ผู้รับผิดชอบ" value={responsible} onValueChange={(v) => { setResponsible(v); setCurrentPage(1); }}>
+              {uniqueOptions.employees.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+            </FilterSelect>
+            <FilterSelect label="ประเภทเป้าหมาย" value={targetType} onValueChange={(v) => { setTargetType(v); setCurrentPage(1); }}>
+              {uniqueOptions.targetTypes.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </FilterSelect>
+            <FilterSelect label="ประเภทงบประมาณ" value={budgetType} onValueChange={(v) => { setBudgetType(v); setCurrentPage(1); }}>
+              {uniqueOptions.budgetTypes.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+            </FilterSelect>
           </div>
         </CardContent>
       </Card>
 
       {/* 2. KPI Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-        <Card className="p-4 border shadow-sm rounded-2xl flex flex-col justify-between bg-blue-50/50">
-          <div>
-            <p className="text-xs font-semibold text-blue-900/60 uppercase">
-              แผนทั้งหมด
-            </p>
-            <h3 className="text-2xl font-bold text-blue-900 mt-1">
-              {kpiSummary.total}
-            </h3>
-          </div>
-          <div className="text-[10px] text-blue-900/50 mt-2 flex items-center gap-1">
-            <Calendar className="h-3 w-3" /> แผนปฏิบัติงาน
-          </div>
-        </Card>
-
-        <Card className="p-4 border shadow-sm rounded-2xl flex flex-col justify-between bg-amber-50/50">
-          <div>
-            <p className="text-xs font-semibold text-amber-900/60 uppercase">
-              รออนุมัติ
-            </p>
-            <h3 className="text-2xl font-bold text-amber-900 mt-1">
-              {kpiSummary.pending}
-            </h3>
-          </div>
-          <div className="text-[10px] text-amber-900/50 mt-2 flex items-center gap-1">
-            <AlertCircle className="h-3 w-3" /> รอการยืนยัน
-          </div>
-        </Card>
-
-        <Card className="p-4 border shadow-sm rounded-2xl flex flex-col justify-between bg-emerald-50/50">
-          <div>
-            <p className="text-xs font-semibold text-emerald-900/60 uppercase">
-              อนุมัติแล้ว
-            </p>
-            <h3 className="text-2xl font-bold text-emerald-900 mt-1">
-              {kpiSummary.approved}
-            </h3>
-          </div>
-          <div className="text-[10px] text-emerald-900/50 mt-2 flex items-center gap-1">
-            <CheckCircle2 className="h-3 w-3" /> พร้อมดำเนินงาน
-          </div>
-        </Card>
-
-        <Card className="p-4 border shadow-sm rounded-2xl flex flex-col justify-between bg-rose-50/50">
-          <div>
-            <p className="text-xs font-semibold text-rose-900/60 uppercase">
-              ไม่อนุมัติ
-            </p>
-            <h3 className="text-2xl font-bold text-rose-900 mt-1">
-              {kpiSummary.rejected}
-            </h3>
-          </div>
-          <div className="text-[10px] text-rose-900/50 mt-2 flex items-center gap-1">
-            <XCircle className="h-3 w-3" /> ไม่ผ่านเงื่อนไข
-          </div>
-        </Card>
-
-        <Card className="p-4 border shadow-sm rounded-2xl flex flex-col justify-between bg-slate-100/50">
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase">
-              ยกเลิก
-            </p>
-            <h3 className="text-2xl font-bold text-slate-700 mt-1">
-              {kpiSummary.cancelled}
-            </h3>
-          </div>
-          <div className="text-[10px] text-slate-500 mt-2 flex items-center gap-1">
-            <X className="h-3 w-3" /> ยกเลิกรายการ
-          </div>
-        </Card>
-
-        <Card className="p-4 border shadow-sm rounded-2xl flex flex-col justify-between bg-sky-50/50">
-          <div>
-            <p className="text-xs font-semibold text-sky-900/60 uppercase">
-              เสร็จสิ้น
-            </p>
-            <h3 className="text-2xl font-bold text-sky-900 mt-1">
-              {kpiSummary.finished}
-            </h3>
-          </div>
-          <div className="text-[10px] text-sky-900/50 mt-2 flex items-center gap-1">
-            <CheckCircle2 className="h-3 w-3" /> งานเสร็จสมบูรณ์
-          </div>
-        </Card>
-
-        <Card className="p-4 border shadow-sm rounded-2xl flex flex-col justify-between bg-indigo-50/50 col-span-2 sm:col-span-1">
-          <div>
-            <p className="text-xs font-semibold text-indigo-900/60 uppercase">
-              งบประมาณรวม
-            </p>
-            <h3 className="text-lg sm:text-xl font-bold text-indigo-950 mt-1 truncate">
-              {new Intl.NumberFormat("th-TH").format(kpiSummary.totalBudget)}
-            </h3>
-          </div>
-          <div className="text-[10px] text-indigo-900/50 mt-2 flex items-center gap-1">
-            <DollarSign className="h-3 w-3" /> บาท
-          </div>
-        </Card>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        <KpiCard label="แผนทั้งหมด" value={kpi.total} sub="แผนปฏิบัติงาน"
+          gradient="bg-gradient-to-br from-indigo-500 to-violet-600"
+          icon={<ClipboardList className="h-4 w-4 text-white" />} />
+        <KpiCard label="รออนุมัติ" value={kpi.pending} sub="รอการยืนยัน"
+          gradient="bg-gradient-to-br from-amber-400 to-orange-500"
+          icon={<Clock className="h-4 w-4 text-white" />} />
+        <KpiCard label="อนุมัติแล้ว" value={kpi.approved} sub="พร้อมดำเนินงาน"
+          gradient="bg-gradient-to-br from-emerald-400 to-teal-500"
+          icon={<CheckCircle2 className="h-4 w-4 text-white" />} />
+        <KpiCard label="ไม่อนุมัติ" value={kpi.rejected} sub="ไม่ผ่านเงื่อนไข"
+          gradient="bg-gradient-to-br from-rose-500 to-pink-600"
+          icon={<XCircle className="h-4 w-4 text-white" />} />
+        <KpiCard label="ยกเลิก" value={kpi.cancelled} sub="ยกเลิกรายการ"
+          gradient="bg-gradient-to-br from-slate-400 to-slate-600"
+          icon={<Ban className="h-4 w-4 text-white" />} />
+        <KpiCard label="เสร็จสิ้น" value={kpi.finished} sub="งานสำเร็จ"
+          gradient="bg-gradient-to-br from-sky-400 to-blue-600"
+          icon={<CheckCheck className="h-4 w-4 text-white" />} />
+        <KpiCard label="งบประมาณรวม" value={fmt(kpi.totalBudget)} sub="บาท"
+          gradient="bg-gradient-to-br from-fuchsia-500 to-purple-700"
+          icon={<Banknote className="h-4 w-4 text-white" />} />
       </div>
 
-      {/* 3, 5, 6. Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* วิเคราะห์ประเภทงาน (Bar Chart) */}
-        <Card className="rounded-2xl border shadow-sm">
-          <CardHeader className="p-4">
-            <CardTitle className="text-sm font-semibold text-slate-700">
-              วิเคราะห์ตามประเภทงาน
-            </CardTitle>
-            <CardDescription className="text-xs">
-              จำนวนแผนจำแนกตามลักษณะประเภทงาน
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-2 pt-0 h-64">
+      {/* 3. Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Bar - ประเภทงาน */}
+        <Card className="rounded-2xl border-0 shadow-md bg-white overflow-hidden">
+          <SectionHeader icon={<ClipboardList className="h-4 w-4" />} title="วิเคราะห์ตามประเภทงาน" description="จำนวนแผนจำแนกตามลักษณะงาน" />
+          <CardContent className="px-2 pb-4 h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={jobTypeAnalytics}
-                margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip contentStyle={{ fontSize: 11 }} />
-                <Legend wrapperStyle={{ fontSize: 10 }} />
-                <Bar
-                  dataKey="count"
-                  name="จำนวนแผน"
-                  fill="#0088FE"
-                  radius={[4, 4, 0, 0]}
-                />
+              <BarChart data={jobTypeAnalytics} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="barGrad1" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.9} />
+                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.7} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 9, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 9, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <Tooltip content={<CustomBarTooltip />} cursor={{ fill: "#f8fafc" }} />
+                <Bar dataKey="count" name="จำนวนแผน" fill="url(#barGrad1)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* วิเคราะห์เป้าหมาย (Bar Chart) */}
-        <Card className="rounded-2xl border shadow-sm">
-          <CardHeader className="p-4">
-            <CardTitle className="text-sm font-semibold text-slate-700">
-              วิเคราะห์ตามประเภทเป้าหมาย
-            </CardTitle>
-            <CardDescription className="text-xs">
-              จำนวนแผนจำแนกตามประเภทของเป้าหมายหลัก
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-2 pt-0 h-64">
+        {/* Bar - ประเภทเป้าหมาย */}
+        <Card className="rounded-2xl border-0 shadow-md bg-white overflow-hidden">
+          <SectionHeader icon={<TargetIcon className="h-4 w-4" />} title="วิเคราะห์ตามประเภทเป้าหมาย" description="จำนวนแผนจำแนกตามประเภทเป้าหมาย" />
+          <CardContent className="px-2 pb-4 h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={targetTypeAnalytics}
-                margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip contentStyle={{ fontSize: 11 }} />
-                <Legend wrapperStyle={{ fontSize: 10 }} />
-                <Bar
-                  dataKey="count"
-                  name="จำนวนแผน"
-                  fill="#FFBB28"
-                  radius={[4, 4, 0, 0]}
-                />
+              <BarChart data={targetTypeAnalytics} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="barGrad2" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.9} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.7} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 9, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 9, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <Tooltip content={<CustomBarTooltip />} cursor={{ fill: "#f8fafc" }} />
+                <Bar dataKey="count" name="จำนวนแผน" fill="url(#barGrad2)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* วิเคราะห์งบประมาณ (Pie Chart) */}
-        <Card className="rounded-2xl border shadow-sm">
-          <CardHeader className="p-4">
-            <CardTitle className="text-sm font-semibold text-slate-700">
-              วิเคราะห์ประเภทงบประมาณ
-            </CardTitle>
-            <CardDescription className="text-xs">
-              สัดส่วนจำนวนงบประมาณตามประเภทงบ
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-2 pt-0 h-64 flex flex-col justify-center">
+        {/* Donut - งบประมาณ */}
+        <Card className="rounded-2xl border-0 shadow-md bg-white overflow-hidden">
+          <SectionHeader icon={<DollarSign className="h-4 w-4" />} title="สัดส่วนประเภทงบประมาณ" description="งบประมาณสะสมตามประเภทงบ" />
+          <CardContent className="px-2 pb-4 h-56 flex items-center justify-center">
             {budgetTypeAnalytics.length > 0 ? (
-              <div className="h-44">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={budgetTypeAnalytics}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name} (${(percent * 100).toFixed(0)}%)`
-                      }
-                      outerRadius={65}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {budgetTypeAnalytics.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value) =>
-                        `${new Intl.NumberFormat("th-TH").format(Number(value))} บาท`
-                      }
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={budgetTypeAnalytics}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={75}
+                    innerRadius={38}
+                    dataKey="value"
+                    paddingAngle={3}
+                  >
+                    {budgetTypeAnalytics.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} stroke="white" strokeWidth={2} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomPieTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
             ) : (
-              <div className="text-xs text-center text-muted-foreground py-20">
-                ไม่มีข้อมูลการใช้งบประมาณ
-              </div>
+              <p className="text-xs text-slate-400">ไม่มีข้อมูลการใช้งบประมาณ</p>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* 4, 7. Tables Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* วิเคราะห์พนักงาน */}
-        <Card className="rounded-2xl border shadow-sm bg-white">
-          <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <TargetIcon className="h-4 w-4 text-emerald-600" />{" "}
-              วิเคราะห์ประสิทธิภาพพนักงาน
-            </CardTitle>
-            <CardDescription className="text-xs">
-              แผนงานและงบประมาณสะสมรายบุคคล
-            </CardDescription>
-          </CardHeader>
+      {/* 4. Analytics Tables */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* พนักงาน */}
+        <Card className="rounded-2xl border-0 shadow-md bg-white overflow-hidden">
+          <SectionHeader icon={<TargetIcon className="h-4 w-4" />} title="ประสิทธิภาพพนักงาน" description="แผนงานและงบประมาณสะสมรายบุคคล" />
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs font-semibold px-4">
-                      ชื่อพนักงาน
-                    </TableHead>
-                    <TableHead className="text-xs font-semibold text-center px-4 w-28">
-                      จำนวนแผน
-                    </TableHead>
-                    <TableHead className="text-xs font-semibold text-right px-4">
-                      งบประมาณรวม (บาท)
-                    </TableHead>
+                  <TableRow className="bg-slate-50 border-b border-slate-100">
+                    <TableHead className="text-[11px] font-bold text-slate-400 px-5 py-3 uppercase tracking-wide">ชื่อพนักงาน</TableHead>
+                    <TableHead className="text-[11px] font-bold text-slate-400 text-center px-4 py-3 uppercase tracking-wide w-20">แผน</TableHead>
+                    <TableHead className="text-[11px] font-bold text-slate-400 text-right px-5 py-3 uppercase tracking-wide">งบรวม (บาท)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {employeeAnalytics.length > 0 ? (
-                    employeeAnalytics.map((emp) => (
-                      <TableRow key={emp.name}>
-                        <TableCell className="text-xs font-medium px-4 py-3">
-                          {emp.name}
+                    employeeAnalytics.map((emp, idx) => (
+                      <TableRow key={emp.name} className="hover:bg-indigo-50/40 transition-colors border-b border-slate-50 last:border-0">
+                        <TableCell className="text-xs font-semibold text-slate-700 px-5 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="flex items-center justify-center h-5 w-5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold shrink-0">
+                              {idx + 1}
+                            </span>
+                            {emp.name}
+                          </div>
                         </TableCell>
-                        <TableCell className="text-xs text-center px-4 py-3 font-semibold text-slate-600">
-                          {emp.count}
+                        <TableCell className="text-xs text-center px-4 py-3">
+                          <span className="inline-flex items-center justify-center h-6 min-w-6 px-2 rounded-full bg-slate-100 text-slate-600 font-bold text-[11px]">
+                            {emp.count}
+                          </span>
                         </TableCell>
-                        <TableCell className="text-xs text-right px-4 py-3 font-semibold text-slate-900">
-                          {new Intl.NumberFormat("th-TH").format(emp.budget)}
+                        <TableCell className="text-xs text-right px-5 py-3 font-bold text-slate-900">
+                          {fmt(emp.budget)}
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell
-                        colSpan={3}
-                        className="text-xs text-center py-6 text-muted-foreground"
-                      >
-                        ไม่มีข้อมูล
-                      </TableCell>
+                      <TableCell colSpan={3} className="text-xs text-center py-8 text-slate-400">ไม่มีข้อมูล</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -778,56 +605,44 @@ export function TripPlanReport() {
           </CardContent>
         </Card>
 
-        {/* วิเคราะห์พื้นที่ */}
-        <Card className="rounded-2xl border shadow-sm bg-white">
-          <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-indigo-600" />{" "}
-              วิเคราะห์ตามพื้นที่ปฏิบัติงาน
-            </CardTitle>
-            <CardDescription className="text-xs">
-              สรุปข้อมูลความหนาแน่นรายจังหวัด
-            </CardDescription>
-          </CardHeader>
+        {/* พื้นที่ */}
+        <Card className="rounded-2xl border-0 shadow-md bg-white overflow-hidden">
+          <SectionHeader icon={<MapPin className="h-4 w-4" />} title="ความหนาแน่นตามพื้นที่" description="สรุปข้อมูลรายจังหวัด" />
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs font-semibold px-4">
-                      จังหวัด
-                    </TableHead>
-                    <TableHead className="text-xs font-semibold text-center px-4 w-28">
-                      จำนวนแผน
-                    </TableHead>
-                    <TableHead className="text-xs font-semibold text-right px-4">
-                      งบประมาณรวม (บาท)
-                    </TableHead>
+                  <TableRow className="bg-slate-50 border-b border-slate-100">
+                    <TableHead className="text-[11px] font-bold text-slate-400 px-5 py-3 uppercase tracking-wide">จังหวัด</TableHead>
+                    <TableHead className="text-[11px] font-bold text-slate-400 text-center px-4 py-3 uppercase tracking-wide w-20">แผน</TableHead>
+                    <TableHead className="text-[11px] font-bold text-slate-400 text-right px-5 py-3 uppercase tracking-wide">งบรวม (บาท)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {areaAnalytics.length > 0 ? (
-                    areaAnalytics.map((area) => (
-                      <TableRow key={area.name}>
-                        <TableCell className="text-xs font-medium px-4 py-3">
-                          {area.name}
+                    areaAnalytics.map((area, idx) => (
+                      <TableRow key={area.name} className="hover:bg-indigo-50/40 transition-colors border-b border-slate-50 last:border-0">
+                        <TableCell className="text-xs font-semibold text-slate-700 px-5 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="flex items-center justify-center h-5 w-5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold shrink-0">
+                              {idx + 1}
+                            </span>
+                            {area.name}
+                          </div>
                         </TableCell>
-                        <TableCell className="text-xs text-center px-4 py-3 font-semibold text-slate-600">
-                          {area.count}
+                        <TableCell className="text-xs text-center px-4 py-3">
+                          <span className="inline-flex items-center justify-center h-6 min-w-6 px-2 rounded-full bg-slate-100 text-slate-600 font-bold text-[11px]">
+                            {area.count}
+                          </span>
                         </TableCell>
-                        <TableCell className="text-xs text-right px-4 py-3 font-semibold text-slate-900">
-                          {new Intl.NumberFormat("th-TH").format(area.budget)}
+                        <TableCell className="text-xs text-right px-5 py-3 font-bold text-slate-900">
+                          {fmt(area.budget)}
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell
-                        colSpan={3}
-                        className="text-xs text-center py-6 text-muted-foreground"
-                      >
-                        ไม่มีข้อมูล
-                      </TableCell>
+                      <TableCell colSpan={3} className="text-xs text-center py-8 text-slate-400">ไม่มีข้อมูล</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -837,86 +652,54 @@ export function TripPlanReport() {
         </Card>
       </div>
 
-      {/* 8. Report Table */}
-      <Card className="rounded-2xl border shadow-sm bg-white">
-        <CardHeader className="p-4 pb-2">
-          <CardTitle className="text-sm font-semibold text-slate-700">
-            ตารางรายงานแผนงานทั้งหมด
-          </CardTitle>
-          <CardDescription className="text-xs">
-            แสดงผลข้อมูลดิบของแผนกิจกรรมทั้งหมดตามที่กำหนดตัวกรองไว้
-          </CardDescription>
-        </CardHeader>
+      {/* 5. Report Table */}
+      <Card className="rounded-2xl border-0 shadow-md bg-white overflow-hidden">
+        <SectionHeader icon={<ClipboardList className="h-4 w-4" />} title="ตารางรายงานแผนงานทั้งหมด" description="แสดงข้อมูลดิบของแผนกิจกรรมตามตัวกรองที่กำหนด" />
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="text-xs font-semibold px-4 w-32">
-                    เลขที่แผน
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold px-4 w-28">
-                    วันที่จัดกิจกรรม
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold px-4">
-                    ผู้รับผิดชอบ
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold px-4">
-                    ประเภทงาน
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold px-4">
-                    ชื่อกิจกรรม
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold px-4">
-                    สถานที่
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold text-right px-4">
-                    งบประมาณ
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold text-center px-4 w-28">
-                    สถานะ
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold text-center px-4 w-28">
-                    ดูรายละเอียด
-                  </TableHead>
+                <TableRow className="bg-slate-50 border-b border-slate-100">
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">เลขที่แผน</TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">วันที่จัดกิจกรรม</TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">ผู้รับผิดชอบ</TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">ประเภทงาน</TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">ชื่อกิจกรรม</TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">สถานที่</TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap text-right">งบประมาณ</TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap text-center">สถานะ</TableHead>
+                  <TableHead className="px-4 py-3 w-12" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedPlans.length > 0 ? (
                   paginatedPlans.map((plan) => (
-                    <TableRow key={plan.id}>
-                      <TableCell className="text-xs font-bold text-slate-600 px-4 py-3">
-                        {plan.id}
+                    <TableRow key={plan.id} className="hover:bg-indigo-50/30 transition-colors border-b border-slate-50 group last:border-0">
+                      <TableCell className="text-xs font-bold text-indigo-600 px-4 py-3 whitespace-nowrap">{plan.id}</TableCell>
+                      <TableCell className="text-xs text-slate-500 px-4 py-3 whitespace-nowrap">{plan.activityDate}</TableCell>
+                      <TableCell className="text-xs font-semibold text-slate-700 px-4 py-3 whitespace-nowrap">{plan.responsible}</TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap">
+                        <span className="inline-block bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-0.5 rounded-md text-[11px] font-semibold">
+                          {plan.jobType}
+                        </span>
                       </TableCell>
-                      <TableCell className="text-xs px-4 py-3">
-                        {plan.activityDate}
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-3 font-medium">
-                        {plan.responsible}
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-3">
-                        {plan.jobType}
-                      </TableCell>
-                      <TableCell
-                        className="text-xs px-4 py-3 max-w-xs truncate"
-                        title={plan.activityName}
-                      >
+                      <TableCell className="text-xs px-4 py-3 max-w-[140px] truncate text-slate-600" title={plan.activityName}>
                         {plan.activityName}
                       </TableCell>
-                      <TableCell className="text-xs px-4 py-3 font-medium text-slate-700 max-w-xs truncate" title={`${plan.locationName} ต.${plan.subdistrict} อ.${plan.district} จ.${plan.province}`}>
+                      <TableCell className="text-xs px-4 py-3 max-w-[140px] truncate text-slate-400" title={`${plan.locationName} ต.${plan.subdistrict} อ.${plan.district} จ.${plan.province}`}>
                         {plan.locationName} ต.{plan.subdistrict} อ.{plan.district} จ.{plan.province}
                       </TableCell>
-                      <TableCell className="text-xs text-right px-4 py-3 font-semibold text-slate-900">
-                        {new Intl.NumberFormat("th-TH").format(plan.budget)}
+                      <TableCell className="text-xs text-right px-4 py-3 font-bold text-slate-800 whitespace-nowrap">
+                        {fmt(plan.budget)}
                       </TableCell>
                       <TableCell className="text-xs text-center px-4 py-3">
-                        {getStatusBadge(plan.status)}
+                        <StatusBadge status={plan.status} />
                       </TableCell>
                       <TableCell className="text-xs text-center px-4 py-3">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 px-2 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 font-medium flex items-center gap-1.5 mx-auto"
+                          className="h-8 w-8 p-0 rounded-lg text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 opacity-0 group-hover:opacity-100 transition-all mx-auto"
                           onClick={() => setSelectedPlan(plan)}
                         >
                           <Eye className="h-4 w-4" />
@@ -926,11 +709,11 @@ export function TripPlanReport() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell
-                      colSpan={10}
-                      className="text-xs text-center py-8 text-muted-foreground"
-                    >
-                      ไม่พบรายการข้อมูลตามตัวกรองที่เลือก
+                    <TableCell colSpan={9} className="text-xs text-center py-14 text-slate-400">
+                      <div className="flex flex-col items-center gap-2">
+                        <AlertCircle className="h-8 w-8 text-slate-200" />
+                        <p>ไม่พบรายการข้อมูลตามตัวกรองที่เลือก</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}
@@ -938,33 +721,47 @@ export function TripPlanReport() {
             </Table>
           </div>
 
-          {/* Pagination Controls */}
+          {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between p-4 border-t">
-              <span className="text-xs text-muted-foreground">
-                แสดงหน้า {currentPage} จาก {totalPages} (ทั้งหมด{" "}
-                {filteredData.length} รายการ)
+            <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-slate-50/50">
+              <span className="text-xs text-slate-400">
+                หน้า <span className="font-bold text-slate-600">{currentPage}</span> / <span className="font-bold text-slate-600">{totalPages}</span>
+                {" · "}{filteredData.length} รายการ
               </span>
               <div className="flex items-center gap-1">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                   disabled={currentPage === 1}
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 rounded-lg border-slate-200 disabled:opacity-40"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const page = i + 1;
+                  return (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className={`h-8 w-8 p-0 rounded-lg text-xs font-bold transition-all ${
+                        currentPage === page
+                          ? "bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700 shadow-sm"
+                          : "border-slate-200 text-slate-600"
+                      }`}
+                    >
+                      {page}
+                    </Button>
+                  );
+                })}
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
+                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 rounded-lg border-slate-200 disabled:opacity-40"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -974,180 +771,119 @@ export function TripPlanReport() {
         </CardContent>
       </Card>
 
-      {/* Dialog รายละเอียดแผนงาน */}
-      <Dialog
-        open={!!selectedPlan}
-        onOpenChange={(open) => !open && setSelectedPlan(null)}
-      >
-        <DialogContent className="sm:max-w-2xl rounded-2xl border shadow-lg bg-white overflow-hidden p-0">
+      {/* Detail Dialog */}
+      <Dialog open={!!selectedPlan} onOpenChange={(open) => !open && setSelectedPlan(null)}>
+        <DialogContent className="sm:max-w-2xl rounded-2xl p-0 overflow-hidden border-0 shadow-2xl bg-white">
           {selectedPlan && (
-            <div>
+            <div className="flex flex-col">
               {/* Header */}
-              <div className="bg-slate-50 border-b p-6 pb-5">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div>
-                    <span className="text-xs font-bold text-slate-500 tracking-wider uppercase block mb-1">
-                      รายละเอียดแผนปฏิบัติงาน
-                    </span>
-                    <DialogTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                      <ClipboardList className="h-5 w-5 text-indigo-600" />
-                      {selectedPlan.id}
-                    </DialogTitle>
+              <div className="bg-gradient-to-r from-indigo-600 to-violet-700 px-6 pt-6 pb-5">
+                <DialogHeader>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-indigo-200 uppercase tracking-widest mb-1">
+                        รายละเอียดแผนปฏิบัติงาน
+                      </p>
+                      <DialogTitle className="text-xl font-extrabold text-white flex items-center gap-2">
+                        <ClipboardList className="h-5 w-5 text-indigo-300 shrink-0" />
+                        {selectedPlan.id}
+                      </DialogTitle>
+                    </div>
+                    <div className="mt-1 shrink-0">
+                      <StatusBadge status={selectedPlan.status} />
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {getStatusBadge(selectedPlan.status)}
-                  </div>
-                </div>
+                </DialogHeader>
               </div>
 
-              {/* Content */}
-              <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              {/* Body */}
+              <div className="p-6 space-y-5 overflow-y-auto max-h-[65vh]">
                 {/* Activity Name */}
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                  <h4 className="text-xs font-bold text-slate-400 mb-1">
+                <div className="bg-indigo-50/70 rounded-xl p-4 border border-indigo-100">
+                  <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">
                     ชื่อกิจกรรม / โครงการ
-                  </h4>
-                  <p className="text-sm font-semibold text-slate-800 leading-relaxed">
+                  </p>
+                  <p className="text-sm font-bold text-indigo-900 leading-relaxed">
                     {selectedPlan.activityName}
                   </p>
                 </div>
 
-                {/* Details Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-6">
-                  {/* ประเภทงาน */}
-                  <div>
-                    <span className="text-xs font-medium text-slate-400 block mb-1">
-                      ประเภทงาน
+                {/* Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <DetailField label="ประเภทงาน">
+                    <span className="inline-block text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">
+                      {selectedPlan.jobType}
                     </span>
-                    <div>
-                      <span className="text-sm font-semibold text-indigo-700 bg-indigo-50/50 px-2.5 py-1 rounded-md border border-indigo-100/50 inline-block">
-                        {selectedPlan.jobType}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* วันที่ดำเนินงาน */}
-                  <div>
-                    <span className="text-xs font-medium text-slate-400 block mb-1">
-                      วันที่จัดกิจกรรม
-                    </span>
-                    <span className="text-sm font-semibold text-slate-700 flex items-center gap-1.5 mt-1">
-                      <Calendar className="h-4 w-4 text-slate-400" />
+                  </DetailField>
+                  <DetailField label="วันที่จัดกิจกรรม">
+                    <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
+                      <Calendar className="h-4 w-4 text-indigo-400" />
                       {selectedPlan.activityDate}
                     </span>
-                  </div>
-
-                  {/* ผู้รับผิดชอบ */}
-                  <div>
-                    <span className="text-xs font-medium text-slate-400 block mb-1">
-                      ผู้รับผิดชอบ
+                  </DetailField>
+                  <DetailField label="ผู้รับผิดชอบ">
+                    <span className="text-sm font-bold text-slate-800">{selectedPlan.responsible}</span>
+                  </DetailField>
+                  <DetailField label="ผู้อนุมัติ">
+                    <span className="text-sm font-bold text-slate-800">{selectedPlan.approver || "—"}</span>
+                  </DetailField>
+                  <DetailField label="สถานที่ปฏิบัติงาน">
+                    <span className="flex items-start gap-1.5 text-sm font-semibold text-slate-700">
+                      <MapPin className="h-4 w-4 text-rose-400 mt-0.5 shrink-0" />
+                      {selectedPlan.locationName}
                     </span>
-                    <span className="text-sm font-semibold text-slate-800">
-                      {selectedPlan.responsible}
-                    </span>
-                  </div>
-
-                  {/* ผู้อนุมัติ */}
-                  <div>
-                    <span className="text-xs font-medium text-slate-400 block mb-1">
-                      ผู้อนุมัติ
-                    </span>
-                    <span className="text-sm font-semibold text-slate-800">
-                      {selectedPlan.approver || "-"}
-                    </span>
-                  </div>
-
-                  {/* สถานที่ปฏิบัติงาน */}
-                  <div>
-                    <span className="text-xs font-medium text-slate-400 block mb-1">
-                      สถานที่ปฏิบัติงาน
-                    </span>
-                    <span className="text-sm font-semibold text-slate-800 flex items-start gap-1.5 mt-1">
-                      <MapPin className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
-                      <span>{selectedPlan.locationName}</span>
-                    </span>
-                  </div>
-
-                  {/* พื้นที่ปฏิบัติงาน */}
-                  <div>
-                    <span className="text-xs font-medium text-slate-400 block mb-1">
-                      พื้นที่ปฏิบัติงาน
-                    </span>
-                    <span className="text-sm font-semibold text-slate-800 block mt-1 pl-5">
+                  </DetailField>
+                  <DetailField label="พื้นที่">
+                    <span className="text-sm font-semibold text-slate-600">
                       ต.{selectedPlan.subdistrict} อ.{selectedPlan.district} จ.{selectedPlan.province}
                     </span>
-                  </div>
+                  </DetailField>
+                  <DetailField label="กลุ่มเป้าหมาย">
+                    <span className="text-sm font-bold text-slate-800">{selectedPlan.targetType}</span>
+                  </DetailField>
+                  <DetailField label="ประเภทงบประมาณ">
+                    <span className="text-sm font-bold text-slate-800">{selectedPlan.budgetType}</span>
+                  </DetailField>
+                </div>
 
-                  {/* กลุ่มเป้าหมาย */}
+                {/* Budget */}
+                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-xl p-4 flex items-center gap-3">
+                  <span className="flex items-center justify-center h-10 w-10 rounded-xl bg-emerald-500 shadow text-white shrink-0">
+                    <Banknote className="h-5 w-5" />
+                  </span>
                   <div>
-                    <span className="text-xs font-medium text-slate-400 block mb-1">
-                      กลุ่มเป้าหมาย
-                    </span>
-                    <span className="text-sm font-semibold text-slate-800">
-                      {selectedPlan.targetType}
-                    </span>
-                  </div>
-
-                  {/* งบประมาณ */}
-                  <div>
-                    <span className="text-xs font-medium text-slate-400 block mb-1">
-                      งบประมาณ
-                    </span>
-                    <span className="text-base font-bold text-emerald-600 flex items-center gap-1 mt-0.5">
-                      <DollarSign className="h-4 w-4 text-emerald-500" />
-                      {new Intl.NumberFormat("th-TH").format(
-                        selectedPlan.budget,
-                      )}{" "}
-                      บาท
-                    </span>
-                  </div>
-
-                  {/* ประเภทงบประมาณ */}
-                  <div>
-                    <span className="text-xs font-medium text-slate-400 block mb-1">
-                      ประเภทงบประมาณ
-                    </span>
-                    <span className="text-sm font-semibold text-slate-800">
-                      {selectedPlan.budgetType}
-                    </span>
+                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">งบประมาณที่ใช้</p>
+                    <p className="text-xl font-extrabold text-emerald-800">
+                      {fmt(selectedPlan.budget)}{" "}
+                      <span className="text-sm font-semibold text-emerald-500">บาท</span>
+                    </p>
                   </div>
                 </div>
 
-                {/* Target Goals & Required Records */}
-                <div className="border-t pt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* เป้าหมาย */}
-                  <div className="space-y-2">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                      เป้าหมาย
-                    </span>
-                    <div className="bg-amber-50/50 rounded-xl p-4 border border-amber-100/50 h-full">
+                {/* Target & Records */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">เป้าหมาย</p>
+                    <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 min-h-[72px]">
                       <p className="text-sm font-semibold text-amber-900 whitespace-pre-line leading-relaxed">
-                        {selectedPlan.targetGoal || "-"}
+                        {selectedPlan.targetGoal || "—"}
                       </p>
                     </div>
                   </div>
-
-                  {/* สิ่งที่ต้องบันทึก */}
-                  <div className="space-y-2">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                      สิ่งที่พนักงานต้องบันทึก
-                    </span>
-                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 h-full">
-                      {selectedPlan.recordFields &&
-                      selectedPlan.recordFields.length > 0 ? (
-                        <ul className="text-xs font-semibold text-slate-700 space-y-1.5 list-none pl-0">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">สิ่งที่พนักงานต้องบันทึก</p>
+                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 min-h-[72px]">
+                      {selectedPlan.recordFields && selectedPlan.recordFields.length > 0 ? (
+                        <ul className="space-y-1.5">
                           {selectedPlan.recordFields.map((field, idx) => (
-                            <li
-                              key={idx}
-                              className="flex items-start gap-2 leading-relaxed"
-                            >
+                            <li key={idx} className="flex items-start gap-2 text-xs font-semibold text-slate-700">
                               <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
-                              <span>{field}</span>
+                              {field}
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p className="text-xs font-medium text-slate-500">-</p>
+                        <p className="text-xs font-medium text-slate-400">—</p>
                       )}
                     </div>
                   </div>
@@ -1155,11 +891,11 @@ export function TripPlanReport() {
               </div>
 
               {/* Footer */}
-              <div className="bg-slate-50 border-t p-4 flex justify-end">
+              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
                 <Button
                   variant="outline"
                   onClick={() => setSelectedPlan(null)}
-                  className="h-9 text-xs"
+                  className="h-9 px-5 text-xs font-bold border-slate-200 hover:bg-slate-100"
                 >
                   ปิดหน้าต่าง
                 </Button>
@@ -1171,3 +907,4 @@ export function TripPlanReport() {
     </div>
   );
 }
+
