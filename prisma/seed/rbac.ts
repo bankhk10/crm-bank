@@ -957,6 +957,7 @@ export async function seedRBAC(prisma: PrismaClient) {
             },
           });
           updatedCount++;
+          console.log(`  ✅ Updated permission: ${perm.key}`);
         }
       }
     }
