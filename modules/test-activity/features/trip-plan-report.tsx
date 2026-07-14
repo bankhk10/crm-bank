@@ -436,7 +436,7 @@ export function TripPlanReport() {
         <CardContent className="p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
             <div className="grid gap-1">
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
+              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide">
                 วันที่เริ่มต้น
               </label>
               <input
@@ -450,7 +450,7 @@ export function TripPlanReport() {
               />
             </div>
             <div className="grid gap-1">
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
+              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide">
                 วันที่สิ้นสุด
               </label>
               <input
