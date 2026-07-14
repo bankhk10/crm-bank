@@ -565,36 +565,41 @@ export function TripPlanReport() {
           label="รออนุมัติ"
           value={kpi.pending}
           sub="รอการยืนยัน"
-          gradient="bg-gradient-to-br from-amber-400 to-orange-500"
+          gradient="bg-gradient-to-br from-amber-500 to-orange-600"
           icon={<Clock className="h-4 w-4 text-white" />}
+          labelColor="text-white"
         />
         <KpiCard
           label="อนุมัติแล้ว"
           value={kpi.approved}
           sub="พร้อมดำเนินงาน"
-          gradient="bg-gradient-to-br from-emerald-400 to-teal-500"
+          gradient="bg-gradient-to-br from-sky-400 to-blue-600"
           icon={<CheckCircle2 className="h-4 w-4 text-white" />}
+          labelColor="text-white"
         />
         <KpiCard
           label="ไม่อนุมัติ"
           value={kpi.rejected}
           sub="ไม่ผ่านเงื่อนไข"
-          gradient="bg-gradient-to-br from-rose-500 to-pink-600"
+          gradient="bg-gradient-to-br from-slate-400 to-slate-600"
           icon={<XCircle className="h-4 w-4 text-white" />}
+          labelColor="text-white"
         />
         <KpiCard
           label="ยกเลิก"
           value={kpi.cancelled}
           sub="ยกเลิกรายการ"
-          gradient="bg-gradient-to-br from-slate-400 to-slate-600"
+          gradient="bg-gradient-to-br from-rose-500 to-red-600"
           icon={<Ban className="h-4 w-4 text-white" />}
+          labelColor="text-white"
         />
         <KpiCard
           label="เสร็จสิ้น"
           value={kpi.finished}
           sub="งานสำเร็จ"
-          gradient="bg-gradient-to-br from-sky-400 to-blue-600"
+          gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
           icon={<CheckCheck className="h-4 w-4 text-white" />}
+          labelColor="text-white"
         />
         <KpiCard
           label="งบประมาณรวม"
@@ -602,6 +607,7 @@ export function TripPlanReport() {
           sub="บาท"
           gradient="bg-gradient-to-br from-fuchsia-500 to-purple-700"
           icon={<Banknote className="h-4 w-4 text-white" />}
+          labelColor="text-white"
         />
       </div>
 
