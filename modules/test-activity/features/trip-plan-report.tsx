@@ -745,15 +745,23 @@ export function TripPlanReport() {
                     ))}
                   </Pie>
                   <Tooltip content={<CustomPieTooltip />} />
-                  <Legend 
-                    verticalAlign="bottom" 
+                  <Legend
+                    verticalAlign="bottom"
                     iconType="circle"
-                    wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
+                    wrapperStyle={{ fontSize: "11px", paddingTop: "10px" }}
                     formatter={(value, entry, index) => {
-                      const total = budgetTypeAnalytics.reduce((sum, curr) => sum + curr.value, 0);
+                      const total = budgetTypeAnalytics.reduce(
+                        (sum, curr) => sum + curr.value,
+                        0,
+                      );
                       const dataVal = budgetTypeAnalytics[index]?.value || 0;
-                      const percent = total > 0 ? ((dataVal / total) * 100).toFixed(0) : 0;
-                      return <span className="text-slate-600">{value} {percent}%</span>;
+                      const percent =
+                        total > 0 ? ((dataVal / total) * 100).toFixed(0) : 0;
+                      return (
+                        <span className="text-slate-600">
+                          {value} {percent}%
+                        </span>
+                      );
                     }}
                   />
                 </PieChart>
@@ -763,137 +771,6 @@ export function TripPlanReport() {
                 ไม่มีข้อมูลการใช้งบประมาณ
               </p>
             )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* 4. Analytics Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* พนักงาน */}
-        <Card className="rounded-2xl border-0 shadow-md bg-white overflow-hidden">
-          <SectionHeader
-            icon={<TargetIcon className="h-4 w-4" />}
-            title="ประสิทธิภาพพนักงาน"
-            description="แผนงานและงบประมาณสะสมรายบุคคล"
-          />
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-slate-50 border-b border-slate-100">
-                    <TableHead className="text-[11px] font-bold text-slate-400 px-5 py-3 uppercase tracking-wide">
-                      ชื่อพนักงาน
-                    </TableHead>
-                    <TableHead className="text-[11px] font-bold text-slate-400 text-center px-4 py-3 uppercase tracking-wide w-20">
-                      แผน
-                    </TableHead>
-                    <TableHead className="text-[11px] font-bold text-slate-400 text-right px-5 py-3 uppercase tracking-wide">
-                      งบรวม (บาท)
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {employeeAnalytics.length > 0 ? (
-                    employeeAnalytics.map((emp, idx) => (
-                      <TableRow
-                        key={emp.name}
-                        className="hover:bg-indigo-50/40 transition-colors border-b border-slate-50 last:border-0"
-                      >
-                        <TableCell className="text-xs font-semibold text-slate-700 px-5 py-3">
-                          <div className="flex items-center gap-2">
-                            <span className="flex items-center justify-center h-5 w-5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold shrink-0">
-                              {idx + 1}
-                            </span>
-                            {emp.name}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs text-center px-4 py-3">
-                          <span className="inline-flex items-center justify-center h-6 min-w-6 px-2 rounded-full bg-slate-100 text-slate-600 font-bold text-[11px]">
-                            {emp.count}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-xs text-right px-5 py-3 font-bold text-slate-900">
-                          {fmt(emp.budget)}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={3}
-                        className="text-xs text-center py-8 text-slate-400"
-                      >
-                        ไม่มีข้อมูล
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* พื้นที่ */}
-        <Card className="rounded-2xl border-0 shadow-md bg-white overflow-hidden">
-          <SectionHeader
-            icon={<MapPin className="h-4 w-4" />}
-            title="ความหนาแน่นตามพื้นที่"
-            description="สรุปข้อมูลรายจังหวัด"
-          />
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-slate-50 border-b border-slate-100">
-                    <TableHead className="text-[11px] font-bold text-slate-400 px-5 py-3 uppercase tracking-wide">
-                      จังหวัด
-                    </TableHead>
-                    <TableHead className="text-[11px] font-bold text-slate-400 text-center px-4 py-3 uppercase tracking-wide w-20">
-                      แผน
-                    </TableHead>
-                    <TableHead className="text-[11px] font-bold text-slate-400 text-right px-5 py-3 uppercase tracking-wide">
-                      งบรวม (บาท)
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {areaAnalytics.length > 0 ? (
-                    areaAnalytics.map((area, idx) => (
-                      <TableRow
-                        key={area.name}
-                        className="hover:bg-indigo-50/40 transition-colors border-b border-slate-50 last:border-0"
-                      >
-                        <TableCell className="text-xs font-semibold text-slate-700 px-5 py-3">
-                          <div className="flex items-center gap-2">
-                            <span className="flex items-center justify-center h-5 w-5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold shrink-0">
-                              {idx + 1}
-                            </span>
-                            {area.name}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs text-center px-4 py-3">
-                          <span className="inline-flex items-center justify-center h-6 min-w-6 px-2 rounded-full bg-slate-100 text-slate-600 font-bold text-[11px]">
-                            {area.count}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-xs text-right px-5 py-3 font-bold text-slate-900">
-                          {fmt(area.budget)}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={3}
-                        className="text-xs text-center py-8 text-slate-400"
-                      >
-                        ไม่มีข้อมูล
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
           </CardContent>
         </Card>
       </div>
