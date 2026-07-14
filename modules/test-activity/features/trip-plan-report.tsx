@@ -21,6 +21,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  Legend,
 } from "recharts";
 import { mockTripPlans, TripPlanMock } from "../infrastructure/mock-data";
 import {
@@ -727,13 +728,10 @@ export function TripPlanReport() {
                   <Pie
                     data={budgetTypeAnalytics}
                     cx="50%"
-                    cy="50%"
+                    cy="45%"
                     labelLine={false}
-                    label={({ name, percent }) =>
-                      `${name} ${(percent * 100).toFixed(0)}%`
-                    }
-                    outerRadius={75}
-                    innerRadius={38}
+                    outerRadius={70}
+                    innerRadius={35}
                     dataKey="value"
                     paddingAngle={3}
                   >
@@ -747,6 +745,17 @@ export function TripPlanReport() {
                     ))}
                   </Pie>
                   <Tooltip content={<CustomPieTooltip />} />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
+                    formatter={(value, entry, index) => {
+                      const total = budgetTypeAnalytics.reduce((sum, curr) => sum + curr.value, 0);
+                      const dataVal = budgetTypeAnalytics[index]?.value || 0;
+                      const percent = total > 0 ? ((dataVal / total) * 100).toFixed(0) : 0;
+                      return <span className="text-slate-600">{value} {percent}%</span>;
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
