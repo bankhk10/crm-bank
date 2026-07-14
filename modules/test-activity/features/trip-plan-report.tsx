@@ -459,7 +459,7 @@ export function TripPlanReport() {
                     setStartDate(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full h-9 px-3 border border-slate-200 rounded-md text-sm bg-white focus:outline-none focus:ring-1 focus:ring-ring transition"
+                  className="w-full h-11 px-3 border border-slate-200 rounded-md text-sm bg-white focus:outline-none focus:ring-1 focus:ring-ring transition"
                 />
               </div>
             </div>
@@ -475,7 +475,7 @@ export function TripPlanReport() {
                     setEndDate(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full h-9 px-3 border border-slate-200 rounded-md text-sm bg-white focus:outline-none focus:ring-1 focus:ring-ring transition"
+                  className="w-full h-11 px-3 border border-slate-200 rounded-md text-sm bg-white focus:outline-none focus:ring-1 focus:ring-ring transition"
                 />
               </div>
             </div>
