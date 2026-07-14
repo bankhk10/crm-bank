@@ -413,18 +413,14 @@ export function TripPlanReport() {
             </h1>
           </div>
           <p className="text-sm text-slate-400 ml-[52px]">
-            วิเคราะห์และสรุปผลแผนงาน Trip Plan แบบ Real-time
+            วิเคราะห์และสรุปผลแผนงาน Trip Plan
           </p>
         </div>
-        <span className="ml-[52px] sm:ml-0 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 self-start sm:self-auto">
-          <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
-          {filteredData.length} รายการ
-        </span>
       </div>
 
       {/* 1. Filter Card */}
       <Card className="rounded-2xl border-0 shadow-md bg-white/80 backdrop-blur-sm overflow-hidden">
-        <div className="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-slate-100 bg-gray-200">
+        <div className="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-slate-100">
           <SlidersHorizontal className="h-4 w-4 text-indigo-500" />
           <p className="text-sm font-bold text-slate-700">ตัวกรองข้อมูล</p>
           <Button
