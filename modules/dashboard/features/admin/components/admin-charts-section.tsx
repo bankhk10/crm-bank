@@ -2,10 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, Map, CheckCircle2 } from "lucide-react";
 import { PeriodSwitcher } from "../../../ui/period-switcher";
-import {
-  RegionChart,
-  ProductGroupChart,
-} from "../../../ui/dashboard-charts";
+import { RegionChart, ProductGroupChart } from "../../../ui/dashboard-charts";
 import type { DashboardPeriod, PeriodData } from "../../../types";
 
 interface AdminChartsSectionProps {
@@ -26,8 +23,11 @@ export function AdminChartsSection({
     periodData[productGroupPeriod].productGroupData || [];
 
   // Product group filter
-  const [visibleGroups, setVisibleGroups] = useState<Set<string>>(() => new Set(productGroupData.map((p) => p.group)));
-  const [prevProductGroupData, setPrevProductGroupData] = useState(productGroupData);
+  const [visibleGroups, setVisibleGroups] = useState<Set<string>>(
+    () => new Set(productGroupData.map((p) => p.group)),
+  );
+  const [prevProductGroupData, setPrevProductGroupData] =
+    useState(productGroupData);
 
   if (productGroupData !== prevProductGroupData) {
     setPrevProductGroupData(productGroupData);
@@ -56,7 +56,7 @@ export function AdminChartsSection({
 
   const filteredProductGroupData = useMemo(
     () => productGroupData.filter((p) => visibleGroups.has(p.group)),
-    [productGroupData, visibleGroups]
+    [productGroupData, visibleGroups],
   );
 
   return (
@@ -64,7 +64,7 @@ export function AdminChartsSection({
       {/* Region Chart */}
       <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white shadow-lg overflow-hidden">
         <CardHeader className="pb-3 sm:pb-4 border-b border-slate-100/80">
-          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 pt-6">
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-orange-100 to-amber-100 border border-orange-100 shadow-sm">
                 <Map className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
@@ -89,7 +89,7 @@ export function AdminChartsSection({
       {/* Product Group Chart */}
       <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white shadow-lg overflow-hidden">
         <CardHeader className="pb-3 sm:pb-4 border-b border-slate-100/80">
-          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 pt-6">
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-purple-100 to-violet-100 border border-purple-100 shadow-sm">
                 <Package className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
@@ -158,7 +158,9 @@ export function AdminChartsSection({
             </div>
           </div>
         </CardHeader>
-        <ProductGroupChart filteredProductGroupData={filteredProductGroupData} />
+        <ProductGroupChart
+          filteredProductGroupData={filteredProductGroupData}
+        />
       </Card>
     </div>
   );

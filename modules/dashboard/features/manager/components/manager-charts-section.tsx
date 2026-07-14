@@ -31,8 +31,11 @@ export function ManagerChartsSection({
     periodData[tradeNameGroupPeriod].tradeNameGroupData || [];
 
   // Product group filter
-  const [visibleGroups, setVisibleGroups] = useState<Set<string>>(() => new Set(productGroupData.map((p) => p.group)));
-  const [prevProductGroupData, setPrevProductGroupData] = useState(productGroupData);
+  const [visibleGroups, setVisibleGroups] = useState<Set<string>>(
+    () => new Set(productGroupData.map((p) => p.group)),
+  );
+  const [prevProductGroupData, setPrevProductGroupData] =
+    useState(productGroupData);
 
   if (productGroupData !== prevProductGroupData) {
     setPrevProductGroupData(productGroupData);
@@ -61,12 +64,15 @@ export function ManagerChartsSection({
 
   const filteredProductGroupData = useMemo(
     () => productGroupData.filter((p) => visibleGroups.has(p.group)),
-    [productGroupData, visibleGroups]
+    [productGroupData, visibleGroups],
   );
 
   // Trade name group filter
-  const [visibleTradeNameGroups, setVisibleTradeNameGroups] = useState<Set<string>>(() => new Set(tradeNameGroupData.map((p) => p.group)));
-  const [prevTradeNameGroupData, setPrevTradeNameGroupData] = useState(tradeNameGroupData);
+  const [visibleTradeNameGroups, setVisibleTradeNameGroups] = useState<
+    Set<string>
+  >(() => new Set(tradeNameGroupData.map((p) => p.group)));
+  const [prevTradeNameGroupData, setPrevTradeNameGroupData] =
+    useState(tradeNameGroupData);
 
   if (tradeNameGroupData !== prevTradeNameGroupData) {
     setPrevTradeNameGroupData(tradeNameGroupData);
@@ -89,13 +95,15 @@ export function ManagerChartsSection({
     if (visibleTradeNameGroups.size === tradeNameGroupData.length) {
       setVisibleTradeNameGroups(new Set());
     } else {
-      setVisibleTradeNameGroups(new Set(tradeNameGroupData.map((p) => p.group)));
+      setVisibleTradeNameGroups(
+        new Set(tradeNameGroupData.map((p) => p.group)),
+      );
     }
   };
 
   const filteredTradeNameGroupData = useMemo(
     () => tradeNameGroupData.filter((p) => visibleTradeNameGroups.has(p.group)),
-    [tradeNameGroupData, visibleTradeNameGroups]
+    [tradeNameGroupData, visibleTradeNameGroups],
   );
 
   return (
@@ -103,7 +111,7 @@ export function ManagerChartsSection({
       {/* Region Chart */}
       <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white shadow-lg overflow-hidden">
         <CardHeader className="pb-3 sm:pb-4 border-b border-slate-100/80">
-          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 pt-6">
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-orange-100 to-amber-100 border border-orange-100 shadow-sm">
                 <Map className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
@@ -128,7 +136,7 @@ export function ManagerChartsSection({
       {/* Product Group Chart */}
       <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white shadow-lg overflow-hidden">
         <CardHeader className="pb-3 sm:pb-4 border-b border-slate-100/80">
-          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 pt-6">
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-purple-100 to-violet-100 border border-purple-100 shadow-sm">
                 <Package className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
@@ -197,13 +205,15 @@ export function ManagerChartsSection({
             </div>
           </div>
         </CardHeader>
-        <ProductGroupChart filteredProductGroupData={filteredProductGroupData} />
+        <ProductGroupChart
+          filteredProductGroupData={filteredProductGroupData}
+        />
       </Card>
 
       {/* Trade Name Group Chart */}
       <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white shadow-lg overflow-hidden">
         <CardHeader className="pb-3 sm:pb-4 border-b border-slate-100/80">
-          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 pt-6">
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-indigo-100 to-blue-100 border border-indigo-100 shadow-sm">
                 <Tags className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
@@ -213,7 +223,8 @@ export function ManagerChartsSection({
                   ยอดขายรวมของกลุ่มชื่อการค้า
                 </CardTitle>
                 <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 font-medium">
-                  แสดง {visibleTradeNameGroups.size}/{tradeNameGroupData.length} กลุ่ม
+                  แสดง {visibleTradeNameGroups.size}/{tradeNameGroupData.length}{" "}
+                  กลุ่ม
                 </p>
               </div>
             </div>
@@ -272,7 +283,9 @@ export function ManagerChartsSection({
             </div>
           </div>
         </CardHeader>
-        <TradeNameGroupChart filteredTradeNameGroupData={filteredTradeNameGroupData} />
+        <TradeNameGroupChart
+          filteredTradeNameGroupData={filteredTradeNameGroupData}
+        />
       </Card>
     </div>
   );

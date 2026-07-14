@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -136,8 +133,7 @@ function CustomBarTooltip({ active, payload, label }: any) {
       <p className="font-semibold mb-1 text-white/70">{label}</p>
       {payload.map((p: any, i: number) => (
         <p key={i} style={{ color: p.color || "#a5b4fc" }}>
-          {p.name}:{" "}
-          <span className="font-bold text-white">{p.value}</span>
+          {p.name}: <span className="font-bold text-white">{p.value}</span>
         </p>
       ))}
     </div>
@@ -277,17 +273,27 @@ export function TripPlanReport() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  const uniqueOptions = useMemo(() => ({
-    jobTypes: Array.from(new Set(mockTripPlans.map((d) => d.jobType))),
-    employees: Array.from(new Set(mockTripPlans.map((d) => d.responsible))),
-    targetTypes: Array.from(new Set(mockTripPlans.map((d) => d.targetType))),
-    budgetTypes: Array.from(new Set(mockTripPlans.map((d) => d.budgetType))),
-  }), []);
+  const uniqueOptions = useMemo(
+    () => ({
+      jobTypes: Array.from(new Set(mockTripPlans.map((d) => d.jobType))),
+      employees: Array.from(new Set(mockTripPlans.map((d) => d.responsible))),
+      targetTypes: Array.from(new Set(mockTripPlans.map((d) => d.targetType))),
+      budgetTypes: Array.from(new Set(mockTripPlans.map((d) => d.budgetType))),
+    }),
+    [],
+  );
 
   const resetFilters = () => {
-    setStartDate(""); setEndDate(""); setJobType("all"); setStatus("all");
-    setResponsible("all"); setApprover("all"); setProvince("all");
-    setDistrict("all"); setTargetType("all"); setBudgetType("all");
+    setStartDate("");
+    setEndDate("");
+    setJobType("all");
+    setStatus("all");
+    setResponsible("all");
+    setApprover("all");
+    setProvince("all");
+    setDistrict("all");
+    setTargetType("all");
+    setBudgetType("all");
     setCurrentPage(1);
   };
 
@@ -297,7 +303,8 @@ export function TripPlanReport() {
       if (endDate && item.activityDate > endDate) return false;
       if (jobType !== "all" && item.jobType !== jobType) return false;
       if (status !== "all" && item.status !== status) return false;
-      if (responsible !== "all" && item.responsible !== responsible) return false;
+      if (responsible !== "all" && item.responsible !== responsible)
+        return false;
       if (approver !== "all" && item.approver !== approver) return false;
       if (province !== "all" && item.province !== province) return false;
       if (district !== "all" && item.district !== district) return false;
@@ -305,17 +312,31 @@ export function TripPlanReport() {
       if (budgetType !== "all" && item.budgetType !== budgetType) return false;
       return true;
     });
-  }, [startDate, endDate, jobType, status, responsible, approver, province, district, targetType, budgetType]);
+  }, [
+    startDate,
+    endDate,
+    jobType,
+    status,
+    responsible,
+    approver,
+    province,
+    district,
+    targetType,
+    budgetType,
+  ]);
 
-  const kpi = useMemo(() => ({
-    total: filteredData.length,
-    pending: filteredData.filter((i) => i.status === "PENDING").length,
-    approved: filteredData.filter((i) => i.status === "APPROVED").length,
-    rejected: filteredData.filter((i) => i.status === "REJECTED").length,
-    cancelled: filteredData.filter((i) => i.status === "CANCELLED").length,
-    finished: filteredData.filter((i) => i.status === "FINISHED").length,
-    totalBudget: filteredData.reduce((acc, cur) => acc + cur.budget, 0),
-  }), [filteredData]);
+  const kpi = useMemo(
+    () => ({
+      total: filteredData.length,
+      pending: filteredData.filter((i) => i.status === "PENDING").length,
+      approved: filteredData.filter((i) => i.status === "APPROVED").length,
+      rejected: filteredData.filter((i) => i.status === "REJECTED").length,
+      cancelled: filteredData.filter((i) => i.status === "CANCELLED").length,
+      finished: filteredData.filter((i) => i.status === "FINISHED").length,
+      totalBudget: filteredData.reduce((acc, cur) => acc + cur.budget, 0),
+    }),
+    [filteredData],
+  );
 
   const jobTypeAnalytics = useMemo(() => {
     const g: Record<string, { name: string; count: number }> = {};
@@ -329,7 +350,8 @@ export function TripPlanReport() {
   const budgetTypeAnalytics = useMemo(() => {
     const g: Record<string, { name: string; value: number }> = {};
     filteredData.forEach((item) => {
-      if (!g[item.budgetType]) g[item.budgetType] = { name: item.budgetType, value: 0 };
+      if (!g[item.budgetType])
+        g[item.budgetType] = { name: item.budgetType, value: 0 };
       g[item.budgetType].value += item.budget;
     });
     return Object.values(g);
@@ -338,16 +360,19 @@ export function TripPlanReport() {
   const targetTypeAnalytics = useMemo(() => {
     const g: Record<string, { name: string; count: number }> = {};
     filteredData.forEach((item) => {
-      if (!g[item.targetType]) g[item.targetType] = { name: item.targetType, count: 0 };
+      if (!g[item.targetType])
+        g[item.targetType] = { name: item.targetType, count: 0 };
       g[item.targetType].count += 1;
     });
     return Object.values(g);
   }, [filteredData]);
 
   const employeeAnalytics = useMemo(() => {
-    const g: Record<string, { name: string; count: number; budget: number }> = {};
+    const g: Record<string, { name: string; count: number; budget: number }> =
+      {};
     filteredData.forEach((item) => {
-      if (!g[item.responsible]) g[item.responsible] = { name: item.responsible, count: 0, budget: 0 };
+      if (!g[item.responsible])
+        g[item.responsible] = { name: item.responsible, count: 0, budget: 0 };
       g[item.responsible].count += 1;
       g[item.responsible].budget += item.budget;
     });
@@ -355,9 +380,11 @@ export function TripPlanReport() {
   }, [filteredData]);
 
   const areaAnalytics = useMemo(() => {
-    const g: Record<string, { name: string; count: number; budget: number }> = {};
+    const g: Record<string, { name: string; count: number; budget: number }> =
+      {};
     filteredData.forEach((item) => {
-      if (!g[item.province]) g[item.province] = { name: item.province, count: 0, budget: 0 };
+      if (!g[item.province])
+        g[item.province] = { name: item.province, count: 0, budget: 0 };
       g[item.province].count += 1;
       g[item.province].budget += item.budget;
     });
@@ -374,7 +401,6 @@ export function TripPlanReport() {
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6 pb-8">
-
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
         <div>
@@ -398,7 +424,7 @@ export function TripPlanReport() {
 
       {/* 1. Filter Card */}
       <Card className="rounded-2xl border-0 shadow-md bg-white/80 backdrop-blur-sm overflow-hidden">
-        <div className="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-slate-100">
+        <div className="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-slate-100 bg-amber-600">
           <SlidersHorizontal className="h-4 w-4 text-indigo-500" />
           <p className="text-sm font-bold text-slate-700">ตัวกรองข้อมูล</p>
           <Button
@@ -414,41 +440,102 @@ export function TripPlanReport() {
         <CardContent className="p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
             <div className="grid gap-1">
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">วันที่เริ่มต้น</label>
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
+                วันที่เริ่มต้น
+              </label>
               <input
                 type="date"
                 value={startDate}
-                onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full h-9 px-3 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-400 transition"
               />
             </div>
             <div className="grid gap-1">
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">วันที่สิ้นสุด</label>
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
+                วันที่สิ้นสุด
+              </label>
               <input
                 type="date"
                 value={endDate}
-                onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full h-9 px-3 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-400 transition"
               />
             </div>
-            <FilterSelect label="ประเภทงาน" value={jobType} onValueChange={(v) => { setJobType(v); setCurrentPage(1); }}>
-              {uniqueOptions.jobTypes.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            <FilterSelect
+              label="ประเภทงาน"
+              value={jobType}
+              onValueChange={(v) => {
+                setJobType(v);
+                setCurrentPage(1);
+              }}
+            >
+              {uniqueOptions.jobTypes.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {t}
+                </SelectItem>
+              ))}
             </FilterSelect>
-            <FilterSelect label="สถานะ" value={status} onValueChange={(v) => { setStatus(v); setCurrentPage(1); }}>
+            <FilterSelect
+              label="สถานะ"
+              value={status}
+              onValueChange={(v) => {
+                setStatus(v);
+                setCurrentPage(1);
+              }}
+            >
               <SelectItem value="PENDING">รออนุมัติ</SelectItem>
               <SelectItem value="APPROVED">อนุมัติแล้ว</SelectItem>
               <SelectItem value="REJECTED">ไม่อนุมัติ</SelectItem>
               <SelectItem value="CANCELLED">ยกเลิก</SelectItem>
               <SelectItem value="FINISHED">เสร็จสิ้น</SelectItem>
             </FilterSelect>
-            <FilterSelect label="ผู้รับผิดชอบ" value={responsible} onValueChange={(v) => { setResponsible(v); setCurrentPage(1); }}>
-              {uniqueOptions.employees.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+            <FilterSelect
+              label="ผู้รับผิดชอบ"
+              value={responsible}
+              onValueChange={(v) => {
+                setResponsible(v);
+                setCurrentPage(1);
+              }}
+            >
+              {uniqueOptions.employees.map((e) => (
+                <SelectItem key={e} value={e}>
+                  {e}
+                </SelectItem>
+              ))}
             </FilterSelect>
-            <FilterSelect label="ประเภทเป้าหมาย" value={targetType} onValueChange={(v) => { setTargetType(v); setCurrentPage(1); }}>
-              {uniqueOptions.targetTypes.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            <FilterSelect
+              label="ประเภทเป้าหมาย"
+              value={targetType}
+              onValueChange={(v) => {
+                setTargetType(v);
+                setCurrentPage(1);
+              }}
+            >
+              {uniqueOptions.targetTypes.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {t}
+                </SelectItem>
+              ))}
             </FilterSelect>
-            <FilterSelect label="ประเภทงบประมาณ" value={budgetType} onValueChange={(v) => { setBudgetType(v); setCurrentPage(1); }}>
-              {uniqueOptions.budgetTypes.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+            <FilterSelect
+              label="ประเภทงบประมาณ"
+              value={budgetType}
+              onValueChange={(v) => {
+                setBudgetType(v);
+                setCurrentPage(1);
+              }}
+            >
+              {uniqueOptions.budgetTypes.map((b) => (
+                <SelectItem key={b} value={b}>
+                  {b}
+                </SelectItem>
+              ))}
             </FilterSelect>
           </div>
         </CardContent>
@@ -456,48 +543,104 @@ export function TripPlanReport() {
 
       {/* 2. KPI Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        <KpiCard label="แผนทั้งหมด" value={kpi.total} sub="แผนปฏิบัติงาน"
+        <KpiCard
+          label="แผนทั้งหมด"
+          value={kpi.total}
+          sub="แผนปฏิบัติงาน"
           gradient="bg-gradient-to-br from-indigo-500 to-violet-600"
-          icon={<ClipboardList className="h-4 w-4 text-white" />} />
-        <KpiCard label="รออนุมัติ" value={kpi.pending} sub="รอการยืนยัน"
+          icon={<ClipboardList className="h-4 w-4 text-white" />}
+        />
+        <KpiCard
+          label="รออนุมัติ"
+          value={kpi.pending}
+          sub="รอการยืนยัน"
           gradient="bg-gradient-to-br from-amber-400 to-orange-500"
-          icon={<Clock className="h-4 w-4 text-white" />} />
-        <KpiCard label="อนุมัติแล้ว" value={kpi.approved} sub="พร้อมดำเนินงาน"
+          icon={<Clock className="h-4 w-4 text-white" />}
+        />
+        <KpiCard
+          label="อนุมัติแล้ว"
+          value={kpi.approved}
+          sub="พร้อมดำเนินงาน"
           gradient="bg-gradient-to-br from-emerald-400 to-teal-500"
-          icon={<CheckCircle2 className="h-4 w-4 text-white" />} />
-        <KpiCard label="ไม่อนุมัติ" value={kpi.rejected} sub="ไม่ผ่านเงื่อนไข"
+          icon={<CheckCircle2 className="h-4 w-4 text-white" />}
+        />
+        <KpiCard
+          label="ไม่อนุมัติ"
+          value={kpi.rejected}
+          sub="ไม่ผ่านเงื่อนไข"
           gradient="bg-gradient-to-br from-rose-500 to-pink-600"
-          icon={<XCircle className="h-4 w-4 text-white" />} />
-        <KpiCard label="ยกเลิก" value={kpi.cancelled} sub="ยกเลิกรายการ"
+          icon={<XCircle className="h-4 w-4 text-white" />}
+        />
+        <KpiCard
+          label="ยกเลิก"
+          value={kpi.cancelled}
+          sub="ยกเลิกรายการ"
           gradient="bg-gradient-to-br from-slate-400 to-slate-600"
-          icon={<Ban className="h-4 w-4 text-white" />} />
-        <KpiCard label="เสร็จสิ้น" value={kpi.finished} sub="งานสำเร็จ"
+          icon={<Ban className="h-4 w-4 text-white" />}
+        />
+        <KpiCard
+          label="เสร็จสิ้น"
+          value={kpi.finished}
+          sub="งานสำเร็จ"
           gradient="bg-gradient-to-br from-sky-400 to-blue-600"
-          icon={<CheckCheck className="h-4 w-4 text-white" />} />
-        <KpiCard label="งบประมาณรวม" value={fmt(kpi.totalBudget)} sub="บาท"
+          icon={<CheckCheck className="h-4 w-4 text-white" />}
+        />
+        <KpiCard
+          label="งบประมาณรวม"
+          value={fmt(kpi.totalBudget)}
+          sub="บาท"
           gradient="bg-gradient-to-br from-fuchsia-500 to-purple-700"
-          icon={<Banknote className="h-4 w-4 text-white" />} />
+          icon={<Banknote className="h-4 w-4 text-white" />}
+        />
       </div>
 
       {/* 3. Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Bar - ประเภทงาน */}
         <Card className="rounded-2xl border-0 shadow-md bg-white overflow-hidden">
-          <SectionHeader icon={<ClipboardList className="h-4 w-4" />} title="วิเคราะห์ตามประเภทงาน" description="จำนวนแผนจำแนกตามลักษณะงาน" />
+          <SectionHeader
+            icon={<ClipboardList className="h-4 w-4" />}
+            title="วิเคราะห์ตามประเภทงาน"
+            description="จำนวนแผนจำแนกตามลักษณะงาน"
+          />
           <CardContent className="px-2 pb-4 h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={jobTypeAnalytics} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+              <BarChart
+                data={jobTypeAnalytics}
+                margin={{ top: 4, right: 8, left: -20, bottom: 0 }}
+              >
                 <defs>
                   <linearGradient id="barGrad1" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.9} />
                     <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.7} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 9, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 9, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomBarTooltip />} cursor={{ fill: "#f8fafc" }} />
-                <Bar dataKey="count" name="จำนวนแผน" fill="url(#barGrad1)" radius={[6, 6, 0, 0]} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#f1f5f9"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 9, fill: "#94a3b8" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 9, fill: "#94a3b8" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  content={<CustomBarTooltip />}
+                  cursor={{ fill: "#f8fafc" }}
+                />
+                <Bar
+                  dataKey="count"
+                  name="จำนวนแผน"
+                  fill="url(#barGrad1)"
+                  radius={[6, 6, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -505,21 +648,49 @@ export function TripPlanReport() {
 
         {/* Bar - ประเภทเป้าหมาย */}
         <Card className="rounded-2xl border-0 shadow-md bg-white overflow-hidden">
-          <SectionHeader icon={<TargetIcon className="h-4 w-4" />} title="วิเคราะห์ตามประเภทเป้าหมาย" description="จำนวนแผนจำแนกตามประเภทเป้าหมาย" />
+          <SectionHeader
+            icon={<TargetIcon className="h-4 w-4" />}
+            title="วิเคราะห์ตามประเภทเป้าหมาย"
+            description="จำนวนแผนจำแนกตามประเภทเป้าหมาย"
+          />
           <CardContent className="px-2 pb-4 h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={targetTypeAnalytics} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+              <BarChart
+                data={targetTypeAnalytics}
+                margin={{ top: 4, right: 8, left: -20, bottom: 0 }}
+              >
                 <defs>
                   <linearGradient id="barGrad2" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.9} />
                     <stop offset="95%" stopColor="#ef4444" stopOpacity={0.7} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 9, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 9, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomBarTooltip />} cursor={{ fill: "#f8fafc" }} />
-                <Bar dataKey="count" name="จำนวนแผน" fill="url(#barGrad2)" radius={[6, 6, 0, 0]} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#f1f5f9"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 9, fill: "#94a3b8" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 9, fill: "#94a3b8" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  content={<CustomBarTooltip />}
+                  cursor={{ fill: "#f8fafc" }}
+                />
+                <Bar
+                  dataKey="count"
+                  name="จำนวนแผน"
+                  fill="url(#barGrad2)"
+                  radius={[6, 6, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -527,7 +698,11 @@ export function TripPlanReport() {
 
         {/* Donut - งบประมาณ */}
         <Card className="rounded-2xl border-0 shadow-md bg-white overflow-hidden">
-          <SectionHeader icon={<DollarSign className="h-4 w-4" />} title="สัดส่วนประเภทงบประมาณ" description="งบประมาณสะสมตามประเภทงบ" />
+          <SectionHeader
+            icon={<DollarSign className="h-4 w-4" />}
+            title="สัดส่วนประเภทงบประมาณ"
+            description="งบประมาณสะสมตามประเภทงบ"
+          />
           <CardContent className="px-2 pb-4 h-56 flex items-center justify-center">
             {budgetTypeAnalytics.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -537,21 +712,30 @@ export function TripPlanReport() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
                     outerRadius={75}
                     innerRadius={38}
                     dataKey="value"
                     paddingAngle={3}
                   >
                     {budgetTypeAnalytics.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} stroke="white" strokeWidth={2} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={CHART_COLORS[index % CHART_COLORS.length]}
+                        stroke="white"
+                        strokeWidth={2}
+                      />
                     ))}
                   </Pie>
                   <Tooltip content={<CustomPieTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-xs text-slate-400">ไม่มีข้อมูลการใช้งบประมาณ</p>
+              <p className="text-xs text-slate-400">
+                ไม่มีข้อมูลการใช้งบประมาณ
+              </p>
             )}
           </CardContent>
         </Card>
@@ -561,21 +745,34 @@ export function TripPlanReport() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* พนักงาน */}
         <Card className="rounded-2xl border-0 shadow-md bg-white overflow-hidden">
-          <SectionHeader icon={<TargetIcon className="h-4 w-4" />} title="ประสิทธิภาพพนักงาน" description="แผนงานและงบประมาณสะสมรายบุคคล" />
+          <SectionHeader
+            icon={<TargetIcon className="h-4 w-4" />}
+            title="ประสิทธิภาพพนักงาน"
+            description="แผนงานและงบประมาณสะสมรายบุคคล"
+          />
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50 border-b border-slate-100">
-                    <TableHead className="text-[11px] font-bold text-slate-400 px-5 py-3 uppercase tracking-wide">ชื่อพนักงาน</TableHead>
-                    <TableHead className="text-[11px] font-bold text-slate-400 text-center px-4 py-3 uppercase tracking-wide w-20">แผน</TableHead>
-                    <TableHead className="text-[11px] font-bold text-slate-400 text-right px-5 py-3 uppercase tracking-wide">งบรวม (บาท)</TableHead>
+                    <TableHead className="text-[11px] font-bold text-slate-400 px-5 py-3 uppercase tracking-wide">
+                      ชื่อพนักงาน
+                    </TableHead>
+                    <TableHead className="text-[11px] font-bold text-slate-400 text-center px-4 py-3 uppercase tracking-wide w-20">
+                      แผน
+                    </TableHead>
+                    <TableHead className="text-[11px] font-bold text-slate-400 text-right px-5 py-3 uppercase tracking-wide">
+                      งบรวม (บาท)
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {employeeAnalytics.length > 0 ? (
                     employeeAnalytics.map((emp, idx) => (
-                      <TableRow key={emp.name} className="hover:bg-indigo-50/40 transition-colors border-b border-slate-50 last:border-0">
+                      <TableRow
+                        key={emp.name}
+                        className="hover:bg-indigo-50/40 transition-colors border-b border-slate-50 last:border-0"
+                      >
                         <TableCell className="text-xs font-semibold text-slate-700 px-5 py-3">
                           <div className="flex items-center gap-2">
                             <span className="flex items-center justify-center h-5 w-5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold shrink-0">
@@ -596,7 +793,12 @@ export function TripPlanReport() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-xs text-center py-8 text-slate-400">ไม่มีข้อมูล</TableCell>
+                      <TableCell
+                        colSpan={3}
+                        className="text-xs text-center py-8 text-slate-400"
+                      >
+                        ไม่มีข้อมูล
+                      </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -607,21 +809,34 @@ export function TripPlanReport() {
 
         {/* พื้นที่ */}
         <Card className="rounded-2xl border-0 shadow-md bg-white overflow-hidden">
-          <SectionHeader icon={<MapPin className="h-4 w-4" />} title="ความหนาแน่นตามพื้นที่" description="สรุปข้อมูลรายจังหวัด" />
+          <SectionHeader
+            icon={<MapPin className="h-4 w-4" />}
+            title="ความหนาแน่นตามพื้นที่"
+            description="สรุปข้อมูลรายจังหวัด"
+          />
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50 border-b border-slate-100">
-                    <TableHead className="text-[11px] font-bold text-slate-400 px-5 py-3 uppercase tracking-wide">จังหวัด</TableHead>
-                    <TableHead className="text-[11px] font-bold text-slate-400 text-center px-4 py-3 uppercase tracking-wide w-20">แผน</TableHead>
-                    <TableHead className="text-[11px] font-bold text-slate-400 text-right px-5 py-3 uppercase tracking-wide">งบรวม (บาท)</TableHead>
+                    <TableHead className="text-[11px] font-bold text-slate-400 px-5 py-3 uppercase tracking-wide">
+                      จังหวัด
+                    </TableHead>
+                    <TableHead className="text-[11px] font-bold text-slate-400 text-center px-4 py-3 uppercase tracking-wide w-20">
+                      แผน
+                    </TableHead>
+                    <TableHead className="text-[11px] font-bold text-slate-400 text-right px-5 py-3 uppercase tracking-wide">
+                      งบรวม (บาท)
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {areaAnalytics.length > 0 ? (
                     areaAnalytics.map((area, idx) => (
-                      <TableRow key={area.name} className="hover:bg-indigo-50/40 transition-colors border-b border-slate-50 last:border-0">
+                      <TableRow
+                        key={area.name}
+                        className="hover:bg-indigo-50/40 transition-colors border-b border-slate-50 last:border-0"
+                      >
                         <TableCell className="text-xs font-semibold text-slate-700 px-5 py-3">
                           <div className="flex items-center gap-2">
                             <span className="flex items-center justify-center h-5 w-5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold shrink-0">
@@ -642,7 +857,12 @@ export function TripPlanReport() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-xs text-center py-8 text-slate-400">ไม่มีข้อมูล</TableCell>
+                      <TableCell
+                        colSpan={3}
+                        className="text-xs text-center py-8 text-slate-400"
+                      >
+                        ไม่มีข้อมูล
+                      </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -654,40 +874,76 @@ export function TripPlanReport() {
 
       {/* 5. Report Table */}
       <Card className="rounded-2xl border-0 shadow-md bg-white overflow-hidden">
-        <SectionHeader icon={<ClipboardList className="h-4 w-4" />} title="ตารางรายงานแผนงานทั้งหมด" description="แสดงข้อมูลดิบของแผนกิจกรรมตามตัวกรองที่กำหนด" />
+        <SectionHeader
+          icon={<ClipboardList className="h-4 w-4" />}
+          title="ตารางรายงานแผนงานทั้งหมด"
+          description="แสดงข้อมูลดิบของแผนกิจกรรมตามตัวกรองที่กำหนด"
+        />
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50 border-b border-slate-100">
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">เลขที่แผน</TableHead>
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">วันที่จัดกิจกรรม</TableHead>
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">ผู้รับผิดชอบ</TableHead>
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">ประเภทงาน</TableHead>
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">ชื่อกิจกรรม</TableHead>
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">สถานที่</TableHead>
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap text-right">งบประมาณ</TableHead>
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap text-center">สถานะ</TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
+                    เลขที่แผน
+                  </TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
+                    วันที่จัดกิจกรรม
+                  </TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
+                    ผู้รับผิดชอบ
+                  </TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
+                    ประเภทงาน
+                  </TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
+                    ชื่อกิจกรรม
+                  </TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
+                    สถานที่
+                  </TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap text-right">
+                    งบประมาณ
+                  </TableHead>
+                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap text-center">
+                    สถานะ
+                  </TableHead>
                   <TableHead className="px-4 py-3 w-12" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedPlans.length > 0 ? (
                   paginatedPlans.map((plan) => (
-                    <TableRow key={plan.id} className="hover:bg-indigo-50/30 transition-colors border-b border-slate-50 group last:border-0">
-                      <TableCell className="text-xs font-bold text-indigo-600 px-4 py-3 whitespace-nowrap">{plan.id}</TableCell>
-                      <TableCell className="text-xs text-slate-500 px-4 py-3 whitespace-nowrap">{plan.activityDate}</TableCell>
-                      <TableCell className="text-xs font-semibold text-slate-700 px-4 py-3 whitespace-nowrap">{plan.responsible}</TableCell>
+                    <TableRow
+                      key={plan.id}
+                      className="hover:bg-indigo-50/30 transition-colors border-b border-slate-50 group last:border-0"
+                    >
+                      <TableCell className="text-xs font-bold text-indigo-600 px-4 py-3 whitespace-nowrap">
+                        {plan.id}
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-500 px-4 py-3 whitespace-nowrap">
+                        {plan.activityDate}
+                      </TableCell>
+                      <TableCell className="text-xs font-semibold text-slate-700 px-4 py-3 whitespace-nowrap">
+                        {plan.responsible}
+                      </TableCell>
                       <TableCell className="text-xs px-4 py-3 whitespace-nowrap">
                         <span className="inline-block bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-0.5 rounded-md text-[11px] font-semibold">
                           {plan.jobType}
                         </span>
                       </TableCell>
-                      <TableCell className="text-xs px-4 py-3 max-w-[140px] truncate text-slate-600" title={plan.activityName}>
+                      <TableCell
+                        className="text-xs px-4 py-3 max-w-[140px] truncate text-slate-600"
+                        title={plan.activityName}
+                      >
                         {plan.activityName}
                       </TableCell>
-                      <TableCell className="text-xs px-4 py-3 max-w-[140px] truncate text-slate-400" title={`${plan.locationName} ต.${plan.subdistrict} อ.${plan.district} จ.${plan.province}`}>
-                        {plan.locationName} ต.{plan.subdistrict} อ.{plan.district} จ.{plan.province}
+                      <TableCell
+                        className="text-xs px-4 py-3 max-w-[140px] truncate text-slate-400"
+                        title={`${plan.locationName} ต.${plan.subdistrict} อ.${plan.district} จ.${plan.province}`}
+                      >
+                        {plan.locationName} ต.{plan.subdistrict} อ.
+                        {plan.district} จ.{plan.province}
                       </TableCell>
                       <TableCell className="text-xs text-right px-4 py-3 font-bold text-slate-800 whitespace-nowrap">
                         {fmt(plan.budget)}
@@ -709,7 +965,10 @@ export function TripPlanReport() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-xs text-center py-14 text-slate-400">
+                    <TableCell
+                      colSpan={9}
+                      className="text-xs text-center py-14 text-slate-400"
+                    >
                       <div className="flex flex-col items-center gap-2">
                         <AlertCircle className="h-8 w-8 text-slate-200" />
                         <p>ไม่พบรายการข้อมูลตามตัวกรองที่เลือก</p>
@@ -725,8 +984,11 @@ export function TripPlanReport() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-slate-50/50">
               <span className="text-xs text-slate-400">
-                หน้า <span className="font-bold text-slate-600">{currentPage}</span> / <span className="font-bold text-slate-600">{totalPages}</span>
-                {" · "}{filteredData.length} รายการ
+                หน้า{" "}
+                <span className="font-bold text-slate-600">{currentPage}</span>{" "}
+                / <span className="font-bold text-slate-600">{totalPages}</span>
+                {" · "}
+                {filteredData.length} รายการ
               </span>
               <div className="flex items-center gap-1">
                 <Button
@@ -759,7 +1021,9 @@ export function TripPlanReport() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(p + 1, totalPages))
+                  }
                   disabled={currentPage === totalPages}
                   className="h-8 w-8 p-0 rounded-lg border-slate-200 disabled:opacity-40"
                 >
@@ -772,7 +1036,10 @@ export function TripPlanReport() {
       </Card>
 
       {/* Detail Dialog */}
-      <Dialog open={!!selectedPlan} onOpenChange={(open) => !open && setSelectedPlan(null)}>
+      <Dialog
+        open={!!selectedPlan}
+        onOpenChange={(open) => !open && setSelectedPlan(null)}
+      >
         <DialogContent className="sm:max-w-2xl rounded-2xl p-0 overflow-hidden border-0 shadow-2xl bg-white">
           {selectedPlan && (
             <div className="flex flex-col">
@@ -822,10 +1089,14 @@ export function TripPlanReport() {
                     </span>
                   </DetailField>
                   <DetailField label="ผู้รับผิดชอบ">
-                    <span className="text-sm font-bold text-slate-800">{selectedPlan.responsible}</span>
+                    <span className="text-sm font-bold text-slate-800">
+                      {selectedPlan.responsible}
+                    </span>
                   </DetailField>
                   <DetailField label="ผู้อนุมัติ">
-                    <span className="text-sm font-bold text-slate-800">{selectedPlan.approver || "—"}</span>
+                    <span className="text-sm font-bold text-slate-800">
+                      {selectedPlan.approver || "—"}
+                    </span>
                   </DetailField>
                   <DetailField label="สถานที่ปฏิบัติงาน">
                     <span className="flex items-start gap-1.5 text-sm font-semibold text-slate-700">
@@ -835,14 +1106,19 @@ export function TripPlanReport() {
                   </DetailField>
                   <DetailField label="พื้นที่">
                     <span className="text-sm font-semibold text-slate-600">
-                      ต.{selectedPlan.subdistrict} อ.{selectedPlan.district} จ.{selectedPlan.province}
+                      ต.{selectedPlan.subdistrict} อ.{selectedPlan.district} จ.
+                      {selectedPlan.province}
                     </span>
                   </DetailField>
                   <DetailField label="กลุ่มเป้าหมาย">
-                    <span className="text-sm font-bold text-slate-800">{selectedPlan.targetType}</span>
+                    <span className="text-sm font-bold text-slate-800">
+                      {selectedPlan.targetType}
+                    </span>
                   </DetailField>
                   <DetailField label="ประเภทงบประมาณ">
-                    <span className="text-sm font-bold text-slate-800">{selectedPlan.budgetType}</span>
+                    <span className="text-sm font-bold text-slate-800">
+                      {selectedPlan.budgetType}
+                    </span>
                   </DetailField>
                 </div>
 
@@ -852,10 +1128,14 @@ export function TripPlanReport() {
                     <Banknote className="h-5 w-5" />
                   </span>
                   <div>
-                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">งบประมาณที่ใช้</p>
+                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">
+                      งบประมาณที่ใช้
+                    </p>
                     <p className="text-xl font-extrabold text-emerald-800">
                       {fmt(selectedPlan.budget)}{" "}
-                      <span className="text-sm font-semibold text-emerald-500">บาท</span>
+                      <span className="text-sm font-semibold text-emerald-500">
+                        บาท
+                      </span>
                     </p>
                   </div>
                 </div>
@@ -863,7 +1143,9 @@ export function TripPlanReport() {
                 {/* Target & Records */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">เป้าหมาย</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                      เป้าหมาย
+                    </p>
                     <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 min-h-[72px]">
                       <p className="text-sm font-semibold text-amber-900 whitespace-pre-line leading-relaxed">
                         {selectedPlan.targetGoal || "—"}
@@ -871,12 +1153,18 @@ export function TripPlanReport() {
                     </div>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">สิ่งที่พนักงานต้องบันทึก</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                      สิ่งที่พนักงานต้องบันทึก
+                    </p>
                     <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 min-h-[72px]">
-                      {selectedPlan.recordFields && selectedPlan.recordFields.length > 0 ? (
+                      {selectedPlan.recordFields &&
+                      selectedPlan.recordFields.length > 0 ? (
                         <ul className="space-y-1.5">
                           {selectedPlan.recordFields.map((field, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-xs font-semibold text-slate-700">
+                            <li
+                              key={idx}
+                              className="flex items-start gap-2 text-xs font-semibold text-slate-700"
+                            >
                               <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
                               {field}
                             </li>
@@ -907,4 +1195,3 @@ export function TripPlanReport() {
     </div>
   );
 }
-
