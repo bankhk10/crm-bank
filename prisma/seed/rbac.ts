@@ -945,19 +945,34 @@ export async function seedRBAC(prisma: PrismaClient) {
         if (
           existing.resource !== perm.resource ||
           existing.action !== (perm.action ?? null) ||
-          existing.name !== perm.name
+          existing.name !== perm.name ||
+          existing.menuPath !== (perm.menuPath ?? null)
         ) {
+          const changes: string[] = [];
+          if (existing.name !== perm.name) {
+            changes.push(`name: "${existing.name}" -> "${perm.name}"`);
+          }
+          if (existing.resource !== perm.resource) {
+            changes.push(`resource: "${existing.resource}" -> "${perm.resource}"`);
+          }
+          if (existing.action !== (perm.action ?? null)) {
+            changes.push(`action: "${existing.action}" -> "${perm.action ?? null}"`);
+          }
+          if (existing.menuPath !== (perm.menuPath ?? null)) {
+            changes.push(`menuPath: "${existing.menuPath}" -> "${perm.menuPath ?? null}"`);
+          }
+
           await prisma.permission.update({
             where: { id: existing.id },
             data: {
               resource: perm.resource,
-              action: perm.action,
+              action: perm.action ?? null,
               name: perm.name,
-              menuPath: perm.menuPath,
+              menuPath: perm.menuPath ?? null,
             },
           });
           updatedCount++;
-          console.log(`  ✅ Updated permission: ${perm.key}`);
+          console.log(`  ✅ Updated permission: ${perm.key} (${changes.join(", ")})`);
         }
       }
     }
