@@ -222,19 +222,21 @@ function FilterSelect({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-1">
-      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
+    <div className="space-y-2 flex-1">
+      <label className="text-sm font-medium leading-none mx-1">
         {label}
       </label>
-      <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger className="h-9 text-xs bg-white border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-400">
-          <SelectValue placeholder="ทั้งหมด" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">ทั้งหมด</SelectItem>
-          {children}
-        </SelectContent>
-      </Select>
+      <div className="mt-1">
+        <Select value={value} onValueChange={onValueChange}>
+          <SelectTrigger className="text-sm w-full">
+            <SelectValue placeholder="ทั้งหมด" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">ทั้งหมด</SelectItem>
+            {children}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }
@@ -435,33 +437,37 @@ export function TripPlanReport() {
         </div>
         <CardContent className="p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-            <div className="grid gap-1">
-              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide">
+            <div className="space-y-2 flex-1">
+              <label className="text-sm font-medium leading-none mx-1">
                 วันที่เริ่มต้น
               </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full h-9 px-3 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-400 transition"
-              />
+              <div className="mt-1">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full h-9 px-3 border border-slate-200 rounded-md text-sm bg-white focus:outline-none focus:ring-1 focus:ring-ring transition"
+                />
+              </div>
             </div>
-            <div className="grid gap-1">
-              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide">
+            <div className="space-y-2 flex-1">
+              <label className="text-sm font-medium leading-none mx-1">
                 วันที่สิ้นสุด
               </label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => {
-                  setEndDate(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full h-9 px-3 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-400 transition"
-              />
+              <div className="mt-1">
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full h-9 px-3 border border-slate-200 rounded-md text-sm bg-white focus:outline-none focus:ring-1 focus:ring-ring transition"
+                />
+              </div>
             </div>
             <FilterSelect
               label="ประเภทงาน"
