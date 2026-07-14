@@ -352,8 +352,9 @@ export function TripPlanReport() {
   const jobTypeAnalytics = useMemo(() => {
     const g: Record<string, { name: string; count: number }> = {};
     filteredData.forEach((item) => {
-      if (!g[item.jobType]) g[item.jobType] = { name: item.jobType, count: 0 };
-      g[item.jobType].count += 1;
+      const cleanName = item.jobType.replace(/^\d+\.\s*/, "");
+      if (!g[cleanName]) g[cleanName] = { name: cleanName, count: 0 };
+      g[cleanName].count += 1;
     });
     return Object.values(g);
   }, [filteredData]);
