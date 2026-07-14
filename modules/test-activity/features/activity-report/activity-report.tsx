@@ -1,12 +1,9 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React from "react";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import {
   Select,
@@ -43,33 +40,25 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { mockTripPlans, TripPlanMock } from "../infrastructure/mock-data";
 import {
   Calendar,
   DollarSign,
   CheckCircle2,
-  XCircle,
   AlertCircle,
-  X,
   ChevronLeft,
   ChevronRight,
   Users,
   UserPlus,
-  ShoppingBag,
-  TrendingUp,
-  TrendingDown,
   MapPin,
   Leaf,
   Target,
   ClipboardList,
   Eye,
-  LayoutDashboard,
   SlidersHorizontal,
   RotateCcw,
   Banknote,
   Clock,
   CheckCheck,
-  Ban,
   Activity,
   Download,
   Award,
@@ -77,75 +66,18 @@ import {
   Layers,
   FileText,
   BadgeAlert,
-  Percent,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { TruncatedCell } from "@/components/custom/truncated-cell";
 import { DetailItem } from "@/components/custom/detail-item";
 
-// ─── Palette & Helpers ────────────────────────────────────────────────────────
-const CHART_COLORS = [
-  "#6366f1", // Indigo
-  "#10b981", // Emerald
-  "#f59e0b", // Amber
-  "#f43f5e", // Rose
-  "#06b6d4", // Cyan
-  "#8b5cf6", // Violet
-];
+
+import { CHART_COLORS } from "../../constants";
+import { ActivityStatusBadge } from "../../ui/activity-status-badge";
+import { useActivityReport } from "./use-activity-report";
 
 const fmt = (n: number) => new Intl.NumberFormat("th-TH").format(n);
-
-const STATUS_CONFIG: Record<
-  TripPlanMock["status"],
-  { label: string; bg: string; text: string; border: string; dot: string }
-> = {
-  PENDING: {
-    label: "รออนุมัติ",
-    bg: "bg-amber-50",
-    text: "text-amber-700",
-    border: "border-amber-200",
-    dot: "bg-amber-400",
-  },
-  APPROVED: {
-    label: "อนุมัติแล้ว",
-    bg: "bg-emerald-50",
-    text: "text-emerald-700",
-    border: "border-emerald-200",
-    dot: "bg-emerald-500",
-  },
-  REJECTED: {
-    label: "ไม่อนุมัติ",
-    bg: "bg-rose-50",
-    text: "text-rose-700",
-    border: "border-rose-200",
-    dot: "bg-rose-500",
-  },
-  CANCELLED: {
-    label: "ยกเลิก",
-    bg: "bg-slate-100",
-    text: "text-slate-500",
-    border: "border-slate-200",
-    dot: "bg-slate-400",
-  },
-  FINISHED: {
-    label: "เสร็จสิ้น",
-    bg: "bg-sky-50",
-    text: "text-sky-700",
-    border: "border-sky-200",
-    dot: "bg-sky-500",
-  },
-};
-
-function StatusBadge({ status }: { status: TripPlanMock["status"] }) {
-  const cfg = STATUS_CONFIG[status];
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full border ${cfg.bg} ${cfg.text} ${cfg.border}`}
-    >
-      <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
-      {cfg.label}
-    </span>
-  );
-}
 
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
@@ -161,7 +93,6 @@ function CustomTooltip({ active, payload, label }: any) {
   );
 }
 
-// ─── Filter Select Component ──────────────────────────────────────────────────
 function FilterSelect({
   label,
   value,
@@ -191,139 +122,36 @@ function FilterSelect({
   );
 }
 
-// ─── Main Unified Report Component ────────────────────────────────────────────
 export function ActivityReport() {
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [jobType, setJobType] = useState("all");
-  const [status, setStatus] = useState("all");
-  const [responsible, setResponsible] = useState("all");
-  const [province, setProvince] = useState("all");
+  const {
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    jobType,
+    setJobType,
+    status,
+    setStatus,
+    responsible,
+    setResponsible,
+    province,
+    setProvince,
+    currentPage,
+    setCurrentPage,
+    selectedPlan,
+    setSelectedPlan,
+    uniqueOptions,
+    resetFilters,
+    filteredData,
+    activeFiltersCount,
+    kpi,
+    statusAnalytics,
+    jobTypeAnalytics,
+    employeeAnalytics,
+    paginatedPlans,
+    totalPages,
+  } = useActivityReport();
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
-  const [selectedPlan, setSelectedPlan] = useState<TripPlanMock | null>(null);
-
-  const uniqueOptions = useMemo(() => {
-    return {
-      jobTypes: Array.from(new Set(mockTripPlans.map((d) => d.jobType))),
-      employees: Array.from(new Set(mockTripPlans.map((d) => d.responsible))),
-      provinces: Array.from(new Set(mockTripPlans.map((d) => d.province))),
-    };
-  }, []);
-
-  const resetFilters = () => {
-    setStartDate("");
-    setEndDate("");
-    setJobType("all");
-    setStatus("all");
-    setResponsible("all");
-    setProvince("all");
-    setCurrentPage(1);
-  };
-
-  const filteredData = useMemo(() => {
-    return mockTripPlans.filter((item) => {
-      if (startDate && item.activityDate < startDate) return false;
-      if (endDate && item.activityDate > endDate) return false;
-      if (jobType !== "all" && item.jobType !== jobType) return false;
-      if (status !== "all" && item.status !== status) return false;
-      if (responsible !== "all" && item.responsible !== responsible) return false;
-      if (province !== "all" && item.province !== province) return false;
-      return true;
-    });
-  }, [startDate, endDate, jobType, status, responsible, province]);
-
-  const finishedActivities = useMemo(() => {
-    return filteredData.filter((item) => item.status === "FINISHED");
-  }, [filteredData]);
-
-  // ─── Active Filter Count ───────────────────────────────────────────────────
-  const activeFiltersCount = useMemo(() => {
-    let count = 0;
-    if (startDate) count++;
-    if (endDate) count++;
-    if (jobType !== "all") count++;
-    if (status !== "all") count++;
-    if (responsible !== "all") count++;
-    if (province !== "all") count++;
-    return count;
-  }, [startDate, endDate, jobType, status, responsible, province]);
-
-  // ─── KPI Calculations ───────────────────────────────────────────────────────
-  const kpi = useMemo(() => {
-    const totalPlans = filteredData.length;
-    const totalFinished = finishedActivities.length;
-    const totalPending = filteredData.filter((i) => i.status === "PENDING").length;
-    const totalBudget = filteredData.reduce((acc, cur) => acc + cur.budget, 0);
-    const totalSales = finishedActivities.reduce((acc, cur) => acc + cur.actualSales, 0);
-    const totalTargetSales = finishedActivities.reduce((acc, cur) => acc + cur.targetSales, 0);
-    const totalNewCustomers = finishedActivities.reduce((acc, cur) => acc + cur.actualNewCustomers, 0);
-    const totalOrders = finishedActivities.reduce((acc, cur) => acc + (cur.actualOrders || 0), 0);
-    const achievementRate = totalTargetSales > 0 ? (totalSales / totalTargetSales) * 100 : 0;
-
-    // Budget utilization
-    const totalActualBudget = finishedActivities.reduce((acc, cur) => acc + (cur.actualBudget || 0) + (cur.otherExpenses || 0), 0);
-    const totalPlannedBudgetForFinished = finishedActivities.reduce((acc, cur) => acc + cur.budget, 0);
-    const budgetUtilizationRate = totalPlannedBudgetForFinished > 0 ? (totalActualBudget / totalPlannedBudgetForFinished) * 100 : 0;
-
-    return {
-      totalPlans,
-      totalFinished,
-      totalPending,
-      totalBudget,
-      totalActualBudget,
-      budgetUtilizationRate,
-      totalSales,
-      totalNewCustomers,
-      totalOrders,
-      achievementRate,
-    };
-  }, [filteredData, finishedActivities]);
-
-  // ─── Analytics ──────────────────────────────────────────────────────────────
-  const statusAnalytics = useMemo(() => {
-    const counts = { PENDING: 0, APPROVED: 0, REJECTED: 0, CANCELLED: 0, FINISHED: 0 };
-    filteredData.forEach((item) => {
-      counts[item.status]++;
-    });
-    return Object.entries(counts)
-      .filter(([_, count]) => count > 0)
-      .map(([key, count]) => ({
-        name: STATUS_CONFIG[key as TripPlanMock["status"]].label,
-        value: count,
-      }));
-  }, [filteredData]);
-
-  const jobTypeAnalytics = useMemo(() => {
-    const g: Record<string, { name: string; budget: number; sales: number }> = {};
-    filteredData.forEach((item) => {
-      const name = item.jobType.replace(/^\d+\.\s*/, "");
-      if (!g[name]) g[name] = { name, budget: 0, sales: 0 };
-      g[name].budget += item.budget;
-      if (item.status === "FINISHED") g[name].sales += item.actualSales;
-    });
-    return Object.values(g).sort((a, b) => b.budget - a.budget);
-  }, [filteredData]);
-
-  const employeeAnalytics = useMemo(() => {
-    const g: Record<string, { name: string; sales: number; count: number }> = {};
-    finishedActivities.forEach((item) => {
-      if (!g[item.responsible]) g[item.responsible] = { name: item.responsible, sales: 0, count: 0 };
-      g[item.responsible].sales += item.actualSales;
-      g[item.responsible].count += 1;
-    });
-    return Object.values(g).sort((a, b) => b.sales - a.sales).slice(0, 5); // Top 5
-  }, [finishedActivities]);
-
-  // ─── Pagination ─────────────────────────────────────────────────────────────
-  const paginatedPlans = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredData.slice(start, start + itemsPerPage);
-  }, [filteredData, currentPage]);
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
-  // ─── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6 pb-8">
       {/* Page Header */}
@@ -682,7 +510,7 @@ export function ActivityReport() {
                         {item.status === "FINISHED" ? item.actualOrders : "-"}
                       </TableCell>
                       <TableCell className="text-xs text-center px-4 py-3 whitespace-nowrap">
-                        <StatusBadge status={item.status} />
+                        <ActivityStatusBadge status={item.status} />
                       </TableCell>
                       <TableCell className="text-xs text-center px-4 py-3 whitespace-nowrap">
                         <Button
@@ -745,7 +573,9 @@ export function ActivityReport() {
                         {selectedPlan.id}
                       </DialogTitle>
                     </div>
-                    <div className="mt-1 shrink-0"><StatusBadge status={selectedPlan.status} /></div>
+                    <div className="mt-1 shrink-0">
+                      <ActivityStatusBadge status={selectedPlan.status} />
+                    </div>
                   </div>
                 </DialogHeader>
               </div>
@@ -799,7 +629,7 @@ export function ActivityReport() {
 
                 {/* 3. Budget & Outcome Comparison */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  {/* แผนและงบประมาณ */}
+                  {/* แผนและเป้าหมาย */}
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                     <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                       <Banknote className="h-3.5 w-3.5 text-slate-400"/> แผนและเป้าหมาย (Plan)
@@ -905,5 +735,3 @@ export function ActivityReport() {
     </div>
   );
 }
-
-export { ActivityReport as TripPlanReport };
