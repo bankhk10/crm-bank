@@ -907,28 +907,6 @@ export async function seedRBAC(prisma: PrismaClient) {
   // Flatten all permission groups
   const allPermissionDefs = flattenPermissionGroups(permissionGroups);
 
-  // ─────────────────────────────────────────────
-  // 🧹 Cleanup: Remove permissions not in code
-  // ─────────────────────────────────────────────
-  const definedKeys = new Set(allPermissionDefs.map((p) => p.key));
-  const existingPermissionsList = await prisma.permission.findMany({
-    select: { key: true },
-  });
-
-  const keysToDelete = existingPermissionsList
-    .filter((p) => !definedKeys.has(p.key))
-    .map((p) => p.key);
-
-  if (keysToDelete.length > 0) {
-    console.log(
-      `🗑️  Found ${keysToDelete.length} obsolete permissions. Deleting...`,
-    );
-    await prisma.permission.deleteMany({
-      where: { key: { in: keysToDelete } },
-    });
-    console.log(`🗑️  Deleted: ${keysToDelete.join(", ")}`);
-  }
-
   // Check if RBAC has already been seeded
   const existingAdminRole = await prisma.role.findUnique({
     where: { slug: "administrator" },
