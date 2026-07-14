@@ -158,15 +158,25 @@ interface KpiCardProps {
   sub: string;
   icon: React.ReactNode;
   gradient: string;
+  labelColor?: string;
 }
-function KpiCard({ label, value, sub, icon, gradient }: KpiCardProps) {
+function KpiCard({
+  label,
+  value,
+  sub,
+  icon,
+  gradient,
+  labelColor,
+}: KpiCardProps) {
   return (
     <div
       className={`relative overflow-hidden rounded-2xl p-4 ${gradient} shadow-sm border border-white/50`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-white/70 truncate">
+          <p
+            className={`text-[11px] font-bold uppercase tracking-wider truncate ${labelColor || "text-white/70"}`}
+          >
             {label}
           </p>
           <p className="text-2xl font-extrabold text-white mt-1 leading-tight truncate">
@@ -223,9 +233,7 @@ function FilterSelect({
 }) {
   return (
     <div className="space-y-2 flex-1">
-      <label className="text-sm font-medium leading-none mx-1">
-        {label}
-      </label>
+      <label className="text-sm font-medium leading-none mx-1">{label}</label>
       <div className="mt-1">
         <Select value={value} onValueChange={onValueChange}>
           <SelectTrigger className="text-sm w-full">
@@ -551,6 +559,7 @@ export function TripPlanReport() {
           sub="แผนปฏิบัติงาน"
           gradient="bg-gradient-to-br from-indigo-500 to-violet-600"
           icon={<ClipboardList className="h-4 w-4 text-white" />}
+          labelColor="text-white"
         />
         <KpiCard
           label="รออนุมัติ"
