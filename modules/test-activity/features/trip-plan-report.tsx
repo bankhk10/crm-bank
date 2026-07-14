@@ -424,7 +424,7 @@ export function TripPlanReport() {
 
       {/* 1. Filter Card */}
       <Card className="rounded-2xl border-0 shadow-md bg-white/80 backdrop-blur-sm overflow-hidden">
-        <div className="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-slate-100 bg-amber-600">
+        <div className="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-slate-100 bg-gray-200">
           <SlidersHorizontal className="h-4 w-4 text-indigo-500" />
           <p className="text-sm font-bold text-slate-700">ตัวกรองข้อมูล</p>
           <Button
