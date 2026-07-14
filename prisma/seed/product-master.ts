@@ -345,14 +345,22 @@ export async function seedProductMaster(prisma: PrismaClient) {
   });
 
   // Create Product ABC Types (ประเภท (ABC Code))
-  await prisma.productABCTypes.createMany({
-    data: [
-      { code: "A", name: "A", description: "สินค้าขายดี" },
-      { code: "B", name: "B", description: "สินค้ารอง" },
-      { code: "C", name: "C", description: "สินค้าตามฤดูกาล" },
-    ],
-    skipDuplicates: true,
-  });
+  const abcTypes = [
+    { code: "A", name: "A", description: "สินค้าขายดี" },
+    { code: "B", name: "B", description: "สินค้ารอง" },
+    { code: "C", name: "C", description: "สินค้าตามฤดูกาล" },
+  ];
+
+  for (const type of abcTypes) {
+    const existing = await prisma.productABCTypes.findFirst({
+      where: { code: type.code },
+    });
+    if (!existing) {
+      await prisma.productABCTypes.create({
+        data: type,
+      });
+    }
+  }
 
   // Create Brands
   await prisma.brand.createMany({

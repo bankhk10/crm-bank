@@ -570,7 +570,7 @@ model TradeNameGroup {
 // ประเภท (ABC Code) (Product ABC Types)
 model ProductABCTypes {
   id          String    @id @default(cuid())
-  code        String    @unique // รหัสประเภทสินค้า
+  code        String // รหัสประเภทสินค้า
   name        String // ชื่อประเภทสินค้า
   description String? // รายละเอียดประเภทสินค้า
   createdAt   DateTime  @default(now())
