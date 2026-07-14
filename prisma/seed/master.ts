@@ -153,17 +153,25 @@ export async function seedMaster(prisma: PrismaClient) {
   });
 
   // Create Categories (Needed for Product Groups)
-  await prisma.productCategory.createMany({
-    data: [
-      { code: "ACA", description: "Acaricide : ฆ่าไร,เห็บ" },
-      { code: "FUN", description: "Fungicide : ฆ่าเชื้อรา,โรคพืช" },
-      { code: "HER", description: "Herbicide : ฆ่าหญ้า" },
-      { code: "INS", description: "Insecticide : ฆ่าแมลง" },
-      { code: "PLA", description: "Plant Nutrient : ธาตุอาหารพืช" },
-      { code: "SEA", description: "Seaweed : สาหร่ายทะเล" },
-    ],
-    skipDuplicates: true,
-  });
+  const categories = [
+    { code: "ACA", description: "Acaricide : ฆ่าไร,เห็บ" },
+    { code: "FUN", description: "Fungicide : ฆ่าเชื้อรา,โรคพืช" },
+    { code: "HER", description: "Herbicide : ฆ่าหญ้า" },
+    { code: "INS", description: "Insecticide : ฆ่าแมลง" },
+    { code: "PLA", description: "Plant Nutrient : ธาตุอาหารพืช" },
+    { code: "SEA", description: "Seaweed : สาหร่ายทะเล" },
+  ];
+
+  for (const cat of categories) {
+    const existing = await prisma.productCategory.findFirst({
+      where: { code: cat.code },
+    });
+    if (!existing) {
+      await prisma.productCategory.create({
+        data: cat,
+      });
+    }
+  }
 
   // Create Plants
   await prisma.plant.createMany({
