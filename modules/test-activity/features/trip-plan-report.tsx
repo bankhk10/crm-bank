@@ -788,31 +788,34 @@ export function TripPlanReport() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50 border-b border-slate-100">
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
+                  <TableHead className="text-[11px] font-bold text-slate-700 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
                     เลขที่แผน
                   </TableHead>
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
+                  <TableHead className="text-[11px] font-bold text-slate-700 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
                     วันที่จัดกิจกรรม
                   </TableHead>
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
+                  <TableHead className="text-[11px] font-bold text-slate-700 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
                     ผู้รับผิดชอบ
                   </TableHead>
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
+                  <TableHead className="text-[11px] font-bold text-slate-700 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
                     ประเภทงาน
                   </TableHead>
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
+                  <TableHead className="text-[11px] font-bold text-slate-700 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
                     ชื่อกิจกรรม
                   </TableHead>
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
+                  <TableHead className="text-[11px] font-bold text-slate-700 uppercase tracking-wide px-4 py-3 whitespace-nowrap">
                     สถานที่
                   </TableHead>
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap text-right">
+                  <TableHead className="text-[11px] font-bold text-slate-700 uppercase tracking-wide px-4 py-3 whitespace-nowrap text-right">
                     งบประมาณ
                   </TableHead>
-                  <TableHead className="text-[11px] font-bold text-slate-400 uppercase tracking-wide px-4 py-3 whitespace-nowrap text-center">
+                  <TableHead className="text-[11px] font-bold text-slate-700 uppercase tracking-wide px-4 py-3 whitespace-nowrap text-center">
                     สถานะ
                   </TableHead>
-                  <TableHead className="px-4 py-3 w-12" />
+                  <TableHead className="text-[11px] font-bold text-slate-700 uppercase tracking-wide px-4 py-3 whitespace-nowrap text-center">
+                    รายละเอียด
+                  </TableHead>
+                  {/* <TableHead className="px-4 py-3 w-12" /> */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -858,8 +861,16 @@ export function TripPlanReport() {
                       <TableCell className="text-xs text-center px-4 py-3">
                         <Button
                           variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 rounded-lg text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 opacity-0 group-hover:opacity-100 transition-all mx-auto"
+                          size="icon"
+                          className="
+                                h-9 w-9 rounded-xl
+                                text-slate-500
+                                bg-indigo-50
+                                text-indigo-600
+                                hover:shadow-sm
+                                transition-all duration-200
+                                active:scale-95
+                              "
                           onClick={() => setSelectedPlan(plan)}
                         >
                           <Eye className="h-4 w-4" />
