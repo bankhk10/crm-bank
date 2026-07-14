@@ -448,7 +448,7 @@ export function ActivityReport() {
       </div>
 
       {/* 3. Charts Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
         {/* งบประมาณ vs ยอดขาย ตามประเภทงาน */}
         <Card className="rounded-2xl border-0 shadow-md overflow-hidden bg-white">
           <div className="px-5 pt-4 pb-2 border-b border-slate-50 flex items-center gap-2">
@@ -533,79 +533,6 @@ export function ActivityReport() {
             ) : (
               <div className="flex h-full items-center justify-center text-xs text-slate-400">
                 ไม่มีข้อมูล
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* ยอดขายพนักงาน Top 5 */}
-        <Card className="rounded-2xl border-0 shadow-md overflow-hidden bg-white">
-          <div className="px-5 pt-4 pb-2 border-b border-slate-50 flex items-center gap-2">
-            <Award className="h-4 w-4 text-emerald-500" />
-            <h3 className="text-sm font-bold text-slate-800">
-              5 อันดับพนักงานสร้างยอดขายสูงสุด
-            </h3>
-          </div>
-          <CardContent className="px-2 pb-4 pt-4 h-72">
-            {employeeAnalytics.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={employeeAnalytics}
-                  margin={{ top: 10, right: 20, left: 20, bottom: 10 }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="colorEmployeeSales"
-                      x1="0"
-                      y1="0"
-                      x2="1"
-                      y2="0"
-                    >
-                      <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.8} />
-                      <stop
-                        offset="95%"
-                        stopColor="#0891b2"
-                        stopOpacity={0.2}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    horizontal={false}
-                    stroke="#f1f5f9"
-                  />
-                  <XAxis
-                    type="number"
-                    tick={{ fontSize: 9, fill: "#64748b" }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
-                  />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    tick={{ fontSize: 9, fill: "#64748b" }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={80}
-                  />
-                  <Tooltip
-                    content={<CustomTooltip />}
-                    cursor={{ fill: "#f8fafc" }}
-                  />
-                  <Bar
-                    dataKey="sales"
-                    name="ยอดขายสะสม (บาท)"
-                    fill="url(#colorEmployeeSales)"
-                    radius={[0, 4, 4, 0]}
-                    maxBarSize={15}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex h-full items-center justify-center text-xs text-slate-400">
-                ไม่มีข้อมูลงานเสร็จสิ้น
               </div>
             )}
           </CardContent>
