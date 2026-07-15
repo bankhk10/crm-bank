@@ -182,6 +182,7 @@ tar \
     --exclude=".turbo" \
     --exclude=".idea" \
     --exclude=".vscode" \
+    --exclude="nginx" \
     -czf "$SOURCE_ARCHIVE" \
     -C /opt \
     crm-bank
@@ -200,6 +201,7 @@ success "Source code completed."
 info "Backing up nginx..."
 
 tar -czf \
+    --exclude="*.log" \
     "$NGINX_ARCHIVE" \
     -C "$PROJECT_ROOT" \
     nginx
