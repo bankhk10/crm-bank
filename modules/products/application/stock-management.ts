@@ -114,6 +114,22 @@ export async function releaseStockUseCase(
     throw new Error("Sale not found");
   }
 
+  // Stock is only allocated/reserved when the order is approved.
+  // If the sale was never in an approved/allocated state, do not release stock
+  // to prevent negative reservedQuantity.
+  const ALLOCATED_STATUSES = [
+    "APPROVED",
+    "AWAITING_DELIVERY",
+    "DELIVERY_COMPLETED",
+    "COMPLETED",
+    "PAID",
+    "PARTIALLY_DELIVERED",
+  ];
+
+  if (!ALLOCATED_STATUSES.includes(sale.status)) {
+    return;
+  }
+
   // We check isStockDeducted to know exactly if physical stock was deducted.
   const didDeductPhysical = sale.isStockDeducted;
 
