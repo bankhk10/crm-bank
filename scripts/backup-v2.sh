@@ -201,8 +201,8 @@ success "Source code completed."
 info "Backing up nginx..."
 
 tar -czf \
-    --exclude="*.log" \
     "$NGINX_ARCHIVE" \
+    --exclude="*.log" \
     -C "$PROJECT_ROOT" \
     nginx
 
