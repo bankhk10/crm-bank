@@ -27,4 +27,4 @@ ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 RUN pnpm prisma generate
 
 # Default command
-CMD ["echo", "Use: docker compose --profile migrate up migrate OR docker compose --profile seed up seed"]
+CMD ["echo", "Use: docker compose -f docker-compose.local.yml --profile migrate up migrate OR docker compose -f deploy/app/docker-compose.app.yml --profile migrate up migrate"]

@@ -1,6 +1,6 @@
 # ===========================================
-# CRM-Bank Production Docker Compose
-# Domain: csone.cropsciences.co.th
+# CRM-Bank Local / E2E Testing Docker Compose
+# สำหรับใช้รันทดสอบระบบแบบ All-in-One ฝั่ง Local
 # ===========================================
 
 services:

@@ -82,17 +82,31 @@ pnpm seed
 
 ### 🔹 Docker Deployment
 
-สำหรับ Production ที่ใช้ Docker:
+**สำหรับ Local / Test (ใช้ docker-compose.local.yml):**
 
 ```bash
 # 1. รัน Migration Container
-docker compose run --rm migrate
+docker compose -f docker-compose.local.yml run --rm migrate
 
 # 2. รัน Seed Container
-docker compose run --rm seed
+docker compose -f docker-compose.local.yml run --rm seed
 
 # หรือ Start ทุก services
-docker compose up -d
+docker compose -f docker-compose.local.yml up -d
+```
+
+**สำหรับ Production (ใช้ Stack ในโฟลเดอร์ deploy/):**
+ดูคู่มือฉบับเต็มได้ที่ [DEPLOY_GUIDE.md](file:///d:/code/crm-bank/deploy/DEPLOY_GUIDE.md) หรือใช้คำสั่ง:
+
+```bash
+# ไปที่โฟลเดอร์ deploy/app/
+cd deploy/app
+
+# รัน Migration
+docker compose -f docker-compose.app.yml --env-file ../env.production --profile migrate up migrate
+
+# รัน Seed
+docker compose -f docker-compose.app.yml --env-file ../env.production --profile seed up seed
 ```
 
 ### 🔹 Summary: ขั้นตอนเมื่อแก้ไข schema.prisma
