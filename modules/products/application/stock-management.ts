@@ -114,22 +114,6 @@ export async function releaseStockUseCase(
     throw new Error("Sale not found");
   }
 
-  // Stock is only allocated/reserved when the order is approved.
-  // If the sale was never in an approved/allocated state, do not release stock
-  // to prevent negative reservedQuantity.
-  const ALLOCATED_STATUSES = [
-    "APPROVED",
-    "AWAITING_DELIVERY",
-    "DELIVERY_COMPLETED",
-    "COMPLETED",
-    "PAID",
-    "PARTIALLY_DELIVERED",
-  ];
-
-  if (!ALLOCATED_STATUSES.includes(sale.status)) {
-    return;
-  }
-
   // We check isStockDeducted to know exactly if physical stock was deducted.
   const didDeductPhysical = sale.isStockDeducted;
 
@@ -139,19 +123,27 @@ export async function releaseStockUseCase(
     if (!didDeductPhysical && sale.hasPartialDelivery) {
       const shipmentItems = await client.shipmentItem.findMany({
         where: {
-          saleItemId: { in: sale.items.map(i => i.id) },
-          shipment: { status: { in: ["IN_TRANSIT", "DELIVERED", "COMPLETED"] } }
-        }
+          saleItemId: { in: sale.items.map((i) => i.id) },
+          shipment: {
+            status: { in: ["IN_TRANSIT", "DELIVERED", "COMPLETED"] },
+          },
+        },
       });
       for (const si of shipmentItems) {
-        shippedQtyMap.set(si.saleItemId, (shippedQtyMap.get(si.saleItemId) || 0) + si.quantity);
+        shippedQtyMap.set(
+          si.saleItemId,
+          (shippedQtyMap.get(si.saleItemId) || 0) + si.quantity,
+        );
       }
     }
 
     // Restore lot quantities FIRST because we do it for both Normal and Partial flows
     if (didDeductPhysical || sale.hasPartialDelivery) {
       try {
-        const saleItemLots = await StockRepository.getSaleItemLots(saleId, client);
+        const saleItemLots = await StockRepository.getSaleItemLots(
+          saleId,
+          client,
+        );
         for (const saleItemLot of saleItemLots) {
           await StockRepository.updateLotQuantity(
             saleItemLot.lotId,
@@ -238,16 +230,22 @@ export async function confirmStockDeductionUseCase(
       const requestedQty = item.quantity;
 
       // Auto-assign LOTs (FIFO) for traceability without blocking on insufficient stock
-      const lots = await StockRepository.getAvailableLotsOrderByDate(item.productId, client);
+      const lots = await StockRepository.getAvailableLotsOrderByDate(
+        item.productId,
+        client,
+      );
 
       let allocated = 0;
       for (const lot of lots) {
         if (allocated >= requestedQty) break;
         const remainingToAllocate = requestedQty - allocated;
-        
+
         // Take up to remainingToAllocate.
-        const deduction = Math.min(Math.max(0, lot.quantity), remainingToAllocate);
-        
+        const deduction = Math.min(
+          Math.max(0, lot.quantity),
+          remainingToAllocate,
+        );
+
         if (deduction > 0) {
           await StockRepository.updateLotQuantity(lot.id, -deduction, client);
           await StockRepository.createSaleItemLot(
@@ -265,9 +263,13 @@ export async function confirmStockDeductionUseCase(
       if (allocated < requestedQty) {
         const remainingToAllocate = requestedQty - allocated;
         const anyLot = await StockRepository.getAnyLot(item.productId, client);
-        
+
         if (anyLot) {
-          await StockRepository.updateLotQuantity(anyLot.id, -remainingToAllocate, client);
+          await StockRepository.updateLotQuantity(
+            anyLot.id,
+            -remainingToAllocate,
+            client,
+          );
           await StockRepository.createSaleItemLot(
             {
               saleItemId: item.id,
@@ -277,7 +279,9 @@ export async function confirmStockDeductionUseCase(
             client,
           );
         } else {
-          console.warn(`[Warning] No LOTs found for product ${item.productId}. Cannot auto-assign LOT.`);
+          console.warn(
+            `[Warning] No LOTs found for product ${item.productId}. Cannot auto-assign LOT.`,
+          );
         }
       }
 
@@ -397,7 +401,7 @@ export async function confirmStockDeductionWithLotsUseCase(
       if (lot.quantity < totalRequested) {
         console.warn(
           `[Warning] LOT ${lot.lotNumber} has insufficient quantity: ` +
-            `available ${lot.quantity}, total requested across items ${totalRequested}. Proceeding with negative inventory.`
+            `available ${lot.quantity}, total requested across items ${totalRequested}. Proceeding with negative inventory.`,
         );
       }
     }
@@ -425,7 +429,7 @@ export async function confirmStockDeductionWithLotsUseCase(
         if (lot.quantity < alloc.quantity) {
           console.warn(
             `[Warning] LOT ${lot.lotNumber} has insufficient quantity: ` +
-              `available ${lot.quantity}, requested ${alloc.quantity}. Proceeding with negative inventory.`
+              `available ${lot.quantity}, requested ${alloc.quantity}. Proceeding with negative inventory.`,
           );
         }
         if (lot.productId !== item.productId) {
@@ -549,17 +553,23 @@ export async function deductStockForShipmentUseCase(
       const requestedQty = shipmentItem.quantity;
       const productId = shipmentItem.saleItem.productId;
 
-      const lots = await StockRepository.getAvailableLotsOrderByDate(productId, client);
+      const lots = await StockRepository.getAvailableLotsOrderByDate(
+        productId,
+        client,
+      );
 
       let allocated = 0;
       for (const lot of lots) {
         if (allocated >= requestedQty) break;
         const remainingToAllocate = requestedQty - allocated;
-        
+
         // Even if lot.quantity is small, we take up to remainingToAllocate
         // If it goes negative, that's fine. We use Math.min only if lot has more than we need.
-        const deduction = Math.min(Math.max(0, lot.quantity), remainingToAllocate);
-        
+        const deduction = Math.min(
+          Math.max(0, lot.quantity),
+          remainingToAllocate,
+        );
+
         if (deduction > 0) {
           await StockRepository.updateLotQuantity(lot.id, -deduction, client);
           await StockRepository.createSaleItemLot(
@@ -577,12 +587,16 @@ export async function deductStockForShipmentUseCase(
       // If we still haven't allocated enough (all lots were 0 or no lots existed)
       if (allocated < requestedQty) {
         const remainingToAllocate = requestedQty - allocated;
-        
+
         // Find ANY lot for this product, preferably the newest one
         const anyLot = await StockRepository.getAnyLot(productId, client);
-        
+
         if (anyLot) {
-          await StockRepository.updateLotQuantity(anyLot.id, -remainingToAllocate, client);
+          await StockRepository.updateLotQuantity(
+            anyLot.id,
+            -remainingToAllocate,
+            client,
+          );
           await StockRepository.createSaleItemLot(
             {
               saleItemId: shipmentItem.saleItemId,
@@ -592,7 +606,9 @@ export async function deductStockForShipmentUseCase(
             client,
           );
         } else {
-          console.warn(`[Warning] No LOTs found for product ${productId}. Cannot auto-assign LOT for shipment.`);
+          console.warn(
+            `[Warning] No LOTs found for product ${productId}. Cannot auto-assign LOT for shipment.`,
+          );
         }
       }
 
@@ -659,25 +675,29 @@ export async function revertStockForShipmentUseCase(
       // Get all SaleItemLots for this saleItem, ordered by latest updated
       const saleItemLots = await client.saleItemLot.findMany({
         where: { saleItemId: saleItemId },
-        orderBy: { updatedAt: 'desc' }
+        orderBy: { updatedAt: "desc" },
       });
 
       for (const saleItemLot of saleItemLots) {
         if (quantityToRestore <= 0) break;
 
         const restoreQty = Math.min(saleItemLot.quantity, quantityToRestore);
-        
+
         if (restoreQty > 0) {
           // Add back to LOT
-          await StockRepository.updateLotQuantity(saleItemLot.lotId, restoreQty, client);
-          
+          await StockRepository.updateLotQuantity(
+            saleItemLot.lotId,
+            restoreQty,
+            client,
+          );
+
           // Update SaleItemLot
           if (saleItemLot.quantity === restoreQty) {
             await client.saleItemLot.delete({ where: { id: saleItemLot.id } });
           } else {
             await client.saleItemLot.update({
               where: { id: saleItemLot.id },
-              data: { quantity: { decrement: restoreQty } }
+              data: { quantity: { decrement: restoreQty } },
             });
           }
 
