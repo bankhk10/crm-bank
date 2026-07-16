@@ -164,6 +164,13 @@ export const RESOURCE_CONFIGS: Record<string, ResourceScopeConfig> = {
     teamStrategy: "employeeTeam",
     departmentStrategy: "employeeDepartment",
   },
+  activity_plan: {
+    resource: "activity_plan",
+    ownStrategy: "employeeId",
+    teamStrategy: "employeeTeam",
+    departmentStrategy: "employeeDepartment",
+    fallbackOwnerField: "createdById",
+  },
 };
 
 // ---------------------------------------------------------------------------

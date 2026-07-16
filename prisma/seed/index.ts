@@ -5,6 +5,7 @@ import { seedMaster } from "./master";
 import { seedProductMaster } from "./product-master";
 import { seedRBAC } from "./rbac";
 import { seedUsers } from "./users";
+import { seedActivityTestData } from "./activity-test-data";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -34,6 +35,9 @@ async function main() {
 
     // 5. Users (requires Dept, Roles)
     await seedUsers(prisma);
+
+    // 6. Activity Flow Test Data (requires Users, Dept, Roles)
+    await seedActivityTestData(prisma);
 
     console.log("✅ Seeding completed successfully!");
   } catch (error) {
