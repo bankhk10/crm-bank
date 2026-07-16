@@ -6,19 +6,33 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageHeader } from "@/components/custom/page-header";
 import { ActivityPlanTable } from "./activity-plan-table";
 import type { ActivityPlanWithRelations } from "../../types";
-import { deleteActivityPlanAction, submitActivityPlanAction } from "../../server/actions";
+import {
+  deleteActivityPlanAction,
+  submitActivityPlanAction,
+} from "../../server/actions";
 import { Button } from "@/components/ui/button";
 
 export default function ActivityPlanListView() {
-  const { hasPermission, allowed, isLoading } = usePermission("menu.activity_plans");
-  
-  // Custom fallback permission check if menu permission is not seeded yet
-  const canCreate = hasPermission("activity.create") || hasPermission("activity.manage");
-  const canEdit = hasPermission("activity.edit") || hasPermission("activity.manage");
-  const canDelete = hasPermission("activity.delete") || hasPermission("activity.manage");
-  const canView = allowed || hasPermission("activity.view") || hasPermission("activity.manage") || !isLoading;
+  const { hasPermission, allowed, isLoading } = usePermission(
+    "menu.activity_plans",
+  );
 
-  const [activityPlans, setActivityPlans] = useState<ActivityPlanWithRelations[]>([]);
+  // Custom fallback permission check if menu permission is not seeded yet
+  const canCreate =
+    hasPermission("activity.create") || hasPermission("activity.manage");
+  const canEdit =
+    hasPermission("activity.edit") || hasPermission("activity.manage");
+  const canDelete =
+    hasPermission("activity.delete") || hasPermission("activity.manage");
+  const canView =
+    allowed ||
+    hasPermission("activity.view") ||
+    hasPermission("activity.manage") ||
+    !isLoading;
+
+  const [activityPlans, setActivityPlans] = useState<
+    ActivityPlanWithRelations[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(10);
@@ -29,7 +43,8 @@ export default function ActivityPlanListView() {
   const [appliedSearch, setAppliedSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
 
-  const [deleteCandidate, setDeleteCandidate] = useState<ActivityPlanWithRelations | null>(null);
+  const [deleteCandidate, setDeleteCandidate] =
+    useState<ActivityPlanWithRelations | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [submitLoadingId, setSubmitLoadingId] = useState<string | null>(null);
 
@@ -54,7 +69,9 @@ export default function ActivityPlanListView() {
       if (appliedSearch.trim()) params.set("q", appliedSearch.trim());
       if (statusFilter) params.set("status", statusFilter);
 
-      const res = await fetch(`/api/activity-plans?${params.toString()}`, { signal });
+      const res = await fetch(`/api/activity-plans?${params.toString()}`, {
+        signal,
+      });
       if (!res.ok) throw new Error("ดึงข้อมูลแผนกิจกรรมไม่สำเร็จ");
       const json = await res.json();
       setActivityPlans(json.activityPlans ?? []);
@@ -118,14 +135,19 @@ export default function ActivityPlanListView() {
   if (!canView) {
     return (
       <Alert variant="destructive" className="m-6">
-        <AlertDescription>คุณไม่มีสิทธิ์เข้าถึงหน้ารายการแผนกิจกรรม</AlertDescription>
+        <AlertDescription>
+          คุณไม่มีสิทธิ์เข้าถึงหน้ารายการแผนกิจกรรม
+        </AlertDescription>
       </Alert>
     );
   }
 
   return (
     <section className="space-y-6 p-6 pb-24 md:pb-8">
-      <PageHeader title="การวางแผนจัดกิจกรรม" description="สร้างและตรวจสอบความคืบหน้าของแผนกิจกรรมและงบประมาณการตลาด/ส่งเสริมการขาย" />
+      <PageHeader
+        title="การวางแผนจัดกิจกรรม"
+        description="สร้างและตรวจสอบความคืบหน้าของแผนกิจกรรมและงบประมาณการตลาด/ส่งเสริมการขาย"
+      />
 
       {error && (
         <Alert variant="destructive">
@@ -136,18 +158,34 @@ export default function ActivityPlanListView() {
       {/* Confim deletion modal */}
       {deleteCandidate && (
         <div className="fixed inset-0 min-h-screen z-50 flex items-center justify-center">
-          <div className="bg-black/55 absolute inset-0" onClick={() => setDeleteCandidate(null)} />
+          <div
+            className="bg-black/55 absolute inset-0"
+            onClick={() => setDeleteCandidate(null)}
+          />
           <div className="relative z-10 w-full max-w-md bg-white rounded-xl p-6 shadow-2xl border border-slate-100">
-            <h3 className="text-lg font-bold text-slate-900">ยืนยันการลบแผนงาน</h3>
+            <h3 className="text-lg font-bold text-slate-900">
+              ยืนยันการลบแผนงาน
+            </h3>
             <p className="mt-2 text-sm text-slate-500 leading-relaxed">
-              คุณแน่ใจว่าต้องการลบแผนกิจกรรม <strong>"{deleteCandidate.title}"</strong> ใช่หรือไม่? 
-              การลบจะเป็นแบบ Soft Delete ประวัติของแผนงานนี้จะไม่ถูกลบออกจากฐานข้อมูลถาวร แต่จะไม่แสดงบนหน้าจอรายการ
+              คุณแน่ใจว่าต้องการลบแผนกิจกรรม{" "}
+              <strong>{deleteCandidate.title}</strong> ใช่หรือไม่?
+              การลบจะเป็นแบบ Soft Delete
+              ประวัติของแผนงานนี้จะไม่ถูกลบออกจากฐานข้อมูลถาวร
+              แต่จะไม่แสดงบนหน้าจอรายการ
             </p>
             <div className="mt-6 flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setDeleteCandidate(null)} disabled={actionLoading}>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteCandidate(null)}
+                disabled={actionLoading}
+              >
                 ยกเลิก
               </Button>
-              <Button variant="destructive" onClick={handleDeleteConfirm} disabled={actionLoading}>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteConfirm}
+                disabled={actionLoading}
+              >
                 {actionLoading ? "กำลังลบ..." : "ยืนยันการลบ"}
               </Button>
             </div>
