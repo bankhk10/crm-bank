@@ -105,8 +105,7 @@ export default function SalesForecastDashboard() {
       const newForecast = monthNumber > currentMonth ? target : 0;
       const totalForecast = actual + newForecast;
       const percentActual = target > 0 ? (actual / target) * 100 : 0;
-      const percentTotal =
-        target > 0 ? (totalForecast / target) * 100 : 0;
+      const percentTotal = target > 0 ? (totalForecast / target) * 100 : 0;
       const backlog = actual - target;
       return {
         month: monthLabel,
@@ -146,7 +145,9 @@ export default function SalesForecastDashboard() {
 
   const filteredPerformanceData = useMemo(() => {
     if (selectedMonth === "all") return performanceData;
-    return performanceData.filter((d) => d.monthNumber === Number(selectedMonth));
+    return performanceData.filter(
+      (d) => d.monthNumber === Number(selectedMonth),
+    );
   }, [performanceData, selectedMonth]);
 
   const personalForecastRows = useMemo(() => {
@@ -155,8 +156,8 @@ export default function SalesForecastDashboard() {
       selectedMonth === "all"
         ? forecastData.personal
         : forecastData.personal.filter(
-          (entry) => entry.month === Number(selectedMonth),
-        );
+            (entry) => entry.month === Number(selectedMonth),
+          );
 
     const map: Record<
       string,
@@ -199,8 +200,8 @@ export default function SalesForecastDashboard() {
       selectedMonth === "all"
         ? forecastData.tradeNameGroup
         : forecastData.tradeNameGroup.filter(
-          (entry) => entry.month === Number(selectedMonth),
-        );
+            (entry) => entry.month === Number(selectedMonth),
+          );
 
     // Use object for faster lookups
     const map: Record<
@@ -238,8 +239,8 @@ export default function SalesForecastDashboard() {
       selectedMonth === "all"
         ? forecastData.product
         : forecastData.product.filter(
-          (entry) => entry.month === Number(selectedMonth),
-        );
+            (entry) => entry.month === Number(selectedMonth),
+          );
 
     // Use object for faster lookups
     const map: Record<
@@ -284,8 +285,8 @@ export default function SalesForecastDashboard() {
       selectedMonth === "all"
         ? forecastData.abc
         : forecastData.abc.filter(
-          (entry) => entry.month === Number(selectedMonth),
-        );
+            (entry) => entry.month === Number(selectedMonth),
+          );
 
     const map: Record<
       string,
@@ -318,8 +319,14 @@ export default function SalesForecastDashboard() {
   }, [forecastData, abcLabels, selectedMonth]);
 
   // Calculate summary stats
-  const totalActual = filteredPerformanceData.reduce((sum, d) => sum + d.actual, 0);
-  const totalTarget = filteredPerformanceData.reduce((sum, d) => sum + d.target, 0);
+  const totalActual = filteredPerformanceData.reduce(
+    (sum, d) => sum + d.actual,
+    0,
+  );
+  const totalTarget = filteredPerformanceData.reduce(
+    (sum, d) => sum + d.target,
+    0,
+  );
   const actualVsTarget =
     totalTarget > 0 ? ((totalActual / totalTarget) * 100).toFixed(1) : "0";
 
@@ -391,7 +398,11 @@ export default function SalesForecastDashboard() {
             </SelectTrigger>
             <SelectContent className="rounded-xl bg-white/95 backdrop-blur-md border-slate-200/60">
               {monthOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value} className="rounded-lg hover:bg-slate-50">
+                <SelectItem
+                  key={opt.value}
+                  value={opt.value}
+                  className="rounded-lg hover:bg-slate-50"
+                >
                   {opt.label}
                 </SelectItem>
               ))}
@@ -441,15 +452,43 @@ export default function SalesForecastDashboard() {
       <Tabs defaultValue="overview" className="space-y-6 w-full">
         <div className="flex w-full overflow-x-auto pb-2 scrollbar-hide">
           <TabsList className="bg-white/80 backdrop-blur-sm shadow-sm border border-slate-200/60 p-1.5 rounded-xl h-auto">
-            <TabsTrigger value="overview" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">ภาพรวม</TabsTrigger>
-            <TabsTrigger value="personal" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">พนักงาน</TabsTrigger>
-            <TabsTrigger value="abc" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">ประเภท (ABC)</TabsTrigger>
-            <TabsTrigger value="group" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">กลุ่มชื่อการค้า</TabsTrigger>
-            <TabsTrigger value="product" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">สินค้า</TabsTrigger>
+            <TabsTrigger
+              value="overview"
+              className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700"
+            >
+              ภาพรวม
+            </TabsTrigger>
+            <TabsTrigger
+              value="personal"
+              className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700"
+            >
+              พนักงาน
+            </TabsTrigger>
+            <TabsTrigger
+              value="abc"
+              className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700"
+            >
+              ประเภท (ABC)
+            </TabsTrigger>
+            <TabsTrigger
+              value="group"
+              className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700"
+            >
+              กลุ่มชื่อการค้า
+            </TabsTrigger>
+            <TabsTrigger
+              value="product"
+              className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700"
+            >
+              สินค้า
+            </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="overview" className="space-y-6 focus-visible:outline-none mt-0">
+        <TabsContent
+          value="overview"
+          className="space-y-6 focus-visible:outline-none mt-0"
+        >
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <Card className="overflow-hidden rounded-2xl border-0 bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-xl">
@@ -505,7 +544,7 @@ export default function SalesForecastDashboard() {
 
           {/* Sales Performance Dashboard Table */}
           <Card className="overflow-hidden rounded-2xl border-2 bg-white/70 backdrop-blur-sm shadow-lg">
-            <CardHeader className="border-b border-slate-100">
+            <CardHeader className="border-b border-slate-100 mt-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-linear-to-br from-blue-100 to-indigo-100">
                   <TrendingUp className="w-5 h-5 text-blue-600" />
@@ -564,25 +603,39 @@ export default function SalesForecastDashboard() {
                           <td
                             className={`sticky left-0 z-10 border border-slate-200 px-3 py-2 text-left font-medium text-slate-700 ${rowBg} ${isCurrentMonth ? "text-blue-700" : ""}`}
                           >
-                            <span className="hidden lg:inline">{MONTHS_FULL[monthIdx]}</span>
-                            <span className="lg:hidden">{MONTHS[monthIdx]}</span>
+                            <span className="hidden lg:inline">
+                              {MONTHS_FULL[monthIdx]}
+                            </span>
+                            <span className="lg:hidden">
+                              {MONTHS[monthIdx]}
+                            </span>
                             {isCurrentMonth && (
                               <span className="ml-1 text-[12px] text-blue-500 bg-blue-100 px-1 rounded">
                                 ปัจจุบัน
                               </span>
                             )}
                           </td>
-                          <td className={`border border-slate-200 px-3 py-2 text-center text-slate-700 ${rowBg}`}>
+                          <td
+                            className={`border border-slate-200 px-3 py-2 text-center text-slate-700 ${rowBg}`}
+                          >
                             {formatFullCurrency(entry.target)}
                           </td>
-                          <td className={`border border-slate-200 px-3 py-2 text-center text-slate-700 ${rowBg}`}>
+                          <td
+                            className={`border border-slate-200 px-3 py-2 text-center text-slate-700 ${rowBg}`}
+                          >
                             {formatFullCurrency(entry.actual)}
                           </td>
-                          <td className={`border border-slate-200 px-3 py-2 text-center ${getPercentClass(entry.percentActual)} ${rowBg}`}>
+                          <td
+                            className={`border border-slate-200 px-3 py-2 text-center ${getPercentClass(entry.percentActual)} ${rowBg}`}
+                          >
                             {formatPercent(entry.percentActual)}
                           </td>
-                          <td className={`border border-slate-200 px-3 py-2 text-center font-medium ${backlogColor} ${rowBg}`}>
-                            {entry.backlog > 0 ? `+${formatFullCurrency(entry.backlog)}` : formatFullCurrency(entry.backlog)}
+                          <td
+                            className={`border border-slate-200 px-3 py-2 text-center font-medium ${backlogColor} ${rowBg}`}
+                          >
+                            {entry.backlog > 0
+                              ? `+${formatFullCurrency(entry.backlog)}`
+                              : formatFullCurrency(entry.backlog)}
                           </td>
                         </tr>
                       );
@@ -590,7 +643,9 @@ export default function SalesForecastDashboard() {
                     {/* Summary row */}
                     <tr className="bg-slate-100 font-bold border-t-2 border-slate-300">
                       <td className="sticky left-0 z-10 border border-slate-200 pl-6 pr-3 py-2.5 text-left text-base text-slate-800 bg-slate-100">
-                        {selectedMonth === "all" ? "รวมทั้งปี" : `รวมเดือน ${MONTHS_FULL[Number(selectedMonth) - 1]}`}
+                        {selectedMonth === "all"
+                          ? "รวมทั้งปี"
+                          : `รวมเดือน ${MONTHS_FULL[Number(selectedMonth) - 1]}`}
                       </td>
                       <td className="border border-slate-200 px-3 py-2.5 text-center text-slate-800">
                         {formatFullCurrency(totals.target)}
@@ -598,11 +653,21 @@ export default function SalesForecastDashboard() {
                       <td className="border border-slate-200 px-3 py-2.5 text-center text-slate-800">
                         {formatFullCurrency(totals.actual)}
                       </td>
-                      <td className={`border border-slate-200 px-3 py-2.5 text-center ${getPercentClass(totals.target > 0 ? (totals.actual / totals.target) * 100 : 0)}`}>
-                        {formatPercent(totals.target > 0 ? (totals.actual / totals.target) * 100 : 0)}
+                      <td
+                        className={`border border-slate-200 px-3 py-2.5 text-center ${getPercentClass(totals.target > 0 ? (totals.actual / totals.target) * 100 : 0)}`}
+                      >
+                        {formatPercent(
+                          totals.target > 0
+                            ? (totals.actual / totals.target) * 100
+                            : 0,
+                        )}
                       </td>
-                      <td className={`border border-slate-200 px-3 py-2.5 text-center ${totals.backlog > 0 ? "text-emerald-600" : totals.backlog < 0 ? "text-rose-600" : "text-slate-800"}`}>
-                        {totals.backlog > 0 ? `+${formatFullCurrency(totals.backlog)}` : formatFullCurrency(totals.backlog)}
+                      <td
+                        className={`border border-slate-200 px-3 py-2.5 text-center ${totals.backlog > 0 ? "text-emerald-600" : totals.backlog < 0 ? "text-rose-600" : "text-slate-800"}`}
+                      >
+                        {totals.backlog > 0
+                          ? `+${formatFullCurrency(totals.backlog)}`
+                          : formatFullCurrency(totals.backlog)}
                       </td>
                     </tr>
                   </tbody>
@@ -612,20 +677,26 @@ export default function SalesForecastDashboard() {
           </Card>
         </TabsContent>
 
-      <TabsContent value="personal" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
-        <PersonalForecastSection
-          data={personalForecastRows}
-          year={year}
-          monthOptions={monthOptions}
-          selectedMonth={selectedMonth}
-          onMonthChange={setSelectedMonth}
-          formatCurrency={formatFullCurrency}
-          loading={forecastLoading}
-          error={forecastError}
-        />
-      </TabsContent>
+        <TabsContent
+          value="personal"
+          className="focus-[&:not(:focus-visible)]:outline-none mt-0"
+        >
+          <PersonalForecastSection
+            data={personalForecastRows}
+            year={year}
+            monthOptions={monthOptions}
+            selectedMonth={selectedMonth}
+            onMonthChange={setSelectedMonth}
+            formatCurrency={formatFullCurrency}
+            loading={forecastLoading}
+            error={forecastError}
+          />
+        </TabsContent>
 
-        <TabsContent value="abc" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
+        <TabsContent
+          value="abc"
+          className="focus-[&:not(:focus-visible)]:outline-none mt-0"
+        >
           <ABCForecastSection
             data={abcForecastRows}
             formatCurrency={formatFullCurrency}
@@ -634,7 +705,10 @@ export default function SalesForecastDashboard() {
           />
         </TabsContent>
 
-        <TabsContent value="group" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
+        <TabsContent
+          value="group"
+          className="focus-[&:not(:focus-visible)]:outline-none mt-0"
+        >
           <TradeNameForecastSection
             data={tradeNameForecastRows}
             formatCurrency={formatFullCurrency}
@@ -643,7 +717,10 @@ export default function SalesForecastDashboard() {
           />
         </TabsContent>
 
-        <TabsContent value="product" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
+        <TabsContent
+          value="product"
+          className="focus-[&:not(:focus-visible)]:outline-none mt-0"
+        >
           <ProductForecastSection
             data={productForecastRows}
             formatCurrency={formatFullCurrency}

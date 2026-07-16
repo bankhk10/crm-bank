@@ -52,7 +52,7 @@ export const TradeNameForecastSection = ({
 
   return (
     <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
-      <CardHeader className="border-b border-slate-100">
+      <CardHeader className="border-b border-slate-100 mt-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-gradient-to-br from-purple-100 to-violet-100">

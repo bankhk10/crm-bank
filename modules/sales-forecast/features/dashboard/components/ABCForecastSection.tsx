@@ -16,7 +16,10 @@ interface ABCForecastSectionProps {
   error: string | null;
 }
 
-const ABC_COLORS: Record<string, { bg: string; text: string; bar: string; badge: string }> = {
+const ABC_COLORS: Record<
+  string,
+  { bg: string; text: string; bar: string; badge: string }
+> = {
   A: {
     bg: "bg-gradient-to-br from-emerald-50 to-emerald-100/60",
     text: "text-emerald-700",
@@ -71,7 +74,7 @@ export const ABCForecastSection = ({
 
   return (
     <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
-      <CardHeader className="border-b border-slate-100">
+      <CardHeader className="border-b border-slate-100 mt-6">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-gradient-to-br from-orange-100 to-rose-100">
             <Tag className="w-5 h-5 text-orange-600" />
@@ -129,9 +132,6 @@ export const ABCForecastSection = ({
                             ? "ไม่ระบุ"
                             : row.abcCode}
                         </span>
-                        <p className="mt-1.5 text-sm font-medium text-slate-700 leading-snug">
-                          {row.abcName}
-                        </p>
                       </div>
                       <span className="text-2xl font-black text-slate-300 select-none">
                         {row.abcCode === "unassigned"
