@@ -160,4 +160,10 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <BookOpen className="h-4 w-4" />,
     // target: "_blank",
   },
+  {
+    href: "/activity-plans",
+    label: "แผนการดำเนินงาน",
+    permissionKey: "menu.activity_plans",
+    icon: <ClipboardList className="h-4 w-4" />,
+  },
 ];
