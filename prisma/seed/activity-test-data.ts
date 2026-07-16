@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, DataAccessLevel, EditAccessLevel, DeleteAccessLevel } from "@prisma/client";
 import { hash } from "bcryptjs";
 
 export async function seedActivityTestData(prisma: PrismaClient) {
@@ -54,6 +54,15 @@ export async function seedActivityTestData(prisma: PrismaClient) {
       action: "manage",
       category: "ACTION" as const,
       resource: "activity_plan",
+    },
+    {
+      key: "data.activity_plans",
+      name: "ขอบเขตข้อมูลแผนกิจกรรม",
+      category: "DATA" as const,
+      resource: "activity_plan",
+      defaultDataAccess: DataAccessLevel.VIEW_OWN,
+      defaultEditAccess: EditAccessLevel.EDIT_OWN,
+      defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
     },
   ];
 
@@ -137,6 +146,7 @@ export async function seedActivityTestData(prisma: PrismaClient) {
       "activity.edit",
       "activity.delete",
       "activity.view",
+      "data.activity_plans",
     ],
   );
 
@@ -151,6 +161,7 @@ export async function seedActivityTestData(prisma: PrismaClient) {
       "activity.delete",
       "activity.view",
       "activity.approve",
+      "data.activity_plans",
     ],
   );
 
@@ -158,7 +169,12 @@ export async function seedActivityTestData(prisma: PrismaClient) {
   const areaRole = await createRoleWithPermissions(
     "area_manager",
     "ผู้จัดการภาค",
-    ["menu.activity_plans", "activity.view", "activity.approve"],
+    [
+      "menu.activity_plans", 
+      "activity.view", 
+      "activity.approve",
+      "data.activity_plans",
+    ],
   );
 
   // 4.4 Sales Admin Manager Role (เน้นดู อนุมัติ และจัดการภาพรวม)
@@ -170,8 +186,64 @@ export async function seedActivityTestData(prisma: PrismaClient) {
       "activity.view",
       "activity.approve",
       "activity.manage",
+      "data.activity_plans",
     ],
   );
+
+  // Helper to configure data permission details for a role
+  const configureDataPermission = async (
+    roleId: string,
+    permissionKey: string,
+    config: {
+      dataAccess?: DataAccessLevel;
+      editAccess?: EditAccessLevel;
+      deleteAccess?: DeleteAccessLevel;
+    }
+  ) => {
+    const perm = await prisma.permission.findUnique({
+      where: { key: permissionKey },
+    });
+    if (!perm) return;
+
+    await prisma.rolePermission.update({
+      where: {
+        roleId_permissionId: {
+          roleId,
+          permissionId: perm.id,
+        },
+      },
+      data: {
+        dataAccess: config.dataAccess ?? null,
+        editAccess: config.editAccess ?? null,
+        deleteAccess: config.deleteAccess ?? null,
+      },
+    });
+  };
+
+  // Configure custom scopes for data.activity_plans
+  await configureDataPermission(spoRole.id, "data.activity_plans", {
+    dataAccess: DataAccessLevel.VIEW_OWN,
+    editAccess: EditAccessLevel.EDIT_OWN,
+    deleteAccess: DeleteAccessLevel.DELETE_OWN,
+  });
+
+  await configureDataPermission(salesRole.id, "data.activity_plans", {
+    dataAccess: DataAccessLevel.VIEW_TEAM,
+    editAccess: EditAccessLevel.EDIT_OWN,
+    deleteAccess: DeleteAccessLevel.DELETE_OWN,
+  });
+
+  await configureDataPermission(areaRole.id, "data.activity_plans", {
+    dataAccess: DataAccessLevel.VIEW_DEPARTMENT,
+    editAccess: EditAccessLevel.EDIT_NONE,
+    deleteAccess: DeleteAccessLevel.DELETE_NONE,
+  });
+
+  await configureDataPermission(salesAdminRole.id, "data.activity_plans", {
+    dataAccess: DataAccessLevel.VIEW_DEPARTMENT,
+    editAccess: EditAccessLevel.EDIT_NONE,
+    deleteAccess: DeleteAccessLevel.DELETE_NONE,
+  });
 
   // 5. Create Users & Employees (ทำย้อนกลับเพื่อผูก Manager ID แบบลูกโซ่)
 
