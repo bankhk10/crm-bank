@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
+import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Layers, Loader2, Search } from "lucide-react";
+import { Layers, Search } from "lucide-react";
+import CustomTable from "@/components/custom/custom-table";
+import { TruncatedCell } from "@/components/custom/truncated-cell";
 
 interface TradeNameForecastRow {
   tradeNameGroup: string;
@@ -26,7 +28,7 @@ export const TradeNameForecastSection = ({
 }: TradeNameForecastSectionProps) => {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
-  const perPage = 6;
+  const [perPage, setPerPage] = useState(10);
 
   const filtered = useMemo(() => {
     const search = query.trim().toLowerCase();
@@ -38,17 +40,80 @@ export const TradeNameForecastSection = ({
     );
   }, [data, query]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
-  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
-
-  const handlePrev = () => setPage((current) => Math.max(1, current - 1));
-  const handleNext = () =>
-    setPage((current) => Math.min(totalPages, current + 1));
+  const totalItems = filtered.length;
+  const paginatedData = useMemo(() => {
+    const start = (page - 1) * perPage;
+    return filtered.slice(start, start + perPage);
+  }, [filtered, page, perPage]);
 
   const handleQueryChange = (value: string) => {
     setQuery(value);
     setPage(1);
   };
+
+  const paginationInfo = {
+    page,
+    perPage,
+    total: totalItems,
+    onPageChange: setPage,
+    onPerPageChange: (n: number) => {
+      setPerPage(n);
+      setPage(1);
+    },
+    perPageOptions: [5, 10, 20, 50],
+  };
+
+  const columns = useMemo<ColumnDef<TradeNameForecastRow>[]>(
+    () => [
+      {
+        accessorKey: "label",
+        header: "กลุ่มชื่อการค้า",
+        meta: {
+          headerAlign: "left",
+          align: "left",
+          minWidth: 200,
+          width: 300,
+        },
+        cell: ({ row }) => (
+          <TruncatedCell
+            value={row.original.label}
+            className="font-medium text-slate-900"
+          />
+        ),
+      },
+      {
+        accessorKey: "totalAmount",
+        header: "ยอดคาดการณ์",
+        meta: {
+          headerAlign: "right",
+          align: "right",
+          minWidth: 150,
+          width: 200,
+        },
+        cell: ({ row }) => (
+          <span className="font-semibold text-purple-700">
+            {formatCurrency(row.original.totalAmount)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "totalQuantity",
+        header: "จำนวนสินค้า",
+        meta: {
+          headerAlign: "right",
+          align: "right",
+          minWidth: 120,
+          width: 150,
+        },
+        cell: ({ row }) => (
+          <span className="text-slate-600">
+            {row.original.totalQuantity.toLocaleString()} รายการ
+          </span>
+        ),
+      },
+    ],
+    [formatCurrency],
+  );
 
   return (
     <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
@@ -77,67 +142,25 @@ export const TradeNameForecastSection = ({
         </div>
       </CardHeader>
       <CardContent className="p-6">
-        {loading ? (
-          <div className="flex items-center justify-center py-12 text-slate-500">
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            กำลังโหลดข้อมูลคาดการณ์กลุ่มชื่อการค้า...
-          </div>
-        ) : error ? (
+        {error ? (
           <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-600">
             {error}
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-200 p-10 text-center text-slate-500">
-            ไม่พบข้อมูลคาดการณ์กลุ่มชื่อการค้า
-          </div>
         ) : (
-          <>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {paginated.map((row) => (
-                <div
-                  key={row.tradeNameGroup}
-                  className="rounded-xl border border-slate-100 bg-white/80 p-4 shadow-sm"
-                >
-                  <p className="text-sm text-slate-500">{row.tradeNameGroup}</p>
-                  <p className="text-base font-semibold text-slate-800">
-                    {row.label}
-                  </p>
-                  <p className="mt-3 text-lg font-semibold text-purple-700">
-                    {formatCurrency(row.totalAmount)}
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    จำนวนสินค้า {row.totalQuantity.toLocaleString()} รายการ
-                  </p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 flex flex-col items-center justify-between gap-3 text-sm text-slate-500 sm:flex-row">
-              <span>
-                แสดง {paginated.length} จาก {filtered.length} รายการ
-              </span>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePrev}
-                  disabled={page <= 1}
-                >
-                  ก่อนหน้า
-                </Button>
-                <span>
-                  หน้า {page} / {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleNext}
-                  disabled={page >= totalPages}
-                >
-                  ถัดไป
-                </Button>
-              </div>
-            </div>
-          </>
+          <div className="w-full">
+            <CustomTable
+              columns={columns}
+              data={paginatedData}
+              loading={loading}
+              pagination={paginationInfo}
+              toolbar={<></>}
+              emptyState={{
+                title: "ไม่พบข้อมูลคาดการณ์กลุ่มชื่อการค้า",
+                description: "ลองปรับคำค้นหาใหม่",
+              }}
+              className="w-full"
+            />
+          </div>
         )}
       </CardContent>
     </Card>
