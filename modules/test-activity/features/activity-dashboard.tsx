@@ -615,7 +615,7 @@ export function ActivityDashboard() {
           </ResponsiveContainer>
 
           {/* Center label overlay */}
-          <div className="relative -mt-[200px] flex items-center justify-center h-[220px] pointer-events-none">
+          <div className="relative -mt-[220px] flex items-center justify-center h-[220px] pointer-events-none">
             <div className="text-center">
               <div className="text-xs text-slate-400">รวมทั้งหมด</div>
               <div className="text-2xl font-bold text-slate-900 leading-tight">
