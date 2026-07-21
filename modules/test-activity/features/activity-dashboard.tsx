@@ -192,14 +192,22 @@ export function ActivityDashboard() {
   return (
     <div className="space-y-5">
       {/* ═══ Header ═══ */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Dashboard / Activity Report
-          </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            ภาพรวมกิจกรรมและผลการดำเนินงาน
-          </p>
+      <div className="relative overflow-hidden bg-white border border-slate-100 rounded-2xl p-5 md:p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        {/* Decorative background glow */}
+        <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-blue-50/30 via-indigo-50/10 to-transparent rounded-full -mr-20 -mt-20 pointer-events-none" />
+
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-md shadow-indigo-500/20">
+            <TrendingUp className="w-6 h-6 animate-pulse" />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+              Dashboard / Activity Report
+            </h1>
+            <p className="text-xs md:text-sm text-slate-500 mt-1">
+              ภาพรวมกิจกรรมและผลการดำเนินงาน
+            </p>
+          </div>
         </div>
       </div>
 
