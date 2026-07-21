@@ -51,7 +51,7 @@ export const mockActivityLogs: ActivityLogMock[] = [
     salesOpportunity: "ต่ำ",
     nextAction: "ติดตามตลาดเพิ่มเติมและเสนอราคาใหม่",
     nextAppointmentDate: "26/07/2026",
-    photoAvailable: false,
+    photoAvailable: true,
   },
   {
     id: "AL-004",
@@ -87,7 +87,7 @@ export const mockActivityLogs: ActivityLogMock[] = [
     salesOpportunity: "สูง",
     nextAction: "ติดตามออเดอร์และจัดส่งสินค้า",
     nextAppointmentDate: "20/07/2026",
-    photoAvailable: false,
+    photoAvailable: true,
   },
   {
     id: "AL-007",
@@ -112,7 +112,7 @@ export const mockActivityLogs: ActivityLogMock[] = [
     salesOpportunity: "กลาง",
     nextAction: "ส่งใบเสนอราคาและนัดส่งสินค้า",
     nextAppointmentDate: "18/07/2026",
-    photoAvailable: false,
+    photoAvailable: true,
   },
 ];
 
@@ -201,7 +201,7 @@ export const mockStockChecks: StockCheckMock[] = [
     stockUnit: "ลัง",
     competitorBrand: null,
     competitorPromotion: null,
-    photoAvailable: false,
+    photoAvailable: true,
   },
   {
     id: "SC-006",
@@ -243,7 +243,7 @@ export const mockStockChecks: StockCheckMock[] = [
     stockUnit: "ลัง",
     competitorBrand: "แบรนด์ D",
     competitorPromotion: "ลด 20% เฉพาะช่วงนี้",
-    photoAvailable: false,
+    photoAvailable: true,
   },
 ];
 
@@ -326,7 +326,7 @@ export const mockPlotHealths: PlotHealthMock[] = [
     healthStatus: "ไม่เปลี่ยน",
     growthResult: "สินค้า E",
     issue: "พบโรคไหม้คอรวงในบางจุด",
-    photoAvailable: false,
+    photoAvailable: true,
   },
   {
     id: "PH-006",
@@ -365,7 +365,7 @@ export const mockPlotHealths: PlotHealthMock[] = [
     healthStatus: "ไม่เปลี่ยน",
     growthResult: "สินค้า H",
     issue: "พบหนอนเจาะฝักในบางจุด",
-    photoAvailable: false,
+    photoAvailable: true,
   },
 ];
 
@@ -403,7 +403,7 @@ export const mockEventROIs: EventROIMock[] = [
     budgetUsed: 5000,
     participants: 30,
     actualSales: 45000,
-    photoAvailable: false,
+    photoAvailable: true,
   },
   {
     id: "EV-003",
@@ -458,7 +458,7 @@ export const mockEventROIs: EventROIMock[] = [
     budgetUsed: 8000,
     participants: 60,
     actualSales: 95000,
-    photoAvailable: false,
+    photoAvailable: true,
   },
   {
     id: "EV-008",

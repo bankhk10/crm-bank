@@ -119,9 +119,7 @@ function GrowthResultBadge({
   result: PlotHealthMock["growthResult"];
 }) {
   return (
-    <span
-      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-100"
-    >
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-100">
       {result}
     </span>
   );
@@ -796,10 +794,10 @@ export function CombinedReport() {
                     สินค้า/ชนิดพืช
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    สภาพพืชรวม
+                    ตัวยาที่ใช้
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    ตัวยาที่ใช้
+                    สภาพพืชรวม
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
                     ปัญหาที่พบ
@@ -833,11 +831,12 @@ export function CombinedReport() {
                         {row.cropQty}
                       </div>
                     </TableCell>
-                    <TableCell className="text-xs py-2.5 px-3">
-                      <HealthStatusBadge status={row.healthStatus} />
-                    </TableCell>
+
                     <TableCell className="text-xs py-2.5 px-3">
                       <GrowthResultBadge result={row.growthResult} />
+                    </TableCell>
+                    <TableCell className="text-xs py-2.5 px-3">
+                      <HealthStatusBadge status={row.healthStatus} />
                     </TableCell>
                     <TableCell className="text-xs py-2.5 px-3 max-w-[150px]">
                       {row.issue ? (
