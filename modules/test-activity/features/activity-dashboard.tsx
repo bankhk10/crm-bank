@@ -75,7 +75,12 @@ function ActivityDonut({
   const dash = (pct / 100) * circ;
 
   return (
-    <svg width="100" height="100" viewBox="0 0 100 100" className="flex-shrink-0">
+    <svg
+      width="100"
+      height="100"
+      viewBox="0 0 100 100"
+      className="flex-shrink-0"
+    >
       <defs>
         <linearGradient id="donutGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#6366f1" />
@@ -204,7 +209,14 @@ function PieCenterLabel({
 }) {
   return (
     <>
-      <text x={cx} y={cy - 10} textAnchor="middle" fontSize="10" fill="#94a3b8" fontWeight="500">
+      <text
+        x={cx}
+        y={cy - 10}
+        textAnchor="middle"
+        fontSize="10"
+        fill="#94a3b8"
+        fontWeight="500"
+      >
         รวมทั้งหมด
       </text>
       <text
@@ -217,7 +229,14 @@ function PieCenterLabel({
       >
         {total}
       </text>
-      <text x={cx} y={cy + 28} textAnchor="middle" fontSize="10" fill="#94a3b8" fontWeight="500">
+      <text
+        x={cx}
+        y={cy + 28}
+        textAnchor="middle"
+        fontSize="10"
+        fill="#94a3b8"
+        fontWeight="500"
+      >
         ทริป
       </text>
     </>
@@ -449,8 +468,8 @@ export function ActivityDashboard() {
             </span>
           </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <div>
+          <div className="flex items-center gap-4">
+            <div className="pt-4 mx-8">
               <div className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent leading-none">
                 {fmt(actSummary.total)}
               </div>
@@ -727,7 +746,10 @@ export function ActivityDashboard() {
                 domain={[0, 100]}
                 ticks={[0, 25, 50, 75, 100]}
               />
-              <Tooltip content={<BarTooltip />} cursor={{ fill: "rgba(99,102,241,0.04)" }} />
+              <Tooltip
+                content={<BarTooltip />}
+                cursor={{ fill: "rgba(99,102,241,0.04)" }}
+              />
               <Bar
                 dataKey="plan"
                 name="แผนงาน (Plan)"
@@ -798,13 +820,34 @@ export function ActivityDashboard() {
               </Pie>
               <Tooltip content={<PieTooltip />} />
               {/* Center label */}
-              <text x="50%" y="44%" textAnchor="middle" fontSize="10" fill="#94a3b8" fontWeight="500">
+              <text
+                x="50%"
+                y="44%"
+                textAnchor="middle"
+                fontSize="10"
+                fill="#94a3b8"
+                fontWeight="500"
+              >
                 ยื่นขออนุมัติ
               </text>
-              <text x="50%" y="54%" textAnchor="middle" fontSize="22" fontWeight="800" fill="#1e293b">
+              <text
+                x="50%"
+                y="54%"
+                textAnchor="middle"
+                fontSize="22"
+                fontWeight="800"
+                fill="#1e293b"
+              >
                 {approvalTotal}
               </text>
-              <text x="50%" y="62%" textAnchor="middle" fontSize="10" fill="#94a3b8" fontWeight="500">
+              <text
+                x="50%"
+                y="62%"
+                textAnchor="middle"
+                fontSize="10"
+                fill="#94a3b8"
+                fontWeight="500"
+              >
                 ทริป
               </text>
             </PieChart>
