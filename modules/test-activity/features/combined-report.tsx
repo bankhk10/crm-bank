@@ -306,9 +306,7 @@ export function CombinedReport() {
 
   const [selectedEmployee, setSelectedEmployee] = useState("all");
   const [searchText, setSearchText] = useState("");
-  const [dateRange, setDateRange] = useState<"day" | "week" | "month">(
-    "month"
-  );
+  const [dateRange, setDateRange] = useState<"day" | "week" | "month">("month");
 
   const startDateDisplay = `${firstDay.getDate().toString().padStart(2, "0")}/${(firstDay.getMonth() + 1).toString().padStart(2, "0")}/${firstDay.getFullYear() + 543}`;
   const endDateDisplay = `${today.getDate().toString().padStart(2, "0")}/${(today.getMonth() + 1).toString().padStart(2, "0")}/${today.getFullYear() + 543}`;
@@ -335,7 +333,7 @@ export function CombinedReport() {
       selectedEmployee === "all"
         ? mockActivityLogs
         : mockActivityLogs.filter((d) => d.responsible === selectedEmployee),
-    [selectedEmployee]
+    [selectedEmployee],
   );
 
   const filteredStocks = useMemo<StockCheckMock[]>(
@@ -343,7 +341,7 @@ export function CombinedReport() {
       selectedEmployee === "all"
         ? mockStockChecks
         : mockStockChecks.filter((d) => d.responsible === selectedEmployee),
-    [selectedEmployee]
+    [selectedEmployee],
   );
 
   const filteredPlots = useMemo<PlotHealthMock[]>(
@@ -351,7 +349,7 @@ export function CombinedReport() {
       selectedEmployee === "all"
         ? mockPlotHealths
         : mockPlotHealths.filter((d) => d.responsible === selectedEmployee),
-    [selectedEmployee]
+    [selectedEmployee],
   );
 
   const filteredROIs = useMemo(
@@ -359,52 +357,52 @@ export function CombinedReport() {
       selectedEmployee === "all"
         ? mockEventROIs
         : mockEventROIs.filter((d) => d.organizer === selectedEmployee),
-    [selectedEmployee]
+    [selectedEmployee],
   );
 
   // Pagination slices
   const pagedLogs = filteredLogs.slice(
     (activityPage - 1) * PAGE_SIZE,
-    activityPage * PAGE_SIZE
+    activityPage * PAGE_SIZE,
   );
   const pagedStocks = filteredStocks.slice(
     (stockPage - 1) * PAGE_SIZE,
-    stockPage * PAGE_SIZE
+    stockPage * PAGE_SIZE,
   );
   const pagedPlots = filteredPlots.slice(
     (plotPage - 1) * PAGE_SIZE,
-    plotPage * PAGE_SIZE
+    plotPage * PAGE_SIZE,
   );
   const pagedROIs = filteredROIs.slice(
     (roiPage - 1) * PAGE_SIZE,
-    roiPage * PAGE_SIZE
+    roiPage * PAGE_SIZE,
   );
 
   // Stats - Activity Log
   const totalTrips = filteredLogs.length;
   const highOpportunity = filteredLogs.filter(
-    (d) => d.salesOpportunity === "สูง"
+    (d) => d.salesOpportunity === "สูง",
   ).length;
   const upcomingAppointments = filteredLogs.filter(
-    (d) => d.nextAppointmentDate !== null
+    (d) => d.nextAppointmentDate !== null,
   ).length;
 
   // Stats - Stock
   const totalStores = filteredStocks.length;
   const outOfStock = filteredStocks.filter(
-    (d) => d.stockStatus === "ขาดสต็อก"
+    (d) => d.stockStatus === "ขาดสต็อก",
   ).length;
   const competitorMoves = filteredStocks.filter(
-    (d) => d.competitorBrand !== null
+    (d) => d.competitorBrand !== null,
   ).length;
 
   // Stats - Plot
   const totalPlots = filteredPlots.length;
   const goodPlots = filteredPlots.filter(
-    (d) => d.healthStatus === "สมบูรณ์"
+    (d) => d.healthStatus === "สมบูรณ์",
   ).length;
   const criticalPlots = filteredPlots.filter(
-    (d) => d.healthStatus === "ทรุดโทรม"
+    (d) => d.healthStatus === "ทรุดโทรม",
   ).length;
 
   // Stats - Event ROI
@@ -476,7 +474,10 @@ export function CombinedReport() {
             <label className="text-xs font-medium text-slate-600 mb-1.5 block">
               พนักงาน
             </label>
-            <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+            <Select
+              value={selectedEmployee}
+              onValueChange={setSelectedEmployee}
+            >
               <SelectTrigger className="w-full text-sm">
                 <SelectValue placeholder="พนักงานทุกคน" />
               </SelectTrigger>
@@ -511,7 +512,7 @@ export function CombinedReport() {
       </div>
 
       {/* ===== 2x2 Grid ===== */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
         {/* ===== Section 1: Activity Log ===== */}
         <div className="bg-white rounded-xl border border-slate-200 p-4">
           <SectionHeader
@@ -842,7 +843,9 @@ export function CombinedReport() {
                     </TableCell>
                     <TableCell className="text-xs py-2.5 px-3 max-w-[120px]">
                       <div className="line-clamp-1">{row.cropType}</div>
-                      <div className="text-slate-400 text-xs">{row.cropQty}</div>
+                      <div className="text-slate-400 text-xs">
+                        {row.cropQty}
+                      </div>
                     </TableCell>
                     <TableCell className="text-xs py-2.5 px-3">
                       <HealthStatusBadge status={row.healthStatus} />
