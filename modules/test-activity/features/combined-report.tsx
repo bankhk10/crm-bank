@@ -423,18 +423,12 @@ export function CombinedReport() {
               <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
                 รายงานและวิเคราะห์ข้อมูล
               </h1>
-          
             </div>
             <p className="text-xs md:text-sm text-slate-500 mt-1">
               เลือกดูรายงานและวิเคราะห์ข้อมูลจาก 4 รายงานหลักของระบบ
             </p>
           </div>
         </div>
-
-        <Button className="relative z-10 w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-sm font-semibold px-5 py-2.5 h-11 rounded-xl shadow-md shadow-emerald-600/10 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 group">
-          <Download className="w-4 h-4 transition-transform group-hover:translate-y-0.5" />
-          <span>Export to Excel</span>
-        </Button>
       </div>
 
       {/* ===== Filter Bar ===== */}
