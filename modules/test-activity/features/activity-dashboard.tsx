@@ -464,26 +464,41 @@ export function ActivityDashboard() {
             />
           </div>
 
-          <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-slate-500">
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-indigo-500" />
-              สำเร็จ{" "}
-              <span className="font-bold text-slate-700">
-                {actSummary.completed}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-slate-500">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+              <span>
+                สำเร็จ:{" "}
+                <span className="font-bold text-slate-700">
+                  {actSummary.completed}
+                </span>
               </span>
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-400" />
-              กำลังทำ{" "}
-              <span className="font-bold text-slate-700">
-                {actSummary.inProgress}
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-400" />
+              <span>
+                กำลังทำ:{" "}
+                <span className="font-bold text-slate-700">
+                  {actSummary.inProgress}
+                </span>
               </span>
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-rose-400" />
-              ยกเลิก{" "}
-              <span className="font-bold text-slate-700">
-                {actSummary.cancelled}
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+              <span>
+                รออนุมัติ:{" "}
+                <span className="font-bold text-slate-700">
+                  {actSummary.pending}
+                </span>
+              </span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-400" />
+              <span>
+                ยกเลิก:{" "}
+                <span className="font-bold text-slate-700">
+                  {actSummary.cancelled}
+                </span>
               </span>
             </span>
           </div>
