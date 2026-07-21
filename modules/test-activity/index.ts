@@ -3,4 +3,5 @@ export { BudgetReport } from "./features/budget-report";
 export { CustomerReport } from "./features/customer-report";
 export { CombinedReport } from "./features/combined-report";
 export { ActivityDashboard } from "./features/activity-dashboard";
+export { CreateTripPlan } from "./features/create-trip-plan";
 
