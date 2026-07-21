@@ -575,9 +575,6 @@ export function CombinedReport() {
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
                     สิ่งต้องดำเนินการต่อ
                   </TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    วันที่นัด
-                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -610,11 +607,6 @@ export function CombinedReport() {
                       <span className="line-clamp-2 text-slate-600">
                         {row.nextAction}
                       </span>
-                    </TableCell>
-                    <TableCell className="text-xs py-2.5 px-3 whitespace-nowrap">
-                      {row.nextAppointmentDate ?? (
-                        <span className="text-slate-300">-</span>
-                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -695,7 +687,7 @@ export function CombinedReport() {
                     โปรโมชั่นคู่แข่ง
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3 text-center">
-                    รูปภาพ
+                    รายละเอียด
                   </TableHead>
                 </TableRow>
               </TableHeader>
