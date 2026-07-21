@@ -418,7 +418,7 @@ export function ActivityDashboard() {
             </span>
           </div>
 
-          <div className="text-3xl font-bold text-orange-500 leading-none mt-8">
+          <div className="text-3xl font-bold text-orange-500 leading-none mt-8 mx-4">
             {fmt(salesSummary.totalSales)}{" "}
             <span className="text-lg font-semibold text-slate-500">บาท</span>
           </div>
