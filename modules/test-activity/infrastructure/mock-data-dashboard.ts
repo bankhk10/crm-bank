@@ -71,7 +71,12 @@ export const MOCK_BUDGET_SUMMARY: BudgetSummaryMock = {
   totalApproved: 2350000,
   breakdown: [
     { label: "งบการตลาด", percent: 55, amount: 1292500, color: "#22c55e" },
-    { label: "งบส่งเสริมการขาย", percent: 30, amount: 705000, color: "#3b82f6" },
+    {
+      label: "งบส่งเสริมการขาย",
+      percent: 30,
+      amount: 705000,
+      color: "#3b82f6",
+    },
     { label: "ค่าใช้จ่ายอื่นๆ", percent: 15, amount: 352500, color: "#f59e0b" },
   ],
 };
@@ -96,21 +101,59 @@ export const MOCK_WEEKLY_COMPARISON: WeeklyComparisonMock[] = [
 ];
 
 export const MOCK_ACTIVITY_TYPE_BREAKDOWN: ActivityTypeBreakdownMock[] = [
-  { name: "เยี่ยมเยียนลูกค้า", value: 51, percent: 40, color: "#3b82f6" },
-  { name: "เช็กสต็อกสินค้า", value: 38, percent: 30, color: "#22c55e" },
-  { name: "ติดตามแปลงสาธิต", value: 39, percent: 30, color: "#f59e0b" },
+  { name: "เข้าพบร้านค้า / เกษตรกร", value: 51, percent: 40, color: "#3b82f6" },
+  {
+    name: "ติดตามแปลงสาธิต / พืชเป้าหมาย",
+    value: 38,
+    percent: 30,
+    color: "#22c55e",
+  },
+  {
+    name: "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+    value: 39,
+    percent: 30,
+    color: "#f59e0b",
+  },
 ];
 
 // Options for filters
 export const YEAR_OPTIONS = ["ปี 2567", "ปี 2568", "ปี 2569"];
 export const MONTH_OPTIONS = [
-  "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน",
-  "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม",
-  "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
 ];
-export const ZONE_OPTIONS = ["ทั้งหมด", "ภาคเหนือ", "ภาคกลาง", "ภาคตะวันออกเฉียงเหนือ", "ภาคใต้", "ภาคตะวันออก"];
-export const ACTIVITY_TYPE_OPTIONS = ["ทั้งหมด", "เยี่ยมเยียนลูกค้า", "เช็กสต็อกสินค้า", "ติดตามแปลงสาธิต", "Field Day", "จัดงานขาย"];
+export const ZONE_OPTIONS = [
+  "ทั้งหมด",
+  "ภาคเหนือ",
+  "ภาคกลาง",
+  "ภาคตะวันออกเฉียงเหนือ",
+  "ภาคใต้",
+  "ภาคตะวันออก",
+];
+export const ACTIVITY_TYPE_OPTIONS = [
+  "ทั้งหมด",
+  "เยี่ยมเยียนลูกค้า",
+  "เช็กสต็อกสินค้า",
+  "ติดตามแปลงสาธิต",
+  "Field Day",
+  "จัดงานขาย",
+];
 export const RESPONSIBLE_OPTIONS = [
-  "ทั้งหมด", "สมชาย ใจดี", "สมหญิง รักดี", "พิมพ์ใจ เรียนเก่ง",
-  "ปรีชา ขยันงาน", "สมปอง คำดี", "สมเกียรติ โชคดี",
+  "ทั้งหมด",
+  "สมชาย ใจดี",
+  "สมหญิง รักดี",
+  "พิมพ์ใจ เรียนเก่ง",
+  "ปรีชา ขยันงาน",
+  "สมปอง คำดี",
+  "สมเกียรติ โชคดี",
 ];

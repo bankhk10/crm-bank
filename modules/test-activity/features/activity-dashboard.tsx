@@ -421,20 +421,10 @@ export function ActivityDashboard() {
             </span>
           </div>
 
-          <div className="text-3xl font-bold text-orange-500 leading-none">
+          <div className="text-3xl font-bold text-orange-500 leading-none mt-8">
             {fmt(salesSummary.totalSales)}{" "}
             <span className="text-lg font-semibold text-slate-500">บาท</span>
           </div>
-
-          <div className="flex items-center gap-2 mt-1">
-            <div className="flex items-center gap-1 bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1">
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="text-sm font-bold text-emerald-700">
-                ROI +{salesSummary.roi}%
-              </span>
-            </div>
-          </div>
-
           <button className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline mt-auto">
             ดูรายละเอียด <ChevronRight className="w-3.5 h-3.5" />
           </button>
