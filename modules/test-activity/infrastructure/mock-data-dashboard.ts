@@ -12,6 +12,7 @@ export interface DashboardFilter {
 export interface ActivitySummaryMock {
   total: number;
   completed: number;
+  approved: number;
   inProgress: number;
   cancelled: number;
   pending: number;
@@ -63,6 +64,7 @@ export interface ActivityTypeBreakdownMock {
 export const MOCK_ACTIVITY_SUMMARY: ActivitySummaryMock = {
   total: 180,
   completed: 110,
+  approved: 95,
   inProgress: 55,
   cancelled: 5,
   pending: 10,

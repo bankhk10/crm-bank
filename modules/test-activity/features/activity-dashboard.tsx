@@ -329,24 +329,24 @@ export function ActivityDashboard() {
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center gap-4">
             <div>
-              <div className="text-4xl font-bold text-blue-600 leading-none">
+              <div className="text-4xl font-bold text-blue-600 leading-none py-4">
                 {fmt(actSummary.total)}
               </div>
             </div>
-            <ActivityDonut
-              completed={actSummary.completed}
-              total={actSummary.total}
-            />
           </div>
 
-          <div className="flex gap-4 text-xs text-slate-500">
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-slate-500 justify-center">
+            <span>
+              <span className="inline-block w-2 h-2 rounded-full bg-blue-400 mr-1" />
+              สำเร็จ <span className="font-semibold text-slate-700">0</span>
+            </span>
             <span>
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-1" />
               อนุมัติ{" "}
               <span className="font-semibold text-slate-700">
-                {actSummary.completed}
+                {actSummary.approved}
               </span>
             </span>
             <span>
