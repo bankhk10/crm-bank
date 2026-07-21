@@ -101,7 +101,7 @@ function HealthStatusBadge({
 }) {
   const styleMap: Record<string, string> = {
     สมบูรณ์: "bg-emerald-100 text-emerald-700 border border-emerald-200",
-    ปานกลาง: "bg-amber-100 text-amber-700 border border-amber-200",
+    ไม่เปลี่ยน: "bg-amber-100 text-amber-700 border border-amber-200",
     ทรุดโทรม: "bg-rose-100 text-rose-700 border border-rose-200",
   };
   return (
@@ -118,14 +118,9 @@ function GrowthResultBadge({
 }: {
   result: PlotHealthMock["growthResult"];
 }) {
-  const styleMap: Record<string, string> = {
-    ตามเป้า: "bg-sky-100 text-sky-700 border border-sky-200",
-    ต่ำกว่าเป้า: "bg-rose-100 text-rose-700 border border-rose-200",
-    เกินเป้า: "bg-emerald-100 text-emerald-700 border border-emerald-200",
-  };
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${styleMap[result] ?? ""}`}
+      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-100"
     >
       {result}
     </span>
@@ -804,7 +799,7 @@ export function CombinedReport() {
                     สภาพพืชรวม
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    ผลสรุปสภาพ
+                    ตัวยาที่ใช้
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
                     ปัญหาที่พบ
