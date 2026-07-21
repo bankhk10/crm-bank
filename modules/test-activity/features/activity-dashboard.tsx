@@ -303,6 +303,22 @@ export function ActivityDashboard() {
   const pieData = MOCK_ACTIVITY_TYPE_BREAKDOWN;
   const pieTotal = pieData.reduce((s, d) => s + d.value, 0);
 
+  const approvalTotal = actSummary.approved + actSummary.pending;
+  const approvalData = [
+    {
+      name: "อนุมัติแล้ว",
+      value: actSummary.approved,
+      color: "#10b981",
+      percent: Math.round((actSummary.approved / approvalTotal) * 100),
+    },
+    {
+      name: "รออนุมัติ",
+      value: actSummary.pending,
+      color: "#f59e0b",
+      percent: Math.round((actSummary.pending / approvalTotal) * 100),
+    },
+  ];
+
   return (
     <div className="space-y-5">
       {/* ═══ Header ═══ */}
@@ -450,24 +466,24 @@ export function ActivityDashboard() {
 
           <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-slate-500">
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-400" />
+              <span className="w-2 h-2 rounded-full bg-indigo-500" />
               สำเร็จ{" "}
               <span className="font-bold text-slate-700">
                 {actSummary.completed}
               </span>
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              อนุมัติ{" "}
+              <span className="w-2 h-2 rounded-full bg-blue-400" />
+              กำลังทำ{" "}
               <span className="font-bold text-slate-700">
-                {actSummary.approved}
+                {actSummary.inProgress}
               </span>
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-amber-400" />
-              รออนุมัติ{" "}
+              <span className="w-2 h-2 rounded-full bg-rose-400" />
+              ยกเลิก{" "}
               <span className="font-bold text-slate-700">
-                {actSummary.inProgress}
+                {actSummary.cancelled}
               </span>
             </span>
           </div>
@@ -737,18 +753,18 @@ export function ActivityDashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Pie Chart: Activity Type Breakdown – 2/5 width */}
+        {/* Pie Chart: Approval Status Breakdown – 2/5 width */}
         <div className="lg:col-span-2 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/60 shadow-sm p-5 hover:shadow-lg transition-shadow duration-300">
           <SectionHeader
-            icon={<PieIcon className="w-4 h-4 text-indigo-500" />}
-            title="สัดส่วนประเภทกิจกรรม"
-            subtitle="แบ่งตามประเภทกิจกรรมในเดือนนี้"
+            icon={<PieIcon className="w-4 h-4 text-emerald-500" />}
+            title="สถานะการอนุมัติกิจกรรม"
+            subtitle="สัดส่วนการอนุมัติทริปกิจกรรมทั้งหมด"
           />
 
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie
-                data={pieData}
+                data={approvalData}
                 cx="50%"
                 cy="50%"
                 innerRadius={55}
@@ -757,7 +773,7 @@ export function ActivityDashboard() {
                 dataKey="value"
                 strokeWidth={0}
               >
-                {pieData.map((entry, index) => (
+                {approvalData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={entry.color}
@@ -768,10 +784,10 @@ export function ActivityDashboard() {
               <Tooltip content={<PieTooltip />} />
               {/* Center label */}
               <text x="50%" y="44%" textAnchor="middle" fontSize="10" fill="#94a3b8" fontWeight="500">
-                รวมทั้งหมด
+                ยื่นขออนุมัติ
               </text>
               <text x="50%" y="54%" textAnchor="middle" fontSize="22" fontWeight="800" fill="#1e293b">
-                {pieTotal}
+                {approvalTotal}
               </text>
               <text x="50%" y="62%" textAnchor="middle" fontSize="10" fill="#94a3b8" fontWeight="500">
                 ทริป
@@ -781,7 +797,7 @@ export function ActivityDashboard() {
 
           {/* Legend cards */}
           <div className="space-y-2 mt-3">
-            {pieData.map((item) => (
+            {approvalData.map((item) => (
               <div
                 key={item.name}
                 className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50/80 border border-slate-100 hover:bg-slate-100/80 transition-colors"
