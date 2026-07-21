@@ -344,14 +344,14 @@ export function ActivityDashboard() {
           <div className="flex gap-4 text-xs text-slate-500">
             <span>
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-1" />
-              สำเร็จแล้ว{" "}
+              อนุมัติ{" "}
               <span className="font-semibold text-slate-700">
                 {actSummary.completed}
               </span>
             </span>
             <span>
               <span className="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1" />
-              รอดำเนินการ{" "}
+              รออนุมัติ{" "}
               <span className="font-semibold text-slate-700">
                 {actSummary.inProgress}
               </span>
