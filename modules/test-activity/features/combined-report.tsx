@@ -441,7 +441,7 @@ export function CombinedReport() {
               ช่วงวันที่
             </label>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 flex-1 border border-slate-200 rounded-lg px-3 py-2 bg-slate-50">
+              <div className="flex items-center gap-2 flex-1 border border-slate-200 rounded-lg px-3 py-2 h-11">
                 <Calendar className="w-4 h-4 text-slate-400" />
                 <span className="text-sm text-slate-700 whitespace-nowrap">
                   {startDateDisplay} – {endDateDisplay}
@@ -452,7 +452,7 @@ export function CombinedReport() {
                   <button
                     key={r}
                     onClick={() => setDateRange(r)}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors h-8 ${
                       dateRange === r
                         ? "bg-blue-600 text-white"
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -504,7 +504,7 @@ export function CombinedReport() {
                 placeholder="พิมพ์คีย์เวิร์ด... เช่น ชื่อร้าน, ชื่อแปลง"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="w-full pl-9 pr-4 py-2 h-11 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
               />
             </div>
           </div>
