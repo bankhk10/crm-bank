@@ -492,161 +492,95 @@ export function ActivityDashboard() {
         </div>
       </div>
 
-      {/* ═══ Charts Row ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* Bar Chart: Plan vs Actual */}
-        <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-          <div className="mb-4">
-            <h2 className="text-sm font-bold text-slate-800">
-              เปรียบเทียบแผนงาน (Plan) กับ สิ่งที่ทำจริง (Actual) ตลอดเดือน
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">จำนวนทริป (ครั้ง)</p>
-          </div>
-
-          {/* Legend */}
-          <div className="flex items-center gap-4 mb-4">
-            <span className="flex items-center gap-1.5 text-xs text-slate-500">
-              <span className="w-3 h-3 rounded bg-slate-300" />
-              แผนงาน (Plan)
-            </span>
-            <span className="flex items-center gap-1.5 text-xs text-slate-500">
-              <span className="w-3 h-3 rounded bg-blue-500" />
-              ทำจริง (Actual)
-            </span>
-            <span className="flex items-center gap-1.5 text-xs text-slate-500">
-              <span className="w-3 h-3 rounded bg-amber-500" />
-              กำลังทำ (In Progress)
-            </span>
-          </div>
-
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart
-              data={weeklyData}
-              margin={{ top: 15, right: 10, left: -20, bottom: 0 }}
-              barGap={4}
-              barCategoryGap="30%"
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#f1f5f9"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="week"
-                tick={{ fontSize: 12, fill: "#94a3b8" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: "#94a3b8" }}
-                axisLine={false}
-                tickLine={false}
-                domain={[0, 100]}
-                ticks={[0, 25, 50, 75, 100]}
-              />
-              <Tooltip content={<BarTooltip />} cursor={{ fill: "#f8fafc" }} />
-              <Bar
-                dataKey="plan"
-                name="แผนงาน (Plan)"
-                fill="#cbd5e1"
-                radius={[4, 4, 0, 0]}
-                label={{
-                  position: "top",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  fill: "#64748b",
-                }}
-              />
-              <Bar
-                dataKey="actual"
-                name="ทำจริง (Actual)"
-                fill="#3b82f6"
-                radius={[4, 4, 0, 0]}
-                label={{
-                  position: "top",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  fill: "#3b82f6",
-                }}
-              />
-              <Bar
-                dataKey="inProgress"
-                name="กำลังทำ (In Progress)"
-                fill="#f59e0b"
-                radius={[4, 4, 0, 0]}
-                label={{
-                  position: "top",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  fill: "#d97706",
-                }}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Bar Chart: Plan vs Actual */}
+      <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div className="mb-4">
+          <h2 className="text-sm font-bold text-slate-800">
+            เปรียบเทียบแผนงาน (Plan) กับ สิ่งที่ทำจริง (Actual) ตลอดเดือน
+          </h2>
+          <p className="text-xs text-slate-400 mt-0.5">จำนวนทริป (ครั้ง)</p>
         </div>
 
-        {/* Pie Chart: Activity Type Breakdown */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-          <div className="mb-2">
-            <h2 className="text-sm font-bold text-slate-800">
-              สัดส่วนกิจกรรม {actSummary.total} ทริป
-            </h2>
-          </div>
-
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={90}
-                paddingAngle={2}
-                dataKey="value"
-                nameKey="name"
-              >
-                {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-                {/* Center Label rendered as custom label */}
-              </Pie>
-              <Tooltip content={<PieTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-
-          {/* Center label overlay */}
-          <div className="relative -mt-[220px] flex items-center justify-center h-[220px] pointer-events-none">
-            <div className="text-center">
-              <div className="text-xs text-slate-400">รวมทั้งหมด</div>
-              <div className="text-2xl font-bold text-slate-900 leading-tight">
-                {actSummary.total}
-              </div>
-              <div className="text-xs text-slate-400">ทริป</div>
-            </div>
-          </div>
-
-          {/* Legend */}
-          <div className="space-y-2 mt-1">
-            {pieData.map((d) => (
-              <div
-                key={d.name}
-                className="flex items-center justify-between text-sm"
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: d.color }}
-                  />
-                  <span className="text-slate-700">{d.name}</span>
-                </div>
-                <div className="text-slate-500 text-xs">
-                  <span className="font-bold text-slate-800">{d.percent}%</span>{" "}
-                  ({d.value} ทริป)
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Legend */}
+        <div className="flex items-center gap-4 mb-4">
+          <span className="flex items-center gap-1.5 text-xs text-slate-500">
+            <span className="w-3 h-3 rounded bg-slate-300" />
+            แผนงาน (Plan)
+          </span>
+          <span className="flex items-center gap-1.5 text-xs text-slate-500">
+            <span className="w-3 h-3 rounded bg-blue-500" />
+            ทำจริง (Actual)
+          </span>
+          <span className="flex items-center gap-1.5 text-xs text-slate-500">
+            <span className="w-3 h-3 rounded bg-amber-500" />
+            กำลังทำ (In Progress)
+          </span>
         </div>
+
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart
+            data={weeklyData}
+            margin={{ top: 15, right: 10, left: -20, bottom: 0 }}
+            barGap={4}
+            barCategoryGap="30%"
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#f1f5f9"
+              vertical={false}
+            />
+            <XAxis
+              dataKey="week"
+              tick={{ fontSize: 12, fill: "#94a3b8" }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tick={{ fontSize: 11, fill: "#94a3b8" }}
+              axisLine={false}
+              tickLine={false}
+              domain={[0, 100]}
+              ticks={[0, 25, 50, 75, 100]}
+            />
+            <Tooltip content={<BarTooltip />} cursor={{ fill: "#f8fafc" }} />
+            <Bar
+              dataKey="plan"
+              name="แผนงาน (Plan)"
+              fill="#cbd5e1"
+              radius={[4, 4, 0, 0]}
+              label={{
+                position: "top",
+                fontSize: 12,
+                fontWeight: 600,
+                fill: "#64748b",
+              }}
+            />
+            <Bar
+              dataKey="actual"
+              name="ทำจริง (Actual)"
+              fill="#3b82f6"
+              radius={[4, 4, 0, 0]}
+              label={{
+                position: "top",
+                fontSize: 12,
+                fontWeight: 600,
+                fill: "#3b82f6",
+              }}
+            />
+            <Bar
+              dataKey="inProgress"
+              name="กำลังทำ (In Progress)"
+              fill="#f59e0b"
+              radius={[4, 4, 0, 0]}
+              label={{
+                position: "top",
+                fontSize: 12,
+                fontWeight: 600,
+                fill: "#d97706",
+              }}
+            />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
