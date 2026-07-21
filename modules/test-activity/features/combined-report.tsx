@@ -25,7 +25,7 @@ import {
   ChevronsRight,
   Download,
   Search,
-  Camera,
+  Eye,
   AlertTriangle,
   CheckCircle2,
   Leaf,
@@ -134,7 +134,7 @@ function GrowthResultBadge({
 
 function PhotoIcon({ available }: { available: boolean }) {
   return (
-    <Camera
+    <Eye
       className={`w-4 h-4 mx-auto ${
         available
           ? "text-slate-500 cursor-pointer hover:text-blue-500"
