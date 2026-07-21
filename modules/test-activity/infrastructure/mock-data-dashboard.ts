@@ -47,6 +47,7 @@ export interface WeeklyComparisonMock {
   week: string;
   plan: number;
   actual: number;
+  inProgress: number;
 }
 
 // ---- Chart 2: Activity Type Breakdown ----
@@ -60,9 +61,9 @@ export interface ActivityTypeBreakdownMock {
 // ===== Actual Mock Data =====
 
 export const MOCK_ACTIVITY_SUMMARY: ActivitySummaryMock = {
-  total: 128,
-  completed: 95,
-  inProgress: 33,
+  total: 180,
+  completed: 110,
+  inProgress: 55,
   cancelled: 5,
   pending: 10,
 };
@@ -94,10 +95,10 @@ export const MOCK_PLOT_HEALTH_SUMMARY: PlotHealthSummaryMock = {
 };
 
 export const MOCK_WEEKLY_COMPARISON: WeeklyComparisonMock[] = [
-  { week: "สัปดาห์ที่ 1", plan: 40, actual: 32 },
-  { week: "สัปดาห์ที่ 2", plan: 50, actual: 42 },
-  { week: "สัปดาห์ที่ 3", plan: 60, actual: 48 },
-  { week: "สัปดาห์ที่ 4", plan: 50, actual: 48 },
+  { week: "สัปดาห์ที่ 1", plan: 40, actual: 32, inProgress: 6 },
+  { week: "สัปดาห์ที่ 2", plan: 50, actual: 42, inProgress: 5 },
+  { week: "สัปดาห์ที่ 3", plan: 60, actual: 48, inProgress: 8 },
+  { week: "สัปดาห์ที่ 4", plan: 50, actual: 48, inProgress: 2 },
 ];
 
 export const MOCK_ACTIVITY_TYPE_BREAKDOWN: ActivityTypeBreakdownMock[] = [

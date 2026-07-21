@@ -516,6 +516,10 @@ export function ActivityDashboard() {
               <span className="w-3 h-3 rounded bg-blue-500" />
               ทำจริง (Actual)
             </span>
+            <span className="flex items-center gap-1.5 text-xs text-slate-500">
+              <span className="w-3 h-3 rounded bg-amber-500" />
+              กำลังทำ (In Progress)
+            </span>
           </div>
 
           <ResponsiveContainer width="100%" height={260}>
@@ -566,6 +570,18 @@ export function ActivityDashboard() {
                   fontSize: 12,
                   fontWeight: 600,
                   fill: "#3b82f6",
+                }}
+              />
+              <Bar
+                dataKey="inProgress"
+                name="กำลังทำ (In Progress)"
+                fill="#f59e0b"
+                radius={[4, 4, 0, 0]}
+                label={{
+                  position: "top",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  fill: "#d97706",
                 }}
               />
             </BarChart>
