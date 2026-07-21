@@ -410,18 +410,30 @@ export function CombinedReport() {
   return (
     <div className="space-y-4">
       {/* ===== Top Bar ===== */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">
-            รายงานและวิเคราะห์ข้อมูล
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            เลือกดูรายงานที่ต้องการจาก 4 รายงานหลัก
-          </p>
+      <div className="relative overflow-hidden bg-white border border-slate-100 rounded-2xl p-5 md:p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        {/* Decorative background glow */}
+        <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-blue-50/30 via-emerald-50/10 to-transparent rounded-full -mr-20 -mt-20 pointer-events-none" />
+
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20">
+            <Activity className="w-6 h-6 animate-pulse" />
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+                รายงานและวิเคราะห์ข้อมูล
+              </h1>
+          
+            </div>
+            <p className="text-xs md:text-sm text-slate-500 mt-1">
+              เลือกดูรายงานและวิเคราะห์ข้อมูลจาก 4 รายงานหลักของระบบ
+            </p>
+          </div>
         </div>
-        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-2">
-          <Download className="w-4 h-4" />
-          Export to Excel
+
+        <Button className="relative z-10 w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-sm font-semibold px-5 py-2.5 h-11 rounded-xl shadow-md shadow-emerald-600/10 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 group">
+          <Download className="w-4 h-4 transition-transform group-hover:translate-y-0.5" />
+          <span>Export to Excel</span>
         </Button>
       </div>
 
@@ -873,7 +885,7 @@ export function CombinedReport() {
           />
 
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-2 mb-4">
+          <div className="grid grid-cols-3 gap-2 mb-4">
             <StatCard
               icon={<CalendarCheck className="w-5 h-5 text-violet-600" />}
               iconBg="bg-violet-50"
@@ -894,13 +906,6 @@ export function CombinedReport() {
               label="ยอดขายรวมสุทธิ"
               value={`฿ ${fmtCurrency(totalSales)}`}
               valueColor="text-emerald-700"
-            />
-            <StatCard
-              icon={<TrendingUp className="w-5 h-5 text-orange-500" />}
-              iconBg="bg-orange-50"
-              label="ROI เฉลี่ย"
-              value={`+${roi}%`}
-              valueColor="text-orange-500"
             />
           </div>
 
