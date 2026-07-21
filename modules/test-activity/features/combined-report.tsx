@@ -664,7 +664,7 @@ export function CombinedReport() {
                     ชื่อร้านค้า
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    ราคาสินค้าตรวจสอบ (ของเรา)
+                    ราคาสินค้าตรวจสอบ
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
                     สถานะสต็อก

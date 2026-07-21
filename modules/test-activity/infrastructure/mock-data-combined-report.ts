@@ -153,7 +153,7 @@ export const mockStockChecks: StockCheckMock[] = [
     responsible: "สมชาย ใจดี",
     storeName: "ร้านส่งเสริมหายนะ",
     storeType: "ดีลเลอร์",
-    ourProductsStock: "-",
+    ourProductsStock: "ยาสูตร AX",
     stockStatus: "ขาดสต็อก",
     stockQty: 0,
     stockUnit: null,
