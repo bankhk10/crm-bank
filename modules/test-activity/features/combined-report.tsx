@@ -572,7 +572,7 @@ export function CombinedReport() {
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
                     โอกาสขาย
                   </TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
+                  <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3 text-center">
                     รายละเอียด
                   </TableHead>
                 </TableRow>
