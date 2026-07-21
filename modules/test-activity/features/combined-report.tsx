@@ -573,7 +573,7 @@ export function CombinedReport() {
                     โอกาสขาย
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    สิ่งต้องดำเนินการต่อ
+                    รายละเอียด
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -603,10 +603,9 @@ export function CombinedReport() {
                     <TableCell className="text-xs py-2.5 px-3">
                       <SalesOpportunityBadge value={row.salesOpportunity} />
                     </TableCell>
-                    <TableCell className="text-xs py-2.5 px-3 max-w-[140px]">
-                      <span className="line-clamp-2 text-slate-600">
-                        {row.nextAction}
-                      </span>
+                    <TableCell className="text-xs py-2.5 px-3 text-center">
+                      {" "}
+                      <PhotoIcon available={row.photoAvailable} />{" "}
                     </TableCell>
                   </TableRow>
                 ))}

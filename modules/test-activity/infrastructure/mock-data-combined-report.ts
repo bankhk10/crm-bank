@@ -11,6 +11,7 @@ export interface ActivityLogMock {
   salesOpportunity: "สูง" | "กลาง" | "ต่ำ" | "-"; // โอกาสขาย
   nextAction: string; // สิ่งต้องดำเนินการต่อ
   nextAppointmentDate: string | null; // วันที่นัดหมายครั้งถัดไป
+  photoAvailable: boolean; // มีรูปภาพ
 }
 
 export const mockActivityLogs: ActivityLogMock[] = [
@@ -25,6 +26,7 @@ export const mockActivityLogs: ActivityLogMock[] = [
     salesOpportunity: "สูง",
     nextAction: "ส่งตัวอย่างปุ๋ยและนัดดูผล",
     nextAppointmentDate: "25/07/2026",
+    photoAvailable: true,
   },
   {
     id: "AL-002",
@@ -37,6 +39,7 @@ export const mockActivityLogs: ActivityLogMock[] = [
     salesOpportunity: "-",
     nextAction: "นัดพบผู้จัดการเขต",
     nextAppointmentDate: "15/08/2026",
+    photoAvailable: true,
   },
   {
     id: "AL-003",
@@ -48,6 +51,7 @@ export const mockActivityLogs: ActivityLogMock[] = [
     salesOpportunity: "ต่ำ",
     nextAction: "ติดตามตลาดเพิ่มเติมและเสนอราคาใหม่",
     nextAppointmentDate: "26/07/2026",
+    photoAvailable: false,
   },
   {
     id: "AL-004",
@@ -59,6 +63,7 @@ export const mockActivityLogs: ActivityLogMock[] = [
     salesOpportunity: "-",
     nextAction: "เร่งเบิกเดิมและดำเนินการต่อ",
     nextAppointmentDate: null,
+    photoAvailable: true,
   },
   {
     id: "AL-005",
@@ -70,6 +75,7 @@ export const mockActivityLogs: ActivityLogMock[] = [
     salesOpportunity: "สูง",
     nextAction: "นำเสนอสารกำจัดแมลงและติดตามผล",
     nextAppointmentDate: "22/07/2026",
+    photoAvailable: true,
   },
   {
     id: "AL-006",
@@ -81,6 +87,7 @@ export const mockActivityLogs: ActivityLogMock[] = [
     salesOpportunity: "สูง",
     nextAction: "ติดตามออเดอร์และจัดส่งสินค้า",
     nextAppointmentDate: "20/07/2026",
+    photoAvailable: false,
   },
   {
     id: "AL-007",
@@ -93,6 +100,7 @@ export const mockActivityLogs: ActivityLogMock[] = [
     salesOpportunity: "กลาง",
     nextAction: "ส่งแคตตาล็อกสินค้าให้ผู้สนใจ",
     nextAppointmentDate: "01/08/2026",
+    photoAvailable: true,
   },
   {
     id: "AL-008",
@@ -104,6 +112,7 @@ export const mockActivityLogs: ActivityLogMock[] = [
     salesOpportunity: "กลาง",
     nextAction: "ส่งใบเสนอราคาและนัดส่งสินค้า",
     nextAppointmentDate: "18/07/2026",
+    photoAvailable: false,
   },
 ];
 
