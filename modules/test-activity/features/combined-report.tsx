@@ -555,28 +555,28 @@ export function CombinedReport() {
               <TableHeader>
                 <TableRow className="bg-slate-50">
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    วันที่ปฏิบัติงาน ↕
+                    วันที่ปฏิบัติงาน
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    พนักงาน ↕
+                    พนักงาน
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    ประเภทกิจกรรม ↕
+                    ประเภทกิจกรรม
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    ชื่อลูกค้า / เข้าพบแปลง ↕
+                    ชื่อลูกค้า / เข้าพบแปลง
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    รายละเอียด / ผลการปฏิบัติงาน ↕
+                    รายละเอียด / ผลการปฏิบัติงาน
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    โอกาสขาย ↕
+                    โอกาสขาย
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    สิ่งต้องดำเนินการต่อ ↕
+                    สิ่งต้องดำเนินการต่อ
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    วันที่นัด ↕
+                    วันที่นัด
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -671,28 +671,28 @@ export function CombinedReport() {
               <TableHeader>
                 <TableRow className="bg-slate-50">
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    วันที่ตรวจสอบ ↕
+                    วันที่ตรวจสอบ
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    พนักงาน ↕
+                    พนักงาน
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    ชื่อร้านค้า ↕
+                    ชื่อร้านค้า
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    ราคาสินค้าตรวจสอบ (ของเรา) ↕
+                    ราคาสินค้าตรวจสอบ (ของเรา)
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    สถานะสต็อก ↕
+                    สถานะสต็อก
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    จำนวน / หน่วย ↕
+                    จำนวน / หน่วย
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    แบรนด์คู่แข่ง ↕
+                    แบรนด์คู่แข่ง
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    โปรโมชั่นคู่แข่ง ↕
+                    โปรโมชั่นคู่แข่ง
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3 text-center">
                     รูปภาพ
@@ -795,28 +795,28 @@ export function CombinedReport() {
               <TableHeader>
                 <TableRow className="bg-slate-50">
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    วันที่ลงพื้นที่ ↕
+                    วันที่ลงพื้นที่
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    พนักงาน/ผู้รับผิดชอบ (SPO) ↕
+                    พนักงาน/ผู้รับผิดชอบ (SPO)
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    ชื่อแปลง (ไร่) ↕
+                    ชื่อแปลง (ไร่)
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    พื้นที่ (ไร่) ↕
+                    พื้นที่ (ไร่)
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    สินค้า/ชนิดพืช ↕
+                    สินค้า/ชนิดพืช
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    สภาพพืชรวม ↕
+                    สภาพพืชรวม
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    ผลสรุปสภาพ ↕
+                    ผลสรุปสภาพ
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    ปัญหาที่พบ ↕
+                    ปัญหาที่พบ
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3 text-center">
                     รูปภาพ
@@ -925,25 +925,25 @@ export function CombinedReport() {
               <TableHeader>
                 <TableRow className="bg-slate-50">
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    วันที่จัด ↕
+                    วันที่จัด
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    ผู้จัดกิจกรรม ↕
+                    ผู้จัดกิจกรรม
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    รูปแบบกิจกรรม ↕
+                    รูปแบบกิจกรรม
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3">
-                    ประเภทงบ ↕
+                    ประเภทงบ
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3 text-right">
-                    จำนวนเงินที่ใช้ (฿) ↕
+                    จำนวนเงินที่ใช้ (฿)
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3 text-right">
-                    คนเข้าร่วม (คน) ↕
+                    คนเข้าร่วม (คน)
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3 text-right">
-                    ยอดขายในกิจกรรม (฿) ↕
+                    ยอดขายในกิจกรรม (฿)
                   </TableHead>
                   <TableHead className="text-xs font-semibold text-slate-600 whitespace-nowrap py-2.5 px-3 text-center">
                     รูปภาพ
