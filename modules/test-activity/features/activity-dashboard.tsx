@@ -437,9 +437,6 @@ export function ActivityDashboard() {
               <div className="text-sm font-semibold text-slate-700">
                 สุขภาพแปลงสาธิต
               </div>
-              <div className="text-xs text-slate-400">
-                (Overall Plot Health)
-              </div>
             </div>
           </div>
 
