@@ -13,6 +13,7 @@ import {
   ArrowRight,
   Coins,
   Users,
+  BarChart2,
 } from "lucide-react";
 
 export default async function TestActivityReportsPage() {
@@ -121,6 +122,34 @@ export default async function TestActivityReportsPage() {
                 และประเมินสถานะลูกค้าไม่เคลื่อนไหว/มีปัญหา
               </p>
               <div className="flex items-center text-xs font-bold text-blue-600 mt-4 group-hover:translate-x-1 transition-transform duration-300">
+                เข้าชมรายงาน <ArrowRight className="h-3.5 w-3.5 ml-1" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        {/* Card 5: Combined Report */}
+        <Link href="/test-activity/combined-report" className="group">
+          <Card className="h-full border border-slate-100 hover:border-violet-200 hover:shadow-md transition-all duration-300 rounded-2xl overflow-hidden bg-white/50 backdrop-blur-sm group-hover:-translate-y-1">
+            <CardHeader className="p-6 pb-2 flex flex-row items-center gap-4">
+              <div className="p-3 bg-violet-50 text-violet-600 rounded-xl group-hover:bg-violet-600 group-hover:text-white transition-colors duration-300">
+                <BarChart2 className="h-6 w-6" />
+              </div>
+              <div>
+                <CardTitle className="text-base font-bold text-slate-800">
+                  รายงานและวิเคราะห์ข้อมูล (Combined Report)
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  รายงานรวม 4 หมวดหลัก
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6 pt-2 flex flex-col justify-between h-[120px]">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                รวม Activity Log, Stock & Competitor, Plot Health & Issue
+                และ Event ROI ไว้ในหน้าเดียว
+              </p>
+              <div className="flex items-center text-xs font-bold text-violet-600 mt-4 group-hover:translate-x-1 transition-transform duration-300">
                 เข้าชมรายงาน <ArrowRight className="h-3.5 w-3.5 ml-1" />
               </div>
             </CardContent>
