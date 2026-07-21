@@ -258,26 +258,61 @@ export function ActivityDashboard() {
         </div>
       </div>
 
-      {/* ═══ Filter Bar ═══ */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Year */}
-          <FilterSelect
-            icon={<Calendar className="w-3.5 h-3.5" />}
-            value={year}
-            onValueChange={setYear}
-            options={YEAR_OPTIONS}
-            placeholder="ปี"
-          />
+      {/* ═══ Filter Bar / Time Selector ═══ */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col lg:flex-row gap-5 lg:items-center">
+        {/* Year Selector */}
+        <div className="flex flex-col gap-2 flex-shrink-0">
+          <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-wider">
+            <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+            ปีการดำเนินงาน
+          </span>
+          <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200/50 gap-1 self-start">
+            {YEAR_OPTIONS.map((y) => {
+              const active = year === y;
+              return (
+                <button
+                  key={y}
+                  onClick={() => setYear(y)}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
+                    active
+                      ? "bg-white text-indigo-600 shadow-sm border border-slate-100"
+                      : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
+                  }`}
+                >
+                  {y}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-          {/* Month */}
-          <FilterSelect
-            icon={<Calendar className="w-3.5 h-3.5" />}
-            value={month}
-            onValueChange={setMonth}
-            options={MONTH_OPTIONS}
-            placeholder="เดือน"
-          />
+        {/* Divider (visible on desktop) */}
+        <div className="hidden lg:block w-px h-10 bg-slate-200/60" />
+
+        {/* Month Selector */}
+        <div className="flex flex-col gap-2 flex-1 min-w-0">
+          <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-wider">
+            <Calendar className="w-3.5 h-3.5 text-blue-500" />
+            ช่วงเดือน
+          </span>
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 -mb-2 scrollbar-none">
+            {MONTH_OPTIONS.map((m) => {
+              const active = month === m;
+              return (
+                <button
+                  key={m}
+                  onClick={() => setMonth(m)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap duration-200 border ${
+                    active
+                      ? "bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-600/15"
+                      : "bg-white border-slate-200/80 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+                  }`}
+                >
+                  {m}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
