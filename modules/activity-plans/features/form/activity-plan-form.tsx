@@ -524,7 +524,6 @@ export function ActivityPlanForm({
             <div>
               <p className="text-xs font-medium text-slate-400">
                 ผู้รับผิดชอบ{" "}
-                <span className="text-slate-400 text-[11px]">(ดึงจากระบบ)</span>
               </p>
               <p className="text-sm font-semibold text-slate-800">
                 {initial.employeeName || "นายวิทยา พันธุ์โชค"}
@@ -538,12 +537,7 @@ export function ActivityPlanForm({
               <FileText className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs font-medium text-slate-400">
-                เลขที่แผน{" "}
-                <span className="text-slate-400 text-[11px]">
-                  (Auto-Generate)
-                </span>
-              </p>
+              <p className="text-xs font-medium text-slate-400">เลขที่แผน </p>
               <p className="text-sm font-semibold text-slate-800">
                 {initial.planCode || "2607-001"}
               </p>
