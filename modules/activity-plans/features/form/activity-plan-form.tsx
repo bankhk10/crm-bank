@@ -72,12 +72,43 @@ const WORK_TYPES = [
 ];
 
 // Sample lists for dropdowns
-const DEMO_OWNERS = ["บริษัททดสอบ", "ร้านทดสอบ สาขา 1", "เกษตรกรตัวอย่าง 1", "ร้านสหายพานิช"];
-const DEMO_PRODUCTS = ["สินค้าทดสอบ A", "สินค้าทดสอบ B", "สินค้าทดสอบ C", "ปุ๋ยเคมีสูตรพิเศษ"];
+const DEMO_OWNERS = [
+  "บริษัททดสอบ",
+  "ร้านทดสอบ สาขา 1",
+  "เกษตรกรตัวอย่าง 1",
+  "ร้านสหายพานิช",
+];
+const DEMO_PRODUCTS = [
+  "สินค้าทดสอบ A",
+  "สินค้าทดสอบ B",
+  "สินค้าทดสอบ C",
+  "ปุ๋ยเคมีสูตรพิเศษ",
+];
 const CROP_CATEGORIES = ["พืชไร่", "พืชสวน", "ผักและพืชล้มลุก"];
-const TARGET_CROPS = ["ทุเรียน", "ข้าว", "มันสำปะหลัง", "ยางพารา", "อ้อย", "ส้ม"];
-const STORES_LIST = ["ร้านทดสอบ สาขา 1", "ร้านทดสอบ สาขา 2", "ร้านสหายพานิช จันทบุรี", "ร้านเกษตรพัฒนา"];
-const REQUISITION_UNITS = ["ขวด", "ซอง", "แผ่น", "กล่อง", "ชิ้น", "ถุง", "ชุด", "ม้วน"];
+const TARGET_CROPS = [
+  "ทุเรียน",
+  "ข้าว",
+  "มันสำปะหลัง",
+  "ยางพารา",
+  "อ้อย",
+  "ส้ม",
+];
+const STORES_LIST = [
+  "ร้านทดสอบ สาขา 1",
+  "ร้านทดสอบ สาขา 2",
+  "ร้านสหายพานิช จันทบุรี",
+  "ร้านเกษตรพัฒนา",
+];
+const REQUISITION_UNITS = [
+  "ขวด",
+  "ซอง",
+  "แผ่น",
+  "กล่อง",
+  "ชิ้น",
+  "ถุง",
+  "ชุด",
+  "ม้วน",
+];
 
 interface RequisitionItem {
   id: string;
@@ -97,9 +128,11 @@ export function ActivityPlanForm({
 }: Props) {
   // Format initial dates
   const parseInitialDate = (date?: Date | string) => {
-    if (!date) return { dateStr: format(new Date(), "yyyy-MM-dd"), timeStr: "09:00" };
+    if (!date)
+      return { dateStr: format(new Date(), "yyyy-MM-dd"), timeStr: "09:00" };
     const d = typeof date === "string" ? new Date(date) : date;
-    if (isNaN(d.getTime())) return { dateStr: format(new Date(), "yyyy-MM-dd"), timeStr: "09:00" };
+    if (isNaN(d.getTime()))
+      return { dateStr: format(new Date(), "yyyy-MM-dd"), timeStr: "09:00" };
     return {
       dateStr: format(d, "yyyy-MM-dd"),
       timeStr: format(d, "HH:mm"),
@@ -118,9 +151,13 @@ export function ActivityPlanForm({
 
   // Work types selection state
   const initialTypes = initial.activityType
-    ? initial.activityType.split(",").map((s) => s.trim()).filter(Boolean)
+    ? initial.activityType
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
     : [];
-  const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>(initialTypes);
+  const [selectedWorkTypes, setSelectedWorkTypes] =
+    useState<string[]>(initialTypes);
   const [isWorkTypesDropdownOpen, setIsWorkTypesDropdownOpen] = useState(false);
   const workTypesDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -171,7 +208,7 @@ export function ActivityPlanForm({
   // Section 4: Location & Team State
   const [locationText, setLocationText] = useState(initial.location ?? "");
   const [helperEmployeeIds, setHelperEmployeeIds] = useState<string[]>(
-    initial.helperEmployeeIds ?? []
+    initial.helperEmployeeIds ?? [],
   );
   const [helperSearch, setHelperSearch] = useState("");
   const [showHelperDropdown, setShowHelperDropdown] = useState(false);
@@ -181,14 +218,18 @@ export function ActivityPlanForm({
     (initial.salesPromotionBudget ?? 0) > 0
       ? "SALES_PROMOTION"
       : (initial.marketingBudget ?? 0) > 0
-      ? "MARKETING"
-      : "NONE";
-  const [budgetType, setBudgetType] = useState<"NONE" | "MARKETING" | "SALES_PROMOTION">(initialBudgetType);
+        ? "MARKETING"
+        : "NONE";
+  const [budgetType, setBudgetType] = useState<
+    "NONE" | "MARKETING" | "SALES_PROMOTION"
+  >(initialBudgetType);
   const [extraExpenseAmount, setExtraExpenseAmount] = useState<number>(0);
   const [extraExpenseDetail, setExtraExpenseDetail] = useState("");
 
   // Section 6: Material Requisition Items
-  const [requisitionItems, setRequisitionItems] = useState<RequisitionItem[]>([]);
+  const [requisitionItems, setRequisitionItems] = useState<RequisitionItem[]>(
+    [],
+  );
 
   // Section 7: Additional Info State
   const [notes, setNotes] = useState(initial.notes ?? "");
@@ -241,9 +282,13 @@ export function ActivityPlanForm({
     setRequisitionItems([...requisitionItems, newItem]);
   };
 
-  const updateRequisitionRow = (id: string, field: keyof RequisitionItem, val: any) => {
+  const updateRequisitionRow = (
+    id: string,
+    field: keyof RequisitionItem,
+    val: any,
+  ) => {
     setRequisitionItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item))
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
     );
   };
 
@@ -306,44 +351,68 @@ export function ActivityPlanForm({
     const summaryParts: string[] = [];
 
     if (selectedWorkTypes.includes("เข้าพบร้านค้า / เกษตรกร")) {
-      const topicsText = type1Topics.join(", ") + (type1OtherTopic ? ` (${type1OtherTopic})` : "");
-      summaryParts.push(`[เข้าพบร้านค้า/เกษตรกร] ประเด็น: ${topicsText} | ลูกค้า: ${type1Customers}`);
+      const topicsText =
+        type1Topics.join(", ") +
+        (type1OtherTopic ? ` (${type1OtherTopic})` : "");
+      summaryParts.push(
+        `[เข้าพบร้านค้า/เกษตรกร] ประเด็น: ${topicsText} | ลูกค้า: ${type1Customers}`,
+      );
     }
 
     if (selectedWorkTypes.includes("ติดตามผลการใช้สินค้า")) {
-      summaryParts.push(`[ติดตามผลการใช้สินค้า] สินค้า: ${type2Product} | เป้าหมายลูกค้า: ${type2CustomerCount} ราย`);
+      summaryParts.push(
+        `[ติดตามผลการใช้สินค้า] สินค้า: ${type2Product} | เป้าหมายลูกค้า: ${type2CustomerCount} ราย`,
+      );
     }
 
     if (selectedWorkTypes.includes("เสนอขายสินค้า")) {
-      summaryParts.push(`[เสนอขายสินค้า] สินค้า: ${type3ProductList} | เป้ายอดขาย: ${type3TargetSales.toLocaleString()} บาท (${type3TargetQty} หน่วย)`);
+      summaryParts.push(
+        `[เสนอขายสินค้า] สินค้า: ${type3ProductList} | เป้ายอดขาย: ${type3TargetSales.toLocaleString()} บาท (${type3TargetQty} หน่วย)`,
+      );
     }
 
     if (selectedWorkTypes.includes("วางบิล / เก็บเงิน")) {
-      summaryParts.push(`[วางบิล/เก็บเงิน] ลูกค้า: ${type4Customers} | เป้ายอดเก็บเงิน: ${type4CollectAmount.toLocaleString()} บาท`);
+      summaryParts.push(
+        `[วางบิล/เก็บเงิน] ลูกค้า: ${type4Customers} | เป้ายอดเก็บเงิน: ${type4CollectAmount.toLocaleString()} บาท`,
+      );
     }
 
     if (selectedWorkTypes.includes("สำรวจตลาดของคู่แข่ง")) {
-      summaryParts.push(`[สำรวจตลาดคู่แข่ง] แบรนด์: ${type5Brand} | สินค้าเทียบ: ${type5Product} | เป้าหมายร้านค้า: ${type5StoreCount} แห่ง`);
+      summaryParts.push(
+        `[สำรวจตลาดคู่แข่ง] แบรนด์: ${type5Brand} | สินค้าเทียบ: ${type5Product} | เป้าหมายร้านค้า: ${type5StoreCount} แห่ง`,
+      );
     }
 
     if (selectedWorkTypes.includes("แก้ปัญหา / รับเรื่องร้องเรียน")) {
-      summaryParts.push(`[แก้ปัญหา/ร้องเรียน] ลูกค้า: ${type6Customers} | ประเภทปัญหา: ${type6IssueType}`);
+      summaryParts.push(
+        `[แก้ปัญหา/ร้องเรียน] ลูกค้า: ${type6Customers} | ประเภทปัญหา: ${type6IssueType}`,
+      );
     }
 
     if (selectedWorkTypes.includes("ติดตามแปลงสาธิต / พืชเป้าหมาย")) {
-      summaryParts.push(`[ติดตามแปลงสาธิต] เจ้าของ: ${type7Owner} | สินค้า: ${type7Product} | พืช: ${type7CropCategory} (${type7Crop}) | เป้าหมาย: ${type7Plots} แปลง (${type7Trees} ต้น)`);
+      summaryParts.push(
+        `[ติดตามแปลงสาธิต] เจ้าของ: ${type7Owner} | สินค้า: ${type7Product} | พืช: ${type7CropCategory} (${type7Crop}) | เป้าหมาย: ${type7Plots} แปลง (${type7Trees} ต้น)`,
+      );
     }
 
-    if (selectedWorkTypes.includes("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")) {
-      summaryParts.push(`[จัดประชุม] หัวข้อ: ${type8Topic} | เป้าหมายผู้เข้าร่วม: ${type8Attendees} คน`);
+    if (
+      selectedWorkTypes.includes("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")
+    ) {
+      summaryParts.push(
+        `[จัดประชุม] หัวข้อ: ${type8Topic} | เป้าหมายผู้เข้าร่วม: ${type8Attendees} คน`,
+      );
     }
 
     if (selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")) {
-      summaryParts.push(`[กิจกรรมหน้าร้าน] ร้านค้า: ${type9Store} | เป้ายอดขาย: ${type9Sales.toLocaleString()} บาท | สินค้า: ${type9Products}`);
+      summaryParts.push(
+        `[กิจกรรมหน้าร้าน] ร้านค้า: ${type9Store} | เป้ายอดขาย: ${type9Sales.toLocaleString()} บาท | สินค้า: ${type9Products}`,
+      );
     }
 
     if (selectedWorkTypes.includes("จัดงาน Field Day")) {
-      summaryParts.push(`[Field Day] แปลงสาธิต: ${type10DemoPlot} | สถานที่: ${type10Location} | สินค้าโชว์: ${type10Showcase} | เป้าผู้ร่วมงาน: ${type10Attendees} คน | เป้ายอดจอง: ${type10BookingSales.toLocaleString()} บาท`);
+      summaryParts.push(
+        `[Field Day] แปลงสาธิต: ${type10DemoPlot} | สถานที่: ${type10Location} | สินค้าโชว์: ${type10Showcase} | เป้าผู้ร่วมงาน: ${type10Attendees} คน | เป้ายอดจอง: ${type10BookingSales.toLocaleString()} บาท`,
+      );
     }
 
     if (selectedWorkTypes.includes("ตรวจเช็กสต็อกหน้าร้าน")) {
@@ -354,7 +423,10 @@ export function ActivityPlanForm({
 
     // Serialize materials into description
     const materialSummary = requisitionItems
-      .map((item, i) => `${i + 1}. ${item.productName} (${item.quantity} ${item.unit}) - ${item.detail}`)
+      .map(
+        (item, i) =>
+          `${i + 1}. ${item.productName} (${item.quantity} ${item.unit}) - ${item.detail}`,
+      )
       .join("\n");
     const compiledDescription = `[วัตถุประสงค์งาน]\n${compiledObjective}\n\n[รายการขอเบิกสินค้า]\n${materialSummary}`;
 
@@ -363,7 +435,8 @@ export function ActivityPlanForm({
     let marketingBudget: number | null = null;
 
     if (budgetType === "SALES_PROMOTION") {
-      salesPromotionBudget = extraExpenseAmount > 0 ? extraExpenseAmount : 10000;
+      salesPromotionBudget =
+        extraExpenseAmount > 0 ? extraExpenseAmount : 10000;
     } else if (budgetType === "MARKETING") {
       marketingBudget = extraExpenseAmount > 0 ? extraExpenseAmount : 10000;
     }
@@ -455,7 +528,8 @@ export function ActivityPlanForm({
             </div>
             <div>
               <p className="text-xs font-medium text-slate-400">
-                ผู้รับผิดชอบ <span className="text-slate-400 text-[11px]">(ดึงจากระบบ)</span>
+                ผู้รับผิดชอบ{" "}
+                <span className="text-slate-400 text-[11px]">(ดึงจากระบบ)</span>
               </p>
               <p className="text-sm font-semibold text-slate-800">
                 {initial.employeeName || "นายวิทยา พันธุ์โชค"}
@@ -470,7 +544,10 @@ export function ActivityPlanForm({
             </div>
             <div>
               <p className="text-xs font-medium text-slate-400">
-                เลขที่แผน <span className="text-slate-400 text-[11px]">(Auto-Generate)</span>
+                เลขที่แผน{" "}
+                <span className="text-slate-400 text-[11px]">
+                  (Auto-Generate)
+                </span>
               </p>
               <p className="text-sm font-semibold text-slate-800">
                 {initial.planCode || "2607-001"}
@@ -491,7 +568,7 @@ export function ActivityPlanForm({
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           {/* ชื่อกิจกรรม */}
           <div className="lg:col-span-1">
             <label className="block text-xs font-medium text-slate-700 mb-1.5">
@@ -506,7 +583,100 @@ export function ActivityPlanForm({
               className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             />
           </div>
+          {/* ประเภทงาน (เลือกได้มากกว่า 1) */}
+          <div className="relative" ref={workTypesDropdownRef}>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">
+              ประเภทงาน{" "}
+              <span className="text-slate-400 text-[11px]">
+                (เลือกได้มากกว่า 1)
+              </span>{" "}
+              <span className="text-red-500">*</span>
+            </label>
 
+            {/* Input Trigger Field */}
+            <div
+              onClick={() =>
+                !readonly &&
+                setIsWorkTypesDropdownOpen(!isWorkTypesDropdownOpen)
+              }
+              className={cn(
+                "min-h-[40px] w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm flex flex-wrap items-center gap-1.5 cursor-pointer hover:border-slate-300 focus-within:ring-2 focus-within:ring-blue-500 transition-all",
+                readonly && "cursor-not-allowed bg-slate-50",
+              )}
+            >
+              {selectedWorkTypes.length === 0 ? (
+                <span className="text-slate-400 text-xs px-1">
+                  เลือกประเภทงาน...
+                </span>
+              ) : (
+                selectedWorkTypes.map((wt) => (
+                  <span
+                    key={wt}
+                    className="inline-flex items-center gap-1 bg-blue-50 border border-blue-200/80 text-blue-700 text-xs px-2 py-0.5 rounded-md font-medium"
+                  >
+                    <span>{wt}</span>
+                    {!readonly && (
+                      <button
+                        type="button"
+                        onClick={(e) => removeWorkType(wt, e)}
+                        className="hover:bg-blue-100 rounded p-0.5 text-blue-600 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </span>
+                ))
+              )}
+              <ChevronDown className="h-4 w-4 text-slate-400 ml-auto flex-shrink-0" />
+            </div>
+
+            {/* Work types multi-select checkbox dropdown popup */}
+            {isWorkTypesDropdownOpen && (
+              <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 w-full sm:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-3 space-y-2 animate-in fade-in-0 zoom-in-95">
+                <div className="max-h-80 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                  {WORK_TYPES.map((typeStr) => {
+                    const isChecked = selectedWorkTypes.includes(typeStr);
+                    return (
+                      <label
+                        key={typeStr}
+                        onClick={() => toggleWorkType(typeStr)}
+                        className={cn(
+                          "flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer transition-colors select-none",
+                          isChecked
+                            ? "bg-blue-50 text-blue-800 font-medium"
+                            : "hover:bg-slate-50 text-slate-700",
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0",
+                            isChecked
+                              ? "bg-blue-600 border-blue-600 text-white"
+                              : "border-slate-300 bg-white",
+                          )}
+                        >
+                          {isChecked && (
+                            <Check className="h-3 w-3 stroke-[3]" />
+                          )}
+                        </div>
+                        <span>{typeStr}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 text-right">
+                  <button
+                    type="button"
+                    onClick={clearWorkTypes}
+                    className="text-xs font-medium text-slate-500 hover:text-slate-700 underline"
+                  >
+                    ล้างการเลือก
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
           {/* วันที่จัดกิจกรรม */}
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1.5">
@@ -562,91 +732,6 @@ export function ActivityPlanForm({
               </select>
             </div>
           </div>
-
-          {/* ประเภทงาน (เลือกได้มากกว่า 1) */}
-          <div className="relative" ref={workTypesDropdownRef}>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">
-              ประเภทงาน <span className="text-slate-400 text-[11px]">(เลือกได้มากกว่า 1)</span>{" "}
-              <span className="text-red-500">*</span>
-            </label>
-
-            {/* Input Trigger Field */}
-            <div
-              onClick={() => !readonly && setIsWorkTypesDropdownOpen(!isWorkTypesDropdownOpen)}
-              className={cn(
-                "min-h-[40px] w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm flex flex-wrap items-center gap-1.5 cursor-pointer hover:border-slate-300 focus-within:ring-2 focus-within:ring-blue-500 transition-all",
-                readonly && "cursor-not-allowed bg-slate-50"
-              )}
-            >
-              {selectedWorkTypes.length === 0 ? (
-                <span className="text-slate-400 text-xs px-1">เลือกประเภทงาน...</span>
-              ) : (
-                selectedWorkTypes.map((wt) => (
-                  <span
-                    key={wt}
-                    className="inline-flex items-center gap-1 bg-blue-50 border border-blue-200/80 text-blue-700 text-xs px-2 py-0.5 rounded-md font-medium"
-                  >
-                    <span>{wt}</span>
-                    {!readonly && (
-                      <button
-                        type="button"
-                        onClick={(e) => removeWorkType(wt, e)}
-                        className="hover:bg-blue-100 rounded p-0.5 text-blue-600 transition-colors"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    )}
-                  </span>
-                ))
-              )}
-              <ChevronDown className="h-4 w-4 text-slate-400 ml-auto flex-shrink-0" />
-            </div>
-
-            {/* Work types multi-select checkbox dropdown popup */}
-            {isWorkTypesDropdownOpen && (
-              <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 w-full sm:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-3 space-y-2 animate-in fade-in-0 zoom-in-95">
-                <div className="max-h-80 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                  {WORK_TYPES.map((typeStr) => {
-                    const isChecked = selectedWorkTypes.includes(typeStr);
-                    return (
-                      <label
-                        key={typeStr}
-                        onClick={() => toggleWorkType(typeStr)}
-                        className={cn(
-                          "flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer transition-colors select-none",
-                          isChecked
-                            ? "bg-blue-50 text-blue-800 font-medium"
-                            : "hover:bg-slate-50 text-slate-700"
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0",
-                            isChecked
-                              ? "bg-blue-600 border-blue-600 text-white"
-                              : "border-slate-300 bg-white"
-                          )}
-                        >
-                          {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
-                        </div>
-                        <span>{typeStr}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-
-                <div className="pt-2 border-t border-slate-100 text-right">
-                  <button
-                    type="button"
-                    onClick={clearWorkTypes}
-                    className="text-xs font-medium text-slate-500 hover:text-slate-700 underline"
-                  >
-                    ล้างการเลือก
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Warning alert banner */}
@@ -655,7 +740,8 @@ export function ActivityPlanForm({
             !
           </div>
           <p className="font-medium">
-            เลือกประเภทงานได้หลากหลาย ระบบจะแสดงฟอร์มวัตถุประสงค์ตามประเภทงานที่เลือก
+            เลือกประเภทงานได้หลากหลาย
+            ระบบจะแสดงฟอร์มวัตถุประสงค์ตามประเภทงานที่เลือก
           </p>
         </div>
       </div>
@@ -717,10 +803,12 @@ export function ActivityPlanForm({
                               "w-4 h-4 rounded border flex items-center justify-center transition-colors",
                               isChecked
                                 ? "bg-sky-600 border-sky-600 text-white"
-                                : "border-slate-300 bg-white"
+                                : "border-slate-300 bg-white",
                             )}
                           >
-                            {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
+                            {isChecked && (
+                              <Check className="h-3 w-3 stroke-[3]" />
+                            )}
                           </div>
                           <span>{topic}</span>
                         </label>
@@ -741,7 +829,8 @@ export function ActivityPlanForm({
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    รายชื่อลูกค้า / ร้านค้า <span className="text-red-500">*</span>
+                    รายชื่อลูกค้า / ร้านค้า{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     rows={3}
@@ -778,7 +867,8 @@ export function ActivityPlanForm({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    สินค้าที่ต้องการไปติดตามผล <span className="text-red-500">*</span>
+                    สินค้าที่ต้องการไปติดตามผล{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={type2Product}
@@ -796,14 +886,17 @@ export function ActivityPlanForm({
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้าหมายจำนวนลูกค้า (ราย) <span className="text-red-500">*</span>
+                    เป้าหมายจำนวนลูกค้า (ราย){" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative flex items-center">
                     <input
                       type="number"
                       min={1}
                       value={type2CustomerCount}
-                      onChange={(e) => setType2CustomerCount(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setType2CustomerCount(parseInt(e.target.value) || 0)
+                      }
                       disabled={readonly}
                       className="w-full h-10 pr-12 pl-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
@@ -838,7 +931,8 @@ export function ActivityPlanForm({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    รายการสินค้าที่จะเสนอขาย <span className="text-red-500">*</span>
+                    รายการสินค้าที่จะเสนอขาย{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -861,7 +955,9 @@ export function ActivityPlanForm({
                     <input
                       type="number"
                       value={type3TargetSales}
-                      onChange={(e) => setType3TargetSales(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setType3TargetSales(parseFloat(e.target.value) || 0)
+                      }
                       disabled={readonly}
                       className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
@@ -870,13 +966,16 @@ export function ActivityPlanForm({
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้าปริมาณขาย (หน่วย) <span className="text-red-500">*</span>
+                    เป้าปริมาณขาย (หน่วย){" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
                     min={1}
                     value={type3TargetQty}
-                    onChange={(e) => setType3TargetQty(parseInt(e.target.value) || 0)}
+                    onChange={(e) =>
+                      setType3TargetQty(parseInt(e.target.value) || 0)
+                    }
                     disabled={readonly}
                     className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
@@ -907,7 +1006,8 @@ export function ActivityPlanForm({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    รายชื่อลูกค้า / ร้านค้า <span className="text-red-500">*</span>
+                    รายชื่อลูกค้า / ร้านค้า{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -921,7 +1021,8 @@ export function ActivityPlanForm({
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้ายอดเก็บเงินรวม (บาท) <span className="text-red-500">*</span>
+                    เป้ายอดเก็บเงินรวม (บาท){" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
@@ -930,7 +1031,9 @@ export function ActivityPlanForm({
                     <input
                       type="number"
                       value={type4CollectAmount}
-                      onChange={(e) => setType4CollectAmount(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setType4CollectAmount(parseFloat(e.target.value) || 0)
+                      }
                       disabled={readonly}
                       className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
@@ -976,7 +1079,8 @@ export function ActivityPlanForm({
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    สินค้าที่นำไปเปรียบเทียบ <span className="text-red-500">*</span>
+                    สินค้าที่นำไปเปรียบเทียบ{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -990,14 +1094,17 @@ export function ActivityPlanForm({
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้าหมายจำนวนร้านค้า (แห่ง) <span className="text-red-500">*</span>
+                    เป้าหมายจำนวนร้านค้า (แห่ง){" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative flex items-center">
                     <input
                       type="number"
                       min={1}
                       value={type5StoreCount}
-                      onChange={(e) => setType5StoreCount(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setType5StoreCount(parseInt(e.target.value) || 0)
+                      }
                       disabled={readonly}
                       className="w-full h-10 pr-14 pl-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
@@ -1021,7 +1128,9 @@ export function ActivityPlanForm({
                 {!readonly && (
                   <button
                     type="button"
-                    onClick={() => removeWorkType("แก้ปัญหา / รับเรื่องร้องเรียน")}
+                    onClick={() =>
+                      removeWorkType("แก้ปัญหา / รับเรื่องร้องเรียน")
+                    }
                     className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -1032,7 +1141,8 @@ export function ActivityPlanForm({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    รายชื่อลูกค้า / ร้านค้า <span className="text-red-500">*</span>
+                    รายชื่อลูกค้า / ร้านค้า{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -1055,7 +1165,9 @@ export function ActivityPlanForm({
                     className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500"
                   >
                     <option value="เคลมของ">เคลมของ</option>
-                    <option value="ฉีดยาแล้วพืชเสียหาย">ฉีดยาแล้วพืชเสียหาย</option>
+                    <option value="ฉีดยาแล้วพืชเสียหาย">
+                      ฉีดยาแล้วพืชเสียหาย
+                    </option>
                     <option value="อื่นๆ">อื่นๆ</option>
                   </select>
                 </div>
@@ -1074,7 +1186,9 @@ export function ActivityPlanForm({
                 {!readonly && (
                   <button
                     type="button"
-                    onClick={() => removeWorkType("ติดตามแปลงสาธิต / พืชเป้าหมาย")}
+                    onClick={() =>
+                      removeWorkType("ติดตามแปลงสาธิต / พืชเป้าหมาย")
+                    }
                     className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -1157,14 +1271,17 @@ export function ActivityPlanForm({
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้าหมายจำนวนแปลง (แปลง) <span className="text-red-500">*</span>
+                    เป้าหมายจำนวนแปลง (แปลง){" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative flex items-center">
                     <input
                       type="number"
                       min={1}
                       value={type7Plots}
-                      onChange={(e) => setType7Plots(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setType7Plots(parseInt(e.target.value) || 0)
+                      }
                       disabled={readonly}
                       className="w-full h-10 pr-14 pl-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
@@ -1176,14 +1293,17 @@ export function ActivityPlanForm({
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้าหมายจำนวนต้น (ต้น) <span className="text-red-500">*</span>
+                    เป้าหมายจำนวนต้น (ต้น){" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative flex items-center">
                     <input
                       type="number"
                       min={1}
                       value={type7Trees}
-                      onChange={(e) => setType7Trees(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setType7Trees(parseInt(e.target.value) || 0)
+                      }
                       disabled={readonly}
                       className="w-full h-10 pr-12 pl-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
@@ -1197,7 +1317,9 @@ export function ActivityPlanForm({
           )}
 
           {/* Work Type 8: จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์ */}
-          {selectedWorkTypes.includes("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์") && (
+          {selectedWorkTypes.includes(
+            "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+          ) && (
             <div className="bg-blue-50/40 border border-blue-200/80 rounded-xl p-4 md:p-5 space-y-4">
               <div className="flex items-center justify-between border-b border-blue-200/60 pb-2.5">
                 <div className="flex items-center gap-2 text-blue-800 font-bold text-sm">
@@ -1207,7 +1329,11 @@ export function ActivityPlanForm({
                 {!readonly && (
                   <button
                     type="button"
-                    onClick={() => removeWorkType("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")}
+                    onClick={() =>
+                      removeWorkType(
+                        "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+                      )
+                    }
                     className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -1232,14 +1358,17 @@ export function ActivityPlanForm({
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้าหมายจำนวนคนเข้าร่วม (คน) <span className="text-red-500">*</span>
+                    เป้าหมายจำนวนคนเข้าร่วม (คน){" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative flex items-center">
                     <input
                       type="number"
                       min={1}
                       value={type8Attendees}
-                      onChange={(e) => setType8Attendees(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setType8Attendees(parseInt(e.target.value) || 0)
+                      }
                       disabled={readonly}
                       className="w-full h-10 pr-12 pl-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -1263,7 +1392,9 @@ export function ActivityPlanForm({
                 {!readonly && (
                   <button
                     type="button"
-                    onClick={() => removeWorkType("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")}
+                    onClick={() =>
+                      removeWorkType("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")
+                    }
                     className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -1292,7 +1423,8 @@ export function ActivityPlanForm({
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้ายอดขายจากกิจกรรม (บาท) <span className="text-red-500">*</span>
+                    เป้ายอดขายจากกิจกรรม (บาท){" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
@@ -1301,7 +1433,9 @@ export function ActivityPlanForm({
                     <input
                       type="number"
                       value={type9Sales}
-                      onChange={(e) => setType9Sales(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setType9Sales(parseFloat(e.target.value) || 0)
+                      }
                       disabled={readonly}
                       className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
@@ -1375,7 +1509,8 @@ export function ActivityPlanForm({
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    พืชเป้าหมายและสินค้าที่โชว์ผลงาน <span className="text-red-500">*</span>
+                    พืชเป้าหมายและสินค้าที่โชว์ผลงาน{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -1389,13 +1524,16 @@ export function ActivityPlanForm({
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้าหมายจำนวนผู้เข้าร่วม (คน) <span className="text-red-500">*</span>
+                    เป้าหมายจำนวนผู้เข้าร่วม (คน){" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
                     min={1}
                     value={type10Attendees}
-                    onChange={(e) => setType10Attendees(parseInt(e.target.value) || 0)}
+                    onChange={(e) =>
+                      setType10Attendees(parseInt(e.target.value) || 0)
+                    }
                     disabled={readonly}
                     className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
                   />
@@ -1412,7 +1550,9 @@ export function ActivityPlanForm({
                     <input
                       type="number"
                       value={type10BookingSales}
-                      onChange={(e) => setType10BookingSales(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setType10BookingSales(parseFloat(e.target.value) || 0)
+                      }
                       disabled={readonly}
                       className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
@@ -1486,7 +1626,8 @@ export function ActivityPlanForm({
           {/* Col 1: รายละเอียดพื้นที่จัดกิจกรรม */}
           <div className="lg:col-span-5 space-y-1">
             <label className="block text-xs font-medium text-slate-700 mb-1.5">
-              รายละเอียดพื้นที่จัดกิจกรรม <span className="text-red-500">*</span>
+              รายละเอียดพื้นที่จัดกิจกรรม{" "}
+              <span className="text-red-500">*</span>
             </label>
             <textarea
               rows={4}
@@ -1527,7 +1668,10 @@ export function ActivityPlanForm({
           {/* Col 3: ผู้ช่วยงานกิจกรรม */}
           <div className="lg:col-span-4 space-y-2">
             <label className="block text-xs font-medium text-slate-700 mb-1">
-              ผู้ช่วยงานกิจกรรม <span className="text-slate-400 text-[11px]">(เลือกได้หลายคน)</span>
+              ผู้ช่วยงานกิจกรรม{" "}
+              <span className="text-slate-400 text-[11px]">
+                (เลือกได้หลายคน)
+              </span>
             </label>
 
             {/* Employee helpers search and selection */}
@@ -1554,7 +1698,9 @@ export function ActivityPlanForm({
                     />
                     <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-xl bg-white p-1 text-xs shadow-2xl border border-slate-200 custom-scrollbar">
                       {filteredEmployees.length === 0 ? (
-                        <li className="p-3 text-slate-400 italic text-center">ไม่พบข้อมูลพนักงาน</li>
+                        <li className="p-3 text-slate-400 italic text-center">
+                          ไม่พบข้อมูลพนักงาน
+                        </li>
                       ) : (
                         filteredEmployees.map((emp) => (
                           <li
@@ -1562,9 +1708,15 @@ export function ActivityPlanForm({
                             onClick={() => addHelper(emp.id)}
                             className="cursor-pointer p-2.5 hover:bg-blue-50 rounded-lg flex items-center justify-between text-slate-700 transition-colors"
                           >
-                            <span className="font-medium text-slate-800">{emp.name}</span>
+                            <span className="font-medium text-slate-800">
+                              {emp.name}
+                            </span>
                             <span className="text-[10px] text-slate-400">
-                              ({emp.positionTitle || emp.departmentName || "พนักงาน"})
+                              (
+                              {emp.positionTitle ||
+                                emp.departmentName ||
+                                "พนักงาน"}
+                              )
                             </span>
                           </li>
                         ))
@@ -1645,7 +1797,7 @@ export function ActivityPlanForm({
                     "flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold transition-all text-left",
                     isSelected
                       ? "bg-emerald-50/60 border-emerald-500 text-emerald-800 shadow-sm"
-                      : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                      : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
                   )}
                 >
                   <div
@@ -1653,7 +1805,7 @@ export function ActivityPlanForm({
                       "w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0",
                       isSelected
                         ? "border-emerald-600 bg-emerald-600 text-white"
-                        : "border-slate-300 bg-white"
+                        : "border-slate-300 bg-white",
                     )}
                   >
                     {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
@@ -1683,7 +1835,9 @@ export function ActivityPlanForm({
                 <input
                   type="number"
                   value={extraExpenseAmount}
-                  onChange={(e) => setExtraExpenseAmount(parseFloat(e.target.value) || 0)}
+                  onChange={(e) =>
+                    setExtraExpenseAmount(parseFloat(e.target.value) || 0)
+                  }
                   disabled={readonly}
                   className="w-full h-9 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -1746,12 +1900,17 @@ export function ActivityPlanForm({
                 </th>
                 <th className="py-2.5 px-3 w-28">หน่วยนับ</th>
                 <th className="py-2.5 px-3 min-w-[200px]">รายละเอียด</th>
-                {!readonly && <th className="py-2.5 px-3 text-center w-16">จัดการ</th>}
+                {!readonly && (
+                  <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 bg-white">
               {requisitionItems.map((item, index) => (
-                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                <tr
+                  key={item.id}
+                  className="hover:bg-slate-50/50 transition-colors"
+                >
                   <td className="py-2.5 px-3 text-center font-medium text-slate-500">
                     {index + 1}
                   </td>
@@ -1760,7 +1919,11 @@ export function ActivityPlanForm({
                       type="text"
                       value={item.productName}
                       onChange={(e) =>
-                        updateRequisitionRow(item.id, "productName", e.target.value)
+                        updateRequisitionRow(
+                          item.id,
+                          "productName",
+                          e.target.value,
+                        )
                       }
                       disabled={readonly}
                       placeholder="ชื่อสินค้า..."
@@ -1776,7 +1939,7 @@ export function ActivityPlanForm({
                         updateRequisitionRow(
                           item.id,
                           "quantity",
-                          parseInt(e.target.value) || 0
+                          parseInt(e.target.value) || 0,
                         )
                       }
                       disabled={readonly}
