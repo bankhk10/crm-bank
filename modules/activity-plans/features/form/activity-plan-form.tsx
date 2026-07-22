@@ -1472,7 +1472,7 @@ export function ActivityPlanForm({
       </div>
 
       {/* SECTION 4: สถานที่และทีมงาน (Location & Team) */}
-      <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden p-5 md:p-6 space-y-5">
+      <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm p-5 md:p-6 space-y-5 relative z-20">
         <div className="flex items-center gap-2.5">
           <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
             4
@@ -1546,25 +1546,25 @@ export function ActivityPlanForm({
                   className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
 
-                {showHelperDropdown && helperSearch.trim() && (
+                {showHelperDropdown && (
                   <>
                     <div
-                      className="fixed inset-0 z-10"
+                      className="fixed inset-0 z-40"
                       onClick={() => setShowHelperDropdown(false)}
                     />
-                    <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-xl bg-white p-1 text-xs shadow-xl border border-slate-200">
+                    <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-xl bg-white p-1 text-xs shadow-2xl border border-slate-200 custom-scrollbar">
                       {filteredEmployees.length === 0 ? (
-                        <li className="p-2 text-slate-400 italic text-center">ไม่พบข้อมูล</li>
+                        <li className="p-3 text-slate-400 italic text-center">ไม่พบข้อมูลพนักงาน</li>
                       ) : (
                         filteredEmployees.map((emp) => (
                           <li
                             key={emp.id}
                             onClick={() => addHelper(emp.id)}
-                            className="cursor-pointer p-2 hover:bg-blue-50 rounded-lg flex items-center justify-between"
+                            className="cursor-pointer p-2.5 hover:bg-blue-50 rounded-lg flex items-center justify-between text-slate-700 transition-colors"
                           >
                             <span className="font-medium text-slate-800">{emp.name}</span>
                             <span className="text-[10px] text-slate-400">
-                              ({emp.positionTitle || "พนักงาน"})
+                              ({emp.positionTitle || emp.departmentName || "พนักงาน"})
                             </span>
                           </li>
                         ))
