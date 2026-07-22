@@ -129,6 +129,7 @@ interface MarketingBudgetProductItem {
 
 interface SalesPromotionItem {
   id: string;
+  budgetType: string;
   productName: string;
   quantity: number;
   unit: string;
@@ -291,6 +292,7 @@ export function ActivityPlanForm({
   const addSalesPromotionRow = () => {
     const newItem: SalesPromotionItem = {
       id: Date.now().toString(),
+      budgetType: "งบการตลาด",
       productName: DEMO_PRODUCTS[0],
       quantity: 1,
       unit: "ขวด",
@@ -552,7 +554,7 @@ export function ActivityPlanForm({
     const salesPromotionSummary = salesPromotionItems
       .map(
         (item, i) =>
-          `${i + 1}. ${item.productName} (${item.quantity} ${item.unit}) - ${item.detail}`,
+          `${i + 1}. [${item.budgetType || "งบการตลาด"}] ${item.productName} (${item.quantity} ${item.unit}) - ${item.detail}`,
       )
       .join("\n");
 
@@ -2304,14 +2306,17 @@ export function ActivityPlanForm({
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
                   <tr>
                     <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
-                    <th className="py-2.5 px-3 min-w-[200px]">
+                    <th className="py-2.5 px-3 min-w-[130px]">
+                      การใช้งบ <span className="text-red-500">*</span>
+                    </th>
+                    <th className="py-2.5 px-3 min-w-[180px]">
                       รายการสินค้า <span className="text-red-500">*</span>
                     </th>
                     <th className="py-2.5 px-3 w-24 text-center">
                       จำนวน <span className="text-red-500">*</span>
                     </th>
                     <th className="py-2.5 px-3 w-28">หน่วยนับ</th>
-                    <th className="py-2.5 px-3 min-w-[200px]">รายละเอียด</th>
+                    <th className="py-2.5 px-3 min-w-[180px]">รายละเอียด</th>
                     {!readonly && (
                       <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
                     )}
@@ -2321,7 +2326,7 @@ export function ActivityPlanForm({
                   {salesPromotionItems.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="py-4 text-center text-slate-400 italic"
                       >
                         ยังไม่มีรายการส่งเสริมการขาย กด "เพิ่มรายการ" เพื่อบันทึก
@@ -2335,6 +2340,23 @@ export function ActivityPlanForm({
                       >
                         <td className="py-2.5 px-3 text-center font-medium text-slate-500">
                           {index + 1}
+                        </td>
+                        <td className="py-2 px-3">
+                          <select
+                            value={item.budgetType || "งบการตลาด"}
+                            onChange={(e) =>
+                              updateSalesPromotionRow(
+                                item.id,
+                                "budgetType",
+                                e.target.value,
+                              )
+                            }
+                            disabled={readonly}
+                            className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                          >
+                            <option value="งบการตลาด">งบการตลาด</option>
+                            <option value="งบขาย">งบขาย</option>
+                          </select>
                         </td>
                         <td className="py-2 px-3">
                           <input
