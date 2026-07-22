@@ -120,6 +120,13 @@ interface Type9ProductItem {
   pricePerCase: number;
 }
 
+interface Type1VisitItem {
+  id: string;
+  customerName: string;
+  topic: string;
+  detail: string;
+}
+
 interface Type2ProductFollowupItem {
   id: string;
   productName: string;
@@ -133,6 +140,45 @@ interface Type3SalesItem {
   customerName: string;
   quantity: number;
   price: number;
+  detail: string;
+}
+
+interface Type4CollectItem {
+  id: string;
+  customerName: string;
+  collectAmount: number;
+  detail: string;
+}
+
+interface Type5SurveyItem {
+  id: string;
+  competitorBrand: string;
+  comparedProduct: string;
+  storeCount: number;
+  detail: string;
+}
+
+interface Type6IssueItem {
+  id: string;
+  customerName: string;
+  issueType: string;
+  detail: string;
+}
+
+interface Type7DemoPlotItem {
+  id: string;
+  ownerName: string;
+  productName: string;
+  cropCategory: string;
+  cropName: string;
+  plotsCount: number;
+  detail: string;
+}
+
+interface Type8MeetingItem {
+  id: string;
+  topic: string;
+  attendeesCount: number;
   detail: string;
 }
 
@@ -269,25 +315,158 @@ export function ActivityPlanForm({
     setType3Items((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const [type4Customers, setType4Customers] = useState("");
-  const [type4CollectAmount, setType4CollectAmount] = useState<number>(0);
+  // Work Type 4: วางบิล / เก็บเงิน
+  const [type4Items, setType4Items] = useState<Type4CollectItem[]>([
+    {
+      id: "1",
+      customerName: DEMO_OWNERS[0] || "",
+      collectAmount: 0,
+      detail: "",
+    },
+  ]);
+  const addType4Row = () => {
+    setType4Items((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        customerName: DEMO_OWNERS[0] || "",
+        collectAmount: 0,
+        detail: "",
+      },
+    ]);
+  };
+  const updateType4Row = (id: string, field: keyof Type4CollectItem, val: any) => {
+    setType4Items((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+  const deleteType4Row = (id: string) => {
+    setType4Items((prev) => prev.filter((item) => item.id !== id));
+  };
 
-  const [type5Brand, setType5Brand] = useState("");
-  const [type5Product, setType5Product] = useState("");
-  const [type5StoreCount, setType5StoreCount] = useState<number>(0);
+  // Work Type 5: สำรวจตลาดของคู่แข่ง
+  const [type5Items, setType5Items] = useState<Type5SurveyItem[]>([
+    {
+      id: "1",
+      competitorBrand: "",
+      comparedProduct: DEMO_PRODUCTS[0] || "",
+      storeCount: 1,
+      detail: "",
+    },
+  ]);
+  const addType5Row = () => {
+    setType5Items((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        competitorBrand: "",
+        comparedProduct: DEMO_PRODUCTS[0] || "",
+        storeCount: 1,
+        detail: "",
+      },
+    ]);
+  };
+  const updateType5Row = (id: string, field: keyof Type5SurveyItem, val: any) => {
+    setType5Items((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+  const deleteType5Row = (id: string) => {
+    setType5Items((prev) => prev.filter((item) => item.id !== id));
+  };
 
-  const [type6Customers, setType6Customers] = useState("");
-  const [type6IssueType, setType6IssueType] = useState("เคลมของ");
+  // Work Type 6: แก้ปัญหา / รับเรื่องร้องเรียน
+  const [type6Items, setType6Items] = useState<Type6IssueItem[]>([
+    {
+      id: "1",
+      customerName: DEMO_OWNERS[0] || "",
+      issueType: "เคลมของ",
+      detail: "",
+    },
+  ]);
+  const addType6Row = () => {
+    setType6Items((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        customerName: DEMO_OWNERS[0] || "",
+        issueType: "เคลมของ",
+        detail: "",
+      },
+    ]);
+  };
+  const updateType6Row = (id: string, field: keyof Type6IssueItem, val: any) => {
+    setType6Items((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+  const deleteType6Row = (id: string) => {
+    setType6Items((prev) => prev.filter((item) => item.id !== id));
+  };
 
-  const [type7Owner, setType7Owner] = useState("");
-  const [type7Product, setType7Product] = useState("");
-  const [type7CropCategory, setType7CropCategory] = useState("พืชไร่");
-  const [type7Crop, setType7Crop] = useState("ทุเรียน");
-  const [type7Plots, setType7Plots] = useState<number>(0);
-  const [type7Trees, setType7Trees] = useState<number>(0);
+  // Work Type 7: ติดตามแปลงสาธิต / พืชเป้าหมาย
+  const [type7Items, setType7Items] = useState<Type7DemoPlotItem[]>([
+    {
+      id: "1",
+      ownerName: DEMO_OWNERS[0] || "",
+      productName: DEMO_PRODUCTS[0] || "",
+      cropCategory: "ไม้ผล",
+      cropName: "ทุเรียน",
+      plotsCount: 1,
+      detail: "",
+    },
+  ]);
+  const addType7Row = () => {
+    setType7Items((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        ownerName: DEMO_OWNERS[0] || "",
+        productName: DEMO_PRODUCTS[0] || "",
+        cropCategory: "ไม้ผล",
+        cropName: "ทุเรียน",
+        plotsCount: 1,
+        detail: "",
+      },
+    ]);
+  };
+  const updateType7Row = (id: string, field: keyof Type7DemoPlotItem, val: any) => {
+    setType7Items((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+  const deleteType7Row = (id: string) => {
+    setType7Items((prev) => prev.filter((item) => item.id !== id));
+  };
 
-  const [type8Topic, setType8Topic] = useState("");
-  const [type8Attendees, setType8Attendees] = useState<number>(0);
+  // Work Type 8: จัดประชุมเกษตรกร / ร้านค้า
+  const [type8Items, setType8Items] = useState<Type8MeetingItem[]>([
+    {
+      id: "1",
+      topic: "",
+      attendeesCount: 10,
+      detail: "",
+    },
+  ]);
+  const addType8Row = () => {
+    setType8Items((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        topic: "",
+        attendeesCount: 10,
+        detail: "",
+      },
+    ]);
+  };
+  const updateType8Row = (id: string, field: keyof Type8MeetingItem, val: any) => {
+    setType8Items((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+  const deleteType8Row = (id: string) => {
+    setType8Items((prev) => prev.filter((item) => item.id !== id));
+  };
 
   const [type9Store, setType9Store] = useState("");
   const [type9Sales, setType9Sales] = useState<number>(0);
@@ -577,34 +756,64 @@ export function ActivityPlanForm({
     }
 
     if (selectedWorkTypes.includes("วางบิล / เก็บเงิน")) {
+      const collectSummary = type4Items
+        .map(
+          (item, i) =>
+            `${i + 1}. ลูกค้า: ${item.customerName} | เป้ายอดเก็บเงิน: ฿${(item.collectAmount || 0).toLocaleString()}${item.detail ? ` (${item.detail})` : ""}`,
+        )
+        .join(", ");
       summaryParts.push(
-        `[วางบิล/เก็บเงิน] ลูกค้า: ${type4Customers} | เป้ายอดเก็บเงิน: ${type4CollectAmount.toLocaleString()} บาท`,
+        `[วางบิล/เก็บเงิน] รายการวางบิล (${type4Items.length} รายการ): ${collectSummary || "ไม่มีรายการ"}`,
       );
     }
 
     if (selectedWorkTypes.includes("สำรวจตลาดของคู่แข่ง")) {
+      const surveySummary = type5Items
+        .map(
+          (item, i) =>
+            `${i + 1}. แบรนด์: ${item.competitorBrand} | สินค้าเทียบ: ${item.comparedProduct} | เป้าหมายร้านค้า: ${item.storeCount} แห่ง${item.detail ? ` (${item.detail})` : ""}`,
+        )
+        .join(", ");
       summaryParts.push(
-        `[สำรวจตลาดคู่แข่ง] แบรนด์: ${type5Brand} | สินค้าเทียบ: ${type5Product} | เป้าหมายร้านค้า: ${type5StoreCount} แห่ง`,
+        `[สำรวจตลาดคู่แข่ง] รายการสำรวจ (${type5Items.length} รายการ): ${surveySummary || "ไม่มีรายการ"}`,
       );
     }
 
     if (selectedWorkTypes.includes("แก้ปัญหา / รับเรื่องร้องเรียน")) {
+      const issueSummary = type6Items
+        .map(
+          (item, i) =>
+            `${i + 1}. ลูกค้า: ${item.customerName} | ประเภทปัญหา: ${item.issueType}${item.detail ? ` (${item.detail})` : ""}`,
+        )
+        .join(", ");
       summaryParts.push(
-        `[แก้ปัญหา/ร้องเรียน] ลูกค้า: ${type6Customers} | ประเภทปัญหา: ${type6IssueType}`,
+        `[แก้ปัญหา/ร้องเรียน] รายการร้องเรียน (${type6Items.length} รายการ): ${issueSummary || "ไม่มีรายการ"}`,
       );
     }
 
     if (selectedWorkTypes.includes("ติดตามแปลงสาธิต / พืชเป้าหมาย")) {
+      const demoSummary = type7Items
+        .map(
+          (item, i) =>
+            `${i + 1}. เจ้าของ: ${item.ownerName} | สินค้า: ${item.productName} | หมวดพืช: ${item.cropCategory} (${item.cropName}) | จำนวน: ${item.plotsCount} แปลง/ต้น${item.detail ? ` (${item.detail})` : ""}`,
+        )
+        .join(", ");
       summaryParts.push(
-        `[ติดตามแปลงสาธิต] เจ้าของ: ${type7Owner} | สินค้า: ${type7Product} | พืช: ${type7CropCategory} (${type7Crop}) | เป้าหมาย: ${type7Plots} แปลง (${type7Trees} ต้น)`,
+        `[ติดตามแปลงสาธิต] รายการแปลงสาธิต (${type7Items.length} รายการ): ${demoSummary || "ไม่มีรายการ"}`,
       );
     }
 
     if (
       selectedWorkTypes.includes("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")
     ) {
+      const meetingSummary = type8Items
+        .map(
+          (item, i) =>
+            `${i + 1}. หัวข้อ: ${item.topic} | ผู้เข้าร่วม: ${item.attendeesCount} คน${item.detail ? ` (${item.detail})` : ""}`,
+        )
+        .join(", ");
       summaryParts.push(
-        `[จัดประชุม] หัวข้อ: ${type8Topic} | เป้าหมายผู้เข้าร่วม: ${type8Attendees} คน`,
+        `[จัดประชุม] รายการประชุม (${type8Items.length} รายการ): ${meetingSummary || "ไม่มีรายการ"}`,
       );
     }
 
@@ -1431,44 +1640,132 @@ export function ActivityPlanForm({
                   <Receipt className="h-4 w-4 text-amber-600" />
                   <span>วางบิล / เก็บเงิน</span>
                 </div>
+
+                {!readonly && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={addType4Row}
+                    className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    เพิ่มรายการ
+                  </Button>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    รายชื่อลูกค้า / ร้านค้า{" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={type4Customers}
-                    onChange={(e) => setType4Customers(e.target.value)}
-                    disabled={readonly}
-                    placeholder="เช่น ร้านทดสอบ สาขา 1"
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้ายอดเก็บเงินรวม (บาท){" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-                      ฿
-                    </span>
-                    <input
-                      type="number"
-                      value={type4CollectAmount}
-                      onChange={(e) =>
-                        setType4CollectAmount(parseFloat(e.target.value) || 0)
-                      }
-                      disabled={readonly}
-                      className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    />
-                  </div>
-                </div>
+              <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                    <tr>
+                      <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
+                      <th className="py-2.5 px-3 min-w-[180px]">
+                        รายชื่อลูกค้า / ร้านค้า <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 w-36 text-center">
+                        เป้ายอดเก็บเงิน (บาท) <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 min-w-[180px]">รายละเอียดเพิ่มเติม</th>
+                      {!readonly && (
+                        <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 bg-white">
+                    {type4Items.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-4 text-center text-slate-400 italic">
+                          ยังไม่มีรายการวางบิล กด "เพิ่มรายการ" เพื่อบันทึก
+                        </td>
+                      </tr>
+                    ) : (
+                      type4Items.map((item, index) => (
+                        <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="py-2.5 px-3 text-center font-medium text-slate-500">
+                            {index + 1}
+                          </td>
+                          <td className="py-2 px-3">
+                            <select
+                              value={item.customerName}
+                              onChange={(e) =>
+                                updateType4Row(item.id, "customerName", e.target.value)
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+                            >
+                              <option value="">-- เลือกร้านค้า --</option>
+                              {DEMO_OWNERS.map((owner) => (
+                                <option key={owner} value={owner}>
+                                  {owner}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="py-2 px-3">
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-2 text-slate-400 text-[11px]">
+                                ฿
+                              </span>
+                              <input
+                                type="number"
+                                min={0}
+                                value={item.collectAmount}
+                                onChange={(e) =>
+                                  updateType4Row(
+                                    item.id,
+                                    "collectAmount",
+                                    parseFloat(e.target.value) || 0,
+                                  )
+                                }
+                                disabled={readonly}
+                                placeholder="0"
+                                className="w-full h-8 pl-6 pr-2 rounded-md border border-slate-200 text-xs text-slate-800 text-right font-medium focus:outline-none focus:ring-2 focus:ring-amber-500"
+                              />
+                            </div>
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              value={item.detail}
+                              onChange={(e) =>
+                                updateType4Row(item.id, "detail", e.target.value)
+                              }
+                              disabled={readonly}
+                              placeholder="ระบุรายละเอียด..."
+                              className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            />
+                          </td>
+                          {!readonly && (
+                            <td className="py-2 px-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => deleteType4Row(item.id)}
+                                className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                  {type4Items.length > 0 && (
+                    <tfoot className="bg-amber-50/80 border-t-2 border-amber-200 text-xs font-bold text-amber-900">
+                      <tr>
+                        <td colSpan={2} className="py-2.5 px-3 text-right">
+                          รวมเป้ายอดเก็บเงินทั้งสิ้น:
+                        </td>
+                        <td className="py-2.5 px-3 text-right text-amber-700 font-extrabold">
+                          ฿ {type4Items
+                            .reduce((sum, item) => sum + (item.collectAmount || 0), 0)
+                            .toLocaleString()}
+                        </td>
+                        <td colSpan={readonly ? 2 : 1}></td>
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
               </div>
             </div>
           )}
@@ -1481,59 +1778,121 @@ export function ActivityPlanForm({
                   <BarChart2 className="h-4 w-4 text-purple-600" />
                   <span>สำรวจตลาดของคู่แข่ง</span>
                 </div>
+
+                {!readonly && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={addType5Row}
+                    className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    เพิ่มรายการ
+                  </Button>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    แบรนด์คู่แข่ง <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={type5Brand}
-                    onChange={(e) => setType5Brand(e.target.value)}
-                    disabled={readonly}
-                    placeholder="เช่น แบรนด์ X"
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    สินค้าที่นำไปเปรียบเทียบ{" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={type5Product}
-                    onChange={(e) => setType5Product(e.target.value)}
-                    disabled={readonly}
-                    placeholder="เช่น สินค้าสูตร A"
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้าหมายจำนวนร้านค้า (แห่ง){" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="number"
-                      min={1}
-                      value={type5StoreCount}
-                      onChange={(e) =>
-                        setType5StoreCount(parseInt(e.target.value) || 0)
-                      }
-                      disabled={readonly}
-                      className="w-full h-10 pr-14 pl-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                    <span className="absolute right-3 text-xs text-slate-400 font-medium">
-                      แห่ง
-                    </span>
-                  </div>
-                </div>
+              <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                    <tr>
+                      <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
+                      <th className="py-2.5 px-3 min-w-[160px]">
+                        แบรนด์คู่แข่ง <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 min-w-[180px]">
+                        สินค้าที่นำไปเปรียบเทียบ <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 w-32 text-center">
+                        เป้าร้านค้า (แห่ง) <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 min-w-[180px]">รายละเอียดเพิ่มเติม</th>
+                      {!readonly && (
+                        <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 bg-white">
+                    {type5Items.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-4 text-center text-slate-400 italic">
+                          ยังไม่มีรายการสำรวจ กด "เพิ่มรายการ" เพื่อบันทึก
+                        </td>
+                      </tr>
+                    ) : (
+                      type5Items.map((item, index) => (
+                        <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="py-2.5 px-3 text-center font-medium text-slate-500">
+                            {index + 1}
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              value={item.competitorBrand}
+                              onChange={(e) =>
+                                updateType5Row(item.id, "competitorBrand", e.target.value)
+                              }
+                              disabled={readonly}
+                              placeholder="เช่น แบรนด์ X"
+                              className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            />
+                          </td>
+                          <td className="py-2 px-3">
+                            <select
+                              value={item.comparedProduct}
+                              onChange={(e) =>
+                                updateType5Row(item.id, "comparedProduct", e.target.value)
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium"
+                            >
+                              {DEMO_PRODUCTS.map((prod) => (
+                                <option key={prod} value={prod}>
+                                  {prod}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="number"
+                              min={1}
+                              value={item.storeCount}
+                              onChange={(e) =>
+                                updateType5Row(item.id, "storeCount", parseInt(e.target.value) || 0)
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            />
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              value={item.detail}
+                              onChange={(e) =>
+                                updateType5Row(item.id, "detail", e.target.value)
+                              }
+                              disabled={readonly}
+                              placeholder="ระบุรายละเอียด..."
+                              className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            />
+                          </td>
+                          {!readonly && (
+                            <td className="py-2 px-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => deleteType5Row(item.id)}
+                                className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
@@ -1546,41 +1905,111 @@ export function ActivityPlanForm({
                   <HelpCircle className="h-4 w-4 text-rose-600" />
                   <span>แก้ปัญหา / รับเรื่องร้องเรียน</span>
                 </div>
+
+                {!readonly && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={addType6Row}
+                    className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    เพิ่มรายการ
+                  </Button>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    รายชื่อลูกค้า / ร้านค้า{" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={type6Customers}
-                    onChange={(e) => setType6Customers(e.target.value)}
-                    disabled={readonly}
-                    placeholder="เช่น ร้านสหายพานิช"
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    ประเภทปัญหา <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={type6IssueType}
-                    onChange={(e) => setType6IssueType(e.target.value)}
-                    disabled={readonly}
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  >
-                    <option value="เคลมของ">เคลมของ</option>
-                    <option value="ฉีดยาแล้วพืชเสียหาย">
-                      ฉีดยาแล้วพืชเสียหาย
-                    </option>
-                    <option value="อื่นๆ">อื่นๆ</option>
-                  </select>
-                </div>
+              <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                    <tr>
+                      <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
+                      <th className="py-2.5 px-3 min-w-[180px]">
+                        รายชื่อลูกค้า / ร้านค้า <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 min-w-[160px]">
+                        ประเภทปัญหา <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 min-w-[200px]">รายละเอียดเพิ่มเติม</th>
+                      {!readonly && (
+                        <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 bg-white">
+                    {type6Items.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-4 text-center text-slate-400 italic">
+                          ยังไม่มีรายการร้องเรียน กด "เพิ่มรายการ" เพื่อบันทึก
+                        </td>
+                      </tr>
+                    ) : (
+                      type6Items.map((item, index) => (
+                        <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="py-2.5 px-3 text-center font-medium text-slate-500">
+                            {index + 1}
+                          </td>
+                          <td className="py-2 px-3">
+                            <select
+                              value={item.customerName}
+                              onChange={(e) =>
+                                updateType6Row(item.id, "customerName", e.target.value)
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 font-medium"
+                            >
+                              <option value="">-- เลือกร้านค้า / เกษตรกร --</option>
+                              {DEMO_OWNERS.map((owner) => (
+                                <option key={owner} value={owner}>
+                                  {owner}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="py-2 px-3">
+                            <select
+                              value={item.issueType}
+                              onChange={(e) =>
+                                updateType6Row(item.id, "issueType", e.target.value)
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 font-medium"
+                            >
+                              <option value="เคลมของ">เคลมของ</option>
+                              <option value="ฉีดยาแล้วพืชเสียหาย">
+                                ฉีดยาแล้วพืชเสียหาย
+                              </option>
+                              <option value="อื่นๆ">อื่นๆ</option>
+                            </select>
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              value={item.detail}
+                              onChange={(e) =>
+                                updateType6Row(item.id, "detail", e.target.value)
+                              }
+                              disabled={readonly}
+                              placeholder="ระบุรายละเอียด..."
+                              className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                            />
+                          </td>
+                          {!readonly && (
+                            <td className="py-2 px-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => deleteType6Row(item.id)}
+                                className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
@@ -1593,124 +2022,159 @@ export function ActivityPlanForm({
                   <Sprout className="h-4 w-4 text-emerald-600" />
                   <span>ติดตามแปลงสาธิต / พืชเป้าหมาย</span>
                 </div>
+
+                {!readonly && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={addType7Row}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    เพิ่มรายการ
+                  </Button>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เจ้าของแปลง <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={type7Owner}
-                    onChange={(e) => setType7Owner(e.target.value)}
-                    disabled={readonly}
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  >
-                    {DEMO_OWNERS.map((owner) => (
-                      <option key={owner} value={owner}>
-                        {owner}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    สินค้าที่จะสาธิต <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={type7Product}
-                    onChange={(e) => setType7Product(e.target.value)}
-                    disabled={readonly}
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  >
-                    {DEMO_PRODUCTS.map((prod) => (
-                      <option key={prod} value={prod}>
-                        {prod}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    ประเภทพืชเป้าหมาย <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={type7CropCategory}
-                    onChange={(e) => setType7CropCategory(e.target.value)}
-                    disabled={readonly}
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  >
-                    {CROP_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เลือกพืช <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={type7Crop}
-                    onChange={(e) => setType7Crop(e.target.value)}
-                    disabled={readonly}
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  >
-                    {TARGET_CROPS.map((crop) => (
-                      <option key={crop} value={crop}>
-                        {crop}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้าหมายจำนวนแปลง (แปลง){" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="number"
-                      min={1}
-                      value={type7Plots}
-                      onChange={(e) =>
-                        setType7Plots(parseInt(e.target.value) || 0)
-                      }
-                      disabled={readonly}
-                      className="w-full h-10 pr-14 pl-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                    <span className="absolute right-3 text-xs text-slate-400 font-medium">
-                      แปลง
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้าหมายจำนวนต้น (ต้น){" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="number"
-                      min={1}
-                      value={type7Trees}
-                      onChange={(e) =>
-                        setType7Trees(parseInt(e.target.value) || 0)
-                      }
-                      disabled={readonly}
-                      className="w-full h-10 pr-12 pl-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                    <span className="absolute right-3 text-xs text-slate-400 font-medium">
-                      ต้น
-                    </span>
-                  </div>
-                </div>
+              <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                    <tr>
+                      <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
+                      <th className="py-2.5 px-3 min-w-[160px]">
+                        เจ้าของแปลง <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 min-w-[160px]">
+                        สินค้าที่จะสาธิต <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 min-w-[120px]">หมวดพืช</th>
+                      <th className="py-2.5 px-3 min-w-[120px]">ชื่อพืช</th>
+                      <th className="py-2.5 px-3 w-28 text-center">
+                        แปลง/ต้น <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 min-w-[160px]">รายละเอียดเพิ่มเติม</th>
+                      {!readonly && (
+                        <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 bg-white">
+                    {type7Items.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="py-4 text-center text-slate-400 italic">
+                          ยังไม่มีรายการแปลงสาธิต กด "เพิ่มรายการ" เพื่อบันทึก
+                        </td>
+                      </tr>
+                    ) : (
+                      type7Items.map((item, index) => (
+                        <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="py-2.5 px-3 text-center font-medium text-slate-500">
+                            {index + 1}
+                          </td>
+                          <td className="py-2 px-3">
+                            <select
+                              value={item.ownerName}
+                              onChange={(e) =>
+                                updateType7Row(item.id, "ownerName", e.target.value)
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                            >
+                              {DEMO_OWNERS.map((owner) => (
+                                <option key={owner} value={owner}>
+                                  {owner}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="py-2 px-3">
+                            <select
+                              value={item.productName}
+                              onChange={(e) =>
+                                updateType7Row(item.id, "productName", e.target.value)
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                            >
+                              {DEMO_PRODUCTS.map((prod) => (
+                                <option key={prod} value={prod}>
+                                  {prod}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="py-2 px-3">
+                            <select
+                              value={item.cropCategory}
+                              onChange={(e) =>
+                                updateType7Row(item.id, "cropCategory", e.target.value)
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                            >
+                              {CROP_CATEGORIES.map((cat) => (
+                                <option key={cat} value={cat}>
+                                  {cat}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="py-2 px-3">
+                            <select
+                              value={item.cropName}
+                              onChange={(e) =>
+                                updateType7Row(item.id, "cropName", e.target.value)
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                            >
+                              {TARGET_CROPS.map((crop) => (
+                                <option key={crop} value={crop}>
+                                  {crop}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="number"
+                              min={1}
+                              value={item.plotsCount}
+                              onChange={(e) =>
+                                updateType7Row(item.id, "plotsCount", parseInt(e.target.value) || 0)
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            />
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              value={item.detail}
+                              onChange={(e) =>
+                                updateType7Row(item.id, "detail", e.target.value)
+                              }
+                              disabled={readonly}
+                              placeholder="ระบุรายละเอียด..."
+                              className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            />
+                          </td>
+                          {!readonly && (
+                            <td className="py-2 px-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => deleteType7Row(item.id)}
+                                className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
@@ -1725,44 +2189,118 @@ export function ActivityPlanForm({
                   <Users className="h-4 w-4 text-blue-600" />
                   <span>จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์</span>
                 </div>
+
+                {!readonly && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={addType8Row}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    เพิ่มรายการ
+                  </Button>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    หัวข้อที่จะประชุม <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={type8Topic}
-                    onChange={(e) => setType8Topic(e.target.value)}
-                    disabled={readonly}
-                    placeholder="เช่น ประชุมวางแผนฤดูกาลเพาะปลูก"
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้าหมายจำนวนคนเข้าร่วม (คน){" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="number"
-                      min={1}
-                      value={type8Attendees}
-                      onChange={(e) =>
-                        setType8Attendees(parseInt(e.target.value) || 0)
-                      }
-                      disabled={readonly}
-                      className="w-full h-10 pr-12 pl-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="absolute right-3 text-xs text-slate-400 font-medium">
-                      คน
-                    </span>
-                  </div>
-                </div>
+              <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                    <tr>
+                      <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
+                      <th className="py-2.5 px-3 min-w-[200px]">
+                        หัวข้อที่จะประชุม <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 w-36 text-center">
+                        เป้าหมายผู้เข้าร่วม (คน) <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 min-w-[180px]">รายละเอียดเพิ่มเติม</th>
+                      {!readonly && (
+                        <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 bg-white">
+                    {type8Items.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-4 text-center text-slate-400 italic">
+                          ยังไม่มีรายการประชุม กด "เพิ่มรายการ" เพื่อบันทึก
+                        </td>
+                      </tr>
+                    ) : (
+                      type8Items.map((item, index) => (
+                        <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="py-2.5 px-3 text-center font-medium text-slate-500">
+                            {index + 1}
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              value={item.topic}
+                              onChange={(e) =>
+                                updateType8Row(item.id, "topic", e.target.value)
+                              }
+                              disabled={readonly}
+                              placeholder="เช่น ประชุมวางแผนฤดูกาลเพาะปลูก"
+                              className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="number"
+                              min={1}
+                              value={item.attendeesCount}
+                              onChange={(e) =>
+                                updateType8Row(item.id, "attendeesCount", parseInt(e.target.value) || 0)
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              value={item.detail}
+                              onChange={(e) =>
+                                updateType8Row(item.id, "detail", e.target.value)
+                              }
+                              disabled={readonly}
+                              placeholder="ระบุรายละเอียด..."
+                              className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </td>
+                          {!readonly && (
+                            <td className="py-2 px-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => deleteType8Row(item.id)}
+                                className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                  {type8Items.length > 0 && (
+                    <tfoot className="bg-blue-50/80 border-t-2 border-blue-200 text-xs font-bold text-blue-900">
+                      <tr>
+                        <td colSpan={2} className="py-2.5 px-3 text-right">
+                          รวมเป้าหมายผู้เข้าร่วมทั้งสิ้น:
+                        </td>
+                        <td className="py-2.5 px-3 text-center text-blue-700 font-extrabold">
+                          {type8Items
+                            .reduce((sum, item) => sum + (item.attendeesCount || 0), 0)
+                            .toLocaleString()}{" "}
+                          คน
+                        </td>
+                        <td colSpan={readonly ? 2 : 1}></td>
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
               </div>
             </div>
           )}
