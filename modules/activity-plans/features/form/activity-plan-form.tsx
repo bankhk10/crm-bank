@@ -127,6 +127,15 @@ interface Type2ProductFollowupItem {
   detail: string;
 }
 
+interface Type3SalesItem {
+  id: string;
+  productName: string;
+  customerName: string;
+  quantity: number;
+  price: number;
+  detail: string;
+}
+
 interface MarketingBudgetProductItem {
   id: string;
   productName: string;
@@ -223,9 +232,42 @@ export function ActivityPlanForm({
     setType2Items((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const [type3ProductList, setType3ProductList] = useState("");
-  const [type3TargetSales, setType3TargetSales] = useState<number>(0);
-  const [type3TargetQty, setType3TargetQty] = useState<number>(0);
+  const [type3Items, setType3Items] = useState<Type3SalesItem[]>([
+    {
+      id: "1",
+      productName: DEMO_PRODUCTS[0] || "",
+      customerName: DEMO_OWNERS[0] || "",
+      quantity: 1,
+      price: 0,
+      detail: "",
+    },
+  ]);
+
+  const addType3Row = () => {
+    const newItem: Type3SalesItem = {
+      id: Date.now().toString(),
+      productName: DEMO_PRODUCTS[0] || "",
+      customerName: DEMO_OWNERS[0] || "",
+      quantity: 1,
+      price: 0,
+      detail: "",
+    };
+    setType3Items((prev) => [...prev, newItem]);
+  };
+
+  const updateType3Row = (
+    id: string,
+    field: keyof Type3SalesItem,
+    val: any,
+  ) => {
+    setType3Items((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+
+  const deleteType3Row = (id: string) => {
+    setType3Items((prev) => prev.filter((item) => item.id !== id));
+  };
 
   const [type4Customers, setType4Customers] = useState("");
   const [type4CollectAmount, setType4CollectAmount] = useState<number>(0);
@@ -523,8 +565,14 @@ export function ActivityPlanForm({
     }
 
     if (selectedWorkTypes.includes("เสนอขายสินค้า")) {
+      const salesSummary = type3Items
+        .map(
+          (item, i) =>
+            `${i + 1}. สินค้า: ${item.productName} | ลูกค้า/ร้านค้า: ${item.customerName} | จำนวน: ${item.quantity} | ราคา: ฿${(item.price || 0).toLocaleString()}${item.detail ? ` (${item.detail})` : ""}`,
+        )
+        .join(", ");
       summaryParts.push(
-        `[เสนอขายสินค้า] สินค้า: ${type3ProductList} | เป้ายอดขาย: ${type3TargetSales.toLocaleString()} บาท (${type3TargetQty} หน่วย)`,
+        `[เสนอขายสินค้า] รายการเสนอขาย (${type3Items.length} รายการ): ${salesSummary || "ไม่มีรายการ"}`,
       );
     }
 
@@ -1197,60 +1245,180 @@ export function ActivityPlanForm({
                   <ShoppingCart className="h-4 w-4 text-emerald-600" />
                   <span>เสนอขายสินค้า</span>
                 </div>
+
+                {!readonly && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={addType3Row}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    เพิ่มรายการ
+                  </Button>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    รายการสินค้าที่จะเสนอขาย{" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={type3ProductList}
-                    onChange={(e) => setType3ProductList(e.target.value)}
-                    disabled={readonly}
-                    placeholder="เช่น สินค้าทดสอบ A, สินค้าทดสอบ B"
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้ายอดขาย (บาท) <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-                      ฿
-                    </span>
-                    <input
-                      type="number"
-                      value={type3TargetSales}
-                      onChange={(e) =>
-                        setType3TargetSales(parseFloat(e.target.value) || 0)
-                      }
-                      disabled={readonly}
-                      className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้าปริมาณขาย (หน่วย){" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={type3TargetQty}
-                    onChange={(e) =>
-                      setType3TargetQty(parseInt(e.target.value) || 0)
-                    }
-                    disabled={readonly}
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
+              {/* Dynamic Sales Proposal Table */}
+              <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                    <tr>
+                      <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
+                      <th className="py-2.5 px-3 min-w-[180px]">
+                        สินค้าที่จะเสนอขาย{" "}
+                        <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 min-w-[180px]">
+                        รายชื่อลูกค้า / ร้านค้า / เจ้าของแปลง{" "}
+                        <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 w-24 text-center">
+                        จำนวน <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 w-32 text-center">
+                        ราคา (บาท) <span className="text-red-500">*</span>
+                      </th>
+                      <th className="py-2.5 px-3 min-w-[180px]">
+                        รายละเอียดเพิ่มเติม
+                      </th>
+                      {!readonly && (
+                        <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 bg-white">
+                    {type3Items.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="py-4 text-center text-slate-400 italic"
+                        >
+                          ยังไม่มีรายการเสนอขาย กด "เพิ่มรายการ" เพื่อบันทึก
+                        </td>
+                      </tr>
+                    ) : (
+                      type3Items.map((item, index) => (
+                        <tr
+                          key={item.id}
+                          className="hover:bg-slate-50/50 transition-colors"
+                        >
+                          <td className="py-2.5 px-3 text-center font-medium text-slate-500">
+                            {index + 1}
+                          </td>
+                          <td className="py-2 px-3">
+                            <select
+                              value={item.productName}
+                              onChange={(e) =>
+                                updateType3Row(
+                                  item.id,
+                                  "productName",
+                                  e.target.value,
+                                )
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                            >
+                              {DEMO_PRODUCTS.map((prod) => (
+                                <option key={prod} value={prod}>
+                                  {prod}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="py-2 px-3">
+                            <select
+                              value={item.customerName}
+                              onChange={(e) =>
+                                updateType3Row(
+                                  item.id,
+                                  "customerName",
+                                  e.target.value,
+                                )
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                            >
+                              <option value="">
+                                -- เลือกร้านค้า / เจ้าของแปลง --
+                              </option>
+                              {DEMO_OWNERS.map((owner) => (
+                                <option key={owner} value={owner}>
+                                  {owner}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="number"
+                              min={1}
+                              value={item.quantity}
+                              onChange={(e) =>
+                                updateType3Row(
+                                  item.id,
+                                  "quantity",
+                                  parseInt(e.target.value) || 0,
+                                )
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            />
+                          </td>
+                          <td className="py-2 px-3">
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-2 text-slate-400 text-[11px]">
+                                ฿
+                              </span>
+                              <input
+                                type="number"
+                                min={0}
+                                value={item.price}
+                                onChange={(e) =>
+                                  updateType3Row(
+                                    item.id,
+                                    "price",
+                                    parseFloat(e.target.value) || 0,
+                                  )
+                                }
+                                disabled={readonly}
+                                placeholder="0"
+                                className="w-full h-8 pl-6 pr-2 rounded-md border border-slate-200 text-xs text-slate-800 text-right font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              />
+                            </div>
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              value={item.detail}
+                              onChange={(e) =>
+                                updateType3Row(
+                                  item.id,
+                                  "detail",
+                                  e.target.value,
+                                )
+                              }
+                              disabled={readonly}
+                              placeholder="ระบุรายละเอียด..."
+                              className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            />
+                          </td>
+                          {!readonly && (
+                            <td className="py-2 px-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => deleteType3Row(item.id)}
+                                className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
@@ -2211,7 +2379,6 @@ export function ActivityPlanForm({
                             0,
                           )
                         : type9Sales) ||
-                      type3TargetSales ||
                       type10BookingSales ||
                       0
                     }
@@ -2237,7 +2404,6 @@ export function ActivityPlanForm({
                               0,
                             )
                           : type9Sales) ||
-                        type3TargetSales ||
                         type10BookingSales ||
                         0;
                       const budgetSum =
