@@ -1780,18 +1780,6 @@ export function ActivityPlanForm({
               </div>
             </div>
           )}
-
-          {/* Button: + เพิ่มประเภทงาน */}
-          {!readonly && (
-            <button
-              type="button"
-              onClick={() => setIsWorkTypesDropdownOpen(true)}
-              className="w-full py-2.5 border border-dashed border-slate-300 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-semibold text-center flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <Plus className="h-4 w-4 text-slate-500" />
-              <span>เพิ่มประเภทงาน</span>
-            </button>
-          )}
         </div>
       </div>
 
