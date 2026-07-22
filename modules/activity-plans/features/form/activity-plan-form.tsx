@@ -1620,7 +1620,7 @@ export function ActivityPlanForm({
               </div>
             </div>
             {/* Col 1: รายละเอียดพื้นที่จัดกิจกรรม */}
-            <div className="lg:col-span-5 space-y-1">
+            <div className="lg:col-span-full space-y-1">
               <label className="block text-xs font-medium text-slate-700 mb-1.5">
                 รายละเอียดพื้นที่จัดกิจกรรม{" "}
                 <span className="text-red-500">*</span>
