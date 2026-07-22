@@ -110,7 +110,7 @@ export function ActivityPlanForm({
   const initEnd = parseInitialDate(initial.endDate);
 
   // Form Basic State
-  const [title, setTitle] = useState(initial.title ?? "แปลงสาธิตของบ้าหนาน");
+  const [title, setTitle] = useState(initial.title ?? "");
   const [startDate, setStartDate] = useState(initStart.dateStr);
   const [startTime, setStartTime] = useState(initStart.timeStr);
   const [endDate, setEndDate] = useState(initEnd.dateStr);
@@ -119,62 +119,59 @@ export function ActivityPlanForm({
   // Work types selection state
   const initialTypes = initial.activityType
     ? initial.activityType.split(",").map((s) => s.trim()).filter(Boolean)
-    : ["ติดตามแปลงสาธิต / พืชเป้าหมาย", "จัดกิจกรรมส่งเสริมการขายหน้าร้าน"];
+    : [];
   const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>(initialTypes);
   const [isWorkTypesDropdownOpen, setIsWorkTypesDropdownOpen] = useState(false);
   const workTypesDropdownRef = useRef<HTMLDivElement>(null);
 
   // State for all 11 Work Type Objective Forms
-  const [type1Topics, setType1Topics] = useState<string[]>(["แจ้งข่าวสาร", "ให้คำแนะนำการใช้สินค้า"]);
+  const [type1Topics, setType1Topics] = useState<string[]>([]);
   const [type1OtherTopic, setType1OtherTopic] = useState("");
-  const [type1Customers, setType1Customers] = useState("ร้านทดสอบ สาขา 1, เกษตรกรหมู่ 5");
+  const [type1Customers, setType1Customers] = useState("");
 
-  const [type2Product, setType2Product] = useState("สินค้าทดสอบ A");
-  const [type2CustomerCount, setType2CustomerCount] = useState<number>(10);
+  const [type2Product, setType2Product] = useState("");
+  const [type2CustomerCount, setType2CustomerCount] = useState<number>(0);
 
-  const [type3ProductList, setType3ProductList] = useState("สินค้าทดสอบ A, สินค้าทดสอบ B");
-  const [type3TargetSales, setType3TargetSales] = useState<number>(50000);
-  const [type3TargetQty, setType3TargetQty] = useState<number>(20);
+  const [type3ProductList, setType3ProductList] = useState("");
+  const [type3TargetSales, setType3TargetSales] = useState<number>(0);
+  const [type3TargetQty, setType3TargetQty] = useState<number>(0);
 
-  const [type4Customers, setType4Customers] = useState("ร้านทดสอบ สาขา 1");
-  const [type4CollectAmount, setType4CollectAmount] = useState<number>(35000);
+  const [type4Customers, setType4Customers] = useState("");
+  const [type4CollectAmount, setType4CollectAmount] = useState<number>(0);
 
-  const [type5Brand, setType5Brand] = useState("แบรนด์คู่แข่ง X");
-  const [type5Product, setType5Product] = useState("ปุ๋ยสูตรสูสี A");
-  const [type5StoreCount, setType5StoreCount] = useState<number>(5);
+  const [type5Brand, setType5Brand] = useState("");
+  const [type5Product, setType5Product] = useState("");
+  const [type5StoreCount, setType5StoreCount] = useState<number>(0);
 
-  const [type6Customers, setType6Customers] = useState("ร้านสหายพานิช");
-  const [type6IssueType, setType6IssueType] = useState("ฉีดยาแล้วพืชเสียหาย");
+  const [type6Customers, setType6Customers] = useState("");
+  const [type6IssueType, setType6IssueType] = useState("เคลมของ");
 
-  const [type7Owner, setType7Owner] = useState("บริษัททดสอบ");
-  const [type7Product, setType7Product] = useState("สินค้าทดสอบ");
-  const [type7CropCategory, setType7CropCategory] = useState("พืชสวน");
+  const [type7Owner, setType7Owner] = useState("");
+  const [type7Product, setType7Product] = useState("");
+  const [type7CropCategory, setType7CropCategory] = useState("พืชไร่");
   const [type7Crop, setType7Crop] = useState("ทุเรียน");
-  const [type7Plots, setType7Plots] = useState<number>(1);
-  const [type7Trees, setType7Trees] = useState<number>(20);
+  const [type7Plots, setType7Plots] = useState<number>(0);
+  const [type7Trees, setType7Trees] = useState<number>(0);
 
-  const [type8Topic, setType8Topic] = useState("การใช้ผลิตภัณฑ์อย่างมีประสิทธิภาพ");
-  const [type8Attendees, setType8Attendees] = useState<number>(30);
+  const [type8Topic, setType8Topic] = useState("");
+  const [type8Attendees, setType8Attendees] = useState<number>(0);
 
-  const [type9Store, setType9Store] = useState("ร้านทดสอบ สาขา 1");
-  const [type9Sales, setType9Sales] = useState<number>(10000);
-  const [type9Products, setType9Products] = useState("สินค้าทดสอบ A, สินค้าทดสอบ B");
+  const [type9Store, setType9Store] = useState("");
+  const [type9Sales, setType9Sales] = useState<number>(0);
+  const [type9Products, setType9Products] = useState("");
 
-  const [type10DemoPlot, setType10DemoPlot] = useState("แปลงสาธิตสวนทุเรียนท่าใหม่");
-  const [type10Location, setType10Location] = useState("จันทบุรี");
-  const [type10Showcase, setType10Showcase] = useState("ทุเรียน & ปุ๋ยทดสอบ");
-  const [type10Attendees, setType10Attendees] = useState<number>(50);
-  const [type10BookingSales, setType10BookingSales] = useState<number>(100000);
+  const [type10DemoPlot, setType10DemoPlot] = useState("");
+  const [type10Location, setType10Location] = useState("");
+  const [type10Showcase, setType10Showcase] = useState("");
+  const [type10Attendees, setType10Attendees] = useState<number>(0);
+  const [type10BookingSales, setType10BookingSales] = useState<number>(0);
 
-  const [type11Stores, setType11Stores] = useState("ร้านทดสอบ สาขา 1, ร้านสหายพานิช");
+  const [type11Stores, setType11Stores] = useState("");
 
   // Section 4: Location & Team State
-  const [locationText, setLocationText] = useState(
-    initial.location ??
-      "บ้านสวนทุเรียน หมู่ 5 ตำบลเขากบายศรี อำเภอท่าใหม่ จังหวัดจันทบุรี จุดสังเกต: เลยแยกประมาณ 500 เมตร และเข้าซอยสวนทุเรียน"
-  );
+  const [locationText, setLocationText] = useState(initial.location ?? "");
   const [helperEmployeeIds, setHelperEmployeeIds] = useState<string[]>(
-    initial.helperEmployeeIds ?? (employees.length > 0 ? [employees[0]?.id].filter(Boolean) : [])
+    initial.helperEmployeeIds ?? []
   );
   const [helperSearch, setHelperSearch] = useState("");
   const [showHelperDropdown, setShowHelperDropdown] = useState(false);
@@ -187,39 +184,14 @@ export function ActivityPlanForm({
       ? "MARKETING"
       : "NONE";
   const [budgetType, setBudgetType] = useState<"NONE" | "MARKETING" | "SALES_PROMOTION">(initialBudgetType);
-  const [extraExpenseAmount, setExtraExpenseAmount] = useState<number>(500);
-  const [extraExpenseDetail, setExtraExpenseDetail] = useState("ค่าผ่านทาง");
+  const [extraExpenseAmount, setExtraExpenseAmount] = useState<number>(0);
+  const [extraExpenseDetail, setExtraExpenseDetail] = useState("");
 
   // Section 6: Material Requisition Items
-  const [requisitionItems, setRequisitionItems] = useState<RequisitionItem[]>([
-    {
-      id: "1",
-      productName: "สินค้าทดสอบ A",
-      quantity: 5,
-      unit: "ขวด",
-      detail: "สำหรับแจกเกษตรกรในงาน",
-    },
-    {
-      id: "2",
-      productName: "สินค้าทดสอบ B",
-      quantity: 10,
-      unit: "ซอง",
-      detail: "สำหรับผสมให้ผู้ในแปลง",
-    },
-    {
-      id: "3",
-      productName: "ป้ายไวนิล จำนวน 3 แผ่น",
-      quantity: 3,
-      unit: "แผ่น",
-      detail: "ติดในงาน",
-    },
-  ]);
+  const [requisitionItems, setRequisitionItems] = useState<RequisitionItem[]>([]);
 
   // Section 7: Additional Info State
-  const [notes, setNotes] = useState(
-    initial.notes ??
-      "กรุณาเตรียม 3x เมตร 3x1 เมตร / เตรียมอุปกรณ์หวัดอาจินการทอบ / โปรดรองลิตถ่ายของปลอยก้อนกวดถ้า 1.5น"
-  );
+  const [notes, setNotes] = useState(initial.notes ?? "");
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -1538,8 +1510,8 @@ export function ActivityPlanForm({
                 <div className="w-7 h-7 rounded-full bg-red-500 text-white shadow-md flex items-center justify-center font-bold text-xs mb-1 animate-bounce">
                   <MapPin className="h-4 w-4" />
                 </div>
-                <span className="text-[11px] font-semibold text-slate-700 bg-white/90 px-2 py-0.5 rounded shadow-sm">
-                  บ้านสวนทุเรียน
+                <span className="text-[11px] font-semibold text-slate-700 bg-white/90 px-2 py-0.5 rounded shadow-sm max-w-full truncate">
+                  {locationText || "หมุดสถานที่"}
                 </span>
               </div>
               <button
@@ -1607,7 +1579,7 @@ export function ActivityPlanForm({
             <div className="flex flex-wrap gap-1.5 pt-1">
               {helperEmployeeIds.map((hid) => {
                 const emp = employees.find((e) => e.id === hid);
-                const empName = emp ? emp.name : "น.ส.กนกวรรณ ดนตรี (ส่งเสริม)";
+                const empName = emp ? emp.name : "ผู้ช่วยงาน";
                 return (
                   <span
                     key={hid}
@@ -1627,19 +1599,10 @@ export function ActivityPlanForm({
                 );
               })}
 
-              {/* Sample default chips matching screenshot if array empty */}
               {helperEmployeeIds.length === 0 && (
-                <>
-                  <span className="inline-flex items-center gap-1 bg-slate-100 border border-slate-200 text-slate-700 text-[11px] px-2.5 py-1 rounded-full font-medium">
-                    น.ส.กนกวรรณ ดนตรี (ส่งเสริม)
-                  </span>
-                  <span className="inline-flex items-center gap-1 bg-slate-100 border border-slate-200 text-slate-700 text-[11px] px-2.5 py-1 rounded-full font-medium">
-                    นายวิทยา พันธุ์โชค (เซลล์)
-                  </span>
-                  <span className="inline-flex items-center gap-1 bg-slate-100 border border-slate-200 text-slate-700 text-[11px] px-2.5 py-1 rounded-full font-medium">
-                    นางสาวศิริพร มาดนี (ส่งเสริม)
-                  </span>
-                </>
+                <p className="text-xs text-slate-400 italic py-1">
+                  ยังไม่ได้เลือกผู้ช่วยงาน
+                </p>
               )}
             </div>
 
