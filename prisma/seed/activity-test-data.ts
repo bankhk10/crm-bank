@@ -221,7 +221,7 @@ export async function seedActivityTestData(prisma: PrismaClient) {
     deleteAccess: DeleteAccessLevel.DELETE_OWN,
   });
   await configureDataPermission(areaRole.id, "data.activity_plans", {
-    dataAccess: DataAccessLevel.VIEW_DEPARTMENT,
+    dataAccess: DataAccessLevel.VIEW_TEAM,
     editAccess: EditAccessLevel.EDIT_NONE,
     deleteAccess: DeleteAccessLevel.DELETE_NONE,
   });
