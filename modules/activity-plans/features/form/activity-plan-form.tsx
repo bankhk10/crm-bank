@@ -120,6 +120,13 @@ interface Type9ProductItem {
   pricePerCase: number;
 }
 
+interface MarketingBudgetProductItem {
+  id: string;
+  productName: string;
+  quantityCases: number;
+  pricePerCase: number;
+}
+
 export function ActivityPlanForm({
   initial = {},
   employees = [],
@@ -238,6 +245,41 @@ export function ActivityPlanForm({
   );
   const [salesPromotionBudgetAmount, setSalesPromotionBudgetAmount] =
     useState<number>(initial.salesPromotionBudget ?? 10000);
+
+  const [marketingProductItems, setMarketingProductItems] = useState<
+    MarketingBudgetProductItem[]
+  >([
+    {
+      id: "1",
+      productName: DEMO_PRODUCTS[0] || "สินค้าทดสอบ A",
+      quantityCases: 10,
+      pricePerCase: 500,
+    },
+  ]);
+
+  const addMarketingProductItem = () => {
+    const newItem: MarketingBudgetProductItem = {
+      id: Date.now().toString(),
+      productName: DEMO_PRODUCTS[0] || "",
+      quantityCases: 1,
+      pricePerCase: 0,
+    };
+    setMarketingProductItems((prev) => [...prev, newItem]);
+  };
+
+  const updateMarketingProductItem = (
+    id: string,
+    field: keyof MarketingBudgetProductItem,
+    val: any,
+  ) => {
+    setMarketingProductItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+
+  const deleteMarketingProductItem = (id: string) => {
+    setMarketingProductItems((prev) => prev.filter((item) => item.id !== id));
+  };
 
   const toggleBudget = (type: "MARKETING" | "SALES_PROMOTION") => {
     if (selectedBudgets.includes(type)) {
@@ -503,9 +545,19 @@ export function ActivityPlanForm({
       salesPromotionBudget =
         salesPromotionBudgetAmount > 0 ? salesPromotionBudgetAmount : 10000;
     }
+
+    const calculatedMarketingSum = marketingProductItems.reduce(
+      (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
+      0,
+    );
+
     if (selectedBudgets.includes("MARKETING")) {
       marketingBudget =
-        marketingBudgetAmount > 0 ? marketingBudgetAmount : 10000;
+        marketingProductItems.length > 0
+          ? calculatedMarketingSum
+          : marketingBudgetAmount > 0
+            ? marketingBudgetAmount
+            : 10000;
     }
 
     const hasLocationRequirement = selectedWorkTypes.some((t) =>
@@ -1966,34 +2018,277 @@ export function ActivityPlanForm({
             </button>
           </div>
 
-          {/* Amount Inputs for selected budgets */}
+          {/* Amount Inputs & Product Tables for selected budgets */}
           {selectedBudgets.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-100">
+            <div className="space-y-5 pt-3 border-t border-slate-100">
+              {/* Section: งบการตลาด */}
               {selectedBudgets.includes("MARKETING") && (
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    จำนวนเงิน - งบการตลาด (บาท){" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-                      ฿
+                <div className="bg-emerald-50/40 border border-emerald-200/70 rounded-xl p-4 space-y-4">
+                  <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2">
+                    <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                      <Package className="h-4 w-4 text-emerald-600" />
+                      รายละเอียดงบการตลาด & สัดส่วนต่อยอดขาย
                     </span>
-                    <input
-                      type="number"
-                      min={0}
-                      value={marketingBudgetAmount}
-                      onChange={(e) =>
-                        setMarketingBudgetAmount(parseFloat(e.target.value) || 0)
-                      }
-                      disabled={readonly}
-                      placeholder="10000"
-                      className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
+                  </div>
+
+                  {/* Summary & Ratio Inputs Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                        จำนวนเงิน - งบการตลาด (บาท){" "}
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
+                          ฿
+                        </span>
+                        <input
+                          type="number"
+                          min={0}
+                          value={
+                            marketingProductItems.length > 0
+                              ? marketingProductItems.reduce(
+                                  (sum, item) =>
+                                    sum +
+                                    (item.quantityCases || 0) *
+                                      (item.pricePerCase || 0),
+                                  0,
+                                )
+                              : marketingBudgetAmount
+                          }
+                          onChange={(e) =>
+                            setMarketingBudgetAmount(
+                              parseFloat(e.target.value) || 0,
+                            )
+                          }
+                          disabled={
+                            readonly || marketingProductItems.length > 0
+                          }
+                          className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs font-bold text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                        เป้ายอดขายรวมจากกิจกรรม (บาท)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
+                          ฿
+                        </span>
+                        <input
+                          type="number"
+                          readOnly
+                          value={
+                            (type9ProductItems.length > 0
+                              ? type9ProductItems.reduce(
+                                  (sum, item) =>
+                                    sum +
+                                    (item.quantityCases || 0) *
+                                      (item.pricePerCase || 0),
+                                  0,
+                                )
+                              : type9Sales) ||
+                            type3TargetSales ||
+                            type10BookingSales ||
+                            0
+                          }
+                          className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-slate-100/70 text-xs font-semibold text-slate-700 cursor-not-allowed"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                        สัดส่วนต่อยอดขาย (%)
+                      </label>
+                      <div className="h-10 px-3 rounded-lg border border-emerald-300 bg-emerald-100/60 flex items-center justify-between text-xs font-bold text-emerald-900 shadow-sm">
+                        <span>สัดส่วนงบ / ยอดขาย:</span>
+                        <span className="text-sm text-emerald-700 font-extrabold">
+                          {(() => {
+                            const targetSales =
+                              (type9ProductItems.length > 0
+                                ? type9ProductItems.reduce(
+                                    (sum, item) =>
+                                      sum +
+                                      (item.quantityCases || 0) *
+                                        (item.pricePerCase || 0),
+                                    0,
+                                  )
+                                : type9Sales) ||
+                              type3TargetSales ||
+                              type10BookingSales ||
+                              0;
+                            const budgetSum =
+                              marketingProductItems.length > 0
+                                ? marketingProductItems.reduce(
+                                    (sum, item) =>
+                                      sum +
+                                      (item.quantityCases || 0) *
+                                        (item.pricePerCase || 0),
+                                    0,
+                                  )
+                                : marketingBudgetAmount;
+                            return targetSales > 0
+                              ? `${((budgetSum / targetSales) * 100).toFixed(2)} %`
+                              : "0.00 %";
+                          })()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Marketing Product Table */}
+                  <div className="space-y-2 pt-2 border-t border-emerald-200/50">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-700">
+                        รายการสินค้าสำหรับงบการตลาด
+                      </span>
+
+                      {!readonly && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={addMarketingProductItem}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm"
+                        >
+                          <Plus className="h-3.5 w-3.5 mr-1" />
+                          เพิ่มสินค้า
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                          <tr>
+                            <th className="py-2 px-3 text-center w-10">ลำดับ</th>
+                            <th className="py-2 px-3 min-w-[180px]">
+                              เลือกสินค้า <span className="text-red-500">*</span>
+                            </th>
+                            <th className="py-2 px-3 w-28 text-center">
+                              จำนวน (ลัง) <span className="text-red-500">*</span>
+                            </th>
+                            <th className="py-2 px-3 w-32 text-center">
+                              ราคา (บาท/ลัง) <span className="text-red-500">*</span>
+                            </th>
+                            <th className="py-2 px-3 w-36 text-right">
+                              รวมเป็นเงินทั้งหมด
+                            </th>
+                            {!readonly && (
+                              <th className="py-2 px-3 text-center w-14">จัดการ</th>
+                            )}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {marketingProductItems.length === 0 ? (
+                            <tr>
+                              <td
+                                colSpan={6}
+                                className="py-4 text-center text-slate-400 italic"
+                              >
+                                ยังไม่มีรายการสินค้า กด "+ เพิ่มสินค้า" เพื่อบันทึก
+                              </td>
+                            </tr>
+                          ) : (
+                            marketingProductItems.map((item, index) => {
+                              const totalItemPrice =
+                                (item.quantityCases || 0) *
+                                (item.pricePerCase || 0);
+                              return (
+                                <tr
+                                  key={item.id}
+                                  className="hover:bg-slate-50/60 transition-colors"
+                                >
+                                  <td className="py-2 px-3 text-center font-medium text-slate-500">
+                                    {index + 1}
+                                  </td>
+                                  <td className="py-1.5 px-3">
+                                    <select
+                                      value={item.productName}
+                                      onChange={(e) =>
+                                        updateMarketingProductItem(
+                                          item.id,
+                                          "productName",
+                                          e.target.value,
+                                        )
+                                      }
+                                      disabled={readonly}
+                                      className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    >
+                                      {DEMO_PRODUCTS.map((prod) => (
+                                        <option key={prod} value={prod}>
+                                          {prod}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td className="py-1.5 px-3">
+                                    <input
+                                      type="number"
+                                      min={1}
+                                      value={item.quantityCases}
+                                      onChange={(e) =>
+                                        updateMarketingProductItem(
+                                          item.id,
+                                          "quantityCases",
+                                          parseInt(e.target.value) || 0,
+                                        )
+                                      }
+                                      disabled={readonly}
+                                      className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    />
+                                  </td>
+                                  <td className="py-1.5 px-3">
+                                    <div className="relative">
+                                      <span className="absolute left-2 top-2 text-slate-400 text-[11px]">
+                                        ฿
+                                      </span>
+                                      <input
+                                        type="number"
+                                        min={0}
+                                        value={item.pricePerCase}
+                                        onChange={(e) =>
+                                          updateMarketingProductItem(
+                                            item.id,
+                                            "pricePerCase",
+                                            parseFloat(e.target.value) || 0,
+                                          )
+                                        }
+                                        disabled={readonly}
+                                        className="w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 text-xs text-slate-800 text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                      />
+                                    </div>
+                                  </td>
+                                  <td className="py-1.5 px-3 text-right font-semibold text-emerald-700">
+                                    ฿ {totalItemPrice.toLocaleString()}
+                                  </td>
+                                  {!readonly && (
+                                    <td className="py-1.5 px-3 text-center">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          deleteMarketingProductItem(item.id)
+                                        }
+                                        className="p-1 rounded-md text-red-500 hover:bg-red-50 transition-colors"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </button>
+                                    </td>
+                                  )}
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               )}
 
+              {/* Section: งบขาย / ร้าน */}
               {selectedBudgets.includes("SALES_PROMOTION") && (
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
