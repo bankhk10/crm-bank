@@ -2104,7 +2104,6 @@ export function ActivityPlanForm({
                         สัดส่วนต่อยอดขาย (%)
                       </label>
                       <div className="h-10 px-3 rounded-lg border border-emerald-300 bg-emerald-100/60 flex items-center justify-between text-xs font-bold text-emerald-900 shadow-sm">
-                        <span>สัดส่วนงบ / ยอดขาย:</span>
                         <span className="text-sm text-emerald-700 font-extrabold">
                           {(() => {
                             const targetSales =
@@ -2143,7 +2142,8 @@ export function ActivityPlanForm({
                   <div className="space-y-2 pt-2 border-t border-emerald-200/50">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-semibold text-slate-700">
-                        รายการสินค้าสำหรับงบการตลาด
+                        สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่
+                        ทุกชนิด)
                       </span>
 
                       {!readonly && (
@@ -2163,21 +2163,26 @@ export function ActivityPlanForm({
                       <table className="w-full text-left text-xs">
                         <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
                           <tr>
-                            <th className="py-2 px-3 text-center w-10">ลำดับ</th>
+                            <th className="py-2 px-3 text-center w-10">
+                              ลำดับ
+                            </th>
                             <th className="py-2 px-3 min-w-[180px]">
-                              เลือกสินค้า <span className="text-red-500">*</span>
+                              เลือกสินค้า{" "}
+                              <span className="text-red-500">*</span>
                             </th>
                             <th className="py-2 px-3 w-28 text-center">
-                              จำนวน (ลัง) <span className="text-red-500">*</span>
+                              จำนวน <span className="text-red-500">*</span>
                             </th>
                             <th className="py-2 px-3 w-32 text-center">
-                              ราคา (บาท/ลัง) <span className="text-red-500">*</span>
+                              ราคา <span className="text-red-500">*</span>
                             </th>
                             <th className="py-2 px-3 w-36 text-right">
                               รวมเป็นเงินทั้งหมด
                             </th>
                             {!readonly && (
-                              <th className="py-2 px-3 text-center w-14">จัดการ</th>
+                              <th className="py-2 px-3 text-center w-14">
+                                จัดการ
+                              </th>
                             )}
                           </tr>
                         </thead>
@@ -2188,7 +2193,7 @@ export function ActivityPlanForm({
                                 colSpan={6}
                                 className="py-4 text-center text-slate-400 italic"
                               >
-                                ยังไม่มีรายการสินค้า กด "+ เพิ่มสินค้า" เพื่อบันทึก
+                                ยังไม่มีรายการสินค้า กดเพิ่มสินค้า เพื่อบันทึก
                               </td>
                             </tr>
                           ) : (
