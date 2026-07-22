@@ -767,15 +767,6 @@ export function ActivityPlanForm({
                   <Users className="h-4 w-4 text-sky-600" />
                   <span>เข้าพบร้านค้า / เกษตรกร</span>
                 </div>
-                {!readonly && (
-                  <button
-                    type="button"
-                    onClick={() => removeWorkType("เข้าพบร้านค้า / เกษตรกร")}
-                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -853,15 +844,6 @@ export function ActivityPlanForm({
                   <CheckSquare className="h-4 w-4 text-indigo-600" />
                   <span>ติดตามผลการใช้สินค้า</span>
                 </div>
-                {!readonly && (
-                  <button
-                    type="button"
-                    onClick={() => removeWorkType("ติดตามผลการใช้สินค้า")}
-                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -917,15 +899,6 @@ export function ActivityPlanForm({
                   <ShoppingCart className="h-4 w-4 text-emerald-600" />
                   <span>เสนอขายสินค้า</span>
                 </div>
-                {!readonly && (
-                  <button
-                    type="button"
-                    onClick={() => removeWorkType("เสนอขายสินค้า")}
-                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -992,15 +965,6 @@ export function ActivityPlanForm({
                   <Receipt className="h-4 w-4 text-amber-600" />
                   <span>วางบิล / เก็บเงิน</span>
                 </div>
-                {!readonly && (
-                  <button
-                    type="button"
-                    onClick={() => removeWorkType("วางบิล / เก็บเงิน")}
-                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1051,15 +1015,6 @@ export function ActivityPlanForm({
                   <BarChart2 className="h-4 w-4 text-purple-600" />
                   <span>สำรวจตลาดของคู่แข่ง</span>
                 </div>
-                {!readonly && (
-                  <button
-                    type="button"
-                    onClick={() => removeWorkType("สำรวจตลาดของคู่แข่ง")}
-                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1125,17 +1080,6 @@ export function ActivityPlanForm({
                   <HelpCircle className="h-4 w-4 text-rose-600" />
                   <span>แก้ปัญหา / รับเรื่องร้องเรียน</span>
                 </div>
-                {!readonly && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeWorkType("แก้ปัญหา / รับเรื่องร้องเรียน")
-                    }
-                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1183,17 +1127,6 @@ export function ActivityPlanForm({
                   <Sprout className="h-4 w-4 text-emerald-600" />
                   <span>ติดตามแปลงสาธิต / พืชเป้าหมาย</span>
                 </div>
-                {!readonly && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeWorkType("ติดตามแปลงสาธิต / พืชเป้าหมาย")
-                    }
-                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1326,19 +1259,6 @@ export function ActivityPlanForm({
                   <Users className="h-4 w-4 text-blue-600" />
                   <span>จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์</span>
                 </div>
-                {!readonly && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeWorkType(
-                        "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
-                      )
-                    }
-                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1389,17 +1309,6 @@ export function ActivityPlanForm({
                   <Store className="h-4 w-4 text-teal-600" />
                   <span>จัดกิจกรรมส่งเสริมการขายหน้าร้าน</span>
                 </div>
-                {!readonly && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeWorkType("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")
-                    }
-                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1467,15 +1376,6 @@ export function ActivityPlanForm({
                   <Sprout className="h-4 w-4 text-amber-600" />
                   <span>จัดงาน Field Day</span>
                 </div>
-                {!readonly && (
-                  <button
-                    type="button"
-                    onClick={() => removeWorkType("จัดงาน Field Day")}
-                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1570,15 +1470,6 @@ export function ActivityPlanForm({
                   <ClipboardList className="h-4 w-4 text-slate-600" />
                   <span>ตรวจเช็กสต็อกหน้าร้าน</span>
                 </div>
-                {!readonly && (
-                  <button
-                    type="button"
-                    onClick={() => removeWorkType("ตรวจเช็กสต็อกหน้าร้าน")}
-                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
               </div>
 
               <div>
