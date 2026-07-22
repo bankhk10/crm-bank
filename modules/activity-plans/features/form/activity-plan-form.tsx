@@ -567,7 +567,7 @@ export function ActivityPlanForm({
     const compiledDescription = `[วัตถุประสงค์งาน]\n${compiledObjective}${salesPromotionSummary ? `\n\n[รายการส่งเสริมการขาย]\n${salesPromotionSummary}` : ""}\n\n[รายการขอเบิกสินค้า]\n${materialSummary}`;
 
     // Budgets mapping
-    let salesPromotionBudget: number | null = null;
+    const salesPromotionBudget: number | null = null;
     let marketingBudget: number | null = null;
 
     const calculatedMarketingSum = marketingProductItems.reduce(
@@ -1981,9 +1981,7 @@ export function ActivityPlanForm({
                 <Check className="h-3 w-3 stroke-[3]" />
               )}
             </div>
-            <span>
-              สื่อส่งเสริมการขาย
-            </span>
+            <span>สื่อส่งเสริมการขาย</span>
           </button>
 
           {/* Checkbox 2: รายการส่งเสริมการขาย */}
@@ -2030,8 +2028,7 @@ export function ActivityPlanForm({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                  จำนวนเงิน - งบการตลาด (บาท){" "}
-                  <span className="text-red-500">*</span>
+                  งบการตลาด (บาท) <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
@@ -2052,9 +2049,7 @@ export function ActivityPlanForm({
                         : marketingBudgetAmount
                     }
                     onChange={(e) =>
-                      setMarketingBudgetAmount(
-                        parseFloat(e.target.value) || 0,
-                      )
+                      setMarketingBudgetAmount(parseFloat(e.target.value) || 0)
                     }
                     disabled={readonly || marketingProductItems.length > 0}
                     className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs font-bold text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -2146,7 +2141,7 @@ export function ActivityPlanForm({
                     className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm"
                   >
                     <Plus className="h-3.5 w-3.5 mr-1" />
-                    เพิ่มสินค้า
+                    เพิ่มรายการ
                   </Button>
                 )}
               </div>
@@ -2157,7 +2152,7 @@ export function ActivityPlanForm({
                     <tr>
                       <th className="py-2 px-3 text-center w-10">ลำดับ</th>
                       <th className="py-2 px-3 min-w-[180px]">
-                        เลือกสินค้า <span className="text-red-500">*</span>
+                        รายการ <span className="text-red-500">*</span>
                       </th>
                       <th className="py-2 px-3 w-28 text-center">
                         จำนวน <span className="text-red-500">*</span>
@@ -2329,7 +2324,8 @@ export function ActivityPlanForm({
                         colSpan={7}
                         className="py-4 text-center text-slate-400 italic"
                       >
-                        ยังไม่มีรายการส่งเสริมการขาย กด "เพิ่มรายการ" เพื่อบันทึก
+                        ยังไม่มีรายการส่งเสริมการขาย กด "เพิ่มรายการ"
+                        เพื่อบันทึก
                       </td>
                     </tr>
                   ) : (
