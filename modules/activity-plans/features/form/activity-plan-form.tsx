@@ -2297,17 +2297,15 @@ export function ActivityPlanForm({
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
                   <tr>
                     <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
-                    <th className="py-2.5 px-3 min-w-[130px]">
-                      การใช้งบ <span className="text-red-500">*</span>
-                    </th>
+
                     <th className="py-2.5 px-3 min-w-[200px]">
                       รายละเอียด <span className="text-red-500">*</span>
                     </th>
                     <th className="py-2.5 px-3 w-36 text-center">
                       จำนวนเงิน (บาท) <span className="text-red-500">*</span>
                     </th>
-                    <th className="py-2.5 px-3 w-36 text-right">
-                      รวมเป็นเงินทั้งหมด
+                    <th className="py-2.5 px-3 min-w-[130px]">
+                      การใช้งบ <span className="text-red-500">*</span>
                     </th>
                     {!readonly && (
                       <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
@@ -2321,7 +2319,8 @@ export function ActivityPlanForm({
                         colSpan={6}
                         className="py-4 text-center text-slate-400 italic"
                       >
-                        ยังไม่มีรายการส่งเสริมการขาย กด "เพิ่มรายการ" เพื่อบันทึก
+                        ยังไม่มีรายการส่งเสริมการขาย กด "เพิ่มรายการ"
+                        เพื่อบันทึก
                       </td>
                     </tr>
                   ) : (
@@ -2335,23 +2334,7 @@ export function ActivityPlanForm({
                           <td className="py-2.5 px-3 text-center font-medium text-slate-500">
                             {index + 1}
                           </td>
-                          <td className="py-2 px-3">
-                            <select
-                              value={item.budgetType || "งบการตลาด"}
-                              onChange={(e) =>
-                                updateSalesPromotionRow(
-                                  item.id,
-                                  "budgetType",
-                                  e.target.value,
-                                )
-                              }
-                              disabled={readonly}
-                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-                            >
-                              <option value="งบการตลาด">งบการตลาด</option>
-                              <option value="งบขาย">งบขาย</option>
-                            </select>
-                          </td>
+
                           <td className="py-2 px-3">
                             <input
                               type="text"
@@ -2390,8 +2373,22 @@ export function ActivityPlanForm({
                               />
                             </div>
                           </td>
-                          <td className="py-2 px-3 text-right font-semibold text-blue-700">
-                            ฿ {itemTotal.toLocaleString()}
+                          <td className="py-2 px-3">
+                            <select
+                              value={item.budgetType || "งบการตลาด"}
+                              onChange={(e) =>
+                                updateSalesPromotionRow(
+                                  item.id,
+                                  "budgetType",
+                                  e.target.value,
+                                )
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                            >
+                              <option value="งบการตลาด">งบการตลาด</option>
+                              <option value="งบขาย">งบขาย</option>
+                            </select>
                           </td>
                           {!readonly && (
                             <td className="py-2 px-3 text-center">
@@ -2412,13 +2409,12 @@ export function ActivityPlanForm({
                 {salesPromotionItems.length > 0 && (
                   <tfoot className="bg-slate-50/80 border-t-2 border-slate-200 text-xs font-bold text-slate-800">
                     <tr>
-                      <td colSpan={4} className="py-3 px-3 text-right">
-                        ผลรวมใช้งบทั้งสิ้น:
-                      </td>
-                      <td className="py-3 px-3 text-right text-blue-700 text-sm font-extrabold">
-                        ฿ {salesPromotionItems
+                      <td colSpan={2} className="py-3 px-3 text-left">
+                        ผลรวมใช้งบทั้งสิ้น:{" "}
+                        {salesPromotionItems
                           .reduce((sum, item) => sum + (item.amount || 0), 0)
-                          .toLocaleString()}
+                          .toLocaleString()}{" "}
+                        ฿
                       </td>
                       {!readonly && <td></td>}
                     </tr>
