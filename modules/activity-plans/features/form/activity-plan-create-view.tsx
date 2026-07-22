@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PageHeader } from "@/components/custom/page-header";
 import { ActivityPlanForm } from "./activity-plan-form";
 import { createActivityPlanAction } from "../../server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
@@ -57,26 +56,19 @@ export default function ActivityPlanCreateView() {
   }
 
   return (
-    <section className="space-y-6 p-6 pb-24 md:pb-8">
-      <PageHeader
-        title="สร้างแผนกิจกรรมใหม่"
-        description="กรอกรายละเอียดแผนกิจกรรมและงบประมาณเพื่อบันทึกและส่งขออนุมัติตามขั้นตอน"
-      />
-
+    <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
       {loadError && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="mb-4 max-w-5xl mx-auto">
           <AlertDescription>{loadError}</AlertDescription>
         </Alert>
       )}
 
-      <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm max-w-4xl">
-        <ActivityPlanForm
-          employees={employees}
-          onSubmit={handleSubmit}
-          onCancel={() => router.push("/activity-plans")}
-          submitLabel="บันทึกและสร้างแผนงาน"
-        />
-      </div>
+      <ActivityPlanForm
+        employees={employees}
+        onSubmit={handleSubmit}
+        onCancel={() => router.push("/activity-plans")}
+        submitLabel="บันทึก"
+      />
     </section>
   );
 }
