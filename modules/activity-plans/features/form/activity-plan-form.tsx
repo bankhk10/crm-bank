@@ -233,19 +233,11 @@ export function ActivityPlanForm({
   const [showHelperDropdown, setShowHelperDropdown] = useState(false);
 
   // Section 5: Budget & Expenses State
-  const initialBudgets: string[] = [];
-  if ((initial.marketingBudget ?? 0) > 0) initialBudgets.push("MARKETING");
-  if ((initial.salesPromotionBudget ?? 0) > 0)
-    initialBudgets.push("SALES_PROMOTION");
-
-  const [selectedBudgets, setSelectedBudgets] =
-    useState<string[]>(initialBudgets);
+  const [isPromotionalMediaSelected, setIsPromotionalMediaSelected] =
+    useState<boolean>((initial.marketingBudget ?? 0) > 0);
   const [marketingBudgetAmount, setMarketingBudgetAmount] = useState<number>(
     initial.marketingBudget ?? 10000,
   );
-  const [salesPromotionBudgetAmount, setSalesPromotionBudgetAmount] =
-    useState<number>(initial.salesPromotionBudget ?? 10000);
-
   const [marketingProductItems, setMarketingProductItems] = useState<
     MarketingBudgetProductItem[]
   >([
@@ -279,18 +271,6 @@ export function ActivityPlanForm({
 
   const deleteMarketingProductItem = (id: string) => {
     setMarketingProductItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const toggleBudget = (type: "MARKETING" | "SALES_PROMOTION") => {
-    if (selectedBudgets.includes(type)) {
-      setSelectedBudgets((prev) => prev.filter((b) => b !== type));
-    } else {
-      setSelectedBudgets((prev) => [...prev, type]);
-    }
-  };
-
-  const clearBudgets = () => {
-    setSelectedBudgets([]);
   };
 
   const [extraExpenseAmount, setExtraExpenseAmount] = useState<number>(0);
@@ -541,17 +521,12 @@ export function ActivityPlanForm({
     let salesPromotionBudget: number | null = null;
     let marketingBudget: number | null = null;
 
-    if (selectedBudgets.includes("SALES_PROMOTION")) {
-      salesPromotionBudget =
-        salesPromotionBudgetAmount > 0 ? salesPromotionBudgetAmount : 10000;
-    }
-
     const calculatedMarketingSum = marketingProductItems.reduce(
       (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
       0,
     );
 
-    if (selectedBudgets.includes("MARKETING")) {
+    if (isPromotionalMediaSelected) {
       marketingBudget =
         marketingProductItems.length > 0
           ? calculatedMarketingSum
@@ -1929,107 +1904,48 @@ export function ActivityPlanForm({
           </h2>
         </div>
 
-        {/* ประเภทงบ (Multi-select options) */}
-        <div className="space-y-3">
-          <label className="block text-xs font-medium text-slate-700 mb-1.5">
-            ประเภทงบ{" "}
-            <span className="text-slate-400 text-[11px]">
-              (เลือกได้มากกว่า 1 ประเภท)
-            </span>{" "}
-            <span className="text-red-500">*</span>
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {/* Option 1: ไม่มีการเลือกงบ */}
-            <button
-              type="button"
-              onClick={() => !readonly && clearBudgets()}
+        {/* Checkbox: สื่อส่งเสริมการขาย */}
+        <div>
+          <button
+            type="button"
+            onClick={() =>
+              !readonly &&
+              setIsPromotionalMediaSelected(!isPromotionalMediaSelected)
+            }
+            className={cn(
+              "flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold transition-all text-left w-full md:w-auto",
+              isPromotionalMediaSelected
+                ? "bg-emerald-50/60 border-emerald-500 text-emerald-800 shadow-sm"
+                : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
+            )}
+          >
+            <div
               className={cn(
-                "flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold transition-all text-left",
-                selectedBudgets.length === 0
-                  ? "bg-emerald-50/60 border-emerald-500 text-emerald-800 shadow-sm"
-                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
+                "w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors",
+                isPromotionalMediaSelected
+                  ? "border-emerald-600 bg-emerald-600 text-white"
+                  : "border-slate-300 bg-white",
               )}
             >
-              <div
-                className={cn(
-                  "w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0",
-                  selectedBudgets.length === 0
-                    ? "border-emerald-600 bg-emerald-600 text-white"
-                    : "border-slate-300 bg-white",
-                )}
-              >
-                {selectedBudgets.length === 0 && (
-                  <Check className="h-3 w-3 stroke-[3]" />
-                )}
-              </div>
-              <span>ไม่มีการเลือกงบ</span>
-            </button>
-
-            {/* Option 2: งบการตลาด */}
-            <button
-              type="button"
-              onClick={() => !readonly && toggleBudget("MARKETING")}
-              className={cn(
-                "flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold transition-all text-left",
-                selectedBudgets.includes("MARKETING")
-                  ? "bg-emerald-50/60 border-emerald-500 text-emerald-800 shadow-sm"
-                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
+              {isPromotionalMediaSelected && (
+                <Check className="h-3 w-3 stroke-[3]" />
               )}
-            >
-              <div
-                className={cn(
-                  "w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors",
-                  selectedBudgets.includes("MARKETING")
-                    ? "border-emerald-600 bg-emerald-600 text-white"
-                    : "border-slate-300 bg-white",
-                )}
-              >
-                {selectedBudgets.includes("MARKETING") && (
-                  <Check className="h-3 w-3 stroke-[3]" />
-                )}
-              </div>
-              <span>งบการตลาด</span>
-            </button>
+            </div>
+            <span>
+              สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่ ทุกชนิด)
+            </span>
+          </button>
+        </div>
 
-            {/* Option 3: งบขาย / ร้าน */}
-            <button
-              type="button"
-              onClick={() => !readonly && toggleBudget("SALES_PROMOTION")}
-              className={cn(
-                "flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold transition-all text-left",
-                selectedBudgets.includes("SALES_PROMOTION")
-                  ? "bg-emerald-50/60 border-emerald-500 text-emerald-800 shadow-sm"
-                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
-              )}
-            >
-              <div
-                className={cn(
-                  "w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors",
-                  selectedBudgets.includes("SALES_PROMOTION")
-                    ? "border-emerald-600 bg-emerald-600 text-white"
-                    : "border-slate-300 bg-white",
-                )}
-              >
-                {selectedBudgets.includes("SALES_PROMOTION") && (
-                  <Check className="h-3 w-3 stroke-[3]" />
-                )}
-              </div>
-              <span>งบขาย / ร้าน</span>
-            </button>
-          </div>
-
-          {/* Amount Inputs & Product Tables for selected budgets */}
-          {selectedBudgets.length > 0 && (
-            <div className="space-y-5 pt-3 border-t border-slate-100">
-              {/* Section: งบการตลาด */}
-              {selectedBudgets.includes("MARKETING") && (
-                <div className="bg-emerald-50/40 border border-emerald-200/70 rounded-xl p-4 space-y-4">
-                  <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2">
-                    <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
-                      <Package className="h-4 w-4 text-emerald-600" />
-                      รายละเอียดงบการตลาด & สัดส่วนต่อยอดขาย
-                    </span>
-                  </div>
+        {/* Details Card: รายละเอียดงบการตลาด & สัดส่วนต่อยอดขาย */}
+        {isPromotionalMediaSelected && (
+          <div className="bg-emerald-50/40 border border-emerald-200/70 rounded-xl p-4 space-y-4">
+            <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2">
+              <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                <Package className="h-4 w-4 text-emerald-600" />
+                รายละเอียดงบการตลาด & สัดส่วนต่อยอดขาย
+              </span>
+            </div>
 
                   {/* Summary & Ratio Inputs Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
@@ -2292,38 +2208,7 @@ export function ActivityPlanForm({
                   </div>
                 </div>
               )}
-
-              {/* Section: งบขาย / ร้าน */}
-              {selectedBudgets.includes("SALES_PROMOTION") && (
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    จำนวนเงิน - งบขาย / ร้าน (บาท){" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-                      ฿
-                    </span>
-                    <input
-                      type="number"
-                      min={0}
-                      value={salesPromotionBudgetAmount}
-                      onChange={(e) =>
-                        setSalesPromotionBudgetAmount(
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      disabled={readonly}
-                      placeholder="10000"
-                      className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-                </div>
-              )}
             </div>
-          )}
-        </div>
-      </div>
 
       {/* SECTION 6: รายการขอเบิกสินค้าจัดกิจกรรม (Material Requisition) */}
       <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden p-5 md:p-6 space-y-4">
