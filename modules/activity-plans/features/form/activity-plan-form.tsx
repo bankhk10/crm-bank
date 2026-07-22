@@ -181,6 +181,7 @@ export function ActivityPlanForm({
   const [type1Topics, setType1Topics] = useState<string[]>([]);
   const [type1OtherTopic, setType1OtherTopic] = useState("");
   const [type1Customers, setType1Customers] = useState("");
+  const [type1Detail, setType1Detail] = useState("");
 
   const [type2Product, setType2Product] = useState("");
   const [type2CustomerCount, setType2CustomerCount] = useState<number>(0);
@@ -468,7 +469,7 @@ export function ActivityPlanForm({
         type1Topics.join(", ") +
         (type1OtherTopic ? ` (${type1OtherTopic})` : "");
       summaryParts.push(
-        `[เข้าพบร้านค้า/เกษตรกร] ประเด็น: ${topicsText} | ลูกค้า: ${type1Customers}`,
+        `[เข้าพบร้านค้า/เกษตรกร] ประเด็น: ${topicsText} | ลูกค้า: ${type1Customers || "ไม่ระบุ"}${type1Detail ? ` | รายละเอียดเพิ่มเติม: ${type1Detail}` : ""}`,
       );
     }
 
@@ -917,7 +918,41 @@ export function ActivityPlanForm({
                   <span>เข้าพบร้านค้า / เกษตรกร</span>
                 </div>
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    รายชื่อลูกค้า / ร้านค้า{" "}
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={type1Customers}
+                    onChange={(e) => setType1Customers(e.target.value)}
+                    disabled={readonly}
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
+                  >
+                    <option value="">-- เลือกร้านค้า / เกษตรกร --</option>
+                    {DEMO_OWNERS.map((owner) => (
+                      <option key={owner} value={owner}>
+                        {owner}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    รายละเอียดเพิ่มเติม
+                  </label>
+                  <input
+                    type="text"
+                    value={type1Detail}
+                    onChange={(e) => setType1Detail(e.target.value)}
+                    disabled={readonly}
+                    placeholder="ระบุรายละเอียดเพิ่มเติม..."
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="block text-xs font-medium text-slate-700">
@@ -965,21 +1000,6 @@ export function ActivityPlanForm({
                       className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-sky-500"
                     />
                   )}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    รายชื่อลูกค้า / ร้านค้า{" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={type1Customers}
-                    onChange={(e) => setType1Customers(e.target.value)}
-                    disabled={readonly}
-                    placeholder="ระบุรายชื่อลูกค้า หรือ ร้านค้าที่จะเข้าพบ..."
-                    className="w-full rounded-lg border border-slate-200 p-2.5 text-xs bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none"
-                  />
                 </div>
               </div>
             </div>
