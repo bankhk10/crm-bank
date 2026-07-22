@@ -1982,7 +1982,7 @@ export function ActivityPlanForm({
               )}
             </div>
             <span>
-              สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่ ทุกชนิด)
+              สื่อส่งเสริมการขาย
             </span>
           </button>
 
