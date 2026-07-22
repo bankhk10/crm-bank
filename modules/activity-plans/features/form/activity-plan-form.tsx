@@ -765,7 +765,7 @@ export function ActivityPlanForm({
               <div className="flex items-center justify-between border-b border-sky-200/60 pb-2.5">
                 <div className="flex items-center gap-2 text-sky-800 font-bold text-sm">
                   <Users className="h-4 w-4 text-sky-600" />
-                  <span>1. เข้าพบร้านค้า / เกษตรกร</span>
+                  <span>เข้าพบร้านค้า / เกษตรกร</span>
                 </div>
                 {!readonly && (
                   <button
@@ -851,7 +851,7 @@ export function ActivityPlanForm({
               <div className="flex items-center justify-between border-b border-indigo-200/60 pb-2.5">
                 <div className="flex items-center gap-2 text-indigo-800 font-bold text-sm">
                   <CheckSquare className="h-4 w-4 text-indigo-600" />
-                  <span>2. ติดตามผลการใช้สินค้า</span>
+                  <span>ติดตามผลการใช้สินค้า</span>
                 </div>
                 {!readonly && (
                   <button
@@ -915,7 +915,7 @@ export function ActivityPlanForm({
               <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2.5">
                 <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
                   <ShoppingCart className="h-4 w-4 text-emerald-600" />
-                  <span>3. เสนอขายสินค้า</span>
+                  <span>เสนอขายสินค้า</span>
                 </div>
                 {!readonly && (
                   <button
@@ -990,7 +990,7 @@ export function ActivityPlanForm({
               <div className="flex items-center justify-between border-b border-amber-200/60 pb-2.5">
                 <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
                   <Receipt className="h-4 w-4 text-amber-600" />
-                  <span>4. วางบิล / เก็บเงิน</span>
+                  <span>วางบิล / เก็บเงิน</span>
                 </div>
                 {!readonly && (
                   <button
@@ -1049,7 +1049,7 @@ export function ActivityPlanForm({
               <div className="flex items-center justify-between border-b border-purple-200/60 pb-2.5">
                 <div className="flex items-center gap-2 text-purple-800 font-bold text-sm">
                   <BarChart2 className="h-4 w-4 text-purple-600" />
-                  <span>5. สำรวจตลาดของคู่แข่ง</span>
+                  <span>สำรวจตลาดของคู่แข่ง</span>
                 </div>
                 {!readonly && (
                   <button
@@ -1123,7 +1123,7 @@ export function ActivityPlanForm({
               <div className="flex items-center justify-between border-b border-rose-200/60 pb-2.5">
                 <div className="flex items-center gap-2 text-rose-800 font-bold text-sm">
                   <HelpCircle className="h-4 w-4 text-rose-600" />
-                  <span>6. แก้ปัญหา / รับเรื่องร้องเรียน</span>
+                  <span>แก้ปัญหา / รับเรื่องร้องเรียน</span>
                 </div>
                 {!readonly && (
                   <button
@@ -1181,7 +1181,7 @@ export function ActivityPlanForm({
               <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2.5">
                 <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
                   <Sprout className="h-4 w-4 text-emerald-600" />
-                  <span>7. ติดตามแปลงสาธิต / พืชเป้าหมาย</span>
+                  <span>ติดตามแปลงสาธิต / พืชเป้าหมาย</span>
                 </div>
                 {!readonly && (
                   <button
@@ -1324,7 +1324,7 @@ export function ActivityPlanForm({
               <div className="flex items-center justify-between border-b border-blue-200/60 pb-2.5">
                 <div className="flex items-center gap-2 text-blue-800 font-bold text-sm">
                   <Users className="h-4 w-4 text-blue-600" />
-                  <span>8. จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์</span>
+                  <span>จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์</span>
                 </div>
                 {!readonly && (
                   <button
@@ -1387,7 +1387,7 @@ export function ActivityPlanForm({
               <div className="flex items-center justify-between border-b border-teal-200/60 pb-2.5">
                 <div className="flex items-center gap-2 text-teal-800 font-bold text-sm">
                   <Store className="h-4 w-4 text-teal-600" />
-                  <span>9. จัดกิจกรรมส่งเสริมการขายหน้าร้าน</span>
+                  <span>จัดกิจกรรมส่งเสริมการขายหน้าร้าน</span>
                 </div>
                 {!readonly && (
                   <button
@@ -1465,7 +1465,7 @@ export function ActivityPlanForm({
               <div className="flex items-center justify-between border-b border-amber-200/60 pb-2.5">
                 <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
                   <Sprout className="h-4 w-4 text-amber-600" />
-                  <span>10. จัดงาน Field Day</span>
+                  <span>จัดงาน Field Day</span>
                 </div>
                 {!readonly && (
                   <button
@@ -1568,7 +1568,7 @@ export function ActivityPlanForm({
               <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5">
                 <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
                   <ClipboardList className="h-4 w-4 text-slate-600" />
-                  <span>11. ตรวจเช็กสต็อกหน้าร้าน</span>
+                  <span>ตรวจเช็กสต็อกหน้าร้าน</span>
                 </div>
                 {!readonly && (
                   <button
