@@ -8,7 +8,6 @@ import {
   FileText,
   Plus,
   Trash2,
-  MapPin,
   Check,
   X,
   ChevronDown,
@@ -24,6 +23,7 @@ import {
   BarChart2,
   Receipt,
   ClipboardList,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -113,6 +113,13 @@ interface RequisitionItem {
   detail: string;
 }
 
+interface Type9ProductItem {
+  id: string;
+  productName: string;
+  quantityCases: number;
+  pricePerCase: number;
+}
+
 export function ActivityPlanForm({
   initial = {},
   employees = [],
@@ -191,6 +198,16 @@ export function ActivityPlanForm({
   const [type9Store, setType9Store] = useState("");
   const [type9Sales, setType9Sales] = useState<number>(0);
   const [type9Products, setType9Products] = useState("");
+  const [type9ProductItems, setType9ProductItems] = useState<
+    Type9ProductItem[]
+  >([
+    {
+      id: "1",
+      productName: DEMO_PRODUCTS[0] || "สินค้าทดสอบ A",
+      quantityCases: 10,
+      pricePerCase: 500,
+    },
+  ]);
 
   const [type10DemoPlot, setType10DemoPlot] = useState("");
   const [type10Location, setType10Location] = useState("");
@@ -263,6 +280,31 @@ export function ActivityPlanForm({
 
   const clearWorkTypes = () => {
     setSelectedWorkTypes([]);
+  };
+
+  // Type 9 Store Promotion Product Table Helpers
+  const addType9ProductItem = () => {
+    const newItem: Type9ProductItem = {
+      id: Date.now().toString(),
+      productName: DEMO_PRODUCTS[0] || "",
+      quantityCases: 1,
+      pricePerCase: 0,
+    };
+    setType9ProductItems((prev) => [...prev, newItem]);
+  };
+
+  const updateType9ProductItem = (
+    id: string,
+    field: keyof Type9ProductItem,
+    val: any,
+  ) => {
+    setType9ProductItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+
+  const deleteType9ProductItem = (id: string) => {
+    setType9ProductItems((prev) => prev.filter((item) => item.id !== id));
   };
 
   // Requisition table helpers
@@ -399,8 +441,20 @@ export function ActivityPlanForm({
     }
 
     if (selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")) {
+      const itemsText = type9ProductItems
+        .map(
+          (item, i) =>
+            `${i + 1}. ${item.productName} (${item.quantityCases} ลัง @ ฿${item.pricePerCase.toLocaleString()}/ลัง = ฿${(item.quantityCases * item.pricePerCase).toLocaleString()})`,
+        )
+        .join(", ");
+      const calculatedSales = type9ProductItems.reduce(
+        (sum, item) =>
+          sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
+        0,
+      );
+      const finalSales = calculatedSales > 0 ? calculatedSales : type9Sales;
       summaryParts.push(
-        `[กิจกรรมหน้าร้าน] ร้านค้า: ${type9Store} | เป้ายอดขาย: ${type9Sales.toLocaleString()} บาท | สินค้า: ${type9Products}`,
+        `[กิจกรรมหน้าร้าน] ร้านค้า: ${type9Store} | เป้ายอดขายรวม: ${finalSales.toLocaleString()} บาท | สินค้า: ${itemsText || type9Products || "ไม่ระบุ"}`,
       );
     }
 
@@ -1316,7 +1370,7 @@ export function ActivityPlanForm({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
                     ร้านค้าที่จะไปจัดงาน <span className="text-red-500">*</span>
@@ -1337,7 +1391,7 @@ export function ActivityPlanForm({
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้ายอดขายจากกิจกรรม (บาท){" "}
+                    เป้ายอดขายรวมจากกิจกรรม (บาท){" "}
                     <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -1346,28 +1400,172 @@ export function ActivityPlanForm({
                     </span>
                     <input
                       type="number"
-                      value={type9Sales}
+                      value={
+                        type9ProductItems.length > 0
+                          ? type9ProductItems.reduce(
+                              (sum, item) =>
+                                sum +
+                                (item.quantityCases || 0) *
+                                  (item.pricePerCase || 0),
+                              0,
+                            )
+                          : type9Sales
+                      }
                       onChange={(e) =>
                         setType9Sales(parseFloat(e.target.value) || 0)
                       }
-                      disabled={readonly}
-                      className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      disabled={readonly || type9ProductItems.length > 0}
+                      className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs font-bold text-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
                   </div>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    สินค้าที่จะขาย <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={type9Products}
-                    onChange={(e) => setType9Products(e.target.value)}
-                    disabled={readonly}
-                    placeholder="เช่น สินค้า A, สินค้า B"
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
+              {/* Table / List of Products */}
+              <div className="space-y-3 pt-2 border-t border-teal-200/60">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <Package className="h-4 w-4 text-teal-600" />
+                    รายการสินค้าที่เสนอขาย / โปรโมชันหน้าร้าน
+                  </span>
+
+                  {!readonly && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={addType9ProductItem}
+                      className="bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm"
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1" />
+                      เพิ่มสินค้า
+                    </Button>
+                  )}
+                </div>
+
+                <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                      <tr>
+                        <th className="py-2 px-3 text-center w-10">ลำดับ</th>
+                        <th className="py-2 px-3 min-w-[180px]">
+                          เลือกสินค้า <span className="text-red-500">*</span>
+                        </th>
+                        <th className="py-2 px-3 w-28 text-center">
+                          จำนวน (ลัง) <span className="text-red-500">*</span>
+                        </th>
+                        <th className="py-2 px-3 w-32 text-center">
+                          ราคา (บาท/ลัง) <span className="text-red-500">*</span>
+                        </th>
+                        <th className="py-2 px-3 w-36 text-right">
+                          รวมเป็นเงินทั้งหมด
+                        </th>
+                        {!readonly && (
+                          <th className="py-2 px-3 text-center w-14">จัดการ</th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {type9ProductItems.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="py-4 text-center text-slate-400 italic"
+                          >
+                            ยังไม่มีรายการสินค้า กด "+ เพิ่มสินค้า" เพื่อบันทึก
+                          </td>
+                        </tr>
+                      ) : (
+                        type9ProductItems.map((item, index) => {
+                          const totalItemPrice =
+                            (item.quantityCases || 0) *
+                            (item.pricePerCase || 0);
+                          return (
+                            <tr
+                              key={item.id}
+                              className="hover:bg-slate-50/60 transition-colors"
+                            >
+                              <td className="py-2 px-3 text-center font-medium text-slate-500">
+                                {index + 1}
+                              </td>
+                              <td className="py-1.5 px-3">
+                                <select
+                                  value={item.productName}
+                                  onChange={(e) =>
+                                    updateType9ProductItem(
+                                      item.id,
+                                      "productName",
+                                      e.target.value,
+                                    )
+                                  }
+                                  disabled={readonly}
+                                  className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                >
+                                  {DEMO_PRODUCTS.map((prod) => (
+                                    <option key={prod} value={prod}>
+                                      {prod}
+                                    </option>
+                                  ))}
+                                </select>
+                              </td>
+                              <td className="py-1.5 px-3">
+                                <input
+                                  type="number"
+                                  min={1}
+                                  value={item.quantityCases}
+                                  onChange={(e) =>
+                                    updateType9ProductItem(
+                                      item.id,
+                                      "quantityCases",
+                                      parseInt(e.target.value) || 0,
+                                    )
+                                  }
+                                  disabled={readonly}
+                                  className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                />
+                              </td>
+                              <td className="py-1.5 px-3">
+                                <div className="relative">
+                                  <span className="absolute left-2 top-2 text-slate-400 text-[11px]">
+                                    ฿
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    value={item.pricePerCase}
+                                    onChange={(e) =>
+                                      updateType9ProductItem(
+                                        item.id,
+                                        "pricePerCase",
+                                        parseFloat(e.target.value) || 0,
+                                      )
+                                    }
+                                    disabled={readonly}
+                                    className="w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 text-xs text-slate-800 text-right focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                  />
+                                </div>
+                              </td>
+                              <td className="py-1.5 px-3 text-right font-semibold text-teal-700">
+                                ฿ {totalItemPrice.toLocaleString()}
+                              </td>
+                              {!readonly && (
+                                <td className="py-1.5 px-3 text-center">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      deleteType9ProductItem(item.id)
+                                    }
+                                    className="p-1 rounded-md text-red-500 hover:bg-red-50 transition-colors"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
