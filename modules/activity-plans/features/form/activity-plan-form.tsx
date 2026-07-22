@@ -1673,7 +1673,15 @@ export function ActivityPlanForm({
       <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden p-5 md:p-6 space-y-5">
         <div className="flex items-center gap-2.5">
           <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
-            5
+            {selectedWorkTypes.some((t) =>
+              [
+                "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+                "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+                "จัดงาน Field Day",
+              ].includes(t)
+            )
+              ? 5
+              : 4}
           </span>
           <h2 className="font-bold text-slate-800 text-base md:text-lg">
             งบประมาณและค่าใช้จ่าย (Budget & Expenses)
@@ -1770,7 +1778,15 @@ export function ActivityPlanForm({
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2.5">
             <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
-              6
+              {selectedWorkTypes.some((t) =>
+                [
+                  "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+                  "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+                  "จัดงาน Field Day",
+                ].includes(t)
+              )
+                ? 6
+                : 5}
             </span>
             <h2 className="font-bold text-slate-800 text-base md:text-lg">
               รายการขอเบิกสินค้าจัดกิจกรรม (Material Requisition)
@@ -1900,7 +1916,15 @@ export function ActivityPlanForm({
       <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden p-5 md:p-6 space-y-4">
         <div className="flex items-center gap-2.5">
           <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
-            7
+            {selectedWorkTypes.some((t) =>
+              [
+                "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+                "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+                "จัดงาน Field Day",
+              ].includes(t)
+            )
+              ? 7
+              : 6}
           </span>
           <h2 className="font-bold text-slate-800 text-base md:text-lg">
             ข้อมูลเพิ่มเติม (Additional Info)
