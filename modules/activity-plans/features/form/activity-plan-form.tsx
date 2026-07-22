@@ -2305,7 +2305,7 @@ export function ActivityPlanForm({
                       การใช้งบ <span className="text-red-500">*</span>
                     </th>
                     <th className="py-2.5 px-3 min-w-[180px]">
-                      รายการสินค้า <span className="text-red-500">*</span>
+                      รายละเอียด <span className="text-red-500">*</span>
                     </th>
                     <th className="py-2.5 px-3 w-24 text-center">
                       จำนวน <span className="text-red-500">*</span>
