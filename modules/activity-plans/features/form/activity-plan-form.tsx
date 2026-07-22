@@ -20,6 +20,15 @@ import {
   Package,
   Layers,
   ArrowLeft,
+  Users,
+  ShoppingCart,
+  FileCheck,
+  Building,
+  HelpCircle,
+  CheckSquare,
+  BarChart2,
+  Receipt,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -47,24 +56,25 @@ interface Props {
   readonly?: boolean;
 }
 
-// Master work types options
+// Master 11 work types list
 const WORK_TYPES = [
-  "ติดตามแปลงสาธิต / พืชเป้าหมาย",
-  "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
   "เข้าพบร้านค้า / เกษตรกร",
   "ติดตามผลการใช้สินค้า",
   "เสนอขายสินค้า",
   "วางบิล / เก็บเงิน",
   "สำรวจตลาดของคู่แข่ง",
   "แก้ปัญหา / รับเรื่องร้องเรียน",
-  "ประชุมเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+  "ติดตามแปลงสาธิต / พืชเป้าหมาย",
+  "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+  "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
   "จัดงาน Field Day",
-  "ตรวจเช็กสต๊อกหน้าร้าน",
+  "ตรวจเช็กสต็อกหน้าร้าน",
 ];
 
 // Sample lists for dropdowns
 const DEMO_OWNERS = ["บริษัททดสอบ", "ร้านทดสอบ สาขา 1", "เกษตรกรตัวอย่าง 1", "ร้านสหายพานิช"];
 const DEMO_PRODUCTS = ["สินค้าทดสอบ A", "สินค้าทดสอบ B", "สินค้าทดสอบ C", "ปุ๋ยเคมีสูตรพิเศษ"];
+const CROP_CATEGORIES = ["พืชไร่", "พืชสวน", "ผักและพืชล้มลุก"];
 const TARGET_CROPS = ["ทุเรียน", "ข้าว", "มันสำปะหลัง", "ยางพารา", "อ้อย", "ส้ม"];
 const STORES_LIST = ["ร้านทดสอบ สาขา 1", "ร้านทดสอบ สาขา 2", "ร้านสหายพานิช จันทบุรี", "ร้านเกษตรพัฒนา"];
 const REQUISITION_UNITS = ["ขวด", "ซอง", "แผ่น", "กล่อง", "ชิ้น", "ถุง", "ชุด", "ม้วน"];
@@ -99,14 +109,14 @@ export function ActivityPlanForm({
   const initStart = parseInitialDate(initial.startDate);
   const initEnd = parseInitialDate(initial.endDate);
 
-  // Form State
+  // Form Basic State
   const [title, setTitle] = useState(initial.title ?? "แปลงสาธิตของบ้าหนาน");
   const [startDate, setStartDate] = useState(initStart.dateStr);
   const [startTime, setStartTime] = useState(initStart.timeStr);
   const [endDate, setEndDate] = useState(initEnd.dateStr);
   const [endTime, setEndTime] = useState(initEnd.timeStr);
 
-  // Parse work types from initial
+  // Work types selection state
   const initialTypes = initial.activityType
     ? initial.activityType.split(",").map((s) => s.trim()).filter(Boolean)
     : ["ติดตามแปลงสาธิต / พืชเป้าหมาย", "จัดกิจกรรมส่งเสริมการขายหน้าร้าน"];
@@ -114,24 +124,55 @@ export function ActivityPlanForm({
   const [isWorkTypesDropdownOpen, setIsWorkTypesDropdownOpen] = useState(false);
   const workTypesDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Section 3: Dynamic Objectives State
-  const [demoPlotOwner, setDemoPlotOwner] = useState("บริษัททดสอบ");
-  const [demoProduct, setDemoProduct] = useState("สินค้าทดสอบ");
-  const [targetCrop, setTargetCrop] = useState("ทุเรียน");
-  const [targetPlots, setTargetPlots] = useState<number>(1);
-  const [targetTrees, setTargetTrees] = useState<number>(20);
+  // State for all 11 Work Type Objective Forms
+  const [type1Topics, setType1Topics] = useState<string[]>(["แจ้งข่าวสาร", "ให้คำแนะนำการใช้สินค้า"]);
+  const [type1OtherTopic, setType1OtherTopic] = useState("");
+  const [type1Customers, setType1Customers] = useState("ร้านทดสอบ สาขา 1, เกษตรกรหมู่ 5");
 
-  const [storeTargetName, setStoreTargetName] = useState("ร้านทดสอบ สาขา 1");
-  const [storeTargetSales, setStoreTargetSales] = useState<number>(10000);
-  const [storeTargetProducts, setStoreTargetProducts] = useState("สินค้าทดสอบ A, สินค้าทดสอบ B");
+  const [type2Product, setType2Product] = useState("สินค้าทดสอบ A");
+  const [type2CustomerCount, setType2CustomerCount] = useState<number>(10);
+
+  const [type3ProductList, setType3ProductList] = useState("สินค้าทดสอบ A, สินค้าทดสอบ B");
+  const [type3TargetSales, setType3TargetSales] = useState<number>(50000);
+  const [type3TargetQty, setType3TargetQty] = useState<number>(20);
+
+  const [type4Customers, setType4Customers] = useState("ร้านทดสอบ สาขา 1");
+  const [type4CollectAmount, setType4CollectAmount] = useState<number>(35000);
+
+  const [type5Brand, setType5Brand] = useState("แบรนด์คู่แข่ง X");
+  const [type5Product, setType5Product] = useState("ปุ๋ยสูตรสูสี A");
+  const [type5StoreCount, setType5StoreCount] = useState<number>(5);
+
+  const [type6Customers, setType6Customers] = useState("ร้านสหายพานิช");
+  const [type6IssueType, setType6IssueType] = useState("ฉีดยาแล้วพืชเสียหาย");
+
+  const [type7Owner, setType7Owner] = useState("บริษัททดสอบ");
+  const [type7Product, setType7Product] = useState("สินค้าทดสอบ");
+  const [type7CropCategory, setType7CropCategory] = useState("พืชสวน");
+  const [type7Crop, setType7Crop] = useState("ทุเรียน");
+  const [type7Plots, setType7Plots] = useState<number>(1);
+  const [type7Trees, setType7Trees] = useState<number>(20);
+
+  const [type8Topic, setType8Topic] = useState("การใช้ผลิตภัณฑ์อย่างมีประสิทธิภาพ");
+  const [type8Attendees, setType8Attendees] = useState<number>(30);
+
+  const [type9Store, setType9Store] = useState("ร้านทดสอบ สาขา 1");
+  const [type9Sales, setType9Sales] = useState<number>(10000);
+  const [type9Products, setType9Products] = useState("สินค้าทดสอบ A, สินค้าทดสอบ B");
+
+  const [type10DemoPlot, setType10DemoPlot] = useState("แปลงสาธิตสวนทุเรียนท่าใหม่");
+  const [type10Location, setType10Location] = useState("จันทบุรี");
+  const [type10Showcase, setType10Showcase] = useState("ทุเรียน & ปุ๋ยทดสอบ");
+  const [type10Attendees, setType10Attendees] = useState<number>(50);
+  const [type10BookingSales, setType10BookingSales] = useState<number>(100000);
+
+  const [type11Stores, setType11Stores] = useState("ร้านทดสอบ สาขา 1, ร้านสหายพานิช");
 
   // Section 4: Location & Team State
   const [locationText, setLocationText] = useState(
     initial.location ??
       "บ้านสวนทุเรียน หมู่ 5 ตำบลเขากบายศรี อำเภอท่าใหม่ จังหวัดจันทบุรี จุดสังเกต: เลยแยกประมาณ 500 เมตร และเข้าซอยสวนทุเรียน"
   );
-
-  // Initial helpers default mock or initial prop
   const [helperEmployeeIds, setHelperEmployeeIds] = useState<string[]>(
     initial.helperEmployeeIds ?? (employees.length > 0 ? [employees[0]?.id].filter(Boolean) : [])
   );
@@ -207,8 +248,8 @@ export function ActivityPlanForm({
     }
   };
 
-  const removeWorkType = (typeStr: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const removeWorkType = (typeStr: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setSelectedWorkTypes(selectedWorkTypes.filter((t) => t !== typeStr));
   };
 
@@ -259,6 +300,15 @@ export function ActivityPlanForm({
     setHelperEmployeeIds(helperEmployeeIds.filter((hid) => hid !== id));
   };
 
+  // Checkbox toggle for Type 1 topics
+  const toggleType1Topic = (topic: string) => {
+    if (type1Topics.includes(topic)) {
+      setType1Topics(type1Topics.filter((t) => t !== topic));
+    } else {
+      setType1Topics([...type1Topics, topic]);
+    }
+  };
+
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -280,21 +330,57 @@ export function ActivityPlanForm({
     const startDateTime = new Date(`${startDate}T${startTime}:00`);
     const endDateTime = new Date(`${endDate}T${endTime}:00`);
 
-    // Serialize objectives
-    const dynamicObjectiveSummaryList: string[] = [];
-    if (selectedWorkTypes.includes("ติดตามแปลงสาธิต / พืชเป้าหมาย")) {
-      dynamicObjectiveSummaryList.push(
-        `[ติดตามแปลงสาธิต] เจ้าของแปลง: ${demoPlotOwner}, สินค้าสาธิต: ${demoProduct}, พืชเป้าหมาย: ${targetCrop}, เป้าหมาย: ${targetPlots} แปลง (${targetTrees} ต้น)`
-      );
-    }
-    if (selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")) {
-      dynamicObjectiveSummaryList.push(
-        `[จัดกิจกรรมส่งเสริมการขายหน้าร้าน] ร้านค้า: ${storeTargetName}, เป้ายอดขาย: ${storeTargetSales.toLocaleString()} บาท, สินค้า: ${storeTargetProducts}`
-      );
-    }
-    const compiledObjective = dynamicObjectiveSummaryList.join(" | ") || title;
+    // Compile dynamic objectives for all selected types
+    const summaryParts: string[] = [];
 
-    // Serialize materials in description
+    if (selectedWorkTypes.includes("เข้าพบร้านค้า / เกษตรกร")) {
+      const topicsText = type1Topics.join(", ") + (type1OtherTopic ? ` (${type1OtherTopic})` : "");
+      summaryParts.push(`[เข้าพบร้านค้า/เกษตรกร] ประเด็น: ${topicsText} | ลูกค้า: ${type1Customers}`);
+    }
+
+    if (selectedWorkTypes.includes("ติดตามผลการใช้สินค้า")) {
+      summaryParts.push(`[ติดตามผลการใช้สินค้า] สินค้า: ${type2Product} | เป้าหมายลูกค้า: ${type2CustomerCount} ราย`);
+    }
+
+    if (selectedWorkTypes.includes("เสนอขายสินค้า")) {
+      summaryParts.push(`[เสนอขายสินค้า] สินค้า: ${type3ProductList} | เป้ายอดขาย: ${type3TargetSales.toLocaleString()} บาท (${type3TargetQty} หน่วย)`);
+    }
+
+    if (selectedWorkTypes.includes("วางบิล / เก็บเงิน")) {
+      summaryParts.push(`[วางบิล/เก็บเงิน] ลูกค้า: ${type4Customers} | เป้ายอดเก็บเงิน: ${type4CollectAmount.toLocaleString()} บาท`);
+    }
+
+    if (selectedWorkTypes.includes("สำรวจตลาดของคู่แข่ง")) {
+      summaryParts.push(`[สำรวจตลาดคู่แข่ง] แบรนด์: ${type5Brand} | สินค้าเทียบ: ${type5Product} | เป้าหมายร้านค้า: ${type5StoreCount} แห่ง`);
+    }
+
+    if (selectedWorkTypes.includes("แก้ปัญหา / รับเรื่องร้องเรียน")) {
+      summaryParts.push(`[แก้ปัญหา/ร้องเรียน] ลูกค้า: ${type6Customers} | ประเภทปัญหา: ${type6IssueType}`);
+    }
+
+    if (selectedWorkTypes.includes("ติดตามแปลงสาธิต / พืชเป้าหมาย")) {
+      summaryParts.push(`[ติดตามแปลงสาธิต] เจ้าของ: ${type7Owner} | สินค้า: ${type7Product} | พืช: ${type7CropCategory} (${type7Crop}) | เป้าหมาย: ${type7Plots} แปลง (${type7Trees} ต้น)`);
+    }
+
+    if (selectedWorkTypes.includes("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")) {
+      summaryParts.push(`[จัดประชุม] หัวข้อ: ${type8Topic} | เป้าหมายผู้เข้าร่วม: ${type8Attendees} คน`);
+    }
+
+    if (selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")) {
+      summaryParts.push(`[กิจกรรมหน้าร้าน] ร้านค้า: ${type9Store} | เป้ายอดขาย: ${type9Sales.toLocaleString()} บาท | สินค้า: ${type9Products}`);
+    }
+
+    if (selectedWorkTypes.includes("จัดงาน Field Day")) {
+      summaryParts.push(`[Field Day] แปลงสาธิต: ${type10DemoPlot} | สถานที่: ${type10Location} | สินค้าโชว์: ${type10Showcase} | เป้าผู้ร่วมงาน: ${type10Attendees} คน | เป้ายอดจอง: ${type10BookingSales.toLocaleString()} บาท`);
+    }
+
+    if (selectedWorkTypes.includes("ตรวจเช็กสต็อกหน้าร้าน")) {
+      summaryParts.push(`[ตรวจเช็กสต็อก] ร้านค้า: ${type11Stores}`);
+    }
+
+    const compiledObjective = summaryParts.join("\n") || title;
+
+    // Serialize materials into description
     const materialSummary = requisitionItems
       .map((item, i) => `${i + 1}. ${item.productName} (${item.quantity} ${item.unit}) - ${item.detail}`)
       .join("\n");
@@ -455,15 +541,13 @@ export function ActivityPlanForm({
               วันที่จัดกิจกรรม <span className="text-red-500">*</span>
             </label>
             <div className="flex gap-2">
-              <div className="relative flex-1">
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  disabled={readonly}
-                  className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                />
-              </div>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                disabled={readonly}
+                className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              />
               <select
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
@@ -485,15 +569,13 @@ export function ActivityPlanForm({
               วันที่สิ้นสุดกิจกรรม <span className="text-red-500">*</span>
             </label>
             <div className="flex gap-2">
-              <div className="relative flex-1">
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  disabled={readonly}
-                  className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                />
-              </div>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                disabled={readonly}
+                className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              />
               <select
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
@@ -617,96 +699,502 @@ export function ActivityPlanForm({
           </h2>
         </div>
 
-        {/* Dynamic Cards Container */}
-        <div className="space-y-4">
-          {/* Card 1: ติดตามแปลงสาธิต / พืชเป้าหมาย */}
-          {selectedWorkTypes.includes("ติดตามแปลงสาธิต / พืชเป้าหมาย") && (
-            <div className="bg-emerald-50/40 border border-emerald-200/80 rounded-xl p-4 md:p-5 space-y-4">
-              <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm border-b border-emerald-200/60 pb-2.5">
-                <Sprout className="h-4 w-4 text-emerald-600" />
-                <span>ติดตามแปลงสาธิต / พืชเป้าหมาย</span>
+        {/* Dynamic Cards Container for all 11 Work Types */}
+        <div className="space-y-5">
+          {/* Work Type 1: เข้าพบร้านค้า / เกษตรกร */}
+          {selectedWorkTypes.includes("เข้าพบร้านค้า / เกษตรกร") && (
+            <div className="bg-sky-50/40 border border-sky-200/80 rounded-xl p-4 md:p-5 space-y-4 relative">
+              <div className="flex items-center justify-between border-b border-sky-200/60 pb-2.5">
+                <div className="flex items-center gap-2 text-sky-800 font-bold text-sm">
+                  <Users className="h-4 w-4 text-sky-600" />
+                  <span>1. เข้าพบร้านค้า / เกษตรกร</span>
+                </div>
+                {!readonly && (
+                  <button
+                    type="button"
+                    onClick={() => removeWorkType("เข้าพบร้านค้า / เกษตรกร")}
+                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* เจ้าของแปลง */}
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เจ้าของแปลง <span className="text-red-500">*</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-xs font-medium text-slate-700">
+                    ประเด็นหลัก <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                    <select
-                      value={demoPlotOwner}
-                      onChange={(e) => setDemoPlotOwner(e.target.value)}
-                      disabled={readonly}
-                      className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
-                    >
-                      {DEMO_OWNERS.map((owner) => (
-                        <option key={owner} value={owner}>
-                          {owner}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white p-3 rounded-lg border border-slate-200">
+                    {[
+                      "แจ้งข่าวสาร",
+                      "อัปเดตข้อมูลลูกค้า",
+                      "เลี้ยงรับรอง / สังสรรค์",
+                      "ให้คำแนะนำการใช้สินค้า",
+                      "อื่นๆ",
+                    ].map((topic) => {
+                      const isChecked = type1Topics.includes(topic);
+                      return (
+                        <label
+                          key={topic}
+                          onClick={() => toggleType1Topic(topic)}
+                          className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer select-none"
+                        >
+                          <div
+                            className={cn(
+                              "w-4 h-4 rounded border flex items-center justify-center transition-colors",
+                              isChecked
+                                ? "bg-sky-600 border-sky-600 text-white"
+                                : "border-slate-300 bg-white"
+                            )}
+                          >
+                            {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
+                          </div>
+                          <span>{topic}</span>
+                        </label>
+                      );
+                    })}
                   </div>
+                  {type1Topics.includes("อื่นๆ") && (
+                    <input
+                      type="text"
+                      value={type1OtherTopic}
+                      onChange={(e) => setType1OtherTopic(e.target.value)}
+                      disabled={readonly}
+                      placeholder="โปรดระบุประเด็นอื่นๆ..."
+                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    />
+                  )}
                 </div>
 
-                {/* สินค้าสาธิต */}
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    สินค้าสาธิต <span className="text-red-500">*</span>
+                    รายชื่อลูกค้า / ร้านค้า <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <Package className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                    <select
-                      value={demoProduct}
-                      onChange={(e) => setDemoProduct(e.target.value)}
-                      disabled={readonly}
-                      className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
-                    >
-                      {DEMO_PRODUCTS.map((prod) => (
-                        <option key={prod} value={prod}>
-                          {prod}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <textarea
+                    rows={3}
+                    value={type1Customers}
+                    onChange={(e) => setType1Customers(e.target.value)}
+                    disabled={readonly}
+                    placeholder="ระบุรายชื่อลูกค้า หรือ ร้านค้าที่จะเข้าพบ..."
+                    className="w-full rounded-lg border border-slate-200 p-2.5 text-xs bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Work Type 2: ติดตามผลการใช้สินค้า */}
+          {selectedWorkTypes.includes("ติดตามผลการใช้สินค้า") && (
+            <div className="bg-indigo-50/40 border border-indigo-200/80 rounded-xl p-4 md:p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-indigo-200/60 pb-2.5">
+                <div className="flex items-center gap-2 text-indigo-800 font-bold text-sm">
+                  <CheckSquare className="h-4 w-4 text-indigo-600" />
+                  <span>2. ติดตามผลการใช้สินค้า</span>
+                </div>
+                {!readonly && (
+                  <button
+                    type="button"
+                    onClick={() => removeWorkType("ติดตามผลการใช้สินค้า")}
+                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    สินค้าที่ต้องการไปติดตามผล <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={type2Product}
+                    onChange={(e) => setType2Product(e.target.value)}
+                    disabled={readonly}
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    {DEMO_PRODUCTS.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* พืชเป้าหมาย */}
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    พืชเป้าหมาย <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Sprout className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                    <select
-                      value={targetCrop}
-                      onChange={(e) => setTargetCrop(e.target.value)}
-                      disabled={readonly}
-                      className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
-                    >
-                      {TARGET_CROPS.map((crop) => (
-                        <option key={crop} value={crop}>
-                          {crop}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* เป้าหมายจำนวนแปลง */}
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้าหมายจำนวนแปลง <span className="text-red-500">*</span>
+                    เป้าหมายจำนวนลูกค้า (ราย) <span className="text-red-500">*</span>
                   </label>
                   <div className="relative flex items-center">
                     <input
                       type="number"
                       min={1}
-                      value={targetPlots}
-                      onChange={(e) => setTargetPlots(parseInt(e.target.value) || 0)}
+                      value={type2CustomerCount}
+                      onChange={(e) => setType2CustomerCount(parseInt(e.target.value) || 0)}
                       disabled={readonly}
-                      className="w-full h-10 pr-14 pl-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                      className="w-full h-10 pr-12 pl-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <span className="absolute right-3 text-xs text-slate-400 font-medium">
+                      ราย
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Work Type 3: เสนอขายสินค้า */}
+          {selectedWorkTypes.includes("เสนอขายสินค้า") && (
+            <div className="bg-emerald-50/40 border border-emerald-200/80 rounded-xl p-4 md:p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2.5">
+                <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
+                  <ShoppingCart className="h-4 w-4 text-emerald-600" />
+                  <span>3. เสนอขายสินค้า</span>
+                </div>
+                {!readonly && (
+                  <button
+                    type="button"
+                    onClick={() => removeWorkType("เสนอขายสินค้า")}
+                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    รายการสินค้าที่จะเสนอขาย <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={type3ProductList}
+                    onChange={(e) => setType3ProductList(e.target.value)}
+                    disabled={readonly}
+                    placeholder="เช่น สินค้าทดสอบ A, สินค้าทดสอบ B"
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    เป้ายอดขาย (บาท) <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
+                      ฿
+                    </span>
+                    <input
+                      type="number"
+                      value={type3TargetSales}
+                      onChange={(e) => setType3TargetSales(parseFloat(e.target.value) || 0)}
+                      disabled={readonly}
+                      className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    เป้าปริมาณขาย (หน่วย) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={type3TargetQty}
+                    onChange={(e) => setType3TargetQty(parseInt(e.target.value) || 0)}
+                    disabled={readonly}
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Work Type 4: วางบิล / เก็บเงิน */}
+          {selectedWorkTypes.includes("วางบิล / เก็บเงิน") && (
+            <div className="bg-amber-50/40 border border-amber-200/80 rounded-xl p-4 md:p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-amber-200/60 pb-2.5">
+                <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
+                  <Receipt className="h-4 w-4 text-amber-600" />
+                  <span>4. วางบิล / เก็บเงิน</span>
+                </div>
+                {!readonly && (
+                  <button
+                    type="button"
+                    onClick={() => removeWorkType("วางบิล / เก็บเงิน")}
+                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    รายชื่อลูกค้า / ร้านค้า <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={type4Customers}
+                    onChange={(e) => setType4Customers(e.target.value)}
+                    disabled={readonly}
+                    placeholder="เช่น ร้านทดสอบ สาขา 1"
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    เป้ายอดเก็บเงินรวม (บาท) <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
+                      ฿
+                    </span>
+                    <input
+                      type="number"
+                      value={type4CollectAmount}
+                      onChange={(e) => setType4CollectAmount(parseFloat(e.target.value) || 0)}
+                      disabled={readonly}
+                      className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Work Type 5: สำรวจตลาดของคู่แข่ง */}
+          {selectedWorkTypes.includes("สำรวจตลาดของคู่แข่ง") && (
+            <div className="bg-purple-50/40 border border-purple-200/80 rounded-xl p-4 md:p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-purple-200/60 pb-2.5">
+                <div className="flex items-center gap-2 text-purple-800 font-bold text-sm">
+                  <BarChart2 className="h-4 w-4 text-purple-600" />
+                  <span>5. สำรวจตลาดของคู่แข่ง</span>
+                </div>
+                {!readonly && (
+                  <button
+                    type="button"
+                    onClick={() => removeWorkType("สำรวจตลาดของคู่แข่ง")}
+                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    แบรนด์คู่แข่ง <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={type5Brand}
+                    onChange={(e) => setType5Brand(e.target.value)}
+                    disabled={readonly}
+                    placeholder="เช่น แบรนด์ X"
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    สินค้าที่นำไปเปรียบเทียบ <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={type5Product}
+                    onChange={(e) => setType5Product(e.target.value)}
+                    disabled={readonly}
+                    placeholder="เช่น สินค้าสูตร A"
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    เป้าหมายจำนวนร้านค้า (แห่ง) <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      type="number"
+                      min={1}
+                      value={type5StoreCount}
+                      onChange={(e) => setType5StoreCount(parseInt(e.target.value) || 0)}
+                      disabled={readonly}
+                      className="w-full h-10 pr-14 pl-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <span className="absolute right-3 text-xs text-slate-400 font-medium">
+                      แห่ง
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Work Type 6: แก้ปัญหา / รับเรื่องร้องเรียน */}
+          {selectedWorkTypes.includes("แก้ปัญหา / รับเรื่องร้องเรียน") && (
+            <div className="bg-rose-50/40 border border-rose-200/80 rounded-xl p-4 md:p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-rose-200/60 pb-2.5">
+                <div className="flex items-center gap-2 text-rose-800 font-bold text-sm">
+                  <HelpCircle className="h-4 w-4 text-rose-600" />
+                  <span>6. แก้ปัญหา / รับเรื่องร้องเรียน</span>
+                </div>
+                {!readonly && (
+                  <button
+                    type="button"
+                    onClick={() => removeWorkType("แก้ปัญหา / รับเรื่องร้องเรียน")}
+                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    รายชื่อลูกค้า / ร้านค้า <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={type6Customers}
+                    onChange={(e) => setType6Customers(e.target.value)}
+                    disabled={readonly}
+                    placeholder="เช่น ร้านสหายพานิช"
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    ประเภทปัญหา <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={type6IssueType}
+                    onChange={(e) => setType6IssueType(e.target.value)}
+                    disabled={readonly}
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  >
+                    <option value="เคลมของ">เคลมของ</option>
+                    <option value="ฉีดยาแล้วพืชเสียหาย">ฉีดยาแล้วพืชเสียหาย</option>
+                    <option value="อื่นๆ">อื่นๆ</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Work Type 7: ติดตามแปลงสาธิต / พืชเป้าหมาย */}
+          {selectedWorkTypes.includes("ติดตามแปลงสาธิต / พืชเป้าหมาย") && (
+            <div className="bg-emerald-50/40 border border-emerald-200/80 rounded-xl p-4 md:p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2.5">
+                <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
+                  <Sprout className="h-4 w-4 text-emerald-600" />
+                  <span>7. ติดตามแปลงสาธิต / พืชเป้าหมาย</span>
+                </div>
+                {!readonly && (
+                  <button
+                    type="button"
+                    onClick={() => removeWorkType("ติดตามแปลงสาธิต / พืชเป้าหมาย")}
+                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    เจ้าของแปลง <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={type7Owner}
+                    onChange={(e) => setType7Owner(e.target.value)}
+                    disabled={readonly}
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    {DEMO_OWNERS.map((owner) => (
+                      <option key={owner} value={owner}>
+                        {owner}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    สินค้าที่จะสาธิต <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={type7Product}
+                    onChange={(e) => setType7Product(e.target.value)}
+                    disabled={readonly}
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    {DEMO_PRODUCTS.map((prod) => (
+                      <option key={prod} value={prod}>
+                        {prod}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    ประเภทพืชเป้าหมาย <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={type7CropCategory}
+                    onChange={(e) => setType7CropCategory(e.target.value)}
+                    disabled={readonly}
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    {CROP_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    เลือกพืช <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={type7Crop}
+                    onChange={(e) => setType7Crop(e.target.value)}
+                    disabled={readonly}
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    {TARGET_CROPS.map((crop) => (
+                      <option key={crop} value={crop}>
+                        {crop}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    เป้าหมายจำนวนแปลง (แปลง) <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      type="number"
+                      min={1}
+                      value={type7Plots}
+                      onChange={(e) => setType7Plots(parseInt(e.target.value) || 0)}
+                      disabled={readonly}
+                      className="w-full h-10 pr-14 pl-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                     <span className="absolute right-3 text-xs text-slate-400 font-medium">
                       แปลง
@@ -714,19 +1202,18 @@ export function ActivityPlanForm({
                   </div>
                 </div>
 
-                {/* เป้าหมายจำนวนต้น */}
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    เป้าหมายจำนวนต้น <span className="text-red-500">*</span>
+                    เป้าหมายจำนวนต้น (ต้น) <span className="text-red-500">*</span>
                   </label>
                   <div className="relative flex items-center">
                     <input
                       type="number"
                       min={1}
-                      value={targetTrees}
-                      onChange={(e) => setTargetTrees(parseInt(e.target.value) || 0)}
+                      value={type7Trees}
+                      onChange={(e) => setType7Trees(parseInt(e.target.value) || 0)}
                       disabled={readonly}
-                      className="w-full h-10 pr-12 pl-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                      className="w-full h-10 pr-12 pl-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                     <span className="absolute right-3 text-xs text-slate-400 font-medium">
                       ต้น
@@ -737,25 +1224,91 @@ export function ActivityPlanForm({
             </div>
           )}
 
-          {/* Card 2: จัดกิจกรรมส่งเสริมการขายหน้าร้าน */}
-          {selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") && (
+          {/* Work Type 8: จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์ */}
+          {selectedWorkTypes.includes("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์") && (
             <div className="bg-blue-50/40 border border-blue-200/80 rounded-xl p-4 md:p-5 space-y-4">
-              <div className="flex items-center gap-2 text-blue-800 font-bold text-sm border-b border-blue-200/60 pb-2.5">
-                <Store className="h-4 w-4 text-blue-600" />
-                <span>จัดกิจกรรมส่งเสริมการขายหน้าร้าน</span>
+              <div className="flex items-center justify-between border-b border-blue-200/60 pb-2.5">
+                <div className="flex items-center gap-2 text-blue-800 font-bold text-sm">
+                  <Users className="h-4 w-4 text-blue-600" />
+                  <span>8. จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์</span>
+                </div>
+                {!readonly && (
+                  <button
+                    type="button"
+                    onClick={() => removeWorkType("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")}
+                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    หัวข้อที่จะประชุม <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={type8Topic}
+                    onChange={(e) => setType8Topic(e.target.value)}
+                    disabled={readonly}
+                    placeholder="เช่น ประชุมวางแผนฤดูกาลเพาะปลูก"
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    เป้าหมายจำนวนคนเข้าร่วม (คน) <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      type="number"
+                      min={1}
+                      value={type8Attendees}
+                      onChange={(e) => setType8Attendees(parseInt(e.target.value) || 0)}
+                      disabled={readonly}
+                      className="w-full h-10 pr-12 pl-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="absolute right-3 text-xs text-slate-400 font-medium">
+                      คน
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Work Type 9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน */}
+          {selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") && (
+            <div className="bg-teal-50/40 border border-teal-200/80 rounded-xl p-4 md:p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-teal-200/60 pb-2.5">
+                <div className="flex items-center gap-2 text-teal-800 font-bold text-sm">
+                  <Store className="h-4 w-4 text-teal-600" />
+                  <span>9. จัดกิจกรรมส่งเสริมการขายหน้าร้าน</span>
+                </div>
+                {!readonly && (
+                  <button
+                    type="button"
+                    onClick={() => removeWorkType("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")}
+                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* ร้านค้าที่จะไปจัดงาน */}
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
                     ร้านค้าที่จะไปจัดงาน <span className="text-red-500">*</span>
                   </label>
                   <select
-                    value={storeTargetName}
-                    onChange={(e) => setStoreTargetName(e.target.value)}
+                    value={type9Store}
+                    onChange={(e) => setType9Store(e.target.value)}
                     disabled={readonly}
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   >
                     {STORES_LIST.map((st) => (
                       <option key={st} value={st}>
@@ -765,42 +1318,169 @@ export function ActivityPlanForm({
                   </select>
                 </div>
 
-                {/* เป้ายอดขายจากกิจกรรม (บาท) */}
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
                     เป้ายอดขายจากกิจกรรม (บาท) <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-slate-400 text-sm font-semibold">
+                    <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
                       ฿
                     </span>
                     <input
                       type="number"
-                      value={storeTargetSales}
-                      onChange={(e) => setStoreTargetSales(parseFloat(e.target.value) || 0)}
+                      value={type9Sales}
+                      onChange={(e) => setType9Sales(parseFloat(e.target.value) || 0)}
                       disabled={readonly}
-                      className="w-full h-10 pl-8 pr-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                      className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
                   </div>
                 </div>
 
-                {/* สินค้าที่จะขาย */}
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
                     สินค้าที่จะขาย <span className="text-red-500">*</span>
                   </label>
+                  <input
+                    type="text"
+                    value={type9Products}
+                    onChange={(e) => setType9Products(e.target.value)}
+                    disabled={readonly}
+                    placeholder="เช่น สินค้า A, สินค้า B"
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Work Type 10: จัดงาน Field Day */}
+          {selectedWorkTypes.includes("จัดงาน Field Day") && (
+            <div className="bg-amber-50/40 border border-amber-200/80 rounded-xl p-4 md:p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-amber-200/60 pb-2.5">
+                <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
+                  <Sprout className="h-4 w-4 text-amber-600" />
+                  <span>10. จัดงาน Field Day</span>
+                </div>
+                {!readonly && (
+                  <button
+                    type="button"
+                    onClick={() => removeWorkType("จัดงาน Field Day")}
+                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    ชื่อแปลงสาธิต <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={type10DemoPlot}
+                    onChange={(e) => setType10DemoPlot(e.target.value)}
+                    disabled={readonly}
+                    placeholder="เช่น แปลงสาธิตสวนทุเรียน..."
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    สถานที่จัดงาน <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={type10Location}
+                    onChange={(e) => setType10Location(e.target.value)}
+                    disabled={readonly}
+                    placeholder="ระบุสถานที่จัดงาน..."
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    พืชเป้าหมายและสินค้าที่โชว์ผลงาน <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={type10Showcase}
+                    onChange={(e) => setType10Showcase(e.target.value)}
+                    disabled={readonly}
+                    placeholder="เช่น ทุเรียน & ปุ๋ยทดสอบ"
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    เป้าหมายจำนวนผู้เข้าร่วม (คน) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={type10Attendees}
+                    onChange={(e) => setType10Attendees(parseInt(e.target.value) || 0)}
+                    disabled={readonly}
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    เป้ายอดขายจองในงาน (ถ้ามี)
+                  </label>
                   <div className="relative">
-                    <Package className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
+                      ฿
+                    </span>
                     <input
-                      type="text"
-                      value={storeTargetProducts}
-                      onChange={(e) => setStoreTargetProducts(e.target.value)}
+                      type="number"
+                      value={type10BookingSales}
+                      onChange={(e) => setType10BookingSales(parseFloat(e.target.value) || 0)}
                       disabled={readonly}
-                      placeholder="เช่น สินค้าทดสอบ A, สินค้าทดสอบ B"
-                      className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                      className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Work Type 11: ตรวจเช็กสต็อกหน้าร้าน */}
+          {selectedWorkTypes.includes("ตรวจเช็กสต็อกหน้าร้าน") && (
+            <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-4 md:p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5">
+                <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
+                  <ClipboardList className="h-4 w-4 text-slate-600" />
+                  <span>11. ตรวจเช็กสต็อกหน้าร้าน</span>
+                </div>
+                {!readonly && (
+                  <button
+                    type="button"
+                    onClick={() => removeWorkType("ตรวจเช็กสต็อกหน้าร้าน")}
+                    className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                  รายชื่อร้านค้า <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={type11Stores}
+                  onChange={(e) => setType11Stores(e.target.value)}
+                  disabled={readonly}
+                  placeholder="เช่น ร้านทดสอบ สาขา 1, ร้านสหายพานิช"
+                  className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                />
               </div>
             </div>
           )}
