@@ -130,10 +130,8 @@ interface MarketingBudgetProductItem {
 interface SalesPromotionItem {
   id: string;
   budgetType: string;
-  productName: string;
-  quantity: number;
-  unit: string;
   detail: string;
+  amount: number;
 }
 
 export function ActivityPlanForm({
@@ -293,10 +291,8 @@ export function ActivityPlanForm({
     const newItem: SalesPromotionItem = {
       id: Date.now().toString(),
       budgetType: "งบการตลาด",
-      productName: DEMO_PRODUCTS[0],
-      quantity: 1,
-      unit: "ขวด",
       detail: "",
+      amount: 0,
     };
     setSalesPromotionItems((prev) => [...prev, newItem]);
   };
@@ -554,7 +550,7 @@ export function ActivityPlanForm({
     const salesPromotionSummary = salesPromotionItems
       .map(
         (item, i) =>
-          `${i + 1}. [${item.budgetType || "งบการตลาด"}] ${item.productName} (${item.quantity} ${item.unit}) - ${item.detail}`,
+          `${i + 1}. [${item.budgetType || "งบการตลาด"}] ${item.detail} - ฿${(item.amount || 0).toLocaleString()}`,
       )
       .join("\n");
 
@@ -2304,14 +2300,15 @@ export function ActivityPlanForm({
                     <th className="py-2.5 px-3 min-w-[130px]">
                       การใช้งบ <span className="text-red-500">*</span>
                     </th>
-                    <th className="py-2.5 px-3 min-w-[180px]">
+                    <th className="py-2.5 px-3 min-w-[200px]">
                       รายละเอียด <span className="text-red-500">*</span>
                     </th>
-                    <th className="py-2.5 px-3 w-24 text-center">
-                      จำนวน <span className="text-red-500">*</span>
+                    <th className="py-2.5 px-3 w-36 text-center">
+                      จำนวนเงิน (บาท) <span className="text-red-500">*</span>
                     </th>
-                    <th className="py-2.5 px-3 w-28">หน่วยนับ</th>
-                    <th className="py-2.5 px-3 min-w-[180px]">รายละเอียด</th>
+                    <th className="py-2.5 px-3 w-36 text-right">
+                      รวมเป็นเงินทั้งหมด
+                    </th>
                     {!readonly && (
                       <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
                     )}
@@ -2321,122 +2318,112 @@ export function ActivityPlanForm({
                   {salesPromotionItems.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={6}
                         className="py-4 text-center text-slate-400 italic"
                       >
-                        ยังไม่มีรายการส่งเสริมการขาย กด "เพิ่มรายการ"
-                        เพื่อบันทึก
+                        ยังไม่มีรายการส่งเสริมการขาย กด "เพิ่มรายการ" เพื่อบันทึก
                       </td>
                     </tr>
                   ) : (
-                    salesPromotionItems.map((item, index) => (
-                      <tr
-                        key={item.id}
-                        className="hover:bg-slate-50/50 transition-colors"
-                      >
-                        <td className="py-2.5 px-3 text-center font-medium text-slate-500">
-                          {index + 1}
-                        </td>
-                        <td className="py-2 px-3">
-                          <select
-                            value={item.budgetType || "งบการตลาด"}
-                            onChange={(e) =>
-                              updateSalesPromotionRow(
-                                item.id,
-                                "budgetType",
-                                e.target.value,
-                              )
-                            }
-                            disabled={readonly}
-                            className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-                          >
-                            <option value="งบการตลาด">งบการตลาด</option>
-                            <option value="งบขาย">งบขาย</option>
-                          </select>
-                        </td>
-                        <td className="py-2 px-3">
-                          <input
-                            type="text"
-                            value={item.productName}
-                            onChange={(e) =>
-                              updateSalesPromotionRow(
-                                item.id,
-                                "productName",
-                                e.target.value,
-                              )
-                            }
-                            disabled={readonly}
-                            placeholder="ชื่อสินค้า..."
-                            className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </td>
-                        <td className="py-2 px-3">
-                          <input
-                            type="number"
-                            min={1}
-                            value={item.quantity}
-                            onChange={(e) =>
-                              updateSalesPromotionRow(
-                                item.id,
-                                "quantity",
-                                parseInt(e.target.value) || 0,
-                              )
-                            }
-                            disabled={readonly}
-                            className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </td>
-                        <td className="py-2 px-3">
-                          <select
-                            value={item.unit}
-                            onChange={(e) =>
-                              updateSalesPromotionRow(
-                                item.id,
-                                "unit",
-                                e.target.value,
-                              )
-                            }
-                            disabled={readonly}
-                            className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          >
-                            {REQUISITION_UNITS.map((u) => (
-                              <option key={u} value={u}>
-                                {u}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="py-2 px-3">
-                          <input
-                            type="text"
-                            value={item.detail}
-                            onChange={(e) =>
-                              updateSalesPromotionRow(
-                                item.id,
-                                "detail",
-                                e.target.value,
-                              )
-                            }
-                            disabled={readonly}
-                            placeholder="รายละเอียด / เงื่อนไข..."
-                            className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </td>
-                        {!readonly && (
-                          <td className="py-2 px-3 text-center">
-                            <button
-                              type="button"
-                              onClick={() => deleteSalesPromotionRow(item.id)}
-                              className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                    salesPromotionItems.map((item, index) => {
+                      const itemTotal = item.amount || 0;
+                      return (
+                        <tr
+                          key={item.id}
+                          className="hover:bg-slate-50/50 transition-colors"
+                        >
+                          <td className="py-2.5 px-3 text-center font-medium text-slate-500">
+                            {index + 1}
                           </td>
-                        )}
-                      </tr>
-                    ))
+                          <td className="py-2 px-3">
+                            <select
+                              value={item.budgetType || "งบการตลาด"}
+                              onChange={(e) =>
+                                updateSalesPromotionRow(
+                                  item.id,
+                                  "budgetType",
+                                  e.target.value,
+                                )
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                            >
+                              <option value="งบการตลาด">งบการตลาด</option>
+                              <option value="งบขาย">งบขาย</option>
+                            </select>
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              value={item.detail}
+                              onChange={(e) =>
+                                updateSalesPromotionRow(
+                                  item.id,
+                                  "detail",
+                                  e.target.value,
+                                )
+                              }
+                              disabled={readonly}
+                              placeholder="ระบุรายละเอียดรายการ..."
+                              className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </td>
+                          <td className="py-2 px-3">
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-2 text-slate-400 text-[11px]">
+                                ฿
+                              </span>
+                              <input
+                                type="number"
+                                min={0}
+                                value={item.amount}
+                                onChange={(e) =>
+                                  updateSalesPromotionRow(
+                                    item.id,
+                                    "amount",
+                                    parseFloat(e.target.value) || 0,
+                                  )
+                                }
+                                disabled={readonly}
+                                placeholder="0"
+                                className="w-full h-8 pl-6 pr-2 rounded-md border border-slate-200 text-xs text-slate-800 text-right font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+                          </td>
+                          <td className="py-2 px-3 text-right font-semibold text-blue-700">
+                            ฿ {itemTotal.toLocaleString()}
+                          </td>
+                          {!readonly && (
+                            <td className="py-2 px-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => deleteSalesPromotionRow(item.id)}
+                                className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
+                {salesPromotionItems.length > 0 && (
+                  <tfoot className="bg-slate-50/80 border-t-2 border-slate-200 text-xs font-bold text-slate-800">
+                    <tr>
+                      <td colSpan={4} className="py-3 px-3 text-right">
+                        ผลรวมใช้งบทั้งสิ้น:
+                      </td>
+                      <td className="py-3 px-3 text-right text-blue-700 text-sm font-extrabold">
+                        ฿ {salesPromotionItems
+                          .reduce((sum, item) => sum + (item.amount || 0), 0)
+                          .toLocaleString()}
+                      </td>
+                      {!readonly && <td></td>}
+                    </tr>
+                  </tfoot>
+                )}
               </table>
             </div>
           </div>
