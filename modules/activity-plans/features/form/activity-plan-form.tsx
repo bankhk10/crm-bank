@@ -1701,49 +1701,6 @@ export function ActivityPlanForm({
             })}
           </div>
         </div>
-
-        {/* ค่าใช้จ่ายอื่นๆ (นอกเหนือจากงบ) */}
-        <div className="bg-slate-50/60 border border-slate-200/60 rounded-xl p-4 space-y-3">
-          <p className="text-xs font-medium text-slate-600">
-            ค่าใช้จ่ายอื่นๆ (นอกเหนือจากงบ)
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[11px] font-medium text-slate-500 mb-1">
-                จำนวนเงิน
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-                  ฿
-                </span>
-                <input
-                  type="number"
-                  value={extraExpenseAmount}
-                  onChange={(e) =>
-                    setExtraExpenseAmount(parseFloat(e.target.value) || 0)
-                  }
-                  disabled={readonly}
-                  className="w-full h-9 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-medium text-slate-500 mb-1">
-                รายละเอียด
-              </label>
-              <input
-                type="text"
-                value={extraExpenseDetail}
-                onChange={(e) => setExtraExpenseDetail(e.target.value)}
-                disabled={readonly}
-                placeholder="เช่น ค่าผ่านทาง"
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* SECTION 6: รายการขอเบิกสินค้าจัดกิจกรรม (Material Requisition) */}
