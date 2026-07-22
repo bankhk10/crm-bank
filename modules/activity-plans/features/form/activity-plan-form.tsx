@@ -481,7 +481,7 @@ export function ActivityPlanForm({
       </div>
 
       {/* SECTION 2: ข้อมูลหลักของกิจกรรม (Main Activity Details) */}
-      <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden p-5 md:p-6 space-y-5">
+      <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm p-5 md:p-6 space-y-5 relative z-20">
         <div className="flex items-center gap-2.5">
           <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
             2
@@ -604,8 +604,8 @@ export function ActivityPlanForm({
 
             {/* Work types multi-select checkbox dropdown popup */}
             {isWorkTypesDropdownOpen && (
-              <div className="absolute right-0 top-full mt-1.5 w-72 md:w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 p-3 space-y-2 animate-in fade-in-0 zoom-in-95">
-                <div className="max-h-64 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+              <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 w-full sm:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-3 space-y-2 animate-in fade-in-0 zoom-in-95">
+                <div className="max-h-80 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
                   {WORK_TYPES.map((typeStr) => {
                     const isChecked = selectedWorkTypes.includes(typeStr);
                     return (
