@@ -82,36 +82,42 @@ export async function seedActivityTestData(prisma: PrismaClient) {
   console.log("✅ Seeding of Activity Permissions completed.");
   console.log("🏃 Seeding Test Users & Manager Chain...");
 
-  // 2. Fetch Department "SA"
-  const salesDept = await prisma.department.findUnique({
+  // 2. Fetch/Ensure Departments
+  const salesDept = await prisma.department.upsert({
     where: { code: "SA" },
+    update: {},
+    create: { name: "แผนกบริหารงานขาย", code: "SA" },
   });
 
-  if (!salesDept) {
-    throw new Error(
-      "Sales Department (SA) not found. Make sure seedMaster has run first.",
-    );
-  }
-
-  // 3. Fetch Positions
-  const spoPosition = await prisma.position.findFirst({
-    where: { name: "พนักงานส่งเสริมการขาย" },
-  });
-  const salesPosition = await prisma.position.findFirst({
-    where: { name: "พนักงานขาย" },
-  });
-  const areaPosition = await prisma.position.findFirst({
-    where: { name: "ผู้จัดการภาค" },
-  });
-  const salesAdminPosition = await prisma.position.findFirst({
-    where: { name: "ผู้จัดการแผนกบริหารงานขาย" },
+  const mktDept = await prisma.department.upsert({
+    where: { code: "MKT" },
+    update: {},
+    create: { name: "แผนกการตลาด", code: "MKT" },
   });
 
-  if (!spoPosition || !salesPosition || !areaPosition || !salesAdminPosition) {
-    throw new Error(
-      "One or more Positions not found. Please ensure master data exists.",
-    );
-  }
+  // 3. Fetch or Create Positions
+  const getOrCreatePosition = async (
+    name: string,
+    level: number,
+    isManagerial: boolean,
+    departmentId: string | null
+  ) => {
+    let pos = await prisma.position.findFirst({ where: { name } });
+    if (!pos) {
+      pos = await prisma.position.create({
+        data: { name, level, isManagerial, departmentId },
+      });
+    }
+    return pos;
+  };
+
+  const spoPosition = await getOrCreatePosition("พนักงานส่งเสริมการขาย", 1, false, salesDept.id);
+  const salesPosition = await getOrCreatePosition("พนักงานขาย", 1, false, salesDept.id);
+  const areaPosition = await getOrCreatePosition("ผู้จัดการภาค", 2, true, salesDept.id);
+  const salesAdminPosition = await getOrCreatePosition("ผู้จัดการแผนกบริหารงานขาย", 3, true, salesDept.id);
+  const mktPosition = await getOrCreatePosition("พนักงานการตลาด", 1, false, mktDept.id);
+  const mktManagerPosition = await getOrCreatePosition("ผู้จัดการแผนกการตลาด", 3, true, mktDept.id);
+  const salesDirectorPosition = await getOrCreatePosition("ผู้จัดการฝ่ายขาย", 4, true, salesDept.id);
 
   // 4. Create Roles & Assign Permissions
   const createRoleWithPermissions = async (
@@ -185,6 +191,40 @@ export async function seedActivityTestData(prisma: PrismaClient) {
       "data.activity_plans",
     ],
   );
+  const mktRole = await createRoleWithPermissions(
+    "marketing_officer",
+    "พนักงานการตลาด",
+    [
+      "menu.activity_plans",
+      "activity.create",
+      "activity.edit",
+      "activity.delete",
+      "activity.view",
+      "data.activity_plans",
+    ],
+  );
+  const mktManagerRole = await createRoleWithPermissions(
+    "marketing_manager",
+    "ผู้จัดการแผนกการตลาด",
+    [
+      "menu.activity_plans",
+      "activity.view",
+      "activity.approve",
+      "activity.manage",
+      "data.activity_plans",
+    ],
+  );
+  const salesDirectorRole = await createRoleWithPermissions(
+    "sales_director",
+    "ผู้จัดการฝ่ายขาย",
+    [
+      "menu.activity_plans",
+      "activity.view",
+      "activity.approve",
+      "activity.manage",
+      "data.activity_plans",
+    ],
+  );
 
   // Configure Data Permissions
   const configureDataPermission = async (
@@ -230,10 +270,72 @@ export async function seedActivityTestData(prisma: PrismaClient) {
     editAccess: EditAccessLevel.EDIT_NONE,
     deleteAccess: DeleteAccessLevel.DELETE_NONE,
   });
+  await configureDataPermission(mktRole.id, "data.activity_plans", {
+    dataAccess: DataAccessLevel.VIEW_DEPARTMENT,
+    editAccess: EditAccessLevel.EDIT_OWN,
+    deleteAccess: DeleteAccessLevel.DELETE_OWN,
+  });
+  await configureDataPermission(mktManagerRole.id, "data.activity_plans", {
+    dataAccess: DataAccessLevel.VIEW_DEPARTMENT,
+    editAccess: EditAccessLevel.EDIT_NONE,
+    deleteAccess: DeleteAccessLevel.DELETE_NONE,
+  });
+  await configureDataPermission(salesDirectorRole.id, "data.activity_plans", {
+    dataAccess: DataAccessLevel.VIEW_ALL,
+    editAccess: EditAccessLevel.EDIT_NONE,
+    deleteAccess: DeleteAccessLevel.DELETE_NONE,
+  });
 
   // 5. Create Users & Employees
 
-  // 5.1 Admin (หัวหน้าใหญ่สุดของทั้ง 2 ทีม)
+  // 5.0 ผู้จัดการฝ่ายขาย (Top Level Executive)
+  const salesDirectorEmail = "salesdirector@gmail.com";
+  const salesDirectorUser = await prisma.user.upsert({
+    where: { email: salesDirectorEmail },
+    update: {
+      password: await hash(salesDirectorEmail, 12),
+      departmentId: salesDept.id,
+      positionId: salesDirectorPosition.id,
+    },
+    create: {
+      name: "ผู้จัดการฝ่ายขาย",
+      email: salesDirectorEmail,
+      password: await hash(salesDirectorEmail, 12),
+      departmentId: salesDept.id,
+      positionId: salesDirectorPosition.id,
+    },
+  });
+  await prisma.userRole.upsert({
+    where: {
+      userId_roleId: { userId: salesDirectorUser.id, roleId: salesDirectorRole.id },
+    },
+    update: {},
+    create: { userId: salesDirectorUser.id, roleId: salesDirectorRole.id },
+  });
+  const salesDirectorEmployee = await prisma.employee.upsert({
+    where: { email: salesDirectorEmail },
+    update: {
+      name: "ผู้จัดการฝ่ายขาย",
+      status: "ACTIVE",
+      userId: salesDirectorUser.id,
+      departmentId: salesDept.id,
+      positionId: salesDirectorPosition.id,
+      positionTitle: salesDirectorPosition.name,
+      departmentName: salesDept.name,
+    },
+    create: {
+      name: "ผู้จัดการฝ่ายขาย",
+      email: salesDirectorEmail,
+      status: "ACTIVE",
+      userId: salesDirectorUser.id,
+      departmentId: salesDept.id,
+      positionId: salesDirectorPosition.id,
+      positionTitle: salesDirectorPosition.name,
+      departmentName: salesDept.name,
+    },
+  });
+
+  // 5.1 Admin (ผู้จัดการแผนกบริหารงานขาย)
   const adminEmail = "salesadmin@gmail.com";
   const adminUser = await prisma.user.upsert({
     where: { email: adminEmail },
@@ -267,6 +369,7 @@ export async function seedActivityTestData(prisma: PrismaClient) {
       positionId: salesAdminPosition.id,
       positionTitle: salesAdminPosition.name,
       departmentName: salesDept.name,
+      managerId: salesDirectorEmployee.id,
     },
     create: {
       name: "ผู้จัดการแผนกบริหารงานขาย",
@@ -277,6 +380,105 @@ export async function seedActivityTestData(prisma: PrismaClient) {
       positionId: salesAdminPosition.id,
       positionTitle: salesAdminPosition.name,
       departmentName: salesDept.name,
+      managerId: salesDirectorEmployee.id,
+    },
+  });
+
+  // 5.2 ผู้จัดการแผนกการตลาด
+  const mktManagerEmail = "mktmanager@gmail.com";
+  const mktManagerUser = await prisma.user.upsert({
+    where: { email: mktManagerEmail },
+    update: {
+      password: await hash(mktManagerEmail, 12),
+      departmentId: mktDept.id,
+      positionId: mktManagerPosition.id,
+    },
+    create: {
+      name: "ผู้จัดการแผนกการตลาด",
+      email: mktManagerEmail,
+      password: await hash(mktManagerEmail, 12),
+      departmentId: mktDept.id,
+      positionId: mktManagerPosition.id,
+    },
+  });
+  await prisma.userRole.upsert({
+    where: {
+      userId_roleId: { userId: mktManagerUser.id, roleId: mktManagerRole.id },
+    },
+    update: {},
+    create: { userId: mktManagerUser.id, roleId: mktManagerRole.id },
+  });
+  const mktManagerEmployee = await prisma.employee.upsert({
+    where: { email: mktManagerEmail },
+    update: {
+      name: "ผู้จัดการแผนกการตลาด",
+      status: "ACTIVE",
+      userId: mktManagerUser.id,
+      departmentId: mktDept.id,
+      positionId: mktManagerPosition.id,
+      positionTitle: mktManagerPosition.name,
+      departmentName: mktDept.name,
+      managerId: salesDirectorEmployee.id,
+    },
+    create: {
+      name: "ผู้จัดการแผนกการตลาด",
+      email: mktManagerEmail,
+      status: "ACTIVE",
+      userId: mktManagerUser.id,
+      departmentId: mktDept.id,
+      positionId: mktManagerPosition.id,
+      positionTitle: mktManagerPosition.name,
+      departmentName: mktDept.name,
+      managerId: salesDirectorEmployee.id,
+    },
+  });
+
+  // 5.3 พนักงานการตลาด
+  const mktEmail = "mkt@gmail.com";
+  const mktUser = await prisma.user.upsert({
+    where: { email: mktEmail },
+    update: {
+      password: await hash(mktEmail, 12),
+      departmentId: mktDept.id,
+      positionId: mktPosition.id,
+    },
+    create: {
+      name: "พนักงานการตลาด",
+      email: mktEmail,
+      password: await hash(mktEmail, 12),
+      departmentId: mktDept.id,
+      positionId: mktPosition.id,
+    },
+  });
+  await prisma.userRole.upsert({
+    where: {
+      userId_roleId: { userId: mktUser.id, roleId: mktRole.id },
+    },
+    update: {},
+    create: { userId: mktUser.id, roleId: mktRole.id },
+  });
+  await prisma.employee.upsert({
+    where: { email: mktEmail },
+    update: {
+      name: "พนักงานการตลาด",
+      status: "ACTIVE",
+      userId: mktUser.id,
+      departmentId: mktDept.id,
+      positionId: mktPosition.id,
+      positionTitle: mktPosition.name,
+      departmentName: mktDept.name,
+      managerId: mktManagerEmployee.id,
+    },
+    create: {
+      name: "พนักงานการตลาด",
+      email: mktEmail,
+      status: "ACTIVE",
+      userId: mktUser.id,
+      departmentId: mktDept.id,
+      positionId: mktPosition.id,
+      positionTitle: mktPosition.name,
+      departmentName: mktDept.name,
+      managerId: mktManagerEmployee.id,
     },
   });
 
