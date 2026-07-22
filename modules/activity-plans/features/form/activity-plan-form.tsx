@@ -441,7 +441,7 @@ export function ActivityPlanForm({
         "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
         "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
         "จัดงาน Field Day",
-      ].includes(t)
+      ].includes(t),
     );
 
     if (hasLocationRequirement && !locationText.trim()) {
@@ -462,7 +462,7 @@ export function ActivityPlanForm({
         activityType: selectedWorkTypes.join(", "),
         location: hasLocationRequirement
           ? locationText
-          : (locationText.trim() || "ไม่ระบุสถานที่"),
+          : locationText.trim() || "ไม่ระบุสถานที่",
         objective: compiledObjective,
         description: compiledDescription,
         salesPromotionBudget,
@@ -1513,7 +1513,7 @@ export function ActivityPlanForm({
           "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
           "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
           "จัดงาน Field Day",
-        ].includes(t)
+        ].includes(t),
       ) && (
         <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm p-5 md:p-6 space-y-5 relative z-20">
           <div className="flex items-center gap-2.5">
@@ -1526,48 +1526,6 @@ export function ActivityPlanForm({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-            {/* Col 1: รายละเอียดพื้นที่จัดกิจกรรม */}
-            <div className="lg:col-span-5 space-y-1">
-              <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                รายละเอียดพื้นที่จัดกิจกรรม{" "}
-                <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                rows={4}
-                value={locationText}
-                maxLength={500}
-                onChange={(e) => setLocationText(e.target.value)}
-                disabled={readonly}
-                placeholder="ระบุที่อยู่และจุดสังเกต..."
-                className="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
-              />
-              <div className="text-right text-[11px] text-slate-400">
-                {locationText.length}/500
-              </div>
-            </div>
-
-            {/* Col 2: Map Preview */}
-            <div className="lg:col-span-3">
-              <div className="border border-slate-200 rounded-xl overflow-hidden bg-slate-100 text-center relative group">
-                <div className="h-28 bg-emerald-100/50 flex flex-col items-center justify-center relative p-3">
-                  {/* Map Pin Mock visual */}
-                  <div className="w-7 h-7 rounded-full bg-red-500 text-white shadow-md flex items-center justify-center font-bold text-xs mb-1 animate-bounce">
-                    <MapPin className="h-4 w-4" />
-                  </div>
-                  <span className="text-[11px] font-semibold text-slate-700 bg-white/90 px-2 py-0.5 rounded shadow-sm max-w-full truncate">
-                    {locationText || "หมุดสถานที่"}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  className="w-full py-2 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1 border-t border-slate-200 transition-colors"
-                >
-                  <MapPin className="h-3.5 w-3.5 text-indigo-600" />
-                  <span>หมุดแผนที่</span>
-                </button>
-              </div>
-            </div>
-
             {/* Col 3: ผู้ช่วยงานกิจกรรม */}
             <div className="lg:col-span-4 space-y-2">
               <label className="block text-xs font-medium text-slate-700 mb-1">
@@ -1660,10 +1618,25 @@ export function ActivityPlanForm({
                   </p>
                 )}
               </div>
-
-              <p className="text-[11px] text-slate-400 pt-0.5">
-                ตำแหน่ง : ส่งเสริม, เซลล์ เท่านั้น
-              </p>
+            </div>
+            {/* Col 1: รายละเอียดพื้นที่จัดกิจกรรม */}
+            <div className="lg:col-span-5 space-y-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                รายละเอียดพื้นที่จัดกิจกรรม{" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                rows={4}
+                value={locationText}
+                maxLength={500}
+                onChange={(e) => setLocationText(e.target.value)}
+                disabled={readonly}
+                placeholder="ระบุที่อยู่และจุดสังเกต..."
+                className="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
+              />
+              <div className="text-right text-[11px] text-slate-400">
+                {locationText.length}/500
+              </div>
             </div>
           </div>
         </div>
@@ -1678,7 +1651,7 @@ export function ActivityPlanForm({
                 "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
                 "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
                 "จัดงาน Field Day",
-              ].includes(t)
+              ].includes(t),
             )
               ? 5
               : 4}
@@ -1783,7 +1756,7 @@ export function ActivityPlanForm({
                   "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
                   "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
                   "จัดงาน Field Day",
-                ].includes(t)
+                ].includes(t),
               )
                 ? 6
                 : 5}
@@ -1921,7 +1894,7 @@ export function ActivityPlanForm({
                 "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
                 "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
                 "จัดงาน Field Day",
-              ].includes(t)
+              ].includes(t),
             )
               ? 7
               : 6}
