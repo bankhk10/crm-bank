@@ -436,6 +436,20 @@ export function ActivityPlanForm({
       marketingBudget = extraExpenseAmount > 0 ? extraExpenseAmount : 10000;
     }
 
+    const hasLocationRequirement = selectedWorkTypes.some((t) =>
+      [
+        "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+        "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+        "จัดงาน Field Day",
+      ].includes(t)
+    );
+
+    if (hasLocationRequirement && !locationText.trim()) {
+      setError("กรุณากรอกรายละเอียดพื้นที่จัดกิจกรรม");
+      setLoading(false);
+      return;
+    }
+
     const extraNotes = extraExpenseAmount
       ? `${notes}\n(ค่าใช้จ่ายอื่นๆ: ${extraExpenseAmount} บาท - ${extraExpenseDetail})`
       : notes;
@@ -446,7 +460,9 @@ export function ActivityPlanForm({
         startDate: startDateTime,
         endDate: endDateTime,
         activityType: selectedWorkTypes.join(", "),
-        location: locationText,
+        location: hasLocationRequirement
+          ? locationText
+          : (locationText.trim() || "ไม่ระบุสถานที่"),
         objective: compiledObjective,
         description: compiledDescription,
         salesPromotionBudget,
@@ -1492,158 +1508,166 @@ export function ActivityPlanForm({
       </div>
 
       {/* SECTION 4: สถานที่และทีมงาน (Location & Team) */}
-      <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm p-5 md:p-6 space-y-5 relative z-20">
-        <div className="flex items-center gap-2.5">
-          <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
-            4
-          </span>
-          <h2 className="font-bold text-slate-800 text-base md:text-lg">
-            สถานที่และทีมงาน (Location & Team)
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-          {/* Col 1: รายละเอียดพื้นที่จัดกิจกรรม */}
-          <div className="lg:col-span-5 space-y-1">
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">
-              รายละเอียดพื้นที่จัดกิจกรรม{" "}
-              <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              rows={4}
-              value={locationText}
-              maxLength={500}
-              onChange={(e) => setLocationText(e.target.value)}
-              disabled={readonly}
-              placeholder="ระบุที่อยู่และจุดสังเกต..."
-              className="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
-            />
-            <div className="text-right text-[11px] text-slate-400">
-              {locationText.length}/500
-            </div>
+      {selectedWorkTypes.some((t) =>
+        [
+          "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+          "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+          "จัดงาน Field Day",
+        ].includes(t)
+      ) && (
+        <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm p-5 md:p-6 space-y-5 relative z-20">
+          <div className="flex items-center gap-2.5">
+            <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
+              4
+            </span>
+            <h2 className="font-bold text-slate-800 text-base md:text-lg">
+              สถานที่และทีมงาน (Location & Team)
+            </h2>
           </div>
 
-          {/* Col 2: Map Preview */}
-          <div className="lg:col-span-3">
-            <div className="border border-slate-200 rounded-xl overflow-hidden bg-slate-100 text-center relative group">
-              <div className="h-28 bg-emerald-100/50 flex flex-col items-center justify-center relative p-3">
-                {/* Map Pin Mock visual */}
-                <div className="w-7 h-7 rounded-full bg-red-500 text-white shadow-md flex items-center justify-center font-bold text-xs mb-1 animate-bounce">
-                  <MapPin className="h-4 w-4" />
-                </div>
-                <span className="text-[11px] font-semibold text-slate-700 bg-white/90 px-2 py-0.5 rounded shadow-sm max-w-full truncate">
-                  {locationText || "หมุดสถานที่"}
-                </span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            {/* Col 1: รายละเอียดพื้นที่จัดกิจกรรม */}
+            <div className="lg:col-span-5 space-y-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                รายละเอียดพื้นที่จัดกิจกรรม{" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                rows={4}
+                value={locationText}
+                maxLength={500}
+                onChange={(e) => setLocationText(e.target.value)}
+                disabled={readonly}
+                placeholder="ระบุที่อยู่และจุดสังเกต..."
+                className="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
+              />
+              <div className="text-right text-[11px] text-slate-400">
+                {locationText.length}/500
               </div>
-              <button
-                type="button"
-                className="w-full py-2 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1 border-t border-slate-200 transition-colors"
-              >
-                <MapPin className="h-3.5 w-3.5 text-indigo-600" />
-                <span>หมุดแผนที่</span>
-              </button>
             </div>
-          </div>
 
-          {/* Col 3: ผู้ช่วยงานกิจกรรม */}
-          <div className="lg:col-span-4 space-y-2">
-            <label className="block text-xs font-medium text-slate-700 mb-1">
-              ผู้ช่วยงานกิจกรรม{" "}
-              <span className="text-slate-400 text-[11px]">
-                (เลือกได้หลายคน)
-              </span>
-            </label>
+            {/* Col 2: Map Preview */}
+            <div className="lg:col-span-3">
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-slate-100 text-center relative group">
+                <div className="h-28 bg-emerald-100/50 flex flex-col items-center justify-center relative p-3">
+                  {/* Map Pin Mock visual */}
+                  <div className="w-7 h-7 rounded-full bg-red-500 text-white shadow-md flex items-center justify-center font-bold text-xs mb-1 animate-bounce">
+                    <MapPin className="h-4 w-4" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-slate-700 bg-white/90 px-2 py-0.5 rounded shadow-sm max-w-full truncate">
+                    {locationText || "หมุดสถานที่"}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="w-full py-2 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1 border-t border-slate-200 transition-colors"
+                >
+                  <MapPin className="h-3.5 w-3.5 text-indigo-600" />
+                  <span>หมุดแผนที่</span>
+                </button>
+              </div>
+            </div>
 
-            {/* Employee helpers search and selection */}
-            {!readonly && (
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="ค้นหาชื่อผู้ช่วย..."
-                  value={helperSearch}
-                  onChange={(e) => {
-                    setHelperSearch(e.target.value);
-                    setShowHelperDropdown(true);
-                  }}
-                  onFocus={() => setShowHelperDropdown(true)}
-                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+            {/* Col 3: ผู้ช่วยงานกิจกรรม */}
+            <div className="lg:col-span-4 space-y-2">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                ผู้ช่วยงานกิจกรรม{" "}
+                <span className="text-slate-400 text-[11px]">
+                  (เลือกได้หลายคน)
+                </span>
+              </label>
 
-                {showHelperDropdown && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setShowHelperDropdown(false)}
-                    />
-                    <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-xl bg-white p-1 text-xs shadow-2xl border border-slate-200 custom-scrollbar">
-                      {filteredEmployees.length === 0 ? (
-                        <li className="p-3 text-slate-400 italic text-center">
-                          ไม่พบข้อมูลพนักงาน
-                        </li>
-                      ) : (
-                        filteredEmployees.map((emp) => (
-                          <li
-                            key={emp.id}
-                            onClick={() => addHelper(emp.id)}
-                            className="cursor-pointer p-2.5 hover:bg-blue-50 rounded-lg flex items-center justify-between text-slate-700 transition-colors"
-                          >
-                            <span className="font-medium text-slate-800">
-                              {emp.name}
-                            </span>
-                            <span className="text-[10px] text-slate-400">
-                              (
-                              {emp.positionTitle ||
-                                emp.departmentName ||
-                                "พนักงาน"}
-                              )
-                            </span>
+              {/* Employee helpers search and selection */}
+              {!readonly && (
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="ค้นหาชื่อผู้ช่วย..."
+                    value={helperSearch}
+                    onChange={(e) => {
+                      setHelperSearch(e.target.value);
+                      setShowHelperDropdown(true);
+                    }}
+                    onFocus={() => setShowHelperDropdown(true)}
+                    className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+
+                  {showHelperDropdown && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowHelperDropdown(false)}
+                      />
+                      <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-xl bg-white p-1 text-xs shadow-2xl border border-slate-200 custom-scrollbar">
+                        {filteredEmployees.length === 0 ? (
+                          <li className="p-3 text-slate-400 italic text-center">
+                            ไม่พบข้อมูลพนักงาน
                           </li>
-                        ))
+                        ) : (
+                          filteredEmployees.map((emp) => (
+                            <li
+                              key={emp.id}
+                              onClick={() => addHelper(emp.id)}
+                              className="cursor-pointer p-2.5 hover:bg-blue-50 rounded-lg flex items-center justify-between text-slate-700 transition-colors"
+                            >
+                              <span className="font-medium text-slate-800">
+                                {emp.name}
+                              </span>
+                              <span className="text-[10px] text-slate-400">
+                                (
+                                {emp.positionTitle ||
+                                  emp.departmentName ||
+                                  "พนักงาน"}
+                                )
+                              </span>
+                            </li>
+                          ))
+                        )}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Selected Tags list */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {helperEmployeeIds.map((hid) => {
+                  const emp = employees.find((e) => e.id === hid);
+                  const empName = emp ? emp.name : "ผู้ช่วยงาน";
+                  return (
+                    <span
+                      key={hid}
+                      className="inline-flex items-center gap-1 bg-slate-100 border border-slate-200/80 text-slate-700 text-[11px] px-2.5 py-1 rounded-full font-medium"
+                    >
+                      <span>{empName}</span>
+                      {!readonly && (
+                        <button
+                          type="button"
+                          onClick={() => removeHelper(hid)}
+                          className="hover:text-red-500 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
                       )}
-                    </ul>
-                  </>
+                    </span>
+                  );
+                })}
+
+                {helperEmployeeIds.length === 0 && (
+                  <p className="text-xs text-slate-400 italic py-1">
+                    ยังไม่ได้เลือกผู้ช่วยงาน
+                  </p>
                 )}
               </div>
-            )}
 
-            {/* Selected Tags list */}
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {helperEmployeeIds.map((hid) => {
-                const emp = employees.find((e) => e.id === hid);
-                const empName = emp ? emp.name : "ผู้ช่วยงาน";
-                return (
-                  <span
-                    key={hid}
-                    className="inline-flex items-center gap-1 bg-slate-100 border border-slate-200/80 text-slate-700 text-[11px] px-2.5 py-1 rounded-full font-medium"
-                  >
-                    <span>{empName}</span>
-                    {!readonly && (
-                      <button
-                        type="button"
-                        onClick={() => removeHelper(hid)}
-                        className="hover:text-red-500 transition-colors"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    )}
-                  </span>
-                );
-              })}
-
-              {helperEmployeeIds.length === 0 && (
-                <p className="text-xs text-slate-400 italic py-1">
-                  ยังไม่ได้เลือกผู้ช่วยงาน
-                </p>
-              )}
+              <p className="text-[11px] text-slate-400 pt-0.5">
+                ตำแหน่ง : ส่งเสริม, เซลล์ เท่านั้น
+              </p>
             </div>
-
-            <p className="text-[11px] text-slate-400 pt-0.5">
-              ตำแหน่ง : ส่งเสริม, เซลล์ เท่านั้น
-            </p>
           </div>
         </div>
-      </div>
+      )}
 
       {/* SECTION 5: งบประมาณและค่าใช้จ่าย (Budget & Expenses) */}
       <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden p-5 md:p-6 space-y-5">
