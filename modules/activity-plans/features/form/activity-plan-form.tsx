@@ -938,20 +938,6 @@ export function ActivityPlanForm({
                     ))}
                   </select>
                 </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    รายละเอียดเพิ่มเติม
-                  </label>
-                  <input
-                    type="text"
-                    value={type1Detail}
-                    onChange={(e) => setType1Detail(e.target.value)}
-                    disabled={readonly}
-                    placeholder="ระบุรายละเอียดเพิ่มเติม..."
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  />
-                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -1001,6 +987,19 @@ export function ActivityPlanForm({
                     />
                   )}
                 </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                  รายละเอียดเพิ่มเติม
+                </label>
+                <input
+                  type="text"
+                  value={type1Detail}
+                  onChange={(e) => setType1Detail(e.target.value)}
+                  disabled={readonly}
+                  placeholder="ระบุรายละเอียดเพิ่มเติม..."
+                  className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
               </div>
             </div>
           )}
