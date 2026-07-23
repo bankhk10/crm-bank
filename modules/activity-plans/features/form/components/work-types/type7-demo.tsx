@@ -8,7 +8,11 @@ interface Props {
   readonly?: boolean;
   type7Items: Type7DemoPlotItem[];
   addType7Row: () => void;
-  updateType7Row: (id: string, field: keyof Type7DemoPlotItem, val: any) => void;
+  updateType7Row: (
+    id: string,
+    field: keyof Type7DemoPlotItem,
+    val: any,
+  ) => void;
   deleteType7Row: (id: string) => void;
 }
 
@@ -125,10 +129,9 @@ export function Type7Demo({
                       className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     >
                       <option value="">-- เลือกหมวด --</option>
-                      <option value="นาข้าว">นาข้าว</option>
+                      <option value="ผักและพืชล้มลุก">ผักและพืชล้มลุก</option>
                       <option value="พืชไร่">พืชไร่</option>
-                      <option value="ไม้ผล">ไม้ผล</option>
-                      <option value="พืชผัก">พืชผัก</option>
+                      <option value="พืชสวน">พืชสวน</option>
                     </select>
                   </td>
                   <td className="py-2 px-3">
