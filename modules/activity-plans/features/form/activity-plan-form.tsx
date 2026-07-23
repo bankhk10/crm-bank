@@ -270,9 +270,8 @@ export function ActivityPlanForm({
   const [type5Items, setType5Items] = useState<Type5SurveyItem[]>([
     {
       id: "1",
-      competitorBrand: "",
+      storeName: "",
       comparedProduct: DEMO_PRODUCTS[0] || "",
-      storeCount: 1,
       detail: "",
     },
   ]);
@@ -281,9 +280,8 @@ export function ActivityPlanForm({
       ...prev,
       {
         id: Date.now().toString(),
-        competitorBrand: "",
+        storeName: "",
         comparedProduct: DEMO_PRODUCTS[0] || "",
-        storeCount: 1,
         detail: "",
       },
     ]);
@@ -709,7 +707,7 @@ export function ActivityPlanForm({
       const surveySummary = type5Items
         .map(
           (item, i) =>
-            `${i + 1}. แบรนด์: ${item.competitorBrand} | สินค้าเทียบ: ${item.comparedProduct} | เป้าหมายร้านค้า: ${item.storeCount} แห่ง${item.detail ? ` (${item.detail})` : ""}`,
+            `${i + 1}. ร้านค้า: ${item.storeName || "ไม่ระบุ"} | สินค้าเทียบ: ${item.comparedProduct}${item.detail ? ` (${item.detail})` : ""}`,
         )
         .join(", ");
       summaryParts.push(

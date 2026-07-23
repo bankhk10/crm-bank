@@ -46,9 +46,8 @@ export interface Type4CollectItem {
 
 export interface Type5SurveyItem {
   id: string;
-  competitorBrand: string;
   comparedProduct: string;
-  storeCount: number;
+  storeName: string;
   detail: string;
 }
 

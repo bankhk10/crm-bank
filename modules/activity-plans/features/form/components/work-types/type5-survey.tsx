@@ -2,7 +2,7 @@ import React from "react";
 import { BarChart2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Type5SurveyItem } from "../../types";
-import { DEMO_PRODUCTS } from "../../constants";
+import { DEMO_PRODUCTS, STORES_LIST } from "../../constants";
 
 interface Props {
   readonly?: boolean;
@@ -45,14 +45,11 @@ export function Type5Survey({
           <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
             <tr>
               <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
-              <th className="py-2.5 px-3 min-w-[160px]">
-                แบรนด์คู่แข่ง <span className="text-red-500">*</span>
+              <th className="py-2.5 px-3 min-w-[180px]">
+                ตัวเลือกร้านค้า <span className="text-red-500">*</span>
               </th>
               <th className="py-2.5 px-3 min-w-[180px]">
                 สินค้าที่นำไปเปรียบเทียบ <span className="text-red-500">*</span>
-              </th>
-              <th className="py-2.5 px-3 w-32 text-center">
-                เป้าร้านค้า (แห่ง) <span className="text-red-500">*</span>
               </th>
               <th className="py-2.5 px-3 min-w-[180px]">รายละเอียดเพิ่มเติม</th>
               {!readonly && (
@@ -64,7 +61,7 @@ export function Type5Survey({
             {type5Items.length === 0 ? (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={5}
                   className="py-4 text-center text-slate-400 italic"
                 >
                   ยังไม่มีรายการสำรวจ กด "เพิ่มรายการ" เพื่อบันทึก
@@ -80,20 +77,25 @@ export function Type5Survey({
                     {index + 1}
                   </td>
                   <td className="py-2 px-3">
-                    <input
-                      type="text"
-                      value={item.competitorBrand}
+                    <select
+                      value={item.storeName}
                       onChange={(e) =>
                         updateType5Row(
                           item.id,
-                          "competitorBrand",
+                          "storeName",
                           e.target.value,
                         )
                       }
                       disabled={readonly}
-                      placeholder="เช่น แบรนด์ X"
-                      className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
+                      className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium"
+                    >
+                      <option value="">-- เลือกร้านค้า --</option>
+                      {STORES_LIST.map((st) => (
+                        <option key={st} value={st}>
+                          {st}
+                        </option>
+                      ))}
+                    </select>
                   </td>
                   <td className="py-2 px-3">
                     <select
@@ -114,22 +116,6 @@ export function Type5Survey({
                         </option>
                       ))}
                     </select>
-                  </td>
-                  <td className="py-2 px-3">
-                    <input
-                      type="number"
-                      min={1}
-                      value={item.storeCount}
-                      onChange={(e) =>
-                        updateType5Row(
-                          item.id,
-                          "storeCount",
-                          parseInt(e.target.value) || 0,
-                        )
-                      }
-                      disabled={readonly}
-                      className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
                   </td>
                   <td className="py-2 px-3">
                     <input
