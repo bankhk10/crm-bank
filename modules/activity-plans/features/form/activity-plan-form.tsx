@@ -83,7 +83,7 @@ const DEMO_PRODUCT_PRICES: Record<string, number> = {
   "สินค้าทดสอบ A": 500,
   "สินค้าทดสอบ B": 750,
   "สินค้าทดสอบ C": 1200,
-  "ปุ๋ยเคมีสูตรพิเศษ": 950,
+  ปุ๋ยเคมีสูตรพิเศษ: 950,
 };
 const CROP_CATEGORIES = ["พืชไร่", "พืชสวน", "ผักและพืชล้มลุก"];
 const TARGET_CROPS = [
@@ -327,8 +327,14 @@ export function ActivityPlanForm({
         if (field === "productName" && DEMO_PRODUCT_PRICES[val] !== undefined) {
           updated.unitPrice = DEMO_PRODUCT_PRICES[val];
         }
-        const qty = typeof updated.quantity === "number" ? updated.quantity : parseInt(updated.quantity) || 0;
-        const uPrice = typeof updated.unitPrice === "number" ? updated.unitPrice : parseFloat(updated.unitPrice) || 0;
+        const qty =
+          typeof updated.quantity === "number"
+            ? updated.quantity
+            : parseInt(updated.quantity) || 0;
+        const uPrice =
+          typeof updated.unitPrice === "number"
+            ? updated.unitPrice
+            : parseFloat(updated.unitPrice) || 0;
         updated.price = qty * uPrice;
         return updated;
       }),
@@ -359,7 +365,11 @@ export function ActivityPlanForm({
       },
     ]);
   };
-  const updateType4Row = (id: string, field: keyof Type4CollectItem, val: any) => {
+  const updateType4Row = (
+    id: string,
+    field: keyof Type4CollectItem,
+    val: any,
+  ) => {
     setType4Items((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
     );
@@ -390,7 +400,11 @@ export function ActivityPlanForm({
       },
     ]);
   };
-  const updateType5Row = (id: string, field: keyof Type5SurveyItem, val: any) => {
+  const updateType5Row = (
+    id: string,
+    field: keyof Type5SurveyItem,
+    val: any,
+  ) => {
     setType5Items((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
     );
@@ -419,7 +433,11 @@ export function ActivityPlanForm({
       },
     ]);
   };
-  const updateType6Row = (id: string, field: keyof Type6IssueItem, val: any) => {
+  const updateType6Row = (
+    id: string,
+    field: keyof Type6IssueItem,
+    val: any,
+  ) => {
     setType6Items((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
     );
@@ -454,7 +472,11 @@ export function ActivityPlanForm({
       },
     ]);
   };
-  const updateType7Row = (id: string, field: keyof Type7DemoPlotItem, val: any) => {
+  const updateType7Row = (
+    id: string,
+    field: keyof Type7DemoPlotItem,
+    val: any,
+  ) => {
     setType7Items((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
     );
@@ -483,7 +505,11 @@ export function ActivityPlanForm({
       },
     ]);
   };
-  const updateType8Row = (id: string, field: keyof Type8MeetingItem, val: any) => {
+  const updateType8Row = (
+    id: string,
+    field: keyof Type8MeetingItem,
+    val: any,
+  ) => {
     setType8Items((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
     );
@@ -1664,7 +1690,7 @@ export function ActivityPlanForm({
                   {type3Items.length > 0 && (
                     <tfoot className="bg-emerald-50/80 border-t-2 border-emerald-200 text-xs font-bold text-emerald-900">
                       <tr>
-                        <td colSpan={5} className="py-2.5 px-3 text-right">
+                        <td colSpan={5} className="py-2.5 px-3 text-left">
                           รวมราคาเสนอขายทั้งสิ้น:
                         </td>
                         <td className="py-2.5 px-3 text-right text-emerald-700 font-extrabold">
@@ -1672,7 +1698,8 @@ export function ActivityPlanForm({
                           {type3Items
                             .reduce(
                               (sum, item) =>
-                                sum + (item.quantity || 0) * (item.unitPrice || 0),
+                                sum +
+                                (item.quantity || 0) * (item.unitPrice || 0),
                               0,
                             )
                             .toLocaleString()}
@@ -1714,12 +1741,16 @@ export function ActivityPlanForm({
                     <tr>
                       <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
                       <th className="py-2.5 px-3 min-w-[180px]">
-                        รายชื่อลูกค้า / ร้านค้า <span className="text-red-500">*</span>
+                        รายชื่อลูกค้า / ร้านค้า{" "}
+                        <span className="text-red-500">*</span>
                       </th>
                       <th className="py-2.5 px-3 w-36 text-center">
-                        เป้ายอดเก็บเงิน (บาท) <span className="text-red-500">*</span>
+                        เป้ายอดเก็บเงิน (บาท){" "}
+                        <span className="text-red-500">*</span>
                       </th>
-                      <th className="py-2.5 px-3 min-w-[180px]">รายละเอียดเพิ่มเติม</th>
+                      <th className="py-2.5 px-3 min-w-[180px]">
+                        รายละเอียดเพิ่มเติม
+                      </th>
                       {!readonly && (
                         <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
                       )}
@@ -1728,13 +1759,19 @@ export function ActivityPlanForm({
                   <tbody className="divide-y divide-slate-200 bg-white">
                     {type4Items.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="py-4 text-center text-slate-400 italic">
+                        <td
+                          colSpan={5}
+                          className="py-4 text-center text-slate-400 italic"
+                        >
                           ยังไม่มีรายการวางบิล กด "เพิ่มรายการ" เพื่อบันทึก
                         </td>
                       </tr>
                     ) : (
                       type4Items.map((item, index) => (
-                        <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                        <tr
+                          key={item.id}
+                          className="hover:bg-slate-50/50 transition-colors"
+                        >
                           <td className="py-2.5 px-3 text-center font-medium text-slate-500">
                             {index + 1}
                           </td>
@@ -1742,7 +1779,11 @@ export function ActivityPlanForm({
                             <select
                               value={item.customerName}
                               onChange={(e) =>
-                                updateType4Row(item.id, "customerName", e.target.value)
+                                updateType4Row(
+                                  item.id,
+                                  "customerName",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
@@ -1782,7 +1823,11 @@ export function ActivityPlanForm({
                               type="text"
                               value={item.detail}
                               onChange={(e) =>
-                                updateType4Row(item.id, "detail", e.target.value)
+                                updateType4Row(
+                                  item.id,
+                                  "detail",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               placeholder="ระบุรายละเอียด..."
@@ -1811,8 +1856,12 @@ export function ActivityPlanForm({
                           รวมเป้ายอดเก็บเงินทั้งสิ้น:
                         </td>
                         <td className="py-2.5 px-3 text-right text-amber-700 font-extrabold">
-                          ฿ {type4Items
-                            .reduce((sum, item) => sum + (item.collectAmount || 0), 0)
+                          ฿{" "}
+                          {type4Items
+                            .reduce(
+                              (sum, item) => sum + (item.collectAmount || 0),
+                              0,
+                            )
                             .toLocaleString()}
                         </td>
                         <td colSpan={readonly ? 2 : 1}></td>
@@ -1855,12 +1904,16 @@ export function ActivityPlanForm({
                         แบรนด์คู่แข่ง <span className="text-red-500">*</span>
                       </th>
                       <th className="py-2.5 px-3 min-w-[180px]">
-                        สินค้าที่นำไปเปรียบเทียบ <span className="text-red-500">*</span>
+                        สินค้าที่นำไปเปรียบเทียบ{" "}
+                        <span className="text-red-500">*</span>
                       </th>
                       <th className="py-2.5 px-3 w-32 text-center">
-                        เป้าร้านค้า (แห่ง) <span className="text-red-500">*</span>
+                        เป้าร้านค้า (แห่ง){" "}
+                        <span className="text-red-500">*</span>
                       </th>
-                      <th className="py-2.5 px-3 min-w-[180px]">รายละเอียดเพิ่มเติม</th>
+                      <th className="py-2.5 px-3 min-w-[180px]">
+                        รายละเอียดเพิ่มเติม
+                      </th>
                       {!readonly && (
                         <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
                       )}
@@ -1869,13 +1922,19 @@ export function ActivityPlanForm({
                   <tbody className="divide-y divide-slate-200 bg-white">
                     {type5Items.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="py-4 text-center text-slate-400 italic">
+                        <td
+                          colSpan={6}
+                          className="py-4 text-center text-slate-400 italic"
+                        >
                           ยังไม่มีรายการสำรวจ กด "เพิ่มรายการ" เพื่อบันทึก
                         </td>
                       </tr>
                     ) : (
                       type5Items.map((item, index) => (
-                        <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                        <tr
+                          key={item.id}
+                          className="hover:bg-slate-50/50 transition-colors"
+                        >
                           <td className="py-2.5 px-3 text-center font-medium text-slate-500">
                             {index + 1}
                           </td>
@@ -1884,7 +1943,11 @@ export function ActivityPlanForm({
                               type="text"
                               value={item.competitorBrand}
                               onChange={(e) =>
-                                updateType5Row(item.id, "competitorBrand", e.target.value)
+                                updateType5Row(
+                                  item.id,
+                                  "competitorBrand",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               placeholder="เช่น แบรนด์ X"
@@ -1895,7 +1958,11 @@ export function ActivityPlanForm({
                             <select
                               value={item.comparedProduct}
                               onChange={(e) =>
-                                updateType5Row(item.id, "comparedProduct", e.target.value)
+                                updateType5Row(
+                                  item.id,
+                                  "comparedProduct",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium"
@@ -1913,7 +1980,11 @@ export function ActivityPlanForm({
                               min={1}
                               value={item.storeCount}
                               onChange={(e) =>
-                                updateType5Row(item.id, "storeCount", parseInt(e.target.value) || 0)
+                                updateType5Row(
+                                  item.id,
+                                  "storeCount",
+                                  parseInt(e.target.value) || 0,
+                                )
                               }
                               disabled={readonly}
                               className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -1924,7 +1995,11 @@ export function ActivityPlanForm({
                               type="text"
                               value={item.detail}
                               onChange={(e) =>
-                                updateType5Row(item.id, "detail", e.target.value)
+                                updateType5Row(
+                                  item.id,
+                                  "detail",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               placeholder="ระบุรายละเอียด..."
@@ -1979,12 +2054,15 @@ export function ActivityPlanForm({
                     <tr>
                       <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
                       <th className="py-2.5 px-3 min-w-[180px]">
-                        รายชื่อลูกค้า / ร้านค้า <span className="text-red-500">*</span>
+                        รายชื่อลูกค้า / ร้านค้า{" "}
+                        <span className="text-red-500">*</span>
                       </th>
                       <th className="py-2.5 px-3 min-w-[160px]">
                         ประเภทปัญหา <span className="text-red-500">*</span>
                       </th>
-                      <th className="py-2.5 px-3 min-w-[200px]">รายละเอียดเพิ่มเติม</th>
+                      <th className="py-2.5 px-3 min-w-[200px]">
+                        รายละเอียดเพิ่มเติม
+                      </th>
                       {!readonly && (
                         <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
                       )}
@@ -1993,13 +2071,19 @@ export function ActivityPlanForm({
                   <tbody className="divide-y divide-slate-200 bg-white">
                     {type6Items.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="py-4 text-center text-slate-400 italic">
+                        <td
+                          colSpan={5}
+                          className="py-4 text-center text-slate-400 italic"
+                        >
                           ยังไม่มีรายการร้องเรียน กด "เพิ่มรายการ" เพื่อบันทึก
                         </td>
                       </tr>
                     ) : (
                       type6Items.map((item, index) => (
-                        <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                        <tr
+                          key={item.id}
+                          className="hover:bg-slate-50/50 transition-colors"
+                        >
                           <td className="py-2.5 px-3 text-center font-medium text-slate-500">
                             {index + 1}
                           </td>
@@ -2007,12 +2091,18 @@ export function ActivityPlanForm({
                             <select
                               value={item.customerName}
                               onChange={(e) =>
-                                updateType6Row(item.id, "customerName", e.target.value)
+                                updateType6Row(
+                                  item.id,
+                                  "customerName",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 font-medium"
                             >
-                              <option value="">-- เลือกร้านค้า / เกษตรกร --</option>
+                              <option value="">
+                                -- เลือกร้านค้า / เกษตรกร --
+                              </option>
                               {DEMO_OWNERS.map((owner) => (
                                 <option key={owner} value={owner}>
                                   {owner}
@@ -2024,7 +2114,11 @@ export function ActivityPlanForm({
                             <select
                               value={item.issueType}
                               onChange={(e) =>
-                                updateType6Row(item.id, "issueType", e.target.value)
+                                updateType6Row(
+                                  item.id,
+                                  "issueType",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 font-medium"
@@ -2041,7 +2135,11 @@ export function ActivityPlanForm({
                               type="text"
                               value={item.detail}
                               onChange={(e) =>
-                                updateType6Row(item.id, "detail", e.target.value)
+                                updateType6Row(
+                                  item.id,
+                                  "detail",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               placeholder="ระบุรายละเอียด..."
@@ -2106,7 +2204,9 @@ export function ActivityPlanForm({
                       <th className="py-2.5 px-3 w-28 text-center">
                         แปลง/ต้น <span className="text-red-500">*</span>
                       </th>
-                      <th className="py-2.5 px-3 min-w-[160px]">รายละเอียดเพิ่มเติม</th>
+                      <th className="py-2.5 px-3 min-w-[160px]">
+                        รายละเอียดเพิ่มเติม
+                      </th>
                       {!readonly && (
                         <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
                       )}
@@ -2115,13 +2215,19 @@ export function ActivityPlanForm({
                   <tbody className="divide-y divide-slate-200 bg-white">
                     {type7Items.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="py-4 text-center text-slate-400 italic">
+                        <td
+                          colSpan={8}
+                          className="py-4 text-center text-slate-400 italic"
+                        >
                           ยังไม่มีรายการแปลงสาธิต กด "เพิ่มรายการ" เพื่อบันทึก
                         </td>
                       </tr>
                     ) : (
                       type7Items.map((item, index) => (
-                        <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                        <tr
+                          key={item.id}
+                          className="hover:bg-slate-50/50 transition-colors"
+                        >
                           <td className="py-2.5 px-3 text-center font-medium text-slate-500">
                             {index + 1}
                           </td>
@@ -2129,7 +2235,11 @@ export function ActivityPlanForm({
                             <select
                               value={item.ownerName}
                               onChange={(e) =>
-                                updateType7Row(item.id, "ownerName", e.target.value)
+                                updateType7Row(
+                                  item.id,
+                                  "ownerName",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
@@ -2145,7 +2255,11 @@ export function ActivityPlanForm({
                             <select
                               value={item.productName}
                               onChange={(e) =>
-                                updateType7Row(item.id, "productName", e.target.value)
+                                updateType7Row(
+                                  item.id,
+                                  "productName",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
@@ -2161,7 +2275,11 @@ export function ActivityPlanForm({
                             <select
                               value={item.cropCategory}
                               onChange={(e) =>
-                                updateType7Row(item.id, "cropCategory", e.target.value)
+                                updateType7Row(
+                                  item.id,
+                                  "cropCategory",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
@@ -2177,7 +2295,11 @@ export function ActivityPlanForm({
                             <select
                               value={item.cropName}
                               onChange={(e) =>
-                                updateType7Row(item.id, "cropName", e.target.value)
+                                updateType7Row(
+                                  item.id,
+                                  "cropName",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
@@ -2195,7 +2317,11 @@ export function ActivityPlanForm({
                               min={1}
                               value={item.plotsCount}
                               onChange={(e) =>
-                                updateType7Row(item.id, "plotsCount", parseInt(e.target.value) || 0)
+                                updateType7Row(
+                                  item.id,
+                                  "plotsCount",
+                                  parseInt(e.target.value) || 0,
+                                )
                               }
                               disabled={readonly}
                               className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -2206,7 +2332,11 @@ export function ActivityPlanForm({
                               type="text"
                               value={item.detail}
                               onChange={(e) =>
-                                updateType7Row(item.id, "detail", e.target.value)
+                                updateType7Row(
+                                  item.id,
+                                  "detail",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               placeholder="ระบุรายละเอียด..."
@@ -2263,12 +2393,16 @@ export function ActivityPlanForm({
                     <tr>
                       <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
                       <th className="py-2.5 px-3 min-w-[200px]">
-                        หัวข้อที่จะประชุม <span className="text-red-500">*</span>
+                        หัวข้อที่จะประชุม{" "}
+                        <span className="text-red-500">*</span>
                       </th>
                       <th className="py-2.5 px-3 w-36 text-center">
-                        เป้าหมายผู้เข้าร่วม (คน) <span className="text-red-500">*</span>
+                        เป้าหมายผู้เข้าร่วม (คน){" "}
+                        <span className="text-red-500">*</span>
                       </th>
-                      <th className="py-2.5 px-3 min-w-[180px]">รายละเอียดเพิ่มเติม</th>
+                      <th className="py-2.5 px-3 min-w-[180px]">
+                        รายละเอียดเพิ่มเติม
+                      </th>
                       {!readonly && (
                         <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
                       )}
@@ -2277,13 +2411,19 @@ export function ActivityPlanForm({
                   <tbody className="divide-y divide-slate-200 bg-white">
                     {type8Items.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="py-4 text-center text-slate-400 italic">
+                        <td
+                          colSpan={5}
+                          className="py-4 text-center text-slate-400 italic"
+                        >
                           ยังไม่มีรายการประชุม กด "เพิ่มรายการ" เพื่อบันทึก
                         </td>
                       </tr>
                     ) : (
                       type8Items.map((item, index) => (
-                        <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                        <tr
+                          key={item.id}
+                          className="hover:bg-slate-50/50 transition-colors"
+                        >
                           <td className="py-2.5 px-3 text-center font-medium text-slate-500">
                             {index + 1}
                           </td>
@@ -2305,7 +2445,11 @@ export function ActivityPlanForm({
                               min={1}
                               value={item.attendeesCount}
                               onChange={(e) =>
-                                updateType8Row(item.id, "attendeesCount", parseInt(e.target.value) || 0)
+                                updateType8Row(
+                                  item.id,
+                                  "attendeesCount",
+                                  parseInt(e.target.value) || 0,
+                                )
                               }
                               disabled={readonly}
                               className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -2316,7 +2460,11 @@ export function ActivityPlanForm({
                               type="text"
                               value={item.detail}
                               onChange={(e) =>
-                                updateType8Row(item.id, "detail", e.target.value)
+                                updateType8Row(
+                                  item.id,
+                                  "detail",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               placeholder="ระบุรายละเอียด..."
@@ -2346,7 +2494,10 @@ export function ActivityPlanForm({
                         </td>
                         <td className="py-2.5 px-3 text-center text-blue-700 font-extrabold">
                           {type8Items
-                            .reduce((sum, item) => sum + (item.attendeesCount || 0), 0)
+                            .reduce(
+                              (sum, item) => sum + (item.attendeesCount || 0),
+                              0,
+                            )
                             .toLocaleString()}{" "}
                           คน
                         </td>
