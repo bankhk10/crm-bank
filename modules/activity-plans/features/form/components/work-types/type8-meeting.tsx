@@ -209,25 +209,6 @@ export function Type8Meeting({
               })
             )}
           </tbody>
-          {type8Items.length > 0 && (
-            <tfoot className="bg-blue-50/80 border-t-2 border-blue-200 text-xs font-bold text-blue-900">
-              <tr>
-                <td colSpan={3} className="py-2.5 px-3 text-right">
-                  รวมเป้าหมายผู้เข้าร่วมทั้งสิ้น:
-                </td>
-                <td className="py-2.5 px-3 text-center text-blue-700 font-extrabold">
-                  {type8Items
-                    .reduce(
-                      (sum, item) => sum + (item.attendeesCount || 0),
-                      0,
-                    )
-                    .toLocaleString()}{" "}
-                  คน
-                </td>
-                <td colSpan={readonly ? 2 : 1}></td>
-              </tr>
-            </tfoot>
-          )}
         </table>
       </div>
     </div>
