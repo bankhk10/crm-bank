@@ -338,7 +338,7 @@ export function ActivityPlanForm({
       id: "1",
       ownerName: DEMO_OWNERS[0] || "",
       productName: DEMO_PRODUCTS[0] || "",
-      cropCategory: "ไม้ผล",
+      cropCategory: "พืชสวน",
       cropName: "ทุเรียน",
       plotsCount: 1,
       detail: "",
@@ -351,7 +351,7 @@ export function ActivityPlanForm({
         id: Date.now().toString(),
         ownerName: DEMO_OWNERS[0] || "",
         productName: DEMO_PRODUCTS[0] || "",
-        cropCategory: "ไม้ผล",
+        cropCategory: "พืชสวน",
         cropName: "ทุเรียน",
         plotsCount: 1,
         detail: "",
@@ -729,10 +729,12 @@ export function ActivityPlanForm({
 
     if (selectedWorkTypes.includes("ติดตามแปลงสาธิต / พืชเป้าหมาย")) {
       const demoSummary = type7Items
-        .map(
-          (item, i) =>
-            `${i + 1}. เจ้าของ: ${item.ownerName} | สินค้า: ${item.productName} | หมวดพืช: ${item.cropCategory} (${item.cropName}) | จำนวน: ${item.plotsCount} แปลง/ต้น${item.detail ? ` (${item.detail})` : ""}`,
-        )
+        .map((item, i) => {
+          const unit = ["พืชไร่", "ผักและพืชล้มลุก"].includes(item.cropCategory)
+            ? "ไร่"
+            : "ต้น";
+          return `${i + 1}. เจ้าของ: ${item.ownerName} | สินค้า: ${item.productName} | หมวดพืช: ${item.cropCategory} (${item.cropName}) | จำนวน: ${item.plotsCount} ${unit}${item.detail ? ` (${item.detail})` : ""}`;
+        })
         .join(", ");
       summaryParts.push(
         `[ติดตามแปลงสาธิต] รายการแปลงสาธิต (${type7Items.length} รายการ): ${demoSummary || "ไม่มีรายการ"}`,
