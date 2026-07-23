@@ -105,6 +105,7 @@ export interface UserDemoPlotOption {
   id: string;
   name: string;
   location: string;
+  targetCrop: string;
   showcase: string;
 }
 
@@ -113,24 +114,28 @@ export const USER_DEMO_PLOTS: UserDemoPlotOption[] = [
     id: "plot-1",
     name: "แปลงสาธิตสวนทุเรียน อ.แกลง (นายสมชาย)",
     location: "แปลงสาธิตสวนทุเรียน ต.วังหว้า อ.แกลง จ.ระยอง",
-    showcase: "ทุเรียนหมอนทอง & ปุ๋ยสูตรพรีเมียม A",
+    targetCrop: "ทุเรียนหมอนทอง",
+    showcase: "ปุ๋ยสูตรพรีเมียม A",
   },
   {
     id: "plot-2",
     name: "แปลงสาธิตนาข้าว อ.บางเลน (ร้านเกษตรพัฒนา)",
     location: "แปลงสาธิตนาข้าว ต.บางเลน อ.บางเลน จ.นครปฐม",
-    showcase: "ข้าวหอมมะลิ & ฮอร์โมนเร่งรวง B",
+    targetCrop: "ข้าวหอมมะลิ",
+    showcase: "ฮอร์โมนเร่งรวง B",
   },
   {
     id: "plot-3",
     name: "แปลงสาธิตมันสำปะหลัง อ.ด่านขุนทด (ร้านสหายพานิช)",
     location: "แปลงสาธิต ต.ห้วยบง อ.ด่านขุนทด จ.นครราชสีมา",
-    showcase: "มันสำปะหลัง & ปุ๋ยชีวภาพเร่งหัว C",
+    targetCrop: "มันสำปะหลัง",
+    showcase: "ปุ๋ยชีวภาพเร่งหัว C",
   },
   {
     id: "plot-4",
     name: "แปลงสาธิตสวนส้ม อ.ฝาง (เกษตรกรตัวอย่าง 1)",
     location: "แปลงสาธิต ต.เวียง อ.ฝาง จ.เชียงใหม่",
-    showcase: "ส้มสายน้ำผึ้ง & สารบำรุงใบพรีเมียม",
+    targetCrop: "ส้มสายน้ำผึ้ง",
+    showcase: "สารบำรุงใบพรีเมียม",
   },
 ];

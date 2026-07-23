@@ -450,6 +450,7 @@ export function ActivityPlanForm({
 
   const [type10DemoPlot, setType10DemoPlot] = useState("");
   const [type10Location, setType10Location] = useState("");
+  const [type10TargetCrop, setType10TargetCrop] = useState("");
   const [type10Showcase, setType10Showcase] = useState("");
   const [type10Attendees, setType10Attendees] = useState<number>(0);
   const [type10BookingSales, setType10BookingSales] = useState<number>(0);
@@ -811,7 +812,7 @@ export function ActivityPlanForm({
 
     if (selectedWorkTypes.includes("จัดงาน Field Day")) {
       summaryParts.push(
-        `[Field Day] แปลงสาธิต: ${type10DemoPlot} | สถานที่: ${type10Location} | สินค้าโชว์: ${type10Showcase} | เป้าผู้ร่วมงาน: ${type10Attendees} คน | เป้ายอดจอง: ${type10BookingSales.toLocaleString()} บาท`,
+        `[Field Day] แปลงสาธิต: ${type10DemoPlot} | สถานที่: ${type10Location} | พืชเป้าหมาย: ${type10TargetCrop} | สินค้าโชว์: ${type10Showcase} | เป้าผู้ร่วมงาน: ${type10Attendees} คน | เป้ายอดจอง: ${type10BookingSales.toLocaleString()} บาท`,
       );
     }
 
@@ -1296,6 +1297,8 @@ export function ActivityPlanForm({
               setType10DemoPlot={setType10DemoPlot}
               type10Location={type10Location}
               setType10Location={setType10Location}
+              type10TargetCrop={type10TargetCrop}
+              setType10TargetCrop={setType10TargetCrop}
               type10Showcase={type10Showcase}
               setType10Showcase={setType10Showcase}
               type10Attendees={type10Attendees}

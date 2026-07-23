@@ -8,6 +8,8 @@ interface Props {
   setType10DemoPlot: (val: string) => void;
   type10Location: string;
   setType10Location: (val: string) => void;
+  type10TargetCrop: string;
+  setType10TargetCrop: (val: string) => void;
   type10Showcase: string;
   setType10Showcase: (val: string) => void;
   type10Attendees: number;
@@ -22,6 +24,8 @@ export function Type10FieldDay({
   setType10DemoPlot,
   type10Location,
   setType10Location,
+  type10TargetCrop,
+  setType10TargetCrop,
   type10Showcase,
   setType10Showcase,
   type10Attendees,
@@ -39,7 +43,7 @@ export function Type10FieldDay({
       </div>
 
       <div className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">
               เลือกแปลงสาธิตของคุณ <span className="text-red-500">*</span>
@@ -54,6 +58,7 @@ export function Type10FieldDay({
                 );
                 if (foundPlot) {
                   setType10Location(foundPlot.location);
+                  setType10TargetCrop(foundPlot.targetCrop);
                   setType10Showcase(foundPlot.showcase);
                 }
               }}
@@ -82,18 +87,33 @@ export function Type10FieldDay({
               className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
             />
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              พืชเป้าหมาย <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={type10TargetCrop}
+              onChange={(e) => setType10TargetCrop(e.target.value)}
+              disabled={readonly}
+              placeholder="เช่น ทุเรียนหมอนทอง, ข้าวหอมมะลิ..."
+              className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+            />
+          </div>
 
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">
-              พืชเป้าหมายและสินค้าที่โชว์ผลงาน{" "}
-              <span className="text-red-500">*</span>
+              สินค้าที่โชว์ผลงาน <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={type10Showcase}
               onChange={(e) => setType10Showcase(e.target.value)}
               disabled={readonly}
-              placeholder="เช่น ทุเรียน & ปุ๋ยทดสอบ"
+              placeholder="เช่น ปุ๋ยสูตรพรีเมียม A, ฮอร์โมนเร่งรวง..."
               className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
             />
           </div>
