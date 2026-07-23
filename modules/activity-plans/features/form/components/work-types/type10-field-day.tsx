@@ -38,96 +38,102 @@ export function Type10FieldDay({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-slate-700 mb-1.5">
-            เลือกแปลงสาธิตของคุณ <span className="text-red-500">*</span>
-          </label>
-          <select
-            value={type10DemoPlot}
-            onChange={(e) => {
-              const selectedName = e.target.value;
-              setType10DemoPlot(selectedName);
-              const foundPlot = USER_DEMO_PLOTS.find(
-                (p) => p.name === selectedName,
-              );
-              if (foundPlot) {
-                setType10Location(foundPlot.location);
-                setType10Showcase(foundPlot.showcase);
-              }
-            }}
-            disabled={readonly}
-            className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
-          >
-            <option value="">-- เลือกแปลงสาธิตที่คุณสร้างขึ้น --</option>
-            {USER_DEMO_PLOTS.map((plot) => (
-              <option key={plot.id} value={plot.name}>
-                {plot.name}
-              </option>
-            ))}
-          </select>
+      <div className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              เลือกแปลงสาธิตของคุณ <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={type10DemoPlot}
+              onChange={(e) => {
+                const selectedName = e.target.value;
+                setType10DemoPlot(selectedName);
+                const foundPlot = USER_DEMO_PLOTS.find(
+                  (p) => p.name === selectedName,
+                );
+                if (foundPlot) {
+                  setType10Location(foundPlot.location);
+                  setType10Showcase(foundPlot.showcase);
+                }
+              }}
+              disabled={readonly}
+              className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+            >
+              <option value="">-- เลือกแปลงสาธิตที่คุณสร้างขึ้น --</option>
+              {USER_DEMO_PLOTS.map((plot) => (
+                <option key={plot.id} value={plot.name}>
+                  {plot.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              สถานที่จัดงาน <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={type10Location}
+              onChange={(e) => setType10Location(e.target.value)}
+              disabled={readonly}
+              placeholder="ระบุสถานที่จัดงาน..."
+              className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              พืชเป้าหมายและสินค้าที่โชว์ผลงาน{" "}
+              <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={type10Showcase}
+              onChange={(e) => setType10Showcase(e.target.value)}
+              disabled={readonly}
+              placeholder="เช่น ทุเรียน & ปุ๋ยทดสอบ"
+              className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+            />
+          </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-medium text-slate-700 mb-1.5">
-            สถานที่จัดงาน <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={type10Location}
-            onChange={(e) => setType10Location(e.target.value)}
-            disabled={readonly}
-            placeholder="ระบุสถานที่จัดงาน..."
-            className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-slate-700 mb-1.5">
-            พืชเป้าหมายและสินค้าที่โชว์ผลงาน{" "}
-            <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={type10Showcase}
-            onChange={(e) => setType10Showcase(e.target.value)}
-            disabled={readonly}
-            placeholder="เช่น ทุเรียน & ปุ๋ยทดสอบ"
-            className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-slate-700 mb-1.5">
-            เป้าหมายจำนวนผู้เข้าร่วม (คน) <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="number"
-            min={1}
-            value={type10Attendees}
-            onChange={(e) => setType10Attendees(parseInt(e.target.value) || 0)}
-            disabled={readonly}
-            className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-slate-700 mb-1.5">
-            เป้ายอดขายจองในงาน (ถ้ามี)
-          </label>
-          <div className="relative">
-            <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-              ฿
-            </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              เป้าหมายจำนวนผู้เข้าร่วม (คน) <span className="text-red-500">*</span>
+            </label>
             <input
               type="number"
-              value={type10BookingSales}
+              min={1}
+              value={type10Attendees}
               onChange={(e) =>
-                setType10BookingSales(parseFloat(e.target.value) || 0)
+                setType10Attendees(parseInt(e.target.value) || 0)
               }
               disabled={readonly}
-              className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+              className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              เป้ายอดขายจองในงาน (ถ้ามี)
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-2 text-slate-400 text-xs font-semibold">
+                ฿
+              </span>
+              <input
+                type="number"
+                value={type10BookingSales}
+                onChange={(e) =>
+                  setType10BookingSales(parseFloat(e.target.value) || 0)
+                }
+                disabled={readonly}
+                className="w-full h-9 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+              />
+            </div>
           </div>
         </div>
       </div>

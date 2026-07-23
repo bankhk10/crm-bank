@@ -44,104 +44,98 @@ export function Type2Followup({
         )}
       </div>
 
-      {/* Dynamic Follow-up Table */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-            <tr>
-              <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
-              <th className="py-2.5 px-3 min-w-[180px]">
-                สินค้าที่ต้องการติดตามผล <span className="text-red-500">*</span>
-              </th>
-              <th className="py-2.5 px-3 min-w-[200px]">
-                ชื่อร้านค้า / เกษตรกร <span className="text-red-500">*</span>
-              </th>
-              <th className="py-2.5 px-3 min-w-[200px]">รายละเอียดเพิ่มเติม</th>
-              {!readonly && (
-                <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
-              )}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200 bg-white">
-            {type2Items.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="py-4 text-center text-slate-400 italic"
-                >
-                  ยังไม่มีรายการติดตามผล กด "เพิ่มรายการ" เพื่อบันทึก
-                </td>
-              </tr>
-            ) : (
-              type2Items.map((item, index) => (
-                <tr
-                  key={item.id}
-                  className="hover:bg-slate-50/50 transition-colors"
-                >
-                  <td className="py-2.5 px-3 text-center font-medium text-slate-500">
+      {/* List of Follow-up Cards */}
+      <div className="space-y-3">
+        {type2Items.length === 0 ? (
+          <div className="py-6 text-center text-slate-400 italic bg-white rounded-xl border border-slate-200 text-xs">
+            ยังไม่มีรายการติดตามผล กด "+ เพิ่มรายการ" เพื่อบันทึก
+          </div>
+        ) : (
+          type2Items.map((item, index) => (
+            <div
+              key={item.id}
+              className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3 transition-all hover:border-indigo-300"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <span className="text-xs font-bold text-indigo-800 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[11px] font-extrabold">
                     {index + 1}
-                  </td>
-                  <td className="py-2 px-3">
-                    <select
-                      value={item.productName}
-                      onChange={(e) =>
-                        updateType2Row(item.id, "productName", e.target.value)
-                      }
-                      disabled={readonly}
-                      className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
-                    >
-                      {DEMO_PRODUCTS.map((prod) => (
-                        <option key={prod} value={prod}>
-                          {prod}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="py-2 px-3">
-                    <select
-                      value={item.customerName}
-                      onChange={(e) =>
-                        updateType2Row(item.id, "customerName", e.target.value)
-                      }
-                      disabled={readonly}
-                      className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
-                    >
-                      <option value="">-- เลือกร้านค้า / เจ้าของแปลง --</option>
-                      {DEMO_OWNERS.map((owner) => (
-                        <option key={owner} value={owner}>
-                          {owner}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="py-2 px-3">
-                    <input
-                      type="text"
-                      value={item.detail}
-                      onChange={(e) =>
-                        updateType2Row(item.id, "detail", e.target.value)
-                      }
-                      disabled={readonly}
-                      placeholder="ระบุรายละเอียดการติดตาม..."
-                      className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </td>
-                  {!readonly && (
-                    <td className="py-2 px-3 text-center">
-                      <button
-                        type="button"
-                        onClick={() => deleteType2Row(item.id)}
-                        className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                  </span>
+                  รายการติดตามผลที่ {index + 1}
+                </span>
+                {!readonly && (
+                  <button
+                    type="button"
+                    onClick={() => deleteType2Row(item.id)}
+                    className="p-1 rounded-md text-red-500 hover:bg-red-50 text-xs font-medium flex items-center gap-1 transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>ลบรายการ</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    สินค้าที่ต้องการติดตามผล <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={item.productName}
+                    onChange={(e) =>
+                      updateType2Row(item.id, "productName", e.target.value)
+                    }
+                    disabled={readonly}
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium bg-white"
+                  >
+                    {DEMO_PRODUCTS.map((prod) => (
+                      <option key={prod} value={prod}>
+                        {prod}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    ชื่อร้านค้า / เกษตรกร <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={item.customerName}
+                    onChange={(e) =>
+                      updateType2Row(item.id, "customerName", e.target.value)
+                    }
+                    disabled={readonly}
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium bg-white"
+                  >
+                    <option value="">-- เลือกร้านค้า / เกษตรกร --</option>
+                    {DEMO_OWNERS.map((owner) => (
+                      <option key={owner} value={owner}>
+                        {owner}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  รายละเอียดเพิ่มเติม
+                </label>
+                <input
+                  type="text"
+                  value={item.detail}
+                  onChange={(e) =>
+                    updateType2Row(item.id, "detail", e.target.value)
+                  }
+                  disabled={readonly}
+                  placeholder="ระบุรายละเอียดการติดตาม..."
+                  className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                />
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

@@ -19,6 +19,11 @@ export function Type3Sales({
   updateType3Row,
   deleteType3Row,
 }: Props) {
+  const totalAllSales = type3Items.reduce(
+    (sum, item) => sum + (item.quantity || 0) * (item.unitPrice || 0),
+    0,
+  );
+
   return (
     <div className="bg-emerald-50/40 border border-emerald-200/80 rounded-xl p-4 md:p-5 space-y-4">
       <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2.5">
@@ -40,182 +45,169 @@ export function Type3Sales({
         )}
       </div>
 
-      {/* Dynamic Sales Proposal Table */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-            <tr>
-              <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
-              <th className="py-2.5 px-3 min-w-[160px]">
-                สินค้าที่จะเสนอขาย <span className="text-red-500">*</span>
-              </th>
-              <th className="py-2.5 px-3 min-w-[160px]">
-                ชื่อร้านค้า / เกษตรกร <span className="text-red-500">*</span>
-              </th>
-              <th className="py-2.5 px-3 w-20 text-center">
-                จำนวน <span className="text-red-500">*</span>
-              </th>
-              <th className="py-2.5 px-3 w-28 text-center">
-                ราคา/หน่วย (บาท) <span className="text-red-500">*</span>
-              </th>
-              <th className="py-2.5 px-3 w-32 text-right">ราคา (บาท)</th>
-              <th className="py-2.5 px-3 min-w-[160px]">รายละเอียดเพิ่มเติม</th>
-              {!readonly && (
-                <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
-              )}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200 bg-white">
-            {type3Items.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={8}
-                  className="py-4 text-center text-slate-400 italic"
-                >
-                  ยังไม่มีรายการเสนอขาย กด "เพิ่มรายการ" เพื่อบันทึก
-                </td>
-              </tr>
-            ) : (
-              type3Items.map((item, index) => {
-                const calculatedTotalPrice =
-                  (item.quantity || 0) * (item.unitPrice || 0);
-                return (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-slate-50/50 transition-colors"
-                  >
-                    <td className="py-2.5 px-3 text-center font-medium text-slate-500">
+      {/* List of Sales Proposal Cards */}
+      <div className="space-y-3">
+        {type3Items.length === 0 ? (
+          <div className="py-6 text-center text-slate-400 italic bg-white rounded-xl border border-slate-200 text-xs">
+            ยังไม่มีรายการเสนอขาย กด "+ เพิ่มรายการ" เพื่อบันทึก
+          </div>
+        ) : (
+          type3Items.map((item, index) => {
+            const calculatedTotalPrice =
+              (item.quantity || 0) * (item.unitPrice || 0);
+            return (
+              <div
+                key={item.id}
+                className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3 transition-all hover:border-emerald-300"
+              >
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[11px] font-extrabold">
                       {index + 1}
-                    </td>
-                    <td className="py-2 px-3">
-                      <select
-                        value={item.productName}
-                        onChange={(e) =>
-                          updateType3Row(item.id, "productName", e.target.value)
-                        }
-                        disabled={readonly}
-                        className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-                      >
-                        {DEMO_PRODUCTS.map((prod) => (
-                          <option key={prod} value={prod}>
-                            {prod}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="py-2 px-3">
-                      <select
-                        value={item.customerName}
-                        onChange={(e) =>
-                          updateType3Row(
-                            item.id,
-                            "customerName",
-                            e.target.value,
-                          )
-                        }
-                        disabled={readonly}
-                        className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-                      >
-                        <option value="">
-                          -- เลือกร้านค้า / เจ้าของแปลง --
+                    </span>
+                    รายการเสนอขายที่ {index + 1}
+                  </span>
+                  {!readonly && (
+                    <button
+                      type="button"
+                      onClick={() => deleteType3Row(item.id)}
+                      className="p-1 rounded-md text-red-500 hover:bg-red-50 text-xs font-medium flex items-center gap-1 transition-colors"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      <span>ลบรายการ</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      สินค้าที่จะเสนอขาย <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={item.productName}
+                      onChange={(e) =>
+                        updateType3Row(item.id, "productName", e.target.value)
+                      }
+                      disabled={readonly}
+                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
+                    >
+                      {DEMO_PRODUCTS.map((prod) => (
+                        <option key={prod} value={prod}>
+                          {prod}
                         </option>
-                        {DEMO_OWNERS.map((owner) => (
-                          <option key={owner} value={owner}>
-                            {owner}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="py-2 px-3">
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      ชื่อร้านค้า / เกษตรกร <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={item.customerName}
+                      onChange={(e) =>
+                        updateType3Row(item.id, "customerName", e.target.value)
+                      }
+                      disabled={readonly}
+                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
+                    >
+                      <option value="">-- เลือกร้านค้า / เจ้าของแปลง --</option>
+                      {DEMO_OWNERS.map((owner) => (
+                        <option key={owner} value={owner}>
+                          {owner}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      จำนวน <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={item.quantity}
+                      onChange={(e) =>
+                        updateType3Row(
+                          item.id,
+                          "quantity",
+                          parseInt(e.target.value) || 0,
+                        )
+                      }
+                      disabled={readonly}
+                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      ราคา/หน่วย (บาท) <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-slate-400 text-xs font-semibold">
+                        ฿
+                      </span>
                       <input
                         type="number"
-                        min={1}
-                        value={item.quantity}
+                        min={0}
+                        value={item.unitPrice}
                         onChange={(e) =>
                           updateType3Row(
                             item.id,
-                            "quantity",
-                            parseInt(e.target.value) || 0,
+                            "unitPrice",
+                            parseFloat(e.target.value) || 0,
                           )
                         }
-                        disabled={readonly}
-                        className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        disabled={true}
+                        placeholder="0"
+                        className="w-full h-9 pl-7 pr-3 rounded-lg border border-slate-200 bg-slate-100 text-slate-500 text-xs text-right font-medium focus:outline-none cursor-not-allowed"
                       />
-                    </td>
-                    <td className="py-2 px-3">
-                      <div className="relative">
-                        <span className="absolute left-2.5 top-2 text-slate-400 text-[11px]">
-                          ฿
-                        </span>
-                        <input
-                          type="number"
-                          min={0}
-                          value={item.unitPrice}
-                          onChange={(e) =>
-                            updateType3Row(
-                              item.id,
-                              "unitPrice",
-                              parseFloat(e.target.value) || 0,
-                            )
-                          }
-                          disabled={true}
-                          placeholder="0"
-                          className="w-full h-8 pl-6 pr-2 rounded-md border border-slate-200 text-xs text-slate-800 text-right font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        />
-                      </div>
-                    </td>
-                    <td className="py-2 px-3 text-right font-bold text-emerald-700">
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <div className="text-xs text-slate-600 font-medium">
+                    รวมเป็นเงิน:{" "}
+                    <span className="text-sm font-bold text-emerald-700 ml-1">
                       ฿ {calculatedTotalPrice.toLocaleString()}
-                    </td>
-                    <td className="py-2 px-3">
-                      <input
-                        type="text"
-                        value={item.detail}
-                        onChange={(e) =>
-                          updateType3Row(item.id, "detail", e.target.value)
-                        }
-                        disabled={readonly}
-                        placeholder="ระบุรายละเอียด..."
-                        className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      />
-                    </td>
-                    {!readonly && (
-                      <td className="py-2 px-3 text-center">
-                        <button
-                          type="button"
-                          onClick={() => deleteType3Row(item.id)}
-                          className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </td>
-                    )}
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-          {type3Items.length > 0 && (
-            <tfoot className="bg-emerald-50/80 border-t-2 border-emerald-200 text-xs font-bold text-emerald-900">
-              <tr>
-                <td colSpan={5} className="py-2.5 px-3 text-left">
-                  รวมราคาเสนอขายทั้งสิ้น:
-                  <span className="ml-2 ">
-                    {type3Items
-                      .reduce(
-                        (sum, item) =>
-                          sum + (item.quantity || 0) * (item.unitPrice || 0),
-                        0,
-                      )
-                      .toLocaleString()}
-                  </span>
-                  <span className="ml-1">฿</span>
-                </td>
-              </tr>
-            </tfoot>
-          )}
-        </table>
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    รายละเอียดเพิ่มเติม
+                  </label>
+                  <input
+                    type="text"
+                    value={item.detail}
+                    onChange={(e) =>
+                      updateType3Row(item.id, "detail", e.target.value)
+                    }
+                    disabled={readonly}
+                    placeholder="ระบุรายละเอียดเพิ่มเติม..."
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                  />
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
+
+      {type3Items.length > 0 && (
+        <div className="flex justify-end p-3 rounded-xl bg-emerald-100/70 border border-emerald-200 text-xs font-bold text-emerald-900">
+          <span>
+            รวมราคาเสนอขายทั้งสิ้น:{" "}
+            <span className="text-sm font-extrabold text-emerald-700 ml-1.5">
+              ฿ {totalAllSales.toLocaleString()}
+            </span>
+          </span>
+        </div>
+      )}
     </div>
   );
 }
