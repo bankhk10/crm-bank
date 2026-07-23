@@ -159,7 +159,7 @@ export function Type3Sales({
                               parseFloat(e.target.value) || 0,
                             )
                           }
-                          disabled={readonly}
+                          disabled={true}
                           placeholder="0"
                           className="w-full h-8 pl-6 pr-2 rounded-md border border-slate-200 text-xs text-slate-800 text-right font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
                         />
