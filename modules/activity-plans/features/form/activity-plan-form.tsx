@@ -557,11 +557,13 @@ export function ActivityPlanForm({
 
   // Type 9 Store Promotion Product Table Helpers
   const addType9ProductItem = () => {
+    const prod = DEMO_PRODUCTS[0] || "";
+    const pPrice = DEMO_PRODUCT_PRICES[prod] ?? 500;
     const newItem: Type9ProductItem = {
       id: Date.now().toString(),
-      productName: DEMO_PRODUCTS[0] || "",
+      productName: prod,
       quantityCases: 1,
-      pricePerCase: 0,
+      pricePerCase: pPrice,
     };
     setType9ProductItems((prev) => [...prev, newItem]);
   };
@@ -572,7 +574,14 @@ export function ActivityPlanForm({
     val: any,
   ) => {
     setType9ProductItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        const updated = { ...item, [field]: val };
+        if (field === "productName" && DEMO_PRODUCT_PRICES[val] !== undefined) {
+          updated.pricePerCase = DEMO_PRODUCT_PRICES[val];
+        }
+        return updated;
+      }),
     );
   };
 

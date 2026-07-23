@@ -2,7 +2,7 @@ import React from "react";
 import { Store, Package, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Type9ProductItem } from "../../types";
-import { STORES_LIST, DEMO_PRODUCTS } from "../../constants";
+import { STORES_LIST, DEMO_PRODUCTS, DEMO_PRODUCT_PRICES } from "../../constants";
 
 interface Props {
   readonly?: boolean;
@@ -192,7 +192,7 @@ export function Type9Store({
                           <input
                             type="number"
                             min={0}
-                            value={item.pricePerCase}
+                            value={item.pricePerCase ?? DEMO_PRODUCT_PRICES[item.productName] ?? 0}
                             onChange={(e) =>
                               updateType9ProductItem(
                                 item.id,
@@ -200,8 +200,9 @@ export function Type9Store({
                                 parseFloat(e.target.value) || 0,
                               )
                             }
-                            disabled={readonly}
-                            className="w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 text-xs text-slate-800 text-right focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            disabled={true}
+                            placeholder="0"
+                            className="w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 bg-slate-100 text-slate-500 text-xs text-right font-medium focus:outline-none cursor-not-allowed"
                           />
                         </div>
                       </td>
