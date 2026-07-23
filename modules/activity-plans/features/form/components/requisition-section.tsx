@@ -2,7 +2,7 @@ import React from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { RequisitionItem } from "../types";
-import { REQUISITION_UNITS } from "../constants";
+import { DEMO_PRODUCTS } from "../constants";
 
 interface Props {
   requisitionItems: RequisitionItem[];
@@ -66,7 +66,7 @@ export function RequisitionSection({
               <th className="py-2.5 px-3 w-24">
                 จำนวน <span className="text-red-500">*</span>
               </th>
-              <th className="py-2.5 px-3 w-28">หน่วยนับ</th>
+              <th className="py-2.5 px-3 w-28 text-center">หน่วยนับ</th>
               <th className="py-2.5 px-3 min-w-[200px]">รายละเอียด</th>
               {!readonly && (
                 <th className="py-2.5 px-3 text-center w-16">จัดการ</th>
@@ -83,8 +83,7 @@ export function RequisitionSection({
                   {index + 1}
                 </td>
                 <td className="py-2 px-3">
-                  <input
-                    type="text"
+                  <select
                     value={item.productName}
                     onChange={(e) =>
                       updateRequisitionRow(
@@ -94,9 +93,15 @@ export function RequisitionSection({
                       )
                     }
                     disabled={readonly}
-                    placeholder="ชื่อสินค้า..."
-                    className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                    className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium bg-white"
+                  >
+                    <option value="">-- เลือกรายการสินค้า --</option>
+                    {DEMO_PRODUCTS.map((prod) => (
+                      <option key={prod} value={prod}>
+                        {prod}
+                      </option>
+                    ))}
+                  </select>
                 </td>
                 <td className="py-2 px-3">
                   <input
@@ -111,24 +116,17 @@ export function RequisitionSection({
                       )
                     }
                     disabled={readonly}
-                    className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                   />
                 </td>
                 <td className="py-2 px-3">
-                  <select
-                    value={item.unit}
-                    onChange={(e) =>
-                      updateRequisitionRow(item.id, "unit", e.target.value)
-                    }
-                    disabled={readonly}
-                    className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {REQUISITION_UNITS.map((u) => (
-                      <option key={u} value={u}>
-                        {u}
-                      </option>
-                    ))}
-                  </select>
+                  <input
+                    type="text"
+                    value={item.unit || "ลัง"}
+                    readOnly
+                    disabled
+                    className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-700 text-center font-semibold bg-slate-100/80 cursor-not-allowed"
+                  />
                 </td>
                 <td className="py-2 px-3">
                   <input
