@@ -376,6 +376,7 @@ export function ActivityPlanForm({
     {
       id: "1",
       topic: "",
+      targetProducts: [],
       attendeesCount: 10,
       detail: "",
     },
@@ -386,6 +387,7 @@ export function ActivityPlanForm({
       {
         id: Date.now().toString(),
         topic: "",
+        targetProducts: [],
         attendeesCount: 10,
         detail: "",
       },
@@ -745,10 +747,13 @@ export function ActivityPlanForm({
       selectedWorkTypes.includes("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")
     ) {
       const meetingSummary = type8Items
-        .map(
-          (item, i) =>
-            `${i + 1}. หัวข้อ: ${item.topic} | ผู้เข้าร่วม: ${item.attendeesCount} คน${item.detail ? ` (${item.detail})` : ""}`,
-        )
+        .map((item, i) => {
+          const prodsText =
+            item.targetProducts && item.targetProducts.length > 0
+              ? ` | สินค้าเป้าหมาย: ${item.targetProducts.join(", ")}`
+              : "";
+          return `${i + 1}. หัวข้อ: ${item.topic}${prodsText} | ผู้เข้าร่วม: ${item.attendeesCount} คน${item.detail ? ` (${item.detail})` : ""}`;
+        })
         .join(", ");
       summaryParts.push(
         `[จัดประชุม] รายการประชุม (${type8Items.length} รายการ): ${meetingSummary || "ไม่มีรายการ"}`,
