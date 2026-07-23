@@ -3,7 +3,7 @@ import { Plus, Trash2, Check, Package, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { MarketingBudgetProductItem, SalesPromotionItem } from "../types";
-import { DEMO_PRODUCTS } from "../constants";
+import { DEMO_PRODUCTS, DEMO_PRODUCT_PRICES } from "../constants";
 
 interface Props {
   selectedWorkTypes: string[];
@@ -285,19 +285,31 @@ export function BudgetSection({
                           <td className="py-1.5 px-3">
                             <select
                               value={item.productName}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                const selectedProd = e.target.value;
                                 updateMarketingProductItem(
                                   item.id,
                                   "productName",
-                                  e.target.value,
-                                )
-                              }
+                                  selectedProd,
+                                );
+                                const defaultPrice =
+                                  DEMO_PRODUCT_PRICES[selectedProd] ?? 500;
+                                updateMarketingProductItem(
+                                  item.id,
+                                  "pricePerCase",
+                                  defaultPrice,
+                                );
+                              }}
                               disabled={readonly}
-                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
                             >
                               {DEMO_PRODUCTS.map((prod) => (
                                 <option key={prod} value={prod}>
-                                  {prod}
+                                  {prod} (฿
+                                  {(
+                                    DEMO_PRODUCT_PRICES[prod] ?? 500
+                                  ).toLocaleString()}
+                                  )
                                 </option>
                               ))}
                             </select>
@@ -315,27 +327,20 @@ export function BudgetSection({
                                 )
                               }
                               disabled={readonly}
-                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
                             />
                           </td>
                           <td className="py-1.5 px-3">
                             <div className="relative">
-                              <span className="absolute left-2 top-2 text-slate-400 text-[11px]">
+                              <span className="absolute left-2 top-2 text-slate-400 text-[11px] font-semibold">
                                 ฿
                               </span>
                               <input
                                 type="number"
-                                min={0}
                                 value={item.pricePerCase}
-                                onChange={(e) =>
-                                  updateMarketingProductItem(
-                                    item.id,
-                                    "pricePerCase",
-                                    parseFloat(e.target.value) || 0,
-                                  )
-                                }
-                                disabled={readonly}
-                                className="w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 text-xs text-slate-800 text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                readOnly
+                                disabled
+                                className="w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 text-xs text-slate-700 text-right font-bold bg-slate-100/80 cursor-not-allowed"
                               />
                             </div>
                           </td>

@@ -478,16 +478,18 @@ export function ActivityPlanForm({
       id: "1",
       productName: DEMO_PRODUCTS[0] || "สินค้าทดสอบ A",
       quantityCases: 10,
-      pricePerCase: 500,
+      pricePerCase: DEMO_PRODUCT_PRICES[DEMO_PRODUCTS[0]] || 500,
     },
   ]);
 
   const addMarketingProductItem = () => {
+    const firstProd = DEMO_PRODUCTS[0] || "";
+    const defaultPrice = DEMO_PRODUCT_PRICES[firstProd] ?? 500;
     const newItem: MarketingBudgetProductItem = {
       id: Date.now().toString(),
-      productName: DEMO_PRODUCTS[0] || "",
+      productName: firstProd,
       quantityCases: 1,
-      pricePerCase: 0,
+      pricePerCase: defaultPrice,
     };
     setMarketingProductItems((prev) => [...prev, newItem]);
   };
