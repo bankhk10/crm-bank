@@ -664,8 +664,6 @@ export function ActivityPlanForm({
     setHelperEmployeeIds(helperEmployeeIds.filter((hid) => hid !== id));
   };
 
-
-
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1005,7 +1003,7 @@ export function ActivityPlanForm({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={readonly}
-              placeholder="เช่น แปลงสาธิตของบ้าหนาน"
+              placeholder="เช่น กิจกรรมส่งเสริมการขายตราปืนใหญ่"
               className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             />
           </div>
@@ -1357,8 +1355,7 @@ export function ActivityPlanForm({
           (type9ProductItems.length > 0
             ? type9ProductItems.reduce(
                 (sum, item) =>
-                  sum +
-                  (item.quantityCases || 0) * (item.pricePerCase || 0),
+                  sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
                 0,
               )
             : type9Sales) ||

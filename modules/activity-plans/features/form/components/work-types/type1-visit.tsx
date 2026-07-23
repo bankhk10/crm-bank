@@ -58,7 +58,7 @@ export function Type1Visit({
             <tr>
               <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
               <th className="py-2.5 px-3 min-w-[180px]">
-                รายชื่อลูกค้า / ร้านค้า <span className="text-red-500">*</span>
+                รายชื่อร้านค้า / เกษตรกร <span className="text-red-500">*</span>
               </th>
               <th className="py-2.5 px-3 min-w-[180px]">
                 ประเด็นหลัก <span className="text-red-500">*</span>
