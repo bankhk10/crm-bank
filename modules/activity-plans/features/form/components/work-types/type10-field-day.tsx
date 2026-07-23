@@ -1,5 +1,6 @@
 import React from "react";
 import { Sprout } from "lucide-react";
+import { USER_DEMO_PLOTS } from "../../constants";
 
 interface Props {
   readonly?: boolean;
@@ -40,16 +41,31 @@ export function Type10FieldDay({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1.5">
-            ชื่อแปลงสาธิต <span className="text-red-500">*</span>
+            เลือกแปลงสาธิตของคุณ <span className="text-red-500">*</span>
           </label>
-          <input
-            type="text"
+          <select
             value={type10DemoPlot}
-            onChange={(e) => setType10DemoPlot(e.target.value)}
+            onChange={(e) => {
+              const selectedName = e.target.value;
+              setType10DemoPlot(selectedName);
+              const foundPlot = USER_DEMO_PLOTS.find(
+                (p) => p.name === selectedName,
+              );
+              if (foundPlot) {
+                setType10Location(foundPlot.location);
+                setType10Showcase(foundPlot.showcase);
+              }
+            }}
             disabled={readonly}
-            placeholder="เช่น แปลงสาธิตสวนทุเรียน..."
-            className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
-          />
+            className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+          >
+            <option value="">-- เลือกแปลงสาธิตที่คุณสร้างขึ้น --</option>
+            {USER_DEMO_PLOTS.map((plot) => (
+              <option key={plot.id} value={plot.name}>
+                {plot.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -62,7 +78,7 @@ export function Type10FieldDay({
             onChange={(e) => setType10Location(e.target.value)}
             disabled={readonly}
             placeholder="ระบุสถานที่จัดงาน..."
-            className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
           />
         </div>
 
@@ -77,7 +93,7 @@ export function Type10FieldDay({
             onChange={(e) => setType10Showcase(e.target.value)}
             disabled={readonly}
             placeholder="เช่น ทุเรียน & ปุ๋ยทดสอบ"
-            className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
           />
         </div>
 
@@ -91,7 +107,7 @@ export function Type10FieldDay({
             value={type10Attendees}
             onChange={(e) => setType10Attendees(parseInt(e.target.value) || 0)}
             disabled={readonly}
-            className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
           />
         </div>
 
@@ -110,7 +126,7 @@ export function Type10FieldDay({
                 setType10BookingSales(parseFloat(e.target.value) || 0)
               }
               disabled={readonly}
-              className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
             />
           </div>
         </div>
