@@ -50,8 +50,7 @@ export function Type3Sales({
                 สินค้าที่จะเสนอขาย <span className="text-red-500">*</span>
               </th>
               <th className="py-2.5 px-3 min-w-[160px]">
-                รายชื่อลูกค้า / ร้านค้า / เจ้าของแปลง{" "}
-                <span className="text-red-500">*</span>
+                ชื่อร้านค้า / เกษตรกร <span className="text-red-500">*</span>
               </th>
               <th className="py-2.5 px-3 w-20 text-center">
                 จำนวน <span className="text-red-500">*</span>

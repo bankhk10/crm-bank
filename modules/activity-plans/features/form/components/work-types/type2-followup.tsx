@@ -51,10 +51,10 @@ export function Type2Followup({
             <tr>
               <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
               <th className="py-2.5 px-3 min-w-[180px]">
-                เลือกสินค้าที่ต้องการติดตามผล <span className="text-red-500">*</span>
+                สินค้าที่ต้องการติดตามผล <span className="text-red-500">*</span>
               </th>
               <th className="py-2.5 px-3 min-w-[200px]">
-                รายชื่อลูกค้า / ร้านค้า / เจ้าของแปลง <span className="text-red-500">*</span>
+                ชื่อร้านค้า / เกษตรกร <span className="text-red-500">*</span>
               </th>
               <th className="py-2.5 px-3 min-w-[200px]">รายละเอียดเพิ่มเติม</th>
               {!readonly && (
