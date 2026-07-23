@@ -134,11 +134,39 @@ export function ActivityPlanForm({
   const [isWorkTypesDropdownOpen, setIsWorkTypesDropdownOpen] = useState(false);
   const workTypesDropdownRef = useRef<HTMLDivElement>(null);
 
-  // State for all 11 Work Type Objective Forms
-  const [type1Topics, setType1Topics] = useState<string[]>([]);
-  const [type1OtherTopic, setType1OtherTopic] = useState("");
-  const [type1Customers, setType1Customers] = useState("");
-  const [type1Detail, setType1Detail] = useState("");
+  // Work Type 1: เข้าพบร้านค้า / เกษตรกร
+  const [type1Items, setType1Items] = useState<Type1VisitItem[]>([
+    {
+      id: "1",
+      customerName: DEMO_OWNERS[0] || "",
+      topic: "แจ้งข่าวสาร",
+      detail: "",
+    },
+  ]);
+
+  const addType1Row = () => {
+    const newItem: Type1VisitItem = {
+      id: Date.now().toString(),
+      customerName: DEMO_OWNERS[0] || "",
+      topic: "แจ้งข่าวสาร",
+      detail: "",
+    };
+    setType1Items((prev) => [...prev, newItem]);
+  };
+
+  const updateType1Row = (
+    id: string,
+    field: keyof Type1VisitItem,
+    val: any,
+  ) => {
+    setType1Items((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+
+  const deleteType1Row = (id: string) => {
+    setType1Items((prev) => prev.filter((item) => item.id !== id));
+  };
 
   const [type2Items, setType2Items] = useState<Type2ProductFollowupItem[]>([
     {
@@ -636,14 +664,7 @@ export function ActivityPlanForm({
     setHelperEmployeeIds(helperEmployeeIds.filter((hid) => hid !== id));
   };
 
-  // Checkbox toggle for Type 1 topics
-  const toggleType1Topic = (topic: string) => {
-    if (type1Topics.includes(topic)) {
-      setType1Topics(type1Topics.filter((t) => t !== topic));
-    } else {
-      setType1Topics([...type1Topics, topic]);
-    }
-  };
+
 
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
@@ -670,11 +691,14 @@ export function ActivityPlanForm({
     const summaryParts: string[] = [];
 
     if (selectedWorkTypes.includes("เข้าพบร้านค้า / เกษตรกร")) {
-      const topicsText =
-        type1Topics.join(", ") +
-        (type1OtherTopic ? ` (${type1OtherTopic})` : "");
+      const visitSummary = type1Items
+        .map(
+          (item, i) =>
+            `${i + 1}. ลูกค้า/ร้านค้า: ${item.customerName} | ประเด็น: ${item.topic}${item.detail ? ` (${item.detail})` : ""}`,
+        )
+        .join(", ");
       summaryParts.push(
-        `[เข้าพบร้านค้า/เกษตรกร] ประเด็น: ${topicsText} | ลูกค้า: ${type1Customers || "ไม่ระบุ"}${type1Detail ? ` | รายละเอียดเพิ่มเติม: ${type1Detail}` : ""}`,
+        `[เข้าพบร้านค้า/เกษตรกร] รายการเข้าพบ (${type1Items.length} รายการ): ${visitSummary || "ไม่มีรายการ"}`,
       );
     }
 
@@ -1165,14 +1189,10 @@ export function ActivityPlanForm({
           {selectedWorkTypes.includes("เข้าพบร้านค้า / เกษตรกร") && (
             <Type1Visit
               readonly={readonly}
-              type1Customers={type1Customers}
-              setType1Customers={setType1Customers}
-              type1Topics={type1Topics}
-              toggleType1Topic={toggleType1Topic}
-              type1OtherTopic={type1OtherTopic}
-              setType1OtherTopic={setType1OtherTopic}
-              type1Detail={type1Detail}
-              setType1Detail={setType1Detail}
+              type1Items={type1Items}
+              addType1Row={addType1Row}
+              updateType1Row={updateType1Row}
+              deleteType1Row={deleteType1Row}
             />
           )}
 
