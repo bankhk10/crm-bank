@@ -201,18 +201,17 @@ export function Type3Sales({
               <tr>
                 <td colSpan={5} className="py-2.5 px-3 text-left">
                   รวมราคาเสนอขายทั้งสิ้น:
+                  <span className="ml-2 ">
+                    {type3Items
+                      .reduce(
+                        (sum, item) =>
+                          sum + (item.quantity || 0) * (item.unitPrice || 0),
+                        0,
+                      )
+                      .toLocaleString()}
+                  </span>
+                  <span className="ml-1">฿</span>
                 </td>
-                <td className="py-2.5 px-3 text-right text-emerald-700 font-extrabold">
-                  ฿{" "}
-                  {type3Items
-                    .reduce(
-                      (sum, item) =>
-                        sum + (item.quantity || 0) * (item.unitPrice || 0),
-                      0,
-                    )
-                    .toLocaleString()}
-                </td>
-                <td colSpan={readonly ? 2 : 1}></td>
               </tr>
             </tfoot>
           )}
