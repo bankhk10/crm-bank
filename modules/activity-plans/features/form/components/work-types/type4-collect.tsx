@@ -145,19 +145,15 @@ export function Type4Collect({
           {type4Items.length > 0 && (
             <tfoot className="bg-amber-50/80 border-t-2 border-amber-200 text-xs font-bold text-amber-900">
               <tr>
-                <td colSpan={2} className="py-2.5 px-3 text-right">
+                <td colSpan={2} className="py-2.5 px-3 text-left">
                   รวมเป้ายอดเก็บเงินทั้งสิ้น:
+                  <span className="ml-2">
+                    {type4Items
+                      .reduce((sum, item) => sum + (item.collectAmount || 0), 0)
+                      .toLocaleString()}{" "}
+                    ฿
+                  </span>
                 </td>
-                <td className="py-2.5 px-3 text-right text-amber-700 font-extrabold">
-                  ฿{" "}
-                  {type4Items
-                    .reduce(
-                      (sum, item) => sum + (item.collectAmount || 0),
-                      0,
-                    )
-                    .toLocaleString()}
-                </td>
-                <td colSpan={readonly ? 2 : 1}></td>
               </tr>
             </tfoot>
           )}
