@@ -23,7 +23,13 @@ modules/activity-plans/
 │   └── activity-status-badge.tsx    # ป้ายสีแสดงสถานะกิจกรรมระดับพรีเมียม
 ├── features/                        # หน้าจอการทำงานหลัก (React Views)
 │   ├── list-view/                   # หน้ารายการแผนงานและตารางข้อมูลของเซลส์
-│   ├── form/                        # หน้าจอฟอร์ม บันทึก/แก้ไขข้อมูล และการระบุคนช่วยงาน
+│   ├── form/                        # หน้าจอฟอร์ม บันทึก/แก้ไขข้อมูลหลัก
+│   │   ├── activity-plan-form.tsx   # คอมโพเนนต์ฟอร์มหลัก (State Machine & Logic)
+│   │   └── components/              # คอมโพเนนต์ย่อยแยกส่วนการทำงาน
+│   │       ├── work-types/          # UI ฟอร์มจุดประสงค์งาน 11 รูปแบบ (เช่น Type1Visit)
+│   │       ├── budget-section.tsx   # ส่วนการคำนวณงบประมาณ
+│   │       ├── requisition-section.tsx # ส่วนระบุรายการขอเบิกสินค้า
+│   │       └── location-team-section.tsx # ส่วนระบุสถานที่และค้นหาทีมงาน
 │   ├── detail-view/                 # หน้ารายละเอียดกิจกรรม Timeline และปุ่มอนุมัติ
 │   └── approve-view/                # แดชบอร์ดตรวจสอบสำหรับหัวหน้างาน (Approval Inbox)
 └── types/                           # นิยามประเภทข้อมูล TypeScript
