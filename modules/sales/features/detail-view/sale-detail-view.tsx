@@ -9,11 +9,19 @@ import {
     Loader2,
     LayoutList,
     FileText,
+    Truck,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleDetailResponse } from "@/modules/sales/types";
 import {
@@ -32,6 +40,7 @@ export function SaleDetailView({ id, type }: { id: string, type?: string }) {
     const [loading, setLoading] = useState(true);
     const [pdfLoading, setPdfLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedDoc, setSelectedDoc] = useState<string>("all");
 
     useEffect(() => {
         getSaleAction(id)
@@ -89,6 +98,11 @@ export function SaleDetailView({ id, type }: { id: string, type?: string }) {
     }
 
     const { sale, stockWarnings, priceWarnings } = data;
+    const hasShipments = sale.shipments && sale.shipments.length > 0;
+
+    const pdfUrl = selectedDoc === "all"
+        ? `/api/pdf?saleId=${sale.id}${type === "special" ? "&type=special" : ""}`
+        : `/api/pdf?shipmentId=${selectedDoc}`;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-50">
@@ -128,6 +142,41 @@ export function SaleDetailView({ id, type }: { id: string, type?: string }) {
             </div>
 
             <div className="max-w-5xl mx-auto px-4 py-6">
+                {hasShipments && (
+                    <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between bg-white p-3.5 px-4 rounded-xl border border-slate-200 shadow-sm gap-3">
+                        <div className="flex items-center gap-2.5">
+                            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                <Truck className="h-4 w-4" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-semibold text-slate-800">เลือกเอกสาร PDF</p>
+                                <p className="text-xs text-slate-500">รายการนี้มีการแบ่งส่งสินค้า เลือกดูใบจัดส่งตามรอบได้ที่นี่</p>
+                            </div>
+                        </div>
+                        <Select
+                            value={selectedDoc}
+                            onValueChange={(val) => {
+                                setPdfLoading(true);
+                                setSelectedDoc(val);
+                            }}
+                        >
+                            <SelectTrigger className="w-full sm:w-[280px] bg-slate-50 border-slate-300 font-medium">
+                                <SelectValue placeholder="เลือกเอกสาร" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">
+                                    📄 เอกสารสั่งซื้อ/ขายรวม (ฉบับเต็ม)
+                                </SelectItem>
+                                {sale.shipments.map((shipment, index) => (
+                                    <SelectItem key={shipment.id} value={shipment.id}>
+                                        📦 ใบจัดส่งสินค้า รอบที่ {index + 1} {shipment.salesOrderNumber ? `(${shipment.salesOrderNumber})` : ""}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
+
                 {canViewPdf ? (
                     <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden relative" style={{ height: "calc(100vh - 180px)" }}>
                         {pdfLoading && (
@@ -137,7 +186,7 @@ export function SaleDetailView({ id, type }: { id: string, type?: string }) {
                             </div>
                         )}
                         <iframe
-                            src={`/api/pdf?saleId=${sale.id}${type === "special" ? "&type=special" : ""}`}
+                            src={pdfUrl}
                             className="w-full h-full border-0"
                             title="Sale Detail PDF"
                             onLoad={() => setPdfLoading(false)}
