@@ -516,7 +516,7 @@ export function CustomerSalesDashboard() {
         ) : (
           <div className="space-y-4 sm:space-y-6">
             {/* KPI Cards: mobile=1 col, sm=2 cols, lg=4 cols */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
               <KpiCard
                 label={
                   activeTab === "customers" ? "ยอดซื้อสูงสุด" : "ยอดขายสูงสุด"
