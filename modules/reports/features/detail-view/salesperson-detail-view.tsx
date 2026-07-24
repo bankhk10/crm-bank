@@ -447,7 +447,6 @@ export default function SalespersonDetailView({
           <KpiCard
             label="ยอดขายเดือนนี้"
             value={formatTHB(kpi.monthTotalSales)}
-            sublabel={`${kpi.monthOrderCount} ออเดอร์`}
             icon={CalendarDays}
             gradient="bg-gradient-to-br from-red-600 to-red-700"
             ring="shadow-lg shadow-red-600/20"
@@ -482,11 +481,6 @@ export default function SalespersonDetailView({
                 : "shadow-lg shadow-red-500/20"
             }
             topColor={kpi.achievementPercent >= 100 ? undefined : "red"}
-            barWidth={
-              kpi.currentMonthTarget > 0
-                ? `${Math.min(kpi.achievementPercent, 100)}%`
-                : undefined
-            }
             barColor={
               kpi.achievementPercent >= 100 ? "bg-emerald-500" : "bg-red-500"
             }
@@ -677,7 +671,7 @@ export default function SalespersonDetailView({
               <TabsContent value="monthly" className="m-0 p-4 sm:p-6">
                 <Card className="border border-slate-100">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
+                    <CardTitle className="text-base flex items-center gap-2 mt-4">
                       <CalendarDays className="h-4 w-4 text-red-600" />
                       ผลงานรายเดือน ({data.currentYear})
                     </CardTitle>
@@ -801,7 +795,7 @@ export default function SalespersonDetailView({
                 <Card className="border border-slate-100">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-base flex items-center gap-2">
+                      <CardTitle className="text-base flex items-center gap-2 mt-6">
                         <Package className="h-4 w-4 text-red-600" />
                         สินค้าที่ขาย (ตามช่วงเวลาที่เลือก)
                       </CardTitle>
@@ -898,7 +892,7 @@ export default function SalespersonDetailView({
                 <Card className="border border-slate-100">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-base flex items-center gap-2">
+                      <CardTitle className="text-base flex items-center gap-2 mt-6">
                         <Store className="h-4 w-4 text-red-600" />
                         ลูกค้าที่ขายได้ ({data.currentYear})
                       </CardTitle>
@@ -1012,7 +1006,7 @@ export default function SalespersonDetailView({
                 <Card className="border border-slate-100">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-base flex items-center gap-2">
+                      <CardTitle className="text-base flex items-center gap-2 mt-6">
                         <ShoppingCart className="h-4 w-4 text-red-500" />
                         ประวัติการขายล่าสุด
                       </CardTitle>
@@ -1048,7 +1042,7 @@ export default function SalespersonDetailView({
               <TabsContent value="points" className="m-0 p-4 sm:p-6">
                 <Card className="border border-slate-100">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
+                    <CardTitle className="text-base flex items-center gap-2 mt-6">
                       <Star className="h-4 w-4 text-yellow-500" />
                       ประวัติคะแนนสะสม
                     </CardTitle>
