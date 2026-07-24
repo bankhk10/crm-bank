@@ -526,6 +526,7 @@ export function CustomerSalesDashboard() {
                     ? topCustomers[0]?.name || "-"
                     : salespersonPerf[0]?.name || "-"
                 }
+                valueClassName="text-sm sm:text-base lg:text-lg font-bold"
                 icon={Award}
                 gradient="bg-gradient-to-br from-red-600 to-red-700"
                 ring="shadow-lg shadow-red-600/20"

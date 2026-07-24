@@ -13,6 +13,7 @@ export function KpiCard({
   barWidth,
   topColor,
   className,
+  valueClassName,
 }: {
   label: string;
   sublabel?: string;
@@ -25,6 +26,7 @@ export function KpiCard({
   barWidth?: string;
   topColor?: "red" | "black";
   className?: string;
+  valueClassName?: string;
 }) {
   const topBorderClass =
     topColor === "red"
@@ -55,7 +57,12 @@ export function KpiCard({
               </p>
             )}
 
-            <h3 className="mt-2.5 text-base sm:text-xl lg:text-2xl font-bold tracking-tight text-slate-900 leading-snug tabular-nums break-words line-clamp-2">
+            <h3
+              className={cn(
+                "mt-2 sm:mt-2.5 text-base sm:text-lg lg:text-xl font-bold tracking-tight text-slate-900 leading-snug tabular-nums break-words line-clamp-2",
+                valueClassName,
+              )}
+            >
               {value}
             </h3>
 

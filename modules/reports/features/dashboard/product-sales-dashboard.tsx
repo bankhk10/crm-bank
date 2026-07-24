@@ -336,6 +336,7 @@ export function ProductSalesDashboard() {
               <KpiCard
                 label="สินค้าขายดีที่สุด"
                 value={reportData.topProducts[0]?.name || "-"}
+                valueClassName="text-sm sm:text-base lg:text-lg font-bold"
                 sub={
                   <div className="mt-1 space-y-0.5">
                     <p className="text-base font-bold text-red-700">
@@ -352,6 +353,7 @@ export function ProductSalesDashboard() {
               <KpiCard
                 label="สินค้าขายช้าที่สุด"
                 value={reportData.slowProducts[0]?.name || "-"}
+                valueClassName="text-sm sm:text-base lg:text-lg font-bold"
                 sub={
                   <div className="mt-1 space-y-0.5">
                     <p className="text-base font-bold text-slate-900">
