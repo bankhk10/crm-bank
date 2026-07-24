@@ -101,10 +101,7 @@ function MiniBarChart({
 }: {
   data: { label: string; actual: number; target: number }[];
 }) {
-  const maxVal = Math.max(
-    ...data.map((d) => Math.max(d.actual, d.target)),
-    1,
-  );
+  const maxVal = Math.max(...data.map((d) => Math.max(d.actual, d.target)), 1);
 
   return (
     <div className="flex items-end gap-1.5 h-40 pt-4">
@@ -123,15 +120,19 @@ function MiniBarChart({
                 />
               )}
               <div
-                className={`w-2.5 rounded-t-sm transition-all duration-500 ${isFuture
-                  ? "bg-slate-100"
-                  : d.actual >= d.target && d.target > 0
-                    ? "bg-emerald-500"
-                    : d.target > 0
-                      ? "bg-red-400"
-                      : "bg-blue-400"
-                  }`}
-                style={{ height: `${Math.max(actualHeight, 1)}%`, minHeight: 2 }}
+                className={`w-2.5 rounded-t-sm transition-all duration-500 ${
+                  isFuture
+                    ? "bg-slate-100"
+                    : d.actual >= d.target && d.target > 0
+                      ? "bg-emerald-500"
+                      : d.target > 0
+                        ? "bg-red-400"
+                        : "bg-blue-400"
+                }`}
+                style={{
+                  height: `${Math.max(actualHeight, 1)}%`,
+                  minHeight: 2,
+                }}
                 title={`จริง: ${formatShortTHB(d.actual)}`}
               />
             </div>
@@ -167,7 +168,9 @@ const recentSalesColumns: ColumnDef<any>[] = [
   {
     accessorKey: "saleDate",
     header: "วันที่",
-    cell: (info) => <span className="text-sm">{info.getValue() as string}</span>,
+    cell: (info) => (
+      <span className="text-sm">{info.getValue() as string}</span>
+    ),
     meta: { minWidth: 100, width: 100, maxWidth: 100, align: "left" },
   },
   {
@@ -232,7 +235,11 @@ const pointsColumns: ColumnDef<any>[] = [
   {
     accessorKey: "pointPerUnit",
     header: "คะแนน/หน่วย",
-    cell: (info) => <span className="text-muted-foreground">{formatNumber(info.getValue() as number)}</span>,
+    cell: (info) => (
+      <span className="text-muted-foreground">
+        {formatNumber(info.getValue() as number)}
+      </span>
+    ),
     meta: { minWidth: 100, width: 100, align: "right" },
   },
   {
@@ -248,7 +255,11 @@ const pointsColumns: ColumnDef<any>[] = [
   {
     accessorKey: "saleDate",
     header: "วันที่",
-    cell: (info) => <span className="text-xs text-muted-foreground">{info.getValue() as string}</span>,
+    cell: (info) => (
+      <span className="text-xs text-muted-foreground">
+        {info.getValue() as string}
+      </span>
+    ),
     meta: { minWidth: 100, width: 100, align: "center" },
   },
 ];
@@ -279,9 +290,8 @@ export default function SalespersonDetailView({
     if (!employeeId) return;
     setLoading(true);
     try {
-      const { getSalespersonDetailReportAction } = await import(
-        "@/modules/reports/server/actions"
-      );
+      const { getSalespersonDetailReportAction } =
+        await import("@/modules/reports/server/actions");
       const result = await getSalespersonDetailReportAction(employeeId);
       setData(result);
     } catch (error) {
@@ -333,14 +343,14 @@ export default function SalespersonDetailView({
   const recentSalesTotal = data.recentSales.length;
   const recentSalesSliced = data.recentSales.slice(
     (salesPage - 1) * salesPerPage,
-    salesPage * salesPerPage
+    salesPage * salesPerPage,
   );
 
   // Pagination logic for Points History
   const pointsTotal = data.pointHistory.length;
   const pointsSliced = data.pointHistory.slice(
     (pointsPage - 1) * pointsPerPage,
-    pointsPage * pointsPerPage
+    pointsPage * pointsPerPage,
   );
 
   const { employee, kpi } = data;
@@ -410,7 +420,9 @@ export default function SalespersonDetailView({
           />
           <KpiCard
             label={`เป้าหมายทั้งปี`}
-            value={formatTHB(data.monthlyPerformance.reduce((s, m) => s + m.target, 0))}
+            value={formatTHB(
+              data.monthlyPerformance.reduce((s, m) => s + m.target, 0),
+            )}
             icon={Target}
             gradient="bg-gradient-to-br from-red-500 to-red-600"
             ring="shadow-lg shadow-red-500/20"
@@ -443,7 +455,11 @@ export default function SalespersonDetailView({
           />
           <KpiCard
             label="เป้ายอดขาย (เดือนนี้)"
-            value={kpi.currentMonthTarget > 0 ? formatTHB(kpi.currentMonthTarget) : "ไม่มีเป้า"}
+            value={
+              kpi.currentMonthTarget > 0
+                ? formatTHB(kpi.currentMonthTarget)
+                : "ไม่มีเป้า"
+            }
             icon={Target}
             gradient="bg-gradient-to-br from-slate-900 to-slate-800"
             ring="shadow-lg shadow-slate-900/20"
@@ -451,13 +467,29 @@ export default function SalespersonDetailView({
           />
           <KpiCard
             label="ผลงาน vs เป้า"
-            value={kpi.currentMonthTarget > 0 ? `${kpi.achievementPercent}%` : "-"}
+            value={
+              kpi.currentMonthTarget > 0 ? `${kpi.achievementPercent}%` : "-"
+            }
             icon={BarChart3}
-            gradient={kpi.achievementPercent >= 100 ? "bg-gradient-to-br from-emerald-600 to-emerald-700" : "bg-gradient-to-br from-red-500 to-red-600"}
-            ring={kpi.achievementPercent >= 100 ? "shadow-lg shadow-emerald-600/20" : "shadow-lg shadow-red-500/20"}
+            gradient={
+              kpi.achievementPercent >= 100
+                ? "bg-gradient-to-br from-emerald-600 to-emerald-700"
+                : "bg-gradient-to-br from-red-500 to-red-600"
+            }
+            ring={
+              kpi.achievementPercent >= 100
+                ? "shadow-lg shadow-emerald-600/20"
+                : "shadow-lg shadow-red-500/20"
+            }
             topColor={kpi.achievementPercent >= 100 ? undefined : "red"}
-            barWidth={kpi.currentMonthTarget > 0 ? `${Math.min(kpi.achievementPercent, 100)}%` : undefined}
-            barColor={kpi.achievementPercent >= 100 ? "bg-emerald-500" : "bg-red-500"}
+            barWidth={
+              kpi.currentMonthTarget > 0
+                ? `${Math.min(kpi.achievementPercent, 100)}%`
+                : undefined
+            }
+            barColor={
+              kpi.achievementPercent >= 100 ? "bg-emerald-500" : "bg-red-500"
+            }
           />
           <KpiCard
             label="ขายล่าสุด"
@@ -525,11 +557,14 @@ export default function SalespersonDetailView({
 
             <div className="flex-1 overflow-y-auto">
               {/* ══════════ Tab: Overview ══════════ */}
-              <TabsContent value="overview" className="m-0 p-4 sm:p-6 space-y-6">
+              <TabsContent
+                value="overview"
+                className="m-0 p-4 sm:p-6 space-y-6"
+              >
                 {/* Status Breakdown */}
                 <Card className="border border-slate-100">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center gap-2">
+                    <CardTitle className="text-base flex items-center gap-2 mt-4">
                       <Layers className="h-4 w-4 text-red-600" />
                       สถานะออเดอร์ (ตามช่วงเวลาที่เลือก)
                     </CardTitle>
@@ -540,7 +575,7 @@ export default function SalespersonDetailView({
                         ไม่มีข้อมูล
                       </p>
                     ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3 pb-4">
                         {data.salesStatusData
                           .sort((a, b) => b.count - a.count)
                           .map((s) => (
@@ -570,14 +605,22 @@ export default function SalespersonDetailView({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card className="border border-slate-100">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-base flex items-center gap-2">
+                      <CardTitle className="text-base flex items-center gap-2 mt-4">
                         <User className="h-4 w-4" />
                         ข้อมูลติดต่อ
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <InfoRow icon={<Phone className="h-4 w-4 text-blue-600" />} label="โทรศัพท์" value={employee.phone || "-"} />
-                      <InfoRow icon={<Mail className="h-4 w-4 text-emerald-600" />} label="อีเมล" value={employee.email || "-"} />
+                      <InfoRow
+                        icon={<Phone className="h-4 w-4 text-blue-600" />}
+                        label="โทรศัพท์"
+                        value={employee.phone || "-"}
+                      />
+                      <InfoRow
+                        icon={<Mail className="h-4 w-4 text-emerald-600" />}
+                        label="อีเมล"
+                        value={employee.email || "-"}
+                      />
                       {(employee.addressLine || employee.province) && (
                         <InfoRow
                           icon={<MapPin className="h-4 w-4 text-red-600" />}
@@ -597,16 +640,34 @@ export default function SalespersonDetailView({
                   </Card>
                   <Card className="border border-slate-100">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-base flex items-center gap-2">
+                      <CardTitle className="text-base flex items-center gap-2 mt-4">
                         <Building2 className="h-4 w-4" />
                         ข้อมูลการทำงาน
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                      <InfoRow icon={<Building2 className="h-4 w-4 text-slate-600" />} label="บริษัท" value={employee.company?.name || "-"} />
-                      <InfoRow icon={<Layers className="h-4 w-4 text-slate-600" />} label="แผนก" value={employee.department?.name || "-"} />
-                      <InfoRow icon={<Briefcase className="h-4 w-4 text-slate-600" />} label="ตำแหน่ง" value={employee.positionTitle || employee.roleTitle || "-"} />
-                      <InfoRow icon={<MapPin className="h-4 w-4 text-slate-600" />} label="เขตรับผิดชอบ" value={employee.responsibilityArea || "-"} />
+                    <CardContent className="space-y-3 pb-4">
+                      <InfoRow
+                        icon={<Building2 className="h-4 w-4 text-slate-600" />}
+                        label="บริษัท"
+                        value={employee.company?.name || "-"}
+                      />
+                      <InfoRow
+                        icon={<Layers className="h-4 w-4 text-slate-600" />}
+                        label="แผนก"
+                        value={employee.department?.name || "-"}
+                      />
+                      <InfoRow
+                        icon={<Briefcase className="h-4 w-4 text-slate-600" />}
+                        label="ตำแหน่ง"
+                        value={
+                          employee.positionTitle || employee.roleTitle || "-"
+                        }
+                      />
+                      <InfoRow
+                        icon={<MapPin className="h-4 w-4 text-slate-600" />}
+                        label="เขตรับผิดชอบ"
+                        value={employee.responsibilityArea || "-"}
+                      />
                     </CardContent>
                   </Card>
                 </div>
@@ -627,15 +688,24 @@ export default function SalespersonDetailView({
                         <TableHeader>
                           <TableRow className="bg-slate-50/50">
                             <TableHead>เดือน</TableHead>
-                            <TableHead className="text-center">เป้าหมาย</TableHead>
-                            <TableHead className="text-center">ยอดขายจริง</TableHead>
-                            <TableHead className="text-center">สำเร็จ %</TableHead>
-                            <TableHead className="text-center">ออเดอร์</TableHead>
+                            <TableHead className="text-center">
+                              เป้าหมาย
+                            </TableHead>
+                            <TableHead className="text-center">
+                              ยอดขายจริง
+                            </TableHead>
+                            <TableHead className="text-center">
+                              สำเร็จ %
+                            </TableHead>
+                            <TableHead className="text-center">
+                              ออเดอร์
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {data.monthlyPerformance.map((m) => {
-                            const isCurrent = m.monthIndex === new Date().getMonth() + 1;
+                            const isCurrent =
+                              m.monthIndex === new Date().getMonth() + 1;
                             return (
                               <TableRow
                                 key={m.monthIndex}
@@ -659,22 +729,28 @@ export default function SalespersonDetailView({
                                   {m.target > 0 ? (
                                     <div className="flex items-center justify-center gap-2">
                                       <Progress
-                                        value={Math.min(m.achievementPercent, 100)}
+                                        value={Math.min(
+                                          m.achievementPercent,
+                                          100,
+                                        )}
                                         className="h-2 w-16"
                                       />
                                       <span
-                                        className={`text-xs font-bold ${m.achievementPercent >= 100
-                                          ? "text-emerald-600"
-                                          : m.achievementPercent >= 70
-                                            ? "text-amber-600"
-                                            : "text-red-600"
-                                          }`}
+                                        className={`text-xs font-bold ${
+                                          m.achievementPercent >= 100
+                                            ? "text-emerald-600"
+                                            : m.achievementPercent >= 70
+                                              ? "text-amber-600"
+                                              : "text-red-600"
+                                        }`}
                                       >
                                         {m.achievementPercent}%
                                       </span>
                                     </div>
                                   ) : (
-                                    <span className="text-xs text-muted-foreground">-</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      -
+                                    </span>
                                   )}
                                 </TableCell>
                                 <TableCell className="text-center">
@@ -688,7 +764,10 @@ export default function SalespersonDetailView({
                             <TableCell>รวมทั้งปี</TableCell>
                             <TableCell className="text-center">
                               {formatTHB(
-                                data.monthlyPerformance.reduce((s, m) => s + m.target, 0),
+                                data.monthlyPerformance.reduce(
+                                  (s, m) => s + m.target,
+                                  0,
+                                ),
                               )}
                             </TableCell>
                             <TableCell className="text-center text-emerald-600">
@@ -696,10 +775,11 @@ export default function SalespersonDetailView({
                             </TableCell>
                             <TableCell className="text-center">
                               {(() => {
-                                const totalTarget = data.monthlyPerformance.reduce(
-                                  (s, m) => s + m.target,
-                                  0,
-                                );
+                                const totalTarget =
+                                  data.monthlyPerformance.reduce(
+                                    (s, m) => s + m.target,
+                                    0,
+                                  );
                                 return totalTarget > 0
                                   ? `${Math.round((kpi.yearTotalSales / totalTarget) * 100)}%`
                                   : "-";
@@ -737,22 +817,34 @@ export default function SalespersonDetailView({
                           <TableRow className="bg-slate-50/50">
                             <TableHead className="w-[60px]">ลำดับ</TableHead>
                             <TableHead>สินค้า</TableHead>
-                            <TableHead className="text-center">จำนวนที่ขาย</TableHead>
-                            <TableHead className="text-center">ยอดขาย</TableHead>
-                            <TableHead className="text-center">สัดส่วน</TableHead>
+                            <TableHead className="text-center">
+                              จำนวนที่ขาย
+                            </TableHead>
+                            <TableHead className="text-center">
+                              ยอดขาย
+                            </TableHead>
+                            <TableHead className="text-center">
+                              สัดส่วน
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {data.productBreakdown.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                              <TableCell
+                                colSpan={6}
+                                className="h-32 text-center text-muted-foreground"
+                              >
                                 <Package className="h-10 w-10 mx-auto mb-2 opacity-50" />
                                 ไม่พบข้อมูลสินค้า
                               </TableCell>
                             </TableRow>
                           ) : (
                             data.productBreakdown.map((p, i) => (
-                              <TableRow key={p.productId} className="hover:bg-slate-50/50">
+                              <TableRow
+                                key={p.productId}
+                                className="hover:bg-slate-50/50"
+                              >
                                 <TableCell>
                                   <Badge
                                     variant="outline"
@@ -782,7 +874,10 @@ export default function SalespersonDetailView({
                                 </TableCell>
                                 <TableCell className="text-center">
                                   <div className="flex items-center justify-center gap-2">
-                                    <Progress value={p.contribution} className="h-2 w-14" />
+                                    <Progress
+                                      value={p.contribution}
+                                      className="h-2 w-14"
+                                    />
                                     <span className="text-xs font-medium text-slate-600">
                                       {p.contribution}%
                                     </span>
@@ -819,24 +914,38 @@ export default function SalespersonDetailView({
                           <TableRow className="bg-slate-50/50">
                             <TableHead className="w-[60px]">ลำดับ</TableHead>
                             <TableHead>ลูกค้า</TableHead>
-                            <TableHead className="text-center">ภูมิภาค</TableHead>
-                            <TableHead className="text-center">จำนวนออเดอร์</TableHead>
-                            <TableHead className="text-center">ยอดขาย</TableHead>
-                            <TableHead className="text-center">ขายล่าสุด</TableHead>
+                            <TableHead className="text-center">
+                              ภูมิภาค
+                            </TableHead>
+                            <TableHead className="text-center">
+                              จำนวนออเดอร์
+                            </TableHead>
+                            <TableHead className="text-center">
+                              ยอดขาย
+                            </TableHead>
+                            <TableHead className="text-center">
+                              ขายล่าสุด
+                            </TableHead>
                             <TableHead className="text-center">สถานะ</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {data.customerBreakdown.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+                              <TableCell
+                                colSpan={8}
+                                className="h-32 text-center text-muted-foreground"
+                              >
                                 <Store className="h-10 w-10 mx-auto mb-2 opacity-50" />
                                 ไม่พบข้อมูลลูกค้า
                               </TableCell>
                             </TableRow>
                           ) : (
                             data.customerBreakdown.map((c, i) => (
-                              <TableRow key={c.customerId} className="hover:bg-slate-50/50">
+                              <TableRow
+                                key={c.customerId}
+                                className="hover:bg-slate-50/50"
+                              >
                                 <TableCell>
                                   <Badge
                                     variant="outline"
@@ -879,10 +988,11 @@ export default function SalespersonDetailView({
                                 <TableCell className="text-center">
                                   <Badge
                                     variant="outline"
-                                    className={`font-semibold border ${c.status === "ACTIVE"
-                                      ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                                      : "bg-slate-50 text-slate-700 border-slate-100"
-                                      }`}
+                                    className={`font-semibold border ${
+                                      c.status === "ACTIVE"
+                                        ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                        : "bg-slate-50 text-slate-700 border-slate-100"
+                                    }`}
                                   >
                                     {c.status === "ACTIVE" ? "ปกติ" : c.status}
                                   </Badge>
@@ -962,7 +1072,8 @@ export default function SalespersonDetailView({
                       }}
                       emptyState={{
                         title: "ไม่มีประวัติคะแนนสะสม",
-                        description: "ยังไม่มีข้อมูลคะแนนสะสมสำหรับพนักงานรายนี้",
+                        description:
+                          "ยังไม่มีข้อมูลคะแนนสะสมสำหรับพนักงานรายนี้",
                       }}
                     />
                   </CardContent>
