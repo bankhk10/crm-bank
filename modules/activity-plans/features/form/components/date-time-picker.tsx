@@ -13,35 +13,8 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
-const TIME_SLOTS = [
-  "07:00",
-  "07:30",
-  "08:00",
-  "08:30",
-  "09:00",
-  "09:30",
-  "10:00",
-  "10:30",
-  "11:00",
-  "11:30",
-  "12:00",
-  "12:30",
-  "13:00",
-  "13:30",
-  "14:00",
-  "14:30",
-  "15:00",
-  "15:30",
-  "16:00",
-  "16:30",
-  "17:00",
-  "17:30",
-  "18:00",
-  "18:30",
-  "19:00",
-  "19:30",
-  "20:00",
-];
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MINUTES = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
 
 interface DateTimePickerProps {
   label: string;
@@ -77,6 +50,9 @@ export function DateTimePicker({
   const [tempTime, setTempTime] = useState<string>(timeValue || "10:00");
 
   const isBlue = accentColor === "blue";
+
+  // Separate hours & minutes
+  const [currentHour = "10", currentMinute = "00"] = (tempTime || "10:00").split(":");
 
   // Formatted date text for trigger and preview
   const formattedPreviewText = (() => {
@@ -162,7 +138,7 @@ export function DateTimePicker({
           align="start"
           className="w-auto p-0 rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden bg-white z-50"
         >
-          {/* Main Top Area: Calendar (Left) + Time Picker List (Right) */}
+          {/* Main Top Area: Calendar (Left) + Hours/Minutes Columns (Right) */}
           <div className="flex items-stretch">
             {/* Left: Calendar Picker */}
             <div className="p-3">
@@ -180,30 +156,60 @@ export function DateTimePicker({
             {/* Vertical Divider Line */}
             <div className="w-[1px] bg-slate-100 my-3" />
 
-            {/* Right: Vertical Time List */}
-            <div className="w-28 p-3 flex flex-col">
-              <div className="text-[11px] font-semibold text-slate-400 mb-2 px-1 text-center">
-                เลือกเวลา
+            {/* Right: Hours & Minutes Side-by-Side Selection Columns */}
+            <div className="p-3 flex flex-col justify-start">
+              <div className="grid grid-cols-2 text-[11px] font-bold text-slate-500 mb-2 text-center border-b border-slate-100 pb-1">
+                <span>ชั่วโมง</span>
+                <span>นาที</span>
               </div>
-              <div className="flex-1 max-h-[280px] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                {TIME_SLOTS.map((t) => {
-                  const isSelected = tempTime === t;
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setTempTime(t)}
-                      className={cn(
-                        "w-full py-1.5 px-2 rounded-lg text-xs font-semibold text-center transition-all",
-                        isSelected
-                          ? "bg-slate-100 text-slate-900 font-bold border border-slate-200/80 shadow-xs"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
-                      )}
-                    >
-                      {t} น.
-                    </button>
-                  );
-                })}
+
+              <div className="flex gap-1.5 flex-1 max-h-[280px]">
+                {/* Hours Column */}
+                <div className="w-14 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                  {HOURS.map((h) => {
+                    const isSelected = currentHour === h;
+                    return (
+                      <button
+                        key={h}
+                        type="button"
+                        onClick={() => setTempTime(`${h}:${currentMinute}`)}
+                        className={cn(
+                          "w-full py-1.5 px-1 rounded-lg text-xs font-semibold text-center transition-all",
+                          isSelected
+                            ? "bg-slate-900 text-white font-bold shadow-xs"
+                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                        )}
+                      >
+                        {h}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Vertical Separator */}
+                <div className="w-[1px] bg-slate-100" />
+
+                {/* Minutes Column */}
+                <div className="w-14 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                  {MINUTES.map((m) => {
+                    const isSelected = currentMinute === m;
+                    return (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setTempTime(`${currentHour}:${m}`)}
+                        className={cn(
+                          "w-full py-1.5 px-1 rounded-lg text-xs font-semibold text-center transition-all",
+                          isSelected
+                            ? "bg-blue-600 text-white font-bold shadow-xs"
+                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                        )}
+                      >
+                        {m}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
