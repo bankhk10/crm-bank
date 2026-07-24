@@ -404,9 +404,7 @@ export default function ProductDetailView() {
                   label="ประเภท (ABC Code)"
                   value={
                     product.productABCType
-                      ? product.productABCType.description
-                        ? `${product.productABCType.name} - ${product.productABCType.description}`
-                        : `${product.productABCType.name}`
+                      ? product.productABCType.name
                       : undefined
                   }
                 />

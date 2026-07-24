@@ -77,7 +77,7 @@ export async function getProductFormOptionsUseCase() {
     })),
     abcTypes: abcTypes.map((c) => ({
       value: c.id,
-      label: c.description ? `${c.name} - ${c.description}` : `${c.name}`,
+      label: c.name,
     })),
   };
 }
