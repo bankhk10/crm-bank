@@ -336,10 +336,10 @@ export function ProductSalesDashboard() {
               <KpiCard
                 label="สินค้าขายดีที่สุด"
                 value={reportData.topProducts[0]?.name || "-"}
-                valueClassName="text-sm sm:text-base lg:text-lg font-bold"
+                valueClassName="text-xs sm:text-sm lg:text-base font-semibold leading-snug line-clamp-2 text-slate-800"
                 sub={
                   <div className="mt-1 space-y-0.5">
-                    <p className="text-base font-bold text-red-700">
+                    <p className="text-sm sm:text-base font-bold text-red-600">
                       {formatTHB(reportData.topProducts[0]?.totalSales || 0)}
                     </p>
                   </div>
@@ -353,10 +353,10 @@ export function ProductSalesDashboard() {
               <KpiCard
                 label="สินค้าขายช้าที่สุด"
                 value={reportData.slowProducts[0]?.name || "-"}
-                valueClassName="text-sm sm:text-base lg:text-lg font-bold"
+                valueClassName="text-xs sm:text-sm lg:text-base font-semibold leading-snug line-clamp-2 text-slate-800"
                 sub={
                   <div className="mt-1 space-y-0.5">
-                    <p className="text-base font-bold text-slate-900">
+                    <p className="text-sm sm:text-base font-bold text-slate-700">
                       {formatTHB(reportData.slowProducts[0]?.totalSales || 0)}
                     </p>
                   </div>
@@ -370,10 +370,11 @@ export function ProductSalesDashboard() {
               <KpiCard
                 label="สินค้าใกล้หมด"
                 value={`${reportData.lowStockProducts.length} รายการ`}
+                valueClassName="text-xs sm:text-sm lg:text-base font-semibold leading-snug line-clamp-2 text-slate-800"
                 sub={
-                  <div className="mt-1">
-                    <p className="text-xs font-semibold text-red-600">
-                      รายการ (คงเหลือ &lt; 50)
+                  <div className="mt-1 space-y-0.5">
+                    <p className="text-sm sm:text-base font-bold text-red-600">
+                      คงเหลือ &lt; 50
                     </p>
                   </div>
                 }
@@ -386,9 +387,12 @@ export function ProductSalesDashboard() {
               <KpiCard
                 label="สินค้าค้างสต๊อก"
                 value={`${reportData.stagnantProducts.length} รายการ`}
+                valueClassName="text-xs sm:text-sm lg:text-base font-semibold leading-snug line-clamp-2 text-slate-800"
                 sub={
-                  <div className="mt-1 font-semibold text-slate-500 text-xs">
-                    <p>ไม่ขายใน 90 วัน</p>
+                  <div className="mt-1 space-y-0.5">
+                    <p className="text-sm sm:text-base font-bold text-slate-700">
+                      ไม่ขายใน 90 วัน
+                    </p>
                   </div>
                 }
                 icon={Archive}
