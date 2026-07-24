@@ -611,7 +611,7 @@ export function CustomerSalesDashboard() {
               <TabsContent value="customers">
                 {/* Table */}
                 <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                  <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-3">
+                  <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-3 mt-6">
                     <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
                       <Users className="h-5 w-5 text-red-600" />
                       ข้อมูลการขายของลูกค้า
@@ -691,7 +691,7 @@ export function CustomerSalesDashboard() {
 
               <TabsContent value="salespersons">
                 <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                  <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
+                  <CardHeader className="mt-6 pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
                     <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
                       <UserCheck className="h-5 w-5 text-red-600" />
                       ข้อมูลการขายของพนักงาน
