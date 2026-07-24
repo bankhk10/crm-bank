@@ -421,13 +421,50 @@ export async function getProductSalesReport(filter: DateRangeFilter, session: an
       : undefined,
   }));
 
-  // ABC Code sales (aggregate by productABCType) like Dashboard
+  // ABC Code sales (aggregate by productABCType)
   const abcTypes = await prisma.productABCTypes.findMany({
     where: { deletedAt: null },
-    select: { id: true, code: true, name: true }
+    select: { id: true, code: true, name: true },
   });
-  const abcTypeMap = new Map(abcTypes.map(a => [a.id, a]));
+  const abcTypeMap = new Map(abcTypes.map((a) => [a.id, a]));
 
+  type AbcAgg = {
+    id: string;
+    code: string;
+    name: string;
+    salesNoteSales: number;
+    salesNoteQuantity: number;
+    salesNoteSaleIds: Set<string>;
+    invoiceSales: number;
+    invoiceQuantity: number;
+    invoiceSaleIds: Set<string>;
+    productIds: Set<string>;
+  };
+
+  const abcAggregates = new Map<string, AbcAgg>();
+
+  const getOrCreateAbcRecord = (abcId: string) => {
+    let abcRecord = abcAggregates.get(abcId);
+    if (!abcRecord) {
+      const typeInfo = abcTypeMap.get(abcId);
+      abcRecord = {
+        id: abcId,
+        code: typeInfo?.code || "-",
+        name: typeInfo?.name || "ไม่ระบุ",
+        salesNoteSales: 0,
+        salesNoteQuantity: 0,
+        salesNoteSaleIds: new Set<string>(),
+        invoiceSales: 0,
+        invoiceQuantity: 0,
+        invoiceSaleIds: new Set<string>(),
+        productIds: new Set<string>(),
+      };
+      abcAggregates.set(abcId, abcRecord);
+    }
+    return abcRecord;
+  };
+
+  // 1. Sales Note Items (By Sale Date)
   const abcSaleItems = await prisma.saleItem.findMany({
     where: {
       sale: {
@@ -447,40 +484,102 @@ export async function getProductSalesReport(filter: DateRangeFilter, session: an
     },
   });
 
-  type AbcAgg = {
-    id: string;
-    code: string;
-    name: string;
-    totalSales: number;
-    totalQuantity: number;
-    saleIds: Set<string>;
-    productIds: Set<string>;
-  };
-
-  const abcAggregates = new Map<string, AbcAgg>();
-
   for (const item of abcSaleItems) {
-    const abcId = item.productABCTypeId || item.product?.productABCTypeId || "UNKNOWN";
-    
-    let abcRecord = abcAggregates.get(abcId);
-    if (!abcRecord) {
-      const typeInfo = abcTypeMap.get(abcId);
-      abcRecord = {
-        id: abcId,
-        code: typeInfo?.code || "-",
-        name: typeInfo?.name || "ไม่ระบุ",
-        totalSales: 0,
-        totalQuantity: 0,
-        saleIds: new Set<string>(),
-        productIds: new Set<string>(),
-      };
-      abcAggregates.set(abcId, abcRecord);
-    }
-    
-    abcRecord.totalSales += Number(item.totalPrice || 0);
-    abcRecord.totalQuantity += Number(item.quantity || 0);
+    const abcId =
+      item.productABCTypeId || item.product?.productABCTypeId || "UNKNOWN";
+    const abcRecord = getOrCreateAbcRecord(abcId);
+
+    abcRecord.salesNoteSales += Number(item.totalPrice || 0);
+    abcRecord.salesNoteQuantity += Number(item.quantity || 0);
+    abcRecord.salesNoteSaleIds.add(item.saleId);
     abcRecord.productIds.add(item.productId);
-    abcRecord.saleIds.add(item.saleId);
+  }
+
+  // 2. Invoice Shipment Items (By Shipment Delivered/Scheduled Date)
+  const invoiceShipmentItems = await prisma.shipmentItem.findMany({
+    where: {
+      shipment: {
+        status: { in: ["DELIVERED", "IN_TRANSIT", "COMPLETED"] },
+        sale: { deletedAt: null, ...scopeFilter },
+        OR: [
+          { scheduledDate: { gte: start, lte: end } },
+          { scheduledDate: null, actualDate: { gte: start, lte: end } },
+          {
+            scheduledDate: null,
+            actualDate: null,
+            sale: { requestedDeliveryDate: { gte: start, lte: end } },
+          },
+        ],
+      },
+    },
+    select: {
+      totalPrice: true,
+      quantity: true,
+      shipment: { select: { id: true, saleId: true } },
+      saleItem: {
+        select: {
+          productId: true,
+          productABCTypeId: true,
+          product: { select: { productABCTypeId: true } },
+        },
+      },
+    },
+  });
+
+  for (const item of invoiceShipmentItems) {
+    const abcId =
+      item.saleItem.productABCTypeId ||
+      item.saleItem.product?.productABCTypeId ||
+      "UNKNOWN";
+    const abcRecord = getOrCreateAbcRecord(abcId);
+
+    abcRecord.invoiceSales += Number(item.totalPrice || 0);
+    abcRecord.invoiceQuantity += Number(item.quantity || 0);
+    abcRecord.invoiceSaleIds.add(item.shipment.saleId || item.shipment.id);
+    abcRecord.productIds.add(item.saleItem.productId);
+  }
+
+  // 3. Legacy Sales without Shipments (By Delivery/Requested/Sale Date)
+  const legacyInvoiceSaleItems = await prisma.saleItem.findMany({
+    where: {
+      sale: {
+        deletedAt: null,
+        status: { in: ["PAID", "DELIVERY_COMPLETED", "COMPLETED"] },
+        shipments: { none: {} },
+        ...scopeFilter,
+        OR: [
+          { deliveryDate: { gte: start, lte: end } },
+          {
+            deliveryDate: null,
+            requestedDeliveryDate: { gte: start, lte: end },
+          },
+          {
+            deliveryDate: null,
+            requestedDeliveryDate: null,
+            saleDate: { gte: start, lte: end },
+          },
+        ],
+      },
+    },
+    select: {
+      productId: true,
+      productABCTypeId: true,
+      totalPrice: true,
+      quantity: true,
+      saleId: true,
+      product: { select: { productABCTypeId: true } },
+    },
+  });
+
+  for (const item of legacyInvoiceSaleItems) {
+    const abcId =
+      item.productABCTypeId || item.product?.productABCTypeId || "UNKNOWN";
+    const abcRecord = getOrCreateAbcRecord(abcId);
+
+    abcRecord.invoiceSales += Number(item.totalPrice || 0);
+    abcRecord.invoiceQuantity += Number(item.quantity || 0);
+    abcRecord.invoiceSaleIds.add(item.saleId);
+    abcRecord.productIds.add(item.productId);
   }
 
   const abcSales = Array.from(abcAggregates.values())
@@ -488,10 +587,16 @@ export async function getProductSalesReport(filter: DateRangeFilter, session: an
       id: a.id,
       code: a.code,
       name: a.name,
-      totalSales: a.totalSales,
-      totalQuantity: a.totalQuantity,
-      orderCount: a.saleIds.size,
+      totalSales: a.salesNoteSales,
+      totalQuantity: a.salesNoteQuantity,
+      orderCount: a.salesNoteSaleIds.size,
       productCount: a.productIds.size,
+      salesNoteSales: a.salesNoteSales,
+      salesNoteQuantity: a.salesNoteQuantity,
+      salesNoteOrderCount: a.salesNoteSaleIds.size,
+      invoiceSales: a.invoiceSales,
+      invoiceQuantity: a.invoiceQuantity,
+      invoiceOrderCount: a.invoiceSaleIds.size,
     }))
     .sort((a, b) =>
       (a.code || a.name || "").localeCompare(b.code || b.name || "", "th", {

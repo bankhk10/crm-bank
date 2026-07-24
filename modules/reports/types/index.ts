@@ -116,6 +116,12 @@ export interface ProductSalesReportData {
     totalQuantity: number;
     orderCount: number;
     productCount: number;
+    salesNoteSales?: number;
+    salesNoteQuantity?: number;
+    salesNoteOrderCount?: number;
+    invoiceSales?: number;
+    invoiceQuantity?: number;
+    invoiceOrderCount?: number;
   }[];
 }
 
