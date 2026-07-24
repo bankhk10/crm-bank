@@ -19,8 +19,19 @@ export function AdminChartsSection({
     useState<DashboardPeriod>("month");
 
   const regionData = periodData[regionPeriod].regionData || [];
-  const productGroupData =
+  const rawProductGroupData =
     periodData[productGroupPeriod].productGroupData || [];
+
+  const productGroupData = useMemo(
+    () =>
+      rawProductGroupData.filter(
+        (p) =>
+          p.group &&
+          p.group !== "ยังไม่มีข้อมูล" &&
+          !p.group.includes("ยังไม่มีข้อมูล")
+      ),
+    [rawProductGroupData]
+  );
 
   // Product group filter
   const [visibleGroups, setVisibleGroups] = useState<Set<string>>(

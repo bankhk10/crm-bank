@@ -22,8 +22,20 @@ export function SalesChartsSection({
   const [tradeNameGroupPeriod, setTradeNameGroupPeriod] =
     useState<DashboardPeriod>("month");
 
-  const productGroupData =
+  const rawProductGroupData =
     periodData[productGroupPeriod].productGroupData || [];
+
+  const productGroupData = useMemo(
+    () =>
+      rawProductGroupData.filter(
+        (p) =>
+          p.group &&
+          p.group !== "ยังไม่มีข้อมูล" &&
+          !p.group.includes("ยังไม่มีข้อมูล")
+      ),
+    [rawProductGroupData]
+  );
+
   const tradeNameGroupData =
     periodData[tradeNameGroupPeriod].tradeNameGroupData || [];
 
