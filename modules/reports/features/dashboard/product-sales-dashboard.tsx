@@ -127,8 +127,13 @@ export function ProductSalesDashboard() {
       (a, b) => b.totalSales - a.totalSales,
     ) || [];
   const sortedAbcSales =
-    reportData?.abcSales?.slice().sort((a, b) => b.totalSales - a.totalSales) ||
-    [];
+    reportData?.abcSales
+      ?.slice()
+      .sort((a, b) =>
+        (a.code || a.name || "").localeCompare(b.code || b.name || "", "th", {
+          numeric: true,
+        }),
+      ) || [];
 
   const formatPackSize = (value: number, unit?: string) => {
     if (value === null || value === undefined) return "-";

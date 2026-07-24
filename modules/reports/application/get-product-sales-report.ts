@@ -433,7 +433,7 @@ export async function getProductSalesReport(filter: DateRangeFilter, session: an
       sale: {
         saleDate: { gte: start, lte: end },
         deletedAt: null,
-        status: { not: "CANCELLED" },
+        status: { notIn: ["CANCELLED", "REJECTED"] },
         ...scopeFilter,
       },
     },
@@ -493,7 +493,11 @@ export async function getProductSalesReport(filter: DateRangeFilter, session: an
       orderCount: a.saleIds.size,
       productCount: a.productIds.size,
     }))
-    .sort((a, b) => b.totalSales - a.totalSales);
+    .sort((a, b) =>
+      (a.code || a.name || "").localeCompare(b.code || b.name || "", "th", {
+        numeric: true,
+      }),
+    );
 
   return {
     topProducts,

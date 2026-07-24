@@ -65,7 +65,7 @@ export async function getTimeSalesReport(filter: DateRangeFilter, session: any):
     where: {
       requestedDeliveryDate: { gte: fetchStart, lte: fetchEnd },
       deletedAt: null,
-      status: { notIn: ["CANCELLED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
       ...scopeFilter,
     },
     select: {
@@ -97,7 +97,7 @@ export async function getTimeSalesReport(filter: DateRangeFilter, session: any):
     where: {
       requestedDeliveryDate: { gte: previousStart, lte: previousEnd },
       deletedAt: null,
-      status: { notIn: ["CANCELLED"] },
+      status: { notIn: ["CANCELLED", "REJECTED"] },
       ...scopeFilter,
     },
     _sum: { totalAmount: true },
