@@ -186,9 +186,9 @@ export function DateTimePicker({
                         type="button"
                         onClick={() => setTempTime(`${h}:${currentMinute}`)}
                         className={cn(
-                          "w-full py-1.5 px-1 rounded-lg text-xs font-semibold text-center transition-all",
+                          "w-full py-1.5 px-1 rounded-lg text-xs font-medium text-center transition-all",
                           isSelected
-                            ? "bg-slate-900 text-white font-bold shadow-xs"
+                            ? "bg-blue-600 text-white font-bold shadow-xs"
                             : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
                         )}
                       >
@@ -211,7 +211,7 @@ export function DateTimePicker({
                         type="button"
                         onClick={() => setTempTime(`${currentHour}:${m}`)}
                         className={cn(
-                          "w-full py-1.5 px-1 rounded-lg text-xs font-semibold text-center transition-all",
+                          "w-full py-1.5 px-1 rounded-lg text-xs font-medium text-center transition-all",
                           isSelected
                             ? "bg-blue-600 text-white font-bold shadow-xs"
                             : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
