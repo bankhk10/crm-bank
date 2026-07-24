@@ -307,7 +307,7 @@ export function TimeSalesDashboard() {
         {/* ── Loading Skeleton ── */}
         {isPending && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
               {[1, 2, 3, 4].map((i) => (
                 <Skeleton key={i} className="h-28 rounded-xl" />
               ))}
@@ -321,7 +321,7 @@ export function TimeSalesDashboard() {
         {!isPending && reportData && (
           <div className="space-y-5 sm:space-y-6">
             {/* ── KPI Cards (4 cols) ── */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
               <KpiCard
                 label="ยอดขายรวม"
                 value={formatTHB(reportData.totalSales)}
