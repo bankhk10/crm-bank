@@ -1,8 +1,5 @@
 import React, { useState } from "react";
-import {
-  Calendar as CalendarIcon,
-  ChevronDown,
-} from "lucide-react";
+import { Calendar as CalendarIcon, ChevronDown } from "lucide-react";
 import { format, parseISO, isValid } from "date-fns";
 import { th } from "date-fns/locale";
 import {
@@ -14,7 +11,20 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
-const MINUTES = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
+const MINUTES = [
+  "00",
+  "05",
+  "10",
+  "15",
+  "20",
+  "25",
+  "30",
+  "35",
+  "40",
+  "45",
+  "50",
+  "55",
+];
 
 interface DateTimePickerProps {
   label: string;
@@ -52,7 +62,9 @@ export function DateTimePicker({
   const isBlue = accentColor === "blue";
 
   // Separate hours & minutes
-  const [currentHour = "10", currentMinute = "00"] = (tempTime || "10:00").split(":");
+  const [currentHour = "10", currentMinute = "00"] = (
+    tempTime || "10:00"
+  ).split(":");
 
   // Formatted date text for trigger and preview
   const formattedPreviewText = (() => {
@@ -103,7 +115,7 @@ export function DateTimePicker({
             type="button"
             disabled={readonly}
             className={cn(
-              "w-full h-11 px-3.5 rounded-xl border bg-white flex items-center justify-between text-xs transition-all shadow-sm",
+              "w-full h-11 px-3.5 rounded-lg border bg-white flex items-center justify-between text-xs transition-all shadow-sm",
               open
                 ? isBlue
                   ? "border-blue-500 ring-2 ring-blue-500/20"
@@ -124,7 +136,7 @@ export function DateTimePicker({
                 <CalendarIcon className="h-4 w-4" />
               </div>
               <div className="text-left">
-                <span className="font-semibold text-slate-800 text-xs block">
+                <span className="font-medium text-slate-800 text-xs block">
                   {formattedPreviewText}
                 </span>
               </div>
