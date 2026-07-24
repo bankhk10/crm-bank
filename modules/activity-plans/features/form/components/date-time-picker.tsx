@@ -70,7 +70,10 @@ export function DateTimePicker({
   const formattedPreviewText = (() => {
     const d = tempDate || selectedDate;
     if (!d || !isValid(d)) return "เลือกวันที่";
-    const dateStr = format(d, "d MMM yyyy", { locale: th });
+
+    const buddhistYear = d.getFullYear() + 543;
+    const dateStr = `${format(d, "d MMM", { locale: th })} ${buddhistYear}`;
+
     return `${dateStr} ${tempTime || "10:00"} น.`;
   })();
 
