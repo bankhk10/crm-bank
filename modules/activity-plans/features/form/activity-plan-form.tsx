@@ -935,7 +935,8 @@ export function ActivityPlanForm({
               </h1>
             </div>
             <p className="text-xs md:text-sm text-slate-500 mt-1">
-              วางแผนการลงพื้นที่ / กิจกรรมทางการตลาด และบริหารจัดการการเข้าปฏิบัติงาน
+              วางแผนการลงพื้นที่ / กิจกรรมทางการตลาด
+              และบริหารจัดการการเข้าปฏิบัติงาน
             </p>
           </div>
         </div>
@@ -1098,7 +1099,7 @@ export function ActivityPlanForm({
                   })}
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 text-right">
+                <div className="pt-2 border-t border-slate-100 text-center">
                   <button
                     type="button"
                     onClick={clearWorkTypes}
