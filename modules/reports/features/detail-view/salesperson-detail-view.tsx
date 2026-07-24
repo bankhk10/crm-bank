@@ -300,7 +300,7 @@ export default function SalespersonDetailView({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <Skeleton className="h-12 w-64" />
         <Skeleton className="h-40 rounded-2xl" />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <Skeleton key={i} className="h-24 rounded-2xl" />
           ))}
@@ -399,7 +399,7 @@ export default function SalespersonDetailView({
       {/* ─── Main Content ─────────────────────────────────────────────── */}
       <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* ─── KPI Summary (8 cards) ─── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
           <KpiCard
             label={`ยอดขายรวม`}
             value={formatTHB(kpi.yearTotalSales)}
@@ -540,7 +540,7 @@ export default function SalespersonDetailView({
                         ไม่มีข้อมูล
                       </p>
                     ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                         {data.salesStatusData
                           .sort((a, b) => b.count - a.count)
                           .map((s) => (
