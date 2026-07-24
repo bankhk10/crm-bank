@@ -32,8 +32,10 @@ export function AbcSalesTable({
 }: AbcSalesTableProps) {
   return (
     <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-      <CardHeader>
-        <CardTitle className="text-lg">ยอดขายตามประเภท (ABC Code) (ตามช่วงเวลาที่เลือก)</CardTitle>
+      <CardHeader className="mt-4">
+        <CardTitle className="text-lg">
+          ยอดขายตามประเภท (ABC Code) (ตามช่วงเวลาที่เลือก)
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {!abcSales || abcSales.length === 0 ? (
@@ -69,7 +71,9 @@ export function AbcSalesTable({
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-bold text-sm text-emerald-700">{row.code} - {row.name}</p>
+                        <p className="font-bold text-sm text-emerald-700">
+                          {row.name}
+                        </p>
                       </div>
                     </TableCell>
                     <TableCell className="text-center font-semibold text-emerald-600">
