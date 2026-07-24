@@ -3,7 +3,6 @@ import { DetailHero } from "@/components/custom/detail-hero";
 import { SectionHeader } from "@/components/custom/section-header";
 import { DetailItem } from "@/components/custom/detail-item";
 
-
 import { useId, useState, useTransition } from "react";
 import {
   format,
@@ -112,7 +111,9 @@ export function TimeSalesDashboard() {
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
   });
-  const [reportData, setReportData] = useState<TimeSalesReportData | null>(null);
+  const [reportData, setReportData] = useState<TimeSalesReportData | null>(
+    null,
+  );
   const [dailyPage, setDailyPage] = useState(1);
   const [dailyPerPage, setDailyPerPage] = useState(10);
   const [monthlyPage, setMonthlyPage] = useState(1);
@@ -139,7 +140,8 @@ export function TimeSalesDashboard() {
     });
   };
 
-  const totalRegionSales = reportData?.salesByRegion.reduce((s, r) => s + r.totalSales, 0) ?? 0;
+  const totalRegionSales =
+    reportData?.salesByRegion.reduce((s, r) => s + r.totalSales, 0) ?? 0;
   // Derived: best quarter
   const bestQuarter = reportData
     ? [...reportData.seasonalityData].sort((a, b) => b.sales - a.sales)[0]
@@ -156,7 +158,8 @@ export function TimeSalesDashboard() {
           reportData && (
             <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-white/90 bg-white/10 border border-white/10 px-3 py-1 rounded-full uppercase tracking-wider">
               <Activity className="h-3.5 w-3.5 text-[#60A5FA]" />
-              {format(dateRange.from, "dd/MM/yyyy")} – {format(dateRange.to, "dd/MM/yyyy")}
+              {format(dateRange.from, "dd/MM/yyyy")} –{" "}
+              {format(dateRange.to, "dd/MM/yyyy")}
             </span>
           )
         }
@@ -186,8 +189,9 @@ export function TimeSalesDashboard() {
 
             <div
               id={filtersPanelId}
-              className={`mb-4 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap lg:flex-nowrap sm:items-end gap-3 sm:gap-4 ${filtersOpen ? "block" : "hidden"
-                } sm:flex`}
+              className={`mb-4 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap lg:flex-nowrap sm:items-end gap-3 sm:gap-4 ${
+                filtersOpen ? "block" : "hidden"
+              } sm:flex`}
             >
               {/* Start Date */}
               <div className="w-full sm:w-44">
@@ -278,9 +282,7 @@ export function TimeSalesDashboard() {
                       กำลังโหลด...
                     </>
                   ) : (
-                    <>
-                      ตกลง
-                    </>
+                    <>ตกลง</>
                   )}
                 </Button>
                 {reportData && (
@@ -318,9 +320,8 @@ export function TimeSalesDashboard() {
         {/* ── Report Content ── */}
         {!isPending && reportData && (
           <div className="space-y-5 sm:space-y-6">
-
             {/* ── KPI Cards (4 cols) ── */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
               <KpiCard
                 label="ยอดขายรวม"
                 sublabel="รวมทุกออเดอร์"
@@ -358,7 +359,9 @@ export function TimeSalesDashboard() {
                 label="การเติบโต"
                 sublabel="เทียบช่วงก่อนหน้า"
                 value={`${reportData.growthPercentage >= 0 ? "+" : ""}${reportData.growthPercentage.toFixed(1)}%`}
-                icon={reportData.growthPercentage >= 0 ? TrendingUp : TrendingDown}
+                icon={
+                  reportData.growthPercentage >= 0 ? TrendingUp : TrendingDown
+                }
                 gradient="bg-gradient-to-br from-red-600 to-zinc-950"
                 ring="shadow-lg shadow-red-600/20"
                 barColor="bg-red-600"
@@ -395,7 +398,6 @@ export function TimeSalesDashboard() {
 
               {/* ════ TAB: OVERVIEW ════ */}
               <TabsContent value="overview" className="mt-5 space-y-5">
-
                 {/* Area Chart – Daily Trend */}
                 <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
@@ -403,25 +405,48 @@ export function TimeSalesDashboard() {
                       <Activity className="h-4 w-4 text-red-600" />
                       แนวโน้มยอดขายรายวัน
                     </CardTitle>
-                    <CardDescription>ยอดขาย (THB) และจำนวนออเดอร์ตามวัน</CardDescription>
+                    <CardDescription>
+                      ยอดขาย (THB) และจำนวนออเดอร์ตามวัน
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="p-4 sm:p-6">
                     <div className="h-[320px] sm:h-[400px]">
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={reportData.dailyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <AreaChart
+                          data={reportData.dailyData}
+                          margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                        >
                           <defs>
-                            <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                              <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                            <linearGradient
+                              id="salesGrad"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <stop
+                                offset="5%"
+                                stopColor="#ef4444"
+                                stopOpacity={0.3}
+                              />
+                              <stop
+                                offset="95%"
+                                stopColor="#ef4444"
+                                stopOpacity={0}
+                              />
                             </linearGradient>
                           </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                          <XAxis 
-                            dataKey="date" 
-                            tick={{ fontSize: 11, fill: "#64748b" }} 
-                            tickLine={false} 
-                            axisLine={false} 
-                            dy={10} 
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#e2e8f0"
+                            vertical={false}
+                          />
+                          <XAxis
+                            dataKey="date"
+                            tick={{ fontSize: 11, fill: "#64748b" }}
+                            tickLine={false}
+                            axisLine={false}
+                            dy={10}
                           />
                           <YAxis
                             tickFormatter={formatShortTHB}
@@ -431,9 +456,21 @@ export function TimeSalesDashboard() {
                             dx={-10}
                           />
                           <Tooltip
-                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                            formatter={(value: number, name: string) => [formatTHB(value), name]}
-                            labelStyle={{ color: '#64748b', marginBottom: '4px', fontSize: '12px', fontWeight: '500' }}
+                            contentStyle={{
+                              borderRadius: "8px",
+                              border: "none",
+                              boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                            }}
+                            formatter={(value: number, name: string) => [
+                              formatTHB(value),
+                              name,
+                            ]}
+                            labelStyle={{
+                              color: "#64748b",
+                              marginBottom: "4px",
+                              fontSize: "12px",
+                              fontWeight: "500",
+                            }}
                           />
                           <Area
                             type="monotone"
@@ -442,7 +479,12 @@ export function TimeSalesDashboard() {
                             stroke="#ef4444"
                             strokeWidth={3}
                             fill="url(#salesGrad)"
-                            activeDot={{ r: 6, fill: "#ef4444", stroke: "#fff", strokeWidth: 2 }}
+                            activeDot={{
+                              r: 6,
+                              fill: "#ef4444",
+                              stroke: "#fff",
+                              strokeWidth: 2,
+                            }}
                           />
                         </AreaChart>
                       </ResponsiveContainer>
@@ -464,13 +506,19 @@ export function TimeSalesDashboard() {
                           <span className="font-semibold text-slate-700 flex items-center gap-1.5">
                             <span
                               className="w-2.5 h-2.5 rounded-full"
-                              style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                              style={{
+                                backgroundColor: COLORS[i % COLORS.length],
+                              }}
                             />
                             {q.quarter}
                           </span>
                           <div className="text-right">
-                            <span className="font-bold text-slate-900 text-xs">{formatTHB(q.sales)}</span>
-                            <span className="text-slate-400 ml-1">({q.percentage.toFixed(1)}%)</span>
+                            <span className="font-bold text-slate-900 text-xs">
+                              {formatTHB(q.sales)}
+                            </span>
+                            <span className="text-slate-400 ml-1">
+                              ({q.percentage.toFixed(1)}%)
+                            </span>
                           </div>
                         </div>
                         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -482,7 +530,9 @@ export function TimeSalesDashboard() {
                             }}
                           />
                         </div>
-                        <p className="text-[10px] text-slate-400">{q.orders} ออเดอร์</p>
+                        <p className="text-[10px] text-slate-400">
+                          {q.orders} ออเดอร์
+                        </p>
                       </div>
                     ))}
                   </CardContent>
@@ -504,25 +554,46 @@ export function TimeSalesDashboard() {
                         <Table>
                           <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm transition-all duration-200">
                             <TableRow className="hover:bg-transparent border-b border-slate-200">
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">วันที่</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เฉลี่ย/ออเดอร์</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-36">สัดส่วน</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">
+                                วันที่
+                              </TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">
+                                ยอดขาย
+                              </TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">
+                                ออเดอร์
+                              </TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">
+                                เฉลี่ย/ออเดอร์
+                              </TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-36">
+                                สัดส่วน
+                              </TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {reportData.dailyData
                               .filter((d) => d.sales > 0)
-                              .slice((dailyPage - 1) * dailyPerPage, dailyPage * dailyPerPage)
+                              .slice(
+                                (dailyPage - 1) * dailyPerPage,
+                                dailyPage * dailyPerPage,
+                              )
                               .map((day, idx) => {
-                                const pct = reportData.totalSales > 0
-                                  ? (day.sales / reportData.totalSales) * 100
-                                  : 0;
+                                const pct =
+                                  reportData.totalSales > 0
+                                    ? (day.sales / reportData.totalSales) * 100
+                                    : 0;
                                 return (
-                                  <TableRow key={idx} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
+                                  <TableRow
+                                    key={idx}
+                                    className="group hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0"
+                                  >
                                     <TableCell className="font-medium text-slate-600 text-sm py-4 px-4">
-                                      {day.date} {day.isoDate ? parseInt(day.isoDate.split("-")[0]) + 543 : ""}
+                                      {day.date}{" "}
+                                      {day.isoDate
+                                        ? parseInt(day.isoDate.split("-")[0]) +
+                                          543
+                                        : ""}
                                     </TableCell>
                                     <TableCell className="font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
                                       {formatTHB(day.sales)}
@@ -533,7 +604,9 @@ export function TimeSalesDashboard() {
                                       </span>
                                     </TableCell>
                                     <TableCell className="font-medium text-slate-600 text-sm py-4 px-8 tabular-nums">
-                                      {day.orders > 0 ? formatTHB(day.sales / day.orders) : "-"}
+                                      {day.orders > 0
+                                        ? formatTHB(day.sales / day.orders)
+                                        : "-"}
                                     </TableCell>
                                     <TableCell className="py-4 px-4">
                                       <div className="flex items-center justify-end gap-3">
@@ -571,7 +644,11 @@ export function TimeSalesDashboard() {
                             </SelectTrigger>
                             <SelectContent>
                               {[10, 20, 30].map((size) => (
-                                <SelectItem key={size} value={String(size)} className="text-xs">
+                                <SelectItem
+                                  key={size}
+                                  value={String(size)}
+                                  className="text-xs"
+                                >
                                   {size}
                                 </SelectItem>
                               ))}
@@ -585,20 +662,46 @@ export function TimeSalesDashboard() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 rounded-full hover:bg-white hover:shadow-sm"
-                            onClick={() => setDailyPage((p) => Math.max(1, p - 1))}
+                            onClick={() =>
+                              setDailyPage((p) => Math.max(1, p - 1))
+                            }
                             disabled={dailyPage === 1}
                           >
                             <ChevronLeft className="h-4 w-4" />
                           </Button>
                           <div className="text-xs font-medium px-2">
-                            หน้า {dailyPage} / {Math.max(1, Math.ceil(reportData.dailyData.filter(d => d.sales > 0).length / dailyPerPage))}
+                            หน้า {dailyPage} /{" "}
+                            {Math.max(
+                              1,
+                              Math.ceil(
+                                reportData.dailyData.filter((d) => d.sales > 0)
+                                  .length / dailyPerPage,
+                              ),
+                            )}
                           </div>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 rounded-full hover:bg-white hover:shadow-sm"
-                            onClick={() => setDailyPage((p) => Math.min(Math.ceil(reportData.dailyData.filter(d => d.sales > 0).length / dailyPerPage), p + 1))}
-                            disabled={dailyPage >= Math.ceil(reportData.dailyData.filter(d => d.sales > 0).length / dailyPerPage)}
+                            onClick={() =>
+                              setDailyPage((p) =>
+                                Math.min(
+                                  Math.ceil(
+                                    reportData.dailyData.filter(
+                                      (d) => d.sales > 0,
+                                    ).length / dailyPerPage,
+                                  ),
+                                  p + 1,
+                                ),
+                              )
+                            }
+                            disabled={
+                              dailyPage >=
+                              Math.ceil(
+                                reportData.dailyData.filter((d) => d.sales > 0)
+                                  .length / dailyPerPage,
+                              )
+                            }
                           >
                             <ChevronRight className="h-4 w-4" />
                           </Button>
@@ -624,25 +727,46 @@ export function TimeSalesDashboard() {
                         <Table>
                           <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm transition-all duration-200">
                             <TableRow className="hover:bg-transparent border-b border-slate-200">
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เดือน</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เฉลี่ย/ออเดอร์</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-32">สัดส่วน</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">
+                                เดือน
+                              </TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">
+                                ยอดขาย
+                              </TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">
+                                ออเดอร์
+                              </TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">
+                                เฉลี่ย/ออเดอร์
+                              </TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-32">
+                                สัดส่วน
+                              </TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {reportData.monthlyData
-                              .slice((monthlyPage - 1) * monthlyPerPage, monthlyPage * monthlyPerPage)
+                              .slice(
+                                (monthlyPage - 1) * monthlyPerPage,
+                                monthlyPage * monthlyPerPage,
+                              )
                               .map((m, i) => {
-                                const idx = (monthlyPage - 1) * monthlyPerPage + i;
-                                const pct = reportData.totalSales > 0
-                                  ? (m.sales / reportData.totalSales) * 100
-                                  : 0;
-                                const avg = m.orders > 0 ? m.sales / m.orders : 0;
+                                const idx =
+                                  (monthlyPage - 1) * monthlyPerPage + i;
+                                const pct =
+                                  reportData.totalSales > 0
+                                    ? (m.sales / reportData.totalSales) * 100
+                                    : 0;
+                                const avg =
+                                  m.orders > 0 ? m.sales / m.orders : 0;
                                 return (
-                                  <TableRow key={idx} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
-                                    <TableCell className="font-semibold text-slate-700 text-sm py-4 px-4">{m.fullName}</TableCell>
+                                  <TableRow
+                                    key={idx}
+                                    className="group hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0"
+                                  >
+                                    <TableCell className="font-semibold text-slate-700 text-sm py-4 px-4">
+                                      {m.fullName}
+                                    </TableCell>
                                     <TableCell className="font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
                                       {formatTHB(m.sales)}
                                     </TableCell>
@@ -685,7 +809,11 @@ export function TimeSalesDashboard() {
                             </SelectTrigger>
                             <SelectContent>
                               {[10, 20, 30].map((size) => (
-                                <SelectItem key={size} value={String(size)} className="text-xs">
+                                <SelectItem
+                                  key={size}
+                                  value={String(size)}
+                                  className="text-xs"
+                                >
                                   {size}
                                 </SelectItem>
                               ))}
@@ -699,20 +827,43 @@ export function TimeSalesDashboard() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 rounded-full hover:bg-white hover:shadow-sm"
-                            onClick={() => setMonthlyPage((p) => Math.max(1, p - 1))}
+                            onClick={() =>
+                              setMonthlyPage((p) => Math.max(1, p - 1))
+                            }
                             disabled={monthlyPage === 1}
                           >
                             <ChevronLeft className="h-4 w-4" />
                           </Button>
                           <div className="text-xs font-medium px-2">
-                            หน้า {monthlyPage} / {Math.max(1, Math.ceil(reportData.monthlyData.length / monthlyPerPage))}
+                            หน้า {monthlyPage} /{" "}
+                            {Math.max(
+                              1,
+                              Math.ceil(
+                                reportData.monthlyData.length / monthlyPerPage,
+                              ),
+                            )}
                           </div>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 rounded-full hover:bg-white hover:shadow-sm"
-                            onClick={() => setMonthlyPage((p) => Math.min(Math.ceil(reportData.monthlyData.length / monthlyPerPage), p + 1))}
-                            disabled={monthlyPage >= Math.ceil(reportData.monthlyData.length / monthlyPerPage)}
+                            onClick={() =>
+                              setMonthlyPage((p) =>
+                                Math.min(
+                                  Math.ceil(
+                                    reportData.monthlyData.length /
+                                      monthlyPerPage,
+                                  ),
+                                  p + 1,
+                                ),
+                              )
+                            }
+                            disabled={
+                              monthlyPage >=
+                              Math.ceil(
+                                reportData.monthlyData.length / monthlyPerPage,
+                              )
+                            }
                           >
                             <ChevronRight className="h-4 w-4" />
                           </Button>
@@ -733,7 +884,9 @@ export function TimeSalesDashboard() {
                     >
                       <CardContent className="p-5">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-sm font-bold text-slate-800">{q.quarter}</span>
+                          <span className="text-sm font-bold text-slate-800">
+                            {q.quarter}
+                          </span>
                           <Badge
                             className="text-[10px] font-bold"
                             style={{
@@ -751,9 +904,13 @@ export function TimeSalesDashboard() {
                         >
                           {formatTHB(q.sales)}
                         </p>
-                        <p className="text-xs text-slate-500 mt-1">{formatNumber(q.orders)} ออเดอร์</p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {formatNumber(q.orders)} ออเดอร์
+                        </p>
                         <p className="text-xs text-slate-400 mt-0.5">
-                          เฉลี่ย {q.orders > 0 ? formatTHB(q.sales / q.orders) : "–"}/ออเดอร์
+                          เฉลี่ย{" "}
+                          {q.orders > 0 ? formatTHB(q.sales / q.orders) : "–"}
+                          /ออเดอร์
                         </p>
                         <div className="mt-3 h-2 bg-slate-100 rounded-full overflow-hidden">
                           <div
@@ -785,8 +942,17 @@ export function TimeSalesDashboard() {
                           barCategoryGap="40%"
                           onMouseLeave={() => setHoveredQuarter(null)}
                         >
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                          <XAxis dataKey="quarter" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#e2e8f0"
+                            vertical={false}
+                          />
+                          <XAxis
+                            dataKey="quarter"
+                            tick={{ fontSize: 12 }}
+                            tickLine={false}
+                            axisLine={false}
+                          />
                           <YAxis
                             tickFormatter={formatShortTHB}
                             tick={{ fontSize: 11 }}
@@ -798,16 +964,24 @@ export function TimeSalesDashboard() {
                             cursor={{ fill: "#f1f5f9", radius: 4 }}
                             formatter={(v: number) => [formatTHB(v), "ยอดขาย"]}
                           />
-                          <Bar dataKey="sales" name="ยอดขาย" radius={[8, 8, 0, 0]}>
+                          <Bar
+                            dataKey="sales"
+                            name="ยอดขาย"
+                            radius={[8, 8, 0, 0]}
+                          >
                             {reportData.seasonalityData.map((_, i) => (
                               <Cell
                                 key={`cell-${i}`}
                                 fill="#24c143ff"
                                 onMouseEnter={() => setHoveredQuarter(i)}
                                 style={{
-                                  opacity: hoveredQuarter === null || hoveredQuarter === i ? 1 : 0.3,
+                                  opacity:
+                                    hoveredQuarter === null ||
+                                    hoveredQuarter === i
+                                      ? 1
+                                      : 0.3,
                                   transition: "opacity 0.3s ease",
-                                  cursor: "pointer"
+                                  cursor: "pointer",
                                 }}
                               />
                             ))}
@@ -821,28 +995,39 @@ export function TimeSalesDashboard() {
 
               {/* ════ TAB: REGION ════ */}
               <TabsContent value="region" className="mt-5 space-y-5">
-
                 {/* Summary cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {reportData.salesByRegion.slice(0, 4).map((r, i) => (
-                    <Card key={r.region} className="rounded-xl border border-slate-200/70 bg-white/80 shadow-sm">
+                    <Card
+                      key={r.region}
+                      className="rounded-xl border border-slate-200/70 bg-white/80 shadow-sm"
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-center gap-1.5 mb-2">
                           <span
                             className="w-2.5 h-2.5 rounded-full"
-                            style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                            style={{
+                              backgroundColor: COLORS[i % COLORS.length],
+                            }}
                           />
-                          <span className="text-xs font-semibold text-slate-600 truncate">{r.region}</span>
+                          <span className="text-xs font-semibold text-slate-600 truncate">
+                            {r.region}
+                          </span>
                         </div>
-                        <p className="text-lg font-bold text-slate-900">{formatShortTHB(r.totalSales)}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">{formatNumber(r.orderCount)} ออเดอร์</p>
+                        <p className="text-lg font-bold text-slate-900">
+                          {formatShortTHB(r.totalSales)}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {formatNumber(r.orderCount)} ออเดอร์
+                        </p>
                         <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full"
                             style={{
-                              width: totalRegionSales > 0
-                                ? `${(r.totalSales / totalRegionSales) * 100}%`
-                                : "0%",
+                              width:
+                                totalRegionSales > 0
+                                  ? `${(r.totalSales / totalRegionSales) * 100}%`
+                                  : "0%",
                               backgroundColor: COLORS[i % COLORS.length],
                             }}
                           />
@@ -865,29 +1050,55 @@ export function TimeSalesDashboard() {
                         <Table>
                           <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm transition-all duration-200">
                             <TableRow className="hover:bg-transparent border-b border-slate-200">
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-16">อันดับ</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ภูมิภาค</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เฉลี่ย/ออเดอร์</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-40">สัดส่วน</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-16">
+                                อันดับ
+                              </TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">
+                                ภูมิภาค
+                              </TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">
+                                ยอดขาย
+                              </TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">
+                                ออเดอร์
+                              </TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">
+                                เฉลี่ย/ออเดอร์
+                              </TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-40">
+                                สัดส่วน
+                              </TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {reportData.salesByRegion
-                              .slice((regionPage - 1) * regionPerPage, regionPage * regionPerPage)
+                              .slice(
+                                (regionPage - 1) * regionPerPage,
+                                regionPage * regionPerPage,
+                              )
                               .map((r, i) => {
-                                const idx = (regionPage - 1) * regionPerPage + i;
-                                const pct = totalRegionSales > 0
-                                  ? (r.totalSales / totalRegionSales) * 100
-                                  : 0;
-                                const avg = r.orderCount > 0 ? r.totalSales / r.orderCount : 0;
+                                const idx =
+                                  (regionPage - 1) * regionPerPage + i;
+                                const pct =
+                                  totalRegionSales > 0
+                                    ? (r.totalSales / totalRegionSales) * 100
+                                    : 0;
+                                const avg =
+                                  r.orderCount > 0
+                                    ? r.totalSales / r.orderCount
+                                    : 0;
                                 return (
-                                  <TableRow key={r.region} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
+                                  <TableRow
+                                    key={r.region}
+                                    className="group hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0"
+                                  >
                                     <TableCell className="py-4 px-4">
                                       <span
                                         className="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold text-white shadow-sm transition-transform group-hover:scale-110"
-                                        style={{ backgroundColor: COLORS[idx % COLORS.length] }}
+                                        style={{
+                                          backgroundColor:
+                                            COLORS[idx % COLORS.length],
+                                        }}
                                       >
                                         {idx + 1}
                                       </span>
@@ -895,7 +1106,9 @@ export function TimeSalesDashboard() {
                                     <TableCell className="py-4 px-4">
                                       <div className="flex items-center gap-2">
                                         <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                                        <span className="font-semibold text-slate-700 text-sm">{r.region}</span>
+                                        <span className="font-semibold text-slate-700 text-sm">
+                                          {r.region}
+                                        </span>
                                       </div>
                                     </TableCell>
                                     <TableCell className="font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
@@ -916,7 +1129,8 @@ export function TimeSalesDashboard() {
                                             className="h-full rounded-full transition-all duration-700 group-hover:saturate-150"
                                             style={{
                                               width: `${pct}%`,
-                                              backgroundColor: COLORS[idx % COLORS.length],
+                                              backgroundColor:
+                                                COLORS[idx % COLORS.length],
                                             }}
                                           />
                                         </div>
@@ -948,7 +1162,11 @@ export function TimeSalesDashboard() {
                             </SelectTrigger>
                             <SelectContent>
                               {[10, 20, 30].map((size) => (
-                                <SelectItem key={size} value={String(size)} className="text-xs">
+                                <SelectItem
+                                  key={size}
+                                  value={String(size)}
+                                  className="text-xs"
+                                >
                                   {size}
                                 </SelectItem>
                               ))}
@@ -962,20 +1180,43 @@ export function TimeSalesDashboard() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 rounded-full hover:bg-white hover:shadow-sm"
-                            onClick={() => setRegionPage((p) => Math.max(1, p - 1))}
+                            onClick={() =>
+                              setRegionPage((p) => Math.max(1, p - 1))
+                            }
                             disabled={regionPage === 1}
                           >
                             <ChevronLeft className="h-4 w-4" />
                           </Button>
                           <div className="text-xs font-medium px-2">
-                            หน้า {regionPage} / {Math.max(1, Math.ceil(reportData.salesByRegion.length / regionPerPage))}
+                            หน้า {regionPage} /{" "}
+                            {Math.max(
+                              1,
+                              Math.ceil(
+                                reportData.salesByRegion.length / regionPerPage,
+                              ),
+                            )}
                           </div>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 rounded-full hover:bg-white hover:shadow-sm"
-                            onClick={() => setRegionPage((p) => Math.min(Math.ceil(reportData.salesByRegion.length / regionPerPage), p + 1))}
-                            disabled={regionPage >= Math.ceil(reportData.salesByRegion.length / regionPerPage)}
+                            onClick={() =>
+                              setRegionPage((p) =>
+                                Math.min(
+                                  Math.ceil(
+                                    reportData.salesByRegion.length /
+                                      regionPerPage,
+                                  ),
+                                  p + 1,
+                                ),
+                              )
+                            }
+                            disabled={
+                              regionPage >=
+                              Math.ceil(
+                                reportData.salesByRegion.length / regionPerPage,
+                              )
+                            }
                           >
                             <ChevronRight className="h-4 w-4" />
                           </Button>
@@ -985,7 +1226,6 @@ export function TimeSalesDashboard() {
                   </CardContent>
                 </Card>
               </TabsContent>
-
             </Tabs>
           </div>
         )}
@@ -997,9 +1237,12 @@ export function TimeSalesDashboard() {
               <div className="p-5 rounded-3xl bg-gradient-to-br from-red-500/10 to-zinc-500/10 mb-5">
                 <BarChart3 className="h-14 w-14 text-red-400" />
               </div>
-              <h3 className="text-lg font-bold text-slate-700">เลือกช่วงเวลาและกดดูรายงาน</h3>
+              <h3 className="text-lg font-bold text-slate-700">
+                เลือกช่วงเวลาและกดดูรายงาน
+              </h3>
               <p className="text-muted-foreground text-sm mt-2 max-w-sm">
-                เลือกช่วงวันที่ที่ต้องการ หรือกดปุ่มช่วงเวลาด่วน แล้วกด &quot;ดูรายงาน&quot; เพื่อวิเคราะห์ยอดขาย
+                เลือกช่วงวันที่ที่ต้องการ หรือกดปุ่มช่วงเวลาด่วน แล้วกด
+                &quot;ดูรายงาน&quot; เพื่อวิเคราะห์ยอดขาย
               </p>
               <Button
                 onClick={handleFetchReport}
@@ -1012,7 +1255,6 @@ export function TimeSalesDashboard() {
             </CardContent>
           </Card>
         )}
-
       </div>
     </div>
   );
