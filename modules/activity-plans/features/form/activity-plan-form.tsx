@@ -28,6 +28,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ActivityPlanFormValues } from "../../application/validations";
+import { DateTimePicker } from "./components/date-time-picker";
 
 type SubmitResult = {
   success: boolean;
@@ -1105,60 +1106,28 @@ export function ActivityPlanForm({
             )}
           </div>
           {/* วันที่จัดกิจกรรม */}
-          <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">
-              วันที่จัดกิจกรรม <span className="text-red-500">*</span>
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                disabled={readonly}
-                className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              />
-              <select
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                disabled={readonly}
-                className="h-10 rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              >
-                <option value="08:00">08:00</option>
-                <option value="09:00">09:00</option>
-                <option value="10:00">10:00</option>
-                <option value="13:00">13:00</option>
-                <option value="14:00">14:00</option>
-              </select>
-            </div>
-          </div>
+          <DateTimePicker
+            label="วันที่จัดกิจกรรม"
+            required
+            dateValue={startDate}
+            timeValue={startTime}
+            onDateChange={setStartDate}
+            onTimeChange={setStartTime}
+            readonly={readonly}
+            accentColor="blue"
+          />
 
           {/* วันที่สิ้นสุดกิจกรรม */}
-          <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">
-              วันที่สิ้นสุดกิจกรรม <span className="text-red-500">*</span>
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                disabled={readonly}
-                className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              />
-              <select
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                disabled={readonly}
-                className="h-10 rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              >
-                <option value="11:00">11:00</option>
-                <option value="12:00">12:00</option>
-                <option value="16:00">16:00</option>
-                <option value="17:00">17:00</option>
-                <option value="18:00">18:00</option>
-              </select>
-            </div>
-          </div>
+          <DateTimePicker
+            label="วันที่สิ้นสุดกิจกรรม"
+            required
+            dateValue={endDate}
+            timeValue={endTime}
+            onDateChange={setEndDate}
+            onTimeChange={setEndTime}
+            readonly={readonly}
+            accentColor="indigo"
+          />
         </div>
 
         {/* Warning alert banner */}
