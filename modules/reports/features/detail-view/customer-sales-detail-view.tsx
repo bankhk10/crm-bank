@@ -590,46 +590,46 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
             onValueChange={setActiveTab}
             className="h-full flex flex-col"
           >
-            <div className="border-b px-4">
-              <TabsList className="h-12 bg-transparent">
+            <div className="border-b px-2 sm:px-4 overflow-x-auto">
+              <TabsList className="h-12 bg-transparent inline-flex w-auto min-w-full sm:min-w-0">
                 <TabsTrigger
                   value="store-info"
-                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
+                  className="shrink-0 whitespace-nowrap data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
                 >
                   <Store className="h-4 w-4 mr-2" />
                   ข้อมูลร้าน
                 </TabsTrigger>
                 <TabsTrigger
                   value="products-sold"
-                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
+                  className="shrink-0 whitespace-nowrap data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
                 >
                   <Package className="h-4 w-4 mr-2" />
                   สินค้าที่เคยขาย
                 </TabsTrigger>
                 <TabsTrigger
                   value="purchase-history"
-                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
+                  className="shrink-0 whitespace-nowrap data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
                 >
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   ประวัติการซื้อ
                 </TabsTrigger>
                 <TabsTrigger
                   value="finance"
-                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
+                  className="shrink-0 whitespace-nowrap data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
                 >
                   <CreditCard className="h-4 w-4 mr-2" />
                   การเงิน
                 </TabsTrigger>
                 <TabsTrigger
                   value="promotions"
-                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
+                  className="shrink-0 whitespace-nowrap data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
                 >
                   <Gift className="h-4 w-4 mr-2" />
                   ประวัติงบส่งเสริมการขาย
                 </TabsTrigger>
                 <TabsTrigger
                   value="contact-notes"
-                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
+                  className="shrink-0 whitespace-nowrap data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
                 >
                   <MessageSquare className="h-4 w-4 mr-2" />
                   การติดต่อ & หมายเหตุ
