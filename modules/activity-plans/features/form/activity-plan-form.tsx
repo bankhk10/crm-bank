@@ -906,32 +906,37 @@ export function ActivityPlanForm({
 
   return (
     <form onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-6 pb-20">
-      {/* Top Header Card */}
-      <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-        <div className="flex items-center gap-3">
+      {/* Top Header Card (Styled after combined-report.tsx) */}
+      <div className="relative overflow-hidden bg-white border border-slate-100 rounded-2xl p-5 md:p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        {/* Decorative background glow */}
+        <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-blue-50/30 via-emerald-50/10 to-transparent rounded-full -mr-20 -mt-20 pointer-events-none" />
+
+        <div className="flex items-center gap-4 relative z-10">
           {onCancel && (
             <Button
               type="button"
               variant="outline"
               size="icon"
               onClick={onCancel}
-              className="h-9 w-9 rounded-full border-slate-200 text-slate-600 hover:bg-slate-100"
+              className="h-10 w-10 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-100 shadow-xs"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
           )}
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-blue-600/10 border border-blue-200 flex items-center justify-center text-blue-600">
-              <CalendarIcon className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 flex-shrink-0">
+            <CalendarIcon className="w-6 h-6 animate-pulse" />
+          </div>
+
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
                 สร้างแผนปฏิบัติงาน (Create Trip Plan)
               </h1>
-              <p className="text-xs text-slate-500 font-medium">
-                วางแผนการลงพื้นที่ / กิจกรรมทางการตลาด
-              </p>
             </div>
+            <p className="text-xs md:text-sm text-slate-500 mt-1">
+              วางแผนการลงพื้นที่ / กิจกรรมทางการตลาด และบริหารจัดการการเข้าปฏิบัติงาน
+            </p>
           </div>
         </div>
       </div>
