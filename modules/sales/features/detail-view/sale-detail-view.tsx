@@ -167,7 +167,7 @@ export function SaleDetailView({ id, type }: { id: string, type?: string }) {
                                 <SelectItem value="all">
                                     📄 เอกสารสั่งซื้อ/ขายรวม (ฉบับเต็ม)
                                 </SelectItem>
-                                {sale.shipments.map((shipment, index) => (
+                                {sale.shipments?.map((shipment, index) => (
                                     <SelectItem key={shipment.id} value={shipment.id}>
                                         📦 ใบจัดส่งสินค้า รอบที่ {index + 1} {shipment.salesOrderNumber ? `(${shipment.salesOrderNumber})` : ""}
                                     </SelectItem>
