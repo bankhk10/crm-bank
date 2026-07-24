@@ -170,7 +170,7 @@ export function DateTimePicker({
 
             {/* Right: Hours & Minutes Side-by-Side Selection Columns */}
             <div className="p-3 flex flex-col justify-start">
-              <div className="grid grid-cols-2 text-[11px] font-bold text-slate-500 mb-2 text-center border-b border-slate-100 pb-1">
+              <div className="grid grid-cols-2 text-[12px] font-medium text-slate-500 mb-2 text-center">
                 <span>ชั่วโมง</span>
                 <span>นาที</span>
               </div>
@@ -227,25 +227,20 @@ export function DateTimePicker({
           </div>
 
           {/* Bottom Footer Bar: Cancel | Preview Pill | Confirm Button */}
-          <div className="p-3 bg-slate-50/60 border-t border-slate-100 flex items-center justify-between gap-3">
+          <div className="p-3 bg-slate-50/60 border-t border-slate-100 flex items-center gap-4 justify-center">
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="text-xs font-semibold text-slate-600 hover:text-slate-900 px-2 py-1 transition-colors"
+              className="px-4 py-1.5 rounded-xl border border-slate-300 bg-red-500 hover:bg-red-600 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
             >
-              Cancel
+              ยกเลิก
             </button>
-
-            <div className="px-3 py-1 rounded-xl border border-slate-200/80 bg-white text-xs font-bold text-slate-800 shadow-2xs">
-              {formattedPreviewText}
-            </div>
-
             <button
               type="button"
               onClick={handleConfirm}
-              className="px-4 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-xs font-bold text-slate-800 shadow-2xs transition-all active:scale-95"
+              className="px-4 py-1.5 rounded-xl border border-slate-300 bg-green-500 hover:bg-green-600 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
             >
-              Schedule
+              ตกลง
             </button>
           </div>
         </PopoverContent>
