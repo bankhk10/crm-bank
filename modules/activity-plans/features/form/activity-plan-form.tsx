@@ -1,0 +1,1421 @@
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import { format } from "date-fns";
+import {
+  Calendar as CalendarIcon,
+  User,
+  FileText,
+  Plus,
+  Trash2,
+  Check,
+  X,
+  ChevronDown,
+  Search,
+  AlertCircle,
+  Store,
+  Sprout,
+  ArrowLeft,
+  Users,
+  ShoppingCart,
+  HelpCircle,
+  CheckSquare,
+  BarChart2,
+  Receipt,
+  ClipboardList,
+  Package,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import type { ActivityPlanFormValues } from "../../application/validations";
+import { DateTimePicker } from "./components/date-time-picker";
+
+type SubmitResult = {
+  success: boolean;
+  error?: string;
+};
+
+interface Props {
+  initial?: Partial<ActivityPlanFormValues> & {
+    employeeName?: string;
+    planCode?: string;
+  };
+  employees?: Array<{
+    id: string;
+    name: string;
+    positionTitle?: string | null;
+    departmentName?: string | null;
+  }>;
+  onSubmit: (payload: ActivityPlanFormValues) => Promise<SubmitResult>;
+  onCancel?: () => void;
+  submitLabel?: string;
+  readonly?: boolean;
+}
+
+import {
+  WORK_TYPES,
+  DEMO_OWNERS,
+  DEMO_PRODUCTS,
+  DEMO_PRODUCT_PRICES,
+  CROP_CATEGORIES,
+  TARGET_CROPS,
+  STORES_LIST,
+  REQUISITION_UNITS,
+} from "./constants";
+
+import {
+  RequisitionItem,
+  Type9ProductItem,
+  Type1VisitItem,
+  Type2ProductFollowupItem,
+  Type3SalesItem,
+  Type4CollectItem,
+  Type5SurveyItem,
+  Type6IssueItem,
+  Type7DemoPlotItem,
+  Type8MeetingItem,
+  MarketingBudgetProductItem,
+  SalesPromotionItem,
+} from "./types";
+import { RequisitionSection } from "./components/requisition-section";
+import { BudgetSection } from "./components/budget-section";
+import { LocationTeamSection } from "./components/location-team-section";
+import { Type1Visit } from "./components/work-types/type1-visit";
+import { Type2Followup } from "./components/work-types/type2-followup";
+import { Type3Sales } from "./components/work-types/type3-sales";
+import { Type4Collect } from "./components/work-types/type4-collect";
+import { Type5Survey } from "./components/work-types/type5-survey";
+import { Type6Issue } from "./components/work-types/type6-issue";
+import { Type7Demo } from "./components/work-types/type7-demo";
+import { Type8Meeting } from "./components/work-types/type8-meeting";
+import { Type9Store } from "./components/work-types/type9-store";
+import { Type10FieldDay } from "./components/work-types/type10-field-day";
+import { Type11Stock } from "./components/work-types/type11-stock";
+
+export function ActivityPlanForm({
+  initial = {},
+  employees = [],
+  onSubmit,
+  onCancel,
+  submitLabel = "บันทึก",
+  readonly = false,
+}: Props) {
+  // Format initial dates
+  const parseInitialDate = (date?: Date | string) => {
+    if (!date)
+      return { dateStr: format(new Date(), "yyyy-MM-dd"), timeStr: "09:00" };
+    const d = typeof date === "string" ? new Date(date) : date;
+    if (isNaN(d.getTime()))
+      return { dateStr: format(new Date(), "yyyy-MM-dd"), timeStr: "09:00" };
+    return {
+      dateStr: format(d, "yyyy-MM-dd"),
+      timeStr: format(d, "HH:mm"),
+    };
+  };
+
+  const initStart = parseInitialDate(initial.startDate);
+  const initEnd = parseInitialDate(initial.endDate);
+
+  // Form Basic State
+  const [title, setTitle] = useState(initial.title ?? "");
+  const [startDate, setStartDate] = useState(initStart.dateStr);
+  const [startTime, setStartTime] = useState(initStart.timeStr);
+  const [endDate, setEndDate] = useState(initEnd.dateStr);
+  const [endTime, setEndTime] = useState(initEnd.timeStr);
+
+  // Work types selection state
+  const initialTypes = initial.activityType
+    ? initial.activityType
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+  const [selectedWorkTypes, setSelectedWorkTypes] =
+    useState<string[]>(initialTypes);
+  const [isWorkTypesDropdownOpen, setIsWorkTypesDropdownOpen] = useState(false);
+  const workTypesDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Work Type 1: เข้าพบร้านค้า / เกษตรกร
+  const [type1Items, setType1Items] = useState<Type1VisitItem[]>([
+    {
+      id: "1",
+      customerName: DEMO_OWNERS[0] || "",
+      topic: "แจ้งข่าวสาร",
+      detail: "",
+    },
+  ]);
+
+  const addType1Row = () => {
+    const newItem: Type1VisitItem = {
+      id: Date.now().toString(),
+      customerName: DEMO_OWNERS[0] || "",
+      topic: "แจ้งข่าวสาร",
+      detail: "",
+    };
+    setType1Items((prev) => [...prev, newItem]);
+  };
+
+  const updateType1Row = (
+    id: string,
+    field: keyof Type1VisitItem,
+    val: any,
+  ) => {
+    setType1Items((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+
+  const deleteType1Row = (id: string) => {
+    setType1Items((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const [type2Items, setType2Items] = useState<Type2ProductFollowupItem[]>([
+    {
+      id: "1",
+      productName: DEMO_PRODUCTS[0] || "",
+      customerName: DEMO_OWNERS[0] || "",
+      detail: "",
+    },
+  ]);
+
+  const addType2Row = () => {
+    const newItem: Type2ProductFollowupItem = {
+      id: Date.now().toString(),
+      productName: DEMO_PRODUCTS[0] || "",
+      customerName: DEMO_OWNERS[0] || "",
+      detail: "",
+    };
+    setType2Items((prev) => [...prev, newItem]);
+  };
+
+  const updateType2Row = (
+    id: string,
+    field: keyof Type2ProductFollowupItem,
+    val: any,
+  ) => {
+    setType2Items((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+
+  const deleteType2Row = (id: string) => {
+    setType2Items((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const defaultType3Product = DEMO_PRODUCTS[0] || "";
+  const defaultType3UnitPrice = DEMO_PRODUCT_PRICES[defaultType3Product] ?? 500;
+
+  const [type3Items, setType3Items] = useState<Type3SalesItem[]>([
+    {
+      id: "1",
+      productName: defaultType3Product,
+      customerName: DEMO_OWNERS[0] || "",
+      quantity: 1,
+      unitPrice: defaultType3UnitPrice,
+      price: defaultType3UnitPrice * 1,
+      detail: "",
+    },
+  ]);
+
+  const addType3Row = () => {
+    const prod = DEMO_PRODUCTS[0] || "";
+    const uPrice = DEMO_PRODUCT_PRICES[prod] ?? 500;
+    const newItem: Type3SalesItem = {
+      id: Date.now().toString(),
+      productName: prod,
+      customerName: DEMO_OWNERS[0] || "",
+      quantity: 1,
+      unitPrice: uPrice,
+      price: uPrice * 1,
+      detail: "",
+    };
+    setType3Items((prev) => [...prev, newItem]);
+  };
+
+  const updateType3Row = (
+    id: string,
+    field: keyof Type3SalesItem,
+    val: any,
+  ) => {
+    setType3Items((prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        const updated = { ...item, [field]: val };
+        if (field === "productName" && DEMO_PRODUCT_PRICES[val] !== undefined) {
+          updated.unitPrice = DEMO_PRODUCT_PRICES[val];
+        }
+        const qty =
+          typeof updated.quantity === "number"
+            ? updated.quantity
+            : parseInt(updated.quantity) || 0;
+        const uPrice =
+          typeof updated.unitPrice === "number"
+            ? updated.unitPrice
+            : parseFloat(updated.unitPrice) || 0;
+        updated.price = qty * uPrice;
+        return updated;
+      }),
+    );
+  };
+
+  const deleteType3Row = (id: string) => {
+    setType3Items((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Work Type 4: วางบิล / เก็บเงิน
+  const [type4Items, setType4Items] = useState<Type4CollectItem[]>([
+    {
+      id: "1",
+      customerName: DEMO_OWNERS[0] || "",
+      collectAmount: 0,
+      detail: "",
+    },
+  ]);
+  const addType4Row = () => {
+    setType4Items((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        customerName: DEMO_OWNERS[0] || "",
+        collectAmount: 0,
+        detail: "",
+      },
+    ]);
+  };
+  const updateType4Row = (
+    id: string,
+    field: keyof Type4CollectItem,
+    val: any,
+  ) => {
+    setType4Items((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+  const deleteType4Row = (id: string) => {
+    setType4Items((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Work Type 5: สำรวจตลาดของคู่แข่ง
+  const [type5Items, setType5Items] = useState<Type5SurveyItem[]>([
+    {
+      id: "1",
+      storeName: "",
+      comparedProduct: DEMO_PRODUCTS[0] || "",
+      detail: "",
+    },
+  ]);
+  const addType5Row = () => {
+    setType5Items((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        storeName: "",
+        comparedProduct: DEMO_PRODUCTS[0] || "",
+        detail: "",
+      },
+    ]);
+  };
+  const updateType5Row = (
+    id: string,
+    field: keyof Type5SurveyItem,
+    val: any,
+  ) => {
+    setType5Items((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+  const deleteType5Row = (id: string) => {
+    setType5Items((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Work Type 6: แก้ปัญหา / รับเรื่องร้องเรียน
+  const [type6Items, setType6Items] = useState<Type6IssueItem[]>([
+    {
+      id: "1",
+      customerName: DEMO_OWNERS[0] || "",
+      issueType: "เคลมของ",
+      detail: "",
+    },
+  ]);
+  const addType6Row = () => {
+    setType6Items((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        customerName: DEMO_OWNERS[0] || "",
+        issueType: "เคลมของ",
+        detail: "",
+      },
+    ]);
+  };
+  const updateType6Row = (
+    id: string,
+    field: keyof Type6IssueItem,
+    val: any,
+  ) => {
+    setType6Items((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+  const deleteType6Row = (id: string) => {
+    setType6Items((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Work Type 7: ติดตามแปลงสาธิต / พืชเป้าหมาย
+  const [type7Items, setType7Items] = useState<Type7DemoPlotItem[]>([
+    {
+      id: "1",
+      ownerName: DEMO_OWNERS[0] || "",
+      productName: DEMO_PRODUCTS[0] || "",
+      cropCategory: "พืชสวน",
+      cropName: "ทุเรียน",
+      plotsCount: 1,
+      detail: "",
+    },
+  ]);
+  const addType7Row = () => {
+    setType7Items((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        ownerName: DEMO_OWNERS[0] || "",
+        productName: DEMO_PRODUCTS[0] || "",
+        cropCategory: "พืชสวน",
+        cropName: "ทุเรียน",
+        plotsCount: 1,
+        detail: "",
+      },
+    ]);
+  };
+  const updateType7Row = (
+    id: string,
+    field: keyof Type7DemoPlotItem,
+    val: any,
+  ) => {
+    setType7Items((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+  const deleteType7Row = (id: string) => {
+    setType7Items((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Work Type 8: จัดประชุมเกษตรกร / ร้านค้า
+  const [type8Items, setType8Items] = useState<Type8MeetingItem[]>([
+    {
+      id: "1",
+      topic: "",
+      targetProducts: [],
+      attendeesCount: 10,
+      detail: "",
+    },
+  ]);
+  const addType8Row = () => {
+    setType8Items((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        topic: "",
+        targetProducts: [],
+        attendeesCount: 10,
+        detail: "",
+      },
+    ]);
+  };
+  const updateType8Row = (
+    id: string,
+    field: keyof Type8MeetingItem,
+    val: any,
+  ) => {
+    setType8Items((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+  const deleteType8Row = (id: string) => {
+    setType8Items((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const [type9Store, setType9Store] = useState("");
+  const [type9Sales, setType9Sales] = useState<number>(0);
+  const [type9Products, setType9Products] = useState("");
+  const [type9ProductItems, setType9ProductItems] = useState<
+    Type9ProductItem[]
+  >([
+    {
+      id: "1",
+      productName: DEMO_PRODUCTS[0] || "สินค้าทดสอบ A",
+      quantityCases: 10,
+      pricePerCase: 500,
+    },
+  ]);
+
+  const [type10DemoPlot, setType10DemoPlot] = useState("");
+  const [type10Location, setType10Location] = useState("");
+  const [type10TargetCrop, setType10TargetCrop] = useState("");
+  const [type10Showcase, setType10Showcase] = useState("");
+  const [type10Attendees, setType10Attendees] = useState<number>(0);
+  const [type10BookingSales, setType10BookingSales] = useState<number>(0);
+
+  const [type11Stores, setType11Stores] = useState("");
+
+  // Section 4: Location & Team State
+  const [locationText, setLocationText] = useState(initial.location ?? "");
+  const [helperEmployeeIds, setHelperEmployeeIds] = useState<string[]>(
+    initial.helperEmployeeIds ?? [],
+  );
+  const [helperSearch, setHelperSearch] = useState("");
+  const [showHelperDropdown, setShowHelperDropdown] = useState(false);
+
+  // Section 5: Budget & Expenses State
+  const [isPromotionalMediaSelected, setIsPromotionalMediaSelected] =
+    useState<boolean>((initial.marketingBudget ?? 0) > 0);
+  const [marketingBudgetAmount, setMarketingBudgetAmount] = useState<number>(
+    initial.marketingBudget ?? 10000,
+  );
+  const [marketingProductItems, setMarketingProductItems] = useState<
+    MarketingBudgetProductItem[]
+  >([
+    {
+      id: "1",
+      productName: DEMO_PRODUCTS[0] || "สินค้าทดสอบ A",
+      quantityCases: 10,
+      pricePerCase: DEMO_PRODUCT_PRICES[DEMO_PRODUCTS[0]] || 500,
+    },
+  ]);
+
+  const addMarketingProductItem = () => {
+    const firstProd = DEMO_PRODUCTS[0] || "";
+    const defaultPrice = DEMO_PRODUCT_PRICES[firstProd] ?? 500;
+    const newItem: MarketingBudgetProductItem = {
+      id: Date.now().toString(),
+      productName: firstProd,
+      quantityCases: 1,
+      pricePerCase: defaultPrice,
+    };
+    setMarketingProductItems((prev) => [...prev, newItem]);
+  };
+
+  const updateMarketingProductItem = (
+    id: string,
+    field: keyof MarketingBudgetProductItem,
+    val: any,
+  ) => {
+    setMarketingProductItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+
+  const deleteMarketingProductItem = (id: string) => {
+    setMarketingProductItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Section 5: Sales Promotion Items State & Helpers
+  const [isSalesPromotionSelected, setIsSalesPromotionSelected] =
+    useState<boolean>((initial.salesPromotionBudget ?? 0) > 0);
+  const [salesPromotionItems, setSalesPromotionItems] = useState<
+    SalesPromotionItem[]
+  >([]);
+
+  const addSalesPromotionRow = () => {
+    const newItem: SalesPromotionItem = {
+      id: Date.now().toString(),
+      budgetType: "งบการตลาด",
+      detail: "",
+      amount: 0,
+    };
+    setSalesPromotionItems((prev) => [...prev, newItem]);
+  };
+
+  const updateSalesPromotionRow = (
+    id: string,
+    field: keyof SalesPromotionItem,
+    val: any,
+  ) => {
+    setSalesPromotionItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+
+  const deleteSalesPromotionRow = (id: string) => {
+    setSalesPromotionItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const [extraExpenseAmount, setExtraExpenseAmount] = useState<number>(0);
+  const [extraExpenseDetail, setExtraExpenseDetail] = useState("");
+
+  // Section 6: Material Requisition Items
+  const [requisitionItems, setRequisitionItems] = useState<RequisitionItem[]>(
+    [],
+  );
+
+  // Section 7: Additional Info State
+  const [notes, setNotes] = useState(initial.notes ?? "");
+
+  // UI state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Close work types dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        workTypesDropdownRef.current &&
+        !workTypesDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsWorkTypesDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Work type selection toggling
+  const toggleWorkType = (typeStr: string) => {
+    if (selectedWorkTypes.includes(typeStr)) {
+      setSelectedWorkTypes(selectedWorkTypes.filter((t) => t !== typeStr));
+    } else {
+      setSelectedWorkTypes([...selectedWorkTypes, typeStr]);
+    }
+  };
+
+  const removeWorkType = (typeStr: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setSelectedWorkTypes(selectedWorkTypes.filter((t) => t !== typeStr));
+  };
+
+  const clearWorkTypes = () => {
+    setSelectedWorkTypes([]);
+  };
+
+  // Type 9 Store Promotion Product Table Helpers
+  const addType9ProductItem = () => {
+    const prod = DEMO_PRODUCTS[0] || "";
+    const pPrice = DEMO_PRODUCT_PRICES[prod] ?? 500;
+    const newItem: Type9ProductItem = {
+      id: Date.now().toString(),
+      productName: prod,
+      quantityCases: 1,
+      pricePerCase: pPrice,
+    };
+    setType9ProductItems((prev) => [...prev, newItem]);
+  };
+
+  const updateType9ProductItem = (
+    id: string,
+    field: keyof Type9ProductItem,
+    val: any,
+  ) => {
+    setType9ProductItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        const updated = { ...item, [field]: val };
+        if (field === "productName" && DEMO_PRODUCT_PRICES[val] !== undefined) {
+          updated.pricePerCase = DEMO_PRODUCT_PRICES[val];
+        }
+        return updated;
+      }),
+    );
+  };
+
+  const deleteType9ProductItem = (id: string) => {
+    setType9ProductItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Requisition table helpers
+  const addRequisitionRow = () => {
+    const newItem: RequisitionItem = {
+      id: Date.now().toString(),
+      productName: DEMO_PRODUCTS[0],
+      quantity: 1,
+      unit: "ขวด",
+      detail: "",
+    };
+    setRequisitionItems([...requisitionItems, newItem]);
+  };
+
+  const updateRequisitionRow = (
+    id: string,
+    field: keyof RequisitionItem,
+    val: any,
+  ) => {
+    setRequisitionItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
+    );
+  };
+
+  const deleteRequisitionRow = (id: string) => {
+    setRequisitionItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Employee Helper Selection
+  const filteredEmployees = employees.filter((emp) => {
+    if (helperEmployeeIds.includes(emp.id)) return false;
+    const search = helperSearch.toLowerCase();
+    return (
+      emp.name.toLowerCase().includes(search) ||
+      (emp.positionTitle?.toLowerCase() || "").includes(search) ||
+      (emp.departmentName?.toLowerCase() || "").includes(search)
+    );
+  });
+
+  const addHelper = (id: string) => {
+    setHelperEmployeeIds([...helperEmployeeIds, id]);
+    setHelperSearch("");
+    setShowHelperDropdown(false);
+  };
+
+  const removeHelper = (id: string) => {
+    setHelperEmployeeIds(helperEmployeeIds.filter((hid) => hid !== id));
+  };
+
+  // Submit Handler
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (readonly || loading) return;
+
+    if (!title.trim()) {
+      setError("กรุณากรอกชื่อกิจกรรม");
+      return;
+    }
+    if (selectedWorkTypes.length === 0) {
+      setError("กรุณาเลือกประเภทงานอย่างน้อย 1 ประเภท");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    // Build start & end date objects
+    const startDateTime = new Date(`${startDate}T${startTime}:00`);
+    const endDateTime = new Date(`${endDate}T${endTime}:00`);
+
+    // Compile dynamic objectives for all selected types
+    const summaryParts: string[] = [];
+
+    if (selectedWorkTypes.includes("เข้าพบร้านค้า / เกษตรกร")) {
+      const visitSummary = type1Items
+        .map(
+          (item, i) =>
+            `${i + 1}. ลูกค้า/ร้านค้า: ${item.customerName} | ประเด็น: ${item.topic}${item.detail ? ` (${item.detail})` : ""}`,
+        )
+        .join(", ");
+      summaryParts.push(
+        `[เข้าพบร้านค้า/เกษตรกร] รายการเข้าพบ (${type1Items.length} รายการ): ${visitSummary || "ไม่มีรายการ"}`,
+      );
+    }
+
+    if (selectedWorkTypes.includes("ติดตามผลการใช้สินค้า")) {
+      const followupSummary = type2Items
+        .map(
+          (item, i) =>
+            `${i + 1}. สินค้า: ${item.productName} | ลูกค้า/ร้านค้า: ${item.customerName}${item.detail ? ` (${item.detail})` : ""}`,
+        )
+        .join(", ");
+      summaryParts.push(
+        `[ติดตามผลการใช้สินค้า] รายการติดตาม (${type2Items.length} รายการ): ${followupSummary || "ไม่มีรายการ"}`,
+      );
+    }
+
+    if (selectedWorkTypes.includes("เสนอขายสินค้า")) {
+      const salesSummary = type3Items
+        .map(
+          (item, i) =>
+            `${i + 1}. สินค้า: ${item.productName} | ลูกค้า/ร้านค้า: ${item.customerName} | จำนวน: ${item.quantity} | ราคา/หน่วย: ฿${(item.unitPrice || 0).toLocaleString()} | ราคารวม: ฿${((item.quantity || 0) * (item.unitPrice || 0)).toLocaleString()}${item.detail ? ` (${item.detail})` : ""}`,
+        )
+        .join(", ");
+      summaryParts.push(
+        `[เสนอขายสินค้า] รายการเสนอขาย (${type3Items.length} รายการ): ${salesSummary || "ไม่มีรายการ"}`,
+      );
+    }
+
+    if (selectedWorkTypes.includes("วางบิล / เก็บเงิน")) {
+      const collectSummary = type4Items
+        .map(
+          (item, i) =>
+            `${i + 1}. ลูกค้า: ${item.customerName} | เป้ายอดเก็บเงิน: ฿${(item.collectAmount || 0).toLocaleString()}${item.detail ? ` (${item.detail})` : ""}`,
+        )
+        .join(", ");
+      summaryParts.push(
+        `[วางบิล/เก็บเงิน] รายการวางบิล (${type4Items.length} รายการ): ${collectSummary || "ไม่มีรายการ"}`,
+      );
+    }
+
+    if (selectedWorkTypes.includes("สำรวจตลาดของคู่แข่ง")) {
+      const surveySummary = type5Items
+        .map(
+          (item, i) =>
+            `${i + 1}. ร้านค้า: ${item.storeName || "ไม่ระบุ"} | สินค้าเทียบ: ${item.comparedProduct}${item.detail ? ` (${item.detail})` : ""}`,
+        )
+        .join(", ");
+      summaryParts.push(
+        `[สำรวจตลาดคู่แข่ง] รายการสำรวจ (${type5Items.length} รายการ): ${surveySummary || "ไม่มีรายการ"}`,
+      );
+    }
+
+    if (selectedWorkTypes.includes("แก้ปัญหา / รับเรื่องร้องเรียน")) {
+      const issueSummary = type6Items
+        .map(
+          (item, i) =>
+            `${i + 1}. ลูกค้า: ${item.customerName} | ประเภทปัญหา: ${item.issueType}${item.detail ? ` (${item.detail})` : ""}`,
+        )
+        .join(", ");
+      summaryParts.push(
+        `[แก้ปัญหา/ร้องเรียน] รายการร้องเรียน (${type6Items.length} รายการ): ${issueSummary || "ไม่มีรายการ"}`,
+      );
+    }
+
+    if (selectedWorkTypes.includes("ติดตามแปลงสาธิต / พืชเป้าหมาย")) {
+      const demoSummary = type7Items
+        .map((item, i) => {
+          const unit = ["พืชไร่", "ผักและพืชล้มลุก"].includes(item.cropCategory)
+            ? "ไร่"
+            : "ต้น";
+          return `${i + 1}. เจ้าของ: ${item.ownerName} | สินค้า: ${item.productName} | หมวดพืช: ${item.cropCategory} (${item.cropName}) | จำนวน: ${item.plotsCount} ${unit}${item.detail ? ` (${item.detail})` : ""}`;
+        })
+        .join(", ");
+      summaryParts.push(
+        `[ติดตามแปลงสาธิต] รายการแปลงสาธิต (${type7Items.length} รายการ): ${demoSummary || "ไม่มีรายการ"}`,
+      );
+    }
+
+    if (
+      selectedWorkTypes.includes("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")
+    ) {
+      const meetingSummary = type8Items
+        .map((item, i) => {
+          const prodsText =
+            item.targetProducts && item.targetProducts.length > 0
+              ? ` | สินค้าเป้าหมาย: ${item.targetProducts.join(", ")}`
+              : "";
+          return `${i + 1}. หัวข้อ: ${item.topic}${prodsText} | ผู้เข้าร่วม: ${item.attendeesCount} คน${item.detail ? ` (${item.detail})` : ""}`;
+        })
+        .join(", ");
+      summaryParts.push(
+        `[จัดประชุม] รายการประชุม (${type8Items.length} รายการ): ${meetingSummary || "ไม่มีรายการ"}`,
+      );
+    }
+
+    if (selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")) {
+      const itemsText = type9ProductItems
+        .map(
+          (item, i) =>
+            `${i + 1}. ${item.productName} (${item.quantityCases} ลัง @ ฿${item.pricePerCase.toLocaleString()}/ลัง = ฿${(item.quantityCases * item.pricePerCase).toLocaleString()})`,
+        )
+        .join(", ");
+      const calculatedSales = type9ProductItems.reduce(
+        (sum, item) =>
+          sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
+        0,
+      );
+      const finalSales = calculatedSales > 0 ? calculatedSales : type9Sales;
+      summaryParts.push(
+        `[กิจกรรมหน้าร้าน] ร้านค้า: ${type9Store} | เป้ายอดขายรวม: ${finalSales.toLocaleString()} บาท | สินค้า: ${itemsText || type9Products || "ไม่ระบุ"}`,
+      );
+    }
+
+    if (selectedWorkTypes.includes("จัดงาน Field Day")) {
+      summaryParts.push(
+        `[Field Day] แปลงสาธิต: ${type10DemoPlot} | สถานที่: ${type10Location} | พืชเป้าหมาย: ${type10TargetCrop} | สินค้าโชว์: ${type10Showcase} | เป้าผู้ร่วมงาน: ${type10Attendees} คน | เป้ายอดจอง: ${type10BookingSales.toLocaleString()} บาท`,
+      );
+    }
+
+    if (selectedWorkTypes.includes("ตรวจเช็กสต็อกหน้าร้าน")) {
+      summaryParts.push(`[ตรวจเช็กสต็อก] ร้านค้า: ${type11Stores}`);
+    }
+
+    const compiledObjective = summaryParts.join("\n") || title;
+
+    // Serialize materials & sales promotions into description
+    const salesPromotionSummary = salesPromotionItems
+      .map(
+        (item, i) =>
+          `${i + 1}. [${item.budgetType || "งบการตลาด"}] ${item.detail} - ฿${(item.amount || 0).toLocaleString()}`,
+      )
+      .join("\n");
+
+    const materialSummary = requisitionItems
+      .map(
+        (item, i) =>
+          `${i + 1}. ${item.productName} (${item.quantity} ${item.unit}) - ${item.detail}`,
+      )
+      .join("\n");
+    const compiledDescription = `[วัตถุประสงค์งาน]\n${compiledObjective}${salesPromotionSummary ? `\n\n[รายการส่งเสริมการขาย]\n${salesPromotionSummary}` : ""}\n\n[รายการขอเบิกสินค้า]\n${materialSummary}`;
+
+    // Budgets mapping
+    const salesPromotionBudget: number | null = null;
+    let marketingBudget: number | null = null;
+
+    const calculatedMarketingSum = marketingProductItems.reduce(
+      (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
+      0,
+    );
+
+    if (isPromotionalMediaSelected) {
+      marketingBudget =
+        marketingProductItems.length > 0
+          ? calculatedMarketingSum
+          : marketingBudgetAmount > 0
+            ? marketingBudgetAmount
+            : 10000;
+    }
+
+    const hasLocationRequirement = selectedWorkTypes.some((t) =>
+      [
+        "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+        "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+        "จัดงาน Field Day",
+      ].includes(t),
+    );
+
+    if (hasLocationRequirement && !locationText.trim()) {
+      setError("กรุณากรอกรายละเอียดพื้นที่จัดกิจกรรม");
+      setLoading(false);
+      return;
+    }
+
+    const extraNotes = extraExpenseAmount
+      ? `${notes}\n(ค่าใช้จ่ายอื่นๆ: ${extraExpenseAmount} บาท - ${extraExpenseDetail})`
+      : notes;
+
+    try {
+      const res = await onSubmit({
+        title,
+        startDate: startDateTime,
+        endDate: endDateTime,
+        activityType: selectedWorkTypes.join(", "),
+        location: hasLocationRequirement
+          ? locationText
+          : locationText.trim() || "ไม่ระบุสถานที่",
+        objective: compiledObjective,
+        description: compiledDescription,
+        salesPromotionBudget,
+        marketingBudget,
+        notes: extraNotes,
+        helperEmployeeIds,
+      });
+
+      if (!res.success) {
+        setError(res.error || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+        setLoading(false);
+      }
+    } catch (err: any) {
+      setError(err.message || "เกิดข้อผิดพลาดในการเชื่อมต่อ");
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-6 pb-20">
+      {/* Top Header Card (Styled after combined-report.tsx) */}
+      <div className="relative overflow-hidden bg-white border border-slate-100 rounded-2xl p-5 md:p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        {/* Decorative background glow */}
+        <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-blue-50/30 via-emerald-50/10 to-transparent rounded-full -mr-20 -mt-20 pointer-events-none" />
+
+        <div className="flex items-center gap-4 relative z-10">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={onCancel}
+              className="h-10 w-10 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-100 shadow-xs"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          )}
+
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 flex-shrink-0">
+            <CalendarIcon className="w-6 h-6 animate-pulse" />
+          </div>
+
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+                สร้างแผนปฏิบัติงาน (Create Trip Plan)
+              </h1>
+            </div>
+            <p className="text-xs md:text-sm text-slate-500 mt-1">
+              วางแผนการลงพื้นที่ / กิจกรรมทางการตลาด และบริหารจัดการการเข้าปฏิบัติงาน
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-500" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* SECTION 1: ข้อมูลระบบ (System Info) */}
+      <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden p-5 md:p-6 space-y-4">
+        <div className="flex items-center gap-2.5">
+          <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
+            1
+          </span>
+          <h2 className="font-bold text-slate-800 text-base md:text-lg">
+            ข้อมูลระบบ (System Info)
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+          {/* Card 1: ผู้รับผิดชอบ */}
+          <div className="bg-slate-50/80 border border-slate-200/60 rounded-xl p-4 flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+              <User className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-slate-400">
+                ผู้รับผิดชอบ{" "}
+              </p>
+              <p className="text-sm font-semibold text-slate-800">
+                {initial.employeeName || "นายวิทยา พันธุ์โชค"}
+              </p>
+            </div>
+          </div>
+
+          {/* Card 2: เลขที่แผน */}
+          <div className="bg-slate-50/80 border border-slate-200/60 rounded-xl p-4 flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
+              <FileText className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-slate-400">เลขที่แผน </p>
+              <p className="text-sm font-semibold text-slate-800">
+                {initial.planCode || "2607-001"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 2: ข้อมูลหลักของกิจกรรม (Main Activity Details) */}
+      <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm p-5 md:p-6 space-y-5 relative z-20">
+        <div className="flex items-center gap-2.5">
+          <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
+            2
+          </span>
+          <h2 className="font-bold text-slate-800 text-base md:text-lg">
+            ข้อมูลหลักของกิจกรรม (Main Activity Details)
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+          {/* ชื่อกิจกรรม */}
+          <div className="lg:col-span-1">
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">
+              ชื่อกิจกรรม <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              disabled={readonly}
+              placeholder="เช่น กิจกรรมส่งเสริมการขายตราปืนใหญ่"
+              className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            />
+          </div>
+          {/* ประเภทงาน (เลือกได้มากกว่า 1) */}
+          <div className="relative" ref={workTypesDropdownRef}>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">
+              ประเภทงาน{" "}
+              <span className="text-slate-400 text-[11px]">
+                (เลือกได้มากกว่า 1)
+              </span>{" "}
+              <span className="text-red-500">*</span>
+            </label>
+
+            {/* Input Trigger Field */}
+            <div
+              onClick={() =>
+                !readonly &&
+                setIsWorkTypesDropdownOpen(!isWorkTypesDropdownOpen)
+              }
+              className={cn(
+                "min-h-[40px] w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm flex flex-wrap items-center gap-1.5 cursor-pointer hover:border-slate-300 focus-within:ring-2 focus-within:ring-blue-500 transition-all",
+                readonly && "cursor-not-allowed bg-slate-50",
+              )}
+            >
+              {selectedWorkTypes.length === 0 ? (
+                <span className="text-slate-400 text-xs px-1">
+                  เลือกประเภทงาน...
+                </span>
+              ) : (
+                selectedWorkTypes.map((wt) => (
+                  <span
+                    key={wt}
+                    className="inline-flex items-center gap-1 bg-blue-50 border border-blue-200/80 text-blue-700 text-xs px-2 py-0.5 rounded-md font-medium"
+                  >
+                    <span>{wt}</span>
+                    {!readonly && (
+                      <button
+                        type="button"
+                        onClick={(e) => removeWorkType(wt, e)}
+                        className="hover:bg-blue-100 rounded p-0.5 text-blue-600 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </span>
+                ))
+              )}
+              <ChevronDown className="h-4 w-4 text-slate-400 ml-auto flex-shrink-0" />
+            </div>
+
+            {/* Work types multi-select checkbox dropdown popup */}
+            {isWorkTypesDropdownOpen && (
+              <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 w-full sm:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-3 space-y-2 animate-in fade-in-0 zoom-in-95">
+                <div className="max-h-80 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                  {WORK_TYPES.map((typeStr) => {
+                    const isChecked = selectedWorkTypes.includes(typeStr);
+                    return (
+                      <label
+                        key={typeStr}
+                        onClick={() => toggleWorkType(typeStr)}
+                        className={cn(
+                          "flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer transition-colors select-none",
+                          isChecked
+                            ? "bg-blue-50 text-blue-800 font-medium"
+                            : "hover:bg-slate-50 text-slate-700",
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0",
+                            isChecked
+                              ? "bg-blue-600 border-blue-600 text-white"
+                              : "border-slate-300 bg-white",
+                          )}
+                        >
+                          {isChecked && (
+                            <Check className="h-3 w-3 stroke-[3]" />
+                          )}
+                        </div>
+                        <span>{typeStr}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 text-right">
+                  <button
+                    type="button"
+                    onClick={clearWorkTypes}
+                    className="text-xs font-medium text-slate-500 hover:text-slate-700 underline"
+                  >
+                    ล้างการเลือก
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* วันที่จัดกิจกรรม */}
+          <DateTimePicker
+            label="วันที่จัดกิจกรรม"
+            required
+            dateValue={startDate}
+            timeValue={startTime}
+            onDateChange={setStartDate}
+            onTimeChange={setStartTime}
+            readonly={readonly}
+            accentColor="blue"
+          />
+
+          {/* วันที่สิ้นสุดกิจกรรม */}
+          <DateTimePicker
+            label="วันที่สิ้นสุดกิจกรรม"
+            required
+            dateValue={endDate}
+            timeValue={endTime}
+            onDateChange={setEndDate}
+            onTimeChange={setEndTime}
+            readonly={readonly}
+            accentColor="indigo"
+          />
+        </div>
+
+        {/* Warning alert banner */}
+        <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3 md:p-3.5 flex items-center gap-3 text-amber-800 text-xs md:text-sm">
+          <div className="w-5 h-5 rounded-full bg-amber-500 text-white font-bold flex items-center justify-center text-xs flex-shrink-0">
+            !
+          </div>
+          <p className="font-medium">
+            เลือกประเภทงานได้หลากหลาย
+            ระบบจะแสดงฟอร์มวัตถุประสงค์ตามประเภทงานที่เลือก
+          </p>
+        </div>
+      </div>
+
+      {/* SECTION 3: วัตถุประสงค์ของประเภทงาน (Dynamic Objective) */}
+      <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden p-5 md:p-6 space-y-5">
+        <div className="flex items-center gap-2.5">
+          <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
+            3
+          </span>
+          <h2 className="font-bold text-slate-800 text-base md:text-lg">
+            วัตถุประสงค์ของประเภทงาน (Dynamic Objective)
+          </h2>
+        </div>
+
+        {/* Dynamic Cards Container for all 11 Work Types */}
+        <div className="space-y-5">
+          {/* Work Type 1: เข้าพบร้านค้า / เกษตรกร */}
+          {selectedWorkTypes.includes("เข้าพบร้านค้า / เกษตรกร") && (
+            <Type1Visit
+              readonly={readonly}
+              type1Items={type1Items}
+              addType1Row={addType1Row}
+              updateType1Row={updateType1Row}
+              deleteType1Row={deleteType1Row}
+            />
+          )}
+
+          {/* Work Type 2: ติดตามผลการใช้สินค้า */}
+          {selectedWorkTypes.includes("ติดตามผลการใช้สินค้า") && (
+            <Type2Followup
+              readonly={readonly}
+              type2Items={type2Items}
+              addType2Row={addType2Row}
+              updateType2Row={updateType2Row}
+              deleteType2Row={deleteType2Row}
+            />
+          )}
+
+          {/* Work Type 3: เสนอขายสินค้า */}
+          {selectedWorkTypes.includes("เสนอขายสินค้า") && (
+            <Type3Sales
+              readonly={readonly}
+              type3Items={type3Items}
+              addType3Row={addType3Row}
+              updateType3Row={updateType3Row}
+              deleteType3Row={deleteType3Row}
+            />
+          )}
+
+          {/* Work Type 4: วางบิล / เก็บเงิน */}
+          {selectedWorkTypes.includes("วางบิล / เก็บเงิน") && (
+            <Type4Collect
+              readonly={readonly}
+              type4Items={type4Items}
+              addType4Row={addType4Row}
+              updateType4Row={updateType4Row}
+              deleteType4Row={deleteType4Row}
+            />
+          )}
+
+          {/* Work Type 5: สำรวจตลาดของคู่แข่ง */}
+          {selectedWorkTypes.includes("สำรวจตลาดของคู่แข่ง") && (
+            <Type5Survey
+              readonly={readonly}
+              type5Items={type5Items}
+              addType5Row={addType5Row}
+              updateType5Row={updateType5Row}
+              deleteType5Row={deleteType5Row}
+            />
+          )}
+
+          {/* Work Type 6: แก้ปัญหา / รับเรื่องร้องเรียน */}
+          {selectedWorkTypes.includes("แก้ปัญหา / รับเรื่องร้องเรียน") && (
+            <Type6Issue
+              readonly={readonly}
+              type6Items={type6Items}
+              addType6Row={addType6Row}
+              updateType6Row={updateType6Row}
+              deleteType6Row={deleteType6Row}
+            />
+          )}
+
+          {/* Work Type 7: ติดตามแปลงสาธิต / พืชเป้าหมาย */}
+          {selectedWorkTypes.includes("ติดตามแปลงสาธิต / พืชเป้าหมาย") && (
+            <Type7Demo
+              readonly={readonly}
+              type7Items={type7Items}
+              addType7Row={addType7Row}
+              updateType7Row={updateType7Row}
+              deleteType7Row={deleteType7Row}
+            />
+          )}
+
+          {/* Work Type 8: จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์ */}
+          {selectedWorkTypes.includes(
+            "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+          ) && (
+            <Type8Meeting
+              readonly={readonly}
+              type8Items={type8Items}
+              addType8Row={addType8Row}
+              updateType8Row={updateType8Row}
+              deleteType8Row={deleteType8Row}
+            />
+          )}
+
+          {/* Work Type 9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน */}
+          {selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") && (
+            <Type9Store
+              readonly={readonly}
+              type9Store={type9Store}
+              setType9Store={setType9Store}
+              type9Sales={type9Sales}
+              setType9Sales={setType9Sales}
+              type9ProductItems={type9ProductItems}
+              addType9ProductItem={addType9ProductItem}
+              updateType9ProductItem={updateType9ProductItem}
+              deleteType9ProductItem={deleteType9ProductItem}
+            />
+          )}
+
+          {/* Work Type 10: จัดงาน Field Day */}
+          {selectedWorkTypes.includes("จัดงาน Field Day") && (
+            <Type10FieldDay
+              readonly={readonly}
+              type10DemoPlot={type10DemoPlot}
+              setType10DemoPlot={setType10DemoPlot}
+              type10Location={type10Location}
+              setType10Location={setType10Location}
+              type10TargetCrop={type10TargetCrop}
+              setType10TargetCrop={setType10TargetCrop}
+              type10Showcase={type10Showcase}
+              setType10Showcase={setType10Showcase}
+              type10Attendees={type10Attendees}
+              setType10Attendees={setType10Attendees}
+              type10BookingSales={type10BookingSales}
+              setType10BookingSales={setType10BookingSales}
+            />
+          )}
+
+          {/* Work Type 11: ตรวจเช็กสต็อกหน้าร้าน */}
+          {selectedWorkTypes.includes("ตรวจเช็กสต็อกหน้าร้าน") && (
+            <Type11Stock
+              readonly={readonly}
+              type11Stores={type11Stores}
+              setType11Stores={setType11Stores}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* SECTION 4: สถานที่และทีมงาน (Location & Team) */}
+      <LocationTeamSection
+        selectedWorkTypes={selectedWorkTypes}
+        readonly={readonly}
+        helperSearch={helperSearch}
+        setHelperSearch={setHelperSearch}
+        showHelperDropdown={showHelperDropdown}
+        setShowHelperDropdown={setShowHelperDropdown}
+        filteredEmployees={filteredEmployees}
+        addHelper={addHelper}
+        helperEmployeeIds={helperEmployeeIds}
+        employees={employees}
+        removeHelper={removeHelper}
+        locationText={locationText}
+        setLocationText={setLocationText}
+      />
+
+      {/* SECTION 5: งบประมาณและค่าใช้จ่าย (Budget & Expenses) */}
+      <BudgetSection
+        selectedWorkTypes={selectedWorkTypes}
+        readonly={readonly}
+        isPromotionalMediaSelected={isPromotionalMediaSelected}
+        setIsPromotionalMediaSelected={setIsPromotionalMediaSelected}
+        isSalesPromotionSelected={isSalesPromotionSelected}
+        setIsSalesPromotionSelected={setIsSalesPromotionSelected}
+        marketingProductItems={marketingProductItems}
+        marketingBudgetAmount={marketingBudgetAmount}
+        setMarketingBudgetAmount={setMarketingBudgetAmount}
+        addMarketingProductItem={addMarketingProductItem}
+        updateMarketingProductItem={updateMarketingProductItem}
+        deleteMarketingProductItem={deleteMarketingProductItem}
+        salesPromotionItems={salesPromotionItems}
+        addSalesPromotionRow={addSalesPromotionRow}
+        updateSalesPromotionRow={updateSalesPromotionRow}
+        deleteSalesPromotionRow={deleteSalesPromotionRow}
+        targetSales={
+          (type9ProductItems.length > 0
+            ? type9ProductItems.reduce(
+                (sum, item) =>
+                  sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
+                0,
+              )
+            : type9Sales) ||
+          type10BookingSales ||
+          0
+        }
+      />
+
+      {/* SECTION 6: รายการขอเบิกสินค้าจัดกิจกรรม (Material Requisition) */}
+      <RequisitionSection
+        requisitionItems={requisitionItems}
+        addRequisitionRow={addRequisitionRow}
+        updateRequisitionRow={updateRequisitionRow}
+        deleteRequisitionRow={deleteRequisitionRow}
+        readonly={readonly}
+        selectedWorkTypes={selectedWorkTypes}
+      />
+
+      {/* SECTION 7: ข้อมูลเพิ่มเติม (Additional Info) */}
+      <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden p-5 md:p-6 space-y-4">
+        <div className="flex items-center gap-2.5">
+          <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
+            {selectedWorkTypes.some((t) =>
+              [
+                "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+                "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+                "จัดงาน Field Day",
+              ].includes(t),
+            )
+              ? 7
+              : 6}
+          </span>
+          <h2 className="font-bold text-slate-800 text-base md:text-lg">
+            ข้อมูลเพิ่มเติม (Additional Info)
+          </h2>
+        </div>
+
+        <div className="space-y-1">
+          <label className="block text-xs font-medium text-slate-700 mb-1">
+            หมายเหตุเพิ่มเติม
+          </label>
+          <textarea
+            rows={3}
+            value={notes}
+            maxLength={500}
+            onChange={(e) => setNotes(e.target.value)}
+            disabled={readonly}
+            placeholder="ข้อมูลเพิ่มเติมอื่นๆ..."
+            className="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
+          />
+          <div className="text-right text-[11px] text-slate-400">
+            {notes.length}/500
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Action Footer */}
+      <div className="flex items-center justify-center gap-4 pt-4">
+        {onCancel && (
+          <Button
+            type="button"
+            onClick={onCancel}
+            disabled={loading}
+            className="w-32 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl h-11 shadow-sm flex items-center justify-center gap-1.5"
+          >
+            <X className="h-4 w-4" />
+            <span>ยกเลิก</span>
+          </Button>
+        )}
+
+        {!readonly && (
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-32 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl h-11 shadow-md flex items-center justify-center gap-1.5"
+          >
+            <Check className="h-4 w-4 stroke-[3]" />
+            <span>{loading ? "กำลังบันทึก..." : submitLabel}</span>
+          </Button>
+        )}
+      </div>
+    </form>
+  );
+}
