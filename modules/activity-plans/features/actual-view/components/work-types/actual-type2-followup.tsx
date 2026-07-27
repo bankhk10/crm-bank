@@ -63,31 +63,6 @@ export function ActualType2Followup({
         ]}
       />
 
-      <div className="space-y-1.5 pt-1">
-        <label className="text-sm font-semibold text-slate-800">
-          รายชื่อลูกค้า / ร้านค้า <span className="text-rose-500">*</span>
-        </label>
-        <Input
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-          placeholder="เช่น นายสมชาย (สวนทุเรียน อ.แกลง)"
-          className="bg-white border-slate-300"
-        />
-      </div>
-
-      <div className="space-y-1.5">
-        <label className="text-sm font-semibold text-slate-800">
-          รายละเอียดการติดตาม <span className="text-rose-500">*</span>
-        </label>
-        <Textarea
-          rows={2}
-          value={detail}
-          onChange={(e) => setDetail(e.target.value)}
-          placeholder="ระบุรายละเอียดสินค้าและแปลงที่นำไปใช้งาน"
-          className="bg-white border-slate-300"
-        />
-      </div>
-
       <div className="space-y-2">
         <label className="text-sm font-semibold text-slate-800">
           ผลลัพธ์จากการใช้งาน <span className="text-rose-500">*</span>
@@ -138,6 +113,18 @@ export function ActualType2Followup({
           />
         </div>
       )}
+      <div className="space-y-1.5">
+        <label className="text-sm font-semibold text-slate-800">
+          รายละเอียดการติดตาม
+        </label>
+        <Textarea
+          rows={2}
+          value={detail}
+          onChange={(e) => setDetail(e.target.value)}
+          placeholder="ระบุ (ถ้ามี)"
+          className="bg-white border-slate-300"
+        />
+      </div>
     </div>
   );
 }
