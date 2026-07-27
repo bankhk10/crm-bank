@@ -59,20 +59,19 @@ export function ActualType3Sales({
           { label: "เป้ายอดขาย:", value: target.targetSales, highlight: true },
         ]}
       />
-
-      <div className="space-y-1.5 pt-1">
-        <label className="text-sm font-semibold text-slate-800">
-          รายการสินค้าที่ขายได้จริง <span className="text-rose-500">*</span>
-        </label>
-        <Input
-          value={soldProducts}
-          onChange={(e) => setSoldProducts(e.target.value)}
-          placeholder="เช่น ปุ๋ยสูตรพรีเมียม A (30 กระสอบ), สารบำรุงใบ (15 ขวด)"
-          className="bg-white border-slate-300"
-        />
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-sm font-semibold text-slate-800">
+            ปริมาณขายจริง <span className="text-rose-500">*</span>
+          </label>
+          <Input
+            value={actualQuantity}
+            onChange={(e) => setActualQuantity(e.target.value)}
+            placeholder="จำนวน"
+            className="bg-white border-slate-300"
+          />
+        </div>
+
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-800">
             ยอดขายจริง (บาท) <span className="text-rose-500">*</span>
@@ -90,18 +89,6 @@ export function ActualType3Sales({
               บาท
             </span>
           </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-slate-800">
-            ปริมาณขายจริง <span className="text-rose-500">*</span>
-          </label>
-          <Input
-            value={actualQuantity}
-            onChange={(e) => setActualQuantity(e.target.value)}
-            placeholder="เช่น 45 ชิ้น / 30 กระสอบ"
-            className="bg-white border-slate-300"
-          />
         </div>
       </div>
 
