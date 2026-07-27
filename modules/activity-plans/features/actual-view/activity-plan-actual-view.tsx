@@ -112,10 +112,14 @@ export default function ActivityPlanActualView({
       nextDate: "05 ส.ค. 2568",
     },
     t2: {
-      product: DEMO_PRODUCTS[0],
+      product: `${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[1]}`,
       customer: DEMO_OWNERS[0],
       detail: "ติดตามผลหลังเกษตรกรนำสินค้าไปทดลองใช้งานในพื้นที่",
       expectedResult: "พืชตอบสนองดี",
+      items: [
+        { productName: DEMO_PRODUCTS[0], customer: DEMO_OWNERS[0], expectedResult: "พืชตอบสนองดี" },
+        { productName: DEMO_PRODUCTS[1], customer: DEMO_OWNERS[0], expectedResult: "พืชตอบสนองดี" },
+      ],
     },
     t3: {
       product: `${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[1]}`,
