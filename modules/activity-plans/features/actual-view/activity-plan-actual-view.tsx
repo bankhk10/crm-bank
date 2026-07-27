@@ -26,8 +26,10 @@ import {
   Search,
   Wrench,
   Package,
-  ChevronDown,
   Layers,
+  CheckCircle2,
+  TrendingUp,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +44,14 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { getActivityPlanAction } from "../../server/actions";
-import { WORK_TYPES } from "../form/constants";
+import {
+  WORK_TYPES,
+  DEMO_OWNERS,
+  DEMO_PRODUCTS,
+  DEMO_PRODUCT_PRICES,
+  STORES_LIST,
+  USER_DEMO_PLOTS,
+} from "../form/constants";
 
 interface ActivityPlanActualViewProps {
   id?: string;
@@ -63,16 +72,88 @@ export default function ActivityPlanActualView({
     title: "แปลงสาธิตของบ้านนา และ กิจกรรมส่งเสริมการขายหน้าร้าน",
     dateStr: "25 ก.ค. 2568",
     timeStr: "09:00 - 15:00",
-    locationStr: "บริษัททดสอบ จำกัด อ.เมือง จ.จันทบุรี",
+    locationStr: `${DEMO_OWNERS[0]} อ.เมือง จ.จันทบุรี`,
     demoPlotTarget: "1 แปลง | 20 ต้น",
-    salesTarget: "10,000 บาท",
+    salesTarget: "35,000 บาท",
+    attendeeTarget: "40 คน",
   });
 
-  // Active Work Type Selection Mode: "SELECTED" (shows active types) or "ALL" (shows tabs/all 11 types)
-  const [activeTypeTab, setActiveTypeTab] = useState<string>("ALL"); // "ALL" or specific type name
+  // Active Work Type Selection Mode: "ALL" or specific type name
+  const [activeTypeTab, setActiveTypeTab] = useState<string>("ALL");
 
   // ────────────────────────────────────────────────────────
-  // WORK TYPES FORM STATES (11 TYPES)
+  // WORK TYPES TARGET OBJECTS (STRUCTURED & CLEAN FOR EASY READING)
+  // ────────────────────────────────────────────────────────
+  const targets = {
+    t1: {
+      customer: DEMO_OWNERS[0],
+      topic: "แจ้งข่าวสาร",
+      detail: "เข้าพบเจ้าของร้านเพื่อแนะนำข้อมูลข่าวสารสินค้าประจำฤดูกาล",
+      opportunity: "สูง",
+      nextDate: "05 ส.ค. 2568",
+    },
+    t2: {
+      product: DEMO_PRODUCTS[0],
+      customer: DEMO_OWNERS[0],
+      detail: "ติดตามผลหลังเกษตรกรนำสินค้าไปทดลองใช้งานในพื้นที่",
+      expectedResult: "พืชตอบสนองดี",
+    },
+    t3: {
+      product: DEMO_PRODUCTS[0],
+      customer: DEMO_OWNERS[0],
+      targetQty: "10 ชิ้น",
+      targetSales: `5,000 บาท (${DEMO_PRODUCT_PRICES[DEMO_PRODUCTS[0]] || 500} บาท/ชิ้น)`,
+    },
+    t4: {
+      customer: DEMO_OWNERS[0],
+      orderNo: "INV-2026-0789",
+      targetCollect: "25,500 บาท",
+    },
+    t5: {
+      store: STORES_LIST[0],
+      product: DEMO_PRODUCTS[0],
+      detail: "สำรวจเปรียบเทียบราคา ป้ายราคา และโปรโมชันสินค้าคู่แข่งในพื้นที่",
+    },
+    t6: {
+      customer: DEMO_OWNERS[0],
+      issueType: "เคลมของ",
+      detail: "รับเรื่องร้องเรียนเรื่องสินค้าจากลูกค้าเพื่อประสานงานเปลี่ยน/เคลมสินค้า",
+      targetStatus: "เสร็จสิ้น",
+    },
+    t7: {
+      owner: DEMO_OWNERS[0],
+      product: DEMO_PRODUCTS[0],
+      crop: "พืชสวน (ทุเรียน)",
+      plots: "1 แปลง (20 ต้น)",
+      targetCondition: "สมบูรณ์",
+    },
+    t8: {
+      topic: "ประชุมสัมมนาเทคนิคการใช้ปุ๋ยบำรุงพืชสวน",
+      products: `${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[1]}`,
+      targetAttendees: "10 คน",
+    },
+    t9: {
+      store: STORES_LIST[0],
+      product: DEMO_PRODUCTS[0],
+      targetSales: "10,000 บาท",
+      targetAttendees: "28 คน",
+    },
+    t10: {
+      plot: `${USER_DEMO_PLOTS[0].name}`,
+      location: USER_DEMO_PLOTS[0].location,
+      showcase: `${USER_DEMO_PLOTS[0].targetCrop} / ${USER_DEMO_PLOTS[0].showcase}`,
+      targetAttendees: "100 คน",
+      targetSales: "150,000 บาท",
+    },
+    t11: {
+      store: STORES_LIST[0],
+      detail: `ตรวจเช็กสต็อก ${DEMO_PRODUCTS[0]} และปุ๋ยเคมีเพื่อเตรียมสั่งซื้อเติมหน้าร้าน`,
+      targetOpportunity: "สูง",
+    },
+  };
+
+  // ────────────────────────────────────────────────────────
+  // WORK TYPES ACTUAL FORM STATES (11 TYPES)
   // ────────────────────────────────────────────────────────
 
   // Type 1: เข้าพบร้านค้า / เกษตรกร
@@ -169,9 +250,10 @@ export default function ActivityPlanActualView({
             title: p.title || "แปลงสาธิตของบ้านนา",
             dateStr: format(start, "d MMM yyyy", { locale: th }),
             timeStr: `${format(start, "HH:mm")} - ${format(end, "HH:mm")}`,
-            locationStr: p.location || "บริษัททดสอบ จำกัด อ.เมือง จ.จันทบุรี",
+            locationStr: p.location || `${DEMO_OWNERS[0]} อ.เมือง จ.จันทบุรี`,
             demoPlotTarget: p.objective || "1 แปลง | 20 ต้น",
-            salesTarget: p.salesPromotionBudget ? `${Number(p.salesPromotionBudget).toLocaleString()} บาท` : "10,000 บาท",
+            salesTarget: p.salesPromotionBudget ? `${Number(p.salesPromotionBudget).toLocaleString()} บาท` : "35,000 บาท",
+            attendeeTarget: "40 คน",
           });
         }
       } catch (e) {
@@ -183,26 +265,24 @@ export default function ActivityPlanActualView({
     loadData();
   }, [id]);
 
-  // ────────────────────────────────────────────────────────
   // PRE-FILL SAMPLE DATA FOR ALL 11 WORK TYPES
-  // ────────────────────────────────────────────────────────
   const fillAllSampleData = () => {
     // Type 1
-    setT1ProductAdvice("ปุ๋ยเคมีสูตรพิเศษ 15-15-15, สารบำรุงรากพรีเมียม");
-    setT1Detail("เข้าพบเจ้าของร้านสหายพานิช เพื่อแนะนำเทคนิคการดูแลทุเรียนช่วงสะสมอาหาร");
-    setT1DiscussionResult("เฮียเจ้าของร้านสนใจสั่งสินค้าไปทดลองวางหน้าร้าน 50 ชุด และขอป้ายส่งเสริมการขาย");
+    setT1ProductAdvice(`${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[3] || "ปุ๋ยเคมีสูตรพิเศษ"}`);
+    setT1Detail(`เข้าพบเจ้าของ ${DEMO_OWNERS[0]} เพื่อแนะนำเทคนิคการดูแลพืชสวนช่วงทำใบ`);
+    setT1DiscussionResult(`ลูกค้าสนใจสั่งซื้อ ${DEMO_PRODUCTS[0]} ไปทดลองวางหน้าร้าน 50 ชุด และขอป้ายส่งเสริมการขาย`);
     setT1SalesOpportunity("สูง");
     setT1NextAction("นำส่งใบเสนอราคาพร้อมส่วนลดพิเศษ 5% และนำตัวอย่างสินค้ามาให้หน้าร้านลอง");
     setT1NextMeetingDate("2026-08-05");
 
     // Type 2
-    setT2CustomerName("ร้านสหายพานิช / สวนทุเรียนนายสมชาย");
-    setT2Detail("ติดตามผลหลังเกษตรกรฉีดพ่นฮอร์โมนเร่งใบผ่านไป 10 วัน");
+    setT2CustomerName(`${DEMO_OWNERS[0]} / ${DEMO_OWNERS[3] || "ร้านสหายพานิช"}`);
+    setT2Detail(`ติดตามผลหลังเกษตรกรนำ ${DEMO_PRODUCTS[0]} ไปฉีดพ่นทางใบผ่านไป 10 วัน`);
     setT2UsageResult("พืชตอบสนองดี");
     setT2ProblemDetail("");
 
     // Type 3
-    setT3SoldProducts("ปุ๋ยสูตรพรีเมียม A (30 กระสอบ), สารบำรุงใบ (15 ขวด)");
+    setT3SoldProducts(`${DEMO_PRODUCTS[0]} (30 กระสอบ), ${DEMO_PRODUCTS[1]} (15 ขวด)`);
     setT3ActualSales("35500");
     setT3ActualQuantity("45 ชิ้น");
     setT3UnclosedReason("ปิดการขายได้สำเร็จตามเป้าหมาย");
@@ -213,18 +293,18 @@ export default function ActivityPlanActualView({
 
     // Type 5
     setT5CompetitorBrand("ตราเกษตรทองคำ, เสือคู่พรีเมียม");
-    setT5CompetitorProduct("ปุ๋ยทางใบสูตร 20-20-20 (ขนาด 1 ลิตร)");
+    setT5CompetitorProduct(`เทียบกับ ${DEMO_PRODUCTS[0]} (ปุ๋ยทางใบ 1 ลิตร)`);
     setT5CompetitorPrice("850 บาท/ขวด");
     setT5PromotionDetail("จัดโปรโมชัน ซื้อ 10 แถม 1 พร้อมแจกเสื้อยืดพนักงานหน้าร้าน");
 
     // Type 6
-    setT6ProblemDetail("เกษตรกรร้องเรียนเรื่องปุ๋ยตกตะกอนเมื่อผสมน้ำในถัง 200 ลิตร");
+    setT6ProblemDetail(`ลูกค้าร้องเรียนเรื่องสินค้า ${DEMO_PRODUCTS[0]} ตกตะกอนเมื่อผสมน้ำในถัง 200 ลิตร`);
     setT6InitialSolution("แนะนำการผสมน้ำอุ่นกวนให้ละลายก่อนเทลงถังใหญ่ พร้อมเปลี่ยนสินค้าล็อตใหม่ให้ลูกค้าทันที");
     setT6Status("เสร็จสิ้น");
 
     // Type 7
     setT7PlotName("แปลงทดสอบบ้านนา");
-    setT7UsageMethod("ฉีดพ่นทางใบ 50cc/น้ำ 20L ทุกๆ 7 วัน");
+    setT7UsageMethod(`ฉีดพ่น ${DEMO_PRODUCTS[0]} อัตรา 50cc/น้ำ 20L ทุกๆ 7 วัน`);
     setT7CropAgeValue("45");
     setT7CropAgeUnit("วัน");
     setT7GrowthStage("ระยะเจริญเติบโตทางลำต้น/ใบ");
@@ -234,7 +314,7 @@ export default function ActivityPlanActualView({
 
     // Type 8
     setT8ActualAttendees("35");
-    setT8FeedbackQnA("เกษตรกรสอบถามเรื่องการใช้ปุ๋ยร่วมกับชีวภัณฑ์ป้องกันรากเน่า และต้องการแผ่นพับตารางการใส่ปุ๋ยรายเดือน");
+    setT8FeedbackQnA(`เกษตรกรสอบถามเรื่องการใช้ ${DEMO_PRODUCTS[0]} ร่วมกับชีวภัณฑ์ป้องกันรากเน่า และต้องการแผ่นพับตารางการใส่ปุ๋ยรายเดือน`);
 
     // Type 9
     setT9Formats(["การสะสมคะแนน", "กิจกรรมลูกค้าสัมพันธ์"]);
@@ -248,7 +328,7 @@ export default function ActivityPlanActualView({
     setT10FarmerFeedback("สูง");
 
     // Type 11
-    setT11ProductList("ปุ๋ยสูตร 15-15-15 (50กก.), สารกำจัดแมลง X (1L)");
+    setT11ProductList(`${DEMO_PRODUCTS[0]} (50 กระสอบ), ${DEMO_PRODUCTS[1]} (20 ขวด)`);
     setT11StockStatus("ใกล้หมด");
     setT11ReorderOpportunity("สูง");
     setT11NextAction("แจ้งฝ่ายขายออกใบสั่งซื้อสินค้าเติมสต็อกหน้าร้านภายในวันจันทร์นี้");
@@ -332,7 +412,7 @@ export default function ActivityPlanActualView({
             <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
               บันทึกผลการปฏิบัติงาน <span className="text-slate-500 font-medium text-lg">(Actual)</span>
             </h1>
-            <p className="text-sm text-slate-500">กรอกผลการดำเนินการตามแผนทั้ง 11 กิจกรรม</p>
+            <p className="text-sm text-slate-500">เปรียบเทียบเป้าหมายและบันทึกผลปฏิบัติงานจริง</p>
           </div>
         </div>
 
@@ -343,82 +423,106 @@ export default function ActivityPlanActualView({
           className="bg-purple-600 hover:bg-purple-700 text-white font-medium gap-2 shadow-sm rounded-xl text-xs md:text-sm"
         >
           <Sparkles className="w-4 h-4 text-yellow-300 animate-bounce" />
-          <span>โหลดตัวอย่างข้อมูลกรอกจริง (ทุกกิจกรรม)</span>
+          <span>เติมข้อมูลตัวอย่าง (ทั้ง 11 กิจกรรม)</span>
         </Button>
       </div>
 
       {/* ──────────────────────────────────────────────────────── */}
       {/* PLAN SUMMARY CARD */}
       {/* ──────────────────────────────────────────────────────── */}
-      <div className="bg-blue-50/50 border border-blue-200/70 rounded-2xl p-4 md:p-5 shadow-2xs space-y-4">
-        <div className="flex items-center gap-2 text-slate-800 font-semibold text-base">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white text-xs shadow-xs">
-            <FileText className="w-4 h-4" />
+      <div className="bg-blue-50/60 border border-blue-200/80 rounded-2xl p-4 md:p-5 shadow-2xs space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-slate-800 font-bold text-base">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white text-xs shadow-xs">
+              <FileText className="w-4 h-4" />
+            </span>
+            <span>ข้อมูลสรุปจากแผน (Plan Summary)</span>
+          </div>
+          <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold">
+            🎯 ดึงข้อมูลจาก Create Trip Plan
           </span>
-          <span>ข้อมูลสรุปจากแผน (Plan Summary)</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-          <div className="bg-white/80 backdrop-blur-xs p-3 rounded-xl border border-blue-100">
-            <p className="text-xs text-slate-500 font-medium mb-1">ชื่อกิจกรรมหลัก</p>
-            <p className="text-sm md:text-base font-bold text-slate-900">{planSummary.title}</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="bg-white p-3 rounded-xl border border-blue-100/80">
+            <p className="text-[11px] text-slate-400 font-semibold mb-0.5">ชื่องานกิจกรรม</p>
+            <p className="text-xs md:text-sm font-bold text-slate-900">{planSummary.title}</p>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-xs p-3 rounded-xl border border-blue-100">
-            <p className="text-xs text-slate-500 font-medium mb-1">วันที่จัดกิจกรรม</p>
-            <div className="flex flex-col gap-0.5 text-xs md:text-sm font-semibold text-slate-800">
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-blue-600" />
-                {planSummary.dateStr}
-              </span>
-              <span className="flex items-center gap-1.5 text-slate-600 font-normal">
-                <Clock className="w-4 h-4 text-blue-500" />
-                {planSummary.timeStr}
-              </span>
+          <div className="bg-white p-3 rounded-xl border border-blue-100/80">
+            <p className="text-[11px] text-slate-400 font-semibold mb-0.5">วันเวลาจัดงาน</p>
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+              <Calendar className="w-3.5 h-3.5 text-blue-600" />
+              <span>{planSummary.dateStr}</span>
+              <span className="text-slate-400 font-normal">({planSummary.timeStr})</span>
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-xs p-3 rounded-xl border border-blue-100">
-            <p className="text-xs text-slate-500 font-medium mb-1">สถานที่</p>
-            <p className="text-xs md:text-sm font-medium text-slate-800 flex items-start gap-1.5">
-              <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-              <span>{planSummary.locationStr}</span>
+          <div className="bg-white p-3 rounded-xl border border-blue-100/80">
+            <p className="text-[11px] text-slate-400 font-semibold mb-0.5">สถานที่</p>
+            <p className="text-xs font-bold text-slate-900 flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+              <span className="truncate">{planSummary.locationStr}</span>
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-          <div className="bg-white border border-emerald-200/80 rounded-xl p-3.5 flex items-center gap-3 shadow-2xs">
-            <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-              <Sprout className="w-5 h-5" />
+        {/* Planned Target Summary Badges */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          <div className="bg-white border border-emerald-200 rounded-xl p-3 flex items-center gap-3 shadow-2xs">
+            <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+              <Sprout className="w-4.5 h-4.5" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-600">เป้าหมายแปลงสาธิต</p>
-              <p className="text-sm md:text-base font-bold text-slate-900">{planSummary.demoPlotTarget}</p>
+              <p className="text-[11px] font-semibold text-slate-500">เป้าหมายแปลงสาธิต</p>
+              <p className="text-xs md:text-sm font-bold text-slate-900">{planSummary.demoPlotTarget}</p>
             </div>
           </div>
 
-          <div className="bg-white border border-rose-200/80 rounded-xl p-3.5 flex items-center gap-3 shadow-2xs">
-            <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
-              <Target className="w-5 h-5" />
+          <div className="bg-white border border-rose-200 rounded-xl p-3 flex items-center gap-3 shadow-2xs">
+            <div className="w-9 h-9 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+              <Target className="w-4.5 h-4.5" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-600">เป้ายอดขายจากกิจกรรมหน้าร้าน</p>
-              <p className="text-sm md:text-base font-bold text-slate-900">{planSummary.salesTarget}</p>
+              <p className="text-[11px] font-semibold text-slate-500">เป้ายอดขายที่ตั้งไว้</p>
+              <p className="text-xs md:text-sm font-bold text-slate-900">{planSummary.salesTarget}</p>
+            </div>
+          </div>
+
+          <div className="bg-white border border-violet-200 rounded-xl p-3 flex items-center gap-3 shadow-2xs">
+            <div className="w-9 h-9 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center shrink-0">
+              <Users className="w-4.5 h-4.5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold text-slate-500">เป้าผู้เข้าร่วมงาน</p>
+              <p className="text-xs md:text-sm font-bold text-slate-900">{planSummary.attendeeTarget}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* WORK TYPE SELECTOR TABS */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-xs space-y-2">
-        <div className="flex items-center justify-between px-1">
-          <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+      {/* WORK TYPE SELECTOR TABS & DROPDOWN */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
             <Layers className="w-4 h-4 text-blue-600" />
-            เลือกดูตัวอย่างแบบฟอร์มกิจกรรม (11 รูปแบบ):
+            สลับดูแบบฟอร์มตามกิจกรรม (11 รูปแบบ):
           </span>
-          <span className="text-[11px] text-slate-400">เลือกดูเฉพาะกิจกรรม หรือ แสดงทั้งหมด</span>
+          <Select value={activeTypeTab} onValueChange={setActiveTypeTab}>
+            <SelectTrigger className="w-64 h-8 text-xs bg-slate-50 border-slate-300">
+              <SelectValue placeholder="เลือกกิจกรรม" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">📋 แสดงแบบฟอร์มทั้งหมด (All 11 Types)</SelectItem>
+              {WORK_TYPES.map((typeName, idx) => (
+                <SelectItem key={typeName} value={typeName}>
+                  {idx + 1}. {typeName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+
         <div className="flex flex-wrap gap-1.5">
           <button
             type="button"
@@ -430,7 +534,7 @@ export default function ActivityPlanActualView({
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             )}
           >
-            📋 แสดงแบบฟอร์มทั้งหมด (All 11 Types)
+            📋 ทั้งหมด
           </button>
 
           {WORK_TYPES.map((typeName, idx) => (
@@ -473,16 +577,45 @@ export default function ActivityPlanActualView({
         {/* ──────────────────────────────────────────────────────── */}
         {isTypeVisible("เข้าพบร้านค้า / เกษตรกร") && (
           <div className="border-2 border-teal-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-teal-600 text-white font-bold text-sm shadow-2xs">
-                1
-              </span>
-              <h2 className="font-bold text-teal-900 text-base md:text-lg">
-                เข้าพบร้านค้า / เกษตรกร
-              </h2>
+            <div className="flex items-center justify-between border-b border-teal-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-teal-600 text-white font-bold text-sm shadow-2xs">
+                  1
+                </span>
+                <h2 className="font-bold text-teal-900 text-base md:text-lg">
+                  เข้าพบร้านค้า / เกษตรกร
+                </h2>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Structured Target Box */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-teal-600" />
+                  เป้าหมายที่ตั้งไว้ตอนสร้างแผน (Planned Target):
+                </span>
+                <span className="text-[10px] font-bold bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full">
+                  จากฟอร์มสร้างแผน
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">ลูกค้า/ร้านค้า:</span>
+                  <span className="font-bold text-slate-900">{targets.t1.customer}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">หัวข้อเป้าหมาย:</span>
+                  <span className="font-bold text-slate-900">{targets.t1.topic}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">โอกาสขายเป้าหมาย:</span>
+                  <span className="font-bold text-emerald-700">{targets.t1.opportunity}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-800">
                   สินค้าที่ให้คำแนะนำ (ถ้ามี)
@@ -583,16 +716,45 @@ export default function ActivityPlanActualView({
         {/* ──────────────────────────────────────────────────────── */}
         {isTypeVisible("ติดตามผลการใช้สินค้า") && (
           <div className="border-2 border-cyan-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-cyan-600 text-white font-bold text-sm shadow-2xs">
-                2
-              </span>
-              <h2 className="font-bold text-cyan-900 text-base md:text-lg">
-                ติดตามผลการใช้สินค้า
-              </h2>
+            <div className="flex items-center justify-between border-b border-cyan-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-cyan-600 text-white font-bold text-sm shadow-2xs">
+                  2
+                </span>
+                <h2 className="font-bold text-cyan-900 text-base md:text-lg">
+                  ติดตามผลการใช้สินค้า
+                </h2>
+              </div>
             </div>
 
-            <div className="space-y-1.5">
+            {/* Structured Target Box */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-cyan-600" />
+                  เป้าหมายที่ตั้งไว้ตอนสร้างแผน (Planned Target):
+                </span>
+                <span className="text-[10px] font-bold bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded-full">
+                  จากฟอร์มสร้างแผน
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">สินค้าที่ติดตาม:</span>
+                  <span className="font-bold text-slate-900">{targets.t2.product}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">ลูกค้า/ร้านค้า:</span>
+                  <span className="font-bold text-slate-900">{targets.t2.customer}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">คาดหวังผลลัพธ์:</span>
+                  <span className="font-bold text-emerald-700">{targets.t2.expectedResult}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 pt-1">
               <label className="text-sm font-semibold text-slate-800">
                 รายชื่อลูกค้า / ร้านค้า <span className="text-rose-500">*</span>
               </label>
@@ -667,16 +829,45 @@ export default function ActivityPlanActualView({
         {/* ──────────────────────────────────────────────────────── */}
         {isTypeVisible("เสนอขายสินค้า") && (
           <div className="border-2 border-emerald-600 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-sm shadow-2xs">
-                3
-              </span>
-              <h2 className="font-bold text-emerald-900 text-base md:text-lg">
-                เสนอขายสินค้า
-              </h2>
+            <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-sm shadow-2xs">
+                  3
+                </span>
+                <h2 className="font-bold text-emerald-900 text-base md:text-lg">
+                  เสนอขายสินค้า
+                </h2>
+              </div>
             </div>
 
-            <div className="space-y-1.5">
+            {/* Structured Target Box */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-emerald-600" />
+                  เป้าหมายที่ตั้งไว้ตอนสร้างแผน (Planned Target):
+                </span>
+                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                  จากฟอร์มสร้างแผน
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">สินค้าเสนอขาย:</span>
+                  <span className="font-bold text-slate-900">{targets.t3.product}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">เป้าหมายปริมาณ:</span>
+                  <span className="font-bold text-slate-900">{targets.t3.targetQty}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">เป้ายอดขาย:</span>
+                  <span className="font-bold text-emerald-700">{targets.t3.targetSales}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 pt-1">
               <label className="text-sm font-semibold text-slate-800">
                 รายการสินค้าที่ขายได้จริง <span className="text-rose-500">*</span>
               </label>
@@ -739,16 +930,45 @@ export default function ActivityPlanActualView({
         {/* ──────────────────────────────────────────────────────── */}
         {isTypeVisible("วางบิล / เก็บเงิน") && (
           <div className="border-2 border-indigo-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-white font-bold text-sm shadow-2xs">
-                4
-              </span>
-              <h2 className="font-bold text-indigo-900 text-base md:text-lg">
-                วางบิล / เก็บเงิน
-              </h2>
+            <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-white font-bold text-sm shadow-2xs">
+                  4
+                </span>
+                <h2 className="font-bold text-indigo-900 text-base md:text-lg">
+                  วางบิล / เก็บเงิน
+                </h2>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Structured Target Box */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-indigo-600" />
+                  เป้าหมายที่ตั้งไว้ตอนสร้างแผน (Planned Target):
+                </span>
+                <span className="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                  จากฟอร์มสร้างแผน
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">ลูกค้า/ร้านค้า:</span>
+                  <span className="font-bold text-slate-900">{targets.t4.customer}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">เลขที่ออเดอร์:</span>
+                  <span className="font-bold text-slate-900">{targets.t4.orderNo}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">เป้ายอดเก็บเงิน:</span>
+                  <span className="font-bold text-indigo-700">{targets.t4.targetCollect}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-800">
                   เลขที่ออเดอร์ / ใบแจ้งหนี้ <span className="text-rose-500">*</span>
@@ -824,16 +1044,41 @@ export default function ActivityPlanActualView({
         {/* ──────────────────────────────────────────────────────── */}
         {isTypeVisible("สำรวจตลาดของคู่แข่ง") && (
           <div className="border-2 border-amber-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-600 text-white font-bold text-sm shadow-2xs">
-                5
-              </span>
-              <h2 className="font-bold text-amber-900 text-base md:text-lg">
-                สำรวจตลาดของคู่แข่ง
-              </h2>
+            <div className="flex items-center justify-between border-b border-amber-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-600 text-white font-bold text-sm shadow-2xs">
+                  5
+                </span>
+                <h2 className="font-bold text-amber-900 text-base md:text-lg">
+                  สำรวจตลาดของคู่แข่ง
+                </h2>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Structured Target Box */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-amber-600" />
+                  เป้าหมายที่ตั้งไว้ตอนสร้างแผน (Planned Target):
+                </span>
+                <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
+                  จากฟอร์มสร้างแผน
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">ร้านค้าที่สำรวจ:</span>
+                  <span className="font-bold text-slate-900">{targets.t5.store}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">สินค้าเปรียบเทียบ:</span>
+                  <span className="font-bold text-slate-900">{targets.t5.product}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-800">
                   แบรนด์คู่แข่งที่พบหน้างาน <span className="text-rose-500">*</span>
@@ -929,16 +1174,45 @@ export default function ActivityPlanActualView({
         {/* ──────────────────────────────────────────────────────── */}
         {isTypeVisible("แก้ปัญหา / รับเรื่องร้องเรียน") && (
           <div className="border-2 border-rose-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-rose-600 text-white font-bold text-sm shadow-2xs">
-                6
-              </span>
-              <h2 className="font-bold text-rose-900 text-base md:text-lg">
-                แก้ปัญหา / รับเรื่องร้องเรียน
-              </h2>
+            <div className="flex items-center justify-between border-b border-rose-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-rose-600 text-white font-bold text-sm shadow-2xs">
+                  6
+                </span>
+                <h2 className="font-bold text-rose-900 text-base md:text-lg">
+                  แก้ปัญหา / รับเรื่องร้องเรียน
+                </h2>
+              </div>
             </div>
 
-            <div className="space-y-1.5">
+            {/* Structured Target Box */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-rose-600" />
+                  เป้าหมายที่ตั้งไว้ตอนสร้างแผน (Planned Target):
+                </span>
+                <span className="text-[10px] font-bold bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full">
+                  จากฟอร์มสร้างแผน
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">ลูกค้า/ร้านค้า:</span>
+                  <span className="font-bold text-slate-900">{targets.t6.customer}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">ประเภทปัญหา:</span>
+                  <span className="font-bold text-slate-900">{targets.t6.issueType}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">เป้าหมายสถานะ:</span>
+                  <span className="font-bold text-emerald-700">{targets.t6.targetStatus}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 pt-1">
               <label className="text-sm font-semibold text-slate-800">
                 รายละเอียดปัญหา <span className="text-rose-500">*</span>
               </label>
@@ -1034,16 +1308,49 @@ export default function ActivityPlanActualView({
         {/* ──────────────────────────────────────────────────────── */}
         {isTypeVisible("ติดตามแปลงสาธิต / พืชเป้าหมาย") && (
           <div className="border-2 border-emerald-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-sm shadow-2xs">
-                7
-              </span>
-              <h2 className="font-bold text-emerald-800 text-base md:text-lg">
-                ติดตามแปลงสาธิต / พืชเป้าหมาย
-              </h2>
+            <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-sm shadow-2xs">
+                  7
+                </span>
+                <h2 className="font-bold text-emerald-800 text-base md:text-lg">
+                  ติดตามแปลงสาธิต / พืชเป้าหมาย
+                </h2>
+              </div>
             </div>
 
-            <div className="space-y-1.5">
+            {/* Structured Target Box */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-emerald-600" />
+                  เป้าหมายที่ตั้งไว้ตอนสร้างแผน (Planned Target):
+                </span>
+                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                  จากฟอร์มสร้างแผน
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">เจ้าของแปลง:</span>
+                  <span className="font-bold text-slate-900">{targets.t7.owner}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">สินค้าที่สาธิต:</span>
+                  <span className="font-bold text-slate-900">{targets.t7.product}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">พืชเป้าหมาย:</span>
+                  <span className="font-bold text-slate-900">{targets.t7.crop} ({targets.t7.plots})</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">เป้าหมายสภาพพืช:</span>
+                  <span className="font-bold text-emerald-700">{targets.t7.targetCondition}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 pt-1">
               <label className="text-sm font-semibold text-slate-800">
                 ชื่อแปลงสาธิต <span className="text-rose-500">*</span>
               </label>
@@ -1236,16 +1543,41 @@ export default function ActivityPlanActualView({
         {/* ──────────────────────────────────────────────────────── */}
         {isTypeVisible("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์") && (
           <div className="border-2 border-violet-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-600 text-white font-bold text-sm shadow-2xs">
-                8
-              </span>
-              <h2 className="font-bold text-violet-900 text-base md:text-lg">
-                จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์
-              </h2>
+            <div className="flex items-center justify-between border-b border-violet-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-600 text-white font-bold text-sm shadow-2xs">
+                  8
+                </span>
+                <h2 className="font-bold text-violet-900 text-base md:text-lg">
+                  จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์
+                </h2>
+              </div>
             </div>
 
-            <div className="space-y-1.5 max-w-xs">
+            {/* Structured Target Box */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-violet-600" />
+                  เป้าหมายที่ตั้งไว้ตอนสร้างแผน (Planned Target):
+                </span>
+                <span className="text-[10px] font-bold bg-violet-100 text-violet-800 px-2 py-0.5 rounded-full">
+                  จากฟอร์มสร้างแผน
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60 sm:col-span-2">
+                  <span className="text-slate-400 block text-[10px]">หัวข้อประชุม:</span>
+                  <span className="font-bold text-slate-900">{targets.t8.topic}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">เป้าหมายผู้เข้าร่วม:</span>
+                  <span className="font-bold text-violet-700">{targets.t8.targetAttendees}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 max-w-xs pt-1">
               <label className="text-sm font-semibold text-slate-800">
                 จำนวนผู้เข้าร่วมจริง (คน) <span className="text-rose-500">*</span>
               </label>
@@ -1320,16 +1652,45 @@ export default function ActivityPlanActualView({
         {/* ──────────────────────────────────────────────────────── */}
         {isTypeVisible("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") && (
           <div className="border-2 border-blue-600 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-2xs">
-                9
-              </span>
-              <h2 className="font-bold text-blue-900 text-base md:text-lg">
-                จัดกิจกรรมส่งเสริมการขายหน้าร้าน
-              </h2>
+            <div className="flex items-center justify-between border-b border-blue-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-2xs">
+                  9
+                </span>
+                <h2 className="font-bold text-blue-900 text-base md:text-lg">
+                  จัดกิจกรรมส่งเสริมการขายหน้าร้าน
+                </h2>
+              </div>
             </div>
 
-            <div className="space-y-2">
+            {/* Structured Target Box */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-blue-600" />
+                  เป้าหมายที่ตั้งไว้ตอนสร้างแผน (Planned Target):
+                </span>
+                <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                  จากฟอร์มสร้างแผน
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">ร้านค้าจัดกิจกรรม:</span>
+                  <span className="font-bold text-slate-900">{targets.t9.store}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">เป้ายอดขายหน้าร้าน:</span>
+                  <span className="font-bold text-blue-700">{targets.t9.targetSales}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">เป้าหมายผู้เข้าร่วม:</span>
+                  <span className="font-bold text-slate-900">{targets.t9.targetAttendees}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-1">
               <label className="text-sm font-semibold text-slate-800">
                 รูปแบบกิจกรรม <span className="text-rose-500">*</span>
               </label>
@@ -1447,16 +1808,45 @@ export default function ActivityPlanActualView({
         {/* ──────────────────────────────────────────────────────── */}
         {isTypeVisible("จัดงาน Field Day") && (
           <div className="border-2 border-orange-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-white font-bold text-sm shadow-2xs">
-                10
-              </span>
-              <h2 className="font-bold text-orange-900 text-base md:text-lg">
-                จัดงาน Field Day
-              </h2>
+            <div className="flex items-center justify-between border-b border-orange-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-white font-bold text-sm shadow-2xs">
+                  10
+                </span>
+                <h2 className="font-bold text-orange-900 text-base md:text-lg">
+                  จัดงาน Field Day
+                </h2>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Structured Target Box */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-orange-600" />
+                  เป้าหมายที่ตั้งไว้ตอนสร้างแผน (Planned Target):
+                </span>
+                <span className="text-[10px] font-bold bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full">
+                  จากฟอร์มสร้างแผน
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">แปลงสาธิตจัดงาน:</span>
+                  <span className="font-bold text-slate-900">{targets.t10.plot}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">เป้าหมายผู้เข้าร่วม:</span>
+                  <span className="font-bold text-slate-900">{targets.t10.targetAttendees}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">เป้ายอดขาย/จอง:</span>
+                  <span className="font-bold text-orange-700">{targets.t10.targetSales}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-800">
                   จำนวนผู้เข้าร่วมจริง (คน) <span className="text-rose-500">*</span>
@@ -1577,16 +1967,41 @@ export default function ActivityPlanActualView({
         {/* ──────────────────────────────────────────────────────── */}
         {isTypeVisible("ตรวจเช็กสต็อกหน้าร้าน") && (
           <div className="border-2 border-slate-600 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-700 text-white font-bold text-sm shadow-2xs">
-                11
-              </span>
-              <h2 className="font-bold text-slate-900 text-base md:text-lg">
-                ตรวจเช็กสต็อกหน้าร้าน
-              </h2>
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-700 text-white font-bold text-sm shadow-2xs">
+                  11
+                </span>
+                <h2 className="font-bold text-slate-900 text-base md:text-lg">
+                  ตรวจเช็กสต็อกหน้าร้าน
+                </h2>
+              </div>
             </div>
 
-            <div className="space-y-1.5">
+            {/* Structured Target Box */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-slate-600" />
+                  เป้าหมายที่ตั้งไว้ตอนสร้างแผน (Planned Target):
+                </span>
+                <span className="text-[10px] font-bold bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full">
+                  จากฟอร์มสร้างแผน
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">ร้านค้าตรวจเช็ก:</span>
+                  <span className="font-bold text-slate-900">{targets.t11.store}</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg border border-slate-200/60">
+                  <span className="text-slate-400 block text-[10px]">โอกาสสั่งซื้อเป้าหมาย:</span>
+                  <span className="font-bold text-emerald-700">{targets.t11.targetOpportunity}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 pt-1">
               <label className="text-sm font-semibold text-slate-800">
                 รายการสินค้าที่ตรวจเช็ก <span className="text-rose-500">*</span>
               </label>
