@@ -19,6 +19,7 @@ import {
   Clock,
   ShieldCheck,
   User,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -93,56 +94,73 @@ export default function ActivityPlanDetailView({ id }: Props) {
     canApproveThisStep = userEmployeeId === plan.currentApproverId;
     approvalPrompt = "คุณคือหัวหน้างานในสายการอนุมัติกิจกรรมนี้";
   } else if (plan.status === "PENDING_BUDGET_APPROVAL") {
-    // Check budget conditions
-    const hasSalesPromo = plan.salesPromotionBudget && Number(plan.salesPromotionBudget) > 0;
-    const hasMkt = plan.marketingBudget && Number(plan.marketingBudget) > 0;
-
     const canApproveBudget = session?.user?.permissionKeys?.includes("activity.approve") || session?.user?.permissionKeys?.includes("activity.manage");
     if (canApproveBudget) {
-      if (hasSalesPromo && plan.salesPromotionApproved !== true) {
-        canApproveThisStep = true;
-        approvalPrompt = "อนุมัติในฐานะ: ผู้จัดการแผนกบริหารงานขาย (งบส่งเสริมการขาย)";
-      } else if (hasMkt && plan.marketingApproved !== true) {
-        canApproveThisStep = true;
-        approvalPrompt = "อนุมัติในฐานะ: ผู้จัดการแผนกการตลาด (งบการตลาด)";
-      } else if (plan.salesManagerApproved !== true) {
-        canApproveThisStep = true;
-        approvalPrompt = "อนุมัติในฐานะ: ผู้จัดการฝ่ายขาย (งบประมาณภาพรวม)";
-      }
+      canApproveThisStep = true;
+      approvalPrompt = "คุณมีสิทธิ์อนุมัติงบประมาณกิจกรรม";
     }
   } else if (plan.status === "PENDING_HELPER_APPROVAL") {
-    const canApproveHelpers = session?.user?.permissionKeys?.includes("activity.approve") || session?.user?.permissionKeys?.includes("activity.manage");
-    if (canApproveHelpers) {
-      // Find if there are helpers in PENDING status
-      const hasPendingHelpers = plan.helpers.some((h) => h.status === "PENDING");
-      if (hasPendingHelpers) {
-        canApproveThisStep = true;
-        approvalPrompt = "อนุมัติในฐานะ: ผู้จัดการแผนกของพนักงานช่วยงาน";
-      }
+    const isHelperManager = plan.helpers.some(h => h.employeeId === userEmployeeId || h.approvedById === userEmployeeId);
+    if (isHelperManager || session?.user?.permissionKeys?.includes("activity.manage")) {
+      canApproveThisStep = true;
+      approvalPrompt = "คุณคือผู้จัดการแผนกของพนักงานช่วยงาน";
     }
   }
 
-  // Handle actions
-  const handleAction = async (action: "APPROVE" | "REJECT" | "REQUEST_CORRECTION") => {
-    if (submitting) return;
+  const handleApprove = async () => {
     setSubmitting(true);
     setError(null);
-
     try {
-      let res;
-      if (action === "APPROVE") {
-        res = await approveActivityPlanAction(plan.id, comment);
-      } else if (action === "REJECT") {
-        res = await rejectActivityPlanAction(plan.id, comment);
-      } else if (action === "REQUEST_CORRECTION") {
-        res = await requestCorrectionPlanAction(plan.id, comment);
-      }
-
-      if (res && res.success) {
+      const res = await approveActivityPlanAction(plan.id, comment);
+      if (res.success) {
         setComment("");
-        loadData(); // Refresh details
+        loadData();
       } else {
-        setError(res?.error || "เกิดข้อผิดพลาดในการดำเนินงาน");
+        setError(res.error || "เกิดข้อผิดพลาดในการอนุมัติ");
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!comment.trim()) {
+      setError("กรุณาระบุความเห็นกรณีปฏิเสธแผน");
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await rejectActivityPlanAction(plan.id, comment);
+      if (res.success) {
+        setComment("");
+        loadData();
+      } else {
+        setError(res.error || "เกิดข้อผิดพลาดในการปฏิเสธ");
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleRequestCorrection = async () => {
+    if (!comment.trim()) {
+      setError("กรุณาระบุสิ่งที่ต้องแก้ไขในความเห็น");
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await requestCorrectionPlanAction(plan.id, comment);
+      if (res.success) {
+        setComment("");
+        loadData();
+      } else {
+        setError(res.error || "เกิดข้อผิดพลาดในการตีกลับแก้ไข");
       }
     } catch (err: any) {
       setError(err.message);
@@ -175,11 +193,20 @@ export default function ActivityPlanDetailView({ id }: Props) {
 
   return (
     <section className="space-y-6 p-6 pb-24 md:pb-8 max-w-5xl">
-      <div className="flex items-center gap-3">
-        <Button variant="outline" size="icon" onClick={() => router.push("/activity-plans")} className="rounded-full">
-          <ArrowLeft className="h-4 w-4" />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="icon" onClick={() => router.push("/activity-plans")} className="rounded-full">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <PageHeader title={plan.title} description="รายละเอียดแผนงาน สถานะการอนุมัติ และบันทึกประวัติการดำเนินการทั้งหมด" />
+        </div>
+        <Button
+          onClick={() => router.push(`/activity-plans/${plan.id}/actual`)}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-sm"
+        >
+          <ClipboardList className="h-4 w-4" />
+          บันทึกผลปฏิบัติงาน (Actual)
         </Button>
-        <PageHeader title={plan.title} description="รายละเอียดแผนงาน สถานะการอนุมัติ และบันทึกประวัติการดำเนินการทั้งหมด" />
       </div>
 
       {error && (
@@ -356,7 +383,7 @@ export default function ActivityPlanDetailView({ id }: Props) {
               />
               <div className="grid gap-2 grid-cols-2">
                 <Button
-                  onClick={() => handleAction("APPROVE")}
+                  onClick={handleApprove}
                   disabled={submitting}
                   className="bg-green-600 hover:bg-green-700 text-white font-semibold col-span-2 flex items-center gap-1.5"
                 >
@@ -365,7 +392,7 @@ export default function ActivityPlanDetailView({ id }: Props) {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => handleAction("REQUEST_CORRECTION")}
+                  onClick={handleRequestCorrection}
                   disabled={submitting || !comment.trim()}
                   className="text-amber-600 border-amber-200 hover:bg-amber-50 font-semibold flex items-center gap-1.5"
                   title={!comment.trim() ? "กรุณากรอกเหตุผลด้านบนเพื่อตีกลับแก้ไข" : ""}
@@ -375,7 +402,7 @@ export default function ActivityPlanDetailView({ id }: Props) {
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() => handleAction("REJECT")}
+                  onClick={handleReject}
                   disabled={submitting}
                   className="font-semibold flex items-center gap-1.5"
                 >

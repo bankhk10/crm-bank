@@ -5,7 +5,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Eye, Edit, Trash2, Send, PlusCircle, Filter } from "lucide-react";
+import { Eye, Edit, Trash2, Send, PlusCircle, Filter, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations, ActivityStatus } from "../../types";
 import { ActivityStatusBadge } from "../../ui/activity-status-badge";
@@ -101,10 +101,10 @@ export function ActivityPlanTable({
       },
       {
         accessorKey: "location",
-        header: "พื้นที่จัดงาน",
+        header: "สถานที่",
         cell: (info) => (
           <div className="truncate max-w-[150px]" title={info.getValue() as string}>
-            {info.getValue() as string}
+            {(info.getValue() as string) || "-"}
           </div>
         ),
       },
@@ -162,7 +162,7 @@ export function ActivityPlanTable({
       },
       {
         id: "actions",
-        header: "จัดการ",
+        header: "การจัดการ",
         cell: ({ row }) => {
           const item = row.original;
           const isDraft = item.status === "DRAFT";
@@ -179,6 +179,13 @@ export function ActivityPlanTable({
                 colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
               />
 
+              <ActionButton
+                href={`/activity-plans/${item.id}/actual`}
+                icon={ClipboardList}
+                label="บันทึกผล"
+                colorClass="text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-md"
+              />
+
               {editable && (
                 submitLoadingId === item.id ? (
                   <span className="text-xs text-slate-400 animate-pulse font-medium px-2 py-1 select-none">กำลังส่ง...</span>
@@ -186,7 +193,7 @@ export function ActivityPlanTable({
                   <ActionButton
                     icon={Send}
                     label="ส่งขออนุมัติ"
-                    colorClass="text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-md"
+                    colorClass="text-teal-600 border-teal-100 hover:bg-teal-50 rounded-md"
                     onClick={() => onSubmitApproval(item)}
                   />
                 )
@@ -241,7 +248,13 @@ export function ActivityPlanTable({
           </div>
         }
       />
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end gap-3">
+        <Link href="/activity-plans/actual" className="w-full sm:w-auto">
+          <Button variant="outline" className="w-full lg:w-auto border-emerald-600 text-emerald-700 hover:bg-emerald-50 flex items-center gap-2">
+            <ClipboardList className="h-4 w-4 text-emerald-600" />
+            บันทึกผลปฏิบัติงาน (Actual)
+          </Button>
+        </Link>
         {canCreate ? (
           <Link href="/activity-plans/new" className="w-full sm:w-auto">
             <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">

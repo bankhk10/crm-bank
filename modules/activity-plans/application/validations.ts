@@ -35,5 +35,28 @@ export const activityApprovalSchema = z.object({
   comment: z.string().optional().nullable(),
 });
 
+export const actualRecordSchema = z.object({
+  planId: z.string().optional(),
+  plotName: z.string().min(1, "กรุณากรอกชื่อแปลงสาธิต"),
+  usageMethod: z.string().min(1, "กรุณากรอกวิธีการใช้ / อัตราการใช้"),
+  cropAgeValue: z.coerce.number().min(0, "อายุพืชต้องไม่ติดลบ"),
+  cropAgeUnit: z.string().default("วัน"),
+  growthStage: z.string().min(1, "กรุณาเลือกระยะการเจริญเติบโต"),
+  cropCondition: z.enum(["สมบูรณ์", "ไม่เปลี่ยนแปลง", "ทรุดโทรม"], {
+    required_error: "กรุณาเลือกสภาพพืช",
+  }),
+  productResponse: z.enum(["พืชตอบสนองดี", "ยังไม่เห็นผลชัดเจน", "พบปัญหา"], {
+    required_error: "กรุณาเลือกผลการใช้ผลิตภัณฑ์",
+  }),
+  problemDescription: z.string().max(500, "ระบุปัญหาที่พบต้องไม่เกิน 500 ตัวอักษร").optional().nullable(),
+  plotImageUrls: z.array(z.string()).default([]),
+  activityFormat: z.string().min(1, "กรุณาเลือกรูปแบบกิจกรรม"),
+  actualSales: z.coerce.number().min(0, "ยอดขายต้องไม่ติดลบ"),
+  actualAttendees: z.coerce.number().min(0, "จำนวนลูกค้าต้องไม่ติดลบ"),
+  atmosphereImageUrls: z.array(z.string()).default([]),
+});
+
 export type ActivityPlanFormValues = z.infer<typeof activityPlanSchema>;
 export type ActivityApprovalFormValues = z.infer<typeof activityApprovalSchema>;
+export type ActivityActualFormValues = z.infer<typeof actualRecordSchema>;
+
