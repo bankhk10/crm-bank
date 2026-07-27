@@ -132,9 +132,13 @@ export default function ActivityPlanActualView({
       ],
     },
     t4: {
-      customer: DEMO_OWNERS[0],
+      customer: `${DEMO_OWNERS[0]}, บริษัท ทรัพย์เกษตร จำกัด`,
       orderNo: "INV-2026-0789",
       targetCollect: "25,500 บาท",
+      items: [
+        { companyName: DEMO_OWNERS[0], targetCollect: "15,500 บาท", receivedAmount: "15500" },
+        { companyName: "บริษัท ทรัพย์เกษตร จำกัด", targetCollect: "10,000 บาท", receivedAmount: "10000" },
+      ],
     },
     t5: {
       store: STORES_LIST[0],
