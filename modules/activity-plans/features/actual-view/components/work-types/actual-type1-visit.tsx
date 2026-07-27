@@ -84,7 +84,7 @@ export function ActualType1Visit({
             สินค้าที่ให้คำแนะนำ (ถ้ามี)
           </label>
           <Select value={productAdvice} onValueChange={setProductAdvice}>
-            <SelectTrigger className="bg-white border-slate-300">
+            <SelectTrigger className="w-full bg-white border-slate-300">
               <SelectValue placeholder="เลือกสินค้าที่ให้คำแนะนำ" />
             </SelectTrigger>
             <SelectContent>
