@@ -19,7 +19,9 @@ interface ActualType2FollowupProps {
   detail: string;
   setDetail: (v: string) => void;
   usageResult: "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "";
-  setUsageResult: (v: "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "") => void;
+  setUsageResult: (
+    v: "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "",
+  ) => void;
   problemDetail: string;
   setProblemDetail: (v: string) => void;
 }
@@ -57,7 +59,6 @@ export function ActualType2Followup({
         items={[
           { label: "สินค้าที่ติดตาม:", value: target.product },
           { label: "ลูกค้า/ร้านค้า:", value: target.customer },
-          { label: "คาดหวังผลลัพธ์:", value: target.expectedResult, highlight: true },
         ]}
       />
 
@@ -105,7 +106,7 @@ export function ActualType2Followup({
                       : resOpt === "ยังไม่เห็นผลชัดเจน"
                         ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
                         : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
-                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50",
                 )}
               >
                 <span>
@@ -117,7 +118,7 @@ export function ActualType2Followup({
                 </span>
                 <span>{resOpt}</span>
               </button>
-            )
+            ),
           )}
         </div>
       </div>
