@@ -117,7 +117,8 @@ export default function ActivityPlanActualView({
     t6: {
       customer: DEMO_OWNERS[0],
       issueType: "เคลมของ",
-      detail: "รับเรื่องร้องเรียนเรื่องสินค้าจากลูกค้าเพื่อประสานงานเปลี่ยน/เคลมสินค้า",
+      detail:
+        "รับเรื่องร้องเรียนเรื่องสินค้าจากลูกค้าเพื่อประสานงานเปลี่ยน/เคลมสินค้า",
       targetStatus: "เสร็จสิ้น",
     },
     t7: {
@@ -160,14 +161,18 @@ export default function ActivityPlanActualView({
   const [t1ProductAdvice, setT1ProductAdvice] = useState("");
   const [t1Detail, setT1Detail] = useState("");
   const [t1DiscussionResult, setT1DiscussionResult] = useState("");
-  const [t1SalesOpportunity, setT1SalesOpportunity] = useState<"สูง" | "กลาง" | "ต่ำ" | "">("");
+  const [t1SalesOpportunity, setT1SalesOpportunity] = useState<
+    "สูง" | "กลาง" | "ต่ำ" | ""
+  >("");
   const [t1NextAction, setT1NextAction] = useState("");
   const [t1NextMeetingDate, setT1NextMeetingDate] = useState("");
 
   // Type 2: ติดตามผลการใช้สินค้า
   const [t2CustomerName, setT2CustomerName] = useState("");
   const [t2Detail, setT2Detail] = useState("");
-  const [t2UsageResult, setT2UsageResult] = useState<"พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "">("");
+  const [t2UsageResult, setT2UsageResult] = useState<
+    "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | ""
+  >("");
   const [t2ProblemDetail, setT2ProblemDetail] = useState("");
 
   // Type 3: เสนอขายสินค้า
@@ -179,20 +184,26 @@ export default function ActivityPlanActualView({
   // Type 4: วางบิล / เก็บเงิน
   const [t4OrderNo, setT4OrderNo] = useState("");
   const [t4ReceivedAmount, setT4ReceivedAmount] = useState("");
-  const [t4PaymentImages, setT4PaymentImages] = useState<Array<{ id: string; url: string; name: string }>>([]);
+  const [t4PaymentImages, setT4PaymentImages] = useState<
+    Array<{ id: string; url: string; name: string }>
+  >([]);
 
   // Type 5: สำรวจตลาดของคู่แข่ง
   const [t5CompetitorBrand, setT5CompetitorBrand] = useState("");
   const [t5CompetitorProduct, setT5CompetitorProduct] = useState("");
   const [t5CompetitorPrice, setT5CompetitorPrice] = useState("");
   const [t5PromotionDetail, setT5PromotionDetail] = useState("");
-  const [t5PriceTagImages, setT5PriceTagImages] = useState<Array<{ id: string; url: string; name: string }>>([]);
+  const [t5PriceTagImages, setT5PriceTagImages] = useState<
+    Array<{ id: string; url: string; name: string }>
+  >([]);
 
   // Type 6: แก้ปัญหา / รับเรื่องร้องเรียน
   const [t6ProblemDetail, setT6ProblemDetail] = useState("");
   const [t6InitialSolution, setT6InitialSolution] = useState("");
   const [t6Status, setT6Status] = useState<"เสร็จสิ้น" | "รอติดตาม" | "">("");
-  const [t6Images, setT6Images] = useState<Array<{ id: string; url: string; name: string }>>([]);
+  const [t6Images, setT6Images] = useState<
+    Array<{ id: string; url: string; name: string }>
+  >([]);
 
   // Type 7: ติดตามแปลงสาธิต / พืชเป้าหมาย
   const [t7PlotName, setT7PlotName] = useState("");
@@ -200,33 +211,51 @@ export default function ActivityPlanActualView({
   const [t7CropAgeValue, setT7CropAgeValue] = useState("");
   const [t7CropAgeUnit, setT7CropAgeUnit] = useState("วัน");
   const [t7GrowthStage, setT7GrowthStage] = useState("");
-  const [t7CropCondition, setT7CropCondition] = useState<"สมบูรณ์" | "ปานกลาง" | "ทรุดโทรม" | "">("");
-  const [t7ProductResponse, setT7ProductResponse] = useState<"พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "">("");
+  const [t7CropCondition, setT7CropCondition] = useState<
+    "สมบูรณ์" | "ปานกลาง" | "ทรุดโทรม" | ""
+  >("");
+  const [t7ProductResponse, setT7ProductResponse] = useState<
+    "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | ""
+  >("");
   const [t7ProblemDescription, setT7ProblemDescription] = useState("");
-  const [t7PlotImages, setT7PlotImages] = useState<Array<{ id: string; url: string; name: string }>>([]);
+  const [t7PlotImages, setT7PlotImages] = useState<
+    Array<{ id: string; url: string; name: string }>
+  >([]);
 
   // Type 8: จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์
   const [t8ActualAttendees, setT8ActualAttendees] = useState("");
   const [t8FeedbackQnA, setT8FeedbackQnA] = useState("");
-  const [t8Images, setT8Images] = useState<Array<{ id: string; url: string; name: string }>>([]);
+  const [t8Images, setT8Images] = useState<
+    Array<{ id: string; url: string; name: string }>
+  >([]);
 
   // Type 9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน
   const [t9Formats, setT9Formats] = useState<string[]>([]);
   const [t9ActualSales, setT9ActualSales] = useState("");
   const [t9ActualAttendees, setT9ActualAttendees] = useState("");
-  const [t9Images, setT9Images] = useState<Array<{ id: string; url: string; name: string }>>([]);
+  const [t9Images, setT9Images] = useState<
+    Array<{ id: string; url: string; name: string }>
+  >([]);
 
   // Type 10: จัดงาน Field Day
   const [t10ActualAttendees, setT10ActualAttendees] = useState("");
   const [t10ActualSalesOrBooking, setT10ActualSalesOrBooking] = useState("");
   const [t10TargetFarmersList, setT10TargetFarmersList] = useState("");
-  const [t10FarmerFeedback, setT10FarmerFeedback] = useState<"สูง" | "กลาง" | "ต่ำ" | "">("");
-  const [t10Images, setT10Images] = useState<Array<{ id: string; url: string; name: string }>>([]);
+  const [t10FarmerFeedback, setT10FarmerFeedback] = useState<
+    "สูง" | "กลาง" | "ต่ำ" | ""
+  >("");
+  const [t10Images, setT10Images] = useState<
+    Array<{ id: string; url: string; name: string }>
+  >([]);
 
   // Type 11: ตรวจเช็กสต็อกหน้าร้าน
   const [t11ProductList, setT11ProductList] = useState("");
-  const [t11StockStatus, setT11StockStatus] = useState<"ใกล้หมด" | "ขาดสต็อก" | "">("");
-  const [t11ReorderOpportunity, setT11ReorderOpportunity] = useState<"สูง" | "กลาง" | "ต่ำ" | "">("");
+  const [t11StockStatus, setT11StockStatus] = useState<
+    "ใกล้หมด" | "ขาดสต็อก" | ""
+  >("");
+  const [t11ReorderOpportunity, setT11ReorderOpportunity] = useState<
+    "สูง" | "กลาง" | "ต่ำ" | ""
+  >("");
   const [t11NextAction, setT11NextAction] = useState("");
 
   // Form submitting & notifications
@@ -245,14 +274,16 @@ export default function ActivityPlanActualView({
           const p = res.plan;
           const start = p.startDate ? new Date(p.startDate) : new Date();
           const end = p.endDate ? new Date(p.endDate) : new Date();
-          
+
           setPlanSummary({
             title: p.title || "แปลงสาธิตของบ้านนา",
             dateStr: format(start, "d MMM yyyy", { locale: th }),
             timeStr: `${format(start, "HH:mm")} - ${format(end, "HH:mm")}`,
             locationStr: p.location || `${DEMO_OWNERS[0]} อ.เมือง จ.จันทบุรี`,
             demoPlotTarget: p.objective || "1 แปลง | 20 ต้น",
-            salesTarget: p.salesPromotionBudget ? `${Number(p.salesPromotionBudget).toLocaleString()} บาท` : "35,000 บาท",
+            salesTarget: p.salesPromotionBudget
+              ? `${Number(p.salesPromotionBudget).toLocaleString()} บาท`
+              : "35,000 บาท",
             attendeeTarget: "40 คน",
           });
         }
@@ -268,21 +299,35 @@ export default function ActivityPlanActualView({
   // PRE-FILL SAMPLE DATA FOR ALL 11 WORK TYPES
   const fillAllSampleData = () => {
     // Type 1
-    setT1ProductAdvice(`${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[3] || "ปุ๋ยเคมีสูตรพิเศษ"}`);
-    setT1Detail(`เข้าพบเจ้าของ ${DEMO_OWNERS[0]} เพื่อแนะนำเทคนิคการดูแลพืชสวนช่วงทำใบ`);
-    setT1DiscussionResult(`ลูกค้าสนใจสั่งซื้อ ${DEMO_PRODUCTS[0]} ไปทดลองวางหน้าร้าน 50 ชุด และขอป้ายส่งเสริมการขาย`);
+    setT1ProductAdvice(
+      `${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[3] || "ปุ๋ยเคมีสูตรพิเศษ"}`,
+    );
+    setT1Detail(
+      `เข้าพบเจ้าของ ${DEMO_OWNERS[0]} เพื่อแนะนำเทคนิคการดูแลพืชสวนช่วงทำใบ`,
+    );
+    setT1DiscussionResult(
+      `ลูกค้าสนใจสั่งซื้อ ${DEMO_PRODUCTS[0]} ไปทดลองวางหน้าร้าน 50 ชุด และขอป้ายส่งเสริมการขาย`,
+    );
     setT1SalesOpportunity("สูง");
-    setT1NextAction("นำส่งใบเสนอราคาพร้อมส่วนลดพิเศษ 5% และนำตัวอย่างสินค้ามาให้หน้าร้านลอง");
+    setT1NextAction(
+      "นำส่งใบเสนอราคาพร้อมส่วนลดพิเศษ 5% และนำตัวอย่างสินค้ามาให้หน้าร้านลอง",
+    );
     setT1NextMeetingDate("2026-08-05");
 
     // Type 2
-    setT2CustomerName(`${DEMO_OWNERS[0]} / ${DEMO_OWNERS[3] || "ร้านสหายพานิช"}`);
-    setT2Detail(`ติดตามผลหลังเกษตรกรนำ ${DEMO_PRODUCTS[0]} ไปฉีดพ่นทางใบผ่านไป 10 วัน`);
+    setT2CustomerName(
+      `${DEMO_OWNERS[0]} / ${DEMO_OWNERS[3] || "ร้านสหายพานิช"}`,
+    );
+    setT2Detail(
+      `ติดตามผลหลังเกษตรกรนำ ${DEMO_PRODUCTS[0]} ไปฉีดพ่นทางใบผ่านไป 10 วัน`,
+    );
     setT2UsageResult("พืชตอบสนองดี");
     setT2ProblemDetail("");
 
     // Type 3
-    setT3SoldProducts(`${DEMO_PRODUCTS[0]} (30 กระสอบ), ${DEMO_PRODUCTS[1]} (15 ขวด)`);
+    setT3SoldProducts(
+      `${DEMO_PRODUCTS[0]} (30 กระสอบ), ${DEMO_PRODUCTS[1]} (15 ขวด)`,
+    );
     setT3ActualSales("35500");
     setT3ActualQuantity("45 ชิ้น");
     setT3UnclosedReason("ปิดการขายได้สำเร็จตามเป้าหมาย");
@@ -295,26 +340,38 @@ export default function ActivityPlanActualView({
     setT5CompetitorBrand("ตราเกษตรทองคำ, เสือคู่พรีเมียม");
     setT5CompetitorProduct(`เทียบกับ ${DEMO_PRODUCTS[0]} (ปุ๋ยทางใบ 1 ลิตร)`);
     setT5CompetitorPrice("850 บาท/ขวด");
-    setT5PromotionDetail("จัดโปรโมชัน ซื้อ 10 แถม 1 พร้อมแจกเสื้อยืดพนักงานหน้าร้าน");
+    setT5PromotionDetail(
+      "จัดโปรโมชัน ซื้อ 10 แถม 1 พร้อมแจกเสื้อยืดพนักงานหน้าร้าน",
+    );
 
     // Type 6
-    setT6ProblemDetail(`ลูกค้าร้องเรียนเรื่องสินค้า ${DEMO_PRODUCTS[0]} ตกตะกอนเมื่อผสมน้ำในถัง 200 ลิตร`);
-    setT6InitialSolution("แนะนำการผสมน้ำอุ่นกวนให้ละลายก่อนเทลงถังใหญ่ พร้อมเปลี่ยนสินค้าล็อตใหม่ให้ลูกค้าทันที");
+    setT6ProblemDetail(
+      `ลูกค้าร้องเรียนเรื่องสินค้า ${DEMO_PRODUCTS[0]} ตกตะกอนเมื่อผสมน้ำในถัง 200 ลิตร`,
+    );
+    setT6InitialSolution(
+      "แนะนำการผสมน้ำอุ่นกวนให้ละลายก่อนเทลงถังใหญ่ พร้อมเปลี่ยนสินค้าล็อตใหม่ให้ลูกค้าทันที",
+    );
     setT6Status("เสร็จสิ้น");
 
     // Type 7
     setT7PlotName("แปลงทดสอบบ้านนา");
-    setT7UsageMethod(`ฉีดพ่น ${DEMO_PRODUCTS[0]} อัตรา 50cc/น้ำ 20L ทุกๆ 7 วัน`);
+    setT7UsageMethod(
+      `ฉีดพ่น ${DEMO_PRODUCTS[0]} อัตรา 50cc/น้ำ 20L ทุกๆ 7 วัน`,
+    );
     setT7CropAgeValue("45");
     setT7CropAgeUnit("วัน");
     setT7GrowthStage("ระยะเจริญเติบโตทางลำต้น/ใบ");
     setT7CropCondition("สมบูรณ์");
     setT7ProductResponse("พบปัญหา");
-    setT7ProblemDescription("พบคราบใบไหม้เล็กน้อยบริเวณขอบใบ เนื่องจากสภาพอากาศแดดจัดจัดในวันที่ฉีดพ่น");
+    setT7ProblemDescription(
+      "พบคราบใบไหม้เล็กน้อยบริเวณขอบใบ เนื่องจากสภาพอากาศแดดจัดจัดในวันที่ฉีดพ่น",
+    );
 
     // Type 8
     setT8ActualAttendees("35");
-    setT8FeedbackQnA(`เกษตรกรสอบถามเรื่องการใช้ ${DEMO_PRODUCTS[0]} ร่วมกับชีวภัณฑ์ป้องกันรากเน่า และต้องการแผ่นพับตารางการใส่ปุ๋ยรายเดือน`);
+    setT8FeedbackQnA(
+      `เกษตรกรสอบถามเรื่องการใช้ ${DEMO_PRODUCTS[0]} ร่วมกับชีวภัณฑ์ป้องกันรากเน่า และต้องการแผ่นพับตารางการใส่ปุ๋ยรายเดือน`,
+    );
 
     // Type 9
     setT9Formats(["การสะสมคะแนน", "กิจกรรมลูกค้าสัมพันธ์"]);
@@ -324,18 +381,28 @@ export default function ActivityPlanActualView({
     // Type 10
     setT10ActualAttendees("120");
     setT10ActualSalesOrBooking("150000");
-    setT10TargetFarmersList("นายประเสริฐ (100 ไร่), นายวิชัย (50 ไร่), สวนผู้ใหญ่สมศักดิ์");
+    setT10TargetFarmersList(
+      "นายประเสริฐ (100 ไร่), นายวิชัย (50 ไร่), สวนผู้ใหญ่สมศักดิ์",
+    );
     setT10FarmerFeedback("สูง");
 
     // Type 11
-    setT11ProductList(`${DEMO_PRODUCTS[0]} (50 กระสอบ), ${DEMO_PRODUCTS[1]} (20 ขวด)`);
+    setT11ProductList(
+      `${DEMO_PRODUCTS[0]} (50 กระสอบ), ${DEMO_PRODUCTS[1]} (20 ขวด)`,
+    );
     setT11StockStatus("ใกล้หมด");
     setT11ReorderOpportunity("สูง");
-    setT11NextAction("แจ้งฝ่ายขายออกใบสั่งซื้อสินค้าเติมสต็อกหน้าร้านภายในวันจันทร์นี้");
+    setT11NextAction(
+      "แจ้งฝ่ายขายออกใบสั่งซื้อสินค้าเติมสต็อกหน้าร้านภายในวันจันทร์นี้",
+    );
   };
 
   // Image Upload Handler Simulation
-  const createUploadHandler = (setter: React.Dispatch<React.SetStateAction<Array<{ id: string; url: string; name: string }>>>) => {
+  const createUploadHandler = (
+    setter: React.Dispatch<
+      React.SetStateAction<Array<{ id: string; url: string; name: string }>>
+    >,
+  ) => {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
       if (!e.target.files?.length) return;
       const files = Array.from(e.target.files);
@@ -348,7 +415,12 @@ export default function ActivityPlanActualView({
     };
   };
 
-  const removeImage = (setter: React.Dispatch<React.SetStateAction<Array<{ id: string; url: string; name: string }>>>, imgId: string) => {
+  const removeImage = (
+    setter: React.Dispatch<
+      React.SetStateAction<Array<{ id: string; url: string; name: string }>>
+    >,
+    imgId: string,
+  ) => {
     setter((prev) => prev.filter((img) => img.id !== imgId));
   };
 
@@ -410,9 +482,14 @@ export default function ActivityPlanActualView({
           </Button>
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
-              บันทึกผลการปฏิบัติงาน <span className="text-slate-500 font-medium text-lg">(Actual)</span>
+              บันทึกผลการปฏิบัติงาน{" "}
+              <span className="text-slate-500 font-medium text-lg">
+                (Actual)
+              </span>
             </h1>
-            <p className="text-sm text-slate-500">เปรียบเทียบเป้าหมายและบันทึกผลปฏิบัติงานจริง</p>
+            <p className="text-sm text-slate-500">
+              เปรียบเทียบเป้าหมายและบันทึกผลปฏิบัติงานจริง
+            </p>
           </div>
         </div>
 
@@ -425,6 +502,62 @@ export default function ActivityPlanActualView({
           <Sparkles className="w-4 h-4 text-yellow-300 animate-bounce" />
           <span>เติมข้อมูลตัวอย่าง (ทั้ง 11 กิจกรรม)</span>
         </Button>
+      </div>
+
+      {/* WORK TYPE SELECTOR TABS & DROPDOWN */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <Layers className="w-4 h-4 text-blue-600" />
+            สลับดูแบบฟอร์มตามกิจกรรม (11 รูปแบบ):
+          </span>
+          <Select value={activeTypeTab} onValueChange={setActiveTypeTab}>
+            <SelectTrigger className="w-64 h-8 text-xs bg-slate-50 border-slate-300">
+              <SelectValue placeholder="เลือกกิจกรรม" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">
+                📋 แสดงแบบฟอร์มทั้งหมด (All 11 Types)
+              </SelectItem>
+              {WORK_TYPES.map((typeName, idx) => (
+                <SelectItem key={typeName} value={typeName}>
+                  {idx + 1}. {typeName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => setActiveTypeTab("ALL")}
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+              activeTypeTab === "ALL"
+                ? "bg-slate-900 text-white shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+            )}
+          >
+            📋 ทั้งหมด
+          </button>
+
+          {WORK_TYPES.map((typeName, idx) => (
+            <button
+              key={typeName}
+              type="button"
+              onClick={() => setActiveTypeTab(typeName)}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer",
+                activeTypeTab === typeName
+                  ? "bg-blue-600 text-white shadow-xs font-semibold"
+                  : "bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100",
+              )}
+            >
+              {idx + 1}. {typeName.split(" / ")[0]}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ──────────────────────────────────────────────────────── */}
@@ -445,21 +578,31 @@ export default function ActivityPlanActualView({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="bg-white p-3 rounded-xl border border-blue-100/80">
-            <p className="text-[11px] text-slate-400 font-semibold mb-0.5">ชื่องานกิจกรรม</p>
-            <p className="text-xs md:text-sm font-bold text-slate-900">{planSummary.title}</p>
+            <p className="text-[11px] text-slate-400 font-semibold mb-0.5">
+              ชื่องานกิจกรรม
+            </p>
+            <p className="text-xs md:text-sm font-bold text-slate-900">
+              {planSummary.title}
+            </p>
           </div>
 
           <div className="bg-white p-3 rounded-xl border border-blue-100/80">
-            <p className="text-[11px] text-slate-400 font-semibold mb-0.5">วันเวลาจัดงาน</p>
+            <p className="text-[11px] text-slate-400 font-semibold mb-0.5">
+              วันเวลาจัดงาน
+            </p>
             <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
               <Calendar className="w-3.5 h-3.5 text-blue-600" />
               <span>{planSummary.dateStr}</span>
-              <span className="text-slate-400 font-normal">({planSummary.timeStr})</span>
+              <span className="text-slate-400 font-normal">
+                ({planSummary.timeStr})
+              </span>
             </div>
           </div>
 
           <div className="bg-white p-3 rounded-xl border border-blue-100/80">
-            <p className="text-[11px] text-slate-400 font-semibold mb-0.5">สถานที่</p>
+            <p className="text-[11px] text-slate-400 font-semibold mb-0.5">
+              สถานที่
+            </p>
             <p className="text-xs font-bold text-slate-900 flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
               <span className="truncate">{planSummary.locationStr}</span>
@@ -474,8 +617,12 @@ export default function ActivityPlanActualView({
               <Sprout className="w-4.5 h-4.5" />
             </div>
             <div>
-              <p className="text-[11px] font-semibold text-slate-500">เป้าหมายแปลงสาธิต</p>
-              <p className="text-xs md:text-sm font-bold text-slate-900">{planSummary.demoPlotTarget}</p>
+              <p className="text-[11px] font-semibold text-slate-500">
+                เป้าหมายแปลงสาธิต
+              </p>
+              <p className="text-xs md:text-sm font-bold text-slate-900">
+                {planSummary.demoPlotTarget}
+              </p>
             </div>
           </div>
 
@@ -484,8 +631,12 @@ export default function ActivityPlanActualView({
               <Target className="w-4.5 h-4.5" />
             </div>
             <div>
-              <p className="text-[11px] font-semibold text-slate-500">เป้ายอดขายที่ตั้งไว้</p>
-              <p className="text-xs md:text-sm font-bold text-slate-900">{planSummary.salesTarget}</p>
+              <p className="text-[11px] font-semibold text-slate-500">
+                เป้ายอดขายที่ตั้งไว้
+              </p>
+              <p className="text-xs md:text-sm font-bold text-slate-900">
+                {planSummary.salesTarget}
+              </p>
             </div>
           </div>
 
@@ -494,64 +645,14 @@ export default function ActivityPlanActualView({
               <Users className="w-4.5 h-4.5" />
             </div>
             <div>
-              <p className="text-[11px] font-semibold text-slate-500">เป้าผู้เข้าร่วมงาน</p>
-              <p className="text-xs md:text-sm font-bold text-slate-900">{planSummary.attendeeTarget}</p>
+              <p className="text-[11px] font-semibold text-slate-500">
+                เป้าผู้เข้าร่วมงาน
+              </p>
+              <p className="text-xs md:text-sm font-bold text-slate-900">
+                {planSummary.attendeeTarget}
+              </p>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* WORK TYPE SELECTOR TABS & DROPDOWN */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <Layers className="w-4 h-4 text-blue-600" />
-            สลับดูแบบฟอร์มตามกิจกรรม (11 รูปแบบ):
-          </span>
-          <Select value={activeTypeTab} onValueChange={setActiveTypeTab}>
-            <SelectTrigger className="w-64 h-8 text-xs bg-slate-50 border-slate-300">
-              <SelectValue placeholder="เลือกกิจกรรม" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">📋 แสดงแบบฟอร์มทั้งหมด (All 11 Types)</SelectItem>
-              {WORK_TYPES.map((typeName, idx) => (
-                <SelectItem key={typeName} value={typeName}>
-                  {idx + 1}. {typeName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            type="button"
-            onClick={() => setActiveTypeTab("ALL")}
-            className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
-              activeTypeTab === "ALL"
-                ? "bg-slate-900 text-white shadow-xs"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            )}
-          >
-            📋 ทั้งหมด
-          </button>
-
-          {WORK_TYPES.map((typeName, idx) => (
-            <button
-              key={typeName}
-              type="button"
-              onClick={() => setActiveTypeTab(typeName)}
-              className={cn(
-                "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer",
-                activeTypeTab === typeName
-                  ? "bg-blue-600 text-white shadow-xs font-semibold"
-                  : "bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100"
-              )}
-            >
-              {idx + 1}. {typeName.split(" / ")[0]}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -566,12 +667,13 @@ export default function ActivityPlanActualView({
       {submitSuccess && (
         <Alert className="bg-emerald-50 border-emerald-200 text-emerald-800 animate-in fade-in-50">
           <Check className="h-4 w-4 text-emerald-600" />
-          <AlertDescription className="font-semibold">บันทึกผลการปฏิบัติงานเรียบร้อยแล้ว!</AlertDescription>
+          <AlertDescription className="font-semibold">
+            บันทึกผลการปฏิบัติงานเรียบร้อยแล้ว!
+          </AlertDescription>
         </Alert>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-
         {/* ──────────────────────────────────────────────────────── */}
         {/* TYPE 1: เข้าพบร้านค้า / เกษตรกร */}
         {/* ──────────────────────────────────────────────────────── */}
@@ -601,16 +703,28 @@ export default function ActivityPlanActualView({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">ลูกค้า/ร้านค้า:</span>
-                  <span className="font-bold text-slate-900">{targets.t1.customer}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    ลูกค้า/ร้านค้า:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t1.customer}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">หัวข้อเป้าหมาย:</span>
-                  <span className="font-bold text-slate-900">{targets.t1.topic}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    หัวข้อเป้าหมาย:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t1.topic}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">โอกาสขายเป้าหมาย:</span>
-                  <span className="font-bold text-emerald-700">{targets.t1.opportunity}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    โอกาสขายเป้าหมาย:
+                  </span>
+                  <span className="font-bold text-emerald-700">
+                    {targets.t1.opportunity}
+                  </span>
                 </div>
               </div>
             </div>
@@ -644,9 +758,9 @@ export default function ActivityPlanActualView({
                           ? opt === "สูง"
                             ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
                             : opt === "กลาง"
-                            ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
-                            : "bg-slate-100 border-slate-400 text-slate-800"
-                          : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                              ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
+                              : "bg-slate-100 border-slate-400 text-slate-800"
+                          : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
                       )}
                     >
                       {opt}
@@ -740,16 +854,28 @@ export default function ActivityPlanActualView({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">สินค้าที่ติดตาม:</span>
-                  <span className="font-bold text-slate-900">{targets.t2.product}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    สินค้าที่ติดตาม:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t2.product}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">ลูกค้า/ร้านค้า:</span>
-                  <span className="font-bold text-slate-900">{targets.t2.customer}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    ลูกค้า/ร้านค้า:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t2.customer}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">คาดหวังผลลัพธ์:</span>
-                  <span className="font-bold text-emerald-700">{targets.t2.expectedResult}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    คาดหวังผลลัพธ์:
+                  </span>
+                  <span className="font-bold text-emerald-700">
+                    {targets.t2.expectedResult}
+                  </span>
                 </div>
               </div>
             </div>
@@ -784,7 +910,9 @@ export default function ActivityPlanActualView({
                 ผลลัพธ์จากการใช้งาน <span className="text-rose-500">*</span>
               </label>
               <div className="grid grid-cols-3 gap-2">
-                {(["พืชตอบสนองดี", "ยังไม่เห็นผลชัดเจน", "พบปัญหา"] as const).map((resOpt) => (
+                {(
+                  ["พืชตอบสนองดี", "ยังไม่เห็นผลชัดเจน", "พบปัญหา"] as const
+                ).map((resOpt) => (
                   <button
                     key={resOpt}
                     type="button"
@@ -795,12 +923,18 @@ export default function ActivityPlanActualView({
                         ? resOpt === "พืชตอบสนองดี"
                           ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
                           : resOpt === "ยังไม่เห็นผลชัดเจน"
-                          ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
-                          : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
-                        : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                            ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
+                            : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
+                        : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50",
                     )}
                   >
-                    <span>{resOpt === "พืชตอบสนองดี" ? "🟢" : resOpt === "ยังไม่เห็นผลชัดเจน" ? "🕒" : "⚠️"}</span>
+                    <span>
+                      {resOpt === "พืชตอบสนองดี"
+                        ? "🟢"
+                        : resOpt === "ยังไม่เห็นผลชัดเจน"
+                          ? "🕒"
+                          : "⚠️"}
+                    </span>
                     <span>{resOpt}</span>
                   </button>
                 ))}
@@ -810,7 +944,8 @@ export default function ActivityPlanActualView({
             {t2UsageResult === "พบปัญหา" && (
               <div className="bg-rose-50/60 border border-rose-200 rounded-xl p-3.5 space-y-1.5">
                 <label className="text-xs font-bold text-rose-800">
-                  ระบุรายละเอียดปัญหาที่พบ <span className="text-rose-500">*</span>
+                  ระบุรายละเอียดปัญหาที่พบ{" "}
+                  <span className="text-rose-500">*</span>
                 </label>
                 <Textarea
                   rows={2}
@@ -853,23 +988,36 @@ export default function ActivityPlanActualView({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">สินค้าเสนอขาย:</span>
-                  <span className="font-bold text-slate-900">{targets.t3.product}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    สินค้าเสนอขาย:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t3.product}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">เป้าหมายปริมาณ:</span>
-                  <span className="font-bold text-slate-900">{targets.t3.targetQty}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    เป้าหมายปริมาณ:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t3.targetQty}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">เป้ายอดขาย:</span>
-                  <span className="font-bold text-emerald-700">{targets.t3.targetSales}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    เป้ายอดขาย:
+                  </span>
+                  <span className="font-bold text-emerald-700">
+                    {targets.t3.targetSales}
+                  </span>
                 </div>
               </div>
             </div>
 
             <div className="space-y-1.5 pt-1">
               <label className="text-sm font-semibold text-slate-800">
-                รายการสินค้าที่ขายได้จริง <span className="text-rose-500">*</span>
+                รายการสินค้าที่ขายได้จริง{" "}
+                <span className="text-rose-500">*</span>
               </label>
               <Input
                 value={t3SoldProducts}
@@ -893,7 +1041,9 @@ export default function ActivityPlanActualView({
                     placeholder="0.00"
                     className="bg-white border-slate-300 pr-12"
                   />
-                  <span className="absolute right-3 text-xs font-semibold text-slate-500">บาท</span>
+                  <span className="absolute right-3 text-xs font-semibold text-slate-500">
+                    บาท
+                  </span>
                 </div>
               </div>
 
@@ -954,16 +1104,28 @@ export default function ActivityPlanActualView({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">ลูกค้า/ร้านค้า:</span>
-                  <span className="font-bold text-slate-900">{targets.t4.customer}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    ลูกค้า/ร้านค้า:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t4.customer}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">เลขที่ออเดอร์:</span>
-                  <span className="font-bold text-slate-900">{targets.t4.orderNo}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    เลขที่ออเดอร์:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t4.orderNo}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">เป้ายอดเก็บเงิน:</span>
-                  <span className="font-bold text-indigo-700">{targets.t4.targetCollect}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    เป้ายอดเก็บเงิน:
+                  </span>
+                  <span className="font-bold text-indigo-700">
+                    {targets.t4.targetCollect}
+                  </span>
                 </div>
               </div>
             </div>
@@ -971,7 +1133,8 @@ export default function ActivityPlanActualView({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-800">
-                  เลขที่ออเดอร์ / ใบแจ้งหนี้ <span className="text-rose-500">*</span>
+                  เลขที่ออเดอร์ / ใบแจ้งหนี้{" "}
+                  <span className="text-rose-500">*</span>
                 </label>
                 <Input
                   value={t4OrderNo}
@@ -983,7 +1146,8 @@ export default function ActivityPlanActualView({
 
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-800">
-                  จำนวนเงินที่รับชำระจริง (บาท) <span className="text-rose-500">*</span>
+                  จำนวนเงินที่รับชำระจริง (บาท){" "}
+                  <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative flex items-center">
                   <Input
@@ -994,14 +1158,17 @@ export default function ActivityPlanActualView({
                     placeholder="0.00"
                     className="bg-white border-slate-300 pr-12"
                   />
-                  <span className="absolute right-3 text-xs font-semibold text-slate-500">บาท</span>
+                  <span className="absolute right-3 text-xs font-semibold text-slate-500">
+                    บาท
+                  </span>
                 </div>
               </div>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-800">
-                รูปภาพหลักฐานการรับชำระเงิน <span className="text-rose-500">*</span>
+                รูปภาพหลักฐานการรับชำระเงิน{" "}
+                <span className="text-rose-500">*</span>
               </label>
               <div className="border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/20 hover:bg-indigo-50/40 rounded-2xl p-5 text-center transition-colors cursor-pointer relative group">
                 <input
@@ -1015,15 +1182,24 @@ export default function ActivityPlanActualView({
                   <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
                     <Receipt className="w-5 h-5" />
                   </div>
-                  <p className="text-xs font-bold text-indigo-900">คลิกเพื่ออัปโหลด สลิปโอนเงิน / ใบเสร็จรับเงิน</p>
+                  <p className="text-xs font-bold text-indigo-900">
+                    คลิกเพื่ออัปโหลด สลิปโอนเงิน / ใบเสร็จรับเงิน
+                  </p>
                 </div>
               </div>
               {t4PaymentImages.length > 0 && (
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
                   {t4PaymentImages.map((img) => (
-                    <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
+                    <div
+                      key={img.id}
+                      className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                      <img
+                        src={img.url}
+                        alt={img.name}
+                        className="w-full h-full object-cover"
+                      />
                       <button
                         type="button"
                         onClick={() => removeImage(setT4PaymentImages, img.id)}
@@ -1068,12 +1244,20 @@ export default function ActivityPlanActualView({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">ร้านค้าที่สำรวจ:</span>
-                  <span className="font-bold text-slate-900">{targets.t5.store}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    ร้านค้าที่สำรวจ:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t5.store}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">สินค้าเปรียบเทียบ:</span>
-                  <span className="font-bold text-slate-900">{targets.t5.product}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    สินค้าเปรียบเทียบ:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t5.product}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1081,7 +1265,8 @@ export default function ActivityPlanActualView({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-800">
-                  แบรนด์คู่แข่งที่พบหน้างาน <span className="text-rose-500">*</span>
+                  แบรนด์คู่แข่งที่พบหน้างาน{" "}
+                  <span className="text-rose-500">*</span>
                 </label>
                 <Input
                   value={t5CompetitorBrand}
@@ -1145,15 +1330,24 @@ export default function ActivityPlanActualView({
                   <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
                     <Camera className="w-5 h-5" />
                   </div>
-                  <p className="text-xs font-bold text-amber-900">คลิกเพื่ออัปโหลด รูปชั้นวางสินค้า หรือ ป้ายราคาคู่แข่ง</p>
+                  <p className="text-xs font-bold text-amber-900">
+                    คลิกเพื่ออัปโหลด รูปชั้นวางสินค้า หรือ ป้ายราคาคู่แข่ง
+                  </p>
                 </div>
               </div>
               {t5PriceTagImages.length > 0 && (
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
                   {t5PriceTagImages.map((img) => (
-                    <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
+                    <div
+                      key={img.id}
+                      className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                      <img
+                        src={img.url}
+                        alt={img.name}
+                        className="w-full h-full object-cover"
+                      />
                       <button
                         type="button"
                         onClick={() => removeImage(setT5PriceTagImages, img.id)}
@@ -1198,16 +1392,28 @@ export default function ActivityPlanActualView({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">ลูกค้า/ร้านค้า:</span>
-                  <span className="font-bold text-slate-900">{targets.t6.customer}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    ลูกค้า/ร้านค้า:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t6.customer}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">ประเภทปัญหา:</span>
-                  <span className="font-bold text-slate-900">{targets.t6.issueType}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    ประเภทปัญหา:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t6.issueType}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">เป้าหมายสถานะ:</span>
-                  <span className="font-bold text-emerald-700">{targets.t6.targetStatus}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    เป้าหมายสถานะ:
+                  </span>
+                  <span className="font-bold text-emerald-700">
+                    {targets.t6.targetStatus}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1254,7 +1460,7 @@ export default function ActivityPlanActualView({
                         ? st === "เสร็จสิ้น"
                           ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
                           : "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
-                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
                     )}
                   >
                     {st === "เสร็จสิ้น" ? "✅ เสร็จสิ้น" : "⏳ รอติดตาม"}
@@ -1279,15 +1485,24 @@ export default function ActivityPlanActualView({
                   <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
                     <Camera className="w-5 h-5" />
                   </div>
-                  <p className="text-xs font-bold text-rose-900">คลิกเพื่ออัปโหลด รูปภาพสินค้ามีปัญหา หรือ รูปหน้างาน</p>
+                  <p className="text-xs font-bold text-rose-900">
+                    คลิกเพื่ออัปโหลด รูปภาพสินค้ามีปัญหา หรือ รูปหน้างาน
+                  </p>
                 </div>
               </div>
               {t6Images.length > 0 && (
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
                   {t6Images.map((img) => (
-                    <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
+                    <div
+                      key={img.id}
+                      className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                      <img
+                        src={img.url}
+                        alt={img.name}
+                        className="w-full h-full object-cover"
+                      />
                       <button
                         type="button"
                         onClick={() => removeImage(setT6Images, img.id)}
@@ -1332,20 +1547,36 @@ export default function ActivityPlanActualView({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">เจ้าของแปลง:</span>
-                  <span className="font-bold text-slate-900">{targets.t7.owner}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    เจ้าของแปลง:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t7.owner}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">สินค้าที่สาธิต:</span>
-                  <span className="font-bold text-slate-900">{targets.t7.product}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    สินค้าที่สาธิต:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t7.product}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">พืชเป้าหมาย:</span>
-                  <span className="font-bold text-slate-900">{targets.t7.crop} ({targets.t7.plots})</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    พืชเป้าหมาย:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t7.crop} ({targets.t7.plots})
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">เป้าหมายสภาพพืช:</span>
-                  <span className="font-bold text-emerald-700">{targets.t7.targetCondition}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    เป้าหมายสภาพพืช:
+                  </span>
+                  <span className="font-bold text-emerald-700">
+                    {targets.t7.targetCondition}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1364,7 +1595,8 @@ export default function ActivityPlanActualView({
 
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-slate-800">
-                วิธีการใช้ / อัตราการใช้ <span className="text-rose-500">*</span>
+                วิธีการใช้ / อัตราการใช้{" "}
+                <span className="text-rose-500">*</span>
               </label>
               <Textarea
                 rows={2}
@@ -1389,7 +1621,10 @@ export default function ActivityPlanActualView({
                     placeholder="ระบุจำนวน"
                     className="bg-white border-slate-300"
                   />
-                  <Select value={t7CropAgeUnit} onValueChange={setT7CropAgeUnit}>
+                  <Select
+                    value={t7CropAgeUnit}
+                    onValueChange={setT7CropAgeUnit}
+                  >
                     <SelectTrigger className="w-28 bg-white border-slate-300">
                       <SelectValue placeholder="หน่วย" />
                     </SelectTrigger>
@@ -1412,10 +1647,18 @@ export default function ActivityPlanActualView({
                     <SelectValue placeholder="เลือกระยะการเจริญเติบโต" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ระยะกล้า/ตั้งตัว">ระยะกล้า/ตั้งตัว</SelectItem>
-                    <SelectItem value="ระยะเจริญเติบโตทางลำต้น/ใบ">ระยะเจริญเติบโตทางลำต้น/ใบ</SelectItem>
-                    <SelectItem value="ระยะออกดอก/ติดผล">ระยะออกดอก/ติดผล</SelectItem>
-                    <SelectItem value="ระยะเก็บเกี่ยว/พักต้น">ระยะเก็บเกี่ยว/พักต้น</SelectItem>
+                    <SelectItem value="ระยะกล้า/ตั้งตัว">
+                      ระยะกล้า/ตั้งตัว
+                    </SelectItem>
+                    <SelectItem value="ระยะเจริญเติบโตทางลำต้น/ใบ">
+                      ระยะเจริญเติบโตทางลำต้น/ใบ
+                    </SelectItem>
+                    <SelectItem value="ระยะออกดอก/ติดผล">
+                      ระยะออกดอก/ติดผล
+                    </SelectItem>
+                    <SelectItem value="ระยะเก็บเกี่ยว/พักต้น">
+                      ระยะเก็บเกี่ยว/พักต้น
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1437,12 +1680,18 @@ export default function ActivityPlanActualView({
                         ? cond === "สมบูรณ์"
                           ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
                           : cond === "ปานกลาง"
-                          ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
-                          : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
-                        : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                            ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
+                            : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
+                        : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50",
                     )}
                   >
-                    <span>{cond === "สมบูรณ์" ? "🌿" : cond === "ปานกลาง" ? "🟡" : "🔴"}</span>
+                    <span>
+                      {cond === "สมบูรณ์"
+                        ? "🌿"
+                        : cond === "ปานกลาง"
+                          ? "🟡"
+                          : "🔴"}
+                    </span>
                     <span>{cond}</span>
                   </button>
                 ))}
@@ -1454,7 +1703,9 @@ export default function ActivityPlanActualView({
                 ผลการใช้ผลิตภัณฑ์ <span className="text-rose-500">*</span>
               </label>
               <div className="grid grid-cols-3 gap-2">
-                {(["พืชตอบสนองดี", "ยังไม่เห็นผลชัดเจน", "พบปัญหา"] as const).map((res) => (
+                {(
+                  ["พืชตอบสนองดี", "ยังไม่เห็นผลชัดเจน", "พบปัญหา"] as const
+                ).map((res) => (
                   <button
                     key={res}
                     type="button"
@@ -1465,12 +1716,18 @@ export default function ActivityPlanActualView({
                         ? res === "พืชตอบสนองดี"
                           ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
                           : res === "ยังไม่เห็นผลชัดเจน"
-                          ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
-                          : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
-                        : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                            ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
+                            : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
+                        : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50",
                     )}
                   >
-                    <span>{res === "พืชตอบสนองดี" ? "🟢" : res === "ยังไม่เห็นผลชัดเจน" ? "🕒" : "⚠️"}</span>
+                    <span>
+                      {res === "พืชตอบสนองดี"
+                        ? "🟢"
+                        : res === "ยังไม่เห็นผลชัดเจน"
+                          ? "🕒"
+                          : "⚠️"}
+                    </span>
                     <span>{res}</span>
                   </button>
                 ))}
@@ -1514,15 +1771,24 @@ export default function ActivityPlanActualView({
                   <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
                     <Camera className="w-5 h-5" />
                   </div>
-                  <p className="text-xs font-bold text-emerald-800">คลิกเพื่ออัปโหลด รูปถ่ายสภาพแปลงล่าสุด</p>
+                  <p className="text-xs font-bold text-emerald-800">
+                    คลิกเพื่ออัปโหลด รูปถ่ายสภาพแปลงล่าสุด
+                  </p>
                 </div>
               </div>
               {t7PlotImages.length > 0 && (
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
                   {t7PlotImages.map((img) => (
-                    <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
+                    <div
+                      key={img.id}
+                      className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                      <img
+                        src={img.url}
+                        alt={img.name}
+                        className="w-full h-full object-cover"
+                      />
                       <button
                         type="button"
                         onClick={() => removeImage(setT7PlotImages, img.id)}
@@ -1567,19 +1833,28 @@ export default function ActivityPlanActualView({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60 sm:col-span-2">
-                  <span className="text-slate-400 block text-[10px]">หัวข้อประชุม:</span>
-                  <span className="font-bold text-slate-900">{targets.t8.topic}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    หัวข้อประชุม:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t8.topic}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">เป้าหมายผู้เข้าร่วม:</span>
-                  <span className="font-bold text-violet-700">{targets.t8.targetAttendees}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    เป้าหมายผู้เข้าร่วม:
+                  </span>
+                  <span className="font-bold text-violet-700">
+                    {targets.t8.targetAttendees}
+                  </span>
                 </div>
               </div>
             </div>
 
             <div className="space-y-1.5 max-w-xs pt-1">
               <label className="text-sm font-semibold text-slate-800">
-                จำนวนผู้เข้าร่วมจริง (คน) <span className="text-rose-500">*</span>
+                จำนวนผู้เข้าร่วมจริง (คน){" "}
+                <span className="text-rose-500">*</span>
               </label>
               <div className="relative flex items-center">
                 <Input
@@ -1590,13 +1865,16 @@ export default function ActivityPlanActualView({
                   placeholder="ระบุจำนวน"
                   className="bg-white border-slate-300 pr-12"
                 />
-                <span className="absolute right-3 text-xs font-semibold text-slate-500">คน</span>
+                <span className="absolute right-3 text-xs font-semibold text-slate-500">
+                  คน
+                </span>
               </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-slate-800">
-                ประเด็นคำถามหรือข้อเสนอแนะที่ได้รับ <span className="text-rose-500">*</span>
+                ประเด็นคำถามหรือข้อเสนอแนะที่ได้รับ{" "}
+                <span className="text-rose-500">*</span>
               </label>
               <Textarea
                 rows={3}
@@ -1623,15 +1901,24 @@ export default function ActivityPlanActualView({
                   <div className="w-10 h-10 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center">
                     <Users className="w-5 h-5" />
                   </div>
-                  <p className="text-xs font-bold text-violet-900">คลิกเพื่ออัปโหลด รูปบรรยากาศการจัดประชุม</p>
+                  <p className="text-xs font-bold text-violet-900">
+                    คลิกเพื่ออัปโหลด รูปบรรยากาศการจัดประชุม
+                  </p>
                 </div>
               </div>
               {t8Images.length > 0 && (
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
                   {t8Images.map((img) => (
-                    <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
+                    <div
+                      key={img.id}
+                      className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                      <img
+                        src={img.url}
+                        alt={img.name}
+                        className="w-full h-full object-cover"
+                      />
                       <button
                         type="button"
                         onClick={() => removeImage(setT8Images, img.id)}
@@ -1676,16 +1963,28 @@ export default function ActivityPlanActualView({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">ร้านค้าจัดกิจกรรม:</span>
-                  <span className="font-bold text-slate-900">{targets.t9.store}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    ร้านค้าจัดกิจกรรม:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t9.store}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">เป้ายอดขายหน้าร้าน:</span>
-                  <span className="font-bold text-blue-700">{targets.t9.targetSales}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    เป้ายอดขายหน้าร้าน:
+                  </span>
+                  <span className="font-bold text-blue-700">
+                    {targets.t9.targetSales}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">เป้าหมายผู้เข้าร่วม:</span>
-                  <span className="font-bold text-slate-900">{targets.t9.targetAttendees}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    เป้าหมายผู้เข้าร่วม:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t9.targetAttendees}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1717,10 +2016,11 @@ export default function ActivityPlanActualView({
                         "py-2 px-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all text-center",
                         isChecked
                           ? "bg-blue-50 border-blue-500 text-blue-800 ring-2 ring-blue-500/20"
-                          : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                          : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50",
                       )}
                     >
-                      {isChecked ? "✓ " : ""}{fmt}
+                      {isChecked ? "✓ " : ""}
+                      {fmt}
                     </button>
                   );
                 })}
@@ -1730,7 +2030,8 @@ export default function ActivityPlanActualView({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-800">
-                  ยอดขายที่เกิดขึ้นจริง (บาท) <span className="text-rose-500">*</span>
+                  ยอดขายที่เกิดขึ้นจริง (บาท){" "}
+                  <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative flex items-center">
                   <Input
@@ -1741,13 +2042,16 @@ export default function ActivityPlanActualView({
                     placeholder="0.00"
                     className="bg-white border-slate-300 pr-12"
                   />
-                  <span className="absolute right-3 text-xs font-semibold text-slate-500">บาท</span>
+                  <span className="absolute right-3 text-xs font-semibold text-slate-500">
+                    บาท
+                  </span>
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-800">
-                  จำนวนลูกค้าที่เข้าร่วมจริง (คน) <span className="text-rose-500">*</span>
+                  จำนวนลูกค้าที่เข้าร่วมจริง (คน){" "}
+                  <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative flex items-center">
                   <Input
@@ -1758,7 +2062,9 @@ export default function ActivityPlanActualView({
                     placeholder="ระบุจำนวน"
                     className="bg-white border-slate-300 pr-12"
                   />
-                  <span className="absolute right-3 text-xs font-semibold text-slate-500">คน</span>
+                  <span className="absolute right-3 text-xs font-semibold text-slate-500">
+                    คน
+                  </span>
                 </div>
               </div>
             </div>
@@ -1779,15 +2085,24 @@ export default function ActivityPlanActualView({
                   <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
                     <Store className="w-5 h-5" />
                   </div>
-                  <p className="text-xs font-bold text-blue-900">คลิกเพื่ออัปโหลด รูปภาพบรรยากาศหน้าร้าน</p>
+                  <p className="text-xs font-bold text-blue-900">
+                    คลิกเพื่ออัปโหลด รูปภาพบรรยากาศหน้าร้าน
+                  </p>
                 </div>
               </div>
               {t9Images.length > 0 && (
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
                   {t9Images.map((img) => (
-                    <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
+                    <div
+                      key={img.id}
+                      className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                      <img
+                        src={img.url}
+                        alt={img.name}
+                        className="w-full h-full object-cover"
+                      />
                       <button
                         type="button"
                         onClick={() => removeImage(setT9Images, img.id)}
@@ -1832,16 +2147,28 @@ export default function ActivityPlanActualView({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">แปลงสาธิตจัดงาน:</span>
-                  <span className="font-bold text-slate-900">{targets.t10.plot}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    แปลงสาธิตจัดงาน:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t10.plot}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">เป้าหมายผู้เข้าร่วม:</span>
-                  <span className="font-bold text-slate-900">{targets.t10.targetAttendees}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    เป้าหมายผู้เข้าร่วม:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t10.targetAttendees}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">เป้ายอดขาย/จอง:</span>
-                  <span className="font-bold text-orange-700">{targets.t10.targetSales}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    เป้ายอดขาย/จอง:
+                  </span>
+                  <span className="font-bold text-orange-700">
+                    {targets.t10.targetSales}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1849,7 +2176,8 @@ export default function ActivityPlanActualView({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-800">
-                  จำนวนผู้เข้าร่วมจริง (คน) <span className="text-rose-500">*</span>
+                  จำนวนผู้เข้าร่วมจริง (คน){" "}
+                  <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative flex items-center">
                   <Input
@@ -1860,13 +2188,16 @@ export default function ActivityPlanActualView({
                     placeholder="ระบุจำนวน"
                     className="bg-white border-slate-300 pr-12"
                   />
-                  <span className="absolute right-3 text-xs font-semibold text-slate-500">คน</span>
+                  <span className="absolute right-3 text-xs font-semibold text-slate-500">
+                    คน
+                  </span>
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-800">
-                  ยอดขายหรือยอดจองที่เกิดขึ้นจริง (บาท) <span className="text-rose-500">*</span>
+                  ยอดขายหรือยอดจองที่เกิดขึ้นจริง (บาท){" "}
+                  <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative flex items-center">
                   <Input
@@ -1877,14 +2208,17 @@ export default function ActivityPlanActualView({
                     placeholder="0.00"
                     className="bg-white border-slate-300 pr-12"
                   />
-                  <span className="absolute right-3 text-xs font-semibold text-slate-500">บาท</span>
+                  <span className="absolute right-3 text-xs font-semibold text-slate-500">
+                    บาท
+                  </span>
                 </div>
               </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-slate-800">
-                รายชื่อเกษตรกรเป้าหมายที่สนใจ <span className="text-rose-500">*</span>
+                รายชื่อเกษตรกรเป้าหมายที่สนใจ{" "}
+                <span className="text-rose-500">*</span>
               </label>
               <Textarea
                 rows={2}
@@ -1897,7 +2231,8 @@ export default function ActivityPlanActualView({
 
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-slate-800">
-                ผลตอบรับของเกษตรกรที่มาร่วมงาน <span className="text-rose-500">*</span>
+                ผลตอบรับของเกษตรกรที่มาร่วมงาน{" "}
+                <span className="text-rose-500">*</span>
               </label>
               <div className="grid grid-cols-3 gap-2 max-w-sm">
                 {(["สูง", "กลาง", "ต่ำ"] as const).map((fb) => (
@@ -1911,9 +2246,9 @@ export default function ActivityPlanActualView({
                         ? fb === "สูง"
                           ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
                           : fb === "กลาง"
-                          ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
-                          : "bg-slate-100 border-slate-400 text-slate-800"
-                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                            ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
+                            : "bg-slate-100 border-slate-400 text-slate-800"
+                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
                     )}
                   >
                     {fb}
@@ -1924,7 +2259,8 @@ export default function ActivityPlanActualView({
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-800">
-                รูปภาพบรรยากาศการจัดงานจัดเต็ม <span className="text-rose-500">*</span>
+                รูปภาพบรรยากาศการจัดงานจัดเต็ม{" "}
+                <span className="text-rose-500">*</span>
               </label>
               <div className="border-2 border-dashed border-orange-200 hover:border-orange-400 bg-orange-50/20 hover:bg-orange-50/40 rounded-2xl p-5 text-center transition-colors cursor-pointer relative group">
                 <input
@@ -1938,15 +2274,24 @@ export default function ActivityPlanActualView({
                   <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
                     <Camera className="w-5 h-5" />
                   </div>
-                  <p className="text-xs font-bold text-orange-900">คลิกเพื่ออัปโหลด รูปบรรยากาศงาน Field Day</p>
+                  <p className="text-xs font-bold text-orange-900">
+                    คลิกเพื่ออัปโหลด รูปบรรยากาศงาน Field Day
+                  </p>
                 </div>
               </div>
               {t10Images.length > 0 && (
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
                   {t10Images.map((img) => (
-                    <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
+                    <div
+                      key={img.id}
+                      className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                      <img
+                        src={img.url}
+                        alt={img.name}
+                        className="w-full h-full object-cover"
+                      />
                       <button
                         type="button"
                         onClick={() => removeImage(setT10Images, img.id)}
@@ -1991,12 +2336,20 @@ export default function ActivityPlanActualView({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">ร้านค้าตรวจเช็ก:</span>
-                  <span className="font-bold text-slate-900">{targets.t11.store}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    ร้านค้าตรวจเช็ก:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {targets.t11.store}
+                  </span>
                 </div>
                 <div className="bg-white p-2 rounded-lg border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">โอกาสสั่งซื้อเป้าหมาย:</span>
-                  <span className="font-bold text-emerald-700">{targets.t11.targetOpportunity}</span>
+                  <span className="text-slate-400 block text-[10px]">
+                    โอกาสสั่งซื้อเป้าหมาย:
+                  </span>
+                  <span className="font-bold text-emerald-700">
+                    {targets.t11.targetOpportunity}
+                  </span>
                 </div>
               </div>
             </div>
@@ -2031,7 +2384,7 @@ export default function ActivityPlanActualView({
                           ? stk === "ใกล้หมด"
                             ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
                             : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
-                          : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                          : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50",
                       )}
                     >
                       {stk === "ใกล้หมด" ? "⚠️ ใกล้หมด" : "🚨 ขาดสต็อก"}
@@ -2042,7 +2395,8 @@ export default function ActivityPlanActualView({
 
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-800">
-                  โอกาสการสั่งซื้อรอบใหม่ <span className="text-rose-500">*</span>
+                  โอกาสการสั่งซื้อรอบใหม่{" "}
+                  <span className="text-rose-500">*</span>
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {(["สูง", "กลาง", "ต่ำ"] as const).map((opp) => (
@@ -2056,9 +2410,9 @@ export default function ActivityPlanActualView({
                           ? opp === "สูง"
                             ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
                             : opp === "กลาง"
-                            ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
-                            : "bg-slate-100 border-slate-400 text-slate-800"
-                          : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                              ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
+                              : "bg-slate-100 border-slate-400 text-slate-800"
+                          : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
                       )}
                     >
                       {opp}
