@@ -65,13 +65,29 @@ export default function ActivityPlanActualView({
   // Loading & Plan Summary State
   const [loadingPlan, setLoadingPlan] = useState(!!id);
   const [planSummary, setPlanSummary] = useState<PlanSummaryData>({
+    planNo: "PLAN-2026-0789",
     title: "แปลงสาธิตของบ้านนา และ กิจกรรมส่งเสริมการขายหน้าร้าน",
-    dateStr: "25 ก.ค. 2568",
-    timeStr: "09:00 - 15:00",
+    startDateStr: "25 ก.ค. 2568",
+    endDateStr: "25 ก.ค. 2568",
+    timeStr: "09:00 - 15:00 น.",
     locationStr: `${DEMO_OWNERS[0]} อ.เมือง จ.จันทบุรี`,
-    demoPlotTarget: "1 แปลง | 20 ต้น",
-    salesTarget: "35,000 บาท",
-    attendeeTarget: "40 คน",
+
+    // งบประมาณและค่าใช้จ่าย (Budget & Expenses) (ถ้ามี)
+    marketingBudget: 10000,
+    salesPromotionBudget: 25000,
+    extraExpenseAmount: 2000,
+    extraExpenseDetail: "ค่าเบี้ยเลี้ยงและค่าอาหารกลางวันทีมงาน",
+
+    // รายการขอเบิกสินค้าจัดกิจกรรม (Material Requisition) (ถ้ามี)
+    requisitionItems: [
+      { id: "req-1", productName: "สินค้าทดสอบ A", quantity: 10, unit: "ลัง" },
+      { id: "req-2", productName: "ปุ๋ยเคมีสูตรพิเศษ", quantity: 5, unit: "กระสอบ" },
+    ],
+
+    // ข้อมูลเพิ่มเติม (Additional Info) (ถ้ามี)
+    objective: "เข้าพบเจ้าของร้านเพื่อเสนอขายและจัดกิจกรรมกระตุ้นยอดขายหน้าร้าน",
+    notes: "โปรดเตรียมป้ายและของแถมพรีเมียมไปแจกลูกค้าหน้าร้าน",
+    helperEmployeeNames: ["คุณวิชัย (ผู้ช่วยเขต)", "คุณสมชาย (เจ้าหน้าที่เทคนิค)"],
   });
 
   // Active Work Type Selection Mode: "ALL" or specific type name
@@ -111,8 +127,7 @@ export default function ActivityPlanActualView({
     t6: {
       customer: DEMO_OWNERS[0],
       issueType: "เคลมของ",
-      detail:
-        "รับเรื่องร้องเรียนเรื่องสินค้าจากลูกค้าเพื่อประสานงานเปลี่ยน/เคลมสินค้า",
+      detail: "รับเรื่องร้องเรียนเรื่องสินค้าจากลูกค้าเพื่อประสานงานเปลี่ยน/เคลมสินค้า",
       targetStatus: "เสร็จสิ้น",
     },
     t7: {
@@ -255,15 +270,16 @@ export default function ActivityPlanActualView({
           const end = p.endDate ? new Date(p.endDate) : new Date();
 
           setPlanSummary({
+            planNo: p.id ? `PLAN-${p.id.slice(-6).toUpperCase()}` : "PLAN-2026-0789",
             title: p.title || "แปลงสาธิตของบ้านนา",
-            dateStr: format(start, "d MMM yyyy", { locale: th }),
-            timeStr: `${format(start, "HH:mm")} - ${format(end, "HH:mm")}`,
+            startDateStr: format(start, "d MMM yyyy", { locale: th }),
+            endDateStr: format(end, "d MMM yyyy", { locale: th }),
+            timeStr: `${format(start, "HH:mm")} - ${format(end, "HH:mm")} น.`,
             locationStr: p.location || `${DEMO_OWNERS[0]} อ.เมือง จ.จันทบุรี`,
-            demoPlotTarget: p.objective || "1 แปลง | 20 ต้น",
-            salesTarget: p.salesPromotionBudget
-              ? `${Number(p.salesPromotionBudget).toLocaleString()} บาท`
-              : "35,000 บาท",
-            attendeeTarget: "40 คน",
+            marketingBudget: p.marketingBudget ? Number(p.marketingBudget) : undefined,
+            salesPromotionBudget: p.salesPromotionBudget ? Number(p.salesPromotionBudget) : undefined,
+            notes: p.notes || undefined,
+            objective: p.objective || undefined,
           });
         }
       } catch (e) {
