@@ -63,7 +63,7 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
           <FileText className="w-3.5 h-3.5 text-blue-600" />
           ข้อมูลพื้นฐานแผนงาน:
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* ชื่องานกิจกรรม */}
           <div className="bg-white p-3 rounded-xl border border-blue-100/80">
             <p className="text-[11px] text-slate-400 font-semibold mb-0.5">
@@ -83,26 +83,16 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                 <span>{summary.startDateStr}</span>
-                {summary.endDateStr && summary.endDateStr !== summary.startDateStr && (
-                  <span> - {summary.endDateStr}</span>
-                )}
+                {summary.endDateStr &&
+                  summary.endDateStr !== summary.startDateStr && (
+                    <span> - {summary.endDateStr}</span>
+                  )}
               </div>
               <div className="flex items-center gap-1.5 text-slate-500 font-medium">
                 <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                 <span>เวลา {summary.timeStr}</span>
               </div>
             </div>
-          </div>
-
-          {/* สถานที่ */}
-          <div className="bg-white p-3 rounded-xl border border-blue-100/80">
-            <p className="text-[11px] text-slate-400 font-semibold mb-0.5">
-              สถานที่ / พื้นที่จัดงาน
-            </p>
-            <p className="text-xs font-bold text-slate-900 flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-              <span className="truncate">{summary.locationStr}</span>
-            </p>
           </div>
         </div>
       </div>
@@ -200,17 +190,21 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
               </div>
             )}
 
-            {summary.helperEmployeeNames && summary.helperEmployeeNames.length > 0 && (
-              <div className="bg-white p-2.5 rounded-xl border border-violet-100">
-                <span className="text-slate-400 block text-[10px] flex items-center gap-1">
-                  <Users className="w-3 h-3 text-violet-500" />
-                  ทีมงานร่วมลงพื้นที่ ({summary.helperEmployeeNames.length} คน):
-                </span>
-                <span className="font-semibold text-violet-900">
-                  {summary.helperEmployeeNames.join(", ")}
-                </span>
-              </div>
-            )}
+            {summary.helperEmployeeNames &&
+              summary.helperEmployeeNames.length > 0 && (
+                <div className="bg-white p-2.5 rounded-xl border border-violet-100">
+                  <span className="text-slate-400 block text-[10px] flex items-center gap-1">
+                    <Users className="w-3 h-3 text-violet-500" />
+                    ทีมงานร่วมลงพื้นที่ ({
+                      summary.helperEmployeeNames.length
+                    }{" "}
+                    คน):
+                  </span>
+                  <span className="font-semibold text-violet-900">
+                    {summary.helperEmployeeNames.join(", ")}
+                  </span>
+                </div>
+              )}
 
             {summary.notes && (
               <div className="bg-white p-2.5 rounded-xl border border-violet-100 md:col-span-2">
