@@ -124,20 +124,6 @@ export function ActualType1Visit({
           </div>
         </div>
       </div>
-
-      <div className="space-y-1.5">
-        <label className="text-sm font-semibold text-slate-800">
-          รายละเอียด <span className="text-rose-500">*</span>
-        </label>
-        <Textarea
-          rows={2}
-          value={detail}
-          onChange={(e) => setDetail(e.target.value)}
-          placeholder="ระบุรายละเอียดวัตถุประสงค์ในการเข้าพบ"
-          className="bg-white border-slate-300"
-        />
-      </div>
-
       <div className="space-y-1.5">
         <label className="text-sm font-semibold text-slate-800">
           ผลการพูดคุย <span className="text-rose-500">*</span>
@@ -165,7 +151,7 @@ export function ActualType1Visit({
           />
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 ">
           <label className="text-sm font-semibold text-slate-800">
             วันที่นัดหมายครั้งถัดไป
           </label>
