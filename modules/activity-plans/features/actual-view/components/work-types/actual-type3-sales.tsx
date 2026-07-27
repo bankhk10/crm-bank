@@ -8,9 +8,12 @@ import { ActualTargetCard } from "../actual-target-card";
 
 export interface TargetProductItem {
   productName: string;
+  customer?: string;
   qty: string;
+  unitPrice?: string;
+  detail?: string;
   unit?: string;
-  price: string;
+  price?: string;
   actualQty?: string;
   actualSales?: string;
   unclosedReason?: string;
@@ -29,6 +32,8 @@ interface ActualType3SalesProps {
     customer: string;
     targetQty: string;
     targetSales: string;
+    unitPrice?: string;
+    detail?: string;
     items?: TargetProductItem[];
   };
   soldProducts: string;
@@ -138,50 +143,78 @@ export function ActualType3Sales({
 
       {/* TARGET SUMMARY CARD */}
       {hasMultipleProducts ? (
-        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <Target className="w-4 h-4 text-emerald-600" />
-              เป้าหมายที่ตั้งไว้ตอนสร้างแผน ({productItems.length} รายการ):
-            </span>
-            <span className="text-xs font-extrabold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md">
-              เป้ายอดขายรวม {target.targetSales}
-            </span>
+        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs border-b border-slate-200/60 pb-2.5">
+            <div className="space-y-0.5">
+              <span className="text-[11px] font-semibold text-slate-500">
+                ชื่อร้านค้า / เกษตรกร:
+              </span>
+              <p className="font-bold text-slate-900">{target.customer}</p>
+            </div>
+            <div className="space-y-0.5">
+              <span className="text-[11px] font-semibold text-slate-500">
+                รายละเอียดเพิ่มเติม:
+              </span>
+              <p className="font-medium text-slate-800">
+                {target.detail || "เสนอขายสินค้าประจำฤดูกาลพร้อมส่วนลดพิเศษ 5%"}
+              </p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            {productItems.map((item, idx) => (
-              <div
-                key={idx}
-                className="bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-2xs space-y-1"
-              >
-                <div className="flex items-center justify-between font-bold text-slate-900">
-                  <span className="flex items-center gap-1">
-                    <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px]">
-                      {idx + 1}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Target className="w-4 h-4 text-emerald-600" />
+                รายการสินค้าที่จะเสนอขาย ({productItems.length} รายการ):
+              </span>
+              <span className="text-xs font-extrabold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md">
+                เป้ายอดขายรวม {target.targetSales}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+              {productItems.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs space-y-2"
+                >
+                  <div className="flex items-center justify-between font-bold text-slate-900 border-b border-slate-100 pb-1.5">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px]">
+                        {idx + 1}
+                      </span>
+                      สินค้าที่จะเสนอขาย: {item.productName}
                     </span>
-                    {item.productName}
-                  </span>
-                  <span className="text-emerald-700 font-bold">
-                    {item.price}
-                  </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                    <div>
+                      <span className="text-slate-400 block">จำนวน:</span>
+                      <span className="font-bold text-slate-800">{item.qty}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block">ราคา/หน่วย (บาท):</span>
+                      <span className="font-bold text-emerald-700">
+                        {item.unitPrice || (idx === 0 ? "500 บาท/ลัง" : "750 บาท/ลัง")}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-[11px] text-slate-500 flex justify-between border-t border-slate-100 pt-1">
-                  <span>เป้าหมายปริมาณ:</span>
-                  <span className="font-bold text-slate-800">{item.qty}</span>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       ) : (
         <ActualTargetCard
           iconColorClass="text-emerald-600"
           badgeColorClass="bg-emerald-100 text-emerald-800"
+          gridColsClass="grid-cols-1 sm:grid-cols-3"
           items={[
-            { label: "สินค้าเสนอขาย:", value: target.product },
-            { label: "เป้าหมายปริมาณ:", value: target.targetQty },
-            { label: "เป้ายอดขาย:", value: target.targetSales, highlight: true },
+            { label: "สินค้าที่จะเสนอขาย:", value: target.product },
+            { label: "ชื่อร้านค้า / เกษตรกร:", value: target.customer },
+            { label: "จำนวน:", value: target.targetQty },
+            { label: "ราคา/หน่วย (บาท):", value: target.unitPrice || "500 บาท/หน่วย" },
+            { label: "รายละเอียดเพิ่มเติม:", value: target.detail || "-" },
           ]}
         />
       )}
