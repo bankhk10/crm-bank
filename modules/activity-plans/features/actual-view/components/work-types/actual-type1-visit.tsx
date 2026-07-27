@@ -87,7 +87,7 @@ export function ActualType1Visit({
           <label className="text-sm font-semibold text-slate-800">
             ประเมินโอกาสการขาย <span className="text-rose-500">*</span>
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2 mt-1">
             {(["สูง", "กลาง", "ต่ำ"] as const).map((opt) => (
               <button
                 key={opt}
@@ -101,7 +101,7 @@ export function ActualType1Visit({
                       : opt === "กลาง"
                         ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
                         : "bg-slate-100 border-slate-400 text-slate-800"
-                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
                 )}
               >
                 {opt}
