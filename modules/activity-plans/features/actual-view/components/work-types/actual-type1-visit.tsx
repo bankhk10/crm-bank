@@ -159,7 +159,7 @@ export function ActualType1Visit({
             type="date"
             value={nextMeetingDate}
             onChange={(e) => setNextMeetingDate(e.target.value)}
-            className="bg-white border-slate-300"
+            className="bg-white border-slate-300 mt-2"
           />
         </div>
       </div>
