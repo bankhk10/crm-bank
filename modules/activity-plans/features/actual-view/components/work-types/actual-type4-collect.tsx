@@ -51,29 +51,22 @@ export function ActualType4Collect({
       <ActualTargetCard
         iconColorClass="text-indigo-600"
         badgeColorClass="bg-indigo-100 text-indigo-800"
+        gridColsClass="grid-cols-1 sm:grid-cols-2"
         items={[
           { label: "ลูกค้า/ร้านค้า:", value: target.customer },
-          { label: "เลขที่ออเดอร์:", value: target.orderNo },
-          { label: "เป้ายอดเก็บเงิน:", value: target.targetCollect, highlight: true },
+          {
+            label: "เป้ายอดเก็บเงิน:",
+            value: target.targetCollect,
+            highlight: true,
+          },
         ]}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-800">
-            เลขที่ออเดอร์ / ใบแจ้งหนี้ <span className="text-rose-500">*</span>
-          </label>
-          <Input
-            value={orderNo}
-            onChange={(e) => setOrderNo(e.target.value)}
-            placeholder="เช่น INV-2026-0789"
-            className="bg-white border-slate-300"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-slate-800">
-            จำนวนเงินที่รับชำระจริง (บาท) <span className="text-rose-500">*</span>
+            จำนวนเงินที่รับชำระจริง (บาท){" "}
+            <span className="text-rose-500">*</span>
           </label>
           <div className="relative flex items-center">
             <Input
@@ -89,53 +82,6 @@ export function ActualType4Collect({
             </span>
           </div>
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-sm font-semibold text-slate-800">
-          รูปภาพหลักฐานการรับชำระเงิน <span className="text-rose-500">*</span>
-        </label>
-        <div className="border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/20 hover:bg-indigo-50/40 rounded-2xl p-5 text-center transition-colors cursor-pointer relative group">
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={onUploadImages}
-            className="absolute inset-0 opacity-0 cursor-pointer z-10"
-          />
-          <div className="flex flex-col items-center justify-center gap-1.5">
-            <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
-              <Receipt className="w-5 h-5" />
-            </div>
-            <p className="text-xs font-bold text-indigo-900">
-              คลิกเพื่ออัปโหลด สลิปโอนเงิน / ใบเสร็จรับเงิน
-            </p>
-          </div>
-        </div>
-        {paymentImages.length > 0 && (
-          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
-            {paymentImages.map((img) => (
-              <div
-                key={img.id}
-                className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={img.url}
-                  alt={img.name}
-                  className="w-full h-full object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => onRemoveImage(img.id)}
-                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
