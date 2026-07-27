@@ -118,10 +118,14 @@ export default function ActivityPlanActualView({
       expectedResult: "พืชตอบสนองดี",
     },
     t3: {
-      product: DEMO_PRODUCTS[0],
+      product: `${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[1]}`,
       customer: DEMO_OWNERS[0],
-      targetQty: "10 ลัง",
-      targetSales: `5,000 บาท`,
+      targetQty: "30 ลัง (A: 20 ลัง, B: 10 ลัง)",
+      targetSales: "17,500 บาท",
+      items: [
+        { productName: DEMO_PRODUCTS[0], qty: "20 ลัง", price: "10,000 บาท" },
+        { productName: DEMO_PRODUCTS[1], qty: "10 ลัง", price: "7,500 บาท" },
+      ],
     },
     t4: {
       customer: DEMO_OWNERS[0],
@@ -337,11 +341,11 @@ export default function ActivityPlanActualView({
 
     // Type 3
     setT3SoldProducts(
-      `${DEMO_PRODUCTS[0]} (30 กระสอบ), ${DEMO_PRODUCTS[1]} (15 ขวด)`,
+      `${DEMO_PRODUCTS[0]} (20 ลัง), ${DEMO_PRODUCTS[1]} (10 ลัง)`,
     );
-    setT3ActualSales("35500");
-    setT3ActualQuantity("45 ชิ้น");
-    setT3UnclosedReason("ปิดการขายได้สำเร็จตามเป้าหมาย");
+    setT3ActualSales("17500");
+    setT3ActualQuantity("30 ลัง (A: 20 ลัง, B: 10 ลัง)");
+    setT3UnclosedReason("ปิดการขายได้สำเร็จตามเป้าหมายทั้ง 2 สินค้า");
 
     // Type 4
     setT4OrderNo("INV-2026-0789");
