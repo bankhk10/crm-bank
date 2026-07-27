@@ -111,7 +111,8 @@ export default function ActivityPlanActualView({
     t6: {
       customer: DEMO_OWNERS[0],
       issueType: "เคลมของ",
-      detail: "รับเรื่องร้องเรียนเรื่องสินค้าจากลูกค้าเพื่อประสานงานเปลี่ยน/เคลมสินค้า",
+      detail:
+        "รับเรื่องร้องเรียนเรื่องสินค้าจากลูกค้าเพื่อประสานงานเปลี่ยน/เคลมสินค้า",
       targetStatus: "เสร็จสิ้น",
     },
     t7: {
@@ -153,14 +154,18 @@ export default function ActivityPlanActualView({
   const [t1ProductAdvice, setT1ProductAdvice] = useState("");
   const [t1Detail, setT1Detail] = useState("");
   const [t1DiscussionResult, setT1DiscussionResult] = useState("");
-  const [t1SalesOpportunity, setT1SalesOpportunity] = useState<"สูง" | "กลาง" | "ต่ำ" | "">("");
+  const [t1SalesOpportunity, setT1SalesOpportunity] = useState<
+    "สูง" | "กลาง" | "ต่ำ" | ""
+  >("");
   const [t1NextAction, setT1NextAction] = useState("");
   const [t1NextMeetingDate, setT1NextMeetingDate] = useState("");
 
   // Type 2
   const [t2CustomerName, setT2CustomerName] = useState("");
   const [t2Detail, setT2Detail] = useState("");
-  const [t2UsageResult, setT2UsageResult] = useState<"พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "">("");
+  const [t2UsageResult, setT2UsageResult] = useState<
+    "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | ""
+  >("");
   const [t2ProblemDetail, setT2ProblemDetail] = useState("");
 
   // Type 3
@@ -193,8 +198,12 @@ export default function ActivityPlanActualView({
   const [t7CropAgeValue, setT7CropAgeValue] = useState("");
   const [t7CropAgeUnit, setT7CropAgeUnit] = useState("วัน");
   const [t7GrowthStage, setT7GrowthStage] = useState("");
-  const [t7CropCondition, setT7CropCondition] = useState<"สมบูรณ์" | "ปานกลาง" | "ทรุดโทรม" | "">("");
-  const [t7ProductResponse, setT7ProductResponse] = useState<"พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "">("");
+  const [t7CropCondition, setT7CropCondition] = useState<
+    "สมบูรณ์" | "ปานกลาง" | "ทรุดโทรม" | ""
+  >("");
+  const [t7ProductResponse, setT7ProductResponse] = useState<
+    "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | ""
+  >("");
   const [t7ProblemDescription, setT7ProblemDescription] = useState("");
   const [t7PlotImages, setT7PlotImages] = useState<ImageFile[]>([]);
 
@@ -213,13 +222,19 @@ export default function ActivityPlanActualView({
   const [t10ActualAttendees, setT10ActualAttendees] = useState("");
   const [t10ActualSalesOrBooking, setT10ActualSalesOrBooking] = useState("");
   const [t10TargetFarmersList, setT10TargetFarmersList] = useState("");
-  const [t10FarmerFeedback, setT10FarmerFeedback] = useState<"สูง" | "กลาง" | "ต่ำ" | "">("");
+  const [t10FarmerFeedback, setT10FarmerFeedback] = useState<
+    "สูง" | "กลาง" | "ต่ำ" | ""
+  >("");
   const [t10Images, setT10Images] = useState<ImageFile[]>([]);
 
   // Type 11
   const [t11ProductList, setT11ProductList] = useState("");
-  const [t11StockStatus, setT11StockStatus] = useState<"ใกล้หมด" | "ขาดสต็อก" | "">("");
-  const [t11ReorderOpportunity, setT11ReorderOpportunity] = useState<"สูง" | "กลาง" | "ต่ำ" | "">("");
+  const [t11StockStatus, setT11StockStatus] = useState<
+    "ใกล้หมด" | "ขาดสต็อก" | ""
+  >("");
+  const [t11ReorderOpportunity, setT11ReorderOpportunity] = useState<
+    "สูง" | "กลาง" | "ต่ำ" | ""
+  >("");
   const [t11NextAction, setT11NextAction] = useState("");
 
   // Submitting & notifications
@@ -264,33 +279,33 @@ export default function ActivityPlanActualView({
   const fillAllSampleData = () => {
     // Type 1
     setT1ProductAdvice(
-      `${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[3] || "ปุ๋ยเคมีสูตรพิเศษ"}`
+      `${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[3] || "ปุ๋ยเคมีสูตรพิเศษ"}`,
     );
     setT1Detail(
-      `เข้าพบเจ้าของ ${DEMO_OWNERS[0]} เพื่อแนะนำเทคนิคการดูแลพืชสวนช่วงทำใบ`
+      `เข้าพบเจ้าของ ${DEMO_OWNERS[0]} เพื่อแนะนำเทคนิคการดูแลพืชสวนช่วงทำใบ`,
     );
     setT1DiscussionResult(
-      `ลูกค้าสนใจสั่งซื้อ ${DEMO_PRODUCTS[0]} ไปทดลองวางหน้าร้าน 50 ชุด และขอป้ายส่งเสริมการขาย`
+      `ลูกค้าสนใจสั่งซื้อ ${DEMO_PRODUCTS[0]} ไปทดลองวางหน้าร้าน 50 ชุด และขอป้ายส่งเสริมการขาย`,
     );
     setT1SalesOpportunity("สูง");
     setT1NextAction(
-      "นำส่งใบเสนอราคาพร้อมส่วนลดพิเศษ 5% และนำตัวอย่างสินค้ามาให้หน้าร้านลอง"
+      "นำส่งใบเสนอราคาพร้อมส่วนลดพิเศษ 5% และนำตัวอย่างสินค้ามาให้หน้าร้านลอง",
     );
     setT1NextMeetingDate("2026-08-05");
 
     // Type 2
     setT2CustomerName(
-      `${DEMO_OWNERS[0]} / ${DEMO_OWNERS[3] || "ร้านสหายพานิช"}`
+      `${DEMO_OWNERS[0]} / ${DEMO_OWNERS[3] || "ร้านสหายพานิช"}`,
     );
     setT2Detail(
-      `ติดตามผลหลังเกษตรกรนำ ${DEMO_PRODUCTS[0]} ไปฉีดพ่นทางใบผ่านไป 10 วัน`
+      `ติดตามผลหลังเกษตรกรนำ ${DEMO_PRODUCTS[0]} ไปฉีดพ่นทางใบผ่านไป 10 วัน`,
     );
     setT2UsageResult("พืชตอบสนองดี");
     setT2ProblemDetail("");
 
     // Type 3
     setT3SoldProducts(
-      `${DEMO_PRODUCTS[0]} (30 กระสอบ), ${DEMO_PRODUCTS[1]} (15 ขวด)`
+      `${DEMO_PRODUCTS[0]} (30 กระสอบ), ${DEMO_PRODUCTS[1]} (15 ขวด)`,
     );
     setT3ActualSales("35500");
     setT3ActualQuantity("45 ชิ้น");
@@ -305,22 +320,22 @@ export default function ActivityPlanActualView({
     setT5CompetitorProduct(`เทียบกับ ${DEMO_PRODUCTS[0]} (ปุ๋ยทางใบ 1 ลิตร)`);
     setT5CompetitorPrice("850 บาท/ขวด");
     setT5PromotionDetail(
-      "จัดโปรโมชัน ซื้อ 10 แถม 1 พร้อมแจกเสื้อยืดพนักงานหน้าร้าน"
+      "จัดโปรโมชัน ซื้อ 10 แถม 1 พร้อมแจกเสื้อยืดพนักงานหน้าร้าน",
     );
 
     // Type 6
     setT6ProblemDetail(
-      `ลูกค้าร้องเรียนเรื่องสินค้า ${DEMO_PRODUCTS[0]} ตกตะกอนเมื่อผสมน้ำในถัง 200 ลิตร`
+      `ลูกค้าร้องเรียนเรื่องสินค้า ${DEMO_PRODUCTS[0]} ตกตะกอนเมื่อผสมน้ำในถัง 200 ลิตร`,
     );
     setT6InitialSolution(
-      "แนะนำการผสมน้ำอุ่นกวนให้ละลายก่อนเทลงถังใหญ่ พร้อมเปลี่ยนสินค้าล็อตใหม่ให้ลูกค้าทันที"
+      "แนะนำการผสมน้ำอุ่นกวนให้ละลายก่อนเทลงถังใหญ่ พร้อมเปลี่ยนสินค้าล็อตใหม่ให้ลูกค้าทันที",
     );
     setT6Status("เสร็จสิ้น");
 
     // Type 7
     setT7PlotName("แปลงทดสอบบ้านนา");
     setT7UsageMethod(
-      `ฉีดพ่น ${DEMO_PRODUCTS[0]} อัตรา 50cc/น้ำ 20L ทุกๆ 7 วัน`
+      `ฉีดพ่น ${DEMO_PRODUCTS[0]} อัตรา 50cc/น้ำ 20L ทุกๆ 7 วัน`,
     );
     setT7CropAgeValue("45");
     setT7CropAgeUnit("วัน");
@@ -328,13 +343,13 @@ export default function ActivityPlanActualView({
     setT7CropCondition("สมบูรณ์");
     setT7ProductResponse("พบปัญหา");
     setT7ProblemDescription(
-      "พบคราบใบไหม้เล็กน้อยบริเวณขอบใบ เนื่องจากสภาพอากาศแดดจัดจัดในวันที่ฉีดพ่น"
+      "พบคราบใบไหม้เล็กน้อยบริเวณขอบใบ เนื่องจากสภาพอากาศแดดจัดจัดในวันที่ฉีดพ่น",
     );
 
     // Type 8
     setT8ActualAttendees("35");
     setT8FeedbackQnA(
-      `เกษตรกรสอบถามเรื่องการใช้ ${DEMO_PRODUCTS[0]} ร่วมกับชีวภัณฑ์ป้องกันรากเน่า และต้องการแผ่นพับตารางการใส่ปุ๋ยรายเดือน`
+      `เกษตรกรสอบถามเรื่องการใช้ ${DEMO_PRODUCTS[0]} ร่วมกับชีวภัณฑ์ป้องกันรากเน่า และต้องการแผ่นพับตารางการใส่ปุ๋ยรายเดือน`,
     );
 
     // Type 9
@@ -346,24 +361,24 @@ export default function ActivityPlanActualView({
     setT10ActualAttendees("120");
     setT10ActualSalesOrBooking("150000");
     setT10TargetFarmersList(
-      "นายประเสริฐ (100 ไร่), นายวิชัย (50 ไร่), สวนผู้ใหญ่สมศักดิ์"
+      "นายประเสริฐ (100 ไร่), นายวิชัย (50 ไร่), สวนผู้ใหญ่สมศักดิ์",
     );
     setT10FarmerFeedback("สูง");
 
     // Type 11
     setT11ProductList(
-      `${DEMO_PRODUCTS[0]} (50 กระสอบ), ${DEMO_PRODUCTS[1]} (20 ขวด)`
+      `${DEMO_PRODUCTS[0]} (50 กระสอบ), ${DEMO_PRODUCTS[1]} (20 ขวด)`,
     );
     setT11StockStatus("ใกล้หมด");
     setT11ReorderOpportunity("สูง");
     setT11NextAction(
-      "แจ้งฝ่ายขายออกใบสั่งซื้อสินค้าเติมสต็อกหน้าร้านภายในวันจันทร์นี้"
+      "แจ้งฝ่ายขายออกใบสั่งซื้อสินค้าเติมสต็อกหน้าร้านภายในวันจันทร์นี้",
     );
   };
 
   // Helper for image upload
   const createUploadHandler = (
-    setter: React.Dispatch<React.SetStateAction<ImageFile[]>>
+    setter: React.Dispatch<React.SetStateAction<ImageFile[]>>,
   ) => {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
       if (!e.target.files?.length) return;
@@ -379,7 +394,7 @@ export default function ActivityPlanActualView({
 
   const removeImage = (
     setter: React.Dispatch<React.SetStateAction<ImageFile[]>>,
-    imgId: string
+    imgId: string,
   ) => {
     setter((prev) => prev.filter((img) => img.id !== imgId));
   };
@@ -426,6 +441,62 @@ export default function ActivityPlanActualView({
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6 pb-24 space-y-6">
+      {/* WORK TYPE SELECTOR TABS & DROPDOWN */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <Layers className="w-4 h-4 text-blue-600" />
+            สลับดูแบบฟอร์มตามกิจกรรม (11 รูปแบบ):
+          </span>
+          <Select value={activeTypeTab} onValueChange={setActiveTypeTab}>
+            <SelectTrigger className="w-64 h-8 text-xs bg-slate-50 border-slate-300">
+              <SelectValue placeholder="เลือกกิจกรรม" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">
+                📋 แสดงแบบฟอร์มทั้งหมด (All 11 Types)
+              </SelectItem>
+              {WORK_TYPES.map((typeName, idx) => (
+                <SelectItem key={typeName} value={typeName}>
+                  {idx + 1}. {typeName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => setActiveTypeTab("ALL")}
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+              activeTypeTab === "ALL"
+                ? "bg-slate-900 text-white shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+            )}
+          >
+            📋 ทั้งหมด
+          </button>
+
+          {WORK_TYPES.map((typeName, idx) => (
+            <button
+              key={typeName}
+              type="button"
+              onClick={() => setActiveTypeTab(typeName)}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer",
+                activeTypeTab === typeName
+                  ? "bg-blue-600 text-white shadow-xs font-semibold"
+                  : "bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100",
+              )}
+            >
+              {idx + 1}. {typeName.split(" / ")[0]}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* HEADER SECTION */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
         <div className="flex items-center gap-3.5">
@@ -464,62 +535,6 @@ export default function ActivityPlanActualView({
 
       {/* PLAN SUMMARY CARD */}
       <ActualPlanSummary summary={planSummary} />
-
-      {/* WORK TYPE SELECTOR TABS & DROPDOWN */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <Layers className="w-4 h-4 text-blue-600" />
-            สลับดูแบบฟอร์มตามกิจกรรม (11 รูปแบบ):
-          </span>
-          <Select value={activeTypeTab} onValueChange={setActiveTypeTab}>
-            <SelectTrigger className="w-64 h-8 text-xs bg-slate-50 border-slate-300">
-              <SelectValue placeholder="เลือกกิจกรรม" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">
-                📋 แสดงแบบฟอร์มทั้งหมด (All 11 Types)
-              </SelectItem>
-              {WORK_TYPES.map((typeName, idx) => (
-                <SelectItem key={typeName} value={typeName}>
-                  {idx + 1}. {typeName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            type="button"
-            onClick={() => setActiveTypeTab("ALL")}
-            className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
-              activeTypeTab === "ALL"
-                ? "bg-slate-900 text-white shadow-xs"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            )}
-          >
-            📋 ทั้งหมด
-          </button>
-
-          {WORK_TYPES.map((typeName, idx) => (
-            <button
-              key={typeName}
-              type="button"
-              onClick={() => setActiveTypeTab(typeName)}
-              className={cn(
-                "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer",
-                activeTypeTab === typeName
-                  ? "bg-blue-600 text-white shadow-xs font-semibold"
-                  : "bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100"
-              )}
-            >
-              {idx + 1}. {typeName.split(" / ")[0]}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Notifications */}
       {formError && (
@@ -657,7 +672,9 @@ export default function ActivityPlanActualView({
 
         {/* WORK TYPE 8 */}
         <ActualType8Meeting
-          isVisible={isTypeVisible("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")}
+          isVisible={isTypeVisible(
+            "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+          )}
           target={targets.t8}
           actualAttendees={t8ActualAttendees}
           setActualAttendees={setT8ActualAttendees}
