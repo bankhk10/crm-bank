@@ -9,10 +9,17 @@ import { ActualTargetCard } from "../actual-target-card";
 export interface TargetProductItem {
   productName: string;
   qty: string;
+  unit?: string;
   price: string;
   actualQty?: string;
   actualSales?: string;
   unclosedReason?: string;
+}
+
+function extractUnit(qtyStr?: string): string {
+  if (!qtyStr) return "ชิ้น";
+  const match = qtyStr.match(/([^\d\s]+)$/);
+  return match ? match[1] : "ชิ้น";
 }
 
 interface ActualType3SalesProps {
@@ -58,20 +65,11 @@ export function ActualType3Sales({
         target.items.map((item, idx) => ({
           ...item,
           actualQty:
-            idx === 0
-              ? "20 ลัง"
-              : idx === 1
-              ? "10 ลัง"
-              : item.actualQty || "",
+            item.actualQty || (idx === 0 ? "20" : idx === 1 ? "10" : ""),
           actualSales:
-            idx === 0
-              ? "10000"
-              : idx === 1
-              ? "7500"
-              : item.actualSales || "",
+            item.actualSales || (idx === 0 ? "10000" : idx === 1 ? "7500" : ""),
           unclosedReason:
-            item.unclosedReason ||
-            "ปิดการขายได้สำเร็จตามเป้าหมาย",
+            item.unclosedReason || "ปิดการขายได้สำเร็จตามเป้าหมาย",
         }))
       );
     }
@@ -97,9 +95,14 @@ export function ActualType3Sales({
     );
     setActualSales(totalSalesSum > 0 ? String(totalSalesSum) : "");
 
-    // Sync concatenated quantities
+    // Sync concatenated quantities with unit
     const concatQty = updated
-      .map((item) => `${item.productName}: ${item.actualQty || "0"}`)
+      .map(
+        (item) =>
+          `${item.productName}: ${item.actualQty || "0"} ${
+            item.unit || extractUnit(item.qty)
+          }`
+      )
       .join(", ");
     setActualQuantity(concatQty);
 
@@ -197,63 +200,81 @@ export function ActualType3Sales({
           </div>
 
           <div className="space-y-3">
-            {productItems.map((prod, idx) => (
-              <div
-                key={idx}
-                className="bg-emerald-50/30 border border-emerald-200/80 rounded-2xl p-4 space-y-3 shadow-2xs"
-              >
-                {/* Product Section Title Header */}
-                <div className="flex items-center justify-between border-b border-emerald-100/80 pb-2.5">
-                  <div className="flex items-center gap-2 font-bold text-sm text-emerald-950">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white text-xs">
-                      {idx + 1}
-                    </span>
-                    <span>สินค้า: {prod.productName}</span>
-                  </div>
-                  <span className="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-0.5 rounded-md">
-                    เป้าหมาย: {prod.qty} ({prod.price})
-                  </span>
-                </div>
+            {productItems.map((prod, idx) => {
+              const unitName = prod.unit || extractUnit(prod.qty);
 
-                {/* Per-Product Inputs: ปริมาณขายจริง + ยอดขายจริง (บาท) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-800">
-                      ปริมาณขายจริง (สินค้าที่ {idx + 1}){" "}
-                      <span className="text-rose-500">*</span>
-                    </label>
-                    <Input
-                      value={prod.actualQty || ""}
-                      onChange={(e) =>
-                        handleProductChange(idx, "actualQty", e.target.value)
-                      }
-                      placeholder="เช่น 20 ลัง"
-                      className="bg-white border-slate-300"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-800">
-                      ยอดขายจริง (บาท) (สินค้าที่ {idx + 1}){" "}
-                      <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="relative flex items-center">
-                      <Input
-                        type="number"
-                        min="0"
-                        value={prod.actualSales || ""}
-                        onChange={(e) =>
-                          handleProductChange(idx, "actualSales", e.target.value)
-                        }
-                        placeholder="0.00"
-                        className="bg-white border-slate-300 pr-12"
-                      />
-                      <span className="absolute right-3 text-xs font-semibold text-slate-500">
-                        บาท
+              return (
+                <div
+                  key={idx}
+                  className="bg-emerald-50/30 border border-emerald-200/80 rounded-2xl p-4 space-y-3 shadow-2xs"
+                >
+                  {/* Product Section Title Header */}
+                  <div className="flex items-center justify-between border-b border-emerald-100/80 pb-2.5">
+                    <div className="flex items-center gap-2 font-bold text-sm text-emerald-950">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white text-xs">
+                        {idx + 1}
                       </span>
+                      <span>สินค้า: {prod.productName}</span>
+                    </div>
+                    <span className="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-0.5 rounded-md">
+                      เป้าหมาย: {prod.qty} ({prod.price})
+                    </span>
+                  </div>
+
+                  {/* Per-Product Inputs: ปริมาณขายจริง (ดึงหน่วยมาใช้อัตโนมัติ) + ยอดขายจริง (บาท) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-800">
+                        ปริมาณขายจริง (สินค้าที่ {idx + 1}){" "}
+                        <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <Input
+                          type="number"
+                          min="0"
+                          value={prod.actualQty || ""}
+                          onChange={(e) =>
+                            handleProductChange(
+                              idx,
+                              "actualQty",
+                              e.target.value
+                            )
+                          }
+                          placeholder="0"
+                          className="bg-white border-slate-300 pr-12"
+                        />
+                        <span className="absolute right-3 text-xs font-semibold text-slate-500">
+                          {unitName}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-800">
+                        ยอดขายจริง (บาท) (สินค้าที่ {idx + 1}){" "}
+                        <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <Input
+                          type="number"
+                          min="0"
+                          value={prod.actualSales || ""}
+                          onChange={(e) =>
+                            handleProductChange(
+                              idx,
+                              "actualSales",
+                              e.target.value
+                            )
+                          }
+                          placeholder="0.00"
+                          className="bg-white border-slate-300 pr-12"
+                        />
+                        <span className="absolute right-3 text-xs font-semibold text-slate-500">
+                          บาท
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
                 {/* Per-Product Reason: เหตุผล (กรณีไม่สามารถปิดการขายได้ตามเป้า) */}
                 <div className="space-y-1.5">
@@ -271,8 +292,9 @@ export function ActualType3Sales({
                   />
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
+        </div>
 
           {/* TOTAL SUMMARY FOOTER FOR TYPE 3 */}
           <div className="bg-emerald-100/60 border border-emerald-200 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-2 shadow-2xs">
