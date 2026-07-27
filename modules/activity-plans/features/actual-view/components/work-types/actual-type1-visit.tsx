@@ -3,8 +3,16 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
+import { DEMO_PRODUCTS } from "../../../form/constants";
 
 interface ActualType1VisitProps {
   isVisible: boolean;
@@ -75,12 +83,18 @@ export function ActualType1Visit({
           <label className="text-sm font-semibold text-slate-800">
             สินค้าที่ให้คำแนะนำ (ถ้ามี)
           </label>
-          <Input
-            value={productAdvice}
-            onChange={(e) => setProductAdvice(e.target.value)}
-            placeholder="เช่น ปุ๋ยเคมีสูตร 15-15-15, สารบำรุงราก"
-            className="bg-white border-slate-300"
-          />
+          <Select value={productAdvice} onValueChange={setProductAdvice}>
+            <SelectTrigger className="bg-white border-slate-300">
+              <SelectValue placeholder="เลือกสินค้าที่ให้คำแนะนำ" />
+            </SelectTrigger>
+            <SelectContent>
+              {DEMO_PRODUCTS.map((prod) => (
+                <SelectItem key={prod} value={prod}>
+                  {prod}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-1.5">
