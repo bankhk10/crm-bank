@@ -56,6 +56,7 @@ export function ActualType2Followup({
       <ActualTargetCard
         iconColorClass="text-cyan-600"
         badgeColorClass="bg-cyan-100 text-cyan-800"
+        gridColsClass="grid-cols-1 sm:grid-cols-2"
         items={[
           { label: "สินค้าที่ติดตาม:", value: target.product },
           { label: "ลูกค้า/ร้านค้า:", value: target.customer },
