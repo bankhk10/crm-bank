@@ -63,10 +63,10 @@ export function ActualType1Visit({
       <ActualTargetCard
         iconColorClass="text-teal-600"
         badgeColorClass="bg-teal-100 text-teal-800"
+        gridColsClass="grid-cols-1 sm:grid-cols-2"
         items={[
           { label: "ลูกค้า/ร้านค้า:", value: target.customer },
           { label: "หัวข้อเป้าหมาย:", value: target.topic },
-          { label: "โอกาสขายเป้าหมาย:", value: target.opportunity, highlight: true },
         ]}
       />
 
