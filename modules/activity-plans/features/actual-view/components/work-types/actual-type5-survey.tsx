@@ -99,7 +99,7 @@ export function ActualType5Survey({
           <Input
             value={competitorPrice}
             onChange={(e) => setCompetitorPrice(e.target.value)}
-            placeholder="เช่น 850 บาท/ขวด"
+            placeholder=""
             className="bg-white border-slate-300"
           />
         </div>
