@@ -95,7 +95,11 @@ export function ActualType10FieldDay({
         items={[
           { label: "แปลงสาธิตจัดงาน:", value: target.plot },
           { label: "เป้าหมายผู้เข้าร่วม:", value: target.targetAttendees },
-          { label: "เป้ายอดขาย/จอง:", value: target.targetSales, highlight: true },
+          {
+            label: "เป้ายอดขาย/จอง:",
+            value: target.targetSales,
+            highlight: true,
+          },
         ]}
       />
 
@@ -121,7 +125,8 @@ export function ActualType10FieldDay({
 
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-800">
-            ยอดขายหรือยอดจองที่เกิดขึ้นจริง (บาท) <span className="text-rose-500">*</span>
+            ยอดขายหรือยอดจองที่เกิดขึ้นจริง (บาท){" "}
+            <span className="text-rose-500">*</span>
           </label>
           <div className="relative flex items-center">
             <Input
@@ -172,7 +177,8 @@ export function ActualType10FieldDay({
         {selectedOption === OTHER_OPTION && (
           <div className="space-y-1.5 pt-1 animate-in fade-in-50 duration-200">
             <label className="text-xs font-semibold text-slate-700">
-              ระบุรายชื่อเกษตรกรเพิ่มเติม <span className="text-rose-500">*</span>
+              ระบุรายชื่อเกษตรกรเพิ่มเติม{" "}
+              <span className="text-rose-500">*</span>
             </label>
             <Textarea
               rows={2}
@@ -185,36 +191,10 @@ export function ActualType10FieldDay({
         )}
       </div>
 
-      <div className="space-y-1.5">
-        <label className="text-sm font-semibold text-slate-800">
-          ผลตอบรับของเกษตรกรที่มาร่วมงาน <span className="text-rose-500">*</span>
-        </label>
-        <div className="grid grid-cols-3 gap-2 max-w-sm">
-          {(["สูง", "กลาง", "ต่ำ"] as const).map((fb) => (
-            <button
-              key={fb}
-              type="button"
-              onClick={() => setFarmerFeedback(fb)}
-              className={cn(
-                "py-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all",
-                farmerFeedback === fb
-                  ? fb === "สูง"
-                    ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
-                    : fb === "กลาง"
-                      ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
-                      : "bg-slate-100 border-slate-400 text-slate-800"
-                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-              )}
-            >
-              {fb}
-            </button>
-          ))}
-        </div>
-      </div>
-
       <div className="space-y-2">
         <label className="text-sm font-semibold text-slate-800">
-          รูปภาพบรรยากาศการจัดงานจัดเต็ม <span className="text-rose-500">*</span>
+          รูปภาพบรรยากาศการจัดงานจัดเต็ม{" "}
+          <span className="text-rose-500">*</span>
         </label>
         <div className="border-2 border-dashed border-orange-200 hover:border-orange-400 bg-orange-50/20 hover:bg-orange-50/40 rounded-2xl p-5 text-center transition-colors cursor-pointer relative group">
           <input
