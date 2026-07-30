@@ -255,8 +255,9 @@ export default function ActivityPlanActualView({
   const [t7CropAgeUnit, setT7CropAgeUnit] = useState("วัน");
   const [t7GrowthStage, setT7GrowthStage] = useState("");
   const [t7CropCondition, setT7CropCondition] = useState<
-    "สมบูรณ์" | "ปานกลาง" | "ทรุดโทรม" | ""
+    "สมบูรณ์" | "มีปัญหา" | "ปานกลาง" | "ทรุดโทรม" | ""
   >("");
+  const [t7CropProblemDescription, setT7CropProblemDescription] = useState("");
   const [t7ProductResponse, setT7ProductResponse] = useState<
     "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | ""
   >("");
@@ -727,6 +728,8 @@ export default function ActivityPlanActualView({
           setGrowthStage={setT7GrowthStage}
           cropCondition={t7CropCondition}
           setCropCondition={setT7CropCondition}
+          cropProblemDescription={t7CropProblemDescription}
+          setCropProblemDescription={setT7CropProblemDescription}
           productResponse={t7ProductResponse}
           setProductResponse={setT7ProductResponse}
           problemDescription={t7ProblemDescription}

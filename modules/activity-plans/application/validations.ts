@@ -58,6 +58,11 @@ export const actualRecordSchema = z.object({
   cropCondition: z.enum(["สมบูรณ์", "ไม่เปลี่ยนแปลง", "มีปัญหา"], {
     required_error: "กรุณาเลือกสภาพพืช",
   }),
+  cropProblemDescription: z
+    .string()
+    .max(500, "ระบุปัญหาที่พบ (สภาพพืช) ต้องไม่เกิน 500 ตัวอักษร")
+    .optional()
+    .nullable(),
   productResponse: z.enum(["พืชตอบสนองดี", "ยังไม่เห็นผลชัดเจน", "พบปัญหา"], {
     required_error: "กรุณาเลือกผลการใช้ผลิตภัณฑ์",
   }),

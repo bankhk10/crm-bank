@@ -34,8 +34,12 @@ interface ActualType7DemoProps {
   setCropAgeUnit: (v: string) => void;
   growthStage: string;
   setGrowthStage: (v: string) => void;
-  cropCondition: "สมบูรณ์" | "ปานกลาง" | "ทรุดโทรม" | "";
-  setCropCondition: (v: "สมบูรณ์" | "ปานกลาง" | "ทรุดโทรม" | "") => void;
+  cropCondition: "สมบูรณ์" | "มีปัญหา" | "ปานกลาง" | "ทรุดโทรม" | "";
+  setCropCondition: (
+    v: "สมบูรณ์" | "มีปัญหา" | "ปานกลาง" | "ทรุดโทรม" | "",
+  ) => void;
+  cropProblemDescription?: string;
+  setCropProblemDescription?: (v: string) => void;
   productResponse: "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "";
   setProductResponse: (
     v: "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "",
@@ -62,6 +66,8 @@ export function ActualType7Demo({
   setGrowthStage,
   cropCondition,
   setCropCondition,
+  cropProblemDescription = "",
+  setCropProblemDescription,
   productResponse,
   setProductResponse,
   problemDescription,
@@ -186,6 +192,27 @@ export function ActualType7Demo({
         </div>
       </div>
 
+      {cropCondition === "มีปัญหา" && (
+        <div className="bg-rose-50/60 border border-rose-200 rounded-xl p-3.5 space-y-1.5">
+          <label className="text-xs font-bold text-rose-800">
+            ระบุปัญหาที่พบ (สภาพพืช) <span className="text-rose-500">*</span>
+          </label>
+          <div className="relative">
+            <Textarea
+              rows={2}
+              maxLength={500}
+              value={cropProblemDescription}
+              onChange={(e) => setCropProblemDescription?.(e.target.value)}
+              placeholder="ระบุปัญหาของสภาพพืช เช่น แคระเกร็ง, ใบเหลือง, โรค/แมลงศัตรูพืช ฯลฯ"
+              className="bg-white border-rose-200 pb-6 text-slate-800"
+            />
+            <span className="absolute bottom-2 right-3 text-[10px] text-slate-400 font-mono">
+              {cropProblemDescription.length}/500
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-2">
         <label className="text-sm font-semibold text-slate-800">
           ผลการใช้ผลิตภัณฑ์ <span className="text-rose-500">*</span>
@@ -215,7 +242,7 @@ export function ActualType7Demo({
       {productResponse === "พบปัญหา" && (
         <div className="bg-rose-50/60 border border-rose-200 rounded-xl p-3.5 space-y-1.5">
           <label className="text-xs font-bold text-rose-800">
-            ระบุปัญหาที่พบ <span className="text-rose-500">*</span>
+            ระบุปัญหาที่พบ (ผลการใช้ผลิตภัณฑ์) <span className="text-rose-500">*</span>
           </label>
           <div className="relative">
             <Textarea
@@ -223,7 +250,7 @@ export function ActualType7Demo({
               maxLength={500}
               value={problemDescription}
               onChange={(e) => setProblemDescription(e.target.value)}
-              placeholder="เช่น ใบไหม้, แมลงลง, รากเน่า ฯลฯ"
+              placeholder="ระบุปัญหาของผลิตภัณฑ์ เช่น ใบไหม้, ตกตะกอน, ยาไม่เกิดผล ฯลฯ"
               className="bg-white border-rose-200 pb-6 text-slate-800"
             />
             <span className="absolute bottom-2 right-3 text-[10px] text-slate-400 font-mono">
