@@ -110,7 +110,7 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                 <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                 <span>{summary.startDateStr}</span>
                 <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                <span> {startTimeDisplay}</span>
+                <span> {endTimeDisplay}</span>
               </div>
             </div>
           </div>
