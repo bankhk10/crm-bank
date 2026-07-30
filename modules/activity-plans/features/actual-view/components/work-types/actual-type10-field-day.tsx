@@ -1,12 +1,28 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Camera, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
 import { ImageFile } from "../../types";
+
+const OTHER_OPTION = "ไม่พบข้อมูล / ระบุเพิ่มเติม";
+const DEFAULT_FARMER_OPTIONS = [
+  "นายประเสริฐ (100 ไร่)",
+  "นายวิชัย (50 ไร่)",
+  "สวนผู้ใหญ่สมศักดิ์ (80 ไร่)",
+  "นายสมชาย (สวนทุเรียน 30 ไร่)",
+  "นายสุรชัย (สวนส้ม 40 ไร่)",
+];
 
 interface ActualType10FieldDayProps {
   isVisible: boolean;
@@ -45,6 +61,18 @@ export function ActualType10FieldDay({
   onUploadImages,
   onRemoveImage,
 }: ActualType10FieldDayProps) {
+  const [selectedOption, setSelectedOption] = useState<string>("");
+
+  useEffect(() => {
+    if (DEFAULT_FARMER_OPTIONS.includes(targetFarmersList)) {
+      setSelectedOption(targetFarmersList);
+    } else if (targetFarmersList) {
+      setSelectedOption(OTHER_OPTION);
+    } else if (selectedOption !== OTHER_OPTION) {
+      setSelectedOption("");
+    }
+  }, [targetFarmersList]);
+
   if (!isVisible) return null;
 
   return (
@@ -115,13 +143,46 @@ export function ActualType10FieldDay({
         <label className="text-sm font-semibold text-slate-800">
           รายชื่อเกษตรกรเป้าหมายที่สนใจ <span className="text-rose-500">*</span>
         </label>
-        <Textarea
-          rows={2}
-          value={targetFarmersList}
-          onChange={(e) => setTargetFarmersList(e.target.value)}
-          placeholder="เช่น นายประเสริฐ (100 ไร่), นายวิชัย (50 ไร่)"
-          className="bg-white border-slate-300"
-        />
+        <Select
+          value={selectedOption}
+          onValueChange={(val) => {
+            setSelectedOption(val);
+            if (val === OTHER_OPTION) {
+              if (DEFAULT_FARMER_OPTIONS.includes(targetFarmersList)) {
+                setTargetFarmersList("");
+              }
+            } else {
+              setTargetFarmersList(val);
+            }
+          }}
+        >
+          <SelectTrigger className="w-full bg-white border-slate-300">
+            <SelectValue placeholder="เลือกรายชื่อเกษตรกรเป้าหมายที่สนใจ" />
+          </SelectTrigger>
+          <SelectContent>
+            {DEFAULT_FARMER_OPTIONS.map((farmer) => (
+              <SelectItem key={farmer} value={farmer}>
+                {farmer}
+              </SelectItem>
+            ))}
+            <SelectItem value={OTHER_OPTION}>{OTHER_OPTION}</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {selectedOption === OTHER_OPTION && (
+          <div className="space-y-1.5 pt-1 animate-in fade-in-50 duration-200">
+            <label className="text-xs font-semibold text-slate-700">
+              ระบุรายชื่อเกษตรกรเพิ่มเติม <span className="text-rose-500">*</span>
+            </label>
+            <Textarea
+              rows={2}
+              value={targetFarmersList}
+              onChange={(e) => setTargetFarmersList(e.target.value)}
+              placeholder="ระบุรายชื่อเกษตรกร เช่น นายประเสริฐ (100 ไร่), นายวิชัย (50 ไร่)"
+              className="bg-white border-slate-300"
+            />
+          </div>
+        )}
       </div>
 
       <div className="space-y-1.5">
