@@ -49,16 +49,37 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
       (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
       0,
     ) || 0;
+
+  const salesPromoMarketingTotal =
+    summary.salesPromotionItems?.reduce(
+      (sum, item) =>
+        item.budgetType === "งบการตลาด" ? sum + (item.amount || 0) : sum,
+      0,
+    ) || 0;
+
   const effectiveMarketingBudget =
-    marketingProductsTotal || summary.marketingBudget || 0;
+    (marketingProductsTotal + salesPromoMarketingTotal) ||
+    summary.marketingBudget ||
+    0;
 
   const salesPromoTotal =
     summary.salesPromotionItems?.reduce(
       (sum, item) => sum + (item.amount || 0),
       0,
     ) || 0;
-  const effectiveSalesPromoBudget =
-    salesPromoTotal || summary.salesPromotionBudget || 0;
+
+  const salesPromoSalesTotal =
+    summary.salesPromotionItems?.reduce(
+      (sum, item) =>
+        !item.budgetType || item.budgetType === "งบขาย"
+          ? sum + (item.amount || 0)
+          : sum,
+      0,
+    ) || 0;
+
+  const effectiveSalesPromoBudget = hasSalesPromotionItems
+    ? salesPromoSalesTotal
+    : summary.salesPromotionBudget || 0;
 
   const totalBudget =
     effectiveMarketingBudget +
