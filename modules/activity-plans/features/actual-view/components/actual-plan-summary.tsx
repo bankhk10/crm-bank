@@ -85,7 +85,7 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
           <FileText className="w-3.5 h-3.5 text-blue-600" />
           ข้อมูลหลักของกิจกรรม (Main Activity Details):
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
           {/* ชื่องานกิจกรรม */}
           <div className="bg-white p-3 rounded-xl border border-blue-100/80 md:col-span-2 lg:col-span-1">
             <p className="text-[11px] text-slate-400 font-semibold mb-0.5">
@@ -105,27 +105,12 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                 <span>{summary.startDateStr}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-slate-500 font-medium">
                 <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                <span>เวลา {startTimeDisplay}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* วันที่สิ้นสุดกิจกรรม */}
-          <div className="bg-white p-3 rounded-xl border border-blue-100/80">
-            <p className="text-[11px] text-slate-400 font-semibold mb-0.5">
-              วันที่สิ้นสุดกิจกรรม
-            </p>
-            <div className="flex flex-col gap-0.5 text-xs font-bold text-slate-800">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                <span>{summary.endDateStr || summary.startDateStr}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-slate-500 font-medium">
-                <Clock className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                <span>เวลา {endTimeDisplay}</span>
+                <span> {startTimeDisplay}</span> ถึง
+                <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span>{summary.startDateStr}</span>
+                <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                <span> {startTimeDisplay}</span>
               </div>
             </div>
           </div>
