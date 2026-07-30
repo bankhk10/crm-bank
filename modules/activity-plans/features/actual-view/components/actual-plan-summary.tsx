@@ -81,7 +81,7 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
       </div>
 
       {/* CARD BODY */}
-      <div className="p-4 md:p-5 space-y-4 bg-slate-50/60">
+      <div className="p-4 md:p-5 space-y-4">
         {/* SECTION 1: ข้อมูลหลักของกิจกรรม */}
         <div className="space-y-2">
           <p className="text-[11px] font-bold text-indigo-600 flex items-center gap-1.5 uppercase tracking-widest">
@@ -143,7 +143,7 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
               {summary.salesPromotionBudget ? (
                 <div className="bg-white border border-slate-200 p-2.5 rounded-xl shadow-xs hover:border-emerald-300 hover:shadow-sm transition-all duration-200">
                   <span className="text-slate-400 block text-[10px] uppercase tracking-wider mb-0.5">
-                    งบส่งเสริมการขาย
+                    งบขาย
                   </span>
                   <span className="font-bold text-emerald-700 text-xs">
                     {summary.salesPromotionBudget.toLocaleString()} บาท
@@ -158,18 +158,6 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                   </span>
                   <span className="font-bold text-indigo-700 text-xs">
                     {summary.marketingBudget.toLocaleString()} บาท
-                  </span>
-                </div>
-              ) : null}
-
-              {summary.extraExpenseAmount ? (
-                <div className="bg-white border border-slate-200 p-2.5 rounded-xl shadow-xs hover:border-amber-300 hover:shadow-sm transition-all duration-200">
-                  <span className="text-slate-400 block text-[10px] uppercase tracking-wider mb-0.5">
-                    ค่าใช้จ่ายเพิ่มเติม (
-                    {summary.extraExpenseDetail || "อื่นๆ"})
-                  </span>
-                  <span className="font-bold text-amber-700 text-xs">
-                    {summary.extraExpenseAmount.toLocaleString()} บาท
                   </span>
                 </div>
               ) : null}
@@ -226,7 +214,9 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                   <div className="bg-white border border-slate-200 p-2.5 rounded-xl shadow-xs hover:border-sky-300 hover:shadow-sm transition-all duration-200">
                     <span className="text-slate-400 block text-[10px] uppercase tracking-wider mb-1 flex items-center gap-1">
                       <Users className="w-3 h-3 text-sky-500" />
-                      ทีมงานร่วมลงพื้นที่ ({summary.helperEmployeeNames.length}{" "}
+                      ทีมงานร่วมลงพื้นที่ ({
+                        summary.helperEmployeeNames.length
+                      }{" "}
                       คน)
                     </span>
                     <span className="font-semibold text-slate-700">
