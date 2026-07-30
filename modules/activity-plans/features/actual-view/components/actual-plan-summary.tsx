@@ -288,11 +288,11 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                     {hasMarketingProducts && (
                       <tfoot className="bg-emerald-50/50 border-t border-emerald-200 text-xs font-bold text-emerald-950">
                         <tr>
-                          <td colSpan={4} className="py-2 px-3 text-right">
+                          <td colSpan={5} className="py-2 px-3 text-right">
                             รวมงบสื่อส่งเสริมการขายทั้งสิ้น:
-                          </td>
-                          <td className="py-2 px-3 text-right text-emerald-700 font-extrabold">
-                            ฿{marketingProductsTotal.toLocaleString()}
+                            <span className="text-emerald-700 ml-1">
+                              ฿{marketingProductsTotal.toLocaleString()}
+                            </span>
                           </td>
                         </tr>
                       </tfoot>
