@@ -6,6 +6,28 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ActualTargetCard } from "../actual-target-card";
 import { ImageFile } from "../../types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+export const COMPETITOR_PRODUCT_UNITS = [
+  "ขวด",
+  "แกลลอน",
+  "ถัง",
+  "กระสอบ",
+  "ลัง",
+  "กล่อง",
+  "ถุง",
+  "ซอง",
+  "ลิตร",
+  "กิโลกรัม",
+  "ชุด",
+  "ชิ้น",
+];
 
 interface ActualType5SurveyProps {
   isVisible: boolean;
@@ -20,6 +42,8 @@ interface ActualType5SurveyProps {
   setCompetitorProduct: (v: string) => void;
   competitorPrice: string;
   setCompetitorPrice: (v: string) => void;
+  competitorUnit?: string;
+  setCompetitorUnit?: (v: string) => void;
   promotionDetail: string;
   setPromotionDetail: (v: string) => void;
   priceTagImages: ImageFile[];
@@ -36,12 +60,26 @@ export function ActualType5Survey({
   setCompetitorProduct,
   competitorPrice,
   setCompetitorPrice,
+  competitorUnit,
+  setCompetitorUnit,
   promotionDetail,
   setPromotionDetail,
   priceTagImages,
   onUploadImages,
   onRemoveImage,
 }: ActualType5SurveyProps) {
+  const [internalUnit, setInternalUnit] = React.useState("ขวด");
+  const unitValue =
+    competitorUnit !== undefined ? competitorUnit : internalUnit;
+
+  const handleUnitChange = (val: string) => {
+    if (setCompetitorUnit) {
+      setCompetitorUnit(val);
+    } else {
+      setInternalUnit(val);
+    }
+  };
+
   if (!isVisible) return null;
 
   return (
@@ -67,7 +105,7 @@ export function ActualType5Survey({
         ]}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 pt-1">
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-800">
             แบรนด์คู่แข่งที่พบหน้างาน <span className="text-rose-500">*</span>
@@ -94,14 +132,32 @@ export function ActualType5Survey({
 
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-800">
-            ราคาของคู่แข่ง <span className="text-rose-500">*</span>
+            ราคาของคู่แข่ง (บาท) <span className="text-rose-500">*</span>
           </label>
           <Input
             value={competitorPrice}
             onChange={(e) => setCompetitorPrice(e.target.value)}
-            placeholder=""
+            placeholder="ระบุราคา"
             className="bg-white border-slate-300"
           />
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-sm font-semibold text-slate-800">
+            หน่วยนับ <span className="text-rose-500">*</span>
+          </label>
+          <Select value={unitValue} onValueChange={handleUnitChange}>
+            <SelectTrigger className="bg-white border-slate-300 w-full">
+              <SelectValue placeholder="เลือกหน่วยนับ" />
+            </SelectTrigger>
+            <SelectContent>
+              {COMPETITOR_PRODUCT_UNITS.map((unit) => (
+                <SelectItem key={unit} value={unit}>
+                  {unit}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

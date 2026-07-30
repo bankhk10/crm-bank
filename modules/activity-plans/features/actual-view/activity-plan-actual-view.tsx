@@ -238,6 +238,7 @@ export default function ActivityPlanActualView({
   const [t5CompetitorBrand, setT5CompetitorBrand] = useState("");
   const [t5CompetitorProduct, setT5CompetitorProduct] = useState("");
   const [t5CompetitorPrice, setT5CompetitorPrice] = useState("");
+  const [t5CompetitorUnit, setT5CompetitorUnit] = useState("ขวด");
   const [t5PromotionDetail, setT5PromotionDetail] = useState("");
   const [t5PriceTagImages, setT5PriceTagImages] = useState<ImageFile[]>([]);
 
@@ -380,7 +381,8 @@ export default function ActivityPlanActualView({
     // Type 5
     setT5CompetitorBrand("ตราเกษตรทองคำ, เสือคู่พรีเมียม");
     setT5CompetitorProduct(`เทียบกับ ${DEMO_PRODUCTS[0]} (ปุ๋ยทางใบ 1 ลิตร)`);
-    setT5CompetitorPrice("850 บาท/ขวด");
+    setT5CompetitorPrice("850");
+    setT5CompetitorUnit("ขวด");
     setT5PromotionDetail(
       "จัดโปรโมชัน ซื้อ 10 แถม 1 พร้อมแจกเสื้อยืดพนักงานหน้าร้าน",
     );
@@ -685,6 +687,8 @@ export default function ActivityPlanActualView({
           setCompetitorProduct={setT5CompetitorProduct}
           competitorPrice={t5CompetitorPrice}
           setCompetitorPrice={setT5CompetitorPrice}
+          competitorUnit={t5CompetitorUnit}
+          setCompetitorUnit={setT5CompetitorUnit}
           promotionDetail={t5PromotionDetail}
           setPromotionDetail={setT5PromotionDetail}
           priceTagImages={t5PriceTagImages}
