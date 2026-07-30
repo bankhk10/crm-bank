@@ -254,7 +254,7 @@ export default function ActivityPlanActualView({
   const [t2CustomerName, setT2CustomerName] = useState("");
   const [t2Detail, setT2Detail] = useState("");
   const [t2UsageResult, setT2UsageResult] = useState<
-    "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | ""
+    "พืชตอบสนองดี" | "พบปัญหา" | ""
   >("");
   const [t2ProblemDetail, setT2ProblemDetail] = useState("");
 
@@ -294,7 +294,7 @@ export default function ActivityPlanActualView({
   >("");
   const [t7CropProblemDescription, setT7CropProblemDescription] = useState("");
   const [t7ProductResponse, setT7ProductResponse] = useState<
-    "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | ""
+    "พืชตอบสนองดี" | "พบปัญหา" | ""
   >("");
   const [t7ProblemDescription, setT7ProblemDescription] = useState("");
   const [t7PlotImages, setT7PlotImages] = useState<ImageFile[]>([]);

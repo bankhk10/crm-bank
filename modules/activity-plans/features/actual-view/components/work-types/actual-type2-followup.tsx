@@ -11,7 +11,7 @@ export interface FollowupProductItem {
   productName: string;
   customer?: string;
   expectedResult?: string;
-  usageResult?: "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "";
+  usageResult?: "พืชตอบสนองดี" | "พบปัญหา" | "";
   problemDetail?: string;
   detail?: string;
 }
@@ -29,9 +29,9 @@ interface ActualType2FollowupProps {
   setCustomerName: (v: string) => void;
   detail: string;
   setDetail: (v: string) => void;
-  usageResult: "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "";
+  usageResult: "พืชตอบสนองดี" | "พบปัญหา" | "";
   setUsageResult: (
-    v: "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | ""
+    v: "พืชตอบสนองดี" | "พบปัญหา" | ""
   ) => void;
   problemDetail: string;
   setProblemDetail: (v: string) => void;
@@ -221,14 +221,8 @@ export function ActualType2Followup({
                     ผลลัพธ์จากการใช้งาน (สินค้าที่ {idx + 1}){" "}
                     <span className="text-rose-500">*</span>
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(
-                      [
-                        "พืชตอบสนองดี",
-                        "ยังไม่เห็นผลชัดเจน",
-                        "พบปัญหา",
-                      ] as const
-                    ).map((resOpt) => (
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["พืชตอบสนองดี", "พบปัญหา"] as const).map((resOpt) => (
                       <button
                         key={resOpt}
                         type="button"
@@ -240,19 +234,11 @@ export function ActualType2Followup({
                           prod.usageResult === resOpt
                             ? resOpt === "พืชตอบสนองดี"
                               ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
-                              : resOpt === "ยังไม่เห็นผลชัดเจน"
-                              ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
                               : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
                             : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
                         )}
                       >
-                        <span>
-                          {resOpt === "พืชตอบสนองดี"
-                            ? "🟢"
-                            : resOpt === "ยังไม่เห็นผลชัดเจน"
-                            ? "🕒"
-                            : "⚠️"}
-                        </span>
+                        <span>{resOpt === "พืชตอบสนองดี" ? "🟢" : "⚠️"}</span>
                         <span>{resOpt}</span>
                       </button>
                     ))}
@@ -308,10 +294,8 @@ export function ActualType2Followup({
             <label className="text-sm font-semibold text-slate-800">
               ผลลัพธ์จากการใช้งาน <span className="text-rose-500">*</span>
             </label>
-            <div className="grid grid-cols-3 gap-2">
-              {(
-                ["พืชตอบสนองดี", "ยังไม่เห็นผลชัดเจน", "พบปัญหา"] as const
-              ).map((resOpt) => (
+            <div className="grid grid-cols-2 gap-2">
+              {(["พืชตอบสนองดี", "พบปัญหา"] as const).map((resOpt) => (
                 <button
                   key={resOpt}
                   type="button"
@@ -321,19 +305,11 @@ export function ActualType2Followup({
                     usageResult === resOpt
                       ? resOpt === "พืชตอบสนองดี"
                         ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
-                        : resOpt === "ยังไม่เห็นผลชัดเจน"
-                        ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
                         : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
                       : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
                   )}
                 >
-                  <span>
-                    {resOpt === "พืชตอบสนองดี"
-                      ? "🟢"
-                      : resOpt === "ยังไม่เห็นผลชัดเจน"
-                      ? "🕒"
-                      : "⚠️"}
-                  </span>
+                  <span>{resOpt === "พืชตอบสนองดี" ? "🟢" : "⚠️"}</span>
                   <span>{resOpt}</span>
                 </button>
               ))}

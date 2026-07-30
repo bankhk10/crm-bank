@@ -40,9 +40,9 @@ interface ActualType7DemoProps {
   ) => void;
   cropProblemDescription?: string;
   setCropProblemDescription?: (v: string) => void;
-  productResponse: "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "";
+  productResponse: "พืชตอบสนองดี" | "พบปัญหา" | "";
   setProductResponse: (
-    v: "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "",
+    v: "พืชตอบสนองดี" | "พบปัญหา" | "",
   ) => void;
   problemDescription: string;
   setProblemDescription: (v: string) => void;
