@@ -88,11 +88,12 @@ export function ActualType7Demo({
       <ActualTargetCard
         iconColorClass="text-emerald-600"
         badgeColorClass="bg-emerald-100 text-emerald-800"
-        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
+        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-2"
         items={[
           { label: "เจ้าของแปลง:", value: target.owner },
           { label: "สินค้าที่สาธิต:", value: target.product },
-          { label: "พืชเป้าหมาย:", value: `${target.crop} (${target.plots})` },
+          { label: "พืชเป้าหมาย:", value: target.crop },
+          { label: "จำนวน:", value: target.plots },
         ]}
       />
 
