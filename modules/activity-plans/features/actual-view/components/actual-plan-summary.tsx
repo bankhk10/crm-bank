@@ -321,10 +321,10 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                       <tr>
                         <th className="py-2 px-3 text-center w-10">ลำดับ</th>
                         <th className="py-2 px-3 min-w-[180px]">รายละเอียด</th>
+                        <th className="py-2 px-3 w-32">การใช้งบ</th>
                         <th className="py-2 px-3 w-32 text-right">
                           จำนวนเงิน (บาท)
                         </th>
-                        <th className="py-2 px-3 w-32 text-center">การใช้งบ</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -349,13 +349,13 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                             <td className="py-2 px-3 font-semibold text-slate-800">
                               {item.detail}
                             </td>
-                            <td className="py-2 px-3 text-right font-bold text-blue-700">
-                              ฿{item.amount.toLocaleString()}
-                            </td>
-                            <td className="py-2 px-3 text-center">
+                            <td className="py-2 px-3">
                               <span className="text-[11px] font-semibold text-blue-800 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
                                 {item.budgetType || "งบขาย"}
                               </span>
+                            </td>
+                            <td className="py-2 px-3 text-right font-bold text-blue-700">
+                              ฿{item.amount.toLocaleString()}
                             </td>
                           </tr>
                         ))
@@ -364,13 +364,12 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                     {hasSalesPromotionItems && (
                       <tfoot className="bg-blue-50/50 border-t border-blue-200 text-xs font-bold text-blue-950">
                         <tr>
-                          <td colSpan={2} className="py-2 px-3 text-right">
+                          <td colSpan={4} className="py-2 px-3 text-right">
                             ผลรวมใช้งบทั้งสิ้น:
+                            <span className="text-blue-700 ml-1">
+                              ฿{salesPromoTotal.toLocaleString()}
+                            </span>
                           </td>
-                          <td className="py-2 px-3 text-right text-blue-700 font-extrabold">
-                            ฿{salesPromoTotal.toLocaleString()}
-                          </td>
-                          <td></td>
                         </tr>
                       </tfoot>
                     )}
