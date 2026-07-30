@@ -44,27 +44,20 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
     (summary.helperEmployeeNames && summary.helperEmployeeNames.length > 0);
 
   // Calculate budgets
+  // 1. สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่)
   const marketingProductsTotal =
     summary.marketingProductItems?.reduce(
       (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
       0,
     ) || 0;
+  const marketingMediaBudget =
+    marketingProductsTotal || summary.marketingBudget || 0;
 
+  // 2. รายการส่งเสริมการขาย (แบ่งตามประเภทการใช้งบ)
   const salesPromoMarketingTotal =
     summary.salesPromotionItems?.reduce(
       (sum, item) =>
         item.budgetType === "งบการตลาด" ? sum + (item.amount || 0) : sum,
-      0,
-    ) || 0;
-
-  const effectiveMarketingBudget =
-    (marketingProductsTotal + salesPromoMarketingTotal) ||
-    summary.marketingBudget ||
-    0;
-
-  const salesPromoTotal =
-    summary.salesPromotionItems?.reduce(
-      (sum, item) => sum + (item.amount || 0),
       0,
     ) || 0;
 
@@ -77,18 +70,31 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
       0,
     ) || 0;
 
+  const salesPromoTotal =
+    summary.salesPromotionItems?.reduce(
+      (sum, item) => sum + (item.amount || 0),
+      0,
+    ) || 0;
+
+  // รวมงบการตลาด (สื่อส่งเสริมการขาย + รายการส่งเสริมการขายที่เป็นงบการตลาด)
+  const effectiveMarketingBudget =
+    marketingMediaBudget + salesPromoMarketingTotal;
+
+  // งบขาย (รวม)
   const effectiveSalesPromoBudget = hasSalesPromotionItems
     ? salesPromoSalesTotal
     : summary.salesPromotionBudget || 0;
 
+  // งบประมาณรวมทั้งสิ้น
   const totalBudget =
     effectiveMarketingBudget +
     effectiveSalesPromoBudget +
     (summary.extraExpenseAmount || 0);
 
+  // สัดส่วนงบการตลาด (%) คำนวณจาก "สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่)" เท่านั้น
   const budgetRatio =
     summary.targetSales && summary.targetSales > 0
-      ? ((effectiveMarketingBudget / summary.targetSales) * 100).toFixed(2)
+      ? ((marketingMediaBudget / summary.targetSales) * 100).toFixed(2)
       : null;
 
   // Extract or format start / end times
@@ -204,13 +210,30 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                   {effectiveSalesPromoBudget.toLocaleString()} บาท
                 </span>
               </div>
-              <div className="bg-emerald-50/50 border border-emerald-200/80 p-3 rounded-xl shadow-xs">
-                <span className="text-emerald-700 block text-[10px] uppercase font-bold tracking-wider mb-0.5">
-                  งบการตลาด (รวม)
-                </span>
-                <span className="font-extrabold text-emerald-900 text-sm">
-                  {effectiveMarketingBudget.toLocaleString()} บาท
-                </span>
+
+              <div className="bg-emerald-50/50 border border-emerald-200/80 p-3 rounded-xl shadow-xs space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-emerald-700 block text-[10px] uppercase font-bold tracking-wider">
+                    งบการตลาด (รวม)
+                  </span>
+                  <span className="font-extrabold text-emerald-900 text-sm">
+                    {effectiveMarketingBudget.toLocaleString()} บาท
+                  </span>
+                </div>
+                <div className="pt-1.5 border-t border-emerald-200/60 space-y-0.5 text-[10px]">
+                  <div className="flex justify-between items-center text-slate-600">
+                    <span>• สื่อส่งเสริมการขาย:</span>
+                    <span className="font-bold text-emerald-800">
+                      {marketingMediaBudget.toLocaleString()} บาท
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-600">
+                    <span>• รายการส่งเสริมการขาย:</span>
+                    <span className="font-bold text-emerald-800">
+                      {salesPromoMarketingTotal.toLocaleString()} บาท
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {summary.targetSales ? (
@@ -227,7 +250,7 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                   {budgetRatio && (
                     <div className="text-right">
                       <span className="text-[10px] text-violet-600 font-medium block">
-                        สัดส่วนงบการตลาด
+                        สัดส่วนงบการตลาด (สื่อ)
                       </span>
                       <span className="text-xs font-black text-violet-800 bg-white px-2 py-0.5 rounded-md border border-violet-200 shadow-2xs">
                         {budgetRatio}%
@@ -247,7 +270,7 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                     สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่)
                   </span>
                   <span className="text-[11px] font-bold text-emerald-700 bg-white border border-emerald-200 px-2 py-0.5 rounded-md">
-                    รวม ฿{effectiveMarketingBudget.toLocaleString()}
+                    รวม ฿{marketingMediaBudget.toLocaleString()}
                   </span>
                 </div>
 
