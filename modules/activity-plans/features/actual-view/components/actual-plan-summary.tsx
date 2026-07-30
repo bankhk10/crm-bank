@@ -354,7 +354,7 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                             </td>
                             <td className="py-2 px-3 text-center">
                               <span className="text-[11px] font-semibold text-blue-800 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
-                                {item.budgetType || "งบส่งเสริมการขาย"}
+                                {item.budgetType || "งบขาย"}
                               </span>
                             </td>
                           </tr>
