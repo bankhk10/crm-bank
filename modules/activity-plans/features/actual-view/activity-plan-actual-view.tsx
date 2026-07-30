@@ -13,6 +13,7 @@ import {
   Loader2,
   Sparkles,
   Layers,
+  ClipboardCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -627,39 +628,36 @@ export default function ActivityPlanActualView({
       </div>
 
       {/* HEADER SECTION */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
-        <div className="flex items-center gap-3.5">
+      <div className="relative overflow-hidden bg-white border border-slate-100 rounded-2xl p-5 md:p-6 shadow-sm">
+        {/* Decorative background glow */}
+        <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-blue-50/30 via-emerald-50/10 to-transparent rounded-full -mr-20 -mt-20 pointer-events-none" />
+
+        <div className="relative z-10 flex items-center gap-4">
           <Button
             type="button"
             variant="outline"
             size="icon"
             onClick={handleBack}
-            className="h-10 w-10 rounded-full border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition-colors shadow-xs"
+            className="h-10 w-10 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-100 shadow-xs"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
+
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/20 flex-shrink-0">
+            <ClipboardCheck className="w-6 h-6" />
+          </div>
+
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-slate-900">
               บันทึกผลการปฏิบัติงาน{" "}
-              <span className="text-slate-500 font-medium text-lg">
-                (Actual)
-              </span>
+              <span className="font-semibold">(Actual)</span>
             </h1>
-            <p className="text-sm text-slate-500">
-              เปรียบเทียบเป้าหมายและบันทึกผลปฏิบัติงานจริง
+
+            <p className="text-xs md:text-sm text-slate-500 mt-1">
+              เปรียบเทียบเป้าหมายและบันทึกผลการปฏิบัติงานจริง
             </p>
           </div>
         </div>
-
-        {/* Fill Sample Data Button */}
-        <Button
-          type="button"
-          onClick={fillAllSampleData}
-          className="bg-purple-600 hover:bg-purple-700 text-white font-medium gap-2 shadow-sm rounded-xl text-xs md:text-sm"
-        >
-          <Sparkles className="w-4 h-4 text-yellow-300 animate-bounce" />
-          <span>เติมข้อมูลตัวอย่าง (ทั้ง 11 กิจกรรม)</span>
-        </Button>
       </div>
 
       {/* PLAN SUMMARY CARD */}
