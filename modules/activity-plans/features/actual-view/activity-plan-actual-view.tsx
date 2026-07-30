@@ -82,6 +82,17 @@ export default function ActivityPlanActualView({
     salesPromotionBudget: 25000,
     extraExpenseAmount: 2000,
     extraExpenseDetail: "",
+    targetSales: 200000,
+    isPromotionalMediaSelected: true,
+    marketingProductItems: [
+      { id: "mkt-1", productName: "ป้ายไวนิล (Vinyl Banner)", quantityCases: 5, pricePerCase: 1000 },
+      { id: "mkt-2", productName: "เสื้อยืดตราปืนใหญ่", quantityCases: 10, pricePerCase: 500 },
+    ],
+    isSalesPromotionSelected: true,
+    salesPromotionItems: [
+      { id: "sp-1", detail: "ส่วนลดพิเศษกระตุ้นยอดขายหน้าร้าน", amount: 15000, budgetType: "งบส่งเสริมการขาย" },
+      { id: "sp-2", detail: "ของแถมพรีเมียมแจกลูกค้าหน้าร้าน", amount: 10000, budgetType: "งบการตลาด" },
+    ],
 
     // รายการขอเบิกสินค้าจัดกิจกรรม (Material Requisition) (ถ้ามี)
     requisitionItems: [

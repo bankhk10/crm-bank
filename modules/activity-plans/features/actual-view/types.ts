@@ -11,6 +11,20 @@ export interface RequisitionItemSummary {
   unit: string;
 }
 
+export interface MarketingProductItemSummary {
+  id: string;
+  productName: string;
+  quantityCases: number;
+  pricePerCase: number;
+}
+
+export interface SalesPromotionItemSummary {
+  id: string;
+  detail: string;
+  amount: number;
+  budgetType?: string;
+}
+
 export interface PlanSummaryData {
   // ข้อมูลหลักของกิจกรรม (Main Activity Details)
   planNo?: string;
@@ -27,6 +41,12 @@ export interface PlanSummaryData {
   salesPromotionBudget?: number;
   extraExpenseAmount?: number;
   extraExpenseDetail?: string;
+
+  targetSales?: number;
+  isPromotionalMediaSelected?: boolean;
+  marketingProductItems?: MarketingProductItemSummary[];
+  isSalesPromotionSelected?: boolean;
+  salesPromotionItems?: SalesPromotionItemSummary[];
 
   // รายการขอเบิกสินค้าจัดกิจกรรม (Material Requisition) (ถ้ามี)
   requisitionItems?: RequisitionItemSummary[];
