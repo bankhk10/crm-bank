@@ -12,11 +12,13 @@ export interface RequisitionItemSummary {
 }
 
 export interface PlanSummaryData {
-  // ข้อมูลพื้นฐาน
+  // ข้อมูลหลักของกิจกรรม (Main Activity Details)
   planNo?: string;
   title: string;
   startDateStr: string;
   endDateStr?: string;
+  startTimeStr?: string;
+  endTimeStr?: string;
   timeStr: string;
   locationStr: string;
 

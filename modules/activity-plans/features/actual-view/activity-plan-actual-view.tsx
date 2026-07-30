@@ -69,6 +69,8 @@ export default function ActivityPlanActualView({
     title: "แปลงสาธิตของบ้านนา และ กิจกรรมส่งเสริมการขายหน้าร้าน",
     startDateStr: "25 ก.ค. 2568",
     endDateStr: "25 ก.ค. 2568",
+    startTimeStr: "09:00",
+    endTimeStr: "15:00",
     timeStr: "09:00 - 15:00 น.",
     locationStr: `${DEMO_OWNERS[0]} อ.เมือง จ.จันทบุรี`,
 

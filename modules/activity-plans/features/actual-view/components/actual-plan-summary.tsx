@@ -38,6 +38,28 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
     (summary.salesPromotionBudget || 0) +
     (summary.extraExpenseAmount || 0);
 
+  // Extract or format start / end times
+  const rawStartTime =
+    summary.startTimeStr ||
+    (summary.timeStr?.includes(" - ")
+      ? summary.timeStr.split(" - ")[0]
+      : summary.timeStr);
+  const rawEndTime =
+    summary.endTimeStr ||
+    (summary.timeStr?.includes(" - ")
+      ? summary.timeStr.split(" - ")[1]
+      : summary.timeStr);
+
+  const formatTime = (timeRaw?: string) => {
+    if (!timeRaw) return "-";
+    const t = timeRaw.trim();
+    if (t.endsWith("น.") || t.endsWith("น")) return t;
+    return `${t} น.`;
+  };
+
+  const startTimeDisplay = formatTime(rawStartTime);
+  const endTimeDisplay = formatTime(rawEndTime);
+
   return (
     <div className="bg-blue-50/60 border border-blue-200/80 rounded-2xl p-4 md:p-5 shadow-2xs space-y-4">
       {/* CARD HEADER */}
@@ -57,15 +79,15 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
         )}
       </div>
 
-      {/* SECTION 1: ข้อมูลพื้นฐาน */}
+      {/* SECTION 1: ข้อมูลหลักของกิจกรรม (Main Activity Details) */}
       <div className="space-y-1.5">
         <p className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
           <FileText className="w-3.5 h-3.5 text-blue-600" />
-          ข้อมูลพื้นฐานแผนงาน:
+          ข้อมูลหลักของกิจกรรม (Main Activity Details):
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {/* ชื่องานกิจกรรม */}
-          <div className="bg-white p-3 rounded-xl border border-blue-100/80">
+          <div className="bg-white p-3 rounded-xl border border-blue-100/80 md:col-span-2 lg:col-span-1">
             <p className="text-[11px] text-slate-400 font-semibold mb-0.5">
               ชื่องานกิจกรรม
             </p>
@@ -74,23 +96,36 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
             </p>
           </div>
 
-          {/* วันเวลาจัดกิจกรรม */}
+          {/* วันที่จัดกิจกรรม */}
           <div className="bg-white p-3 rounded-xl border border-blue-100/80">
             <p className="text-[11px] text-slate-400 font-semibold mb-0.5">
-              วันที่จัดกิจกรรม - สิ้นสุด
+              วันที่จัดกิจกรรม
             </p>
             <div className="flex flex-col gap-0.5 text-xs font-bold text-slate-800">
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                 <span>{summary.startDateStr}</span>
-                {summary.endDateStr &&
-                  summary.endDateStr !== summary.startDateStr && (
-                    <span> - {summary.endDateStr}</span>
-                  )}
               </div>
               <div className="flex items-center gap-1.5 text-slate-500 font-medium">
                 <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                <span>เวลา {summary.timeStr}</span>
+                <span>เวลา {startTimeDisplay}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* วันที่สิ้นสุดกิจกรรม */}
+          <div className="bg-white p-3 rounded-xl border border-blue-100/80">
+            <p className="text-[11px] text-slate-400 font-semibold mb-0.5">
+              วันที่สิ้นสุดกิจกรรม
+            </p>
+            <div className="flex flex-col gap-0.5 text-xs font-bold text-slate-800">
+              <div className="flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                <span>{summary.endDateStr || summary.startDateStr}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-slate-500 font-medium">
+                <Clock className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                <span>เวลา {endTimeDisplay}</span>
               </div>
             </div>
           </div>
