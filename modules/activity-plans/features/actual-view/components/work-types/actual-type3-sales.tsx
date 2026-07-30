@@ -60,7 +60,7 @@ export function ActualType3Sales({
 }: ActualType3SalesProps) {
   // Local state per product item for multi-product support
   const [productItems, setProductItems] = useState<TargetProductItem[]>(
-    target.items || []
+    target.items || [],
   );
 
   // Initialize per-product values when target.items changes or sample data pre-filled
@@ -75,7 +75,7 @@ export function ActualType3Sales({
             item.actualSales || (idx === 0 ? "10000" : idx === 1 ? "7500" : ""),
           unclosedReason:
             item.unclosedReason || "ปิดการขายได้สำเร็จตามเป้าหมาย",
-        }))
+        })),
       );
     }
   }, [target.items]);
@@ -87,7 +87,7 @@ export function ActualType3Sales({
   const handleProductChange = (
     index: number,
     field: "actualQty" | "actualSales" | "unclosedReason",
-    value: string
+    value: string,
   ) => {
     const updated = [...productItems];
     updated[index] = { ...updated[index], [field]: value };
@@ -96,7 +96,7 @@ export function ActualType3Sales({
     // Sync total sum of actual sales to parent
     const totalSalesSum = updated.reduce(
       (sum, item) => sum + (Number(item.actualSales) || 0),
-      0
+      0,
     );
     setActualSales(totalSalesSum > 0 ? String(totalSalesSum) : "");
 
@@ -106,7 +106,7 @@ export function ActualType3Sales({
         (item) =>
           `${item.productName}: ${item.actualQty || "0"} ${
             item.unit || extractUnit(item.qty)
-          }`
+          }`,
       )
       .join(", ");
     setActualQuantity(concatQty);
@@ -114,7 +114,9 @@ export function ActualType3Sales({
     // Sync concatenated reasons
     const concatReasons = updated
       .map((item) =>
-        item.unclosedReason ? `${item.productName}: ${item.unclosedReason}` : ""
+        item.unclosedReason
+          ? `${item.productName}: ${item.unclosedReason}`
+          : "",
       )
       .filter(Boolean)
       .join(" | ");
@@ -190,12 +192,17 @@ export function ActualType3Sales({
                   <div className="grid grid-cols-2 gap-1.5 text-[11px]">
                     <div>
                       <span className="text-slate-400 block">จำนวน:</span>
-                      <span className="font-bold text-slate-800">{item.qty}</span>
+                      <span className="font-bold text-slate-800">
+                        {item.qty}
+                      </span>
                     </div>
                     <div>
-                      <span className="text-slate-400 block">ราคา/หน่วย (บาท):</span>
+                      <span className="text-slate-400 block">
+                        ราคา/หน่วย (บาท):
+                      </span>
                       <span className="font-bold text-emerald-700">
-                        {item.unitPrice || (idx === 0 ? "500 บาท/ลัง" : "750 บาท/ลัง")}
+                        {item.unitPrice ||
+                          (idx === 0 ? "500 บาท/ลัง" : "750 บาท/ลัง")}
                       </span>
                     </div>
                   </div>
@@ -213,7 +220,10 @@ export function ActualType3Sales({
             { label: "สินค้าที่จะเสนอขาย:", value: target.product },
             { label: "ชื่อร้านค้า / เกษตรกร:", value: target.customer },
             { label: "จำนวน:", value: target.targetQty },
-            { label: "ราคา/หน่วย (บาท):", value: target.unitPrice || "500 บาท/หน่วย" },
+            {
+              label: "ราคา/หน่วย (บาท):",
+              value: target.unitPrice || "500 บาท/หน่วย",
+            },
             { label: "รายละเอียดเพิ่มเติม:", value: target.detail || "-" },
           ]}
         />
@@ -270,7 +280,7 @@ export function ActualType3Sales({
                             handleProductChange(
                               idx,
                               "actualQty",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           placeholder="0"
@@ -296,7 +306,7 @@ export function ActualType3Sales({
                             handleProductChange(
                               idx,
                               "actualSales",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           placeholder="0.00"
@@ -309,31 +319,37 @@ export function ActualType3Sales({
                     </div>
                   </div>
 
-                {/* Per-Product Reason: เหตุผล (กรณีไม่สามารถปิดการขายได้ตามเป้า) */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-800">
-                    เหตุผล (กรณีไม่สามารถปิดการขายสินค้าตัวนี้ได้ตามเป้า)
-                  </label>
-                  <Textarea
-                    rows={2}
-                    value={prod.unclosedReason || ""}
-                    onChange={(e) =>
-                      handleProductChange(idx, "unclosedReason", e.target.value)
-                    }
-                    placeholder={`ระบุเหตุผลสำหรับ ${prod.productName} เช่น ติดปัญหาเครดิตเทอม หรือคู่แข่งเสนอส่วนลดสูงกว่า`}
-                    className="bg-white border-slate-300 text-xs"
-                  />
+                  {/* Per-Product Reason: เหตุผล (กรณีไม่สามารถปิดการขายได้ตามเป้า) */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-800">
+                      รายละเอียด
+                    </label>
+                    <Textarea
+                      rows={2}
+                      value={prod.unclosedReason || ""}
+                      onChange={(e) =>
+                        handleProductChange(
+                          idx,
+                          "unclosedReason",
+                          e.target.value,
+                        )
+                      }
+                      placeholder={`ระบุเหตุผลสำหรับ ${prod.productName} เช่น ติดปัญหาเครดิตเทอม หรือคู่แข่งเสนอส่วนลดสูงกว่า`}
+                      className="bg-white border-slate-300 text-xs"
+                    />
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
 
           {/* TOTAL SUMMARY FOOTER FOR TYPE 3 */}
           <div className="bg-emerald-100/60 border border-emerald-200 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-2 shadow-2xs">
             <div className="flex items-center gap-2 text-emerald-950 font-bold text-xs md:text-sm">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>สรุปรวมผลการเสนอขายจริงทั้งหมด ({productItems.length} สินค้า):</span>
+              <span>
+                สรุปรวมผลการเสนอขายจริงทั้งหมด ({productItems.length} สินค้า):
+              </span>
             </div>
             <div className="flex items-center gap-3 text-xs">
               <span className="bg-white text-slate-800 font-bold px-3 py-1 rounded-lg border border-emerald-200">
@@ -342,7 +358,7 @@ export function ActualType3Sales({
                   {productItems
                     .reduce(
                       (sum, item) => sum + (Number(item.actualSales) || 0),
-                      0
+                      0,
                     )
                     .toLocaleString()}{" "}
                   บาท
