@@ -267,6 +267,9 @@ export default function ActivityPlanActualView({
   // Type 8
   const [t8ActualAttendees, setT8ActualAttendees] = useState("");
   const [t8FeedbackQnA, setT8FeedbackQnA] = useState("");
+  const [t8ProductSalesDetails, setT8ProductSalesDetails] = useState<
+    { productName: string; actualQty: string; actualSales: string }[]
+  >([]);
   const [t8Images, setT8Images] = useState<ImageFile[]>([]);
 
   // Type 9
@@ -416,6 +419,10 @@ export default function ActivityPlanActualView({
     setT8FeedbackQnA(
       `เกษตรกรสอบถามเรื่องการใช้ ${DEMO_PRODUCTS[0]} ร่วมกับชีวภัณฑ์ป้องกันรากเน่า และต้องการแผ่นพับตารางการใส่ปุ๋ยรายเดือน`,
     );
+    setT8ProductSalesDetails([
+      { productName: DEMO_PRODUCTS[0], actualQty: "15 ลัง", actualSales: "7500" },
+      { productName: DEMO_PRODUCTS[1], actualQty: "10 ลัง", actualSales: "7500" },
+    ]);
 
     // Type 9
     setT9Formats(["การสะสมคะแนน", "กิจกรรมลูกค้าสัมพันธ์"]);
@@ -749,6 +756,8 @@ export default function ActivityPlanActualView({
           setActualAttendees={setT8ActualAttendees}
           feedbackQnA={t8FeedbackQnA}
           setFeedbackQnA={setT8FeedbackQnA}
+          productSalesDetails={t8ProductSalesDetails}
+          setProductSalesDetails={setT8ProductSalesDetails}
           images={t8Images}
           onUploadImages={createUploadHandler(setT8Images)}
           onRemoveImage={(id) => removeImage(setT8Images, id)}
