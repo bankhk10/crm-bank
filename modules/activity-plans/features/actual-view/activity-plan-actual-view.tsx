@@ -69,7 +69,7 @@ export default function ActivityPlanActualView({
   // Loading & Plan Summary State
   const [loadingPlan, setLoadingPlan] = useState(!!id);
   const [planSummary, setPlanSummary] = useState<PlanSummaryData>({
-    planNo: "PLAN-2026-0789",
+    planNo: "2607-001",
     title: "แปลงสาธิตของบ้านนา และ กิจกรรมส่งเสริมการขายหน้าร้าน",
     startDateStr: "25 ก.ค. 2568",
     endDateStr: "25 ก.ค. 2568",
