@@ -76,7 +76,7 @@ export default function ActivityPlanActualView({
     marketingBudget: 10000,
     salesPromotionBudget: 25000,
     extraExpenseAmount: 2000,
-    extraExpenseDetail: "ค่าเบี้ยเลี้ยงและค่าอาหารกลางวันทีมงาน",
+    extraExpenseDetail: "",
 
     // รายการขอเบิกสินค้าจัดกิจกรรม (Material Requisition) (ถ้ามี)
     requisitionItems: [
@@ -117,8 +117,16 @@ export default function ActivityPlanActualView({
       detail: "ติดตามผลหลังเกษตรกรนำสินค้าไปทดลองใช้งานในพื้นที่",
       expectedResult: "พืชตอบสนองดี",
       items: [
-        { productName: DEMO_PRODUCTS[0], customer: DEMO_OWNERS[0], expectedResult: "พืชตอบสนองดี" },
-        { productName: DEMO_PRODUCTS[1], customer: DEMO_OWNERS[0], expectedResult: "พืชตอบสนองดี" },
+        {
+          productName: DEMO_PRODUCTS[0],
+          customer: DEMO_OWNERS[0],
+          expectedResult: "พืชตอบสนองดี",
+        },
+        {
+          productName: DEMO_PRODUCTS[1],
+          customer: DEMO_OWNERS[0],
+          expectedResult: "พืชตอบสนองดี",
+        },
       ],
     },
     t3: {
@@ -136,8 +144,16 @@ export default function ActivityPlanActualView({
       orderNo: "INV-2026-0789",
       targetCollect: "25,500 บาท",
       items: [
-        { companyName: DEMO_OWNERS[0], targetCollect: "15,500 บาท", receivedAmount: "15500" },
-        { companyName: "บริษัท ทรัพย์เกษตร จำกัด", targetCollect: "10,000 บาท", receivedAmount: "10000" },
+        {
+          companyName: DEMO_OWNERS[0],
+          targetCollect: "15,500 บาท",
+          receivedAmount: "15500",
+        },
+        {
+          companyName: "บริษัท ทรัพย์เกษตร จำกัด",
+          targetCollect: "10,000 บาท",
+          receivedAmount: "10000",
+        },
       ],
     },
     t5: {
