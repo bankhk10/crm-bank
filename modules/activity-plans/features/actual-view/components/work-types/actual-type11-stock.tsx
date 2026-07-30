@@ -75,7 +75,8 @@ export function ActualType11Stock({
         productName: productList || "",
         remainingQty: remainingQty || "",
         remarks: remarks || "",
-        isCustom: productList && !DEMO_PRODUCTS.includes(productList) ? true : false,
+        isCustom:
+          productList && !DEMO_PRODUCTS.includes(productList) ? true : false,
       },
     ];
   });
@@ -94,13 +95,28 @@ export function ActualType11Stock({
       setStockItems(newItems);
     }
     if (setProductList) {
-      setProductList(newItems.map((i) => i.productName).filter(Boolean).join(", "));
+      setProductList(
+        newItems
+          .map((i) => i.productName)
+          .filter(Boolean)
+          .join(", "),
+      );
     }
     if (setRemainingQty) {
-      setRemainingQty(newItems.map((i) => i.remainingQty).filter(Boolean).join(", "));
+      setRemainingQty(
+        newItems
+          .map((i) => i.remainingQty)
+          .filter(Boolean)
+          .join(", "),
+      );
     }
     if (setRemarks) {
-      setRemarks(newItems.map((i) => i.remarks).filter(Boolean).join(", "));
+      setRemarks(
+        newItems
+          .map((i) => i.remarks)
+          .filter(Boolean)
+          .join(", "),
+      );
     }
   };
 
@@ -121,7 +137,7 @@ export function ActualType11Stock({
   const handleItemChange = (
     index: number,
     field: keyof StockCheckItem,
-    value: any
+    value: any,
   ) => {
     const newItems = items.map((item, idx) => {
       if (idx === index) {
@@ -150,11 +166,8 @@ export function ActualType11Stock({
       <ActualTargetCard
         iconColorClass="text-slate-600"
         badgeColorClass="bg-slate-200 text-slate-800"
-        gridColsClass="grid-cols-1 sm:grid-cols-2"
-        items={[
-          { label: "ร้านค้าตรวจเช็ก:", value: target.store },
-          { label: "โอกาสสั่งซื้อเป้าหมาย:", value: target.targetOpportunity, highlight: true },
-        ]}
+        gridColsClass="grid-cols-1 sm:grid-cols-1"
+        items={[{ label: "ร้านค้าตรวจเช็ก:", value: target.store }]}
       />
 
       {/* ITEMS LIST SECTION */}
@@ -162,7 +175,8 @@ export function ActualType11Stock({
         <div className="flex items-center justify-between">
           <label className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
             <Package className="w-4 h-4 text-slate-600" />
-            รายการสินค้าที่ตรวจเช็ก ({items.length} รายการ) <span className="text-rose-500">*</span>
+            รายการสินค้าที่ตรวจเช็ก ({items.length} รายการ){" "}
+            <span className="text-rose-500">*</span>
           </label>
           <Button
             type="button"
@@ -180,9 +194,11 @@ export function ActualType11Stock({
           {items.map((item, idx) => {
             const selectValue = DEMO_PRODUCTS.includes(item.productName)
               ? item.productName
-              : item.isCustom || (item.productName !== "" && !DEMO_PRODUCTS.includes(item.productName))
-              ? OTHER_OPTION
-              : "";
+              : item.isCustom ||
+                  (item.productName !== "" &&
+                    !DEMO_PRODUCTS.includes(item.productName))
+                ? OTHER_OPTION
+                : "";
 
             return (
               <div
@@ -233,7 +249,11 @@ export function ActualType11Stock({
                       </SelectTrigger>
                       <SelectContent>
                         {DEMO_PRODUCTS.map((prod) => (
-                          <SelectItem key={prod} value={prod} className="text-xs">
+                          <SelectItem
+                            key={prod}
+                            value={prod}
+                            className="text-xs"
+                          >
                             {prod}
                           </SelectItem>
                         ))}
@@ -262,14 +282,21 @@ export function ActualType11Stock({
                     <label className="text-xs font-semibold text-slate-700">
                       จำนวนคงเหลือ
                     </label>
-                    <Input
-                      value={item.remainingQty}
-                      onChange={(e) =>
-                        handleItemChange(idx, "remainingQty", e.target.value)
-                      }
-                      placeholder="ระบุจำนวนคงเหลือ (เช่น 50 กระสอบ / 20 ขวด)"
-                      className="bg-white border-slate-300 text-xs h-9"
-                    />
+
+                    <div className="relative">
+                      <Input
+                        value={item.remainingQty}
+                        onChange={(e) =>
+                          handleItemChange(idx, "remainingQty", e.target.value)
+                        }
+                        placeholder="ระบุจำนวนคงเหลือ"
+                        className="bg-white border-slate-300 text-xs h-9 pr-12"
+                      />
+
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">
+                        ลัง
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -297,31 +324,6 @@ export function ActualType11Stock({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-800">
-            สถานะสต็อกสินค้า <span className="text-rose-500">*</span>
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            {(["ใกล้หมด", "ขาดสต็อก"] as const).map((stk) => (
-              <button
-                key={stk}
-                type="button"
-                onClick={() => setStockStatus(stk)}
-                className={cn(
-                  "py-2.5 px-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all",
-                  stockStatus === stk
-                    ? stk === "ใกล้หมด"
-                      ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
-                      : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
-                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
-                )}
-              >
-                {stk === "ใกล้หมด" ? "⚠️ ใกล้หมด" : "🚨 ขาดสต็อก"}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-slate-800">
             โอกาสการสั่งซื้อรอบใหม่ <span className="text-rose-500">*</span>
           </label>
           <div className="grid grid-cols-3 gap-2">
@@ -338,7 +340,7 @@ export function ActualType11Stock({
                       : opp === "ยังไม่แน่ใจ"
                         ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
                         : "bg-slate-100 border-slate-400 text-slate-800"
-                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
                 )}
               >
                 {opp}
