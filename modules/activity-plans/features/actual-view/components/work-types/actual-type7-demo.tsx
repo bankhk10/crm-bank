@@ -143,7 +143,7 @@ export function ActualType7Demo({
             ระยะการเจริญเติบโต <span className="text-rose-500">*</span>
           </label>
           <Select value={growthStage} onValueChange={setGrowthStage}>
-            <SelectTrigger className="bg-white border-slate-300">
+            <SelectTrigger className="w-full bg-white border-slate-300">
               <SelectValue placeholder="เลือกระยะการเจริญเติบโต" />
             </SelectTrigger>
             <SelectContent>
