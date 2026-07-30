@@ -37,7 +37,9 @@ interface ActualType7DemoProps {
   cropCondition: "สมบูรณ์" | "ปานกลาง" | "ทรุดโทรม" | "";
   setCropCondition: (v: "สมบูรณ์" | "ปานกลาง" | "ทรุดโทรม" | "") => void;
   productResponse: "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "";
-  setProductResponse: (v: "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "") => void;
+  setProductResponse: (
+    v: "พืชตอบสนองดี" | "ยังไม่เห็นผลชัดเจน" | "พบปัญหา" | "",
+  ) => void;
   problemDescription: string;
   setProblemDescription: (v: string) => void;
   plotImages: ImageFile[];
@@ -91,21 +93,8 @@ export function ActualType7Demo({
           { label: "เจ้าของแปลง:", value: target.owner },
           { label: "สินค้าที่สาธิต:", value: target.product },
           { label: "พืชเป้าหมาย:", value: `${target.crop} (${target.plots})` },
-          { label: "เป้าหมายสภาพพืช:", value: target.targetCondition, highlight: true },
         ]}
       />
-
-      <div className="space-y-1.5 pt-1">
-        <label className="text-sm font-semibold text-slate-800">
-          ชื่อแปลงสาธิต <span className="text-rose-500">*</span>
-        </label>
-        <Input
-          value={plotName}
-          onChange={(e) => setPlotName(e.target.value)}
-          placeholder="เช่น แปลงทดสอบบ้านนา"
-          className="bg-white border-slate-300"
-        />
-      </div>
 
       <div className="space-y-1.5">
         <label className="text-sm font-semibold text-slate-800">
@@ -161,9 +150,7 @@ export function ActualType7Demo({
               <SelectItem value="ระยะเจริญเติบโตทางลำต้น/ใบ">
                 ระยะเจริญเติบโตทางลำต้น/ใบ
               </SelectItem>
-              <SelectItem value="ระยะออกดอก/ติดผล">
-                ระยะออกดอก/ติดผล
-              </SelectItem>
+              <SelectItem value="ระยะออกดอก/ติดผล">ระยะออกดอก/ติดผล</SelectItem>
               <SelectItem value="ระยะเก็บเกี่ยว/พักต้น">
                 ระยะเก็บเกี่ยว/พักต้น
               </SelectItem>
@@ -190,7 +177,7 @@ export function ActualType7Demo({
                     : cond === "ปานกลาง"
                       ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
                       : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
-                  : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                  : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50",
               )}
             >
               <span>
@@ -221,7 +208,7 @@ export function ActualType7Demo({
                       : res === "ยังไม่เห็นผลชัดเจน"
                         ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
                         : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
-                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50",
                 )}
               >
                 <span>
@@ -233,7 +220,7 @@ export function ActualType7Demo({
                 </span>
                 <span>{res}</span>
               </button>
-            )
+            ),
           )}
         </div>
       </div>
