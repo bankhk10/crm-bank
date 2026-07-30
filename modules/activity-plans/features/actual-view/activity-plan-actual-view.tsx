@@ -47,7 +47,10 @@ import { ActualType7Demo } from "./components/work-types/actual-type7-demo";
 import { ActualType8Meeting } from "./components/work-types/actual-type8-meeting";
 import { ActualType9Store } from "./components/work-types/actual-type9-store";
 import { ActualType10FieldDay } from "./components/work-types/actual-type10-field-day";
-import { ActualType11Stock } from "./components/work-types/actual-type11-stock";
+import {
+  ActualType11Stock,
+  StockCheckItem,
+} from "./components/work-types/actual-type11-stock";
 
 interface ActivityPlanActualViewProps {
   id?: string;
@@ -288,12 +291,15 @@ export default function ActivityPlanActualView({
   const [t10Images, setT10Images] = useState<ImageFile[]>([]);
 
   // Type 11
+  const [t11StockItems, setT11StockItems] = useState<StockCheckItem[]>([]);
   const [t11ProductList, setT11ProductList] = useState("");
+  const [t11RemainingQty, setT11RemainingQty] = useState("");
+  const [t11Remarks, setT11Remarks] = useState("");
   const [t11StockStatus, setT11StockStatus] = useState<
     "ใกล้หมด" | "ขาดสต็อก" | ""
   >("");
   const [t11ReorderOpportunity, setT11ReorderOpportunity] = useState<
-    "สูง" | "กลาง" | "ต่ำ" | ""
+    "สูง" | "ยังไม่แน่ใจ" | "ต่ำ" | ""
   >("");
   const [t11NextAction, setT11NextAction] = useState("");
 
@@ -438,9 +444,21 @@ export default function ActivityPlanActualView({
     setT10FarmerFeedback("สูง");
 
     // Type 11
-    setT11ProductList(
-      `${DEMO_PRODUCTS[0]} (50 กระสอบ), ${DEMO_PRODUCTS[1]} (20 ขวด)`,
-    );
+    setT11StockItems([
+      {
+        productName: DEMO_PRODUCTS[0],
+        remainingQty: "50 กระสอบ",
+        remarks: "สินค้าใกล้งวดสต็อก ให้รีบเติมด่วน",
+      },
+      {
+        productName: DEMO_PRODUCTS[1],
+        remainingQty: "20 ขวด",
+        remarks: "สต็อกวางหน้าร้านเริ่มพร่อง",
+      },
+    ]);
+    setT11ProductList(`${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[1]}`);
+    setT11RemainingQty("50 กระสอบ, 20 ขวด");
+    setT11Remarks("สินค้าใกล้งวดสต็อก ให้รีบเติมด่วน");
     setT11StockStatus("ใกล้หมด");
     setT11ReorderOpportunity("สูง");
     setT11NextAction(
@@ -799,8 +817,14 @@ export default function ActivityPlanActualView({
         <ActualType11Stock
           isVisible={isTypeVisible("ตรวจเช็กสต็อกหน้าร้าน")}
           target={targets.t11}
+          stockItems={t11StockItems}
+          setStockItems={setT11StockItems}
           productList={t11ProductList}
           setProductList={setT11ProductList}
+          remainingQty={t11RemainingQty}
+          setRemainingQty={setT11RemainingQty}
+          remarks={t11Remarks}
+          setRemarks={setT11Remarks}
           stockStatus={t11StockStatus}
           setStockStatus={setT11StockStatus}
           reorderOpportunity={t11ReorderOpportunity}
