@@ -57,10 +57,10 @@ export function ActualType6Issue({
       <ActualTargetCard
         iconColorClass="text-rose-600"
         badgeColorClass="bg-rose-100 text-rose-800"
+        gridColsClass="grid-cols-1 md:grid-cols-2"
         items={[
           { label: "ลูกค้า/ร้านค้า:", value: target.customer },
           { label: "ประเภทปัญหา:", value: target.issueType },
-          { label: "เป้าหมายสถานะ:", value: target.targetStatus, highlight: true },
         ]}
       />
 
@@ -106,7 +106,7 @@ export function ActualType6Issue({
                   ? st === "เสร็จสิ้น"
                     ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
                     : "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
-                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
               )}
             >
               {st === "เสร็จสิ้น" ? "✅ เสร็จสิ้น" : "⏳ รอติดตาม"}
