@@ -29,8 +29,8 @@ interface ActualType1VisitProps {
   setDetail: (v: string) => void;
   discussionResult: string;
   setDiscussionResult: (v: string) => void;
-  salesOpportunity: "สูง" | "กลาง" | "ต่ำ" | "";
-  setSalesOpportunity: (v: "สูง" | "กลาง" | "ต่ำ" | "") => void;
+  salesOpportunity: "สูง" | "ต่ำ" | "";
+  setSalesOpportunity: (v: "สูง" | "ต่ำ" | "") => void;
   nextAction: string;
   setNextAction: (v: string) => void;
   nextMeetingDate: string;
@@ -101,8 +101,8 @@ export function ActualType1Visit({
           <label className="text-sm font-semibold text-slate-800">
             ประเมินโอกาสการขาย <span className="text-rose-500">*</span>
           </label>
-          <div className="grid grid-cols-3 gap-2 mt-1">
-            {(["สูง", "กลาง", "ต่ำ"] as const).map((opt) => (
+          <div className="grid grid-cols-2 gap-2 mt-1">
+            {(["สูง", "ต่ำ"] as const).map((opt) => (
               <button
                 key={opt}
                 type="button"
@@ -112,9 +112,7 @@ export function ActualType1Visit({
                   salesOpportunity === opt
                     ? opt === "สูง"
                       ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
-                      : opt === "กลาง"
-                        ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
-                        : "bg-slate-100 border-slate-400 text-slate-800"
+                      : "bg-slate-100 border-slate-400 text-slate-800 ring-2 ring-slate-400/20"
                     : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
                 )}
               >

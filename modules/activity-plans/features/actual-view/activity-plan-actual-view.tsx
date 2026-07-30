@@ -245,7 +245,7 @@ export default function ActivityPlanActualView({
   const [t1Detail, setT1Detail] = useState("");
   const [t1DiscussionResult, setT1DiscussionResult] = useState("");
   const [t1SalesOpportunity, setT1SalesOpportunity] = useState<
-    "สูง" | "กลาง" | "ต่ำ" | ""
+    "สูง" | "ต่ำ" | ""
   >("");
   const [t1NextAction, setT1NextAction] = useState("");
   const [t1NextMeetingDate, setT1NextMeetingDate] = useState("");
