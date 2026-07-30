@@ -165,7 +165,7 @@ export function ActualType7Demo({
           สภาพพืช <span className="text-rose-500">*</span>
         </label>
         <div className="grid grid-cols-3 gap-2">
-          {(["สมบูรณ์", "ปานกลาง", "ทรุดโทรม"] as const).map((cond) => (
+          {(["สมบูรณ์", "ไม่เปลี่ยนแปลง", "มีปัญหา"] as const).map((cond) => (
             <button
               key={cond}
               type="button"
@@ -175,14 +175,18 @@ export function ActualType7Demo({
                 cropCondition === cond
                   ? cond === "สมบูรณ์"
                     ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
-                    : cond === "ปานกลาง"
+                    : cond === "ไม่เปลี่ยนแปลง"
                       ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
                       : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
                   : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50",
               )}
             >
               <span>
-                {cond === "สมบูรณ์" ? "🌿" : cond === "ปานกลาง" ? "🟡" : "🔴"}
+                {cond === "สมบูรณ์"
+                  ? "🌿"
+                  : cond === "ไม่เปลี่ยนแปลง"
+                    ? "🟡"
+                    : "🔴"}
               </span>
               <span>{cond}</span>
             </button>
