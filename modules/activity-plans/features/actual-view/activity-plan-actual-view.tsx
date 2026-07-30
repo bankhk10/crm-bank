@@ -173,8 +173,8 @@ export default function ActivityPlanActualView({
     t7: {
       owner: DEMO_OWNERS[0],
       product: DEMO_PRODUCTS[0],
-      crop: "พืชสวน (ทุเรียน)",
-      plots: "1 แปลง (20 ต้น)",
+      crop: "ทุเรียน",
+      plots: "20 ต้น",
       targetCondition: "สมบูรณ์",
     },
     t8: {
