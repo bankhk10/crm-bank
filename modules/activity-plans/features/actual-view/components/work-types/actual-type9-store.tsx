@@ -68,42 +68,14 @@ export function ActualType9Store({
         gridColsClass="grid-cols-1 sm:grid-cols-3"
         items={[
           { label: "ร้านค้าจัดกิจกรรม:", value: target.store },
-          { label: "เป้ายอดขายหน้าร้าน:", value: target.targetSales, highlight: true },
+          {
+            label: "เป้ายอดขายหน้าร้าน:",
+            value: target.targetSales,
+            highlight: true,
+          },
           { label: "เป้าหมายผู้เข้าร่วม:", value: target.targetAttendees },
         ]}
       />
-
-      <div className="space-y-2 pt-1">
-        <label className="text-sm font-semibold text-slate-800">
-          รูปแบบกิจกรรม <span className="text-rose-500">*</span>
-        </label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {[
-            "การสะสมคะแนน",
-            "การตลาดเฉพาะบุคคล",
-            "บริการหลังการขาย",
-            "กิจกรรมลูกค้าสัมพันธ์",
-          ].map((fmt) => {
-            const isChecked = formats.includes(fmt);
-            return (
-              <button
-                key={fmt}
-                type="button"
-                onClick={() => toggleFormat(fmt)}
-                className={cn(
-                  "py-2 px-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all text-center",
-                  isChecked
-                    ? "bg-blue-50 border-blue-500 text-blue-800 ring-2 ring-blue-500/20"
-                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
-                )}
-              >
-                {isChecked ? "✓ " : ""}
-                {fmt}
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1.5">
@@ -127,7 +99,8 @@ export function ActualType9Store({
 
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-800">
-            จำนวนลูกค้าที่เข้าร่วมจริง (คน) <span className="text-rose-500">*</span>
+            จำนวนลูกค้าที่เข้าร่วมจริง (คน){" "}
+            <span className="text-rose-500">*</span>
           </label>
           <div className="relative flex items-center">
             <Input
