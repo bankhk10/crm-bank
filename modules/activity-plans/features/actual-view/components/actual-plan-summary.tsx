@@ -175,21 +175,20 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
 
             {/* Overview Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-              <div className="bg-emerald-50/50 border border-emerald-200/80 p-3 rounded-xl shadow-xs">
-                <span className="text-emerald-700 block text-[10px] uppercase font-bold tracking-wider mb-0.5">
-                  งบการตลาด (สื่อส่งเสริมการขาย)
-                </span>
-                <span className="font-extrabold text-emerald-900 text-sm">
-                  {effectiveMarketingBudget.toLocaleString()} บาท
-                </span>
-              </div>
-
               <div className="bg-blue-50/50 border border-blue-200/80 p-3 rounded-xl shadow-xs">
                 <span className="text-blue-700 block text-[10px] uppercase font-bold tracking-wider mb-0.5">
-                  งบส่งเสริมการขาย (รายการส่งเสริม)
+                  งบขาย (รวม)
                 </span>
                 <span className="font-extrabold text-blue-900 text-sm">
                   {effectiveSalesPromoBudget.toLocaleString()} บาท
+                </span>
+              </div>
+              <div className="bg-emerald-50/50 border border-emerald-200/80 p-3 rounded-xl shadow-xs">
+                <span className="text-emerald-700 block text-[10px] uppercase font-bold tracking-wider mb-0.5">
+                  งบการตลาด (รวม)
+                </span>
+                <span className="font-extrabold text-emerald-900 text-sm">
+                  {effectiveMarketingBudget.toLocaleString()} บาท
                 </span>
               </div>
 
@@ -238,8 +237,12 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                         <th className="py-2 px-3 text-center w-10">ลำดับ</th>
                         <th className="py-2 px-3">รายการ</th>
                         <th className="py-2 px-3 w-24 text-center">จำนวน</th>
-                        <th className="py-2 px-3 w-28 text-right">ราคา/หน่วย</th>
-                        <th className="py-2 px-3 w-32 text-right">รวมเป็นเงิน</th>
+                        <th className="py-2 px-3 w-28 text-right">
+                          ราคา/หน่วย
+                        </th>
+                        <th className="py-2 px-3 w-32 text-right">
+                          รวมเป็นเงิน
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -255,7 +258,8 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                       ) : (
                         summary.marketingProductItems!.map((item, index) => {
                           const itemTotal =
-                            (item.quantityCases || 0) * (item.pricePerCase || 0);
+                            (item.quantityCases || 0) *
+                            (item.pricePerCase || 0);
                           return (
                             <tr
                               key={item.id || index}
@@ -317,7 +321,9 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                       <tr>
                         <th className="py-2 px-3 text-center w-10">ลำดับ</th>
                         <th className="py-2 px-3 min-w-[180px]">รายละเอียด</th>
-                        <th className="py-2 px-3 w-32 text-right">จำนวนเงิน (บาท)</th>
+                        <th className="py-2 px-3 w-32 text-right">
+                          จำนวนเงิน (บาท)
+                        </th>
                         <th className="py-2 px-3 w-32 text-center">การใช้งบ</th>
                       </tr>
                     </thead>
@@ -424,7 +430,9 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                   <div className="bg-white border border-slate-200 p-2.5 rounded-xl shadow-xs hover:border-sky-300 hover:shadow-sm transition-all duration-200">
                     <span className="text-slate-400 block text-[10px] uppercase tracking-wider mb-1 flex items-center gap-1">
                       <Users className="w-3 h-3 text-sky-500" />
-                      ทีมงานร่วมลงพื้นที่ ({summary.helperEmployeeNames.length}{" "}
+                      ทีมงานร่วมลงพื้นที่ ({
+                        summary.helperEmployeeNames.length
+                      }{" "}
                       คน)
                     </span>
                     <span className="font-semibold text-slate-700">
