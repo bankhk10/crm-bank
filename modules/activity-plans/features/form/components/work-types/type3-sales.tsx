@@ -130,24 +130,7 @@ export function Type3Sales({
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
-                  <FormCombobox
-                    id={`product-combobox-${item.id}`}
-                    label="สินค้าที่จะเสนอขาย"
-                    labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
-                    triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                    value={item.productName}
-                    onChange={(val) =>
-                      updateType3Row(item.id, "productName", val)
-                    }
-                    options={productOptions}
-                    placeholder="เลือกสินค้า..."
-                    searchPlaceholder="ค้นหาสินค้า..."
-                    emptyText="ไม่พบสินค้า"
-                    disabled={readonly}
-                    required
-                  />
-
+                <div className="mb-3">
                   <FormCombobox
                     id={`customer-combobox-${item.id}`}
                     label="ชื่อร้านค้า / เกษตรกร"
@@ -164,8 +147,31 @@ export function Type3Sales({
                     disabled={readonly}
                     required
                   />
+                </div>
 
-                  <div>
+                {/* สินค้า + จำนวน + ราคา */}
+                <div className="grid grid-cols-12 gap-3">
+                  <div className="col-span-8">
+                    <FormCombobox
+                      id={`product-combobox-${item.id}`}
+                      label="สินค้าที่จะเสนอขาย"
+                      labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                      value={item.productName}
+                      onChange={(val) =>
+                        updateType3Row(item.id, "productName", val)
+                      }
+                      options={productOptions}
+                      placeholder="เลือกสินค้า..."
+                      searchPlaceholder="ค้นหาสินค้า..."
+                      emptyText="ไม่พบสินค้า"
+                      disabled={readonly}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    {/* จำนวน */}
                     <label className="block text-xs font-medium text-slate-700 mb-1">
                       จำนวน <span className="text-red-500">*</span>
                     </label>
@@ -185,7 +191,8 @@ export function Type3Sales({
                     />
                   </div>
 
-                  <div>
+                  <div className="col-span-2">
+                    {/* ราคา */}
                     <label className="block text-xs font-medium text-slate-700 mb-1">
                       ราคา (บาท) <span className="text-red-500">*</span>
                     </label>
