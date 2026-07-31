@@ -86,121 +86,129 @@ export function Type7Demo({
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      เจ้าของแปลง <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={item.ownerName}
-                      onChange={(e) =>
-                        updateType7Row(item.id, "ownerName", e.target.value)
-                      }
-                      disabled={readonly}
-                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
-                    >
-                      <option value="">-- เลือกเจ้าของแปลง --</option>
-                      {DEMO_OWNERS.map((owner) => (
-                        <option key={owner} value={owner}>
-                          {owner}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      สินค้าที่จะสาธิต <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={item.productName}
-                      onChange={(e) =>
-                        updateType7Row(item.id, "productName", e.target.value)
-                      }
-                      disabled={readonly}
-                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
-                    >
-                      <option value="">-- เลือกสินค้า --</option>
-                      {DEMO_PRODUCTS.map((prod) => (
-                        <option key={prod} value={prod}>
-                          {prod}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      หมวดพืช
-                    </label>
-                    <select
-                      value={item.cropCategory}
-                      onChange={(e) => {
-                        const newCat = e.target.value;
-                        updateType7Row(item.id, "cropCategory", newCat);
-                        const nextCrops = CROPS_BY_CATEGORY[newCat] || [];
-                        if (
-                          nextCrops.length > 0 &&
-                          !nextCrops.includes(item.cropName)
-                        ) {
-                          updateType7Row(item.id, "cropName", nextCrops[0]);
-                        }
-                      }}
-                      disabled={readonly}
-                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
-                    >
-                      <option value="">-- เลือกหมวด --</option>
-                      {CROP_CATEGORIES.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      ชื่อพืช
-                    </label>
-                    <select
-                      value={item.cropName}
-                      onChange={(e) =>
-                        updateType7Row(item.id, "cropName", e.target.value)
-                      }
-                      disabled={readonly || !item.cropCategory}
-                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white disabled:bg-slate-100 disabled:text-slate-400"
-                    >
-                      <option value="">-- เลือกชื่อพืช --</option>
-                      {availableCrops.map((crop) => (
-                        <option key={crop} value={crop}>
-                          {crop}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      จำนวน <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative flex items-center">
-                      <input
-                        type="number"
-                        min={1}
-                        value={item.plotsCount}
+                <div className="space-y-3">
+                  {/* แถวบน */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        เจ้าของแปลง <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={item.ownerName}
                         onChange={(e) =>
-                          updateType7Row(
-                            item.id,
-                            "plotsCount",
-                            parseInt(e.target.value) || 0,
-                          )
+                          updateType7Row(item.id, "ownerName", e.target.value)
                         }
                         disabled={readonly}
-                        className="w-full h-9 pl-3 pr-8 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
-                      />
-                      <span className="absolute right-3 text-[11px] font-semibold text-slate-500 pointer-events-none">
-                        {isRaiUnit ? "ไร่" : "ต้น"}
-                      </span>
+                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
+                      >
+                        <option value="">-- เลือกเจ้าของแปลง --</option>
+                        {DEMO_OWNERS.map((owner) => (
+                          <option key={owner} value={owner}>
+                            {owner}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        สินค้าที่จะสาธิต <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={item.productName}
+                        onChange={(e) =>
+                          updateType7Row(item.id, "productName", e.target.value)
+                        }
+                        disabled={readonly}
+                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
+                      >
+                        <option value="">-- เลือกสินค้า --</option>
+                        {DEMO_PRODUCTS.map((prod) => (
+                          <option key={prod} value={prod}>
+                            {prod}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* แถวล่าง */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+                    <div className="lg:col-span-5">
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        หมวดพืช
+                      </label>
+                      <select
+                        value={item.cropCategory}
+                        onChange={(e) => {
+                          const newCat = e.target.value;
+                          updateType7Row(item.id, "cropCategory", newCat);
+
+                          const nextCrops = CROPS_BY_CATEGORY[newCat] || [];
+
+                          if (
+                            nextCrops.length > 0 &&
+                            !nextCrops.includes(item.cropName)
+                          ) {
+                            updateType7Row(item.id, "cropName", nextCrops[0]);
+                          }
+                        }}
+                        disabled={readonly}
+                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
+                      >
+                        <option value="">-- เลือกหมวด --</option>
+                        {CROP_CATEGORIES.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="lg:col-span-5">
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        ชื่อพืช
+                      </label>
+                      <select
+                        value={item.cropName}
+                        onChange={(e) =>
+                          updateType7Row(item.id, "cropName", e.target.value)
+                        }
+                        disabled={readonly || !item.cropCategory}
+                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                      >
+                        <option value="">-- เลือกชื่อพืช --</option>
+                        {availableCrops.map((crop) => (
+                          <option key={crop} value={crop}>
+                            {crop}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="lg:col-span-2">
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        จำนวน <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <input
+                          type="number"
+                          min={1}
+                          value={item.plotsCount}
+                          onChange={(e) =>
+                            updateType7Row(
+                              item.id,
+                              "plotsCount",
+                              parseInt(e.target.value) || 0,
+                            )
+                          }
+                          disabled={readonly}
+                          className="w-full h-9 pl-3 pr-8 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
+                        />
+                        <span className="absolute right-3 text-[11px] font-semibold text-slate-500 pointer-events-none">
+                          {isRaiUnit ? "ไร่" : "ต้น"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
