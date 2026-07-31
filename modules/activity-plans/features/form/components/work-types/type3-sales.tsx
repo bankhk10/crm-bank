@@ -381,7 +381,7 @@ export function Type3Sales({
                 {/* Card Summary & Detail */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-1 gap-2 border-t border-slate-100">
                   <div className="text-xs text-slate-600 font-medium">
-                    รวมเป็นเงิน (ลูกค้ารายนี้):{" "}
+                    รวมเป็นเงิน:{" "}
                     <span className="text-sm font-bold text-emerald-700 ml-1">
                       ฿ {cardTotal.toLocaleString()}
                     </span>
