@@ -5,7 +5,15 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Eye, Edit, Trash2, Send, PlusCircle, Filter, ClipboardList } from "lucide-react";
+import {
+  Eye,
+  Edit,
+  Trash2,
+  Send,
+  PlusCircle,
+  Filter,
+  ClipboardList,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations, ActivityStatus } from "../../types";
 import { ActivityStatusBadge } from "../../ui/activity-status-badge";
@@ -63,14 +71,16 @@ export function ActivityPlanTable({
   onSubmitApproval,
   submitLoadingId,
 }: ActivityPlanTableProps) {
-  
   const columns = React.useMemo<ColumnDef<ActivityPlanWithRelations>[]>(() => {
     return [
       {
         accessorKey: "title",
         header: "ชื่อกิจกรรม",
         cell: (info) => (
-          <div className="truncate font-medium text-slate-900 max-w-[200px]" title={info.getValue() as string}>
+          <div
+            className="truncate font-medium text-slate-900 max-w-[200px]"
+            title={info.getValue() as string}
+          >
             {(info.getValue() as string) || "-"}
           </div>
         ),
@@ -78,7 +88,11 @@ export function ActivityPlanTable({
       {
         accessorKey: "employee.name",
         header: "ผู้จัดทำ",
-        cell: (info) => <div className="truncate max-w-[120px]">{info.getValue() as string}</div>,
+        cell: (info) => (
+          <div className="truncate max-w-[120px]">
+            {info.getValue() as string}
+          </div>
+        ),
       },
       {
         accessorKey: "activityType",
@@ -103,7 +117,10 @@ export function ActivityPlanTable({
         accessorKey: "location",
         header: "สถานที่",
         cell: (info) => (
-          <div className="truncate max-w-[150px]" title={info.getValue() as string}>
+          <div
+            className="truncate max-w-[150px]"
+            title={info.getValue() as string}
+          >
             {(info.getValue() as string) || "-"}
           </div>
         ),
@@ -111,11 +128,16 @@ export function ActivityPlanTable({
       {
         header: "งบประมาณที่ใช้",
         cell: ({ row }) => {
-          const salesPromo = row.original.salesPromotionBudget ? Number(row.original.salesPromotionBudget) : 0;
-          const marketing = row.original.marketingBudget ? Number(row.original.marketingBudget) : 0;
+          const salesPromo = row.original.salesPromotionBudget
+            ? Number(row.original.salesPromotionBudget)
+            : 0;
+          const marketing = row.original.marketingBudget
+            ? Number(row.original.marketingBudget)
+            : 0;
           const totalBudget = salesPromo + marketing;
 
-          if (totalBudget === 0) return <span className="text-xs text-slate-400">ไม่มี</span>;
+          if (totalBudget === 0)
+            return <span className="text-xs text-slate-400">ไม่มี</span>;
 
           const formatter = new Intl.NumberFormat("th-TH", {
             style: "currency",
@@ -125,8 +147,16 @@ export function ActivityPlanTable({
 
           return (
             <div className="text-xs">
-              {salesPromo > 0 && <div className="text-blue-600">ส่งเสริมฯ: {formatter.format(salesPromo)}</div>}
-              {marketing > 0 && <div className="text-purple-600">ตลาด: {formatter.format(marketing)}</div>}
+              {salesPromo > 0 && (
+                <div className="text-blue-600">
+                  ส่งเสริมฯ: {formatter.format(salesPromo)}
+                </div>
+              )}
+              {marketing > 0 && (
+                <div className="text-purple-600">
+                  ตลาด: {formatter.format(marketing)}
+                </div>
+              )}
             </div>
           );
         },
@@ -134,7 +164,9 @@ export function ActivityPlanTable({
       {
         accessorKey: "status",
         header: "สถานะ",
-        cell: (info) => <ActivityStatusBadge status={info.getValue() as ActivityStatus} />,
+        cell: (info) => (
+          <ActivityStatusBadge status={info.getValue() as ActivityStatus} />
+        ),
       },
       {
         accessorKey: "currentApprover.name",
@@ -144,17 +176,31 @@ export function ActivityPlanTable({
           const status = row.original.status;
 
           if (status === "PENDING_BUDGET_APPROVAL") {
-            return <span className="text-xs text-blue-600 italic font-medium">ผจก. แผนกงบประมาณ</span>;
+            return (
+              <span className="text-xs text-blue-600 italic font-medium">
+                ผจก. แผนกงบประมาณ
+              </span>
+            );
           }
           if (status === "PENDING_HELPER_APPROVAL") {
-            return <span className="text-xs text-purple-600 italic font-medium">ผจก. แผนกของคนช่วย</span>;
+            return (
+              <span className="text-xs text-purple-600 italic font-medium">
+                ผจก. แผนกของคนช่วย
+              </span>
+            );
           }
           if (status === "APPROVED") {
-            return <span className="text-xs text-green-600 font-medium">เสร็จสิ้น</span>;
+            return (
+              <span className="text-xs text-green-600 font-medium">
+                เสร็จสิ้น
+              </span>
+            );
           }
 
           return approverName ? (
-            <div className="truncate text-xs font-medium text-slate-700">{approverName}</div>
+            <div className="truncate text-xs font-medium text-slate-700">
+              {approverName}
+            </div>
           ) : (
             <span className="text-slate-400">-</span>
           );
@@ -186,9 +232,11 @@ export function ActivityPlanTable({
                 colorClass="text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-md"
               />
 
-              {editable && (
-                submitLoadingId === item.id ? (
-                  <span className="text-xs text-slate-400 animate-pulse font-medium px-2 py-1 select-none">กำลังส่ง...</span>
+              {editable &&
+                (submitLoadingId === item.id ? (
+                  <span className="text-xs text-slate-400 animate-pulse font-medium px-2 py-1 select-none">
+                    กำลังส่ง...
+                  </span>
                 ) : (
                   <ActionButton
                     icon={Send}
@@ -196,8 +244,7 @@ export function ActivityPlanTable({
                     colorClass="text-teal-600 border-teal-100 hover:bg-teal-50 rounded-md"
                     onClick={() => onSubmitApproval(item)}
                   />
-                )
-              )}
+                ))}
 
               {canEdit && editable && (
                 <ActionButton
@@ -226,7 +273,7 @@ export function ActivityPlanTable({
   const toolbar = (
     <div className="space-y-4 mb-6">
       <TableToolbar
-        searchPlaceholder="ค้นหาชื่อกิจกรรม, พื้นที่, เป้าหมาย, ผู้สร้าง..."
+        searchPlaceholder="ค้นหาชื่อกิจกรรม"
         searchValue={searchValue}
         onSearchChange={onSearchChange}
         onSearchSubmit={onSearchSubmit}
@@ -250,7 +297,10 @@ export function ActivityPlanTable({
       />
       <div className="flex items-center justify-end gap-3">
         <Link href="/activity-plans/actual" className="w-full sm:w-auto">
-          <Button variant="outline" className="w-full lg:w-auto border-emerald-600 text-emerald-700 hover:bg-emerald-50 flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="w-full lg:w-auto border-emerald-600 text-emerald-700 hover:bg-emerald-50 flex items-center gap-2"
+          >
             <ClipboardList className="h-4 w-4 text-emerald-600" />
             บันทึกผลปฏิบัติงาน (Actual)
           </Button>

@@ -11,6 +11,7 @@ import {
   submitActivityPlanAction,
 } from "../../server/actions";
 import { Button } from "@/components/ui/button";
+import { CalendarIcon } from "lucide-react";
 
 export default function ActivityPlanListView() {
   const { hasPermission, allowed, isLoading } = usePermission(
@@ -143,11 +144,19 @@ export default function ActivityPlanListView() {
   }
 
   return (
-    <section className="space-y-6 p-6 pb-24 md:pb-8">
-      <PageHeader
-        title="การวางแผนจัดกิจกรรม"
-        description="สร้างและตรวจสอบความคืบหน้าของแผนกิจกรรมและงบประมาณการตลาด/ส่งเสริมการขาย"
-      />
+    <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
+      <div className="flex items-center justify-center gap-4 relative z-10 pb-8">
+        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 flex-shrink-0">
+          <CalendarIcon className="w-8 h-8" />
+        </div>
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+              แผนปฏิบัติงาน
+            </h1>
+          </div>
+        </div>
+      </div>
 
       {error && (
         <Alert variant="destructive">
@@ -193,30 +202,28 @@ export default function ActivityPlanListView() {
         </div>
       )}
 
-      <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-        <ActivityPlanTable
-          data={activityPlans}
-          loading={loading}
-          pagination={{
-            page,
-            perPage,
-            total,
-            onPageChange: setPage,
-            onPerPageChange: setPerPage,
-          }}
-          searchValue={searchDraft}
-          onSearchChange={setSearchDraft}
-          onSearchSubmit={() => {}}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          canCreate={canCreate}
-          canEdit={canEdit}
-          canDelete={canDelete}
-          onDelete={handleDeleteRequest}
-          onSubmitApproval={handleSubmitApproval}
-          submitLoadingId={submitLoadingId}
-        />
-      </div>
-    </section>
+      <ActivityPlanTable
+        data={activityPlans}
+        loading={loading}
+        pagination={{
+          page,
+          perPage,
+          total,
+          onPageChange: setPage,
+          onPerPageChange: setPerPage,
+        }}
+        searchValue={searchDraft}
+        onSearchChange={setSearchDraft}
+        onSearchSubmit={() => {}}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        canCreate={canCreate}
+        canEdit={canEdit}
+        canDelete={canDelete}
+        onDelete={handleDeleteRequest}
+        onSubmitApproval={handleSubmitApproval}
+        submitLoadingId={submitLoadingId}
+      />
+    </div>
   );
 }
