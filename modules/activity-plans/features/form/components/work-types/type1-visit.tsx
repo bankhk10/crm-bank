@@ -16,11 +16,7 @@ interface Props {
   readonly?: boolean;
   type1Items: Type1VisitItem[];
   addType1Row: () => void;
-  updateType1Row: (
-    id: string,
-    field: keyof Type1VisitItem,
-    val: any,
-  ) => void;
+  updateType1Row: (id: string, field: keyof Type1VisitItem, val: any) => void;
   deleteType1Row: (id: string) => void;
   customers?: CustomerOption[];
 }
@@ -44,7 +40,11 @@ export function Type1Visit({
   const customerOptions = (
     customers && customers.length > 0
       ? customers
-      : DEMO_OWNERS.map((owner) => ({ id: owner, name: owner, customerCode: null }))
+      : DEMO_OWNERS.map((owner) => ({
+          id: owner,
+          name: owner,
+          customerCode: null,
+        }))
   ).map((c) => ({
     value: c.name,
     label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
@@ -74,8 +74,8 @@ export function Type1Visit({
       {/* List of Visit Cards */}
       <div className="space-y-3">
         {type1Items.length === 0 ? (
-          <div className="py-6 text-center text-slate-400 italic bg-white rounded-xl border border-slate-200 text-xs">
-            ยังไม่มีรายการเข้าพบ กด "+ เพิ่มรายการ" เพื่อบันทึก
+          <div className="py-6 text-center text-slate-400 bg-white rounded-xl border border-slate-200 text-xs">
+            ยังไม่มีรายการเข้าพบ
           </div>
         ) : (
           type1Items.map((item, index) => (
