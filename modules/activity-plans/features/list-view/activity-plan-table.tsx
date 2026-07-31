@@ -279,11 +279,10 @@ export function ActivityPlanTable({
         onSearchSubmit={onSearchSubmit}
         filters={
           <div className="flex items-center gap-2 min-w-[200px]">
-            <Filter className="h-4 w-4 text-slate-400 shrink-0" />
             <select
               value={statusFilter}
               onChange={(e) => onStatusFilterChange(e.target.value)}
-              className="h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="h-11 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="">ทุกสถานะ</option>
               {STATUS_OPTIONS.map((opt) => (
