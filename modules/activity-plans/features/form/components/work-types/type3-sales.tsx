@@ -84,8 +84,7 @@ export function Type3Sales({
               productName: currentItem.productName || "",
               quantity: currentItem.quantity || 1,
               unitPrice: currentItem.unitPrice || 0,
-              price:
-                (currentItem.quantity || 1) * (currentItem.unitPrice || 0),
+              price: (currentItem.quantity || 1) * (currentItem.unitPrice || 0),
             },
           ];
 
@@ -94,7 +93,7 @@ export function Type3Sales({
     const defaultPrice =
       products && products[0] && products[0].price != null
         ? Number(products[0].price)
-        : DEMO_PRODUCT_PRICES[defaultProd] ?? 500;
+        : (DEMO_PRODUCT_PRICES[defaultProd] ?? 500);
 
     const newProdLine: Type3SalesProductLine = {
       id: Date.now().toString(),
@@ -127,8 +126,7 @@ export function Type3Sales({
               productName: currentItem.productName || "",
               quantity: currentItem.quantity || 1,
               unitPrice: currentItem.unitPrice || 0,
-              price:
-                (currentItem.quantity || 1) * (currentItem.unitPrice || 0),
+              price: (currentItem.quantity || 1) * (currentItem.unitPrice || 0),
             },
           ];
 
@@ -223,8 +221,7 @@ export function Type3Sales({
                       productName: item.productName || "",
                       quantity: item.quantity || 1,
                       unitPrice: item.unitPrice || 0,
-                      price:
-                        (item.quantity || 1) * (item.unitPrice || 0),
+                      price: (item.quantity || 1) * (item.unitPrice || 0),
                     },
                   ];
 
@@ -307,10 +304,10 @@ export function Type3Sales({
                         className="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-end bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs"
                       >
                         {/* Product Combobox */}
-                        <div className="md:col-span-5">
+                        <div className="md:col-span-8">
                           <FormCombobox
                             id={`product-combobox-${item.id}-${prodLine.id}`}
-                            label={pIdx === 0 ? "สินค้าที่จะเสนอขาย" : ""}
+                            label={pIdx === 0 ? "สินค้า" : "สินค้า"}
                             labelClassName="block text-[11px] font-medium text-slate-600 mb-1 mx-0"
                             triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                             value={prodLine.productName}
@@ -375,25 +372,6 @@ export function Type3Sales({
                               className="w-full h-9 pl-6 pr-2 rounded-lg border border-slate-200 bg-slate-100 text-slate-500 text-xs text-right font-medium focus:outline-none cursor-not-allowed"
                             />
                           </div>
-                        </div>
-
-                        {/* Line Total Price & Delete Button */}
-                        <div className="md:col-span-3 flex items-center justify-between gap-1 h-9 pt-1">
-                          <div className="text-xs text-right font-bold text-emerald-700 truncate flex-1">
-                            ฿ {lineTotal.toLocaleString()}
-                          </div>
-                          {!readonly && prodListLines.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                deleteProductLine(item.id, prodLine.id)
-                              }
-                              className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
-                              title="ลบสินค้านี้"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
                         </div>
                       </div>
                     );
