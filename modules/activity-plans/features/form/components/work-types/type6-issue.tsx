@@ -1,8 +1,18 @@
 import React from "react";
 import { HelpCircle, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FormCombobox } from "@/components/custom/form-components";
 import type { Type6IssueItem } from "../../types";
 import { DEMO_OWNERS } from "../../constants";
+
+export interface CustomerOption {
+  id: string;
+  name: string;
+  customerCode?: string | null;
+  responsibleEmployeeId?: string | null;
+}
+
+const ISSUE_TYPES = ["เคลมของ", "ฉีดยาแล้วพืชเสียหาย", "อื่นๆ"];
 
 interface Props {
   readonly?: boolean;
@@ -10,6 +20,7 @@ interface Props {
   addType6Row: () => void;
   updateType6Row: (id: string, field: keyof Type6IssueItem, val: any) => void;
   deleteType6Row: (id: string) => void;
+  customers?: CustomerOption[];
 }
 
 export function Type6Issue({
@@ -18,7 +29,26 @@ export function Type6Issue({
   addType6Row,
   updateType6Row,
   deleteType6Row,
+  customers = [],
 }: Props) {
+  const customerOptions = (
+    customers && customers.length > 0
+      ? customers
+      : DEMO_OWNERS.map((owner) => ({
+          id: owner,
+          name: owner,
+          customerCode: null,
+        }))
+  ).map((c) => ({
+    value: c.name,
+    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+  }));
+
+  const issueTypeOptions = ISSUE_TYPES.map((t) => ({
+    value: t,
+    label: t,
+  }));
+
   return (
     <div className="bg-rose-50/40 border border-rose-200/80 rounded-xl p-4 md:p-5 space-y-4">
       <div className="flex items-center justify-between border-b border-rose-200/60 pb-2.5">
@@ -43,8 +73,8 @@ export function Type6Issue({
       {/* List of Issue Cards */}
       <div className="space-y-3">
         {type6Items.length === 0 ? (
-          <div className="py-6 text-center text-slate-400 italic bg-white rounded-xl border border-slate-200 text-xs">
-            ยังไม่มีรายการร้องเรียน กด "+ เพิ่มรายการ" เพื่อบันทึก
+          <div className="py-6 text-center text-slate-400 bg-white rounded-xl border border-slate-200 text-xs">
+            ยังไม่มีรายการร้องเรียน
           </div>
         ) : (
           type6Items.map((item, index) => (
@@ -72,46 +102,39 @@ export function Type6Issue({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    รายชื่อลูกค้า / ร้านค้า <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={item.customerName}
-                    onChange={(e) =>
-                      updateType6Row(item.id, "customerName", e.target.value)
-                    }
-                    disabled={readonly}
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 font-medium bg-white"
-                  >
-                    <option value="">-- เลือกร้านค้า / เกษตรกร --</option>
-                    {DEMO_OWNERS.map((owner) => (
-                      <option key={owner} value={owner}>
-                        {owner}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <FormCombobox
+                  id={`customer-combobox-${item.id}`}
+                  label="รายชื่อลูกค้า / ร้านค้า"
+                  labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                  triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
+                  value={item.customerName}
+                  onChange={(val) =>
+                    updateType6Row(item.id, "customerName", val)
+                  }
+                  options={customerOptions}
+                  placeholder="เลือกร้านค้า / เกษตรกร..."
+                  searchPlaceholder="ค้นหาร้านค้า / เกษตรกร..."
+                  emptyText="ไม่พบลูกค้า"
+                  disabled={readonly}
+                  required
+                />
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    ประเภทปัญหา <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={item.issueType}
-                    onChange={(e) =>
-                      updateType6Row(item.id, "issueType", e.target.value)
-                    }
-                    disabled={readonly}
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 font-medium bg-white"
-                  >
-                    <option value="เคลมของ">เคลมของ</option>
-                    <option value="ฉีดยาแล้วพืชเสียหาย">
-                      ฉีดยาแล้วพืชเสียหาย
-                    </option>
-                    <option value="อื่นๆ">อื่นๆ</option>
-                  </select>
-                </div>
+                <FormCombobox
+                  id={`issue-type-combobox-${item.id}`}
+                  label="ประเภทปัญหา"
+                  labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                  triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
+                  value={item.issueType}
+                  onChange={(val) =>
+                    updateType6Row(item.id, "issueType", val)
+                  }
+                  options={issueTypeOptions}
+                  placeholder="เลือกประเภทปัญหา..."
+                  searchPlaceholder="ค้นหาประเภทปัญหา..."
+                  emptyText="ไม่พบประเภทปัญหา"
+                  disabled={readonly}
+                  required
+                />
               </div>
 
               <div>
