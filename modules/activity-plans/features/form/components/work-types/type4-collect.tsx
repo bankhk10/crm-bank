@@ -1,8 +1,16 @@
 import React from "react";
 import { Receipt, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FormCombobox } from "@/components/custom/form-components";
 import type { Type4CollectItem } from "../../types";
 import { DEMO_OWNERS } from "../../constants";
+
+export interface CustomerOption {
+  id: string;
+  name: string;
+  customerCode?: string | null;
+  responsibleEmployeeId?: string | null;
+}
 
 interface Props {
   readonly?: boolean;
@@ -10,6 +18,7 @@ interface Props {
   addType4Row: () => void;
   updateType4Row: (id: string, field: keyof Type4CollectItem, val: any) => void;
   deleteType4Row: (id: string) => void;
+  customers?: CustomerOption[];
 }
 
 export function Type4Collect({
@@ -18,7 +27,21 @@ export function Type4Collect({
   addType4Row,
   updateType4Row,
   deleteType4Row,
+  customers = [],
 }: Props) {
+  const customerOptions = (
+    customers && customers.length > 0
+      ? customers
+      : DEMO_OWNERS.map((owner) => ({
+          id: owner,
+          name: owner,
+          customerCode: null,
+        }))
+  ).map((c) => ({
+    value: c.name,
+    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+  }));
+
   const totalAllCollect = type4Items.reduce(
     (sum, item) => sum + (item.collectAmount || 0),
     0,
@@ -48,8 +71,8 @@ export function Type4Collect({
       {/* List of Collect Cards */}
       <div className="space-y-3">
         {type4Items.length === 0 ? (
-          <div className="py-6 text-center text-slate-400 italic bg-white rounded-xl border border-slate-200 text-xs">
-            ยังไม่มีรายการวางบิล กด "+ เพิ่มรายการ" เพื่อบันทึก
+          <div className="py-6 text-center text-slate-400 bg-white rounded-xl border border-slate-200 text-xs">
+            ยังไม่มีรายการวางบิล
           </div>
         ) : (
           type4Items.map((item, index) => (
@@ -77,30 +100,27 @@ export function Type4Collect({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    รายชื่อลูกค้า / ร้านค้า <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={item.customerName}
-                    onChange={(e) =>
-                      updateType4Row(item.id, "customerName", e.target.value)
-                    }
-                    disabled={readonly}
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium bg-white"
-                  >
-                    <option value="">-- เลือกร้านค้า --</option>
-                    {DEMO_OWNERS.map((owner) => (
-                      <option key={owner} value={owner}>
-                        {owner}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <FormCombobox
+                  id={`customer-combobox-${item.id}`}
+                  label="รายชื่อลูกค้า / ร้านค้า"
+                  labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                  triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-amber-500"
+                  value={item.customerName}
+                  onChange={(val) =>
+                    updateType4Row(item.id, "customerName", val)
+                  }
+                  options={customerOptions}
+                  placeholder="เลือกร้านค้า / ลูกค้า..."
+                  searchPlaceholder="ค้นหาร้านค้า / ลูกค้า..."
+                  emptyText="ไม่พบลูกค้า"
+                  disabled={readonly}
+                  required
+                />
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">
-                    เป้ายอดเก็บเงิน (บาท) <span className="text-red-500">*</span>
+                    เป้ายอดเก็บเงิน (บาท){" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-2 text-slate-400 text-xs font-semibold">
