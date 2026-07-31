@@ -99,10 +99,11 @@ export function Type4Collect({
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-10 gap-3">
                 <FormCombobox
                   id={`customer-combobox-${item.id}`}
                   label="รายชื่อลูกค้า / ร้านค้า"
+                  containerClassName="md:col-span-8"
                   labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-amber-500"
                   value={item.customerName}
@@ -117,12 +118,12 @@ export function Type4Collect({
                   required
                 />
 
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-xs font-medium text-slate-700 mb-1">
                     เป้ายอดเก็บเงิน (บาท){" "}
                     <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
+                  <div className="relative mt-2">
                     <span className="absolute left-3 top-2 text-slate-400 text-xs font-semibold">
                       ฿
                     </span>
