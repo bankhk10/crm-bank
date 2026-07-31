@@ -3,7 +3,11 @@ import { ShoppingCart, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
 import type { Type3SalesItem } from "../../types";
-import { DEMO_PRODUCTS, DEMO_OWNERS, DEMO_PRODUCT_PRICES } from "../../constants";
+import {
+  DEMO_PRODUCTS,
+  DEMO_OWNERS,
+  DEMO_PRODUCT_PRICES,
+} from "../../constants";
 
 export interface CustomerOption {
   id: string;
@@ -126,7 +130,7 @@ export function Type3Sales({
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
                   <FormCombobox
                     id={`product-combobox-${item.id}`}
                     label="สินค้าที่จะเสนอขาย"
