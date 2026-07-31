@@ -65,7 +65,9 @@ export function FormCombobox({
 }: FormComboboxProps) {
   const [open, setOpen] = useState(false);
 
-  const selectedOption = options.find((option) => option.value === value);
+  const selectedOption = options.find(
+    (option) => option.value === value || option.label === value
+  );
 
   return (
     <div className={cn(containerClassName)}>

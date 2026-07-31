@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ActivityPlanForm } from "./activity-plan-form";
 import { createActivityPlanAction, getCurrentUserEmployeeAction } from "../../server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
+import { getCustomersAction } from "@/modules/customers/server/actions";
 
 export default function ActivityPlanCreateView() {
   const router = useRouter();
@@ -17,21 +18,27 @@ export default function ActivityPlanCreateView() {
   const canView = allowed || hasPermission("activity.view") || hasPermission("activity.manage") || !isLoading;
 
   const [employees, setEmployees] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
   const [currentEmployeeName, setCurrentEmployeeName] = useState<string>("");
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [empRes, userRes] = await Promise.all([
+        const [empRes, userRes, custRes] = await Promise.all([
           getAllEmployeesAction(),
           getCurrentUserEmployeeAction(),
+          getCustomersAction({ perPage: 1000 }).catch(() => ({ customers: [] })),
         ]);
 
         if (empRes.success && empRes.employees) {
           setEmployees(empRes.employees);
         } else {
           setLoadError("ไม่สามารถดึงรายชื่อพนักงานได้");
+        }
+
+        if (custRes && custRes.customers) {
+          setCustomers(custRes.customers);
         }
 
         if (userRes.success) {
@@ -42,7 +49,7 @@ export default function ActivityPlanCreateView() {
           }
         }
       } catch {
-        setLoadError("เกิดข้อผิดพลาดในการโหลดรายชื่อพนักงาน");
+        setLoadError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
       }
     }
     loadData();
@@ -82,6 +89,7 @@ export default function ActivityPlanCreateView() {
       <ActivityPlanForm
         initial={{ employeeName: currentEmployeeName }}
         employees={employees}
+        customers={customers}
         onSubmit={handleSubmit}
         onCancel={() => router.push("/activity-plans")}
         submitLabel="บันทึก"

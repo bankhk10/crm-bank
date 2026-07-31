@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { ActivityPlanForm } from "./activity-plan-form";
 import { getActivityPlanAction, updateActivityPlanAction } from "../../server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
+import { getCustomersAction } from "@/modules/customers/server/actions";
 
 interface Props {
   id: string;
@@ -22,6 +23,7 @@ export default function ActivityPlanEditView({ id }: Props) {
   const canView = allowed || hasPermission("activity.view") || hasPermission("activity.manage") || !isLoading;
 
   const [employees, setEmployees] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
   const [initialData, setInitialData] = useState<any>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
@@ -30,13 +32,18 @@ export default function ActivityPlanEditView({ id }: Props) {
     async function loadData() {
       setPageLoading(true);
       try {
-        const [empRes, planRes] = await Promise.all([
+        const [empRes, planRes, custRes] = await Promise.all([
           getAllEmployeesAction(),
           getActivityPlanAction(id),
+          getCustomersAction({ perPage: 1000 }).catch(() => ({ customers: [] })),
         ]);
 
         if (empRes.success && empRes.employees) {
           setEmployees(empRes.employees);
+        }
+
+        if (custRes && custRes.customers) {
+          setCustomers(custRes.customers);
         }
 
         if (planRes.success && planRes.plan) {
@@ -115,6 +122,7 @@ export default function ActivityPlanEditView({ id }: Props) {
         <ActivityPlanForm
           initial={initialData}
           employees={employees}
+          customers={customers}
           onSubmit={handleSubmit}
           onCancel={() => router.push("/activity-plans")}
           submitLabel="อัปเดตแผนกิจกรรม"

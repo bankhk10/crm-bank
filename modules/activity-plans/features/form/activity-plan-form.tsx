@@ -46,6 +46,12 @@ interface Props {
     positionTitle?: string | null;
     departmentName?: string | null;
   }>;
+  customers?: Array<{
+    id: string;
+    name: string;
+    customerCode?: string | null;
+    responsibleEmployeeId?: string | null;
+  }>;
   onSubmit: (payload: ActivityPlanFormValues) => Promise<SubmitResult>;
   onCancel?: () => void;
   submitLabel?: string;
@@ -95,11 +101,35 @@ import { Type11Stock } from "./components/work-types/type11-stock";
 export function ActivityPlanForm({
   initial = {},
   employees = [],
+  customers: initialCustomers = [],
   onSubmit,
   onCancel,
   submitLabel = "บันทึก",
   readonly = false,
 }: Props) {
+  const [customersList, setCustomersList] = useState<any[]>(initialCustomers);
+
+  useEffect(() => {
+    if (initialCustomers && initialCustomers.length > 0) {
+      setCustomersList(initialCustomers);
+      return;
+    }
+    let isMounted = true;
+    async function loadCustomers() {
+      try {
+        const res = await fetch("/api/customers?perPage=1000").then((r) => r.json());
+        if (isMounted && res.customers) {
+          setCustomersList(res.customers);
+        }
+      } catch (err) {
+        console.error("Failed to load customers for activity plan:", err);
+      }
+    }
+    loadCustomers();
+    return () => {
+      isMounted = false;
+    };
+  }, [initialCustomers]);
   // Format initial dates
   const parseInitialDate = (date?: Date | string) => {
     if (!date)
@@ -1169,6 +1199,7 @@ export function ActivityPlanForm({
               addType1Row={addType1Row}
               updateType1Row={updateType1Row}
               deleteType1Row={deleteType1Row}
+              customers={customersList}
             />
           )}
 

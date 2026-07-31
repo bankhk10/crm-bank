@@ -1,8 +1,16 @@
 import React from "react";
 import { Users, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FormCombobox } from "@/components/custom/form-components";
 import type { Type1VisitItem } from "../../types";
 import { DEMO_OWNERS } from "../../constants";
+
+export interface CustomerOption {
+  id: string;
+  name: string;
+  customerCode?: string | null;
+  responsibleEmployeeId?: string | null;
+}
 
 interface Props {
   readonly?: boolean;
@@ -14,6 +22,7 @@ interface Props {
     val: any,
   ) => void;
   deleteType1Row: (id: string) => void;
+  customers?: CustomerOption[];
 }
 
 const VISIT_TOPICS = [
@@ -30,7 +39,17 @@ export function Type1Visit({
   addType1Row,
   updateType1Row,
   deleteType1Row,
+  customers = [],
 }: Props) {
+  const customerOptions = (
+    customers && customers.length > 0
+      ? customers
+      : DEMO_OWNERS.map((owner) => ({ id: owner, name: owner, customerCode: null }))
+  ).map((c) => ({
+    value: c.name,
+    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+  }));
+
   return (
     <div className="bg-sky-50/40 border border-sky-200/80 rounded-xl p-4 md:p-5 space-y-4 relative">
       <div className="flex items-center justify-between border-b border-sky-200/60 pb-2.5">
@@ -84,26 +103,22 @@ export function Type1Visit({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    รายชื่อร้านค้า / เกษตรกร <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={item.customerName}
-                    onChange={(e) =>
-                      updateType1Row(item.id, "customerName", e.target.value)
-                    }
-                    disabled={readonly}
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium bg-white"
-                  >
-                    <option value="">-- เลือกร้านค้า / เกษตรกร --</option>
-                    {DEMO_OWNERS.map((owner) => (
-                      <option key={owner} value={owner}>
-                        {owner}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <FormCombobox
+                  id={`customer-combobox-${item.id}`}
+                  label="รายชื่อร้านค้า / เกษตรกร"
+                  labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                  triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-sky-500"
+                  value={item.customerName}
+                  onChange={(val) =>
+                    updateType1Row(item.id, "customerName", val)
+                  }
+                  options={customerOptions}
+                  placeholder="เลือกร้านค้า / เกษตรกร"
+                  searchPlaceholder="ค้นหาร้านค้า / เกษตรกร..."
+                  emptyText="ไม่พบลูกค้า"
+                  disabled={readonly}
+                  required
+                />
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">
