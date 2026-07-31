@@ -1,8 +1,27 @@
 import React from "react";
 import { BarChart2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FormCombobox } from "@/components/custom/form-components";
 import type { Type5SurveyItem } from "../../types";
-import { DEMO_PRODUCTS, STORES_LIST } from "../../constants";
+import {
+  DEMO_PRODUCTS,
+  STORES_LIST,
+  DEMO_PRODUCT_PRICES,
+} from "../../constants";
+
+export interface CustomerOption {
+  id: string;
+  name: string;
+  customerCode?: string | null;
+  responsibleEmployeeId?: string | null;
+}
+
+export interface ProductOption {
+  id: string;
+  name: string;
+  productCode?: string | null;
+  price?: number | null;
+}
 
 interface Props {
   readonly?: boolean;
@@ -10,6 +29,8 @@ interface Props {
   addType5Row: () => void;
   updateType5Row: (id: string, field: keyof Type5SurveyItem, val: any) => void;
   deleteType5Row: (id: string) => void;
+  customers?: CustomerOption[];
+  products?: ProductOption[];
 }
 
 export function Type5Survey({
@@ -18,7 +39,37 @@ export function Type5Survey({
   addType5Row,
   updateType5Row,
   deleteType5Row,
+  customers = [],
+  products = [],
 }: Props) {
+  const customerOptions = (
+    customers && customers.length > 0
+      ? customers
+      : STORES_LIST.map((st) => ({
+          id: st,
+          name: st,
+          customerCode: null,
+        }))
+  ).map((c) => ({
+    value: c.name,
+    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+  }));
+
+  const productOptions = (
+    products && products.length > 0
+      ? products
+      : DEMO_PRODUCTS.map((prod) => ({
+          id: prod,
+          name: prod,
+          productCode: null,
+          price: DEMO_PRODUCT_PRICES[prod] ?? 500,
+        }))
+  ).map((p) => ({
+    value: p.name,
+    label: p.name,
+    subLabel: p.productCode || undefined,
+  }));
+
   return (
     <div className="bg-purple-50/40 border border-purple-200/80 rounded-xl p-4 md:p-5 space-y-4">
       <div className="flex items-center justify-between border-b border-purple-200/60 pb-2.5">
@@ -43,8 +94,8 @@ export function Type5Survey({
       {/* List of Survey Cards */}
       <div className="space-y-3">
         {type5Items.length === 0 ? (
-          <div className="py-6 text-center text-slate-400 italic bg-white rounded-xl border border-slate-200 text-xs">
-            ยังไม่มีรายการสำรวจ กด "+ เพิ่มรายการ" เพื่อบันทึก
+          <div className="py-6 text-center text-slate-400 bg-white rounded-xl border border-slate-200 text-xs">
+            ยังไม่มีรายการสำรวจ
           </div>
         ) : (
           type5Items.map((item, index) => (
@@ -72,50 +123,39 @@ export function Type5Survey({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    ตัวเลือกร้านค้า <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={item.storeName}
-                    onChange={(e) =>
-                      updateType5Row(item.id, "storeName", e.target.value)
-                    }
-                    disabled={readonly}
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium bg-white"
-                  >
-                    <option value="">-- เลือกร้านค้า --</option>
-                    {STORES_LIST.map((st) => (
-                      <option key={st} value={st}>
-                        {st}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <FormCombobox
+                  id={`store-combobox-${item.id}`}
+                  label="ตัวเลือกร้านค้า"
+                  labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                  triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-purple-500"
+                  value={item.storeName}
+                  onChange={(val) =>
+                    updateType5Row(item.id, "storeName", val)
+                  }
+                  options={customerOptions}
+                  placeholder="เลือกร้านค้า..."
+                  searchPlaceholder="ค้นหาร้านค้า / ลูกค้า..."
+                  emptyText="ไม่พบร้านค้า"
+                  disabled={readonly}
+                  required
+                />
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    สินค้าที่นำไปเปรียบเทียบ <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={item.comparedProduct}
-                    onChange={(e) =>
-                      updateType5Row(
-                        item.id,
-                        "comparedProduct",
-                        e.target.value,
-                      )
-                    }
-                    disabled={readonly}
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium bg-white"
-                  >
-                    {DEMO_PRODUCTS.map((prod) => (
-                      <option key={prod} value={prod}>
-                        {prod}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <FormCombobox
+                  id={`compared-product-combobox-${item.id}`}
+                  label="สินค้าที่นำไปเปรียบเทียบ"
+                  labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                  triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-purple-500"
+                  value={item.comparedProduct}
+                  onChange={(val) =>
+                    updateType5Row(item.id, "comparedProduct", val)
+                  }
+                  options={productOptions}
+                  placeholder="เลือกสินค้า..."
+                  searchPlaceholder="ค้นหาสินค้า..."
+                  emptyText="ไม่พบสินค้า"
+                  disabled={readonly}
+                  required
+                />
               </div>
 
               <div>
