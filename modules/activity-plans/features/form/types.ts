@@ -27,13 +27,22 @@ export interface Type2ProductFollowupItem {
   detail: string;
 }
 
-export interface Type3SalesItem {
+export interface Type3SalesProductLine {
   id: string;
   productName: string;
-  customerName: string;
   quantity: number;
   unitPrice: number;
   price: number;
+}
+
+export interface Type3SalesItem {
+  id: string;
+  customerName: string;
+  products?: Type3SalesProductLine[];
+  productName?: string;
+  quantity?: number;
+  unitPrice?: number;
+  price?: number;
   detail: string;
 }
 

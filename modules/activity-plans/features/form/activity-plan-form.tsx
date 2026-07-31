@@ -269,8 +269,17 @@ export function ActivityPlanForm({
   const [type3Items, setType3Items] = useState<Type3SalesItem[]>([
     {
       id: "1",
-      productName: defaultType3Product,
       customerName: DEMO_OWNERS[0] || "",
+      products: [
+        {
+          id: "p-1",
+          productName: defaultType3Product,
+          quantity: 1,
+          unitPrice: defaultType3UnitPrice,
+          price: defaultType3UnitPrice,
+        },
+      ],
+      productName: defaultType3Product,
       quantity: 1,
       unitPrice: defaultType3UnitPrice,
       price: defaultType3UnitPrice * 1,
@@ -279,12 +288,23 @@ export function ActivityPlanForm({
   ]);
 
   const addType3Row = () => {
-    const prod = DEMO_PRODUCTS[0] || "";
-    const uPrice = DEMO_PRODUCT_PRICES[prod] ?? 500;
+    const prod = (productsList && productsList[0]) ? productsList[0].name : (DEMO_PRODUCTS[0] || "");
+    const uPrice = (productsList && productsList[0] && productsList[0].price != null)
+      ? Number(productsList[0].price)
+      : (DEMO_PRODUCT_PRICES[prod] ?? 500);
     const newItem: Type3SalesItem = {
       id: Date.now().toString(),
-      productName: prod,
       customerName: DEMO_OWNERS[0] || "",
+      products: [
+        {
+          id: "p-" + Date.now().toString(),
+          productName: prod,
+          quantity: 1,
+          unitPrice: uPrice,
+          price: uPrice,
+        },
+      ],
+      productName: prod,
       quantity: 1,
       unitPrice: uPrice,
       price: uPrice * 1,
@@ -302,23 +322,34 @@ export function ActivityPlanForm({
       prev.map((item) => {
         if (item.id !== id) return item;
         const updated = { ...item, [field]: val };
-        if (field === "productName") {
+        if (field === "products" && Array.isArray(val)) {
+          const first = val[0];
+          if (first) {
+            updated.productName = first.productName;
+            updated.quantity = first.quantity;
+            updated.unitPrice = first.unitPrice;
+          }
+          updated.price = val.reduce(
+            (sum: number, p: any) => sum + (p.quantity || 0) * (p.unitPrice || 0),
+            0,
+          );
+        } else if (field === "productName") {
           const foundProd = productsList.find((p) => p.name === val);
           if (foundProd && foundProd.price != null) {
             updated.unitPrice = Number(foundProd.price);
           } else if (DEMO_PRODUCT_PRICES[val] !== undefined) {
             updated.unitPrice = DEMO_PRODUCT_PRICES[val];
           }
+          const qty =
+            typeof updated.quantity === "number"
+              ? updated.quantity
+              : parseInt(String(updated.quantity ?? 0)) || 0;
+          const uPrice =
+            typeof updated.unitPrice === "number"
+              ? updated.unitPrice
+              : parseFloat(String(updated.unitPrice ?? 0)) || 0;
+          updated.price = qty * uPrice;
         }
-        const qty =
-          typeof updated.quantity === "number"
-            ? updated.quantity
-            : parseInt(updated.quantity) || 0;
-        const uPrice =
-          typeof updated.unitPrice === "number"
-            ? updated.unitPrice
-            : parseFloat(updated.unitPrice) || 0;
-        updated.price = qty * uPrice;
         return updated;
       }),
     );
@@ -784,11 +815,30 @@ export function ActivityPlanForm({
 
     if (selectedWorkTypes.includes("เสนอขายสินค้า")) {
       const salesSummary = type3Items
-        .map(
-          (item, i) =>
-            `${i + 1}. สินค้า: ${item.productName} | ลูกค้า/ร้านค้า: ${item.customerName} | จำนวน: ${item.quantity} | ราคา/หน่วย: ฿${(item.unitPrice || 0).toLocaleString()} | ราคารวม: ฿${((item.quantity || 0) * (item.unitPrice || 0)).toLocaleString()}${item.detail ? ` (${item.detail})` : ""}`,
-        )
-        .join(", ");
+        .map((item, i) => {
+          const prodItems =
+            item.products && item.products.length > 0
+              ? item.products
+              : [
+                  {
+                    productName: item.productName || "",
+                    quantity: item.quantity || 1,
+                    unitPrice: item.unitPrice || 0,
+                  },
+                ];
+          const prodList = prodItems
+            .map(
+              (p) =>
+                `${p.productName} (${p.quantity} x ฿${(p.unitPrice || 0).toLocaleString()} = ฿${((p.quantity || 0) * (p.unitPrice || 0)).toLocaleString()})`,
+            )
+            .join(", ");
+          const itemTotal = prodItems.reduce(
+            (s, p) => s + (p.quantity || 0) * (p.unitPrice || 0),
+            0,
+          );
+          return `${i + 1}. ลูกค้า/ร้านค้า: ${item.customerName} | สินค้า: ${prodList} | รวม: ฿${itemTotal.toLocaleString()}${item.detail ? ` (${item.detail})` : ""}`;
+        })
+        .join("; ");
       summaryParts.push(
         `[เสนอขายสินค้า] รายการเสนอขาย (${type3Items.length} รายการ): ${salesSummary || "ไม่มีรายการ"}`,
       );

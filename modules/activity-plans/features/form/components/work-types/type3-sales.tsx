@@ -2,7 +2,7 @@ import React from "react";
 import { ShoppingCart, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
-import type { Type3SalesItem } from "../../types";
+import type { Type3SalesItem, Type3SalesProductLine } from "../../types";
 import {
   DEMO_PRODUCTS,
   DEMO_OWNERS,
@@ -70,10 +70,120 @@ export function Type3Sales({
     subLabel: p.productCode || undefined,
   }));
 
-  const totalAllSales = type3Items.reduce(
-    (sum, item) => sum + (item.quantity || 0) * (item.unitPrice || 0),
-    0,
-  );
+  // Add a new product line to a specific proposal item
+  const addProductLine = (itemId: string) => {
+    const currentItem = type3Items.find((i) => i.id === itemId);
+    if (!currentItem) return;
+
+    const currentProducts =
+      currentItem.products && currentItem.products.length > 0
+        ? currentItem.products
+        : [
+            {
+              id: "p-1",
+              productName: currentItem.productName || "",
+              quantity: currentItem.quantity || 1,
+              unitPrice: currentItem.unitPrice || 0,
+              price:
+                (currentItem.quantity || 1) * (currentItem.unitPrice || 0),
+            },
+          ];
+
+    const defaultProd =
+      products && products[0] ? products[0].name : DEMO_PRODUCTS[0] || "";
+    const defaultPrice =
+      products && products[0] && products[0].price != null
+        ? Number(products[0].price)
+        : DEMO_PRODUCT_PRICES[defaultProd] ?? 500;
+
+    const newProdLine: Type3SalesProductLine = {
+      id: Date.now().toString(),
+      productName: defaultProd,
+      quantity: 1,
+      unitPrice: defaultPrice,
+      price: defaultPrice,
+    };
+
+    const updatedProducts = [...currentProducts, newProdLine];
+    updateType3Row(itemId, "products", updatedProducts);
+  };
+
+  // Update a field inside a specific product line
+  const updateProductLine = (
+    itemId: string,
+    prodId: string,
+    field: keyof Type3SalesProductLine,
+    val: any,
+  ) => {
+    const currentItem = type3Items.find((i) => i.id === itemId);
+    if (!currentItem) return;
+
+    const currentProducts =
+      currentItem.products && currentItem.products.length > 0
+        ? currentItem.products
+        : [
+            {
+              id: "p-1",
+              productName: currentItem.productName || "",
+              quantity: currentItem.quantity || 1,
+              unitPrice: currentItem.unitPrice || 0,
+              price:
+                (currentItem.quantity || 1) * (currentItem.unitPrice || 0),
+            },
+          ];
+
+    const updatedProducts = currentProducts.map((p) => {
+      if (p.id !== prodId) return p;
+      const updated = { ...p, [field]: val };
+      if (field === "productName") {
+        const foundProd = (products || []).find((prod) => prod.name === val);
+        if (foundProd && foundProd.price != null) {
+          updated.unitPrice = Number(foundProd.price);
+        } else if (DEMO_PRODUCT_PRICES[val] !== undefined) {
+          updated.unitPrice = DEMO_PRODUCT_PRICES[val];
+        }
+      }
+      const qty =
+        typeof updated.quantity === "number"
+          ? updated.quantity
+          : parseInt(updated.quantity) || 0;
+      const uPrice =
+        typeof updated.unitPrice === "number"
+          ? updated.unitPrice
+          : parseFloat(updated.unitPrice) || 0;
+      updated.price = qty * uPrice;
+      return updated;
+    });
+
+    updateType3Row(itemId, "products", updatedProducts);
+  };
+
+  // Delete a specific product line from a proposal item
+  const deleteProductLine = (itemId: string, prodId: string) => {
+    const currentItem = type3Items.find((i) => i.id === itemId);
+    if (!currentItem) return;
+
+    const currentProducts =
+      currentItem.products && currentItem.products.length > 0
+        ? currentItem.products
+        : [];
+
+    const updatedProducts = currentProducts.filter((p) => p.id !== prodId);
+    updateType3Row(itemId, "products", updatedProducts);
+  };
+
+  const totalAllSales = type3Items.reduce((sum, item) => {
+    if (item.products && item.products.length > 0) {
+      return (
+        sum +
+        item.products.reduce(
+          (pSum, p) => pSum + (p.quantity || 0) * (p.unitPrice || 0),
+          0,
+        )
+      );
+    }
+    return sum + (item.quantity || 0) * (item.unitPrice || 0);
+  }, 0);
 
   return (
     <div className="bg-emerald-50/40 border border-emerald-200/80 rounded-xl p-4 md:p-5 space-y-4">
@@ -104,8 +214,25 @@ export function Type3Sales({
           </div>
         ) : (
           type3Items.map((item, index) => {
-            const calculatedTotalPrice =
-              (item.quantity || 0) * (item.unitPrice || 0);
+            const prodListLines: Type3SalesProductLine[] =
+              item.products && item.products.length > 0
+                ? item.products
+                : [
+                    {
+                      id: "p-1",
+                      productName: item.productName || "",
+                      quantity: item.quantity || 1,
+                      unitPrice: item.unitPrice || 0,
+                      price:
+                        (item.quantity || 1) * (item.unitPrice || 0),
+                    },
+                  ];
+
+            const cardTotal = prodListLines.reduce(
+              (sum, p) => sum + (p.quantity || 0) * (p.unitPrice || 0),
+              0,
+            );
+
             return (
               <div
                 key={item.id}
@@ -130,7 +257,8 @@ export function Type3Sales({
                   )}
                 </div>
 
-                <div className="mb-3">
+                {/* Customer Combobox */}
+                <div>
                   <FormCombobox
                     id={`customer-combobox-${item.id}`}
                     label="ชื่อร้านค้า / เกษตรกร"
@@ -149,81 +277,135 @@ export function Type3Sales({
                   />
                 </div>
 
-                {/* สินค้า + จำนวน + ราคา */}
-                <div className="grid grid-cols-12 gap-3">
-                  <div className="col-span-8">
-                    <FormCombobox
-                      id={`product-combobox-${item.id}`}
-                      label="สินค้าที่จะเสนอขาย"
-                      labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
-                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                      value={item.productName}
-                      onChange={(val) =>
-                        updateType3Row(item.id, "productName", val)
-                      }
-                      options={productOptions}
-                      placeholder="เลือกสินค้า..."
-                      searchPlaceholder="ค้นหาสินค้า..."
-                      emptyText="ไม่พบสินค้า"
-                      disabled={readonly}
-                      required
-                    />
+                {/* Product Lines Section */}
+                <div className="space-y-2.5 bg-slate-50/60 p-3 rounded-lg border border-slate-200/70">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700">
+                      รายการสินค้าที่จะเสนอขาย{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    {!readonly && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => addProductLine(item.id)}
+                        className="h-7 text-xs px-2.5 border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 shadow-sm"
+                      >
+                        <Plus className="h-3 w-3 mr-1 text-emerald-600" />
+                        เพิ่มสินค้า
+                      </Button>
+                    )}
                   </div>
 
-                  <div className="col-span-2">
-                    {/* จำนวน */}
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      จำนวน <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={item.quantity}
-                      onChange={(e) =>
-                        updateType3Row(
-                          item.id,
-                          "quantity",
-                          parseInt(e.target.value) || 0,
-                        )
-                      }
-                      disabled={readonly}
-                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-                    />
-                  </div>
+                  {prodListLines.map((prodLine, pIdx) => {
+                    const lineTotal =
+                      (prodLine.quantity || 0) * (prodLine.unitPrice || 0);
+                    return (
+                      <div
+                        key={prodLine.id}
+                        className="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-end bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs"
+                      >
+                        {/* Product Combobox */}
+                        <div className="md:col-span-5">
+                          <FormCombobox
+                            id={`product-combobox-${item.id}-${prodLine.id}`}
+                            label={pIdx === 0 ? "สินค้าที่จะเสนอขาย" : ""}
+                            labelClassName="block text-[11px] font-medium text-slate-600 mb-1 mx-0"
+                            triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                            value={prodLine.productName}
+                            onChange={(val) =>
+                              updateProductLine(
+                                item.id,
+                                prodLine.id,
+                                "productName",
+                                val,
+                              )
+                            }
+                            options={productOptions}
+                            placeholder="เลือกสินค้า..."
+                            searchPlaceholder="ค้นหาสินค้า..."
+                            emptyText="ไม่พบสินค้า"
+                            disabled={readonly}
+                            required
+                          />
+                        </div>
 
-                  <div className="col-span-2">
-                    {/* ราคา */}
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      ราคา (บาท) <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2 text-slate-400 text-xs font-semibold">
-                        ฿
-                      </span>
-                      <input
-                        type="number"
-                        min={0}
-                        value={item.unitPrice}
-                        onChange={(e) =>
-                          updateType3Row(
-                            item.id,
-                            "unitPrice",
-                            parseFloat(e.target.value) || 0,
-                          )
-                        }
-                        disabled={true}
-                        placeholder="0"
-                        className="w-full h-9 pl-7 pr-3 rounded-lg border border-slate-200 bg-slate-100 text-slate-500 text-xs text-right font-medium focus:outline-none cursor-not-allowed"
-                      />
-                    </div>
-                  </div>
+                        {/* Quantity */}
+                        <div className="md:col-span-2">
+                          {pIdx === 0 && (
+                            <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                              จำนวน <span className="text-red-500">*</span>
+                            </label>
+                          )}
+                          <input
+                            type="number"
+                            min={1}
+                            value={prodLine.quantity}
+                            onChange={(e) =>
+                              updateProductLine(
+                                item.id,
+                                prodLine.id,
+                                "quantity",
+                                parseInt(e.target.value) || 0,
+                              )
+                            }
+                            disabled={readonly}
+                            className="w-full h-9 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
+                          />
+                        </div>
+
+                        {/* Unit Price */}
+                        <div className="md:col-span-2">
+                          {pIdx === 0 && (
+                            <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                              ราคา (บาท) <span className="text-red-500">*</span>
+                            </label>
+                          )}
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-2 text-slate-400 text-xs font-semibold">
+                              ฿
+                            </span>
+                            <input
+                              type="number"
+                              min={0}
+                              value={prodLine.unitPrice}
+                              disabled={true}
+                              placeholder="0"
+                              className="w-full h-9 pl-6 pr-2 rounded-lg border border-slate-200 bg-slate-100 text-slate-500 text-xs text-right font-medium focus:outline-none cursor-not-allowed"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Line Total Price & Delete Button */}
+                        <div className="md:col-span-3 flex items-center justify-between gap-1 h-9 pt-1">
+                          <div className="text-xs text-right font-bold text-emerald-700 truncate flex-1">
+                            ฿ {lineTotal.toLocaleString()}
+                          </div>
+                          {!readonly && prodListLines.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                deleteProductLine(item.id, prodLine.id)
+                              }
+                              className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                              title="ลบสินค้านี้"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                <div className="flex items-center justify-between pt-1">
+                {/* Card Summary & Detail */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-1 gap-2 border-t border-slate-100">
                   <div className="text-xs text-slate-600 font-medium">
-                    รวมเป็นเงิน:{" "}
+                    รวมเป็นเงิน (ลูกค้ารายนี้):{" "}
                     <span className="text-sm font-bold text-emerald-700 ml-1">
-                      ฿ {calculatedTotalPrice.toLocaleString()}
+                      ฿ {cardTotal.toLocaleString()}
                     </span>
                   </div>
                 </div>
