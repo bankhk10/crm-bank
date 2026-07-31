@@ -4,8 +4,9 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 import { ActivityPlanForm } from "./activity-plan-form";
-import { createActivityPlanAction } from "../../server/actions";
+import { createActivityPlanAction, getCurrentUserEmployeeAction } from "../../server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 
 export default function ActivityPlanCreateView() {
@@ -16,30 +17,45 @@ export default function ActivityPlanCreateView() {
   const canView = allowed || hasPermission("activity.view") || hasPermission("activity.manage") || !isLoading;
 
   const [employees, setEmployees] = useState<any[]>([]);
+  const [currentEmployeeName, setCurrentEmployeeName] = useState<string>("");
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadEmployees() {
+    async function loadData() {
       try {
-        const res = await getAllEmployeesAction();
-        if (res.success && res.employees) {
-          setEmployees(res.employees);
+        const [empRes, userRes] = await Promise.all([
+          getAllEmployeesAction(),
+          getCurrentUserEmployeeAction(),
+        ]);
+
+        if (empRes.success && empRes.employees) {
+          setEmployees(empRes.employees);
         } else {
           setLoadError("ไม่สามารถดึงรายชื่อพนักงานได้");
+        }
+
+        if (userRes.success) {
+          if (userRes.employee?.name) {
+            setCurrentEmployeeName(userRes.employee.name);
+          } else if (userRes.user?.name) {
+            setCurrentEmployeeName(userRes.user.name);
+          }
         }
       } catch {
         setLoadError("เกิดข้อผิดพลาดในการโหลดรายชื่อพนักงาน");
       }
     }
-    loadEmployees();
+    loadData();
   }, []);
 
   const handleSubmit = async (payload: any) => {
     const res = await createActivityPlanAction(payload);
     if (res.success) {
+      toast.success("บันทึกแผนกิจกรรมเรียบร้อยแล้ว");
       router.push("/activity-plans");
       return { success: true };
     }
+    toast.error(res.error || "ไม่สามารถบันทึกข้อมูลได้");
     return { success: false, error: res.error };
   };
 
@@ -64,6 +80,7 @@ export default function ActivityPlanCreateView() {
       )}
 
       <ActivityPlanForm
+        initial={{ employeeName: currentEmployeeName }}
         employees={employees}
         onSubmit={handleSubmit}
         onCancel={() => router.push("/activity-plans")}

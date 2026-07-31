@@ -6,6 +6,7 @@ import {
   updateActivityPlan,
   softDeleteActivityPlan,
   findEmployeeByUserId,
+  findOrCreateEmployeeForUser,
   type ListActivityPlansParams,
 } from "../infrastructure/activity-plan.repository";
 import { ActivityStatus } from "@prisma/client";
@@ -31,16 +32,20 @@ export async function listActivityPlansUseCase(params: ListActivityPlansParams) 
 /**
  * Create a new ActivityPlan (Draft by default)
  */
-export async function createActivityPlanUseCase(userId: string, rawData: unknown) {
+export async function createActivityPlanUseCase(
+  userId: string,
+  rawData: unknown,
+  userDetails?: { name?: string; email?: string }
+) {
   const parsed = activityPlanSchema.safeParse(rawData);
   if (!parsed.success) {
     const errorMsg = parsed.error.errors.map((e) => e.message).join(", ");
     return { success: false as const, error: errorMsg };
   }
 
-  const employee = await findEmployeeByUserId(userId);
+  const employee = await findOrCreateEmployeeForUser(userId, userDetails?.name, userDetails?.email);
   if (!employee) {
-    return { success: false as const, error: "ไม่พบข้อมูลพนักงานของผู้ใช้งานนี้" };
+    return { success: false as const, error: "ไม่สามารถสร้างหรือค้นหาโปรไฟล์พนักงานได้" };
   }
 
   const { helperEmployeeIds, ...planFields } = parsed.data;
@@ -48,11 +53,12 @@ export async function createActivityPlanUseCase(userId: string, rawData: unknown
   // Set initial status to DRAFT
   const data = {
     ...planFields,
-    salesPromotionBudget: planFields.salesPromotionBudget ? new Object(planFields.salesPromotionBudget) as any : null,
-    marketingBudget: planFields.marketingBudget ? new Object(planFields.marketingBudget) as any : null,
+    salesPromotionBudget: planFields.salesPromotionBudget ?? null,
+    marketingBudget: planFields.marketingBudget ?? null,
     status: ActivityStatus.DRAFT,
     employeeId: employee.id,
     createdById: userId,
+    currentApproverId: employee.managerId ?? null,
   };
 
   const plan = await createActivityPlan(data, helperEmployeeIds);
@@ -84,8 +90,8 @@ export async function updateActivityPlanUseCase(id: string, userId: string, rawD
 
   const data = {
     ...planFields,
-    salesPromotionBudget: planFields.salesPromotionBudget ? new Object(planFields.salesPromotionBudget) as any : null,
-    marketingBudget: planFields.marketingBudget ? new Object(planFields.marketingBudget) as any : null,
+    salesPromotionBudget: planFields.salesPromotionBudget ?? null,
+    marketingBudget: planFields.marketingBudget ?? null,
     helperEmployeeIds,
     updatedUserId: userId,
   };
@@ -124,5 +130,5 @@ export {
   requestCorrectionPlanUseCase,
   cancelActivityPlanUseCase,
 } from "./activity-plan-flow";
-export { findEmployeeById } from "../infrastructure/activity-plan.repository";
+export { findEmployeeById, findOrCreateEmployeeForUser } from "../infrastructure/activity-plan.repository";
 export type { ListActivityPlansParams };

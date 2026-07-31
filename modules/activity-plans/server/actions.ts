@@ -13,6 +13,7 @@ import {
   rejectActivityPlanUseCase,
   requestCorrectionPlanUseCase,
   cancelActivityPlanUseCase,
+  findOrCreateEmployeeForUser,
   type ListActivityPlansParams,
 } from "../application";
 
@@ -32,7 +33,10 @@ export async function createActivityPlanAction(rawData: unknown) {
   }
 
   try {
-    const result = await createActivityPlanUseCase(session.user.id, rawData);
+    const result = await createActivityPlanUseCase(session.user.id, rawData, {
+      name: session.user.name ?? undefined,
+      email: session.user.email ?? undefined,
+    });
     if (result.success) {
       revalidatePath("/activity-plans");
     }
@@ -243,5 +247,43 @@ export async function getActivityPlansAction(params: ListActivityPlansParams = {
     };
   } catch {
     return { success: false, activityPlans: [], total: 0 };
+  }
+}
+
+/**
+ * Action: Get current logged-in user employee profile
+ */
+export async function getCurrentUserEmployeeAction() {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false as const, error: "Unauthorized" };
+  }
+
+  try {
+    const employee = await findOrCreateEmployeeForUser(
+      session.user.id,
+      session.user.name ?? undefined,
+      session.user.email ?? undefined
+    );
+
+    return {
+      success: true as const,
+      user: {
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+      },
+      employee: {
+        id: employee.id,
+        name: employee.name,
+        positionTitle: employee.positionTitle || employee.position?.name,
+        departmentName: employee.departmentName || employee.department?.name,
+      },
+    };
+  } catch (err: any) {
+    return {
+      success: false as const,
+      error: err.message || "เกิดข้อผิดพลาดในการดึงข้อมูลพนักงาน",
+    };
   }
 }

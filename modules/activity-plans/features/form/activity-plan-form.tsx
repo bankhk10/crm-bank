@@ -971,7 +971,7 @@ export function ActivityPlanForm({
                 ผู้รับผิดชอบ{" "}
               </p>
               <p className="text-sm font-semibold text-slate-800">
-                {initial.employeeName || "นายวิทยา พันธุ์โชค"}
+                {initial.employeeName || "ผู้ใช้งานปัจจุบัน"}
               </p>
             </div>
           </div>

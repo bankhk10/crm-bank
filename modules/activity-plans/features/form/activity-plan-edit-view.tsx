@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageHeader } from "@/components/custom/page-header";
+import { toast } from "sonner";
 import { ActivityPlanForm } from "./activity-plan-form";
 import { getActivityPlanAction, updateActivityPlanAction } from "../../server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
@@ -75,9 +76,11 @@ export default function ActivityPlanEditView({ id }: Props) {
   const handleSubmit = async (payload: any) => {
     const res = await updateActivityPlanAction(id, payload);
     if (res.success) {
+      toast.success("อัปเดตแผนกิจกรรมเรียบร้อยแล้ว");
       router.push("/activity-plans");
       return { success: true };
     }
+    toast.error(res.error || "ไม่สามารถอัปเดตข้อมูลได้");
     return { success: false, error: res.error };
   };
 
