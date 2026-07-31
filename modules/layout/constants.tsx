@@ -151,6 +151,11 @@ export const navigationItems: SidebarNavItem[] = [
         label: "รายงาน",
         permissionKey: "menu.test_activity",
       },
+      {
+        href: "/activity-plans",
+        label: "แผนการดำเนินงาน",
+        permissionKey: "menu.activity_plans",
+      },
     ],
   },
   {
@@ -159,11 +164,5 @@ export const navigationItems: SidebarNavItem[] = [
     label: "คู่มือ",
     icon: <BookOpen className="h-4 w-4" />,
     // target: "_blank",
-  },
-  {
-    href: "/activity-plans",
-    label: "แผนการดำเนินงาน",
-    permissionKey: "menu.activity_plans",
-    icon: <ClipboardList className="h-4 w-4" />,
   },
 ];
