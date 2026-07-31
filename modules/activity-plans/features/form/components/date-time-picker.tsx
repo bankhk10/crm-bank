@@ -228,14 +228,14 @@ export function DateTimePicker({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="px-4 py-1.5 rounded-xl border border-slate-300 bg-red-500 hover:bg-red-600 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
+              className="px-4 py-1.5 rounded-xl border border-slate-300 bg-red-600 hover:bg-red-700 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
             >
               ยกเลิก
             </button>
             <button
               type="button"
               onClick={handleConfirm}
-              className="px-4 py-1.5 rounded-xl border border-slate-300 bg-green-500 hover:bg-green-600 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
+              className="px-4 py-1.5 rounded-xl border border-slate-300 bg-green-600 hover:bg-green-700 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
             >
               ตกลง
             </button>
