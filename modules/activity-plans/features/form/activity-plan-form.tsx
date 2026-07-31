@@ -302,8 +302,13 @@ export function ActivityPlanForm({
       prev.map((item) => {
         if (item.id !== id) return item;
         const updated = { ...item, [field]: val };
-        if (field === "productName" && DEMO_PRODUCT_PRICES[val] !== undefined) {
-          updated.unitPrice = DEMO_PRODUCT_PRICES[val];
+        if (field === "productName") {
+          const foundProd = productsList.find((p) => p.name === val);
+          if (foundProd && foundProd.price != null) {
+            updated.unitPrice = Number(foundProd.price);
+          } else if (DEMO_PRODUCT_PRICES[val] !== undefined) {
+            updated.unitPrice = DEMO_PRODUCT_PRICES[val];
+          }
         }
         const qty =
           typeof updated.quantity === "number"
@@ -1255,6 +1260,8 @@ export function ActivityPlanForm({
               addType3Row={addType3Row}
               updateType3Row={updateType3Row}
               deleteType3Row={deleteType3Row}
+              customers={customersList}
+              products={productsList}
             />
           )}
 

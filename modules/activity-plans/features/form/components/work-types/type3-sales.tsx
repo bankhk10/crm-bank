@@ -1,8 +1,23 @@
 import React from "react";
 import { ShoppingCart, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FormCombobox } from "@/components/custom/form-components";
 import type { Type3SalesItem } from "../../types";
-import { DEMO_PRODUCTS, DEMO_OWNERS } from "../../constants";
+import { DEMO_PRODUCTS, DEMO_OWNERS, DEMO_PRODUCT_PRICES } from "../../constants";
+
+export interface CustomerOption {
+  id: string;
+  name: string;
+  customerCode?: string | null;
+  responsibleEmployeeId?: string | null;
+}
+
+export interface ProductOption {
+  id: string;
+  name: string;
+  productCode?: string | null;
+  price?: number | null;
+}
 
 interface Props {
   readonly?: boolean;
@@ -10,6 +25,8 @@ interface Props {
   addType3Row: () => void;
   updateType3Row: (id: string, field: keyof Type3SalesItem, val: any) => void;
   deleteType3Row: (id: string) => void;
+  customers?: CustomerOption[];
+  products?: ProductOption[];
 }
 
 export function Type3Sales({
@@ -18,7 +35,37 @@ export function Type3Sales({
   addType3Row,
   updateType3Row,
   deleteType3Row,
+  customers = [],
+  products = [],
 }: Props) {
+  const customerOptions = (
+    customers && customers.length > 0
+      ? customers
+      : DEMO_OWNERS.map((owner) => ({
+          id: owner,
+          name: owner,
+          customerCode: null,
+        }))
+  ).map((c) => ({
+    value: c.name,
+    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+  }));
+
+  const productOptions = (
+    products && products.length > 0
+      ? products
+      : DEMO_PRODUCTS.map((prod) => ({
+          id: prod,
+          name: prod,
+          productCode: null,
+          price: DEMO_PRODUCT_PRICES[prod] ?? 500,
+        }))
+  ).map((p) => ({
+    value: p.name,
+    label: p.name,
+    subLabel: p.productCode || undefined,
+  }));
+
   const totalAllSales = type3Items.reduce(
     (sum, item) => sum + (item.quantity || 0) * (item.unitPrice || 0),
     0,
@@ -48,8 +95,8 @@ export function Type3Sales({
       {/* List of Sales Proposal Cards */}
       <div className="space-y-3">
         {type3Items.length === 0 ? (
-          <div className="py-6 text-center text-slate-400 italic bg-white rounded-xl border border-slate-200 text-xs">
-            ยังไม่มีรายการเสนอขาย กด "+ เพิ่มรายการ" เพื่อบันทึก
+          <div className="py-6 text-center text-slate-400 bg-white rounded-xl border border-slate-200 text-xs">
+            ยังไม่มีรายการเสนอขาย
           </div>
         ) : (
           type3Items.map((item, index) => {
@@ -80,46 +127,39 @@ export function Type3Sales({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      สินค้าที่จะเสนอขาย <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={item.productName}
-                      onChange={(e) =>
-                        updateType3Row(item.id, "productName", e.target.value)
-                      }
-                      disabled={readonly}
-                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
-                    >
-                      {DEMO_PRODUCTS.map((prod) => (
-                        <option key={prod} value={prod}>
-                          {prod}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <FormCombobox
+                    id={`product-combobox-${item.id}`}
+                    label="สินค้าที่จะเสนอขาย"
+                    labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                    triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                    value={item.productName}
+                    onChange={(val) =>
+                      updateType3Row(item.id, "productName", val)
+                    }
+                    options={productOptions}
+                    placeholder="เลือกสินค้า..."
+                    searchPlaceholder="ค้นหาสินค้า..."
+                    emptyText="ไม่พบสินค้า"
+                    disabled={readonly}
+                    required
+                  />
 
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      ชื่อร้านค้า / เกษตรกร <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={item.customerName}
-                      onChange={(e) =>
-                        updateType3Row(item.id, "customerName", e.target.value)
-                      }
-                      disabled={readonly}
-                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
-                    >
-                      <option value="">-- เลือกร้านค้า / เจ้าของแปลง --</option>
-                      {DEMO_OWNERS.map((owner) => (
-                        <option key={owner} value={owner}>
-                          {owner}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <FormCombobox
+                    id={`customer-combobox-${item.id}`}
+                    label="ชื่อร้านค้า / เกษตรกร"
+                    labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                    triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                    value={item.customerName}
+                    onChange={(val) =>
+                      updateType3Row(item.id, "customerName", val)
+                    }
+                    options={customerOptions}
+                    placeholder="เลือกร้านค้า / เกษตรกร..."
+                    searchPlaceholder="ค้นหาร้านค้า / เกษตรกร..."
+                    emptyText="ไม่พบลูกค้า"
+                    disabled={readonly}
+                    required
+                  />
 
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1">
@@ -143,7 +183,7 @@ export function Type3Sales({
 
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1">
-                      ราคา/หน่วย (บาท) <span className="text-red-500">*</span>
+                      ราคา (บาท) <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <span className="absolute left-3 top-2 text-slate-400 text-xs font-semibold">
