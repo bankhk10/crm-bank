@@ -1360,6 +1360,8 @@ export function ActivityPlanForm({
               addType7Row={addType7Row}
               updateType7Row={updateType7Row}
               deleteType7Row={deleteType7Row}
+              customers={customersList}
+              products={productsList}
             />
           )}
 

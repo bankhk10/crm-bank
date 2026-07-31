@@ -1,13 +1,29 @@
 import React from "react";
 import { Sprout, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FormCombobox } from "@/components/custom/form-components";
 import type { Type7DemoPlotItem } from "../../types";
 import {
   DEMO_PRODUCTS,
   DEMO_OWNERS,
   CROP_CATEGORIES,
   CROPS_BY_CATEGORY,
+  DEMO_PRODUCT_PRICES,
 } from "../../constants";
+
+export interface CustomerOption {
+  id: string;
+  name: string;
+  customerCode?: string | null;
+  responsibleEmployeeId?: string | null;
+}
+
+export interface ProductOption {
+  id: string;
+  name: string;
+  productCode?: string | null;
+  price?: number | null;
+}
 
 interface Props {
   readonly?: boolean;
@@ -19,6 +35,8 @@ interface Props {
     val: any,
   ) => void;
   deleteType7Row: (id: string) => void;
+  customers?: CustomerOption[];
+  products?: ProductOption[];
 }
 
 export function Type7Demo({
@@ -27,7 +45,42 @@ export function Type7Demo({
   addType7Row,
   updateType7Row,
   deleteType7Row,
+  customers = [],
+  products = [],
 }: Props) {
+  const customerOptions = (
+    customers && customers.length > 0
+      ? customers
+      : DEMO_OWNERS.map((owner) => ({
+          id: owner,
+          name: owner,
+          customerCode: null,
+        }))
+  ).map((c) => ({
+    value: c.name,
+    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+  }));
+
+  const productOptions = (
+    products && products.length > 0
+      ? products
+      : DEMO_PRODUCTS.map((prod) => ({
+          id: prod,
+          name: prod,
+          productCode: null,
+          price: DEMO_PRODUCT_PRICES[prod] ?? 500,
+        }))
+  ).map((p) => ({
+    value: p.name,
+    label: p.name,
+    subLabel: p.productCode || undefined,
+  }));
+
+  const cropCategoryOptions = CROP_CATEGORIES.map((cat) => ({
+    value: cat,
+    label: cat,
+  }));
+
   return (
     <div className="bg-emerald-50/40 border border-emerald-200/80 rounded-xl p-4 md:p-5 space-y-4">
       <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2.5">
@@ -52,12 +105,18 @@ export function Type7Demo({
       {/* List of Demo Plot Cards */}
       <div className="space-y-3">
         {type7Items.length === 0 ? (
-          <div className="py-6 text-center text-slate-400 italic bg-white rounded-xl border border-slate-200 text-xs">
-            ยังไม่มีรายการแปลงสาธิต กด "+ เพิ่มรายการ" เพื่อบันทึก
+          <div className="py-6 text-center text-slate-400 bg-white rounded-xl border border-slate-200 text-xs">
+            ยังไม่มีรายการแปลงสาธิต
           </div>
         ) : (
           type7Items.map((item, index) => {
-            const availableCrops = CROPS_BY_CATEGORY[item.cropCategory] || [];
+            const availableCropOptions = (
+              CROPS_BY_CATEGORY[item.cropCategory] || []
+            ).map((crop) => ({
+              value: crop,
+              label: crop,
+            }));
+
             const isRaiUnit = ["พืชไร่", "ผักและพืชล้มลุก"].includes(
               item.cropCategory,
             );
@@ -87,65 +146,55 @@ export function Type7Demo({
                 </div>
 
                 <div className="space-y-3">
-                  {/* แถวบน */}
+                  {/* แถวบน: เจ้าของแปลง + สินค้าที่จะสาธิต */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        เจ้าของแปลง <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={item.ownerName}
-                        onChange={(e) =>
-                          updateType7Row(item.id, "ownerName", e.target.value)
-                        }
-                        disabled={readonly}
-                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
-                      >
-                        <option value="">-- เลือกเจ้าของแปลง --</option>
-                        {DEMO_OWNERS.map((owner) => (
-                          <option key={owner} value={owner}>
-                            {owner}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <FormCombobox
+                      id={`owner-combobox-${item.id}`}
+                      label="เจ้าของแปลง"
+                      labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                      value={item.ownerName}
+                      onChange={(val) =>
+                        updateType7Row(item.id, "ownerName", val)
+                      }
+                      options={customerOptions}
+                      placeholder="เลือกเจ้าของแปลง..."
+                      searchPlaceholder="ค้นหาเจ้าของแปลง / ลูกค้า..."
+                      emptyText="ไม่พบเจ้าของแปลง"
+                      disabled={readonly}
+                      required
+                    />
 
-                    <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        สินค้าที่จะสาธิต <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={item.productName}
-                        onChange={(e) =>
-                          updateType7Row(item.id, "productName", e.target.value)
-                        }
-                        disabled={readonly}
-                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
-                      >
-                        <option value="">-- เลือกสินค้า --</option>
-                        {DEMO_PRODUCTS.map((prod) => (
-                          <option key={prod} value={prod}>
-                            {prod}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <FormCombobox
+                      id={`product-combobox-${item.id}`}
+                      label="สินค้าที่จะสาธิต"
+                      labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                      value={item.productName}
+                      onChange={(val) =>
+                        updateType7Row(item.id, "productName", val)
+                      }
+                      options={productOptions}
+                      placeholder="เลือกสินค้า..."
+                      searchPlaceholder="ค้นหาสินค้า..."
+                      emptyText="ไม่พบสินค้า"
+                      disabled={readonly}
+                      required
+                    />
                   </div>
 
-                  {/* แถวล่าง */}
+                  {/* แถวล่าง: หมวดพืช + ชื่อพืช + จำนวน */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
                     <div className="lg:col-span-5">
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        หมวดพืช
-                      </label>
-                      <select
+                      <FormCombobox
+                        id={`crop-category-combobox-${item.id}`}
+                        label="หมวดพืช"
+                        labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                        triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                         value={item.cropCategory}
-                        onChange={(e) => {
-                          const newCat = e.target.value;
+                        onChange={(newCat) => {
                           updateType7Row(item.id, "cropCategory", newCat);
-
                           const nextCrops = CROPS_BY_CATEGORY[newCat] || [];
-
                           if (
                             nextCrops.length > 0 &&
                             !nextCrops.includes(item.cropName)
@@ -153,37 +202,30 @@ export function Type7Demo({
                             updateType7Row(item.id, "cropName", nextCrops[0]);
                           }
                         }}
+                        options={cropCategoryOptions}
+                        placeholder="เลือกหมวด..."
+                        searchPlaceholder="ค้นหาหมวดพืช..."
+                        emptyText="ไม่พบหมวดพืช"
                         disabled={readonly}
-                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
-                      >
-                        <option value="">-- เลือกหมวด --</option>
-                        {CROP_CATEGORIES.map((cat) => (
-                          <option key={cat} value={cat}>
-                            {cat}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </div>
 
                     <div className="lg:col-span-5">
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        ชื่อพืช
-                      </label>
-                      <select
+                      <FormCombobox
+                        id={`crop-name-combobox-${item.id}`}
+                        label="ชื่อพืช"
+                        labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                        triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                         value={item.cropName}
-                        onChange={(e) =>
-                          updateType7Row(item.id, "cropName", e.target.value)
+                        onChange={(val) =>
+                          updateType7Row(item.id, "cropName", val)
                         }
+                        options={availableCropOptions}
+                        placeholder="เลือกชื่อพืช..."
+                        searchPlaceholder="ค้นหาชื่อพืช..."
+                        emptyText="ไม่พบชื่อพืช"
                         disabled={readonly || !item.cropCategory}
-                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white disabled:bg-slate-100 disabled:text-slate-400"
-                      >
-                        <option value="">-- เลือกชื่อพืช --</option>
-                        {availableCrops.map((crop) => (
-                          <option key={crop} value={crop}>
-                            {crop}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </div>
 
                     <div className="lg:col-span-2">
