@@ -125,13 +125,11 @@ export function Type5Survey({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <FormCombobox
                   id={`store-combobox-${item.id}`}
-                  label="ตัวเลือกร้านค้า"
+                  label="ร้านค้า"
                   labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-purple-500"
                   value={item.storeName}
-                  onChange={(val) =>
-                    updateType5Row(item.id, "storeName", val)
-                  }
+                  onChange={(val) => updateType5Row(item.id, "storeName", val)}
                   options={customerOptions}
                   placeholder="เลือกร้านค้า..."
                   searchPlaceholder="ค้นหาร้านค้า / ลูกค้า..."
