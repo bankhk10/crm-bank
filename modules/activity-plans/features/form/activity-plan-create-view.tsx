@@ -9,6 +9,7 @@ import { ActivityPlanForm } from "./activity-plan-form";
 import { createActivityPlanAction, getCurrentUserEmployeeAction } from "../../server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
+import { listProductsAction } from "@/modules/products/server/actions";
 
 export default function ActivityPlanCreateView() {
   const router = useRouter();
@@ -19,16 +20,18 @@ export default function ActivityPlanCreateView() {
 
   const [employees, setEmployees] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [currentEmployeeName, setCurrentEmployeeName] = useState<string>("");
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [empRes, userRes, custRes] = await Promise.all([
+        const [empRes, userRes, custRes, prodRes] = await Promise.all([
           getAllEmployeesAction(),
           getCurrentUserEmployeeAction(),
           getCustomersAction({ perPage: 1000 }).catch(() => ({ customers: [] })),
+          listProductsAction({ status: "ACTIVE", perPage: 1000 }).catch(() => ({ products: [] })),
         ]);
 
         if (empRes.success && empRes.employees) {
@@ -39,6 +42,10 @@ export default function ActivityPlanCreateView() {
 
         if (custRes && custRes.customers) {
           setCustomers(custRes.customers);
+        }
+
+        if (prodRes && prodRes.products) {
+          setProducts(prodRes.products);
         }
 
         if (userRes.success) {
@@ -90,6 +97,7 @@ export default function ActivityPlanCreateView() {
         initial={{ employeeName: currentEmployeeName }}
         employees={employees}
         customers={customers}
+        products={products}
         onSubmit={handleSubmit}
         onCancel={() => router.push("/activity-plans")}
         submitLabel="บันทึก"

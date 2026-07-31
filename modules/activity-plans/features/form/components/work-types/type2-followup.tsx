@@ -1,8 +1,22 @@
 import React from "react";
 import { CheckSquare, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FormCombobox } from "@/components/custom/form-components";
 import type { Type2ProductFollowupItem } from "../../types";
 import { DEMO_PRODUCTS, DEMO_OWNERS } from "../../constants";
+
+export interface CustomerOption {
+  id: string;
+  name: string;
+  customerCode?: string | null;
+  responsibleEmployeeId?: string | null;
+}
+
+export interface ProductOption {
+  id: string;
+  name: string;
+  productCode?: string | null;
+}
 
 interface Props {
   readonly?: boolean;
@@ -14,6 +28,8 @@ interface Props {
     val: any,
   ) => void;
   deleteType2Row: (id: string) => void;
+  customers?: CustomerOption[];
+  products?: ProductOption[];
 }
 
 export function Type2Followup({
@@ -22,7 +38,36 @@ export function Type2Followup({
   addType2Row,
   updateType2Row,
   deleteType2Row,
+  customers = [],
+  products = [],
 }: Props) {
+  const customerOptions = (
+    customers && customers.length > 0
+      ? customers
+      : DEMO_OWNERS.map((owner) => ({
+          id: owner,
+          name: owner,
+          customerCode: null,
+        }))
+  ).map((c) => ({
+    value: c.name,
+    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+  }));
+
+  const productOptions = (
+    products && products.length > 0
+      ? products
+      : DEMO_PRODUCTS.map((prod) => ({
+          id: prod,
+          name: prod,
+          productCode: null,
+        }))
+  ).map((p) => ({
+    value: p.name,
+    label: p.name,
+    subLabel: p.productCode || undefined,
+  }));
+
   return (
     <div className="bg-indigo-50/40 border border-indigo-200/80 rounded-xl p-4 md:p-5 space-y-4">
       <div className="flex items-center justify-between border-b border-indigo-200/60 pb-2.5">
@@ -47,8 +92,8 @@ export function Type2Followup({
       {/* List of Follow-up Cards */}
       <div className="space-y-3">
         {type2Items.length === 0 ? (
-          <div className="py-6 text-center text-slate-400 italic bg-white rounded-xl border border-slate-200 text-xs">
-            ยังไม่มีรายการติดตามผล กด "+ เพิ่มรายการ" เพื่อบันทึก
+          <div className="py-6 text-center text-slate-400 bg-white rounded-xl border border-slate-200 text-xs">
+            ยังไม่มีรายการติดตามผล
           </div>
         ) : (
           type2Items.map((item, index) => (
@@ -76,46 +121,39 @@ export function Type2Followup({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    สินค้าที่ต้องการติดตามผล <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={item.productName}
-                    onChange={(e) =>
-                      updateType2Row(item.id, "productName", e.target.value)
-                    }
-                    disabled={readonly}
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium bg-white"
-                  >
-                    {DEMO_PRODUCTS.map((prod) => (
-                      <option key={prod} value={prod}>
-                        {prod}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <FormCombobox
+                  id={`product-combobox-${item.id}`}
+                  label="สินค้าที่ต้องการติดตามผล"
+                  labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                  triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500"
+                  value={item.productName}
+                  onChange={(val) =>
+                    updateType2Row(item.id, "productName", val)
+                  }
+                  options={productOptions}
+                  placeholder="เลือกสินค้า..."
+                  searchPlaceholder="ค้นหาสินค้า..."
+                  emptyText="ไม่พบสินค้า"
+                  disabled={readonly}
+                  required
+                />
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    ชื่อร้านค้า / เกษตรกร <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={item.customerName}
-                    onChange={(e) =>
-                      updateType2Row(item.id, "customerName", e.target.value)
-                    }
-                    disabled={readonly}
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium bg-white"
-                  >
-                    <option value="">-- เลือกร้านค้า / เกษตรกร --</option>
-                    {DEMO_OWNERS.map((owner) => (
-                      <option key={owner} value={owner}>
-                        {owner}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <FormCombobox
+                  id={`customer-combobox-${item.id}`}
+                  label="ชื่อร้านค้า / เกษตรกร"
+                  labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                  triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500"
+                  value={item.customerName}
+                  onChange={(val) =>
+                    updateType2Row(item.id, "customerName", val)
+                  }
+                  options={customerOptions}
+                  placeholder="เลือกร้านค้า / เกษตรกร..."
+                  searchPlaceholder="ค้นหาร้านค้า / เกษตรกร..."
+                  emptyText="ไม่พบลูกค้า"
+                  disabled={readonly}
+                  required
+                />
               </div>
 
               <div>

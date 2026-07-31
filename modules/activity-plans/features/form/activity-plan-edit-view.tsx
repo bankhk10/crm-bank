@@ -10,6 +10,7 @@ import { ActivityPlanForm } from "./activity-plan-form";
 import { getActivityPlanAction, updateActivityPlanAction } from "../../server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
+import { listProductsAction } from "@/modules/products/server/actions";
 
 interface Props {
   id: string;
@@ -24,6 +25,7 @@ export default function ActivityPlanEditView({ id }: Props) {
 
   const [employees, setEmployees] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [initialData, setInitialData] = useState<any>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
@@ -32,10 +34,11 @@ export default function ActivityPlanEditView({ id }: Props) {
     async function loadData() {
       setPageLoading(true);
       try {
-        const [empRes, planRes, custRes] = await Promise.all([
+        const [empRes, planRes, custRes, prodRes] = await Promise.all([
           getAllEmployeesAction(),
           getActivityPlanAction(id),
           getCustomersAction({ perPage: 1000 }).catch(() => ({ customers: [] })),
+          listProductsAction({ status: "ACTIVE", perPage: 1000 }).catch(() => ({ products: [] })),
         ]);
 
         if (empRes.success && empRes.employees) {
@@ -44,6 +47,10 @@ export default function ActivityPlanEditView({ id }: Props) {
 
         if (custRes && custRes.customers) {
           setCustomers(custRes.customers);
+        }
+
+        if (prodRes && prodRes.products) {
+          setProducts(prodRes.products);
         }
 
         if (planRes.success && planRes.plan) {
@@ -123,6 +130,7 @@ export default function ActivityPlanEditView({ id }: Props) {
           initial={initialData}
           employees={employees}
           customers={customers}
+          products={products}
           onSubmit={handleSubmit}
           onCancel={() => router.push("/activity-plans")}
           submitLabel="อัปเดตแผนกิจกรรม"

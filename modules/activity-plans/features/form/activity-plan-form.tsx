@@ -52,6 +52,13 @@ interface Props {
     customerCode?: string | null;
     responsibleEmployeeId?: string | null;
   }>;
+  products?: Array<{
+    id: string;
+    name: string;
+    productCode?: string | null;
+    unit?: string | null;
+    price?: number | null;
+  }>;
   onSubmit: (payload: ActivityPlanFormValues) => Promise<SubmitResult>;
   onCancel?: () => void;
   submitLabel?: string;
@@ -102,12 +109,14 @@ export function ActivityPlanForm({
   initial = {},
   employees = [],
   customers: initialCustomers = [],
+  products: initialProducts = [],
   onSubmit,
   onCancel,
   submitLabel = "บันทึก",
   readonly = false,
 }: Props) {
   const [customersList, setCustomersList] = useState<any[]>(initialCustomers);
+  const [productsList, setProductsList] = useState<any[]>(initialProducts);
 
   useEffect(() => {
     if (initialCustomers && initialCustomers.length > 0) {
@@ -130,6 +139,28 @@ export function ActivityPlanForm({
       isMounted = false;
     };
   }, [initialCustomers]);
+
+  useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) {
+      setProductsList(initialProducts);
+      return;
+    }
+    let isMounted = true;
+    async function loadProducts() {
+      try {
+        const res = await fetch("/api/products?status=ACTIVE&perPage=1000").then((r) => r.json());
+        if (isMounted && res.products) {
+          setProductsList(res.products);
+        }
+      } catch (err) {
+        console.error("Failed to load products for activity plan:", err);
+      }
+    }
+    loadProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, [initialProducts]);
   // Format initial dates
   const parseInitialDate = (date?: Date | string) => {
     if (!date)
@@ -1211,6 +1242,8 @@ export function ActivityPlanForm({
               addType2Row={addType2Row}
               updateType2Row={updateType2Row}
               deleteType2Row={deleteType2Row}
+              customers={customersList}
+              products={productsList}
             />
           )}
 

@@ -111,9 +111,9 @@ export function FormCombobox({
             <CommandList className="max-h-[300px]">
               <CommandEmpty>{emptyText}</CommandEmpty>
               <CommandGroup>
-                {options.map((option) => (
+                {options.map((option, index) => (
                   <CommandItem
-                    key={option.value}
+                    key={`${option.value}-${index}`}
                     value={option.value}
                     keywords={[
                       option.label, 
