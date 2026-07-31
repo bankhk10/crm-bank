@@ -120,26 +120,23 @@ export function Type1Visit({
                   required
                 />
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    ประเด็นหลัก <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={item.topic}
-                    onChange={(e) =>
-                      updateType1Row(item.id, "topic", e.target.value)
-                    }
-                    disabled={readonly}
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium bg-white"
-                  >
-                    <option value="">-- เลือกประเด็นหลัก --</option>
-                    {VISIT_TOPICS.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <FormCombobox
+                  id={`topic-combobox-${item.id}`}
+                  label="ประเด็นหลัก"
+                  labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                  triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-sky-500"
+                  value={item.topic}
+                  onChange={(val) => updateType1Row(item.id, "topic", val)}
+                  options={VISIT_TOPICS.map((topic) => ({
+                    label: topic,
+                    value: topic,
+                  }))}
+                  placeholder="เลือกประเด็นหลัก"
+                  searchPlaceholder="ค้นหาประเด็นหลัก..."
+                  emptyText="ไม่พบประเด็นหลัก"
+                  disabled={readonly}
+                  required
+                />
               </div>
 
               <div>
