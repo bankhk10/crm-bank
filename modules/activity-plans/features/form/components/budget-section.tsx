@@ -2,6 +2,7 @@ import React from "react";
 import { Plus, Trash2, Check, Package, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SectionHeader } from "@/modules/sales/features/form/forms/section-header";
 import type { MarketingBudgetProductItem, SalesPromotionItem } from "../types";
 import { DEMO_PRODUCTS, DEMO_PRODUCT_PRICES } from "../constants";
 
@@ -53,23 +54,8 @@ export function BudgetSection({
   targetSales,
 }: Props) {
   return (
-    <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden p-5 md:p-6 space-y-5">
-      <div className="flex items-center gap-2.5">
-        <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
-          {selectedWorkTypes.some((t) =>
-            [
-              "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
-              "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
-              "จัดงาน Field Day",
-            ].includes(t),
-          )
-            ? 5
-            : 4}
-        </span>
-        <h2 className="font-bold text-slate-800 text-base md:text-lg">
-          งบประมาณและค่าใช้จ่าย (Budget & Expenses)
-        </h2>
-      </div>
+    <div className="space-y-4">
+      <SectionHeader title="งบประมาณและค่าใช้จ่าย" color="gray" />
 
       {/* Checkbox Options Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

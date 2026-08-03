@@ -82,10 +82,10 @@ export function Type7Demo({
   }));
 
   return (
-    <div className="bg-emerald-50/40 border border-emerald-200/80 rounded-xl p-4 md:p-5 space-y-4">
-      <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2.5">
-        <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
-          <Sprout className="h-4 w-4 text-emerald-600" />
+    <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4">
+      <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+        <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
+          <Sprout className="h-4 w-4 text-slate-600" />
           <span>ติดตามแปลงสาธิต / พืชเป้าหมาย</span>
         </div>
 

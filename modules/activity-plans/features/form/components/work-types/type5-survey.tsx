@@ -71,10 +71,10 @@ export function Type5Survey({
   }));
 
   return (
-    <div className="bg-purple-50/40 border border-purple-200/80 rounded-xl p-4 md:p-5 space-y-4">
-      <div className="flex items-center justify-between border-b border-purple-200/60 pb-2.5">
-        <div className="flex items-center gap-2 text-purple-800 font-bold text-sm">
-          <BarChart2 className="h-4 w-4 text-purple-600" />
+    <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4">
+      <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+        <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
+          <BarChart2 className="h-4 w-4 text-slate-600" />
           <span>สำรวจตลาดของคู่แข่ง</span>
         </div>
 

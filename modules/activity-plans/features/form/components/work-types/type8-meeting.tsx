@@ -43,10 +43,10 @@ export function Type8Meeting({
     subLabel: p.productCode || undefined,
   }));
   return (
-    <div className="bg-blue-50/40 border border-blue-200/80 rounded-xl p-4 md:p-5 space-y-4">
-      <div className="flex items-center justify-between border-b border-blue-200/60 pb-2.5">
-        <div className="flex items-center gap-2 text-blue-800 font-bold text-sm">
-          <Users className="h-4 w-4 text-blue-600" />
+    <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4">
+      <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+        <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
+          <Users className="h-4 w-4 text-slate-600" />
           <span>จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์</span>
         </div>
 

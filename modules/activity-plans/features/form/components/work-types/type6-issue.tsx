@@ -50,10 +50,10 @@ export function Type6Issue({
   }));
 
   return (
-    <div className="bg-rose-50/40 border border-rose-200/80 rounded-xl p-4 md:p-5 space-y-4">
-      <div className="flex items-center justify-between border-b border-rose-200/60 pb-2.5">
-        <div className="flex items-center gap-2 text-rose-800 font-bold text-sm">
-          <HelpCircle className="h-4 w-4 text-rose-600" />
+    <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4">
+      <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+        <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
+          <HelpCircle className="h-4 w-4 text-slate-600" />
           <span>แก้ปัญหา / รับเรื่องร้องเรียน</span>
         </div>
 

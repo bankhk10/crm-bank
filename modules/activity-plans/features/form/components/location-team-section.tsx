@@ -1,5 +1,6 @@
 import React from "react";
 import { Search, X } from "lucide-react";
+import { SectionHeader } from "@/modules/sales/features/form/forms/section-header";
 
 export interface Employee {
   id: string;
@@ -40,7 +41,7 @@ export function LocationTeamSection({
   locationText,
   setLocationText,
 }: Props) {
-  if(
+  if (
     !selectedWorkTypes.some((t) =>
       [
         "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
@@ -53,15 +54,8 @@ export function LocationTeamSection({
   }
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm p-5 md:p-6 space-y-5 relative z-20">
-      <div className="flex items-center gap-2.5">
-        <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
-          4
-        </span>
-        <h2 className="font-bold text-slate-800 text-base md:text-lg">
-          สถานที่และทีมงาน (Location & Team)
-        </h2>
-      </div>
+    <div className="space-y-4 relative z-20">
+      <SectionHeader title="สถานที่และทีมงาน" color="gray" />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* Col 3: ผู้ช่วยงานกิจกรรม */}
@@ -153,6 +147,7 @@ export function LocationTeamSection({
             )}
           </div>
         </div>
+
         {/* Col 1: รายละเอียดพื้นที่จัดกิจกรรม */}
         <div className="lg:col-span-full space-y-1">
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
