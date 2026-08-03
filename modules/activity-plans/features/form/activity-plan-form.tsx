@@ -1248,17 +1248,6 @@ export function ActivityPlanForm({
             accentColor="indigo"
           />
         </div>
-
-        {/* Warning alert banner */}
-        <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3 md:p-3.5 flex items-center gap-3 text-amber-800 text-xs md:text-sm">
-          <div className="w-5 h-5 rounded-full bg-amber-500 text-white font-bold flex items-center justify-center text-xs flex-shrink-0">
-            !
-          </div>
-          <p className="font-medium">
-            เลือกประเภทงานได้หลากหลาย
-            ระบบจะแสดงฟอร์มวัตถุประสงค์ตามประเภทงานที่เลือก
-          </p>
-        </div>
       </div>
 
       {/* SECTION 3: วัตถุประสงค์ของประเภทงาน (Dynamic Objective) */}
