@@ -1429,6 +1429,7 @@ export function ActivityPlanForm({
               readonly={readonly}
               type11Stores={type11Stores}
               setType11Stores={setType11Stores}
+              customers={customersList}
             />
           )}
         </div>

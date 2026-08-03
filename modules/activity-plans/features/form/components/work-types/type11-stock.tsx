@@ -1,21 +1,48 @@
 import React from "react";
 import { ClipboardList, X } from "lucide-react";
+import { FormCombobox } from "@/components/custom/form-components";
 import { STORES_LIST } from "../../constants";
+
+export interface CustomerOption {
+  id: string;
+  name: string;
+  customerCode?: string | null;
+  responsibleEmployeeId?: string | null;
+}
 
 interface Props {
   readonly?: boolean;
   type11Stores: string;
   setType11Stores: (val: string) => void;
+  customers?: CustomerOption[];
 }
 
 export function Type11Stock({
   readonly = false,
   type11Stores,
   setType11Stores,
+  customers = [],
 }: Props) {
   const selectedStores = type11Stores
     ? type11Stores.split(", ").filter(Boolean)
     : [];
+
+  const customerOptions = (
+    customers && customers.length > 0
+      ? customers
+      : STORES_LIST.map((store) => ({
+          id: store,
+          name: store,
+          customerCode: null,
+        }))
+  ).map((c) => ({
+    value: c.name,
+    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+  }));
+
+  const availableCustomerOptions = customerOptions.filter(
+    (c) => !selectedStores.includes(c.value),
+  );
 
   return (
     <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-4 md:p-5 space-y-4">
@@ -59,31 +86,29 @@ export function Type11Stock({
 
         {/* Store Selection Dropdown */}
         {!readonly && (
-          <select
+          <FormCombobox
+            id="type11-stores-combobox"
+            label=""
+            labelClassName="hidden"
+            triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-slate-500"
             value=""
-            onChange={(e) => {
-              const val = e.target.value;
+            onChange={(val) => {
               if (!val) return;
               if (!selectedStores.includes(val)) {
                 const updated = [...selectedStores, val];
                 setType11Stores(updated.join(", "));
               }
             }}
-            className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500 font-medium"
-          >
-            <option value="">
-              {selectedStores.length > 0
+            options={availableCustomerOptions}
+            placeholder={
+              selectedStores.length > 0
                 ? "+ เพิ่มร้านค้าที่จะตรวจเช็กสต็อก..."
-                : "-- เลือกร้านค้าที่ต้องการตรวจเช็กสต็อก --"}
-            </option>
-            {STORES_LIST.filter((s) => !selectedStores.includes(s)).map(
-              (store) => (
-                <option key={store} value={store}>
-                  {store}
-                </option>
-              ),
-            )}
-          </select>
+                : "เลือกร้านค้าที่ต้องการตรวจเช็กสต็อก..."
+            }
+            searchPlaceholder="ค้นหาร้านค้า..."
+            emptyText="ไม่พบร้านค้า"
+            disabled={readonly}
+          />
         )}
       </div>
     </div>
