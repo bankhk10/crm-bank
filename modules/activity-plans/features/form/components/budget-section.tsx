@@ -92,8 +92,7 @@ export function BudgetSection({
         <button
           type="button"
           onClick={() =>
-            !readonly &&
-            setIsSalesPromotionSelected(!isSalesPromotionSelected)
+            !readonly && setIsSalesPromotionSelected(!isSalesPromotionSelected)
           }
           className={cn(
             "flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold transition-all text-left",
@@ -406,8 +405,7 @@ export function BudgetSection({
                       colSpan={6}
                       className="py-4 text-center text-slate-400 italic"
                     >
-                      ยังไม่มีรายการส่งเสริมการขาย กด "เพิ่มรายการ"
-                      เพื่อบันทึก
+                      ยังไม่มีรายการส่งเสริมการขาย กด "เพิ่มรายการ" เพื่อบันทึก
                     </td>
                   </tr>
                 ) : (
