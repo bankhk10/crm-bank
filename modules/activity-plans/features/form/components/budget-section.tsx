@@ -4,7 +4,21 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/modules/sales/features/form/forms/section-header";
 import type { MarketingBudgetProductItem, SalesPromotionItem } from "../types";
-import { DEMO_PRODUCTS, DEMO_PRODUCT_PRICES } from "../constants";
+import {
+  DEMO_PRODUCTS,
+  DEMO_PRODUCT_PRICES,
+  MARKETING_PRODUCT_CATEGORIES,
+  MARKETING_PRODUCTS_BY_CATEGORY,
+} from "../constants";
+
+function getCategoryForProduct(productName: string): string {
+  for (const [cat, items] of Object.entries(MARKETING_PRODUCTS_BY_CATEGORY)) {
+    if (items.some((i) => i.name === productName)) {
+      return cat;
+    }
+  }
+  return MARKETING_PRODUCT_CATEGORIES[0];
+}
 
 interface Props {
   selectedWorkTypes: string[];
@@ -228,6 +242,9 @@ export function BudgetSection({
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
                   <tr>
                     <th className="py-2 px-3 text-center w-10">ลำดับ</th>
+                    <th className="py-2 px-3 min-w-[160px]">
+                      หมวดหมู่สื่อ / สินค้า <span className="text-red-500">*</span>
+                    </th>
                     <th className="py-2 px-3 min-w-[180px]">
                       รายการ <span className="text-red-500">*</span>
                     </th>
@@ -249,7 +266,7 @@ export function BudgetSection({
                   {marketingProductItems.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="py-4 text-center text-slate-400 italic"
                       >
                         ยังไม่มีรายการสินค้า กดเพิ่มสินค้า เพื่อบันทึก
@@ -259,6 +276,11 @@ export function BudgetSection({
                     marketingProductItems.map((item, index) => {
                       const totalItemPrice =
                         (item.quantityCases || 0) * (item.pricePerCase || 0);
+                      const currentCat =
+                        item.category || getCategoryForProduct(item.productName);
+                      const availableProds =
+                        MARKETING_PRODUCTS_BY_CATEGORY[currentCat] || [];
+
                       return (
                         <tr
                           key={item.id}
@@ -267,34 +289,73 @@ export function BudgetSection({
                           <td className="py-2 px-3 text-center font-medium text-slate-500">
                             {index + 1}
                           </td>
+                          {/* หมวดหมู่ (Category) */}
+                          <td className="py-1.5 px-3">
+                            <select
+                              value={currentCat}
+                              onChange={(e) => {
+                                const newCat = e.target.value;
+                                const prods =
+                                  MARKETING_PRODUCTS_BY_CATEGORY[newCat] || [];
+                                const firstProd = prods[0] ? prods[0].name : "";
+                                const firstPrice = prods[0] ? prods[0].price : 0;
+
+                                updateMarketingProductItem(
+                                  item.id,
+                                  "category",
+                                  newCat,
+                                );
+                                updateMarketingProductItem(
+                                  item.id,
+                                  "productName",
+                                  firstProd,
+                                );
+                                updateMarketingProductItem(
+                                  item.id,
+                                  "pricePerCase",
+                                  firstPrice,
+                                );
+                              }}
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-slate-50/70"
+                            >
+                              {MARKETING_PRODUCT_CATEGORIES.map((cat) => (
+                                <option key={cat} value={cat}>
+                                  {cat}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          {/* รายการ (Product) */}
                           <td className="py-1.5 px-3">
                             <select
                               value={item.productName}
                               onChange={(e) => {
                                 const selectedProd = e.target.value;
+                                const prodObj = availableProds.find(
+                                  (p) => p.name === selectedProd,
+                                );
+                                const price = prodObj
+                                  ? prodObj.price
+                                  : DEMO_PRODUCT_PRICES[selectedProd] ?? 500;
                                 updateMarketingProductItem(
                                   item.id,
                                   "productName",
                                   selectedProd,
                                 );
-                                const defaultPrice =
-                                  DEMO_PRODUCT_PRICES[selectedProd] ?? 500;
                                 updateMarketingProductItem(
                                   item.id,
                                   "pricePerCase",
-                                  defaultPrice,
+                                  price,
                                 );
                               }}
                               disabled={readonly}
-                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
                             >
-                              {DEMO_PRODUCTS.map((prod) => (
-                                <option key={prod} value={prod}>
-                                  {prod} (฿
-                                  {(
-                                    DEMO_PRODUCT_PRICES[prod] ?? 500
-                                  ).toLocaleString()}
-                                  )
+                              {availableProds.map((prod) => (
+                                <option key={prod.name} value={prod.name}>
+                                  {prod.name} (฿
+                                  {prod.price.toLocaleString()})
                                 </option>
                               ))}
                             </select>
@@ -323,9 +384,15 @@ export function BudgetSection({
                               <input
                                 type="number"
                                 value={item.pricePerCase}
-                                readOnly
-                                disabled
-                                className="w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 text-xs text-slate-700 text-right font-bold bg-slate-100/80 cursor-not-allowed"
+                                onChange={(e) =>
+                                  updateMarketingProductItem(
+                                    item.id,
+                                    "pricePerCase",
+                                    parseFloat(e.target.value) || 0,
+                                  )
+                                }
+                                disabled={readonly}
+                                className="w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 text-xs text-slate-700 text-right font-bold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                               />
                             </div>
                           </td>

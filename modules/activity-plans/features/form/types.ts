@@ -87,6 +87,7 @@ export interface Type8MeetingItem {
 
 export interface MarketingBudgetProductItem {
   id: string;
+  category?: string;
   productName: string;
   quantityCases: number;
   pricePerCase: number;

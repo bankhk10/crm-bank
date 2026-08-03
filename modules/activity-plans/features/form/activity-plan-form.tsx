@@ -60,6 +60,8 @@ import {
   DEMO_OWNERS,
   DEMO_PRODUCTS,
   DEMO_PRODUCT_PRICES,
+  MARKETING_PRODUCT_CATEGORIES,
+  MARKETING_PRODUCTS_BY_CATEGORY,
 } from "./constants";
 
 import {
@@ -571,17 +573,28 @@ export function ActivityPlanForm({
   >([
     {
       id: "1",
-      productName: DEMO_PRODUCTS[0] || "สินค้าทดสอบ A",
+      category: MARKETING_PRODUCT_CATEGORIES[0],
+      productName:
+        MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
+          ?.name || "ป้ายไวนิลส่งเสริมการขาย",
       quantityCases: 10,
-      pricePerCase: DEMO_PRODUCT_PRICES[DEMO_PRODUCTS[0]] || 500,
+      pricePerCase:
+        MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
+          ?.price || 350,
     },
   ]);
 
   const addMarketingProductItem = () => {
-    const firstProd = DEMO_PRODUCTS[0] || "";
-    const defaultPrice = DEMO_PRODUCT_PRICES[firstProd] ?? 500;
+    const defaultCat = MARKETING_PRODUCT_CATEGORIES[0];
+    const firstProdObj =
+      MARKETING_PRODUCTS_BY_CATEGORY[defaultCat]?.[0];
+    const firstProd = firstProdObj
+      ? firstProdObj.name
+      : "ป้ายไวนิลส่งเสริมการขาย";
+    const defaultPrice = firstProdObj ? firstProdObj.price : 350;
     const newItem: MarketingBudgetProductItem = {
       id: Date.now().toString(),
+      category: defaultCat,
       productName: firstProd,
       quantityCases: 1,
       pricePerCase: defaultPrice,

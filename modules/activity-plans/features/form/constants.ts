@@ -35,6 +35,47 @@ export const DEMO_PRODUCT_PRICES: Record<string, number> = {
   ปุ๋ยเคมีสูตรพิเศษ: 950,
 };
 
+export const MARKETING_PRODUCT_CATEGORIES = [
+  "ป้ายและสื่อประชาสัมพันธ์",
+  "ของสมนาคุณ / ของแถม",
+  "สินค้าทดลอง / แปลงสาธิต",
+  "อุปกรณ์จัดกิจกรรม / บูธ",
+];
+
+export interface MarketingProductOption {
+  name: string;
+  price: number;
+}
+
+export const MARKETING_PRODUCTS_BY_CATEGORY: Record<
+  string,
+  MarketingProductOption[]
+> = {
+  "ป้ายและสื่อประชาสัมพันธ์": [
+    { name: "ป้ายไวนิลส่งเสริมการขาย", price: 350 },
+    { name: "ป้าย PVC หน้าร้าน", price: 500 },
+    { name: "ธงญี่ปุ่น / Standee ตราปืนใหญ่", price: 650 },
+    { name: "โบรชัวร์ / แคตตาล็อกสินค้า", price: 150 },
+  ],
+  "ของสมนาคุณ / ของแถม": [
+    { name: "เสื้อยืดตราปืนใหญ่", price: 250 },
+    { name: "หมวกสาน / หมวกแก๊ปเกษตรกร", price: 180 },
+    { name: "เสื้อแขนยาวทำงานเกษตร", price: 320 },
+    { name: "กระติกน้ำพรีเมียม", price: 200 },
+    { name: "ร่มกันแดดตราปืนใหญ่", price: 300 },
+  ],
+  "สินค้าทดลอง / แปลงสาธิต": [
+    { name: "สินค้าทดสอบ A", price: 500 },
+    { name: "สินค้าทดสอบ B", price: 750 },
+    { name: "สินค้าทดสอบ C", price: 1200 },
+    { name: "ปุ๋ยเคมีสูตรพิเศษ", price: 950 },
+  ],
+  "อุปกรณ์จัดกิจกรรม / บูธ": [
+    { name: "เต็นท์จัดงาน / บูธสินค้า", price: 2500 },
+    { name: "ชุดโต๊ะเก้าอี้สนามสนาม", price: 1500 },
+  ],
+};
+
 export const CROP_CATEGORIES = ["ผักและพืชล้มลุก", "พืชไร่", "พืชสวน"];
 
 export const CROPS_BY_CATEGORY: Record<string, string[]> = {
