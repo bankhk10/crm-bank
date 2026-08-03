@@ -126,7 +126,9 @@ export function ActivityPlanForm({
     let isMounted = true;
     async function loadCustomers() {
       try {
-        const res = await fetch("/api/customers?perPage=1000").then((r) => r.json());
+        const res = await fetch("/api/customers?perPage=1000").then((r) =>
+          r.json(),
+        );
         if (isMounted && res.customers) {
           setCustomersList(res.customers);
         }
@@ -148,7 +150,9 @@ export function ActivityPlanForm({
     let isMounted = true;
     async function loadProducts() {
       try {
-        const res = await fetch("/api/products?status=ACTIVE&perPage=1000").then((r) => r.json());
+        const res = await fetch(
+          "/api/products?status=ACTIVE&perPage=1000",
+        ).then((r) => r.json());
         if (isMounted && res.products) {
           setProductsList(res.products);
         }
@@ -288,10 +292,14 @@ export function ActivityPlanForm({
   ]);
 
   const addType3Row = () => {
-    const prod = (productsList && productsList[0]) ? productsList[0].name : (DEMO_PRODUCTS[0] || "");
-    const uPrice = (productsList && productsList[0] && productsList[0].price != null)
-      ? Number(productsList[0].price)
-      : (DEMO_PRODUCT_PRICES[prod] ?? 500);
+    const prod =
+      productsList && productsList[0]
+        ? productsList[0].name
+        : DEMO_PRODUCTS[0] || "";
+    const uPrice =
+      productsList && productsList[0] && productsList[0].price != null
+        ? Number(productsList[0].price)
+        : (DEMO_PRODUCT_PRICES[prod] ?? 500);
     const newItem: Type3SalesItem = {
       id: Date.now().toString(),
       customerName: DEMO_OWNERS[0] || "",
@@ -330,7 +338,8 @@ export function ActivityPlanForm({
             updated.unitPrice = first.unitPrice;
           }
           updated.price = val.reduce(
-            (sum: number, p: any) => sum + (p.quantity || 0) * (p.unitPrice || 0),
+            (sum: number, p: any) =>
+              sum + (p.quantity || 0) * (p.unitPrice || 0),
             0,
           );
         } else if (field === "productName") {
@@ -503,7 +512,7 @@ export function ActivityPlanForm({
       id: "1",
       topic: "",
       targetProducts: [],
-      attendeesCount: 10,
+      attendeesCount: 1,
       detail: "",
     },
   ]);

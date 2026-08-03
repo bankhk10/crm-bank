@@ -101,7 +101,7 @@ export function Type8Meeting({
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                    <label className="block text-xs font-medium text-slate-700 mb-1 mt-1">
                       หัวข้อที่จะประชุม <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -188,7 +188,7 @@ export function Type8Meeting({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                    <label className="block text-xs font-medium text-slate-700 mb-1 mt-1">
                       เป้าหมายผู้เข้าร่วม (คน){" "}
                       <span className="text-red-500">*</span>
                     </label>
