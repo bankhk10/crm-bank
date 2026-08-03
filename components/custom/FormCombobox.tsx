@@ -41,6 +41,7 @@ interface FormComboboxProps {
   triggerClassName?: string;
   labelClassName?: string;
   containerClassName?: string;
+  showSubLabelInTrigger?: boolean;
 }
 
 const defaultLabelClass = "text-base font-medium mx-2";
@@ -62,6 +63,7 @@ export function FormCombobox({
   triggerClassName,
   labelClassName,
   containerClassName,
+  showSubLabelInTrigger = false,
 }: FormComboboxProps) {
   const [open, setOpen] = useState(false);
 
@@ -94,7 +96,7 @@ export function FormCombobox({
           >
             <span className="text-left flex-1 flex flex-col justify-center min-w-0">
               <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
-              {selectedOption?.subLabel && (
+              {showSubLabelInTrigger && selectedOption?.subLabel && (
                 <span className="text-xs text-gray-500 truncate">{selectedOption.subLabel}</span>
               )}
             </span>
