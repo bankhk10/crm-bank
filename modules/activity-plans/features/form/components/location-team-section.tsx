@@ -66,7 +66,7 @@ export function LocationTeamSection({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* Col 3: ผู้ช่วยงานกิจกรรม */}
         <div className="lg:col-span-4 space-y-2">
-          <label className="block text-xs font-medium text-slate-700 mb-1">
+          <label className="block text-sm font-medium text-slate-700 mb-1">
             ผู้ช่วยงานกิจกรรม{" "}
             <span className="text-slate-400 text-[11px]">
               (เลือกได้หลายคน)
@@ -155,7 +155,7 @@ export function LocationTeamSection({
         </div>
         {/* Col 1: รายละเอียดพื้นที่จัดกิจกรรม */}
         <div className="lg:col-span-full space-y-1">
-          <label className="block text-xs font-medium text-slate-700 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">
             รายละเอียดพื้นที่จัดกิจกรรม{" "}
             <span className="text-red-500">*</span>
           </label>

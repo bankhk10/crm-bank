@@ -1132,7 +1132,7 @@ export function ActivityPlanForm({
           </div>
           {/* ประเภทงาน (เลือกได้มากกว่า 1) */}
           <div className="relative" ref={workTypesDropdownRef}>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
               ประเภทงาน{" "}
               <span className="text-slate-400 text-[11px]">
                 (เลือกได้มากกว่า 1)
@@ -1496,7 +1496,7 @@ export function ActivityPlanForm({
         </div>
 
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-slate-700 mb-1">
+          <label className="block text-sm font-medium text-slate-700 mb-1">
             หมายเหตุเพิ่มเติม
           </label>
           <textarea
