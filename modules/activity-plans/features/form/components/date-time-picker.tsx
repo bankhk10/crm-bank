@@ -101,7 +101,7 @@ export function DateTimePicker({
 
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1.5 ">
+      <label className="block text-sm font-medium text-slate-700 mb-1.5 flex items-center gap-1.5 ">
         <span>{label}</span>
         {required && <span className="text-red-500">*</span>}
       </label>
