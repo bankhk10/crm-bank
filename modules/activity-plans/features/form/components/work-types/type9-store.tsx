@@ -3,7 +3,11 @@ import { Store, Package, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
 import type { Type9ProductItem } from "../../types";
-import { STORES_LIST, DEMO_PRODUCTS, DEMO_PRODUCT_PRICES } from "../../constants";
+import {
+  STORES_LIST,
+  DEMO_PRODUCTS,
+  DEMO_PRODUCT_PRICES,
+} from "../../constants";
 
 export interface CustomerOption {
   id: string;
@@ -110,7 +114,8 @@ export function Type9Store({
 
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1.5">
-            เป้ายอดขายรวมจากกิจกรรม (บาท) <span className="text-red-500">*</span>
+            เป้ายอดขายรวมจากกิจกรรม (บาท){" "}
+            <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
@@ -118,7 +123,9 @@ export function Type9Store({
             </span>
             <input
               type="number"
-              value={type9ProductItems.length > 0 ? calculatedSales : type9Sales}
+              value={
+                type9ProductItems.length > 0 ? calculatedSales : type9Sales
+              }
               onChange={(e) => setType9Sales(parseFloat(e.target.value) || 0)}
               disabled={readonly || type9ProductItems.length > 0}
               className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs font-bold text-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -177,7 +184,7 @@ export function Type9Store({
                     colSpan={6}
                     className="py-4 text-center text-slate-400 italic"
                   >
-                    ยังไม่มีรายการสินค้า กด "+ เพิ่มสินค้า" เพื่อบันทึก
+                    ยังไม่มีรายการสินค้า
                   </td>
                 </tr>
               ) : (
@@ -200,11 +207,7 @@ export function Type9Store({
                           triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-md text-slate-800 focus:ring-2 focus:ring-teal-500"
                           value={item.productName}
                           onChange={(val) => {
-                            updateType9ProductItem(
-                              item.id,
-                              "productName",
-                              val,
-                            );
+                            updateType9ProductItem(item.id, "productName", val);
                             const found = products.find((p) => p.name === val);
                             if (found && found.price != null) {
                               updateType9ProductItem(
@@ -245,7 +248,11 @@ export function Type9Store({
                           <input
                             type="number"
                             min={0}
-                            value={item.pricePerCase ?? DEMO_PRODUCT_PRICES[item.productName] ?? 0}
+                            value={
+                              item.pricePerCase ??
+                              DEMO_PRODUCT_PRICES[item.productName] ??
+                              0
+                            }
                             onChange={(e) =>
                               updateType9ProductItem(
                                 item.id,
