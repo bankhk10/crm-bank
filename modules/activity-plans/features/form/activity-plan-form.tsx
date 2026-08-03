@@ -1021,7 +1021,7 @@ export function ActivityPlanForm({
   };
 
   return (
-    <section className="space-y-6 container mx-auto py-8">
+    <section className="space-y-6 container mx-auto">
       <Card>
         <div className="p-6">
           <div className="text-center">
@@ -1047,7 +1047,7 @@ export function ActivityPlanForm({
             )}
 
             {/* SECTION 1: ข้อมูลระบบ (System Info) */}
-            <SectionHeader title="ข้อมูลระบบ" color="gray" className="mt-6" />
+            <SectionHeader title="ข้อมูลระบบ" color="gray" />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Card 1: ผู้รับผิดชอบ */}
@@ -1071,7 +1071,9 @@ export function ActivityPlanForm({
                   <FileText className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-slate-400">เลขที่แผน </p>
+                  <p className="text-xs font-medium text-slate-400">
+                    เลขที่แผน{" "}
+                  </p>
                   <p className="text-sm font-semibold text-slate-800">
                     {initial.planCode || "2607-001"}
                   </p>
@@ -1288,7 +1290,9 @@ export function ActivityPlanForm({
                   )}
 
                   {/* Work Type 6: แก้ปัญหา / รับเรื่องร้องเรียน */}
-                  {selectedWorkTypes.includes("แก้ปัญหา / รับเรื่องร้องเรียน") && (
+                  {selectedWorkTypes.includes(
+                    "แก้ปัญหา / รับเรื่องร้องเรียน",
+                  ) && (
                     <Type6Issue
                       readonly={readonly}
                       type6Items={type6Items}
@@ -1300,7 +1304,9 @@ export function ActivityPlanForm({
                   )}
 
                   {/* Work Type 7: ติดตามแปลงสาธิต / พืชเป้าหมาย */}
-                  {selectedWorkTypes.includes("ติดตามแปลงสาธิต / พืชเป้าหมาย") && (
+                  {selectedWorkTypes.includes(
+                    "ติดตามแปลงสาธิต / พืชเป้าหมาย",
+                  ) && (
                     <Type7Demo
                       readonly={readonly}
                       type7Items={type7Items}
@@ -1313,7 +1319,9 @@ export function ActivityPlanForm({
                   )}
 
                   {/* Work Type 8: จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์ */}
-                  {selectedWorkTypes.includes("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์") && (
+                  {selectedWorkTypes.includes(
+                    "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+                  ) && (
                     <Type8Meeting
                       readonly={readonly}
                       type8Items={type8Items}
@@ -1325,7 +1333,9 @@ export function ActivityPlanForm({
                   )}
 
                   {/* Work Type 9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน */}
-                  {selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") && (
+                  {selectedWorkTypes.includes(
+                    "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+                  ) && (
                     <Type9Store
                       readonly={readonly}
                       type9Store={type9Store}
@@ -1416,7 +1426,8 @@ export function ActivityPlanForm({
                 (type9ProductItems.length > 0
                   ? type9ProductItems.reduce(
                       (sum, item) =>
-                        sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
+                        sum +
+                        (item.quantityCases || 0) * (item.pricePerCase || 0),
                       0,
                     )
                   : type9Sales) ||
