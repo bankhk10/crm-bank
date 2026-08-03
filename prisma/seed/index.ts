@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { seedMaster } from "./master";
 import { seedProductMaster } from "./product-master";
+import { seedPromotionalMaterials } from "./promotional-materials";
 import { seedRBAC } from "./rbac";
 import { seedUsers } from "./users";
 import { seedActivityTestData } from "./activity-test-data";
@@ -29,6 +30,9 @@ async function main() {
 
     // 3. Product Master (requires Category from Master)
     await seedProductMaster(prisma);
+
+    // 3.5. Promotional Materials
+    await seedPromotionalMaterials(prisma);
 
     // 4. RBAC (Roles, Permissions)
     await seedRBAC(prisma);

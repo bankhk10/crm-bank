@@ -352,8 +352,8 @@ export function BudgetSection({
                               disabled={readonly}
                               className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
                             >
-                              {availableProds.map((prod) => (
-                                <option key={prod.name} value={prod.name}>
+                              {availableProds.map((prod, idx) => (
+                                <option key={`${prod.name}-${idx}`} value={prod.name}>
                                   {prod.name} (฿
                                   {prod.price.toLocaleString()})
                                 </option>

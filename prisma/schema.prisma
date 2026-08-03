@@ -1604,3 +1604,36 @@ model ActivityApprovalLog {
   @@index([activityPlanId])
 }
 
+// ==========================================
+// PROMOTIONAL MATERIALS (สื่อส่งเสริมการขาย)
+// ==========================================
+
+enum PromotionalMaterialStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model PromotionalMaterial {
+  id          String                    @id @default(cuid())
+  sku         String                    @unique // SKU หรือรหัสสินค้า
+  name        String                    // ชื่อสินค้า
+  shortName   String?                   @map("short_name") // ชื่อย่อ
+  description String?                   // รายละเอียดสินค้า
+  category    String                    // หมวดหมู่สินค้า (Premium_item, PP_Board, Banner, Leaflet, อุปกรณ์จัดงาน)
+  brand       String?                   // ยี่ห้อ
+  status      PromotionalMaterialStatus @default(ACTIVE) // Active / Inactive
+  unit        String?                   // หน่วย
+  price       Decimal?                  @default(0) @db.Decimal(15, 2) // ราคา
+  quantity    Int                       @default(0) // จำนวน
+  createdById String?                   @map("created_by_id") // ผู้สร้าง
+  createdAt   DateTime                  @default(now()) @map("created_at") // วันที่สร้าง
+  updatedById String?                   @map("updated_by_id") // ผู้แก้ไข
+  updatedAt   DateTime                  @updatedAt @map("updated_at") // วันที่แก้ไข
+  deletedAt   DateTime?                 @map("deleted_at") // Soft Delete
+
+  @@index([sku])
+  @@index([category])
+  @@index([status])
+  @@map("promotional_materials")
+}
+
