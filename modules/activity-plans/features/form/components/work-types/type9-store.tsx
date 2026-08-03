@@ -12,6 +12,13 @@ export interface CustomerOption {
   responsibleEmployeeId?: string | null;
 }
 
+export interface ProductOption {
+  id: string;
+  name: string;
+  productCode?: string | null;
+  price?: number | null;
+}
+
 interface Props {
   readonly?: boolean;
   type9Store: string;
@@ -27,6 +34,7 @@ interface Props {
   ) => void;
   deleteType9ProductItem: (id: string) => void;
   customers?: CustomerOption[];
+  products?: ProductOption[];
 }
 
 export function Type9Store({
@@ -40,6 +48,7 @@ export function Type9Store({
   updateType9ProductItem,
   deleteType9ProductItem,
   customers = [],
+  products = [],
 }: Props) {
   const customerOptions = (
     customers && customers.length > 0
@@ -52,6 +61,21 @@ export function Type9Store({
   ).map((c) => ({
     value: c.name,
     label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+  }));
+
+  const productOptions = (
+    products && products.length > 0
+      ? products
+      : DEMO_PRODUCTS.map((prod) => ({
+          id: prod,
+          name: prod,
+          productCode: null,
+          price: DEMO_PRODUCT_PRICES[prod] ?? 500,
+        }))
+  ).map((p) => ({
+    value: p.name,
+    label: p.name,
+    subLabel: p.productCode || undefined,
   }));
 
   const calculatedSales = type9ProductItems.reduce(
@@ -168,25 +192,34 @@ export function Type9Store({
                       <td className="py-2 px-3 text-center font-medium text-slate-500">
                         {index + 1}
                       </td>
-                      <td className="py-1.5 px-3">
-                        <select
+                      <td className="py-1.5 px-3 min-w-[200px]">
+                        <FormCombobox
+                          id={`type9-product-combobox-${item.id}`}
+                          label=""
+                          labelClassName="hidden"
+                          triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-md text-slate-800 focus:ring-2 focus:ring-teal-500"
                           value={item.productName}
-                          onChange={(e) =>
+                          onChange={(val) => {
                             updateType9ProductItem(
                               item.id,
                               "productName",
-                              e.target.value,
-                            )
-                          }
+                              val,
+                            );
+                            const found = products.find((p) => p.name === val);
+                            if (found && found.price != null) {
+                              updateType9ProductItem(
+                                item.id,
+                                "pricePerCase",
+                                found.price,
+                              );
+                            }
+                          }}
+                          options={productOptions}
+                          placeholder="เลือกสินค้า..."
+                          searchPlaceholder="ค้นหาสินค้า..."
+                          emptyText="ไม่พบสินค้า"
                           disabled={readonly}
-                          className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                        >
-                          {DEMO_PRODUCTS.map((prod) => (
-                            <option key={prod} value={prod}>
-                              {prod}
-                            </option>
-                          ))}
-                        </select>
+                        />
                       </td>
                       <td className="py-1.5 px-3">
                         <input
