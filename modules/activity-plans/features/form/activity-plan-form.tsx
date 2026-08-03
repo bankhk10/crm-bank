@@ -6,24 +6,11 @@ import {
   Calendar as CalendarIcon,
   User,
   FileText,
-  Plus,
-  Trash2,
   Check,
   X,
   ChevronDown,
-  Search,
   AlertCircle,
-  Store,
-  Sprout,
   ArrowLeft,
-  Users,
-  ShoppingCart,
-  HelpCircle,
-  CheckSquare,
-  BarChart2,
-  Receipt,
-  ClipboardList,
-  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -70,10 +57,6 @@ import {
   DEMO_OWNERS,
   DEMO_PRODUCTS,
   DEMO_PRODUCT_PRICES,
-  CROP_CATEGORIES,
-  TARGET_CROPS,
-  STORES_LIST,
-  REQUISITION_UNITS,
 } from "./constants";
 
 import {
@@ -90,7 +73,6 @@ import {
   MarketingBudgetProductItem,
   SalesPromotionItem,
 } from "./types";
-import { RequisitionSection } from "./components/requisition-section";
 import { BudgetSection } from "./components/budget-section";
 import { LocationTeamSection } from "./components/location-team-section";
 import { Type1Visit } from "./components/work-types/type1-visit";
@@ -1494,17 +1476,7 @@ export function ActivityPlanForm({
         }
       />
 
-      {/* SECTION 6: รายการขอเบิกสินค้าจัดกิจกรรม (Material Requisition) */}
-      <RequisitionSection
-        requisitionItems={requisitionItems}
-        addRequisitionRow={addRequisitionRow}
-        updateRequisitionRow={updateRequisitionRow}
-        deleteRequisitionRow={deleteRequisitionRow}
-        readonly={readonly}
-        selectedWorkTypes={selectedWorkTypes}
-      />
-
-      {/* SECTION 7: ข้อมูลเพิ่มเติม (Additional Info) */}
+      {/* SECTION 6: ข้อมูลเพิ่มเติม (Additional Info) */}
       <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm overflow-hidden p-5 md:p-6 space-y-4">
         <div className="flex items-center gap-2.5">
           <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">

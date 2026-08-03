@@ -422,63 +422,7 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
           </div>
         )}
 
-        {/* SECTION 3: รายการขอเบิกสินค้าจัดกิจกรรม */}
-        {hasRequisition && (
-          <div className="space-y-2.5 pt-3 border-t border-slate-200">
-            <p className="text-[11px] font-bold text-violet-600 flex items-center gap-1.5 uppercase tracking-widest">
-              <Package className="w-3.5 h-3.5" />
-              รายการขอเบิกสินค้าจัดกิจกรรม (Material Requisition)
-            </p>
-
-            <div className="bg-violet-50/40 border border-violet-200/70 rounded-xl p-3.5 space-y-2.5">
-              <div className="flex items-center justify-between border-b border-violet-200/60 pb-2">
-                <span className="text-xs font-bold text-violet-800 flex items-center gap-1.5">
-                  <Package className="h-4 w-4 text-violet-600" />
-                  รายการเบิกสินค้า
-                </span>
-                <span className="text-[11px] font-bold text-violet-700 bg-white border border-violet-200 px-2 py-0.5 rounded-md">
-                  {summary.requisitionItems?.length || 0} รายการ
-                </span>
-              </div>
-
-              <div className="overflow-x-auto rounded-lg border border-violet-200/80 bg-white">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-violet-50/70 border-b border-violet-200/80 text-violet-900 font-bold">
-                    <tr>
-                      <th className="py-2 px-3 text-center w-10">ลำดับ</th>
-                      <th className="py-2 px-3">ชื่อสินค้า / รายการเบิก</th>
-                      <th className="py-2 px-3 w-28 text-center">จำนวน</th>
-                      <th className="py-2 px-3 w-24 text-center">หน่วย</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {summary.requisitionItems!.map((item, index) => (
-                      <tr
-                        key={item.id || index}
-                        className="hover:bg-slate-50/80 transition-colors"
-                      >
-                        <td className="py-2 px-3 text-center text-slate-500 font-medium">
-                          {index + 1}
-                        </td>
-                        <td className="py-2 px-3 font-semibold text-slate-800">
-                          {item.productName}
-                        </td>
-                        <td className="py-2 px-3 text-center font-bold text-violet-700">
-                          {item.quantity.toLocaleString()}
-                        </td>
-                        <td className="py-2 px-3 text-center text-slate-600">
-                          {item.unit}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* SECTION 4: ข้อมูลเพิ่มเติม */}
+        {/* SECTION 3: ข้อมูลเพิ่มเติม */}
         {hasAdditionalInfo && (
           <div className="space-y-2 pt-3 border-t border-slate-200">
             <p className="text-[11px] font-bold text-sky-600 flex items-center gap-1.5 uppercase tracking-widest">
