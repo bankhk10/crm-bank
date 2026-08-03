@@ -44,7 +44,7 @@ export function Type8Meeting({
       <div className="space-y-3">
         {type8Items.length === 0 ? (
           <div className="py-6 text-center text-slate-400 italic bg-white rounded-xl border border-slate-200 text-xs">
-            ยังไม่มีรายการประชุม กด "+ เพิ่มรายการ" เพื่อบันทึก
+            ยังไม่มีรายการประชุม
           </div>
         ) : (
           type8Items.map((item, index) => {
@@ -168,7 +168,8 @@ export function Type8Meeting({
 
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1">
-                      เป้าหมายผู้เข้าร่วม (คน) <span className="text-red-500">*</span>
+                      เป้าหมายผู้เข้าร่วม (คน){" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
