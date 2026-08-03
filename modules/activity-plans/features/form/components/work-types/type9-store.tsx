@@ -1,8 +1,16 @@
 import React from "react";
 import { Store, Package, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FormCombobox } from "@/components/custom/form-components";
 import type { Type9ProductItem } from "../../types";
 import { STORES_LIST, DEMO_PRODUCTS, DEMO_PRODUCT_PRICES } from "../../constants";
+
+export interface CustomerOption {
+  id: string;
+  name: string;
+  customerCode?: string | null;
+  responsibleEmployeeId?: string | null;
+}
 
 interface Props {
   readonly?: boolean;
@@ -18,6 +26,7 @@ interface Props {
     val: any,
   ) => void;
   deleteType9ProductItem: (id: string) => void;
+  customers?: CustomerOption[];
 }
 
 export function Type9Store({
@@ -30,7 +39,21 @@ export function Type9Store({
   addType9ProductItem,
   updateType9ProductItem,
   deleteType9ProductItem,
+  customers = [],
 }: Props) {
+  const customerOptions = (
+    customers && customers.length > 0
+      ? customers
+      : STORES_LIST.map((store) => ({
+          id: store,
+          name: store,
+          customerCode: null,
+        }))
+  ).map((c) => ({
+    value: c.name,
+    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+  }));
+
   const calculatedSales = type9ProductItems.reduce(
     (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
     0,
@@ -46,23 +69,20 @@ export function Type9Store({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-slate-700 mb-1.5">
-            ร้านค้าที่จะไปจัดงาน <span className="text-red-500">*</span>
-          </label>
-          <select
-            value={type9Store}
-            onChange={(e) => setType9Store(e.target.value)}
-            disabled={readonly}
-            className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
-          >
-            {STORES_LIST.map((st) => (
-              <option key={st} value={st}>
-                {st}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FormCombobox
+          id="type9-store-combobox"
+          label="ร้านค้าที่จะไปจัดงาน"
+          labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+          triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
+          value={type9Store}
+          onChange={setType9Store}
+          options={customerOptions}
+          placeholder="เลือกร้านค้าที่จะไปจัดงาน..."
+          searchPlaceholder="ค้นหาร้านค้า..."
+          emptyText="ไม่พบร้านค้า"
+          disabled={readonly}
+          required
+        />
 
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1.5">
