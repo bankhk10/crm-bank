@@ -1118,7 +1118,7 @@ export function ActivityPlanForm({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           {/* ชื่อกิจกรรม */}
           <div className="lg:col-span-1">
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
               ชื่อกิจกรรม <span className="text-red-500">*</span>
             </label>
             <input
