@@ -46,6 +46,7 @@ export const MARKETING_PRODUCT_CATEGORIES = [
 export interface MarketingProductOption {
   name: string;
   price: number;
+  unit?: string;
 }
 
 export const MARKETING_PRODUCTS_BY_CATEGORY: Record<
@@ -53,27 +54,27 @@ export const MARKETING_PRODUCTS_BY_CATEGORY: Record<
   MarketingProductOption[]
 > = {
   Premium_item: [
-    { name: "สมุดฉีก", price: 25 },
-    { name: "ถุงผ้าสปันสีแดง \"โลโก้ปืนใหญ่\"", price: 35 },
-    { name: "เสื้อแขนยาว ปืนใหญ่ สีแดง", price: 250 },
-    { name: "เสื้อแขนยาว ปืนใหญ่ สีแดง 3XL", price: 270 },
-    { name: "หมวกคลุมหน้าสีแดง", price: 120 },
-    { name: "น้ำดื่มตราปืนใหญ่ แพคละ 24 ขวด", price: 60 },
-    { name: "ถุงพลาสติกหูหิ้ว", price: 45 },
-    { name: "แก้วแดง", price: 50 },
-    { name: "ที่เปิดขวดน้ำ", price: 20 },
-    { name: "หมอนเทอรา-ซอร์บ เขียว", price: 180 },
-    { name: "หมอนเทอรา-ซอร์บ แดง", price: 180 },
-    { name: "ร่ม ตีกอล์ฟ 30 นิ้ว กัน UV", price: 350 },
-    { name: "เสื้อลายสก๊อต", price: 280 },
-    { name: "น้ำยาล้างจาน ตราปืนใหญ่ บรรจุ 24 ซอง/ลัง", price: 240 },
-    { name: "สติ๊กเกอร์ปืนใหญ่ ขนาดใหญ่", price: 15 },
-    { name: "ป้ายราคาพิเศษ", price: 10 },
-    { name: "สติกเกอร์พรอมมิส", price: 15 },
-    { name: "บัตรเชิญประชุมเกษตรกร", price: 5 },
-    { name: "คูปองจับสลาก ตราปืนใหญ่", price: 2 },
-    { name: "กล่องใสชุดฟ้าประธาน", price: 150 },
-    { name: "ร่มชายหาด", price: 550 },
+    { name: "สมุดฉีก", price: 25, unit: "เล่ม" },
+    { name: "ถุงผ้าสปันสีแดง \"โลโก้ปืนใหญ่\"", price: 35, unit: "ใบ" },
+    { name: "เสื้อแขนยาว ปืนใหญ่ สีแดง", price: 250, unit: "ตัว" },
+    { name: "เสื้อแขนยาว ปืนใหญ่ สีแดง 3XL", price: 270, unit: "ตัว" },
+    { name: "หมวกคลุมหน้าสีแดง", price: 120, unit: "ใบ" },
+    { name: "น้ำดื่มตราปืนใหญ่ แพคละ 24 ขวด", price: 60, unit: "แพค" },
+    { name: "ถุงพลาสติกหูหิ้ว", price: 45, unit: "แพค" },
+    { name: "แก้วแดง", price: 50, unit: "ใบ" },
+    { name: "ที่เปิดขวดน้ำ", price: 20, unit: "อัน" },
+    { name: "หมอนเทอรา-ซอร์บ เขียว", price: 180, unit: "ใบ" },
+    { name: "หมอนเทอรา-ซอร์บ แดง", price: 180, unit: "ใบ" },
+    { name: "ร่ม ตีกอล์ฟ 30 นิ้ว กัน UV", price: 350, unit: "คัน" },
+    { name: "เสื้อลายสก๊อต", price: 280, unit: "ตัว" },
+    { name: "น้ำยาล้างจาน ตราปืนใหญ่ บรรจุ 24 ซอง/ลัง", price: 240, unit: "ลัง" },
+    { name: "สติ๊กเกอร์ปืนใหญ่ ขนาดใหญ่", price: 15, unit: "แผ่น" },
+    { name: "ป้ายราคาพิเศษ", price: 10, unit: "แผ่น" },
+    { name: "สติกเกอร์พรอมมิส", price: 15, unit: "แผ่น" },
+    { name: "บัตรเชิญประชุมเกษตรกร", price: 5, unit: "ใบ" },
+    { name: "คูปองจับสลาก ตราปืนใหญ่", price: 2, unit: "ใบ" },
+    { name: "กล่องใสชุดฟ้าประธาน", price: 150, unit: "กล่อง" },
+    { name: "ร่มชายหาด", price: 550, unit: "คัน" },
   ],
   PP_Board: [
     { name: "สติมเท็กซ์ โกลด์ (นาข้าว) ขนาด 60x80 ซม.", price: 120 },

@@ -90,6 +90,7 @@ export interface MarketingBudgetProductItem {
   category?: string;
   productName: string;
   quantityCases: number;
+  unit?: string;
   pricePerCase: number;
 }
 

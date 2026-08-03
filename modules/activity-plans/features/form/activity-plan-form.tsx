@@ -576,11 +576,14 @@ export function ActivityPlanForm({
       category: MARKETING_PRODUCT_CATEGORIES[0],
       productName:
         MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
-          ?.name || "ป้ายไวนิลส่งเสริมการขาย",
+          ?.name || "สมุดฉีก",
       quantityCases: 10,
+      unit:
+        MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
+          ?.unit || "เล่ม",
       pricePerCase:
         MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
-          ?.price || 350,
+          ?.price || 25,
     },
   ]);
 
@@ -590,13 +593,15 @@ export function ActivityPlanForm({
       MARKETING_PRODUCTS_BY_CATEGORY[defaultCat]?.[0];
     const firstProd = firstProdObj
       ? firstProdObj.name
-      : "ป้ายไวนิลส่งเสริมการขาย";
-    const defaultPrice = firstProdObj ? firstProdObj.price : 350;
+      : "สมุดฉีก";
+    const defaultPrice = firstProdObj ? firstProdObj.price : 25;
+    const defaultUnit = firstProdObj?.unit || "เล่ม";
     const newItem: MarketingBudgetProductItem = {
       id: Date.now().toString(),
       category: defaultCat,
       productName: firstProd,
       quantityCases: 1,
+      unit: defaultUnit,
       pricePerCase: defaultPrice,
     };
     setMarketingProductItems((prev) => [...prev, newItem]);

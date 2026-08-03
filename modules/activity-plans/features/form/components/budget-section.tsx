@@ -243,7 +243,7 @@ export function BudgetSection({
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
                   <tr>
                     <th className="py-2 px-3 text-center w-10">ลำดับ</th>
-                    <th className="py-2 px-3 min-w-[160px]">
+                    <th className="py-2 px-3 min-w-[100px]">
                       หมวดหมู่ <span className="text-red-500">*</span>
                     </th>
                     <th className="py-2 px-3 min-w-[180px]">
@@ -252,10 +252,11 @@ export function BudgetSection({
                     <th className="py-2 px-3 w-28 text-center">
                       จำนวน <span className="text-red-500">*</span>
                     </th>
-                    <th className="py-2 px-3 w-32 text-center">
+                    <th className="py-2 px-3 w-20 text-center">หน่วย</th>
+                    <th className="py-2 px-3 w-28 text-center">
                       ราคา <span className="text-red-500">*</span>
                     </th>
-                    <th className="py-2 px-3 w-36 text-right">รวมเงิน</th>
+                    <th className="py-2 px-3 w-32 text-right">รวมเงิน</th>
                     {!readonly && (
                       <th className="py-2 px-3 text-center w-14">จัดการ</th>
                     )}
@@ -265,7 +266,7 @@ export function BudgetSection({
                   {marketingProductItems.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={8}
                         className="py-4 text-center text-slate-400 italic"
                       >
                         ยังไม่มีรายการสินค้า กดเพิ่มสินค้า เพื่อบันทึก
@@ -280,6 +281,19 @@ export function BudgetSection({
                         getCategoryForProduct(item.productName);
                       const availableProds =
                         MARKETING_PRODUCTS_BY_CATEGORY[currentCat] || [];
+                      const currentProdObj = availableProds.find(
+                        (p) => p.name === item.productName,
+                      );
+                      const currentUnit =
+                        item.unit ||
+                        currentProdObj?.unit ||
+                        (currentCat === "PP_Board"
+                          ? "แผ่น"
+                          : currentCat === "Banner"
+                            ? "ผืน"
+                            : currentCat === "Leaflet"
+                              ? "ใบ"
+                              : "ชิ้น");
 
                       return (
                         <tr
@@ -297,10 +311,22 @@ export function BudgetSection({
                                 const newCat = e.target.value;
                                 const prods =
                                   MARKETING_PRODUCTS_BY_CATEGORY[newCat] || [];
-                                const firstProd = prods[0] ? prods[0].name : "";
-                                const firstPrice = prods[0]
-                                  ? prods[0].price
+                                const firstProdObj = prods[0];
+                                const firstProd = firstProdObj
+                                  ? firstProdObj.name
+                                  : "";
+                                const firstPrice = firstProdObj
+                                  ? firstProdObj.price
                                   : 0;
+                                const firstUnit =
+                                  firstProdObj?.unit ||
+                                  (newCat === "PP_Board"
+                                    ? "แผ่น"
+                                    : newCat === "Banner"
+                                      ? "ผืน"
+                                      : newCat === "Leaflet"
+                                        ? "ใบ"
+                                        : "ชิ้น");
 
                                 updateMarketingProductItem(
                                   item.id,
@@ -316,6 +342,11 @@ export function BudgetSection({
                                   item.id,
                                   "pricePerCase",
                                   firstPrice,
+                                );
+                                updateMarketingProductItem(
+                                  item.id,
+                                  "unit",
+                                  firstUnit,
                                 );
                               }}
                               disabled={readonly}
@@ -342,6 +373,15 @@ export function BudgetSection({
                                 const price = prodObj
                                   ? prodObj.price
                                   : (DEMO_PRODUCT_PRICES[val] ?? 500);
+                                const unit =
+                                  prodObj?.unit ||
+                                  (currentCat === "PP_Board"
+                                    ? "แผ่น"
+                                    : currentCat === "Banner"
+                                      ? "ผืน"
+                                      : currentCat === "Leaflet"
+                                        ? "ใบ"
+                                        : "ชิ้น");
 
                                 updateMarketingProductItem(
                                   item.id,
@@ -352,6 +392,11 @@ export function BudgetSection({
                                   item.id,
                                   "pricePerCase",
                                   price,
+                                );
+                                updateMarketingProductItem(
+                                  item.id,
+                                  "unit",
+                                  unit,
                                 );
                               }}
                               options={availableProds.map((prod) => ({
@@ -379,6 +424,12 @@ export function BudgetSection({
                               disabled={readonly}
                               className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
                             />
+                          </td>
+                          {/* หน่วย */}
+                          <td className="py-1.5 px-3 text-center whitespace-nowrap">
+                            <span className="inline-block px-2.5 py-1 rounded-md text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 shadow-2xs">
+                              {currentUnit}
+                            </span>
                           </td>
                           <td className="py-1.5 px-3">
                             <div className="relative">
