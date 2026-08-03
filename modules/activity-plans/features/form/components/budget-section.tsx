@@ -243,7 +243,7 @@ export function BudgetSection({
                   <tr>
                     <th className="py-2 px-3 text-center w-10">ลำดับ</th>
                     <th className="py-2 px-3 min-w-[160px]">
-                      หมวดหมู่สื่อ / สินค้า <span className="text-red-500">*</span>
+                      หมวดหมู่ <span className="text-red-500">*</span>
                     </th>
                     <th className="py-2 px-3 min-w-[180px]">
                       รายการ <span className="text-red-500">*</span>
@@ -254,9 +254,7 @@ export function BudgetSection({
                     <th className="py-2 px-3 w-32 text-center">
                       ราคา <span className="text-red-500">*</span>
                     </th>
-                    <th className="py-2 px-3 w-36 text-right">
-                      รวมเป็นเงินทั้งหมด
-                    </th>
+                    <th className="py-2 px-3 w-36 text-right">รวมเงิน</th>
                     {!readonly && (
                       <th className="py-2 px-3 text-center w-14">จัดการ</th>
                     )}
@@ -277,7 +275,8 @@ export function BudgetSection({
                       const totalItemPrice =
                         (item.quantityCases || 0) * (item.pricePerCase || 0);
                       const currentCat =
-                        item.category || getCategoryForProduct(item.productName);
+                        item.category ||
+                        getCategoryForProduct(item.productName);
                       const availableProds =
                         MARKETING_PRODUCTS_BY_CATEGORY[currentCat] || [];
 
@@ -298,7 +297,9 @@ export function BudgetSection({
                                 const prods =
                                   MARKETING_PRODUCTS_BY_CATEGORY[newCat] || [];
                                 const firstProd = prods[0] ? prods[0].name : "";
-                                const firstPrice = prods[0] ? prods[0].price : 0;
+                                const firstPrice = prods[0]
+                                  ? prods[0].price
+                                  : 0;
 
                                 updateMarketingProductItem(
                                   item.id,
@@ -337,7 +338,7 @@ export function BudgetSection({
                                 );
                                 const price = prodObj
                                   ? prodObj.price
-                                  : DEMO_PRODUCT_PRICES[selectedProd] ?? 500;
+                                  : (DEMO_PRODUCT_PRICES[selectedProd] ?? 500);
                                 updateMarketingProductItem(
                                   item.id,
                                   "productName",
@@ -353,7 +354,10 @@ export function BudgetSection({
                               className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
                             >
                               {availableProds.map((prod, idx) => (
-                                <option key={`${prod.name}-${idx}`} value={prod.name}>
+                                <option
+                                  key={`${prod.name}-${idx}`}
+                                  value={prod.name}
+                                >
                                   {prod.name} (฿
                                   {prod.price.toLocaleString()})
                                 </option>
