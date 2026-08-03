@@ -1,8 +1,16 @@
 import React from "react";
 import { Users, Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FormCombobox } from "@/components/custom/form-components";
 import type { Type8MeetingItem } from "../../types";
 import { DEMO_PRODUCTS } from "../../constants";
+
+export interface ProductOption {
+  id: string;
+  name: string;
+  productCode?: string | null;
+  price?: number | null;
+}
 
 interface Props {
   readonly?: boolean;
@@ -10,6 +18,7 @@ interface Props {
   addType8Row: () => void;
   updateType8Row: (id: string, field: keyof Type8MeetingItem, val: any) => void;
   deleteType8Row: (id: string) => void;
+  products?: ProductOption[];
 }
 
 export function Type8Meeting({
@@ -18,7 +27,21 @@ export function Type8Meeting({
   addType8Row,
   updateType8Row,
   deleteType8Row,
+  products = [],
 }: Props) {
+  const productOptions = (
+    products && products.length > 0
+      ? products
+      : DEMO_PRODUCTS.map((prod) => ({
+          id: prod,
+          name: prod,
+          productCode: null,
+        }))
+  ).map((p) => ({
+    value: p.name,
+    label: p.name,
+    subLabel: p.productCode || undefined,
+  }));
   return (
     <div className="bg-blue-50/40 border border-blue-200/80 rounded-xl p-4 md:p-5 space-y-4">
       <div className="flex items-center justify-between border-b border-blue-200/60 pb-2.5">
@@ -49,6 +72,9 @@ export function Type8Meeting({
         ) : (
           type8Items.map((item, index) => {
             const selectedProducts = item.targetProducts || [];
+            const availableProductOptions = productOptions.filter(
+              (p) => !selectedProducts.includes(p.value),
+            );
             return (
               <div
                 key={item.id}
@@ -127,10 +153,13 @@ export function Type8Meeting({
                       )}
 
                       {!readonly && selectedProducts.length < 3 && (
-                        <select
+                        <FormCombobox
+                          id={`target-product-combobox-${item.id}`}
+                          label=""
+                          labelClassName="hidden"
+                          triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
                           value=""
-                          onChange={(e) => {
-                            const val = e.target.value;
+                          onChange={(val) => {
                             if (!val) return;
                             if (
                               selectedProducts.length < 3 &&
@@ -142,20 +171,12 @@ export function Type8Meeting({
                               ]);
                             }
                           }}
-                          className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-700 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-                        >
-                          <option value="">
-                            + เพิ่มสินค้าเป้าหมาย ({selectedProducts.length}
-                            /3)
-                          </option>
-                          {DEMO_PRODUCTS.filter(
-                            (p) => !selectedProducts.includes(p),
-                          ).map((prod) => (
-                            <option key={prod} value={prod}>
-                              {prod}
-                            </option>
-                          ))}
-                        </select>
+                          options={availableProductOptions}
+                          placeholder={`+ เพิ่มสินค้าเป้าหมาย (${selectedProducts.length}/3)`}
+                          searchPlaceholder="ค้นหาสินค้า..."
+                          emptyText="ไม่พบสินค้า"
+                          disabled={readonly}
+                        />
                       )}
 
                       {selectedProducts.length === 3 && (
