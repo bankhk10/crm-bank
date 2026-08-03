@@ -542,6 +542,8 @@ export function ActivityPlanForm({
   };
 
   const [type9Store, setType9Store] = useState("");
+  const [type9IsSubDealer, setType9IsSubDealer] = useState(false);
+  const [type9SubDealerStore, setType9SubDealerStore] = useState("");
   const [type9Sales, setType9Sales] = useState<number>(0);
   const [type9Products, setType9Products] = useState("");
   const [type9ProductItems, setType9ProductItems] = useState<
@@ -933,8 +935,12 @@ export function ActivityPlanForm({
         0,
       );
       const finalSales = calculatedSales > 0 ? calculatedSales : type9Sales;
+      const storeText =
+        type9IsSubDealer && type9SubDealerStore
+          ? `${type9Store} (ร้าน Sub Dealer: ${type9SubDealerStore})`
+          : type9Store;
       summaryParts.push(
-        `[กิจกรรมหน้าร้าน] ร้านค้า: ${type9Store} | เป้ายอดขายรวม: ${finalSales.toLocaleString()} บาท | สินค้า: ${itemsText || type9Products || "ไม่ระบุ"}`,
+        `[กิจกรรมหน้าร้าน] ร้านค้า: ${storeText} | เป้ายอดขายรวม: ${finalSales.toLocaleString()} บาท | สินค้า: ${itemsText || type9Products || "ไม่ระบุ"}`,
       );
     }
 
@@ -1394,6 +1400,10 @@ export function ActivityPlanForm({
               readonly={readonly}
               type9Store={type9Store}
               setType9Store={setType9Store}
+              isSubDealer={type9IsSubDealer}
+              setIsSubDealer={setType9IsSubDealer}
+              subDealerStore={type9SubDealerStore}
+              setSubDealerStore={setType9SubDealerStore}
               type9Sales={type9Sales}
               setType9Sales={setType9Sales}
               type9ProductItems={type9ProductItems}

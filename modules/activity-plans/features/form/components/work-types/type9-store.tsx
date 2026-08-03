@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Store, Package, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { FormCombobox } from "@/components/custom/form-components";
 import type { Type9ProductItem } from "../../types";
 import {
@@ -27,6 +28,10 @@ interface Props {
   readonly?: boolean;
   type9Store: string;
   setType9Store: (val: string) => void;
+  isSubDealer?: boolean;
+  setIsSubDealer?: (val: boolean) => void;
+  subDealerStore?: string;
+  setSubDealerStore?: (val: string) => void;
   type9Sales: number;
   setType9Sales: (val: number) => void;
   type9ProductItems: Type9ProductItem[];
@@ -45,6 +50,10 @@ export function Type9Store({
   readonly = false,
   type9Store,
   setType9Store,
+  isSubDealer,
+  setIsSubDealer,
+  subDealerStore,
+  setSubDealerStore,
   type9Sales,
   setType9Sales,
   type9ProductItems,
@@ -54,6 +63,14 @@ export function Type9Store({
   customers = [],
   products = [],
 }: Props) {
+  const [internalIsSubDealer, setInternalIsSubDealer] = useState(false);
+  const [internalSubDealerStore, setInternalSubDealerStore] = useState("");
+
+  const activeIsSubDealer = isSubDealer ?? internalIsSubDealer;
+  const activeSetIsSubDealer = setIsSubDealer ?? setInternalIsSubDealer;
+  const activeSubDealerStore = subDealerStore ?? internalSubDealerStore;
+  const activeSetSubDealerStore = setSubDealerStore ?? setInternalSubDealerStore;
+
   const customerOptions = (
     customers && customers.length > 0
       ? customers
@@ -97,20 +114,57 @@ export function Type9Store({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormCombobox
-          id="type9-store-combobox"
-          label="ร้านค้าที่จะไปจัดงาน"
-          labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
-          triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
-          value={type9Store}
-          onChange={setType9Store}
-          options={customerOptions}
-          placeholder="เลือกร้านค้าที่จะไปจัดงาน..."
-          searchPlaceholder="ค้นหาร้านค้า..."
-          emptyText="ไม่พบร้านค้า"
-          disabled={readonly}
-          required
-        />
+        <div className="space-y-3">
+          <FormCombobox
+            id="type9-store-combobox"
+            label="ร้านค้าที่จะไปจัดงาน"
+            labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+            triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
+            value={type9Store}
+            onChange={setType9Store}
+            options={customerOptions}
+            placeholder="เลือกร้านค้าที่จะไปจัดงาน..."
+            searchPlaceholder="ค้นหาร้านค้า..."
+            emptyText="ไม่พบร้านค้า"
+            disabled={readonly}
+            required
+          />
+
+          <div className="flex items-center gap-2 pt-0.5">
+            <label className="inline-flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer select-none">
+              <Checkbox
+                id="type9-is-sub-dealer-checkbox"
+                checked={activeIsSubDealer}
+                onCheckedChange={(checked) => {
+                  const isChecked = !!checked;
+                  activeSetIsSubDealer(isChecked);
+                  if (!isChecked) {
+                    activeSetSubDealerStore("");
+                  }
+                }}
+                disabled={readonly}
+                className="border-slate-300 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
+              />
+              <span>จัดกิจกรรมให้ร้าน Sub Dealer (ตัวแทนจำหน่ายย่อย)</span>
+            </label>
+          </div>
+
+          {activeIsSubDealer && (
+            <div className="space-y-1.5 pt-1 animate-in fade-in slide-in-from-top-1 duration-200">
+              <label className="block text-xs font-medium text-slate-700">
+                ชื่อร้านค้า Sub Dealer <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={activeSubDealerStore}
+                onChange={(e) => activeSetSubDealerStore(e.target.value)}
+                disabled={readonly}
+                placeholder="กรอกชื่อร้านค้า Sub Dealer..."
+                className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-slate-400"
+              />
+            </div>
+          )}
+        </div>
 
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1.5">
