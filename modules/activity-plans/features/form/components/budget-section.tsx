@@ -2,6 +2,7 @@ import React from "react";
 import { Plus, Trash2, Check, Package, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { FormCombobox } from "@/components/custom/form-components";
 import { SectionHeader } from "@/modules/sales/features/form/forms/section-header";
 import type { MarketingBudgetProductItem, SalesPromotionItem } from "../types";
 import {
@@ -329,20 +330,23 @@ export function BudgetSection({
                           </td>
                           {/* รายการ (Product) */}
                           <td className="py-1.5 px-3">
-                            <select
+                            <FormCombobox
+                              id={`product-combobox-${item.id}`}
+                              label=""
+                              triggerClassName="h-8 min-h-[32px] py-1 text-xs bg-white border-slate-200 rounded-md text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                               value={item.productName}
-                              onChange={(e) => {
-                                const selectedProd = e.target.value;
+                              onChange={(val) => {
                                 const prodObj = availableProds.find(
-                                  (p) => p.name === selectedProd,
+                                  (p) => p.name === val,
                                 );
                                 const price = prodObj
                                   ? prodObj.price
-                                  : (DEMO_PRODUCT_PRICES[selectedProd] ?? 500);
+                                  : (DEMO_PRODUCT_PRICES[val] ?? 500);
+
                                 updateMarketingProductItem(
                                   item.id,
                                   "productName",
-                                  selectedProd,
+                                  val,
                                 );
                                 updateMarketingProductItem(
                                   item.id,
@@ -350,19 +354,16 @@ export function BudgetSection({
                                   price,
                                 );
                               }}
+                              options={availableProds.map((prod) => ({
+                                value: prod.name,
+                                label: prod.name,
+                                subLabel: `฿${prod.price.toLocaleString()}`,
+                              }))}
+                              placeholder="เลือกสินค้า..."
+                              searchPlaceholder="ค้นหาสินค้า..."
+                              emptyText="ไม่พบสินค้า"
                               disabled={readonly}
-                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
-                            >
-                              {availableProds.map((prod, idx) => (
-                                <option
-                                  key={`${prod.name}-${idx}`}
-                                  value={prod.name}
-                                >
-                                  {prod.name} (฿
-                                  {prod.price.toLocaleString()})
-                                </option>
-                              ))}
-                            </select>
+                            />
                           </td>
                           <td className="py-1.5 px-3">
                             <input
