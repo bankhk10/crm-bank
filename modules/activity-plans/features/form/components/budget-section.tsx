@@ -357,7 +357,6 @@ export function BudgetSection({
                               options={availableProds.map((prod) => ({
                                 value: prod.name,
                                 label: prod.name,
-                                subLabel: `฿${prod.price.toLocaleString()}`,
                               }))}
                               placeholder="เลือกสินค้า..."
                               searchPlaceholder="ค้นหาสินค้า..."
