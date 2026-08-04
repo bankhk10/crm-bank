@@ -23,15 +23,13 @@ async function main() {
   console.log("🌱 Starting seed process...");
 
   try {
-    // 1. Clear Data
-
-    // 2. Master Data (Company, Dept, Unit, Category, Plant)
+    // 1. Master Data (Company, Dept, Unit, Category, Plant)
     await seedMaster(prisma);
 
-    // 3. Product Master (requires Category from Master)
+    // 2. Product Master (requires Category from Master)
     await seedProductMaster(prisma);
 
-    // 3.5. Promotional Materials
+    // 3. Promotional Materials
     await seedPromotionalMaterials(prisma);
 
     // 4. RBAC (Roles, Permissions)
