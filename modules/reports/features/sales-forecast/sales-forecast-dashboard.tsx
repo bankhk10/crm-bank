@@ -202,7 +202,7 @@ export function SalesForecastDashboard() {
 
       <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Filter Section */}
-        <Card className="rounded-xl border border-slate-100 shadow-sm">
+        <Card className="rounded-xl border border-slate-100 shadow-sm pb-4">
           <CardContent className="pt-4">
             <div className="flex flex-col sm:flex-row gap-8">
               <div className="flex-1">
@@ -314,7 +314,7 @@ export function SalesForecastDashboard() {
 
         {/* Chart Section */}
         <Card className="rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-          <CardHeader className="bg-white border-b border-slate-100">
+          <CardHeader className="bg-white border-b border-slate-100 py-4">
             <CardTitle className="text-base font-semibold text-slate-800 flex items-center justify-between">
               <span>กราฟเปรียบเทียบยอดขายและคาดการณ์ (ปี {selectedYear})</span>
             </CardTitle>
@@ -429,7 +429,7 @@ export function SalesForecastDashboard() {
 
         {/* Table Section */}
         <Card className="rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-          <CardHeader className="bg-white border-b border-slate-100">
+          <CardHeader className="bg-white border-b border-slate-100 py-4">
             <CardTitle className="text-base font-semibold text-slate-800 flex items-center justify-between">
               <span>ข้อมูลตารางยอดขายและคาดการณ์</span>
             </CardTitle>
@@ -584,7 +584,7 @@ export function SalesForecastDashboard() {
         </Card>
         {/* YTD Summary Section */}
         <Card className="rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-          <CardHeader className="bg-white border-b border-slate-100">
+          <CardHeader className="bg-white border-b border-slate-100 py-4">
             <CardTitle className="text-base font-semibold text-slate-800 flex items-center justify-between">
               <span>สรุปยอดขาย YTD</span>
             </CardTitle>
@@ -630,20 +630,18 @@ export function SalesForecastDashboard() {
                     if (!sp || !spData) return null;
 
                     const currentMonthIndex = new Date().getMonth();
-                    
+
                     const ytdForecast = spData
                       .slice(0, currentMonthIndex + 1)
                       .reduce((sum, d) => sum + d.forecast, 0);
-                      
+
                     const ytdInvoice = spData
                       .slice(0, currentMonthIndex + 1)
                       .reduce((sum, d) => sum + d.invoice, 0);
 
                     const diff = ytdInvoice - ytdForecast;
                     const percent =
-                      ytdForecast === 0
-                        ? null
-                        : diff / ytdForecast;
+                      ytdForecast === 0 ? null : diff / ytdForecast;
 
                     return (
                       <TableRow key={sp.id} className="hover:bg-slate-50/50">
@@ -652,16 +650,12 @@ export function SalesForecastDashboard() {
                         </TableCell>
                         <TableCell className="text-right text-slate-600 bg-slate-50 border-l border-slate-300/30">
                           {ytdForecast > 0
-                            ? new Intl.NumberFormat("th-TH").format(
-                                ytdForecast,
-                              )
+                            ? new Intl.NumberFormat("th-TH").format(ytdForecast)
                             : "-"}
                         </TableCell>
                         <TableCell className="text-right text-emerald-600 bg-slate-50 border-x border-slate-300/30">
                           {ytdInvoice > 0
-                            ? new Intl.NumberFormat("th-TH").format(
-                                ytdInvoice,
-                              )
+                            ? new Intl.NumberFormat("th-TH").format(ytdInvoice)
                             : "-"}
                         </TableCell>
                         <TableCell className="text-right bg-slate-50 border-r border-slate-300/30">
@@ -682,16 +676,18 @@ export function SalesForecastDashboard() {
                       selectedSalespersons.forEach((spId) => {
                         const spData = mockData[spId];
                         if (spData) {
-                          gtYtdForecast += spData.slice(0, currentMonthIndex + 1).reduce((sum, d) => sum + d.forecast, 0);
-                          gtYtdInvoice += spData.slice(0, currentMonthIndex + 1).reduce((sum, d) => sum + d.invoice, 0);
+                          gtYtdForecast += spData
+                            .slice(0, currentMonthIndex + 1)
+                            .reduce((sum, d) => sum + d.forecast, 0);
+                          gtYtdInvoice += spData
+                            .slice(0, currentMonthIndex + 1)
+                            .reduce((sum, d) => sum + d.invoice, 0);
                         }
                       });
 
                       const gtDiff = gtYtdInvoice - gtYtdForecast;
                       const gtPercent =
-                        gtYtdForecast === 0
-                          ? null
-                          : gtDiff / gtYtdForecast;
+                        gtYtdForecast === 0 ? null : gtDiff / gtYtdForecast;
                       return (
                         <TableRow className="bg-slate-50 hover:bg-slate-50 sticky bottom-0 z-20 shadow-[0_-1px_0_0_#e2e8f0]">
                           <TableCell className="font-bold text-slate-900 sticky left-0 z-30 bg-slate-50 border-r border-slate-200/50 shadow-[1px_0_0_0_#e2e8f0]">
