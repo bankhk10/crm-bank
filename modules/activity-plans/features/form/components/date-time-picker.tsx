@@ -1,5 +1,7 @@
+"use client";
+
 import React, { useState } from "react";
-import { Calendar as CalendarIcon, ChevronDown } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronDown, ChevronLeft, Clock } from "lucide-react";
 import { format, parseISO, isValid } from "date-fns";
 import { th } from "date-fns/locale";
 import {
@@ -48,6 +50,8 @@ export function DateTimePicker({
   accentColor = "blue",
 }: DateTimePickerProps) {
   const [open, setOpen] = useState(false);
+  // "date" = step 1 (mobile only), "time" = step 2 (mobile only)
+  const [mobileStep, setMobileStep] = useState<"date" | "time">("date");
 
   // Parse existing date or default to today
   const selectedDate = (() => {
@@ -77,12 +81,21 @@ export function DateTimePicker({
     return `${dateStr} ${tempTime || "10:00"} น.`;
   })();
 
+  // Formatted date only (for time step header)
+  const formattedDateOnly = (() => {
+    const d = tempDate || selectedDate;
+    if (!d || !isValid(d)) return "";
+    const buddhistYear = d.getFullYear() + 543;
+    return `${format(d, "d MMM", { locale: th })} ${buddhistYear}`;
+  })();
+
   const handleOpenChange = (isOpen: boolean) => {
     if (readonly) return;
     setOpen(isOpen);
     if (isOpen) {
       setTempDate(selectedDate);
       setTempTime(timeValue || "10:00");
+      setMobileStep("date"); // always reset to step 1 when opening
     }
   };
 
@@ -98,6 +111,65 @@ export function DateTimePicker({
     }
     setOpen(false);
   };
+
+  // Time picker panel (shared between mobile step 2 and desktop right panel)
+  const TimePicker = () => (
+    <div className="p-3 flex flex-col justify-start">
+      <div className="grid grid-cols-2 text-[12px] font-medium text-slate-500 mb-2 text-center">
+        <span>ชั่วโมง</span>
+        <span>นาที</span>
+      </div>
+
+      <div className="flex gap-1.5 flex-1 max-h-[280px]">
+        {/* Hours Column */}
+        <div className="w-14 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+          {HOURS.map((h) => {
+            const isSelected = currentHour === h;
+            return (
+              <button
+                key={h}
+                type="button"
+                onClick={() => setTempTime(`${h}:${currentMinute}`)}
+                className={cn(
+                  "w-full py-1.5 px-1 rounded-lg text-xs font-medium text-center transition-all",
+                  isSelected
+                    ? "bg-blue-600 text-white font-bold shadow-xs"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                )}
+              >
+                {h}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Vertical Separator */}
+        <div className="w-[1px] bg-slate-100" />
+
+        {/* Minutes Column */}
+        <div className="w-14 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+          {MINUTES.map((m) => {
+            const isSelected = currentMinute === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setTempTime(`${currentHour}:${m}`)}
+                className={cn(
+                  "w-full py-1.5 px-1 rounded-lg text-xs font-medium text-center transition-all",
+                  isSelected
+                    ? "bg-blue-600 text-white font-bold shadow-xs"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                )}
+              >
+                {m}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div>
@@ -147,8 +219,98 @@ export function DateTimePicker({
           align="start"
           className="w-auto p-0 rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden bg-white z-50"
         >
-          {/* Main Top Area: Calendar (Left) + Hours/Minutes Columns (Right) */}
-          <div className="flex flex-col sm:flex-row items-stretch">
+          {/* ─── MOBILE: 2-step flow ─── */}
+          <div className="sm:hidden">
+            {mobileStep === "date" ? (
+              /* Step 1: Calendar */
+              <>
+                {/* Step indicator header */}
+                <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    เลือกวัน
+                  </span>
+                  <span className="text-[11px] text-slate-400">ขั้นที่ 1/2</span>
+                </div>
+
+                <div className="p-3 pt-1">
+                  <Calendar
+                    mode="single"
+                    selected={tempDate}
+                    onSelect={(d) => {
+                      if (d) {
+                        setTempDate(d);
+                        // Auto-advance to time step after selecting a date
+                        setMobileStep("time");
+                      }
+                    }}
+                    initialFocus
+                    className="rounded-xl border-0 p-1"
+                  />
+                </div>
+
+                {/* Footer: Cancel only */}
+                <div className="p-3 bg-slate-50/60 border-t border-slate-100 flex items-center justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    className="px-6 py-1.5 rounded-xl border border-slate-300 bg-red-600 hover:bg-red-700 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
+                  >
+                    ยกเลิก
+                  </button>
+                </div>
+              </>
+            ) : (
+              /* Step 2: Time Picker */
+              <>
+                {/* Step indicator header with Back button */}
+                <div className="px-3 pt-3 pb-2 flex items-center gap-2 border-b border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setMobileStep("date")}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-slate-500"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <div className="flex-1">
+                    <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5 text-slate-400" />
+                      เลือกเวลา
+                    </span>
+                    {formattedDateOnly && (
+                      <span className="text-[11px] text-slate-400 block">
+                        {formattedDateOnly}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[11px] text-slate-400">ขั้นที่ 2/2</span>
+                </div>
+
+                <TimePicker />
+
+                {/* Footer: Back + Confirm */}
+                <div className="p-3 bg-slate-50/60 border-t border-slate-100 flex items-center gap-3 justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setMobileStep("date")}
+                    className="px-4 py-1.5 rounded-xl border border-slate-300 bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 shadow-2xs transition-all active:scale-95 flex items-center gap-1"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                    ย้อนกลับ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirm}
+                    className="px-4 py-1.5 rounded-xl border border-slate-300 bg-green-600 hover:bg-green-700 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
+                  >
+                    ตกลง
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* ─── DESKTOP: Side-by-side layout (unchanged) ─── */}
+          <div className="hidden sm:flex items-stretch">
             {/* Left: Calendar Picker */}
             <div className="p-3">
               <Calendar
@@ -163,69 +325,14 @@ export function DateTimePicker({
             </div>
 
             {/* Vertical Divider Line */}
-            <div className="hidden sm:block w-[1px] bg-slate-100 my-3" />
-            <div className="sm:hidden h-[1px] bg-slate-100 mx-3" />
+            <div className="w-[1px] bg-slate-100 my-3" />
 
-            {/* Right: Hours & Minutes Side-by-Side Selection Columns */}
-            <div className="p-3 flex flex-col justify-start">
-              <div className="grid grid-cols-2 text-[12px] font-medium text-slate-500 mb-2 text-center">
-                <span>ชั่วโมง</span>
-                <span>นาที</span>
-              </div>
-
-              <div className="flex gap-1.5 flex-1 max-h-[280px]">
-                {/* Hours Column */}
-                <div className="w-14 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                  {HOURS.map((h) => {
-                    const isSelected = currentHour === h;
-                    return (
-                      <button
-                        key={h}
-                        type="button"
-                        onClick={() => setTempTime(`${h}:${currentMinute}`)}
-                        className={cn(
-                          "w-full py-1.5 px-1 rounded-lg text-xs font-medium text-center transition-all",
-                          isSelected
-                            ? "bg-blue-600 text-white font-bold shadow-xs"
-                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-                        )}
-                      >
-                        {h}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Vertical Separator */}
-                <div className="w-[1px] bg-slate-100" />
-
-                {/* Minutes Column */}
-                <div className="w-14 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                  {MINUTES.map((m) => {
-                    const isSelected = currentMinute === m;
-                    return (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => setTempTime(`${currentHour}:${m}`)}
-                        className={cn(
-                          "w-full py-1.5 px-1 rounded-lg text-xs font-medium text-center transition-all",
-                          isSelected
-                            ? "bg-blue-600 text-white font-bold shadow-xs"
-                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-                        )}
-                      >
-                        {m}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+            {/* Right: Time Picker */}
+            <TimePicker />
           </div>
 
-          {/* Bottom Footer Bar: Cancel | Preview Pill | Confirm Button */}
-          <div className="p-3 bg-slate-50/60 border-t border-slate-100 flex items-center gap-4 justify-center">
+          {/* ─── DESKTOP: Footer ─── */}
+          <div className="hidden sm:flex p-3 bg-slate-50/60 border-t border-slate-100 items-center gap-4 justify-center">
             <button
               type="button"
               onClick={() => setOpen(false)}
