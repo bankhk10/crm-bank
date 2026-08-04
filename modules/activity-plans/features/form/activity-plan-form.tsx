@@ -985,12 +985,14 @@ export function ActivityPlanForm({
     );
 
     if (isPromotionalMediaSelected) {
-      marketingBudget =
-        marketingProductItems.length > 0
-          ? calculatedMarketingSum
-          : marketingBudgetAmount > 0
-            ? marketingBudgetAmount
-            : 10000;
+      if (marketingProductItems.length === 0) {
+        setError(
+          "สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่ ทุกชนิด) ต้องมีอย่างน้อย 1 ข้อมูล",
+        );
+        setLoading(false);
+        return;
+      }
+      marketingBudget = calculatedMarketingSum;
     }
 
     const hasLocationRequirement = selectedWorkTypes.some((t) =>
@@ -1440,18 +1442,27 @@ export function ActivityPlanForm({
               addSalesPromotionRow={addSalesPromotionRow}
               updateSalesPromotionRow={updateSalesPromotionRow}
               deleteSalesPromotionRow={deleteSalesPromotionRow}
-              targetSales={
-                (type9ProductItems.length > 0
-                  ? type9ProductItems.reduce(
-                      (sum, item) =>
-                        sum +
-                        (item.quantityCases || 0) * (item.pricePerCase || 0),
-                      0,
-                    )
-                  : type9Sales) ||
-                type10BookingSales ||
-                0
-              }
+              targetSales={(() => {
+                let total = 0;
+                if (
+                  selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")
+                ) {
+                  total +=
+                    type9ProductItems.length > 0
+                      ? type9ProductItems.reduce(
+                          (sum, item) =>
+                            sum +
+                            (item.quantityCases || 0) *
+                              (item.pricePerCase || 0),
+                          0,
+                        )
+                      : type9Sales || 0;
+                }
+                if (selectedWorkTypes.includes("จัดงาน Field Day")) {
+                  total += type10BookingSales || 0;
+                }
+                return total;
+              })()}
             />
 
             {/* SECTION 6: ข้อมูลเพิ่มเติม (Additional Info) */}

@@ -66,7 +66,7 @@ export function BudgetSection({
   addSalesPromotionRow,
   updateSalesPromotionRow,
   deleteSalesPromotionRow,
-  targetSales,
+  targetSales = 0,
 }: Props) {
   return (
     <div className="space-y-4">
@@ -77,10 +77,15 @@ export function BudgetSection({
         {/* Checkbox 1: สื่อส่งเสริมการขาย */}
         <button
           type="button"
-          onClick={() =>
-            !readonly &&
-            setIsPromotionalMediaSelected(!isPromotionalMediaSelected)
-          }
+          onClick={() => {
+            if (!readonly) {
+              const nextVal = !isPromotionalMediaSelected;
+              setIsPromotionalMediaSelected(nextVal);
+              if (nextVal && marketingProductItems.length === 0) {
+                addMarketingProductItem();
+              }
+            }
+          }}
           className={cn(
             "flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold transition-all text-left",
             isPromotionalMediaSelected
@@ -186,7 +191,7 @@ export function BudgetSection({
                 <input
                   type="number"
                   readOnly
-                  value={targetSales}
+                  value={targetSales ?? 0}
                   className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-slate-100/70 text-xs font-semibold text-slate-700 cursor-not-allowed"
                 />
               </div>
@@ -222,7 +227,8 @@ export function BudgetSection({
           <div className="space-y-2 pt-2 border-t border-emerald-200/50">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-700">
-                สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่ ทุกชนิด)
+                สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่ ทุกชนิด){" "}
+                <span className="text-red-500">* (ต้องมีอย่างน้อย 1 ข้อมูล)</span>
               </span>
 
               {!readonly && (
@@ -439,15 +445,9 @@ export function BudgetSection({
                               <input
                                 type="number"
                                 value={item.pricePerCase}
-                                onChange={(e) =>
-                                  updateMarketingProductItem(
-                                    item.id,
-                                    "pricePerCase",
-                                    parseFloat(e.target.value) || 0,
-                                  )
-                                }
-                                disabled={readonly}
-                                className="w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 text-xs text-slate-700 text-right font-bold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                disabled={true}
+                                readOnly={true}
+                                className="w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 text-xs text-slate-500 text-right font-bold bg-slate-100/70 cursor-not-allowed"
                               />
                             </div>
                           </td>
@@ -461,7 +461,18 @@ export function BudgetSection({
                                 onClick={() =>
                                   deleteMarketingProductItem(item.id)
                                 }
-                                className="p-1 rounded-md text-red-500 hover:bg-red-50 transition-colors"
+                                disabled={marketingProductItems.length <= 1}
+                                title={
+                                  marketingProductItems.length <= 1
+                                    ? "สื่อส่งเสริมการขายต้องมีอย่างน้อย 1 ข้อมูล"
+                                    : "ลบรายการ"
+                                }
+                                className={cn(
+                                  "p-1 rounded-md transition-colors",
+                                  marketingProductItems.length <= 1
+                                    ? "text-slate-300 cursor-not-allowed"
+                                    : "text-red-500 hover:bg-red-50",
+                                )}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
