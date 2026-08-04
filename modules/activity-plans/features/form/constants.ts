@@ -41,6 +41,7 @@ export const MARKETING_PRODUCT_CATEGORIES = [
   "Banner",
   "Leaflet",
   "อุปกรณ์จัดงาน",
+  "อื่นๆ",
 ];
 
 export interface MarketingProductOption {
@@ -260,6 +261,7 @@ export const MARKETING_PRODUCTS_BY_CATEGORY: Record<
     { name: "ร่มสนาม", price: 1400 },
     { name: "หญ้าเทียม", price: 1800 },
   ],
+  อื่นๆ: [{ name: "", price: 0, unit: "ชิ้น" }],
 };
 
 export const CROP_CATEGORIES = ["ผักและพืชล้มลุก", "พืชไร่", "พืชสวน"];

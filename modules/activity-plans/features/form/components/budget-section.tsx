@@ -313,7 +313,7 @@ export function BudgetSection({
                             {index + 1}
                           </td>
                           {/* หมวดหมู่ (Category) */}
-                          <td className="py-1.5 px-3">
+                          <td className="py-1.5 px-3 space-y-1">
                             <FormCombobox
                               id={`category-combobox-${item.id}`}
                               label=""
@@ -371,63 +371,113 @@ export function BudgetSection({
                               emptyText="ไม่พบหมวดหมู่"
                               disabled={readonly}
                             />
+                            {currentCat === "อื่นๆ" && (
+                              <input
+                                type="text"
+                                value={item.customCategory || ""}
+                                onChange={(e) =>
+                                  updateMarketingProductItem(
+                                    item.id,
+                                    "customCategory",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="ระบุหมวดหมู่อื่นๆ..."
+                                disabled={readonly}
+                                className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
+                              />
+                            )}
                           </td>
                           {/* รายการ (Product) */}
                           <td className="py-1.5 px-3">
-                            <FormCombobox
-                              id={`product-combobox-${item.id}`}
-                              label=""
-                              triggerClassName="h-8 min-h-[32px] py-1 text-xs bg-white border-slate-200 rounded-md text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                              value={item.productName}
-                              onChange={(val) => {
-                                const prodObj = availableProds.find(
-                                  (p) => p.name === val,
-                                );
-                                const price = prodObj
-                                  ? prodObj.price
-                                  : (DEMO_PRODUCT_PRICES[val] ?? 500);
-                                const unit =
-                                  prodObj?.unit ||
-                                  (currentCat === "PP_Board"
-                                    ? "แผ่น"
-                                    : currentCat === "Banner"
-                                      ? "ผืน"
-                                      : currentCat === "Leaflet"
-                                        ? "ใบ"
-                                        : "ชิ้น");
+                            {currentCat === "อื่นๆ" ? (
+                              <input
+                                type="text"
+                                value={item.productName || ""}
+                                onChange={(e) =>
+                                  updateMarketingProductItem(
+                                    item.id,
+                                    "productName",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="ระบุชื่อรายการ..."
+                                disabled={readonly}
+                                className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
+                              />
+                            ) : (
+                              <FormCombobox
+                                id={`product-combobox-${item.id}`}
+                                label=""
+                                triggerClassName="h-8 min-h-[32px] py-1 text-xs bg-white border-slate-200 rounded-md text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                                value={item.productName}
+                                onChange={(val) => {
+                                  const prodObj = availableProds.find(
+                                    (p) => p.name === val,
+                                  );
+                                  const price = prodObj
+                                    ? prodObj.price
+                                    : (DEMO_PRODUCT_PRICES[val] ?? 500);
+                                  const unit =
+                                    prodObj?.unit ||
+                                    (currentCat === "PP_Board"
+                                      ? "แผ่น"
+                                      : currentCat === "Banner"
+                                        ? "ผืน"
+                                        : currentCat === "Leaflet"
+                                          ? "ใบ"
+                                          : "ชิ้น");
 
-                                updateMarketingProductItem(
-                                  item.id,
-                                  "productName",
-                                  val,
-                                );
-                                updateMarketingProductItem(
-                                  item.id,
-                                  "pricePerCase",
-                                  price,
-                                );
-                                updateMarketingProductItem(
-                                  item.id,
-                                  "unit",
-                                  unit,
-                                );
-                              }}
-                              options={availableProds.map((prod) => ({
-                                value: prod.name,
-                                label: prod.name,
-                              }))}
-                              placeholder="เลือกสินค้า..."
-                              searchPlaceholder="ค้นหาสินค้า..."
-                              emptyText="ไม่พบสินค้า"
-                              disabled={readonly}
-                            />
+                                  updateMarketingProductItem(
+                                    item.id,
+                                    "productName",
+                                    val,
+                                  );
+                                  updateMarketingProductItem(
+                                    item.id,
+                                    "pricePerCase",
+                                    price,
+                                  );
+                                  updateMarketingProductItem(
+                                    item.id,
+                                    "unit",
+                                    unit,
+                                  );
+                                }}
+                                options={availableProds.map((prod) => ({
+                                  value: prod.name,
+                                  label: prod.name,
+                                }))}
+                                placeholder="เลือกสินค้า..."
+                                searchPlaceholder="ค้นหาสินค้า..."
+                                emptyText="ไม่พบสินค้า"
+                                disabled={readonly}
+                              />
+                            )}
                           </td>
 
                           {/* หน่วย */}
                           <td className="py-1.5 px-3 text-center whitespace-nowrap">
-                            <span className="inline-block px-2.5 py-1 rounded-md text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 shadow-2xs">
-                              {currentUnit}
-                            </span>
+                            {currentCat === "อื่นๆ" ? (
+                              <input
+                                type="text"
+                                value={item.unit || "ชิ้น"}
+                                onChange={(e) =>
+                                  updateMarketingProductItem(
+                                    item.id,
+                                    "unit",
+                                    e.target.value,
+                                  )
+                                }
+                                disabled={readonly}
+                                placeholder="หน่วย"
+                                className="w-16 h-8 px-2 text-center rounded-md border border-slate-200 text-xs font-bold text-emerald-800 bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              />
+                            ) : (
+                              <span className="inline-block px-2.5 py-1 rounded-md text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 shadow-2xs">
+                                {currentUnit}
+                              </span>
+                            )}
                           </td>
                           <td className="py-1.5 px-3">
                             <div className="relative">
