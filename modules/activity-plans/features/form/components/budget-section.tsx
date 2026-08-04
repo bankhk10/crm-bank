@@ -311,10 +311,12 @@ export function BudgetSection({
                           </td>
                           {/* หมวดหมู่ (Category) */}
                           <td className="py-1.5 px-3">
-                            <select
+                            <FormCombobox
+                              id={`category-combobox-${item.id}`}
+                              label=""
+                              triggerClassName="h-8 min-h-[32px] py-1 text-xs bg-white border-slate-200 rounded-md text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                               value={currentCat}
-                              onChange={(e) => {
-                                const newCat = e.target.value;
+                              onChange={(newCat) => {
                                 const prods =
                                   MARKETING_PRODUCTS_BY_CATEGORY[newCat] || [];
                                 const firstProdObj = prods[0];
@@ -355,15 +357,17 @@ export function BudgetSection({
                                   firstUnit,
                                 );
                               }}
+                              options={MARKETING_PRODUCT_CATEGORIES.map(
+                                (cat) => ({
+                                  value: cat,
+                                  label: cat,
+                                }),
+                              )}
+                              placeholder="เลือกหมวดหมู่..."
+                              searchPlaceholder="ค้นหาหมวดหมู่..."
+                              emptyText="ไม่พบหมวดหมู่"
                               disabled={readonly}
-                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-slate-50/70"
-                            >
-                              {MARKETING_PRODUCT_CATEGORIES.map((cat) => (
-                                <option key={cat} value={cat}>
-                                  {cat}
-                                </option>
-                              ))}
-                            </select>
+                            />
                           </td>
                           {/* รายการ (Product) */}
                           <td className="py-1.5 px-3">
