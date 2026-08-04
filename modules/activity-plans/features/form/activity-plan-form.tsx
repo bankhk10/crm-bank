@@ -589,11 +589,8 @@ export function ActivityPlanForm({
 
   const addMarketingProductItem = () => {
     const defaultCat = MARKETING_PRODUCT_CATEGORIES[0];
-    const firstProdObj =
-      MARKETING_PRODUCTS_BY_CATEGORY[defaultCat]?.[0];
-    const firstProd = firstProdObj
-      ? firstProdObj.name
-      : "สมุดฉีก";
+    const firstProdObj = MARKETING_PRODUCTS_BY_CATEGORY[defaultCat]?.[0];
+    const firstProd = firstProdObj ? firstProdObj.name : "สมุดฉีก";
     const defaultPrice = firstProdObj ? firstProdObj.price : 25;
     const defaultUnit = firstProdObj?.unit || "เล่ม";
     const newItem: MarketingBudgetProductItem = {
@@ -1073,7 +1070,7 @@ export function ActivityPlanForm({
               {/* Card 1: ผู้รับผิดชอบ */}
               <div className="bg-slate-50/80 border border-slate-200/60 rounded-xl p-4 flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center flex-shrink-0">
-                  <User className="h-5 w-5" />
+                  <User className="h-5 w-5 text-sky-500" />
                 </div>
                 <div>
                   <p className="text-xs font-medium text-slate-400">
@@ -1088,7 +1085,7 @@ export function ActivityPlanForm({
               {/* Card 2: เลขที่แผน */}
               <div className="bg-slate-50/80 border border-slate-200/60 rounded-xl p-4 flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center flex-shrink-0">
-                  <FileText className="h-5 w-5" />
+                  <FileText className="h-5 w-5 text-blue-500" />
                 </div>
                 <div>
                   <p className="text-xs font-medium text-slate-400">
