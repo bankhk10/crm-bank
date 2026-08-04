@@ -41,7 +41,7 @@ export function Type6Issue({
         }))
   ).map((c) => ({
     value: c.name,
-    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+    label: c.name,
   }));
 
   const issueTypeOptions = ISSUE_TYPES.map((t) => ({
@@ -125,9 +125,7 @@ export function Type6Issue({
                   labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
                   value={item.issueType}
-                  onChange={(val) =>
-                    updateType6Row(item.id, "issueType", val)
-                  }
+                  onChange={(val) => updateType6Row(item.id, "issueType", val)}
                   options={issueTypeOptions}
                   placeholder="เลือกประเภทปัญหา..."
                   searchPlaceholder="ค้นหาประเภทปัญหา..."
