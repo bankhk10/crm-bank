@@ -185,6 +185,8 @@ export function ActivityPlanForm({
     : [];
   const [selectedWorkTypes, setSelectedWorkTypes] =
     useState<string[]>(initialTypes);
+  const [tempSelectedWorkTypes, setTempSelectedWorkTypes] =
+    useState<string[]>(initialTypes);
   const [isWorkTypesDropdownOpen, setIsWorkTypesDropdownOpen] = useState(false);
   const workTypesDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -680,20 +682,18 @@ export function ActivityPlanForm({
 
   // Work type selection toggling
   const toggleWorkType = (typeStr: string) => {
-    if (selectedWorkTypes.includes(typeStr)) {
-      setSelectedWorkTypes(selectedWorkTypes.filter((t) => t !== typeStr));
+    if (tempSelectedWorkTypes.includes(typeStr)) {
+      setTempSelectedWorkTypes(
+        tempSelectedWorkTypes.filter((t) => t !== typeStr),
+      );
     } else {
-      setSelectedWorkTypes([...selectedWorkTypes, typeStr]);
+      setTempSelectedWorkTypes([...tempSelectedWorkTypes, typeStr]);
     }
   };
 
   const removeWorkType = (typeStr: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setSelectedWorkTypes(selectedWorkTypes.filter((t) => t !== typeStr));
-  };
-
-  const clearWorkTypes = () => {
-    setSelectedWorkTypes([]);
   };
 
   // Type 9 Store Promotion Product Table Helpers
@@ -1133,10 +1133,14 @@ export function ActivityPlanForm({
 
                 {/* Input Trigger Field */}
                 <div
-                  onClick={() =>
-                    !readonly &&
-                    setIsWorkTypesDropdownOpen(!isWorkTypesDropdownOpen)
-                  }
+                  onClick={() => {
+                    if (!readonly) {
+                      if (!isWorkTypesDropdownOpen) {
+                        setTempSelectedWorkTypes(selectedWorkTypes);
+                      }
+                      setIsWorkTypesDropdownOpen(!isWorkTypesDropdownOpen);
+                    }
+                  }}
                   className={cn(
                     "min-h-[40px] w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm flex flex-wrap items-center gap-1.5 cursor-pointer hover:border-slate-300 focus-within:ring-2 focus-within:ring-blue-500 transition-all",
                     readonly && "cursor-not-allowed bg-slate-50",
@@ -1173,7 +1177,7 @@ export function ActivityPlanForm({
                   <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 w-full sm:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-3 space-y-2 animate-in fade-in-0 zoom-in-95">
                     <div className="max-h-80 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
                       {WORK_TYPES.map((typeStr) => {
-                        const isChecked = selectedWorkTypes.includes(typeStr);
+                        const isChecked = tempSelectedWorkTypes.includes(typeStr);
                         return (
                           <label
                             key={typeStr}
@@ -1203,13 +1207,23 @@ export function ActivityPlanForm({
                       })}
                     </div>
 
-                    <div className="pt-2 border-t border-slate-100 text-center">
+                    <div className="pt-2.5 border-t border-slate-100 flex items-center justify-center gap-3">
                       <button
                         type="button"
-                        onClick={clearWorkTypes}
-                        className="text-xs font-medium text-slate-500 hover:text-slate-700 underline"
+                        onClick={() => setIsWorkTypesDropdownOpen(false)}
+                        className="px-4 py-1.5 rounded-xl border border-slate-300 bg-red-600 hover:bg-red-700 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
                       >
-                        ล้างการเลือก
+                        ยกเลิก
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedWorkTypes(tempSelectedWorkTypes);
+                          setIsWorkTypesDropdownOpen(false);
+                        }}
+                        className="px-4 py-1.5 rounded-xl border border-slate-300 bg-green-600 hover:bg-green-700 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
+                      >
+                        ตกลง
                       </button>
                     </div>
                   </div>
