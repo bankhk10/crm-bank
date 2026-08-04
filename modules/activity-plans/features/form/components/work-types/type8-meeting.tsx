@@ -99,8 +99,8 @@ export function Type8Meeting({
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  <div>
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                  <div className="md:col-span-5">
                     <label className="block text-xs font-medium text-slate-700 mb-1 mt-1">
                       หัวข้อที่จะประชุม <span className="text-red-500">*</span>
                     </label>
@@ -116,7 +116,7 @@ export function Type8Meeting({
                     />
                   </div>
 
-                  <div>
+                  <div className="md:col-span-5">
                     <label className="block text-xs font-medium text-slate-700 mb-1">
                       สินค้าเป้าหมาย (สูงสุด 3 รายการ)
                     </label>
@@ -187,7 +187,7 @@ export function Type8Meeting({
                     </div>
                   </div>
 
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-slate-700 mb-1 mt-1">
                       เป้าหมายผู้เข้าร่วม (คน){" "}
                       <span className="text-red-500">*</span>
@@ -204,7 +204,7 @@ export function Type8Meeting({
                         )
                       }
                       disabled={readonly}
-                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium bg-white"
+                      className="w-full max-w-[120px] h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium bg-white"
                     />
                   </div>
                 </div>
