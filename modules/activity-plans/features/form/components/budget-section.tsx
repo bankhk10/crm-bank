@@ -313,7 +313,7 @@ export function BudgetSection({
                             {index + 1}
                           </td>
                           {/* หมวดหมู่ (Category) */}
-                          <td className="py-1.5 px-3 space-y-1">
+                          <td className="py-1.5 px-3">
                             <FormCombobox
                               id={`category-combobox-${item.id}`}
                               label=""
@@ -371,22 +371,6 @@ export function BudgetSection({
                               emptyText="ไม่พบหมวดหมู่"
                               disabled={readonly}
                             />
-                            {currentCat === "อื่นๆ" && (
-                              <input
-                                type="text"
-                                value={item.customCategory || ""}
-                                onChange={(e) =>
-                                  updateMarketingProductItem(
-                                    item.id,
-                                    "customCategory",
-                                    e.target.value,
-                                  )
-                                }
-                                placeholder="ระบุหมวดหมู่อื่นๆ..."
-                                disabled={readonly}
-                                className="w-full h-8 px-2.5 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
-                              />
-                            )}
                           </td>
                           {/* รายการ (Product) */}
                           <td className="py-1.5 px-3">
