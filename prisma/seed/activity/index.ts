@@ -1,9 +1,11 @@
+import "dotenv/config";
 import {
   PrismaClient,
   DataAccessLevel,
   EditAccessLevel,
   DeleteAccessLevel,
 } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { hash } from "bcryptjs";
 
 export async function seedActivityTestData(prisma: PrismaClient) {
@@ -763,4 +765,28 @@ export async function seedActivityTestData(prisma: PrismaClient) {
   console.log(
     "✅ All test users seeded successfully with 2 parallel teams and proper Manager Chaining.",
   );
+}
+
+// Standalone execution entrypoint
+if (process.argv[1]?.includes("activity")) {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error("DATABASE_URL environment variable is not set");
+  }
+
+  // @ts-ignore
+  const adapter = new PrismaPg({ connectionString });
+  const prisma = new PrismaClient({ adapter });
+
+  console.log("🌱 Starting Activity Test Data seed...");
+  seedActivityTestData(prisma)
+    .then(() => {
+      console.log("✅ Activity Test Data seeding completed successfully!");
+      return prisma.$disconnect();
+    })
+    .catch(async (error) => {
+      console.error("❌ Activity Test Data seed failed:", error);
+      await prisma.$disconnect();
+      process.exit(1);
+    });
 }

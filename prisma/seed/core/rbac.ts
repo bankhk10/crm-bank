@@ -786,6 +786,64 @@ const permissionGroups: Record<string, PermissionGroup> = {
       },
     ],
   },
+
+  // ─────────────────────────────────────────────
+  // 📋 Activity Plans (การวางแผนกิจกรรม)
+  // ─────────────────────────────────────────────
+  activityPlans: {
+    menu: {
+      key: "menu.activity_plans",
+      name: "เมนูการวางแผนกิจกรรม",
+      resource: "activity_plan",
+      menuPath: "/activity-plans",
+    },
+    actions: [
+      {
+        key: "activity.create",
+        name: "สร้างแผนกิจกรรม",
+        resource: "activity_plan",
+        action: "create",
+      },
+      {
+        key: "activity.edit",
+        name: "แก้ไขแผนกิจกรรม",
+        resource: "activity_plan",
+        action: "edit",
+      },
+      {
+        key: "activity.delete",
+        name: "ลบแผนกิจกรรม",
+        resource: "activity_plan",
+        action: "delete",
+      },
+      {
+        key: "activity.view",
+        name: "ดูแผนกิจกรรม",
+        resource: "activity_plan",
+        action: "view",
+      },
+      {
+        key: "activity.approve",
+        name: "อนุมัติแผนกิจกรรม",
+        resource: "activity_plan",
+        action: "approve",
+      },
+      {
+        key: "activity.manage",
+        name: "จัดการแผนกิจกรรมทั้งหมด",
+        resource: "activity_plan",
+        action: "manage",
+      },
+    ],
+    data: {
+      key: "data.activity_plans",
+      name: "ขอบเขตข้อมูลแผนกิจกรรม",
+      resource: "activity_plan",
+      defaultDataAccess: DataAccessLevel.VIEW_OWN,
+      defaultEditAccess: EditAccessLevel.EDIT_OWN,
+      defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
+    },
+  },
 };
 
 // ============================================================================
