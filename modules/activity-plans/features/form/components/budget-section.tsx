@@ -635,21 +635,29 @@ export function BudgetSection({
                           </div>
                         </td>
                         <td className="py-2 px-3">
-                          <select
+                          <FormCombobox
+                            id={`budget-type-combobox-${item.id}`}
+                            label=""
+                            triggerClassName={cn(
+                              "h-8 min-h-[32px] py-1 text-xs rounded-lg font-bold border transition-all shadow-2xs",
+                            )}
                             value={item.budgetType || "งบการตลาด"}
-                            onChange={(e) =>
+                            onChange={(val) =>
                               updateSalesPromotionRow(
                                 item.id,
                                 "budgetType",
-                                e.target.value,
+                                val,
                               )
                             }
+                            options={[
+                              { value: "งบการตลาด", label: "งบการตลาด" },
+                              { value: "งบขาย", label: "งบขาย" },
+                            ]}
+                            placeholder="เลือกการใช้งบ..."
+                            searchPlaceholder="ค้นหา..."
+                            emptyText="ไม่พบรายการ"
                             disabled={readonly}
-                            className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-                          >
-                            <option value="งบการตลาด">งบการตลาด</option>
-                            <option value="งบขาย">งบขาย</option>
-                          </select>
+                          />
                         </td>
                         {!readonly && (
                           <td className="py-2 px-3 text-center">
