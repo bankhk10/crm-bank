@@ -47,7 +47,7 @@ export function Type1Visit({
         }))
   ).map((c) => ({
     value: c.name,
-    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+    label: c.name,
   }));
 
   return (
