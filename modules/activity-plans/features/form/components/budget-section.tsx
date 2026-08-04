@@ -149,7 +149,7 @@ export function BudgetSection({
           </div>
 
           {/* Summary & Ratio Inputs Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 items-end">
             <div>
               <label className="block text-xs font-medium text-slate-700 mb-1.5">
                 งบการตลาด (บาท) <span className="text-red-500">*</span>
@@ -227,7 +227,7 @@ export function BudgetSection({
           {/* Marketing Product Table */}
           <div className="space-y-2 pt-2 border-t border-emerald-200/50">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-700">
+              <span className="text-xs font-semibold text-slate-700 leading-snug">
                 สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่ ทุกชนิด){" "}
                 <span className="text-red-500">
                   * (ต้องมีอย่างน้อย 1 ข้อมูล)

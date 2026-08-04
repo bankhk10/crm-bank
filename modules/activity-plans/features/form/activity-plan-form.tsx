@@ -1038,11 +1038,11 @@ export function ActivityPlanForm({
   };
 
   return (
-    <section className="space-y-6 container mx-auto">
+    <section className="space-y-4 md:space-y-6 container mx-auto px-0 sm:px-0">
       <Card>
-        <div className="p-6">
+        <div className="p-3 sm:p-4 md:p-6">
           <div className="text-center">
-            <h5 className="font-semibold text-3xl border-b pb-6 leading-snug">
+            <h5 className="font-semibold text-lg sm:text-2xl md:text-3xl border-b pb-4 md:pb-6 leading-snug">
               <span className="hidden sm:inline">
                 {isEdit
                   ? "แก้ไขแผนงานกิจกรรม ( Activity plan )"
@@ -1055,7 +1055,7 @@ export function ActivityPlanForm({
             </h5>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6 pt-6" noValidate>
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6 pt-4 md:pt-6" noValidate>
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-500" />
@@ -1066,7 +1066,7 @@ export function ActivityPlanForm({
             {/* SECTION 1: ข้อมูลระบบ (System Info) */}
             <SectionHeader title="ข้อมูลระบบ" color="gray" />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               {/* Card 1: ผู้รับผิดชอบ */}
               <div className="bg-slate-50/80 border border-slate-200/60 rounded-xl p-4 flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center flex-shrink-0">
@@ -1101,7 +1101,7 @@ export function ActivityPlanForm({
             {/* SECTION 2: ข้อมูลหลักของกิจกรรม (Main Activity Details) */}
             <SectionHeader title="ข้อมูลหลักของกิจกรรม" color="gray" />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               {/* ชื่อกิจกรรม */}
               <div className="lg:col-span-1">
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -1484,13 +1484,13 @@ export function ActivityPlanForm({
             </div>
 
             {/* Bottom Action Footer */}
-            <div className="flex items-center justify-center gap-4 pt-4 border-t border-slate-100">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-4 border-t border-slate-100">
               {onCancel && (
                 <Button
                   type="button"
                   onClick={onCancel}
                   disabled={loading}
-                  className="w-32 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl h-11 shadow-sm flex items-center justify-center gap-1.5"
+                  className="w-full sm:w-32 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl h-11 shadow-sm flex items-center justify-center gap-1.5"
                 >
                   <X className="h-4 w-4" />
                   <span>ยกเลิก</span>
@@ -1501,7 +1501,7 @@ export function ActivityPlanForm({
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-32 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl h-11 shadow-md flex items-center justify-center gap-1.5"
+                  className="w-full sm:w-32 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl h-11 shadow-md flex items-center justify-center gap-1.5"
                 >
                   <Check className="h-4 w-4 stroke-[3]" />
                   <span>{loading ? "กำลังบันทึก..." : submitLabel}</span>

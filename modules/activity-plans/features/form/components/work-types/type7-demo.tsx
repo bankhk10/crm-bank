@@ -147,7 +147,7 @@ export function Type7Demo({
 
                 <div className="space-y-3">
                   {/* แถวบน: เจ้าของแปลง + สินค้าที่จะสาธิต */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <FormCombobox
                       id={`owner-combobox-${item.id}`}
                       label="เจ้าของแปลง"
@@ -184,8 +184,8 @@ export function Type7Demo({
                   </div>
 
                   {/* แถวล่าง: หมวดพืช + ชื่อพืช + จำนวน */}
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-                    <div className="lg:col-span-5">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                    <div className="md:col-span-5">
                       <FormCombobox
                         id={`crop-category-combobox-${item.id}`}
                         label="หมวดพืช"
@@ -210,7 +210,7 @@ export function Type7Demo({
                       />
                     </div>
 
-                    <div className="lg:col-span-5">
+                    <div className="md:col-span-5">
                       <FormCombobox
                         id={`crop-name-combobox-${item.id}`}
                         label="ชื่อพืช"
@@ -228,7 +228,7 @@ export function Type7Demo({
                       />
                     </div>
 
-                    <div className="lg:col-span-2">
+                    <div className="md:col-span-2">
                       <label className="block text-xs font-medium text-slate-700 mb-1">
                         จำนวน <span className="text-red-500">*</span>
                       </label>

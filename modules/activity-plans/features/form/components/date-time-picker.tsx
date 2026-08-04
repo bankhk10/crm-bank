@@ -148,7 +148,7 @@ export function DateTimePicker({
           className="w-auto p-0 rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden bg-white z-50"
         >
           {/* Main Top Area: Calendar (Left) + Hours/Minutes Columns (Right) */}
-          <div className="flex items-stretch">
+          <div className="flex flex-col sm:flex-row items-stretch">
             {/* Left: Calendar Picker */}
             <div className="p-3">
               <Calendar
@@ -163,7 +163,8 @@ export function DateTimePicker({
             </div>
 
             {/* Vertical Divider Line */}
-            <div className="w-[1px] bg-slate-100 my-3" />
+            <div className="hidden sm:block w-[1px] bg-slate-100 my-3" />
+            <div className="sm:hidden h-[1px] bg-slate-100 mx-3" />
 
             {/* Right: Hours & Minutes Side-by-Side Selection Columns */}
             <div className="p-3 flex flex-col justify-start">
