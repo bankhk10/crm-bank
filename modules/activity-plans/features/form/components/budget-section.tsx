@@ -10,6 +10,7 @@ import {
   DEMO_PRODUCT_PRICES,
   MARKETING_PRODUCT_CATEGORIES,
   MARKETING_PRODUCTS_BY_CATEGORY,
+  MARKETING_UNITS,
 } from "../constants";
 
 function getCategoryForProduct(productName: string): string {
@@ -443,8 +444,7 @@ export function BudgetSection({
                           {/* หน่วย */}
                           <td className="py-1.5 px-3 text-center whitespace-nowrap">
                             {currentCat === "อื่นๆ" ? (
-                              <input
-                                type="text"
+                              <select
                                 value={item.unit || "ชิ้น"}
                                 onChange={(e) =>
                                   updateMarketingProductItem(
@@ -454,9 +454,14 @@ export function BudgetSection({
                                   )
                                 }
                                 disabled={readonly}
-                                placeholder="หน่วย"
-                                className="w-16 h-8 px-2 text-center rounded-md border border-slate-200 text-xs font-bold text-emerald-800 bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                              />
+                                className="h-8 px-2 text-center rounded-md border border-slate-200 text-xs font-bold text-emerald-800 bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                              >
+                                {MARKETING_UNITS.map((u) => (
+                                  <option key={u} value={u}>
+                                    {u}
+                                  </option>
+                                ))}
+                              </select>
                             ) : (
                               <span className="inline-block px-2.5 py-1 rounded-md text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 shadow-2xs">
                                 {currentUnit}

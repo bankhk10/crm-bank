@@ -330,6 +330,25 @@ export const REQUISITION_UNITS = [
   "ม้วน",
 ];
 
+export const MARKETING_UNITS = [
+  "ชิ้น",
+  "ใบ",
+  "เล่ม",
+  "ตัว",
+  "แผ่น",
+  "ผืน",
+  "กล่อง",
+  "ลัง",
+  "แพค",
+  "อัน",
+  "คัน",
+  "ชุด",
+  "ขวด",
+  "ซอง",
+  "ถุง",
+  "ม้วน",
+];
+
 export interface UserDemoPlotOption {
   id: string;
   name: string;
