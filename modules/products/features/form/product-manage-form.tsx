@@ -184,36 +184,9 @@ const PriceManagementSection: React.FC<SectionProps> = ({
 
         {/* แถวอื่น ๆ */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* งบส่งเสริมการขาย */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">
-              งบส่งเสริมการขายต่อลัง (บาท)
-            </Label>
-            <div className="relative">
-              <Input
-                type="number"
-                placeholder="0.00"
-                value={formData.promotionBudget ?? ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    promotionBudget:
-                      e.target.value !== "" ? Number(e.target.value) : 0,
-                  }))
-                }
-                disabled={saving}
-                className="pl-10 h-12 text-lg"
-                onWheel={(e) => e.currentTarget.blur()}
-              />
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                ฿
-              </div>
-            </div>
-          </div>
-
           {/* คะแนน */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">คะแนน</Label>
+            <Label className="text-sm font-medium">คะแนน (ต่อลัง)</Label>
             <Input
               type="number"
               min={0}

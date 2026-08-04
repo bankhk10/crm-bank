@@ -368,12 +368,6 @@ export default function ProductDetailView() {
                       </p>
                     </div>
                   )}
-                  {Number(product.promotionBudget) > 0 && (
-                    <p className="text-sm text-purple-600 flex items-center gap-1">
-                      <TrendingUp className="h-3.5 w-3.5" />
-                      งบส่งเสริม: {Number(product.promotionBudget).toLocaleString()} บาท
-                    </p>
-                  )}
                   {Number(product.pointPerUnit) > 0 && (
                     <p className="text-sm text-amber-600 flex items-center gap-1">
                       <Star className="h-3.5 w-3.5" />
