@@ -267,9 +267,9 @@ export function BudgetSection({
                     <tr>
                       <td
                         colSpan={8}
-                        className="py-4 text-center text-slate-400 italic"
+                        className="py-4 text-center text-slate-400"
                       >
-                        ยังไม่มีรายการสินค้า กดเพิ่มสินค้า เพื่อบันทึก
+                        ยังไม่มีรายการสินค้า
                       </td>
                     </tr>
                   ) : (
@@ -523,11 +523,8 @@ export function BudgetSection({
               <tbody className="divide-y divide-slate-200 bg-white">
                 {salesPromotionItems.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={6}
-                      className="py-4 text-center text-slate-400 italic"
-                    >
-                      ยังไม่มีรายการส่งเสริมการขาย กด "เพิ่มรายการ" เพื่อบันทึก
+                    <td colSpan={6} className="py-4 text-center text-slate-400">
+                      ยังไม่มีรายการส่งเสริมการขาย
                     </td>
                   </tr>
                 ) : (
