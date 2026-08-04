@@ -228,7 +228,9 @@ export function BudgetSection({
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-700">
                 สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่ ทุกชนิด){" "}
-                <span className="text-red-500">* (ต้องมีอย่างน้อย 1 ข้อมูล)</span>
+                <span className="text-red-500">
+                  * (ต้องมีอย่างน้อย 1 ข้อมูล)
+                </span>
               </span>
 
               {!readonly && (
@@ -255,12 +257,13 @@ export function BudgetSection({
                     <th className="py-2 px-3 min-w-[180px]">
                       รายการ <span className="text-red-500">*</span>
                     </th>
-                    <th className="py-2 px-3 w-28 text-center">
-                      จำนวน <span className="text-red-500">*</span>
-                    </th>
+
                     <th className="py-2 px-3 w-20 text-center">หน่วย</th>
                     <th className="py-2 px-3 w-28 text-center">
                       ราคา <span className="text-red-500">*</span>
+                    </th>
+                    <th className="py-2 px-3 w-28 text-center">
+                      จำนวน <span className="text-red-500">*</span>
                     </th>
                     <th className="py-2 px-3 w-32 text-right">รวมเงิน</th>
                     {!readonly && (
@@ -419,22 +422,7 @@ export function BudgetSection({
                               disabled={readonly}
                             />
                           </td>
-                          <td className="py-1.5 px-3">
-                            <input
-                              type="number"
-                              min={1}
-                              value={item.quantityCases}
-                              onChange={(e) =>
-                                updateMarketingProductItem(
-                                  item.id,
-                                  "quantityCases",
-                                  parseInt(e.target.value) || 0,
-                                )
-                              }
-                              disabled={readonly}
-                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-                            />
-                          </td>
+
                           {/* หน่วย */}
                           <td className="py-1.5 px-3 text-center whitespace-nowrap">
                             <span className="inline-block px-2.5 py-1 rounded-md text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 shadow-2xs">
@@ -454,6 +442,22 @@ export function BudgetSection({
                                 className="w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 text-xs text-slate-500 text-right font-bold bg-slate-100/70 cursor-not-allowed"
                               />
                             </div>
+                          </td>
+                          <td className="py-1.5 px-3">
+                            <input
+                              type="number"
+                              min={1}
+                              value={item.quantityCases}
+                              onChange={(e) =>
+                                updateMarketingProductItem(
+                                  item.id,
+                                  "quantityCases",
+                                  parseInt(e.target.value) || 0,
+                                )
+                              }
+                              disabled={readonly}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                            />
                           </td>
                           <td className="py-1.5 px-3 text-right font-semibold text-emerald-700">
                             ฿ {totalItemPrice.toLocaleString()}
