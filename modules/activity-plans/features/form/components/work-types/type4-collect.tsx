@@ -39,7 +39,7 @@ export function Type4Collect({
         }))
   ).map((c) => ({
     value: c.name,
-    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+    label: c.name,
   }));
 
   const totalAllCollect = type4Items.reduce(
@@ -120,8 +120,7 @@ export function Type4Collect({
 
                 <div className="md:col-span-2">
                   <label className="block text-xs font-medium text-slate-700 mb-1">
-                    เป้ายอดเก็บเงิน (บาท){" "}
-                    <span className="text-red-500">*</span>
+                    จำนวนเงิน (บาท) <span className="text-red-500">*</span>
                   </label>
                   <div className="relative mt-2">
                     <span className="absolute left-3 top-2 text-slate-400 text-xs font-semibold">
