@@ -51,7 +51,7 @@ export function Type2Followup({
         }))
   ).map((c) => ({
     value: c.name,
-    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+    label: c.name,
   }));
 
   const productOptions = (
