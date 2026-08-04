@@ -2,6 +2,7 @@ import React from "react";
 import { ShoppingCart, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
+import { cn } from "@/lib/utils";
 import type { Type3SalesItem, Type3SalesProductLine } from "../../types";
 import {
   DEMO_PRODUCTS,
@@ -304,7 +305,7 @@ export function Type3Sales({
                         className="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-end bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs"
                       >
                         {/* Product Combobox */}
-                        <div className="md:col-span-8">
+                        <div className="md:col-span-6">
                           <FormCombobox
                             id={`product-combobox-${item.id}-${prodLine.id}`}
                             label={pIdx === 0 ? "สินค้า" : "สินค้า"}
@@ -353,7 +354,7 @@ export function Type3Sales({
                         </div>
 
                         {/* Unit Price */}
-                        <div className="md:col-span-2">
+                        <div className="md:col-span-3">
                           {pIdx === 0 && (
                             <label className="block text-[11px] font-medium text-slate-600 mb-1">
                               ราคา (บาท) <span className="text-red-500">*</span>
@@ -373,6 +374,32 @@ export function Type3Sales({
                             />
                           </div>
                         </div>
+
+                        {/* Delete Product Line Button */}
+                        {!readonly && (
+                          <div className="md:col-span-1 flex items-center justify-end md:justify-center">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                deleteProductLine(item.id, prodLine.id)
+                              }
+                              disabled={prodListLines.length <= 1}
+                              title={
+                                prodListLines.length <= 1
+                                  ? "ต้องมีสินค้าอย่างน้อย 1 รายการ"
+                                  : "ลบรายการสินค้า"
+                              }
+                              className={cn(
+                                "h-9 w-9 rounded-lg flex items-center justify-center transition-colors",
+                                prodListLines.length <= 1
+                                  ? "text-slate-300 cursor-not-allowed"
+                                  : "text-red-500 hover:bg-red-50 hover:text-red-600",
+                              )}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
