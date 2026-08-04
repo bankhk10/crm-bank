@@ -1174,10 +1174,11 @@ export function ActivityPlanForm({
 
                 {/* Work types multi-select checkbox dropdown popup */}
                 {isWorkTypesDropdownOpen && (
-                  <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 w-full sm:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-3 space-y-2 animate-in fade-in-0 zoom-in-95">
+                  <div className="absolute left-0 sm:right-0 top-full mt-1.5 w-full sm:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-3 space-y-2 animate-in fade-in-0 zoom-in-95">
                     <div className="max-h-80 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
                       {WORK_TYPES.map((typeStr) => {
-                        const isChecked = tempSelectedWorkTypes.includes(typeStr);
+                        const isChecked =
+                          tempSelectedWorkTypes.includes(typeStr);
                         return (
                           <label
                             key={typeStr}
