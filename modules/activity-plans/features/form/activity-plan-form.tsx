@@ -1055,7 +1055,11 @@ export function ActivityPlanForm({
             </h5>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6 pt-4 md:pt-6" noValidate>
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4 md:space-y-6 pt-4 md:pt-6"
+            noValidate
+          >
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-500" />
@@ -1233,7 +1237,7 @@ export function ActivityPlanForm({
                 onDateChange={setEndDate}
                 onTimeChange={setEndTime}
                 readonly={readonly}
-                accentColor="indigo"
+                accentColor="blue"
               />
             </div>
 
