@@ -69,7 +69,8 @@ export function Type9Store({
   const activeIsSubDealer = isSubDealer ?? internalIsSubDealer;
   const activeSetIsSubDealer = setIsSubDealer ?? setInternalIsSubDealer;
   const activeSubDealerStore = subDealerStore ?? internalSubDealerStore;
-  const activeSetSubDealerStore = setSubDealerStore ?? setInternalSubDealerStore;
+  const activeSetSubDealerStore =
+    setSubDealerStore ?? setInternalSubDealerStore;
 
   const customerOptions = (
     customers && customers.length > 0
@@ -81,7 +82,7 @@ export function Type9Store({
         }))
   ).map((c) => ({
     value: c.name,
-    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+    label: c.name,
   }));
 
   const productOptions = (
