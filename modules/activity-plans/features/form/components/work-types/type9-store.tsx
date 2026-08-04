@@ -114,85 +114,94 @@ export function Type9Store({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-3">
-          <FormCombobox
-            id="type9-store-combobox"
-            label="ร้านค้าที่จะไปจัดงาน"
-            labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
-            triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
-            value={type9Store}
-            onChange={setType9Store}
-            options={customerOptions}
-            placeholder="เลือกร้านค้าที่จะไปจัดงาน..."
-            searchPlaceholder="ค้นหาร้านค้า..."
-            emptyText="ไม่พบร้านค้า"
-            disabled={readonly}
-            required
-          />
-
-          <div className="flex items-center gap-2 pt-0.5">
-            <label className="inline-flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer select-none">
-              <Checkbox
-                id="type9-is-sub-dealer-checkbox"
-                checked={activeIsSubDealer}
-                onCheckedChange={(checked) => {
-                  const isChecked = !!checked;
-                  activeSetIsSubDealer(isChecked);
-                  if (!isChecked) {
-                    activeSetSubDealerStore("");
-                  }
-                }}
-                disabled={readonly}
-                className="border-slate-300 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
-              />
-              <span>จัดกิจกรรมให้ร้าน Sub Dealer (ตัวแทนจำหน่ายย่อย)</span>
-            </label>
-          </div>
-
-          {activeIsSubDealer && (
-            <div className="space-y-1.5 pt-1 animate-in fade-in slide-in-from-top-1 duration-200">
-              <label className="block text-xs font-medium text-slate-700">
-                ชื่อร้านค้า Sub Dealer <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={activeSubDealerStore}
-                onChange={(e) => activeSetSubDealerStore(e.target.value)}
-                disabled={readonly}
-                placeholder="กรอกชื่อร้านค้า Sub Dealer..."
-                className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-slate-400"
-              />
-            </div>
-          )}
+      <div className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+          <span className="text-xs font-bold text-teal-800 flex items-center gap-1.5">
+            <Store className="h-4 w-4 text-teal-600" />
+            ข้อมูลร้านค้าและเป้ายอดขาย
+          </span>
         </div>
 
-        <div>
-          <label className="block text-xs font-medium text-slate-700 mb-1.5">
-            เป้ายอดขายรวมจากกิจกรรม (บาท){" "}
-            <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-              ฿
-            </span>
-            <input
-              type="number"
-              value={
-                type9ProductItems.length > 0 ? calculatedSales : type9Sales
-              }
-              onChange={(e) => setType9Sales(parseFloat(e.target.value) || 0)}
-              disabled={readonly || type9ProductItems.length > 0}
-              className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs font-bold text-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <FormCombobox
+              id="type9-store-combobox"
+              label="ร้านค้าที่จะไปจัดงาน"
+              labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+              triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
+              value={type9Store}
+              onChange={setType9Store}
+              options={customerOptions}
+              placeholder="เลือกร้านค้าที่จะไปจัดงาน..."
+              searchPlaceholder="ค้นหาร้านค้า..."
+              emptyText="ไม่พบร้านค้า"
+              disabled={readonly}
+              required
             />
+
+            <div className="flex items-center gap-2 pt-0.5">
+              <label className="inline-flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer select-none">
+                <Checkbox
+                  id="type9-is-sub-dealer-checkbox"
+                  checked={activeIsSubDealer}
+                  onCheckedChange={(checked) => {
+                    const isChecked = !!checked;
+                    activeSetIsSubDealer(isChecked);
+                    if (!isChecked) {
+                      activeSetSubDealerStore("");
+                    }
+                  }}
+                  disabled={readonly}
+                  className="border-slate-300 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
+                />
+                <span>จัดกิจกรรมให้ร้าน Sub Dealer (ตัวแทนจำหน่ายย่อย)</span>
+              </label>
+            </div>
+
+            {activeIsSubDealer && (
+              <div className="space-y-1.5 pt-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                <label className="block text-xs font-medium text-slate-700">
+                  ชื่อร้านค้า Sub Dealer <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={activeSubDealerStore}
+                  onChange={(e) => activeSetSubDealerStore(e.target.value)}
+                  disabled={readonly}
+                  placeholder="กรอกชื่อร้านค้า Sub Dealer..."
+                  className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-slate-400"
+                />
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">
+              เป้ายอดขายรวมจากกิจกรรม (บาท){" "}
+              <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
+                ฿
+              </span>
+              <input
+                type="number"
+                value={
+                  type9ProductItems.length > 0 ? calculatedSales : type9Sales
+                }
+                onChange={(e) => setType9Sales(parseFloat(e.target.value) || 0)}
+                disabled={readonly || type9ProductItems.length > 0}
+                className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs font-bold text-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Table / List of Products */}
-      <div className="space-y-3 pt-2 border-t border-teal-200/60">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+      <div className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+          <span className="text-xs font-bold text-teal-800 flex items-center gap-1.5">
             <Package className="h-4 w-4 text-teal-600" />
             รายการสินค้าที่เสนอขาย / โปรโมชันหน้าร้าน
           </span>
@@ -210,7 +219,7 @@ export function Type9Store({
           )}
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
               <tr>
