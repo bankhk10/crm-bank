@@ -362,7 +362,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           <tr>
             <th style="width: 4%;">ลำดับ</th>
             <th class="text-left" style="width: 25%;">รายละเอียดสินค้า</th>
-            <th style="width: 10%;">ประเภท</th>
+            <th style="width: 10%;">กรุ๊ป</th>
             <th style="width: 10%;">จำนวน</th>
             <th style="width: 8%;">หน่วย</th>
             <th style="width: 5%;">บรรจุ</th>
