@@ -118,72 +118,59 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
   const endTimeDisplay = formatTime(rawEndTime);
 
   return (
-    <div className="rounded-2xl overflow-hidden shadow-md border border-slate-200 bg-white">
-      {/* CARD HEADER */}
-      <div className="bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 px-4 py-3 md:px-5 md:py-4 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5 text-white font-bold text-sm md:text-base">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 border border-white/30 text-white shadow-sm">
-            <FileText className="w-4 h-4" />
-          </span>
-          <span className="tracking-wide drop-shadow-sm">
-            ข้อมูลสรุปจากแผน (Plan Summary)
-          </span>
-        </div>
-
-        {summary.planNo && (
-          <span className="text-xs bg-white/15 border border-white/25 text-white px-3 py-1 rounded-full font-bold flex items-center gap-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5 text-green-300" />
-            เลขที่แผน: {summary.planNo}
-          </span>
-        )}
-      </div>
-
-      {/* CARD BODY */}
-      <div className="p-4 md:p-5 space-y-4">
-        {/* SECTION 1: ข้อมูลหลักของกิจกรรม */}
-        <div className="space-y-2">
-          <p className="text-[11px] font-bold text-indigo-600 flex items-center gap-1.5 uppercase tracking-widest">
-            <FileText className="w-3.5 h-3.5" />
+    <div className="space-y-4 md:space-y-6">
+      {/* SECTION 1: ข้อมูลหลักของกิจกรรม */}
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-widest">
+            <FileText className="w-3.5 h-3.5 text-blue-500" />
             ข้อมูลหลักของกิจกรรม (Main Activity Details)
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* ชื่องานกิจกรรม */}
-            <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-xs hover:border-indigo-300 hover:shadow-sm transition-all duration-200">
-              <p className="text-[10px] text-slate-400 font-semibold mb-1 uppercase tracking-wider">
-                ชื่องานกิจกรรม
-              </p>
-              <p className="text-sm font-bold text-slate-800 leading-snug">
-                {summary.title}
-              </p>
-            </div>
+          {summary.planNo && (
+            <span className="text-xs bg-blue-50 border border-blue-200/80 text-blue-700 px-2.5 py-0.5 rounded-md font-semibold flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" />
+              เลขที่แผน: {summary.planNo}
+            </span>
+          )}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* ชื่องานกิจกรรม */}
+          <div className="bg-slate-50/80 border border-slate-200/60 p-3.5 rounded-xl transition-all duration-200">
+            <p className="text-[10px] text-slate-400 font-semibold mb-1 uppercase tracking-wider">
+              ชื่องานกิจกรรม
+            </p>
+            <p className="text-sm font-bold text-slate-800 leading-snug">
+              {summary.title}
+            </p>
+          </div>
 
-            {/* วันที่จัดกิจกรรม */}
-            <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-xs hover:border-indigo-300 hover:shadow-sm transition-all duration-200">
-              <p className="text-[10px] text-slate-400 font-semibold mb-1 uppercase tracking-wider">
-                วันที่จัดกิจกรรม
-              </p>
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-slate-700">
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                  <span>{summary.startDateStr}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-violet-500 shrink-0" />
-                  <span>{startTimeDisplay}</span>
-                </div>
-                <span className="text-slate-400 font-normal">→</span>
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                  <span>{summary.startDateStr}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-violet-500 shrink-0" />
-                  <span>{endTimeDisplay}</span>
-                </div>
+          {/* วันที่จัดกิจกรรม */}
+          <div className="bg-slate-50/80 border border-slate-200/60 p-3.5 rounded-xl transition-all duration-200">
+            <p className="text-[10px] text-slate-400 font-semibold mb-1 uppercase tracking-wider">
+              วันที่จัดกิจกรรม
+            </p>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-slate-700">
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                <span>{summary.startDateStr}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                <span>{startTimeDisplay}</span>
+              </div>
+              <span className="text-slate-400 font-normal">→</span>
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                <span>{summary.startDateStr}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                <span>{endTimeDisplay}</span>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
         {/* SECTION 2: งบประมาณและค่าใช้จ่าย */}
         {hasBudget && (
@@ -484,7 +471,6 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }
