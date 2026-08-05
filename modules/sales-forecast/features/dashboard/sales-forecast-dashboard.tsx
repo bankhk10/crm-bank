@@ -456,7 +456,9 @@ export default function SalesForecastDashboard() {
             </button>
             <div className="flex items-center gap-2 px-3">
               <Calendar className="w-5 h-5 text-blue-600" />
-              <span className="font-bold text-slate-800 text-lg">{year}</span>
+              <span className="font-bold text-slate-800 text-lg">
+                {year + 543}
+              </span>
             </div>
             <button
               onClick={() => setYear((y) => y + 1)}
