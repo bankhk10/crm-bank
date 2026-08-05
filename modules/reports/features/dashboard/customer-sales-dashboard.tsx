@@ -760,10 +760,9 @@ export function CustomerSalesDashboard() {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      className="h-8 px-3 border-red-200 hover:border-red-300 text-red-700 bg-red-50/50 hover:bg-red-50 rounded-lg text-xs font-semibold transition-all inline-flex items-center gap-1.5"
+                                      className="h-8 px-3 border-green-200 hover:border-green-300 text-green-700 bg-green-50/50 hover:bg-green-50 rounded-lg text-xs font-semibold transition-all inline-flex items-center gap-1.5"
                                     >
                                       <Eye className="h-3.5 w-3.5" />
-                                      ดูรายละเอียด
                                     </Button>
                                   </Link>
                                 </TableCell>
