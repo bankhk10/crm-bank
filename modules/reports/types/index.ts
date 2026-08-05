@@ -206,6 +206,7 @@ export interface SalespersonReportData {
     name: string;
     employeeCode: string;
     department: string;
+    positionTitle: string;
     totalSales: number;
     orderCount: number;
     avgOrderValue: number;

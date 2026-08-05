@@ -320,12 +320,32 @@ export function CustomerSalesDashboard() {
     );
   };
 
+  const ALLOWED_POSITIONS = [
+    "ผู้จัดการเขต",
+    "ผู้จัดการภาค",
+    "พนักงานขาย",
+    "พนักงานฝ่ายขาย",
+    "ผู้จัดการแผนกบริหารงานขาย",
+    "ผู้จัดการฝ่ายขาย",
+    "ฝ่ายขาย",
+    "Sales",
+  ];
+
+  const matchesPosition = (posTitle: string) => {
+    if (!posTitle || posTitle === "-") return true;
+    return ALLOWED_POSITIONS.some((allowed) =>
+      posTitle.toLowerCase().includes(allowed.toLowerCase()),
+    );
+  };
+
   const filteredSalespersons = salespersonPerf
     .filter(
       (s) =>
-        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.employeeCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.department.toLowerCase().includes(searchQuery.toLowerCase()),
+        matchesPosition(s.positionTitle) &&
+        (s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          s.employeeCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          s.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          s.positionTitle.toLowerCase().includes(searchQuery.toLowerCase())),
     )
     .sort((a, b) => b.totalSales - a.totalSales);
 
@@ -671,15 +691,11 @@ export function CustomerSalesDashboard() {
                             <TableHead className="font-semibold text-slate-700">
                               พนักงานขาย
                             </TableHead>
-
                             <TableHead className="text-center font-semibold text-slate-700">
                               Sales Note
                             </TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">
                               Invoice
-                            </TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">
-                              จำนวนออเดอร์
                             </TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">
                               รายละเอียด
@@ -690,7 +706,7 @@ export function CustomerSalesDashboard() {
                           {filteredSalespersons.length === 0 ? (
                             <TableRow>
                               <TableCell
-                                colSpan={8}
+                                colSpan={5}
                                 className="h-32 text-center py-10"
                               >
                                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -738,9 +754,6 @@ export function CustomerSalesDashboard() {
                                 </TableCell>
                                 <TableCell className="text-center font-medium text-blue-600">
                                   {formatTHB(s.invoiceAmount)}
-                                </TableCell>
-                                <TableCell className="text-center font-medium text-slate-700">
-                                  {formatNumber(s.orderCount)}
                                 </TableCell>
                                 <TableCell className="text-center">
                                   <Link href={`/reports/salesperson/${s.id}`}>

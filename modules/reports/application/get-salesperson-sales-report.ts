@@ -64,6 +64,9 @@ export async function getSalespersonSalesReport(filter: DateRangeFilter, session
       id: true,
       name: true,
       employeeCode: true,
+      positionTitle: true,
+      roleTitle: true,
+      position: { select: { name: true } },
       department: { select: { name: true } },
     },
   });
@@ -124,11 +127,18 @@ export async function getSalespersonSalesReport(filter: DateRangeFilter, session
     
     const invoiceData = invoiceSalesMap.get(id);
 
+    const posTitle =
+      employee?.positionTitle ||
+      (employee as any)?.position?.name ||
+      (employee as any)?.roleTitle ||
+      "-";
+
     return {
       id,
       name: employee?.name || "Unknown",
       employeeCode: employee?.employeeCode || "-",
       department: employee?.department?.name || "-",
+      positionTitle: posTitle,
       totalSales,
       orderCount,
       avgOrderValue: orderCount > 0 ? totalSales / orderCount : 0,
