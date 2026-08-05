@@ -107,56 +107,8 @@ export function ActivityPlanTable({
           const end = new Date(row.original.endDate);
           return (
             <div className="text-xs text-slate-600">
-              <div>{format(start, "dd MMM yy HH:mm", { locale: th })}</div>
-              <div>ถึง {format(end, "dd MMM yy HH:mm", { locale: th })}</div>
-            </div>
-          );
-        },
-      },
-      {
-        accessorKey: "location",
-        header: "สถานที่",
-        cell: (info) => (
-          <div
-            className="truncate max-w-[150px]"
-            title={info.getValue() as string}
-          >
-            {(info.getValue() as string) || "-"}
-          </div>
-        ),
-      },
-      {
-        header: "งบประมาณที่ใช้",
-        cell: ({ row }) => {
-          const salesPromo = row.original.salesPromotionBudget
-            ? Number(row.original.salesPromotionBudget)
-            : 0;
-          const marketing = row.original.marketingBudget
-            ? Number(row.original.marketingBudget)
-            : 0;
-          const totalBudget = salesPromo + marketing;
-
-          if (totalBudget === 0)
-            return <span className="text-xs text-slate-400">ไม่มี</span>;
-
-          const formatter = new Intl.NumberFormat("th-TH", {
-            style: "currency",
-            currency: "THB",
-            maximumFractionDigits: 0,
-          });
-
-          return (
-            <div className="text-xs">
-              {salesPromo > 0 && (
-                <div className="text-blue-600">
-                  ส่งเสริมฯ: {formatter.format(salesPromo)}
-                </div>
-              )}
-              {marketing > 0 && (
-                <div className="text-purple-600">
-                  ตลาด: {formatter.format(marketing)}
-                </div>
-              )}
+              {format(start, "dd MMM yy HH:mm", { locale: th })} -{" "}
+              {format(end, "dd MMM yy HH:mm", { locale: th })}
             </div>
           );
         },
