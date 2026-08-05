@@ -226,7 +226,7 @@ export default function EmployeeForecastView({
                       </h1>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-sm font-medium text-slate-500">
-                          ปี {year}
+                          ปี {year + 543}
                         </span>
                         <span className="w-1 h-1 rounded-full bg-slate-300"></span>
                         <span className="text-blue-600 font-semibold">
