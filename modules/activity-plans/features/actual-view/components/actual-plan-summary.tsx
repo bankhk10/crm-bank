@@ -122,8 +122,8 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
       <div className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-widest">
-            <FileText className="w-3.5 h-3.5 text-blue-500" />
-            ข้อมูลหลักของกิจกรรม (Main Activity Details)
+            {/* <FileText className="w-3.5 h-3.5 text-blue-500" />
+            ข้อมูลหลักของกิจกรรม (Main Activity Details) */}
           </p>
           {summary.planNo && (
             <span className="text-xs bg-blue-50 border border-blue-200/80 text-blue-700 px-2.5 py-0.5 rounded-md font-semibold flex items-center gap-1">
@@ -161,7 +161,9 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
               <span className="text-slate-400 font-normal">→</span>
               <div className="flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                <span>{(summary as any).endDateStr ?? summary.startDateStr}</span>
+                <span>
+                  {(summary as any).endDateStr ?? summary.startDateStr}
+                </span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
@@ -346,7 +348,9 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                       <th className="py-2 px-3 text-center w-10">ลำดับ</th>
                       <th className="py-2 px-3 min-w-[180px]">รายละเอียด</th>
                       <th className="py-2 px-3 w-32">การใช้งบ</th>
-                      <th className="py-2 px-3 w-32 text-right">จำนวนเงิน (บาท)</th>
+                      <th className="py-2 px-3 w-32 text-right">
+                        จำนวนเงิน (บาท)
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
