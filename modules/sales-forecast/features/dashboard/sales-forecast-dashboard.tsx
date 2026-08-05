@@ -69,7 +69,9 @@ type PerformanceEntry = {
 export default function SalesForecastDashboard() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
-  const [expandedMonths, setExpandedMonths] = useState<Record<number, boolean>>({});
+  const [expandedMonths, setExpandedMonths] = useState<Record<number, boolean>>(
+    {},
+  );
 
   const {
     data: forecastData,
@@ -152,7 +154,7 @@ export default function SalesForecastDashboard() {
     Object.keys(map).forEach((mStr) => {
       const m = Number(mStr);
       result[m] = Object.values(map[m]).sort((a, b) =>
-        a.employeeName.localeCompare(b.employeeName)
+        a.employeeName.localeCompare(b.employeeName),
       );
     });
 
@@ -629,11 +631,11 @@ export default function SalesForecastDashboard() {
                       <th className="border border-slate-200 px-3 py-3 text-left font-semibold text-slate-700 text-base min-w-[160px] sticky left-0 z-10 bg-slate-50">
                         เดือน
                       </th>
+                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 text-base min-w-[180px]">
+                        เป้าหมาย
+                      </th>
                       <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 text-base min-w-[150px]">
                         จำนวนพนักงานที่ตั้งเป้า
-                      </th>
-                      <th className="border border-slate-200 px-3 py-3 text-right font-semibold text-slate-700 text-base min-w-[180px]">
-                        เป้าหมาย
                       </th>
                     </tr>
                   </thead>
@@ -691,6 +693,11 @@ export default function SalesForecastDashboard() {
                               </div>
                             </td>
                             <td
+                              className={`border border-slate-200 px-3 py-2.5 text-center font-bold text-slate-800 ${rowBg}`}
+                            >
+                              {formatFullCurrency(entry.target)}
+                            </td>
+                            <td
                               className={`border border-slate-200 px-3 py-2.5 text-center text-slate-700 ${rowBg}`}
                             >
                               {empList.length > 0 ? (
@@ -709,11 +716,6 @@ export default function SalesForecastDashboard() {
                                   ยังไม่มีการตั้งเป้า
                                 </span>
                               )}
-                            </td>
-                            <td
-                              className={`border border-slate-200 px-3 py-2.5 text-right font-bold text-slate-800 ${rowBg}`}
-                            >
-                              {formatFullCurrency(entry.target)}
                             </td>
                           </tr>
 
@@ -752,7 +754,7 @@ export default function SalesForecastDashboard() {
                                               ยอดเป้าหมาย
                                             </th>
                                             <th className="px-4 py-2.5 font-semibold text-center w-24">
-                                              จัดการ
+                                              รายละเอียด
                                             </th>
                                           </tr>
                                         </thead>
@@ -786,7 +788,7 @@ export default function SalesForecastDashboard() {
                                                   title="ดูรายละเอียด"
                                                 >
                                                   <Eye className="w-3.5 h-3.5" />
-                                                  ดูรายละเอียด
+                                                  {/* ดูรายละเอียด */}
                                                 </a>
                                               </td>
                                             </tr>
@@ -814,12 +816,10 @@ export default function SalesForecastDashboard() {
                           ? "รวมทั้งปี"
                           : `รวมเดือน ${MONTHS_FULL[Number(selectedMonth) - 1]}`}
                       </td>
-                      <td className="border border-slate-200 px-3 py-2.5 text-center text-slate-800">
-                        {totalUniqueEmployees} คน
-                      </td>
-                      <td className="border border-slate-200 px-3 py-2.5 text-right text-slate-800 text-base">
+                      <td className="border border-slate-200 px-3 py-2.5 text-center text-slate-800 text-base">
                         {formatFullCurrency(totalTarget)}
                       </td>
+                      <td className="border border-slate-200 px-3 py-2.5 text-center text-slate-800"></td>
                     </tr>
                   </tbody>
                 </table>
