@@ -101,28 +101,20 @@ const reportCategories = [
   {
     id: "product",
     title: "รายงานสินค้าและกลุ่มชื่อการค้า",
-    description: "สินค้า/กลุ่มสินค้าขายดี, ยอดขายรายสินค้า, สต๊อกค้าง",
+    description: "ข้อมูลการขายสินค้าทั้งหมด (ตามช่วงเวลาที่เลือก)",
     icon: Package,
     href: "/reports/product-sales",
     permissionKey: "report.product_sales",
-    features: [
-      "ผลงานรายสินค้า และ รายกลุ่มสินค้า",
-      "สินค้าขายดี / ขายช้า / ค้างสต๊อก",
-      "การแปลงปริมาณ (ลิตร) อัตโนมัติ",
-    ],
+    features: ["รายงานสินค้าและกลุ่มชื่อการค้า"],
   },
   {
     id: "customer-salesperson",
     title: "รายงานลูกค้าและพนักงานขาย",
-    description: "ลูกค้าซื้อสูงสุด, ผลงานพนักงานขาย, มูลค่าลูกค้า",
+    description: "รายงานลูกค้าและพนักงานขายทั้งหมด (ตามช่วงเวลาที่เลือก)",
     icon: Users,
     href: "/reports/customer-sales",
     permissionKey: "report.customer_sales",
-    features: [
-      "รายชื่อลูกค้าซื้อสูงสุด (Top Customers)",
-      "ผลงานพนักงานขายรายบุคคล (Performance)",
-      "ความถี่ในการซื้อ และ มูลค่าลูกค้า",
-    ],
+    features: ["รายงานลูกค้าและพนักงานขาย"],
   },
   {
     id: "sales-forecast",
@@ -131,11 +123,7 @@ const reportCategories = [
     icon: Target,
     href: "/reports/sales-forecast",
     permissionKey: "report.sales_forecast",
-    features: [
-      "เปรียบเทียบยอดขาย vs คาดการณ์",
-      "ความคืบหน้าของเป้าหมาย",
-      "วิเคราะห์แนวโน้มยอดขาย",
-    ],
+    features: ["เปรียบเทียบยอดขาย vs คาดการณ์"],
   },
 ];
 
