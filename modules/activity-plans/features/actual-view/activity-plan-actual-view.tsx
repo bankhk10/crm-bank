@@ -16,6 +16,8 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { SectionHeader } from "@/modules/sales/features/form/forms/section-header";
 import {
   Select,
   SelectContent,
@@ -570,331 +572,324 @@ export default function ActivityPlanActualView({
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-6 pb-24 space-y-6">
-      {/* WORK TYPE SELECTOR TABS & DROPDOWN */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <Layers className="w-4 h-4 text-blue-600" />
-            สลับดูแบบฟอร์มตามกิจกรรม (11 รูปแบบ):
-          </span>
-          <Select value={activeTypeTab} onValueChange={setActiveTypeTab}>
-            <SelectTrigger className="w-64 h-8 text-xs bg-slate-50 border-slate-300">
-              <SelectValue placeholder="เลือกกิจกรรม" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">
-                📋 แสดงแบบฟอร์มทั้งหมด (All 11 Types)
-              </SelectItem>
-              {WORK_TYPES.map((typeName, idx) => (
-                <SelectItem key={typeName} value={typeName}>
-                  {idx + 1}. {typeName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            type="button"
-            onClick={() => setActiveTypeTab("ALL")}
-            className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
-              activeTypeTab === "ALL"
-                ? "bg-slate-900 text-white shadow-xs"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200",
-            )}
-          >
-            📋 ทั้งหมด
-          </button>
-
-          {WORK_TYPES.map((typeName, idx) => (
-            <button
-              key={typeName}
-              type="button"
-              onClick={() => setActiveTypeTab(typeName)}
-              className={cn(
-                "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer",
-                activeTypeTab === typeName
-                  ? "bg-blue-600 text-white shadow-xs font-semibold"
-                  : "bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100",
-              )}
-            >
-              {idx + 1}. {typeName.split(" / ")[0]}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* HEADER SECTION */}
-      <div className="relative overflow-hidden bg-white border border-slate-100 rounded-2xl p-5 md:p-6 shadow-sm">
-        {/* Decorative background glow */}
-        <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-blue-50/30 via-emerald-50/10 to-transparent rounded-full -mr-20 -mt-20 pointer-events-none" />
-
-        <div className="relative z-10 flex items-center gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={handleBack}
-            className="h-10 w-10 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-100 shadow-xs"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/20 flex-shrink-0">
-            <ClipboardCheck className="w-6 h-6" />
+    <section className="space-y-4 md:space-y-6 container mx-auto px-0 sm:px-0">
+      <Card>
+        <div className="p-3 sm:p-4 md:p-6">
+          <div className="text-center">
+            <h5 className="font-semibold text-lg sm:text-2xl md:text-3xl border-b pb-4 md:pb-6 leading-snug">
+              <span className="hidden sm:inline">
+                บันทึกผลการปฏิบัติงาน ( Activity plan actual )
+              </span>
+              <span className="inline sm:hidden">
+                บันทึกผลการปฏิบัติงาน
+                <br />( Activity plan actual )
+              </span>
+            </h5>
           </div>
 
-          <div>
-            <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-slate-900">
-              บันทึกผลการปฏิบัติงาน{" "}
-              <span className="font-semibold">(Actual)</span>
-            </h1>
-
-            <p className="text-xs md:text-sm text-slate-500 mt-1">
-              เปรียบเทียบเป้าหมายและบันทึกผลการปฏิบัติงานจริง
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* PLAN SUMMARY CARD */}
-      <ActualPlanSummary summary={planSummary} />
-
-      {/* Notifications */}
-      {formError && (
-        <Alert variant="destructive" className="animate-in fade-in-50">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{formError}</AlertDescription>
-        </Alert>
-      )}
-
-      {submitSuccess && (
-        <Alert className="bg-emerald-50 border-emerald-200 text-emerald-800 animate-in fade-in-50">
-          <Check className="h-4 w-4 text-emerald-600" />
-          <AlertDescription className="font-semibold">
-            บันทึกผลการปฏิบัติงานเรียบร้อยแล้ว!
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* WORK TYPE 1 */}
-        <ActualType1Visit
-          isVisible={isTypeVisible("เข้าพบร้านค้า / เกษตรกร")}
-          target={targets.t1}
-          productAdvice={t1ProductAdvice}
-          setProductAdvice={setT1ProductAdvice}
-          detail={t1Detail}
-          setDetail={setT1Detail}
-          discussionResult={t1DiscussionResult}
-          setDiscussionResult={setT1DiscussionResult}
-          salesOpportunity={t1SalesOpportunity}
-          setSalesOpportunity={setT1SalesOpportunity}
-          nextAction={t1NextAction}
-          setNextAction={setT1NextAction}
-          nextMeetingDate={t1NextMeetingDate}
-          setNextMeetingDate={setT1NextMeetingDate}
-        />
-
-        {/* WORK TYPE 2 */}
-        <ActualType2Followup
-          isVisible={isTypeVisible("ติดตามผลการใช้สินค้า")}
-          target={targets.t2}
-          customerName={t2CustomerName}
-          setCustomerName={setT2CustomerName}
-          detail={t2Detail}
-          setDetail={setT2Detail}
-          usageResult={t2UsageResult}
-          setUsageResult={setT2UsageResult}
-          problemDetail={t2ProblemDetail}
-          setProblemDetail={setT2ProblemDetail}
-        />
-
-        {/* WORK TYPE 3 */}
-        <ActualType3Sales
-          isVisible={isTypeVisible("เสนอขายสินค้า")}
-          target={targets.t3}
-          soldProducts={t3SoldProducts}
-          setSoldProducts={setT3SoldProducts}
-          actualSales={t3ActualSales}
-          setActualSales={setT3ActualSales}
-          actualQuantity={t3ActualQuantity}
-          setActualQuantity={setT3ActualQuantity}
-          unclosedReason={t3UnclosedReason}
-          setUnclosedReason={setT3UnclosedReason}
-        />
-
-        {/* WORK TYPE 4 */}
-        <ActualType4Collect
-          isVisible={isTypeVisible("วางบิล / เก็บเงิน")}
-          target={targets.t4}
-          orderNo={t4OrderNo}
-          setOrderNo={setT4OrderNo}
-          receivedAmount={t4ReceivedAmount}
-          setReceivedAmount={setT4ReceivedAmount}
-          paymentImages={t4PaymentImages}
-          onUploadImages={createUploadHandler(setT4PaymentImages)}
-          onRemoveImage={(id) => removeImage(setT4PaymentImages, id)}
-        />
-
-        {/* WORK TYPE 5 */}
-        <ActualType5Survey
-          isVisible={isTypeVisible("สำรวจตลาดของคู่แข่ง")}
-          target={targets.t5}
-          competitorBrand={t5CompetitorBrand}
-          setCompetitorBrand={setT5CompetitorBrand}
-          competitorProduct={t5CompetitorProduct}
-          setCompetitorProduct={setT5CompetitorProduct}
-          competitorPrice={t5CompetitorPrice}
-          setCompetitorPrice={setT5CompetitorPrice}
-          competitorUnit={t5CompetitorUnit}
-          setCompetitorUnit={setT5CompetitorUnit}
-          promotionDetail={t5PromotionDetail}
-          setPromotionDetail={setT5PromotionDetail}
-          priceTagImages={t5PriceTagImages}
-          onUploadImages={createUploadHandler(setT5PriceTagImages)}
-          onRemoveImage={(id) => removeImage(setT5PriceTagImages, id)}
-        />
-
-        {/* WORK TYPE 6 */}
-        <ActualType6Issue
-          isVisible={isTypeVisible("แก้ปัญหา / รับเรื่องร้องเรียน")}
-          target={targets.t6}
-          problemDetail={t6ProblemDetail}
-          setProblemDetail={setT6ProblemDetail}
-          initialSolution={t6InitialSolution}
-          setInitialSolution={setT6InitialSolution}
-          status={t6Status}
-          setStatus={setT6Status}
-          images={t6Images}
-          onUploadImages={createUploadHandler(setT6Images)}
-          onRemoveImage={(id) => removeImage(setT6Images, id)}
-        />
-
-        {/* WORK TYPE 7 */}
-        <ActualType7Demo
-          isVisible={isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")}
-          target={targets.t7}
-          plotName={t7PlotName}
-          setPlotName={setT7PlotName}
-          usageMethod={t7UsageMethod}
-          setUsageMethod={setT7UsageMethod}
-          cropAgeValue={t7CropAgeValue}
-          setCropAgeValue={setT7CropAgeValue}
-          cropAgeUnit={t7CropAgeUnit}
-          setCropAgeUnit={setT7CropAgeUnit}
-          growthStage={t7GrowthStage}
-          setGrowthStage={setT7GrowthStage}
-          cropCondition={t7CropCondition}
-          setCropCondition={setT7CropCondition}
-          cropProblemDescription={t7CropProblemDescription}
-          setCropProblemDescription={setT7CropProblemDescription}
-          productResponse={t7ProductResponse}
-          setProductResponse={setT7ProductResponse}
-          problemDescription={t7ProblemDescription}
-          setProblemDescription={setT7ProblemDescription}
-          plotImages={t7PlotImages}
-          onUploadImages={createUploadHandler(setT7PlotImages)}
-          onRemoveImage={(id) => removeImage(setT7PlotImages, id)}
-        />
-
-        {/* WORK TYPE 8 */}
-        <ActualType8Meeting
-          isVisible={isTypeVisible(
-            "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
-          )}
-          target={targets.t8}
-          actualAttendees={t8ActualAttendees}
-          setActualAttendees={setT8ActualAttendees}
-          feedbackQnA={t8FeedbackQnA}
-          setFeedbackQnA={setT8FeedbackQnA}
-          productSalesDetails={t8ProductSalesDetails}
-          setProductSalesDetails={setT8ProductSalesDetails}
-          images={t8Images}
-          onUploadImages={createUploadHandler(setT8Images)}
-          onRemoveImage={(id) => removeImage(setT8Images, id)}
-        />
-
-        {/* WORK TYPE 9 */}
-        <ActualType9Store
-          isVisible={isTypeVisible("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")}
-          target={targets.t9}
-          formats={t9Formats}
-          setFormats={setT9Formats}
-          actualSales={t9ActualSales}
-          setActualSales={setT9ActualSales}
-          actualAttendees={t9ActualAttendees}
-          setActualAttendees={setT9ActualAttendees}
-          images={t9Images}
-          onUploadImages={createUploadHandler(setT9Images)}
-          onRemoveImage={(id) => removeImage(setT9Images, id)}
-        />
-
-        {/* WORK TYPE 10 */}
-        <ActualType10FieldDay
-          isVisible={isTypeVisible("จัดงาน Field Day")}
-          target={targets.t10}
-          actualAttendees={t10ActualAttendees}
-          setActualAttendees={setT10ActualAttendees}
-          actualSalesOrBooking={t10ActualSalesOrBooking}
-          setActualSalesOrBooking={setT10ActualSalesOrBooking}
-          targetFarmersList={t10TargetFarmersList}
-          setTargetFarmersList={setT10TargetFarmersList}
-          farmerFeedback={t10FarmerFeedback}
-          setFarmerFeedback={setT10FarmerFeedback}
-          images={t10Images}
-          onUploadImages={createUploadHandler(setT10Images)}
-          onRemoveImage={(id) => removeImage(setT10Images, id)}
-        />
-
-        {/* WORK TYPE 11 */}
-        <ActualType11Stock
-          isVisible={isTypeVisible("ตรวจเช็กสต็อกหน้าร้าน")}
-          target={targets.t11}
-          stockItems={t11StockItems}
-          setStockItems={setT11StockItems}
-          productList={t11ProductList}
-          setProductList={setT11ProductList}
-          remainingQty={t11RemainingQty}
-          setRemainingQty={setT11RemainingQty}
-          remarks={t11Remarks}
-          setRemarks={setT11Remarks}
-          stockStatus={t11StockStatus}
-          setStockStatus={setT11StockStatus}
-          reorderOpportunity={t11ReorderOpportunity}
-          setReorderOpportunity={setT11ReorderOpportunity}
-          nextAction={t11NextAction}
-          setNextAction={setT11NextAction}
-        />
-
-        {/* FOOTER BUTTONS */}
-        <div className="flex items-center justify-center gap-4 pt-4 border-t border-slate-200">
-          <Button
-            type="button"
-            onClick={handleBack}
-            className="bg-[#64748B] hover:bg-[#475569] text-white font-medium px-8 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2"
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4 md:space-y-6 pt-4 md:pt-6"
+            noValidate
           >
-            <X className="w-4 h-4" />
-            <span>ยกเลิก</span>
-          </Button>
-
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-[#45A744] hover:bg-[#398938] text-white font-medium px-8 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2"
-          >
-            {isSubmitting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4" />
+            {formError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-500" />
+                <span>{formError}</span>
+              </div>
             )}
-            <span>บันทึกผลการปฏิบัติงาน</span>
-          </Button>
+
+            {submitSuccess && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+                <Check className="h-4 w-4 flex-shrink-0 text-emerald-600 stroke-[3]" />
+                <span>บันทึกผลการปฏิบัติงานเรียบร้อยแล้ว!</span>
+              </div>
+            )}
+
+            {/* SECTION 1: ข้อมูลสรุปแผนงาน */}
+            <SectionHeader title="ข้อมูลสรุปแผนงาน" color="gray" />
+
+            {/* PLAN SUMMARY CARD */}
+            <ActualPlanSummary summary={planSummary} />
+
+            {/* SECTION 2: ผลการปฏิบัติงานตามประเภทงาน */}
+            <SectionHeader title="ผลการปฏิบัติงานตามประเภทงาน" color="gray" />
+
+            {/* WORK TYPE SELECTOR TABS & DROPDOWN */}
+            <div className="bg-slate-50/80 border border-slate-200/60 rounded-xl p-3.5 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-blue-600" />
+                  สลับดูแบบฟอร์มตามกิจกรรม (11 รูปแบบ):
+                </span>
+                <Select value={activeTypeTab} onValueChange={setActiveTypeTab}>
+                  <SelectTrigger className="w-64 h-9 text-xs bg-white border-slate-200">
+                    <SelectValue placeholder="เลือกกิจกรรม" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">
+                      📋 แสดงแบบฟอร์มทั้งหมด (All 11 Types)
+                    </SelectItem>
+                    {WORK_TYPES.map((typeName, idx) => (
+                      <SelectItem key={typeName} value={typeName}>
+                        {idx + 1}. {typeName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setActiveTypeTab("ALL")}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+                    activeTypeTab === "ALL"
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100",
+                  )}
+                >
+                  📋 ทั้งหมด
+                </button>
+
+                {WORK_TYPES.map((typeName, idx) => (
+                  <button
+                    key={typeName}
+                    type="button"
+                    onClick={() => setActiveTypeTab(typeName)}
+                    className={cn(
+                      "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer",
+                      activeTypeTab === typeName
+                        ? "bg-blue-600 text-white shadow-xs font-semibold"
+                        : "bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-100",
+                    )}
+                  >
+                    {idx + 1}. {typeName.split(" / ")[0]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4 md:space-y-6">
+              {/* WORK TYPE 1 */}
+              <ActualType1Visit
+                isVisible={isTypeVisible("เข้าพบร้านค้า / เกษตรกร")}
+                target={targets.t1}
+                productAdvice={t1ProductAdvice}
+                setProductAdvice={setT1ProductAdvice}
+                detail={t1Detail}
+                setDetail={setT1Detail}
+                discussionResult={t1DiscussionResult}
+                setDiscussionResult={setT1DiscussionResult}
+                salesOpportunity={t1SalesOpportunity}
+                setSalesOpportunity={setT1SalesOpportunity}
+                nextAction={t1NextAction}
+                setNextAction={setT1NextAction}
+                nextMeetingDate={t1NextMeetingDate}
+                setNextMeetingDate={setT1NextMeetingDate}
+              />
+
+              {/* WORK TYPE 2 */}
+              <ActualType2Followup
+                isVisible={isTypeVisible("ติดตามผลการใช้สินค้า")}
+                target={targets.t2}
+                customerName={t2CustomerName}
+                setCustomerName={setT2CustomerName}
+                detail={t2Detail}
+                setDetail={setT2Detail}
+                usageResult={t2UsageResult}
+                setUsageResult={setT2UsageResult}
+                problemDetail={t2ProblemDetail}
+                setProblemDetail={setT2ProblemDetail}
+              />
+
+              {/* WORK TYPE 3 */}
+              <ActualType3Sales
+                isVisible={isTypeVisible("เสนอขายสินค้า")}
+                target={targets.t3}
+                soldProducts={t3SoldProducts}
+                setSoldProducts={setT3SoldProducts}
+                actualSales={t3ActualSales}
+                setActualSales={setT3ActualSales}
+                actualQuantity={t3ActualQuantity}
+                setActualQuantity={setT3ActualQuantity}
+                unclosedReason={t3UnclosedReason}
+                setUnclosedReason={setT3UnclosedReason}
+              />
+
+              {/* WORK TYPE 4 */}
+              <ActualType4Collect
+                isVisible={isTypeVisible("วางบิล / เก็บเงิน")}
+                target={targets.t4}
+                orderNo={t4OrderNo}
+                setOrderNo={setT4OrderNo}
+                receivedAmount={t4ReceivedAmount}
+                setReceivedAmount={setT4ReceivedAmount}
+                paymentImages={t4PaymentImages}
+                onUploadImages={createUploadHandler(setT4PaymentImages)}
+                onRemoveImage={(id) => removeImage(setT4PaymentImages, id)}
+              />
+
+              {/* WORK TYPE 5 */}
+              <ActualType5Survey
+                isVisible={isTypeVisible("สำรวจตลาดของคู่แข่ง")}
+                target={targets.t5}
+                competitorBrand={t5CompetitorBrand}
+                setCompetitorBrand={setT5CompetitorBrand}
+                competitorProduct={t5CompetitorProduct}
+                setCompetitorProduct={setT5CompetitorProduct}
+                competitorPrice={t5CompetitorPrice}
+                setCompetitorPrice={setT5CompetitorPrice}
+                competitorUnit={t5CompetitorUnit}
+                setCompetitorUnit={setT5CompetitorUnit}
+                promotionDetail={t5PromotionDetail}
+                setPromotionDetail={setT5PromotionDetail}
+                priceTagImages={t5PriceTagImages}
+                onUploadImages={createUploadHandler(setT5PriceTagImages)}
+                onRemoveImage={(id) => removeImage(setT5PriceTagImages, id)}
+              />
+
+              {/* WORK TYPE 6 */}
+              <ActualType6Issue
+                isVisible={isTypeVisible("แก้ปัญหา / รับเรื่องร้องเรียน")}
+                target={targets.t6}
+                problemDetail={t6ProblemDetail}
+                setProblemDetail={setT6ProblemDetail}
+                initialSolution={t6InitialSolution}
+                setInitialSolution={setT6InitialSolution}
+                status={t6Status}
+                setStatus={setT6Status}
+                images={t6Images}
+                onUploadImages={createUploadHandler(setT6Images)}
+                onRemoveImage={(id) => removeImage(setT6Images, id)}
+              />
+
+              {/* WORK TYPE 7 */}
+              <ActualType7Demo
+                isVisible={isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")}
+                target={targets.t7}
+                plotName={t7PlotName}
+                setPlotName={setT7PlotName}
+                usageMethod={t7UsageMethod}
+                setUsageMethod={setT7UsageMethod}
+                cropAgeValue={t7CropAgeValue}
+                setCropAgeValue={setT7CropAgeValue}
+                cropAgeUnit={t7CropAgeUnit}
+                setCropAgeUnit={setT7CropAgeUnit}
+                growthStage={t7GrowthStage}
+                setGrowthStage={setT7GrowthStage}
+                cropCondition={t7CropCondition}
+                setCropCondition={setT7CropCondition}
+                cropProblemDescription={t7CropProblemDescription}
+                setCropProblemDescription={setT7CropProblemDescription}
+                productResponse={t7ProductResponse}
+                setProductResponse={setT7ProductResponse}
+                problemDescription={t7ProblemDescription}
+                setProblemDescription={setT7ProblemDescription}
+                plotImages={t7PlotImages}
+                onUploadImages={createUploadHandler(setT7PlotImages)}
+                onRemoveImage={(id) => removeImage(setT7PlotImages, id)}
+              />
+
+              {/* WORK TYPE 8 */}
+              <ActualType8Meeting
+                isVisible={isTypeVisible(
+                  "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+                )}
+                target={targets.t8}
+                actualAttendees={t8ActualAttendees}
+                setActualAttendees={setT8ActualAttendees}
+                feedbackQnA={t8FeedbackQnA}
+                setFeedbackQnA={setT8FeedbackQnA}
+                productSalesDetails={t8ProductSalesDetails}
+                setProductSalesDetails={setT8ProductSalesDetails}
+                images={t8Images}
+                onUploadImages={createUploadHandler(setT8Images)}
+                onRemoveImage={(id) => removeImage(setT8Images, id)}
+              />
+
+              {/* WORK TYPE 9 */}
+              <ActualType9Store
+                isVisible={isTypeVisible("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")}
+                target={targets.t9}
+                formats={t9Formats}
+                setFormats={setT9Formats}
+                actualSales={t9ActualSales}
+                setActualSales={setT9ActualSales}
+                actualAttendees={t9ActualAttendees}
+                setActualAttendees={setT9ActualAttendees}
+                images={t9Images}
+                onUploadImages={createUploadHandler(setT9Images)}
+                onRemoveImage={(id) => removeImage(setT9Images, id)}
+              />
+
+              {/* WORK TYPE 10 */}
+              <ActualType10FieldDay
+                isVisible={isTypeVisible("จัดงาน Field Day")}
+                target={targets.t10}
+                actualAttendees={t10ActualAttendees}
+                setActualAttendees={setT10ActualAttendees}
+                actualSalesOrBooking={t10ActualSalesOrBooking}
+                setActualSalesOrBooking={setT10ActualSalesOrBooking}
+                targetFarmersList={t10TargetFarmersList}
+                setTargetFarmersList={setT10TargetFarmersList}
+                farmerFeedback={t10FarmerFeedback}
+                setFarmerFeedback={setT10FarmerFeedback}
+                images={t10Images}
+                onUploadImages={createUploadHandler(setT10Images)}
+                onRemoveImage={(id) => removeImage(setT10Images, id)}
+              />
+
+              {/* WORK TYPE 11 */}
+              <ActualType11Stock
+                isVisible={isTypeVisible("ตรวจเช็กสต็อกหน้าร้าน")}
+                target={targets.t11}
+                stockItems={t11StockItems}
+                setStockItems={setT11StockItems}
+                productList={t11ProductList}
+                setProductList={setT11ProductList}
+                remainingQty={t11RemainingQty}
+                setRemainingQty={setT11RemainingQty}
+                remarks={t11Remarks}
+                setRemarks={setT11Remarks}
+                stockStatus={t11StockStatus}
+                setStockStatus={setT11StockStatus}
+                reorderOpportunity={t11ReorderOpportunity}
+                setReorderOpportunity={setT11ReorderOpportunity}
+                nextAction={t11NextAction}
+                setNextAction={setT11NextAction}
+              />
+            </div>
+
+            {/* Bottom Action Footer */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-4 border-t border-slate-100">
+              <Button
+                type="button"
+                onClick={handleBack}
+                disabled={isSubmitting}
+                className="w-full sm:w-32 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl h-11 shadow-sm flex items-center justify-center gap-1.5"
+              >
+                <X className="h-4 w-4" />
+                <span>ยกเลิก</span>
+              </Button>
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full sm:w-32 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl h-11 shadow-md flex items-center justify-center gap-1.5"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Check className="h-4 w-4 stroke-[3]" />
+                )}
+                <span>{isSubmitting ? "กำลังบันทึก..." : "บันทึก"}</span>
+              </Button>
+            </div>
+          </form>
         </div>
-      </form>
-    </div>
+      </Card>
+    </section>
   );
 }
