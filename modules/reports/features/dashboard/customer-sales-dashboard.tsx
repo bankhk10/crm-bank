@@ -555,15 +555,6 @@ export function CustomerSalesDashboard() {
             {/* ── Summary KPI Cards ── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <KpiCard
-                label="ผลรวม Sales Note"
-                sublabel="ยอดรวม Sales Note ทั้งหมดในช่วงเวลาที่เลือก"
-                value={formatTHB(totalSalesNoteAmount)}
-                icon={FileText}
-                gradient="bg-gradient-to-br from-orange-500 to-amber-600"
-                ring="ring-2 ring-orange-300/30"
-                topColor="red"
-              />
-              <KpiCard
                 label="ผลรวม Invoice"
                 sublabel="ยอดรวม Invoice ทั้งหมดในช่วงเวลาที่เลือก"
                 value={formatTHB(totalInvoiceAmount)}
@@ -571,6 +562,15 @@ export function CustomerSalesDashboard() {
                 gradient="bg-gradient-to-br from-blue-500 to-indigo-600"
                 ring="ring-2 ring-blue-300/30"
                 topColor="black"
+              />
+              <KpiCard
+                label="ผลรวม Sales Note"
+                sublabel="ยอดรวม Sales Note ทั้งหมดในช่วงเวลาที่เลือก"
+                value={formatTHB(totalSalesNoteAmount)}
+                icon={FileText}
+                gradient="bg-gradient-to-br from-orange-500 to-amber-600"
+                ring="ring-2 ring-orange-300/30"
+                topColor="red"
               />
             </div>
 
