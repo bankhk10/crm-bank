@@ -86,7 +86,7 @@ export function Type7Demo({
       <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
         <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
           <Sprout className="h-4 w-4 text-slate-600" />
-          <span>ติดตามแปลงสาธิต / พืชเป้าหมาย</span>
+          <span>ติดตามแปลงสาธิต / ทำแปลง</span>
         </div>
 
         {!readonly && (

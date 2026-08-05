@@ -41,9 +41,7 @@ interface ActualType7DemoProps {
   cropProblemDescription?: string;
   setCropProblemDescription?: (v: string) => void;
   productResponse: "พืชตอบสนองดี" | "พบปัญหา" | "";
-  setProductResponse: (
-    v: "พืชตอบสนองดี" | "พบปัญหา" | "",
-  ) => void;
+  setProductResponse: (v: "พืชตอบสนองดี" | "พบปัญหา" | "") => void;
   problemDescription: string;
   setProblemDescription: (v: string) => void;
   plotImages: ImageFile[];
@@ -86,7 +84,7 @@ export function ActualType7Demo({
             7
           </span>
           <h2 className="font-bold text-emerald-800 text-base md:text-lg">
-            ติดตามแปลงสาธิต / พืชเป้าหมาย
+            ติดตามแปลงสาธิต / ทำแปลง
           </h2>
         </div>
       </div>
@@ -242,7 +240,8 @@ export function ActualType7Demo({
       {productResponse === "พบปัญหา" && (
         <div className="bg-rose-50/60 border border-rose-200 rounded-xl p-3.5 space-y-1.5">
           <label className="text-xs font-bold text-rose-800">
-            ระบุปัญหาที่พบ (ผลการใช้ผลิตภัณฑ์) <span className="text-rose-500">*</span>
+            ระบุปัญหาที่พบ (ผลการใช้ผลิตภัณฑ์){" "}
+            <span className="text-rose-500">*</span>
           </label>
           <div className="relative">
             <Textarea

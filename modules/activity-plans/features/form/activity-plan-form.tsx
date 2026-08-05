@@ -457,7 +457,7 @@ export function ActivityPlanForm({
     setType6Items((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Work Type 7: ติดตามแปลงสาธิต / พืชเป้าหมาย
+  // Work Type 7: ติดตามแปลงสาธิต / ทำแปลง
   const [type7Items, setType7Items] = useState<Type7DemoPlotItem[]>([
     {
       id: "1",
@@ -892,7 +892,7 @@ export function ActivityPlanForm({
       );
     }
 
-    if (selectedWorkTypes.includes("ติดตามแปลงสาธิต / พืชเป้าหมาย")) {
+    if (selectedWorkTypes.includes("ติดตามแปลงสาธิต / ทำแปลง")) {
       const demoSummary = type7Items
         .map((item, i) => {
           const unit = ["พืชไร่", "ผักและพืชล้มลุก"].includes(item.cropCategory)
@@ -1339,10 +1339,8 @@ export function ActivityPlanForm({
                     />
                   )}
 
-                  {/* Work Type 7: ติดตามแปลงสาธิต / พืชเป้าหมาย */}
-                  {selectedWorkTypes.includes(
-                    "ติดตามแปลงสาธิต / พืชเป้าหมาย",
-                  ) && (
+                  {/* Work Type 7: ติดตามแปลงสาธิต / ทำแปลง */}
+                  {selectedWorkTypes.includes("ติดตามแปลงสาธิต / ทำแปลง") && (
                     <Type7Demo
                       readonly={readonly}
                       type7Items={type7Items}

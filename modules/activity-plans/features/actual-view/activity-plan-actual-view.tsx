@@ -776,7 +776,7 @@ export default function ActivityPlanActualView({
 
         {/* WORK TYPE 7 */}
         <ActualType7Demo
-          isVisible={isTypeVisible("ติดตามแปลงสาธิต / พืชเป้าหมาย")}
+          isVisible={isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")}
           target={targets.t7}
           plotName={t7PlotName}
           setPlotName={setT7PlotName}

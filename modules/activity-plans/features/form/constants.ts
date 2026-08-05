@@ -6,7 +6,7 @@ export const WORK_TYPES = [
   "วางบิล / เก็บเงิน",
   "สำรวจตลาดของคู่แข่ง",
   "แก้ปัญหา / รับเรื่องร้องเรียน",
-  "ติดตามแปลงสาธิต / พืชเป้าหมาย",
+  "ติดตามแปลงสาธิต / ทำแปลง",
   "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
   "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
   "จัดงาน Field Day",
@@ -56,7 +56,7 @@ export const MARKETING_PRODUCTS_BY_CATEGORY: Record<
 > = {
   Premium_item: [
     { name: "สมุดฉีก", price: 25, unit: "เล่ม" },
-    { name: "ถุงผ้าสปันสีแดง \"โลโก้ปืนใหญ่\"", price: 35, unit: "ใบ" },
+    { name: 'ถุงผ้าสปันสีแดง "โลโก้ปืนใหญ่"', price: 35, unit: "ใบ" },
     { name: "เสื้อแขนยาว ปืนใหญ่ สีแดง", price: 250, unit: "ตัว" },
     { name: "เสื้อแขนยาว ปืนใหญ่ สีแดง 3XL", price: 270, unit: "ตัว" },
     { name: "หมวกคลุมหน้าสีแดง", price: 120, unit: "ใบ" },
@@ -68,7 +68,11 @@ export const MARKETING_PRODUCTS_BY_CATEGORY: Record<
     { name: "หมอนเทอรา-ซอร์บ แดง", price: 180, unit: "ใบ" },
     { name: "ร่ม ตีกอล์ฟ 30 นิ้ว กัน UV", price: 350, unit: "คัน" },
     { name: "เสื้อลายสก๊อต", price: 280, unit: "ตัว" },
-    { name: "น้ำยาล้างจาน ตราปืนใหญ่ บรรจุ 24 ซอง/ลัง", price: 240, unit: "ลัง" },
+    {
+      name: "น้ำยาล้างจาน ตราปืนใหญ่ บรรจุ 24 ซอง/ลัง",
+      price: 240,
+      unit: "ลัง",
+    },
     { name: "สติ๊กเกอร์ปืนใหญ่ ขนาดใหญ่", price: 15, unit: "แผ่น" },
     { name: "ป้ายราคาพิเศษ", price: 10, unit: "แผ่น" },
     { name: "สติกเกอร์พรอมมิส", price: 15, unit: "แผ่น" },
@@ -267,7 +271,7 @@ export const MARKETING_PRODUCTS_BY_CATEGORY: Record<
 export const CROP_CATEGORIES = ["ผักและพืชล้มลุก", "พืชไร่", "พืชสวน"];
 
 export const CROPS_BY_CATEGORY: Record<string, string[]> = {
-  "ผักและพืชล้มลุก": [
+  ผักและพืชล้มลุก: [
     "คะน้า",
     "กะหล่ำปลี",
     "พริก",
@@ -279,7 +283,7 @@ export const CROPS_BY_CATEGORY: Record<string, string[]> = {
     "ฟักทอง",
     "ผักและพืชล้มลุกอื่นๆ",
   ],
-  "พืชไร่": [
+  พืชไร่: [
     "ข้าว",
     "มันสำปะหลัง",
     "ยางพารา",
@@ -289,7 +293,7 @@ export const CROPS_BY_CATEGORY: Record<string, string[]> = {
     "ถั่วเหลือง",
     "พืชไร่อื่นๆ",
   ],
-  "พืชสวน": [
+  พืชสวน: [
     "ทุเรียน",
     "ชมพู่",
     "มังคุด",
