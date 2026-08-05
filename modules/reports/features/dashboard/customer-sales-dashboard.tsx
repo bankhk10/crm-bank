@@ -520,19 +520,23 @@ export function CustomerSalesDashboard() {
               onValueChange={setActiveTab}
               className="mt-6 space-y-5"
             >
-              <TabsList className="h-auto p-1.5 rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-md shadow-sm flex flex-wrap gap-1">
+              <TabsList className="h-auto p-1.5 rounded-2xl border border-slate-200 bg-slate-100/80 backdrop-blur-md shadow-inner flex flex-wrap gap-1.5 w-fit">
                 <TabsTrigger
                   value="customers"
-                  className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 transition-all gap-1.5 flex items-center"
+                  className="cursor-pointer rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-500 flex items-center gap-2 transition-all duration-200 hover:bg-white hover:text-slate-800 hover:shadow-sm data-[state=active]:bg-white data-[state=active]:text-red-700 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/20 data-[state=active]:ring-1 data-[state=active]:ring-red-200"
                 >
-                  <Users className="w-4 h-4 mr-1" />
+                  <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-red-50 data-[state=active]:bg-red-100 transition-colors group-data-[state=active]:bg-red-100">
+                    <Users className="w-4 h-4 text-red-500" />
+                  </span>
                   ข้อมูลการขายของลูกค้า
                 </TabsTrigger>
                 <TabsTrigger
                   value="salespersons"
-                  className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 transition-all gap-1.5 flex items-center"
+                  className="cursor-pointer rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-500 flex items-center gap-2 transition-all duration-200 hover:bg-white hover:text-slate-800 hover:shadow-sm data-[state=active]:bg-white data-[state=active]:text-red-700 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/20 data-[state=active]:ring-1 data-[state=active]:ring-red-200"
                 >
-                  <UserCheck className="w-4 h-4 mr-1" />
+                  <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-blue-50 transition-colors">
+                    <UserCheck className="w-4 h-4 text-blue-500" />
+                  </span>
                   ข้อมูลการขายของพนักงาน
                 </TabsTrigger>
               </TabsList>
