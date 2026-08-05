@@ -105,15 +105,6 @@ export function ActivityPlanTable({
         ),
       },
       {
-        accessorKey: "employee.name",
-        header: "ผู้จัดทำ",
-        cell: (info) => (
-          <div className="truncate max-w-[120px]">
-            {info.getValue() as string}
-          </div>
-        ),
-      },
-      {
         accessorKey: "activityType",
         header: "ประเภท",
         cell: (info) => <span>{info.getValue() as string}</span>,
@@ -131,6 +122,15 @@ export function ActivityPlanTable({
             </div>
           );
         },
+      },
+      {
+        accessorKey: "employee.name",
+        header: "ผู้จัดทำแผน",
+        cell: (info) => (
+          <div className="truncate max-w-[120px]">
+            {info.getValue() as string}
+          </div>
+        ),
       },
       {
         accessorKey: "status",
