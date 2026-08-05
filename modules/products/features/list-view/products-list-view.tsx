@@ -35,6 +35,7 @@ export default function ProductsListView() {
   const canDelete = hasPermission("product.delete");
   const canManage = hasPermission("product.manage");
   const canCopy = hasPermission("product.copy");
+  const canViewStock = hasPermission("product.stock.view");
 
   const [products, setProducts] = useState<ProductRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -280,6 +281,7 @@ export default function ProductsListView() {
             canUpdate={canUpdate}
             canDelete={canDelete}
             canManage={canManage}
+            canViewStock={canViewStock}
             onDeleteRequest={setDeleteCandidate}
             searchValue={filterDraft.query}
             onSearchChange={(value) =>

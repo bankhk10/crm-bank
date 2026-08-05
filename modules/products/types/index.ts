@@ -272,6 +272,7 @@ export interface ProductsTableProps {
   canUpdate?: boolean;
   canDelete: boolean;
   canManage?: boolean;
+  canViewStock?: boolean;
   onDeleteRequest: (product: ProductRecord) => void;
   searchValue: string;
   onSearchChange: (value: string) => void;

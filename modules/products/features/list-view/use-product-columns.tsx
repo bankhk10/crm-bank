@@ -43,6 +43,7 @@ export function useProductColumns(
   canDelete: boolean,
   canManage: boolean,
   canCopy: boolean,
+  canViewStock: boolean = true,
 ) {
   return React.useMemo<ColumnDef<ProductRecord>[]>(
     () => [
@@ -134,81 +135,81 @@ export function useProductColumns(
         },
       },
 
-      // ── สต็อกทั้งหมด ──────────────────────────────────────
-      {
-        accessorKey: "stockQuantity",
-        header: "ทั้งหมด",
-        meta: {
-          headerAlign: "center",
-          minWidth: 120,
-          width: 120,
-          maxWidth: 140,
-          align: "center",
-        },
-        cell: ({ row }) => {
-          const total = row.original.physicalQuantity ?? 0;
-          return (
-            <StockBadge
-              value={total}
-              colorClass="bg-blue-50 text-blue-700 ring-1 ring-blue-100"
-            />
-          );
-        },
-      },
-
-      // ── จอง ──────────────────────────────────────────────
-      {
-        accessorKey: "reserved",
-        header: "จอง",
-        enableSorting: false,
-        meta: {
-          headerAlign: "center",
-          minWidth: 90,
-          width: 90,
-          maxWidth: 110,
-          align: "center",
-        },
-        cell: ({ row }) => {
-          const reserved =
-            row.original.reservedQuantity ?? row.original.reserved ?? 0;
-          return (
-            <StockBadge
-              value={reserved}
-              colorClass="bg-orange-50 text-orange-700 ring-1 ring-orange-100"
-            />
-          );
-        },
-      },
-
-      // ── คงเหลือ ───────────────────────────────────────────
-      {
-        id: "availableStock",
-        header: "คงเหลือ",
-        accessorFn: (row) => row.availableQuantity ?? 0,
-        meta: {
-          headerAlign: "center",
-          minWidth: 120,
-          width: 120,
-          maxWidth: 140,
-          align: "center",
-        },
-        cell: ({ row }) => {
-          const physical = row.original.physicalQuantity ?? 0;
-          const reserved = row.original.reservedQuantity ?? 0;
-          const remaining = physical - reserved;
-          const isLow = remaining <= 0;
-          return (
-            <StockBadge
-              value={remaining}
-              colorClass={
-                isLow
-                  ? "bg-red-50 text-red-700 ring-1 ring-red-100"
-                  : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100"
-              }
-            />
-          );
-        },
-      },
+      // ── สต็อก (ทั้งหมด / จอง / คงเหลือ) ───────────────────
+      ...(canViewStock
+        ? [
+            {
+              accessorKey: "stockQuantity",
+              header: "ทั้งหมด",
+              meta: {
+                headerAlign: "center" as const,
+                minWidth: 120,
+                width: 120,
+                maxWidth: 140,
+                align: "center" as const,
+              },
+              cell: ({ row }: { row: { original: ProductRecord } }) => {
+                const total = row.original.physicalQuantity ?? 0;
+                return (
+                  <StockBadge
+                    value={total}
+                    colorClass="bg-blue-50 text-blue-700 ring-1 ring-blue-100"
+                  />
+                );
+              },
+            },
+            {
+              accessorKey: "reserved",
+              header: "จอง",
+              enableSorting: false,
+              meta: {
+                headerAlign: "center" as const,
+                minWidth: 90,
+                width: 90,
+                maxWidth: 110,
+                align: "center" as const,
+              },
+              cell: ({ row }: { row: { original: ProductRecord } }) => {
+                const reserved =
+                  row.original.reservedQuantity ?? row.original.reserved ?? 0;
+                return (
+                  <StockBadge
+                    value={reserved}
+                    colorClass="bg-orange-50 text-orange-700 ring-1 ring-orange-100"
+                  />
+                );
+              },
+            },
+            {
+              id: "availableStock",
+              header: "คงเหลือ",
+              accessorFn: (row: ProductRecord) => row.availableQuantity ?? 0,
+              meta: {
+                headerAlign: "center" as const,
+                minWidth: 120,
+                width: 120,
+                maxWidth: 140,
+                align: "center" as const,
+              },
+              cell: ({ row }: { row: { original: ProductRecord } }) => {
+                const physical = row.original.physicalQuantity ?? 0;
+                const reserved = row.original.reservedQuantity ?? 0;
+                const remaining = physical - reserved;
+                const isLow = remaining <= 0;
+                return (
+                  <StockBadge
+                    value={remaining}
+                    colorClass={
+                      isLow
+                        ? "bg-red-50 text-red-700 ring-1 ring-red-100"
+                        : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100"
+                    }
+                  />
+                );
+              },
+            },
+          ]
+        : []),
 
       // ── สถานะ ─────────────────────────────────────────────
       {
@@ -293,6 +294,14 @@ export function useProductColumns(
         },
       },
     ],
-    [canView, canUpdate, canManage, canDelete, canCopy, onDeleteRequest],
+    [
+      canView,
+      canUpdate,
+      canManage,
+      canDelete,
+      canCopy,
+      canViewStock,
+      onDeleteRequest,
+    ],
   );
 }

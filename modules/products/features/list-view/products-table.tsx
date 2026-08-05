@@ -129,6 +129,7 @@ export function ProductsTable(props: ProductsTableProps) {
     canUpdate = false,
     canDelete,
     canManage = false,
+    canViewStock = true,
     onDeleteRequest,
     searchValue,
     onSearchChange,
@@ -148,6 +149,7 @@ export function ProductsTable(props: ProductsTableProps) {
     canDelete,
     canManage,
     canCopy,
+    canViewStock,
   );
 
   // ───────── Toolbar ──────────

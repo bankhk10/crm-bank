@@ -252,6 +252,12 @@ const permissionGroups: Record<string, PermissionGroup> = {
         action: "manage",
       },
       {
+        key: "product.stock.view",
+        name: "ดูสต็อกสินค้า (ทั้งหมด, จอง, คงเหลือ)",
+        resource: "product",
+        action: "stock_view",
+      },
+      {
         key: "product.export",
         name: "ส่งออกสินค้า",
         resource: "product",
