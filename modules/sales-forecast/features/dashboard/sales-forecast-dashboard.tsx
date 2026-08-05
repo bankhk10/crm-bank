@@ -788,7 +788,6 @@ export default function SalesForecastDashboard() {
                                                   title="ดูรายละเอียด"
                                                 >
                                                   <Eye className="w-3.5 h-3.5" />
-                                                  {/* ดูรายละเอียด */}
                                                 </a>
                                               </td>
                                             </tr>
