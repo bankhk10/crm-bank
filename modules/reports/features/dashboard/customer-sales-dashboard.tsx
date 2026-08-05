@@ -47,6 +47,8 @@ import {
   Loader2,
   ChevronDown,
   ChevronRight,
+  FileText,
+  Receipt,
 } from "lucide-react";
 import Link from "next/link";
 import { KpiCard } from "../../ui/kpi-card";
@@ -358,6 +360,14 @@ export function CustomerSalesDashboard() {
     0,
   );
   const totalOrders = topCustomers.reduce((sum, c) => sum + c.orderCount, 0);
+  const totalSalesNoteAmount = salespersonPerf.reduce(
+    (sum, s) => sum + s.salesNoteAmount,
+    0,
+  );
+  const totalInvoiceAmount = salespersonPerf.reduce(
+    (sum, s) => sum + s.invoiceAmount,
+    0,
+  );
 
   return (
     <div className="min-h-screen pb-12 rounded-3xl">
@@ -542,6 +552,28 @@ export function CustomerSalesDashboard() {
           </Card>
         ) : (
           <div className="space-y-4 sm:space-y-6">
+            {/* ── Summary KPI Cards ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <KpiCard
+                label="ผลรวม Sales Note"
+                sublabel="ยอดรวม Sales Note ทั้งหมดในช่วงเวลาที่เลือก"
+                value={formatTHB(totalSalesNoteAmount)}
+                icon={FileText}
+                gradient="bg-gradient-to-br from-orange-500 to-amber-600"
+                ring="ring-2 ring-orange-300/30"
+                topColor="red"
+              />
+              <KpiCard
+                label="ผลรวม Invoice"
+                sublabel="ยอดรวม Invoice ทั้งหมดในช่วงเวลาที่เลือก"
+                value={formatTHB(totalInvoiceAmount)}
+                icon={Receipt}
+                gradient="bg-gradient-to-br from-blue-500 to-indigo-600"
+                ring="ring-2 ring-blue-300/30"
+                topColor="black"
+              />
+            </div>
+
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
