@@ -55,6 +55,7 @@ export async function createActivityPlanUseCase(
     ...planFields,
     salesPromotionBudget: planFields.salesPromotionBudget ?? null,
     marketingBudget: planFields.marketingBudget ?? null,
+    details: planFields.details ?? null,
     status: ActivityStatus.DRAFT,
     employeeId: employee.id,
     createdById: userId,
@@ -92,6 +93,7 @@ export async function updateActivityPlanUseCase(id: string, userId: string, rawD
     ...planFields,
     salesPromotionBudget: planFields.salesPromotionBudget ?? null,
     marketingBudget: planFields.marketingBudget ?? null,
+    details: planFields.details ?? null,
     helperEmployeeIds,
     updatedUserId: userId,
   };

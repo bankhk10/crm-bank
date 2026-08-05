@@ -1532,6 +1532,7 @@ model ActivityPlan {
   marketingBudget        Decimal?       @db.Decimal(15, 2) @map("marketing_budget")
   
   notes                  String?        // หมายเหตุเพิ่มเติม
+  details                Json?          @map("details") // รายละเอียดโครงสร้างข้อมูลแบบเลือกตอบในฟอร์ม
   status                 ActivityStatus @default(DRAFT)
   
   // ความสัมพันธ์

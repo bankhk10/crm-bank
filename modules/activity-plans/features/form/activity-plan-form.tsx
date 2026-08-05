@@ -28,6 +28,7 @@ interface Props {
   initial?: Partial<ActivityPlanFormValues> & {
     employeeName?: string;
     planCode?: string;
+    details?: any;
   };
   employees?: Array<{
     id: string;
@@ -190,15 +191,19 @@ export function ActivityPlanForm({
   const [isWorkTypesDropdownOpen, setIsWorkTypesDropdownOpen] = useState(false);
   const workTypesDropdownRef = useRef<HTMLDivElement>(null);
 
+  const initDetails = (initial as any)?.details;
+
   // Work Type 1: เข้าพบร้านค้า / เกษตรกร
-  const [type1Items, setType1Items] = useState<Type1VisitItem[]>([
-    {
-      id: "1",
-      customerName: DEMO_OWNERS[0] || "",
-      topic: "แจ้งข่าวสาร",
-      detail: "",
-    },
-  ]);
+  const [type1Items, setType1Items] = useState<Type1VisitItem[]>(
+    initDetails?.type1Items ?? [
+      {
+        id: "1",
+        customerName: DEMO_OWNERS[0] || "",
+        topic: "แจ้งข่าวสาร",
+        detail: "",
+      },
+    ],
+  );
 
   const addType1Row = () => {
     const newItem: Type1VisitItem = {
@@ -224,14 +229,16 @@ export function ActivityPlanForm({
     setType1Items((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const [type2Items, setType2Items] = useState<Type2ProductFollowupItem[]>([
-    {
-      id: "1",
-      productName: DEMO_PRODUCTS[0] || "",
-      customerName: DEMO_OWNERS[0] || "",
-      detail: "",
-    },
-  ]);
+  const [type2Items, setType2Items] = useState<Type2ProductFollowupItem[]>(
+    initDetails?.type2Items ?? [
+      {
+        id: "1",
+        productName: DEMO_PRODUCTS[0] || "",
+        customerName: DEMO_OWNERS[0] || "",
+        detail: "",
+      },
+    ],
+  );
 
   const addType2Row = () => {
     const newItem: Type2ProductFollowupItem = {
@@ -260,26 +267,28 @@ export function ActivityPlanForm({
   const defaultType3Product = DEMO_PRODUCTS[0] || "";
   const defaultType3UnitPrice = DEMO_PRODUCT_PRICES[defaultType3Product] ?? 500;
 
-  const [type3Items, setType3Items] = useState<Type3SalesItem[]>([
-    {
-      id: "1",
-      customerName: DEMO_OWNERS[0] || "",
-      products: [
-        {
-          id: "p-1",
-          productName: defaultType3Product,
-          quantity: 1,
-          unitPrice: defaultType3UnitPrice,
-          price: defaultType3UnitPrice,
-        },
-      ],
-      productName: defaultType3Product,
-      quantity: 1,
-      unitPrice: defaultType3UnitPrice,
-      price: defaultType3UnitPrice * 1,
-      detail: "",
-    },
-  ]);
+  const [type3Items, setType3Items] = useState<Type3SalesItem[]>(
+    initDetails?.type3Items ?? [
+      {
+        id: "1",
+        customerName: DEMO_OWNERS[0] || "",
+        products: [
+          {
+            id: "p-1",
+            productName: defaultType3Product,
+            quantity: 1,
+            unitPrice: defaultType3UnitPrice,
+            price: defaultType3UnitPrice,
+          },
+        ],
+        productName: defaultType3Product,
+        quantity: 1,
+        unitPrice: defaultType3UnitPrice,
+        price: defaultType3UnitPrice * 1,
+        detail: "",
+      },
+    ],
+  );
 
   const addType3Row = () => {
     const prod =
@@ -359,14 +368,16 @@ export function ActivityPlanForm({
   };
 
   // Work Type 4: วางบิล / เก็บเงิน
-  const [type4Items, setType4Items] = useState<Type4CollectItem[]>([
-    {
-      id: "1",
-      customerName: DEMO_OWNERS[0] || "",
-      collectAmount: 0,
-      detail: "",
-    },
-  ]);
+  const [type4Items, setType4Items] = useState<Type4CollectItem[]>(
+    initDetails?.type4Items ?? [
+      {
+        id: "1",
+        customerName: DEMO_OWNERS[0] || "",
+        collectAmount: 0,
+        detail: "",
+      },
+    ],
+  );
   const addType4Row = () => {
     setType4Items((prev) => [
       ...prev,
@@ -392,14 +403,16 @@ export function ActivityPlanForm({
   };
 
   // Work Type 5: สำรวจตลาดของคู่แข่ง
-  const [type5Items, setType5Items] = useState<Type5SurveyItem[]>([
-    {
-      id: "1",
-      storeName: "",
-      comparedProduct: DEMO_PRODUCTS[0] || "",
-      detail: "",
-    },
-  ]);
+  const [type5Items, setType5Items] = useState<Type5SurveyItem[]>(
+    initDetails?.type5Items ?? [
+      {
+        id: "1",
+        storeName: "",
+        comparedProduct: DEMO_PRODUCTS[0] || "",
+        detail: "",
+      },
+    ],
+  );
   const addType5Row = () => {
     setType5Items((prev) => [
       ...prev,
@@ -425,14 +438,16 @@ export function ActivityPlanForm({
   };
 
   // Work Type 6: แก้ปัญหา / รับเรื่องร้องเรียน
-  const [type6Items, setType6Items] = useState<Type6IssueItem[]>([
-    {
-      id: "1",
-      customerName: DEMO_OWNERS[0] || "",
-      issueType: "เคลมของ",
-      detail: "",
-    },
-  ]);
+  const [type6Items, setType6Items] = useState<Type6IssueItem[]>(
+    initDetails?.type6Items ?? [
+      {
+        id: "1",
+        customerName: DEMO_OWNERS[0] || "",
+        issueType: "เคลมของ",
+        detail: "",
+      },
+    ],
+  );
   const addType6Row = () => {
     setType6Items((prev) => [
       ...prev,
@@ -458,17 +473,19 @@ export function ActivityPlanForm({
   };
 
   // Work Type 7: ติดตามแปลงสาธิต / ทำแปลง
-  const [type7Items, setType7Items] = useState<Type7DemoPlotItem[]>([
-    {
-      id: "1",
-      ownerName: DEMO_OWNERS[0] || "",
-      productName: DEMO_PRODUCTS[0] || "",
-      cropCategory: "พืชสวน",
-      cropName: "ทุเรียน",
-      plotsCount: 1,
-      detail: "",
-    },
-  ]);
+  const [type7Items, setType7Items] = useState<Type7DemoPlotItem[]>(
+    initDetails?.type7Items ?? [
+      {
+        id: "1",
+        ownerName: DEMO_OWNERS[0] || "",
+        productName: DEMO_PRODUCTS[0] || "",
+        cropCategory: "พืชสวน",
+        cropName: "ทุเรียน",
+        plotsCount: 1,
+        detail: "",
+      },
+    ],
+  );
   const addType7Row = () => {
     setType7Items((prev) => [
       ...prev,
@@ -497,15 +514,17 @@ export function ActivityPlanForm({
   };
 
   // Work Type 8: จัดประชุมเกษตรกร / ร้านค้า
-  const [type8Items, setType8Items] = useState<Type8MeetingItem[]>([
-    {
-      id: "1",
-      topic: "",
-      targetProducts: [],
-      attendeesCount: 1,
-      detail: "",
-    },
-  ]);
+  const [type8Items, setType8Items] = useState<Type8MeetingItem[]>(
+    initDetails?.type8Items ?? [
+      {
+        id: "1",
+        topic: "",
+        targetProducts: [],
+        attendeesCount: 1,
+        detail: "",
+      },
+    ],
+  );
   const addType8Row = () => {
     setType8Items((prev) => [
       ...prev,
@@ -531,30 +550,32 @@ export function ActivityPlanForm({
     setType8Items((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const [type9Store, setType9Store] = useState("");
-  const [type9IsSubDealer, setType9IsSubDealer] = useState(false);
-  const [type9SubDealerStore, setType9SubDealerStore] = useState("");
-  const [type9Sales, setType9Sales] = useState<number>(0);
-  const [type9Products, setType9Products] = useState("");
+  const [type9Store, setType9Store] = useState(initDetails?.type9Store ?? "");
+  const [type9IsSubDealer, setType9IsSubDealer] = useState(initDetails?.type9IsSubDealer ?? false);
+  const [type9SubDealerStore, setType9SubDealerStore] = useState(initDetails?.type9SubDealerStore ?? "");
+  const [type9Sales, setType9Sales] = useState<number>(initDetails?.type9Sales ?? 0);
+  const [type9Products, setType9Products] = useState(initDetails?.type9Products ?? "");
   const [type9ProductItems, setType9ProductItems] = useState<
     Type9ProductItem[]
-  >([
-    {
-      id: "1",
-      productName: DEMO_PRODUCTS[0] || "สินค้าทดสอบ A",
-      quantityCases: 10,
-      pricePerCase: 500,
-    },
-  ]);
+  >(
+    initDetails?.type9ProductItems ?? [
+      {
+        id: "1",
+        productName: DEMO_PRODUCTS[0] || "สินค้าทดสอบ A",
+        quantityCases: 10,
+        pricePerCase: 500,
+      },
+    ],
+  );
 
-  const [type10DemoPlot, setType10DemoPlot] = useState("");
-  const [type10Location, setType10Location] = useState("");
-  const [type10TargetCrop, setType10TargetCrop] = useState("");
-  const [type10Showcase, setType10Showcase] = useState("");
-  const [type10Attendees, setType10Attendees] = useState<number>(0);
-  const [type10BookingSales, setType10BookingSales] = useState<number>(0);
+  const [type10DemoPlot, setType10DemoPlot] = useState(initDetails?.type10DemoPlot ?? "");
+  const [type10Location, setType10Location] = useState(initDetails?.type10Location ?? "");
+  const [type10TargetCrop, setType10TargetCrop] = useState(initDetails?.type10TargetCrop ?? "");
+  const [type10Showcase, setType10Showcase] = useState(initDetails?.type10Showcase ?? "");
+  const [type10Attendees, setType10Attendees] = useState<number>(initDetails?.type10Attendees ?? 0);
+  const [type10BookingSales, setType10BookingSales] = useState<number>(initDetails?.type10BookingSales ?? 0);
 
-  const [type11Stores, setType11Stores] = useState("");
+  const [type11Stores, setType11Stores] = useState(initDetails?.type11Stores ?? "");
 
   // Section 4: Location & Team State
   const [locationText, setLocationText] = useState(initial.location ?? "");
@@ -566,28 +587,30 @@ export function ActivityPlanForm({
 
   // Section 5: Budget & Expenses State
   const [isPromotionalMediaSelected, setIsPromotionalMediaSelected] =
-    useState<boolean>((initial.marketingBudget ?? 0) > 0);
+    useState<boolean>(initDetails?.isPromotionalMediaSelected ?? ((initial.marketingBudget ?? 0) > 0));
   const [marketingBudgetAmount, setMarketingBudgetAmount] = useState<number>(
-    initial.marketingBudget ?? 10000,
+    initDetails?.marketingBudgetAmount ?? (initial.marketingBudget ?? 10000),
   );
   const [marketingProductItems, setMarketingProductItems] = useState<
     MarketingBudgetProductItem[]
-  >([
-    {
-      id: "1",
-      category: MARKETING_PRODUCT_CATEGORIES[0],
-      productName:
-        MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
-          ?.name || "สมุดฉีก",
-      quantityCases: 10,
-      unit:
-        MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
-          ?.unit || "เล่ม",
-      pricePerCase:
-        MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
-          ?.price || 25,
-    },
-  ]);
+  >(
+    initDetails?.marketingProductItems ?? [
+      {
+        id: "1",
+        category: MARKETING_PRODUCT_CATEGORIES[0],
+        productName:
+          MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
+            ?.name || "สมุดฉีก",
+        quantityCases: 10,
+        unit:
+          MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
+            ?.unit || "เล่ม",
+        pricePerCase:
+          MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
+            ?.price || 25,
+      },
+    ],
+  );
 
   const addMarketingProductItem = () => {
     const defaultCat = MARKETING_PRODUCT_CATEGORIES[0];
@@ -622,10 +645,10 @@ export function ActivityPlanForm({
 
   // Section 5: Sales Promotion Items State & Helpers
   const [isSalesPromotionSelected, setIsSalesPromotionSelected] =
-    useState<boolean>((initial.salesPromotionBudget ?? 0) > 0);
+    useState<boolean>(initDetails?.isSalesPromotionSelected ?? ((initial.salesPromotionBudget ?? 0) > 0));
   const [salesPromotionItems, setSalesPromotionItems] = useState<
     SalesPromotionItem[]
-  >([]);
+  >(initDetails?.salesPromotionItems ?? []);
 
   const addSalesPromotionRow = () => {
     const newItem: SalesPromotionItem = {
@@ -651,8 +674,8 @@ export function ActivityPlanForm({
     setSalesPromotionItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const [extraExpenseAmount, setExtraExpenseAmount] = useState<number>(0);
-  const [extraExpenseDetail, setExtraExpenseDetail] = useState("");
+  const [extraExpenseAmount, setExtraExpenseAmount] = useState<number>(initDetails?.extraExpenseAmount ?? 0);
+  const [extraExpenseDetail, setExtraExpenseDetail] = useState(initDetails?.extraExpenseDetail ?? "");
 
   // Section 6: Material Requisition Items
   const [requisitionItems, setRequisitionItems] = useState<RequisitionItem[]>(
@@ -1010,6 +1033,38 @@ export function ActivityPlanForm({
       ? `${notes}\n(ค่าใช้จ่ายอื่นๆ: ${extraExpenseAmount} บาท - ${extraExpenseDetail})`
       : notes;
 
+    const details = {
+      type1Items,
+      type2Items,
+      type3Items,
+      type4Items,
+      type5Items,
+      type6Items,
+      type7Items,
+      type8Items,
+      type9Store,
+      type9IsSubDealer,
+      type9SubDealerStore,
+      type9Sales,
+      type9Products,
+      type9ProductItems,
+      type10DemoPlot,
+      type10Location,
+      type10TargetCrop,
+      type10Showcase,
+      type10Attendees,
+      type10BookingSales,
+      type11Stores,
+      isPromotionalMediaSelected,
+      marketingBudgetAmount,
+      marketingProductItems,
+      isSalesPromotionSelected,
+      salesPromotionItems,
+      extraExpenseAmount,
+      extraExpenseDetail,
+      requisitionItems,
+    };
+
     try {
       const res = await onSubmit({
         title,
@@ -1024,6 +1079,7 @@ export function ActivityPlanForm({
         salesPromotionBudget,
         marketingBudget,
         notes: extraNotes,
+        details,
         helperEmployeeIds,
       });
 

@@ -128,6 +128,7 @@ export async function createActivityPlan(
         salesPromotionBudget: planData.salesPromotionBudget,
         marketingBudget: planData.marketingBudget,
         notes: planData.notes,
+        details: planData.details ?? Prisma.DbNull,
         status: planData.status ?? ActivityStatus.DRAFT,
         employeeId: planData.employeeId,
         createdById: planData.createdById,

@@ -73,8 +73,9 @@ export default function ActivityPlanEditView({ id }: Props) {
             salesPromotionBudget: plan.salesPromotionBudget ? Number(plan.salesPromotionBudget) : 0,
             marketingBudget: plan.marketingBudget ? Number(plan.marketingBudget) : 0,
             notes: plan.notes || "",
+            details: plan.details,
             helperEmployeeIds,
-            planCode: plan.code,
+            planCode: (plan as any).code || plan.id,
             employeeName: plan.employee?.name,
           });
         } else {

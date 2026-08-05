@@ -27,6 +27,7 @@ export const activityPlanSchema = z
       .optional()
       .nullable(),
     notes: z.string().optional().nullable(),
+    details: z.any().optional().nullable(),
     helperEmployeeIds: z.array(z.string()).default([]),
   })
   .refine((data) => data.endDate > data.startDate, {
