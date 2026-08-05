@@ -515,60 +515,6 @@ export function CustomerSalesDashboard() {
           </Card>
         ) : (
           <div className="space-y-4 sm:space-y-6">
-            {/* KPI Cards: mobile=1 col, sm=2 cols, lg=4 cols */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
-              <KpiCard
-                label={
-                  activeTab === "customers" ? "ยอดซื้อสูงสุด" : "ยอดขายสูงสุด"
-                }
-                value={
-                  activeTab === "customers"
-                    ? topCustomers[0]?.name || "-"
-                    : salespersonPerf[0]?.name || "-"
-                }
-                valueClassName="text-sm sm:text-base lg:text-lg font-bold"
-                icon={Award}
-                gradient="bg-gradient-to-br from-red-600 to-red-700"
-                ring="shadow-lg shadow-red-600/20"
-                topColor="red"
-              />
-
-              <KpiCard
-                label={`ยอดขายรวม`}
-                value={
-                  activeTab === "customers"
-                    ? formatTHB(totalCustomerSales)
-                    : formatTHB(totalSalespersonSales)
-                }
-                icon={TrendingUp}
-                gradient="bg-gradient-to-br from-slate-900 to-slate-800"
-                ring="shadow-lg shadow-slate-900/20"
-                topColor="black"
-              />
-
-              <KpiCard
-                label="ออเดอร์รวม"
-                value={formatNumber(totalOrders)}
-                icon={ShoppingCart}
-                gradient="bg-gradient-to-br from-red-500 to-red-600"
-                ring="shadow-lg shadow-red-500/20"
-                topColor="red"
-              />
-
-              <KpiCard
-                label={
-                  activeTab === "customers"
-                    ? "จำนวนลูกค้าทั้งหมด"
-                    : "จำนวนพนักงานขายทั้งหมด"
-                }
-                value={`${formatNumber(activeTab === "customers" ? topCustomers.length : salespersonPerf.length)} รายการ`}
-                icon={Users}
-                gradient="bg-gradient-to-br from-slate-800 to-slate-900"
-                ring="shadow-lg shadow-slate-800/20"
-                topColor="black"
-              />
-            </div>
-
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
