@@ -736,16 +736,10 @@ export function CustomerSalesDashboard() {
                                 <TableCell className="max-w-[200px] sm:max-w-none">
                                   <div className="min-w-0">
                                     <p
-                                      className="font-semibold text-slate-900 leading-tight truncate"
+                                      className="text-slate-900 leading-tight truncate"
                                       title={s.name}
                                     >
                                       {s.name}
-                                    </p>
-                                    <p
-                                      className="text-xs text-slate-500 mt-0.5 truncate"
-                                      title={s.employeeCode}
-                                    >
-                                      {s.employeeCode}
                                     </p>
                                   </div>
                                 </TableCell>
