@@ -1,19 +1,21 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   TrendingUp,
   Calendar,
-  ArrowUp,
-  ArrowDown,
   Loader2,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   AlertTriangle,
+  Users,
+  UserRound,
+  Eye,
 } from "lucide-react";
 import { useSalesForecast } from "@/hooks/use-sales-forecast";
 import { PersonalForecastSection } from "./components/PersonalForecastSection";
@@ -61,18 +63,14 @@ const MONTHS_FULL = [
 type PerformanceEntry = {
   month: string;
   monthNumber: number;
-  actual: number;
   target: number;
-  newForecast: number;
-  totalForecast: number;
-  percentActual: number;
-  percentTotal: number;
-  backlog: number;
 };
 
 export default function SalesForecastDashboard() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [expandedMonths, setExpandedMonths] = useState<Record<number, boolean>>({});
+
   const {
     data: forecastData,
     tradeNameGroupLabels,
@@ -85,7 +83,7 @@ export default function SalesForecastDashboard() {
   const currentMonth = new Date().getMonth() + 1;
 
   const performanceData = useMemo<PerformanceEntry[]>(() => {
-    if (!forecastData?.actualSales) return [];
+    if (!forecastData?.personal) return [];
 
     const targetMap: Record<number, number> = {};
     forecastData.personal.forEach((entry) => {
@@ -93,33 +91,73 @@ export default function SalesForecastDashboard() {
         (targetMap[entry.month] || 0) + entry.totalAmount;
     });
 
-    const actualMap: Record<number, number> = {};
-    forecastData.actualSales.forEach((item) => {
-      actualMap[item.month] = item.totalAmount || 0;
-    });
-
     return MONTHS_FULL.map((monthLabel, index) => {
       const monthNumber = index + 1;
-      const actual = actualMap[monthNumber] || 0;
       const target = targetMap[monthNumber] || 0;
-      const newForecast = monthNumber > currentMonth ? target : 0;
-      const totalForecast = actual + newForecast;
-      const percentActual = target > 0 ? (actual / target) * 100 : 0;
-      const percentTotal = target > 0 ? (totalForecast / target) * 100 : 0;
-      const backlog = actual - target;
       return {
         month: monthLabel,
         monthNumber,
-        actual,
         target,
-        newForecast,
-        totalForecast,
-        percentActual,
-        percentTotal,
-        backlog,
       };
     });
-  }, [forecastData, currentMonth]);
+  }, [forecastData]);
+
+  const monthlyEmployeesMap = useMemo(() => {
+    if (!forecastData?.personal) return {};
+
+    const map: Record<
+      number,
+      Record<
+        string,
+        {
+          employeeId: string;
+          employeeName: string;
+          region: string | null;
+          totalAmount: number;
+          totalQuantity: number;
+        }
+      >
+    > = {};
+
+    forecastData.personal.forEach((entry) => {
+      const m = entry.month;
+      if (!map[m]) {
+        map[m] = {};
+      }
+      const empId = entry.employeeId;
+      if (!map[m][empId]) {
+        map[m][empId] = {
+          employeeId: entry.employeeId,
+          employeeName: entry.employeeName,
+          region: entry.region,
+          totalAmount: 0,
+          totalQuantity: 0,
+        };
+      }
+      map[m][empId].totalAmount += entry.totalAmount;
+      map[m][empId].totalQuantity += entry.totalQuantity;
+    });
+
+    const result: Record<
+      number,
+      Array<{
+        employeeId: string;
+        employeeName: string;
+        region: string | null;
+        totalAmount: number;
+        totalQuantity: number;
+      }>
+    > = {};
+
+    Object.keys(map).forEach((mStr) => {
+      const m = Number(mStr);
+      result[m] = Object.values(map[m]).sort((a, b) =>
+        a.employeeName.localeCompare(b.employeeName)
+      );
+    });
+
+    return result;
+  }, [forecastData]);
 
   const formatFullCurrency = (value: number) => {
     return new Intl.NumberFormat("th-TH", {
@@ -319,44 +357,42 @@ export default function SalesForecastDashboard() {
   }, [forecastData, abcLabels, selectedMonth]);
 
   // Calculate summary stats
-  const totalActual = filteredPerformanceData.reduce(
-    (sum, d) => sum + d.actual,
-    0,
-  );
-  const totalTarget = filteredPerformanceData.reduce(
-    (sum, d) => sum + d.target,
-    0,
-  );
-  const actualVsTarget =
-    totalTarget > 0 ? ((totalActual / totalTarget) * 100).toFixed(1) : "0";
-
-  const totals = useMemo(
-    () =>
-      filteredPerformanceData.reduce(
-        (acc, entry) => ({
-          target: acc.target + entry.target,
-          actual: acc.actual + entry.actual,
-          newForecast: acc.newForecast + entry.newForecast,
-          totalForecast: acc.totalForecast + entry.totalForecast,
-          backlog: acc.backlog + entry.backlog,
-        }),
-        {
-          target: 0,
-          actual: 0,
-          newForecast: 0,
-          totalForecast: 0,
-          backlog: 0,
-        },
-      ),
+  const totalTarget = useMemo(
+    () => filteredPerformanceData.reduce((sum, d) => sum + d.target, 0),
     [filteredPerformanceData],
   );
 
-  const formatPercent = (value: number) => `${value.toFixed(1)}%`;
+  const totalUniqueEmployees = useMemo(() => {
+    const empSet = new Set<string>();
+    filteredPerformanceData.forEach((entry) => {
+      const list = monthlyEmployeesMap[entry.monthNumber] || [];
+      list.forEach((emp) => empSet.add(emp.employeeId));
+    });
+    return empSet.size;
+  }, [filteredPerformanceData, monthlyEmployeesMap]);
 
-  const getPercentClass = (value: number) => {
-    if (value > 100) return "text-emerald-600";
-    if (value >= 80) return "text-amber-600";
-    return "text-orange-600";
+  const isAllExpanded = useMemo(() => {
+    if (filteredPerformanceData.length === 0) return false;
+    return filteredPerformanceData.every((d) => expandedMonths[d.monthNumber]);
+  }, [filteredPerformanceData, expandedMonths]);
+
+  const toggleExpandAll = () => {
+    if (isAllExpanded) {
+      setExpandedMonths({});
+    } else {
+      const nextState: Record<number, boolean> = {};
+      filteredPerformanceData.forEach((d) => {
+        nextState[d.monthNumber] = true;
+      });
+      setExpandedMonths(nextState);
+    }
+  };
+
+  const toggleMonthExpand = (monthNumber: number) => {
+    setExpandedMonths((prev) => ({
+      ...prev,
+      [monthNumber]: !prev[monthNumber],
+    }));
   };
 
   if (loadingState) {
@@ -491,27 +527,15 @@ export default function SalesForecastDashboard() {
         >
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Card className="overflow-hidden rounded-2xl border-0 bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-xl">
+            <Card className="overflow-hidden rounded-2xl border-0 bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-xl">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-blue-100 text-sm">ยอดขายจริง (YTD)</p>
-                    <p className="text-2xl font-bold mt-1">
-                      {formatFullCurrency(totalActual)}
+                    <p className="text-blue-100 text-sm">
+                      {selectedMonth === "all"
+                        ? "เป้าหมายรวมทั้งปี"
+                        : "เป้าหมายประจำเดือน"}
                     </p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-white/20">
-                    <TrendingUp className="w-6 h-6" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden rounded-2xl border-0 bg-linear-to-br from-purple-500 to-violet-600 text-white shadow-xl">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-purple-100 text-sm">เป้าหมายทั้งปี</p>
                     <p className="text-2xl font-bold mt-1">
                       {formatFullCurrency(totalTarget)}
                     </p>
@@ -523,19 +547,41 @@ export default function SalesForecastDashboard() {
               </CardContent>
             </Card>
 
+            <Card className="overflow-hidden rounded-2xl border-0 bg-linear-to-br from-purple-500 to-violet-600 text-white shadow-xl">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-purple-100 text-sm">
+                      พนักงานที่ตั้งเป้าหมาย
+                    </p>
+                    <p className="text-2xl font-bold mt-1">
+                      {totalUniqueEmployees} คน
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/20">
+                    <UserRound className="w-6 h-6" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card className="overflow-hidden rounded-2xl border-0 bg-linear-to-br from-amber-500 to-orange-600 text-white shadow-xl">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-amber-100 text-sm">ยอดขาย vs เป้าหมาย</p>
-                    <p className="text-2xl font-bold mt-1">{actualVsTarget}%</p>
+                    <p className="text-amber-100 text-sm">
+                      {selectedMonth === "all"
+                        ? "เฉลี่ยเป้าหมายต่อเดือน"
+                        : "จำนวนพนักงานในเดือนนี้"}
+                    </p>
+                    <p className="text-2xl font-bold mt-1">
+                      {selectedMonth === "all"
+                        ? formatFullCurrency(totalTarget / 12)
+                        : `${monthlyEmployeesMap[Number(selectedMonth)]?.length || 0} คน`}
+                    </p>
                   </div>
                   <div className="p-3 rounded-xl bg-white/20">
-                    {Number(actualVsTarget) >= 100 ? (
-                      <ArrowUp className="w-6 h-6" />
-                    ) : (
-                      <ArrowDown className="w-6 h-6" />
-                    )}
+                    <TrendingUp className="w-6 h-6" />
                   </div>
                 </div>
               </CardContent>
@@ -544,38 +590,50 @@ export default function SalesForecastDashboard() {
 
           {/* Sales Performance Dashboard Table */}
           <Card className="overflow-hidden rounded-2xl border-2 bg-white/70 backdrop-blur-sm shadow-lg">
-            <CardHeader className="border-b border-slate-100 mt-6">
+            <CardHeader className="border-b border-slate-100 mt-6 flex flex-row items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-linear-to-br from-blue-100 to-indigo-100">
                   <TrendingUp className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle>ภาพรวมยอดขายและเป้าหมาย</CardTitle>
+                  <CardTitle>ภาพรวมเป้าหมายรายเดือน</CardTitle>
                   <p className="text-sm text-slate-500">
-                    สรุปเป้าหมาย ยอดขายจริง และคาดการณ์รายเดือน
+                    สรุปเป้าหมายและรายชื่อพนักงานที่ตั้งเป้าหมายประจำเดือน
                   </p>
                 </div>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleExpandAll}
+                className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs gap-1.5"
+              >
+                {isAllExpanded ? (
+                  <>
+                    <ChevronDown className="w-4 h-4 text-blue-600" />
+                    ย่อทั้งหมด
+                  </>
+                ) : (
+                  <>
+                    <ChevronRight className="w-4 h-4 text-slate-500" />
+                    ขยายทั้งหมด
+                  </>
+                )}
+              </Button>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-sm">
                   <thead className="bg-slate-50">
                     <tr>
-                      <th className="border border-slate-200 px-3 py-3 text-left font-semibold text-slate-700 text-base min-w-[90px] sticky left-0 z-10 bg-slate-50">
+                      <th className="border border-slate-200 px-3 py-3 text-left font-semibold text-slate-700 text-base min-w-[160px] sticky left-0 z-10 bg-slate-50">
                         เดือน
                       </th>
-                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 text-base min-w-[130px]">
-                        เป้าหมาย
-                      </th>
-                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 text-base min-w-[130px]">
-                        ยอดขายจริง
-                      </th>
-                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 text-base min-w-[110px]">
-                        % เทียบเป้า
-                      </th>
                       <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 text-base min-w-[150px]">
-                        ส่วนต่างจากเป้าหมาย
+                        จำนวนพนักงานที่ตั้งเป้า
+                      </th>
+                      <th className="border border-slate-200 px-3 py-3 text-right font-semibold text-slate-700 text-base min-w-[180px]">
+                        เป้าหมาย
                       </th>
                     </tr>
                   </thead>
@@ -585,61 +643,170 @@ export default function SalesForecastDashboard() {
                       const isCurrentMonth = entry.monthNumber === currentMonth;
                       const isQuarterStart = monthIdx % 3 === 0;
                       const rowBg = isCurrentMonth
-                        ? "bg-blue-50"
+                        ? "bg-blue-50/80"
                         : monthIdx % 2 === 0
                           ? "bg-white"
                           : "bg-slate-50/50";
-                      const backlogColor =
-                        entry.backlog > 0
-                          ? "text-emerald-600"
-                          : entry.backlog < 0
-                            ? "text-rose-600"
-                            : "text-slate-700";
+
+                      const empList =
+                        monthlyEmployeesMap[entry.monthNumber] || [];
+                      const isExpanded = !!expandedMonths[entry.monthNumber];
+
                       return (
-                        <tr
-                          key={entry.month}
-                          className={`border-b border-slate-200 ${isCurrentMonth ? "ring-1 ring-inset ring-blue-300" : ""} ${isQuarterStart ? "border-t-2 border-t-slate-300" : ""}`}
-                        >
-                          <td
-                            className={`sticky left-0 z-10 border border-slate-200 px-3 py-2 text-left font-medium text-slate-700 ${rowBg} ${isCurrentMonth ? "text-blue-700" : ""}`}
+                        <Fragment key={entry.month}>
+                          <tr
+                            className={`border-b border-slate-200 hover:bg-slate-100/50 transition-colors ${isCurrentMonth ? "ring-1 ring-inset ring-blue-300" : ""} ${isQuarterStart ? "border-t-2 border-t-slate-300" : ""}`}
                           >
-                            <span className="hidden lg:inline">
-                              {MONTHS_FULL[monthIdx]}
-                            </span>
-                            <span className="lg:hidden">
-                              {MONTHS[monthIdx]}
-                            </span>
-                            {isCurrentMonth && (
-                              <span className="ml-1 text-[12px] text-blue-500 bg-blue-100 px-1 rounded">
-                                ปัจจุบัน
-                              </span>
-                            )}
-                          </td>
-                          <td
-                            className={`border border-slate-200 px-3 py-2 text-center text-slate-700 ${rowBg}`}
-                          >
-                            {formatFullCurrency(entry.target)}
-                          </td>
-                          <td
-                            className={`border border-slate-200 px-3 py-2 text-center text-slate-700 ${rowBg}`}
-                          >
-                            {formatFullCurrency(entry.actual)}
-                          </td>
-                          <td
-                            className={`border border-slate-200 px-3 py-2 text-center ${getPercentClass(entry.percentActual)} ${rowBg}`}
-                          >
-                            {formatPercent(entry.percentActual)}
-                          </td>
-                          <td
-                            className={`border border-slate-200 px-3 py-2 text-center font-medium ${backlogColor} ${rowBg}`}
-                          >
-                            {entry.backlog > 0
-                              ? `+${formatFullCurrency(entry.backlog)}`
-                              : formatFullCurrency(entry.backlog)}
-                          </td>
-                        </tr>
+                            <td
+                              className={`sticky left-0 z-10 border border-slate-200 px-3 py-2.5 text-left font-medium text-slate-700 ${rowBg} ${isCurrentMonth ? "text-blue-700 font-bold" : ""}`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    toggleMonthExpand(entry.monthNumber)
+                                  }
+                                  className="p-1 rounded-lg hover:bg-slate-200/80 text-slate-600 transition-colors"
+                                  title={isExpanded ? "ย่อ" : "ขยาย"}
+                                >
+                                  {isExpanded ? (
+                                    <ChevronDown className="w-4 h-4 text-blue-600" />
+                                  ) : (
+                                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                                  )}
+                                </button>
+                                <span>
+                                  <span className="hidden lg:inline">
+                                    {MONTHS_FULL[monthIdx]}
+                                  </span>
+                                  <span className="lg:hidden">
+                                    {MONTHS[monthIdx]}
+                                  </span>
+                                </span>
+                                {isCurrentMonth && (
+                                  <span className="ml-1 text-[12px] text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded font-medium">
+                                    ปัจจุบัน
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td
+                              className={`border border-slate-200 px-3 py-2.5 text-center text-slate-700 ${rowBg}`}
+                            >
+                              {empList.length > 0 ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    toggleMonthExpand(entry.monthNumber)
+                                  }
+                                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 hover:bg-blue-100 transition-colors"
+                                >
+                                  <Users className="w-3.5 h-3.5" />
+                                  {empList.length} คน
+                                </button>
+                              ) : (
+                                <span className="text-slate-400 text-xs">
+                                  ยังไม่มีการตั้งเป้า
+                                </span>
+                              )}
+                            </td>
+                            <td
+                              className={`border border-slate-200 px-3 py-2.5 text-right font-bold text-slate-800 ${rowBg}`}
+                            >
+                              {formatFullCurrency(entry.target)}
+                            </td>
+                          </tr>
+
+                          {/* Expandable Sub-table */}
+                          {isExpanded && (
+                            <tr className="bg-slate-50/80 border-b border-slate-200">
+                              <td
+                                colSpan={3}
+                                className="p-3 sm:p-4 pl-4 sm:pl-10"
+                              >
+                                <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+                                  <div className="px-4 py-2.5 bg-slate-100/80 border-b border-slate-200 flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                                      <UserRound className="w-4 h-4 text-blue-600" />
+                                      <span>
+                                        รายชื่อพนักงานที่ตั้งเป้าหมายประจำเดือน{" "}
+                                        {MONTHS_FULL[monthIdx]}
+                                      </span>
+                                    </div>
+                                    <span className="text-xs text-slate-500 font-medium">
+                                      รวม {empList.length} คน
+                                    </span>
+                                  </div>
+                                  {empList.length > 0 ? (
+                                    <div className="overflow-x-auto">
+                                      <table className="w-full text-xs text-left border-collapse">
+                                        <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
+                                          <tr>
+                                            <th className="px-4 py-2.5 font-semibold">
+                                              พนักงาน
+                                            </th>
+                                            <th className="px-4 py-2.5 font-semibold text-right">
+                                              จำนวนสินค้า
+                                            </th>
+                                            <th className="px-4 py-2.5 font-semibold text-right">
+                                              ยอดเป้าหมาย
+                                            </th>
+                                            <th className="px-4 py-2.5 font-semibold text-center w-24">
+                                              จัดการ
+                                            </th>
+                                          </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                          {empList.map((emp) => (
+                                            <tr
+                                              key={emp.employeeId}
+                                              className="hover:bg-blue-50/40 transition-colors"
+                                            >
+                                              <td className="px-4 py-2.5 font-medium text-slate-800">
+                                                {emp.employeeName}
+                                                {emp.region && (
+                                                  <span className="ml-2 text-[11px] text-slate-400 font-normal">
+                                                    ({emp.region})
+                                                  </span>
+                                                )}
+                                              </td>
+                                              <td className="px-4 py-2.5 text-right text-slate-600">
+                                                {emp.totalQuantity.toLocaleString()}{" "}
+                                                รายการ
+                                              </td>
+                                              <td className="px-4 py-2.5 text-right font-bold text-blue-700">
+                                                {formatFullCurrency(
+                                                  emp.totalAmount,
+                                                )}
+                                              </td>
+                                              <td className="px-4 py-2.5 text-center">
+                                                <a
+                                                  href={`/sales-forecast/${emp.employeeId}?year=${year}`}
+                                                  className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-xs font-medium hover:underline px-2 py-1 rounded-md hover:bg-blue-50 transition-colors"
+                                                  title="ดูรายละเอียด"
+                                                >
+                                                  <Eye className="w-3.5 h-3.5" />
+                                                  ดูรายละเอียด
+                                                </a>
+                                              </td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  ) : (
+                                    <div className="p-4 text-center text-xs text-slate-400">
+                                      ไม่มีพนักงานตั้งเป้าหมายในเดือนนี้
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
                       );
                     })}
+
                     {/* Summary row */}
                     <tr className="bg-slate-100 font-bold border-t-2 border-slate-300">
                       <td className="sticky left-0 z-10 border border-slate-200 pl-6 pr-3 py-2.5 text-left text-base text-slate-800 bg-slate-100">
@@ -648,26 +815,10 @@ export default function SalesForecastDashboard() {
                           : `รวมเดือน ${MONTHS_FULL[Number(selectedMonth) - 1]}`}
                       </td>
                       <td className="border border-slate-200 px-3 py-2.5 text-center text-slate-800">
-                        {formatFullCurrency(totals.target)}
+                        {totalUniqueEmployees} คน
                       </td>
-                      <td className="border border-slate-200 px-3 py-2.5 text-center text-slate-800">
-                        {formatFullCurrency(totals.actual)}
-                      </td>
-                      <td
-                        className={`border border-slate-200 px-3 py-2.5 text-center ${getPercentClass(totals.target > 0 ? (totals.actual / totals.target) * 100 : 0)}`}
-                      >
-                        {formatPercent(
-                          totals.target > 0
-                            ? (totals.actual / totals.target) * 100
-                            : 0,
-                        )}
-                      </td>
-                      <td
-                        className={`border border-slate-200 px-3 py-2.5 text-center ${totals.backlog > 0 ? "text-emerald-600" : totals.backlog < 0 ? "text-rose-600" : "text-slate-800"}`}
-                      >
-                        {totals.backlog > 0
-                          ? `+${formatFullCurrency(totals.backlog)}`
-                          : formatFullCurrency(totals.backlog)}
+                      <td className="border border-slate-200 px-3 py-2.5 text-right text-slate-800 text-base">
+                        {formatFullCurrency(totalTarget)}
                       </td>
                     </tr>
                   </tbody>
