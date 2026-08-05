@@ -78,6 +78,7 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
 
   if (q) {
     where.OR = [
+      { id: { contains: q, mode: "insensitive" } },
       { title: { contains: q, mode: "insensitive" } },
       { location: { contains: q, mode: "insensitive" } },
       { objective: { contains: q, mode: "insensitive" } },

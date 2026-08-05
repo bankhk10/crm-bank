@@ -74,6 +74,25 @@ export function ActivityPlanTable({
   const columns = React.useMemo<ColumnDef<ActivityPlanWithRelations>[]>(() => {
     return [
       {
+        id: "planNo",
+        header: "เลขที่แผน",
+        cell: ({ row }) => {
+          const planNo =
+            (row.original as any).planNo ||
+            (row.original as any).planCode ||
+            (row.original as any).code ||
+            row.original.id;
+          return (
+            <div
+              className="truncate font-mono text-xs font-semibold text-slate-700 max-w-[120px]"
+              title={planNo}
+            >
+              {planNo || "-"}
+            </div>
+          );
+        },
+      },
+      {
         accessorKey: "title",
         header: "ชื่อกิจกรรม",
         cell: (info) => (
@@ -225,7 +244,7 @@ export function ActivityPlanTable({
   const toolbar = (
     <div className="space-y-4 mb-6">
       <TableToolbar
-        searchPlaceholder="ค้นหาชื่อกิจกรรม"
+        searchPlaceholder="ค้นหาเลขที่แผน, ชื่อกิจกรรม..."
         searchValue={searchValue}
         onSearchChange={onSearchChange}
         onSearchSubmit={onSearchSubmit}
