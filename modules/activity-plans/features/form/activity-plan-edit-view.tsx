@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PageHeader } from "@/components/custom/page-header";
 import { toast } from "sonner";
 import { ActivityPlanForm } from "./activity-plan-form";
 import { getActivityPlanAction, updateActivityPlanAction } from "../../server/actions";
@@ -43,6 +42,8 @@ export default function ActivityPlanEditView({ id }: Props) {
 
         if (empRes.success && empRes.employees) {
           setEmployees(empRes.employees);
+        } else if (!empRes.success) {
+          setLoadError("ไม่สามารถดึงรายชื่อพนักงานได้");
         }
 
         if (custRes && custRes.customers) {
@@ -55,7 +56,7 @@ export default function ActivityPlanEditView({ id }: Props) {
 
         if (planRes.success && planRes.plan) {
           const plan = planRes.plan;
-          
+
           // Map database helpers to simple array of employee IDs
           const helperEmployeeIds = plan.helpers
             ? plan.helpers.map((h: any) => h.employeeId)
@@ -73,12 +74,14 @@ export default function ActivityPlanEditView({ id }: Props) {
             marketingBudget: plan.marketingBudget ? Number(plan.marketingBudget) : 0,
             notes: plan.notes || "",
             helperEmployeeIds,
+            planCode: plan.code,
+            employeeName: plan.employee?.name,
           });
         } else {
           setLoadError(planRes.error || "ไม่สามารถดึงข้อมูลแผนกิจกรรมได้");
         }
       } catch {
-        setLoadError("เกิดข้อผิดพลาดในการโหลดข้อมูลหน้าแก้ไข");
+        setLoadError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
       } finally {
         setPageLoading(false);
       }
@@ -99,7 +102,7 @@ export default function ActivityPlanEditView({ id }: Props) {
   };
 
   if (isLoading || pageLoading) {
-    return <div className="p-6 text-center">กำลังโหลดข้อมูล...</div>;
+    return <div className="p-6 text-center">กำลังโหลด...</div>;
   }
 
   if (!canView || !canEdit) {
@@ -110,22 +113,15 @@ export default function ActivityPlanEditView({ id }: Props) {
     );
   }
 
-  if (loadError || !initialData) {
-    return (
-      <Alert variant="destructive" className="m-6">
-        <AlertDescription>{loadError || "ไม่พบข้อมูลกิจกรรม"}</AlertDescription>
-      </Alert>
-    );
-  }
-
   return (
-    <section className="space-y-6 p-6 pb-24 md:pb-8">
-      <PageHeader
-        title="แก้ไขแผนกิจกรรม"
-        description="อัปเดตรายละเอียดแผนงานหรือแก้ไขตามที่หัวหน้างานแนะนำเพิ่มเติม"
-      />
+    <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
+      {loadError && (
+        <Alert variant="destructive" className="mb-4 max-w-5xl mx-auto">
+          <AlertDescription>{loadError}</AlertDescription>
+        </Alert>
+      )}
 
-      <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm max-w-4xl">
+      {initialData && (
         <ActivityPlanForm
           initial={initialData}
           employees={employees}
@@ -134,8 +130,10 @@ export default function ActivityPlanEditView({ id }: Props) {
           onSubmit={handleSubmit}
           onCancel={() => router.push("/activity-plans")}
           submitLabel="อัปเดตแผนกิจกรรม"
+          isEdit
         />
-      </div>
+      )}
     </section>
   );
 }
+
