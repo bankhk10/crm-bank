@@ -1,9 +1,20 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Loader2, Package, Building2, CalendarDays, UserRound, Search, Filter, X, ChevronDownIcon } from "lucide-react";
+import {
+  ChevronLeft,
+  Loader2,
+  Package,
+  Building2,
+  CalendarDays,
+  UserRound,
+  Search,
+  Filter,
+  X,
+  ChevronDownIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { getSalesForecastAction } from "@/modules/sales-forecast/server/actions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,7 +56,9 @@ interface EmployeeForecastViewProps {
   employeeId: string;
 }
 
-export default function EmployeeForecastView({ employeeId }: EmployeeForecastViewProps) {
+export default function EmployeeForecastView({
+  employeeId,
+}: EmployeeForecastViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const yearParam = searchParams.get("year");
@@ -64,12 +77,16 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
     async function fetchForecast() {
       try {
         const result = await getSalesForecastAction(year);
-        const employeeDataList = result.personal.filter((e) => e.employeeId === employeeId);
+        const employeeDataList = result.personal.filter(
+          (e) => e.employeeId === employeeId,
+        );
 
         if (employeeDataList.length > 0) {
           setEmployeeName(employeeDataList[0].employeeName);
           setRegion(employeeDataList[0].region);
-          const allDetails = employeeDataList.flatMap((e: any) => e.details || []);
+          const allDetails = employeeDataList.flatMap(
+            (e: any) => e.details || [],
+          );
           setDetails(allDetails);
         } else {
           toast.error("ไม่พบข้อมูลคาดการณ์ของพนักงานนี้");
@@ -85,12 +102,90 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
     fetchForecast();
   }, [employeeId, year, router]);
 
+  // Get all unique months from details for the Select dropdown
+  const availableMonths = useMemo(() => {
+    const monthSet = new Set<number>();
+    details.forEach((item) => monthSet.add(item.month));
+    return Array.from(monthSet).sort((a, b) => a - b);
+  }, [details]);
+
+  // Filter details by selectedMonth
+  const filteredDetails = useMemo(() => {
+    if (selectedMonth === "all") return details;
+    const mNum = Number(selectedMonth);
+    return details.filter((item) => item.month === mNum);
+  }, [details, selectedMonth]);
+
+  // Aggregate by Product, Shop, and Month from filteredDetails
+  const { products, shops, monthMap, months, totalAmount } = useMemo(() => {
+    const productMap = new Map<
+      string,
+      { name: string; amount: number; qty: number }
+    >();
+    const shopMap = new Map<
+      string,
+      { name: string; amount: number; qty: number }
+    >();
+    const monthMap = new Map<number, DetailItem[]>();
+
+    filteredDetails.forEach((item) => {
+      // Products
+      if (!productMap.has(item.productId)) {
+        productMap.set(item.productId, {
+          name: item.productName,
+          amount: 0,
+          qty: 0,
+        });
+      }
+      const p = productMap.get(item.productId)!;
+      p.amount += item.amount;
+      p.qty += item.quantity;
+
+      // Shops
+      if (!shopMap.has(item.shopId)) {
+        shopMap.set(item.shopId, { name: item.shopName, amount: 0, qty: 0 });
+      }
+      const s = shopMap.get(item.shopId)!;
+      s.amount += item.amount;
+      s.qty += item.quantity;
+
+      // Months
+      if (!monthMap.has(item.month)) {
+        monthMap.set(item.month, []);
+      }
+      monthMap.get(item.month)!.push(item);
+    });
+
+    const productsList = Array.from(productMap.values()).sort(
+      (a, b) => b.amount - a.amount,
+    );
+    const shopsList = Array.from(shopMap.values()).sort(
+      (a, b) => b.amount - a.amount,
+    );
+    const monthsList = Array.from(monthMap.keys()).sort((a, b) => a - b);
+    const total = productsList.reduce((acc, p) => acc + p.amount, 0);
+
+    return {
+      products: productsList,
+      shops: shopsList,
+      monthMap,
+      months: monthsList,
+      totalAmount: total,
+    };
+  }, [filteredDetails]);
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("th-TH", {
       style: "currency",
       currency: "THB",
       maximumFractionDigits: 0,
     }).format(value);
+  };
+
+  const getMonthName = (m: number) => {
+    const d = new Date();
+    d.setMonth(m - 1);
+    return d.toLocaleString("th-TH", { month: "long" });
   };
 
   if (loading) {
@@ -103,48 +198,6 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
       </div>
     );
   }
-
-  // Aggregate by Product
-  const productMap = new Map<string, { name: string; amount: number; qty: number }>();
-  // Aggregate by Shop
-  const shopMap = new Map<string, { name: string; amount: number; qty: number }>();
-  // Aggregate by Month -> Shop -> Product
-  const monthMap = new Map<number, DetailItem[]>();
-
-  details.forEach((item) => {
-    // Products
-    if (!productMap.has(item.productId)) {
-      productMap.set(item.productId, { name: item.productName, amount: 0, qty: 0 });
-    }
-    const p = productMap.get(item.productId)!;
-    p.amount += item.amount;
-    p.qty += item.quantity;
-
-    // Shops
-    if (!shopMap.has(item.shopId)) {
-      shopMap.set(item.shopId, { name: item.shopName, amount: 0, qty: 0 });
-    }
-    const s = shopMap.get(item.shopId)!;
-    s.amount += item.amount;
-    s.qty += item.quantity;
-
-    // Months
-    if (!monthMap.has(item.month)) {
-      monthMap.set(item.month, []);
-    }
-    monthMap.get(item.month)!.push(item);
-  });
-
-  const products = Array.from(productMap.values()).sort((a, b) => b.amount - a.amount);
-  const shops = Array.from(shopMap.values()).sort((a, b) => b.amount - a.amount);
-  const months = Array.from(monthMap.keys()).sort((a, b) => a - b);
-  const totalAmount = products.reduce((acc, p) => acc + p.amount, 0);
-
-  const getMonthName = (m: number) => {
-    const d = new Date();
-    d.setMonth(m - 1);
-    return d.toLocaleString('th-TH', { month: 'long' });
-  };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 p-4 sm:p-6 lg:p-8">
@@ -172,13 +225,19 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
                         รายละเอียดเป้าหมายการขาย
                       </h1>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm font-medium text-slate-500">ปี {year}</span>
+                        <span className="text-sm font-medium text-slate-500">
+                          ปี {year}
+                        </span>
                         <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                        <span className="text-blue-600 font-semibold">{employeeName}</span>
+                        <span className="text-blue-600 font-semibold">
+                          {employeeName}
+                        </span>
                         {region && (
                           <>
                             <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                            <span className="text-slate-500 text-sm font-medium">{region}</span>
+                            <span className="text-slate-500 text-sm font-medium">
+                              {region}
+                            </span>
                           </>
                         )}
                       </div>
@@ -190,7 +249,9 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
               {/* Grand Total */}
               <div className="bg-blue-50/50 border border-blue-100/50 rounded-2xl p-4 sm:pr-8 sm:text-right shrink-0">
                 <p className="text-xs font-semibold text-blue-600/70 mb-1 uppercase tracking-wider">
-                  เป้าหมายรวมทั้งหมด
+                  {selectedMonth === "all"
+                    ? "เป้าหมายรวมทั้งหมด"
+                    : `เป้าหมายรวม (เดือน${getMonthName(Number(selectedMonth))})`}
                 </p>
                 <div className="text-2xl sm:text-3xl font-black text-blue-700">
                   {formatCurrency(totalAmount)}
@@ -205,13 +266,22 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
           <Tabs defaultValue="products" className="w-full flex flex-col">
             <div className="px-4 sm:px-6 py-4 bg-slate-50/50 border-b border-slate-100 overflow-x-auto scrollbar-hide">
               <TabsList className="bg-white/80 backdrop-blur-sm shadow-sm border border-slate-200/60 p-1.5 rounded-xl h-auto flex w-max">
-                <TabsTrigger value="products" className="rounded-lg px-5 py-2.5 flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm">
+                <TabsTrigger
+                  value="products"
+                  className="rounded-lg px-5 py-2.5 flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm"
+                >
                   <Package className="w-4 h-4" /> สินค้า ({products.length})
                 </TabsTrigger>
-                <TabsTrigger value="shops" className="rounded-lg px-5 py-2.5 flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm">
+                <TabsTrigger
+                  value="shops"
+                  className="rounded-lg px-5 py-2.5 flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm"
+                >
                   <Building2 className="w-4 h-4" /> ร้านค้า ({shops.length})
                 </TabsTrigger>
-                <TabsTrigger value="months" className="rounded-lg px-5 py-2.5 flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm">
+                <TabsTrigger
+                  value="months"
+                  className="rounded-lg px-5 py-2.5 flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm"
+                >
                   <CalendarDays className="w-4 h-4" /> รายเดือน
                 </TabsTrigger>
               </TabsList>
@@ -242,14 +312,19 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
                   <div className="flex items-center gap-2 px-3 bg-white border border-slate-200 rounded-lg shadow-sm text-sm font-medium text-slate-600 shrink-0 h-11">
                     <Filter className="w-4 h-4 text-slate-400" />
                     <span className="hidden sm:inline">เดือน:</span>
-                    <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                    <Select
+                      value={selectedMonth}
+                      onValueChange={setSelectedMonth}
+                    >
                       <SelectTrigger className="border-0 bg-transparent h-full p-0 focus:ring-0 shadow-none font-bold text-blue-600">
                         <SelectValue placeholder="เลือกเดือน" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">ทุกเดือน</SelectItem>
-                        {months.map(m => (
-                          <SelectItem key={m} value={m.toString()}>เดือน{getMonthName(m)}</SelectItem>
+                        {availableMonths.map((m) => (
+                          <SelectItem key={m} value={m.toString()}>
+                            เดือน{getMonthName(m)}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -258,96 +333,184 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
               </div>
 
               <div className="p-4 sm:p-6 lg:p-8">
-                <TabsContent value="products" className="mt-0 focus-visible:outline-none">
+                <TabsContent
+                  value="products"
+                  className="mt-0 focus-visible:outline-none"
+                >
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {products
-                      .filter(p => !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .filter(
+                        (p) =>
+                          !searchTerm ||
+                          p.name
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase()),
+                      )
                       .map((p, i) => (
-                        <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3">
+                        <div
+                          key={i}
+                          className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3"
+                        >
                           <div className="flex items-start gap-3 border-b border-slate-100 pb-3">
                             <div className="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0">
                               <Package className="w-4 h-4" />
                             </div>
-                            <p className="font-bold text-slate-800 line-clamp-2" title={p.name}>{p.name}</p>
+                            <p
+                              className="font-bold text-slate-800 line-clamp-2"
+                              title={p.name}
+                            >
+                              {p.name}
+                            </p>
                           </div>
                           <div className="mt-auto grid grid-cols-2 gap-4">
                             <div>
-                              <p className="text-xs text-slate-500 font-medium mb-1">ยอดรวม</p>
-                              <p className="text-lg font-bold text-blue-600">{formatCurrency(p.amount)}</p>
+                              <p className="text-xs text-slate-500 font-medium mb-1">
+                                ยอดรวม
+                              </p>
+                              <p className="text-lg font-bold text-blue-600">
+                                {formatCurrency(p.amount)}
+                              </p>
                             </div>
                             <div className="text-right">
-                              <p className="text-xs text-slate-500 font-medium mb-1">จำนวน</p>
-                              <p className="text-sm font-semibold text-slate-700">{p.qty.toLocaleString()} ชิ้น</p>
+                              <p className="text-xs text-slate-500 font-medium mb-1">
+                                จำนวน
+                              </p>
+                              <p className="text-sm font-semibold text-slate-700">
+                                {p.qty.toLocaleString()} ชิ้น
+                              </p>
                             </div>
                           </div>
                         </div>
                       ))}
-                    {(products.length === 0 || products.filter(p => !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0) && (
+                    {(products.length === 0 ||
+                      products.filter(
+                        (p) =>
+                          !searchTerm ||
+                          p.name
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase()),
+                      ).length === 0) && (
                       <div className="col-span-full py-12 text-center text-slate-500 border rounded-2xl border-dashed">
-                        ไม่มีข้อมูลสินค้า{searchTerm ? ` ที่ตรงกับ "${searchTerm}"` : ""}
+                        ไม่มีข้อมูลสินค้า
+                        {searchTerm ? ` ที่ตรงกับ "${searchTerm}"` : ""}
                       </div>
                     )}
                   </div>
                 </TabsContent>
 
-                <TabsContent value="shops" className="mt-0 focus-visible:outline-none">
+                <TabsContent
+                  value="shops"
+                  className="mt-0 focus-visible:outline-none"
+                >
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     {shops
-                      .filter(s => !searchTerm || s.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .filter(
+                        (s) =>
+                          !searchTerm ||
+                          s.name
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase()),
+                      )
                       .map((s, i) => (
-                        <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                        <div
+                          key={i}
+                          className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow"
+                        >
                           <div className="flex items-start gap-4">
                             <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
                               <Building2 className="w-5 h-5" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-slate-800 line-clamp-2 mb-3" title={s.name}>{s.name || 'ไม่ระบุชื่อร้านค้า'}</p>
+                              <p
+                                className="font-bold text-slate-800 line-clamp-2 mb-3"
+                                title={s.name}
+                              >
+                                {s.name || "ไม่ระบุชื่อร้านค้า"}
+                              </p>
                               <div className="grid grid-cols-2 gap-4 bg-slate-50 rounded-lg p-3 border border-slate-100">
                                 <div>
-                                  <p className="text-xs text-slate-500 font-medium mb-0.5">ยอดรวมร้านค้า</p>
-                                  <p className="text-base font-bold text-indigo-700">{formatCurrency(s.amount)}</p>
+                                  <p className="text-xs text-slate-500 font-medium mb-0.5">
+                                    ยอดรวมร้านค้า
+                                  </p>
+                                  <p className="text-base font-bold text-indigo-700">
+                                    {formatCurrency(s.amount)}
+                                  </p>
                                 </div>
                                 <div className="text-right">
-                                  <p className="text-xs text-slate-500 font-medium mb-0.5">รวมสินค้า</p>
-                                  <p className="text-sm font-semibold text-slate-700">{s.qty.toLocaleString()} ชิ้น</p>
+                                  <p className="text-xs text-slate-500 font-medium mb-0.5">
+                                    รวมสินค้า
+                                  </p>
+                                  <p className="text-sm font-semibold text-slate-700">
+                                    {s.qty.toLocaleString()} ชิ้น
+                                  </p>
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
                       ))}
-                    {(shops.length === 0 || shops.filter(s => !searchTerm || s.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0) && (
+                    {(shops.length === 0 ||
+                      shops.filter(
+                        (s) =>
+                          !searchTerm ||
+                          s.name
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase()),
+                      ).length === 0) && (
                       <div className="col-span-full py-12 text-center text-slate-500 border rounded-2xl border-dashed">
-                        ไม่มีข้อมูลร้านค้า{searchTerm ? ` ที่ตรงกับ "${searchTerm}"` : ""}
+                        ไม่มีข้อมูลร้านค้า
+                        {searchTerm ? ` ที่ตรงกับ "${searchTerm}"` : ""}
                       </div>
                     )}
                   </div>
                 </TabsContent>
 
-                <TabsContent value="months" className="mt-0 focus-visible:outline-none">
-                  <Accordion type="multiple" defaultValue={months.length > 0 ? [months[0].toString()] : []} className="space-y-6">
+                <TabsContent
+                  value="months"
+                  className="mt-0 focus-visible:outline-none"
+                >
+                  <Accordion
+                    type="multiple"
+                    defaultValue={
+                      months.length > 0 ? [months[0].toString()] : []
+                    }
+                    className="space-y-6"
+                  >
                     {months
-                      .filter(m => selectedMonth === "all" || m.toString() === selectedMonth)
-                      .map(m => {
+                      .filter(
+                        (m) =>
+                          selectedMonth === "all" ||
+                          m.toString() === selectedMonth,
+                      )
+                      .map((m) => {
                         const monthItems = monthMap.get(m)!;
-                        const monthTotal = monthItems.reduce((acc, item) => acc + item.amount, 0);
-                        const monthQty = monthItems.reduce((acc, item) => acc + item.quantity, 0);
+                        const monthTotal = monthItems.reduce(
+                          (acc, item) => acc + item.amount,
+                          0,
+                        );
+                        const monthQty = monthItems.reduce(
+                          (acc, item) => acc + item.quantity,
+                          0,
+                        );
 
                         // Group items by shop for this month
-                        const shopGroups = new Map<string, {
-                          shopName: string;
-                          items: DetailItem[];
-                          totalAmount: number;
-                          totalQty: number
-                        }>();
+                        const shopGroups = new Map<
+                          string,
+                          {
+                            shopName: string;
+                            items: DetailItem[];
+                            totalAmount: number;
+                            totalQty: number;
+                          }
+                        >();
 
-                        monthItems.forEach(item => {
+                        monthItems.forEach((item) => {
                           if (!shopGroups.has(item.shopId)) {
                             shopGroups.set(item.shopId, {
                               shopName: item.shopName,
                               items: [],
                               totalAmount: 0,
-                              totalQty: 0
+                              totalQty: 0,
                             });
                           }
                           const group = shopGroups.get(item.shopId)!;
@@ -357,18 +520,31 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
                         });
 
                         // Filter shops based on search term
-                        const filteredShopsInMonth = Array.from(shopGroups.values()).filter(shop => {
+                        const filteredShopsInMonth = Array.from(
+                          shopGroups.values(),
+                        ).filter((shop) => {
                           if (!searchTerm) return true;
-                          const nameMatch = shop.shopName.toLowerCase().includes(searchTerm.toLowerCase());
-                          const productMatch = shop.items.some(item => item.productName.toLowerCase().includes(searchTerm.toLowerCase()));
+                          const nameMatch = shop.shopName
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase());
+                          const productMatch = shop.items.some((item) =>
+                            item.productName
+                              .toLowerCase()
+                              .includes(searchTerm.toLowerCase()),
+                          );
                           return nameMatch || productMatch;
                         });
 
                         // If searching and this month has no matches, don't show it
-                        if (searchTerm && filteredShopsInMonth.length === 0) return null;
+                        if (searchTerm && filteredShopsInMonth.length === 0)
+                          return null;
 
                         return (
-                          <AccordionItem key={m} value={m.toString()} className="border-0">
+                          <AccordionItem
+                            key={m}
+                            value={m.toString()}
+                            className="border-0"
+                          >
                             <AccordionTrigger className="hover:no-underline p-0 [&>svg]:hidden">
                               <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6 text-left group">
                                 <div>
@@ -377,25 +553,49 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
                                     เดือน{getMonthName(m)}
                                     <ChevronDownIcon className="w-5 h-5 text-slate-300 group-data-[state=open]:rotate-180 transition-transform" />
                                   </h4>
-                                  <p className="text-slate-500 mt-1">สรุปรายละเอียดเป้าหมายการขายและร้านค้าประจำเดือน</p>
+                                  <p className="text-slate-500 mt-1">
+                                    สรุปรายละเอียดเป้าหมายการขายและร้านค้าประจำเดือน
+                                  </p>
                                 </div>
 
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                                   <div className="bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 min-w-[130px]">
-                                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-tight mb-0.5">ราคารวมทั้งเดือน</p>
-                                    <p className="text-base font-black text-blue-700 leading-none">{formatCurrency(monthTotal)}</p>
+                                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-tight mb-0.5">
+                                      ราคารวมทั้งเดือน
+                                    </p>
+                                    <p className="text-base font-black text-blue-700 leading-none">
+                                      {formatCurrency(monthTotal)}
+                                    </p>
                                   </div>
                                   <div className="bg-indigo-50/50 p-2.5 rounded-xl border border-indigo-100 min-w-[130px]">
-                                    <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-tight mb-0.5">ราคาสินค้ารวม</p>
-                                    <p className="text-base font-black text-indigo-700 leading-none">{formatCurrency(monthTotal)}</p>
+                                    <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-tight mb-0.5">
+                                      ราคาสินค้ารวม
+                                    </p>
+                                    <p className="text-base font-black text-indigo-700 leading-none">
+                                      {formatCurrency(monthTotal)}
+                                    </p>
                                   </div>
                                   <div className="bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100 min-w-[130px]">
-                                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tight mb-0.5">จำนวนรวมสินค้า</p>
-                                    <p className="text-base font-black text-emerald-700 leading-none">{monthQty.toLocaleString()} <small className="font-medium text-[10px]">ชิ้น</small></p>
+                                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tight mb-0.5">
+                                      จำนวนรวมสินค้า
+                                    </p>
+                                    <p className="text-base font-black text-emerald-700 leading-none">
+                                      {monthQty.toLocaleString()}{" "}
+                                      <small className="font-medium text-[10px]">
+                                        ชิ้น
+                                      </small>
+                                    </p>
                                   </div>
                                   <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 min-w-[130px]">
-                                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-tight mb-0.5">จำนวนร้านค้า</p>
-                                    <p className="text-base font-black text-slate-700 leading-none">{filteredShopsInMonth.length} <small className="font-medium text-[10px]">ร้าน</small></p>
+                                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-tight mb-0.5">
+                                      จำนวนร้านค้า
+                                    </p>
+                                    <p className="text-base font-black text-slate-700 leading-none">
+                                      {filteredShopsInMonth.length}{" "}
+                                      <small className="font-medium text-[10px]">
+                                        ร้าน
+                                      </small>
+                                    </p>
                                   </div>
                                 </div>
                               </div>
@@ -406,17 +606,30 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
                                 <Table>
                                   <TableHeader className="bg-slate-50/80">
                                     <TableRow className="hover:bg-transparent border-slate-200">
-                                      <TableHead className="w-[220px] font-bold text-slate-800">ชื่อร้านค้า</TableHead>
-                                      <TableHead className="font-bold text-slate-800">รายละเอียดสินค้า</TableHead>
-                                      <TableHead className="text-right font-bold text-slate-800">จำนวน</TableHead>
-                                      <TableHead className="text-right font-bold text-slate-800">ยอดเป้าหมายสินค้า</TableHead>
-                                      <TableHead className="text-right font-black text-blue-700 bg-blue-50/40 border-l border-blue-100">ยอดเป้าหมายร้านค้า</TableHead>
+                                      <TableHead className="w-[220px] font-bold text-slate-800">
+                                        ชื่อร้านค้า
+                                      </TableHead>
+                                      <TableHead className="font-bold text-slate-800">
+                                        รายละเอียดสินค้า
+                                      </TableHead>
+                                      <TableHead className="text-right font-bold text-slate-800">
+                                        จำนวน
+                                      </TableHead>
+                                      <TableHead className="text-right font-bold text-slate-800">
+                                        ยอดเป้าหมายสินค้า
+                                      </TableHead>
+                                      <TableHead className="text-right font-black text-blue-700 bg-blue-50/40 border-l border-blue-100">
+                                        ยอดเป้าหมายร้านค้า
+                                      </TableHead>
                                     </TableRow>
                                   </TableHeader>
                                   <TableBody>
-                                    {filteredShopsInMonth.map((shop, sIdx) => (
+                                    {filteredShopsInMonth.map((shop, sIdx) =>
                                       shop.items.map((item, iIdx) => (
-                                        <TableRow key={`${sIdx}-${iIdx}`} className="group hover:bg-slate-50/30 transition-colors border-slate-100">
+                                        <TableRow
+                                          key={`${sIdx}-${iIdx}`}
+                                          className="group hover:bg-slate-50/30 transition-colors border-slate-100"
+                                        >
                                           {iIdx === 0 && (
                                             <TableCell
                                               rowSpan={shop.items.length}
@@ -426,7 +639,10 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
                                                 <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
                                                   <Building2 className="w-4 h-4" />
                                                 </div>
-                                                <span className="leading-tight pt-1">{shop.shopName || "ไม่ระบุชื่อร้านค้า"}</span>
+                                                <span className="leading-tight pt-1">
+                                                  {shop.shopName ||
+                                                    "ไม่ระบุชื่อร้านค้า"}
+                                                </span>
                                               </div>
                                             </TableCell>
                                           )}
@@ -439,7 +655,10 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
                                             </div>
                                           </TableCell>
                                           <TableCell className="text-right font-bold text-slate-600">
-                                            {item.quantity.toLocaleString()} <span className="text-[10px] font-medium text-slate-400 ml-0.5">ชิ้น</span>
+                                            {item.quantity.toLocaleString()}{" "}
+                                            <span className="text-[10px] font-medium text-slate-400 ml-0.5">
+                                              ชิ้น
+                                            </span>
                                           </TableCell>
                                           <TableCell className="text-right font-black text-slate-800">
                                             {formatCurrency(item.amount)}
@@ -451,14 +670,16 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
                                             >
                                               <div className="flex flex-col items-end">
                                                 <p className="text-lg font-black text-blue-700">
-                                                  {formatCurrency(shop.totalAmount)}
+                                                  {formatCurrency(
+                                                    shop.totalAmount,
+                                                  )}
                                                 </p>
                                               </div>
                                             </TableCell>
                                           )}
                                         </TableRow>
-                                      ))
-                                    ))}
+                                      )),
+                                    )}
                                   </TableBody>
                                 </Table>
                               </div>
@@ -468,24 +689,38 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
                       })}
                   </Accordion>
 
-                  {((months.filter(m => selectedMonth === "all" || m.toString() === selectedMonth).length === 0) || (searchTerm && months.every(m => {
-                    const items = monthMap.get(m)!;
-                    const filteredItems = items.filter(item =>
-                      item.shopName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      item.productName.toLowerCase().includes(searchTerm.toLowerCase())
-                    );
-                    return filteredItems.length === 0;
-                  }))) && (
-                      <div className="py-24 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
-                        <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-6 transform -rotate-6">
-                          <CalendarDays className="w-10 h-10 text-slate-300" />
-                        </div>
-                        <p className="text-2xl font-black text-slate-400">ไม่พบข้อมูล</p>
-                        <p className="text-slate-400 mt-2 max-w-xs mx-auto">
-                          {searchTerm ? `ไม่พบข้อมูลที่ตรงกับ "${searchTerm}"` : "ยังไม่มีการกำหนดเป้าหมายการขาย"}
-                        </p>
+                  {(months.filter(
+                    (m) =>
+                      selectedMonth === "all" || m.toString() === selectedMonth,
+                  ).length === 0 ||
+                    (searchTerm &&
+                      months.every((m) => {
+                        const items = monthMap.get(m)!;
+                        const filteredItems = items.filter(
+                          (item) =>
+                            item.shopName
+                              .toLowerCase()
+                              .includes(searchTerm.toLowerCase()) ||
+                            item.productName
+                              .toLowerCase()
+                              .includes(searchTerm.toLowerCase()),
+                        );
+                        return filteredItems.length === 0;
+                      }))) && (
+                    <div className="py-24 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
+                      <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-6 transform -rotate-6">
+                        <CalendarDays className="w-10 h-10 text-slate-300" />
                       </div>
-                    )}
+                      <p className="text-2xl font-black text-slate-400">
+                        ไม่พบข้อมูล
+                      </p>
+                      <p className="text-slate-400 mt-2 max-w-xs mx-auto">
+                        {searchTerm
+                          ? `ไม่พบข้อมูลที่ตรงกับ "${searchTerm}"`
+                          : "ยังไม่มีการกำหนดเป้าหมายการขาย"}
+                      </p>
+                    </div>
+                  )}
                 </TabsContent>
               </div>
             </CardContent>
