@@ -477,35 +477,6 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
           </div>
         </div>
 
-        {/* Stock Warning */}
-        {stockWarnings.length > 0 && (
-          <div className="bg-red-50 rounded-xl border border-red-200 overflow-hidden shadow-sm">
-            <SectionHeader
-              icon={<Package className="h-6 w-6" />}
-              title="สินค้าบางรายการสต็อกไม่พอ"
-            />
-            <div className="p-6 space-y-3">
-              {stockWarnings.map((w: StockWarning, i: number) => (
-                <div
-                  key={i}
-                  className="flex flex-wrap items-center gap-x-2 text-sm"
-                >
-                  <span className="text-gray-400">•</span>
-                  <span className="font-bold text-gray-900">
-                    {w.productName}
-                  </span>
-                  <span className="text-gray-500">เหลือ</span>
-                  <span className="font-bold text-red-600">{w.available}</span>
-                  <span className="text-gray-500">ต้องใช้</span>
-                  <span className="font-bold text-green-600">
-                    {w.requested}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* รายการของแถม */}
         {sale.items.some(
           (item) => (item.product.freeItems?.length ?? 0) > 0,
