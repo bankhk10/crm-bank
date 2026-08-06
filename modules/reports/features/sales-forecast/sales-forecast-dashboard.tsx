@@ -773,48 +773,54 @@ export function SalesForecastDashboard() {
           </CardContent>
         </Card>
         {/* YTD Summary Section */}
-        <Card className="rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-          <CardHeader className="bg-white border-b border-slate-100">
-            <CardTitle className="text-base font-semibold text-slate-800 flex items-center justify-between">
+        <Card className="rounded-2xl border-0 shadow-lg shadow-slate-200/60 overflow-hidden bg-white">
+          <CardHeader className="bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 py-5">
+            <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-md shadow-amber-200/50">
+                <Target className="h-4 w-4 text-white" />
+              </div>
               <span>สรุปยอดขาย YTD</span>
+              <Badge variant="secondary" className="rounded-full bg-amber-100 text-amber-700 border-0 text-xs font-semibold px-2.5 py-0.5">
+                ม.ค. – {MONTHS[new Date().getMonth()]}
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto w-full scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
               <Table className="min-w-max border-collapse relative">
-                <TableHeader className="bg-slate-50 sticky top-0 z-20 shadow-[0_1px_0_0_#e2e8f0]">
+                <TableHeader className="sticky top-0 z-20 shadow-[0_1px_0_0_#e2e8f0]">
                   <TableRow>
                     <TableHead
-                      className="font-bold text-slate-700 min-w-[150px] bg-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]"
+                      className="font-bold text-slate-700 min-w-[150px] bg-gradient-to-b from-slate-100 to-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]"
                       rowSpan={2}
                     >
                       ชื่อ
                     </TableHead>
                     <TableHead
                       colSpan={4}
-                      className="text-center font-bold text-slate-800 bg-amber-400 border-x border-slate-300/50"
+                      className="text-center font-bold text-white bg-gradient-to-r from-amber-400 to-orange-500 border-x border-amber-300/50"
                       rowSpan={1}
                     >
                       YTD
                     </TableHead>
                   </TableRow>
                   <TableRow>
-                    <TableHead className="text-right text-xs font-bold text-slate-700 bg-amber-50 border-l border-slate-300/50 min-w-[120px]">
+                    <TableHead className="text-right text-xs font-bold text-blue-600 bg-gradient-to-b from-blue-50 to-slate-50 border-l border-slate-200/50 min-w-[120px]">
                       Forecast
                     </TableHead>
-                    <TableHead className="text-right text-xs font-bold text-emerald-700 bg-amber-50 border-x border-slate-300/50 min-w-[120px]">
+                    <TableHead className="text-right text-xs font-bold text-emerald-600 bg-gradient-to-b from-emerald-50 to-slate-50 border-x border-slate-200/50 min-w-[120px]">
                       Invoice
                     </TableHead>
-                    <TableHead className="text-right text-xs font-bold text-red-600 bg-amber-50 border-r border-slate-300/50 min-w-[120px]">
+                    <TableHead className="text-right text-xs font-bold text-rose-600 bg-gradient-to-b from-rose-50 to-slate-50 border-r border-slate-200/50 min-w-[120px]">
                       Variance
                     </TableHead>
-                    <TableHead className="text-right text-xs font-bold text-slate-700 bg-amber-50 border-r border-slate-300/50 min-w-[80px]">
+                    <TableHead className="text-right text-xs font-bold text-slate-700 bg-gradient-to-b from-slate-100 to-slate-50 border-r border-slate-200/50 min-w-[80px]">
                       Variance %
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {selectedSalespersons.map((spId) => {
+                  {selectedSalespersons.map((spId, rowIdx) => {
                     const sp = salespersons.find((s) => s.id === spId);
                     const spData = mockData[spId];
                     if (!sp || !spData) return null;
@@ -834,24 +840,24 @@ export function SalesForecastDashboard() {
                       ytdForecast === 0 ? null : diff / ytdForecast;
 
                     return (
-                      <TableRow key={sp.id} className="hover:bg-slate-50/50">
-                        <TableCell className="font-medium text-slate-700 bg-white sticky left-0 z-10 border-r border-slate-200/50 shadow-[1px_0_0_0_#f1f5f9]">
+                      <TableRow key={sp.id} className={`hover:bg-amber-50/30 transition-colors ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}>
+                        <TableCell className={`font-medium text-slate-700 sticky left-0 z-10 border-r border-slate-200/50 shadow-[1px_0_0_0_#f1f5f9] ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}>
                           {sp.name}
                         </TableCell>
-                        <TableCell className="text-right text-slate-600 bg-slate-50 border-l border-slate-300/30">
+                        <TableCell className="text-right text-slate-600 border-l border-slate-200/30">
                           {ytdForecast > 0
                             ? new Intl.NumberFormat("th-TH").format(ytdForecast)
                             : "-"}
                         </TableCell>
-                        <TableCell className="text-right text-emerald-600 bg-slate-50 border-x border-slate-300/30">
+                        <TableCell className="text-right text-emerald-600 border-x border-slate-200/30">
                           {ytdInvoice > 0
                             ? new Intl.NumberFormat("th-TH").format(ytdInvoice)
                             : "-"}
                         </TableCell>
-                        <TableCell className="text-right bg-slate-50 border-r border-slate-300/30">
+                        <TableCell className="text-right border-r border-slate-200/30">
                           {formatDiff(diff)}
                         </TableCell>
-                        <TableCell className="text-right bg-slate-50 border-r border-slate-300/30 p-0 align-middle">
+                        <TableCell className="text-right border-r border-slate-200/30 p-0 align-middle">
                           {formatPercent(percent)}
                         </TableCell>
                       </TableRow>
@@ -879,28 +885,28 @@ export function SalesForecastDashboard() {
                       const gtPercent =
                         gtYtdForecast === 0 ? null : gtDiff / gtYtdForecast;
                       return (
-                        <TableRow className="bg-slate-50 hover:bg-slate-50 sticky bottom-0 z-20 shadow-[0_-1px_0_0_#e2e8f0]">
-                          <TableCell className="font-bold text-slate-900 sticky left-0 z-30 bg-slate-50 border-r border-slate-200/50 shadow-[1px_0_0_0_#e2e8f0]">
+                        <TableRow className="sticky bottom-0 z-20 shadow-[0_-1px_0_0_#e2e8f0]">
+                          <TableCell className="font-bold text-white sticky left-0 z-30 bg-gradient-to-r from-slate-700 to-slate-600 border-r border-slate-500/50 shadow-[1px_0_0_0_#475569]">
                             ยอดรวม
                           </TableCell>
-                          <TableCell className="text-right font-bold text-slate-900 bg-slate-100 border-l border-slate-300/50">
+                          <TableCell className="text-right font-bold text-white bg-gradient-to-r from-slate-700 to-slate-600 border-l border-slate-500/30">
                             {gtYtdForecast > 0
                               ? new Intl.NumberFormat("th-TH").format(
                                   gtYtdForecast,
                                 )
                               : "-"}
                           </TableCell>
-                          <TableCell className="text-right font-bold text-emerald-600 bg-slate-100 border-x border-slate-300/50">
+                          <TableCell className="text-right font-bold text-emerald-300 bg-gradient-to-r from-slate-700 to-slate-600 border-x border-slate-500/30">
                             {gtYtdInvoice > 0
                               ? new Intl.NumberFormat("th-TH").format(
                                   gtYtdInvoice,
                                 )
                               : "-"}
                           </TableCell>
-                          <TableCell className="text-right font-bold bg-slate-100 border-r border-slate-300/50">
+                          <TableCell className="text-right font-bold bg-gradient-to-r from-slate-700 to-slate-600 border-r border-slate-500/30">
                             {formatDiff(gtDiff)}
                           </TableCell>
-                          <TableCell className="text-right font-bold bg-slate-100 border-r border-slate-300/50 p-0 align-middle">
+                          <TableCell className="text-right font-bold bg-gradient-to-r from-slate-700 to-slate-600 border-r border-slate-500/30 p-0 align-middle">
                             {formatPercent(gtPercent)}
                           </TableCell>
                         </TableRow>
@@ -910,9 +916,12 @@ export function SalesForecastDashboard() {
                     <TableRow>
                       <TableCell
                         colSpan={5}
-                        className="text-center py-10 text-slate-500"
+                        className="text-center py-16 text-slate-400"
                       >
-                        กรุณาเลือกพนักงานขายอย่างน้อย 1 คน
+                        <div className="flex flex-col items-center gap-2">
+                          <Users className="h-8 w-8 text-slate-300" />
+                          <span>กรุณาเลือกพนักงานขายอย่างน้อย 1 คน</span>
+                        </div>
                       </TableCell>
                     </TableRow>
                   )}
