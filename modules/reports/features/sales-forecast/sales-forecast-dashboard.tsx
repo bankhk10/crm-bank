@@ -143,31 +143,85 @@ export function SalesForecastDashboard() {
     });
   }, [selectedSalespersons, viewMode, timeLabels, mockData]);
 
-  const getPersonTableData = (spId: string) => {
-    const rawData = mockData[spId];
-    if (!rawData) return null;
+  const getPersonTableData = useCallback(
+    (spId: string) => {
+      const rawData = mockData[spId];
+      if (!rawData) return null;
 
-    const periodsData = timeLabels.map((period, index) => {
-      let f = 0;
-      let i = 0;
-      if (viewMode === "month") {
-        f = rawData[index].forecast;
-        i = rawData[index].invoice;
-      } else {
-        const startIdx = index * 3;
-        for (let j = startIdx; j < startIdx + 3; j++) {
-          f += rawData[j].forecast;
-          i += rawData[j].invoice;
+      const periodsData = timeLabels.map((period, index) => {
+        let f = 0;
+        let i = 0;
+        if (viewMode === "month") {
+          f = rawData[index].forecast;
+          i = rawData[index].invoice;
+        } else {
+          const startIdx = index * 3;
+          for (let j = startIdx; j < startIdx + 3; j++) {
+            f += rawData[j].forecast;
+            i += rawData[j].invoice;
+          }
         }
-      }
-      return { forecast: f, invoice: i };
+        return { forecast: f, invoice: i };
+      });
+
+      const totalForecast = periodsData.reduce((sum, d) => sum + d.forecast, 0);
+      const totalInvoice = periodsData.reduce((sum, d) => sum + d.invoice, 0);
+
+      return { periodsData, totalForecast, totalInvoice };
+    },
+    [mockData, timeLabels, viewMode],
+  );
+
+  const sortedSelectedSalespersons = useMemo(() => {
+    return [...selectedSalespersons].sort((a, b) => {
+      const pDataA = getPersonTableData(a);
+      const pDataB = getPersonTableData(b);
+
+      const hasDataA =
+        pDataA && (pDataA.totalForecast > 0 || pDataA.totalInvoice > 0);
+      const hasDataB =
+        pDataB && (pDataB.totalForecast > 0 || pDataB.totalInvoice > 0);
+
+      if (hasDataA && !hasDataB) return -1;
+      if (!hasDataA && hasDataB) return 1;
+
+      const totalA = (pDataA?.totalForecast || 0) + (pDataA?.totalInvoice || 0);
+      const totalB = (pDataB?.totalForecast || 0) + (pDataB?.totalInvoice || 0);
+      return totalB - totalA;
     });
+  }, [selectedSalespersons, getPersonTableData]);
 
-    const totalForecast = periodsData.reduce((sum, d) => sum + d.forecast, 0);
-    const totalInvoice = periodsData.reduce((sum, d) => sum + d.invoice, 0);
+  const sortedYtdSalespersons = useMemo(() => {
+    const currentMonthIndex = new Date().getMonth();
+    return [...selectedSalespersons].sort((a, b) => {
+      const spDataA = mockData[a] || [];
+      const spDataB = mockData[b] || [];
 
-    return { periodsData, totalForecast, totalInvoice };
-  };
+      const ytdForecastA = spDataA
+        .slice(0, currentMonthIndex + 1)
+        .reduce((sum, d) => sum + d.forecast, 0);
+      const ytdInvoiceA = spDataA
+        .slice(0, currentMonthIndex + 1)
+        .reduce((sum, d) => sum + d.invoice, 0);
+
+      const ytdForecastB = spDataB
+        .slice(0, currentMonthIndex + 1)
+        .reduce((sum, d) => sum + d.forecast, 0);
+      const ytdInvoiceB = spDataB
+        .slice(0, currentMonthIndex + 1)
+        .reduce((sum, d) => sum + d.invoice, 0);
+
+      const hasDataA = ytdForecastA > 0 || ytdInvoiceA > 0;
+      const hasDataB = ytdForecastB > 0 || ytdInvoiceB > 0;
+
+      if (hasDataA && !hasDataB) return -1;
+      if (!hasDataA && hasDataB) return 1;
+
+      const totalA = ytdForecastA + ytdInvoiceA;
+      const totalB = ytdForecastB + ytdInvoiceB;
+      return totalB - totalA;
+    });
+  }, [selectedSalespersons, mockData]);
 
   const grandTotalOfTotals = useMemo(() => {
     return aggregatedData.reduce(
@@ -674,7 +728,7 @@ export function SalesForecastDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {selectedSalespersons.map((spId, rowIdx) => {
+                  {sortedSelectedSalespersons.map((spId, rowIdx) => {
                     const sp = salespersons.find((s) => s.id === spId);
                     const pData = getPersonTableData(spId);
                     if (!sp || !pData) return null;
@@ -828,7 +882,7 @@ export function SalesForecastDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {selectedSalespersons.map((spId, rowIdx) => {
+                  {sortedYtdSalespersons.map((spId, rowIdx) => {
                     const sp = salespersons.find((s) => s.id === spId);
                     const spData = mockData[spId];
                     if (!sp || !spData) return null;
