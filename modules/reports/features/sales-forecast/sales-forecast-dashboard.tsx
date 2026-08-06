@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useMemo, Fragment, useEffect } from "react";
+import { useState, useMemo, Fragment, useEffect, useCallback } from "react";
 import { Target, Filter, Loader2, Users, Calendar, Clock, CheckCheck, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
+import { ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from "@/components/ui/chart";
 import { DetailHero } from "@/components/custom/detail-hero";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,6 +71,15 @@ export function SalesForecastDashboard() {
     >
   >({});
   const [isLoading, setIsLoading] = useState(true);
+  const [visibleLines, setVisibleLines] = useState<Record<string, boolean>>({
+    forecast: true,
+    invoice: true,
+    lastYearInvoice: true,
+  });
+
+  const toggleLine = useCallback((dataKey: string) => {
+    setVisibleLines((prev) => ({ ...prev, [dataKey]: !prev[dataKey] }));
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -367,47 +374,46 @@ export function SalesForecastDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 pb-2 pl-0">
+            {/* Interactive Legend */}
+            <div className="flex flex-wrap items-center gap-4 px-6 pb-4">
+              {(Object.keys(chartConfig) as (keyof typeof chartConfig)[]).map((key) => (
+                <button
+                  key={key}
+                  onClick={() => toggleLine(key)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all duration-200 ${
+                    visibleLines[key]
+                      ? "border-slate-200 bg-white shadow-sm hover:shadow-md"
+                      : "border-slate-100 bg-slate-50 opacity-40 hover:opacity-60"
+                  }`}
+                >
+                  <span
+                    className="w-4 h-3 rounded-sm inline-block border"
+                    style={{
+                      backgroundColor: visibleLines[key] ? chartConfig[key].color : "transparent",
+                      borderColor: chartConfig[key].color,
+                    }}
+                  />
+                  <span className="text-slate-700">{chartConfig[key].label}</span>
+                </button>
+              ))}
+            </div>
             <ChartContainer config={chartConfig} className="h-[450px] w-full">
-              <AreaChart
+              <ComposedChart
                 data={aggregatedData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                margin={{ top: 10, right: 30, left: 20, bottom: 20 }}
               >
                 <defs>
                   <linearGradient id="fillForecast" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-forecast)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-forecast)"
-                      stopOpacity={0.1}
-                    />
+                    <stop offset="5%" stopColor="var(--color-forecast)" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="var(--color-forecast)" stopOpacity={0.02} />
                   </linearGradient>
                   <linearGradient id="fillInvoice" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-invoice)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-invoice)"
-                      stopOpacity={0.1}
-                    />
+                    <stop offset="5%" stopColor="var(--color-invoice)" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="var(--color-invoice)" stopOpacity={0.02} />
                   </linearGradient>
                   <linearGradient id="fillLastYearInvoice" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-lastYearInvoice)"
-                      stopOpacity={0.5}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-lastYearInvoice)"
-                      stopOpacity={0.05}
-                    />
+                    <stop offset="5%" stopColor="var(--color-lastYearInvoice)" stopOpacity={0.12} />
+                    <stop offset="95%" stopColor="var(--color-lastYearInvoice)" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -432,77 +438,111 @@ export function SalesForecastDashboard() {
                   width={100}
                 />
                 <ChartTooltip
-                  cursor={false}
+                  cursor={{ stroke: "#94a3b8", strokeWidth: 1, strokeDasharray: "4 4" }}
                   content={<ChartTooltipContent indicator="dot" />}
                 />
-                <ChartLegend
-                  content={<ChartLegendContent />}
-                  verticalAlign="top"
-                  wrapperStyle={{ paddingBottom: "20px" }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="lastYearInvoice"
-                  name="Invoice (ปีที่แล้ว)"
-                  stroke="var(--color-lastYearInvoice)"
-                  strokeWidth={2}
-                  strokeDasharray="3 3"
-                  fill="url(#fillLastYearInvoice)"
-                  dot={{
-                    r: 4,
-                    fill: "var(--color-lastYearInvoice)",
-                    fillOpacity: 1,
-                    strokeWidth: 0,
-                  }}
-                  activeDot={{
-                    r: 6,
-                    fill: "var(--color-lastYearInvoice)",
-                    fillOpacity: 1,
-                    strokeWidth: 0,
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="forecast"
-                  name="Forecast"
-                  stroke="var(--color-forecast)"
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  fill="url(#fillForecast)"
-                  dot={{
-                    r: 5,
-                    fill: "var(--color-forecast)",
-                    fillOpacity: 1,
-                    strokeWidth: 0,
-                  }}
-                  activeDot={{
-                    r: 7,
-                    fill: "var(--color-forecast)",
-                    fillOpacity: 1,
-                    strokeWidth: 0,
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="invoice"
-                  name="Invoice"
-                  stroke="var(--color-invoice)"
-                  strokeWidth={2}
-                  fill="url(#fillInvoice)"
-                  dot={{
-                    r: 5,
-                    fill: "var(--color-invoice)",
-                    fillOpacity: 1,
-                    strokeWidth: 0,
-                  }}
-                  activeDot={{
-                    r: 7,
-                    fill: "var(--color-invoice)",
-                    fillOpacity: 1,
-                    strokeWidth: 0,
-                  }}
-                />
-              </AreaChart>
+                {/* Subtle area fills */}
+                {visibleLines.lastYearInvoice && (
+                  <Area
+                    type="monotone"
+                    dataKey="lastYearInvoice"
+                    fill="url(#fillLastYearInvoice)"
+                    stroke="none"
+                    tooltipType="none"
+                    isAnimationActive={true}
+                  />
+                )}
+                {visibleLines.forecast && (
+                  <Area
+                    type="monotone"
+                    dataKey="forecast"
+                    fill="url(#fillForecast)"
+                    stroke="none"
+                    tooltipType="none"
+                    isAnimationActive={true}
+                  />
+                )}
+                {visibleLines.invoice && (
+                  <Area
+                    type="monotone"
+                    dataKey="invoice"
+                    fill="url(#fillInvoice)"
+                    stroke="none"
+                    tooltipType="none"
+                    isAnimationActive={true}
+                  />
+                )}
+                {/* Lines on top */}
+                {visibleLines.lastYearInvoice && (
+                  <Line
+                    type="monotone"
+                    dataKey="lastYearInvoice"
+                    name="Invoice (ปีที่แล้ว)"
+                    stroke="var(--color-lastYearInvoice)"
+                    strokeWidth={2}
+                    dot={{
+                      r: 4,
+                      fill: "var(--color-lastYearInvoice)",
+                      fillOpacity: 1,
+                      stroke: "white",
+                      strokeWidth: 1.5,
+                    }}
+                    activeDot={{
+                      r: 6,
+                      fill: "var(--color-lastYearInvoice)",
+                      fillOpacity: 1,
+                      stroke: "white",
+                      strokeWidth: 2.5,
+                    }}
+                  />
+                )}
+                {visibleLines.forecast && (
+                  <Line
+                    type="monotone"
+                    dataKey="forecast"
+                    name="Forecast"
+                    stroke="var(--color-forecast)"
+                    strokeWidth={2}
+                    dot={{
+                      r: 4,
+                      fill: "var(--color-forecast)",
+                      fillOpacity: 1,
+                      stroke: "white",
+                      strokeWidth: 1.5,
+                    }}
+                    activeDot={{
+                      r: 7,
+                      fill: "var(--color-forecast)",
+                      fillOpacity: 1,
+                      stroke: "white",
+                      strokeWidth: 2.5,
+                    }}
+                  />
+                )}
+                {visibleLines.invoice && (
+                  <Line
+                    type="monotone"
+                    dataKey="invoice"
+                    name="Invoice"
+                    stroke="var(--color-invoice)"
+                    strokeWidth={2.5}
+                    dot={{
+                      r: 4,
+                      fill: "var(--color-invoice)",
+                      fillOpacity: 1,
+                      stroke: "white",
+                      strokeWidth: 1.5,
+                    }}
+                    activeDot={{
+                      r: 7,
+                      fill: "var(--color-invoice)",
+                      fillOpacity: 1,
+                      stroke: "white",
+                      strokeWidth: 2.5,
+                    }}
+                  />
+                )}
+              </ComposedChart>
             </ChartContainer>
           </CardContent>
         </Card>
