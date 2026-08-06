@@ -297,7 +297,9 @@ export function CustomerSalesDashboard() {
             {c.orderCount}
           </TableCell>
           <TableCell className="text-center">
-            <Link href={`/reports/customer-sales/${c.id}`}>
+            <Link
+              href={`/reports/customer-sales/${c.id}?startDate=${format(dateRange.from, "yyyy-MM-dd")}&endDate=${format(dateRange.to, "yyyy-MM-dd")}`}
+            >
               <Button
                 variant="outline"
                 size="sm"
@@ -782,7 +784,9 @@ export function CustomerSalesDashboard() {
                                   {formatTHB(s.invoiceAmount)}
                                 </TableCell>
                                 <TableCell className="text-center">
-                                  <Link href={`/reports/salesperson/${s.id}`}>
+                                  <Link
+                                    href={`/reports/salesperson/${s.id}?startDate=${format(dateRange.from, "yyyy-MM-dd")}&endDate=${format(dateRange.to, "yyyy-MM-dd")}`}
+                                  >
                                     <Button
                                       variant="outline"
                                       size="sm"

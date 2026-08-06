@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -273,6 +273,10 @@ export default function SalespersonDetailView({
   employeeId,
 }: SalespersonDetailViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const startDateParam = searchParams.get("startDate");
+  const endDateParam = searchParams.get("endDate");
+
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<SalespersonDetailReportData | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
@@ -292,14 +296,18 @@ export default function SalespersonDetailView({
     try {
       const { getSalespersonDetailReportAction } =
         await import("@/modules/reports/server/actions");
-      const result = await getSalespersonDetailReportAction(employeeId);
+      const filter =
+        startDateParam && endDateParam
+          ? { startDate: startDateParam, endDate: endDateParam }
+          : undefined;
+      const result = await getSalespersonDetailReportAction(employeeId, filter);
       setData(result);
     } catch (error) {
       console.error("Error fetching salesperson detail:", error);
     } finally {
       setLoading(false);
     }
-  }, [employeeId]);
+  }, [employeeId, startDateParam, endDateParam]);
 
   useEffect(() => {
     fetchData();
@@ -373,6 +381,12 @@ export default function SalespersonDetailView({
         accentColor="#B91C1C"
         badges={
           <>
+            {data?.filterLabel && (
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-white/90 bg-white/10 border border-white/20 px-3 py-1 rounded-full uppercase tracking-wider">
+                <CalendarDays className="h-3.5 w-3.5 text-[#60A5FA]" />
+                ช่วงเวลา: {data.filterLabel}
+              </span>
+            )}
             {employee.employeeCode && (
               <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full">
                 <Briefcase className="h-3.5 w-3.5 text-gray-200" />

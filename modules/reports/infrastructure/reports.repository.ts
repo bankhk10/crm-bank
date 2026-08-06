@@ -751,11 +751,16 @@ export async function findPointHistoryByEmployee(
 export async function findRecentSalesByEmployee(
   employeeId: string,
   limit = 20,
+  startDate?: Date,
+  endDate?: Date,
 ) {
   return prisma.sale.findMany({
     where: {
       employeeId,
       deletedAt: null,
+      ...(startDate && endDate
+        ? { saleDate: { gte: startDate, lte: endDate } }
+        : {}),
     },
     select: {
       id: true,

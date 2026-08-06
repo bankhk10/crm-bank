@@ -424,6 +424,8 @@ export interface SalespersonDetailReportData {
     status: string;
   }[];
   currentYear: number;
+  dateFilter?: DateRangeFilter;
+  filterLabel?: string;
 }
 
 // ==========================================

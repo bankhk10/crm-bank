@@ -98,7 +98,10 @@ export async function getMonthlySalesOverviewAction(year: number) {
   return app.getMonthlySalesOverview(year, session);
 }
 
-export async function getSalespersonDetailReportAction(employeeId: string) {
+export async function getSalespersonDetailReportAction(
+  employeeId: string,
+  filter?: DateRangeFilter,
+) {
   const session = await getAuthSession();
-  return app.getSalespersonDetailReport(employeeId, session);
+  return app.getSalespersonDetailReport(employeeId, session, filter);
 }

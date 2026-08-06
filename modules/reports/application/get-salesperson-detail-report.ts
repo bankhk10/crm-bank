@@ -1,15 +1,19 @@
 import * as repo from "../infrastructure/reports.repository";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { th } from "date-fns/locale";
 import { DataAccessLevel } from "@/lib/db";
 import { buildScopeFilter } from "./helpers";
-import type { SalespersonDetailReportData } from "../types";
+import type { SalespersonDetailReportData, DateRangeFilter } from "../types";
 
 // ============================================
 // SALESPERSON DETAIL REPORT
 // ============================================
 
-export async function getSalespersonDetailReport(employeeId: string, session: any): Promise<SalespersonDetailReportData | null> {
+export async function getSalespersonDetailReport(
+  employeeId: string,
+  session: any,
+  filter?: DateRangeFilter,
+): Promise<SalespersonDetailReportData | null> {
 
   const viewScope =
     session.user.dataAccessByResource["report"] ||
@@ -31,12 +35,31 @@ export async function getSalespersonDetailReport(employeeId: string, session: an
   const currentYear = new Date().getFullYear();
   const yearStart = new Date(currentYear, 0, 1);
   const yearEnd = new Date(currentYear, 11, 31, 23, 59, 59);
+
+  let rangeStart = yearStart;
+  let rangeEnd = yearEnd;
+  let filterLabel: string | undefined;
+
+  if (filter?.startDate && filter?.endDate) {
+    const parsedStart = parseISO(filter.startDate);
+    const parsedEnd = parseISO(filter.endDate);
+    if (!isNaN(parsedStart.getTime()) && !isNaN(parsedEnd.getTime())) {
+      rangeStart = new Date(parsedStart.getFullYear(), parsedStart.getMonth(), parsedStart.getDate(), 0, 0, 0);
+      rangeEnd = new Date(parsedEnd.getFullYear(), parsedEnd.getMonth(), parsedEnd.getDate(), 23, 59, 59, 999);
+      filterLabel = `${format(rangeStart, "dd/MM/yyyy")} – ${format(rangeEnd, "dd/MM/yyyy")}`;
+    }
+  }
+
+  const targetYear = filter?.startDate
+    ? parseISO(filter.startDate).getFullYear()
+    : currentYear;
+
   const now = new Date();
   const currentMonth = now.getMonth(); // 0-indexed
   const monthStart = new Date(currentYear, currentMonth, 1);
   const monthEnd = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59);
 
-  // 2. KPI (current year)
+  // 2. KPI
   const [
     yearKpi,
     monthKpi,
@@ -48,15 +71,20 @@ export async function getSalespersonDetailReport(employeeId: string, session: an
     recentSales,
     statusBreakdown,
   ] = await Promise.all([
-    repo.aggregateSalesKpiByEmployee(employeeId, yearStart, yearEnd),
+    repo.aggregateSalesKpiByEmployee(employeeId, rangeStart, rangeEnd),
     repo.aggregateSalesKpiByEmployee(employeeId, monthStart, monthEnd),
-    repo.countUniqueCustomersByEmployee(employeeId, yearStart, yearEnd),
+    repo.countUniqueCustomersByEmployee(employeeId, rangeStart, rangeEnd),
     repo.countUniqueCustomersByEmployee(employeeId, monthStart, monthEnd),
     repo.getLastSaleDateByEmployee(employeeId),
-    repo.findSalesTargetsForEmployee(employeeId, currentYear),
+    repo.findSalesTargetsForEmployee(employeeId, targetYear),
     repo.findPointHistoryByEmployee(employeeId, 50),
-    repo.findRecentSalesByEmployee(employeeId, 30),
-    repo.countSalesByStatusForEmployee(employeeId, yearStart, yearEnd),
+    repo.findRecentSalesByEmployee(
+      employeeId,
+      30,
+      filter ? rangeStart : undefined,
+      filter ? rangeEnd : undefined,
+    ),
+    repo.countSalesByStatusForEmployee(employeeId, rangeStart, rangeEnd),
   ]);
 
   // 3. Monthly sales data for this year (aggregate from raw sales)
@@ -145,8 +173,8 @@ export async function getSalespersonDetailReport(employeeId: string, session: an
   // 5. Product breakdown
   const productSales = await repo.groupProductSalesByEmployee(
     employeeId,
-    yearStart,
-    yearEnd,
+    rangeStart,
+    rangeEnd,
   );
 
   const productIds = productSales.map((p) => p.productId);
@@ -189,8 +217,8 @@ export async function getSalespersonDetailReport(employeeId: string, session: an
   // 6. Customer breakdown
   const customerSales = await repo.groupCustomerSalesByEmployee(
     employeeId,
-    yearStart,
-    yearEnd,
+    rangeStart,
+    rangeEnd,
   );
 
   const customerIds = customerSales.map((c) => c.customerId);
@@ -352,5 +380,7 @@ export async function getSalespersonDetailReport(employeeId: string, session: an
     recentSales: recentSalesData,
     responsibleCustomers,
     currentYear,
+    dateFilter: filter,
+    filterLabel,
   };
 }
