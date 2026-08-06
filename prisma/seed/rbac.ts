@@ -141,6 +141,33 @@ const permissionGroups: Record<string, PermissionGroup> = {
   },
 
   // ─────────────────────────────────────────────
+  // 📥 Exports (การส่งออกข้อมูล)
+  // ─────────────────────────────────────────────
+  exports: {
+    menu: {
+      key: "menu.exports",
+      name: "เมนูส่งออกข้อมูล",
+      resource: "export",
+      menuPath: "/exports",
+    },
+    actions: [
+      {
+        key: "export.sales_admin",
+        name: "ส่งออกข้อมูลการขาย (ธุรการขาย)",
+        resource: "export",
+        action: "export",
+      },
+      {
+        key: "export.sales_marketing",
+        name: "ส่งออกข้อมูลการขาย (การตลาด)",
+        resource: "export",
+        action: "export",
+      },
+    ],
+  },
+
+
+  // ─────────────────────────────────────────────
   // 🛒 Sales (การขาย)
   // ─────────────────────────────────────────────
   sales: {

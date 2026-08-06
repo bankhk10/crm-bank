@@ -18,6 +18,7 @@ import {
   Truck,
   BookOpen,
   Megaphone,
+  Download,
 } from "lucide-react";
 import type { SidebarNavItem } from "./types";
 
@@ -48,6 +49,12 @@ export const navigationItems: SidebarNavItem[] = [
     label: "รายงาน",
     permissionKey: "menu.reports",
     icon: <ChartPie className="h-4 w-4" />,
+  },
+  {
+    href: "/exports",
+    label: "ส่งออกข้อมูล",
+    permissionKey: "menu.exports",
+    icon: <Download className="h-4 w-4" />,
   },
   {
     href: "/sales-forecast",
