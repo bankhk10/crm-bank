@@ -15,12 +15,23 @@ const SALE_STATUS_MAP: Record<string, string> = {
   COMPLETED: "เสร็จสิ้น",
 };
 
+function getDataTypeLabel(status: string): string {
+  if (status === "PENDING_APPROVAL" || status === "WAITING_FOR_CORRECTION") {
+    return "Forecast";
+  }
+  if (status === "DELIVERY_COMPLETED" || status === "PAID" || status === "COMPLETED") {
+    return "Invoice";
+  }
+  return "Sales Note";
+}
+
 export function buildSalesMarketingExportWorkbook(sales: any[]): string {
   const rows: any[] = [];
 
   for (const sale of sales) {
     const formattedDate = sale.saleDate ? format(new Date(sale.saleDate), "dd/MM/yyyy") : "";
     const statusThai = SALE_STATUS_MAP[sale.status] || sale.status;
+    const dataTypeLabel = getDataTypeLabel(sale.status);
 
     if (sale.items && sale.items.length > 0) {
       for (const item of sale.items) {
@@ -29,6 +40,7 @@ export function buildSalesMarketingExportWorkbook(sales: any[]): string {
         rows.push({
           "เลขที่เอกสารการขาย": sale.saleNumber,
           "วันที่เอกสาร": formattedDate,
+          "ประเภทข้อมูล": dataTypeLabel,
           "สถานะ": statusThai,
           "ภูมิภาค": sale.region || "",
           "จังหวัด": sale.customer?.province || "",
@@ -56,6 +68,7 @@ export function buildSalesMarketingExportWorkbook(sales: any[]): string {
       rows.push({
         "เลขที่เอกสารการขาย": sale.saleNumber,
         "วันที่เอกสาร": formattedDate,
+        "ประเภทข้อมูล": dataTypeLabel,
         "สถานะ": statusThai,
         "ภูมิภาค": sale.region || "",
         "จังหวัด": sale.customer?.province || "",
@@ -87,6 +100,7 @@ export function buildSalesMarketingExportWorkbook(sales: any[]): string {
   const colWidths = [
     { wch: 18 }, // เลขที่เอกสาร
     { wch: 12 }, // วันที่เอกสาร
+    { wch: 15 }, // ประเภทข้อมูล
     { wch: 18 }, // สถานะ
     { wch: 15 }, // ภูมิภาค
     { wch: 15 }, // จังหวัด

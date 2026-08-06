@@ -23,6 +23,16 @@ const PAYMENT_TERM_MAP: Record<string, string> = {
   CREDIT_OVER_90: "เครดิตมากกว่า 90 วัน",
 };
 
+function getDataTypeLabel(status: string): string {
+  if (status === "PENDING_APPROVAL" || status === "WAITING_FOR_CORRECTION") {
+    return "Forecast";
+  }
+  if (status === "DELIVERY_COMPLETED" || status === "PAID" || status === "COMPLETED") {
+    return "Invoice";
+  }
+  return "Sales Note";
+}
+
 export function buildSalesAdminExportWorkbook(sales: any[]): string {
   const rows: any[] = [];
 
@@ -30,22 +40,16 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
     const formattedDate = sale.saleDate
       ? format(new Date(sale.saleDate), "dd/MM/yyyy")
       : "";
-    const formattedDueDate = sale.creditDueDate
-      ? format(new Date(sale.creditDueDate), "dd/MM/yyyy")
-      : "";
-    const formattedActualDeliveryDate = sale.actualDeliveryDate
-      ? format(new Date(sale.actualDeliveryDate), "dd/MM/yyyy")
-      : "";
 
     const statusThai = SALE_STATUS_MAP[sale.status] || sale.status;
-    const paymentTermThai =
-      PAYMENT_TERM_MAP[sale.paymentTerm] || sale.paymentTerm;
+    const dataTypeLabel = getDataTypeLabel(sale.status);
 
     if (sale.items && sale.items.length > 0) {
       for (const item of sale.items) {
         rows.push({
           เลขที่ออเดอร์: sale.saleNumber,
           วันที่สร้างออเดอร์: formattedDate,
+          ประเภทข้อมูล: dataTypeLabel,
           สถานะ: statusThai,
           ชื่อลูกค้า: sale.customer?.name || "",
           จังหวัด: sale.customer?.province || "",
@@ -67,6 +71,7 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
       rows.push({
         เลขที่ออเดอร์: sale.saleNumber,
         วันที่สร้างออเดอร์: formattedDate,
+        ประเภทข้อมูล: dataTypeLabel,
         สถานะ: statusThai,
         ชื่อลูกค้า: sale.customer?.name || "",
         จังหวัด: sale.customer?.province || "",
@@ -91,7 +96,8 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
   // Set column widths
   const colWidths = [
     { wch: 18 }, // เลขที่ออเดอร์
-    { wch: 12 }, // วันที่สร้างออเดอร์
+    { wch: 15 }, // วันที่สร้างออเดอร์
+    { wch: 15 }, // ประเภทข้อมูล
     { wch: 18 }, // สถานะ
     { wch: 25 }, // ชื่อลูกค้า
     { wch: 15 }, // จังหวัด
