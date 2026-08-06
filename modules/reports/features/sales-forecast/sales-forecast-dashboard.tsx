@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useMemo, Fragment, useEffect, useCallback } from "react";
-import { Target, Users, Calendar, Clock, CheckCheck, X, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Target,
+  Users,
+  Calendar,
+  Clock,
+  CheckCheck,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   ComposedChart,
@@ -72,7 +81,9 @@ export function SalesForecastDashboard() {
   );
   const [viewMode, setViewMode] = useState<"month" | "quarter">("month");
   const currentYearAD = useMemo(() => new Date().getFullYear(), []);
-  const [selectedYear, setSelectedYear] = useState<string>(currentYearAD.toString());
+  const [selectedYear, setSelectedYear] = useState<string>(
+    currentYearAD.toString(),
+  );
 
   const yearOptions = useMemo(() => {
     const years = [];
@@ -325,8 +336,8 @@ export function SalesForecastDashboard() {
               {/* Salespersons Section */}
               <div>
                 <div className="flex flex-wrap items-center gap-3 mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-violet-100">
+                  {/* <div className="flex items-center gap-2"> */}
+                  {/* <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-violet-100">
                       <Users className="h-4 w-4 text-violet-600" />
                     </div>
                     <label className="text-sm font-semibold text-slate-800">
@@ -338,7 +349,7 @@ export function SalesForecastDashboard() {
                     className="rounded-full bg-violet-100 text-violet-700 border-0 text-xs font-medium px-2.5 py-0.5"
                   >
                     {selectedSalespersons.length}/{salespersons.length} คน
-                  </Badge>
+                  </Badge> */}
                   <div className="flex items-center gap-2">
                     <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-violet-100">
                       <CheckCheck className="h-4 w-4 text-violet-600" />
@@ -347,7 +358,6 @@ export function SalesForecastDashboard() {
                       ตัวเลือก
                     </label>
                   </div>
-                  {/* <div className="flex items-center gap-1 ml-auto"> */}
                   <button
                     onClick={() =>
                       setSelectedSalespersons(salespersons.map((sp) => sp.id))
@@ -364,7 +374,6 @@ export function SalesForecastDashboard() {
                     <X className="h-3 w-3" />
                     ล้าง
                   </button>
-                  {/* </div> */}
                 </div>
                 <ToggleGroup
                   type="multiple"
@@ -407,7 +416,9 @@ export function SalesForecastDashboard() {
                       type="button"
                       disabled={parseInt(selectedYear, 10) <= currentYearAD - 5}
                       onClick={() => {
-                        const prev = (parseInt(selectedYear, 10) - 1).toString();
+                        const prev = (
+                          parseInt(selectedYear, 10) - 1
+                        ).toString();
                         if (parseInt(prev, 10) >= currentYearAD - 5) {
                           setIsLoading(true);
                           setSelectedYear(prev);
@@ -437,10 +448,15 @@ export function SalesForecastDashboard() {
                               "px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 cursor-pointer shrink-0",
                               isSelected
                                 ? "bg-white text-blue-700 shadow-md shadow-blue-500/10 ring-1 ring-blue-200/80 scale-[1.02]"
-                                : "text-slate-500 hover:text-slate-800 hover:bg-white/60"
+                                : "text-slate-500 hover:text-slate-800 hover:bg-white/60",
                             )}
                           >
-                            <span className={cn("text-[11px] font-medium transition-colors", isSelected ? "text-blue-500" : "text-slate-400")}>
+                            <span
+                              className={cn(
+                                "text-[11px] font-medium transition-colors",
+                                isSelected ? "text-blue-500" : "text-slate-400",
+                              )}
+                            >
                               พ.ศ.
                             </span>
                             <span>{y.be}</span>
@@ -454,7 +470,9 @@ export function SalesForecastDashboard() {
                       type="button"
                       disabled={parseInt(selectedYear, 10) >= currentYearAD + 1}
                       onClick={() => {
-                        const next = (parseInt(selectedYear, 10) + 1).toString();
+                        const next = (
+                          parseInt(selectedYear, 10) + 1
+                        ).toString();
                         if (parseInt(next, 10) <= currentYearAD + 1) {
                           setIsLoading(true);
                           setSelectedYear(next);
