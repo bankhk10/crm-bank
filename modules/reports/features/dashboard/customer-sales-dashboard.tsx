@@ -798,8 +798,8 @@ export function CustomerSalesDashboard() {
                         </TableBody>
                       </Table>
                     </div>
-                    <div className="p-4 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-500 text-center italic">
-                      สรุปผลงานตามพนักงานขายตามช่วงเวลาที่กำหนด
+                    <div className="p-4 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-500 text-center">
+                      ข้อมูลแสดงตามช่วงเวลาที่กำหนด
                     </div>
                   </CardContent>
                 </Card>
