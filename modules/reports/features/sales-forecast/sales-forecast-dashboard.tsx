@@ -609,19 +609,25 @@ export function SalesForecastDashboard() {
         </Card>
 
         {/* Table Section */}
-        <Card className="rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-          <CardHeader className="bg-white border-b border-slate-100">
-            <CardTitle className="text-base font-semibold text-slate-800 flex items-center justify-between">
+        <Card className="rounded-2xl border-0 shadow-lg shadow-slate-200/60 overflow-hidden bg-white">
+          <CardHeader className="bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 py-5">
+            <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 shadow-md shadow-blue-200/50">
+                <Target className="h-4 w-4 text-white" />
+              </div>
               <span>ข้อมูลตารางยอดขายและคาดการณ์</span>
+              <Badge variant="secondary" className="rounded-full bg-blue-100 text-blue-700 border-0 text-xs font-semibold px-2.5 py-0.5">
+                {viewMode === "month" ? "รายเดือน" : "รายไตรมาส"}
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto w-full max-h-[550px] scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
               <Table className="min-w-max border-collapse relative">
-                <TableHeader className="bg-slate-50 sticky top-0 z-20 shadow-[0_1px_0_0_#e2e8f0]">
+                <TableHeader className="sticky top-0 z-20 shadow-[0_1px_0_0_#e2e8f0]">
                   <TableRow>
                     <TableHead
-                      className="font-bold text-slate-700 min-w-[150px] bg-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]"
+                      className="font-bold text-slate-700 min-w-[150px] bg-gradient-to-b from-slate-100 to-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]"
                       rowSpan={2}
                     >
                       ชื่อ
@@ -630,14 +636,14 @@ export function SalesForecastDashboard() {
                       <TableHead
                         key={label}
                         colSpan={2}
-                        className="text-center font-bold text-slate-700 bg-slate-50 border-x border-slate-200/50"
+                        className="text-center font-bold text-slate-700 bg-gradient-to-b from-slate-100 to-slate-50 border-x border-slate-200/60"
                       >
                         {label}
                       </TableHead>
                     ))}
                     <TableHead
                       colSpan={2}
-                      className="text-center font-bold text-slate-800 bg-indigo-50 border-x border-slate-200/50"
+                      className="text-center font-bold text-white bg-gradient-to-b from-indigo-500 to-indigo-600 border-x border-indigo-400/30"
                     >
                       ยอดรวมทั้งปี
                     </TableHead>
@@ -645,31 +651,31 @@ export function SalesForecastDashboard() {
                   <TableRow>
                     {timeLabels.map((label) => (
                       <Fragment key={label + "-sub"}>
-                        <TableHead className="text-right text-xs font-semibold text-slate-600 bg-slate-50 border-l border-slate-200/50 min-w-[110px]">
+                        <TableHead className="text-right text-xs font-semibold text-blue-600 bg-gradient-to-b from-blue-50 to-slate-50 border-l border-slate-200/50 min-w-[110px]">
                           Forecast
                         </TableHead>
-                        <TableHead className="text-right text-xs font-semibold text-emerald-600 bg-slate-50 border-r border-slate-200/50 min-w-[110px]">
+                        <TableHead className="text-right text-xs font-semibold text-emerald-600 bg-gradient-to-b from-emerald-50 to-slate-50 border-r border-slate-200/50 min-w-[110px]">
                           Invoice
                         </TableHead>
                       </Fragment>
                     ))}
-                    <TableHead className="text-right text-xs font-semibold text-slate-600 bg-indigo-50 border-l border-slate-200/50 min-w-[110px]">
+                    <TableHead className="text-right text-xs font-semibold text-indigo-100 bg-indigo-500/80 border-l border-indigo-400/30 min-w-[110px]">
                       Forecast
                     </TableHead>
-                    <TableHead className="text-right text-xs font-semibold text-emerald-600 bg-indigo-50 border-r border-slate-200/50 min-w-[110px]">
+                    <TableHead className="text-right text-xs font-semibold text-indigo-100 bg-indigo-500/80 border-r border-indigo-400/30 min-w-[110px]">
                       Invoice
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {selectedSalespersons.map((spId) => {
+                  {selectedSalespersons.map((spId, rowIdx) => {
                     const sp = salespersons.find((s) => s.id === spId);
                     const pData = getPersonTableData(spId);
                     if (!sp || !pData) return null;
 
                     return (
-                      <TableRow key={sp.id} className="hover:bg-slate-50/50">
-                        <TableCell className="font-medium text-slate-700 bg-white sticky left-0 z-10 border-r border-slate-200/50 shadow-[1px_0_0_0_#f1f5f9]">
+                      <TableRow key={sp.id} className={`hover:bg-blue-50/30 transition-colors ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}>
+                        <TableCell className={`font-medium text-slate-700 sticky left-0 z-10 border-r border-slate-200/50 shadow-[1px_0_0_0_#f1f5f9] ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}>
                           {sp.name}
                         </TableCell>
                         {pData.periodsData.map((mData, idx) => {
@@ -692,14 +698,14 @@ export function SalesForecastDashboard() {
                             </Fragment>
                           );
                         })}
-                        <TableCell className="text-right font-semibold text-slate-700 bg-indigo-50/30 border-l border-slate-200/50">
+                        <TableCell className="text-right font-semibold text-slate-700 bg-indigo-50/40 border-l border-indigo-200/50">
                           {pData.totalForecast > 0
                             ? new Intl.NumberFormat("th-TH").format(
                                 pData.totalForecast,
                               )
                             : "-"}
                         </TableCell>
-                        <TableCell className="text-right font-semibold text-emerald-600 bg-indigo-50/30 border-r border-slate-200/50">
+                        <TableCell className="text-right font-semibold text-emerald-600 bg-indigo-50/40 border-r border-indigo-200/50">
                           {pData.totalInvoice > 0
                             ? new Intl.NumberFormat("th-TH").format(
                                 pData.totalInvoice,
@@ -710,20 +716,20 @@ export function SalesForecastDashboard() {
                     );
                   })}
                   {selectedSalespersons.length > 0 && (
-                    <TableRow className="bg-slate-50 hover:bg-slate-50 sticky bottom-0 z-20 shadow-[0_-1px_0_0_#e2e8f0]">
-                      <TableCell className="font-bold text-slate-900 sticky left-0 z-30 bg-slate-50 border-r border-slate-200/50 shadow-[1px_0_0_0_#e2e8f0]">
+                    <TableRow className="sticky bottom-0 z-20 shadow-[0_-1px_0_0_#e2e8f0]">
+                      <TableCell className="font-bold text-white sticky left-0 z-30 bg-gradient-to-r from-slate-700 to-slate-600 border-r border-slate-500/50 shadow-[1px_0_0_0_#475569]">
                         ยอดรวม
                       </TableCell>
                       {aggregatedData.map((mData) => (
                         <Fragment key={mData.month + "-total"}>
-                          <TableCell className="text-right font-bold text-slate-900 border-l border-slate-200/50">
+                          <TableCell className="text-right font-bold text-white bg-gradient-to-r from-slate-700 to-slate-600 border-l border-slate-500/30">
                             {mData.forecast > 0
                               ? new Intl.NumberFormat("th-TH").format(
                                   mData.forecast,
                                 )
                               : "-"}
                           </TableCell>
-                          <TableCell className="text-right font-bold text-emerald-700 border-r border-slate-200/50">
+                          <TableCell className="text-right font-bold text-emerald-300 bg-gradient-to-r from-slate-700 to-slate-600 border-r border-slate-500/30">
                             {mData.invoice > 0
                               ? new Intl.NumberFormat("th-TH").format(
                                   mData.invoice,
@@ -732,14 +738,14 @@ export function SalesForecastDashboard() {
                           </TableCell>
                         </Fragment>
                       ))}
-                      <TableCell className="text-right font-bold text-slate-900 bg-indigo-100/50 border-l border-slate-300/50">
+                      <TableCell className="text-right font-bold text-white bg-gradient-to-r from-indigo-700 to-indigo-600 border-l border-indigo-500/50">
                         {grandTotalOfTotals.forecast > 0
                           ? new Intl.NumberFormat("th-TH").format(
                               grandTotalOfTotals.forecast,
                             )
                           : "-"}
                       </TableCell>
-                      <TableCell className="text-right font-bold text-emerald-700 bg-indigo-100/50 border-r border-slate-300/50">
+                      <TableCell className="text-right font-bold text-emerald-300 bg-gradient-to-r from-indigo-700 to-indigo-600 border-r border-indigo-500/50">
                         {grandTotalOfTotals.invoice > 0
                           ? new Intl.NumberFormat("th-TH").format(
                               grandTotalOfTotals.invoice,
@@ -752,9 +758,12 @@ export function SalesForecastDashboard() {
                     <TableRow>
                       <TableCell
                         colSpan={27}
-                        className="text-center py-10 text-slate-500"
+                        className="text-center py-16 text-slate-400"
                       >
-                        กรุณาเลือกพนักงานขายอย่างน้อย 1 คน
+                        <div className="flex flex-col items-center gap-2">
+                          <Users className="h-8 w-8 text-slate-300" />
+                          <span>กรุณาเลือกพนักงานขายอย่างน้อย 1 คน</span>
+                        </div>
                       </TableCell>
                     </TableRow>
                   )}
