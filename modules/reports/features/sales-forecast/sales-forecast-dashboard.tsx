@@ -20,6 +20,7 @@ import {
 import { DetailHero } from "@/components/custom/detail-hero";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -70,7 +71,19 @@ export function SalesForecastDashboard() {
     [],
   );
   const [viewMode, setViewMode] = useState<"month" | "quarter">("month");
-  const [selectedYear, setSelectedYear] = useState<string>("2026");
+  const currentYearAD = useMemo(() => new Date().getFullYear(), []);
+  const [selectedYear, setSelectedYear] = useState<string>(currentYearAD.toString());
+
+  const yearOptions = useMemo(() => {
+    const years = [];
+    for (let i = currentYearAD - 5; i <= currentYearAD + 1; i++) {
+      years.push({
+        ad: i.toString(),
+        be: (i + 543).toString(),
+      });
+    }
+    return years;
+  }, [currentYearAD]);
   const [mockData, setMockData] = useState<
     Record<
       string,
@@ -368,39 +381,37 @@ export function SalesForecastDashboard() {
                       <Calendar className="h-4 w-4 text-blue-600" />
                     </div>
                     <label className="text-sm font-semibold text-slate-800">
-                      ปี
+                      ปี (พ.ศ.)
                     </label>
                   </div>
-                  <ToggleGroup
-                    type="single"
-                    value={selectedYear}
-                    onValueChange={(val) => {
-                      if (val && val !== selectedYear) {
-                        setIsLoading(true);
-                        setSelectedYear(val);
-                      }
-                    }}
-                    className="justify-start bg-slate-100/80 p-1 rounded-xl gap-0.5"
-                  >
-                    <ToggleGroupItem
-                      value="2024"
-                      className="rounded-lg px-5 py-1.5 text-sm font-medium text-slate-500 border-transparent data-[state=on]:bg-white data-[state=on]:text-slate-900 data-[state=on]:shadow-md data-[state=on]:shadow-slate-200/50 data-[state=on]:border-slate-200/80 transition-all duration-200"
-                    >
-                      2024
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="2025"
-                      className="rounded-lg px-5 py-1.5 text-sm font-medium text-slate-500 border-transparent data-[state=on]:bg-white data-[state=on]:text-slate-900 data-[state=on]:shadow-md data-[state=on]:shadow-slate-200/50 data-[state=on]:border-slate-200/80 transition-all duration-200"
-                    >
-                      2025
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="2026"
-                      className="rounded-lg px-5 py-1.5 text-sm font-medium text-slate-500 border-transparent data-[state=on]:bg-white data-[state=on]:text-slate-900 data-[state=on]:shadow-md data-[state=on]:shadow-slate-200/50 data-[state=on]:border-slate-200/80 transition-all duration-200"
-                    >
-                      2026
-                    </ToggleGroupItem>
-                  </ToggleGroup>
+                  <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-100/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-inner">
+                    {yearOptions.map((y) => {
+                      const isSelected = selectedYear === y.ad;
+                      return (
+                        <button
+                          key={y.ad}
+                          type="button"
+                          onClick={() => {
+                            if (selectedYear !== y.ad) {
+                              setIsLoading(true);
+                              setSelectedYear(y.ad);
+                            }
+                          }}
+                          className={cn(
+                            "px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 cursor-pointer",
+                            isSelected
+                              ? "bg-white text-blue-700 shadow-md shadow-blue-500/10 ring-1 ring-blue-200/80 scale-[1.02]"
+                              : "text-slate-500 hover:text-slate-800 hover:bg-white/60"
+                          )}
+                        >
+                          <span className={cn("text-[11px] font-medium transition-colors", isSelected ? "text-blue-500" : "text-slate-400")}>
+                            พ.ศ.
+                          </span>
+                          <span>{y.be}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Vertical Divider (desktop) */}
@@ -455,7 +466,7 @@ export function SalesForecastDashboard() {
                 variant="secondary"
                 className="rounded-full bg-indigo-100 text-indigo-700 border-0 text-xs font-semibold px-2.5 py-0.5"
               >
-                ปี {selectedYear}
+                ปี พ.ศ. {parseInt(selectedYear, 10) + 543}
               </Badge>
             </CardTitle>
           </CardHeader>
