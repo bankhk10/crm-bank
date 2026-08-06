@@ -53,14 +53,10 @@ import {
 } from "../server/actions";
 
 const SALE_STATUS_OPTIONS = [
-  { value: "ALL", label: "สถานะทั้งหมด" },
-  { value: "APPROVED", label: "อนุมัติแล้ว" },
-  { value: "DELIVERY_COMPLETED", label: "จัดส่งสำเร็จ" },
-  { value: "PAID", label: "ชำระเงินแล้ว" },
-  { value: "PENDING_APPROVAL", label: "รออนุมัติ" },
-  { value: "AWAITING_DELIVERY", label: "รอดำเนินการจัดส่ง" },
-  { value: "COMPLETED", label: "เสร็จสิ้น" },
-  { value: "CANCELLED", label: "ยกเลิก" },
+  { value: "ALL", label: "ทั้งหมด" },
+  { value: "FORECAST", label: "Forecast" },
+  { value: "SALES_NOTE", label: "Sales Note" },
+  { value: "INVOICE", label: "Invoice" },
 ];
 
 const DATE_PRESET_OPTIONS = [

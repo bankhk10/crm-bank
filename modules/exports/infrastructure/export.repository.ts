@@ -3,7 +3,23 @@ import { db, type SaleStatus } from "@/lib/db";
 export interface ExportFilterParams {
   startDate?: string;
   endDate?: string;
-  status?: SaleStatus | "ALL";
+  status?: SaleStatus | "ALL" | "FORECAST" | "SALES_NOTE" | "INVOICE" | string;
+}
+
+function buildStatusWhereClause(status?: string) {
+  if (!status || status === "ALL") {
+    return undefined;
+  }
+  if (status === "FORECAST") {
+    return { in: ["PENDING_APPROVAL", "WAITING_FOR_CORRECTION"] };
+  }
+  if (status === "SALES_NOTE") {
+    return { in: ["APPROVED", "AWAITING_DELIVERY", "PARTIALLY_DELIVERED", "PENDING_APPROVAL", "WAITING_FOR_CORRECTION"] };
+  }
+  if (status === "INVOICE") {
+    return { in: ["DELIVERY_COMPLETED", "PAID", "COMPLETED"] };
+  }
+  return status;
 }
 
 /**
@@ -26,8 +42,9 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
     }
   }
 
-  if (filters.status && filters.status !== "ALL") {
-    where.status = filters.status;
+  const statusWhere = buildStatusWhereClause(filters.status);
+  if (statusWhere) {
+    where.status = statusWhere;
   }
 
   const sales = await db.sale.findMany({
@@ -106,8 +123,9 @@ export async function getSalesMarketingExportRecords(filters: ExportFilterParams
     }
   }
 
-  if (filters.status && filters.status !== "ALL") {
-    where.status = filters.status;
+  const statusWhere = buildStatusWhereClause(filters.status);
+  if (statusWhere) {
+    where.status = statusWhere;
   }
 
   const sales = await db.sale.findMany({
