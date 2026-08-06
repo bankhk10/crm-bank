@@ -50,6 +50,10 @@ const chartConfig = {
     label: "Invoice",
     color: "#10b981",
   },
+  lastYearInvoice: {
+    label: "Invoice (ปีที่แล้ว)",
+    color: "#f59e0b",
+  },
 } satisfies ChartConfig;
 
 export function SalesForecastDashboard() {
@@ -62,7 +66,10 @@ export function SalesForecastDashboard() {
   const [viewMode, setViewMode] = useState<"month" | "quarter">("month");
   const [selectedYear, setSelectedYear] = useState<string>("2026");
   const [mockData, setMockData] = useState<
-    Record<string, { month: number; forecast: number; invoice: number }[]>
+    Record<
+      string,
+      { month: number; forecast: number; invoice: number; lastYearInvoice: number }[]
+    >
   >({});
   const [isLoading, setIsLoading] = useState(true);
 
@@ -87,6 +94,7 @@ export function SalesForecastDashboard() {
     return timeLabels.map((period, index) => {
       let totalForecast = 0;
       let totalInvoice = 0;
+      let totalLastYearInvoice = 0;
 
       selectedSalespersons.forEach((spId) => {
         const spData = mockData[spId];
@@ -95,11 +103,13 @@ export function SalesForecastDashboard() {
         if (viewMode === "month") {
           totalForecast += spData[index].forecast;
           totalInvoice += spData[index].invoice;
+          totalLastYearInvoice += spData[index].lastYearInvoice || 0;
         } else {
           const startIdx = index * 3;
           for (let i = startIdx; i < startIdx + 3; i++) {
             totalForecast += spData[i].forecast;
             totalInvoice += spData[i].invoice;
+            totalLastYearInvoice += spData[i].lastYearInvoice || 0;
           }
         }
       });
@@ -108,6 +118,7 @@ export function SalesForecastDashboard() {
         month: period,
         forecast: totalForecast,
         invoice: totalInvoice,
+        lastYearInvoice: totalLastYearInvoice,
       };
     });
   }, [selectedSalespersons, viewMode, timeLabels, mockData]);
@@ -350,6 +361,18 @@ export function SalesForecastDashboard() {
                       stopOpacity={0.1}
                     />
                   </linearGradient>
+                  <linearGradient id="fillLastYearInvoice" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-lastYearInvoice)"
+                      stopOpacity={0.5}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-lastYearInvoice)"
+                      stopOpacity={0.05}
+                    />
+                  </linearGradient>
                 </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -380,6 +403,27 @@ export function SalesForecastDashboard() {
                   content={<ChartLegendContent />}
                   verticalAlign="top"
                   wrapperStyle={{ paddingBottom: "20px" }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="lastYearInvoice"
+                  name="Invoice (ปีที่แล้ว)"
+                  stroke="var(--color-lastYearInvoice)"
+                  strokeWidth={2}
+                  strokeDasharray="3 3"
+                  fill="url(#fillLastYearInvoice)"
+                  dot={{
+                    r: 4,
+                    fill: "var(--color-lastYearInvoice)",
+                    fillOpacity: 1,
+                    strokeWidth: 0,
+                  }}
+                  activeDot={{
+                    r: 6,
+                    fill: "var(--color-lastYearInvoice)",
+                    fillOpacity: 1,
+                    strokeWidth: 0,
+                  }}
                 />
                 <Area
                   type="monotone"
