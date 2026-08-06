@@ -799,7 +799,7 @@ export function SalesForecastDashboard() {
                 <TableHeader className="sticky top-0 z-20 shadow-[0_1px_0_0_#e2e8f0]">
                   <TableRow>
                     <TableHead
-                      className="font-bold text-slate-700 min-w-[150px] bg-gradient-to-b from-slate-100 to-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]"
+                      className="font-bold text-slate-700 min-w-[50px] bg-gradient-to-b from-slate-100 to-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]"
                       rowSpan={2}
                     >
                       ชื่อ
@@ -899,24 +899,24 @@ export function SalesForecastDashboard() {
                         gtYtdForecast === 0 ? null : gtDiff / gtYtdForecast;
                       return (
                         <TableRow className="sticky bottom-0 z-20 shadow-[0_-1px_0_0_#e2e8f0]">
-                          <TableCell className="font-bold text-white sticky left-0 z-30 bg-gradient-to-r from-slate-700 to-slate-600 border-r border-slate-500/50 shadow-[1px_0_0_0_#475569]">
+                          <TableCell className="font-bold sticky left-0 z-30">
                             ยอดรวม
                           </TableCell>
-                          <TableCell className="text-right font-bold text-white bg-gradient-to-r from-slate-700 to-slate-600 border-l border-slate-500/30">
+                          <TableCell className="text-right font-bold">
                             {gtYtdForecast > 0
                               ? new Intl.NumberFormat("th-TH").format(
                                   gtYtdForecast,
                                 )
                               : "-"}
                           </TableCell>
-                          <TableCell className="text-right font-bold text-emerald-300 bg-gradient-to-r from-slate-700 to-slate-600 border-x border-slate-500/30">
+                          <TableCell className="text-right font-bold text-emerald-600">
                             {gtYtdInvoice > 0
                               ? new Intl.NumberFormat("th-TH").format(
                                   gtYtdInvoice,
                                 )
                               : "-"}
                           </TableCell>
-                          <TableCell className="text-right font-bold bg-gradient-to-r from-slate-700 to-slate-600 border-r border-slate-500/30">
+                          <TableCell className="text-right font-bold">
                             {formatDiff(gtDiff)}
                           </TableCell>
                           <TableCell className="text-right font-bold bg-gradient-to-r from-slate-700 to-slate-600 border-r border-slate-500/30 p-0 align-middle">
