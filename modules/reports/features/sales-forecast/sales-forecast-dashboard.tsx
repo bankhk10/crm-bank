@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo, Fragment, useEffect } from "react";
-import { Target, Filter, Loader2 } from "lucide-react";
+import { Target, Filter, Loader2, Users, Calendar, Clock, CheckCheck, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   ChartConfig,
@@ -213,29 +214,41 @@ export function SalesForecastDashboard() {
 
       <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Filter Section */}
-        <Card className="rounded-xl border border-slate-100 shadow-sm">
-          <CardContent className="pt-4">
-            <div className="flex flex-col sm:flex-row gap-8">
-              <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-4 mb-3">
-                  <label className="text-sm font-medium text-slate-700">
-                    พนักงานขาย (สามารถเลือกได้หลายคน)
-                  </label>
+        <Card className="rounded-2xl border-0 shadow-lg shadow-slate-200/60 overflow-hidden bg-white">
+          {/* Gradient header strip */}
+          <div className="h-1.5 bg-gradient-to-r from-violet-500 via-indigo-500 to-blue-500" />
+          <CardContent className="pt-5 pb-6 px-6">
+            <div className="flex flex-col gap-6">
+              {/* Salespersons Section */}
+              <div>
+                <div className="flex flex-wrap items-center gap-3 mb-4">
                   <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-violet-100">
+                      <Users className="h-4 w-4 text-violet-600" />
+                    </div>
+                    <label className="text-sm font-semibold text-slate-800">
+                      พนักงานขาย
+                    </label>
+                  </div>
+                  <Badge variant="secondary" className="rounded-full bg-violet-100 text-violet-700 border-0 text-xs font-medium px-2.5 py-0.5">
+                    {selectedSalespersons.length}/{salespersons.length} คน
+                  </Badge>
+                  <div className="flex items-center gap-1 ml-auto">
                     <button
                       onClick={() =>
                         setSelectedSalespersons(salespersons.map((sp) => sp.id))
                       }
-                      className="text-xs font-medium text-violet-600 hover:text-violet-700 underline underline-offset-2 transition-colors"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700 bg-violet-50 hover:bg-violet-100 px-2.5 py-1 rounded-md transition-all duration-200"
                     >
+                      <CheckCheck className="h-3 w-3" />
                       เลือกทั้งหมด
                     </button>
-                    <span className="text-slate-300">|</span>
                     <button
                       onClick={() => setSelectedSalespersons([])}
-                      className="text-xs font-medium text-slate-500 hover:text-slate-700 underline underline-offset-2 transition-colors"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 px-2.5 py-1 rounded-md transition-all duration-200"
                     >
-                      ลบทั้งหมด
+                      <X className="h-3 w-3" />
+                      ล้าง
                     </button>
                   </div>
                 </div>
@@ -251,73 +264,96 @@ export function SalesForecastDashboard() {
                     <ToggleGroupItem
                       key={sp.id}
                       value={sp.id}
-                      className="rounded-full px-4 border border-slate-200 data-[state=on]:bg-violet-600 data-[state=on]:text-white data-[state=on]:border-violet-600 transition-all hover:bg-slate-100"
+                      className="rounded-full px-4 py-1.5 text-sm border border-slate-200 bg-white text-slate-600 shadow-sm hover:shadow-md hover:border-violet-300 hover:bg-violet-50 data-[state=on]:bg-gradient-to-r data-[state=on]:from-violet-600 data-[state=on]:to-indigo-600 data-[state=on]:text-white data-[state=on]:border-transparent data-[state=on]:shadow-md data-[state=on]:shadow-violet-200/50 transition-all duration-200"
                     >
                       {sp.name}
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
               </div>
-              <div>
-                <label className="text-sm font-medium text-slate-700 mb-3 block">
-                  ปี
-                </label>
-                <ToggleGroup
-                  type="single"
-                  value={selectedYear}
-                  onValueChange={(val) => {
-                    if (val && val !== selectedYear) {
-                      setIsLoading(true);
-                      setSelectedYear(val);
-                    }
-                  }}
-                  className="justify-start bg-slate-100 p-1 rounded-lg"
-                >
-                  <ToggleGroupItem
-                    value="2024"
-                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
+
+              {/* Divider */}
+              <div className="border-t border-slate-100" />
+
+              {/* Year & View Mode Row */}
+              <div className="flex flex-col sm:flex-row gap-6 sm:gap-10">
+                {/* Year Selector */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-blue-100">
+                      <Calendar className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <label className="text-sm font-semibold text-slate-800">
+                      ปี
+                    </label>
+                  </div>
+                  <ToggleGroup
+                    type="single"
+                    value={selectedYear}
+                    onValueChange={(val) => {
+                      if (val && val !== selectedYear) {
+                        setIsLoading(true);
+                        setSelectedYear(val);
+                      }
+                    }}
+                    className="justify-start bg-slate-100/80 p-1 rounded-xl gap-0.5"
                   >
-                    2024
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="2025"
-                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
+                    <ToggleGroupItem
+                      value="2024"
+                      className="rounded-lg px-5 py-1.5 text-sm font-medium text-slate-500 border-transparent data-[state=on]:bg-white data-[state=on]:text-slate-900 data-[state=on]:shadow-md data-[state=on]:shadow-slate-200/50 data-[state=on]:border-slate-200/80 transition-all duration-200"
+                    >
+                      2024
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="2025"
+                      className="rounded-lg px-5 py-1.5 text-sm font-medium text-slate-500 border-transparent data-[state=on]:bg-white data-[state=on]:text-slate-900 data-[state=on]:shadow-md data-[state=on]:shadow-slate-200/50 data-[state=on]:border-slate-200/80 transition-all duration-200"
+                    >
+                      2025
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="2026"
+                      className="rounded-lg px-5 py-1.5 text-sm font-medium text-slate-500 border-transparent data-[state=on]:bg-white data-[state=on]:text-slate-900 data-[state=on]:shadow-md data-[state=on]:shadow-slate-200/50 data-[state=on]:border-slate-200/80 transition-all duration-200"
+                    >
+                      2026
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+
+                {/* Vertical Divider (desktop) */}
+                <div className="hidden sm:block w-px bg-slate-200 self-stretch" />
+
+                {/* Time View Selector */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-100">
+                      <Clock className="h-4 w-4 text-emerald-600" />
+                    </div>
+                    <label className="text-sm font-semibold text-slate-800">
+                      มุมมองเวลา
+                    </label>
+                  </div>
+                  <ToggleGroup
+                    type="single"
+                    value={viewMode}
+                    onValueChange={(val) => {
+                      if (val) setViewMode(val as "month" | "quarter");
+                    }}
+                    className="justify-start bg-slate-100/80 p-1 rounded-xl gap-0.5"
                   >
-                    2025
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="2026"
-                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
-                  >
-                    2026
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-700 mb-3 block">
-                  มุมมองเวลา
-                </label>
-                <ToggleGroup
-                  type="single"
-                  value={viewMode}
-                  onValueChange={(val) => {
-                    if (val) setViewMode(val as "month" | "quarter");
-                  }}
-                  className="justify-start bg-slate-100 p-1 rounded-lg"
-                >
-                  <ToggleGroupItem
-                    value="month"
-                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
-                  >
-                    รายเดือน
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="quarter"
-                    className="rounded-md px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm border-transparent data-[state=on]:border-slate-200"
-                  >
-                    รายไตรมาส
-                  </ToggleGroupItem>
-                </ToggleGroup>
+                    <ToggleGroupItem
+                      value="month"
+                      className="rounded-lg px-5 py-1.5 text-sm font-medium text-slate-500 border-transparent data-[state=on]:bg-white data-[state=on]:text-slate-900 data-[state=on]:shadow-md data-[state=on]:shadow-slate-200/50 data-[state=on]:border-slate-200/80 transition-all duration-200"
+                    >
+                      รายเดือน
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="quarter"
+                      className="rounded-lg px-5 py-1.5 text-sm font-medium text-slate-500 border-transparent data-[state=on]:bg-white data-[state=on]:text-slate-900 data-[state=on]:shadow-md data-[state=on]:shadow-slate-200/50 data-[state=on]:border-slate-200/80 transition-all duration-200"
+                    >
+                      รายไตรมาส
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
               </div>
             </div>
           </CardContent>
