@@ -389,7 +389,10 @@ export function SalesForecastDashboard() {
                 <Target className="h-4 w-4 text-white" />
               </div>
               <span>กราฟเปรียบเทียบยอดขายและคาดการณ์</span>
-              <Badge variant="secondary" className="rounded-full bg-indigo-100 text-indigo-700 border-0 text-xs font-semibold px-2.5 py-0.5">
+              <Badge
+                variant="secondary"
+                className="rounded-full bg-indigo-100 text-indigo-700 border-0 text-xs font-semibold px-2.5 py-0.5"
+              >
                 ปี {selectedYear}
               </Badge>
             </CardTitle>
@@ -616,7 +619,10 @@ export function SalesForecastDashboard() {
                 <Target className="h-4 w-4 text-white" />
               </div>
               <span>ข้อมูลตารางยอดขายและคาดการณ์</span>
-              <Badge variant="secondary" className="rounded-full bg-blue-100 text-blue-700 border-0 text-xs font-semibold px-2.5 py-0.5">
+              <Badge
+                variant="secondary"
+                className="rounded-full bg-blue-100 text-blue-700 border-0 text-xs font-semibold px-2.5 py-0.5"
+              >
                 {viewMode === "month" ? "รายเดือน" : "รายไตรมาส"}
               </Badge>
             </CardTitle>
@@ -674,8 +680,13 @@ export function SalesForecastDashboard() {
                     if (!sp || !pData) return null;
 
                     return (
-                      <TableRow key={sp.id} className={`hover:bg-blue-50/30 transition-colors ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}>
-                        <TableCell className={`font-medium text-slate-700 sticky left-0 z-10 border-r border-slate-200/50 shadow-[1px_0_0_0_#f1f5f9] ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}>
+                      <TableRow
+                        key={sp.id}
+                        className={`hover:bg-blue-50/30 transition-colors ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}
+                      >
+                        <TableCell
+                          className={`font-medium text-slate-700 sticky left-0 z-10 border-r border-slate-200/50 shadow-[1px_0_0_0_#f1f5f9] ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}
+                        >
                           {sp.name}
                         </TableCell>
                         {pData.periodsData.map((mData, idx) => {
@@ -780,9 +791,6 @@ export function SalesForecastDashboard() {
                 <Target className="h-4 w-4 text-white" />
               </div>
               <span>สรุปยอดขาย YTD</span>
-              <Badge variant="secondary" className="rounded-full bg-amber-100 text-amber-700 border-0 text-xs font-semibold px-2.5 py-0.5">
-                ม.ค. – {MONTHS[new Date().getMonth()]}
-              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -840,8 +848,13 @@ export function SalesForecastDashboard() {
                       ytdForecast === 0 ? null : diff / ytdForecast;
 
                     return (
-                      <TableRow key={sp.id} className={`hover:bg-amber-50/30 transition-colors ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}>
-                        <TableCell className={`font-medium text-slate-700 sticky left-0 z-10 border-r border-slate-200/50 shadow-[1px_0_0_0_#f1f5f9] ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}>
+                      <TableRow
+                        key={sp.id}
+                        className={`hover:bg-amber-50/30 transition-colors ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}
+                      >
+                        <TableCell
+                          className={`font-medium text-slate-700 sticky left-0 z-10 border-r border-slate-200/50 shadow-[1px_0_0_0_#f1f5f9] ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}
+                        >
                           {sp.name}
                         </TableCell>
                         <TableCell className="text-right text-slate-600 border-l border-slate-200/30">
