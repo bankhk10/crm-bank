@@ -633,7 +633,7 @@ export function SalesForecastDashboard() {
                 <TableHeader className="sticky top-0 z-20 shadow-[0_1px_0_0_#e2e8f0]">
                   <TableRow>
                     <TableHead
-                      className="font-bold text-slate-700 min-w-[150px] bg-gradient-to-b from-slate-100 to-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]"
+                      className="font-bold text-slate-700 min-w-[100px] bg-gradient-to-b from-slate-100 to-slate-50 sticky left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]"
                       rowSpan={2}
                     >
                       ชื่อ
@@ -665,10 +665,10 @@ export function SalesForecastDashboard() {
                         </TableHead>
                       </Fragment>
                     ))}
-                    <TableHead className="text-right text-xs font-semibold text-indigo-100 bg-indigo-500/80 border-l border-indigo-400/30 min-w-[110px]">
+                    <TableHead className="text-right text-xs font-semibold text-blue-600 bg-blue-50/80 border-l border-indigo-400/30 min-w-[110px]">
                       Forecast
                     </TableHead>
-                    <TableHead className="text-right text-xs font-semibold text-indigo-100 bg-indigo-500/80 border-r border-indigo-400/30 min-w-[110px]">
+                    <TableHead className="text-right text-xs font-semibold text-emerald-600 bg-emerald-50/80 border-r border-indigo-400/30 min-w-[110px]">
                       Invoice
                     </TableHead>
                   </TableRow>
