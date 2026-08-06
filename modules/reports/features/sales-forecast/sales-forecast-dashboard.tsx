@@ -1,9 +1,16 @@
 "use client";
 
 import { useState, useMemo, Fragment, useEffect, useCallback } from "react";
-import { Target, Filter, Loader2, Users, Calendar, Clock, CheckCheck, X } from "lucide-react";
+import { Target, Users, Calendar, Clock, CheckCheck, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid } from "recharts";
+import {
+  ComposedChart,
+  Area,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
 import {
   ChartConfig,
   ChartContainer,
@@ -67,7 +74,12 @@ export function SalesForecastDashboard() {
   const [mockData, setMockData] = useState<
     Record<
       string,
-      { month: number; forecast: number; invoice: number; lastYearInvoice: number }[]
+      {
+        month: number;
+        forecast: number;
+        invoice: number;
+        lastYearInvoice: number;
+      }[]
     >
   >({});
   const [isLoading, setIsLoading] = useState(true);
@@ -237,7 +249,10 @@ export function SalesForecastDashboard() {
                       พนักงานขาย
                     </label>
                   </div>
-                  <Badge variant="secondary" className="rounded-full bg-violet-100 text-violet-700 border-0 text-xs font-medium px-2.5 py-0.5">
+                  <Badge
+                    variant="secondary"
+                    className="rounded-full bg-violet-100 text-violet-700 border-0 text-xs font-medium px-2.5 py-0.5"
+                  >
                     {selectedSalespersons.length}/{salespersons.length} คน
                   </Badge>
                   <div className="flex items-center gap-1 ml-auto">
@@ -367,35 +382,47 @@ export function SalesForecastDashboard() {
         </Card>
 
         {/* Chart Section */}
-        <Card className="rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-          <CardHeader className="bg-white border-b border-slate-100">
-            <CardTitle className="text-base font-semibold text-slate-800 flex items-center justify-between">
-              <span>กราฟเปรียบเทียบยอดขายและคาดการณ์ (ปี {selectedYear})</span>
+        <Card className="rounded-2xl border-0 shadow-lg shadow-slate-200/60 overflow-hidden bg-white">
+          <CardHeader className="bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 py-5">
+            <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-md shadow-indigo-200/50">
+                <Target className="h-4 w-4 text-white" />
+              </div>
+              <span>กราฟเปรียบเทียบยอดขายและคาดการณ์</span>
+              <Badge variant="secondary" className="rounded-full bg-indigo-100 text-indigo-700 border-0 text-xs font-semibold px-2.5 py-0.5">
+                ปี {selectedYear}
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 pb-2 pl-0">
             {/* Interactive Legend */}
-            <div className="flex flex-wrap items-center gap-4 px-6 pb-4">
-              {(Object.keys(chartConfig) as (keyof typeof chartConfig)[]).map((key) => (
-                <button
-                  key={key}
-                  onClick={() => toggleLine(key)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all duration-200 ${
-                    visibleLines[key]
-                      ? "border-slate-200 bg-white shadow-sm hover:shadow-md"
-                      : "border-slate-100 bg-slate-50 opacity-40 hover:opacity-60"
-                  }`}
-                >
-                  <span
-                    className="w-4 h-3 rounded-sm inline-block border"
-                    style={{
-                      backgroundColor: visibleLines[key] ? chartConfig[key].color : "transparent",
-                      borderColor: chartConfig[key].color,
-                    }}
-                  />
-                  <span className="text-slate-700">{chartConfig[key].label}</span>
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center justify-center gap-4 px-6 pb-4">
+              {(Object.keys(chartConfig) as (keyof typeof chartConfig)[]).map(
+                (key) => (
+                  <button
+                    key={key}
+                    onClick={() => toggleLine(key)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all duration-200 ${
+                      visibleLines[key]
+                        ? "border-slate-200 bg-white shadow-sm hover:shadow-md"
+                        : "border-slate-100 bg-slate-50 opacity-40 hover:opacity-60"
+                    }`}
+                  >
+                    <span
+                      className="w-4 h-3 rounded-sm inline-block border"
+                      style={{
+                        backgroundColor: visibleLines[key]
+                          ? chartConfig[key].color
+                          : "transparent",
+                        borderColor: chartConfig[key].color,
+                      }}
+                    />
+                    <span className="text-slate-700">
+                      {chartConfig[key].label}
+                    </span>
+                  </button>
+                ),
+              )}
             </div>
             <ChartContainer config={chartConfig} className="h-[450px] w-full">
               <ComposedChart
@@ -404,16 +431,46 @@ export function SalesForecastDashboard() {
               >
                 <defs>
                   <linearGradient id="fillForecast" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-forecast)" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="var(--color-forecast)" stopOpacity={0.02} />
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-forecast)"
+                      stopOpacity={0.15}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-forecast)"
+                      stopOpacity={0.02}
+                    />
                   </linearGradient>
                   <linearGradient id="fillInvoice" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-invoice)" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="var(--color-invoice)" stopOpacity={0.02} />
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-invoice)"
+                      stopOpacity={0.15}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-invoice)"
+                      stopOpacity={0.02}
+                    />
                   </linearGradient>
-                  <linearGradient id="fillLastYearInvoice" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-lastYearInvoice)" stopOpacity={0.12} />
-                    <stop offset="95%" stopColor="var(--color-lastYearInvoice)" stopOpacity={0.02} />
+                  <linearGradient
+                    id="fillLastYearInvoice"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-lastYearInvoice)"
+                      stopOpacity={0.12}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-lastYearInvoice)"
+                      stopOpacity={0.02}
+                    />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -438,7 +495,11 @@ export function SalesForecastDashboard() {
                   width={100}
                 />
                 <ChartTooltip
-                  cursor={{ stroke: "#94a3b8", strokeWidth: 1, strokeDasharray: "4 4" }}
+                  cursor={{
+                    stroke: "#94a3b8",
+                    strokeWidth: 1,
+                    strokeDasharray: "4 4",
+                  }}
                   content={<ChartTooltipContent indicator="dot" />}
                 />
                 {/* Subtle area fills */}
@@ -750,20 +811,18 @@ export function SalesForecastDashboard() {
                     if (!sp || !spData) return null;
 
                     const currentMonthIndex = new Date().getMonth();
-                    
+
                     const ytdForecast = spData
                       .slice(0, currentMonthIndex + 1)
                       .reduce((sum, d) => sum + d.forecast, 0);
-                      
+
                     const ytdInvoice = spData
                       .slice(0, currentMonthIndex + 1)
                       .reduce((sum, d) => sum + d.invoice, 0);
 
                     const diff = ytdInvoice - ytdForecast;
                     const percent =
-                      ytdForecast === 0
-                        ? null
-                        : diff / ytdForecast;
+                      ytdForecast === 0 ? null : diff / ytdForecast;
 
                     return (
                       <TableRow key={sp.id} className="hover:bg-slate-50/50">
@@ -772,16 +831,12 @@ export function SalesForecastDashboard() {
                         </TableCell>
                         <TableCell className="text-right text-slate-600 bg-slate-50 border-l border-slate-300/30">
                           {ytdForecast > 0
-                            ? new Intl.NumberFormat("th-TH").format(
-                                ytdForecast,
-                              )
+                            ? new Intl.NumberFormat("th-TH").format(ytdForecast)
                             : "-"}
                         </TableCell>
                         <TableCell className="text-right text-emerald-600 bg-slate-50 border-x border-slate-300/30">
                           {ytdInvoice > 0
-                            ? new Intl.NumberFormat("th-TH").format(
-                                ytdInvoice,
-                              )
+                            ? new Intl.NumberFormat("th-TH").format(ytdInvoice)
                             : "-"}
                         </TableCell>
                         <TableCell className="text-right bg-slate-50 border-r border-slate-300/30">
@@ -802,16 +857,18 @@ export function SalesForecastDashboard() {
                       selectedSalespersons.forEach((spId) => {
                         const spData = mockData[spId];
                         if (spData) {
-                          gtYtdForecast += spData.slice(0, currentMonthIndex + 1).reduce((sum, d) => sum + d.forecast, 0);
-                          gtYtdInvoice += spData.slice(0, currentMonthIndex + 1).reduce((sum, d) => sum + d.invoice, 0);
+                          gtYtdForecast += spData
+                            .slice(0, currentMonthIndex + 1)
+                            .reduce((sum, d) => sum + d.forecast, 0);
+                          gtYtdInvoice += spData
+                            .slice(0, currentMonthIndex + 1)
+                            .reduce((sum, d) => sum + d.invoice, 0);
                         }
                       });
 
                       const gtDiff = gtYtdInvoice - gtYtdForecast;
                       const gtPercent =
-                        gtYtdForecast === 0
-                          ? null
-                          : gtDiff / gtYtdForecast;
+                        gtYtdForecast === 0 ? null : gtDiff / gtYtdForecast;
                       return (
                         <TableRow className="bg-slate-50 hover:bg-slate-50 sticky bottom-0 z-20 shadow-[0_-1px_0_0_#e2e8f0]">
                           <TableCell className="font-bold text-slate-900 sticky left-0 z-30 bg-slate-50 border-r border-slate-200/50 shadow-[1px_0_0_0_#e2e8f0]">
