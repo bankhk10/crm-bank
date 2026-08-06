@@ -29,12 +29,28 @@ import {
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { exportSalesAdminAction, exportSalesMarketingAction } from "../server/actions";
+import {
+  exportSalesAdminAction,
+  exportSalesMarketingAction,
+} from "../server/actions";
 
 const SALE_STATUS_OPTIONS = [
   { value: "ALL", label: "สถานะทั้งหมด" },
@@ -59,7 +75,9 @@ const DATE_PRESET_OPTIONS = [
 /**
  * Calculate start and end date based on preset choice
  */
-function getPresetDateRange(preset: string): { start: string; end: string } | null {
+function getPresetDateRange(
+  preset: string,
+): { start: string; end: string } | null {
   const now = new Date();
   switch (preset) {
     case "TODAY":
@@ -133,10 +151,10 @@ function SalesAdminExportCard({
 }) {
   const [datePreset, setDatePreset] = useState<string>("THIS_MONTH");
   const [startDate, setStartDate] = useState<string>(
-    format(startOfMonth(new Date()), "yyyy-MM-dd")
+    format(startOfMonth(new Date()), "yyyy-MM-dd"),
   );
   const [endDate, setEndDate] = useState<string>(
-    format(endOfMonth(new Date()), "yyyy-MM-dd")
+    format(endOfMonth(new Date()), "yyyy-MM-dd"),
   );
   const [status, setStatus] = useState<string>("ALL");
   const [isExporting, setIsExporting] = useState(false);
@@ -190,7 +208,7 @@ function SalesAdminExportCard({
 
   return (
     <Card className="flex flex-col justify-between transition-all duration-200 hover:shadow-md border-border/80">
-      <CardHeader className="space-y-3 pb-4">
+      <CardHeader className="space-y-3 pb-4 mt-6">
         <div className="flex items-start justify-between gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
             <Building2 className="h-6 w-6" />
@@ -200,12 +218,18 @@ function SalesAdminExportCard({
               กำลังตรวจสอบสิทธิ์...
             </Badge>
           ) : canExport ? (
-            <Badge variant="secondary" className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 gap-1">
+            <Badge
+              variant="secondary"
+              className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 gap-1"
+            >
               <CheckCircle2 className="h-3 w-3" />
               อนุญาตสิทธิ์การใช้งาน
             </Badge>
           ) : (
-            <Badge variant="outline" className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20 gap-1">
+            <Badge
+              variant="outline"
+              className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20 gap-1"
+            >
               <Lock className="h-3 w-3" />
               ไม่มีสิทธิ์การส่งออก
             </Badge>
@@ -217,7 +241,8 @@ function SalesAdminExportCard({
             ข้อมูลการขาย (ธุรการขาย)
           </CardTitle>
           <CardDescription className="mt-1 text-sm leading-relaxed">
-            ส่งออกข้อมูลเอกสารการขาย รายละเอียดลูกค้า การจัดส่ง สถานะเอกสาร เงื่อนไขชำระเงิน และบริษัทขนส่ง
+            ส่งออกข้อมูลเอกสารการขาย รายละเอียดลูกค้า การจัดส่ง สถานะเอกสาร
+            เงื่อนไขชำระเงิน และบริษัทขนส่ง
           </CardDescription>
         </div>
       </CardHeader>
@@ -243,7 +268,11 @@ function SalesAdminExportCard({
                 </SelectTrigger>
                 <SelectContent>
                   {DATE_PRESET_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                    <SelectItem
+                      key={opt.value}
+                      value={opt.value}
+                      className="text-xs"
+                    >
                       {opt.label}
                     </SelectItem>
                   ))}
@@ -288,7 +317,11 @@ function SalesAdminExportCard({
                 </SelectTrigger>
                 <SelectContent>
                   {SALE_STATUS_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                    <SelectItem
+                      key={opt.value}
+                      value={opt.value}
+                      className="text-xs"
+                    >
                       {opt.label}
                     </SelectItem>
                   ))}
@@ -300,16 +333,25 @@ function SalesAdminExportCard({
 
         {/* File Detail Highlights */}
         <div className="text-xs text-muted-foreground space-y-1.5">
-          <div className="font-medium text-foreground">รายละเอียดคอลัมน์ในไฟล์ Excel:</div>
+          <div className="font-medium text-foreground">
+            รายละเอียดคอลัมน์ในไฟล์ Excel:
+          </div>
           <ul className="list-disc list-inside space-y-0.5 pl-1 text-[11px]">
-            <li>เลขที่เอกสาร, วันที่เอกสาร, สถานะใบขาย, ชื่อลูกค้า, ประเภทลูกค้า</li>
-            <li>เงื่อนไขชำระเงิน, วันครบกำหนด, วันส่งจริง, วิธีจัดส่ง, บริษัทขนส่ง</li>
-            <li>ยอดรวมสินค้า, ค่าจัดส่ง, ค่าใช้จ่ายอื่นๆ, ยอดรวมสุทธิ และรายการสินค้า</li>
+            <li>
+              เลขที่เอกสาร, วันที่เอกสาร, สถานะใบขาย, ชื่อลูกค้า, ประเภทลูกค้า
+            </li>
+            <li>
+              เงื่อนไขชำระเงิน, วันครบกำหนด, วันส่งจริง, วิธีจัดส่ง, บริษัทขนส่ง
+            </li>
+            <li>
+              ยอดรวมสินค้า, ค่าจัดส่ง, ค่าใช้จ่ายอื่นๆ, ยอดรวมสุทธิ
+              และรายการสินค้า
+            </li>
           </ul>
         </div>
       </CardContent>
 
-      <CardFooter className="pt-2 border-t border-border/40">
+      <CardFooter className="pt-2 border-t border-border/40 mb-4">
         <Button
           onClick={handleExport}
           disabled={isExporting || !canExport || isLoadingPermission}
@@ -349,10 +391,10 @@ function SalesMarketingExportCard({
 }) {
   const [datePreset, setDatePreset] = useState<string>("THIS_MONTH");
   const [startDate, setStartDate] = useState<string>(
-    format(startOfMonth(new Date()), "yyyy-MM-dd")
+    format(startOfMonth(new Date()), "yyyy-MM-dd"),
   );
   const [endDate, setEndDate] = useState<string>(
-    format(endOfMonth(new Date()), "yyyy-MM-dd")
+    format(endOfMonth(new Date()), "yyyy-MM-dd"),
   );
   const [status, setStatus] = useState<string>("ALL");
   const [isExporting, setIsExporting] = useState(false);
@@ -406,7 +448,7 @@ function SalesMarketingExportCard({
 
   return (
     <Card className="flex flex-col justify-between transition-all duration-200 hover:shadow-md border-border/80">
-      <CardHeader className="space-y-3 pb-4">
+      <CardHeader className="space-y-3 pb-4 mt-6">
         <div className="flex items-start justify-between gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
             <Megaphone className="h-6 w-6" />
@@ -416,12 +458,18 @@ function SalesMarketingExportCard({
               กำลังตรวจสอบสิทธิ์...
             </Badge>
           ) : canExport ? (
-            <Badge variant="secondary" className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 gap-1">
+            <Badge
+              variant="secondary"
+              className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 gap-1"
+            >
               <CheckCircle2 className="h-3 w-3" />
               อนุญาตสิทธิ์การใช้งาน
             </Badge>
           ) : (
-            <Badge variant="outline" className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20 gap-1">
+            <Badge
+              variant="outline"
+              className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20 gap-1"
+            >
               <Lock className="h-3 w-3" />
               ไม่มีสิทธิ์การส่งออก
             </Badge>
@@ -433,7 +481,8 @@ function SalesMarketingExportCard({
             ข้อมูลการขาย (การตลาด)
           </CardTitle>
           <CardDescription className="mt-1 text-sm leading-relaxed">
-            ส่งออกข้อมูลวิเคราะห์การตลาด ประสิทธิภาพสินค้า กลุ่มชื่อการค้า พืชที่ใช้ ภูมิภาค และการใช้วงเงินโปรโมชั่น
+            ส่งออกข้อมูลวิเคราะห์การตลาด ประสิทธิภาพสินค้า กลุ่มชื่อการค้า
+            พืชที่ใช้ ภูมิภาค และการใช้วงเงินโปรโมชั่น
           </CardDescription>
         </div>
       </CardHeader>
@@ -459,7 +508,11 @@ function SalesMarketingExportCard({
                 </SelectTrigger>
                 <SelectContent>
                   {DATE_PRESET_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                    <SelectItem
+                      key={opt.value}
+                      value={opt.value}
+                      className="text-xs"
+                    >
                       {opt.label}
                     </SelectItem>
                   ))}
@@ -504,7 +557,11 @@ function SalesMarketingExportCard({
                 </SelectTrigger>
                 <SelectContent>
                   {SALE_STATUS_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                    <SelectItem
+                      key={opt.value}
+                      value={opt.value}
+                      className="text-xs"
+                    >
                       {opt.label}
                     </SelectItem>
                   ))}
@@ -516,17 +573,26 @@ function SalesMarketingExportCard({
 
         {/* File Detail Highlights */}
         <div className="text-xs text-muted-foreground space-y-1.5">
-          <div className="font-medium text-foreground">รายละเอียดคอลัมน์ในไฟล์ Excel:</div>
+          <div className="font-medium text-foreground">
+            รายละเอียดคอลัมน์ในไฟล์ Excel:
+          </div>
           <ul className="list-disc list-inside space-y-0.5 pl-1 text-[11px]">
-            <li>เลขที่เอกสาร, วันที่ทำรายการ, สถานะ, ภูมิภาค, จังหวัด, ลูกค้า</li>
-            <li>หมวดหมู่สินค้า, กลุ่มชื่อการค้า, กลุ่มสินค้า, ประเภท ABC, แบรนด์</li>
-            <li>รายชื่อพืชที่ใช้ (Plants), จำนวนที่ขาย, ราคาปกติต่อหน่วย, ราคาขายจริง</li>
+            <li>
+              เลขที่เอกสาร, วันที่ทำรายการ, สถานะ, ภูมิภาค, จังหวัด, ลูกค้า
+            </li>
+            <li>
+              หมวดหมู่สินค้า, กลุ่มชื่อการค้า, กลุ่มสินค้า, ประเภท ABC, แบรนด์
+            </li>
+            <li>
+              รายชื่อพืชที่ใช้ (Plants), จำนวนที่ขาย, ราคาปกติต่อหน่วย,
+              ราคาขายจริง
+            </li>
             <li>ราคารวมยอดขาย และงบโปรโมชั่นส่งเสริมการตลาดที่ใช้งาน</li>
           </ul>
         </div>
       </CardContent>
 
-      <CardFooter className="pt-2 border-t border-border/40">
+      <CardFooter className="pt-2 border-t border-border/40 mb-4">
         <Button
           onClick={handleExport}
           disabled={isExporting || !canExport || isLoadingPermission}
@@ -570,9 +636,12 @@ export function ExportListView() {
               <Download className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">ศูนย์ส่งออกข้อมูล (Export Center)</h1>
+              <h1 className="text-2xl font-bold tracking-tight">
+                ศูนย์ส่งออกข้อมูล (Export Center)
+              </h1>
               <p className="text-sm text-muted-foreground">
-                เลือกและตั้งค่าเงื่อนไขการค้นหาช่วงเวลาแยกตามรายงาน แล้วส่งออกเป็นไฟล์ Excel (.xlsx)
+                เลือกและตั้งค่าเงื่อนไขการค้นหาช่วงเวลาแยกตามรายงาน
+                แล้วส่งออกเป็นไฟล์ Excel (.xlsx)
               </p>
             </div>
           </div>
@@ -595,15 +664,21 @@ export function ExportListView() {
       </div>
 
       {/* Security Banner / Notice */}
-      {(!canExportSalesAdmin || !canExportSalesMarketing) && !isPermissionLoading && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/10 p-4 text-amber-800 dark:text-amber-300">
-          <ShieldAlert className="h-5 w-5 flex-shrink-0 mt-0.5" />
-          <div className="text-xs sm:text-sm">
-            <span className="font-semibold">หมายเหตุเรื่องสิทธิ์การใช้งาน: </span>
-            หากปุ่มส่งออกถูกปิดการใช้งาน (Disabled) แสดงว่าบัญชีของคุณยังไม่ได้รับสิทธิ์การส่งออกข้อมูลสำหรับส่วนงานนั้นๆ กรุณาติดต่อผู้ดูแลระบบ (Administrator) เพื่อขอรับสิทธิ์ผ่านระบบจัดการสิทธิ์ (RBAC)
+      {(!canExportSalesAdmin || !canExportSalesMarketing) &&
+        !isPermissionLoading && (
+          <div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/10 p-4 text-amber-800 dark:text-amber-300">
+            <ShieldAlert className="h-5 w-5 flex-shrink-0 mt-0.5" />
+            <div className="text-xs sm:text-sm">
+              <span className="font-semibold">
+                หมายเหตุเรื่องสิทธิ์การใช้งาน:{" "}
+              </span>
+              หากปุ่มส่งออกถูกปิดการใช้งาน (Disabled)
+              แสดงว่าบัญชีของคุณยังไม่ได้รับสิทธิ์การส่งออกข้อมูลสำหรับส่วนงานนั้นๆ
+              กรุณาติดต่อผู้ดูแลระบบ (Administrator)
+              เพื่อขอรับสิทธิ์ผ่านระบบจัดการสิทธิ์ (RBAC)
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }
