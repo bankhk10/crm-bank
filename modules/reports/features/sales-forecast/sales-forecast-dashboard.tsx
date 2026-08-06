@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, Fragment, useEffect, useCallback } from "react";
-import { Target, Users, Calendar, Clock, CheckCheck, X } from "lucide-react";
+import { Target, Users, Calendar, Clock, CheckCheck, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   ComposedChart,
@@ -84,6 +84,23 @@ export function SalesForecastDashboard() {
     }
     return years;
   }, [currentYearAD]);
+
+  const visibleYearOptions = useMemo(() => {
+    const selAD = parseInt(selectedYear, 10);
+    const minAD = currentYearAD - 5;
+    const maxAD = currentYearAD + 1;
+
+    const years = [];
+    for (let y = selAD - 1; y <= selAD + 1; y++) {
+      if (y >= minAD && y <= maxAD) {
+        years.push({
+          ad: y.toString(),
+          be: (y + 543).toString(),
+        });
+      }
+    }
+    return years;
+  }, [selectedYear, currentYearAD]);
   const [mockData, setMockData] = useState<
     Record<
       string,
@@ -384,33 +401,70 @@ export function SalesForecastDashboard() {
                       ปี (พ.ศ.)
                     </label>
                   </div>
-                  <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-100/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-inner">
-                    {yearOptions.map((y) => {
-                      const isSelected = selectedYear === y.ad;
-                      return (
-                        <button
-                          key={y.ad}
-                          type="button"
-                          onClick={() => {
-                            if (selectedYear !== y.ad) {
-                              setIsLoading(true);
-                              setSelectedYear(y.ad);
-                            }
-                          }}
-                          className={cn(
-                            "px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 cursor-pointer",
-                            isSelected
-                              ? "bg-white text-blue-700 shadow-md shadow-blue-500/10 ring-1 ring-blue-200/80 scale-[1.02]"
-                              : "text-slate-500 hover:text-slate-800 hover:bg-white/60"
-                          )}
-                        >
-                          <span className={cn("text-[11px] font-medium transition-colors", isSelected ? "text-blue-500" : "text-slate-400")}>
-                            พ.ศ.
-                          </span>
-                          <span>{y.be}</span>
-                        </button>
-                      );
-                    })}
+                  <div className="flex items-center gap-1.5">
+                    {/* Arrow Left */}
+                    <button
+                      type="button"
+                      disabled={parseInt(selectedYear, 10) <= currentYearAD - 5}
+                      onClick={() => {
+                        const prev = (parseInt(selectedYear, 10) - 1).toString();
+                        if (parseInt(prev, 10) >= currentYearAD - 5) {
+                          setIsLoading(true);
+                          setSelectedYear(prev);
+                        }
+                      }}
+                      className="flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm cursor-pointer shrink-0"
+                      title="ปีก่อนหน้า"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+
+                    {/* Year Pills Container */}
+                    <div className="flex items-center gap-1.5 p-1.5 bg-slate-100/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-inner">
+                      {visibleYearOptions.map((y) => {
+                        const isSelected = selectedYear === y.ad;
+                        return (
+                          <button
+                            key={y.ad}
+                            type="button"
+                            onClick={() => {
+                              if (selectedYear !== y.ad) {
+                                setIsLoading(true);
+                                setSelectedYear(y.ad);
+                              }
+                            }}
+                            className={cn(
+                              "px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 cursor-pointer shrink-0",
+                              isSelected
+                                ? "bg-white text-blue-700 shadow-md shadow-blue-500/10 ring-1 ring-blue-200/80 scale-[1.02]"
+                                : "text-slate-500 hover:text-slate-800 hover:bg-white/60"
+                            )}
+                          >
+                            <span className={cn("text-[11px] font-medium transition-colors", isSelected ? "text-blue-500" : "text-slate-400")}>
+                              พ.ศ.
+                            </span>
+                            <span>{y.be}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Arrow Right */}
+                    <button
+                      type="button"
+                      disabled={parseInt(selectedYear, 10) >= currentYearAD + 1}
+                      onClick={() => {
+                        const next = (parseInt(selectedYear, 10) + 1).toString();
+                        if (parseInt(next, 10) <= currentYearAD + 1) {
+                          setIsLoading(true);
+                          setSelectedYear(next);
+                        }
+                      }}
+                      className="flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm cursor-pointer shrink-0"
+                      title="ปีถัดไป"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
 
