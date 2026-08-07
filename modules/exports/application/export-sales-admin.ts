@@ -129,7 +129,7 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
           ชื่อลูกค้า: sale.customer?.name || "",
           จังหวัด: sale.customer?.province || "",
           จำนวนที่ขาย: quantityNum,
-          "ผลรวม ขนาดบรรจุรวมต่อลัง ที่ขาย": totalBoxSold,
+          ผลรวมขนาดบรรจุรวมต่อลังที่ขาย: totalBoxSold,
           "ราคาที่ขาย (บาท)": Number(item.unitPrice) || 0,
           "ราคาที่ขายรวม (บาท)": Number(item.totalPrice) || 0,
           เลขที่คำสั่งขาย: salesOrderNo,
@@ -165,7 +165,7 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
         ชื่อลูกค้า: sale.customer?.name || "",
         จังหวัด: sale.customer?.province || "",
         จำนวนที่ขาย: 0,
-        "ผลรวม ขนาดบรรจุรวมต่อลัง ที่ขาย": 0,
+        ผลรวมขนาดบรรจุรวมต่อลังที่ขาย: 0,
         "ราคาที่ขาย (บาท)": 0,
         "ราคาที่ขายรวม (บาท)": 0,
         เลขที่คำสั่งขาย: salesOrderNo,
@@ -204,7 +204,7 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
     { wch: 25 }, // ชื่อลูกค้า
     { wch: 15 }, // จังหวัด
     { wch: 10 }, // จำนวนที่ขาย
-    { wch: 30 }, // ผลรวม ขนาดบรรจุรวมต่อลัง ที่ขาย
+    { wch: 30 }, // ผลรวมขนาดบรรจุรวมต่อลังที่ขาย
     { wch: 20 }, // เลขที่คำสั่งขาย
     { wch: 15 }, // วันที่สร้างออเดอร์
     { wch: 18 }, // สถานะ
