@@ -137,6 +137,7 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
         select: {
           id: true,
           name: true,
+          nickname: true,
           employeeCode: true,
           departmentName: true,
         },

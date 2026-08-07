@@ -149,6 +149,7 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
           ขนาดบรรจุ: packageSizeStr,
           ขนาดบรรจุรวมต่อลัง: totalPerBox,
           พนักงานขาย: sale.employee?.name || "",
+          ชื่อเล่น: sale.employee?.nickname || "",
           ภูมิภาค: regionStr,
           ชื่อลูกค้า: sale.customer?.name || "",
           จังหวัด: sale.customer?.province || "",
@@ -185,6 +186,7 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
         ขนาดบรรจุ: "-",
         ขนาดบรรจุรวมต่อลัง: 0,
         พนักงานขาย: sale.employee?.name || "",
+        ชื่อเล่น: sale.employee?.nickname || "",
         ภูมิภาค: regionStr,
         ชื่อลูกค้า: sale.customer?.name || "",
         จังหวัด: sale.customer?.province || "",
@@ -225,6 +227,7 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
     { wch: 18 }, // ขนาดบรรจุ
     { wch: 20 }, // ขนาดบรรจุรวมต่อลัง
     { wch: 20 }, // พนักงานขาย
+    { wch: 15 }, // ชื่อเล่น
     { wch: 15 }, // ภูมิภาค
     { wch: 25 }, // ชื่อลูกค้า
     { wch: 15 }, // จังหวัด
