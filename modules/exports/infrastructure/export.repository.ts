@@ -90,6 +90,8 @@ const shipmentSelectFields = {
   select: {
     id: true,
     salesOrderNumber: true,
+    actualDate: true,
+    paymentDate: true,
   },
 };
 

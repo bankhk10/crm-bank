@@ -59,6 +59,30 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
     const saleMonth = saleDateObj ? format(saleDateObj, "MMM") : "";
     const formattedDate = saleDateObj ? format(saleDateObj, "dd/MM/yyyy") : "";
 
+    const paymentDateRaw =
+      sale.paymentDate ||
+      (sale.shipments && sale.shipments.length > 0
+        ? sale.shipments.find((s: any) => s.paymentDate)?.paymentDate
+        : null);
+    const paymentDateObj = paymentDateRaw ? new Date(paymentDateRaw) : null;
+    const paymentDateStr = paymentDateObj
+      ? format(paymentDateObj, "dd/MM/yyyy")
+      : "";
+
+    const deliveryDateRaw =
+      sale.actualDeliveryDate ||
+      sale.deliveryDate ||
+      (sale.shipments && sale.shipments.length > 0
+        ? sale.shipments.find((s: any) => s.actualDate || s.scheduledDate)
+            ?.actualDate ||
+          sale.shipments.find((s: any) => s.actualDate || s.scheduledDate)
+            ?.scheduledDate
+        : null);
+    const deliveryDateObj = deliveryDateRaw ? new Date(deliveryDateRaw) : null;
+    const deliveryDateStr = deliveryDateObj
+      ? format(deliveryDateObj, "dd/MM/yyyy")
+      : "";
+
     const statusThai = SALE_STATUS_MAP[sale.status] || sale.status;
     const dataTypeLabel = getDataTypeLabel(sale.status);
     const regionStr =
@@ -130,19 +154,22 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
           จังหวัด: sale.customer?.province || "",
           จำนวนที่ขาย: quantityNum,
           ผลรวมขนาดบรรจุรวมต่อลังที่ขาย: totalBoxSold,
-          "ราคาที่ขาย (บาท)": Number(item.unitPrice) || 0,
-          "ราคาที่ขายรวม (บาท)": Number(item.totalPrice) || 0,
+          ราคาที่ขาย: Number(item.unitPrice) || 0,
+          ราคาที่ขายรวม: Number(item.totalPrice) || 0,
 
           เลขที่คำสั่งขาย: salesOrderNo,
           วันที่สร้างออเดอร์: formattedDate,
+          วันที่ชำระเงิน: paymentDateStr,
+          วันที่จัดส่งของ: deliveryDateStr,
           สถานะ: statusThai,
           ชื่อสินค้า: item.name || "",
           หน่วยนับ: item.unit || item.product?.unit || "",
-          "ยอดรวมสินค้า (บาท)": Number(sale.subtotalAmount) || 0,
-          "ค่าจัดส่ง (บาท)": Number(sale.shippingCost) || 0,
-          "ส่วนลดหน้าบิล (บาท)": Number(sale.otherCosts) || 0,
-          "ยอดรวมสุทธิ (บาท)": Number(sale.totalAmount) || 0,
+          ยอดรวมสินค้า: Number(sale.subtotalAmount) || 0,
+          ค่าจัดส่ง: Number(sale.shippingCost) || 0,
+          ส่วนลดหน้าบิล: Number(sale.otherCosts) || 0,
+          ยอดรวมสุทธิ: Number(sale.totalAmount) || 0,
           หมายเหตุ: sale.notes || "",
+          หมายเหตุของผู้จัดการ: sale.managerNotes || "",
         });
       }
     } else {
@@ -163,19 +190,22 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
         จังหวัด: sale.customer?.province || "",
         จำนวนที่ขาย: 0,
         ผลรวมขนาดบรรจุรวมต่อลังที่ขาย: 0,
-        "ราคาที่ขาย (บาท)": 0,
-        "ราคาที่ขายรวม (บาท)": 0,
+        ราคาที่ขาย: 0,
+        ราคาที่ขายรวม: 0,
         เลขที่คำสั่งขาย: salesOrderNo,
 
         วันที่สร้างออเดอร์: formattedDate,
+        วันที่ชำระเงิน: paymentDateStr,
+        วันที่จัดส่งของ: deliveryDateStr,
         สถานะ: statusThai,
         ชื่อสินค้า: "-",
         หน่วยนับ: "-",
-        "ยอดรวมสินค้า (บาท)": Number(sale.subtotalAmount) || 0,
-        "ค่าจัดส่ง (บาท)": Number(sale.shippingCost) || 0,
-        "ส่วนลดหน้าบิล (บาท)": Number(sale.otherCosts) || 0,
-        "ยอดรวมสุทธิ (บาท)": Number(sale.totalAmount) || 0,
+        ยอดรวมสินค้า: Number(sale.subtotalAmount) || 0,
+        ค่าจัดส่ง: Number(sale.shippingCost) || 0,
+        ส่วนลดหน้าบิล: Number(sale.otherCosts) || 0,
+        ยอดรวมสุทธิ: Number(sale.totalAmount) || 0,
         หมายเหตุ: sale.notes || "",
+        หมายเหตุของผู้จัดการ: sale.managerNotes || "",
       });
     }
   }
@@ -200,19 +230,22 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
     { wch: 15 }, // จังหวัด
     { wch: 10 }, // จำนวนที่ขาย
     { wch: 30 }, // ผลรวมขนาดบรรจุรวมต่อลังที่ขาย
+    { wch: 18 }, // ราคาที่ขาย
+    { wch: 18 }, // ราคาที่ขายรวม
 
     { wch: 20 }, // เลขที่คำสั่งขาย
     { wch: 15 }, // วันที่สร้างออเดอร์
+    { wch: 15 }, // วันที่ชำระเงิน
+    { wch: 15 }, // วันที่จัดส่งของ
     { wch: 18 }, // สถานะ
     { wch: 25 }, // ชื่อสินค้า
     { wch: 10 }, // หน่วยนับ
-    { wch: 18 }, // ราคาต่อหน่วย
-    { wch: 18 }, // ราคารวมสินค้า
     { wch: 18 }, // ยอดรวมสินค้า
     { wch: 14 }, // ค่าจัดส่ง
     { wch: 18 }, // ส่วนลดหน้าบิล
     { wch: 18 }, // ยอดรวมสุทธิ
     { wch: 25 }, // หมายเหตุ
+    { wch: 25 }, // หมายเหตุของผู้จัดการ
   ];
   worksheet["!cols"] = colWidths;
 
