@@ -51,12 +51,6 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <ChartPie className="h-4 w-4" />,
   },
   {
-    href: "/exports",
-    label: "ส่งออกข้อมูล",
-    permissionKey: "menu.exports",
-    icon: <Download className="h-4 w-4" />,
-  },
-  {
     href: "/sales-forecast",
     label: "คาดการณ์ยอดขาย",
     permissionKey: "menu.sales_forecast",
@@ -159,6 +153,12 @@ export const navigationItems: SidebarNavItem[] = [
         permissionKey: "menu.test_activity",
       },
     ],
+  },
+  {
+    href: "/exports",
+    label: "ส่งออกข้อมูล",
+    permissionKey: "menu.exports",
+    icon: <Download className="h-4 w-4" />,
   },
   {
     // href: "https://docs.google.com/document/d/1Jo8RL9S1fwIqEJQc0xASSLnZp8ElkQ8J7G1T9NvGqkc/edit?usp=sharing",
