@@ -132,15 +132,12 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
           ผลรวมขนาดบรรจุรวมต่อลังที่ขาย: totalBoxSold,
           "ราคาที่ขาย (บาท)": Number(item.unitPrice) || 0,
           "ราคาที่ขายรวม (บาท)": Number(item.totalPrice) || 0,
-          เลขที่คำสั่งขาย: salesOrderNo,
 
+          เลขที่คำสั่งขาย: salesOrderNo,
           วันที่สร้างออเดอร์: formattedDate,
           สถานะ: statusThai,
-
           ชื่อสินค้า: item.name || "",
-
           หน่วยนับ: item.unit || item.product?.unit || "",
-
           "ยอดรวมสินค้า (บาท)": Number(sale.subtotalAmount) || 0,
           "ค่าจัดส่ง (บาท)": Number(sale.shippingCost) || 0,
           "ส่วนลดหน้าบิล (บาท)": Number(sale.otherCosts) || 0,
@@ -169,13 +166,11 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
         "ราคาที่ขาย (บาท)": 0,
         "ราคาที่ขายรวม (บาท)": 0,
         เลขที่คำสั่งขาย: salesOrderNo,
+
         วันที่สร้างออเดอร์: formattedDate,
         สถานะ: statusThai,
-
         ชื่อสินค้า: "-",
-
         หน่วยนับ: "-",
-
         "ยอดรวมสินค้า (บาท)": Number(sale.subtotalAmount) || 0,
         "ค่าจัดส่ง (บาท)": Number(sale.shippingCost) || 0,
         "ส่วนลดหน้าบิล (บาท)": Number(sale.otherCosts) || 0,
@@ -205,14 +200,12 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
     { wch: 15 }, // จังหวัด
     { wch: 10 }, // จำนวนที่ขาย
     { wch: 30 }, // ผลรวมขนาดบรรจุรวมต่อลังที่ขาย
+
     { wch: 20 }, // เลขที่คำสั่งขาย
     { wch: 15 }, // วันที่สร้างออเดอร์
     { wch: 18 }, // สถานะ
-
     { wch: 25 }, // ชื่อสินค้า
-
     { wch: 10 }, // หน่วยนับ
-
     { wch: 18 }, // ราคาต่อหน่วย
     { wch: 18 }, // ราคารวมสินค้า
     { wch: 18 }, // ยอดรวมสินค้า
