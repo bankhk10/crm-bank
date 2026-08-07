@@ -52,6 +52,12 @@ const itemSelectFields = {
       totalPackageSizePerBox: true,
       commonName: true,
       unit: true,
+      category: {
+        select: {
+          description: true,
+          code: true,
+        },
+      },
       productGroup: {
         select: {
           name: true,

@@ -29,7 +29,7 @@ function getDataTypeLabel(status: string): string {
 function getSalesOrderNumber(sale: any): string {
   if (sale.shipments && sale.shipments.length > 0) {
     const shipmentWithRef = sale.shipments.find(
-      (s: any) => s.salesOrderNumber && s.salesOrderNumber.trim() !== ""
+      (s: any) => s.salesOrderNumber && s.salesOrderNumber.trim() !== "",
     );
     if (shipmentWithRef) {
       return shipmentWithRef.salesOrderNumber.trim();
@@ -60,11 +60,15 @@ export function buildSalesMarketingExportWorkbook(sales: any[]): string {
           item.product?.productABCType?.name ||
           item.product?.productABCType?.code ||
           "";
-        const productGroupStr =
-          item.productGroupName ||
-          item.product?.productGroup?.name ||
-          item.product?.productGroup?.code ||
+
+        // กลุ่มสาร: ดึงจากหมวดสินค้า (categoryName) และตัดคำหลัง : ออก
+        const categoryRaw =
+          item.categoryName ||
+          item.product?.category?.description ||
+          item.product?.category?.code ||
           "";
+        const productGroupStr = categoryRaw ? categoryRaw.split(":")[0].trim() : "";
+
         const commonNameStr = item.commonName || item.product?.commonName || "";
         const tradeNameStr =
           item.tradeNameGroupName ||

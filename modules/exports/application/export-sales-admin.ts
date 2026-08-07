@@ -76,11 +76,15 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
           item.product?.productABCType?.name ||
           item.product?.productABCType?.code ||
           "";
-        const productGroupStr =
-          item.productGroupName ||
-          item.product?.productGroup?.name ||
-          item.product?.productGroup?.code ||
+
+        // กลุ่มสาร: ดึงจากหมวดสินค้า (categoryName) และตัดคำหลัง : ออก
+        const categoryRaw =
+          item.categoryName ||
+          item.product?.category?.description ||
+          item.product?.category?.code ||
           "";
+        const productGroupStr = categoryRaw ? categoryRaw.split(":")[0].trim() : "";
+
         const commonNameStr = item.commonName || item.product?.commonName || "";
         const tradeNameStr =
           item.tradeNameGroupName ||
@@ -204,7 +208,7 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
     { wch: 18 }, // ราคารวมสินค้า
     { wch: 18 }, // ยอดรวมสินค้า
     { wch: 14 }, // ค่าจัดส่ง
-    { wch: 18 }, // ค่าใช้จ่ายอื่นๆ
+    { wch: 18 }, // ส่วนลดหน้าบิล
     { wch: 18 }, // ยอดรวมสุทธิ
     { wch: 25 }, // หมายเหตุ
   ];
