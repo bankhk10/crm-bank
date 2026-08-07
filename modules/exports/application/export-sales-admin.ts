@@ -56,7 +56,7 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
   for (const sale of sales) {
     const saleDateObj = sale.saleDate ? new Date(sale.saleDate) : null;
     const saleYear = saleDateObj ? format(saleDateObj, "yyyy") : "";
-    const saleMonth = saleDateObj ? format(saleDateObj, "MM") : "";
+    const saleMonth = saleDateObj ? format(saleDateObj, "MMM") : "";
     const formattedDate = saleDateObj ? format(saleDateObj, "dd/MM/yyyy") : "";
 
     const statusThai = SALE_STATUS_MAP[sale.status] || sale.status;
@@ -83,7 +83,9 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
           item.product?.category?.description ||
           item.product?.category?.code ||
           "";
-        const productGroupStr = categoryRaw ? categoryRaw.split(":")[0].trim() : "";
+        const productGroupStr = categoryRaw
+          ? categoryRaw.split(":")[0].trim()
+          : "";
 
         const commonNameStr = item.commonName || item.product?.commonName || "";
         const tradeNameStr =
@@ -113,29 +115,32 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
 
         rows.push({
           ปี: saleYear,
-          เดือน: saleMonth,
-          เลขที่ออเดอร์: sale.saleNumber,
-          เลขที่คำสั่งขาย: salesOrderNo,
-          วันที่สร้างออเดอร์: formattedDate,
           ประเภทข้อมูล: dataTypeLabel,
-          สถานะ: statusThai,
+          เดือน: saleMonth,
+          กรุ๊ป: abcGroup,
+          กลุ่มสาร: productGroupStr,
+          ชื่อสามัญ: commonNameStr,
+          รหัสสินค้า: item.productCode || "",
+          ชื่อการค้า: tradeNameStr,
+          ขนาดบรรจุ: packageSizeStr,
+          ขนาดบรรจุรวมต่อลัง: totalPerBox,
+          พนักงานขาย: sale.employee?.name || "",
           ภูมิภาค: regionStr,
           ชื่อลูกค้า: sale.customer?.name || "",
           จังหวัด: sale.customer?.province || "",
-          พนักงานขาย: sale.employee?.name || "",
-          "กรุ๊ป ABC": abcGroup,
-          กลุ่มสาร: productGroupStr,
-          ชื่อสามัญ: commonNameStr,
-          ชื่อการค้า: tradeNameStr,
-          รหัสสินค้า: item.productCode || "",
-          ชื่อสินค้า: item.name || "",
-          ขนาดบรรจุ: packageSizeStr,
-          ขนาดบรรจุรวมต่อลัง: totalPerBox,
-          จำนวน: quantityNum,
-          หน่วยนับ: item.unit || item.product?.unit || "",
+          จำนวนที่ขาย: quantityNum,
           "ผลรวม ขนาดบรรจุรวมต่อลัง ที่ขาย": totalBoxSold,
-          "ราคาต่อหน่วย (บาท)": Number(item.unitPrice) || 0,
-          "ราคารวมสินค้า (บาท)": Number(item.totalPrice) || 0,
+          "ราคาที่ขาย (บาท)": Number(item.unitPrice) || 0,
+          "ราคาที่ขายรวม (บาท)": Number(item.totalPrice) || 0,
+          เลขที่คำสั่งขาย: salesOrderNo,
+
+          วันที่สร้างออเดอร์: formattedDate,
+          สถานะ: statusThai,
+
+          ชื่อสินค้า: item.name || "",
+
+          หน่วยนับ: item.unit || item.product?.unit || "",
+
           "ยอดรวมสินค้า (บาท)": Number(sale.subtotalAmount) || 0,
           "ค่าจัดส่ง (บาท)": Number(sale.shippingCost) || 0,
           "ส่วนลดหน้าบิล (บาท)": Number(sale.otherCosts) || 0,
@@ -146,29 +151,31 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
     } else {
       rows.push({
         ปี: saleYear,
-        เดือน: saleMonth,
-        เลขที่ออเดอร์: sale.saleNumber,
-        เลขที่คำสั่งขาย: salesOrderNo,
-        วันที่สร้างออเดอร์: formattedDate,
         ประเภทข้อมูล: dataTypeLabel,
-        สถานะ: statusThai,
+        เดือน: saleMonth,
+        กรุ๊ป: "-",
+        กลุ่มสาร: "-",
+        ชื่อสามัญ: "-",
+        รหัสสินค้า: "-",
+        ชื่อการค้า: "-",
+        ขนาดบรรจุ: "-",
+        ขนาดบรรจุรวมต่อลัง: 0,
+        พนักงานขาย: sale.employee?.name || "",
         ภูมิภาค: regionStr,
         ชื่อลูกค้า: sale.customer?.name || "",
         จังหวัด: sale.customer?.province || "",
-        พนักงานขาย: sale.employee?.name || "",
-        "กรุ๊ป ABC": "-",
-        กลุ่มสาร: "-",
-        ชื่อสามัญ: "-",
-        ชื่อการค้า: "-",
-        รหัสสินค้า: "-",
-        ชื่อสินค้า: "-",
-        ขนาดบรรจุ: "-",
-        ขนาดบรรจุรวมต่อลัง: 0,
-        จำนวน: 0,
-        หน่วยนับ: "-",
+        จำนวนที่ขาย: 0,
         "ผลรวม ขนาดบรรจุรวมต่อลัง ที่ขาย": 0,
-        "ราคาต่อหน่วย (บาท)": 0,
-        "ราคารวมสินค้า (บาท)": 0,
+        "ราคาที่ขาย (บาท)": 0,
+        "ราคาที่ขายรวม (บาท)": 0,
+        เลขที่คำสั่งขาย: salesOrderNo,
+        วันที่สร้างออเดอร์: formattedDate,
+        สถานะ: statusThai,
+
+        ชื่อสินค้า: "-",
+
+        หน่วยนับ: "-",
+
         "ยอดรวมสินค้า (บาท)": Number(sale.subtotalAmount) || 0,
         "ค่าจัดส่ง (บาท)": Number(sale.shippingCost) || 0,
         "ส่วนลดหน้าบิล (บาท)": Number(sale.otherCosts) || 0,
@@ -183,27 +190,29 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
   // Set column widths
   const colWidths = [
     { wch: 10 }, // ปี
-    { wch: 10 }, // เดือน
-    { wch: 18 }, // เลขที่ออเดอร์
-    { wch: 20 }, // เลขที่คำสั่งขาย
-    { wch: 15 }, // วันที่สร้างออเดอร์
     { wch: 15 }, // ประเภทข้อมูล
-    { wch: 18 }, // สถานะ
+    { wch: 10 }, // เดือน
+    { wch: 15 }, // กรุ๊ป
+    { wch: 20 }, // กลุ่มสาร
+    { wch: 20 }, // ชื่อสามัญ
+    { wch: 15 }, // รหัสสินค้า
+    { wch: 20 }, // ชื่อการค้า
+    { wch: 18 }, // ขนาดบรรจุ
+    { wch: 20 }, // ขนาดบรรจุรวมต่อลัง
+    { wch: 20 }, // พนักงานขาย
     { wch: 15 }, // ภูมิภาค
     { wch: 25 }, // ชื่อลูกค้า
     { wch: 15 }, // จังหวัด
-    { wch: 20 }, // พนักงานขาย
-    { wch: 15 }, // กรุ๊ป ABC
-    { wch: 20 }, // กลุ่มสาร
-    { wch: 20 }, // ชื่อสามัญ
-    { wch: 20 }, // ชื่อการค้า
-    { wch: 15 }, // รหัสสินค้า
-    { wch: 25 }, // ชื่อสินค้า
-    { wch: 18 }, // ขนาดบรรจุ
-    { wch: 20 }, // ขนาดบรรจุรวมต่อลัง
-    { wch: 10 }, // จำนวน
-    { wch: 10 }, // หน่วยนับ
+    { wch: 10 }, // จำนวนที่ขาย
     { wch: 30 }, // ผลรวม ขนาดบรรจุรวมต่อลัง ที่ขาย
+    { wch: 20 }, // เลขที่คำสั่งขาย
+    { wch: 15 }, // วันที่สร้างออเดอร์
+    { wch: 18 }, // สถานะ
+
+    { wch: 25 }, // ชื่อสินค้า
+
+    { wch: 10 }, // หน่วยนับ
+
     { wch: 18 }, // ราคาต่อหน่วย
     { wch: 18 }, // ราคารวมสินค้า
     { wch: 18 }, // ยอดรวมสินค้า
