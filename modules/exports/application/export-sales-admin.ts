@@ -148,8 +148,8 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
           ชื่อการค้า: tradeNameStr,
           ขนาดบรรจุ: packageSizeStr,
           ขนาดบรรจุรวมต่อลัง: totalPerBox,
-          พนักงานขาย: sale.employee?.name || "",
-          ชื่อเล่น: sale.employee?.nickname || "",
+
+          พนักงานขาย: sale.employee?.nickname || "",
           ภูมิภาค: regionStr,
           ชื่อลูกค้า: sale.customer?.name || "",
           จังหวัด: sale.customer?.province || "",
@@ -157,11 +157,12 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
           ผลรวมขนาดบรรจุรวมต่อลังที่ขาย: totalBoxSold,
           ราคาที่ขาย: Number(item.unitPrice) || 0,
           ราคาที่ขายรวม: Number(item.totalPrice) || 0,
-
-          เลขที่คำสั่งขาย: salesOrderNo,
-          วันที่สร้างออเดอร์: formattedDate,
           วันที่ชำระเงิน: paymentDateStr,
+          เลขที่คำสั่งขาย: salesOrderNo,
           วันที่จัดส่งของ: deliveryDateStr,
+          หมายเหตุ: sale.notes || "",
+
+          วันที่สร้างออเดอร์: formattedDate,
           สถานะ: statusThai,
           ชื่อสินค้า: item.name || "",
           หน่วยนับ: item.unit || item.product?.unit || "",
@@ -169,8 +170,8 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
           ค่าจัดส่ง: Number(sale.shippingCost) || 0,
           ส่วนลดหน้าบิล: Number(sale.otherCosts) || 0,
           ยอดรวมสุทธิ: Number(sale.totalAmount) || 0,
-          หมายเหตุ: sale.notes || "",
           หมายเหตุของผู้จัดการ: sale.managerNotes || "",
+          "ชื่อ-สกุล พนักงานขาย": sale.employee?.name || "",
         });
       }
     } else {
@@ -185,8 +186,8 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
         ชื่อการค้า: "-",
         ขนาดบรรจุ: "-",
         ขนาดบรรจุรวมต่อลัง: 0,
-        พนักงานขาย: sale.employee?.name || "",
-        ชื่อเล่น: sale.employee?.nickname || "",
+
+        พนักงานขาย: sale.employee?.nickname || "",
         ภูมิภาค: regionStr,
         ชื่อลูกค้า: sale.customer?.name || "",
         จังหวัด: sale.customer?.province || "",
@@ -194,11 +195,12 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
         ผลรวมขนาดบรรจุรวมต่อลังที่ขาย: 0,
         ราคาที่ขาย: 0,
         ราคาที่ขายรวม: 0,
+        วันที่ชำระเงิน: paymentDateStr,
         เลขที่คำสั่งขาย: salesOrderNo,
+        วันที่จัดส่งของ: deliveryDateStr,
+        หมายเหตุ: sale.notes || "",
 
         วันที่สร้างออเดอร์: formattedDate,
-        วันที่ชำระเงิน: paymentDateStr,
-        วันที่จัดส่งของ: deliveryDateStr,
         สถานะ: statusThai,
         ชื่อสินค้า: "-",
         หน่วยนับ: "-",
@@ -206,8 +208,8 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
         ค่าจัดส่ง: Number(sale.shippingCost) || 0,
         ส่วนลดหน้าบิล: Number(sale.otherCosts) || 0,
         ยอดรวมสุทธิ: Number(sale.totalAmount) || 0,
-        หมายเหตุ: sale.notes || "",
         หมายเหตุของผู้จัดการ: sale.managerNotes || "",
+        "ชื่อ-สกุล พนักงานขาย": sale.employee?.name || "",
       });
     }
   }
@@ -226,8 +228,7 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
     { wch: 20 }, // ชื่อการค้า
     { wch: 18 }, // ขนาดบรรจุ
     { wch: 20 }, // ขนาดบรรจุรวมต่อลัง
-    { wch: 20 }, // พนักงานขาย
-    { wch: 15 }, // ชื่อเล่น
+    { wch: 15 }, // พนักงานขาย
     { wch: 15 }, // ภูมิภาค
     { wch: 25 }, // ชื่อลูกค้า
     { wch: 15 }, // จังหวัด
@@ -235,11 +236,12 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
     { wch: 30 }, // ผลรวมขนาดบรรจุรวมต่อลังที่ขาย
     { wch: 18 }, // ราคาที่ขาย
     { wch: 18 }, // ราคาที่ขายรวม
-
-    { wch: 20 }, // เลขที่คำสั่งขาย
-    { wch: 15 }, // วันที่สร้างออเดอร์
     { wch: 15 }, // วันที่ชำระเงิน
+    { wch: 20 }, // เลขที่คำสั่งขาย
     { wch: 15 }, // วันที่จัดส่งของ
+    { wch: 25 }, // หมายเหตุ
+
+    { wch: 15 }, // วันที่สร้างออเดอร์
     { wch: 18 }, // สถานะ
     { wch: 25 }, // ชื่อสินค้า
     { wch: 10 }, // หน่วยนับ
@@ -247,8 +249,8 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
     { wch: 14 }, // ค่าจัดส่ง
     { wch: 18 }, // ส่วนลดหน้าบิล
     { wch: 18 }, // ยอดรวมสุทธิ
-    { wch: 25 }, // หมายเหตุ
     { wch: 25 }, // หมายเหตุของผู้จัดการ
+    { wch: 20 }, // ชื่อ-สกุล พนักงานขาย
   ];
   worksheet["!cols"] = colWidths;
 
