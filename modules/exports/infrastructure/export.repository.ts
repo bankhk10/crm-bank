@@ -22,6 +22,71 @@ function buildStatusWhereClause(status?: string) {
   return status;
 }
 
+const itemSelectFields = {
+  id: true,
+  productCode: true,
+  name: true,
+  commonName: true,
+  unit: true,
+  quantity: true,
+  unitPrice: true,
+  originalPrice: true,
+  totalPrice: true,
+  productGroupName: true,
+  productABCTypeName: true,
+  tradeNameGroupName: true,
+  categoryName: true,
+  brand: true,
+  packageSize: true,
+  packageSizeUnit: true,
+  packageSizePerBox: true,
+  totalPackageSizePerBox: true,
+  usedForPlants: true,
+  promotionBudget: true,
+  product: {
+    select: {
+      id: true,
+      packageSize: true,
+      packageSizeUnit: true,
+      packageSizePerBox: true,
+      totalPackageSizePerBox: true,
+      commonName: true,
+      unit: true,
+      productGroup: {
+        select: {
+          name: true,
+          code: true,
+        },
+      },
+      productABCType: {
+        select: {
+          name: true,
+          code: true,
+        },
+      },
+      tradeNameGroup: {
+        select: {
+          description: true,
+          code: true,
+        },
+      },
+    },
+  },
+};
+
+const shipmentSelectFields = {
+  where: {
+    status: { not: "CANCELLED" as const },
+  },
+  orderBy: {
+    createdAt: "desc" as const,
+  },
+  select: {
+    id: true,
+    salesOrderNumber: true,
+  },
+};
+
 /**
  * Fetch sales data formatted for Sales Admin (Fulfillment & Documents focus)
  */
@@ -86,16 +151,9 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
           name: true,
         },
       },
+      shipments: shipmentSelectFields,
       items: {
-        select: {
-          id: true,
-          productCode: true,
-          name: true,
-          quantity: true,
-          unit: true,
-          unitPrice: true,
-          totalPrice: true,
-        },
+        select: itemSelectFields,
       },
     },
   });
@@ -148,25 +206,9 @@ export async function getSalesMarketingExportRecords(filters: ExportFilterParams
           employeeCode: true,
         },
       },
+      shipments: shipmentSelectFields,
       items: {
-        select: {
-          id: true,
-          productCode: true,
-          name: true,
-          commonName: true,
-          unit: true,
-          categoryName: true,
-          tradeNameGroupName: true,
-          productGroupName: true,
-          productABCTypeName: true,
-          brand: true,
-          usedForPlants: true,
-          quantity: true,
-          unitPrice: true,
-          originalPrice: true,
-          totalPrice: true,
-          promotionBudget: true,
-        },
+        select: itemSelectFields,
       },
     },
   });
