@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useState, useTransition, Fragment } from "react";
+import { useId, useState, useEffect, useTransition, Fragment } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   format,
   startOfToday,
@@ -124,10 +125,26 @@ export function CustomerSalesDashboard() {
       hasPermission("menu.reports") ||
       hasPermission("report.kpi.sales_note");
 
+  const searchParams = useSearchParams();
+  const startDateParam = searchParams.get("startDate");
+  const endDateParam = searchParams.get("endDate");
+
   const [isPending, startTransition] = useTransition();
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
-    from: startOfMonth(new Date()),
-    to: endOfMonth(new Date()),
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>(() => {
+    if (startDateParam && endDateParam) {
+      try {
+        return {
+          from: parseISO(startDateParam),
+          to: parseISO(endDateParam),
+        };
+      } catch {
+        // fallback
+      }
+    }
+    return {
+      from: startOfMonth(new Date()),
+      to: endOfMonth(new Date()),
+    };
   });
   const [customerData, setCustomerData] =
     useState<CustomerSalesReportData | null>(null);
@@ -169,6 +186,12 @@ export function CustomerSalesDashboard() {
       setSalespersonData(salesData);
     });
   };
+
+  useEffect(() => {
+    if (startDateParam && endDateParam) {
+      handleFetchReport();
+    }
+  }, [startDateParam, endDateParam]);
 
   const formatTHB = (n: number) =>
     new Intl.NumberFormat("th-TH", {

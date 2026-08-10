@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -470,6 +470,9 @@ export default function CustomerSalesDetailView({
   customerId,
 }: CustomerSalesDetailViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const startDateParam = searchParams.get("startDate");
+  const endDateParam = searchParams.get("endDate");
 
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("store-info");
@@ -497,7 +500,14 @@ export default function CustomerSalesDetailView({
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/customers/${customerId}/details`);
+      const params = new URLSearchParams();
+      if (startDateParam) params.set("startDate", startDateParam);
+      if (endDateParam) params.set("endDate", endDateParam);
+      const queryStr = params.toString();
+
+      const response = await fetch(
+        `/api/customers/${customerId}/details${queryStr ? `?${queryStr}` : ""}`,
+      );
       if (response.ok) {
         const data = await response.json();
         setCustomerData(data);
@@ -507,7 +517,7 @@ export default function CustomerSalesDetailView({
     } finally {
       setLoading(false);
     }
-  }, [customerId]);
+  }, [customerId, startDateParam, endDateParam]);
 
   useEffect(() => {
     fetchCustomerDetails();
@@ -517,6 +527,11 @@ export default function CustomerSalesDetailView({
   const kpi = customerData?.kpi;
   const recentSales = customerData?.recentSales || [];
   const topProducts = customerData?.topProducts || [];
+
+  const backUrl =
+    startDateParam && endDateParam
+      ? `/reports/customer-sales?startDate=${startDateParam}&endDate=${endDateParam}`
+      : "/reports/customer-sales";
 
   // Pagination slices
   const topProductsSliced = topProducts.slice(
@@ -564,7 +579,7 @@ export default function CustomerSalesDetailView({
       <div className="mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
         {/* Hero Header Section */}
         <DetailHero
-          backUrl="/reports/customer-sales"
+          backUrl={backUrl}
           backLabel="หน้ารายงานตามลูกค้า"
           title={customer?.name || "รายละเอียดลูกค้า"}
           icon={<Users className="h-8 w-8 text-white" />}
@@ -586,6 +601,12 @@ export default function CustomerSalesDetailView({
               <Badge className="bg-white/10 text-white border border-white/20 px-3 py-1.5 rounded-full">
                 {customerTypeLabels[customer?.customerType || "DEALER"]}
               </Badge>
+              {startDateParam && endDateParam && (
+                <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-amber-300 bg-amber-500/20 border border-amber-400/30 px-3 py-1.5 rounded-full shadow-sm">
+                  <Clock className="h-3.5 w-3.5" />
+                  ช่วงวันที่: {format(new Date(startDateParam), "dd/MM/yyyy", { locale: th })} - {format(new Date(endDateParam), "dd/MM/yyyy", { locale: th })}
+                </span>
+              )}
             </>
           }
           actions={

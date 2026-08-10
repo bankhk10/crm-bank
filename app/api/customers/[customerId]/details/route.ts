@@ -3,6 +3,8 @@ import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db } from "@/lib/db";
 import { isAuthorized } from "@/lib/rbac";
 
+import { startOfDay, endOfDay, parseISO } from "date-fns";
+
 const resourcePath = "/api/customers";
 
 export async function GET(
@@ -89,12 +91,12 @@ export async function GET(
   // Build date filter for sales
   const dateFilter: { saleDate?: { gte?: Date; lte?: Date } } = {};
   if (startDateParam) {
-    dateFilter.saleDate = { gte: new Date(startDateParam) };
+    dateFilter.saleDate = { gte: startOfDay(parseISO(startDateParam)) };
   }
   if (endDateParam) {
     dateFilter.saleDate = {
       ...dateFilter.saleDate,
-      lte: new Date(endDateParam),
+      lte: endOfDay(parseISO(endDateParam)),
     };
   }
 
@@ -247,6 +249,7 @@ export async function GET(
             "COMPLETED",
           ],
         },
+        ...dateFilter,
       },
     },
     _sum: { quantity: true, totalPrice: true },
