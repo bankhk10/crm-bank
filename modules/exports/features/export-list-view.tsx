@@ -229,12 +229,9 @@ function SalesAdminExportCard({
         </div>
 
         <div>
-          <CardTitle className="text-lg font-bold">
-            ข้อมูลการขาย (ธุรการขาย)
-          </CardTitle>
+          <CardTitle className="text-lg font-bold">ข้อมูลการขาย</CardTitle>
           <CardDescription className="mt-1 text-sm leading-relaxed">
-            ส่งออกข้อมูลเอกสารการขาย รายละเอียดลูกค้า การจัดส่ง สถานะเอกสาร
-            เงื่อนไขชำระเงิน และบริษัทขนส่ง
+            ส่งออกข้อมูลเอกสารการขาย
           </CardDescription>
         </div>
       </CardHeader>
@@ -244,7 +241,7 @@ function SalesAdminExportCard({
         <div className="rounded-lg border border-border/70 bg-muted/30 p-3.5 space-y-3">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
             <Filter className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-            <span>เงื่อนไขการค้นหารายงานธุรการขาย</span>
+            <span>เงื่อนไขการค้นหารายงาน</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -390,8 +387,8 @@ export function ExportListView() {
                 ศูนย์ส่งออกข้อมูล (Export Center)
               </h1>
               <p className="text-sm text-muted-foreground">
-                เลือกและตั้งค่าเงื่อนไขการค้นหาช่วงเวลา
-                แล้วส่งออกเป็นไฟล์ Excel (.xlsx)
+                เลือกและตั้งค่าเงื่อนไขการค้นหาช่วงเวลา แล้วส่งออกเป็นไฟล์ Excel
+                (.xlsx)
               </p>
             </div>
           </div>
@@ -424,4 +421,3 @@ export function ExportListView() {
     </div>
   );
 }
-
