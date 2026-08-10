@@ -8,6 +8,7 @@ import {
 } from "date-fns";
 import { th } from "date-fns/locale";
 import { getDateRange } from "./utils";
+import { buildScopeFilter } from "./helpers";
 import { DateRangeFilter, SalespersonReportData } from "../types";
 
 // 5. SALESPERSON SALES REPORT
@@ -26,7 +27,6 @@ export async function getSalespersonSalesReport(
 
   const { start, end } = getDateRange(filter);
 
-  // Build scope filter
   // Build scope filter
   const scopeFilter = await buildScopeFilter(session, viewScope);
 
