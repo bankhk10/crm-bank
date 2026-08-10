@@ -32,7 +32,6 @@ export default function FulfillmentPage() {
     statusFilter,
     setStatusFilter,
     handleClear,
-    handleExportPending,
   } = useFulfillmentList();
 
   if (isLoading) {
@@ -93,7 +92,6 @@ export default function FulfillmentPage() {
               setStatusFilter(val);
               setPage(1);
             }}
-            onExportPending={handleExportPending}
           />
         </div>
       </div>

@@ -25,6 +25,7 @@ import {
   Loader2,
   ShieldAlert,
   Clock,
+  Package,
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { exportSalesAdminAction } from "../server/actions";
+import {
+  exportSalesAdminAction,
+  exportPendingDeliveriesAction,
+} from "../server/actions";
 
 const SALE_STATUS_OPTIONS = [
   { value: "ALL", label: "ทั้งหมด" },
@@ -368,13 +372,132 @@ function SalesAdminExportCard({
   );
 }
 
+/**
+ * Pending Deliveries Export Component
+ */
+function PendingDeliveriesExportCard({
+  canExport,
+  isLoadingPermission,
+}: {
+  canExport: boolean;
+  isLoadingPermission: boolean;
+}) {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (!canExport) {
+      toast.error("คุณไม่มีสิทธิ์ในการส่งออกข้อมูลสินค้าค้างส่ง");
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const res = await exportPendingDeliveriesAction();
+
+      if (!res.success || !res.data) {
+        toast.error(res.error || "เกิดข้อผิดพลาดในการส่งออกข้อมูลสินค้าค้างส่ง");
+        return;
+      }
+
+      triggerDownload(res.data.base64, res.data.filename);
+      toast.success("ส่งออกข้อมูลสินค้าค้างส่งสำเร็จ");
+    } catch (error: any) {
+      toast.error(error.message || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return (
+    <Card className="flex flex-col justify-between transition-all duration-200 hover:shadow-md border-border/80">
+      <CardHeader className="space-y-3 pb-4 mt-6">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <Package className="h-6 w-6" />
+          </div>
+          {isLoadingPermission ? (
+            <Badge variant="outline" className="text-xs animate-pulse">
+              กำลังตรวจสอบสิทธิ์...
+            </Badge>
+          ) : canExport ? (
+            <Badge
+              variant="secondary"
+              className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 gap-1"
+            >
+              <CheckCircle2 className="h-3 w-3" />
+              อนุญาตสิทธิ์การใช้งาน
+            </Badge>
+          ) : (
+            <Badge
+              variant="outline"
+              className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20 gap-1"
+            >
+              <Lock className="h-3 w-3" />
+              ไม่มีสิทธิ์การส่งออก
+            </Badge>
+          )}
+        </div>
+
+        <div>
+          <CardTitle className="text-lg font-bold">สินค้าค้างส่ง</CardTitle>
+          <CardDescription className="mt-1 text-sm leading-relaxed">
+            ส่งออก รายงานรายการสินค้าที่อยู่ระหว่างรอการจัดส่งทั้งหมด
+          </CardDescription>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4 pt-0">
+        {/* File Detail Highlights */}
+        <div className="rounded-lg border border-border/70 bg-muted/30 p-3.5 space-y-2">
+          <div className="font-medium text-xs text-foreground">
+            รายละเอียดคอลัมน์ในไฟล์ Excel:
+          </div>
+          <ul className="list-disc list-inside space-y-1 text-[11px] text-muted-foreground">
+            <li>เลขที่ออเดอร์ (Order Ref / Sale Number)</li>
+            <li>ชื่อลูกค้า</li>
+            <li>รหัสสินค้า และชื่อสินค้า</li>
+            <li>จำนวนสินค้าที่ค้างส่ง (Pending Quantity)</li>
+          </ul>
+        </div>
+      </CardContent>
+
+      <CardFooter className="pt-2 border-t border-border/40 mb-4">
+        <Button
+          onClick={handleExport}
+          disabled={isExporting || !canExport || isLoadingPermission}
+          className="w-full gap-2 bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        >
+          {isExporting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>กำลังสร้างไฟล์ Excel...</span>
+            </>
+          ) : !canExport ? (
+            <>
+              <Lock className="h-4 w-4" />
+              <span>ไม่มีสิทธิ์ส่งออกข้อมูล</span>
+            </>
+          ) : (
+            <>
+              <FileSpreadsheet className="h-4 w-4" />
+              <span>ส่งออกสินค้าค้างส่ง .xlsx</span>
+            </>
+          )}
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
+
 export function ExportListView() {
   const { hasPermission, isLoading: isPermissionLoading } = usePermission();
 
   const canExportSalesAdmin = hasPermission("export.sales_admin");
+  const canExportPending =
+    hasPermission("export.sales_admin") || hasPermission("menu.fulfillment");
 
   return (
-    <div className="container mx-auto space-y-6 p-4 md:p-6 lg:p-8 max-w-4xl">
+    <div className="container mx-auto space-y-6 p-4 md:p-6 lg:p-8 max-w-5xl">
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border/60 pb-5">
         <div>
@@ -387,25 +510,28 @@ export function ExportListView() {
                 ศูนย์ส่งออกข้อมูล (Export Center)
               </h1>
               <p className="text-sm text-muted-foreground">
-                เลือกและตั้งค่าเงื่อนไขการค้นหาช่วงเวลา แล้วส่งออกเป็นไฟล์ Excel
-                (.xlsx)
+                เลือกและตั้งค่าเงื่อนไขการส่งออกข้อมูลเป็นไฟล์ Excel (.xlsx)
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Export Card */}
-      <div className="max-w-2xl mx-auto w-full">
+      {/* Export Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
         <SalesAdminExportCard
           canExport={canExportSalesAdmin}
+          isLoadingPermission={isPermissionLoading}
+        />
+        <PendingDeliveriesExportCard
+          canExport={canExportPending}
           isLoadingPermission={isPermissionLoading}
         />
       </div>
 
       {/* Security Banner / Notice */}
-      {!canExportSalesAdmin && !isPermissionLoading && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/10 p-4 text-amber-800 dark:text-amber-300 max-w-2xl mx-auto w-full">
+      {(!canExportSalesAdmin || !canExportPending) && !isPermissionLoading && (
+        <div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/10 p-4 text-amber-800 dark:text-amber-300 w-full">
           <ShieldAlert className="h-5 w-5 flex-shrink-0 mt-0.5" />
           <div className="text-xs sm:text-sm">
             <span className="font-semibold">
@@ -421,3 +547,4 @@ export function ExportListView() {
     </div>
   );
 }
+

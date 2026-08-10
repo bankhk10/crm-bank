@@ -9,6 +9,9 @@ import {
 import { buildSalesAdminExportWorkbook } from "../application/export-sales-admin";
 import { format } from "date-fns";
 
+import { exportPendingDeliveriesUseCase } from "@/modules/fulfillment/application";
+import { buildPendingDeliveriesExportWorkbook } from "../application/export-pending-deliveries";
+
 export interface ActionResult<T> {
   success: boolean;
   data?: T;
@@ -54,4 +57,46 @@ export async function exportSalesAdminAction(
     };
   }
 }
+
+/**
+ * Server action to export Pending Deliveries data
+ * Requires permission: export.sales_admin or menu.fulfillment
+ */
+export async function exportPendingDeliveriesAction(): Promise<
+  ActionResult<ExportFileResult>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return { success: false, error: "กรุณาเข้าสู่ระบบก่อนใช้งาน" };
+    }
+
+    if (
+      !hasPermission(session, "export.sales_admin") &&
+      !hasPermission(session, "menu.fulfillment")
+    ) {
+      return {
+        success: false,
+        error: "คุณไม่มีสิทธิ์ในการส่งออกข้อมูลสินค้าค้างส่ง",
+      };
+    }
+
+    const records = await exportPendingDeliveriesUseCase();
+    const base64 = await buildPendingDeliveriesExportWorkbook(records);
+    const dateStr = format(new Date(), "yyyyMMdd-HHmm");
+    const filename = `pending-deliveries-export-${dateStr}.xlsx`;
+
+    return {
+      success: true,
+      data: { filename, base64 },
+    };
+  } catch (err: any) {
+    console.error("exportPendingDeliveriesAction error:", err);
+    return {
+      success: false,
+      error: err.message || "เกิดข้อผิดพลาดในการส่งออกข้อมูลสินค้าค้างส่ง",
+    };
+  }
+}
+
 

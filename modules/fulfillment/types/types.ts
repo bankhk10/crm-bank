@@ -29,7 +29,6 @@ export interface FulfillmentTableProps {
   // Permissions (Added for consistency, check if used)
   canView?: boolean;
   canEdit?: boolean;
-  onExportPending?: () => void;
 }
 
 export interface LotInfo {

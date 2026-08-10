@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { DateRange } from "react-day-picker";
-import { getFulfillmentsAction, exportPendingDeliveriesAction } from "../../server/actions";
+import { getFulfillmentsAction } from "../../server/actions";
 import type { SaleRecord } from "../../types/types";
-import * as XLSX from "xlsx";
 
 const FULFILLMENT_STATUSES = [
   "PENDING_APPROVAL",
@@ -115,31 +114,6 @@ export function useFulfillmentList() {
     };
   }, [page, perPage, appliedFilters, dateRange, statusFilter]);
 
-  const handleExportPending = async () => {
-    try {
-      const response = await exportPendingDeliveriesAction();
-      if (!response.success || !response.data) {
-        throw new Error(response.error || "Failed to export");
-      }
-
-      const formattedData = response.data.map((item: any) => ({
-        "เลขที่ออเดอร์": item.orderNumber,
-        "ชื่อลูกค้า": item.customerName,
-        "รหัส-ชื่อสินค้า": item.productCodeAndName,
-        "จำนวนที่ค้างส่ง": item.pendingQuantity,
-      }));
-
-      const worksheet = XLSX.utils.json_to_sheet(formattedData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "สินค้าค้างส่ง");
-
-      XLSX.writeFile(workbook, `สินค้าค้างส่ง_${new Date().toISOString().split("T")[0]}.xlsx`);
-    } catch (error) {
-      console.error("Export failed:", error);
-      // Optional: Add toast error here if using toast hook
-    }
-  };
-
   return {
     sales,
     loading,
@@ -158,6 +132,5 @@ export function useFulfillmentList() {
     statusFilter,
     setStatusFilter,
     handleClear,
-    handleExportPending,
   };
 }
