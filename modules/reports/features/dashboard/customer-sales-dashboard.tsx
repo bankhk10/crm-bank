@@ -51,6 +51,7 @@ import {
   Receipt,
 } from "lucide-react";
 import Link from "next/link";
+import { usePermission } from "@/hooks/use-permission";
 import { KpiCard } from "../../ui/kpi-card";
 import {
   getCustomerSalesReportAction,
@@ -99,6 +100,30 @@ const quickDateRanges = [
 ];
 
 export function CustomerSalesDashboard() {
+  const { hasPermission, permissionKeys } = usePermission();
+
+  const hasExplicitKpiPermissions = permissionKeys.some((k) =>
+    k.startsWith("report.kpi."),
+  );
+
+  const canViewTotalSales = hasExplicitKpiPermissions
+    ? hasPermission("report.kpi.total_sales")
+    : hasPermission("report.customer_sales") ||
+      hasPermission("menu.reports") ||
+      hasPermission("report.kpi.total_sales");
+
+  const canViewInvoice = hasExplicitKpiPermissions
+    ? hasPermission("report.kpi.invoice")
+    : hasPermission("report.customer_sales") ||
+      hasPermission("menu.reports") ||
+      hasPermission("report.kpi.invoice");
+
+  const canViewSalesNote = hasExplicitKpiPermissions
+    ? hasPermission("report.kpi.sales_note")
+    : hasPermission("report.customer_sales") ||
+      hasPermission("menu.reports") ||
+      hasPermission("report.kpi.sales_note");
+
   const [isPending, startTransition] = useTransition();
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: startOfMonth(new Date()),
@@ -557,35 +582,43 @@ export function CustomerSalesDashboard() {
         ) : (
           <div className="space-y-4 sm:space-y-6">
             {/* ── Summary KPI Cards ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-              <KpiCard
-                label="ยอดขาย"
-                sublabel="คำนวณจากวันที่รอดำเนินการจัดส่งครั้งแรก"
-                value={formatTHB(totalFirstAwaitingDeliverySales)}
-                icon={TrendingUp}
-                gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
-                ring="ring-2 ring-emerald-300/30"
-                topColor="red"
-              />
-              <KpiCard
-                label="ผลรวม Invoice"
-                sublabel="ยอดรวม Invoice ทั้งหมดในช่วงเวลาที่เลือก"
-                value={formatTHB(totalInvoiceAmount)}
-                icon={Receipt}
-                gradient="bg-gradient-to-br from-blue-500 to-indigo-600"
-                ring="ring-2 ring-blue-300/30"
-                topColor="black"
-              />
-              <KpiCard
-                label="ผลรวม Sales Note"
-                sublabel="ยอดรวม Sales Note ทั้งหมดในช่วงเวลาที่เลือก"
-                value={formatTHB(totalSalesNoteAmount)}
-                icon={FileText}
-                gradient="bg-gradient-to-br from-orange-500 to-amber-600"
-                ring="ring-2 ring-orange-300/30"
-                topColor="red"
-              />
-            </div>
+            {(canViewTotalSales || canViewInvoice || canViewSalesNote) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                {canViewTotalSales && (
+                  <KpiCard
+                    label="ยอดขาย"
+                    sublabel="คำนวณจากวันที่รอดำเนินการจัดส่งครั้งแรก"
+                    value={formatTHB(totalFirstAwaitingDeliverySales)}
+                    icon={TrendingUp}
+                    gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
+                    ring="ring-2 ring-emerald-300/30"
+                    topColor="red"
+                  />
+                )}
+                {canViewInvoice && (
+                  <KpiCard
+                    label="ผลรวม Invoice"
+                    sublabel="ยอดรวม Invoice ทั้งหมดในช่วงเวลาที่เลือก"
+                    value={formatTHB(totalInvoiceAmount)}
+                    icon={Receipt}
+                    gradient="bg-gradient-to-br from-blue-500 to-indigo-600"
+                    ring="ring-2 ring-blue-300/30"
+                    topColor="black"
+                  />
+                )}
+                {canViewSalesNote && (
+                  <KpiCard
+                    label="ผลรวม Sales Note"
+                    sublabel="ยอดรวม Sales Note ทั้งหมดในช่วงเวลาที่เลือก"
+                    value={formatTHB(totalSalesNoteAmount)}
+                    icon={FileText}
+                    gradient="bg-gradient-to-br from-orange-500 to-amber-600"
+                    ring="ring-2 ring-orange-300/30"
+                    topColor="red"
+                  />
+                )}
+              </div>
+            )}
 
             <Tabs
               value={activeTab}

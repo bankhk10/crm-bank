@@ -137,6 +137,24 @@ const permissionGroups: Record<string, PermissionGroup> = {
         resource: "report",
         action: "export",
       },
+      {
+        key: "report.kpi.total_sales",
+        name: "ดู KpiCard ยอดขาย",
+        resource: "report",
+        action: "view",
+      },
+      {
+        key: "report.kpi.invoice",
+        name: "ดู KpiCard ผลรวม Invoice",
+        resource: "report",
+        action: "view",
+      },
+      {
+        key: "report.kpi.sales_note",
+        name: "ดู KpiCard ผลรวม Sales Note",
+        resource: "report",
+        action: "view",
+      },
     ],
   },
 
@@ -1318,6 +1336,9 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "report.salesperson" },
     { key: "report.sales_forecast" },
     { key: "report.executive_dashboard" },
+    { key: "report.kpi.total_sales" },
+    { key: "report.kpi.invoice" },
+    { key: "report.kpi.sales_note" },
     // Sale permissions
     { key: "sale.create" },
     { key: "sale.edit" },

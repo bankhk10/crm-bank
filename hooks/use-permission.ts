@@ -20,6 +20,7 @@ interface PermissionHookResult {
   isLoading: boolean;
   allowed: boolean;
   roles: string[];
+  permissionKeys: string[];
   hasPermission: (key: string) => boolean;
   dataAccess: (resource: string) => DataAccessLevel | null;
   editAccess: (resource: string) => EditAccessLevel | null;
@@ -54,6 +55,7 @@ export function usePermission(
         isLoading: true,
         allowed: requirements.length === 0,
         roles: [],
+        permissionKeys: [],
         hasPermission: () => false,
         dataAccess: () => null,
         editAccess: () => null,
@@ -174,6 +176,7 @@ export function usePermission(
       isLoading: false,
       allowed,
       roles: currentUser.roles,
+      permissionKeys: currentUser.permissionKeys,
       hasPermission,
       dataAccess,
       editAccess,
