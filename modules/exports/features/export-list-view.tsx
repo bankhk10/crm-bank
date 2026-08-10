@@ -594,7 +594,7 @@ export function ExportListView() {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="hidden md:flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2 text-xs text-white/40 ring-1 ring-white/10">
+                <div className="hidden md:flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2 text-xs text-white/80 ring-1 ring-white/10">
                   <FileSpreadsheet className="h-4 w-4" />
                   <span>
                     {
