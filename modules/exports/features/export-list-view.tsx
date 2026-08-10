@@ -30,6 +30,7 @@ import {
   Info,
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
+import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -39,7 +40,6 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -343,13 +343,15 @@ function SalesAdminExportCard({
             {/* Start Date */}
             <div className="space-y-1.5">
               <Label className="text-[11px] font-medium flex items-center gap-1.5 text-muted-foreground">
-                <Calendar className="h-3 w-3" />
+                <Calendar className="h-3 w-3 text-blue-500" />
                 <span>วันที่เริ่มต้น</span>
               </Label>
-              <Input
-                type="date"
+              <DatePicker
                 value={startDate}
-                onChange={(e) => handleStartDateChange(e.target.value)}
+                onChange={(val) => {
+                  if (val) handleStartDateChange(val);
+                }}
+                placeholder="เลือกวันที่เริ่มต้น"
                 className="h-9 text-xs w-full bg-background/80 border-border/60"
               />
             </div>
@@ -357,13 +359,15 @@ function SalesAdminExportCard({
             {/* End Date */}
             <div className="space-y-1.5">
               <Label className="text-[11px] font-medium flex items-center gap-1.5 text-muted-foreground">
-                <Calendar className="h-3 w-3" />
+                <Calendar className="h-3 w-3 text-blue-500" />
                 <span>วันที่สิ้นสุด</span>
               </Label>
-              <Input
-                type="date"
+              <DatePicker
                 value={endDate}
-                onChange={(e) => handleEndDateChange(e.target.value)}
+                onChange={(val) => {
+                  if (val) handleEndDateChange(val);
+                }}
+                placeholder="เลือกวันที่สิ้นสุด"
                 className="h-9 text-xs w-full bg-background/80 border-border/60"
               />
             </div>
