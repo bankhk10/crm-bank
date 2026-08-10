@@ -157,15 +157,8 @@ const permissionGroups: Record<string, PermissionGroup> = {
         resource: "export",
         action: "export",
       },
-      {
-        key: "export.sales_marketing",
-        name: "ส่งออกข้อมูลการขาย (การตลาด)",
-        resource: "export",
-        action: "export",
-      },
     ],
   },
-
 
   // ─────────────────────────────────────────────
   // 🛒 Sales (การขาย)
@@ -657,7 +650,6 @@ const permissionGroups: Record<string, PermissionGroup> = {
     ],
   },
 
-
   // ─────────────────────────────────────────────
   // ⚙️ Admin / System (ตั้งค่าระบบ)
   // ─────────────────────────────────────────────
@@ -986,13 +978,19 @@ export async function seedRBAC(prisma: PrismaClient) {
             changes.push(`name: "${existing.name}" -> "${perm.name}"`);
           }
           if (existing.resource !== perm.resource) {
-            changes.push(`resource: "${existing.resource}" -> "${perm.resource}"`);
+            changes.push(
+              `resource: "${existing.resource}" -> "${perm.resource}"`,
+            );
           }
           if (existing.action !== (perm.action ?? null)) {
-            changes.push(`action: "${existing.action}" -> "${perm.action ?? null}"`);
+            changes.push(
+              `action: "${existing.action}" -> "${perm.action ?? null}"`,
+            );
           }
           if (existing.menuPath !== (perm.menuPath ?? null)) {
-            changes.push(`menuPath: "${existing.menuPath}" -> "${perm.menuPath ?? null}"`);
+            changes.push(
+              `menuPath: "${existing.menuPath}" -> "${perm.menuPath ?? null}"`,
+            );
           }
 
           await prisma.permission.update({
@@ -1005,7 +1003,9 @@ export async function seedRBAC(prisma: PrismaClient) {
             },
           });
           updatedCount++;
-          console.log(`  ✅ Updated permission: ${perm.key} (${changes.join(", ")})`);
+          console.log(
+            `  ✅ Updated permission: ${perm.key} (${changes.join(", ")})`,
+          );
         }
       }
     }
