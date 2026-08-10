@@ -43,7 +43,7 @@ function getSalesOrderNumber(sale: any): string {
 }
 
 export async function buildSalesAdminExportWorkbook(
-  exportData: any[] | { sales?: any[]; targets?: any[] }
+  exportData: any[] | { sales?: any[]; targets?: any[] },
 ): Promise<string> {
   const sales = Array.isArray(exportData) ? exportData : exportData.sales || [];
   const targets = Array.isArray(exportData) ? [] : exportData.targets || [];
@@ -255,7 +255,7 @@ export async function buildSalesAdminExportWorkbook(
     const saleMonth = target.month
       ? format(new Date(target.year, target.month - 1, 1), "MMM")
       : "";
-    const dataTypeLabel = "Forecast";
+    const dataTypeLabel = "Forecast-Month";
     const statusThai = "เป้าหมายการขาย";
     const employeeName = target.employee?.name || "";
     const employeeNickname = target.employee?.nickname || "";
@@ -280,18 +280,14 @@ export async function buildSalesAdminExportWorkbook(
               "";
 
             const categoryRaw =
-              product?.category?.description ||
-              product?.category?.code ||
-              "";
+              product?.category?.description || product?.category?.code || "";
             const productGroupStr = categoryRaw
               ? categoryRaw.split(":")[0].trim()
               : "";
 
             const commonNameStr = product?.commonName || "";
             const tradeNameStr =
-              product?.tradeNameGroup?.description ||
-              product?.name ||
-              "";
+              product?.tradeNameGroup?.description || product?.name || "";
 
             const pkgSizeRaw = product?.packageSize;
             const pkgUnitRaw = product?.packageSizeUnit ?? "";
