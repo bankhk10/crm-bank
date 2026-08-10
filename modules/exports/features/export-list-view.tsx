@@ -155,7 +155,10 @@ function PermissionBadge({
 }) {
   if (isLoading) {
     return (
-      <Badge variant="outline" className="text-[10px] animate-pulse gap-1.5 px-2.5 py-1">
+      <Badge
+        variant="outline"
+        className="text-[10px] animate-pulse gap-1.5 px-2.5 py-1"
+      >
         <Loader2 className="h-3 w-3 animate-spin" />
         ตรวจสอบสิทธิ์...
       </Badge>
@@ -250,7 +253,7 @@ function SalesAdminExportCard({
 
   const handleExport = async () => {
     if (!canExport) {
-      toast.error("คุณไม่มีสิทธิ์ในการส่งออกข้อมูลการขาย (ธุรการขาย)");
+      toast.error("คุณไม่มีสิทธิ์ในการส่งออกข้อมูลการขาย");
       return;
     }
 
@@ -268,7 +271,7 @@ function SalesAdminExportCard({
       }
 
       triggerDownload(res.data.base64, res.data.filename);
-      toast.success("ส่งออกข้อมูลการขาย (ธุรการขาย) สำเร็จ");
+      toast.success("ส่งออกข้อมูลการขาย สำเร็จ");
     } catch (error: any) {
       toast.error(error.message || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ");
     } finally {
@@ -286,7 +289,10 @@ function SalesAdminExportCard({
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/15 to-indigo-500/10 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/10 transition-transform duration-300 group-hover:scale-105">
             <Building2 className="h-5 w-5" />
           </div>
-          <PermissionBadge isLoading={isLoadingPermission} hasAccess={canExport} />
+          <PermissionBadge
+            isLoading={isLoadingPermission}
+            hasAccess={canExport}
+          />
         </div>
 
         <div>
@@ -294,7 +300,7 @@ function SalesAdminExportCard({
             ข้อมูลการขาย
           </CardTitle>
           <CardDescription className="mt-1 text-xs leading-relaxed">
-            ส่งออกข้อมูลเอกสารการขาย (ธุรการขาย)
+            ส่งออกข้อมูลเอกสารการขาย
           </CardDescription>
         </div>
       </CardHeader>
@@ -460,7 +466,9 @@ function PendingDeliveriesExportCard({
       const res = await exportPendingDeliveriesAction();
 
       if (!res.success || !res.data) {
-        toast.error(res.error || "เกิดข้อผิดพลาดในการส่งออกข้อมูลสินค้าค้างส่ง");
+        toast.error(
+          res.error || "เกิดข้อผิดพลาดในการส่งออกข้อมูลสินค้าค้างส่ง",
+        );
         return;
       }
 
@@ -483,7 +491,10 @@ function PendingDeliveriesExportCard({
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/15 to-orange-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/10 transition-transform duration-300 group-hover:scale-105">
             <Package className="h-5 w-5" />
           </div>
-          <PermissionBadge isLoading={isLoadingPermission} hasAccess={canExport} />
+          <PermissionBadge
+            isLoading={isLoadingPermission}
+            hasAccess={canExport}
+          />
         </div>
 
         <div>
@@ -586,8 +597,10 @@ export function ExportListView() {
                 <div className="hidden md:flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2 text-xs text-white/40 ring-1 ring-white/10">
                   <FileSpreadsheet className="h-4 w-4" />
                   <span>
-                    {[canExportSalesAdmin, canExportPending].filter(Boolean)
-                      .length}{" "}
+                    {
+                      [canExportSalesAdmin, canExportPending].filter(Boolean)
+                        .length
+                    }{" "}
                     / 2 รายการพร้อมส่งออก
                   </span>
                 </div>
@@ -612,22 +625,23 @@ export function ExportListView() {
         </div>
 
         {/* Security Notice */}
-        {(!canExportSalesAdmin || !canExportPending) && !isPermissionLoading && (
-          <div className="flex items-start gap-3 rounded-xl border border-amber-500/15 bg-amber-500/5 p-4 text-amber-800 dark:text-amber-300/80 w-full">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 flex-shrink-0">
-              <ShieldAlert className="h-4 w-4" />
+        {(!canExportSalesAdmin || !canExportPending) &&
+          !isPermissionLoading && (
+            <div className="flex items-start gap-3 rounded-xl border border-amber-500/15 bg-amber-500/5 p-4 text-amber-800 dark:text-amber-300/80 w-full">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 flex-shrink-0">
+                <ShieldAlert className="h-4 w-4" />
+              </div>
+              <div className="text-xs sm:text-sm leading-relaxed">
+                <span className="font-semibold">
+                  หมายเหตุเรื่องสิทธิ์การใช้งาน:{" "}
+                </span>
+                หากปุ่มส่งออกถูกปิดการใช้งาน (Disabled)
+                แสดงว่าบัญชีของคุณยังไม่ได้รับสิทธิ์การส่งออกข้อมูลสำหรับส่วนงานนั้นๆ
+                กรุณาติดต่อผู้ดูแลระบบ (Administrator)
+                เพื่อขอรับสิทธิ์ผ่านระบบจัดการสิทธิ์ (RBAC)
+              </div>
             </div>
-            <div className="text-xs sm:text-sm leading-relaxed">
-              <span className="font-semibold">
-                หมายเหตุเรื่องสิทธิ์การใช้งาน:{" "}
-              </span>
-              หากปุ่มส่งออกถูกปิดการใช้งาน (Disabled)
-              แสดงว่าบัญชีของคุณยังไม่ได้รับสิทธิ์การส่งออกข้อมูลสำหรับส่วนงานนั้นๆ
-              กรุณาติดต่อผู้ดูแลระบบ (Administrator)
-              เพื่อขอรับสิทธิ์ผ่านระบบจัดการสิทธิ์ (RBAC)
-            </div>
-          </div>
-        )}
+          )}
       </div>
     </TooltipProvider>
   );
