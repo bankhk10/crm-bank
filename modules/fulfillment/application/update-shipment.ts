@@ -210,7 +210,12 @@ export async function updateShipmentUseCase(
 
       await tx.sale.update({
         where: { id: sale.id },
-        data: { status: newSaleStatus as any },
+        data: {
+          status: newSaleStatus as any,
+          ...(newSaleStatus === "AWAITING_DELIVERY" && !sale.firstAwaitingDeliveryAt
+            ? { firstAwaitingDeliveryAt: new Date() }
+            : {}),
+        },
       });
     }
 

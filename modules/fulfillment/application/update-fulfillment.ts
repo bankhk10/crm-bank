@@ -43,6 +43,9 @@ export async function updateFulfillmentUseCase(
     if (status === "PAID" && !sale.paymentDate && !paymentDate) {
       updateData.paymentDate = new Date();
     }
+    if (status === "AWAITING_DELIVERY" && !sale.firstAwaitingDeliveryAt) {
+      updateData.firstAwaitingDeliveryAt = new Date();
+    }
   }
 
   const targetStatus = status || sale.status;

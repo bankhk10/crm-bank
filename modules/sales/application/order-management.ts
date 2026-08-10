@@ -206,6 +206,7 @@ export async function updateDeliveryDateUseCase(
           deliveryUpdateCount: isFirstDeliveryDate ? 0 : newUpdateCount,
           lastDeliveryUpdate: new Date(),
           status: "AWAITING_DELIVERY",
+          ...(sale.firstAwaitingDeliveryAt ? {} : { firstAwaitingDeliveryAt: new Date() }),
         },
       });
 

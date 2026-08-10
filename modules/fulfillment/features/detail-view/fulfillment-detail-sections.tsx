@@ -206,6 +206,13 @@ export function SaleSummaryCard({
               label="เงื่อนไขชำระ"
               value={PaymentTermLabels[sale.paymentTerm]}
             />
+            {sale.firstAwaitingDeliveryAt && (
+              <DetailItem
+                icon={<Calendar className="h-4 w-4 text-gray-400" />}
+                label="วันที่เริ่มรอดำเนินการจัดส่งครั้งแรก"
+                value={formatThaiDate(sale.firstAwaitingDeliveryAt)}
+              />
+            )}
             <DetailItem
               icon={<CheckCircle2 className="h-4 w-4 text-gray-400" />}
               label="สถานะปัจจุบัน"

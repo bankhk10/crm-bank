@@ -818,6 +818,7 @@ model Sale {
   isDeliveryLocked      Boolean   @default(false) // ล็อคการแก้ไขวันที่จัดส่ง/ใบสั่งซื้อ
   isStockDeducted       Boolean   @default(false) // ระบุว่าเอกสารนี้มีการตัดสต็อกไปแล้วหรือไม่
   orderExpiryDate       DateTime? // วันที่ใบสั่งซื้อหมดอายุ (เช่น อนุมัติ + 3 วัน)
+  firstAwaitingDeliveryAt DateTime? // วันที่เปลี่ยนสถานะเป็น รอดำเนินการจัดส่งสินค้า (AWAITING_DELIVERY) ครั้งแรก
   lastDeliveryUpdate    DateTime? // วันที่อัปเดตวันส่งล่าสุด
   deliveryMethod        String? // วิธีการจัดส่ง (เช่น SALES_DELIVERY พนักงานส่ง, CUSTOMER_PICKUP ลูกค้ารับเอง)
   pickupCompanyId       String? // รหัสสถานที่รับสินค้าเอง (FK to Company)

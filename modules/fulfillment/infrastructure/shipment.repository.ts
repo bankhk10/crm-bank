@@ -166,6 +166,7 @@ export const ShipmentRepository = {
             customerId: true,
             status: true,
             paymentTerm: true,
+            firstAwaitingDeliveryAt: true,
             saleAddress: true,
             customer: { select: { id: true, name: true, customerCode: true } },
           },
