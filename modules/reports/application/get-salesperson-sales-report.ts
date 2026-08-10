@@ -119,6 +119,23 @@ export async function getSalespersonSalesReport(filter: DateRangeFilter, session
   );
   const invoiceSalesMap = new Map(invoiceSales.map((i) => [i.employeeId, i]));
 
+  const firstAwaitingDeliverySalesByEmp = await prisma.sale.groupBy({
+    by: ["employeeId"],
+    where: {
+      firstAwaitingDeliveryAt: { gte: start, lte: end },
+      deletedAt: null,
+      status: { notIn: ["CANCELLED", "REJECTED"] },
+      ...scopeFilter,
+    },
+    _sum: { totalAmount: true },
+  });
+  const firstAwaitingDeliveryEmpMap = new Map(
+    firstAwaitingDeliverySalesByEmp.map((f) => [
+      f.employeeId,
+      Number(f._sum.totalAmount || 0),
+    ]),
+  );
+
   const salespersonPerformance = activeEmployeeIds.map((id) => {
     const employee = salespersonMap.get(id);
     const es = salesMap.get(id);
@@ -126,6 +143,9 @@ export async function getSalespersonSalesReport(filter: DateRangeFilter, session
     const orderCount = es?._count || 0;
     
     const invoiceData = invoiceSalesMap.get(id);
+    const invoiceAmount = Number(invoiceData?.totalAmount || 0);
+    const salesNoteAmount = Math.max(0, totalSales - invoiceAmount);
+    const firstAwaitingDeliverySales = Number(firstAwaitingDeliveryEmpMap.get(id) || 0);
 
     const posTitle =
       employee?.positionTitle ||
@@ -144,10 +164,11 @@ export async function getSalespersonSalesReport(filter: DateRangeFilter, session
       avgOrderValue: orderCount > 0 ? totalSales / orderCount : 0,
       customerCount: customerCountMap.get(id)?.size || 0,
       conversionRate: 100, // Placeholder
-      salesNoteAmount: totalSales,
+      salesNoteAmount,
       salesNoteCount: orderCount,
-      invoiceAmount: invoiceData?.totalAmount || 0,
+      invoiceAmount,
       invoiceCount: invoiceData?.invoiceCount || 0,
+      firstAwaitingDeliverySales,
     };
   }).sort((a, b) => b.totalSales - a.totalSales);
 

@@ -174,6 +174,9 @@ export interface CustomerSalesReportData {
     lifetimeValue: number;
     lastPurchaseDate?: string;
     parentDealerId?: string | null;
+    invoiceAmount?: number;
+    salesNoteAmount?: number;
+    firstAwaitingDeliverySales?: number;
   }[];
   customerTypeBreakdown: {
     type: string;
@@ -217,6 +220,7 @@ export interface SalespersonReportData {
     salesNoteCount: number;
     invoiceAmount: number;
     invoiceCount: number;
+    firstAwaitingDeliverySales?: number;
   }[];
   topSalesperson: {
     id: string;

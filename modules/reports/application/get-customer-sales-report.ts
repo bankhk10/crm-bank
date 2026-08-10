@@ -142,6 +142,31 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
     lastPurchases.map((lp) => [lp.customerId, lp._max.saleDate]),
   );
 
+  // 6.5 Get invoice sales & first awaiting delivery sales for customers
+  const invoiceSales = await repo.groupInvoiceSalesByCustomerInPeriod(
+    start,
+    end,
+    scopeFilter,
+  );
+  const invoiceSalesMap = new Map(invoiceSales.map((i) => [i.customerId, i]));
+
+  const firstAwaitingDeliverySalesByCust = await prisma.sale.groupBy({
+    by: ["customerId"],
+    where: {
+      firstAwaitingDeliveryAt: { gte: start, lte: end },
+      deletedAt: null,
+      status: { notIn: ["CANCELLED", "REJECTED"] },
+      ...scopeFilter,
+    },
+    _sum: { totalAmount: true },
+  });
+  const firstAwaitingDeliveryCustMap = new Map(
+    firstAwaitingDeliverySalesByCust.map((f) => [
+      f.customerId,
+      Number(f._sum.totalAmount || 0),
+    ]),
+  );
+
   // 7. Calculate final topCustomers list
   const salesMap = new Map(customerSales.map(cs => [cs.customerId, cs]));
   
@@ -150,6 +175,9 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
     const cs = salesMap.get(id);
     const totalSales = Number(cs?._sum.totalAmount || 0);
     const orderCount = cs?._count || 0;
+    const invoiceAmount = Number(invoiceSalesMap.get(id)?.totalAmount || 0);
+    const salesNoteAmount = Math.max(0, totalSales - invoiceAmount);
+    const firstAwaitingDeliverySales = Number(firstAwaitingDeliveryCustMap.get(id) || 0);
 
     return {
       id,
@@ -159,6 +187,9 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
       province: customer?.province || "-",
       region: getRegionFromProvince(customer?.province || null),
       totalSales,
+      invoiceAmount,
+      salesNoteAmount,
+      firstAwaitingDeliverySales,
       orderCount,
       avgOrderValue: orderCount > 0 ? totalSales / orderCount : 0,
       purchaseFrequency: orderCount / monthCount,

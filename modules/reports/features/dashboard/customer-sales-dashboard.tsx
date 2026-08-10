@@ -387,16 +387,31 @@ export function CustomerSalesDashboard() {
     0,
   );
   const totalOrders = topCustomers.reduce((sum, c) => sum + c.orderCount, 0);
-  const totalSalesNoteAmount = salespersonPerf.reduce(
-    (sum, s) => sum + s.salesNoteAmount,
-    0,
-  );
-  const totalInvoiceAmount = salespersonPerf.reduce(
-    (sum, s) => sum + s.invoiceAmount,
-    0,
-  );
-  const totalFirstAwaitingDeliverySales =
-    customerData?.totalFirstAwaitingDeliverySales || 0;
+  const isCustomerTab = activeTab === "customers";
+
+  const totalSalesNoteAmount = isCustomerTab
+    ? filteredCustomers.reduce((sum, c) => sum + (c.salesNoteAmount || 0), 0)
+    : filteredSalespersons.reduce((sum, s) => sum + (s.salesNoteAmount || 0), 0);
+
+  const totalInvoiceAmount = isCustomerTab
+    ? filteredCustomers.reduce((sum, c) => sum + (c.invoiceAmount || 0), 0)
+    : filteredSalespersons.reduce((sum, s) => sum + (s.invoiceAmount || 0), 0);
+
+  const totalFirstAwaitingDeliverySales = isCustomerTab
+    ? (searchQuery
+        ? filteredCustomers.reduce(
+            (sum, c) => sum + (c.firstAwaitingDeliverySales || 0),
+            0,
+          )
+        : customerData?.totalFirstAwaitingDeliverySales ??
+          filteredCustomers.reduce(
+            (sum, c) => sum + (c.firstAwaitingDeliverySales || 0),
+            0,
+          ))
+    : filteredSalespersons.reduce(
+        (sum, s) => sum + (s.firstAwaitingDeliverySales || 0),
+        0,
+      );
 
   return (
     <div className="min-h-screen pb-12 rounded-3xl">
