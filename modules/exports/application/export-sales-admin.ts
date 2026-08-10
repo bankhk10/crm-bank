@@ -39,6 +39,15 @@ function getSalesOrderNumber(sale: any): string {
   return sale.saleOrderRef?.trim() || "";
 }
 
+function formatCustomerName(name?: string | null): string {
+  const trimmed = name?.trim() || "";
+  if (trimmed === "เงินสด") {
+    return "บริษัท เสถียรมั่นคงการเกษตร จำกัด";
+  }
+  return name || "";
+}
+
+
 export async function buildSalesAdminExportWorkbook(
   exportData: any[] | { sales?: any[]; targets?: any[] },
 ): Promise<string> {
@@ -125,6 +134,7 @@ export async function buildSalesAdminExportWorkbook(
         : "") ||
       "";
     const salesOrderNo = getSalesOrderNumber(sale);
+    const customerName = formatCustomerName(sale.customer?.name);
 
     if (sale.items && sale.items.length > 0) {
       for (const item of sale.items) {
@@ -183,7 +193,7 @@ export async function buildSalesAdminExportWorkbook(
 
           employeeNickname: sale.employee?.nickname || "",
           regionStr: regionStr,
-          customerName: sale.customer?.name || "",
+          customerName: customerName,
           province: sale.customer?.province || "",
           quantityNum: quantityNum,
           totalBoxSold: totalBoxSold,
@@ -221,7 +231,7 @@ export async function buildSalesAdminExportWorkbook(
 
         employeeNickname: sale.employee?.nickname || "",
         regionStr: regionStr,
-        customerName: sale.customer?.name || "",
+        customerName: customerName,
         province: sale.customer?.province || "",
         quantityNum: 0,
         totalBoxSold: 0,
@@ -266,7 +276,7 @@ export async function buildSalesAdminExportWorkbook(
             : "") ||
           "";
         const province = store.customer?.province || "";
-        const customerName = store.customer?.name || "";
+        const customerName = formatCustomerName(store.customer?.name);
 
         if (store.items && store.items.length > 0) {
           for (const item of store.items) {
