@@ -40,7 +40,7 @@ export async function exportSalesAdminAction(
     }
 
     const records = await getSalesAdminExportRecords(filters);
-    const base64 = buildSalesAdminExportWorkbook(records);
+    const base64 = await buildSalesAdminExportWorkbook(records);
     const dateStr = format(new Date(), "yyyyMMdd-HHmm");
     const filename = `sales-admin-export-${dateStr}.xlsx`;
 
@@ -75,7 +75,7 @@ export async function exportSalesMarketingAction(
     }
 
     const records = await getSalesMarketingExportRecords(filters);
-    const base64 = buildSalesMarketingExportWorkbook(records);
+    const base64 = await buildSalesMarketingExportWorkbook(records);
     const dateStr = format(new Date(), "yyyyMMdd-HHmm");
     const filename = `sales-marketing-export-${dateStr}.xlsx`;
 

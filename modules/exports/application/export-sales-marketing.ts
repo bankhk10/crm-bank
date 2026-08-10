@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { format } from "date-fns";
 import { getRegionFromProvince } from "@/modules/reports/application/utils";
 
@@ -38,8 +38,42 @@ function getSalesOrderNumber(sale: any): string {
   return sale.saleOrderRef?.trim() || "";
 }
 
-export function buildSalesMarketingExportWorkbook(sales: any[]): string {
-  const rows: any[] = [];
+export async function buildSalesMarketingExportWorkbook(sales: any[]): Promise<string> {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Marketing Sales Data");
+
+  worksheet.columns = [
+    { header: "ปี", key: "year", width: 10 },
+    { header: "เดือน", key: "month", width: 10 },
+    { header: "เลขที่เอกสารการขาย", key: "saleNumber", width: 18 },
+    { header: "เลขที่คำสั่งขาย", key: "salesOrderNo", width: 20 },
+    { header: "วันที่เอกสาร", key: "formattedDate", width: 12 },
+    { header: "ประเภทข้อมูล", key: "dataTypeLabel", width: 15 },
+    { header: "สถานะ", key: "statusThai", width: 18 },
+    { header: "ภูมิภาค", key: "regionStr", width: 15 },
+    { header: "จังหวัด", key: "province", width: 15 },
+    { header: "ชื่อลูกค้า", key: "customerName", width: 25 },
+    { header: "ประเภทลูกค้า", key: "customerType", width: 15 },
+    { header: "พนักงานขาย", key: "employeeName", width: 20 },
+    { header: "กรุ๊ป ABC", key: "abcGroup", width: 15 },
+    { header: "กลุ่มสาร", key: "productGroupStr", width: 20 },
+    { header: "ชื่อสามัญ", key: "commonNameStr", width: 20 },
+    { header: "ชื่อการค้า", key: "tradeNameStr", width: 20 },
+    { header: "รหัสสินค้า", key: "productCode", width: 15 },
+    { header: "ชื่อสินค้า", key: "itemName", width: 25 },
+    { header: "หมวดหมู่สินค้า", key: "categoryName", width: 20 },
+    { header: "แบรนด์", key: "brand", width: 15 },
+    { header: "พืชที่ใช้", key: "plantStr", width: 20 },
+    { header: "ขนาดบรรจุ", key: "packageSizeStr", width: 18 },
+    { header: "ขนาดบรรจุรวมต่อลัง", key: "totalPerBox", width: 20 },
+    { header: "จำนวนที่ขาย", key: "quantityNum", width: 12 },
+    { header: "หน่วยนับ", key: "unit", width: 10 },
+    { header: "ผลรวม ขนาดบรรจุรวมต่อลัง ที่ขาย", key: "totalBoxSold", width: 30 },
+    { header: "ราคาปกติต่อหน่วย (บาท)", key: "originalPrice", width: 20 },
+    { header: "ราคาขายต่อหน่วย (บาท)", key: "unitPrice", width: 20 },
+    { header: "ราคารวมยอดขาย (บาท)", key: "totalPrice", width: 20 },
+    { header: "งบโปรโมชั่นที่ใช้ (บาท)", key: "promotionBudget", width: 20 },
+  ];
 
   for (const sale of sales) {
     const saleDateObj = sale.saleDate ? new Date(sale.saleDate) : null;
@@ -92,115 +126,89 @@ export function buildSalesMarketingExportWorkbook(sales: any[]): string {
         const quantityNum = item.quantity || 0;
         const totalBoxSold = quantityNum * totalPerBox;
 
-        rows.push({
-          ปี: saleYear,
-          เดือน: saleMonth,
-          เลขที่เอกสารการขาย: sale.saleNumber,
-          เลขที่คำสั่งขาย: salesOrderNo,
-          วันที่เอกสาร: formattedDate,
-          ประเภทข้อมูล: dataTypeLabel,
-          สถานะ: statusThai,
-          ภูมิภาค: regionStr,
-          จังหวัด: sale.customer?.province || "",
-          ชื่อลูกค้า: sale.customer?.name || "",
-          ประเภทลูกค้า: sale.customer?.customerType || "",
-          พนักงานขาย: sale.employee?.name || "",
-          "กรุ๊ป ABC": abcGroup,
-          กลุ่มสาร: productGroupStr,
-          ชื่อสามัญ: commonNameStr,
-          ชื่อการค้า: tradeNameStr,
-          รหัสสินค้า: item.productCode || "",
-          ชื่อสินค้า: item.name || "",
-          หมวดหมู่สินค้า: item.categoryName || "",
-          แบรนด์: item.brand || "",
-          พืชที่ใช้: plantStr,
-          ขนาดบรรจุ: packageSizeStr,
-          ขนาดบรรจุรวมต่อลัง: totalPerBox,
-          จำนวนที่ขาย: quantityNum,
-          หน่วยนับ: item.unit || item.product?.unit || "",
-          "ผลรวม ขนาดบรรจุรวมต่อลัง ที่ขาย": totalBoxSold,
-          "ราคาปกติต่อหน่วย (บาท)": Number(item.originalPrice) || 0,
-          "ราคาขายต่อหน่วย (บาท)": Number(item.unitPrice) || 0,
-          "ราคารวมยอดขาย (บาท)": Number(item.totalPrice) || 0,
-          "งบโปรโมชั่นที่ใช้ (บาท)": Number(item.promotionBudget) || 0,
+        worksheet.addRow({
+          year: saleYear,
+          month: saleMonth,
+          saleNumber: sale.saleNumber,
+          salesOrderNo: salesOrderNo,
+          formattedDate: formattedDate,
+          dataTypeLabel: dataTypeLabel,
+          statusThai: statusThai,
+          regionStr: regionStr,
+          province: sale.customer?.province || "",
+          customerName: sale.customer?.name || "",
+          customerType: sale.customer?.customerType || "",
+          employeeName: sale.employee?.name || "",
+          abcGroup: abcGroup,
+          productGroupStr: productGroupStr,
+          commonNameStr: commonNameStr,
+          tradeNameStr: tradeNameStr,
+          productCode: item.productCode || "",
+          itemName: item.name || "",
+          categoryName: item.categoryName || "",
+          brand: item.brand || "",
+          plantStr: plantStr,
+          packageSizeStr: packageSizeStr,
+          totalPerBox: totalPerBox,
+          quantityNum: quantityNum,
+          unit: item.unit || item.product?.unit || "",
+          totalBoxSold: totalBoxSold,
+          originalPrice: Number(item.originalPrice) || 0,
+          unitPrice: Number(item.unitPrice) || 0,
+          totalPrice: Number(item.totalPrice) || 0,
+          promotionBudget: Number(item.promotionBudget) || 0,
         });
       }
     } else {
-      rows.push({
-        ปี: saleYear,
-        เดือน: saleMonth,
-        เลขที่เอกสารการขาย: sale.saleNumber,
-        เลขที่คำสั่งขาย: salesOrderNo,
-        วันที่เอกสาร: formattedDate,
-        ประเภทข้อมูล: dataTypeLabel,
-        สถานะ: statusThai,
-        ภูมิภาค: regionStr,
-        จังหวัด: sale.customer?.province || "",
-        ชื่อลูกค้า: sale.customer?.name || "",
-        ประเภทลูกค้า: sale.customer?.customerType || "",
-        พนักงานขาย: sale.employee?.name || "",
-        "กรุ๊ป ABC": "-",
-        กลุ่มสาร: "-",
-        ชื่อสามัญ: "-",
-        ชื่อการค้า: "-",
-        รหัสสินค้า: "-",
-        ชื่อสินค้า: "-",
-        หมวดหมู่สินค้า: "-",
-        แบรนด์: "-",
-        พืชที่ใช้: "-",
-        ขนาดบรรจุ: "-",
-        ขนาดบรรจุรวมต่อลัง: 0,
-        จำนวนที่ขาย: 0,
-        หน่วยนับ: "-",
-        "ผลรวม ขนาดบรรจุรวมต่อลัง ที่ขาย": 0,
-        "ราคาปกติต่อหน่วย (บาท)": 0,
-        "ราคาขายต่อหน่วย (บาท)": 0,
-        "ราคารวมยอดขาย (บาท)": 0,
-        "งบโปรโมชั่นที่ใช้ (บาท)": 0,
+      worksheet.addRow({
+        year: saleYear,
+        month: saleMonth,
+        saleNumber: sale.saleNumber,
+        salesOrderNo: salesOrderNo,
+        formattedDate: formattedDate,
+        dataTypeLabel: dataTypeLabel,
+        statusThai: statusThai,
+        regionStr: regionStr,
+        province: sale.customer?.province || "",
+        customerName: sale.customer?.name || "",
+        customerType: sale.customer?.customerType || "",
+        employeeName: sale.employee?.name || "",
+        abcGroup: "-",
+        productGroupStr: "-",
+        commonNameStr: "-",
+        tradeNameStr: "-",
+        productCode: "-",
+        itemName: "-",
+        categoryName: "-",
+        brand: "-",
+        plantStr: "-",
+        packageSizeStr: "-",
+        totalPerBox: 0,
+        quantityNum: 0,
+        unit: "-",
+        totalBoxSold: 0,
+        originalPrice: 0,
+        unitPrice: 0,
+        totalPrice: 0,
+        promotionBudget: 0,
       });
     }
   }
 
-  const worksheet = XLSX.utils.json_to_sheet(rows);
+  // Set Angsana New font for all rows and cells
+  worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      cell.font = {
+        name: "Angsana New",
+        size: 14,
+        bold: rowNumber === 1,
+      };
+      cell.alignment = {
+        vertical: "middle",
+      };
+    });
+  });
 
-  // Set column widths
-  const colWidths = [
-    { wch: 10 }, // ปี
-    { wch: 10 }, // เดือน
-    { wch: 18 }, // เลขที่เอกสาร
-    { wch: 20 }, // เลขที่คำสั่งขาย
-    { wch: 12 }, // วันที่เอกสาร
-    { wch: 15 }, // ประเภทข้อมูล
-    { wch: 18 }, // สถานะ
-    { wch: 15 }, // ภูมิภาค
-    { wch: 15 }, // จังหวัด
-    { wch: 25 }, // ชื่อลูกค้า
-    { wch: 15 }, // ประเภทลูกค้า
-    { wch: 20 }, // พนักงานขาย
-    { wch: 15 }, // กรุ๊ป ABC
-    { wch: 20 }, // กลุ่มสาร
-    { wch: 20 }, // ชื่อสามัญ
-    { wch: 20 }, // ชื่อการค้า
-    { wch: 15 }, // รหัสสินค้า
-    { wch: 25 }, // ชื่อสินค้า
-    { wch: 20 }, // หมวดหมู่สินค้า
-    { wch: 15 }, // แบรนด์
-    { wch: 20 }, // พืชที่ใช้
-    { wch: 18 }, // ขนาดบรรจุ
-    { wch: 20 }, // ขนาดบรรจุรวมต่อลัง
-    { wch: 12 }, // จำนวนที่ขาย
-    { wch: 10 }, // หน่วยนับ
-    { wch: 30 }, // ผลรวม ขนาดบรรจุรวมต่อลัง ที่ขาย
-    { wch: 20 }, // ราคาปกติต่อหน่วย
-    { wch: 20 }, // ราคาขายต่อหน่วย
-    { wch: 20 }, // ราคารวมยอดขาย
-    { wch: 20 }, // งบโปรโมชั่น
-  ];
-  worksheet["!cols"] = colWidths;
-
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Marketing Sales Data");
-
-  const base64: string = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
-  return base64;
+  const buffer = await workbook.xlsx.writeBuffer();
+  return Buffer.from(buffer).toString("base64");
 }

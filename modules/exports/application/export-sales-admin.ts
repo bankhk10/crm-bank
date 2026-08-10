@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { format } from "date-fns";
 import { getRegionFromProvince } from "@/modules/reports/application/utils";
 
@@ -50,8 +50,46 @@ function getSalesOrderNumber(sale: any): string {
   return sale.saleOrderRef?.trim() || "";
 }
 
-export function buildSalesAdminExportWorkbook(sales: any[]): string {
-  const rows: any[] = [];
+export async function buildSalesAdminExportWorkbook(sales: any[]): Promise<string> {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Sales Admin Data");
+
+  worksheet.columns = [
+    { header: "ปี", key: "year", width: 10 },
+    { header: "ข้อมูล", key: "dataTypeLabel", width: 15 },
+    { header: "เดือน", key: "month", width: 10 },
+    { header: "กรุ๊ป", key: "abcGroup", width: 15 },
+    { header: "กลุ่มสาร", key: "productGroupStr", width: 20 },
+    { header: "ชื่อสามัญ", key: "commonNameStr", width: 20 },
+    { header: "รหัสสินค้า", key: "productCode", width: 15 },
+    { header: "ชื่อการค้า", key: "tradeNameStr", width: 20 },
+    { header: "ขนาด", key: "packageSizeStr", width: 18 },
+    { header: "ลิตร/กก.", key: "totalPerBox", width: 20 },
+
+    { header: "พนักงานขาย", key: "employeeNickname", width: 15 },
+    { header: "ภูมิภาค", key: "regionStr", width: 15 },
+    { header: "ร้านค้า", key: "customerName", width: 25 },
+    { header: "จังหวัด", key: "province", width: 15 },
+    { header: "SALES BY Q (Carton)", key: "quantityNum", width: 10 },
+    { header: "ผลรวมลิตร/กก.", key: "totalBoxSold", width: 30 },
+    { header: "SALES BY VALUE (฿)", key: "totalItemPrice", width: 18 },
+    { header: "Remark / Price", key: "paymentDateStr", width: 15 },
+    { header: "SN", key: "salesOrderNo", width: 20 },
+    { header: "Inv", key: "deliveryDateStr", width: 15 },
+    { header: "REMARK", key: "notes", width: 25 },
+
+    { header: "วันที่สร้างออเดอร์", key: "formattedDate", width: 15 },
+    { header: "ราคาที่ขาย", key: "unitPrice", width: 18 },
+    { header: "สถานะ", key: "statusThai", width: 18 },
+    { header: "ชื่อสินค้า", key: "itemName", width: 25 },
+    { header: "หน่วยนับ", key: "unit", width: 10 },
+    { header: "ยอดรวมสินค้า", key: "subtotalAmount", width: 18 },
+    { header: "ค่าจัดส่ง", key: "shippingCost", width: 14 },
+    { header: "ส่วนลดหน้าบิล", key: "otherCosts", width: 18 },
+    { header: "ยอดรวมสุทธิ", key: "totalAmount", width: 18 },
+    { header: "หมายเหตุของผู้จัดการ", key: "managerNotes", width: 25 },
+    { header: "ชื่อ-สกุล พนักงานขาย", key: "employeeName", width: 20 },
+  ];
 
   for (const sale of sales) {
     const saleDateObj = sale.saleDate ? new Date(sale.saleDate) : null;
@@ -137,129 +175,97 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
         const quantityNum = item.quantity || 0;
         const totalBoxSold = quantityNum * totalPerBox;
 
-        rows.push({
-          ปี: saleYear,
-          ข้อมูล: dataTypeLabel,
-          เดือน: saleMonth,
-          กรุ๊ป: abcGroup,
-          กลุ่มสาร: productGroupStr,
-          ชื่อสามัญ: commonNameStr,
-          รหัสสินค้า: item.productCode || "",
-          ชื่อการค้า: tradeNameStr,
-          ขนาด: packageSizeStr,
-          "ลิตร/กก.": totalPerBox,
+        worksheet.addRow({
+          year: saleYear,
+          dataTypeLabel: dataTypeLabel,
+          month: saleMonth,
+          abcGroup: abcGroup,
+          productGroupStr: productGroupStr,
+          commonNameStr: commonNameStr,
+          productCode: item.productCode || "",
+          tradeNameStr: tradeNameStr,
+          packageSizeStr: packageSizeStr,
+          totalPerBox: totalPerBox,
 
-          พนักงานขาย: sale.employee?.nickname || "",
-          ภูมิภาค: regionStr,
-          ร้านค้า: sale.customer?.name || "",
-          จังหวัด: sale.customer?.province || "",
-          "SALES BY Q (Carton)": quantityNum,
-          "ผลรวมลิตร/กก.": totalBoxSold,
-          "SALES BY VALUE (฿)": Number(item.totalPrice) || 0,
-          "Remark / Price": paymentDateStr,
-          SN: salesOrderNo,
-          Inv: deliveryDateStr,
-          REMARK: sale.notes || "",
+          employeeNickname: sale.employee?.nickname || "",
+          regionStr: regionStr,
+          customerName: sale.customer?.name || "",
+          province: sale.customer?.province || "",
+          quantityNum: quantityNum,
+          totalBoxSold: totalBoxSold,
+          totalItemPrice: Number(item.totalPrice) || 0,
+          paymentDateStr: paymentDateStr,
+          salesOrderNo: salesOrderNo,
+          deliveryDateStr: deliveryDateStr,
+          notes: sale.notes || "",
 
-          วันที่สร้างออเดอร์: formattedDate,
-          ราคาที่ขาย: Number(item.unitPrice) || 0,
-          สถานะ: statusThai,
-          ชื่อสินค้า: item.name || "",
-          หน่วยนับ: item.unit || item.product?.unit || "",
-          ยอดรวมสินค้า: Number(sale.subtotalAmount) || 0,
-          ค่าจัดส่ง: Number(sale.shippingCost) || 0,
-          ส่วนลดหน้าบิล: Number(sale.otherCosts) || 0,
-          ยอดรวมสุทธิ: Number(sale.totalAmount) || 0,
-          หมายเหตุของผู้จัดการ: sale.managerNotes || "",
-          "ชื่อ-สกุล พนักงานขาย": sale.employee?.name || "",
+          formattedDate: formattedDate,
+          unitPrice: Number(item.unitPrice) || 0,
+          statusThai: statusThai,
+          itemName: item.name || "",
+          unit: item.unit || item.product?.unit || "",
+          subtotalAmount: Number(sale.subtotalAmount) || 0,
+          shippingCost: Number(sale.shippingCost) || 0,
+          otherCosts: Number(sale.otherCosts) || 0,
+          totalAmount: Number(sale.totalAmount) || 0,
+          managerNotes: sale.managerNotes || "",
+          employeeName: sale.employee?.name || "",
         });
       }
     } else {
-      rows.push({
-        ปี: saleYear,
-        ข้อมูล: dataTypeLabel,
-        เดือน: saleMonth,
-        กรุ๊ป: "-",
-        กลุ่มสาร: "-",
-        ชื่อสามัญ: "-",
-        รหัสสินค้า: "-",
-        ชื่อการค้า: "-",
-        ขนาด: "-",
-        "ลิตร/กก.": 0,
+      worksheet.addRow({
+        year: saleYear,
+        dataTypeLabel: dataTypeLabel,
+        month: saleMonth,
+        abcGroup: "-",
+        productGroupStr: "-",
+        commonNameStr: "-",
+        productCode: "-",
+        tradeNameStr: "-",
+        packageSizeStr: "-",
+        totalPerBox: 0,
 
-        พนักงานขาย: sale.employee?.nickname || "",
-        ภูมิภาค: regionStr,
-        ร้านค้า: sale.customer?.name || "",
-        จังหวัด: sale.customer?.province || "",
-        "SALES BY Q (Carton)": 0,
-        "ผลรวมลิตร/กก.": 0,
-        "SALES BY VALUE (฿)": 0,
-        "Remark / Price": paymentDateStr,
-        SN: salesOrderNo,
-        Inv: deliveryDateStr,
-        REMARK: sale.notes || "",
+        employeeNickname: sale.employee?.nickname || "",
+        regionStr: regionStr,
+        customerName: sale.customer?.name || "",
+        province: sale.customer?.province || "",
+        quantityNum: 0,
+        totalBoxSold: 0,
+        totalItemPrice: 0,
+        paymentDateStr: paymentDateStr,
+        salesOrderNo: salesOrderNo,
+        deliveryDateStr: deliveryDateStr,
+        notes: sale.notes || "",
 
-        วันที่สร้างออเดอร์: formattedDate,
-        ราคาที่ขาย: 0,
-        สถานะ: statusThai,
-        ชื่อสินค้า: "-",
-        หน่วยนับ: "-",
-        ยอดรวมสินค้า: Number(sale.subtotalAmount) || 0,
-        ค่าจัดส่ง: Number(sale.shippingCost) || 0,
-        ส่วนลดหน้าบิล: Number(sale.otherCosts) || 0,
-        ยอดรวมสุทธิ: Number(sale.totalAmount) || 0,
-        หมายเหตุของผู้จัดการ: sale.managerNotes || "",
-        "ชื่อ-สกุล พนักงานขาย": sale.employee?.name || "",
+        formattedDate: formattedDate,
+        unitPrice: 0,
+        statusThai: statusThai,
+        itemName: "-",
+        unit: "-",
+        subtotalAmount: Number(sale.subtotalAmount) || 0,
+        shippingCost: Number(sale.shippingCost) || 0,
+        otherCosts: Number(sale.otherCosts) || 0,
+        totalAmount: Number(sale.totalAmount) || 0,
+        managerNotes: sale.managerNotes || "",
+        employeeName: sale.employee?.name || "",
       });
     }
   }
 
-  const worksheet = XLSX.utils.json_to_sheet(rows);
-
-  // Set column widths
-  const colWidths = [
-    { wch: 10 }, // ปี
-    { wch: 15 }, // ข้อมูล
-    { wch: 10 }, // เดือน
-    { wch: 15 }, // กรุ๊ป
-    { wch: 20 }, // กลุ่มสาร
-    { wch: 20 }, // ชื่อสามัญ
-    { wch: 15 }, // รหัสสินค้า
-    { wch: 20 }, // ชื่อการค้า
-    { wch: 18 }, // ขนาด
-    { wch: 20 }, // ลิตร/กก.
-    { wch: 15 }, // พนักงานขาย
-    { wch: 15 }, // ภูมิภาค
-    { wch: 25 }, // ร้านค้า
-    { wch: 15 }, // จังหวัด
-    { wch: 10 }, // SALES BY Q (Carton)
-    { wch: 30 }, // ผลรวมลิตร/กก.
-    { wch: 18 }, // SALES BY VALUE (฿)
-    { wch: 15 }, // Remark / Price
-    { wch: 20 }, // SN
-    { wch: 15 }, // Inv
-    { wch: 25 }, // REMARK
-
-    { wch: 15 }, // วันที่สร้างออเดอร์
-    { wch: 18 }, // ราคาที่ขาย
-    { wch: 18 }, // สถานะ
-    { wch: 25 }, // ชื่อสินค้า
-    { wch: 10 }, // หน่วยนับ
-    { wch: 18 }, // ยอดรวมสินค้า
-    { wch: 14 }, // ค่าจัดส่ง
-    { wch: 18 }, // ส่วนลดหน้าบิล
-    { wch: 18 }, // ยอดรวมสุทธิ
-    { wch: 25 }, // หมายเหตุของผู้จัดการ
-    { wch: 20 }, // ชื่อ-สกุล พนักงานขาย
-  ];
-  worksheet["!cols"] = colWidths;
-
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Admin Data");
-
-  const base64: string = XLSX.write(workbook, {
-    type: "base64",
-    bookType: "xlsx",
+  // Set Angsana New font for all rows and cells
+  worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      cell.font = {
+        name: "Angsana New",
+        size: 14,
+        bold: rowNumber === 1,
+      };
+      cell.alignment = {
+        vertical: "middle",
+      };
+    });
   });
-  return base64;
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  return Buffer.from(buffer).toString("base64");
 }
