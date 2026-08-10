@@ -1,38 +1,17 @@
 import { db as prisma } from "@/lib/db";
 import * as repo from "../infrastructure/reports.repository";
-import {
-  startOfDay,
-  endOfDay,
-  startOfMonth,
-  endOfMonth,
-  format,
-  parseISO,
-  eachMonthOfInterval,
-  eachDayOfInterval,
-  differenceInDays,
-  subMonths,
-  subYears,
-  subDays,
-} from "date-fns";
-import { th } from "date-fns/locale";
-import { getDateRange, getDayOfWeekThai, getQuarterLabel, getRegionFromProvince } from "./utils";
-import { DataAccessLevel } from "@/lib/db";
-import {
-  DateRangeFilter,
-  TimeSalesReportData,
-  ProductSalesReportData,
-  ProductGroupSalesReportData,
-  CustomerSalesReportData,
-  SalespersonReportData,
-} from "../types";
-import { getTeamEmployeeIds, buildScopeFilter } from "./helpers";
-
+import { format, differenceInDays } from "date-fns";
+import { getDateRange, getRegionFromProvince } from "./utils";
+import { DateRangeFilter, CustomerSalesReportData } from "../types";
+import { buildScopeFilter } from "./helpers";
 
 // 4. CUSTOMER SALES REPORT
 // ============================================
 
-export async function getCustomerSalesReport(filter: DateRangeFilter, session: any): Promise<CustomerSalesReportData> {
-
+export async function getCustomerSalesReport(
+  filter: DateRangeFilter,
+  session: any,
+): Promise<CustomerSalesReportData> {
   const viewScope =
     session.user.dataAccessByResource["report"] ||
     session.user.dataAccessByResource["sale"] ||
@@ -93,24 +72,27 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
   );
 
   // 4. Get remaining customer details (for non-dealers who had sales)
-  const remainingIds = customerIdsFromSales.filter(id => !allDealerIds.includes(id));
-  const remainingCustomers = remainingIds.length > 0 
-    ? await repo.findManyCustomersData({
-        where: { id: { in: remainingIds } },
-        select: {
-          id: true,
-          customerCode: true,
-          name: true,
-          customerType: true,
-          province: true,
-          parentDealerId: true,
-        },
-      })
-    : [];
+  const remainingIds = customerIdsFromSales.filter(
+    (id) => !allDealerIds.includes(id),
+  );
+  const remainingCustomers =
+    remainingIds.length > 0
+      ? await repo.findManyCustomersData({
+          where: { id: { in: remainingIds } },
+          select: {
+            id: true,
+            customerCode: true,
+            name: true,
+            customerType: true,
+            province: true,
+            parentDealerId: true,
+          },
+        })
+      : [];
 
   const customerMap = new Map();
-  allDealers.forEach(d => customerMap.set(d.id, d));
-  remainingCustomers.forEach(c => customerMap.set(c.id, c));
+  allDealers.forEach((d) => customerMap.set(d.id, d));
+  remainingCustomers.forEach((c) => customerMap.set(c.id, c));
 
   // 5. Get lifetime value for each customer in the combined list
   const lifetimeValues = await repo.groupSalesData({
@@ -168,38 +150,42 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
   );
 
   // 7. Calculate final topCustomers list
-  const salesMap = new Map(customerSales.map(cs => [cs.customerId, cs]));
-  
-  const topCustomers = allInitialIds.map((id) => {
-    const customer = customerMap.get(id);
-    const cs = salesMap.get(id);
-    const totalSales = Number(cs?._sum.totalAmount || 0);
-    const orderCount = cs?._count || 0;
-    const invoiceAmount = Number(invoiceSalesMap.get(id)?.totalAmount || 0);
-    const salesNoteAmount = Math.max(0, totalSales - invoiceAmount);
-    const firstAwaitingDeliverySales = Number(firstAwaitingDeliveryCustMap.get(id) || 0);
+  const salesMap = new Map(customerSales.map((cs) => [cs.customerId, cs]));
 
-    return {
-      id,
-      code: customer?.customerCode || "",
-      name: customer?.name || "Unknown",
-      type: customer?.customerType || "-",
-      province: customer?.province || "-",
-      region: getRegionFromProvince(customer?.province || null),
-      totalSales,
-      invoiceAmount,
-      salesNoteAmount,
-      firstAwaitingDeliverySales,
-      orderCount,
-      avgOrderValue: orderCount > 0 ? totalSales / orderCount : 0,
-      purchaseFrequency: orderCount / monthCount,
-      lifetimeValue: lifetimeMap.get(id) || totalSales,
-      lastPurchaseDate: lastPurchaseMap.get(id)
-        ? format(lastPurchaseMap.get(id)!, "dd/MM/yyyy")
-        : undefined,
-      parentDealerId: customer?.parentDealerId || null,
-    };
-  }).sort((a, b) => b.totalSales - a.totalSales);
+  const topCustomers = allInitialIds
+    .map((id) => {
+      const customer = customerMap.get(id);
+      const cs = salesMap.get(id);
+      const totalSales = Number(cs?._sum.totalAmount || 0);
+      const orderCount = cs?._count || 0;
+      const invoiceAmount = Number(invoiceSalesMap.get(id)?.totalAmount || 0);
+      const salesNoteAmount = Math.max(0, totalSales - invoiceAmount);
+      const firstAwaitingDeliverySales = Number(
+        firstAwaitingDeliveryCustMap.get(id) || 0,
+      );
+
+      return {
+        id,
+        code: customer?.customerCode || "",
+        name: customer?.name || "Unknown",
+        type: customer?.customerType || "-",
+        province: customer?.province || "-",
+        region: getRegionFromProvince(customer?.province || null),
+        totalSales,
+        invoiceAmount,
+        salesNoteAmount,
+        firstAwaitingDeliverySales,
+        orderCount,
+        avgOrderValue: orderCount > 0 ? totalSales / orderCount : 0,
+        purchaseFrequency: orderCount / monthCount,
+        lifetimeValue: lifetimeMap.get(id) || totalSales,
+        lastPurchaseDate: lastPurchaseMap.get(id)
+          ? format(lastPurchaseMap.get(id)!, "dd/MM/yyyy")
+          : undefined,
+        parentDealerId: customer?.parentDealerId || null,
+      };
+    })
+    .sort((a, b) => b.totalSales - a.totalSales);
 
   // Customer type breakdown
   const allCustomerSales = await repo.groupSalesData({

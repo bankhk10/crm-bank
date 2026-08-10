@@ -1,38 +1,22 @@
 import { db as prisma } from "@/lib/db";
 import * as repo from "../infrastructure/reports.repository";
 import {
-  startOfDay,
-  endOfDay,
   startOfMonth,
   endOfMonth,
   format,
-  parseISO,
   eachMonthOfInterval,
-  eachDayOfInterval,
-  differenceInDays,
-  subMonths,
-  subYears,
-  subDays,
 } from "date-fns";
 import { th } from "date-fns/locale";
-import { getDateRange, getDayOfWeekThai, getQuarterLabel, getRegionFromProvince } from "./utils";
-import { DataAccessLevel } from "@/lib/db";
-import {
-  DateRangeFilter,
-  TimeSalesReportData,
-  ProductSalesReportData,
-  ProductGroupSalesReportData,
-  CustomerSalesReportData,
-  SalespersonReportData,
-} from "../types";
-import { getTeamEmployeeIds, buildScopeFilter } from "./helpers";
-
+import { getDateRange } from "./utils";
+import { DateRangeFilter, SalespersonReportData } from "../types";
 
 // 5. SALESPERSON SALES REPORT
 // ============================================
 
-export async function getSalespersonSalesReport(filter: DateRangeFilter, session: any): Promise<SalespersonReportData> {
-
+export async function getSalespersonSalesReport(
+  filter: DateRangeFilter,
+  session: any,
+): Promise<SalespersonReportData> {
   const viewScope =
     session.user.dataAccessByResource["report"] ||
     session.user.dataAccessByResource["sale"] ||
@@ -136,41 +120,45 @@ export async function getSalespersonSalesReport(filter: DateRangeFilter, session
     ]),
   );
 
-  const salespersonPerformance = activeEmployeeIds.map((id) => {
-    const employee = salespersonMap.get(id);
-    const es = salesMap.get(id);
-    const totalSales = Number(es?._sum.totalAmount || 0);
-    const orderCount = es?._count || 0;
-    
-    const invoiceData = invoiceSalesMap.get(id);
-    const invoiceAmount = Number(invoiceData?.totalAmount || 0);
-    const salesNoteAmount = Math.max(0, totalSales - invoiceAmount);
-    const firstAwaitingDeliverySales = Number(firstAwaitingDeliveryEmpMap.get(id) || 0);
+  const salespersonPerformance = activeEmployeeIds
+    .map((id) => {
+      const employee = salespersonMap.get(id);
+      const es = salesMap.get(id);
+      const totalSales = Number(es?._sum.totalAmount || 0);
+      const orderCount = es?._count || 0;
 
-    const posTitle =
-      employee?.positionTitle ||
-      (employee as any)?.position?.name ||
-      (employee as any)?.roleTitle ||
-      "-";
+      const invoiceData = invoiceSalesMap.get(id);
+      const invoiceAmount = Number(invoiceData?.totalAmount || 0);
+      const salesNoteAmount = Math.max(0, totalSales - invoiceAmount);
+      const firstAwaitingDeliverySales = Number(
+        firstAwaitingDeliveryEmpMap.get(id) || 0,
+      );
 
-    return {
-      id,
-      name: employee?.name || "Unknown",
-      employeeCode: employee?.employeeCode || "-",
-      department: employee?.department?.name || "-",
-      positionTitle: posTitle,
-      totalSales,
-      orderCount,
-      avgOrderValue: orderCount > 0 ? totalSales / orderCount : 0,
-      customerCount: customerCountMap.get(id)?.size || 0,
-      conversionRate: 100, // Placeholder
-      salesNoteAmount,
-      salesNoteCount: orderCount,
-      invoiceAmount,
-      invoiceCount: invoiceData?.invoiceCount || 0,
-      firstAwaitingDeliverySales,
-    };
-  }).sort((a, b) => b.totalSales - a.totalSales);
+      const posTitle =
+        employee?.positionTitle ||
+        (employee as any)?.position?.name ||
+        (employee as any)?.roleTitle ||
+        "-";
+
+      return {
+        id,
+        name: employee?.name || "Unknown",
+        employeeCode: employee?.employeeCode || "-",
+        department: employee?.department?.name || "-",
+        positionTitle: posTitle,
+        totalSales,
+        orderCount,
+        avgOrderValue: orderCount > 0 ? totalSales / orderCount : 0,
+        customerCount: customerCountMap.get(id)?.size || 0,
+        conversionRate: 100, // Placeholder
+        salesNoteAmount,
+        salesNoteCount: orderCount,
+        invoiceAmount,
+        invoiceCount: invoiceData?.invoiceCount || 0,
+        firstAwaitingDeliverySales,
+      };
+    })
+    .sort((a, b) => b.totalSales - a.totalSales);
 
   const topSalesperson = salespersonPerformance[0] || {
     id: "",
@@ -191,7 +179,7 @@ export async function getSalespersonSalesReport(filter: DateRangeFilter, session
             saleDate: { gte: start, lte: end },
             deletedAt: null,
             status: { notIn: ["CANCELLED", "REJECTED"] },
-            ...scopeFilter, 
+            ...scopeFilter,
           },
         },
         _sum: {
