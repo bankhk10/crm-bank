@@ -38,7 +38,12 @@ function getSalesOrderNumber(sale: any): string {
   return sale.saleOrderRef?.trim() || "";
 }
 
-export async function buildSalesMarketingExportWorkbook(sales: any[]): Promise<string> {
+export async function buildSalesMarketingExportWorkbook(
+  exportData: any[] | { sales?: any[]; targets?: any[] }
+): Promise<string> {
+  const sales = Array.isArray(exportData) ? exportData : exportData.sales || [];
+  const targets = Array.isArray(exportData) ? [] : exportData.targets || [];
+
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Marketing Sales Data");
 
@@ -75,6 +80,7 @@ export async function buildSalesMarketingExportWorkbook(sales: any[]): Promise<s
     { header: "งบโปรโมชั่นที่ใช้ (บาท)", key: "promotionBudget", width: 20 },
   ];
 
+  // 1. Process actual Sales records
   for (const sale of sales) {
     const saleDateObj = sale.saleDate ? new Date(sale.saleDate) : null;
     const saleYear = saleDateObj ? format(saleDateObj, "yyyy") : "";
@@ -95,7 +101,6 @@ export async function buildSalesMarketingExportWorkbook(sales: any[]): Promise<s
           item.product?.productABCType?.code ||
           "";
 
-        // กลุ่มสาร: ดึงจากหมวดสินค้า (categoryName) และตัดคำหลัง : ออก
         const categoryRaw =
           item.categoryName ||
           item.product?.category?.description ||
@@ -192,6 +197,131 @@ export async function buildSalesMarketingExportWorkbook(sales: any[]): Promise<s
         totalPrice: 0,
         promotionBudget: 0,
       });
+    }
+  }
+
+  // 2. Process SalesTarget (Forecast) records
+  for (const target of targets) {
+    const saleYear = target.year ? target.year.toString() : "";
+    const saleMonth = target.month ? target.month.toString().padStart(2, "0") : "";
+    const dataTypeLabel = "Forecast";
+    const statusThai = "เป้าหมายการขาย";
+    const employeeName = target.employee?.name || "";
+
+    if (target.stores && target.stores.length > 0) {
+      for (const store of target.stores) {
+        const regionStr =
+          target.region ||
+          (store.customer?.province ? getRegionFromProvince(store.customer.province) : "") ||
+          "";
+        const province = store.customer?.province || "";
+        const customerName = store.customer?.name || "";
+        const customerType = store.customer?.customerType || "";
+
+        if (store.items && store.items.length > 0) {
+          for (const item of store.items) {
+            const product = item.product;
+            const abcGroup =
+              product?.productABCType?.name ||
+              product?.productABCType?.code ||
+              "";
+
+            const categoryRaw =
+              product?.category?.description ||
+              product?.category?.code ||
+              "";
+            const productGroupStr = categoryRaw ? categoryRaw.split(":")[0].trim() : "";
+
+            const commonNameStr = product?.commonName || "";
+            const tradeNameStr =
+              product?.tradeNameGroup?.description ||
+              product?.name ||
+              "";
+
+            const pkgSizeRaw = product?.packageSize;
+            const pkgUnitRaw = product?.packageSizeUnit ?? "";
+            const packageSizeStr =
+              pkgSizeRaw != null ? `${Number(pkgSizeRaw)} ${pkgUnitRaw}`.trim() : "";
+
+            const totalPerBox = Number(
+              product?.totalPackageSizePerBox ??
+                product?.packageSizePerBox ??
+                0
+            );
+
+            const quantityNum = item.qtyPerBox || 0;
+            const totalBoxSold = quantityNum * totalPerBox;
+            const pricePerBox = Number(item.pricePerBox) || 0;
+            const targetAmount = Number(item.targetAmount) || 0;
+
+            worksheet.addRow({
+              year: saleYear,
+              month: saleMonth,
+              saleNumber: "-",
+              salesOrderNo: "-",
+              formattedDate: "-",
+              dataTypeLabel: dataTypeLabel,
+              statusThai: statusThai,
+              regionStr: regionStr,
+              province: province,
+              customerName: customerName,
+              customerType: customerType,
+              employeeName: employeeName,
+              abcGroup: abcGroup,
+              productGroupStr: productGroupStr,
+              commonNameStr: commonNameStr,
+              tradeNameStr: tradeNameStr,
+              productCode: product?.productCode || "",
+              itemName: product?.name || "",
+              categoryName: product?.category?.description || "",
+              brand: product?.brand || "",
+              plantStr: "-",
+              packageSizeStr: packageSizeStr,
+              totalPerBox: totalPerBox,
+              quantityNum: quantityNum,
+              unit: product?.unit || "",
+              totalBoxSold: totalBoxSold,
+              originalPrice: pricePerBox,
+              unitPrice: pricePerBox,
+              totalPrice: targetAmount,
+              promotionBudget: 0,
+            });
+          }
+        } else {
+          worksheet.addRow({
+            year: saleYear,
+            month: saleMonth,
+            saleNumber: "-",
+            salesOrderNo: "-",
+            formattedDate: "-",
+            dataTypeLabel: dataTypeLabel,
+            statusThai: statusThai,
+            regionStr: regionStr,
+            province: province,
+            customerName: customerName,
+            customerType: customerType,
+            employeeName: employeeName,
+            abcGroup: "-",
+            productGroupStr: "-",
+            commonNameStr: "-",
+            tradeNameStr: "-",
+            productCode: "-",
+            itemName: "-",
+            categoryName: "-",
+            brand: "-",
+            plantStr: "-",
+            packageSizeStr: "-",
+            totalPerBox: 0,
+            quantityNum: 0,
+            unit: "-",
+            totalBoxSold: 0,
+            originalPrice: 0,
+            unitPrice: 0,
+            totalPrice: 0,
+            promotionBudget: 0,
+          });
+        }
+      }
     }
   }
 

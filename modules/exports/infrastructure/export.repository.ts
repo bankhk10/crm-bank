@@ -22,6 +22,33 @@ function buildStatusWhereClause(status?: string) {
   return status;
 }
 
+function getYearMonthPairs(startDateStr?: string, endDateStr?: string) {
+  if (!startDateStr && !endDateStr) {
+    return null;
+  }
+  const now = new Date();
+  const start = startDateStr ? new Date(startDateStr) : new Date(now.getFullYear(), 0, 1);
+  const end = endDateStr ? new Date(endDateStr) : new Date(now.getFullYear(), 11, 31);
+
+  const pairs: { year: number; month: number }[] = [];
+  let curYear = start.getFullYear();
+  let curMonth = start.getMonth() + 1; // 1-12
+
+  const endYear = end.getFullYear();
+  const endMonth = end.getMonth() + 1;
+
+  while (curYear < endYear || (curYear === endYear && curMonth <= endMonth)) {
+    pairs.push({ year: curYear, month: curMonth });
+    curMonth++;
+    if (curMonth > 12) {
+      curMonth = 1;
+      curYear++;
+    }
+  }
+
+  return pairs;
+}
+
 const itemSelectFields = {
   id: true,
   productCode: true,
@@ -95,34 +122,16 @@ const shipmentSelectFields = {
   },
 };
 
-/**
- * Fetch sales data formatted for Sales Admin (Fulfillment & Documents focus)
- */
-export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
-  const where: Record<string, any> = {
-    deletedAt: null,
-  };
-
-  if (filters.startDate || filters.endDate) {
-    where.saleDate = {};
-    if (filters.startDate) {
-      where.saleDate.gte = new Date(filters.startDate);
-    }
-    if (filters.endDate) {
-      const end = new Date(filters.endDate);
-      end.setHours(23, 59, 59, 999);
-      where.saleDate.lte = end;
-    }
-  }
-
-  const statusWhere = buildStatusWhereClause(filters.status);
-  if (statusWhere) {
-    where.status = statusWhere;
-  }
-
-  const sales = await db.sale.findMany({
-    where,
-    orderBy: { saleDate: "desc" },
+const salesTargetInclude = {
+  employee: {
+    select: {
+      id: true,
+      name: true,
+      nickname: true,
+      employeeCode: true,
+    },
+  },
+  stores: {
     include: {
       customer: {
         select: {
@@ -133,94 +142,220 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
           district: true,
         },
       },
-      employee: {
-        select: {
-          id: true,
-          name: true,
-          nickname: true,
-          employeeCode: true,
-          departmentName: true,
-        },
-      },
-      shippingCompany: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      createdBy: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      approvedBy: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      shipments: shipmentSelectFields,
       items: {
-        select: itemSelectFields,
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              productCode: true,
+              unit: true,
+              brand: true,
+              packageSize: true,
+              packageSizeUnit: true,
+              packageSizePerBox: true,
+              totalPackageSizePerBox: true,
+              commonName: true,
+              category: {
+                select: {
+                  description: true,
+                  code: true,
+                },
+              },
+              productGroup: {
+                select: {
+                  name: true,
+                  code: true,
+                },
+              },
+              productABCType: {
+                select: {
+                  name: true,
+                  code: true,
+                },
+              },
+              tradeNameGroup: {
+                select: {
+                  description: true,
+                  code: true,
+                },
+              },
+            },
+          },
+        },
       },
     },
-  });
+  },
+};
 
-  return sales;
+/**
+ * Fetch sales and sales targets data formatted for Sales Admin (Fulfillment & Documents focus)
+ */
+export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
+  const fetchSales = !filters.status || filters.status === "ALL" || filters.status === "SALES_NOTE" || filters.status === "INVOICE";
+  const fetchTargets = !filters.status || filters.status === "ALL" || filters.status === "FORECAST";
+
+  let sales: any[] = [];
+  let targets: any[] = [];
+
+  if (fetchSales) {
+    const where: Record<string, any> = {
+      deletedAt: null,
+    };
+
+    if (filters.startDate || filters.endDate) {
+      where.saleDate = {};
+      if (filters.startDate) {
+        where.saleDate.gte = new Date(filters.startDate);
+      }
+      if (filters.endDate) {
+        const end = new Date(filters.endDate);
+        end.setHours(23, 59, 59, 999);
+        where.saleDate.lte = end;
+      }
+    }
+
+    const statusWhere = buildStatusWhereClause(filters.status);
+    if (statusWhere) {
+      where.status = statusWhere;
+    }
+
+    sales = await db.sale.findMany({
+      where,
+      orderBy: { saleDate: "desc" },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            customerType: true,
+            province: true,
+            district: true,
+          },
+        },
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            nickname: true,
+            employeeCode: true,
+            departmentName: true,
+          },
+        },
+        shippingCompany: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        approvedBy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        shipments: shipmentSelectFields,
+        items: {
+          select: itemSelectFields,
+        },
+      },
+    });
+  }
+
+  if (fetchTargets) {
+    const monthPairs = getYearMonthPairs(filters.startDate, filters.endDate);
+    const targetWhere: Record<string, any> = {};
+    if (monthPairs && monthPairs.length > 0) {
+      targetWhere.OR = monthPairs;
+    }
+    targets = await db.salesTarget.findMany({
+      where: targetWhere,
+      orderBy: [{ year: "desc" }, { month: "desc" }],
+      include: salesTargetInclude,
+    });
+  }
+
+  return { sales, targets };
 }
 
 /**
- * Fetch sales data formatted for Marketing (Products, Plants, Volumes & Marketing focus)
+ * Fetch sales and sales targets data formatted for Marketing (Products, Plants, Volumes & Marketing focus)
  */
 export async function getSalesMarketingExportRecords(filters: ExportFilterParams) {
-  const where: Record<string, any> = {
-    deletedAt: null,
-  };
+  const fetchSales = !filters.status || filters.status === "ALL" || filters.status === "SALES_NOTE" || filters.status === "INVOICE";
+  const fetchTargets = !filters.status || filters.status === "ALL" || filters.status === "FORECAST";
 
-  if (filters.startDate || filters.endDate) {
-    where.saleDate = {};
-    if (filters.startDate) {
-      where.saleDate.gte = new Date(filters.startDate);
+  let sales: any[] = [];
+  let targets: any[] = [];
+
+  if (fetchSales) {
+    const where: Record<string, any> = {
+      deletedAt: null,
+    };
+
+    if (filters.startDate || filters.endDate) {
+      where.saleDate = {};
+      if (filters.startDate) {
+        where.saleDate.gte = new Date(filters.startDate);
+      }
+      if (filters.endDate) {
+        const end = new Date(filters.endDate);
+        end.setHours(23, 59, 59, 999);
+        where.saleDate.lte = end;
+      }
     }
-    if (filters.endDate) {
-      const end = new Date(filters.endDate);
-      end.setHours(23, 59, 59, 999);
-      where.saleDate.lte = end;
+
+    const statusWhere = buildStatusWhereClause(filters.status);
+    if (statusWhere) {
+      where.status = statusWhere;
     }
-  }
 
-  const statusWhere = buildStatusWhereClause(filters.status);
-  if (statusWhere) {
-    where.status = statusWhere;
-  }
-
-  const sales = await db.sale.findMany({
-    where,
-    orderBy: { saleDate: "desc" },
-    include: {
-      customer: {
-        select: {
-          id: true,
-          name: true,
-          customerType: true,
-          province: true,
-          district: true,
+    sales = await db.sale.findMany({
+      where,
+      orderBy: { saleDate: "desc" },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            customerType: true,
+            province: true,
+            district: true,
+          },
+        },
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            employeeCode: true,
+          },
+        },
+        shipments: shipmentSelectFields,
+        items: {
+          select: itemSelectFields,
         },
       },
-      employee: {
-        select: {
-          id: true,
-          name: true,
-          employeeCode: true,
-        },
-      },
-      shipments: shipmentSelectFields,
-      items: {
-        select: itemSelectFields,
-      },
-    },
-  });
+    });
+  }
 
-  return sales;
+  if (fetchTargets) {
+    const monthPairs = getYearMonthPairs(filters.startDate, filters.endDate);
+    const targetWhere: Record<string, any> = {};
+    if (monthPairs && monthPairs.length > 0) {
+      targetWhere.OR = monthPairs;
+    }
+    targets = await db.salesTarget.findMany({
+      where: targetWhere,
+      orderBy: [{ year: "desc" }, { month: "desc" }],
+      include: salesTargetInclude,
+    });
+  }
+
+  return { sales, targets };
 }
