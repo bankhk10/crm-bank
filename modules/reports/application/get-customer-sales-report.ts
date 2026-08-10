@@ -159,7 +159,7 @@ export async function getCustomerSalesReport(
       const totalSales = Number(cs?._sum.totalAmount || 0);
       const orderCount = cs?._count || 0;
       const invoiceAmount = Number(invoiceSalesMap.get(id)?.totalAmount || 0);
-      const salesNoteAmount = Math.max(0, totalSales - invoiceAmount);
+      const salesNoteAmount = totalSales;
       const firstAwaitingDeliverySales = Number(
         firstAwaitingDeliveryCustMap.get(id) || 0,
       );

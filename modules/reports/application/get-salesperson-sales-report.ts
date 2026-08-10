@@ -129,7 +129,7 @@ export async function getSalespersonSalesReport(
 
       const invoiceData = invoiceSalesMap.get(id);
       const invoiceAmount = Number(invoiceData?.totalAmount || 0);
-      const salesNoteAmount = Math.max(0, totalSales - invoiceAmount);
+      const salesNoteAmount = totalSales;
       const firstAwaitingDeliverySales = Number(
         firstAwaitingDeliveryEmpMap.get(id) || 0,
       );
