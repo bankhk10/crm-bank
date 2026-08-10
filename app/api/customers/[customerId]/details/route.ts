@@ -26,6 +26,27 @@ export async function GET(
   const startDateParam = url.searchParams.get("startDate");
   const endDateParam = url.searchParams.get("endDate");
 
+  // Build date filter for sales and promotional budget transactions
+  const dateFilter: { saleDate?: { gte?: Date; lte?: Date } } = {};
+  const promoDateFilter: { transactionDate?: { gte?: Date; lte?: Date } } = {};
+
+  if (startDateParam) {
+    const start = startOfDay(parseISO(startDateParam));
+    dateFilter.saleDate = { gte: start };
+    promoDateFilter.transactionDate = { gte: start };
+  }
+  if (endDateParam) {
+    const end = endOfDay(parseISO(endDateParam));
+    dateFilter.saleDate = {
+      ...dateFilter.saleDate,
+      lte: end,
+    };
+    promoDateFilter.transactionDate = {
+      ...promoDateFilter.transactionDate,
+      lte: end,
+    };
+  }
+
   // Get customer with all related data
   const customer = await db.customer.findFirst({
     where: { id: params.customerId, deletedAt: null },
@@ -63,8 +84,11 @@ export async function GET(
         orderBy: { year: "desc" },
         include: {
           details: {
-            where: { deletedAt: null },
-            orderBy: { createdAt: "desc" },
+            where: {
+              deletedAt: null,
+              ...promoDateFilter,
+            },
+            orderBy: { transactionDate: "desc" },
             select: {
               id: true,
               transactionDate: true,
@@ -86,18 +110,6 @@ export async function GET(
 
   if (!customer) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
-  // Build date filter for sales
-  const dateFilter: { saleDate?: { gte?: Date; lte?: Date } } = {};
-  if (startDateParam) {
-    dateFilter.saleDate = { gte: startOfDay(parseISO(startDateParam)) };
-  }
-  if (endDateParam) {
-    dateFilter.saleDate = {
-      ...dateFilter.saleDate,
-      lte: endOfDay(parseISO(endDateParam)),
-    };
   }
 
   // Get sales statistics
@@ -140,14 +152,15 @@ export async function GET(
     _count: true,
   });
 
-  // Get recent transactions (last 10)
+  // Get recent transactions (filtered by date range if specified)
   const recentSales = await db.sale.findMany({
     where: {
       customerId: params.customerId,
       deletedAt: null,
+      ...dateFilter,
     },
     orderBy: { saleDate: "desc" },
-    take: 10,
+    ...(startDateParam || endDateParam ? {} : { take: 10 }),
     select: {
       id: true,
       saleNumber: true,
