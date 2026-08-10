@@ -433,40 +433,6 @@ export default function SalespersonDetailView({
             topColor="red"
           />
           <KpiCard
-            label={`เป้าหมายทั้งปี`}
-            value={formatTHB(
-              data.monthlyPerformance.reduce((s, m) => s + m.target, 0),
-            )}
-            icon={Target}
-            gradient="bg-gradient-to-br from-red-500 to-red-600"
-            ring="shadow-lg shadow-red-500/20"
-            topColor="black"
-          />
-          <KpiCard
-            label="ออเดอร์ทั้งปี"
-            value={formatNumber(kpi.yearOrderCount)}
-            icon={ShoppingCart}
-            gradient="bg-gradient-to-br from-slate-900 to-slate-800"
-            ring="shadow-lg shadow-slate-900/20"
-            topColor="red"
-          />
-          <KpiCard
-            label="คะแนนสะสม"
-            value={formatNumber(kpi.totalPoints)}
-            icon={Award}
-            gradient="bg-gradient-to-br from-slate-800 to-slate-900"
-            ring="shadow-lg shadow-slate-800/20"
-            topColor="black"
-          />
-          <KpiCard
-            label="ยอดขายเดือนนี้"
-            value={formatTHB(kpi.monthTotalSales)}
-            icon={CalendarDays}
-            gradient="bg-gradient-to-br from-red-600 to-red-700"
-            ring="shadow-lg shadow-red-600/20"
-            topColor="red"
-          />
-          <KpiCard
             label="เป้ายอดขาย (เดือนนี้)"
             value={
               kpi.currentMonthTarget > 0
@@ -500,10 +466,10 @@ export default function SalespersonDetailView({
             }
           />
           <KpiCard
-            label="ขายล่าสุด"
-            value={kpi.lastSaleDate || "-"}
-            icon={Clock}
-            gradient="bg-gradient-to-br from-slate-800 to-slate-700"
+            label="คะแนนสะสม"
+            value={formatNumber(kpi.totalPoints)}
+            icon={Award}
+            gradient="bg-gradient-to-br from-slate-800 to-slate-900"
             ring="shadow-lg shadow-slate-800/20"
             topColor="black"
           />
@@ -705,9 +671,6 @@ export default function SalespersonDetailView({
                             <TableHead className="text-center">
                               สำเร็จ %
                             </TableHead>
-                            <TableHead className="text-center">
-                              ออเดอร์
-                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -761,9 +724,6 @@ export default function SalespersonDetailView({
                                     </span>
                                   )}
                                 </TableCell>
-                                <TableCell className="text-center">
-                                  {m.orders > 0 ? formatNumber(m.orders) : "-"}
-                                </TableCell>
                               </TableRow>
                             );
                           })}
@@ -781,21 +741,7 @@ export default function SalespersonDetailView({
                             <TableCell className="text-center text-emerald-600">
                               {formatTHB(kpi.yearTotalSales)}
                             </TableCell>
-                            <TableCell className="text-center">
-                              {(() => {
-                                const totalTarget =
-                                  data.monthlyPerformance.reduce(
-                                    (s, m) => s + m.target,
-                                    0,
-                                  );
-                                return totalTarget > 0
-                                  ? `${Math.round((kpi.yearTotalSales / totalTarget) * 100)}%`
-                                  : "-";
-                              })()}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {formatNumber(kpi.yearOrderCount)}
-                            </TableCell>
+                            <TableCell className="text-center"></TableCell>
                           </TableRow>
                         </TableBody>
                       </Table>
