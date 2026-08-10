@@ -139,30 +139,30 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
 
         rows.push({
           ปี: saleYear,
-          ประเภทข้อมูล: dataTypeLabel,
+          ข้อมูล: dataTypeLabel,
           เดือน: saleMonth,
           กรุ๊ป: abcGroup,
           กลุ่มสาร: productGroupStr,
           ชื่อสามัญ: commonNameStr,
           รหัสสินค้า: item.productCode || "",
           ชื่อการค้า: tradeNameStr,
-          ขนาดบรรจุ: packageSizeStr,
-          ขนาดบรรจุรวมต่อลัง: totalPerBox,
+          ขนาด: packageSizeStr,
+          "ลิตร/กก.": totalPerBox,
 
           พนักงานขาย: sale.employee?.nickname || "",
           ภูมิภาค: regionStr,
-          ชื่อลูกค้า: sale.customer?.name || "",
+          ร้านค้า: sale.customer?.name || "",
           จังหวัด: sale.customer?.province || "",
-          จำนวนที่ขาย: quantityNum,
-          ผลรวมขนาดบรรจุรวมต่อลังที่ขาย: totalBoxSold,
-          ราคาที่ขาย: Number(item.unitPrice) || 0,
-          ราคาที่ขายรวม: Number(item.totalPrice) || 0,
-          วันที่ชำระเงิน: paymentDateStr,
-          เลขที่คำสั่งขาย: salesOrderNo,
-          วันที่จัดส่งของ: deliveryDateStr,
-          หมายเหตุ: sale.notes || "",
+          "SALES BY Q (Carton)": quantityNum,
+          "ผลรวมลิตร/กก.": totalBoxSold,
+          "SALES BY VALUE (฿)": Number(item.totalPrice) || 0,
+          "Remark / Price": paymentDateStr,
+          SN: salesOrderNo,
+          Inv: deliveryDateStr,
+          REMARK: sale.notes || "",
 
           วันที่สร้างออเดอร์: formattedDate,
+          ราคาที่ขาย: Number(item.unitPrice) || 0,
           สถานะ: statusThai,
           ชื่อสินค้า: item.name || "",
           หน่วยนับ: item.unit || item.product?.unit || "",
@@ -177,30 +177,30 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
     } else {
       rows.push({
         ปี: saleYear,
-        ประเภทข้อมูล: dataTypeLabel,
+        ข้อมูล: dataTypeLabel,
         เดือน: saleMonth,
         กรุ๊ป: "-",
         กลุ่มสาร: "-",
         ชื่อสามัญ: "-",
         รหัสสินค้า: "-",
         ชื่อการค้า: "-",
-        ขนาดบรรจุ: "-",
-        ขนาดบรรจุรวมต่อลัง: 0,
+        ขนาด: "-",
+        "ลิตร/กก.": 0,
 
         พนักงานขาย: sale.employee?.nickname || "",
         ภูมิภาค: regionStr,
-        ชื่อลูกค้า: sale.customer?.name || "",
+        ร้านค้า: sale.customer?.name || "",
         จังหวัด: sale.customer?.province || "",
-        จำนวนที่ขาย: 0,
-        ผลรวมขนาดบรรจุรวมต่อลังที่ขาย: 0,
-        ราคาที่ขาย: 0,
-        ราคาที่ขายรวม: 0,
-        วันที่ชำระเงิน: paymentDateStr,
-        เลขที่คำสั่งขาย: salesOrderNo,
-        วันที่จัดส่งของ: deliveryDateStr,
-        หมายเหตุ: sale.notes || "",
+        "SALES BY Q (Carton)": 0,
+        "ผลรวมลิตร/กก.": 0,
+        "SALES BY VALUE (฿)": 0,
+        "Remark / Price": paymentDateStr,
+        SN: salesOrderNo,
+        Inv: deliveryDateStr,
+        REMARK: sale.notes || "",
 
         วันที่สร้างออเดอร์: formattedDate,
+        ราคาที่ขาย: 0,
         สถานะ: statusThai,
         ชื่อสินค้า: "-",
         หน่วยนับ: "-",
@@ -219,29 +219,29 @@ export function buildSalesAdminExportWorkbook(sales: any[]): string {
   // Set column widths
   const colWidths = [
     { wch: 10 }, // ปี
-    { wch: 15 }, // ประเภทข้อมูล
+    { wch: 15 }, // ข้อมูล
     { wch: 10 }, // เดือน
     { wch: 15 }, // กรุ๊ป
     { wch: 20 }, // กลุ่มสาร
     { wch: 20 }, // ชื่อสามัญ
     { wch: 15 }, // รหัสสินค้า
     { wch: 20 }, // ชื่อการค้า
-    { wch: 18 }, // ขนาดบรรจุ
-    { wch: 20 }, // ขนาดบรรจุรวมต่อลัง
+    { wch: 18 }, // ขนาด
+    { wch: 20 }, // ลิตร/กก.
     { wch: 15 }, // พนักงานขาย
     { wch: 15 }, // ภูมิภาค
-    { wch: 25 }, // ชื่อลูกค้า
+    { wch: 25 }, // ร้านค้า
     { wch: 15 }, // จังหวัด
-    { wch: 10 }, // จำนวนที่ขาย
-    { wch: 30 }, // ผลรวมขนาดบรรจุรวมต่อลังที่ขาย
-    { wch: 18 }, // ราคาที่ขาย
-    { wch: 18 }, // ราคาที่ขายรวม
-    { wch: 15 }, // วันที่ชำระเงิน
-    { wch: 20 }, // เลขที่คำสั่งขาย
-    { wch: 15 }, // วันที่จัดส่งของ
-    { wch: 25 }, // หมายเหตุ
+    { wch: 10 }, // SALES BY Q (Carton)
+    { wch: 30 }, // ผลรวมลิตร/กก.
+    { wch: 18 }, // SALES BY VALUE (฿)
+    { wch: 15 }, // Remark / Price
+    { wch: 20 }, // SN
+    { wch: 15 }, // Inv
+    { wch: 25 }, // REMARK
 
     { wch: 15 }, // วันที่สร้างออเดอร์
+    { wch: 18 }, // ราคาที่ขาย
     { wch: 18 }, // สถานะ
     { wch: 25 }, // ชื่อสินค้า
     { wch: 10 }, // หน่วยนับ
