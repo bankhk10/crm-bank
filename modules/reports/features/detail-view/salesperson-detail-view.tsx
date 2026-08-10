@@ -739,9 +739,30 @@ export default function SalespersonDetailView({
                               )}
                             </TableCell>
                             <TableCell className="text-center text-emerald-600">
-                              {formatTHB(kpi.yearTotalSales)}
+                              {formatTHB(
+                                data.monthlyPerformance.reduce(
+                                  (s, m) => s + m.actual,
+                                  0,
+                                ),
+                              )}
                             </TableCell>
-                            <TableCell className="text-center"></TableCell>
+                            <TableCell className="text-center">
+                              {(() => {
+                                const totalTarget =
+                                  data.monthlyPerformance.reduce(
+                                    (s, m) => s + m.target,
+                                    0,
+                                  );
+                                const totalActual =
+                                  data.monthlyPerformance.reduce(
+                                    (s, m) => s + m.actual,
+                                    0,
+                                  );
+                                return totalTarget > 0
+                                  ? `${Math.round((totalActual / totalTarget) * 100)}%`
+                                  : "-";
+                              })()}
+                            </TableCell>
                           </TableRow>
                         </TableBody>
                       </Table>

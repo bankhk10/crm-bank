@@ -90,7 +90,7 @@ export async function getSalespersonDetailReport(
   // 3. Monthly sales data for this year (aggregate from raw sales)
   const rawMonthlySales = await repo.groupMonthlySalesByEmployee(
     employeeId,
-    currentYear,
+    targetYear,
   );
 
   // Aggregate into monthly buckets
@@ -110,12 +110,15 @@ export async function getSalespersonDetailReport(
     entry.orders += row._count;
   }
 
+  const targetYearStart = new Date(targetYear, 0, 1);
+  const targetYearEnd = new Date(targetYear, 11, 31, 23, 59, 59);
+
   // For customer count per month, we need separate query
   const monthlyCustomerData = await repo.groupSalesData({
     by: ["customerId", "saleDate"],
     where: {
       employeeId,
-      saleDate: { gte: yearStart, lte: yearEnd },
+      saleDate: { gte: targetYearStart, lte: targetYearEnd },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED"] },
     },
