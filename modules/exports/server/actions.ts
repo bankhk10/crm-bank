@@ -4,11 +4,9 @@ import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { hasPermission } from "@/lib/permission-check";
 import {
   getSalesAdminExportRecords,
-  getSalesMarketingExportRecords,
   type ExportFilterParams,
 } from "../infrastructure/export.repository";
 import { buildSalesAdminExportWorkbook } from "../application/export-sales-admin";
-import { buildSalesMarketingExportWorkbook } from "../application/export-sales-marketing";
 import { format } from "date-fns";
 
 export interface ActionResult<T> {
@@ -57,37 +55,3 @@ export async function exportSalesAdminAction(
   }
 }
 
-/**
- * Server action to export Marketing sales data
- * Requires permission: export.sales_marketing
- */
-export async function exportSalesMarketingAction(
-  filters: ExportFilterParams
-): Promise<ActionResult<ExportFileResult>> {
-  try {
-    const session = await auth();
-    if (!session?.user) {
-      return { success: false, error: "กรุณาเข้าสู่ระบบก่อนใช้งาน" };
-    }
-
-    if (!hasPermission(session, "export.sales_marketing")) {
-      return { success: false, error: "คุณไม่มีสิทธิ์ในการส่งออกข้อมูลการขาย (การตลาด)" };
-    }
-
-    const records = await getSalesMarketingExportRecords(filters);
-    const base64 = await buildSalesMarketingExportWorkbook(records);
-    const dateStr = format(new Date(), "yyyyMMdd-HHmm");
-    const filename = `sales-marketing-export-${dateStr}.xlsx`;
-
-    return {
-      success: true,
-      data: { filename, base64 },
-    };
-  } catch (err: any) {
-    console.error("exportSalesMarketingAction error:", err);
-    return {
-      success: false,
-      error: err.message || "เกิดข้อผิดพลาดในการส่งออกข้อมูลการขาย (การตลาด)",
-    };
-  }
-}
