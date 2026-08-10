@@ -453,10 +453,9 @@ function PendingDeliveriesExportCard({
             รายละเอียดคอลัมน์ในไฟล์ Excel:
           </div>
           <ul className="list-disc list-inside space-y-1 text-[11px] text-muted-foreground">
-            <li>เลขที่ออเดอร์ (Order Ref / Sale Number)</li>
-            <li>ชื่อลูกค้า</li>
-            <li>รหัสสินค้า และชื่อสินค้า</li>
-            <li>จำนวนสินค้าที่ค้างส่ง (Pending Quantity)</li>
+            <li>เลขที่ออเดอร์ (Order Ref / Sale Number), ชื่อลูกค้า</li>
+            <li>รหัสสินค้า, ชื่อสินค้า, จำนวนสินค้าที่ค้างส่ง</li>
+            <li>หน่วยนับ, ราคาขาย, ราคารวม</li>
           </ul>
         </div>
       </CardContent>

@@ -57,11 +57,21 @@ export async function exportPendingDeliveriesUseCase() {
       const pendingQty = item.quantity - deliveredQty;
 
       if (pendingQty > 0) {
+        const unitPrice = Number(item.unitPrice) || 0;
+        const totalPrice = pendingQty * unitPrice;
+        const productCode = item.productCode || item.product?.productCode || "";
+        const productName = item.name || item.product?.name || "";
+        const unit = item.unit || item.product?.unit || "";
+
         pendingItems.push({
           orderNumber: sale.saleNumber,
           customerName: sale.customer.name,
-          productCodeAndName: `${item.product.productCode} - ${item.product.name}`,
+          productCode,
+          productName,
           pendingQuantity: pendingQty,
+          unit,
+          unitPrice,
+          totalPrice,
         });
       }
     }
