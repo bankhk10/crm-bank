@@ -7,11 +7,8 @@ export interface ExportFilterParams {
 }
 
 function buildStatusWhereClause(status?: string) {
-  if (!status || status === "ALL") {
+  if (!status || status === "ALL" || status === "FORECAST") {
     return undefined;
-  }
-  if (status === "FORECAST") {
-    return { in: ["PENDING_APPROVAL", "WAITING_FOR_CORRECTION"] };
   }
   if (status === "SALES_NOTE") {
     return { in: ["APPROVED", "AWAITING_DELIVERY", "PARTIALLY_DELIVERED", "PENDING_APPROVAL", "WAITING_FOR_CORRECTION"] };
