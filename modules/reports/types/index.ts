@@ -159,6 +159,7 @@ export interface ProductGroupSalesReportData {
 }
 
 export interface CustomerSalesReportData {
+  totalFirstAwaitingDeliverySales?: number;
   topCustomers: {
     id: string;
     code: string;

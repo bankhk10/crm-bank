@@ -370,6 +370,8 @@ export function CustomerSalesDashboard() {
     (sum, s) => sum + s.invoiceAmount,
     0,
   );
+  const totalFirstAwaitingDeliverySales =
+    customerData?.totalFirstAwaitingDeliverySales || 0;
 
   return (
     <div className="min-h-screen pb-12 rounded-3xl">
@@ -555,7 +557,16 @@ export function CustomerSalesDashboard() {
         ) : (
           <div className="space-y-4 sm:space-y-6">
             {/* ── Summary KPI Cards ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <KpiCard
+                label="ยอดขาย"
+                sublabel="คำนวณจากวันที่รอดำเนินการจัดส่งครั้งแรก"
+                value={formatTHB(totalFirstAwaitingDeliverySales)}
+                icon={TrendingUp}
+                gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
+                ring="ring-2 ring-emerald-300/30"
+                topColor="red"
+              />
               <KpiCard
                 label="ผลรวม Invoice"
                 sublabel="ยอดรวม Invoice ทั้งหมดในช่วงเวลาที่เลือก"

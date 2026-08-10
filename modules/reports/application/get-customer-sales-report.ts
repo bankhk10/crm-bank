@@ -359,7 +359,22 @@ export async function getCustomerSalesReport(filter: DateRangeFilter, session: a
     }))
     .sort((a, b) => b.lifetimeValue - a.lifetimeValue);
 
+  // Total sales calculated from firstAwaitingDeliveryAt
+  const firstAwaitingDeliverySales = await prisma.sale.aggregate({
+    where: {
+      firstAwaitingDeliveryAt: { gte: start, lte: end },
+      deletedAt: null,
+      status: { notIn: ["CANCELLED", "REJECTED"] },
+      ...scopeFilter,
+    },
+    _sum: { totalAmount: true },
+  });
+  const totalFirstAwaitingDeliverySales = Number(
+    firstAwaitingDeliverySales._sum.totalAmount || 0,
+  );
+
   return {
+    totalFirstAwaitingDeliverySales,
     topCustomers,
     customerTypeBreakdown,
     customerAcquisition: {
