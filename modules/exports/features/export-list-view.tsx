@@ -26,6 +26,8 @@ import {
   ShieldAlert,
   Clock,
   Package,
+  Sparkles,
+  Info,
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { Button } from "@/components/ui/button";
@@ -47,6 +49,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   exportSalesAdminAction,
   exportPendingDeliveriesAction,
@@ -136,6 +144,72 @@ function triggerDownload(base64: string, filename: string) {
 }
 
 /**
+ * Permission status badge shared across export cards
+ */
+function PermissionBadge({
+  isLoading,
+  hasAccess,
+}: {
+  isLoading: boolean;
+  hasAccess: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <Badge variant="outline" className="text-[10px] animate-pulse gap-1.5 px-2.5 py-1">
+        <Loader2 className="h-3 w-3 animate-spin" />
+        ตรวจสอบสิทธิ์...
+      </Badge>
+    );
+  }
+
+  if (hasAccess) {
+    return (
+      <Badge
+        variant="secondary"
+        className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 gap-1.5 px-2.5 py-1 text-[10px]"
+      >
+        <CheckCircle2 className="h-3 w-3" />
+        มีสิทธิ์ใช้งาน
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge
+      variant="outline"
+      className="bg-red-500/8 text-red-600 dark:text-red-400 border-red-500/20 gap-1.5 px-2.5 py-1 text-[10px]"
+    >
+      <Lock className="h-3 w-3" />
+      ไม่มีสิทธิ์
+    </Badge>
+  );
+}
+
+/**
+ * Reusable file column detail section
+ */
+function FileColumnDetails({ items }: { items: string[] }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+        <Info className="h-3.5 w-3.5 text-muted-foreground" />
+        คอลัมน์ในไฟล์ Excel
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((item) => (
+          <span
+            key={item}
+            className="inline-flex items-center rounded-md bg-muted/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground ring-1 ring-inset ring-border/50"
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
  * Sales Admin Export Component (with local filters & presets)
  */
 function SalesAdminExportCard({
@@ -203,60 +277,47 @@ function SalesAdminExportCard({
   };
 
   return (
-    <Card className="flex flex-col justify-between transition-all duration-200 hover:shadow-md border-border/80">
-      <CardHeader className="space-y-3 pb-4 mt-6">
+    <Card className="group relative flex flex-col justify-between overflow-hidden border-border/60 bg-card transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/5 hover:border-blue-500/30">
+      {/* Accent top bar */}
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
+
+      <CardHeader className="space-y-3 pb-4 pt-7">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-            <Building2 className="h-6 w-6" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/15 to-indigo-500/10 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/10 transition-transform duration-300 group-hover:scale-105">
+            <Building2 className="h-5 w-5" />
           </div>
-          {isLoadingPermission ? (
-            <Badge variant="outline" className="text-xs animate-pulse">
-              กำลังตรวจสอบสิทธิ์...
-            </Badge>
-          ) : canExport ? (
-            <Badge
-              variant="secondary"
-              className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 gap-1"
-            >
-              <CheckCircle2 className="h-3 w-3" />
-              อนุญาตสิทธิ์การใช้งาน
-            </Badge>
-          ) : (
-            <Badge
-              variant="outline"
-              className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20 gap-1"
-            >
-              <Lock className="h-3 w-3" />
-              ไม่มีสิทธิ์การส่งออก
-            </Badge>
-          )}
+          <PermissionBadge isLoading={isLoadingPermission} hasAccess={canExport} />
         </div>
 
         <div>
-          <CardTitle className="text-lg font-bold">ข้อมูลการขาย</CardTitle>
-          <CardDescription className="mt-1 text-sm leading-relaxed">
-            ส่งออกข้อมูลเอกสารการขาย
+          <CardTitle className="text-base font-bold tracking-tight">
+            ข้อมูลการขาย
+          </CardTitle>
+          <CardDescription className="mt-1 text-xs leading-relaxed">
+            ส่งออกข้อมูลเอกสารการขาย (ธุรการขาย)
           </CardDescription>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4 pt-0">
-        {/* Local Filter Options Box */}
-        <div className="rounded-lg border border-border/70 bg-muted/30 p-3.5 space-y-3">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-            <Filter className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-            <span>เงื่อนไขการค้นหารายงาน</span>
+        {/* Filter Section */}
+        <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3.5">
+          <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+            <div className="flex h-5 w-5 items-center justify-center rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400">
+              <Filter className="h-3 w-3" />
+            </div>
+            <span>เงื่อนไขการค้นหา</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Quick Date Preset */}
-            <div className="space-y-1 sm:col-span-2">
-              <Label className="text-[11px] font-medium flex items-center gap-1">
-                <Clock className="h-3 w-3 text-muted-foreground" />
-                <span>ช่วงเวลา (Quick Filter)</span>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label className="text-[11px] font-medium flex items-center gap-1.5 text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>ช่วงเวลา</span>
               </Label>
               <Select value={datePreset} onValueChange={handlePresetChange}>
-                <SelectTrigger className="h-8 text-xs w-full bg-background">
+                <SelectTrigger className="h-9 text-xs w-full bg-background/80 border-border/60">
                   <SelectValue placeholder="เลือกช่วงเวลา" />
                 </SelectTrigger>
                 <SelectContent>
@@ -274,38 +335,40 @@ function SalesAdminExportCard({
             </div>
 
             {/* Start Date */}
-            <div className="space-y-1">
-              <Label className="text-[11px] font-medium flex items-center gap-1">
-                <Calendar className="h-3 w-3 text-muted-foreground" />
+            <div className="space-y-1.5">
+              <Label className="text-[11px] font-medium flex items-center gap-1.5 text-muted-foreground">
+                <Calendar className="h-3 w-3" />
                 <span>วันที่เริ่มต้น</span>
               </Label>
               <Input
                 type="date"
                 value={startDate}
                 onChange={(e) => handleStartDateChange(e.target.value)}
-                className="h-8 text-xs w-full bg-background"
+                className="h-9 text-xs w-full bg-background/80 border-border/60"
               />
             </div>
 
             {/* End Date */}
-            <div className="space-y-1">
-              <Label className="text-[11px] font-medium flex items-center gap-1">
-                <Calendar className="h-3 w-3 text-muted-foreground" />
+            <div className="space-y-1.5">
+              <Label className="text-[11px] font-medium flex items-center gap-1.5 text-muted-foreground">
+                <Calendar className="h-3 w-3" />
                 <span>วันที่สิ้นสุด</span>
               </Label>
               <Input
                 type="date"
                 value={endDate}
                 onChange={(e) => handleEndDateChange(e.target.value)}
-                className="h-8 text-xs w-full bg-background"
+                className="h-9 text-xs w-full bg-background/80 border-border/60"
               />
             </div>
 
             {/* Status Select */}
-            <div className="space-y-1 sm:col-span-2">
-              <Label className="text-[11px] font-medium">สถานะใบขาย</Label>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label className="text-[11px] font-medium text-muted-foreground">
+                สถานะใบขาย
+              </Label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="h-8 text-xs w-full bg-background">
+                <SelectTrigger className="h-9 text-xs w-full bg-background/80 border-border/60">
                   <SelectValue placeholder="เลือกสถานะ" />
                 </SelectTrigger>
                 <SelectContent>
@@ -324,31 +387,33 @@ function SalesAdminExportCard({
           </div>
         </div>
 
-        {/* File Detail Highlights */}
-        <div className="text-xs text-muted-foreground space-y-1.5">
-          <div className="font-medium text-foreground">
-            รายละเอียดคอลัมน์ในไฟล์ Excel:
-          </div>
-          <ul className="list-disc list-inside space-y-0.5 pl-1 text-[11px]">
-            <li>
-              เลขที่เอกสาร, วันที่เอกสาร, สถานะใบขาย, ชื่อลูกค้า, ประเภทลูกค้า
-            </li>
-            <li>
-              เงื่อนไขชำระเงิน, วันครบกำหนด, วันส่งจริง, วิธีจัดส่ง, บริษัทขนส่ง
-            </li>
-            <li>
-              ยอดรวมสินค้า, ค่าจัดส่ง, ค่าใช้จ่ายอื่นๆ, ยอดรวมสุทธิ
-              และรายการสินค้า
-            </li>
-          </ul>
-        </div>
+        {/* Column Details */}
+        <FileColumnDetails
+          items={[
+            "เลขที่เอกสาร",
+            "วันที่เอกสาร",
+            "สถานะใบขาย",
+            "ชื่อลูกค้า",
+            "ประเภทลูกค้า",
+            "เงื่อนไขชำระเงิน",
+            "วันครบกำหนด",
+            "วันส่งจริง",
+            "วิธีจัดส่ง",
+            "บริษัทขนส่ง",
+            "ยอดรวมสินค้า",
+            "ค่าจัดส่ง",
+            "ค่าใช้จ่ายอื่นๆ",
+            "ยอดรวมสุทธิ",
+            "รายการสินค้า",
+          ]}
+        />
       </CardContent>
 
-      <CardFooter className="pt-2 border-t border-border/40 mb-4">
+      <CardFooter className="pt-3 pb-5 px-6">
         <Button
           onClick={handleExport}
           disabled={isExporting || !canExport || isLoadingPermission}
-          className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+          className="w-full gap-2.5 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-sm shadow-md shadow-blue-600/20 transition-all duration-200 hover:shadow-lg hover:shadow-blue-600/30 disabled:opacity-50 disabled:shadow-none"
         >
           {isExporting ? (
             <>
@@ -358,12 +423,12 @@ function SalesAdminExportCard({
           ) : !canExport ? (
             <>
               <Lock className="h-4 w-4" />
-              <span>ไม่มีสิทธิ์ส่งออกข้อมูล (export.sales_admin)</span>
+              <span>ไม่มีสิทธิ์ส่งออกข้อมูล</span>
             </>
           ) : (
             <>
               <FileSpreadsheet className="h-4 w-4" />
-              <span>ส่งออกข้อมูลการขาย (ธุรการขาย) .xlsx</span>
+              <span>ส่งออกข้อมูลการขาย .xlsx</span>
             </>
           )}
         </Button>
@@ -409,62 +474,58 @@ function PendingDeliveriesExportCard({
   };
 
   return (
-    <Card className="flex flex-col justify-between transition-all duration-200 hover:shadow-md border-border/80">
-      <CardHeader className="space-y-3 pb-4 mt-6">
+    <Card className="group relative flex flex-col justify-between overflow-hidden border-border/60 bg-card transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/5 hover:border-amber-500/30">
+      {/* Accent top bar */}
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
+
+      <CardHeader className="space-y-3 pb-4 pt-7">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
-            <Package className="h-6 w-6" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/15 to-orange-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/10 transition-transform duration-300 group-hover:scale-105">
+            <Package className="h-5 w-5" />
           </div>
-          {isLoadingPermission ? (
-            <Badge variant="outline" className="text-xs animate-pulse">
-              กำลังตรวจสอบสิทธิ์...
-            </Badge>
-          ) : canExport ? (
-            <Badge
-              variant="secondary"
-              className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 gap-1"
-            >
-              <CheckCircle2 className="h-3 w-3" />
-              อนุญาตสิทธิ์การใช้งาน
-            </Badge>
-          ) : (
-            <Badge
-              variant="outline"
-              className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20 gap-1"
-            >
-              <Lock className="h-3 w-3" />
-              ไม่มีสิทธิ์การส่งออก
-            </Badge>
-          )}
+          <PermissionBadge isLoading={isLoadingPermission} hasAccess={canExport} />
         </div>
 
         <div>
-          <CardTitle className="text-lg font-bold">สินค้าค้างส่ง</CardTitle>
-          <CardDescription className="mt-1 text-sm leading-relaxed">
-            ส่งออก รายงานรายการสินค้าที่อยู่ระหว่างรอการจัดส่งทั้งหมด
+          <CardTitle className="text-base font-bold tracking-tight">
+            สินค้าค้างส่ง
+          </CardTitle>
+          <CardDescription className="mt-1 text-xs leading-relaxed">
+            ส่งออกรายงานรายการสินค้าที่อยู่ระหว่างรอการจัดส่ง
           </CardDescription>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4 pt-0">
-        {/* File Detail Highlights */}
-        <div className="rounded-lg border border-border/70 bg-muted/30 p-3.5 space-y-2">
-          <div className="font-medium text-xs text-foreground">
-            รายละเอียดคอลัมน์ในไฟล์ Excel:
-          </div>
-          <ul className="list-disc list-inside space-y-1 text-[11px] text-muted-foreground">
-            <li>เลขที่ออเดอร์ (Order Ref / Sale Number), ชื่อลูกค้า</li>
-            <li>รหัสสินค้า, ชื่อสินค้า, จำนวนสินค้าที่ค้างส่ง</li>
-            <li>หน่วยนับ, ราคาขาย, ราคารวม</li>
-          </ul>
+        {/* Info callout */}
+        <div className="flex items-start gap-2.5 rounded-xl bg-amber-500/5 border border-amber-500/15 px-3.5 py-3 text-[11px] text-amber-800 dark:text-amber-300/80">
+          <Sparkles className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+          <span>
+            รายงานนี้จะดึงข้อมูลสินค้าค้างส่งทั้งหมดจากทุก Order
+            โดยไม่ต้องกรองตามช่วงเวลา
+          </span>
         </div>
+
+        {/* Column Details */}
+        <FileColumnDetails
+          items={[
+            "เลขที่ออเดอร์",
+            "ชื่อลูกค้า",
+            "รหัสสินค้า",
+            "ชื่อสินค้า",
+            "จำนวนค้างส่ง",
+            "หน่วยนับ",
+            "ราคาขาย",
+            "ราคารวม",
+          ]}
+        />
       </CardContent>
 
-      <CardFooter className="pt-2 border-t border-border/40 mb-4">
+      <CardFooter className="pt-3 pb-5 px-6">
         <Button
           onClick={handleExport}
           disabled={isExporting || !canExport || isLoadingPermission}
-          className="w-full gap-2 bg-amber-600 hover:bg-amber-700 text-white font-medium"
+          className="w-full gap-2.5 h-10 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold text-sm shadow-md shadow-amber-600/20 transition-all duration-200 hover:shadow-lg hover:shadow-amber-600/30 disabled:opacity-50 disabled:shadow-none"
         >
           {isExporting ? (
             <>
@@ -496,54 +557,78 @@ export function ExportListView() {
     hasPermission("export.sales_admin") || hasPermission("menu.fulfillment");
 
   return (
-    <div className="container mx-auto space-y-6 p-4 md:p-6 lg:p-8 max-w-5xl">
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border/60 pb-5">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Download className="h-5 w-5" />
+    <TooltipProvider>
+      <div className="container mx-auto space-y-6 p-4 md:p-6 lg:p-8 max-w-5xl">
+        {/* Hero Header */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-6 py-8 md:px-8 md:py-10 shadow-xl">
+          {/* Background decorations */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-600/10 via-transparent to-amber-600/5" />
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 h-60 w-60 rounded-full bg-blue-500/5 blur-3xl" />
+          <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-40 w-40 rounded-full bg-amber-500/5 blur-3xl" />
+
+          <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white backdrop-blur-sm ring-1 ring-white/10">
+                <Download className="h-6 w-6" />
+              </div>
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white">
+                  ศูนย์ส่งออกข้อมูล
+                </h1>
+                <p className="text-sm text-white/50 mt-0.5">
+                  เลือกและตั้งค่าเงื่อนไขการส่งออกข้อมูลเป็นไฟล์ Excel (.xlsx)
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">
-                ศูนย์ส่งออกข้อมูล (Export Center)
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                เลือกและตั้งค่าเงื่อนไขการส่งออกข้อมูลเป็นไฟล์ Excel (.xlsx)
-              </p>
-            </div>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="hidden md:flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2 text-xs text-white/40 ring-1 ring-white/10">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  <span>
+                    {[canExportSalesAdmin, canExportPending].filter(Boolean)
+                      .length}{" "}
+                    / 2 รายการพร้อมส่งออก
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>จำนวนรายงานที่คุณมีสิทธิ์ส่งออก</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
-      </div>
 
-      {/* Export Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-        <SalesAdminExportCard
-          canExport={canExportSalesAdmin}
-          isLoadingPermission={isPermissionLoading}
-        />
-        <PendingDeliveriesExportCard
-          canExport={canExportPending}
-          isLoadingPermission={isPermissionLoading}
-        />
-      </div>
-
-      {/* Security Banner / Notice */}
-      {(!canExportSalesAdmin || !canExportPending) && !isPermissionLoading && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/10 p-4 text-amber-800 dark:text-amber-300 w-full">
-          <ShieldAlert className="h-5 w-5 flex-shrink-0 mt-0.5" />
-          <div className="text-xs sm:text-sm">
-            <span className="font-semibold">
-              หมายเหตุเรื่องสิทธิ์การใช้งาน:{" "}
-            </span>
-            หากปุ่มส่งออกถูกปิดการใช้งาน (Disabled)
-            แสดงว่าบัญชีของคุณยังไม่ได้รับสิทธิ์การส่งออกข้อมูลสำหรับส่วนงานนั้นๆ
-            กรุณาติดต่อผู้ดูแลระบบ (Administrator)
-            เพื่อขอรับสิทธิ์ผ่านระบบจัดการสิทธิ์ (RBAC)
-          </div>
+        {/* Export Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
+          <SalesAdminExportCard
+            canExport={canExportSalesAdmin}
+            isLoadingPermission={isPermissionLoading}
+          />
+          <PendingDeliveriesExportCard
+            canExport={canExportPending}
+            isLoadingPermission={isPermissionLoading}
+          />
         </div>
-      )}
-    </div>
+
+        {/* Security Notice */}
+        {(!canExportSalesAdmin || !canExportPending) && !isPermissionLoading && (
+          <div className="flex items-start gap-3 rounded-xl border border-amber-500/15 bg-amber-500/5 p-4 text-amber-800 dark:text-amber-300/80 w-full">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 flex-shrink-0">
+              <ShieldAlert className="h-4 w-4" />
+            </div>
+            <div className="text-xs sm:text-sm leading-relaxed">
+              <span className="font-semibold">
+                หมายเหตุเรื่องสิทธิ์การใช้งาน:{" "}
+              </span>
+              หากปุ่มส่งออกถูกปิดการใช้งาน (Disabled)
+              แสดงว่าบัญชีของคุณยังไม่ได้รับสิทธิ์การส่งออกข้อมูลสำหรับส่วนงานนั้นๆ
+              กรุณาติดต่อผู้ดูแลระบบ (Administrator)
+              เพื่อขอรับสิทธิ์ผ่านระบบจัดการสิทธิ์ (RBAC)
+            </div>
+          </div>
+        )}
+      </div>
+    </TooltipProvider>
   );
 }
-
