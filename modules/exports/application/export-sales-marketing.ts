@@ -17,9 +17,6 @@ const SALE_STATUS_MAP: Record<string, string> = {
 };
 
 function getDataTypeLabel(status: string): string {
-  if (status === "PENDING_APPROVAL" || status === "WAITING_FOR_CORRECTION") {
-    return "Forecast";
-  }
   if (status === "DELIVERY_COMPLETED" || status === "PAID" || status === "COMPLETED") {
     return "Invoice";
   }
