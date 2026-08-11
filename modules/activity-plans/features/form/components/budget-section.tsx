@@ -667,20 +667,48 @@ export function BudgetSection({
                   })
                 )}
               </tbody>
-              {salesPromotionItems.length > 0 && (
-                <tfoot className="bg-slate-50/80 border-t-2 border-slate-200 text-xs font-bold text-slate-800">
-                  <tr>
-                    <td colSpan={2} className="py-3 px-3 text-left">
-                      ผลรวมใช้งบทั้งสิ้น:{" "}
-                      {salesPromotionItems
-                        .reduce((sum, item) => sum + (item.amount || 0), 0)
-                        .toLocaleString()}{" "}
-                      ฿
-                    </td>
-                    {!readonly && <td></td>}
-                  </tr>
-                </tfoot>
-              )}
+              {salesPromotionItems.length > 0 && (() => {
+                const marketingTotal = salesPromotionItems
+                  .filter((item) => (item.budgetType || "งบการตลาด") === "งบการตลาด")
+                  .reduce((sum, item) => sum + (item.amount || 0), 0);
+                const salesTotal = salesPromotionItems
+                  .filter((item) => item.budgetType === "งบขาย")
+                  .reduce((sum, item) => sum + (item.amount || 0), 0);
+                const grandTotal = marketingTotal + salesTotal;
+
+                return (
+                  <tfoot className="bg-slate-50/90 border-t-2 border-slate-200 text-xs text-slate-700">
+                    <tr>
+                      <td colSpan={readonly ? 4 : 5} className="py-3 px-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2.5">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-medium shadow-2xs">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                              รวมงบการตลาด:{" "}
+                              <strong className="font-bold text-emerald-700">
+                                ฿ {marketingTotal.toLocaleString()}
+                              </strong>
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200/80 text-blue-800 text-xs font-medium shadow-2xs">
+                              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                              รวมงบขาย:{" "}
+                              <strong className="font-bold text-blue-700">
+                                ฿ {salesTotal.toLocaleString()}
+                              </strong>
+                            </span>
+                          </div>
+                          <div className="text-xs font-bold text-slate-800 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                            ผลรวมใช้งบทั้งสิ้น:{" "}
+                            <span className="text-xs sm:text-sm font-extrabold text-slate-900">
+                              ฿ {grandTotal.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                );
+              })()}
             </table>
           </div>
         </div>
