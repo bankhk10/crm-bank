@@ -1180,21 +1180,21 @@ export function ActivityPlanForm({
               </div>
 
               {/* Card 2: เลขที่แผน */}
-              <div className="bg-slate-50/80 border border-slate-200/60 rounded-xl p-4 flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center flex-shrink-0">
-                  <FileText className="h-5 w-5 text-blue-500" />
+              {isEdit && (
+                <div className="bg-slate-50/80 border border-slate-200/60 rounded-xl p-4 flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center flex-shrink-0">
+                    <FileText className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-slate-400">
+                      เลขที่แผน{" "}
+                    </p>
+                    <p className="text-sm font-semibold text-slate-800">
+                      {initial.planCode || (initial as any).code}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-medium text-slate-400">
-                    เลขที่แผน{" "}
-                  </p>
-                  <p className="text-sm font-semibold text-slate-800 font-mono">
-                    {isEdit
-                      ? initial.planCode || (initial as any).code || "-"
-                      : "(สร้างอัตโนมัติ AP...)"}
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* SECTION 2: ข้อมูลหลักของกิจกรรม (Main Activity Details) */}
