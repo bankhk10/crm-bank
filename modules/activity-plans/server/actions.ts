@@ -18,6 +18,13 @@ import {
 } from "../application";
 
 /**
+ * Helper to serialize objects containing Prisma Decimals / Dates to plain JSON objects
+ */
+function serialize<T>(data: T): T {
+  return JSON.parse(JSON.stringify(data));
+}
+
+/**
  * Action: Create an Activity Plan
  */
 export async function createActivityPlanAction(rawData: unknown) {
@@ -40,7 +47,7 @@ export async function createActivityPlanAction(rawData: unknown) {
     if (result.success) {
       revalidatePath("/activity-plans");
     }
-    return result;
+    return serialize(result);
   } catch (err: any) {
     return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
   }
@@ -66,7 +73,7 @@ export async function updateActivityPlanAction(id: string, rawData: unknown) {
       revalidatePath("/activity-plans");
       revalidatePath(`/activity-plans/${id}`);
     }
-    return result;
+    return serialize(result);
   } catch (err: any) {
     return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
   }
@@ -91,7 +98,7 @@ export async function deleteActivityPlanAction(id: string) {
     if (result.success) {
       revalidatePath("/activity-plans");
     }
-    return result;
+    return serialize(result);
   } catch (err: any) {
     return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
   }
@@ -112,7 +119,7 @@ export async function submitActivityPlanAction(id: string) {
       revalidatePath("/activity-plans");
       revalidatePath(`/activity-plans/${id}`);
     }
-    return result;
+    return serialize(result);
   } catch (err: any) {
     return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
   }
@@ -138,7 +145,7 @@ export async function approveActivityPlanAction(id: string, comment?: string) {
       revalidatePath("/activity-plans");
       revalidatePath(`/activity-plans/${id}`);
     }
-    return result;
+    return serialize(result);
   } catch (err: any) {
     return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
   }
@@ -164,7 +171,7 @@ export async function rejectActivityPlanAction(id: string, comment?: string) {
       revalidatePath("/activity-plans");
       revalidatePath(`/activity-plans/${id}`);
     }
-    return result;
+    return serialize(result);
   } catch (err: any) {
     return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
   }
@@ -190,7 +197,7 @@ export async function requestCorrectionPlanAction(id: string, comment: string) {
       revalidatePath("/activity-plans");
       revalidatePath(`/activity-plans/${id}`);
     }
-    return result;
+    return serialize(result);
   } catch (err: any) {
     return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
   }
@@ -211,7 +218,7 @@ export async function cancelActivityPlanAction(id: string) {
       revalidatePath("/activity-plans");
       revalidatePath(`/activity-plans/${id}`);
     }
-    return result;
+    return serialize(result);
   } catch (err: any) {
     return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
   }
@@ -225,7 +232,8 @@ export async function getActivityPlanAction(id: string) {
   if (!session?.user) return { success: false as const, error: "Unauthorized" };
 
   try {
-    return await getActivityPlanDetailUseCase(id);
+    const result = await getActivityPlanDetailUseCase(id);
+    return serialize(result);
   } catch {
     return { success: false as const, error: "ล้มเหลวในการดึงข้อมูลกิจกรรม" };
   }
@@ -240,11 +248,11 @@ export async function getActivityPlansAction(params: ListActivityPlansParams = {
 
   try {
     const result = await listActivityPlansUseCase(params);
-    return {
+    return serialize({
       success: true,
-      activityPlans: JSON.parse(JSON.stringify(result.activityPlans)),
+      activityPlans: result.activityPlans,
       total: result.total,
-    };
+    });
   } catch {
     return { success: false, activityPlans: [], total: 0 };
   }
@@ -266,7 +274,7 @@ export async function getCurrentUserEmployeeAction() {
       session.user.email ?? undefined
     );
 
-    return {
+    return serialize({
       success: true as const,
       user: {
         id: session.user.id,
@@ -279,7 +287,7 @@ export async function getCurrentUserEmployeeAction() {
         positionTitle: employee.positionTitle || employee.position?.name,
         departmentName: employee.departmentName || employee.department?.name,
       },
-    };
+    });
   } catch (err: any) {
     return {
       success: false as const,
@@ -287,3 +295,4 @@ export async function getCurrentUserEmployeeAction() {
     };
   }
 }
+
