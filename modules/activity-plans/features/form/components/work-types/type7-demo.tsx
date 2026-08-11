@@ -562,7 +562,7 @@ export function Type7Demo({
                         />
                       </div>
 
-                      <div className="md:col-span-4">
+                      <div className="md:col-span-4 mt-1">
                         <label className="block text-xs font-medium text-slate-700 mb-1">
                           วันที่ติดตาม <span className="text-red-500">*</span>
                         </label>
