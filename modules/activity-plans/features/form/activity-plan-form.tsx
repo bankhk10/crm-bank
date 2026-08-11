@@ -478,6 +478,7 @@ export function ActivityPlanForm({
         areaRai: 0,
         treeCount: 50,
         startDate: format(new Date(), "yyyy-MM-dd"),
+        followUpDate: startDate || format(new Date(), "yyyy-MM-dd"),
         objective: "",
         plotsCount: 1,
         detail: "",
@@ -497,7 +498,8 @@ export function ActivityPlanForm({
         customCropName: "",
         areaRai: 0,
         treeCount: 50,
-        startDate: format(new Date(), "yyyy-MM-dd"),
+        startDate: startDate || format(new Date(), "yyyy-MM-dd"),
+        followUpDate: startDate || format(new Date(), "yyyy-MM-dd"),
         objective: "",
         plotsCount: 1,
         detail: "",
@@ -1466,6 +1468,7 @@ export function ActivityPlanForm({
                       customers={customersList}
                       products={productsList}
                       demoPlots={demoPlots}
+                      parentStartDate={startDate}
                     />
                   )}
 

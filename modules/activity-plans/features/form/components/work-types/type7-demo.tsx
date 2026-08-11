@@ -41,6 +41,7 @@ interface Props {
   customers?: CustomerOption[];
   products?: ProductOption[];
   demoPlots?: UserDemoPlotOption[];
+  parentStartDate?: string;
 }
 
 export function Type7Demo({
@@ -52,6 +53,7 @@ export function Type7Demo({
   customers = [],
   products = [],
   demoPlots = [],
+  parentStartDate = "",
 }: Props) {
   // Collect plots created in the current form state (CREATE mode items)
   const currentFormCreatedPlots: UserDemoPlotOption[] = type7Items
@@ -568,7 +570,7 @@ export function Type7Demo({
                         </label>
                         <input
                           type="date"
-                          value={item.followUpDate || ""}
+                          value={item.followUpDate || parentStartDate || ""}
                           onChange={(e) =>
                             updateType7Row(
                               item.id,
