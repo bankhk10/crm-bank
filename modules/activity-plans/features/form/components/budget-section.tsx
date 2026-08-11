@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Trash2, Check, Package, Receipt } from "lucide-react";
+import { Plus, Trash2, Check, Package, Receipt, Coins, Target, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FormCombobox } from "@/components/custom/form-components";
@@ -148,81 +148,73 @@ export function BudgetSection({
             </span>
           </div>
 
-          {/* Summary & Ratio Inputs Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 items-end">
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                งบการตลาด (บาท) <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-                  ฿
-                </span>
-                <input
-                  type="number"
-                  min={0}
-                  value={
-                    marketingProductItems.length > 0
-                      ? marketingProductItems.reduce(
-                          (sum, item) =>
-                            sum +
-                            (item.quantityCases || 0) *
-                              (item.pricePerCase || 0),
-                          0,
-                        )
-                      : marketingBudgetAmount
-                  }
-                  onChange={(e) =>
-                    setMarketingBudgetAmount(parseFloat(e.target.value) || 0)
-                  }
-                  disabled={readonly || marketingProductItems.length > 0}
-                  className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs font-bold text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
-            </div>
+          {/* Summary Stat Cards */}
+          {(() => {
+            const calculatedBudgetSum =
+              marketingProductItems.length > 0
+                ? marketingProductItems.reduce(
+                    (sum, item) =>
+                      sum +
+                      (item.quantityCases || 0) * (item.pricePerCase || 0),
+                    0,
+                  )
+                : marketingBudgetAmount;
 
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                เป้ายอดขายรวมจากกิจกรรม (บาท)
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-                  ฿
-                </span>
-                <input
-                  type="number"
-                  readOnly
-                  value={targetSales ?? 0}
-                  className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-slate-100/70 text-xs font-semibold text-slate-700 cursor-not-allowed"
-                />
-              </div>
-            </div>
+            const salesRatio =
+              targetSales > 0 ? (calculatedBudgetSum / targetSales) * 100 : 0;
 
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                สัดส่วนต่อยอดขาย (%)
-              </label>
-              <div className="h-10 px-3 rounded-lg border border-emerald-300 bg-emerald-100/60 flex items-center justify-between text-xs font-bold text-emerald-900 shadow-sm">
-                <span className="text-sm text-emerald-700 font-extrabold">
-                  {(() => {
-                    const budgetSum =
-                      marketingProductItems.length > 0
-                        ? marketingProductItems.reduce(
-                            (sum, item) =>
-                              sum +
-                              (item.quantityCases || 0) *
-                                (item.pricePerCase || 0),
-                            0,
-                          )
-                        : marketingBudgetAmount;
-                    return targetSales > 0
-                      ? `${((budgetSum / targetSales) * 100).toFixed(2)} %`
-                      : "0.00 %";
-                  })()}
-                </span>
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Card 1: งบการตลาด */}
+                <div className="bg-white/90 border border-emerald-200/90 rounded-xl p-3.5 shadow-2xs flex items-center justify-between transition-all hover:shadow-xs">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
+                      <Coins className="h-3.5 w-3.5 text-emerald-600" />
+                      งบการตลาด (บาท) <span className="text-red-500">*</span>
+                    </span>
+                    <div className="text-base sm:text-lg font-extrabold text-emerald-700 tracking-tight">
+                      ฿ {calculatedBudgetSum.toLocaleString("th-TH")}
+                    </div>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center flex-shrink-0 font-bold text-sm">
+                    <Coins className="h-5 w-5" />
+                  </div>
+                </div>
+
+                {/* Card 2: เป้ายอดขายรวมจากกิจกรรม */}
+                <div className="bg-white/90 border border-blue-200/70 rounded-xl p-3.5 shadow-2xs flex items-center justify-between transition-all hover:shadow-xs">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
+                      <Target className="h-3.5 w-3.5 text-blue-600" />
+                      เป้ายอดขายรวมจากกิจกรรม
+                    </span>
+                    <div className="text-base sm:text-lg font-extrabold text-slate-800 tracking-tight">
+                      ฿ {(targetSales || 0).toLocaleString("th-TH")}
+                    </div>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center flex-shrink-0">
+                    <Target className="h-5 w-5" />
+                  </div>
+                </div>
+
+                {/* Card 3: สัดส่วนต่อยอดขาย (%) */}
+                <div className="bg-white/90 border border-amber-200/70 rounded-xl p-3.5 shadow-2xs flex items-center justify-between transition-all hover:shadow-xs">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
+                      <Percent className="h-3.5 w-3.5 text-amber-600" />
+                      สัดส่วนต่อยอดขาย
+                    </span>
+                    <div className="text-base sm:text-lg font-extrabold text-amber-700 tracking-tight">
+                      {salesRatio.toFixed(2)} %
+                    </div>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center flex-shrink-0">
+                    <Percent className="h-4 w-4 stroke-[2.5]" />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* Marketing Product Table */}
           <div className="space-y-2 pt-2 border-t border-emerald-200/50">
