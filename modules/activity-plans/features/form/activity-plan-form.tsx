@@ -475,7 +475,7 @@ export function ActivityPlanForm({
         productName: DEMO_PRODUCTS[0] || "",
         cropCategory: "พืชสวน",
         cropName: "ทุเรียน",
-        areaRai: 5,
+        areaRai: 0,
         treeCount: 50,
         startDate: format(new Date(), "yyyy-MM-dd"),
         objective: "",
@@ -495,7 +495,7 @@ export function ActivityPlanForm({
         cropCategory: "พืชสวน",
         cropName: "ทุเรียน",
         customCropName: "",
-        areaRai: 5,
+        areaRai: 0,
         treeCount: 50,
         startDate: format(new Date(), "yyyy-MM-dd"),
         objective: "",
@@ -968,14 +968,12 @@ export function ActivityPlanForm({
             )
               ? `${item.cropName}: ${item.customCropName}`
               : item.cropName;
-          const sizeText =
-            item.areaRai && item.treeCount
-              ? `${item.areaRai} ไร่ (${item.treeCount} ต้น)`
-              : item.areaRai
-                ? `${item.areaRai} ไร่`
-                : item.treeCount
-                  ? `${item.treeCount} ต้น`
-                  : `${item.plotsCount || 1} แปลง`;
+          const isRaiUnit = ["พืชไร่", "ผักและพืชล้มลุก"].includes(
+            item.cropCategory,
+          );
+          const sizeText = isRaiUnit
+            ? `${item.areaRai || item.plotsCount || 1} ไร่`
+            : `${item.treeCount || item.plotsCount || 1} ต้น`;
           return `${i + 1}. [${modeLabel}] เจ้าของ: ${item.ownerName} | สินค้า: ${item.productName} | หมวดพืช: ${item.cropCategory} (${cropDisplay}) | ขนาด: ${sizeText}${item.detail ? ` (${item.detail})` : ""}`;
         })
         .join(", ");

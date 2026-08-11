@@ -633,12 +633,22 @@ export function Type7Demo({
                             พื้นที่/จำนวน:{" "}
                           </span>
                           <span className="font-bold">
-                            {selectedPlot?.areaRai ?? item.areaRai
-                              ? `${selectedPlot?.areaRai ?? item.areaRai} ไร่ `
-                              : ""}
-                            {selectedPlot?.treeCount ?? item.treeCount
-                              ? `(${selectedPlot?.treeCount ?? item.treeCount} ต้น)`
-                              : "-"}
+                            {(() => {
+                              const cat =
+                                selectedPlot?.cropCategory || item.cropCategory;
+                              const isRai = [
+                                "พืชไร่",
+                                "ผักและพืชล้มลุก",
+                              ].includes(cat);
+                              if (isRai) {
+                                const rai =
+                                  selectedPlot?.areaRai || item.areaRai;
+                                return rai ? `${rai} ไร่` : "-";
+                              }
+                              const tree =
+                                selectedPlot?.treeCount || item.treeCount;
+                              return tree ? `${tree} ต้น` : "-";
+                            })()}
                           </span>
                         </div>
                       </div>
