@@ -144,10 +144,10 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
             </p>
           </div>
 
-          {/* วันที่จัดกิจกรรม */}
+          {/* วันที่เริ่ม */}
           <div className="bg-slate-50/80 border border-slate-200/60 p-3.5 rounded-xl transition-all duration-200">
             <p className="text-[10px] text-slate-400 font-semibold mb-1.5 uppercase tracking-wider">
-              วันที่จัดกิจกรรม
+              วันที่เริ่ม
             </p>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-slate-700">
               <div className="flex items-center gap-1">

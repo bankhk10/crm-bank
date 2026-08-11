@@ -955,9 +955,7 @@ export function ActivityPlanForm({
       const demoSummary = type7Items
         .map((item, i) => {
           const modeLabel =
-            item.plotActivityType === "FOLLOW_UP"
-              ? "ติดตามแปลง"
-              : "ทำแปลงใหม่";
+            item.plotActivityType === "FOLLOW_UP" ? "ติดตามแปลง" : "ทำแปลงใหม่";
           if (item.plotActivityType === "FOLLOW_UP") {
             const plotName =
               item.existingPlotName || item.ownerName || "แปลงเดิม";
@@ -1351,9 +1349,9 @@ export function ActivityPlanForm({
                 )}
               </div>
 
-              {/* วันที่จัดกิจกรรม */}
+              {/* วันที่เริ่ม */}
               <DateTimePicker
-                label="วันที่จัดกิจกรรม"
+                label="วันที่เริ่ม"
                 required
                 dateValue={startDate}
                 timeValue={startTime}
@@ -1363,9 +1361,9 @@ export function ActivityPlanForm({
                 accentColor="blue"
               />
 
-              {/* วันที่สิ้นสุดกิจกรรม */}
+              {/* วันที่สิ้นสุด */}
               <DateTimePicker
-                label="วันที่สิ้นสุดกิจกรรม"
+                label="วันที่สิ้นสุด"
                 required
                 dateValue={endDate}
                 timeValue={endTime}

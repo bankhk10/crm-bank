@@ -238,7 +238,10 @@ function Tag({
   onRemove: () => void;
   color?: string;
 }) {
-  const bg = color === "blue" ? "bg-blue-100 text-blue-700 border-blue-200" : "bg-violet-100 text-violet-700 border-violet-200";
+  const bg =
+    color === "blue"
+      ? "bg-blue-100 text-blue-700 border-blue-200"
+      : "bg-violet-100 text-violet-700 border-violet-200";
   return (
     <span
       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${bg}`}
@@ -297,7 +300,9 @@ function ActivityTypeDropdown({
           ))}
         </div>
         <div className="flex items-center justify-between text-slate-400">
-          <span className="text-xs">{selected.length === 0 ? "เลือกประเภทงาน..." : ""}</span>
+          <span className="text-xs">
+            {selected.length === 0 ? "เลือกประเภทงาน..." : ""}
+          </span>
           <ChevronDown className="w-4 h-4" />
         </div>
       </button>
@@ -319,7 +324,9 @@ function ActivityTypeDropdown({
                   ) : (
                     <Square className="w-4 h-4 text-slate-300 flex-shrink-0" />
                   )}
-                  <span className={`text-sm ${isChecked ? "text-blue-700 font-medium" : "text-slate-600"}`}>
+                  <span
+                    className={`text-sm ${isChecked ? "text-blue-700 font-medium" : "text-slate-600"}`}
+                  >
                     {type}
                   </span>
                 </button>
@@ -378,7 +385,8 @@ function MapPlaceholder({ location }: { location: string }) {
   return (
     <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-100 h-44 flex flex-col items-center justify-center">
       {/* Fake map tiles */}
-      <div className="absolute inset-0 opacity-20"
+      <div
+        className="absolute inset-0 opacity-20"
         style={{
           backgroundImage: `repeating-linear-gradient(0deg, #94a3b8 0px, #94a3b8 1px, transparent 1px, transparent 40px),
                             repeating-linear-gradient(90deg, #94a3b8 0px, #94a3b8 1px, transparent 1px, transparent 40px)`,
@@ -439,9 +447,13 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
 
   // Section 4 state
   const [locationDetail, setLocationDetail] = useState(
-    "บ้านสวนทุเรียน หมู่ 5 ตำบลนามายศี อำเภอทาเกอทำใน จังหวัดจันทบุรี จุดสังเกต เดินเลยถนนประมาณ 500 เมตร และเข้าซอยสวนทุเรียน"
+    "บ้านสวนทุเรียน หมู่ 5 ตำบลนามายศี อำเภอทาเกอทำใน จังหวัดจันทบุรี จุดสังเกต เดินเลยถนนประมาณ 500 เมตร และเข้าซอยสวนทุเรียน",
   );
-  const [selectedTeam, setSelectedTeam] = useState<string[]>(["E01", "E02", "E03"]);
+  const [selectedTeam, setSelectedTeam] = useState<string[]>([
+    "E01",
+    "E02",
+    "E03",
+  ]);
   const [teamDropdownOpen, setTeamDropdownOpen] = useState(false);
 
   // Section 5 state
@@ -451,27 +463,48 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
 
   // Section 6 state
   const [materials, setMaterials] = useState<MaterialItem[]>([
-    { id: "m1", category: "สินค้าทดสอบ", product: "สินค้าทดสอบ A", qty: "5", unit: "ชิ้น", description: "สำหรับแจกนักศึกษาเกษตรกรงาน" },
-    { id: "m2", category: "สินค้าทดสอบ", product: "สินค้าทดสอบ B", qty: "10", unit: "ของ", description: "สำหรับแจกแผ่นผู้เข้าแปลง" },
-    { id: "m3", category: "เอกสาร/สื่อ", product: "ป้ายโปน จำนวน 3 แผ่น", qty: "3", unit: "แผ่น", description: "ติดในงาน" },
+    {
+      id: "m1",
+      category: "สินค้าทดสอบ",
+      product: "สินค้าทดสอบ A",
+      qty: "5",
+      unit: "ชิ้น",
+      description: "สำหรับแจกนักศึกษาเกษตรกรงาน",
+    },
+    {
+      id: "m2",
+      category: "สินค้าทดสอบ",
+      product: "สินค้าทดสอบ B",
+      qty: "10",
+      unit: "ของ",
+      description: "สำหรับแจกแผ่นผู้เข้าแปลง",
+    },
+    {
+      id: "m3",
+      category: "เอกสาร/สื่อ",
+      product: "ป้ายโปน จำนวน 3 แผ่น",
+      qty: "3",
+      unit: "แผ่น",
+      description: "ติดในงาน",
+    },
   ]);
 
   // Section 7 state
   const [additionalInfo, setAdditionalInfo] = useState(
-    "กรุณาระยะ 3x แนว 3x1 แนว / เตรียมอุปกรณ์เพาะปลูกตามกิจกรรม / โปรดแจ้งจำนวนของแจกปลอกก่อนงาน 1.5น"
+    "กรุณาระยะ 3x แนว 3x1 แนว / เตรียมอุปกรณ์เพาะปลูกตามกิจกรรม / โปรดแจ้งจำนวนของแจกปลอกก่อนงาน 1.5น",
   );
 
   // Toggle activity type
   const toggleType = useCallback((type: ActivityType) => {
     setSelectedTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
     );
   }, []);
 
   // Team helpers
   const toggleTeam = (id: string) => {
     setSelectedTeam((prev) =>
-      prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id],
     );
   };
   const getEmployee = (id: string) => MOCK_EMPLOYEES.find((e) => e.id === id);
@@ -480,21 +513,35 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
   const addMaterial = () => {
     setMaterials((prev) => [
       ...prev,
-      { id: `m${Date.now()}`, category: "", product: "", qty: "", unit: "ชิ้น", description: "" },
+      {
+        id: `m${Date.now()}`,
+        category: "",
+        product: "",
+        qty: "",
+        unit: "ชิ้น",
+        description: "",
+      },
     ]);
   };
   const removeMaterial = (id: string) => {
     setMaterials((prev) => prev.filter((m) => m.id !== id));
   };
-  const updateMaterial = (id: string, field: keyof MaterialItem, value: string) => {
+  const updateMaterial = (
+    id: string,
+    field: keyof MaterialItem,
+    value: string,
+  ) => {
     setMaterials((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, [field]: value } : m))
+      prev.map((m) => (m.id === id ? { ...m, [field]: value } : m)),
     );
   };
 
   // Store objective helpers
   const addStoreObjective = () => {
-    setStoreObjs((prev) => [...prev, { store: "", targetSales: "", products: "" }]);
+    setStoreObjs((prev) => [
+      ...prev,
+      { store: "", targetSales: "", products: "" },
+    ]);
   };
   const removeStoreObjective = (idx: number) => {
     setStoreObjs((prev) => prev.filter((_, i) => i !== idx));
@@ -516,7 +563,9 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
             <FileText className="w-5 h-5 text-blue-600" />
             สร้างแผนปฏิบัติงาน (Create Trip Plan)
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">รวมแผนการลงพื้นที่ / กิจกรรมทางการตลาด</p>
+          <p className="text-xs text-slate-400 mt-0.5">
+            รวมแผนการลงพื้นที่ / กิจกรรมทางการตลาด
+          </p>
         </div>
       </div>
 
@@ -536,8 +585,12 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
               <User className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <div className="text-xs text-slate-400 mb-0.5">ผู้รับผิดชอบ (ดึงจากระบบ)</div>
-              <div className="font-semibold text-slate-800 text-sm">{currentUser.name}</div>
+              <div className="text-xs text-slate-400 mb-0.5">
+                ผู้รับผิดชอบ (ดึงจากระบบ)
+              </div>
+              <div className="font-semibold text-slate-800 text-sm">
+                {currentUser.name}
+              </div>
             </div>
           </div>
           {/* Plan Number */}
@@ -546,8 +599,12 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
               <FileText className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <div className="text-xs text-slate-400 mb-0.5">เลขที่แผน (Auto-Generate)</div>
-              <div className="font-bold text-slate-800 text-lg tracking-wide">{planNumber}</div>
+              <div className="text-xs text-slate-400 mb-0.5">
+                เลขที่แผน (Auto-Generate)
+              </div>
+              <div className="font-bold text-slate-800 text-lg tracking-wide">
+                {planNumber}
+              </div>
             </div>
           </div>
         </div>
@@ -576,7 +633,7 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
 
           {/* Start Date & Time */}
           <div>
-            <FieldLabel label="วันที่จัดกิจกรรม" required />
+            <FieldLabel label="วันที่เริ่ม" required />
             <DateTimeInput
               dateValue={startDate}
               timeValue={startTime}
@@ -587,7 +644,7 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
 
           {/* End Date & Time */}
           <div>
-            <FieldLabel label="วันที่สิ้นสุดกิจกรรม" required />
+            <FieldLabel label="วันที่สิ้นสุด" required />
             <DateTimeInput
               dateValue={endDate}
               timeValue={endTime}
@@ -610,8 +667,12 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
             <div className="hidden lg:flex items-start">
               {selectedTypes.length > 0 && (
                 <div className="w-full p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
-                  <span className="font-semibold">💡 เลือกประเภทงานได้มากกว่า 1</span>
-                  <span className="ml-1">ระบบจะแสดงฟอร์มวัตถุประสงค์สำหรับประเภทงานที่เลือก</span>
+                  <span className="font-semibold">
+                    💡 เลือกประเภทงานได้มากกว่า 1
+                  </span>
+                  <span className="ml-1">
+                    ระบบจะแสดงฟอร์มวัตถุประสงค์สำหรับประเภทงานที่เลือก
+                  </span>
                 </div>
               )}
             </div>
@@ -645,8 +706,13 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
                     <FieldLabel label="เจ้าของแปลง" required />
                     <SelectField
                       value={plotObj.plotOwner}
-                      onValueChange={(v) => setPlotObj({ ...plotObj, plotOwner: v })}
-                      options={MOCK_PLOT_OWNERS.map((p) => ({ value: p.id, label: p.name }))}
+                      onValueChange={(v) =>
+                        setPlotObj({ ...plotObj, plotOwner: v })
+                      }
+                      options={MOCK_PLOT_OWNERS.map((p) => ({
+                        value: p.id,
+                        label: p.name,
+                      }))}
                       placeholder="เลือกเจ้าของแปลง..."
                     />
                   </div>
@@ -654,8 +720,13 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
                     <FieldLabel label="สินค้าสาธิต" required />
                     <SelectField
                       value={plotObj.demoProduct}
-                      onValueChange={(v) => setPlotObj({ ...plotObj, demoProduct: v })}
-                      options={MOCK_PRODUCTS.map((p) => ({ value: p.id, label: p.name }))}
+                      onValueChange={(v) =>
+                        setPlotObj({ ...plotObj, demoProduct: v })
+                      }
+                      options={MOCK_PRODUCTS.map((p) => ({
+                        value: p.id,
+                        label: p.name,
+                      }))}
                       placeholder="เลือกสินค้า..."
                     />
                   </div>
@@ -663,8 +734,13 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
                     <FieldLabel label="พืชป้าหมาย" required />
                     <SelectField
                       value={plotObj.cropTarget}
-                      onValueChange={(v) => setPlotObj({ ...plotObj, cropTarget: v })}
-                      options={MOCK_CROP_TYPES.map((c) => ({ value: c.id, label: c.name }))}
+                      onValueChange={(v) =>
+                        setPlotObj({ ...plotObj, cropTarget: v })
+                      }
+                      options={MOCK_CROP_TYPES.map((c) => ({
+                        value: c.id,
+                        label: c.name,
+                      }))}
                       placeholder="เลือกชนิดพืช..."
                     />
                   </div>
@@ -674,7 +750,9 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
                     <FieldLabel label="เป้าหมายจำนวนแปลง" required />
                     <NumberInput
                       value={plotObj.targetPlots}
-                      onChange={(v) => setPlotObj({ ...plotObj, targetPlots: v })}
+                      onChange={(v) =>
+                        setPlotObj({ ...plotObj, targetPlots: v })
+                      }
                       suffix="แปลง"
                     />
                   </div>
@@ -682,7 +760,9 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
                     <FieldLabel label="เป้าหมายจำนวนพื้นที่" required />
                     <NumberInput
                       value={plotObj.targetArea}
-                      onChange={(v) => setPlotObj({ ...plotObj, targetArea: v })}
+                      onChange={(v) =>
+                        setPlotObj({ ...plotObj, targetArea: v })
+                      }
                       suffix="ไร่"
                     />
                   </div>
@@ -701,32 +781,47 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
                 </div>
                 <div className="space-y-3">
                   {storeObjs.map((obj, idx) => (
-                    <div key={idx} className="grid grid-cols-1 md:grid-cols-3 gap-3 relative">
+                    <div
+                      key={idx}
+                      className="grid grid-cols-1 md:grid-cols-3 gap-3 relative"
+                    >
                       <div>
                         <FieldLabel label="ร้านค้าที่ไปจัดงาน" required />
                         <SelectField
                           value={obj.store}
                           onValueChange={(v) =>
                             setStoreObjs((prev) =>
-                              prev.map((o, i) => (i === idx ? { ...o, store: v } : o))
+                              prev.map((o, i) =>
+                                i === idx ? { ...o, store: v } : o,
+                              ),
                             )
                           }
-                          options={MOCK_STORES.map((s) => ({ value: s.id, label: s.name }))}
+                          options={MOCK_STORES.map((s) => ({
+                            value: s.id,
+                            label: s.name,
+                          }))}
                           placeholder="เลือกร้านค้า..."
                         />
                       </div>
                       <div>
-                        <FieldLabel label="เป้าหมายยอดขายจากกิจกรรม (บาท)" required />
+                        <FieldLabel
+                          label="เป้าหมายยอดขายจากกิจกรรม (บาท)"
+                          required
+                        />
                         <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">฿</span>
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                            ฿
+                          </span>
                           <input
                             type="number"
                             value={obj.targetSales}
                             onChange={(e) =>
                               setStoreObjs((prev) =>
                                 prev.map((o, i) =>
-                                  i === idx ? { ...o, targetSales: e.target.value } : o
-                                )
+                                  i === idx
+                                    ? { ...o, targetSales: e.target.value }
+                                    : o,
+                                ),
                               )
                             }
                             className="w-full h-9 pl-8 pr-3 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300"
@@ -740,10 +835,15 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
                             value={obj.products}
                             onValueChange={(v) =>
                               setStoreObjs((prev) =>
-                                prev.map((o, i) => (i === idx ? { ...o, products: v } : o))
+                                prev.map((o, i) =>
+                                  i === idx ? { ...o, products: v } : o,
+                                ),
                               )
                             }
-                            options={MOCK_PRODUCTS.map((p) => ({ value: p.name, label: p.name }))}
+                            options={MOCK_PRODUCTS.map((p) => ({
+                              value: p.name,
+                              label: p.name,
+                            }))}
                             placeholder="เลือกสินค้า..."
                           />
                           {storeObjs.length > 1 && (
@@ -769,8 +869,7 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
               onClick={() => {}}
               className="flex items-center gap-2 px-4 py-2 rounded-xl border border-dashed border-slate-300 text-slate-500 text-sm hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/30 transition-colors w-full justify-center"
             >
-              <Plus className="w-4 h-4" />
-              + เพิ่มประเภทงาน
+              <Plus className="w-4 h-4" />+ เพิ่มประเภทงาน
             </button>
           </div>
         </SectionCard>
@@ -841,24 +940,33 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
             </button>
             {teamDropdownOpen && (
               <div className="absolute z-50 top-full left-0 mt-1 w-64 bg-white rounded-xl border border-slate-200 shadow-lg p-2">
-                {MOCK_EMPLOYEES.filter((e) => e.id !== currentUser.id).map((emp) => (
-                  <button
-                    key={emp.id}
-                    type="button"
-                    onClick={() => { toggleTeam(emp.id); setTeamDropdownOpen(false); }}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 text-left text-sm"
-                  >
-                    {selectedTeam.includes(emp.id) ? (
-                      <CheckSquare className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                    ) : (
-                      <Square className="w-4 h-4 text-slate-300 flex-shrink-0" />
-                    )}
-                    <div>
-                      <div className="font-medium text-slate-800">{emp.name}</div>
-                      <div className="text-xs text-slate-400">{emp.position}</div>
-                    </div>
-                  </button>
-                ))}
+                {MOCK_EMPLOYEES.filter((e) => e.id !== currentUser.id).map(
+                  (emp) => (
+                    <button
+                      key={emp.id}
+                      type="button"
+                      onClick={() => {
+                        toggleTeam(emp.id);
+                        setTeamDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 text-left text-sm"
+                    >
+                      {selectedTeam.includes(emp.id) ? (
+                        <CheckSquare className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      ) : (
+                        <Square className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                      )}
+                      <div>
+                        <div className="font-medium text-slate-800">
+                          {emp.name}
+                        </div>
+                        <div className="text-xs text-slate-400">
+                          {emp.position}
+                        </div>
+                      </div>
+                    </button>
+                  ),
+                )}
               </div>
             )}
           </div>
@@ -893,7 +1001,9 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
                     : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                 }`}
               >
-                {budgetType === bt && <span className="text-emerald-300">✓</span>}
+                {budgetType === bt && (
+                  <span className="text-emerald-300">✓</span>
+                )}
                 {bt}
               </button>
             ))}
@@ -924,7 +1034,9 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
             <div>
               <FieldLabel label="จำนวนเงิน" />
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">฿</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                  ฿
+                </span>
                 <input
                   type="number"
                   value={otherExpenseAmount}
@@ -961,8 +1073,7 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
             onClick={addMaterial}
             className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 px-3 flex items-center gap-1"
           >
-            <Plus className="w-3.5 h-3.5" />
-            + เพิ่มรายการนัก
+            <Plus className="w-3.5 h-3.5" />+ เพิ่มรายการนัก
           </Button>
         </div>
 
@@ -980,15 +1091,25 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {materials.map((mat, idx) => (
-                <tr key={mat.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-3 py-2.5 text-slate-500 text-xs">{idx + 1}</td>
+                <tr
+                  key={mat.id}
+                  className="hover:bg-slate-50 transition-colors"
+                >
+                  <td className="px-3 py-2.5 text-slate-500 text-xs">
+                    {idx + 1}
+                  </td>
                   <td className="px-3 py-2.5">
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs text-slate-400">🌱</span>
                       <SelectField
                         value={mat.product}
-                        onValueChange={(v) => updateMaterial(mat.id, "product", v)}
-                        options={MOCK_PRODUCTS.map((p) => ({ value: p.name, label: p.name }))}
+                        onValueChange={(v) =>
+                          updateMaterial(mat.id, "product", v)
+                        }
+                        options={MOCK_PRODUCTS.map((p) => ({
+                          value: p.name,
+                          label: p.name,
+                        }))}
                         placeholder="เลือกสินค้า..."
                       />
                     </div>
@@ -997,7 +1118,9 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
                     <input
                       type="number"
                       value={mat.qty}
-                      onChange={(e) => updateMaterial(mat.id, "qty", e.target.value)}
+                      onChange={(e) =>
+                        updateMaterial(mat.id, "qty", e.target.value)
+                      }
                       className="w-full h-8 px-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 text-center"
                     />
                   </td>
@@ -1005,7 +1128,10 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
                     <SelectField
                       value={mat.unit}
                       onValueChange={(v) => updateMaterial(mat.id, "unit", v)}
-                      options={MATERIAL_UNITS.map((u) => ({ value: u, label: u }))}
+                      options={MATERIAL_UNITS.map((u) => ({
+                        value: u,
+                        label: u,
+                      }))}
                     />
                   </td>
                   <td className="px-3 py-2.5">
@@ -1028,7 +1154,10 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
               ))}
               {materials.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-slate-400 text-sm">
+                  <td
+                    colSpan={6}
+                    className="px-3 py-8 text-center text-slate-400 text-sm"
+                  >
                     ยังไม่มีรายการสินค้า — กด "+ เพิ่มรายการ" เพื่อเพิ่ม
                   </td>
                 </tr>
