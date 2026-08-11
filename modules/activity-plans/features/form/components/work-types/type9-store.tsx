@@ -154,7 +154,7 @@ export function Type9Store({
                   disabled={readonly}
                   className="border-slate-300 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
                 />
-                <span>จัดกิจกรรมให้ร้าน Sub Dealer (ตัวแทนจำหน่ายย่อย)</span>
+                <span>จัดกิจกรรมให้ร้าน Sub Dealer</span>
               </label>
             </div>
 
@@ -231,23 +231,18 @@ export function Type9Store({
                   จำนวน (ลัง) <span className="text-red-500">*</span>
                 </th>
                 <th className="py-2 px-3 w-32 text-center">
-                  ราคา (บาท/ลัง) <span className="text-red-500">*</span>
+                  ราคา (บาท) <span className="text-red-500">*</span>
                 </th>
-                <th className="py-2 px-3 w-36 text-right">
-                  รวมเป็นเงินทั้งหมด
-                </th>
+                <th className="py-2 px-3 w-36 text-right">รวม</th>
                 {!readonly && (
-                  <th className="py-2 px-3 text-center w-14">จัดการ</th>
+                  <th className="py-2 px-3 text-center w-14">ลบ</th>
                 )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {type9ProductItems.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="py-4 text-center text-slate-400 italic"
-                  >
+                  <td colSpan={6} className="py-4 text-center text-slate-400">
                     ยังไม่มีรายการสินค้า
                   </td>
                 </tr>
