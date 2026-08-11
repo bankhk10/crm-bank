@@ -264,9 +264,6 @@ export function ActivityPlanForm({
     setType2Items((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const defaultType3Product = DEMO_PRODUCTS[0] || "";
-  const defaultType3UnitPrice = DEMO_PRODUCT_PRICES[defaultType3Product] ?? 500;
-
   const [type3Items, setType3Items] = useState<Type3SalesItem[]>(
     initDetails?.type3Items ?? [
       {
@@ -275,46 +272,38 @@ export function ActivityPlanForm({
         products: [
           {
             id: "p-1",
-            productName: defaultType3Product,
+            productName: "",
             quantity: 1,
-            unitPrice: defaultType3UnitPrice,
-            price: defaultType3UnitPrice,
+            unitPrice: 0,
+            price: 0,
           },
         ],
-        productName: defaultType3Product,
+        productName: "",
         quantity: 1,
-        unitPrice: defaultType3UnitPrice,
-        price: defaultType3UnitPrice * 1,
+        unitPrice: 0,
+        price: 0,
         detail: "",
       },
     ],
   );
 
   const addType3Row = () => {
-    const prod =
-      productsList && productsList[0]
-        ? productsList[0].name
-        : DEMO_PRODUCTS[0] || "";
-    const uPrice =
-      productsList && productsList[0] && productsList[0].price != null
-        ? Number(productsList[0].price)
-        : (DEMO_PRODUCT_PRICES[prod] ?? 500);
     const newItem: Type3SalesItem = {
       id: Date.now().toString(),
       customerName: DEMO_OWNERS[0] || "",
       products: [
         {
           id: "p-" + Date.now().toString(),
-          productName: prod,
+          productName: "",
           quantity: 1,
-          unitPrice: uPrice,
-          price: uPrice,
+          unitPrice: 0,
+          price: 0,
         },
       ],
-      productName: prod,
+      productName: "",
       quantity: 1,
-      unitPrice: uPrice,
-      price: uPrice * 1,
+      unitPrice: 0,
+      price: 0,
       detail: "",
     };
     setType3Items((prev) => [...prev, newItem]);

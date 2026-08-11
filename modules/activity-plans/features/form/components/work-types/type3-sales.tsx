@@ -89,19 +89,12 @@ export function Type3Sales({
             },
           ];
 
-    const defaultProd =
-      products && products[0] ? products[0].name : DEMO_PRODUCTS[0] || "";
-    const defaultPrice =
-      products && products[0] && products[0].price != null
-        ? Number(products[0].price)
-        : (DEMO_PRODUCT_PRICES[defaultProd] ?? 500);
-
     const newProdLine: Type3SalesProductLine = {
       id: Date.now().toString(),
-      productName: defaultProd,
+      productName: "",
       quantity: 1,
-      unitPrice: defaultPrice,
-      price: defaultPrice,
+      unitPrice: 0,
+      price: 0,
     };
 
     const updatedProducts = [...currentProducts, newProdLine];
@@ -135,11 +128,17 @@ export function Type3Sales({
       if (p.id !== prodId) return p;
       const updated = { ...p, [field]: val };
       if (field === "productName") {
-        const foundProd = (products || []).find((prod) => prod.name === val);
-        if (foundProd && foundProd.price != null) {
-          updated.unitPrice = Number(foundProd.price);
-        } else if (DEMO_PRODUCT_PRICES[val] !== undefined) {
-          updated.unitPrice = DEMO_PRODUCT_PRICES[val];
+        if (!val) {
+          updated.unitPrice = 0;
+        } else {
+          const foundProd = (products || []).find((prod) => prod.name === val);
+          if (foundProd && foundProd.price != null) {
+            updated.unitPrice = Number(foundProd.price);
+          } else if (DEMO_PRODUCT_PRICES[val] !== undefined) {
+            updated.unitPrice = DEMO_PRODUCT_PRICES[val];
+          } else {
+            updated.unitPrice = 0;
+          }
         }
       }
       const qty =
@@ -410,7 +409,7 @@ export function Type3Sales({
                   <div className="text-xs text-slate-600 font-medium">
                     รวมเป็นเงิน:{" "}
                     <span className="text-sm font-bold text-emerald-700 ml-1">
-                      ฿ {cardTotal.toLocaleString()}
+                      ฿{cardTotal.toLocaleString()}
                     </span>
                   </div>
                 </div>
