@@ -6,7 +6,10 @@ import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { ActivityPlanForm } from "./activity-plan-form";
-import { getActivityPlanAction, updateActivityPlanAction } from "../../server/actions";
+import {
+  getActivityPlanAction,
+  updateActivityPlanAction,
+} from "../../server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";
@@ -17,10 +20,17 @@ interface Props {
 
 export default function ActivityPlanEditView({ id }: Props) {
   const router = useRouter();
-  const { hasPermission, allowed, isLoading } = usePermission("menu.activity_plans");
+  const { hasPermission, allowed, isLoading } = usePermission(
+    "menu.activity_plans",
+  );
 
-  const canEdit = hasPermission("activity.edit") || hasPermission("activity.manage");
-  const canView = allowed || hasPermission("activity.view") || hasPermission("activity.manage") || !isLoading;
+  const canEdit =
+    hasPermission("activity.edit") || hasPermission("activity.manage");
+  const canView =
+    allowed ||
+    hasPermission("activity.view") ||
+    hasPermission("activity.manage") ||
+    !isLoading;
 
   const [employees, setEmployees] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
@@ -36,8 +46,12 @@ export default function ActivityPlanEditView({ id }: Props) {
         const [empRes, planRes, custRes, prodRes] = await Promise.all([
           getAllEmployeesAction(),
           getActivityPlanAction(id),
-          getCustomersAction({ perPage: 1000 }).catch(() => ({ customers: [] })),
-          listProductsAction({ status: "ACTIVE", perPage: 1000 }).catch(() => ({ products: [] })),
+          getCustomersAction({ perPage: 1000 }).catch(() => ({
+            customers: [],
+          })),
+          listProductsAction({ status: "ACTIVE", perPage: 1000 }).catch(() => ({
+            products: [],
+          })),
         ]);
 
         if (empRes.success && empRes.employees) {
@@ -70,8 +84,12 @@ export default function ActivityPlanEditView({ id }: Props) {
             location: plan.location,
             objective: plan.objective,
             description: plan.description,
-            salesPromotionBudget: plan.salesPromotionBudget ? Number(plan.salesPromotionBudget) : 0,
-            marketingBudget: plan.marketingBudget ? Number(plan.marketingBudget) : 0,
+            salesPromotionBudget: plan.salesPromotionBudget
+              ? Number(plan.salesPromotionBudget)
+              : 0,
+            marketingBudget: plan.marketingBudget
+              ? Number(plan.marketingBudget)
+              : 0,
             notes: plan.notes || "",
             details: plan.details,
             helperEmployeeIds,
@@ -130,11 +148,10 @@ export default function ActivityPlanEditView({ id }: Props) {
           products={products}
           onSubmit={handleSubmit}
           onCancel={() => router.push("/activity-plans")}
-          submitLabel="อัปเดตแผนกิจกรรม"
+          submitLabel="บันทึก"
           isEdit
         />
       )}
     </section>
   );
 }
-
