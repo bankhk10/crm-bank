@@ -44,11 +44,19 @@ export function Type10FieldDay({
     async function loadPlotsFromDb() {
       try {
         const res = await getDemoPlotsAction();
-        if (isMounted && res?.success && res.demoPlots && res.demoPlots.length > 0) {
+        if (
+          isMounted &&
+          res?.success &&
+          res.demoPlots &&
+          res.demoPlots.length > 0
+        ) {
           setDbPlots(res.demoPlots);
         }
       } catch (err) {
-        console.error("Failed to load demo plots from DB in Type10FieldDay:", err);
+        console.error(
+          "Failed to load demo plots from DB in Type10FieldDay:",
+          err,
+        );
       }
     }
     loadPlotsFromDb();
@@ -129,32 +137,42 @@ export function Type10FieldDay({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-slate-700 pt-1">
                 <div>
-                  <span className="text-slate-500 font-medium">เจ้าของแปลง:</span>{" "}
+                  <span className="text-slate-500 font-medium">
+                    เจ้าของแปลง:
+                  </span>{" "}
                   <span className="font-semibold text-slate-800">
                     {foundPlot.ownerName || "-"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 font-medium">พืชเป้าหมาย:</span>{" "}
+                  <span className="text-slate-500 font-medium">
+                    พืชเป้าหมาย:
+                  </span>{" "}
                   <span className="font-semibold text-slate-800">
                     {foundPlot.targetCrop || foundPlot.cropName || "-"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 font-medium">สินค้าทดลอง/โชว์:</span>{" "}
+                  <span className="text-slate-500 font-medium">
+                    สินค้าทดลอง/โชว์:
+                  </span>{" "}
                   <span className="font-semibold text-amber-800">
                     {foundPlot.showcase || foundPlot.productName || "-"}
                   </span>
                 </div>
                 <div className="sm:col-span-2">
-                  <span className="text-slate-500 font-medium">สถานที่แปลง:</span>{" "}
+                  <span className="text-slate-500 font-medium">
+                    สถานที่แปลง:
+                  </span>{" "}
                   <span className="font-semibold text-slate-800">
                     {foundPlot.location || "-"}
                   </span>
                 </div>
-                {(foundPlot.areaRai || foundPlot.treeCount) ? (
+                {foundPlot.areaRai || foundPlot.treeCount ? (
                   <div>
-                    <span className="text-slate-500 font-medium">ขนาดพื้นที่:</span>{" "}
+                    <span className="text-slate-500 font-medium">
+                      ขนาดพื้นที่:
+                    </span>{" "}
                     <span className="font-semibold text-slate-800">
                       {foundPlot.areaRai ? `${foundPlot.areaRai} ไร่ ` : ""}
                       {foundPlot.treeCount ? `${foundPlot.treeCount} ต้น` : ""}
@@ -166,54 +184,11 @@ export function Type10FieldDay({
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-          <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">
-              สถานที่จัดงาน <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={type10Location}
-              onChange={(e) => setType10Location(e.target.value)}
-              disabled={readonly}
-              placeholder="ระบุสถานที่จัดงาน..."
-              className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">
-              พืชเป้าหมาย <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={type10TargetCrop}
-              onChange={(e) => setType10TargetCrop(e.target.value)}
-              disabled={readonly}
-              placeholder="เช่น ทุเรียนหมอนทอง, ข้าวหอมมะลิ..."
-              className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
-            />
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">
-              สินค้าที่โชว์ผลงาน <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={type10Showcase}
-              onChange={(e) => setType10Showcase(e.target.value)}
-              disabled={readonly}
-              placeholder="เช่น ปุ๋ยสูตรพรีเมียม A, ฮอร์โมนเร่งรวง..."
-              className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">
-              เป้าหมายจำนวนผู้เข้าร่วม (คน) <span className="text-red-500">*</span>
+              เป้าหมายจำนวนผู้เข้าร่วม (คน){" "}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -226,9 +201,6 @@ export function Type10FieldDay({
               className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
             />
           </div>
-        </div>
-
-        <div className="pt-2 border-t border-slate-100">
           <div className="max-w-md">
             <label className="block text-xs font-medium text-slate-700 mb-1">
               เป้ายอดขายจองในงาน (ถ้ามี)
