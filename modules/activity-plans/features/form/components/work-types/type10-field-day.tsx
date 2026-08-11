@@ -171,11 +171,17 @@ export function Type10FieldDay({
                 {foundPlot.areaRai || foundPlot.treeCount ? (
                   <div>
                     <span className="text-slate-500 font-medium">
-                      ขนาดพื้นที่:
+                      {foundPlot.cropCategory === "พืชสวน" ||
+                      (!foundPlot.areaRai && foundPlot.treeCount)
+                        ? "จำนวนต้น:"
+                        : "ขนาดพื้นที่:"}
                     </span>{" "}
                     <span className="font-semibold text-slate-800">
-                      {foundPlot.areaRai ? `${foundPlot.areaRai} ไร่ ` : ""}
-                      {foundPlot.treeCount ? `${foundPlot.treeCount} ต้น` : ""}
+                      {foundPlot.areaRai && foundPlot.treeCount
+                        ? `${foundPlot.areaRai} ไร่ (${foundPlot.treeCount} ต้น)`
+                        : foundPlot.areaRai
+                          ? `${foundPlot.areaRai} ไร่`
+                          : `${foundPlot.treeCount} ต้น`}
                     </span>
                   </div>
                 ) : null}
