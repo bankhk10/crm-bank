@@ -114,7 +114,7 @@ export function Type10FieldDay({
               }
             }}
             options={plotOptions}
-            placeholder="-- เลือกแปลงสาธิตของคุณ (ดึงจากฐานข้อมูล) --"
+            placeholder="-- เลือกแปลงสาธิตของคุณ --"
             searchPlaceholder="ค้นหาชื่อแปลงสาธิต, เจ้าของแปลง..."
             emptyText="ไม่พบข้อมูลแปลงสาธิต"
             disabled={readonly}
