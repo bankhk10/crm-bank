@@ -67,15 +67,35 @@ export interface Type6IssueItem {
   detail: string;
 }
 
+export type PlotActivityType = "CREATE" | "FOLLOW_UP";
+
 export interface Type7DemoPlotItem {
   id: string;
+  plotActivityType?: PlotActivityType; // "CREATE" (ทำแปลงสาธิต) | "FOLLOW_UP" (ติดตามแปลงสาธิต)
+
+  // Fields for CREATE (ทำแปลงสาธิต) & shared
   ownerName: string;
   productName: string;
   cropCategory: string;
   cropName: string;
   customCropName?: string;
+  areaRai?: number;
+  treeCount?: number;
+  startDate?: string;
+  objective?: string;
   plotsCount: number;
   detail: string;
+
+  // Fields for FOLLOW_UP (ติดตามแปลงสาธิต)
+  existingPlotId?: string;
+  existingPlotName?: string;
+  followUpDate?: string;
+  growthStage?: string;
+  plotStatus?: string;
+  followUpResult?: string;
+  problemDescription?: string;
+  recommendation?: string;
+  plotImages?: string[];
 }
 
 export interface Type8MeetingItem {

@@ -466,10 +466,15 @@ export function ActivityPlanForm({
     initDetails?.type7Items ?? [
       {
         id: "1",
+        plotActivityType: "CREATE",
         ownerName: DEMO_OWNERS[0] || "",
         productName: DEMO_PRODUCTS[0] || "",
         cropCategory: "พืชสวน",
         cropName: "ทุเรียน",
+        areaRai: 5,
+        treeCount: 50,
+        startDate: format(new Date(), "yyyy-MM-dd"),
+        objective: "",
         plotsCount: 1,
         detail: "",
       },
@@ -480,10 +485,16 @@ export function ActivityPlanForm({
       ...prev,
       {
         id: Date.now().toString(),
+        plotActivityType: "CREATE",
         ownerName: DEMO_OWNERS[0] || "",
         productName: DEMO_PRODUCTS[0] || "",
         cropCategory: "พืชสวน",
         cropName: "ทุเรียน",
+        customCropName: "",
+        areaRai: 5,
+        treeCount: 50,
+        startDate: format(new Date(), "yyyy-MM-dd"),
+        objective: "",
         plotsCount: 1,
         detail: "",
       },
@@ -939,9 +950,15 @@ export function ActivityPlanForm({
     if (selectedWorkTypes.includes("ติดตามแปลงสาธิต / ทำแปลง")) {
       const demoSummary = type7Items
         .map((item, i) => {
-          const unit = ["พืชไร่", "ผักและพืชล้มลุก"].includes(item.cropCategory)
-            ? "ไร่"
-            : "ต้น";
+          const modeLabel =
+            item.plotActivityType === "FOLLOW_UP"
+              ? "ติดตามแปลง"
+              : "ทำแปลงใหม่";
+          if (item.plotActivityType === "FOLLOW_UP") {
+            const plotName =
+              item.existingPlotName || item.ownerName || "แปลงเดิม";
+            return `${i + 1}. [${modeLabel}] แปลง: ${plotName} | วันที่ติดตาม: ${item.followUpDate || "ไม่ระบุ"} | สถานะ: ${item.plotStatus || "สมบูรณ์"}${item.followUpResult ? ` (${item.followUpResult})` : ""}`;
+          }
           const cropDisplay =
             item.customCropName &&
             ["ผักและพืชล้มลุกอื่นๆ", "พืชไร่อื่นๆ", "พืชสวนอื่นๆ"].includes(
@@ -949,7 +966,15 @@ export function ActivityPlanForm({
             )
               ? `${item.cropName}: ${item.customCropName}`
               : item.cropName;
-          return `${i + 1}. เจ้าของ: ${item.ownerName} | สินค้า: ${item.productName} | หมวดพืช: ${item.cropCategory} (${cropDisplay}) | จำนวน: ${item.plotsCount} ${unit}${item.detail ? ` (${item.detail})` : ""}`;
+          const sizeText =
+            item.areaRai && item.treeCount
+              ? `${item.areaRai} ไร่ (${item.treeCount} ต้น)`
+              : item.areaRai
+                ? `${item.areaRai} ไร่`
+                : item.treeCount
+                  ? `${item.treeCount} ต้น`
+                  : `${item.plotsCount || 1} แปลง`;
+          return `${i + 1}. [${modeLabel}] เจ้าของ: ${item.ownerName} | สินค้า: ${item.productName} | หมวดพืช: ${item.cropCategory} (${cropDisplay}) | ขนาด: ${sizeText}${item.detail ? ` (${item.detail})` : ""}`;
         })
         .join(", ");
       summaryParts.push(

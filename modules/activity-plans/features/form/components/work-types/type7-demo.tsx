@@ -1,7 +1,15 @@
 import React from "react";
-import { Sprout, Plus, Trash2 } from "lucide-react";
+import {
+  Sprout,
+  Plus,
+  Trash2,
+  PlusCircle,
+  Search,
+  Info,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
+import { cn } from "@/lib/utils";
 import type { Type7DemoPlotItem } from "../../types";
 import {
   DEMO_PRODUCTS,
@@ -9,6 +17,7 @@ import {
   CROP_CATEGORIES,
   CROPS_BY_CATEGORY,
   DEMO_PRODUCT_PRICES,
+  USER_DEMO_PLOTS,
 } from "../../constants";
 
 export interface CustomerOption {
@@ -81,6 +90,12 @@ export function Type7Demo({
     label: cat,
   }));
 
+  const existingPlotOptions = USER_DEMO_PLOTS.map((plot) => ({
+    value: plot.name,
+    label: plot.name,
+    subLabel: plot.location,
+  }));
+
   return (
     <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4">
       <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
@@ -103,13 +118,14 @@ export function Type7Demo({
       </div>
 
       {/* List of Demo Plot Cards */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {type7Items.length === 0 ? (
           <div className="py-6 text-center text-slate-400 bg-white rounded-xl border border-slate-200 text-xs">
             ยังไม่มีรายการแปลงสาธิต
           </div>
         ) : (
           type7Items.map((item, index) => {
+            const mode = item.plotActivityType || "CREATE";
             const availableCropOptions = (
               CROPS_BY_CATEGORY[item.cropCategory] || []
             ).map((crop) => ({
@@ -117,22 +133,27 @@ export function Type7Demo({
               label: crop,
             }));
 
-            const isRaiUnit = ["พืชไร่", "ผักและพืชล้มลุก"].includes(
-              item.cropCategory,
-            );
-
             const isCustomCropName = [
               "ผักและพืชล้มลุกอื่นๆ",
               "พืชไร่อื่นๆ",
               "พืชสวนอื่นๆ",
             ].includes(item.cropName);
 
+            // Find selected existing plot info for FOLLOW_UP read-only card
+            const selectedPlot = USER_DEMO_PLOTS.find(
+              (p) =>
+                p.name === item.existingPlotName ||
+                p.id === item.existingPlotId ||
+                p.name === item.existingPlotId,
+            );
+
             return (
               <div
                 key={item.id}
-                className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3 transition-all hover:border-emerald-300"
+                className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-4 transition-all hover:border-emerald-300"
               >
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                {/* Header bar */}
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                   <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
                     <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[11px] font-extrabold">
                       {index + 1}
@@ -151,171 +172,452 @@ export function Type7Demo({
                   )}
                 </div>
 
-                <div className="space-y-3">
-                  {/* แถวบน: เจ้าของแปลง + สินค้าที่จะสาธิต */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <FormCombobox
-                      id={`owner-combobox-${item.id}`}
-                      label="เจ้าของแปลง"
-                      labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
-                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                      value={item.ownerName}
-                      onChange={(val) =>
-                        updateType7Row(item.id, "ownerName", val)
+                {/* 1. Toggle Segmented Control */}
+                <div className="space-y-1.5 pt-0.5">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    ประเภทงาน <span className="text-red-500">*</span>
+                  </label>
+                  <div className="inline-flex p-1 bg-slate-100/90 rounded-xl border border-slate-200/80 gap-1 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateType7Row(item.id, "plotActivityType", "CREATE")
                       }
-                      options={customerOptions}
-                      placeholder="เลือกเจ้าของแปลง..."
-                      searchPlaceholder="ค้นหาเจ้าของแปลง / ลูกค้า..."
-                      emptyText="ไม่พบเจ้าของแปลง"
                       disabled={readonly}
-                      required
-                    />
-
-                    <FormCombobox
-                      id={`product-combobox-${item.id}`}
-                      label="สินค้าที่จะสาธิต"
-                      labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
-                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                      value={item.productName}
-                      onChange={(val) =>
-                        updateType7Row(item.id, "productName", val)
+                      className={cn(
+                        "flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5",
+                        mode === "CREATE"
+                          ? "bg-emerald-600 text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60",
+                      )}
+                    >
+                      <PlusCircle className="h-3.5 w-3.5" />
+                      <span>ทำแปลงสาธิต</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateType7Row(item.id, "plotActivityType", "FOLLOW_UP")
                       }
-                      options={productOptions}
-                      placeholder="เลือกสินค้า..."
-                      searchPlaceholder="ค้นหาสินค้า..."
-                      emptyText="ไม่พบสินค้า"
                       disabled={readonly}
-                      required
-                    />
+                      className={cn(
+                        "flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5",
+                        mode === "FOLLOW_UP"
+                          ? "bg-emerald-600 text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60",
+                      )}
+                    >
+                      <Search className="h-3.5 w-3.5" />
+                      <span>ติดตามแปลงสาธิต</span>
+                    </button>
                   </div>
+                </div>
 
-                  {/* แถวล่าง: หมวดพืช + ชื่อพืช + (ระบุชื่อพืชเพิ่มเติม) + จำนวน */}
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                    <div
-                      className={
-                        isCustomCropName ? "md:col-span-3" : "md:col-span-5"
-                      }
-                    >
+                {/* 2. MODE: ทำแปลงสาธิต (CREATE) */}
+                {mode === "CREATE" && (
+                  <div className="space-y-3.5 pt-1">
+                    {/* Row 1: เจ้าของแปลง + สินค้าที่จะสาธิต */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <FormCombobox
-                        id={`crop-category-combobox-${item.id}`}
-                        label="หมวดพืช"
+                        id={`owner-combobox-${item.id}`}
+                        label="เจ้าของแปลง"
                         labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
                         triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                        value={item.cropCategory}
-                        onChange={(newCat) => {
-                          updateType7Row(item.id, "cropCategory", newCat);
-                          const nextCrops = CROPS_BY_CATEGORY[newCat] || [];
-                          if (
-                            nextCrops.length > 0 &&
-                            !nextCrops.includes(item.cropName)
-                          ) {
-                            updateType7Row(item.id, "cropName", nextCrops[0]);
-                          }
-                        }}
-                        options={cropCategoryOptions}
-                        placeholder="เลือกหมวด..."
-                        searchPlaceholder="ค้นหาหมวดพืช..."
-                        emptyText="ไม่พบหมวดพืช"
+                        value={item.ownerName}
+                        onChange={(val) =>
+                          updateType7Row(item.id, "ownerName", val)
+                        }
+                        options={customerOptions}
+                        placeholder="เลือกเจ้าของแปลง..."
+                        searchPlaceholder="ค้นหาเจ้าของแปลง / ลูกค้า..."
+                        emptyText="ไม่พบเจ้าของแปลง"
                         disabled={readonly}
+                        required
                       />
-                    </div>
 
-                    <div
-                      className={
-                        isCustomCropName ? "md:col-span-4" : "md:col-span-5"
-                      }
-                    >
                       <FormCombobox
-                        id={`crop-name-combobox-${item.id}`}
-                        label="ชื่อพืช"
+                        id={`product-combobox-${item.id}`}
+                        label="สินค้าที่จะสาธิต"
                         labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
                         triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                        value={item.cropName}
-                        onChange={(val) => {
-                          updateType7Row(item.id, "cropName", val);
-                          if (
-                            ![
-                              "ผักและพืชล้มลุกอื่นๆ",
-                              "พืชไร่อื่นๆ",
-                              "พืชสวนอื่นๆ",
-                            ].includes(val)
-                          ) {
-                            updateType7Row(item.id, "customCropName", "");
-                          }
-                        }}
-                        options={availableCropOptions}
-                        placeholder="เลือกชื่อพืช..."
-                        searchPlaceholder="ค้นหาชื่อพืช..."
-                        emptyText="ไม่พบชื่อพืช"
-                        disabled={readonly || !item.cropCategory}
+                        value={item.productName}
+                        onChange={(val) =>
+                          updateType7Row(item.id, "productName", val)
+                        }
+                        options={productOptions}
+                        placeholder="เลือกสินค้า..."
+                        searchPlaceholder="ค้นหาสินค้า..."
+                        emptyText="ไม่พบสินค้า"
+                        disabled={readonly}
+                        required
                       />
                     </div>
 
-                    {isCustomCropName && (
-                      <div className="md:col-span-3 mt-1">
+                    {/* Row 2: หมวดพืช + ชื่อพืช + (ระบุชื่อพืชเพิ่มเติม) + พื้นที่แปลง + จำนวนต้น */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                      <div
+                        className={
+                          isCustomCropName ? "md:col-span-3" : "md:col-span-5"
+                        }
+                      >
+                        <FormCombobox
+                          id={`crop-category-combobox-${item.id}`}
+                          label="หมวดพืช"
+                          labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                          triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                          value={item.cropCategory}
+                          onChange={(newCat) => {
+                            updateType7Row(item.id, "cropCategory", newCat);
+                            const nextCrops = CROPS_BY_CATEGORY[newCat] || [];
+                            if (
+                              nextCrops.length > 0 &&
+                              !nextCrops.includes(item.cropName)
+                            ) {
+                              updateType7Row(
+                                item.id,
+                                "cropName",
+                                nextCrops[0],
+                              );
+                            }
+                          }}
+                          options={cropCategoryOptions}
+                          placeholder="เลือกหมวด..."
+                          searchPlaceholder="ค้นหาหมวดพืช..."
+                          emptyText="ไม่พบหมวดพืช"
+                          disabled={readonly}
+                        />
+                      </div>
+
+                      <div
+                        className={
+                          isCustomCropName ? "md:col-span-4" : "md:col-span-5"
+                        }
+                      >
+                        <FormCombobox
+                          id={`crop-name-combobox-${item.id}`}
+                          label="ชื่อพืช"
+                          labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                          triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                          value={item.cropName}
+                          onChange={(val) => {
+                            updateType7Row(item.id, "cropName", val);
+                            if (
+                              ![
+                                "ผักและพืชล้มลุกอื่นๆ",
+                                "พืชไร่อื่นๆ",
+                                "พืชสวนอื่นๆ",
+                              ].includes(val)
+                            ) {
+                              updateType7Row(item.id, "customCropName", "");
+                            }
+                          }}
+                          options={availableCropOptions}
+                          placeholder="เลือกชื่อพืช..."
+                          searchPlaceholder="ค้นหาชื่อพืช..."
+                          emptyText="ไม่พบชื่อพืช"
+                          disabled={readonly || !item.cropCategory}
+                        />
+                      </div>
+
+                      {isCustomCropName && (
+                        <div className="md:col-span-3">
+                          <label className="block text-xs font-medium text-slate-700 mb-1">
+                            ระบุชื่อพืชเพิ่มเติม{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={item.customCropName || ""}
+                            onChange={(e) =>
+                              updateType7Row(
+                                item.id,
+                                "customCropName",
+                                e.target.value,
+                              )
+                            }
+                            disabled={readonly}
+                            placeholder="ระบุชื่อพืช..."
+                            className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
+                          />
+                        </div>
+                      )}
+
+                      <div
+                        className={
+                          isCustomCropName ? "md:col-span-3" : "md:col-span-1"
+                        }
+                      >
                         <label className="block text-xs font-medium text-slate-700 mb-1">
-                          ระบุชื่อพืชเพิ่มเติม{" "}
-                          <span className="text-red-500">*</span>
+                          พื้นที่ (ไร่)
                         </label>
                         <input
-                          type="text"
-                          value={item.customCropName || ""}
+                          type="number"
+                          min={0}
+                          value={item.areaRai ?? ""}
                           onChange={(e) =>
                             updateType7Row(
                               item.id,
-                              "customCropName",
-                              e.target.value,
+                              "areaRai",
+                              parseFloat(e.target.value) || 0,
                             )
                           }
                           disabled={readonly}
-                          placeholder="ระบุชื่อพืช..."
-                          className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
+                          placeholder="0"
+                          className="w-full h-9 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
                         />
                       </div>
-                    )}
 
-                    <div className="md:col-span-2 mt-1">
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        จำนวน <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative flex items-center">
+                      <div
+                        className={
+                          isCustomCropName ? "md:col-span-3" : "md:col-span-1"
+                        }
+                      >
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          จำนวนต้น
+                        </label>
                         <input
                           type="number"
-                          min={1}
-                          value={item.plotsCount}
+                          min={0}
+                          value={item.treeCount ?? ""}
                           onChange={(e) =>
                             updateType7Row(
                               item.id,
-                              "plotsCount",
+                              "treeCount",
                               parseInt(e.target.value) || 0,
                             )
                           }
                           disabled={readonly}
-                          className="w-full h-9 pl-3 pr-8 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
+                          placeholder="0"
+                          className="w-full h-9 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
                         />
-                        <span className="absolute right-3 text-[11px] font-semibold text-slate-500 pointer-events-none">
-                          {isRaiUnit ? "ไร่" : "ต้น"}
-                        </span>
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    รายละเอียดเพิ่มเติม
-                  </label>
-                  <input
-                    type="text"
-                    value={item.detail}
-                    onChange={(e) =>
-                      updateType7Row(item.id, "detail", e.target.value)
-                    }
-                    disabled={readonly}
-                    placeholder="ระบุรายละเอียดเพิ่มเติมของแปลงสาธิต..."
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                  />
-                </div>
+                    {/* Row 3: วันที่เริ่มทำแปลง + วัตถุประสงค์ของแปลง */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                      <div className="md:col-span-4">
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          วันที่เริ่มทำแปลง <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          value={item.startDate || ""}
+                          onChange={(e) =>
+                            updateType7Row(item.id, "startDate", e.target.value)
+                          }
+                          disabled={readonly}
+                          className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
+                        />
+                      </div>
+
+                      <div className="md:col-span-8">
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          วัตถุประสงค์ของแปลง
+                        </label>
+                        <input
+                          type="text"
+                          value={item.objective || ""}
+                          onChange={(e) =>
+                            updateType7Row(item.id, "objective", e.target.value)
+                          }
+                          disabled={readonly}
+                          placeholder="ระบุวัตถุประสงค์ของแปลง..."
+                          className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Row 4: รายละเอียด / วิธีการทดลอง */}
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        รายละเอียด / วิธีการทดลอง
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={item.detail || ""}
+                        onChange={(e) =>
+                          updateType7Row(item.id, "detail", e.target.value)
+                        }
+                        disabled={readonly}
+                        placeholder="ระบุรายละเอียดขั้นตอน สภาพแปลง หรือวิธีการทดลอง..."
+                        className="w-full p-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. MODE: ติดตามแปลงสาธิต (FOLLOW_UP) */}
+                {mode === "FOLLOW_UP" && (
+                  <div className="space-y-3.5 pt-1">
+                    {/* Select Existing Plot + Follow-up Date */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                      <div className="md:col-span-8">
+                        <FormCombobox
+                          id={`existing-plot-combobox-${item.id}`}
+                          label="แปลงสาธิต"
+                          labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                          triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                          value={
+                            item.existingPlotName || item.existingPlotId || ""
+                          }
+                          onChange={(val) => {
+                            const match = USER_DEMO_PLOTS.find(
+                              (p) => p.name === val || p.id === val,
+                            );
+                            updateType7Row(
+                              item.id,
+                              "existingPlotId",
+                              match?.id || val,
+                            );
+                            updateType7Row(
+                              item.id,
+                              "existingPlotName",
+                              match?.name || val,
+                            );
+                            if (match) {
+                              if (match.ownerName)
+                                updateType7Row(
+                                  item.id,
+                                  "ownerName",
+                                  match.ownerName,
+                                );
+                              if (match.productName)
+                                updateType7Row(
+                                  item.id,
+                                  "productName",
+                                  match.productName,
+                                );
+                              if (match.cropCategory)
+                                updateType7Row(
+                                  item.id,
+                                  "cropCategory",
+                                  match.cropCategory,
+                                );
+                              if (match.cropName)
+                                updateType7Row(
+                                  item.id,
+                                  "cropName",
+                                  match.targetCrop || match.cropName,
+                                );
+                              if (match.areaRai !== undefined)
+                                updateType7Row(
+                                  item.id,
+                                  "areaRai",
+                                  match.areaRai,
+                                );
+                              if (match.treeCount !== undefined)
+                                updateType7Row(
+                                  item.id,
+                                  "treeCount",
+                                  match.treeCount,
+                                );
+                            }
+                          }}
+                          options={existingPlotOptions}
+                          placeholder="เลือกแปลงสาธิตที่มีอยู่แล้ว..."
+                          searchPlaceholder="ค้นหาแปลงสาธิตเดิม..."
+                          emptyText="ไม่พบแปลงสาธิตเดิม"
+                          disabled={readonly}
+                          required
+                        />
+                      </div>
+
+                      <div className="md:col-span-4">
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          วันที่ติดตาม <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          value={item.followUpDate || ""}
+                          onChange={(e) =>
+                            updateType7Row(
+                              item.id,
+                              "followUpDate",
+                              e.target.value,
+                            )
+                          }
+                          disabled={readonly}
+                          className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Read-Only Summary Card for Selected Plot */}
+                    <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 space-y-2 text-xs">
+                      <div className="flex items-center justify-between border-b border-slate-200/60 pb-1.5">
+                        <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                          <Info className="h-3.5 w-3.5 text-emerald-600" />
+                          ข้อมูลแปลงสาธิตเดิม (Read-only)
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold text-[11px]">
+                          แปลงเดิมในระบบ
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-slate-700">
+                        <div>
+                          <span className="font-semibold text-slate-500">
+                            เจ้าของแปลง:{" "}
+                          </span>
+                          <span className="font-bold">
+                            {selectedPlot?.ownerName || item.ownerName || "-"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="font-semibold text-slate-500">
+                            พืช:{" "}
+                          </span>
+                          <span className="font-bold">
+                            {selectedPlot?.targetCrop ||
+                              selectedPlot?.cropName ||
+                              item.cropName ||
+                              "-"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="font-semibold text-slate-500">
+                            สินค้าเดิม:{" "}
+                          </span>
+                          <span className="font-bold">
+                            {selectedPlot?.showcase ||
+                              selectedPlot?.productName ||
+                              item.productName ||
+                              "-"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="font-semibold text-slate-500">
+                            พื้นที่/จำนวน:{" "}
+                          </span>
+                          <span className="font-bold">
+                            {selectedPlot?.areaRai ?? item.areaRai
+                              ? `${selectedPlot?.areaRai ?? item.areaRai} ไร่ `
+                              : ""}
+                            {selectedPlot?.treeCount ?? item.treeCount
+                              ? `(${selectedPlot?.treeCount ?? item.treeCount} ต้น)`
+                              : "-"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Details / Follow-up Notes */}
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        รายละเอียดเพิ่มเติม / วัตถุประสงค์ในการติดตาม
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={item.detail || ""}
+                        onChange={(e) =>
+                          updateType7Row(item.id, "detail", e.target.value)
+                        }
+                        disabled={readonly}
+                        placeholder="ระบุรายละเอียดเพิ่มเติม หรือวัตถุประสงค์ของการติดตามแปลงครั้งนี้..."
+                        className="w-full p-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })

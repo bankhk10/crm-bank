@@ -359,6 +359,13 @@ export interface UserDemoPlotOption {
   location: string;
   targetCrop: string;
   showcase: string;
+  ownerName?: string;
+  cropCategory?: string;
+  cropName?: string;
+  productName?: string;
+  areaRai?: number;
+  treeCount?: number;
+  startDate?: string;
 }
 
 export const USER_DEMO_PLOTS: UserDemoPlotOption[] = [
@@ -368,6 +375,13 @@ export const USER_DEMO_PLOTS: UserDemoPlotOption[] = [
     location: "แปลงสาธิตสวนทุเรียน ต.วังหว้า อ.แกลง จ.ระยอง",
     targetCrop: "ทุเรียนหมอนทอง",
     showcase: "ปุ๋ยสูตรพรีเมียม A",
+    ownerName: "นายสมชาย ใจดี",
+    cropCategory: "พืชสวน",
+    cropName: "ทุเรียน",
+    productName: "สินค้าทดสอบ A",
+    areaRai: 10,
+    treeCount: 120,
+    startDate: "2026-03-15",
   },
   {
     id: "plot-2",
@@ -375,6 +389,13 @@ export const USER_DEMO_PLOTS: UserDemoPlotOption[] = [
     location: "แปลงสาธิตนาข้าว ต.บางเลน อ.บางเลน จ.นครปฐม",
     targetCrop: "ข้าวหอมมะลิ",
     showcase: "ฮอร์โมนเร่งรวง B",
+    ownerName: "ร้านเกษตรพัฒนา (นายสมศักดิ์)",
+    cropCategory: "พืชไร่",
+    cropName: "ข้าว",
+    productName: "สินค้าทดสอบ B",
+    areaRai: 25,
+    treeCount: 0,
+    startDate: "2026-04-01",
   },
   {
     id: "plot-3",
@@ -382,6 +403,13 @@ export const USER_DEMO_PLOTS: UserDemoPlotOption[] = [
     location: "แปลงสาธิต ต.ห้วยบง อ.ด่านขุนทด จ.นครราชสีมา",
     targetCrop: "มันสำปะหลัง",
     showcase: "ปุ๋ยชีวภาพเร่งหัว C",
+    ownerName: "ร้านสหายพานิช",
+    cropCategory: "พืชไร่",
+    cropName: "มันสำปะหลัง",
+    productName: "สินค้าทดสอบ C",
+    areaRai: 15,
+    treeCount: 0,
+    startDate: "2026-02-10",
   },
   {
     id: "plot-4",
@@ -389,5 +417,12 @@ export const USER_DEMO_PLOTS: UserDemoPlotOption[] = [
     location: "แปลงสาธิต ต.เวียง อ.ฝาง จ.เชียงใหม่",
     targetCrop: "ส้มสายน้ำผึ้ง",
     showcase: "สารบำรุงใบพรีเมียม",
+    ownerName: "เกษตรกรตัวอย่าง 1 (นายวิชัย)",
+    cropCategory: "พืชสวน",
+    cropName: "ส้ม",
+    productName: "ปุ๋ยเคมีสูตรพิเศษ",
+    areaRai: 8,
+    treeCount: 150,
+    startDate: "2026-01-20",
   },
 ];
