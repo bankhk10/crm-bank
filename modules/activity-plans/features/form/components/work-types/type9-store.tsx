@@ -22,6 +22,7 @@ export interface ProductOption {
   name: string;
   productCode?: string | null;
   price?: number | null;
+  unit?: string | null;
 }
 
 interface Props {
@@ -85,15 +86,22 @@ export function Type9Store({
     label: c.name,
   }));
 
+  const boxProducts = products.filter(
+    (p) => !p.unit || p.unit.trim() === "กล่อง",
+  );
+
   const productOptions = (
-    products && products.length > 0
-      ? products
-      : DEMO_PRODUCTS.map((prod) => ({
-          id: prod,
-          name: prod,
-          productCode: null,
-          price: DEMO_PRODUCT_PRICES[prod] ?? 500,
-        }))
+    boxProducts.length > 0
+      ? boxProducts
+      : products && products.length > 0
+        ? products
+        : DEMO_PRODUCTS.map((prod) => ({
+            id: prod,
+            name: prod,
+            productCode: null,
+            price: DEMO_PRODUCT_PRICES[prod] ?? 500,
+            unit: "กล่อง",
+          }))
   ).map((p) => ({
     value: p.name,
     label: p.name,
