@@ -114,6 +114,8 @@ model User {
   targetedSecurityLogs           SecurityLog[]            @relation("SecurityLogTargetUser") // Existing
   notifications                  Notification[]           @relation("UserNotifications")
   salesTargetHistories           SalesTargetHistory[]     @relation("SalesTargetHistoryUser")
+  activityPlans                  ActivityPlan[]           @relation("UserActivityPlans")
+  activityApprovalLogs           ActivityApprovalLog[]    @relation("UserActivityApprovalLogs")
 }
 
 model Company {
@@ -182,6 +184,10 @@ model Employee {
   salesTargets         SalesTarget[]
   pointSummary         EmployeePointSummary?
   pointHistories       EmployeePointHistory[]
+  activityPlans        ActivityPlan[]         @relation("EmployeeActivityPlans")
+  activityApprovals    ActivityPlan[]         @relation("EmployeeActivityApprovals")
+  helperActivities     ActivityHelper[]       @relation("EmployeeActivityHelpers")
+  approvedHelpers      ActivityHelper[]       @relation("EmployeeApprovedHelpers")
 }
 
 model Department {
@@ -1472,3 +1478,164 @@ model LoginAnnouncement {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 }
+
+// ==========================================
+// ACTIVITY FEATURE ENUMS
+// ==========================================
+
+enum ActivityStatus {
+  DRAFT                       // แผนร่าง
+  PENDING_LINE_APPROVAL       // รออนุมัติตามสายงาน (Step 2: Line Approval)
+  PENDING_BUDGET_APPROVAL     // รออนุมัติงบประมาณ (Step 3: Budget Approval)
+  PENDING_HELPER_APPROVAL     // รออนุมัติผู้ช่วยงาน (Step 4: Helper Approval)
+  APPROVED                    // อนุมัติสมบูรณ์และบันทึกปฏิทินสำเร็จ (Step 5)
+  REJECTED                    // ถูกปฏิเสธ (ปัดตกแผนงาน)
+  WAITING_FOR_CORRECTION      // ถูกส่งกลับแก้ไข/ขอข้อมูลเพิ่มเติม (ตีกลับ)
+  CANCELLED                   // ยกเลิกแผนงานโดยผู้สร้าง
+}
+
+enum ActivityHelperStatus {
+  PENDING                     // รออนุมัติจาก ผจก. แผนกของคนช่วย
+  APPROVED                    // อนุมัติให้ไปช่วยงานได้
+  REJECTED                    // ไม่อนุมัติให้ไปช่วยงาน (ต้องเปลี่ยนคนช่วยใหม่)
+}
+
+enum ActivityApprovalAction {
+  SUBMIT                      // ส่งขออนุมัติ
+  APPROVE                     // อนุมัติผ่าน
+  REJECT                      // ปฏิเสธ (ปัดตก)
+  REQUEST_CORRECTION          // ตีกลับแก้ไข
+  CANCEL                      // ยกเลิก
+}
+
+enum ActivityApprovalStep {
+  LINE_APPROVAL               // ตรวจสอบเบื้องต้นตามสายงาน (Step 2)
+  BUDGET_APPROVAL             // ตรวจสอบเงื่อนไขงบประมาณ (Step 3)
+  HELPER_APPROVAL             // ตรวจสอบการช่วยงาน (Step 4)
+}
+
+// ==========================================
+// ACTIVITY FEATURE MODELS
+// ==========================================
+
+model ActivityPlan {
+  id                     String         @id @default(cuid())
+  title                  String         // ชื่อกิจกรรม
+  startDate              DateTime       @map("start_date") // วันและเวลาเริ่มต้น
+  endDate                DateTime       @map("end_date")   // วันและเวลาสิ้นสุด
+  activityType           String         @map("activity_type") // ประเภทกิจกรรม
+  location               String         // รายละเอียดพื้นที่จัดกิจกรรม
+  objective              String         // เป้าหมายกิจกรรม
+  description            String         // รายละเอียดกิจกรรม
+  
+  // การของบประมาณ (ใส่เป็นเงินขออนุมัติ, เป็น null หรือ 0 เมื่อไม่ได้ใช้งบนั้น)
+  salesPromotionBudget   Decimal?       @db.Decimal(15, 2) @map("sales_promotion_budget")
+  marketingBudget        Decimal?       @db.Decimal(15, 2) @map("marketing_budget")
+  
+  notes                  String?        // หมายเหตุเพิ่มเติม
+  details                Json?          @map("details") // รายละเอียดโครงสร้างข้อมูลแบบเลือกตอบในฟอร์ม
+  status                 ActivityStatus @default(DRAFT)
+  
+  // ความสัมพันธ์
+  employeeId             String         @map("employee_id")      // พนักงานผู้สร้างแผนกิจกรรม
+  createdById            String         @map("created_by_id")    // บัญชีผู้ใช้งานที่สร้างแผน
+  currentApproverId      String?        @map("current_approver_id") // ผู้รับผิดชอบอนุมัติคนปัจจุบัน (สำหรับการเดินสายงาน Line Approval)
+
+  // ผลการอนุมัติงบในขั้นตอน Step 3 (เพื่อใช้ในการขยับ State ของงบคู่ขนาน)
+  salesPromotionApproved Boolean?       @map("sales_promotion_approved")
+  marketingApproved      Boolean?       @map("marketing_approved")
+  salesManagerApproved   Boolean?       @map("sales_manager_approved")
+
+  // Metadata & Soft Delete ตาม Coding Standards
+  createdAt              DateTime       @default(now()) @map("created_at")
+  updatedAt              DateTime       @updatedAt @map("updated_at")
+  deletedAt              DateTime?      @map("deleted_at")
+
+  // Relations
+  employee               Employee       @relation("EmployeeActivityPlans", fields: [employeeId], references: [id], onDelete: Restrict)
+  createdBy              User           @relation("UserActivityPlans", fields: [createdById], references: [id], onDelete: Restrict)
+  currentApprover        Employee?      @relation("EmployeeActivityApprovals", fields: [currentApproverId], references: [id], onDelete: SetNull)
+  
+  helpers                ActivityHelper[]
+  approvalLogs           ActivityApprovalLog[]
+
+  @@index([employeeId])
+  @@index([currentApproverId])
+  @@index([status])
+}
+
+model ActivityHelper {
+  id             String               @id @default(cuid())
+  activityPlanId String               @map("activity_plan_id")
+  employeeId     String               @map("employee_id")     // พนักงานที่ไปช่วยงาน
+  status         ActivityHelperStatus @default(PENDING)
+  rejectionReason String?             @map("rejection_reason") // เหตุผลหากถูกปัดตก
+  
+  approvedById   String?              @map("approved_by_id")   // ผจก. แผนกของคนช่วยที่กดอนุมัติ
+  approvedAt     DateTime?            @map("approved_at")
+
+  // Metadata & Soft Delete
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+  deletedAt      DateTime?            @map("deleted_at")
+
+  // Relations
+  activityPlan   ActivityPlan         @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  employee       Employee             @relation("EmployeeActivityHelpers", fields: [employeeId], references: [id], onDelete: Restrict)
+  approvedBy     Employee?            @relation("EmployeeApprovedHelpers", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@unique([activityPlanId, employeeId])
+  @@index([employeeId])
+}
+
+model ActivityApprovalLog {
+  id             String                 @id @default(cuid())
+  activityPlanId String                 @map("activity_plan_id")
+  userId         String                 @map("user_id") // บัญชีผู้ใช้งานที่ทำรายการ
+  
+  action         ActivityApprovalAction
+  step           ActivityApprovalStep
+  comment        String?                // เหตุผล / หมายเหตุ / สิ่งที่ต้องแก้ไข
+  
+  createdAt      DateTime               @default(now()) @map("created_at")
+
+  // Relations
+  activityPlan   ActivityPlan           @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  user           User                   @relation("UserActivityApprovalLogs", fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+}
+
+// ==========================================
+// PROMOTIONAL MATERIALS (สื่อส่งเสริมการขาย)
+// ==========================================
+
+enum PromotionalMaterialStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model PromotionalMaterial {
+  id          String                    @id @default(cuid())
+  sku         String                    @unique // SKU หรือรหัสสินค้า
+  name        String                    // ชื่อสินค้า
+  shortName   String?                   @map("short_name") // ชื่อย่อ
+  description String?                   // รายละเอียดสินค้า
+  category    String                    // หมวดหมู่สินค้า (Premium_item, PP_Board, Banner, Leaflet, อุปกรณ์จัดงาน)
+  brand       String?                   // ยี่ห้อ
+  status      PromotionalMaterialStatus @default(ACTIVE) // Active / Inactive
+  unit        String?                   // หน่วย
+  price       Decimal?                  @default(0) @db.Decimal(15, 2) // ราคา
+  quantity    Int                       @default(0) // จำนวน
+  createdById String?                   @map("created_by_id") // ผู้สร้าง
+  createdAt   DateTime                  @default(now()) @map("created_at") // วันที่สร้าง
+  updatedById String?                   @map("updated_by_id") // ผู้แก้ไข
+  updatedAt   DateTime                  @updatedAt @map("updated_at") // วันที่แก้ไข
+  deletedAt   DateTime?                 @map("deleted_at") // Soft Delete
+
+  @@index([sku])
+  @@index([category])
+  @@index([status])
+  @@map("promotional_materials")
+}
+

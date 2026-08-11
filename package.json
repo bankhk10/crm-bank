@@ -12,6 +12,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx prisma/seed/index.ts",
+    "seed:core": "tsx prisma/seed/core/index.ts",
+    "seed:activity": "tsx prisma/seed/activity/index.ts",
     "db:migrate": "prisma migrate deploy"
   },
   "dependencies": {

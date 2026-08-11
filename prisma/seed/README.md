@@ -2,37 +2,22 @@
 
 ## Current Structure
 
-The seeding logic has been refactored into modular files in `prisma/seed/`:
+The seeding logic has been refactored into modular subfolders in `prisma/seed/`:
 
-- `master.ts`: Companies, Departments, Units, Categories, Plants.
-- `product-master.ts`: TradeNameGroup, ProductGroup, Brand, ProductABCTypes.
-- `rbac.ts`: Roles, Permissions, and RolePermissions.
-- `users.ts`: Default admin user and Positions.
-- `test-last-year-data.ts`: Test sales data for last year (standalone script).
-- `index.ts`: Main entry point.
+### 📂 `prisma/seed/core/` (ข้อมูลหลัก/ระบบหลัก)
+- `index.ts`: Entry point สำหรับการ seed ข้อมูลหลักของระบบ
+- `master.ts`: Companies, Departments, Units, Categories, Plants
+- `product-master.ts`: TradeNameGroup, ProductGroup, Brand, ProductABCTypes
+- `promotional-materials.ts`: Promotional Materials
+- `rbac.ts`: Roles, Permissions (รวมสิทธิ์ของระบบการวางแผนกิจกรรม), และ RolePermissions
+- `users.ts`: Default admin user (`b@b.com`) และ Positions หลัก
 
-## Seed Behavior (Idempotent)
-
-### `master.ts`
-- Uses `createMany({ skipDuplicates: true })` for models with `@unique` fields (Unit, Company, etc.).
-- Uses `upsert` for Departments.
-- ⚠️ Models **without** `@unique` on `code` (e.g., ProductCategory) may create duplicates on repeated runs.
-
-### `product-master.ts`
-- Uses `createMany({ skipDuplicates: true })`.
-- ⚠️ Same duplicate risk for `ProductABCTypes` (no `@unique` on `code`).
-
-### `rbac.ts`
-- **First run** (no `administrator` role): Creates all Roles, Permissions, and RolePermissions from scratch.
-- **Subsequent runs** (role exists): **Add-only** mode:
-  - Creates new Permissions that don't exist in DB yet (assigns to `administrator` automatically).
-  - Updates Permission metadata (name, resource, menuPath) if changed.
-  - **Does NOT** delete existing Permissions from DB.
-  - **Does NOT** modify existing RolePermissions (safe for Production UI changes).
-
-### `users.ts`
-- Uses `upsert` for admin user — safe to run multiple times.
-- Uses `findFirst` for Positions — skips if already exists.
+### 📂 `prisma/seed/activity/` (ข้อมูลทดสอบระบบกิจกรรม)
+- `index.ts`: Entry point ประสานงานการรัน seed ข้อมูลทดสอบระบบกิจกรรม
+- `permissions.ts`: การสร้างและกำหนด Activity Permissions
+- `departments-positions.ts`: การสร้างแผนกและตำแหน่งเฉพาะระบบกิจกรรม
+- `roles.ts`: การสร้าง Roles และสิทธิ์การเข้าถึงข้อมูล (Data Permissions) ของกิจกรรม
+- `users-employees.ts`: การสร้างข้อมูลผู้ใช้และสายการอนุมัติ 2 ทีมคู่ขนาน (Team 1 & Team 2)
 
 ---
 
@@ -45,18 +30,22 @@ The seeding logic has been refactored into modular files in `prisma/seed/`:
 ```bash
 # 1. สร้าง Migration ใหม่ (เมื่อแก้ไข schema.prisma)
 npx prisma migrate dev --name <migration_name>
-# ตัวอย่าง: npx prisma migrate dev --name add_customer_fields
 
 # 2. Generate Prisma Client (อัพเดท types)
 npx prisma generate
 
-# 3. Seed ข้อมูล
+# 3. Seed ข้อมูลระบบหลัก (Master, Products, RBAC, Admin user)
 pnpm seed
+# หรือ
+pnpm seed:core
 
-# 4. Reset ฐานข้อมูลทั้งหมด (⚠️ ลบข้อมูลทั้งหมด)
+# 4. Seed ข้อมูลทดสอบกิจกรรม (เฉพาะเมื่อต้องการทดสอบระบบ Activity Flow)
+pnpm seed:activity
+
+# 5. Reset ฐานข้อมูลทั้งหมด (⚠️ ลบข้อมูลทั้งหมด)
 npx prisma migrate reset
 
-# 5. ดูสถานะ Migration
+# 6. ดูสถานะ Migration
 npx prisma migrate status
 
 # 6. เปิด Prisma Studio (GUI ดูข้อมูล)
