@@ -68,9 +68,11 @@ export function Type7Demo({
         (i.ownerName || i.cropName),
     )
     .map((i) => {
-      const cropDisplay = i.customCropName || i.cropName || "พืช";
+      const cropDisplay = i.customCropName || i.cropName || "";
       const ownerDisplay = i.ownerName || "เกษตรกร";
-      const name = `แปลงสาธิต ${cropDisplay} (${ownerDisplay})`;
+      const name = cropDisplay
+        ? `${ownerDisplay} - ${cropDisplay}`
+        : ownerDisplay;
       return {
         id: `form-created-${i.id}`,
         name,
@@ -135,7 +137,10 @@ export function Type7Demo({
   const existingPlotOptions = plotList.map((plot) => ({
     value: plot.name,
     label: plot.name,
-    subLabel: plot.location,
+    subLabel:
+      plot.productName || plot.showcase
+        ? `สินค้า: ${plot.productName || plot.showcase}`
+        : undefined,
   }));
 
   return (
@@ -603,7 +608,7 @@ export function Type7Demo({
                             เจ้าของแปลง:{" "}
                           </span>
                           <span className="font-bold">
-                            {selectedPlot?.ownerName || item.ownerName || "-"}
+                            {selectedPlot?.ownerName || "-"}
                           </span>
                         </div>
                         <div>
@@ -613,7 +618,6 @@ export function Type7Demo({
                           <span className="font-bold">
                             {selectedPlot?.targetCrop ||
                               selectedPlot?.cropName ||
-                              item.cropName ||
                               "-"}
                           </span>
                         </div>
@@ -624,7 +628,6 @@ export function Type7Demo({
                           <span className="font-bold">
                             {selectedPlot?.showcase ||
                               selectedPlot?.productName ||
-                              item.productName ||
                               "-"}
                           </span>
                         </div>
@@ -634,20 +637,20 @@ export function Type7Demo({
                           </span>
                           <span className="font-bold">
                             {(() => {
-                              const cat =
-                                selectedPlot?.cropCategory || item.cropCategory;
+                              if (!selectedPlot) return "-";
+                              const cat = selectedPlot.cropCategory || "";
                               const isRai = [
                                 "พืชไร่",
                                 "ผักและพืชล้มลุก",
                               ].includes(cat);
                               if (isRai) {
-                                const rai =
-                                  selectedPlot?.areaRai || item.areaRai;
-                                return rai ? `${rai} ไร่` : "-";
+                                return selectedPlot.areaRai
+                                  ? `${selectedPlot.areaRai} ไร่`
+                                  : "-";
                               }
-                              const tree =
-                                selectedPlot?.treeCount || item.treeCount;
-                              return tree ? `${tree} ต้น` : "-";
+                              return selectedPlot.treeCount
+                                ? `${selectedPlot.treeCount} ต้น`
+                                : "-";
                             })()}
                           </span>
                         </div>

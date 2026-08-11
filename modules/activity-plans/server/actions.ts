@@ -327,9 +327,11 @@ export async function getDemoPlotsAction() {
           if (item.plotActivityType === "FOLLOW_UP") continue;
           if (!item.ownerName && !item.cropName) continue;
 
-          const cropDisplay = item.customCropName || item.cropName || "พืช";
+          const cropDisplay = item.customCropName || item.cropName || "";
           const ownerDisplay = item.ownerName || "เกษตรกร";
-          const plotName = `แปลงสาธิต ${cropDisplay} (${ownerDisplay})`;
+          const plotName = cropDisplay
+            ? `${ownerDisplay} - ${cropDisplay}`
+            : ownerDisplay;
 
           realPlots.push({
             id: `plot-${plan.id}-${item.id || Math.random()}`,
