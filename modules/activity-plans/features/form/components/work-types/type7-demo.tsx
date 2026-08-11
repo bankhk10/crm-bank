@@ -121,6 +121,12 @@ export function Type7Demo({
               item.cropCategory,
             );
 
+            const isCustomCropName = [
+              "ผักและพืชล้มลุกอื่นๆ",
+              "พืชไร่อื่นๆ",
+              "พืชสวนอื่นๆ",
+            ].includes(item.cropName);
+
             return (
               <div
                 key={item.id}
@@ -183,9 +189,13 @@ export function Type7Demo({
                     />
                   </div>
 
-                  {/* แถวล่าง: หมวดพืช + ชื่อพืช + จำนวน */}
+                  {/* แถวล่าง: หมวดพืช + ชื่อพืช + (ระบุชื่อพืชเพิ่มเติม) + จำนวน */}
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                    <div className="md:col-span-5">
+                    <div
+                      className={
+                        isCustomCropName ? "md:col-span-3" : "md:col-span-5"
+                      }
+                    >
                       <FormCombobox
                         id={`crop-category-combobox-${item.id}`}
                         label="หมวดพืช"
@@ -210,16 +220,29 @@ export function Type7Demo({
                       />
                     </div>
 
-                    <div className="md:col-span-5">
+                    <div
+                      className={
+                        isCustomCropName ? "md:col-span-4" : "md:col-span-5"
+                      }
+                    >
                       <FormCombobox
                         id={`crop-name-combobox-${item.id}`}
                         label="ชื่อพืช"
                         labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
                         triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                         value={item.cropName}
-                        onChange={(val) =>
-                          updateType7Row(item.id, "cropName", val)
-                        }
+                        onChange={(val) => {
+                          updateType7Row(item.id, "cropName", val);
+                          if (
+                            ![
+                              "ผักและพืชล้มลุกอื่นๆ",
+                              "พืชไร่อื่นๆ",
+                              "พืชสวนอื่นๆ",
+                            ].includes(val)
+                          ) {
+                            updateType7Row(item.id, "customCropName", "");
+                          }
+                        }}
                         options={availableCropOptions}
                         placeholder="เลือกชื่อพืช..."
                         searchPlaceholder="ค้นหาชื่อพืช..."
@@ -228,7 +251,30 @@ export function Type7Demo({
                       />
                     </div>
 
-                    <div className="md:col-span-2">
+                    {isCustomCropName && (
+                      <div className="md:col-span-3 mt-1">
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          ระบุชื่อพืชเพิ่มเติม{" "}
+                          <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={item.customCropName || ""}
+                          onChange={(e) =>
+                            updateType7Row(
+                              item.id,
+                              "customCropName",
+                              e.target.value,
+                            )
+                          }
+                          disabled={readonly}
+                          placeholder="ระบุชื่อพืช..."
+                          className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
+                        />
+                      </div>
+                    )}
+
+                    <div className="md:col-span-2 mt-1">
                       <label className="block text-xs font-medium text-slate-700 mb-1">
                         จำนวน <span className="text-red-500">*</span>
                       </label>

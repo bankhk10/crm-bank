@@ -953,7 +953,14 @@ export function ActivityPlanForm({
           const unit = ["พืชไร่", "ผักและพืชล้มลุก"].includes(item.cropCategory)
             ? "ไร่"
             : "ต้น";
-          return `${i + 1}. เจ้าของ: ${item.ownerName} | สินค้า: ${item.productName} | หมวดพืช: ${item.cropCategory} (${item.cropName}) | จำนวน: ${item.plotsCount} ${unit}${item.detail ? ` (${item.detail})` : ""}`;
+          const cropDisplay =
+            item.customCropName &&
+            ["ผักและพืชล้มลุกอื่นๆ", "พืชไร่อื่นๆ", "พืชสวนอื่นๆ"].includes(
+              item.cropName,
+            )
+              ? `${item.cropName}: ${item.customCropName}`
+              : item.cropName;
+          return `${i + 1}. เจ้าของ: ${item.ownerName} | สินค้า: ${item.productName} | หมวดพืช: ${item.cropCategory} (${cropDisplay}) | จำนวน: ${item.plotsCount} ${unit}${item.detail ? ` (${item.detail})` : ""}`;
         })
         .join(", ");
       summaryParts.push(

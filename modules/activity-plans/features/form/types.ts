@@ -73,6 +73,7 @@ export interface Type7DemoPlotItem {
   productName: string;
   cropCategory: string;
   cropName: string;
+  customCropName?: string;
   plotsCount: number;
   detail: string;
 }
