@@ -575,9 +575,9 @@ export function ActivityPlanForm({
     initDetails?.type9ProductItems ?? [
       {
         id: "1",
-        productName: DEMO_PRODUCTS[0] || "สินค้าทดสอบ A",
-        quantityCases: 10,
-        pricePerCase: 500,
+        productName: "",
+        quantityCases: 0,
+        pricePerCase: 0,
       },
     ],
   );
@@ -759,13 +759,11 @@ export function ActivityPlanForm({
 
   // Type 9 Store Promotion Product Table Helpers
   const addType9ProductItem = () => {
-    const prod = DEMO_PRODUCTS[0] || "";
-    const pPrice = DEMO_PRODUCT_PRICES[prod] ?? 500;
     const newItem: Type9ProductItem = {
       id: Date.now().toString(),
-      productName: prod,
-      quantityCases: 1,
-      pricePerCase: pPrice,
+      productName: "",
+      quantityCases: 0,
+      pricePerCase: 0,
     };
     setType9ProductItems((prev) => [...prev, newItem]);
   };
@@ -779,8 +777,15 @@ export function ActivityPlanForm({
       prev.map((item) => {
         if (item.id !== id) return item;
         const updated = { ...item, [field]: val };
-        if (field === "productName" && DEMO_PRODUCT_PRICES[val] !== undefined) {
-          updated.pricePerCase = DEMO_PRODUCT_PRICES[val];
+        if (field === "productName") {
+          const foundProd = productsList.find((p) => p.name === val);
+          if (foundProd && foundProd.price != null) {
+            updated.pricePerCase = Number(foundProd.price);
+          } else if (DEMO_PRODUCT_PRICES[val] !== undefined) {
+            updated.pricePerCase = DEMO_PRODUCT_PRICES[val];
+          } else {
+            updated.pricePerCase = 0;
+          }
         }
         return updated;
       }),

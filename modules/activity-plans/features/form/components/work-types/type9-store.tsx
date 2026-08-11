@@ -286,7 +286,7 @@ export function Type9Store({
                       <td className="py-1.5 px-3">
                         <input
                           type="number"
-                          min={1}
+                          min={0}
                           value={item.quantityCases}
                           onChange={(e) =>
                             updateType9ProductItem(
@@ -307,11 +307,7 @@ export function Type9Store({
                           <input
                             type="number"
                             min={0}
-                            value={
-                              item.pricePerCase ??
-                              DEMO_PRODUCT_PRICES[item.productName] ??
-                              0
-                            }
+                            value={item.pricePerCase ?? 0}
                             onChange={(e) =>
                               updateType9ProductItem(
                                 item.id,
