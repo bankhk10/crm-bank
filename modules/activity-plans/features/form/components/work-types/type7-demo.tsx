@@ -476,9 +476,13 @@ export function Type7Demo({
                       </label>
                       <textarea
                         rows={2}
-                        value={item.detail || ""}
+                        value={item.experimentDetail || ""}
                         onChange={(e) =>
-                          updateType7Row(item.id, "detail", e.target.value)
+                          updateType7Row(
+                            item.id,
+                            "experimentDetail",
+                            e.target.value,
+                          )
                         }
                         disabled={readonly}
                         placeholder="ระบุรายละเอียดขั้นตอน สภาพแปลง หรือวิธีการทดลอง..."

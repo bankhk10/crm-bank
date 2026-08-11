@@ -961,7 +961,7 @@ export function ActivityPlanForm({
           if (item.plotActivityType === "FOLLOW_UP") {
             const plotName =
               item.existingPlotName || item.ownerName || "แปลงเดิม";
-            return `${i + 1}. [${modeLabel}] แปลง: ${plotName} | วันที่ติดตาม: ${item.followUpDate || "ไม่ระบุ"} | สถานะ: ${item.plotStatus || "สมบูรณ์"}${item.followUpResult ? ` (${item.followUpResult})` : ""}`;
+            return `${i + 1}. [${modeLabel}] แปลง: ${plotName} | วันที่ติดตาม: ${item.followUpDate || "ไม่ระบุ"}${item.detail ? ` | รายละเอียดเพิ่มเติม: ${item.detail}` : ""}`;
           }
           const cropDisplay =
             item.customCropName &&
@@ -976,7 +976,7 @@ export function ActivityPlanForm({
           const sizeText = isRaiUnit
             ? `${item.areaRai || item.plotsCount || 1} ไร่`
             : `${item.treeCount || item.plotsCount || 1} ต้น`;
-          return `${i + 1}. [${modeLabel}] เจ้าของ: ${item.ownerName} | สินค้า: ${item.productName} | หมวดพืช: ${item.cropCategory} (${cropDisplay}) | ขนาด: ${sizeText}${item.detail ? ` (${item.detail})` : ""}`;
+          return `${i + 1}. [${modeLabel}] เจ้าของ: ${item.ownerName} | สินค้า: ${item.productName} | หมวดพืช: ${item.cropCategory} (${cropDisplay}) | ขนาด: ${sizeText}${item.experimentDetail ? ` | วิธีทดลอง: ${item.experimentDetail}` : ""}`;
         })
         .join(", ");
       summaryParts.push(

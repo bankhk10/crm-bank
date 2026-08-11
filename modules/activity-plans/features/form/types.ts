@@ -84,6 +84,7 @@ export interface Type7DemoPlotItem {
   startDate?: string;
   objective?: string;
   plotsCount: number;
+  experimentDetail?: string;
   detail: string;
 
   // Fields for FOLLOW_UP (ติดตามแปลงสาธิต)
