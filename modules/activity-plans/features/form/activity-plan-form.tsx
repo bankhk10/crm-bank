@@ -108,14 +108,22 @@ export function ActivityPlanForm({
   readonly = false,
   isEdit = false,
 }: Props) {
-  const [customersList, setCustomersList] = useState<any[]>(initialCustomers);
-  const [productsList, setProductsList] = useState<any[]>(initialProducts);
+  const [fetchedCustomers, setFetchedCustomers] = useState<any[]>([]);
+  const [fetchedProducts, setFetchedProducts] = useState<any[]>([]);
+
+  const customersList =
+    initialCustomers && initialCustomers.length > 0
+      ? initialCustomers
+      : fetchedCustomers;
+
+  const productsList =
+    initialProducts && initialProducts.length > 0
+      ? initialProducts
+      : fetchedProducts;
 
   useEffect(() => {
-    if (initialCustomers && initialCustomers.length > 0) {
-      setCustomersList(initialCustomers);
-      return;
-    }
+    if (initialCustomers && initialCustomers.length > 0) return;
+
     let isMounted = true;
     async function loadCustomers() {
       try {
@@ -123,7 +131,7 @@ export function ActivityPlanForm({
           r.json(),
         );
         if (isMounted && res.customers) {
-          setCustomersList(res.customers);
+          setFetchedCustomers(res.customers);
         }
       } catch (err) {
         console.error("Failed to load customers for Trip Plan:", err);
@@ -136,10 +144,8 @@ export function ActivityPlanForm({
   }, [initialCustomers]);
 
   useEffect(() => {
-    if (initialProducts && initialProducts.length > 0) {
-      setProductsList(initialProducts);
-      return;
-    }
+    if (initialProducts && initialProducts.length > 0) return;
+
     let isMounted = true;
     async function loadProducts() {
       try {
@@ -147,7 +153,7 @@ export function ActivityPlanForm({
           "/api/products?status=ACTIVE&perPage=1000",
         ).then((r) => r.json());
         if (isMounted && res.products) {
-          setProductsList(res.products);
+          setFetchedProducts(res.products);
         }
       } catch (err) {
         console.error("Failed to load products for Trip Plan:", err);
