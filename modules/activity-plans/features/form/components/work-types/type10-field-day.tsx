@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Sprout, CheckCircle2 } from "lucide-react";
 import { FormCombobox } from "@/components/custom/form-components";
-import { USER_DEMO_PLOTS, type UserDemoPlotOption } from "../../constants";
+import { type UserDemoPlotOption } from "../../constants";
 import { getDemoPlotsAction } from "@/modules/activity-plans/server/actions";
 
 interface Props {
@@ -65,9 +65,8 @@ export function Type10FieldDay({
     };
   }, []);
 
-  // Merge plots from constant defaults, fetched from DB, and passed from parent props
+  // Merge plots fetched from DB and passed from parent props
   const combinedMap = new Map<string, UserDemoPlotOption>();
-  USER_DEMO_PLOTS.forEach((p) => combinedMap.set(p.name, p));
   dbPlots.forEach((p) => combinedMap.set(p.name, p));
   demoPlots.forEach((p) => combinedMap.set(p.name, p));
 
