@@ -632,7 +632,7 @@ export function ActivityPlanForm({
         productName:
           MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
             ?.name || "สมุดฉีก",
-        quantityCases: 10,
+        quantityCases: 1,
         unit:
           MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
             ?.unit || "เล่ม",

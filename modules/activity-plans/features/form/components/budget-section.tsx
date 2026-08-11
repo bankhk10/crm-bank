@@ -478,7 +478,7 @@ export function BudgetSection({
                             <input
                               type="number"
                               min={1}
-                              value={item.quantityCases}
+                              value={item.quantityCases ?? 1}
                               onChange={(e) =>
                                 updateMarketingProductItem(
                                   item.id,
