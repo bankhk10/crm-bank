@@ -49,6 +49,7 @@ interface Props {
     unit?: string | null;
     price?: number | null;
   }>;
+  demoPlots?: Array<UserDemoPlotOption>;
   onSubmit: (payload: ActivityPlanFormValues) => Promise<SubmitResult | void>;
   onCancel?: () => void;
   submitLabel?: string;
@@ -63,6 +64,8 @@ import {
   DEMO_PRODUCT_PRICES,
   MARKETING_PRODUCT_CATEGORIES,
   MARKETING_PRODUCTS_BY_CATEGORY,
+  USER_DEMO_PLOTS,
+  type UserDemoPlotOption,
 } from "./constants";
 
 import {
@@ -98,6 +101,7 @@ export function ActivityPlanForm({
   employees = [],
   customers: initialCustomers = [],
   products: initialProducts = [],
+  demoPlots = [],
   onSubmit,
   onCancel,
   submitLabel = "บันทึก",
@@ -1465,6 +1469,7 @@ export function ActivityPlanForm({
                       deleteType7Row={deleteType7Row}
                       customers={customersList}
                       products={productsList}
+                      demoPlots={demoPlots}
                     />
                   )}
 

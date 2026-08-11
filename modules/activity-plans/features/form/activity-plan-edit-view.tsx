@@ -9,6 +9,7 @@ import { ActivityPlanForm } from "./activity-plan-form";
 import {
   getActivityPlanAction,
   updateActivityPlanAction,
+  getDemoPlotsAction,
 } from "../../server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
@@ -35,6 +36,7 @@ export default function ActivityPlanEditView({ id }: Props) {
   const [employees, setEmployees] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [demoPlots, setDemoPlots] = useState<any[]>([]);
   const [initialData, setInitialData] = useState<any>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
@@ -43,7 +45,7 @@ export default function ActivityPlanEditView({ id }: Props) {
     async function loadData() {
       setPageLoading(true);
       try {
-        const [empRes, planRes, custRes, prodRes] = await Promise.all([
+        const [empRes, planRes, custRes, prodRes, plotRes] = await Promise.all([
           getAllEmployeesAction(),
           getActivityPlanAction(id),
           getCustomersAction({ perPage: 1000 }).catch(() => ({
@@ -52,6 +54,7 @@ export default function ActivityPlanEditView({ id }: Props) {
           listProductsAction({ status: "ACTIVE", perPage: 1000 }).catch(() => ({
             products: [],
           })),
+          getDemoPlotsAction().catch(() => ({ demoPlots: [] })),
         ]);
 
         if (empRes.success && empRes.employees) {
@@ -66,6 +69,10 @@ export default function ActivityPlanEditView({ id }: Props) {
 
         if (prodRes && prodRes.products) {
           setProducts(prodRes.products);
+        }
+
+        if (plotRes && plotRes.demoPlots) {
+          setDemoPlots(plotRes.demoPlots);
         }
 
         if (planRes.success && planRes.plan) {
@@ -146,6 +153,7 @@ export default function ActivityPlanEditView({ id }: Props) {
           employees={employees}
           customers={customers}
           products={products}
+          demoPlots={demoPlots}
           onSubmit={handleSubmit}
           onCancel={() => router.push("/activity-plans")}
           submitLabel="บันทึก"

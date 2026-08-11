@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
+import { db } from "@/lib/db";
+import { USER_DEMO_PLOTS, type UserDemoPlotOption } from "../features/form/constants";
 import {
   createActivityPlanUseCase,
   updateActivityPlanUseCase,
@@ -293,6 +295,75 @@ export async function getCurrentUserEmployeeAction() {
       success: false as const,
       error: err.message || "เกิดข้อผิดพลาดในการดึงข้อมูลพนักงาน",
     };
+  }
+}
+
+/**
+ * Action: Get existing demo plots from created activity plans + master plots
+ */
+export async function getDemoPlotsAction() {
+  try {
+    const plans = await db.activityPlan.findMany({
+      where: { deletedAt: null },
+      select: {
+        id: true,
+        code: true,
+        title: true,
+        location: true,
+        details: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const realPlots: UserDemoPlotOption[] = [];
+
+    for (const plan of plans) {
+      if (!plan.details || typeof plan.details !== "object") continue;
+      const details = plan.details as any;
+      const type7Items = details.type7Items;
+      if (Array.isArray(type7Items)) {
+        for (const item of type7Items) {
+          if (!item.ownerName) continue;
+          const cropDisplay = item.customCropName || item.cropName || "พืชสวน";
+          const plotName = `แปลงสาธิต ${cropDisplay} - ${item.ownerName}`;
+          realPlots.push({
+            id: `plan-${plan.id}-${item.id || Math.random()}`,
+            name: plotName,
+            location: plan.location || `แปลงสาธิต ต.วังหว้า อ.แกลง จ.ระยอง`,
+            targetCrop: cropDisplay,
+            showcase: item.productName || "สินค้าสาธิต",
+            ownerName: item.ownerName,
+            cropCategory: item.cropCategory || "พืชสวน",
+            cropName: item.cropName || "พืชสวน",
+            productName: item.productName || "",
+            areaRai: item.areaRai || 0,
+            treeCount: item.treeCount || 0,
+            startDate: item.startDate || "",
+          });
+        }
+      }
+    }
+
+    const combinedMap = new Map<string, UserDemoPlotOption>();
+    // Add real created plots first
+    realPlots.forEach((p) => combinedMap.set(p.name, p));
+    // Add master plots if not present
+    USER_DEMO_PLOTS.forEach((p) => {
+      if (!combinedMap.has(p.name)) {
+        combinedMap.set(p.name, p);
+      }
+    });
+
+    return serialize({
+      success: true,
+      demoPlots: Array.from(combinedMap.values()),
+    });
+  } catch (err: any) {
+    console.error("Failed to get demo plots", err);
+    return serialize({
+      success: false,
+      demoPlots: USER_DEMO_PLOTS,
+    });
   }
 }
 

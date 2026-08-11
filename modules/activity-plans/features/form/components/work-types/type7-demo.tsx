@@ -18,6 +18,7 @@ import {
   CROPS_BY_CATEGORY,
   DEMO_PRODUCT_PRICES,
   USER_DEMO_PLOTS,
+  type UserDemoPlotOption,
 } from "../../constants";
 
 export interface CustomerOption {
@@ -46,6 +47,7 @@ interface Props {
   deleteType7Row: (id: string) => void;
   customers?: CustomerOption[];
   products?: ProductOption[];
+  demoPlots?: UserDemoPlotOption[];
 }
 
 export function Type7Demo({
@@ -56,7 +58,11 @@ export function Type7Demo({
   deleteType7Row,
   customers = [],
   products = [],
+  demoPlots = [],
 }: Props) {
+  const plotList =
+    demoPlots && demoPlots.length > 0 ? demoPlots : USER_DEMO_PLOTS;
+
   const customerOptions = (
     customers && customers.length > 0
       ? customers
@@ -90,7 +96,7 @@ export function Type7Demo({
     label: cat,
   }));
 
-  const existingPlotOptions = USER_DEMO_PLOTS.map((plot) => ({
+  const existingPlotOptions = plotList.map((plot) => ({
     value: plot.name,
     label: plot.name,
     subLabel: plot.location,
@@ -133,6 +139,10 @@ export function Type7Demo({
               label: crop,
             }));
 
+            const isRaiUnit = ["พืชไร่", "ผักและพืชล้มลุก"].includes(
+              item.cropCategory,
+            );
+
             const isCustomCropName = [
               "ผักและพืชล้มลุกอื่นๆ",
               "พืชไร่อื่นๆ",
@@ -140,7 +150,7 @@ export function Type7Demo({
             ].includes(item.cropName);
 
             // Find selected existing plot info for FOLLOW_UP read-only card
-            const selectedPlot = USER_DEMO_PLOTS.find(
+            const selectedPlot = plotList.find(
               (p) =>
                 p.name === item.existingPlotName ||
                 p.id === item.existingPlotId ||
@@ -342,54 +352,52 @@ export function Type7Demo({
                         </div>
                       )}
 
-                      <div
-                        className={
-                          isCustomCropName ? "md:col-span-3" : "md:col-span-1"
-                        }
-                      >
+                      <div className="md:col-span-2">
                         <label className="block text-xs font-medium text-slate-700 mb-1">
-                          พื้นที่ (ไร่)
+                          {!item.cropCategory ? (
+                            <>
+                              จำนวน <span className="text-red-500">*</span>
+                            </>
+                          ) : isRaiUnit ? (
+                            <>
+                              พื้นที่ (ไร่) <span className="text-red-500">*</span>
+                            </>
+                          ) : (
+                            <>
+                              จำนวนต้น <span className="text-red-500">*</span>
+                            </>
+                          )}
                         </label>
-                        <input
-                          type="number"
-                          min={0}
-                          value={item.areaRai ?? ""}
-                          onChange={(e) =>
-                            updateType7Row(
-                              item.id,
-                              "areaRai",
-                              parseFloat(e.target.value) || 0,
-                            )
-                          }
-                          disabled={readonly}
-                          placeholder="0"
-                          className="w-full h-9 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
-                        />
-                      </div>
-
-                      <div
-                        className={
-                          isCustomCropName ? "md:col-span-3" : "md:col-span-1"
-                        }
-                      >
-                        <label className="block text-xs font-medium text-slate-700 mb-1">
-                          จำนวนต้น
-                        </label>
-                        <input
-                          type="number"
-                          min={0}
-                          value={item.treeCount ?? ""}
-                          onChange={(e) =>
-                            updateType7Row(
-                              item.id,
-                              "treeCount",
-                              parseInt(e.target.value) || 0,
-                            )
-                          }
-                          disabled={readonly}
-                          placeholder="0"
-                          className="w-full h-9 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="number"
+                            min={1}
+                            value={
+                              isRaiUnit
+                                ? (item.areaRai ?? item.plotsCount ?? "")
+                                : (item.treeCount ?? item.plotsCount ?? "")
+                            }
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value) || 0;
+                              updateType7Row(item.id, "plotsCount", val);
+                              if (isRaiUnit) {
+                                updateType7Row(item.id, "areaRai", val);
+                              } else {
+                                updateType7Row(item.id, "treeCount", val);
+                              }
+                            }}
+                            disabled={readonly || !item.cropCategory}
+                            placeholder="0"
+                            className="w-full h-9 pl-3 pr-8 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white disabled:bg-slate-50"
+                          />
+                          <span className="absolute right-3 text-[11px] font-semibold text-slate-500 pointer-events-none">
+                            {!item.cropCategory
+                              ? "-"
+                              : isRaiUnit
+                                ? "ไร่"
+                                : "ต้น"}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -461,7 +469,7 @@ export function Type7Demo({
                             item.existingPlotName || item.existingPlotId || ""
                           }
                           onChange={(val) => {
-                            const match = USER_DEMO_PLOTS.find(
+                            const match = plotList.find(
                               (p) => p.name === val || p.id === val,
                             );
                             updateType7Row(
