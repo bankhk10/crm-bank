@@ -653,7 +653,7 @@ export function Type7Demo({
                     {/* Details / Follow-up Notes */}
                     <div>
                       <label className="block text-xs font-medium text-slate-700 mb-1">
-                        รายละเอียดเพิ่มเติม / วัตถุประสงค์ในการติดตาม
+                        รายละเอียดเพิ่มเติม
                       </label>
                       <textarea
                         rows={2}
@@ -662,7 +662,7 @@ export function Type7Demo({
                           updateType7Row(item.id, "detail", e.target.value)
                         }
                         disabled={readonly}
-                        placeholder="ระบุรายละเอียดเพิ่มเติม หรือวัตถุประสงค์ของการติดตามแปลงครั้งนี้..."
+                        placeholder="ระบุรายละเอียดเพิ่มเติมครั้งนี้..."
                         className="w-full p-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
                       />
                     </div>
