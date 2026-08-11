@@ -99,13 +99,3 @@ modules/activity-plans/
 
 ---
 
-## 📝 บันทึกการอัปเดตฟีเจอร์ (Feature Change Log)
-
-### 2026-08-11: เพิ่มช่องกรอกพื้นที่จัดประชุม (Type 8 Meeting Location Area)
-- **คอมโพเนนต์ที่แก้ไข:** `type8-meeting.tsx`, `activity-plan-form.tsx`, `actual-type8-meeting.tsx`, `types.ts`
-- **รายละเอียด:**
-  - เพิ่มฟิลด์ `locationArea?: string;` ในอินเทอร์เฟซ `Type8MeetingItem`
-  - เพิ่มช่องกรอกข้อมูล "พื้นที่จัดประชุม" (เช่น ศาลากลางหมู่บ้าน, โรงแรม ฯลฯ) ในฟอร์มกิจกรรมประเภทที่ 8 (จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์)
-  - ปรับปรุง Grid Layout ของ Type 8 เป็นแบบ Mobile-First 3 คอลัมน์บน Desktop (หัวข้อ `col-span-5`, พื้นที่จัดประชุม `col-span-4`, เป้าหมายผู้เข้าร่วม `col-span-3`)
-  - อัปเดตการแสดงผลในหน้า Actual View ให้แสดงข้อมูลพื้นที่จัดประชุมด้วย `ActualTargetCard`
-
