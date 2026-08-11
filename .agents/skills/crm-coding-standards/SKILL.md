@@ -72,7 +72,6 @@ Every server action MUST follow these 4 steps sequentially:
 
 ## 7. Workflow & Execution Rules
 
-- **Wait for Trigger Command**: ALWAYS wait for the user to explicitly say "เริ่มทำตามแผน" before executing any code generation, modification, or project changes. Acknowledge the instructions and stay on standby until this exact phrase is provided.
 - **Mandatory README Update**: Whenever you create or modify files within a module (`modules/[MODULE_NAME]/`), you MUST always update or generate the `README.md` file inside that specific module to document the latest changes, components, or features added.
 
 > **CRITICAL**: Before you complete your task, do a self-check. Did you follow the Mobile-First UI pattern? Did you handle `deletedAt` for database operations? Did you put the file in the correct architectural layer? Did you update the module's `README.md`?
