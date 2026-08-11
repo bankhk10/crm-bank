@@ -1530,6 +1530,7 @@ export function ActivityPlanForm({
                       setType10Attendees={setType10Attendees}
                       type10BookingSales={type10BookingSales}
                       setType10BookingSales={setType10BookingSales}
+                      demoPlots={demoPlots}
                     />
                   )}
 
