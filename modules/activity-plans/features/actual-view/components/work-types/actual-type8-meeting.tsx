@@ -17,6 +17,7 @@ interface ActualType8MeetingProps {
   isVisible: boolean;
   target: {
     topic: string;
+    locationArea?: string;
     products: string;
     targetAttendees: string;
     items?: { productName: string; targetQty?: string }[];
@@ -124,6 +125,9 @@ export function ActualType8Meeting({
         gridColsClass="grid-cols-1 sm:grid-cols-3"
         items={[
           { label: "หัวข้อประชุม:", value: target.topic },
+          ...(target.locationArea
+            ? [{ label: "พื้นที่จัดประชุม:", value: target.locationArea }]
+            : []),
           { label: "สินค้าเป้าหมาย:", value: target.products },
           {
             label: "เป้าหมายผู้เข้าร่วม:",

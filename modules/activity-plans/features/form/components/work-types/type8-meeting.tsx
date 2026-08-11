@@ -116,7 +116,44 @@ export function Type8Meeting({
                     />
                   </div>
 
-                  <div className="md:col-span-5">
+                  <div className="md:col-span-4">
+                    <label className="block text-xs font-medium text-slate-700 mb-1 mt-1">
+                      พื้นที่จัดประชุม
+                    </label>
+                    <input
+                      type="text"
+                      value={item.locationArea ?? ""}
+                      onChange={(e) =>
+                        updateType8Row(item.id, "locationArea", e.target.value)
+                      }
+                      disabled={readonly}
+                      placeholder="เช่น ศาลากลางหมู่บ้าน, โรงแรม..."
+                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium bg-white"
+                    />
+                  </div>
+
+                  <div className="md:col-span-3">
+                    <label className="block text-xs font-medium text-slate-700 mb-1 mt-1">
+                      เป้าหมายผู้เข้าร่วม (คน){" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={item.attendeesCount}
+                      onChange={(e) =>
+                        updateType8Row(
+                          item.id,
+                          "attendeesCount",
+                          parseInt(e.target.value) || 0,
+                        )
+                      }
+                      disabled={readonly}
+                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium bg-white"
+                    />
+                  </div>
+
+                  <div className="md:col-span-12">
                     <label className="block text-xs font-medium text-slate-700 mb-1">
                       สินค้าเป้าหมาย (สูงสุด 3 รายการ)
                     </label>
@@ -185,27 +222,6 @@ export function Type8Meeting({
                         </span>
                       )}
                     </div>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-xs font-medium text-slate-700 mb-1 mt-1">
-                      เป้าหมายผู้เข้าร่วม (คน){" "}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={item.attendeesCount}
-                      onChange={(e) =>
-                        updateType8Row(
-                          item.id,
-                          "attendeesCount",
-                          parseInt(e.target.value) || 0,
-                        )
-                      }
-                      disabled={readonly}
-                      className="w-full max-w-[120px] h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium bg-white"
-                    />
                   </div>
                 </div>
 

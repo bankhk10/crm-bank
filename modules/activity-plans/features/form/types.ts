@@ -102,6 +102,7 @@ export interface Type7DemoPlotItem {
 export interface Type8MeetingItem {
   id: string;
   topic: string;
+  locationArea?: string;
   targetProducts?: string[];
   attendeesCount: number;
   detail: string;
