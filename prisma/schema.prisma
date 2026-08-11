@@ -1520,7 +1520,7 @@ enum ActivityApprovalStep {
 
 model ActivityPlan {
   id                     String         @id @default(cuid())
-  code                   String?        @unique @map("code") // เลขที่แผน (APYYMMXXXX)
+  code                   String?        @unique @map("code") // เลขที่แผน (TPYYMMXXXX)
   title                  String         // ชื่อกิจกรรม
   startDate              DateTime       @map("start_date") // วันและเวลาเริ่มต้น
   endDate                DateTime       @map("end_date")   // วันและเวลาสิ้นสุด

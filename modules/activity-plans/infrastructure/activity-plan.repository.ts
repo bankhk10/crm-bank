@@ -110,8 +110,8 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
 }
 
 /**
- * Helper to generate Activity Plan Code (format: APYYMMXXXX)
- * AP = Activity Plan
+ * Helper to generate Activity Plan Code (format: TPYYMMXXXX)
+ * TP = Trip Plan
  * YY = Year 2 digits (e.g. 26 for 2026)
  * MM = Month 2 digits (e.g. 08 for August)
  * XXXX = 4-digit sequence (0001, 0002, ...)
@@ -122,7 +122,7 @@ export async function generateActivityPlanCode(
 ): Promise<string> {
   const yearStr = String(date.getFullYear()).slice(-2);
   const monthStr = String(date.getMonth() + 1).padStart(2, "0");
-  const prefix = `AP${yearStr}${monthStr}`;
+  const prefix = `TP${yearStr}${monthStr}`;
 
   const lastPlan = await tx.activityPlan.findFirst({
     where: {
