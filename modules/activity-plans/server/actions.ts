@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db } from "@/lib/db";
-import { USER_DEMO_PLOTS, type UserDemoPlotOption } from "../features/form/constants";
+import {
+  USER_DEMO_PLOTS,
+  type UserDemoPlotOption,
+} from "../features/form/constants";
 import {
   createActivityPlanUseCase,
   updateActivityPlanUseCase,
@@ -37,8 +40,14 @@ export async function createActivityPlanAction(rawData: unknown) {
 
   // Permission check
   const permissions = session.user.permissionKeys ?? [];
-  if (!permissions.includes("activity.create") && !permissions.includes("activity.manage")) {
-    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์สร้าง Trip Plan" };
+  if (
+    !permissions.includes("activity.create") &&
+    !permissions.includes("activity.manage")
+  ) {
+    return {
+      success: false,
+      error: "Forbidden: คุณไม่มีสิทธิ์สร้าง Trip Plan",
+    };
   }
 
   try {
@@ -65,12 +74,22 @@ export async function updateActivityPlanAction(id: string, rawData: unknown) {
   }
 
   const permissions = session.user.permissionKeys ?? [];
-  if (!permissions.includes("activity.edit") && !permissions.includes("activity.manage")) {
-    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์แก้ไข Trip Plan" };
+  if (
+    !permissions.includes("activity.edit") &&
+    !permissions.includes("activity.manage")
+  ) {
+    return {
+      success: false,
+      error: "Forbidden: คุณไม่มีสิทธิ์แก้ไข Trip Plan",
+    };
   }
 
   try {
-    const result = await updateActivityPlanUseCase(id, session.user.id, rawData);
+    const result = await updateActivityPlanUseCase(
+      id,
+      session.user.id,
+      rawData,
+    );
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath(`/activity-plans/${id}`);
@@ -91,7 +110,10 @@ export async function deleteActivityPlanAction(id: string) {
   }
 
   const permissions = session.user.permissionKeys ?? [];
-  if (!permissions.includes("activity.delete") && !permissions.includes("activity.manage")) {
+  if (
+    !permissions.includes("activity.delete") &&
+    !permissions.includes("activity.manage")
+  ) {
     return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์ลบ Trip Plan" };
   }
 
@@ -137,12 +159,22 @@ export async function approveActivityPlanAction(id: string, comment?: string) {
   }
 
   const permissions = session.user.permissionKeys ?? [];
-  if (!permissions.includes("activity.approve") && !permissions.includes("activity.manage")) {
-    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์อนุมัติ Trip Plan" };
+  if (
+    !permissions.includes("activity.approve") &&
+    !permissions.includes("activity.manage")
+  ) {
+    return {
+      success: false,
+      error: "Forbidden: คุณไม่มีสิทธิ์อนุมัติ Trip Plan",
+    };
   }
 
   try {
-    const result = await approveActivityPlanUseCase(id, session.user.id, comment);
+    const result = await approveActivityPlanUseCase(
+      id,
+      session.user.id,
+      comment,
+    );
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath(`/activity-plans/${id}`);
@@ -163,12 +195,22 @@ export async function rejectActivityPlanAction(id: string, comment?: string) {
   }
 
   const permissions = session.user.permissionKeys ?? [];
-  if (!permissions.includes("activity.approve") && !permissions.includes("activity.manage")) {
-    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์ปฏิเสธ Trip Plan" };
+  if (
+    !permissions.includes("activity.approve") &&
+    !permissions.includes("activity.manage")
+  ) {
+    return {
+      success: false,
+      error: "Forbidden: คุณไม่มีสิทธิ์ปฏิเสธ Trip Plan",
+    };
   }
 
   try {
-    const result = await rejectActivityPlanUseCase(id, session.user.id, comment);
+    const result = await rejectActivityPlanUseCase(
+      id,
+      session.user.id,
+      comment,
+    );
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath(`/activity-plans/${id}`);
@@ -189,12 +231,22 @@ export async function requestCorrectionPlanAction(id: string, comment: string) {
   }
 
   const permissions = session.user.permissionKeys ?? [];
-  if (!permissions.includes("activity.approve") && !permissions.includes("activity.manage")) {
-    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์ส่งตีกลับ Trip Plan" };
+  if (
+    !permissions.includes("activity.approve") &&
+    !permissions.includes("activity.manage")
+  ) {
+    return {
+      success: false,
+      error: "Forbidden: คุณไม่มีสิทธิ์ส่งตีกลับ Trip Plan",
+    };
   }
 
   try {
-    const result = await requestCorrectionPlanUseCase(id, session.user.id, comment);
+    const result = await requestCorrectionPlanUseCase(
+      id,
+      session.user.id,
+      comment,
+    );
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath(`/activity-plans/${id}`);
@@ -237,14 +289,19 @@ export async function getActivityPlanAction(id: string) {
     const result = await getActivityPlanDetailUseCase(id);
     return serialize(result);
   } catch {
-    return { success: false as const, error: "ล้มเหลวในการดึงข้อมูล Trip Plan" };
+    return {
+      success: false as const,
+      error: "ล้มเหลวในการดึงข้อมูล Trip Plan",
+    };
   }
 }
 
 /**
  * Action: List plans
  */
-export async function getActivityPlansAction(params: ListActivityPlansParams = {}) {
+export async function getActivityPlansAction(
+  params: ListActivityPlansParams = {},
+) {
   const session = await auth();
   if (!session?.user) return { success: false, activityPlans: [], total: 0 };
 
@@ -273,7 +330,7 @@ export async function getCurrentUserEmployeeAction() {
     const employee = await findOrCreateEmployeeForUser(
       session.user.id,
       session.user.name ?? undefined,
-      session.user.email ?? undefined
+      session.user.email ?? undefined,
     );
 
     return serialize({
@@ -367,4 +424,3 @@ export async function getDemoPlotsAction() {
     });
   }
 }
-
