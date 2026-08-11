@@ -41,7 +41,7 @@ export async function GET(request: Request, context: RouteContext) {
 
     return NextResponse.json({ success: true, plan });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "เกิดข้อผิดพลาดในการดึงรายละเอียดกิจกรรม" }, { status: 500 });
+    return NextResponse.json({ error: err.message || "เกิดข้อผิดพลาดในการดึงรายละเอียด Trip Plan" }, { status: 500 });
   }
 }
 
@@ -65,7 +65,7 @@ export async function PUT(request: Request, context: RouteContext) {
     }
     return NextResponse.json({ success: true, plan: result.plan });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "เกิดข้อผิดพลาดในการแก้ไขแผนกิจกรรม" }, { status: 500 });
+    return NextResponse.json({ error: err.message || "เกิดข้อผิดพลาดในการแก้ไข Trip Plan" }, { status: 500 });
   }
 }
 
@@ -88,6 +88,6 @@ export async function DELETE(request: Request, context: RouteContext) {
     }
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "เกิดข้อผิดพลาดในการลบแผนกิจกรรม" }, { status: 500 });
+    return NextResponse.json({ error: err.message || "เกิดข้อผิดพลาดในการลบ Trip Plan" }, { status: 500 });
   }
 }

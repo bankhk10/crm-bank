@@ -36,7 +36,7 @@ export async function createActivityPlanAction(rawData: unknown) {
   // Permission check
   const permissions = session.user.permissionKeys ?? [];
   if (!permissions.includes("activity.create") && !permissions.includes("activity.manage")) {
-    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์สร้างแผนกิจกรรม" };
+    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์สร้าง Trip Plan" };
   }
 
   try {
@@ -64,7 +64,7 @@ export async function updateActivityPlanAction(id: string, rawData: unknown) {
 
   const permissions = session.user.permissionKeys ?? [];
   if (!permissions.includes("activity.edit") && !permissions.includes("activity.manage")) {
-    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์แก้ไขแผนกิจกรรม" };
+    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์แก้ไข Trip Plan" };
   }
 
   try {
@@ -90,7 +90,7 @@ export async function deleteActivityPlanAction(id: string) {
 
   const permissions = session.user.permissionKeys ?? [];
   if (!permissions.includes("activity.delete") && !permissions.includes("activity.manage")) {
-    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์ลบแผนกิจกรรม" };
+    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์ลบ Trip Plan" };
   }
 
   try {
@@ -136,7 +136,7 @@ export async function approveActivityPlanAction(id: string, comment?: string) {
 
   const permissions = session.user.permissionKeys ?? [];
   if (!permissions.includes("activity.approve") && !permissions.includes("activity.manage")) {
-    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์อนุมัติแผนกิจกรรม" };
+    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์อนุมัติ Trip Plan" };
   }
 
   try {
@@ -162,7 +162,7 @@ export async function rejectActivityPlanAction(id: string, comment?: string) {
 
   const permissions = session.user.permissionKeys ?? [];
   if (!permissions.includes("activity.approve") && !permissions.includes("activity.manage")) {
-    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์ปฏิเสธแผนกิจกรรม" };
+    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์ปฏิเสธ Trip Plan" };
   }
 
   try {
@@ -188,7 +188,7 @@ export async function requestCorrectionPlanAction(id: string, comment: string) {
 
   const permissions = session.user.permissionKeys ?? [];
   if (!permissions.includes("activity.approve") && !permissions.includes("activity.manage")) {
-    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์ส่งตีกลับแผนกิจกรรม" };
+    return { success: false, error: "Forbidden: คุณไม่มีสิทธิ์ส่งตีกลับ Trip Plan" };
   }
 
   try {
@@ -235,7 +235,7 @@ export async function getActivityPlanAction(id: string) {
     const result = await getActivityPlanDetailUseCase(id);
     return serialize(result);
   } catch {
-    return { success: false as const, error: "ล้มเหลวในการดึงข้อมูลกิจกรรม" };
+    return { success: false as const, error: "ล้มเหลวในการดึงข้อมูล Trip Plan" };
   }
 }
 

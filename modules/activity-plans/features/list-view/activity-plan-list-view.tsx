@@ -73,7 +73,7 @@ export default function ActivityPlanListView() {
       const res = await fetch(`/api/activity-plans?${params.toString()}`, {
         signal,
       });
-      if (!res.ok) throw new Error("ดึงข้อมูลแผนกิจกรรมไม่สำเร็จ");
+      if (!res.ok) throw new Error("ดึงข้อมูล Trip Plan ไม่สำเร็จ");
       const json = await res.json();
       setActivityPlans(json.activityPlans ?? []);
       setTotal(json.total ?? 0);
@@ -107,7 +107,7 @@ export default function ActivityPlanListView() {
       setDeleteCandidate(null);
       fetchData(); // Reload
     } catch (err: any) {
-      setError(err.message || "ลบแผนกิจกรรมล้มเหลว");
+      setError(err.message || "ลบ Trip Plan ล้มเหลว");
     } finally {
       setActionLoading(false);
     }
@@ -137,7 +137,7 @@ export default function ActivityPlanListView() {
     return (
       <Alert variant="destructive" className="m-6">
         <AlertDescription>
-          คุณไม่มีสิทธิ์เข้าถึงหน้ารายการแผนกิจกรรม
+          คุณไม่มีสิทธิ์เข้าถึงหน้ารายการ Trip Plan
         </AlertDescription>
       </Alert>
     );
@@ -152,7 +152,7 @@ export default function ActivityPlanListView() {
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
-              แผนปฏิบัติงาน
+              Trip Plan (แผนงาน)
             </h1>
           </div>
         </div>
@@ -173,10 +173,10 @@ export default function ActivityPlanListView() {
           />
           <div className="relative z-10 w-full max-w-md bg-white rounded-xl p-6 shadow-2xl border border-slate-100">
             <h3 className="text-lg font-bold text-slate-900">
-              ยืนยันการลบแผนงาน
+              ยืนยันการลบ Trip Plan
             </h3>
             <p className="mt-2 text-sm text-slate-500 leading-relaxed">
-              คุณแน่ใจว่าต้องการลบแผนกิจกรรม{" "}
+              คุณแน่ใจว่าต้องการลบ Trip Plan{" "}
               <strong>{deleteCandidate.title}</strong> ใช่หรือไม่?
               การลบจะเป็นแบบ Soft Delete
               ประวัติของแผนงานนี้จะไม่ถูกลบออกจากฐานข้อมูลถาวร

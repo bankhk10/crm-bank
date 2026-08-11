@@ -65,7 +65,7 @@ export default function ActivityPlanCreateView() {
   const handleSubmit = async (payload: any) => {
     const res = await createActivityPlanAction(payload);
     if (res.success) {
-      toast.success("บันทึกแผนกิจกรรมเรียบร้อยแล้ว");
+      toast.success("บันทึก Trip Plan เรียบร้อยแล้ว");
       router.push("/activity-plans");
       return { success: true };
     }
@@ -80,7 +80,7 @@ export default function ActivityPlanCreateView() {
   if (!canView || !canCreate) {
     return (
       <Alert variant="destructive" className="m-6">
-        <AlertDescription>คุณไม่มีสิทธิ์สร้างแผนกิจกรรม</AlertDescription>
+        <AlertDescription>คุณไม่มีสิทธิ์สร้าง Trip Plan</AlertDescription>
       </Alert>
     );
   }

@@ -18,7 +18,7 @@ import { ActivityStatus } from "@prisma/client";
  */
 export async function getActivityPlanDetailUseCase(id: string) {
   const plan = await findActivityPlanById(id);
-  if (!plan) return { success: false as const, error: "ไม่พบแผนกิจกรรม" };
+  if (!plan) return { success: false as const, error: "ไม่พบ Trip Plan" };
   return { success: true as const, plan };
 }
 
@@ -77,14 +77,14 @@ export async function updateActivityPlanUseCase(id: string, userId: string, rawD
   }
 
   const plan = await findActivityPlanById(id);
-  if (!plan) return { success: false as const, error: "ไม่พบแผนกิจกรรม" };
+  if (!plan) return { success: false as const, error: "ไม่พบ Trip Plan" };
 
   if (plan.createdById !== userId) {
-    return { success: false as const, error: "คุณไม่มีสิทธิ์แก้ไขแผนกิจกรรมนี้" };
+    return { success: false as const, error: "คุณไม่มีสิทธิ์แก้ไข Trip Plan นี้" };
   }
 
   if (plan.status !== ActivityStatus.DRAFT && plan.status !== ActivityStatus.WAITING_FOR_CORRECTION) {
-    return { success: false as const, error: "สามารถแก้ไขได้เฉพาะแผนกิจกรรมในสถานะร่างหรือรอแก้ไขเท่านั้น" };
+    return { success: false as const, error: "สามารถแก้ไขได้เฉพาะ Trip Plan ในสถานะร่างหรือรอแก้ไขเท่านั้น" };
   }
 
   const { helperEmployeeIds, ...planFields } = parsed.data;

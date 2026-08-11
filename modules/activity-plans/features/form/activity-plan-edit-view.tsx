@@ -97,7 +97,7 @@ export default function ActivityPlanEditView({ id }: Props) {
             employeeName: plan.employee?.name,
           });
         } else {
-          setLoadError(planRes.error || "ไม่สามารถดึงข้อมูลแผนกิจกรรมได้");
+          setLoadError(planRes.error || "ไม่สามารถดึงข้อมูล Trip Plan ได้");
         }
       } catch {
         setLoadError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
@@ -112,7 +112,7 @@ export default function ActivityPlanEditView({ id }: Props) {
   const handleSubmit = async (payload: any) => {
     const res = await updateActivityPlanAction(id, payload);
     if (res.success) {
-      toast.success("อัปเดตแผนกิจกรรมเรียบร้อยแล้ว");
+      toast.success("อัปเดต Trip Plan เรียบร้อยแล้ว");
       router.push("/activity-plans");
       return { success: true };
     }
@@ -127,7 +127,7 @@ export default function ActivityPlanEditView({ id }: Props) {
   if (!canView || !canEdit) {
     return (
       <Alert variant="destructive" className="m-6">
-        <AlertDescription>คุณไม่มีสิทธิ์แก้ไขแผนกิจกรรมนี้</AlertDescription>
+        <AlertDescription>คุณไม่มีสิทธิ์แก้ไข Trip Plan นี้</AlertDescription>
       </Alert>
     );
   }

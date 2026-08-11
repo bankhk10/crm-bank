@@ -72,7 +72,7 @@ export default function ActivityPlanApprovalListView() {
   if (!canApprove) {
     return (
       <Alert variant="destructive" className="m-6">
-        <AlertDescription>คุณไม่มีสิทธิ์เข้าถึงหน้าอนุมัติแผนกิจกรรม</AlertDescription>
+        <AlertDescription>คุณไม่มีสิทธิ์เข้าถึงหน้าอนุมัติ Trip Plan</AlertDescription>
       </Alert>
     );
   }
@@ -98,8 +98,8 @@ export default function ActivityPlanApprovalListView() {
   return (
     <section className="space-y-6 p-6 pb-24 md:pb-8 max-w-5xl">
       <PageHeader
-        title="แดชบอร์ดตรวจสอบและอนุมัติกิจกรรม"
-        description="ศูนย์รวมคิวงานสำหรับตรวจสอบแผนการทำกิจกรรม งบประมาณ และการพิจารณาพนักงานช่วยงาน"
+        title="แดชบอร์ดตรวจสอบและอนุมัติ Trip Plan"
+        description="ศูนย์รวมคิวงานสำหรับตรวจสอบ Trip Plan งบประมาณ และการพิจารณาพนักงานช่วยงาน"
       />
 
       {error && (
@@ -121,7 +121,7 @@ export default function ActivityPlanApprovalListView() {
             </h3>
             {lineApprovalsForMe.length === 0 ? (
               <div className="bg-slate-50 border rounded-xl p-6 text-center text-sm text-slate-400 italic">
-                ไม่มีแผนกิจกรรมที่รอการอนุมัติตามสายงานของคุณในขณะนี้
+                ไม่มี Trip Plan ที่รอการอนุมัติตามสายงานของคุณในขณะนี้
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
@@ -140,7 +140,7 @@ export default function ActivityPlanApprovalListView() {
             </h3>
             {budgetApprovals.length === 0 ? (
               <div className="bg-slate-50 border rounded-xl p-6 text-center text-sm text-slate-400 italic">
-                ไม่มีแผนกิจกรรมที่รองบประมาณการตลาด/ส่งเสริมการขายในขณะนี้
+                ไม่มี Trip Plan ที่รองบประมาณการตลาด/ส่งเสริมการขายในขณะนี้
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
@@ -159,7 +159,7 @@ export default function ActivityPlanApprovalListView() {
             </h3>
             {helperApprovals.length === 0 ? (
               <div className="bg-slate-50 border rounded-xl p-6 text-center text-sm text-slate-400 italic">
-                ไม่มีกิจกรรมที่รออนุมัติให้พนักงานในสังกัดของคุณไปช่วยงานในขณะนี้
+                ไม่มี Trip Plan ที่รออนุมัติให้พนักงานในสังกัดของคุณไปช่วยงานในขณะนี้
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">

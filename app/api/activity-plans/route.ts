@@ -84,6 +84,6 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ success: true, plan: result.plan });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "เกิดข้อผิดพลาดในการสร้างแผนกิจกรรม" }, { status: 500 });
+    return NextResponse.json({ error: err.message || "เกิดข้อผิดพลาดในการสร้าง Trip Plan" }, { status: 500 });
   }
 }

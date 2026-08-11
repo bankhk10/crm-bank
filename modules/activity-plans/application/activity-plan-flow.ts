@@ -1,6 +1,16 @@
 import { db } from "@/lib/db";
-import { Prisma, ActivityStatus, ActivityHelperStatus, ActivityApprovalAction, ActivityApprovalStep } from "@prisma/client";
-import { findActivityPlanById, createApprovalLog, updateHelperStatus } from "../infrastructure/activity-plan.repository";
+import {
+  Prisma,
+  ActivityStatus,
+  ActivityHelperStatus,
+  ActivityApprovalAction,
+  ActivityApprovalStep,
+} from "@prisma/client";
+import {
+  findActivityPlanById,
+  createApprovalLog,
+  updateHelperStatus,
+} from "../infrastructure/activity-plan.repository";
 import { syncActivityPlanToCalendarUseCase } from "./calendar-integration";
 
 // ────────────────────────────────────────────────────────
@@ -13,7 +23,7 @@ async function sendNotificationHelper(
   message: string,
   type: any,
   link: string,
-  tx: Prisma.TransactionClient
+  tx: Prisma.TransactionClient,
 ) {
   if (!userId) return;
   await tx.notification.create({
@@ -33,7 +43,7 @@ async function sendNotificationToEmployee(
   message: string,
   type: any,
   link: string,
-  tx: Prisma.TransactionClient
+  tx: Prisma.TransactionClient,
 ) {
   if (!employeeId) return;
   const emp = await tx.employee.findUnique({
@@ -124,8 +134,10 @@ async function getSalesDirectors(tx: Prisma.TransactionClient) {
 }
 
 async function notifyBudgetApprovers(plan: any, tx: Prisma.TransactionClient) {
-  const hasSalesPromotion = plan.salesPromotionBudget && plan.salesPromotionBudget.toNumber() > 0;
-  const hasMarketing = plan.marketingBudget && plan.marketingBudget.toNumber() > 0;
+  const hasSalesPromotion =
+    plan.salesPromotionBudget && plan.salesPromotionBudget.toNumber() > 0;
+  const hasMarketing =
+    plan.marketingBudget && plan.marketingBudget.toNumber() > 0;
 
   if (hasSalesPromotion && plan.salesPromotionApproved !== true) {
     const managers = await getSalesAdminManagers(tx);
@@ -136,7 +148,7 @@ async function notifyBudgetApprovers(plan: any, tx: Prisma.TransactionClient) {
         `แผนกิจกรรม "${plan.title}" โดย ${plan.employee?.name || "พนักงาน"} รออนุมัติงบส่งเสริมการขายจากคุณ`,
         "INFO",
         `/activity-plans/${plan.id}`,
-        tx
+        tx,
       );
     }
   }
@@ -150,15 +162,20 @@ async function notifyBudgetApprovers(plan: any, tx: Prisma.TransactionClient) {
         `แผนกิจกรรม "${plan.title}" โดย ${plan.employee?.name || "พนักงาน"} รออนุมัติงบการตลาดจากคุณ`,
         "INFO",
         `/activity-plans/${plan.id}`,
-        tx
+        tx,
       );
     }
   }
 
-  const requiredSalesPromotionOk = !hasSalesPromotion || plan.salesPromotionApproved === true;
+  const requiredSalesPromotionOk =
+    !hasSalesPromotion || plan.salesPromotionApproved === true;
   const requiredMarketingOk = !hasMarketing || plan.marketingApproved === true;
-  
-  if (requiredSalesPromotionOk && requiredMarketingOk && plan.salesManagerApproved !== true) {
+
+  if (
+    requiredSalesPromotionOk &&
+    requiredMarketingOk &&
+    plan.salesManagerApproved !== true
+  ) {
     const directors = await getSalesDirectors(tx);
     for (const dir of directors) {
       await sendNotificationHelper(
@@ -167,7 +184,7 @@ async function notifyBudgetApprovers(plan: any, tx: Prisma.TransactionClient) {
         `แผนกิจกรรม "${plan.title}" โดย ${plan.employee?.name || "พนักงาน"} รออนุมัติงบประมาณรวมจากคุณในฐานะผู้จัดการฝ่ายขาย`,
         "INFO",
         `/activity-plans/${plan.id}`,
-        tx
+        tx,
       );
     }
   }
@@ -175,7 +192,11 @@ async function notifyBudgetApprovers(plan: any, tx: Prisma.TransactionClient) {
 
 async function notifyHelperApprovers(plan: any, tx: Prisma.TransactionClient) {
   const pendingHelpers = await tx.activityHelper.findMany({
-    where: { activityPlanId: plan.id, status: ActivityHelperStatus.PENDING, deletedAt: null },
+    where: {
+      activityPlanId: plan.id,
+      status: ActivityHelperStatus.PENDING,
+      deletedAt: null,
+    },
     include: { employee: { include: { department: true } } },
   });
 
@@ -191,7 +212,10 @@ async function notifyHelperApprovers(plan: any, tx: Prisma.TransactionClient) {
       helper.employee.positionTitle?.includes("ส่งเสริม")
     ) {
       notifySA = true;
-    } else if (deptCode === "MKT" || helper.employee.positionTitle?.includes("การตลาด")) {
+    } else if (
+      deptCode === "MKT" ||
+      helper.employee.positionTitle?.includes("การตลาด")
+    ) {
       notifyMKT = true;
     }
   }
@@ -205,7 +229,7 @@ async function notifyHelperApprovers(plan: any, tx: Prisma.TransactionClient) {
         `แผนกิจกรรม "${plan.title}" ขอตัวพนักงานในสังกัดฝ่ายขายของคุณเพื่อช่วยงาน`,
         "INFO",
         `/activity-plans/${plan.id}`,
-        tx
+        tx,
       );
     }
   }
@@ -219,7 +243,7 @@ async function notifyHelperApprovers(plan: any, tx: Prisma.TransactionClient) {
         `แผนกิจกรรม "${plan.title}" ขอตัวพนักงานการตลาดในสังกัดของคุณเพื่อช่วยงาน`,
         "INFO",
         `/activity-plans/${plan.id}`,
-        tx
+        tx,
       );
     }
   }
@@ -230,9 +254,12 @@ async function notifyHelperApprovers(plan: any, tx: Prisma.TransactionClient) {
 // ────────────────────────────────────────────────────────
 
 /**
- * Submit an activity plan for approval (Transitions from DRAFT or WAITING_FOR_CORRECTION to LINE_APPROVAL)
+ * Submit an Trip plan for approval (Transitions from DRAFT or WAITING_FOR_CORRECTION to LINE_APPROVAL)
  */
-export async function submitActivityPlanUseCase(planId: string, userId: string) {
+export async function submitActivityPlanUseCase(
+  planId: string,
+  userId: string,
+) {
   return db.$transaction(async (tx) => {
     const plan = await tx.activityPlan.findUnique({
       where: { id: planId, deletedAt: null },
@@ -250,14 +277,25 @@ export async function submitActivityPlanUseCase(planId: string, userId: string) 
       return { success: false, error: "ไม่พบแผนกิจกรรม" };
     }
 
-    if (plan.status !== ActivityStatus.DRAFT && plan.status !== ActivityStatus.WAITING_FOR_CORRECTION) {
-      return { success: false, error: "แผนกิจกรรมนี้ไม่ได้อยู่ในสถานะร่างหรือรอแก้ไข" };
+    if (
+      plan.status !== ActivityStatus.DRAFT &&
+      plan.status !== ActivityStatus.WAITING_FOR_CORRECTION
+    ) {
+      return {
+        success: false,
+        error: "แผนกิจกรรมนี้ไม่ได้อยู่ในสถานะร่างหรือรอแก้ไข",
+      };
     }
 
     const creator = plan.employee;
     if (!creator.managerId) {
       // No manager, skip directly to budget approval stage
-      await initiateBudgetApproval(plan, tx, userId, "ส่งแผนงานสำเร็จ (ข้ามขั้นตอนอนุมัติตามสายงานเนื่องจากไม่มีหัวหน้างาน)");
+      await initiateBudgetApproval(
+        plan,
+        tx,
+        userId,
+        "ส่งแผนงานสำเร็จ (ข้ามขั้นตอนอนุมัติตามสายงานเนื่องจากไม่มีหัวหน้างาน)",
+      );
       return { success: true };
     }
 
@@ -287,7 +325,7 @@ export async function submitActivityPlanUseCase(planId: string, userId: string) 
       `แผนกิจกรรม "${plan.title}" โดย ${creator.name} รอคุณตรวจสอบและอนุมัติตามสายงาน`,
       "INFO",
       `/activity-plans/${plan.id}`,
-      tx
+      tx,
     );
 
     return { success: true };
@@ -295,9 +333,13 @@ export async function submitActivityPlanUseCase(planId: string, userId: string) 
 }
 
 /**
- * Approve an activity plan
+ * Approve an Trip plan
  */
-export async function approveActivityPlanUseCase(planId: string, userId: string, comment?: string) {
+export async function approveActivityPlanUseCase(
+  planId: string,
+  userId: string,
+  comment?: string,
+) {
   return db.$transaction(async (tx) => {
     const plan = await tx.activityPlan.findUnique({
       where: { id: planId, deletedAt: null },
@@ -326,7 +368,10 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
     // ────────────────────────────────────────────────────────
     if (plan.status === ActivityStatus.PENDING_LINE_APPROVAL) {
       if (plan.currentApproverId !== approverEmployee.id) {
-        return { success: false, error: "คุณไม่มีสิทธิ์อนุมัติแผนงานนี้ในขั้นตอนนี้" };
+        return {
+          success: false,
+          error: "คุณไม่มีสิทธิ์อนุมัติแผนงานนี้ในขั้นตอนนี้",
+        };
       }
 
       // Check if this approver is terminal line manager
@@ -341,7 +386,12 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
             comment: comment || "อนุมัติตามสายงานขั้นสุดท้าย",
           },
         });
-        await initiateBudgetApproval(plan, tx, userId, "ผ่านการตรวจสอบตามสายงานในเบื้องต้นแล้ว");
+        await initiateBudgetApproval(
+          plan,
+          tx,
+          userId,
+          "ผ่านการตรวจสอบตามสายงานในเบื้องต้นแล้ว",
+        );
       } else {
         // Not terminal, route to their manager
         const nextManagerId = approverEmployee.managerId;
@@ -353,10 +403,17 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
               userId,
               action: ActivityApprovalAction.APPROVE,
               step: ActivityApprovalStep.LINE_APPROVAL,
-              comment: comment || "อนุมัติตามสายงาน (ข้ามขั้นตอนถัดไปเนื่องจากไม่พบหัวหน้า)",
+              comment:
+                comment ||
+                "อนุมัติตามสายงาน (ข้ามขั้นตอนถัดไปเนื่องจากไม่พบหัวหน้า)",
             },
           });
-          await initiateBudgetApproval(plan, tx, userId, "ผ่านการตรวจสอบตามสายงาน");
+          await initiateBudgetApproval(
+            plan,
+            tx,
+            userId,
+            "ผ่านการตรวจสอบตามสายงาน",
+          );
         } else {
           await tx.activityPlan.update({
             where: { id: planId },
@@ -380,7 +437,7 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
             `แผนกิจกรรม "${plan.title}" โดย ${plan.employee.name} รอคุณตรวจสอบและอนุมัติตามสายงาน`,
             "INFO",
             `/activity-plans/${plan.id}`,
-            tx
+            tx,
           );
         }
       }
@@ -394,7 +451,8 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
       let isAnyBudgetApproved = false;
 
       // 1. Sales Promotion Budget Approval
-      const hasSalesPromotion = plan.salesPromotionBudget && plan.salesPromotionBudget.toNumber() > 0;
+      const hasSalesPromotion =
+        plan.salesPromotionBudget && plan.salesPromotionBudget.toNumber() > 0;
       if (hasSalesPromotion && plan.salesPromotionApproved !== true) {
         if (isSalesAdminManager(approverEmployee)) {
           plan.salesPromotionApproved = true;
@@ -412,7 +470,8 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
       }
 
       // 2. Marketing Budget Approval
-      const hasMarketing = plan.marketingBudget && plan.marketingBudget.toNumber() > 0;
+      const hasMarketing =
+        plan.marketingBudget && plan.marketingBudget.toNumber() > 0;
       if (hasMarketing && plan.marketingApproved !== true) {
         if (isMarketingManager(approverEmployee)) {
           plan.marketingApproved = true;
@@ -430,12 +489,18 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
       }
 
       // If department budgets are not fully approved, wait
-      const requiredSalesPromotionOk = !hasSalesPromotion || plan.salesPromotionApproved === true;
-      const requiredMarketingOk = !hasMarketing || plan.marketingApproved === true;
+      const requiredSalesPromotionOk =
+        !hasSalesPromotion || plan.salesPromotionApproved === true;
+      const requiredMarketingOk =
+        !hasMarketing || plan.marketingApproved === true;
 
       // 3. Sales Director Approval (Overall Budget Approval)
       let salesDirectorOk = plan.salesManagerApproved === true;
-      if (requiredSalesPromotionOk && requiredMarketingOk && plan.salesManagerApproved !== true) {
+      if (
+        requiredSalesPromotionOk &&
+        requiredMarketingOk &&
+        plan.salesManagerApproved !== true
+      ) {
         if (isSalesDirector(approverEmployee)) {
           plan.salesManagerApproved = true;
           salesDirectorOk = true;
@@ -453,7 +518,11 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
       }
 
       if (!isAnyBudgetApproved) {
-        return { success: false, error: "คุณไม่มีสิทธิ์อนุมัติงบประมาณประเภทนี้ หรือได้รับการอนุมัติไปแล้ว" };
+        return {
+          success: false,
+          error:
+            "คุณไม่มีสิทธิ์อนุมัติงบประมาณประเภทนี้ หรือได้รับการอนุมัติไปแล้ว",
+        };
       }
 
       // Update budget progress flags
@@ -483,14 +552,16 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
     // ────────────────────────────────────────────────────────
     if (plan.status === ActivityStatus.PENDING_HELPER_APPROVAL) {
       let helperApprovedCount = 0;
-      const pendingHelpers = plan.helpers.filter((h) => h.status === ActivityHelperStatus.PENDING);
+      const pendingHelpers = plan.helpers.filter(
+        (h) => h.status === ActivityHelperStatus.PENDING,
+      );
 
       if (pendingHelpers.length === 0) {
         await tx.activityPlan.update({
           where: { id: planId },
           data: { status: ActivityStatus.APPROVED },
         });
-        
+
         // Notify creator & helpers
         await sendNotificationHelper(
           plan.employee.userId,
@@ -498,9 +569,9 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
           `แผนกิจกรรม "${plan.title}" ได้รับการอนุมัติและเข้าระบบสำเร็จแล้ว`,
           "APPROVED",
           `/activity-plans/${plan.id}`,
-          tx
+          tx,
         );
-        
+
         // Sync to Calendar
         await syncActivityPlanToCalendarUseCase(plan, tx);
 
@@ -511,12 +582,15 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
       const isMktManager = isMarketingManager(approverEmployee);
 
       if (!isSalesAdmin && !isMktManager) {
-        return { success: false, error: "คุณไม่มีสิทธิ์อนุมัติผู้ช่วยงานกิจกรรม" };
+        return {
+          success: false,
+          error: "คุณไม่มีสิทธิ์อนุมัติผู้ช่วยงานกิจกรรม",
+        };
       }
 
       for (const helper of pendingHelpers) {
         const helperDeptId = helper.employee.departmentId || "";
-        
+
         // Fetch helper's full department code to check
         const dept = await tx.department.findUnique({
           where: { id: helperDeptId },
@@ -524,9 +598,19 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
         const deptCode = dept?.code || "";
 
         let shouldApprove = false;
-        if (isSalesAdmin && (deptCode === "SA" || deptCode === "SS" || helper.employee.positionTitle?.includes("เซลส์") || helper.employee.positionTitle?.includes("ส่งเสริม"))) {
+        if (
+          isSalesAdmin &&
+          (deptCode === "SA" ||
+            deptCode === "SS" ||
+            helper.employee.positionTitle?.includes("เซลส์") ||
+            helper.employee.positionTitle?.includes("ส่งเสริม"))
+        ) {
           shouldApprove = true;
-        } else if (isMktManager && (deptCode === "MKT" || helper.employee.positionTitle?.includes("การตลาด"))) {
+        } else if (
+          isMktManager &&
+          (deptCode === "MKT" ||
+            helper.employee.positionTitle?.includes("การตลาด"))
+        ) {
           shouldApprove = true;
         }
 
@@ -544,7 +628,10 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
       }
 
       if (helperApprovedCount === 0) {
-        return { success: false, error: "ไม่มีผู้ช่วยงานภายใต้สังกัดของคุณที่รอการอนุมัติในแผนงานนี้" };
+        return {
+          success: false,
+          error: "ไม่มีผู้ช่วยงานภายใต้สังกัดของคุณที่รอการอนุมัติในแผนงานนี้",
+        };
       }
 
       await tx.activityApprovalLog.create({
@@ -553,7 +640,9 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
           userId,
           action: ActivityApprovalAction.APPROVE,
           step: ActivityApprovalStep.HELPER_APPROVAL,
-          comment: comment || `อนุมัติพนักงานช่วยงานในสังกัดจำนวน ${helperApprovedCount} คน`,
+          comment:
+            comment ||
+            `อนุมัติพนักงานช่วยงานในสังกัดจำนวน ${helperApprovedCount} คน`,
         },
       });
 
@@ -561,7 +650,9 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
       const allHelpers = await tx.activityHelper.findMany({
         where: { activityPlanId: planId, deletedAt: null },
       });
-      const allApproved = allHelpers.every((h) => h.status === ActivityHelperStatus.APPROVED);
+      const allApproved = allHelpers.every(
+        (h) => h.status === ActivityHelperStatus.APPROVED,
+      );
 
       if (allApproved) {
         // Complete the flow and transition to APPROVED (Step 5)
@@ -587,12 +678,16 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
           `แผนกิจกรรม "${plan.title}" ได้รับการอนุมัติเสร็จสิ้นเรียบร้อยแล้ว`,
           "APPROVED",
           `/activity-plans/${plan.id}`,
-          tx
+          tx,
         );
 
         // Notify Helpers
         const helpersWithUsers = await tx.activityHelper.findMany({
-          where: { activityPlanId: plan.id, status: ActivityHelperStatus.APPROVED, deletedAt: null },
+          where: {
+            activityPlanId: plan.id,
+            status: ActivityHelperStatus.APPROVED,
+            deletedAt: null,
+          },
           include: { employee: true },
         });
         for (const h of helpersWithUsers) {
@@ -602,7 +697,7 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
             `คุณได้รับมอบหมายให้ช่วยจัดกิจกรรม "${plan.title}" ณ ${plan.location}`,
             "INFO",
             `/activity-plans/${plan.id}`,
-            tx
+            tx,
           );
         }
 
@@ -616,14 +711,21 @@ export async function approveActivityPlanUseCase(planId: string, userId: string,
       return { success: true };
     }
 
-    return { success: false, error: "แผนกิจกรรมไม่อยู่ในสถานะที่ต้องการอนุมัติ" };
+    return {
+      success: false,
+      error: "แผนกิจกรรมไม่อยู่ในสถานะที่ต้องการอนุมัติ",
+    };
   });
 }
 
 /**
- * Reject an activity plan (Ends the flow, moves to REJECTED)
+ * Reject an Trip  plan (Ends the flow, moves to REJECTED)
  */
-export async function rejectActivityPlanUseCase(planId: string, userId: string, comment?: string) {
+export async function rejectActivityPlanUseCase(
+  planId: string,
+  userId: string,
+  comment?: string,
+) {
   return db.$transaction(async (tx) => {
     const plan = await tx.activityPlan.findUnique({
       where: { id: planId, deletedAt: null },
@@ -640,7 +742,8 @@ export async function rejectActivityPlanUseCase(planId: string, userId: string, 
       include: { position: true, department: true },
     });
 
-    if (!approverEmployee) return { success: false, error: "ไม่พบโปรไฟล์พนักงานของคุณ" };
+    if (!approverEmployee)
+      return { success: false, error: "ไม่พบโปรไฟล์พนักงานของคุณ" };
 
     // Verify authority based on current status
     let hasAuthority = false;
@@ -650,14 +753,23 @@ export async function rejectActivityPlanUseCase(planId: string, userId: string, 
       hasAuthority = plan.currentApproverId === approverEmployee.id;
       step = ActivityApprovalStep.LINE_APPROVAL;
     } else if (plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL) {
-      hasAuthority = isSalesAdminManager(approverEmployee) || isMarketingManager(approverEmployee) || isSalesDirector(approverEmployee);
+      hasAuthority =
+        isSalesAdminManager(approverEmployee) ||
+        isMarketingManager(approverEmployee) ||
+        isSalesDirector(approverEmployee);
       step = ActivityApprovalStep.BUDGET_APPROVAL;
     } else if (plan.status === ActivityStatus.PENDING_HELPER_APPROVAL) {
-      hasAuthority = isSalesAdminManager(approverEmployee) || isMarketingManager(approverEmployee);
+      hasAuthority =
+        isSalesAdminManager(approverEmployee) ||
+        isMarketingManager(approverEmployee);
       step = ActivityApprovalStep.HELPER_APPROVAL;
     }
 
-    if (!hasAuthority) return { success: false, error: "คุณไม่มีสิทธิ์ปฏิเสธแผนกิจกรรมนี้ในขั้นตอนนี้" };
+    if (!hasAuthority)
+      return {
+        success: false,
+        error: "คุณไม่มีสิทธิ์ปฏิเสธแผนกิจกรรมนี้ในขั้นตอนนี้",
+      };
 
     // Reject the plan
     await tx.activityPlan.update({
@@ -685,7 +797,7 @@ export async function rejectActivityPlanUseCase(planId: string, userId: string, 
       `แผนกิจกรรม "${plan.title}" ถูกปฏิเสธ: ${comment || "ไม่ระบุเหตุผล"}`,
       "REJECTED",
       `/activity-plans/${plan.id}`,
-      tx
+      tx,
     );
 
     return { success: true };
@@ -695,8 +807,16 @@ export async function rejectActivityPlanUseCase(planId: string, userId: string, 
 /**
  * Request correction (Sends plan back to WAITING_FOR_CORRECTION)
  */
-export async function requestCorrectionPlanUseCase(planId: string, userId: string, comment: string) {
-  if (!comment) return { success: false, error: "กรุณาระบุสิ่งที่ต้องการให้แก้ไขลงในหมายเหตุ/คอมเมนต์" };
+export async function requestCorrectionPlanUseCase(
+  planId: string,
+  userId: string,
+  comment: string,
+) {
+  if (!comment)
+    return {
+      success: false,
+      error: "กรุณาระบุสิ่งที่ต้องการให้แก้ไขลงในหมายเหตุ/คอมเมนต์",
+    };
 
   return db.$transaction(async (tx) => {
     const plan = await tx.activityPlan.findUnique({
@@ -714,7 +834,8 @@ export async function requestCorrectionPlanUseCase(planId: string, userId: strin
       include: { position: true, department: true },
     });
 
-    if (!approverEmployee) return { success: false, error: "ไม่พบโปรไฟล์พนักงานของคุณ" };
+    if (!approverEmployee)
+      return { success: false, error: "ไม่พบโปรไฟล์พนักงานของคุณ" };
 
     // Verify authority
     let hasAuthority = false;
@@ -724,16 +845,21 @@ export async function requestCorrectionPlanUseCase(planId: string, userId: strin
       hasAuthority = plan.currentApproverId === approverEmployee.id;
       step = ActivityApprovalStep.LINE_APPROVAL;
     } else if (plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL) {
-      hasAuthority = isSalesAdminManager(approverEmployee) || isMarketingManager(approverEmployee) || isSalesDirector(approverEmployee);
+      hasAuthority =
+        isSalesAdminManager(approverEmployee) ||
+        isMarketingManager(approverEmployee) ||
+        isSalesDirector(approverEmployee);
       step = ActivityApprovalStep.BUDGET_APPROVAL;
     } else if (plan.status === ActivityStatus.PENDING_HELPER_APPROVAL) {
-      hasAuthority = isSalesAdminManager(approverEmployee) || isMarketingManager(approverEmployee);
+      hasAuthority =
+        isSalesAdminManager(approverEmployee) ||
+        isMarketingManager(approverEmployee);
       step = ActivityApprovalStep.HELPER_APPROVAL;
 
       // If helper manager rejects helper, also reject the helper's helper record
       const isSalesAdmin = isSalesAdminManager(approverEmployee);
       const isMktManager = isMarketingManager(approverEmployee);
-      
+
       for (const helper of plan.helpers) {
         if (helper.status === ActivityHelperStatus.PENDING) {
           const emp = await tx.employee.findUnique({
@@ -743,7 +869,8 @@ export async function requestCorrectionPlanUseCase(planId: string, userId: strin
           const deptCode = emp?.department?.code || "";
 
           let match = false;
-          if (isSalesAdmin && (deptCode === "SA" || deptCode === "SS")) match = true;
+          if (isSalesAdmin && (deptCode === "SA" || deptCode === "SS"))
+            match = true;
           if (isMktManager && deptCode === "MKT") match = true;
 
           if (match) {
@@ -759,7 +886,11 @@ export async function requestCorrectionPlanUseCase(planId: string, userId: strin
       }
     }
 
-    if (!hasAuthority) return { success: false, error: "คุณไม่มีสิทธิ์ส่งตีกลับแผนกิจกรรมนี้ในขั้นตอนนี้" };
+    if (!hasAuthority)
+      return {
+        success: false,
+        error: "คุณไม่มีสิทธิ์ส่งตีกลับแผนกิจกรรมนี้ในขั้นตอนนี้",
+      };
 
     // Reset status back to WAITING_FOR_CORRECTION
     await tx.activityPlan.update({
@@ -767,8 +898,14 @@ export async function requestCorrectionPlanUseCase(planId: string, userId: strin
       data: {
         status: ActivityStatus.WAITING_FOR_CORRECTION,
         currentApproverId: null,
-        salesPromotionApproved: plan.salesPromotionBudget && plan.salesPromotionBudget.toNumber() > 0 ? false : null,
-        marketingApproved: plan.marketingBudget && plan.marketingBudget.toNumber() > 0 ? false : null,
+        salesPromotionApproved:
+          plan.salesPromotionBudget && plan.salesPromotionBudget.toNumber() > 0
+            ? false
+            : null,
+        marketingApproved:
+          plan.marketingBudget && plan.marketingBudget.toNumber() > 0
+            ? false
+            : null,
         salesManagerApproved: false,
       },
     });
@@ -790,7 +927,7 @@ export async function requestCorrectionPlanUseCase(planId: string, userId: strin
       `แผนกิจกรรม "${plan.title}" ถูกตีกลับส่งแก้ไข: "${comment}"`,
       "WARNING",
       `/activity-plans/${plan.id}/edit`,
-      tx
+      tx,
     );
 
     return { success: true };
@@ -800,7 +937,10 @@ export async function requestCorrectionPlanUseCase(planId: string, userId: strin
 /**
  * Cancel plan (Moves to CANCELLED, only creator can perform this)
  */
-export async function cancelActivityPlanUseCase(planId: string, userId: string) {
+export async function cancelActivityPlanUseCase(
+  planId: string,
+  userId: string,
+) {
   return db.$transaction(async (tx) => {
     const plan = await tx.activityPlan.findUnique({
       where: { id: planId, deletedAt: null },
@@ -809,11 +949,21 @@ export async function cancelActivityPlanUseCase(planId: string, userId: string) 
     if (!plan) return { success: false, error: "ไม่พบแผนกิจกรรม" };
 
     if (plan.createdById !== userId) {
-      return { success: false, error: "คุณไม่ใช่ผู้สร้างแผนงานนี้ จึงไม่มีสิทธิ์ยกเลิก" };
+      return {
+        success: false,
+        error: "คุณไม่ใช่ผู้สร้างแผนงานนี้ จึงไม่มีสิทธิ์ยกเลิก",
+      };
     }
 
-    if (plan.status === ActivityStatus.APPROVED || plan.status === ActivityStatus.REJECTED || plan.status === ActivityStatus.CANCELLED) {
-      return { success: false, error: "ไม่สามารถยกเลิกแผนงานที่สิ้นสุด Flow การทำงานแล้วได้" };
+    if (
+      plan.status === ActivityStatus.APPROVED ||
+      plan.status === ActivityStatus.REJECTED ||
+      plan.status === ActivityStatus.CANCELLED
+    ) {
+      return {
+        success: false,
+        error: "ไม่สามารถยกเลิกแผนงานที่สิ้นสุด Flow การทำงานแล้วได้",
+      };
     }
 
     await tx.activityPlan.update({
@@ -842,9 +992,16 @@ export async function cancelActivityPlanUseCase(planId: string, userId: string) 
 // Internal Transition Helpers (Run inside existing TX)
 // ────────────────────────────────────────────────────────
 
-async function initiateBudgetApproval(plan: any, tx: Prisma.TransactionClient, userId: string, logComment: string) {
-  const hasSalesPromotion = plan.salesPromotionBudget && plan.salesPromotionBudget.toNumber() > 0;
-  const hasMarketing = plan.marketingBudget && plan.marketingBudget.toNumber() > 0;
+async function initiateBudgetApproval(
+  plan: any,
+  tx: Prisma.TransactionClient,
+  userId: string,
+  logComment: string,
+) {
+  const hasSalesPromotion =
+    plan.salesPromotionBudget && plan.salesPromotionBudget.toNumber() > 0;
+  const hasMarketing =
+    plan.marketingBudget && plan.marketingBudget.toNumber() > 0;
 
   if (hasSalesPromotion || hasMarketing) {
     const updatedPlan = await tx.activityPlan.update({
@@ -877,7 +1034,11 @@ async function initiateBudgetApproval(plan: any, tx: Prisma.TransactionClient, u
   }
 }
 
-async function initiateHelperApproval(plan: any, tx: Prisma.TransactionClient, userId: string) {
+async function initiateHelperApproval(
+  plan: any,
+  tx: Prisma.TransactionClient,
+  userId: string,
+) {
   // Load helpers
   const helpers = await tx.activityHelper.findMany({
     where: { activityPlanId: plan.id, deletedAt: null },
@@ -943,7 +1104,7 @@ async function initiateHelperApproval(plan: any, tx: Prisma.TransactionClient, u
       `แผนกิจกรรม "${updatedPlan.title}" ได้รับการอนุมัติและจัดสรรเสร็จสมบูรณ์แล้ว`,
       "APPROVED",
       `/activity-plans/${updatedPlan.id}`,
-      tx
+      tx,
     );
 
     // Sync to Calendar

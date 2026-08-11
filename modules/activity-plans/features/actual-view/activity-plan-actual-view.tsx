@@ -578,11 +578,11 @@ export default function ActivityPlanActualView({
           <div className="text-center">
             <h5 className="font-semibold text-lg sm:text-2xl md:text-3xl border-b pb-4 md:pb-6 leading-snug">
               <span className="hidden sm:inline">
-                บันทึกผลการปฏิบัติงาน ( Activity plan actual )
+                บันทึกผลการปฏิบัติงาน ( Trip Plan Actual )
               </span>
               <span className="inline sm:hidden">
                 บันทึกผลการปฏิบัติงาน
-                <br />( Activity plan actual )
+                <br />( Trip Plan Actual )
               </span>
             </h5>
           </div>

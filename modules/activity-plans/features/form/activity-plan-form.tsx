@@ -122,7 +122,7 @@ export function ActivityPlanForm({
           setCustomersList(res.customers);
         }
       } catch (err) {
-        console.error("Failed to load customers for activity plan:", err);
+        console.error("Failed to load customers for Trip Plan:", err);
       }
     }
     loadCustomers();
@@ -146,7 +146,7 @@ export function ActivityPlanForm({
           setProductsList(res.products);
         }
       } catch (err) {
-        console.error("Failed to load products for activity plan:", err);
+        console.error("Failed to load products for Trip Plan:", err);
       }
     }
     loadProducts();
@@ -551,10 +551,18 @@ export function ActivityPlanForm({
   };
 
   const [type9Store, setType9Store] = useState(initDetails?.type9Store ?? "");
-  const [type9IsSubDealer, setType9IsSubDealer] = useState(initDetails?.type9IsSubDealer ?? false);
-  const [type9SubDealerStore, setType9SubDealerStore] = useState(initDetails?.type9SubDealerStore ?? "");
-  const [type9Sales, setType9Sales] = useState<number>(initDetails?.type9Sales ?? 0);
-  const [type9Products, setType9Products] = useState(initDetails?.type9Products ?? "");
+  const [type9IsSubDealer, setType9IsSubDealer] = useState(
+    initDetails?.type9IsSubDealer ?? false,
+  );
+  const [type9SubDealerStore, setType9SubDealerStore] = useState(
+    initDetails?.type9SubDealerStore ?? "",
+  );
+  const [type9Sales, setType9Sales] = useState<number>(
+    initDetails?.type9Sales ?? 0,
+  );
+  const [type9Products, setType9Products] = useState(
+    initDetails?.type9Products ?? "",
+  );
   const [type9ProductItems, setType9ProductItems] = useState<
     Type9ProductItem[]
   >(
@@ -568,14 +576,28 @@ export function ActivityPlanForm({
     ],
   );
 
-  const [type10DemoPlot, setType10DemoPlot] = useState(initDetails?.type10DemoPlot ?? "");
-  const [type10Location, setType10Location] = useState(initDetails?.type10Location ?? "");
-  const [type10TargetCrop, setType10TargetCrop] = useState(initDetails?.type10TargetCrop ?? "");
-  const [type10Showcase, setType10Showcase] = useState(initDetails?.type10Showcase ?? "");
-  const [type10Attendees, setType10Attendees] = useState<number>(initDetails?.type10Attendees ?? 0);
-  const [type10BookingSales, setType10BookingSales] = useState<number>(initDetails?.type10BookingSales ?? 0);
+  const [type10DemoPlot, setType10DemoPlot] = useState(
+    initDetails?.type10DemoPlot ?? "",
+  );
+  const [type10Location, setType10Location] = useState(
+    initDetails?.type10Location ?? "",
+  );
+  const [type10TargetCrop, setType10TargetCrop] = useState(
+    initDetails?.type10TargetCrop ?? "",
+  );
+  const [type10Showcase, setType10Showcase] = useState(
+    initDetails?.type10Showcase ?? "",
+  );
+  const [type10Attendees, setType10Attendees] = useState<number>(
+    initDetails?.type10Attendees ?? 0,
+  );
+  const [type10BookingSales, setType10BookingSales] = useState<number>(
+    initDetails?.type10BookingSales ?? 0,
+  );
 
-  const [type11Stores, setType11Stores] = useState(initDetails?.type11Stores ?? "");
+  const [type11Stores, setType11Stores] = useState(
+    initDetails?.type11Stores ?? "",
+  );
 
   // Section 4: Location & Team State
   const [locationText, setLocationText] = useState(initial.location ?? "");
@@ -587,9 +609,12 @@ export function ActivityPlanForm({
 
   // Section 5: Budget & Expenses State
   const [isPromotionalMediaSelected, setIsPromotionalMediaSelected] =
-    useState<boolean>(initDetails?.isPromotionalMediaSelected ?? ((initial.marketingBudget ?? 0) > 0));
+    useState<boolean>(
+      initDetails?.isPromotionalMediaSelected ??
+        (initial.marketingBudget ?? 0) > 0,
+    );
   const [marketingBudgetAmount, setMarketingBudgetAmount] = useState<number>(
-    initDetails?.marketingBudgetAmount ?? (initial.marketingBudget ?? 10000),
+    initDetails?.marketingBudgetAmount ?? initial.marketingBudget ?? 10000,
   );
   const [marketingProductItems, setMarketingProductItems] = useState<
     MarketingBudgetProductItem[]
@@ -645,7 +670,10 @@ export function ActivityPlanForm({
 
   // Section 5: Sales Promotion Items State & Helpers
   const [isSalesPromotionSelected, setIsSalesPromotionSelected] =
-    useState<boolean>(initDetails?.isSalesPromotionSelected ?? ((initial.salesPromotionBudget ?? 0) > 0));
+    useState<boolean>(
+      initDetails?.isSalesPromotionSelected ??
+        (initial.salesPromotionBudget ?? 0) > 0,
+    );
   const [salesPromotionItems, setSalesPromotionItems] = useState<
     SalesPromotionItem[]
   >(initDetails?.salesPromotionItems ?? []);
@@ -674,8 +702,12 @@ export function ActivityPlanForm({
     setSalesPromotionItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const [extraExpenseAmount, setExtraExpenseAmount] = useState<number>(initDetails?.extraExpenseAmount ?? 0);
-  const [extraExpenseDetail, setExtraExpenseDetail] = useState(initDetails?.extraExpenseDetail ?? "");
+  const [extraExpenseAmount, setExtraExpenseAmount] = useState<number>(
+    initDetails?.extraExpenseAmount ?? 0,
+  );
+  const [extraExpenseDetail, setExtraExpenseDetail] = useState(
+    initDetails?.extraExpenseDetail ?? "",
+  );
 
   // Section 6: Material Requisition Items
   const [requisitionItems, setRequisitionItems] = useState<RequisitionItem[]>(
@@ -1101,12 +1133,12 @@ export function ActivityPlanForm({
             <h5 className="font-semibold text-lg sm:text-2xl md:text-3xl border-b pb-4 md:pb-6 leading-snug">
               <span className="hidden sm:inline">
                 {isEdit
-                  ? "แก้ไขแผนงานกิจกรรม ( Activity plan )"
-                  : "สร้างแผนงานกิจกรรม ( Activity plan )"}
+                  ? "แก้ไขแผนงาน ( Trip Plan )"
+                  : "สร้างแผนงาน ( Trip Plan )"}
               </span>
               <span className="inline sm:hidden">
-                {isEdit ? "แก้ไขแผนงานกิจกรรม" : "สร้างแผนงานกิจกรรม"}
-                <br />( Activity plan )
+                {isEdit ? "แก้ไขแผนงาน" : "สร้างแผนงาน"}
+                <br />( Trip Plan )
               </span>
             </h5>
           </div>
@@ -1126,7 +1158,12 @@ export function ActivityPlanForm({
             {/* SECTION 1: ข้อมูลระบบ (System Info) */}
             <SectionHeader title="ข้อมูลระบบ" color="gray" />
 
-            <div className={cn("grid grid-cols-1 gap-3 md:gap-4", isEdit && "sm:grid-cols-2")}>
+            <div
+              className={cn(
+                "grid grid-cols-1 gap-3 md:gap-4",
+                isEdit && "sm:grid-cols-2",
+              )}
+            >
               {/* Card 1: ผู้รับผิดชอบ */}
               <div className="bg-slate-50/80 border border-slate-200/60 rounded-xl p-4 flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center flex-shrink-0">

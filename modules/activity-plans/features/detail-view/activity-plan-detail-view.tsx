@@ -62,10 +62,10 @@ export default function ActivityPlanDetailView({ id }: Props) {
       if (res.success && res.plan) {
         setPlan(res.plan);
       } else {
-        setError(res.error || "ไม่สามารถดึงข้อมูลรายละเอียดกิจกรรมได้");
+        setError(res.error || "ไม่สามารถดึงข้อมูลรายละเอียด Trip Plan ได้");
       }
     } catch {
-      setError("เกิดข้อผิดพลาดในการโหลดรายละเอียดกิจกรรม");
+      setError("เกิดข้อผิดพลาดในการโหลดรายละเอียด Trip Plan");
     } finally {
       setLoading(false);
     }
@@ -82,7 +82,7 @@ export default function ActivityPlanDetailView({ id }: Props) {
   if (error || !plan) {
     return (
       <Alert variant="destructive" className="m-6">
-        <AlertDescription>{error || "ไม่พบแผนกิจกรรม"}</AlertDescription>
+        <AlertDescription>{error || "ไม่พบ Trip Plan"}</AlertDescription>
       </Alert>
     );
   }
@@ -97,14 +97,14 @@ export default function ActivityPlanDetailView({ id }: Props) {
 
   if (plan.status === "PENDING_LINE_APPROVAL") {
     canApproveThisStep = userEmployeeId === plan.currentApproverId;
-    approvalPrompt = "คุณคือหัวหน้างานในสายการอนุมัติกิจกรรมนี้";
+    approvalPrompt = "คุณคือหัวหน้างานในสายการอนุมัติ Trip Plan นี้";
   } else if (plan.status === "PENDING_BUDGET_APPROVAL") {
     const canApproveBudget =
       session?.user?.permissionKeys?.includes("activity.approve") ||
       session?.user?.permissionKeys?.includes("activity.manage");
     if (canApproveBudget) {
       canApproveThisStep = true;
-      approvalPrompt = "คุณมีสิทธิ์อนุมัติงบประมาณกิจกรรม";
+      approvalPrompt = "คุณมีสิทธิ์อนุมัติงบประมาณ Trip Plan";
     }
   } else if (plan.status === "PENDING_HELPER_APPROVAL") {
     const isHelperManager = plan.helpers.some(
@@ -183,7 +183,7 @@ export default function ActivityPlanDetailView({ id }: Props) {
   };
 
   const handleCancelPlan = async () => {
-    if (!window.confirm("ยืนยันการยกเลิกแผนกิจกรรมนี้ใช่หรือไม่?")) return;
+    if (!window.confirm("ยืนยันการยกเลิก Trip Plan นี้ใช่หรือไม่?")) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -219,8 +219,8 @@ export default function ActivityPlanDetailView({ id }: Props) {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <PageHeader
-            title="รายละเอียดแผนงาน"
-            description="รายละเอียดแผนงาน สถานะการอนุมัติ และบันทึกประวัติการดำเนินการทั้งหมด"
+            title="รายละเอียด Trip Plan"
+            description="รายละเอียด Trip Plan สถานะการอนุมัติ และบันทึกประวัติการดำเนินการทั้งหมด"
           />
         </div>
         <Button
