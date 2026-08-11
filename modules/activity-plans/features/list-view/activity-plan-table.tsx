@@ -78,9 +78,9 @@ export function ActivityPlanTable({
         header: "เลขที่แผน",
         cell: ({ row }) => {
           const planNo =
+            (row.original as any).code ||
             (row.original as any).planNo ||
             (row.original as any).planCode ||
-            (row.original as any).code ||
             row.original.id;
           return (
             <div

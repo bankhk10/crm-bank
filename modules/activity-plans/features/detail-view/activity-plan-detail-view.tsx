@@ -257,6 +257,11 @@ export default function ActivityPlanDetailView({ id }: Props) {
 
             <div className="grid gap-4 md:grid-cols-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
               <DetailItem
+                label="เลขที่แผน"
+                value={plan.code || plan.id}
+                icon={<FileText className="h-4 w-4 text-blue-500" />}
+              />
+              <DetailItem
                 label="ผู้จัดทำ"
                 value={`${plan.employee.name} (${plan.employee.positionTitle || "ไม่ระบุตำแหน่ง"})`}
                 icon={<User className="h-4 w-4" />}

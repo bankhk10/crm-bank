@@ -79,6 +79,7 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
   if (q) {
     where.OR = [
       { id: { contains: q, mode: "insensitive" } },
+      { code: { contains: q, mode: "insensitive" } },
       { title: { contains: q, mode: "insensitive" } },
       { location: { contains: q, mode: "insensitive" } },
       { objective: { contains: q, mode: "insensitive" } },
@@ -109,6 +110,41 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
 }
 
 /**
+ * Helper to generate Activity Plan Code (format: APYYMMXXXX)
+ * AP = Activity Plan
+ * YY = Year 2 digits (e.g. 26 for 2026)
+ * MM = Month 2 digits (e.g. 08 for August)
+ * XXXX = 4-digit sequence (0001, 0002, ...)
+ */
+export async function generateActivityPlanCode(
+  tx: Prisma.TransactionClient | typeof db,
+  date: Date = new Date()
+): Promise<string> {
+  const yearStr = String(date.getFullYear()).slice(-2);
+  const monthStr = String(date.getMonth() + 1).padStart(2, "0");
+  const prefix = `AP${yearStr}${monthStr}`;
+
+  const lastPlan = await tx.activityPlan.findFirst({
+    where: {
+      code: { startsWith: prefix },
+    },
+    orderBy: { code: "desc" },
+    select: { code: true },
+  });
+
+  let seq = 1;
+  if (lastPlan?.code && lastPlan.code.length >= prefix.length + 4) {
+    const lastSeq = parseInt(lastPlan.code.slice(-4), 10);
+    if (!isNaN(lastSeq)) {
+      seq = lastSeq + 1;
+    }
+  }
+
+  const seqStr = String(seq).padStart(4, "0");
+  return `${prefix}${seqStr}`;
+}
+
+/**
  * Create a new ActivityPlan inside a transaction
  */
 export async function createActivityPlan(
@@ -116,9 +152,13 @@ export async function createActivityPlan(
   helperEmployeeIds: string[]
 ) {
   return db.$transaction(async (tx) => {
+    // Generate Activity Plan code if not provided
+    const code = planData.code || (await generateActivityPlanCode(tx));
+
     // 1. Create the main ActivityPlan
     const plan = await tx.activityPlan.create({
       data: {
+        code,
         title: planData.title,
         startDate: planData.startDate,
         endDate: planData.endDate,

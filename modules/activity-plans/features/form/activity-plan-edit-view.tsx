@@ -93,7 +93,7 @@ export default function ActivityPlanEditView({ id }: Props) {
             notes: plan.notes || "",
             details: plan.details,
             helperEmployeeIds,
-            planCode: (plan as any).code || plan.id,
+            planCode: plan.code || plan.id,
             employeeName: plan.employee?.name,
           });
         } else {
