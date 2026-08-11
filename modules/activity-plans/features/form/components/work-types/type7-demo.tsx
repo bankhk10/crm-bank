@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  Sprout,
-  Plus,
-  Trash2,
-  PlusCircle,
-  Search,
-  Info,
-} from "lucide-react";
+import { Sprout, Plus, Trash2, PlusCircle, Search, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
@@ -324,11 +317,7 @@ export function Type7Demo({
                               nextCrops.length > 0 &&
                               !nextCrops.includes(item.cropName)
                             ) {
-                              updateType7Row(
-                                item.id,
-                                "cropName",
-                                nextCrops[0],
-                              );
+                              updateType7Row(item.id, "cropName", nextCrops[0]);
                             }
                           }}
                           options={cropCategoryOptions}
@@ -401,7 +390,8 @@ export function Type7Demo({
                             </>
                           ) : isRaiUnit ? (
                             <>
-                              พื้นที่ (ไร่) <span className="text-red-500">*</span>
+                              พื้นที่ (ไร่){" "}
+                              <span className="text-red-500">*</span>
                             </>
                           ) : (
                             <>
@@ -446,7 +436,8 @@ export function Type7Demo({
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                       <div className="md:col-span-4">
                         <label className="block text-xs font-medium text-slate-700 mb-1">
-                          วันที่เริ่มทำแปลง <span className="text-red-500">*</span>
+                          วันที่เริ่มทำแปลง{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="date"
@@ -623,7 +614,7 @@ export function Type7Demo({
                         </div>
                         <div>
                           <span className="font-semibold text-slate-500">
-                            สินค้าเดิม:{" "}
+                            สินค้าสาธิต:{" "}
                           </span>
                           <span className="font-bold">
                             {selectedPlot?.showcase ||
