@@ -140,7 +140,7 @@ export function Type2Followup({
 
                 <FormCombobox
                   id={`customer-combobox-${item.id}`}
-                  label="ชื่อร้านค้า / เกษตรกร"
+                  label="ชื่อร้านค้า / Key Farmer"
                   labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500"
                   value={item.customerName}
@@ -148,8 +148,8 @@ export function Type2Followup({
                     updateType2Row(item.id, "customerName", val)
                   }
                   options={customerOptions}
-                  placeholder="เลือกร้านค้า / เกษตรกร..."
-                  searchPlaceholder="ค้นหาร้านค้า / เกษตรกร..."
+                  placeholder="เลือกร้านค้า / Key Farmer..."
+                  searchPlaceholder="ค้นหาร้านค้า / Key Farmer..."
                   emptyText="ไม่พบลูกค้า"
                   disabled={readonly}
                   required

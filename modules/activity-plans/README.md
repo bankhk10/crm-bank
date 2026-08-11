@@ -26,7 +26,7 @@ modules/activity-plans/
 │   ├── form/                        # หน้าจอฟอร์ม บันทึก/แก้ไขข้อมูลหลัก
 │   │   ├── activity-plan-form.tsx   # คอมโพเนนต์ฟอร์มหลัก (State Machine & Logic)
 │   │   └── components/              # คอมโพเนนต์ย่อยแยกส่วนการทำงาน
-│   │       ├── work-types/          # UI ฟอร์มจุดประสงค์งาน 11 รูปแบบ (เช่น Type1Visit)
+│   │       ├── work-types/          # UI ฟอร์มจุดประสงค์งาน 11 รูปแบบ (เช่น Type1Visit: เข้าพบร้านค้า / Key Farmer)
 │   │       ├── budget-section.tsx   # ส่วนการคำนวณงบประมาณ
 │   │       ├── requisition-section.tsx # ส่วนระบุรายการขอเบิกสินค้า
 │   │       └── location-team-section.tsx # ส่วนระบุสถานที่และค้นหาทีมงาน

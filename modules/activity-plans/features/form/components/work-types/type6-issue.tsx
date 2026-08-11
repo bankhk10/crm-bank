@@ -112,8 +112,8 @@ export function Type6Issue({
                     updateType6Row(item.id, "customerName", val)
                   }
                   options={customerOptions}
-                  placeholder="เลือกร้านค้า / เกษตรกร..."
-                  searchPlaceholder="ค้นหาร้านค้า / เกษตรกร..."
+                  placeholder="เลือกร้านค้า / Key Farmer..."
+                  searchPlaceholder="ค้นหาร้านค้า / Key Farmer..."
                   emptyText="ไม่พบลูกค้า"
                   disabled={readonly}
                   required

@@ -674,7 +674,7 @@ export default function ActivityPlanActualView({
             <div className="space-y-4 md:space-y-6">
               {/* WORK TYPE 1 */}
               <ActualType1Visit
-                isVisible={isTypeVisible("เข้าพบร้านค้า / เกษตรกร")}
+                isVisible={isTypeVisible("เข้าพบร้านค้า / Key Farmer")}
                 target={targets.t1}
                 productAdvice={t1ProductAdvice}
                 setProductAdvice={setT1ProductAdvice}

@@ -193,7 +193,7 @@ export function ActivityPlanForm({
 
   const initDetails = (initial as any)?.details;
 
-  // Work Type 1: เข้าพบร้านค้า / เกษตรกร
+  // Work Type 1: เข้าพบร้านค้า / Key Farmer
   const [type1Items, setType1Items] = useState<Type1VisitItem[]>(
     initDetails?.type1Items ?? [
       {
@@ -856,7 +856,7 @@ export function ActivityPlanForm({
     // Compile dynamic objectives for all selected types
     const summaryParts: string[] = [];
 
-    if (selectedWorkTypes.includes("เข้าพบร้านค้า / เกษตรกร")) {
+    if (selectedWorkTypes.includes("เข้าพบร้านค้า / Key Farmer")) {
       const visitSummary = type1Items
         .map(
           (item, i) =>
@@ -864,7 +864,7 @@ export function ActivityPlanForm({
         )
         .join(", ");
       summaryParts.push(
-        `[เข้าพบร้านค้า/เกษตรกร] รายการเข้าพบ (${type1Items.length} รายการ): ${visitSummary || "ไม่มีรายการ"}`,
+        `[เข้าพบร้านค้า/Key Farmer] รายการเข้าพบ (${type1Items.length} รายการ): ${visitSummary || "ไม่มีรายการ"}`,
       );
     }
 
@@ -1357,8 +1357,8 @@ export function ActivityPlanForm({
                 <SectionHeader title="วัตถุประสงค์ของประเภทงาน" color="gray" />
 
                 <div className="space-y-5">
-                  {/* Work Type 1: เข้าพบร้านค้า / เกษตรกร */}
-                  {selectedWorkTypes.includes("เข้าพบร้านค้า / เกษตรกร") && (
+                  {/* Work Type 1: เข้าพบร้านค้า / Key Farmer */}
+                  {selectedWorkTypes.includes("เข้าพบร้านค้า / Key Farmer") && (
                     <Type1Visit
                       readonly={readonly}
                       type1Items={type1Items}

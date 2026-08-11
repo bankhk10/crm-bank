@@ -139,7 +139,7 @@ export function ActualType2Followup({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs border-b border-slate-200/60 pb-2">
             <div className="space-y-0.5">
               <span className="text-[11px] font-semibold text-slate-500">
-                ชื่อร้านค้า / เกษตรกร:
+                ชื่อร้านค้า / Key Farmer:
               </span>
               <p className="font-bold text-slate-900">{target.customer}</p>
             </div>
@@ -180,7 +180,7 @@ export function ActualType2Followup({
           gridColsClass="grid-cols-1 sm:grid-cols-3"
           items={[
             { label: "สินค้าที่ต้องการติดตามผล:", value: target.product },
-            { label: "ชื่อร้านค้า / เกษตรกร:", value: target.customer },
+            { label: "ชื่อร้านค้า / Key Farmer:", value: target.customer },
             { label: "รายละเอียดเพิ่มเติม:", value: target.detail || "-" },
           ]}
         />

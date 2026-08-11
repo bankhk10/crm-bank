@@ -104,7 +104,7 @@ export const MOCK_WEEKLY_COMPARISON: WeeklyComparisonMock[] = [
 ];
 
 export const MOCK_ACTIVITY_TYPE_BREAKDOWN: ActivityTypeBreakdownMock[] = [
-  { name: "เข้าพบร้านค้า / เกษตรกร", value: 51, percent: 40, color: "#3b82f6" },
+  { name: "เข้าพบร้านค้า / Key Farmer", value: 51, percent: 40, color: "#3b82f6" },
   {
     name: "ติดตามแปลงสาธิต / ทำแปลง",
     value: 38,

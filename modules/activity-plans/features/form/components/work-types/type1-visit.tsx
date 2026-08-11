@@ -55,7 +55,7 @@ export function Type1Visit({
       <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
         <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
           <Users className="h-4 w-4 text-slate-600" />
-          <span>เข้าพบร้านค้า / เกษตรกร</span>
+          <span>เข้าพบร้านค้า / Key Farmer</span>
         </div>
 
         {!readonly && (
@@ -105,7 +105,7 @@ export function Type1Visit({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <FormCombobox
                   id={`customer-combobox-${item.id}`}
-                  label="รายชื่อร้านค้า / เกษตรกร"
+                  label="รายชื่อร้านค้า / Key Farmer"
                   labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-sky-500"
                   value={item.customerName}
@@ -113,8 +113,8 @@ export function Type1Visit({
                     updateType1Row(item.id, "customerName", val)
                   }
                   options={customerOptions}
-                  placeholder="เลือกร้านค้า / เกษตรกร"
-                  searchPlaceholder="ค้นหาร้านค้า / เกษตรกร..."
+                  placeholder="เลือกร้านค้า / Key Farmer"
+                  searchPlaceholder="ค้นหาร้านค้า / Key Farmer..."
                   emptyText="ไม่พบลูกค้า"
                   disabled={readonly}
                   required

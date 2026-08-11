@@ -63,7 +63,7 @@ export function ActualType1Visit({
             1
           </span>
           <h2 className="font-bold text-teal-900 text-base md:text-lg">
-            เข้าพบร้านค้า / เกษตรกร
+            เข้าพบร้านค้า / Key Farmer
           </h2>
         </div>
       </div>
