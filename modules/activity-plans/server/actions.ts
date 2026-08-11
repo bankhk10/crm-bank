@@ -323,16 +323,21 @@ export async function getDemoPlotsAction() {
       const type7Items = details.type7Items;
       if (Array.isArray(type7Items)) {
         for (const item of type7Items) {
-          if (!item.ownerName) continue;
-          const cropDisplay = item.customCropName || item.cropName || "พืชสวน";
-          const plotName = `แปลงสาธิต ${cropDisplay} - ${item.ownerName}`;
+          // Only collect items where plotActivityType is CREATE or not set (legacy created plots)
+          if (item.plotActivityType === "FOLLOW_UP") continue;
+          if (!item.ownerName && !item.cropName) continue;
+
+          const cropDisplay = item.customCropName || item.cropName || "พืช";
+          const ownerDisplay = item.ownerName || "เกษตรกร";
+          const plotName = `แปลงสาธิต ${cropDisplay} (${ownerDisplay})`;
+
           realPlots.push({
-            id: `plan-${plan.id}-${item.id || Math.random()}`,
+            id: `plot-${plan.id}-${item.id || Math.random()}`,
             name: plotName,
-            location: plan.location || `แปลงสาธิต ต.วังหว้า อ.แกลง จ.ระยอง`,
+            location: plan.location || `แปลงสาธิต ${ownerDisplay}`,
             targetCrop: cropDisplay,
             showcase: item.productName || "สินค้าสาธิต",
-            ownerName: item.ownerName,
+            ownerName: ownerDisplay,
             cropCategory: item.cropCategory || "พืชสวน",
             cropName: item.cropName || "พืชสวน",
             productName: item.productName || "",
@@ -345,14 +350,8 @@ export async function getDemoPlotsAction() {
     }
 
     const combinedMap = new Map<string, UserDemoPlotOption>();
-    // Add real created plots first
+    // Add real created plots saved in DB
     realPlots.forEach((p) => combinedMap.set(p.name, p));
-    // Add master plots if not present
-    USER_DEMO_PLOTS.forEach((p) => {
-      if (!combinedMap.has(p.name)) {
-        combinedMap.set(p.name, p);
-      }
-    });
 
     return serialize({
       success: true,
@@ -362,7 +361,7 @@ export async function getDemoPlotsAction() {
     console.error("Failed to get demo plots", err);
     return serialize({
       success: false,
-      demoPlots: USER_DEMO_PLOTS,
+      demoPlots: [],
     });
   }
 }

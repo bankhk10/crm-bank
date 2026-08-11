@@ -60,8 +60,44 @@ export function Type7Demo({
   products = [],
   demoPlots = [],
 }: Props) {
-  const plotList =
-    demoPlots && demoPlots.length > 0 ? demoPlots : USER_DEMO_PLOTS;
+  // Collect plots created in the current form state (CREATE mode items)
+  const currentFormCreatedPlots: UserDemoPlotOption[] = type7Items
+    .filter(
+      (i) =>
+        (i.plotActivityType || "CREATE") === "CREATE" &&
+        (i.ownerName || i.cropName),
+    )
+    .map((i) => {
+      const cropDisplay = i.customCropName || i.cropName || "พืช";
+      const ownerDisplay = i.ownerName || "เกษตรกร";
+      const name = `แปลงสาธิต ${cropDisplay} (${ownerDisplay})`;
+      return {
+        id: `form-created-${i.id}`,
+        name,
+        location: `แปลงสาธิต ${ownerDisplay}`,
+        targetCrop: cropDisplay,
+        showcase: i.productName || "สินค้าสาธิต",
+        ownerName: ownerDisplay,
+        cropCategory: i.cropCategory || "พืชสวน",
+        cropName: i.cropName || "พืชสวน",
+        productName: i.productName || "",
+        areaRai: i.areaRai || 0,
+        treeCount: i.treeCount || 0,
+        startDate: i.startDate || "",
+      };
+    });
+
+  const basePlotList = demoPlots || [];
+
+  const combinedPlotsMap = new Map<string, UserDemoPlotOption>();
+  currentFormCreatedPlots.forEach((p) => combinedPlotsMap.set(p.name, p));
+  basePlotList.forEach((p) => {
+    if (!combinedPlotsMap.has(p.name)) {
+      combinedPlotsMap.set(p.name, p);
+    }
+  });
+
+  const plotList = Array.from(combinedPlotsMap.values());
 
   const customerOptions = (
     customers && customers.length > 0
