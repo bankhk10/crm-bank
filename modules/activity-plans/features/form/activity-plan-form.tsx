@@ -202,16 +202,27 @@ export function ActivityPlanForm({
   const initDetails = (initial as any)?.details;
 
   // Work Type 1: เข้าพบร้านค้า / Key Farmer
-  const [type1Items, setType1Items] = useState<Type1VisitItem[]>(
-    initDetails?.type1Items ?? [
+  const [type1Items, setType1Items] = useState<Type1VisitItem[]>(() => {
+    if (initDetails?.type1Items && Array.isArray(initDetails.type1Items) && initDetails.type1Items.length > 0) {
+      return initDetails.type1Items;
+    }
+    if (Array.isArray(initDetails) && initDetails.length > 0) {
+      return initDetails.map((item: any, idx: number) => ({
+        id: item.id || String(idx + 1),
+        customerName: item.customerName || item.storeName || item.ownerName || DEMO_OWNERS[0] || "",
+        topic: item.visitTopic || item.topic || "แจ้งข่าวสาร",
+        detail: item.detail || "",
+      }));
+    }
+    return [
       {
         id: "1",
         customerName: DEMO_OWNERS[0] || "",
         topic: "แจ้งข่าวสาร",
         detail: "",
       },
-    ],
-  );
+    ];
+  });
 
   const addType1Row = () => {
     const newItem: Type1VisitItem = {
@@ -237,16 +248,27 @@ export function ActivityPlanForm({
     setType1Items((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const [type2Items, setType2Items] = useState<Type2ProductFollowupItem[]>(
-    initDetails?.type2Items ?? [
+  const [type2Items, setType2Items] = useState<Type2ProductFollowupItem[]>(() => {
+    if (initDetails?.type2Items && Array.isArray(initDetails.type2Items) && initDetails.type2Items.length > 0) {
+      return initDetails.type2Items;
+    }
+    if (Array.isArray(initDetails) && initDetails.length > 0) {
+      return initDetails.map((item: any, idx: number) => ({
+        id: item.id || String(idx + 1),
+        productName: item.followupProductName || item.productName || DEMO_PRODUCTS[0] || "",
+        customerName: item.customerName || item.ownerName || DEMO_OWNERS[0] || "",
+        detail: item.detail || "",
+      }));
+    }
+    return [
       {
         id: "1",
         productName: DEMO_PRODUCTS[0] || "",
         customerName: DEMO_OWNERS[0] || "",
         detail: "",
       },
-    ],
-  );
+    ];
+  });
 
   const addType2Row = () => {
     const newItem: Type2ProductFollowupItem = {
@@ -1129,6 +1151,24 @@ export function ActivityPlanForm({
       const typeIndex = WORK_TYPES.indexOf(firstType);
       const activityTypeId = typeIndex >= 0 ? `TYPE_${typeIndex + 1}` : "TYPE_1";
 
+      let activeItems: any[] = [];
+      if (typeIndex === 0) activeItems = type1Items;
+      else if (typeIndex === 1) activeItems = type2Items;
+      else if (typeIndex === 2) activeItems = type3Items;
+      else if (typeIndex === 3) activeItems = type4Items;
+      else if (typeIndex === 4) activeItems = type5Items;
+      else if (typeIndex === 5) activeItems = type6Items;
+      else if (typeIndex === 6) activeItems = type7Items;
+      else if (typeIndex === 7) activeItems = type8Items;
+      else if (typeIndex === 8) activeItems = type9ProductItems;
+      else if (typeIndex === 9) activeItems = [type10DemoPlot].filter(Boolean);
+      else if (typeIndex === 10) activeItems = type11Stores;
+      else activeItems = type1Items;
+
+      if ((!activeItems || activeItems.length === 0) && Array.isArray(initDetails) && initDetails.length > 0) {
+        activeItems = initDetails;
+      }
+
       const res = await onSubmit({
         title,
         startDate: startDateTime,
@@ -1144,7 +1184,7 @@ export function ActivityPlanForm({
         salesPromotionBudgetRequested: salesPromotionBudget,
         marketingBudgetRequested: marketingBudget,
         notes: extraNotes,
-        items: (initDetails?.items || details?.type1Items || []) as any,
+        items: activeItems as any,
         helperEmployeeIds,
       });
 

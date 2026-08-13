@@ -37,7 +37,7 @@ export function Type1Visit({
   deleteType1Row,
   customers = [],
 }: Props) {
-  const customerOptions = (
+  const baseCustomerOptions = (
     customers && customers.length > 0
       ? customers
       : DEMO_OWNERS.map((owner) => ({
@@ -49,6 +49,16 @@ export function Type1Visit({
     value: c.name,
     label: c.name,
   }));
+
+  const existingNames = new Set(baseCustomerOptions.map((o) => o.value));
+  type1Items.forEach((item) => {
+    if (item.customerName && !existingNames.has(item.customerName)) {
+      baseCustomerOptions.push({ value: item.customerName, label: item.customerName });
+      existingNames.add(item.customerName);
+    }
+  });
+
+  const customerOptions = baseCustomerOptions;
 
   return (
     <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4 relative">
