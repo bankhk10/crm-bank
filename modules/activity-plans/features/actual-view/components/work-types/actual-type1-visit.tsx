@@ -14,6 +14,12 @@ import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
 import { DEMO_PRODUCTS } from "../../../form/constants";
 
+export interface ProductOption {
+  id: string;
+  name: string;
+  productCode?: string | null;
+}
+
 interface ActualType1VisitProps {
   isVisible: boolean;
   target: {
@@ -35,6 +41,7 @@ interface ActualType1VisitProps {
   setNextAction: (v: string) => void;
   nextMeetingDate: string;
   setNextMeetingDate: (v: string) => void;
+  products?: ProductOption[];
 }
 
 export function ActualType1Visit({
@@ -52,8 +59,19 @@ export function ActualType1Visit({
   setNextAction,
   nextMeetingDate,
   setNextMeetingDate,
+  products = [],
 }: ActualType1VisitProps) {
   if (!isVisible) return null;
+
+  const productOptions = (
+    products && products.length > 0
+      ? products.map((p) => p.name)
+      : DEMO_PRODUCTS
+  );
+
+  const displayProducts = Array.from(
+    new Set([...productOptions, ...(productAdvice ? [productAdvice] : [])]),
+  );
 
   return (
     <div className="border-2 border-teal-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
@@ -88,7 +106,7 @@ export function ActualType1Visit({
               <SelectValue placeholder="เลือกสินค้าที่ให้คำแนะนำ" />
             </SelectTrigger>
             <SelectContent>
-              {DEMO_PRODUCTS.map((prod) => (
+              {displayProducts.map((prod) => (
                 <SelectItem key={prod} value={prod}>
                   {prod}
                 </SelectItem>

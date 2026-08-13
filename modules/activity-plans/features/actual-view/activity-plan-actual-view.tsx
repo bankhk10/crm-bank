@@ -28,6 +28,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { getActivityPlanAction, recordActivityResultAction } from "../../server/actions";
+import { listProductsAction } from "@/modules/products/server/actions";
 import {
   WORK_TYPES,
   DEMO_OWNERS,
@@ -141,6 +142,7 @@ export default function ActivityPlanActualView({
   // Active Work Type Selection Mode: "ALL" or specific type name
   const [activeTypeTab, setActiveTypeTab] = useState<string>("ALL");
   const [planWorkTypes, setPlanWorkTypes] = useState<string[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
 
   // Targets derived from Create Plan Form Constants or DB
   const [targets, setTargets] = useState({
@@ -342,6 +344,17 @@ export default function ActivityPlanActualView({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Fetch active products lookup
+  useEffect(() => {
+    listProductsAction({ status: "ACTIVE", perPage: 1000 })
+      .then((res) => {
+        if (res && res.products) {
+          setProducts(res.products);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Load plan details if ID passed
   useEffect(() => {
@@ -826,6 +839,7 @@ export default function ActivityPlanActualView({
                 setNextAction={setT1NextAction}
                 nextMeetingDate={t1NextMeetingDate}
                 setNextMeetingDate={setT1NextMeetingDate}
+                products={products}
               />
 
               {/* WORK TYPE 2 */}
