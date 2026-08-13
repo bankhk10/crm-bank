@@ -14,8 +14,8 @@ The seeding logic has been refactored into modular subfolders in `prisma/seed/`:
 
 ### 📂 `prisma/seed/activity/` (ข้อมูลทดสอบระบบกิจกรรม)
 - `index.ts`: Entry point ประสานงานการรัน seed ข้อมูลทดสอบระบบกิจกรรม
+- `permissions.ts`: การสร้างและกำหนด Activity Permissions และ RolePermissions (สิทธิ์มองเห็น activity-plans)
 - `departments-positions.ts`: การสร้างแผนกและตำแหน่งเฉพาะระบบกิจกรรม
-- `users-employees.ts`: การสร้างข้อมูลผู้ใช้และสายการอนุมัติ 2 ทีมคู่ขนาน (Team 1 & Team 2)
 
 ---
 
