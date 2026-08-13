@@ -84,7 +84,7 @@ export function ActivityPlanTable({
             row.original.id;
           return (
             <div
-              className="truncate text-xs font-semibold text-slate-700 max-w-[130px]"
+              className="truncate text-sm font-medium text-slate-700 max-w-[130px]"
               title={planNo || "-"}
             >
               {planNo || "-"}
@@ -109,12 +109,12 @@ export function ActivityPlanTable({
       },
       {
         accessorKey: "activityType",
-        header: "ประเภท",
+        header: "ประเภทงาน",
         cell: (info) => {
           const val = (info.getValue() as string) || "-";
           return (
             <div
-              className="truncate text-xs text-slate-700 max-w-[160px]"
+              className="truncate text-xs text-slate-700 max-w-[250px]"
               title={val}
             >
               {val}
