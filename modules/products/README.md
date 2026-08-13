@@ -57,7 +57,7 @@ import {
 
 ### Key Design Decisions
 
-- **`getProductFormOptionsAction`** consolidates 7 separate API calls (units, groups, brands, product groups, plants, categories, abc types) into a single server action
+- **`getProductFormOptionsAction`** consolidates 7 separate API calls (units, groups, brands, product groups, plants, categories, abc types) into a single server action, deduplicating options by value to prevent React key collisions.
 - **Image upload** still uses API routes (`/api/products/[id]/images`) because server actions don't support upload progress tracking (`XHR.onprogress`)
 - **Existing API routes are preserved** for backward compatibility — they can be deprecated later
 
