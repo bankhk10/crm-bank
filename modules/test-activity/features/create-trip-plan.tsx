@@ -423,9 +423,9 @@ export function CreateTripPlan({ onBack }: { onBack?: () => void }) {
   // Section 2 state
   const [activityName, setActivityName] = useState("แปลงสาธิตของบานา");
   const [startDate, setStartDate] = useState("2026-07-25");
-  const [startTime, setStartTime] = useState("09:00");
+  const [startTime, setStartTime] = useState("08:00");
   const [endDate, setEndDate] = useState("2026-07-25");
-  const [endTime, setEndTime] = useState("12:00");
+  const [endTime, setEndTime] = useState("08:00");
   const [selectedTypes, setSelectedTypes] = useState<ActivityType[]>([
     "ติดตามแปลงสาธิต / พืชป้าหมาย",
     "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",

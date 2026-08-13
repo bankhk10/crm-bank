@@ -167,10 +167,10 @@ export function ActivityPlanForm({
   // Format initial dates
   const parseInitialDate = (date?: Date | string) => {
     if (!date)
-      return { dateStr: format(new Date(), "yyyy-MM-dd"), timeStr: "00:00" };
+      return { dateStr: format(new Date(), "yyyy-MM-dd"), timeStr: "08:00" };
     const d = typeof date === "string" ? new Date(date) : date;
     if (isNaN(d.getTime()))
-      return { dateStr: format(new Date(), "yyyy-MM-dd"), timeStr: "00:00" };
+      return { dateStr: format(new Date(), "yyyy-MM-dd"), timeStr: "08:00" };
     return {
       dateStr: format(d, "yyyy-MM-dd"),
       timeStr: format(d, "HH:mm"),
