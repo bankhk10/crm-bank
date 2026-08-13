@@ -90,7 +90,8 @@ function getPlanWorkTypes(p: any): string[] {
       (typeName.includes("วางบิล") && details.type4Items?.length > 0) ||
       (typeName.includes("สำรวจตลาด") && details.type5Items?.length > 0) ||
       (typeName.includes("แก้ปัญหา") && details.type6Items?.length > 0) ||
-      (typeName.includes("ติดตามแปลงสาธิต") && details.type7Items?.length > 0) ||
+      (typeName.includes("ติดตามแปลงสาธิต") &&
+        details.type7Items?.length > 0) ||
       (typeName.includes("จัดประชุม") && details.type8Items?.length > 0) ||
       (typeName.includes("ส่งเสริมการขายหน้าร้าน") &&
         Boolean(details.type9Store)) ||
@@ -200,7 +201,8 @@ export default function ActivityPlanActualView({
     t6: {
       customer: DEMO_OWNERS[0],
       issueType: "เคลมของ",
-      detail: "รับเรื่องร้องเรียนเรื่องสินค้าจากลูกค้าเพื่อประสานงานเปลี่ยน/เคลมสินค้า",
+      detail:
+        "รับเรื่องร้องเรียนเรื่องสินค้าจากลูกค้าเพื่อประสานงานเปลี่ยน/เคลมสินค้า",
       targetStatus: "เสร็จสิ้น",
     },
     t7: {
@@ -398,8 +400,8 @@ export default function ActivityPlanActualView({
             marketingBudget: p.marketingBudget
               ? Number(p.marketingBudget)
               : details.marketingBudgetAmount
-              ? Number(details.marketingBudgetAmount)
-              : undefined,
+                ? Number(details.marketingBudgetAmount)
+                : undefined,
             salesPromotionBudget: p.salesPromotionBudget
               ? Number(p.salesPromotionBudget)
               : undefined,
@@ -420,8 +422,7 @@ export default function ActivityPlanActualView({
             isPromotionalMediaSelected:
               details.isPromotionalMediaSelected ?? false,
             marketingProductItems: details.marketingProductItems || [],
-            isSalesPromotionSelected:
-              details.isSalesPromotionSelected ?? false,
+            isSalesPromotionSelected: details.isSalesPromotionSelected ?? false,
             salesPromotionItems: details.salesPromotionItems || [],
             requisitionItems: details.requisitionItems || [],
             objective: p.objective || undefined,
@@ -452,8 +453,7 @@ export default function ActivityPlanActualView({
                   ?.map((i: any) => i.productName)
                   .filter(Boolean)
                   .join(", ") || DEMO_PRODUCTS[0],
-              customer:
-                details.type2Items?.[0]?.customerName || DEMO_OWNERS[0],
+              customer: details.type2Items?.[0]?.customerName || DEMO_OWNERS[0],
               detail:
                 details.type2Items?.[0]?.note ||
                 "ติดตามผลหลังนำสินค้าไปทดลองใช้งาน",
@@ -535,8 +535,7 @@ export default function ActivityPlanActualView({
                 "สำรวจเปรียบเทียบราคา ป้ายราคา และโปรโมชันสินค้าคู่แข่ง",
             },
             t6: {
-              customer:
-                details.type6Items?.[0]?.customerName || DEMO_OWNERS[0],
+              customer: details.type6Items?.[0]?.customerName || DEMO_OWNERS[0],
               issueType: details.type6Items?.[0]?.issueType || "เคลมของ",
               detail:
                 details.type6Items?.[0]?.issueDescription ||
@@ -546,8 +545,7 @@ export default function ActivityPlanActualView({
             },
             t7: {
               owner: details.type7Items?.[0]?.ownerName || DEMO_OWNERS[0],
-              product:
-                details.type7Items?.[0]?.productName || DEMO_PRODUCTS[0],
+              product: details.type7Items?.[0]?.productName || DEMO_PRODUCTS[0],
               crop: details.type7Items?.[0]?.cropName || "ทุเรียน",
               plots: details.type7Items?.[0]?.areaRai
                 ? `${details.type7Items[0].areaRai} ไร่`
@@ -984,48 +982,7 @@ export default function ActivityPlanActualView({
                 <br />( Trip Plan Actual )
               </span>
             </h5>
-
-            {/* Quick Demo Data Fill Helper Button */}
-            <div className="flex items-center justify-end w-full pt-1">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={fillAllSampleData}
-                className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 gap-1.5 rounded-lg"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                เติมข้อมูลทดสอบตัวอย่าง (Sample Data)
-              </Button>
-            </div>
           </div>
-
-          {/* Standalone Plan Selector Dropdown */}
-          {plansList.length > 0 && (
-            <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="space-y-0.5">
-                <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                  <ClipboardCheck className="w-4 h-4 text-emerald-600" />
-                  เลือก Trip Plan เพื่อบันทึกผลการทำงาน:
-                </h4>
-                <p className="text-xs text-slate-500">
-                  ระบบจะดึงเฉพาะประเภทกิจกรรมที่ระบุในแผนงานมาให้กรอก (1 ต่อ 1)
-                </p>
-              </div>
-              <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
-                <SelectTrigger className="w-full sm:w-80 bg-white border-slate-300 font-semibold text-slate-800">
-                  <SelectValue placeholder="-- เลือก Trip Plan --" />
-                </SelectTrigger>
-                <SelectContent>
-                  {plansList.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.code ? `[${p.code}] ` : ""}{p.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
 
           <form
             onSubmit={handleSubmit}
@@ -1060,7 +1017,10 @@ export default function ActivityPlanActualView({
               <div className="flex flex-wrap items-center justify-between gap-2 px-1">
                 <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                   <Layers className="w-4 h-4 text-blue-600" />
-                  สลับดูแบบฟอร์มกิจกรรมที่ต้องกรอก ({availableWorkTypes.length} กิจกรรมตามแผนงาน):
+                  สลับดูแบบฟอร์มกิจกรรมที่ต้องกรอก ({
+                    availableWorkTypes.length
+                  }{" "}
+                  กิจกรรมตามแผนงาน):
                 </span>
                 <Select value={activeTypeTab} onValueChange={setActiveTypeTab}>
                   <SelectTrigger className="w-64 h-9 text-xs bg-white border-slate-200">
