@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { RefreshCw, Eye } from "lucide-react";
@@ -18,7 +19,7 @@ interface LogsTableProps {
   logs: LogEntry[];
   loading: boolean;
   activeTab: "audit" | "security" | "application";
-  onSelectLog: (log: LogEntry) => void;
+  onSelectLog?: (log: LogEntry) => void;
 }
 
 export function LogsTable({
@@ -175,13 +176,15 @@ export function LogsTable({
                 </>
               )}
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onSelectLog(log)}
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
+                <Link href={`/admin/logs/${log.id}?type=${activeTab}`}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    title="ดูรายละเอียด Log"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </Link>
               </TableCell>
             </TableRow>
           ))

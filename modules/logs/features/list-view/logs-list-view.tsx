@@ -40,7 +40,6 @@ import type {
 
 import { LogsStatsCards } from "./logs-stats-cards";
 import { LogsTable } from "./logs-table";
-import { LogDetailDialog } from "./log-detail-dialog";
 
 export function LogsListView() {
   const [activeTab, setActiveTab] = useState<
@@ -51,7 +50,6 @@ export function LogsListView() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -317,7 +315,6 @@ export function LogsListView() {
               logs={logs}
               loading={loading}
               activeTab={activeTab}
-              onSelectLog={setSelectedLog}
             />
           </ScrollArea>
 
@@ -351,12 +348,6 @@ export function LogsListView() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Log Detail Dialog */}
-      <LogDetailDialog
-        selectedLog={selectedLog}
-        onClose={() => setSelectedLog(null)}
-      />
     </div>
   );
 }

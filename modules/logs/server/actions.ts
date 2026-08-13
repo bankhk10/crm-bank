@@ -35,6 +35,11 @@ export async function getAuditLogByIdAction(id: string) {
   return application.getAuditLogByIdUseCase(id);
 }
 
+export async function getLogDetailAction(id: string, type?: string) {
+  await requireAdminAccess();
+  return application.getLogDetailUseCase(id, type);
+}
+
 export async function getEntityAuditHistoryAction(
   entityType: string,
   entityId: string,

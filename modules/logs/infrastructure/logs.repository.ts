@@ -168,6 +168,20 @@ export async function findLoginHistory(userId: string, limit: number = 50) {
   });
 }
 
+export async function findSecurityLogById(id: string) {
+  return prisma.securityLog.findUnique({
+    where: { id },
+    include: {
+      user: {
+        select: { id: true, name: true, email: true },
+      },
+      targetUser: {
+        select: { id: true, name: true, email: true },
+      },
+    },
+  });
+}
+
 // ==========================================
 // Application Logs
 // ==========================================
@@ -220,6 +234,12 @@ export async function findErrorLogs(limit: number = 50) {
     where: { level: { in: ["ERROR", "CRITICAL"] } },
     orderBy: { timestamp: "desc" },
     take: limit,
+  });
+}
+
+export async function findApplicationLogById(id: string) {
+  return prisma.applicationLog.findUnique({
+    where: { id },
   });
 }
 

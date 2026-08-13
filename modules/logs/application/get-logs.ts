@@ -42,6 +42,10 @@ export async function getLoginHistoryUseCase(
   return repo.findLoginHistory(userId, limit);
 }
 
+export async function getSecurityLogByIdUseCase(id: string) {
+  return repo.findSecurityLogById(id);
+}
+
 // ==========================================
 // Application Logs
 // ==========================================
@@ -52,6 +56,39 @@ export async function getApplicationLogsUseCase(filter: AppLogFilter = {}) {
 
 export async function getErrorLogsUseCase(limit: number = 50) {
   return repo.findErrorLogs(limit);
+}
+
+export async function getApplicationLogByIdUseCase(id: string) {
+  return repo.findApplicationLogById(id);
+}
+
+// ==========================================
+// Generic Log Detail Lookup
+// ==========================================
+
+export async function getLogDetailUseCase(id: string, type?: string) {
+  if (type === "audit") {
+    const log = await repo.findAuditLogById(id);
+    if (log) return { log, type: "audit" as const };
+  } else if (type === "security") {
+    const log = await repo.findSecurityLogById(id);
+    if (log) return { log, type: "security" as const };
+  } else if (type === "application") {
+    const log = await repo.findApplicationLogById(id);
+    if (log) return { log, type: "application" as const };
+  }
+
+  // Fallback search if type is not specified or log not found in specified type
+  const auditLog = await repo.findAuditLogById(id);
+  if (auditLog) return { log: auditLog, type: "audit" as const };
+
+  const securityLog = await repo.findSecurityLogById(id);
+  if (securityLog) return { log: securityLog, type: "security" as const };
+
+  const appLog = await repo.findApplicationLogById(id);
+  if (appLog) return { log: appLog, type: "application" as const };
+
+  return null;
 }
 
 // ==========================================
