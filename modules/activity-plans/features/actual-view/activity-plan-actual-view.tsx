@@ -461,6 +461,25 @@ export default function ActivityPlanActualView({
               new Set(p.items.map((i: any) => i.customerName).filter(Boolean)),
             ).join(", ");
 
+            // Type 2 (Followup) DB Items
+            const type2DbItems = (p.items as any[]).filter(
+              (i) =>
+                i.itemType === "TYPE_2" ||
+                i.visitTopic === "FOLLOWUP" ||
+                i.followupProductName,
+            );
+
+            const t2ItemsFromDb =
+              type2DbItems.length > 0
+                ? type2DbItems.map((item) => ({
+                    productName:
+                      item.followupProductName || item.productName || "สินค้า",
+                    customer: item.customerName || p.location || "",
+                    detail: item.detail || "",
+                    expectedResult: item.expectedResult || "พืชตอบสนองดี",
+                  }))
+                : undefined;
+
             setTargets((prev) => ({
               ...prev,
               t1: {
@@ -471,9 +490,29 @@ export default function ActivityPlanActualView({
               },
               t2: {
                 ...prev.t2,
-                customer: allCustomers || firstItem.customerName || prev.t2.customer,
-                product: firstItem.followupProductName || firstItem.productName || prev.t2.product,
-                detail: firstItem.detail || prev.t2.detail,
+                customer:
+                  (t2ItemsFromDb &&
+                    Array.from(
+                      new Set(t2ItemsFromDb.map((i) => i.customer).filter(Boolean)),
+                    ).join(", ")) ||
+                  allCustomers ||
+                  firstItem.customerName ||
+                  prev.t2.customer,
+                product:
+                  (t2ItemsFromDb &&
+                    t2ItemsFromDb.map((i) => i.productName).join(", ")) ||
+                  firstItem.followupProductName ||
+                  firstItem.productName ||
+                  prev.t2.product,
+                detail:
+                  (t2ItemsFromDb &&
+                    t2ItemsFromDb
+                      .map((i) => i.detail)
+                      .filter(Boolean)
+                      .join(" | ")) ||
+                  firstItem.detail ||
+                  prev.t2.detail,
+                items: t2ItemsFromDb || prev.t2.items,
               },
               t3: {
                 ...prev.t3,

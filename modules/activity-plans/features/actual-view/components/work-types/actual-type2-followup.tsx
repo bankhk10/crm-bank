@@ -57,20 +57,13 @@ export function ActualType2Followup({
   useEffect(() => {
     if (target.items && target.items.length > 0) {
       setProductItems(
-        target.items.map((item, idx) => ({
+        target.items.map((item) => ({
           ...item,
           usageResult:
-            item.usageResult || (idx === 0 ? "พืชตอบสนองดี" : "พบปัญหา"),
-          problemDetail:
-            item.problemDetail ||
-            (idx === 1
-              ? "พบคราบใบไหม้เล็กน้อยเนื่องจากสภาพอากาศแดดจัดขณะฉีดพ่น"
-              : ""),
-          detail:
-            item.detail ||
-            (idx === 0
-              ? "พืชตอบสนองต่อปุ๋ยทางใบได้ดีขึ้น ใบเขียวเข้มสมบูรณ์"
-              : "แนะนำให้เกษตรกรปรับเวลาฉีดพ่นเป็นช่วงเย็นเพื่อลดโอกาสเกิดใบไหม้"),
+            item.usageResult ||
+            (item.expectedResult === "พบปัญหา" ? "พบปัญหา" : "พืชตอบสนองดี"),
+          problemDetail: item.problemDetail || "",
+          detail: item.detail || "",
         }))
       );
     }
