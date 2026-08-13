@@ -279,13 +279,13 @@ export function ActivityPlanTable({
           <Link href="/activity-plans/new" className="w-full sm:w-auto">
             <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">
               <PlusCircle className="h-5 w-5" />
-              สร้าง Trip Plan ใหม่
+              สร้างแผนงานใหม่
             </Button>
           </Link>
         ) : (
           <Button className="w-full sm:w-auto" variant="outline" disabled>
             <PlusCircle className="h-5 w-5" />
-            สร้าง Trip Plan ใหม่
+            สร้างแผนงานใหม่
           </Button>
         )}
       </div>

@@ -152,7 +152,7 @@ export default function ActivityPlanListView() {
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Trip Plan (แผนงาน)
+              แผนงาน (Trip Plan)
             </h1>
           </div>
         </div>
