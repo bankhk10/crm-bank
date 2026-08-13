@@ -59,6 +59,41 @@ export async function findActivityTypeByCode(code: string) {
 }
 
 /**
+ * Resolve activity type ID (accepts either cuid ID or code like "TYPE_1")
+ */
+export async function resolveActivityTypeId(
+  idOrCode: string,
+  tx: Prisma.TransactionClient | typeof db = db
+): Promise<string> {
+  if (!idOrCode) {
+    const first = await tx.activityType.findFirst({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+    });
+    return first?.id ?? "";
+  }
+
+  // 1. Check by code (e.g. TYPE_1)
+  const byCode = await tx.activityType.findUnique({
+    where: { code: idOrCode },
+  });
+  if (byCode) return byCode.id;
+
+  // 2. Check by id
+  const byId = await tx.activityType.findUnique({
+    where: { id: idOrCode },
+  });
+  if (byId) return byId.id;
+
+  // 3. Fallback to first active activity type
+  const first = await tx.activityType.findFirst({
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" },
+  });
+  return first?.id ?? idOrCode;
+}
+
+/**
  * Find activity plan by ID with full relations
  */
 export async function findActivityPlanById(id: string) {
@@ -147,7 +182,7 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
   }
 
   if (activityTypeId) {
-    where.activityTypeId = activityTypeId;
+    where.activityTypeId = await resolveActivityTypeId(activityTypeId);
   }
 
   if (fiscalYear) {
@@ -265,6 +300,8 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
     const mktRequested = input.marketingBudgetRequested ?? 0;
     const totalRequested = spRequested + mktRequested;
 
+    const resolvedActivityTypeId = await resolveActivityTypeId(input.activityTypeId, tx);
+
     // 1. Create main ActivityPlan
     const plan = await tx.activityPlan.create({
       data: {
@@ -276,7 +313,7 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
         fiscalYear: fiscal.fiscalYear,
         fiscalMonth: fiscal.fiscalMonth,
         fiscalQuarter: fiscal.fiscalQuarter,
-        activityTypeId: input.activityTypeId,
+        activityTypeId: resolvedActivityTypeId,
         location: input.location,
         province: input.province ?? null,
         district: input.district ?? null,
@@ -386,7 +423,9 @@ export async function updateActivityPlan(
     const dataToUpdate: Prisma.ActivityPlanUncheckedUpdateInput = {};
 
     if (updateFields.title !== undefined) dataToUpdate.title = updateFields.title;
-    if (updateFields.activityTypeId !== undefined) dataToUpdate.activityTypeId = updateFields.activityTypeId;
+    if (updateFields.activityTypeId !== undefined) {
+      dataToUpdate.activityTypeId = await resolveActivityTypeId(updateFields.activityTypeId, tx);
+    }
     if (updateFields.location !== undefined) dataToUpdate.location = updateFields.location;
     if (updateFields.province !== undefined) dataToUpdate.province = updateFields.province;
     if (updateFields.district !== undefined) dataToUpdate.district = updateFields.district;
