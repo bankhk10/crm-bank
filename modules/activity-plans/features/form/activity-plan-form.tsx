@@ -207,12 +207,22 @@ export function ActivityPlanForm({
       return initDetails.type1Items;
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
-      return initDetails.map((item: any, idx: number) => ({
-        id: item.id || String(idx + 1),
-        customerName: item.customerName || item.storeName || item.ownerName || DEMO_OWNERS[0] || "",
-        topic: item.visitTopic || item.topic || "แจ้งข่าวสาร",
-        detail: item.detail || "",
-      }));
+      const items = initDetails.filter(
+        (item: any) =>
+          item.visitTopic !== "MARKETING_PRODUCT" &&
+          item.visitTopic !== "SALES_PROMOTION" &&
+          item.itemType !== "MARKETING_PRODUCT" &&
+          item.itemType !== "SALES_PROMOTION" &&
+          (item.visitTopic || item.itemType === "TYPE_1")
+      );
+      if (items.length > 0) {
+        return items.map((item: any, idx: number) => ({
+          id: item.id || String(idx + 1),
+          customerName: item.customerName || item.storeName || item.ownerName || DEMO_OWNERS[0] || "",
+          topic: item.visitTopic || item.topic || "แจ้งข่าวสาร",
+          detail: item.detail || "",
+        }));
+      }
     }
     return [
       {
@@ -253,12 +263,17 @@ export function ActivityPlanForm({
       return initDetails.type2Items;
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
-      return initDetails.map((item: any, idx: number) => ({
-        id: item.id || String(idx + 1),
-        productName: item.followupProductName || item.productName || DEMO_PRODUCTS[0] || "",
-        customerName: item.customerName || item.ownerName || DEMO_OWNERS[0] || "",
-        detail: item.detail || "",
-      }));
+      const items = initDetails.filter(
+        (item: any) => item.followupProductName || item.itemType === "TYPE_2"
+      );
+      if (items.length > 0) {
+        return items.map((item: any, idx: number) => ({
+          id: item.id || String(idx + 1),
+          productName: item.followupProductName || item.productName || DEMO_PRODUCTS[0] || "",
+          customerName: item.customerName || item.ownerName || DEMO_OWNERS[0] || "",
+          detail: item.detail || "",
+        }));
+      }
     }
     return [
       {
@@ -641,17 +656,63 @@ export function ActivityPlanForm({
 
   // Section 5: Budget & Expenses State
   const [isPromotionalMediaSelected, setIsPromotionalMediaSelected] =
-    useState<boolean>(
-      initDetails?.isPromotionalMediaSelected ??
-        ((initial.marketingBudgetRequested ?? (initial as any).marketingBudget ?? 0) > 0),
-    );
+    useState<boolean>(() => {
+      if (initDetails?.isPromotionalMediaSelected !== undefined) {
+        return initDetails.isPromotionalMediaSelected;
+      }
+      if (Array.isArray(initDetails) && initDetails.length > 0) {
+        const hasMkt = initDetails.some(
+          (item: any) =>
+            item.visitTopic === "MARKETING_PRODUCT" ||
+            item.itemType === "MARKETING_PRODUCT",
+        );
+        if (hasMkt) return true;
+      }
+      return (
+        (initial.marketingBudgetRequested ??
+          (initial as any).marketingBudget ??
+          0) > 0
+      );
+    });
   const [marketingBudgetAmount, setMarketingBudgetAmount] = useState<number>(
-    initDetails?.marketingBudgetAmount ?? initial.marketingBudgetRequested ?? (initial as any).marketingBudget ?? 10000,
+    initDetails?.marketingBudgetAmount ??
+      initial.marketingBudgetRequested ??
+      (initial as any).marketingBudget ??
+      10000,
   );
   const [marketingProductItems, setMarketingProductItems] = useState<
     MarketingBudgetProductItem[]
-  >(
-    initDetails?.marketingProductItems ?? [
+  >(() => {
+    if (
+      initDetails?.marketingProductItems &&
+      Array.isArray(initDetails.marketingProductItems) &&
+      initDetails.marketingProductItems.length > 0
+    ) {
+      return initDetails.marketingProductItems;
+    }
+    if (Array.isArray(initDetails) && initDetails.length > 0) {
+      const mktItems = initDetails.filter(
+        (item: any) =>
+          item.visitTopic === "MARKETING_PRODUCT" ||
+          item.itemType === "MARKETING_PRODUCT",
+      );
+      if (mktItems.length > 0) {
+        return mktItems.map((item: any, idx: number) => ({
+          id: item.id || String(idx + 1),
+          category:
+            item.plotCropCategory ||
+            item.category ||
+            MARKETING_PRODUCT_CATEGORIES[0],
+          productName: item.storeProductName || item.productName || "",
+          quantityCases: item.storeQuantityCases ?? item.quantityCases ?? 1,
+          unit: item.plotCropName || item.unit || "ชิ้น",
+          pricePerCase: item.storePricePerCase
+            ? Number(item.storePricePerCase)
+            : (item.pricePerCase ?? 0),
+        }));
+      }
+    }
+    return [
       {
         id: "1",
         category: MARKETING_PRODUCT_CATEGORIES[0],
@@ -666,8 +727,8 @@ export function ActivityPlanForm({
           MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
             ?.price || 25,
       },
-    ],
-  );
+    ];
+  });
 
   const addMarketingProductItem = () => {
     const newItem: MarketingBudgetProductItem = {
@@ -697,13 +758,54 @@ export function ActivityPlanForm({
 
   // Section 5: Sales Promotion Items State & Helpers
   const [isSalesPromotionSelected, setIsSalesPromotionSelected] =
-    useState<boolean>(
-      initDetails?.isSalesPromotionSelected ??
-        ((initial.salesPromotionBudgetRequested ?? (initial as any).salesPromotionBudget ?? 0) > 0),
-    );
+    useState<boolean>(() => {
+      if (initDetails?.isSalesPromotionSelected !== undefined) {
+        return initDetails.isSalesPromotionSelected;
+      }
+      if (Array.isArray(initDetails) && initDetails.length > 0) {
+        const hasSp = initDetails.some(
+          (item: any) =>
+            item.visitTopic === "SALES_PROMOTION" ||
+            item.itemType === "SALES_PROMOTION",
+        );
+        if (hasSp) return true;
+      }
+      return (
+        (initial.salesPromotionBudgetRequested ??
+          (initial as any).salesPromotionBudget ??
+          0) > 0
+      );
+    });
+
   const [salesPromotionItems, setSalesPromotionItems] = useState<
     SalesPromotionItem[]
-  >(initDetails?.salesPromotionItems ?? []);
+  >(() => {
+    if (
+      initDetails?.salesPromotionItems &&
+      Array.isArray(initDetails.salesPromotionItems) &&
+      initDetails.salesPromotionItems.length > 0
+    ) {
+      return initDetails.salesPromotionItems;
+    }
+    if (Array.isArray(initDetails) && initDetails.length > 0) {
+      const spItems = initDetails.filter(
+        (item: any) =>
+          item.visitTopic === "SALES_PROMOTION" ||
+          item.itemType === "SALES_PROMOTION",
+      );
+      if (spItems.length > 0) {
+        return spItems.map((item: any, idx: number) => ({
+          id: item.id || String(idx + 1),
+          budgetType: item.plotCropCategory || item.budgetType || "งบการตลาด",
+          detail: item.detail || "",
+          amount: item.collectAmount
+            ? Number(item.collectAmount)
+            : (item.amount ?? 0),
+        }));
+      }
+    }
+    return [];
+  });
 
   const addSalesPromotionRow = () => {
     const newItem: SalesPromotionItem = {
@@ -1061,6 +1163,13 @@ export function ActivityPlanForm({
     const compiledObjective = summaryParts.join("\n") || title;
 
     // Serialize materials & sales promotions into description
+    const marketingProductSummary = marketingProductItems
+      .map(
+        (item, i) =>
+          `${i + 1}. [${item.category || "สื่อส่งเสริมการขาย"}] ${item.productName} (${item.quantityCases} ${item.unit || "ชิ้น"} @ ฿${(item.pricePerCase || 0).toLocaleString()}/หน่วย = ฿${((item.quantityCases || 0) * (item.pricePerCase || 0)).toLocaleString()})`,
+      )
+      .join("\n");
+
     const salesPromotionSummary = salesPromotionItems
       .map(
         (item, i) =>
@@ -1074,16 +1183,19 @@ export function ActivityPlanForm({
           `${i + 1}. ${item.productName} (${item.quantity} ${item.unit}) - ${item.detail}`,
       )
       .join("\n");
-    const compiledDescription = `[วัตถุประสงค์งาน]\n${compiledObjective}${salesPromotionSummary ? `\n\n[รายการส่งเสริมการขาย]\n${salesPromotionSummary}` : ""}\n\n[รายการขอเบิกสินค้า]\n${materialSummary}`;
+
+    const compiledDescription = `[วัตถุประสงค์งาน]\n${compiledObjective}${isPromotionalMediaSelected && marketingProductSummary ? `\n\n[สื่อส่งเสริมการขาย]\n${marketingProductSummary}` : ""}${isSalesPromotionSelected && salesPromotionSummary ? `\n\n[รายการส่งเสริมการขาย]\n${salesPromotionSummary}` : ""}${materialSummary ? `\n\n[รายการขอเบิกสินค้า]\n${materialSummary}` : ""}`;
 
     // Budgets mapping
-    const salesPromotionBudget: number | null = null;
+    let salesPromotionBudget: number | null = null;
     let marketingBudget: number | null = null;
 
-    const calculatedMarketingSum = marketingProductItems.reduce(
-      (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
-      0,
-    );
+    if (isSalesPromotionSelected) {
+      salesPromotionBudget = salesPromotionItems.reduce(
+        (sum, item) => sum + (item.amount || 0),
+        0,
+      );
+    }
 
     if (isPromotionalMediaSelected) {
       if (marketingProductItems.length === 0) {
@@ -1093,6 +1205,10 @@ export function ActivityPlanForm({
         setLoading(false);
         return;
       }
+      const calculatedMarketingSum = marketingProductItems.reduce(
+        (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
+        0,
+      );
       marketingBudget = calculatedMarketingSum;
     }
 
@@ -1114,59 +1230,173 @@ export function ActivityPlanForm({
       ? `${notes}\n(ค่าใช้จ่ายอื่นๆ: ${extraExpenseAmount} บาท - ${extraExpenseDetail})`
       : notes;
 
-    const details = {
-      type1Items,
-      type2Items,
-      type3Items,
-      type4Items,
-      type5Items,
-      type6Items,
-      type7Items,
-      type8Items,
-      type9Store,
-      type9IsSubDealer,
-      type9SubDealerStore,
-      type9Sales,
-      type9Products,
-      type9ProductItems,
-      type10DemoPlot,
-      type10Location,
-      type10TargetCrop,
-      type10Showcase,
-      type10Attendees,
-      type10BookingSales,
-      type11Stores,
-      isPromotionalMediaSelected,
-      marketingBudgetAmount,
-      marketingProductItems,
-      isSalesPromotionSelected,
-      salesPromotionItems,
-      extraExpenseAmount,
-      extraExpenseDetail,
-      requisitionItems,
-    };
-
     try {
       const firstType = selectedWorkTypes[0] || WORK_TYPES[0];
       const typeIndex = WORK_TYPES.indexOf(firstType);
       const activityTypeId = typeIndex >= 0 ? `TYPE_${typeIndex + 1}` : "TYPE_1";
 
-      let activeItems: any[] = [];
-      if (typeIndex === 0) activeItems = type1Items;
-      else if (typeIndex === 1) activeItems = type2Items;
-      else if (typeIndex === 2) activeItems = type3Items;
-      else if (typeIndex === 3) activeItems = type4Items;
-      else if (typeIndex === 4) activeItems = type5Items;
-      else if (typeIndex === 5) activeItems = type6Items;
-      else if (typeIndex === 6) activeItems = type7Items;
-      else if (typeIndex === 7) activeItems = type8Items;
-      else if (typeIndex === 8) activeItems = type9ProductItems;
-      else if (typeIndex === 9) activeItems = [type10DemoPlot].filter(Boolean);
-      else if (typeIndex === 10) activeItems = type11Stores;
-      else activeItems = type1Items;
+      const allItemsToSend: any[] = [];
 
-      if ((!activeItems || activeItems.length === 0) && Array.isArray(initDetails) && initDetails.length > 0) {
-        activeItems = initDetails;
+      selectedWorkTypes.forEach((workType) => {
+        if (workType === "เข้าพบร้านค้า / Key Farmer") {
+          type1Items.forEach((item) => {
+            allItemsToSend.push({
+              itemType: "TYPE_1",
+              customerName: item.customerName,
+              visitTopic: item.topic,
+              detail: item.detail,
+            });
+          });
+        } else if (workType === "ติดตามผลการใช้สินค้า") {
+          type2Items.forEach((item) => {
+            allItemsToSend.push({
+              itemType: "TYPE_2",
+              customerName: item.customerName,
+              followupProductName: item.productName,
+              detail: item.detail,
+            });
+          });
+        } else if (workType === "เสนอขายสินค้า") {
+          type3Items.forEach((item) => {
+            const prodLines =
+              item.products && item.products.length > 0
+                ? item.products
+                : [
+                    {
+                      productName: item.productName || "",
+                      quantity: item.quantity || 1,
+                      unitPrice: item.unitPrice || 0,
+                      price: item.price || 0,
+                    },
+                  ];
+            prodLines.forEach((p) => {
+              allItemsToSend.push({
+                itemType: "TYPE_3",
+                customerName: item.customerName,
+                saleProductName: p.productName,
+                saleQuantity: p.quantity,
+                saleUnitPrice: p.unitPrice,
+                saleTotalPrice: (p.quantity || 0) * (p.unitPrice || 0),
+                detail: item.detail,
+              });
+            });
+          });
+        } else if (workType === "วางบิล / เก็บเงิน") {
+          type4Items.forEach((item) => {
+            allItemsToSend.push({
+              itemType: "TYPE_4",
+              customerName: item.customerName,
+              collectAmount: item.collectAmount,
+              detail: item.detail,
+            });
+          });
+        } else if (workType === "สำรวจตลาดของคู่แข่ง") {
+          type5Items.forEach((item) => {
+            allItemsToSend.push({
+              itemType: "TYPE_5",
+              surveyStoreName: item.storeName,
+              surveyCompetitorProduct: item.comparedProduct,
+              detail: item.detail,
+            });
+          });
+        } else if (workType === "แก้ปัญหา / รับเรื่องร้องเรียน") {
+          type6Items.forEach((item) => {
+            allItemsToSend.push({
+              itemType: "TYPE_6",
+              customerName: item.customerName,
+              issueType: item.issueType,
+              detail: item.detail,
+            });
+          });
+        } else if (workType === "ติดตามแปลงสาธิต / ทำแปลง") {
+          type7Items.forEach((item) => {
+            allItemsToSend.push({
+              itemType: "TYPE_7",
+              plotActivityType: item.plotActivityType,
+              plotOwnerName: item.ownerName,
+              plotProductName: item.productName,
+              plotCropCategory: item.cropCategory,
+              plotCropName: item.cropName || item.customCropName,
+              plotAreaRai: item.areaRai,
+              plotTreeCount: item.treeCount,
+              plotCount: item.plotsCount,
+              existingPlotId: item.existingPlotId,
+              growthStage: item.growthStage,
+              plotStatus: item.plotStatus,
+              detail: item.detail,
+            });
+          });
+        } else if (workType === "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์") {
+          type8Items.forEach((item) => {
+            allItemsToSend.push({
+              itemType: "TYPE_8",
+              meetingTopic: item.topic,
+              meetingAttendeesCount: item.attendeesCount,
+              meetingTargetProducts: item.targetProducts,
+              detail: item.detail,
+            });
+          });
+        } else if (workType === "จัดกิจกรรมส่งเสริมการขายหน้าร้าน") {
+          type9ProductItems.forEach((item) => {
+            allItemsToSend.push({
+              itemType: "TYPE_9",
+              customerName:
+                type9IsSubDealer && type9SubDealerStore
+                  ? `${type9Store} (Sub Dealer: ${type9SubDealerStore})`
+                  : type9Store,
+              storeProductName: item.productName,
+              storeQuantityCases: item.quantityCases,
+              storePricePerCase: item.pricePerCase,
+              storeTotalAmount:
+                (item.quantityCases || 0) * (item.pricePerCase || 0),
+            });
+          });
+        } else if (workType === "จัดงาน Field Day") {
+          if (type10DemoPlot) {
+            allItemsToSend.push({
+              itemType: "TYPE_10",
+              customerName: type10DemoPlot,
+              detail: `สถานที่: ${type10Location} | พืชเป้าหมาย: ${type10TargetCrop} | สินค้าโชว์: ${type10Showcase} | ผู้ร่วมงาน: ${type10Attendees} คน | เป้ายอดจอง: ฿${type10BookingSales.toLocaleString()}`,
+            });
+          }
+        } else if (workType === "ตรวจเช็กสต็อกหน้าร้าน") {
+          if (type11Stores) {
+            allItemsToSend.push({
+              itemType: "TYPE_11",
+              customerName: type11Stores,
+              detail: `ตรวจเช็กสต็อกหน้าร้าน: ${type11Stores}`,
+            });
+          }
+        }
+      });
+
+      if (isPromotionalMediaSelected && marketingProductItems.length > 0) {
+        marketingProductItems.forEach((mItem) => {
+          allItemsToSend.push({
+            itemType: "MARKETING_PRODUCT",
+            visitTopic: "MARKETING_PRODUCT",
+            plotCropCategory:
+              mItem.category || MARKETING_PRODUCT_CATEGORIES[0],
+            storeProductName: mItem.productName,
+            storeQuantityCases: mItem.quantityCases,
+            plotCropName: mItem.unit || "ชิ้น",
+            storePricePerCase: mItem.pricePerCase,
+            storeTotalAmount:
+              (mItem.quantityCases || 0) * (mItem.pricePerCase || 0),
+          });
+        });
+      }
+
+      if (isSalesPromotionSelected && salesPromotionItems.length > 0) {
+        salesPromotionItems.forEach((spItem) => {
+          allItemsToSend.push({
+            itemType: "SALES_PROMOTION",
+            visitTopic: "SALES_PROMOTION",
+            plotCropCategory: spItem.budgetType || "งบการตลาด",
+            detail: spItem.detail,
+            collectAmount: spItem.amount,
+          });
+        });
       }
 
       const res = await onSubmit({
@@ -1184,7 +1414,7 @@ export function ActivityPlanForm({
         salesPromotionBudgetRequested: salesPromotionBudget,
         marketingBudgetRequested: marketingBudget,
         notes: extraNotes,
-        items: activeItems as any,
+        items: allItemsToSend as any,
         helperEmployeeIds,
       });
 

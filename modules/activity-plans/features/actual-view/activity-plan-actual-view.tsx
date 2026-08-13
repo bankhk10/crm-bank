@@ -368,6 +368,39 @@ export default function ActivityPlanActualView({
           const start = p.startDate ? new Date(p.startDate) : new Date();
           const end = p.endDate ? new Date(p.endDate) : new Date();
 
+          const mktProductItemsFromItems = p.items
+            ? (p.items as any[])
+                .filter(
+                  (item) =>
+                    item.visitTopic === "MARKETING_PRODUCT" ||
+                    item.itemType === "MARKETING_PRODUCT",
+                )
+                .map((item) => ({
+                  id: item.id,
+                  productName:
+                    item.storeProductName || item.productName || "สื่อส่งเสริมการขาย",
+                  quantityCases: item.storeQuantityCases || 1,
+                  pricePerCase: item.storePricePerCase
+                    ? Number(item.storePricePerCase)
+                    : 0,
+                }))
+            : [];
+
+          const salesPromoItemsFromItems = p.items
+            ? (p.items as any[])
+                .filter(
+                  (item) =>
+                    item.visitTopic === "SALES_PROMOTION" ||
+                    item.itemType === "SALES_PROMOTION",
+                )
+                .map((item) => ({
+                  id: item.id,
+                  detail: item.detail || "รายการส่งเสริมการขาย",
+                  amount: item.collectAmount ? Number(item.collectAmount) : 0,
+                  budgetType: item.plotCropCategory || "งบการตลาด",
+                }))
+            : [];
+
           setPlanSummary({
             planNo: p.code || p.id || "-",
             title: p.title || "แปลงสาธิตของบ้านนา",
@@ -381,6 +414,18 @@ export default function ActivityPlanActualView({
             salesPromotionBudget: (p as any).salesPromotionBudgetRequested
               ? Number((p as any).salesPromotionBudgetRequested)
               : undefined,
+            isPromotionalMediaSelected:
+              mktProductItemsFromItems.length > 0 ||
+              ((p as any).marketingBudgetRequested
+                ? Number((p as any).marketingBudgetRequested) > 0
+                : false),
+            marketingProductItems: mktProductItemsFromItems,
+            isSalesPromotionSelected:
+              salesPromoItemsFromItems.length > 0 ||
+              ((p as any).salesPromotionBudgetRequested
+                ? Number((p as any).salesPromotionBudgetRequested) > 0
+                : false),
+            salesPromotionItems: salesPromoItemsFromItems,
             notes: p.notes || undefined,
             objective: p.objective || undefined,
           });
