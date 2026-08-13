@@ -248,7 +248,7 @@ function PlanApprovalCard({
       </div>
 
       <div className="flex justify-end pt-3 border-t">
-        <Link href={`/activity-plans/${plan.id}`} className="w-full sm:w-auto">
+        <Link href={`/activity-plans/approvals/${plan.id}`} className="w-full sm:w-auto">
           <Button variant="outline" size="sm" className="w-full text-blue-600 border-blue-100 hover:bg-blue-50 font-semibold flex items-center gap-1">
             <Eye className="h-4 w-4" />
             เปิดตรวจทาน & อนุมัติ

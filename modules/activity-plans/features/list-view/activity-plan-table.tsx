@@ -13,6 +13,7 @@ import {
   PlusCircle,
   Filter,
   ClipboardList,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations, ActivityStatus } from "../../types";
@@ -225,6 +226,13 @@ export function ActivityPlanTable({
                 icon={Eye}
                 label="ดูรายละเอียด"
                 colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
+              />
+
+              <ActionButton
+                href={`/activity-plans/approvals/${item.id}`}
+                icon={ShieldCheck}
+                label="อนุมัติ"
+                colorClass="text-amber-600 border-amber-100 hover:bg-amber-50 rounded-md"
               />
 
               <ActionButton

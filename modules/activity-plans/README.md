@@ -30,8 +30,10 @@ modules/activity-plans/
 │   │       ├── budget-section.tsx   # ส่วนการคำนวณงบประมาณ
 │   │       ├── requisition-section.tsx # ส่วนระบุรายการขอเบิกสินค้า
 │   │       └── location-team-section.tsx # ส่วนระบุสถานที่และค้นหาทีมงาน
-│   ├── detail-view/                 # หน้ารายละเอียดกิจกรรม Timeline และปุ่มอนุมัติ
+│   ├── detail-view/                 # หน้ารายละเอียดกิจกรรม Timeline และปุ่มอนุมัติ (general)
 │   └── approve-view/                # แดชบอร์ดตรวจสอบสำหรับหัวหน้างาน (Approval Inbox)
+│       ├── activity-plan-approval-list-view.tsx  # รายการคิวอนุมัติแยกหมวดสำหรับหัวหน้างาน
+│       └── activity-plan-approve-detail-view.tsx # หน้าอนุมัติรายการเดี่ยว (approve/reject/request-correction)
 └── types/                           # นิยามประเภทข้อมูล TypeScript
     └── index.ts                     # โครงสร้างความสัมพันธ์ของข้อมูลย่อย
 ```
