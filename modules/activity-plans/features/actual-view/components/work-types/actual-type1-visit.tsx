@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -70,8 +71,23 @@ export function ActualType1Visit({
   );
 
   const displayProducts = Array.from(
-    new Set([...productOptions, ...(productAdvice ? [productAdvice] : [])]),
-  );
+    new Set([...productOptions, ...(productAdvice ? productAdvice.split(",").map(s => s.trim()) : [])]),
+  ).filter(Boolean);
+
+  const selectedProducts = productAdvice
+    ? productAdvice.split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
+
+  const handleAddProduct = (prod: string) => {
+    if (!prod || selectedProducts.includes(prod)) return;
+    const updated = [...selectedProducts, prod];
+    setProductAdvice(updated.join(", "));
+  };
+
+  const handleRemoveProduct = (prod: string) => {
+    const updated = selectedProducts.filter((p) => p !== prod);
+    setProductAdvice(updated.join(", "));
+  };
 
   return (
     <div className="border-2 border-teal-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
@@ -97,20 +113,63 @@ export function ActualType1Visit({
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-        <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-slate-800">
-            สินค้าที่ให้คำแนะนำ (ถ้ามี)
+        <div className="space-y-1.5 md:col-span-2">
+          <label className="text-sm font-semibold text-slate-800 flex items-center justify-between">
+            <span>สินค้าที่ให้คำแนะนำ (เลือกได้มากกว่า 1 รายการ)</span>
+            {selectedProducts.length > 0 && (
+              <span className="text-xs font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
+                เลือกแล้ว {selectedProducts.length} รายการ
+              </span>
+            )}
           </label>
-          <Select value={productAdvice} onValueChange={setProductAdvice}>
+
+          {/* Selected Product Badges */}
+          {selectedProducts.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 p-2.5 bg-teal-50/50 border border-teal-200/80 rounded-xl mb-1.5">
+              {selectedProducts.map((prod) => (
+                <span
+                  key={prod}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-teal-900 border border-teal-300 shadow-2xs"
+                >
+                  {prod}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveProduct(prod)}
+                    className="hover:bg-teal-100 rounded-md p-0.5 transition-colors text-teal-600 hover:text-red-600 cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Select dropdown to add product */}
+          <Select
+            value=""
+            onValueChange={(val) => {
+              if (val && !selectedProducts.includes(val)) {
+                handleAddProduct(val);
+              }
+            }}
+          >
             <SelectTrigger className="w-full bg-white border-slate-300">
-              <SelectValue placeholder="เลือกสินค้าที่ให้คำแนะนำ" />
+              <SelectValue placeholder="+ เลือกสินค้าที่ให้คำแนะนำเพิ่ม (คลิกเลือกหลายรายการได้)" />
             </SelectTrigger>
             <SelectContent>
-              {displayProducts.map((prod) => (
-                <SelectItem key={prod} value={prod}>
-                  {prod}
-                </SelectItem>
-              ))}
+              {displayProducts.map((prod) => {
+                const isSelected = selectedProducts.includes(prod);
+                return (
+                  <SelectItem
+                    key={prod}
+                    value={prod}
+                    disabled={isSelected}
+                    className={cn(isSelected && "opacity-50")}
+                  >
+                    {prod} {isSelected ? "(เลือกแล้ว)" : ""}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>

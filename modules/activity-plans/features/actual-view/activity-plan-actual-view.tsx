@@ -483,6 +483,31 @@ export default function ActivityPlanActualView({
               },
             }));
           }
+
+          // Restore saved post-activity outcome (p.result) if exists
+          if ((p as any).result) {
+            const resData = (p as any).result;
+            if (resData.resultSummary) {
+              const adviceMatch = resData.resultSummary.match(/สินค้าที่แนะนำ:\s*(.+)/);
+              if (adviceMatch && adviceMatch[1]) {
+                setT1ProductAdvice(adviceMatch[1].split("\n")[0].trim());
+              }
+
+              const discussionMatch = resData.resultSummary.match(/ผลการพูดคุย:\s*(.+)/);
+              if (discussionMatch && discussionMatch[1]) {
+                setT1DiscussionResult(discussionMatch[1].split("\n")[0].trim());
+              }
+
+              const detailMatch = resData.resultSummary.match(/รายละเอียดเข้าพบ:\s*(.+)/);
+              if (detailMatch && detailMatch[1]) {
+                setT1Detail(detailMatch[1].split("\n")[0].trim());
+              }
+            }
+
+            if (resData.nextAction) {
+              setT1NextAction(resData.nextAction);
+            }
+          }
         }
       } catch (e) {
         console.error("Failed to load plan for actual record", e);
@@ -657,12 +682,25 @@ export default function ActivityPlanActualView({
 
     try {
       if (id) {
+        const summaryParts = [
+          t1ProductAdvice ? `สินค้าที่แนะนำ: ${t1ProductAdvice}` : null,
+          t1DiscussionResult ? `ผลการพูดคุย: ${t1DiscussionResult}` : null,
+          t1Detail ? `รายละเอียดเข้าพบ: ${t1Detail}` : null,
+          t2Detail ? `ติดตามผล: ${t2Detail}` : null,
+          t3SoldProducts ? `รายการขาย: ${t3SoldProducts}` : null,
+          t6ProblemDetail ? `ปัญหา: ${t6ProblemDetail}` : null,
+          t7ProblemDescription ? `รายละเอียดแปลง: ${t7ProblemDescription}` : null,
+          t8FeedbackQnA ? `Q&A: ${t8FeedbackQnA}` : null,
+        ].filter(Boolean);
+
         const payload = {
           actualStartDate: new Date(),
           actualEndDate: new Date(),
           actualAttendeesCount: Number(t8ActualAttendees || t9ActualAttendees || t10ActualAttendees || 0),
           resultStatus: "COMPLETED",
-          resultSummary: t1DiscussionResult || t2Detail || t6ProblemDetail || t7ProblemDescription || t8FeedbackQnA || "ทำกิจกรรมสำเร็จตามเป้าหมาย",
+          resultSummary: summaryParts.length > 0 ? summaryParts.join("\n") : "ทำกิจกรรมสำเร็จตามเป้าหมาย",
+          problemFound: t6ProblemDetail || t7CropProblemDescription || null,
+          nextAction: t1NextAction || t11NextAction || null,
           actualSalesPromotionSpent: Number(planSummary.salesPromotionBudget || 0),
           actualMarketingSpent: Number(planSummary.marketingBudget || 0),
           salesResultAmount: Number(t3ActualSales || t9ActualSales || 0),
