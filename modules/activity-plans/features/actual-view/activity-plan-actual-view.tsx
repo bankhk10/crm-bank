@@ -14,6 +14,7 @@ import {
   Sparkles,
   Layers,
   ClipboardCheck,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -27,7 +28,11 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
-import { getActivityPlanAction } from "../../server/actions";
+import {
+  getActivityPlanAction,
+  getActivityPlansAction,
+  saveActivityPlanActualAction,
+} from "../../server/actions";
 import {
   WORK_TYPES,
   DEMO_OWNERS,
@@ -61,6 +66,43 @@ interface ActivityPlanActualViewProps {
   onCancel?: () => void;
 }
 
+/**
+ * Helper to determine which work types are present in a given activity plan (1-to-1 matching)
+ */
+function getPlanWorkTypes(p: any): string[] {
+  if (!p) return WORK_TYPES;
+
+  const rawTypes: string[] = p.activityType
+    ? p.activityType.split(",").map((s: string) => s.trim())
+    : [];
+  const details = (p.details as Record<string, any>) || {};
+
+  const detected = WORK_TYPES.filter((typeName) => {
+    const shortName = typeName.split(" / ")[0];
+    const isInActivityType = rawTypes.some(
+      (t) => t.includes(shortName) || typeName.includes(t) || t === typeName,
+    );
+
+    const hasItemsInDetails =
+      (typeName.includes("เข้าพบ") && details.type1Items?.length > 0) ||
+      (typeName.includes("ติดตามผล") && details.type2Items?.length > 0) ||
+      (typeName.includes("เสนอขาย") && details.type3Items?.length > 0) ||
+      (typeName.includes("วางบิล") && details.type4Items?.length > 0) ||
+      (typeName.includes("สำรวจตลาด") && details.type5Items?.length > 0) ||
+      (typeName.includes("แก้ปัญหา") && details.type6Items?.length > 0) ||
+      (typeName.includes("ติดตามแปลงสาธิต") && details.type7Items?.length > 0) ||
+      (typeName.includes("จัดประชุม") && details.type8Items?.length > 0) ||
+      (typeName.includes("ส่งเสริมการขายหน้าร้าน") &&
+        Boolean(details.type9Store)) ||
+      (typeName.includes("Field Day") && Boolean(details.type10DemoPlot)) ||
+      (typeName.includes("ตรวจเช็กสต็อก") && details.type11Stores?.length > 0);
+
+    return isInActivityType || hasItemsInDetails;
+  });
+
+  return detected.length > 0 ? detected : WORK_TYPES;
+}
+
 export default function ActivityPlanActualView({
   id,
   onSuccess,
@@ -68,87 +110,53 @@ export default function ActivityPlanActualView({
 }: ActivityPlanActualViewProps) {
   const router = useRouter();
 
+  // Selected Plan State
+  const [selectedPlanId, setSelectedPlanId] = useState<string>(id || "");
+  const [plansList, setPlansList] = useState<
+    Array<{ id: string; title: string; code: string | null; startDate: any }>
+  >([]);
+
+  // Available Work Types for the selected plan (strict 1-to-1 matching)
+  const [availableWorkTypes, setAvailableWorkTypes] =
+    useState<string[]>(WORK_TYPES);
+
   // Loading & Plan Summary State
-  const [loadingPlan, setLoadingPlan] = useState(!!id);
+  const [loadingPlan, setLoadingPlan] = useState(true);
   const [planSummary, setPlanSummary] = useState<PlanSummaryData>({
-    planNo: "2607-001",
-    title: "แปลงสาธิตของบ้านนา และ กิจกรรมส่งเสริมการขายหน้าร้าน",
-    startDateStr: "25 ก.ค. 2568",
-    endDateStr: "25 ก.ค. 2568",
-    startTimeStr: "09:00",
-    endTimeStr: "15:00",
-    timeStr: "09:00 - 15:00 น.",
-    locationStr: `${DEMO_OWNERS[0]} อ.เมือง จ.จันทบุรี`,
-
-    // งบประมาณและค่าใช้จ่าย (Budget & Expenses) (ถ้ามี)
-    marketingBudget: 10000,
-    salesPromotionBudget: 25000,
-    extraExpenseAmount: 2000,
+    planNo: "---",
+    title: "กำลังโหลดข้อมูลแผนกิจกรรม...",
+    startDateStr: "---",
+    endDateStr: "---",
+    startTimeStr: "00:00",
+    endTimeStr: "00:00",
+    timeStr: "---",
+    locationStr: "---",
+    marketingBudget: undefined,
+    salesPromotionBudget: undefined,
+    extraExpenseAmount: undefined,
     extraExpenseDetail: "",
-    targetSales: 200000,
-    isPromotionalMediaSelected: true,
-    marketingProductItems: [
-      {
-        id: "mkt-1",
-        productName: "ป้ายไวนิล (Vinyl Banner)",
-        quantityCases: 5,
-        pricePerCase: 1000,
-      },
-      {
-        id: "mkt-2",
-        productName: "เสื้อยืดตราปืนใหญ่",
-        quantityCases: 10,
-        pricePerCase: 500,
-      },
-    ],
-    isSalesPromotionSelected: true,
-    salesPromotionItems: [
-      {
-        id: "sp-1",
-        detail: "ส่วนลดพิเศษกระตุ้นยอดขายหน้าร้าน",
-        amount: 15000,
-        budgetType: "งบขาย",
-      },
-      {
-        id: "sp-2",
-        detail: "ของแถมพรีเมียมแจกลูกค้าหน้าร้าน",
-        amount: 10000,
-        budgetType: "งบการตลาด",
-      },
-    ],
-
-    // รายการขอเบิกสินค้าจัดกิจกรรม (Material Requisition) (ถ้ามี)
-    requisitionItems: [
-      { id: "req-1", productName: "สินค้าทดสอบ A", quantity: 10, unit: "ลัง" },
-      {
-        id: "req-2",
-        productName: "ปุ๋ยเคมีสูตรพิเศษ",
-        quantity: 5,
-        unit: "กระสอบ",
-      },
-    ],
-
-    // ข้อมูลเพิ่มเติม (Additional Info) (ถ้ามี)
-    objective:
-      "เข้าพบเจ้าของร้านเพื่อเสนอขายและจัดกิจกรรมกระตุ้นยอดขายหน้าร้าน",
-    notes: "โปรดเตรียมป้ายและของแถมพรีเมียมไปแจกลูกค้าหน้าร้าน",
-    helperEmployeeNames: [
-      "คุณวิชัย (ผู้ช่วยเขต)",
-      "คุณสมชาย (เจ้าหน้าที่เทคนิค)",
-    ],
+    targetSales: undefined,
+    isPromotionalMediaSelected: false,
+    marketingProductItems: [],
+    isSalesPromotionSelected: false,
+    salesPromotionItems: [],
+    requisitionItems: [],
+    objective: undefined,
+    notes: undefined,
+    helperEmployeeNames: [],
   });
 
   // Active Work Type Selection Mode: "ALL" or specific type name
   const [activeTypeTab, setActiveTypeTab] = useState<string>("ALL");
 
-  // Targets derived from Create Plan Form Constants
-  const targets = {
+  // Default targets schema fallback
+  const [targets, setTargets] = useState({
     t1: {
       customer: DEMO_OWNERS[0],
       topic: "แจ้งข่าวสาร",
       detail: "เข้าพบเจ้าของร้านเพื่อแนะนำข้อมูลข่าวสารสินค้าประจำฤดูกาล",
       opportunity: "สูง",
-      nextDate: "05 ส.ค. 2568",
+      nextDate: "",
     },
     t2: {
       product: `${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[1]}`,
@@ -161,25 +169,19 @@ export default function ActivityPlanActualView({
           customer: DEMO_OWNERS[0],
           expectedResult: "พืชตอบสนองดี",
         },
-        {
-          productName: DEMO_PRODUCTS[1],
-          customer: DEMO_OWNERS[0],
-          expectedResult: "พืชตอบสนองดี",
-        },
       ],
     },
     t3: {
       product: `${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[1]}`,
       customer: DEMO_OWNERS[0],
-      targetQty: "30 ลัง (A: 20 ลัง, B: 10 ลัง)",
+      targetQty: "30 ลัง",
       targetSales: "17,500 บาท",
       items: [
         { productName: DEMO_PRODUCTS[0], qty: "20 ลัง", price: "10,000 บาท" },
-        { productName: DEMO_PRODUCTS[1], qty: "10 ลัง", price: "7,500 บาท" },
       ],
     },
     t4: {
-      customer: `${DEMO_OWNERS[0]}, บริษัท ทรัพย์เกษตร จำกัด`,
+      customer: DEMO_OWNERS[0],
       orderNo: "INV-2026-0789",
       targetCollect: "25,500 บาท",
       items: [
@@ -187,11 +189,6 @@ export default function ActivityPlanActualView({
           companyName: DEMO_OWNERS[0],
           targetCollect: "15,500 บาท",
           receivedAmount: "15500",
-        },
-        {
-          companyName: "บริษัท ทรัพย์เกษตร จำกัด",
-          targetCollect: "10,000 บาท",
-          receivedAmount: "10000",
         },
       ],
     },
@@ -203,8 +200,7 @@ export default function ActivityPlanActualView({
     t6: {
       customer: DEMO_OWNERS[0],
       issueType: "เคลมของ",
-      detail:
-        "รับเรื่องร้องเรียนเรื่องสินค้าจากลูกค้าเพื่อประสานงานเปลี่ยน/เคลมสินค้า",
+      detail: "รับเรื่องร้องเรียนเรื่องสินค้าจากลูกค้าเพื่อประสานงานเปลี่ยน/เคลมสินค้า",
       targetStatus: "เสร็จสิ้น",
     },
     t7: {
@@ -234,10 +230,10 @@ export default function ActivityPlanActualView({
     },
     t11: {
       store: STORES_LIST[0],
-      detail: `ตรวจเช็กสต็อก ${DEMO_PRODUCTS[0]} และปุ๋ยเคมีเพื่อเตรียมสั่งซื้อเติมหน้าร้าน`,
+      detail: `ตรวจเช็กสต็อกสินค้าเตรียมสั่งซื้อเติมหน้าร้าน`,
       targetOpportunity: "สูง",
     },
-  };
+  });
 
   // ────────────────────────────────────────────────────────
   // FORM STATES (11 WORK TYPES)
@@ -342,36 +338,351 @@ export default function ActivityPlanActualView({
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Load plan details if ID passed
+  // 1. Fetch available plans for dropdown if id is not passed or to switch plans
   useEffect(() => {
-    if (!id) return;
-    async function loadData() {
+    async function fetchPlansList() {
+      try {
+        const res = await getActivityPlansAction({ perPage: 50 });
+        if (res.success && res.activityPlans) {
+          const formatted = res.activityPlans.map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            code: p.code,
+            startDate: p.startDate,
+          }));
+          setPlansList(formatted);
+          if (!id && formatted.length > 0 && !selectedPlanId) {
+            setSelectedPlanId(formatted[0].id);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch activity plans list", err);
+      }
+    }
+    fetchPlansList();
+  }, [id]);
+
+  // 2. Load plan details when selectedPlanId changes
+  useEffect(() => {
+    if (!selectedPlanId) {
+      setLoadingPlan(false);
+      return;
+    }
+
+    async function loadPlanData() {
       try {
         setLoadingPlan(true);
-        const res = await getActivityPlanAction(id!);
+        const res = await getActivityPlanAction(selectedPlanId);
         if (res.success && res.plan) {
           const p = res.plan;
           const start = p.startDate ? new Date(p.startDate) : new Date();
           const end = p.endDate ? new Date(p.endDate) : new Date();
+          const details = (p.details as Record<string, any>) || {};
 
+          // Extract helper names
+          const helperEmployeeNames =
+            p.helpers
+              ?.map((h: any) => h.employee?.name || "")
+              .filter((name: string) => name.length > 0) || [];
+
+          // Compute Plan Summary
           setPlanSummary({
-            planNo: p.id
-              ? `PLAN-${p.id.slice(-6).toUpperCase()}`
-              : "PLAN-2026-0789",
-            title: p.title || "แปลงสาธิตของบ้านนา",
+            planNo: p.code || `PLAN-${p.id.slice(-6).toUpperCase()}`,
+            title: p.title || "แผนกิจกรรม",
             startDateStr: format(start, "d MMM yyyy", { locale: th }),
             endDateStr: format(end, "d MMM yyyy", { locale: th }),
+            startTimeStr: format(start, "HH:mm"),
+            endTimeStr: format(end, "HH:mm"),
             timeStr: `${format(start, "HH:mm")} - ${format(end, "HH:mm")} น.`,
-            locationStr: p.location || `${DEMO_OWNERS[0]} อ.เมือง จ.จันทบุรี`,
+            locationStr: p.location || "ไม่ระบุสถานที่",
             marketingBudget: p.marketingBudget
               ? Number(p.marketingBudget)
+              : details.marketingBudgetAmount
+              ? Number(details.marketingBudgetAmount)
               : undefined,
             salesPromotionBudget: p.salesPromotionBudget
               ? Number(p.salesPromotionBudget)
               : undefined,
-            notes: p.notes || undefined,
+            extraExpenseAmount: details.extraExpenseAmount
+              ? Number(details.extraExpenseAmount)
+              : undefined,
+            extraExpenseDetail: details.extraExpenseDetail || "",
+            targetSales:
+              details.type3Items?.reduce(
+                (acc: number, item: any) =>
+                  acc + (Number(item.totalPrice) || 0),
+                0,
+              ) ||
+              (details.type9Sales ? Number(details.type9Sales) : undefined) ||
+              (details.type10BookingSales
+                ? Number(details.type10BookingSales)
+                : undefined),
+            isPromotionalMediaSelected:
+              details.isPromotionalMediaSelected ?? false,
+            marketingProductItems: details.marketingProductItems || [],
+            isSalesPromotionSelected:
+              details.isSalesPromotionSelected ?? false,
+            salesPromotionItems: details.salesPromotionItems || [],
+            requisitionItems: details.requisitionItems || [],
             objective: p.objective || undefined,
+            notes: p.notes || undefined,
+            helperEmployeeNames,
           });
+
+          // Extract 1-to-1 work types for this plan
+          const planTypes = getPlanWorkTypes(p);
+          setAvailableWorkTypes(planTypes);
+          setActiveTypeTab("ALL");
+
+          // Populate targets dynamically from DB details
+          setTargets({
+            t1: {
+              customer:
+                details.type1Items?.[0]?.customerName ||
+                p.location ||
+                DEMO_OWNERS[0],
+              topic: details.type1Items?.[0]?.discussionTopic || p.title,
+              detail: details.type1Items?.[0]?.note || p.description,
+              opportunity: details.type1Items?.[0]?.salesOpportunity || "สูง",
+              nextDate: details.type1Items?.[0]?.nextDate || "",
+            },
+            t2: {
+              product:
+                details.type2Items
+                  ?.map((i: any) => i.productName)
+                  .filter(Boolean)
+                  .join(", ") || DEMO_PRODUCTS[0],
+              customer:
+                details.type2Items?.[0]?.customerName || DEMO_OWNERS[0],
+              detail:
+                details.type2Items?.[0]?.note ||
+                "ติดตามผลหลังนำสินค้าไปทดลองใช้งาน",
+              expectedResult:
+                details.type2Items?.[0]?.expectedResult || "พืชตอบสนองดี",
+              items: details.type2Items || [
+                {
+                  productName: DEMO_PRODUCTS[0],
+                  customer: DEMO_OWNERS[0],
+                  expectedResult: "พืชตอบสนองดี",
+                },
+              ],
+            },
+            t3: {
+              product:
+                details.type3Items
+                  ?.map((i: any) => i.productName)
+                  .filter(Boolean)
+                  .join(", ") || DEMO_PRODUCTS[0],
+              customer: p.location || DEMO_OWNERS[0],
+              targetQty:
+                details.type3Items
+                  ?.map((i: any) => `${i.productName}: ${i.quantityCases} ลัง`)
+                  .join(", ") || "30 ลัง",
+              targetSales: details.type3Items?.reduce(
+                (acc: number, i: any) => acc + (Number(i.totalPrice) || 0),
+                0,
+              )
+                ? `${details.type3Items
+                    .reduce(
+                      (acc: number, i: any) =>
+                        acc + (Number(i.totalPrice) || 0),
+                      0,
+                    )
+                    .toLocaleString()} บาท`
+                : "17,500 บาท",
+              items:
+                details.type3Items?.map((i: any) => ({
+                  productName: i.productName,
+                  qty: `${i.quantityCases} ลัง`,
+                  price: `${Number(i.totalPrice || 0).toLocaleString()} บาท`,
+                })) || [],
+            },
+            t4: {
+              customer:
+                details.type4Items
+                  ?.map((i: any) => i.companyName)
+                  .filter(Boolean)
+                  .join(", ") || DEMO_OWNERS[0],
+              orderNo: details.type4Items?.[0]?.invoiceNo || "INV-2026-0789",
+              targetCollect: details.type4Items?.reduce(
+                (acc: number, i: any) =>
+                  acc + (Number(i.expectedCollectionAmount) || 0),
+                0,
+              )
+                ? `${details.type4Items
+                    .reduce(
+                      (acc: number, i: any) =>
+                        acc + (Number(i.expectedCollectionAmount) || 0),
+                      0,
+                    )
+                    .toLocaleString()} บาท`
+                : "25,500 บาท",
+              items:
+                details.type4Items?.map((i: any) => ({
+                  companyName: i.companyName,
+                  targetCollect: `${Number(
+                    i.expectedCollectionAmount || 0,
+                  ).toLocaleString()} บาท`,
+                  receivedAmount: String(i.expectedCollectionAmount || ""),
+                })) || [],
+            },
+            t5: {
+              store: details.type5Items?.[0]?.storeName || STORES_LIST[0],
+              product:
+                details.type5Items?.[0]?.competitorProduct || DEMO_PRODUCTS[0],
+              detail:
+                details.type5Items?.[0]?.promotionDetail ||
+                "สำรวจเปรียบเทียบราคา ป้ายราคา และโปรโมชันสินค้าคู่แข่ง",
+            },
+            t6: {
+              customer:
+                details.type6Items?.[0]?.customerName || DEMO_OWNERS[0],
+              issueType: details.type6Items?.[0]?.issueType || "เคลมของ",
+              detail:
+                details.type6Items?.[0]?.issueDescription ||
+                "รับเรื่องร้องเรียนเรื่องสินค้าจากลูกค้า",
+              targetStatus:
+                details.type6Items?.[0]?.expectedSolution || "เสร็จสิ้น",
+            },
+            t7: {
+              owner: details.type7Items?.[0]?.ownerName || DEMO_OWNERS[0],
+              product:
+                details.type7Items?.[0]?.productName || DEMO_PRODUCTS[0],
+              crop: details.type7Items?.[0]?.cropName || "ทุเรียน",
+              plots: details.type7Items?.[0]?.areaRai
+                ? `${details.type7Items[0].areaRai} ไร่`
+                : `${details.type7Items?.[0]?.treeCount || 20} ต้น`,
+              targetCondition:
+                details.type7Items?.[0]?.targetCondition || "สมบูรณ์",
+            },
+            t8: {
+              topic:
+                details.type8Items?.[0]?.topic ||
+                p.title ||
+                "ประชุมสัมมนาวิชาการ",
+              products:
+                details.type8Items?.[0]?.productList || DEMO_PRODUCTS[0],
+              targetAttendees: details.type8Items?.[0]?.targetAttendees
+                ? `${details.type8Items[0].targetAttendees} คน`
+                : "10 คน",
+            },
+            t9: {
+              store: details.type9Store || STORES_LIST[0],
+              product: details.type9Products || DEMO_PRODUCTS[0],
+              targetSales: details.type9Sales
+                ? `${Number(details.type9Sales).toLocaleString()} บาท`
+                : "10,000 บาท",
+              targetAttendees: details.type9Attendees
+                ? `${details.type9Attendees} คน`
+                : "28 คน",
+            },
+            t10: {
+              plot: details.type10DemoPlot || USER_DEMO_PLOTS[0].name,
+              location:
+                details.type10Location ||
+                p.location ||
+                USER_DEMO_PLOTS[0].location,
+              showcase: details.type10TargetCrop
+                ? `${details.type10TargetCrop} / ${details.type10Showcase || ""}`
+                : `${USER_DEMO_PLOTS[0].targetCrop} / ${USER_DEMO_PLOTS[0].showcase}`,
+              targetAttendees: details.type10Attendees
+                ? `${details.type10Attendees} คน`
+                : "100 คน",
+              targetSales: details.type10BookingSales
+                ? `${Number(details.type10BookingSales).toLocaleString()} บาท`
+                : "150,000 บาท",
+            },
+            t11: {
+              store: details.type11Stores?.[0]?.storeName || STORES_LIST[0],
+              detail:
+                details.type11Stores?.[0]?.remarks || "ตรวจเช็กสต็อกสินค้า",
+              targetOpportunity: "สูง",
+            },
+          });
+
+          // Pre-fill existing actual record if stored in DB
+          if (details.actualRecord) {
+            const act = details.actualRecord;
+            if (act.t1) {
+              setT1ProductAdvice(act.t1.productAdvice || "");
+              setT1Detail(act.t1.detail || "");
+              setT1DiscussionResult(act.t1.discussionResult || "");
+              setT1SalesOpportunity(act.t1.salesOpportunity || "");
+              setT1NextAction(act.t1.nextAction || "");
+              setT1NextMeetingDate(act.t1.nextMeetingDate || "");
+            }
+            if (act.t2) {
+              setT2CustomerName(act.t2.customerName || "");
+              setT2Detail(act.t2.detail || "");
+              setT2UsageResult(act.t2.usageResult || "");
+              setT2ProblemDetail(act.t2.problemDetail || "");
+            }
+            if (act.t3) {
+              setT3SoldProducts(act.t3.soldProducts || "");
+              setT3ActualSales(act.t3.actualSales || "");
+              setT3ActualQuantity(act.t3.actualQuantity || "");
+              setT3UnclosedReason(act.t3.unclosedReason || "");
+            }
+            if (act.t4) {
+              setT4OrderNo(act.t4.orderNo || "");
+              setT4ReceivedAmount(act.t4.receivedAmount || "");
+              setT4PaymentImages(act.t4.paymentImages || []);
+            }
+            if (act.t5) {
+              setT5CompetitorBrand(act.t5.competitorBrand || "");
+              setT5CompetitorProduct(act.t5.competitorProduct || "");
+              setT5CompetitorPrice(act.t5.competitorPrice || "");
+              setT5CompetitorUnit(act.t5.competitorUnit || "ขวด");
+              setT5PromotionDetail(act.t5.promotionDetail || "");
+              setT5PriceTagImages(act.t5.priceTagImages || []);
+            }
+            if (act.t6) {
+              setT6ProblemDetail(act.t6.problemDetail || "");
+              setT6InitialSolution(act.t6.initialSolution || "");
+              setT6Status(act.t6.status || "");
+              setT6Images(act.t6.images || []);
+            }
+            if (act.t7) {
+              setT7PlotName(act.t7.plotName || "");
+              setT7UsageMethod(act.t7.usageMethod || "");
+              setT7CropAgeValue(act.t7.cropAgeValue || "");
+              setT7CropAgeUnit(act.t7.cropAgeUnit || "วัน");
+              setT7GrowthStage(act.t7.growthStage || "");
+              setT7CropCondition(act.t7.cropCondition || "");
+              setT7CropProblemDescription(act.t7.cropProblemDescription || "");
+              setT7ProductResponse(act.t7.productResponse || "");
+              setT7ProblemDescription(act.t7.problemDescription || "");
+              setT7PlotImages(act.t7.plotImages || []);
+            }
+            if (act.t8) {
+              setT8ActualAttendees(act.t8.actualAttendees || "");
+              setT8FeedbackQnA(act.t8.feedbackQnA || "");
+              setT8ProductSalesDetails(act.t8.productSalesDetails || []);
+              setT8Images(act.t8.images || []);
+            }
+            if (act.t9) {
+              setT9Formats(act.t9.formats || []);
+              setT9ActualSales(act.t9.actualSales || "");
+              setT9ActualAttendees(act.t9.actualAttendees || "");
+              setT9Images(act.t9.images || []);
+            }
+            if (act.t10) {
+              setT10ActualAttendees(act.t10.actualAttendees || "");
+              setT10ActualSalesOrBooking(act.t10.actualSalesOrBooking || "");
+              setT10TargetFarmersList(act.t10.targetFarmersList || "");
+              setT10FarmerFeedback(act.t10.farmerFeedback || "");
+              setT10Images(act.t10.images || []);
+            }
+            if (act.t11) {
+              setT11StockItems(act.t11.stockItems || []);
+              setT11ProductList(act.t11.productList || "");
+              setT11RemainingQty(act.t11.remainingQty || "");
+              setT11Remarks(act.t11.remarks || "");
+              setT11StockStatus(act.t11.stockStatus || "");
+              setT11ReorderOpportunity(act.t11.reorderOpportunity || "");
+              setT11NextAction(act.t11.nextAction || "");
+            }
+          }
         }
       } catch (e) {
         console.error("Failed to load plan for actual record", e);
@@ -379,12 +690,11 @@ export default function ActivityPlanActualView({
         setLoadingPlan(false);
       }
     }
-    loadData();
-  }, [id]);
+    loadPlanData();
+  }, [selectedPlanId]);
 
-  // Pre-fill sample data
+  // Pre-fill sample data for testing
   const fillAllSampleData = () => {
-    // Type 1
     setT1ProductAdvice(
       `${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[3] || "ปุ๋ยเคมีสูตรพิเศษ"}`,
     );
@@ -400,7 +710,6 @@ export default function ActivityPlanActualView({
     );
     setT1NextMeetingDate("2026-08-05");
 
-    // Type 2
     setT2CustomerName(
       `${DEMO_OWNERS[0]} / ${DEMO_OWNERS[3] || "ร้านสหายพานิช"}`,
     );
@@ -410,7 +719,6 @@ export default function ActivityPlanActualView({
     setT2UsageResult("พืชตอบสนองดี");
     setT2ProblemDetail("");
 
-    // Type 3
     setT3SoldProducts(
       `${DEMO_PRODUCTS[0]} (20 ลัง), ${DEMO_PRODUCTS[1]} (10 ลัง)`,
     );
@@ -418,11 +726,9 @@ export default function ActivityPlanActualView({
     setT3ActualQuantity("30 ลัง (A: 20 ลัง, B: 10 ลัง)");
     setT3UnclosedReason("ปิดการขายได้สำเร็จตามเป้าหมายทั้ง 2 สินค้า");
 
-    // Type 4
     setT4OrderNo("INV-2026-0789");
     setT4ReceivedAmount("25500");
 
-    // Type 5
     setT5CompetitorBrand("ตราเกษตรทองคำ, เสือคู่พรีเมียม");
     setT5CompetitorProduct(`เทียบกับ ${DEMO_PRODUCTS[0]} (ปุ๋ยทางใบ 1 ลิตร)`);
     setT5CompetitorPrice("850");
@@ -431,7 +737,6 @@ export default function ActivityPlanActualView({
       "จัดโปรโมชัน ซื้อ 10 แถม 1 พร้อมแจกเสื้อยืดพนักงานหน้าร้าน",
     );
 
-    // Type 6
     setT6ProblemDetail(
       `ลูกค้าร้องเรียนเรื่องสินค้า ${DEMO_PRODUCTS[0]} ตกตะกอนเมื่อผสมน้ำในถัง 200 ลิตร`,
     );
@@ -440,7 +745,6 @@ export default function ActivityPlanActualView({
     );
     setT6Status("เสร็จสิ้น");
 
-    // Type 7
     setT7PlotName("แปลงทดสอบบ้านนา");
     setT7UsageMethod(
       `ฉีดพ่น ${DEMO_PRODUCTS[0]} อัตรา 50cc/น้ำ 20L ทุกๆ 7 วัน`,
@@ -454,7 +758,6 @@ export default function ActivityPlanActualView({
       "พบคราบใบไหม้เล็กน้อยบริเวณขอบใบ เนื่องจากสภาพอากาศแดดจัดจัดในวันที่ฉีดพ่น",
     );
 
-    // Type 8
     setT8ActualAttendees("35");
     setT8FeedbackQnA(
       `เกษตรกรสอบถามเรื่องการใช้ ${DEMO_PRODUCTS[0]} ร่วมกับชีวภัณฑ์ป้องกันรากเน่า และต้องการแผ่นพับตารางการใส่ปุ๋ยรายเดือน`,
@@ -472,12 +775,10 @@ export default function ActivityPlanActualView({
       },
     ]);
 
-    // Type 9
     setT9Formats(["การสะสมคะแนน", "กิจกรรมลูกค้าสัมพันธ์"]);
     setT9ActualSales("18500");
     setT9ActualAttendees("28");
 
-    // Type 10
     setT10ActualAttendees("120");
     setT10ActualSalesOrBooking("150000");
     setT10TargetFarmersList(
@@ -485,7 +786,6 @@ export default function ActivityPlanActualView({
     );
     setT10FarmerFeedback("สูง");
 
-    // Type 11
     setT11StockItems([
       {
         productName: DEMO_PRODUCTS[0],
@@ -539,25 +839,124 @@ export default function ActivityPlanActualView({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Save Actual performance to Database
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
+    const targetId = selectedPlanId || id;
+    if (!targetId) {
+      setFormError("กรุณาเลือก Trip Plan ที่ต้องการบันทึกผลการปฏิบัติงาน");
+      return;
+    }
+
+    const actualData = {
+      t1: {
+        productAdvice: t1ProductAdvice,
+        detail: t1Detail,
+        discussionResult: t1DiscussionResult,
+        salesOpportunity: t1SalesOpportunity,
+        nextAction: t1NextAction,
+        nextMeetingDate: t1NextMeetingDate,
+      },
+      t2: {
+        customerName: t2CustomerName,
+        detail: t2Detail,
+        usageResult: t2UsageResult,
+        problemDetail: t2ProblemDetail,
+      },
+      t3: {
+        soldProducts: t3SoldProducts,
+        actualSales: t3ActualSales,
+        actualQuantity: t3ActualQuantity,
+        unclosedReason: t3UnclosedReason,
+      },
+      t4: {
+        orderNo: t4OrderNo,
+        receivedAmount: t4ReceivedAmount,
+        paymentImages: t4PaymentImages,
+      },
+      t5: {
+        competitorBrand: t5CompetitorBrand,
+        competitorProduct: t5CompetitorProduct,
+        competitorPrice: t5CompetitorPrice,
+        competitorUnit: t5CompetitorUnit,
+        promotionDetail: t5PromotionDetail,
+        priceTagImages: t5PriceTagImages,
+      },
+      t6: {
+        problemDetail: t6ProblemDetail,
+        initialSolution: t6InitialSolution,
+        status: t6Status,
+        images: t6Images,
+      },
+      t7: {
+        plotName: t7PlotName,
+        usageMethod: t7UsageMethod,
+        cropAgeValue: t7CropAgeValue,
+        cropAgeUnit: t7CropAgeUnit,
+        growthStage: t7GrowthStage,
+        cropCondition: t7CropCondition,
+        cropProblemDescription: t7CropProblemDescription,
+        productResponse: t7ProductResponse,
+        problemDescription: t7ProblemDescription,
+        plotImages: t7PlotImages,
+      },
+      t8: {
+        actualAttendees: t8ActualAttendees,
+        feedbackQnA: t8FeedbackQnA,
+        productSalesDetails: t8ProductSalesDetails,
+        images: t8Images,
+      },
+      t9: {
+        formats: t9Formats,
+        actualSales: t9ActualSales,
+        actualAttendees: t9ActualAttendees,
+        images: t9Images,
+      },
+      t10: {
+        actualAttendees: t10ActualAttendees,
+        actualSalesOrBooking: t10ActualSalesOrBooking,
+        targetFarmersList: t10TargetFarmersList,
+        farmerFeedback: t10FarmerFeedback,
+        images: t10Images,
+      },
+      t11: {
+        stockItems: t11StockItems,
+        productList: t11ProductList,
+        remainingQty: t11RemainingQty,
+        remarks: t11Remarks,
+        stockStatus: t11StockStatus,
+        reorderOpportunity: t11ReorderOpportunity,
+        nextAction: t11NextAction,
+      },
+    };
+
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      const res = await saveActivityPlanActualAction(targetId, actualData);
+      if (res.success) {
+        setSubmitSuccess(true);
+        setTimeout(() => {
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            router.push(`/activity-plans/${targetId}`);
+          }
+        }, 1200);
+      } else {
+        setFormError(res.error || "เกิดข้อผิดพลาดในการบันทึกผลการปฏิบัติงาน");
+      }
+    } catch (err: any) {
+      setFormError(err.message || "เกิดข้อผิดพลาดไม่คาดคิดในการบันทึก");
+    } finally {
       setIsSubmitting(false);
-      setSubmitSuccess(true);
-      setTimeout(() => {
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          router.push(id ? `/activity-plans/${id}` : "/activity-plans");
-        }
-      }, 1200);
-    }, 800);
+    }
   };
 
+  // Strictly check visibility against availableWorkTypes (1-to-1 match with created plan)
   const isTypeVisible = (typeTitle: string) => {
+    if (!availableWorkTypes.includes(typeTitle)) return false;
     if (activeTypeTab === "ALL") return true;
     return activeTypeTab === typeTitle;
   };
@@ -566,7 +965,7 @@ export default function ActivityPlanActualView({
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-500 gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-        <p>กำลังโหลดข้อมูลแผนกิจกรรม...</p>
+        <p>กำลังโหลดข้อมูลแผนกิจกรรมจากระบบ...</p>
       </div>
     );
   }
@@ -574,9 +973,9 @@ export default function ActivityPlanActualView({
   return (
     <section className="space-y-4 md:space-y-6 container mx-auto px-0 sm:px-0">
       <Card>
-        <div className="p-3 sm:p-4 md:p-6">
-          <div className="text-center">
-            <h5 className="font-semibold text-lg sm:text-2xl md:text-3xl border-b pb-4 md:pb-6 leading-snug">
+        <div className="p-3 sm:p-4 md:p-6 space-y-4">
+          <div className="text-center flex flex-col items-center justify-center gap-2">
+            <h5 className="font-semibold text-lg sm:text-2xl md:text-3xl border-b pb-4 md:pb-6 leading-snug w-full">
               <span className="hidden sm:inline">
                 บันทึกผลการปฏิบัติงาน ( Trip Plan Actual )
               </span>
@@ -585,11 +984,52 @@ export default function ActivityPlanActualView({
                 <br />( Trip Plan Actual )
               </span>
             </h5>
+
+            {/* Quick Demo Data Fill Helper Button */}
+            <div className="flex items-center justify-end w-full pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={fillAllSampleData}
+                className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 gap-1.5 rounded-lg"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                เติมข้อมูลทดสอบตัวอย่าง (Sample Data)
+              </Button>
+            </div>
           </div>
+
+          {/* Standalone Plan Selector Dropdown */}
+          {plansList.length > 0 && (
+            <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                  <ClipboardCheck className="w-4 h-4 text-emerald-600" />
+                  เลือก Trip Plan เพื่อบันทึกผลการทำงาน:
+                </h4>
+                <p className="text-xs text-slate-500">
+                  ระบบจะดึงเฉพาะประเภทกิจกรรมที่ระบุในแผนงานมาให้กรอก (1 ต่อ 1)
+                </p>
+              </div>
+              <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
+                <SelectTrigger className="w-full sm:w-80 bg-white border-slate-300 font-semibold text-slate-800">
+                  <SelectValue placeholder="-- เลือก Trip Plan --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {plansList.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.code ? `[${p.code}] ` : ""}{p.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <form
             onSubmit={handleSubmit}
-            className="space-y-4 md:space-y-6 pt-4 md:pt-6"
+            className="space-y-4 md:space-y-6 pt-2"
             noValidate
           >
             {formError && (
@@ -602,7 +1042,7 @@ export default function ActivityPlanActualView({
             {submitSuccess && (
               <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
                 <Check className="h-4 w-4 flex-shrink-0 text-emerald-600 stroke-[3]" />
-                <span>บันทึกผลการปฏิบัติงานเรียบร้อยแล้ว!</span>
+                <span>บันทึกผลการปฏิบัติงานลงในระบบเรียบร้อยแล้ว!</span>
               </div>
             )}
 
@@ -615,12 +1055,12 @@ export default function ActivityPlanActualView({
             {/* SECTION 2: ผลการปฏิบัติงานตามประเภทงาน */}
             <SectionHeader title="ผลการปฏิบัติงานตามประเภทงาน" color="gray" />
 
-            {/* WORK TYPE SELECTOR TABS & DROPDOWN */}
+            {/* WORK TYPE SELECTOR TABS & DROPDOWN (Strict 1-to-1 matching with plan) */}
             <div className="bg-slate-50/80 border border-slate-200/60 rounded-xl p-3.5 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2 px-1">
                 <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                   <Layers className="w-4 h-4 text-blue-600" />
-                  สลับดูแบบฟอร์มตามกิจกรรม (11 รูปแบบ):
+                  สลับดูแบบฟอร์มกิจกรรมที่ต้องกรอก ({availableWorkTypes.length} กิจกรรมตามแผนงาน):
                 </span>
                 <Select value={activeTypeTab} onValueChange={setActiveTypeTab}>
                   <SelectTrigger className="w-64 h-9 text-xs bg-white border-slate-200">
@@ -628,13 +1068,16 @@ export default function ActivityPlanActualView({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ALL">
-                      📋 แสดงแบบฟอร์มทั้งหมด (All 11 Types)
+                      📋 แสดงทั้งหมด ({availableWorkTypes.length} กิจกรรมตามแผน)
                     </SelectItem>
-                    {WORK_TYPES.map((typeName, idx) => (
-                      <SelectItem key={typeName} value={typeName}>
-                        {idx + 1}. {typeName}
-                      </SelectItem>
-                    ))}
+                    {availableWorkTypes.map((typeName) => {
+                      const originalIdx = WORK_TYPES.indexOf(typeName) + 1;
+                      return (
+                        <SelectItem key={typeName} value={typeName}>
+                          {originalIdx}. {typeName}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
@@ -650,24 +1093,29 @@ export default function ActivityPlanActualView({
                       : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100",
                   )}
                 >
-                  📋 ทั้งหมด
+                  📋 ทั้งหมด ({availableWorkTypes.length})
                 </button>
 
-                {WORK_TYPES.map((typeName, idx) => (
-                  <button
-                    key={typeName}
-                    type="button"
-                    onClick={() => setActiveTypeTab(typeName)}
-                    className={cn(
-                      "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer",
-                      activeTypeTab === typeName
-                        ? "bg-blue-600 text-white shadow-xs font-semibold"
-                        : "bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-100",
-                    )}
-                  >
-                    {idx + 1}. {typeName.split(" / ")[0]}
-                  </button>
-                ))}
+                {availableWorkTypes.map((typeName) => {
+                  const originalIdx = WORK_TYPES.indexOf(typeName) + 1;
+                  return (
+                    <button
+                      key={typeName}
+                      type="button"
+                      onClick={() => setActiveTypeTab(typeName)}
+                      className={cn(
+                        "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer flex items-center gap-1",
+                        activeTypeTab === typeName
+                          ? "bg-blue-600 text-white shadow-xs font-semibold"
+                          : "bg-emerald-50 border border-emerald-300 text-emerald-800 hover:bg-emerald-100 font-semibold",
+                      )}
+                    >
+                      <span>
+                        {originalIdx}. {typeName.split(" / ")[0]}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

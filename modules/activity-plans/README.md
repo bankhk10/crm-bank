@@ -109,3 +109,12 @@ modules/activity-plans/
   - ปรับการเลือกแปลงสาธิตให้ดึงข้อมูลจริงจาก Database ผ่าน Server Action `getDemoPlotsAction()` (รวมถึงแปลงที่ถูกสร้างจาก Type 7)
   - ใช้ `FormCombobox` รองรับการค้นหาชื่อแปลงสาธิตและเจ้าของแปลง
   - แสดงข้อความและหน่วยขนาดพื้นที่ / จำนวนต้น แบบไดนามิกตามหมวดพืช (เช่น หมวดพืชสวนแสดง "จำนวนต้น:" และหน่วย "ต้น", หมวดพืชไร่/ผักแสดง "ขนาดพื้นที่:" และหน่วย "ไร่") สอดคล้องกับหน้า Type 7
+
+### 2026-08-13: เชื่อมต่อระบบบันทึกผลการปฏิบัติงาน (Trip Plan Actual) กับ Database (1 ต่อ 1 ตามแผนงาน)
+- **คอมโพเนนต์ที่แก้ไข:** `activity-plan-actual-view.tsx`, `actions.ts`, `index.ts`, `activity-plan.repository.ts`
+- **รายละเอียด:**
+  - เพิ่ม Server Action `saveActivityPlanActualAction` และ repository function `saveActivityPlanActual` เพื่อบันทึกข้อมูลผลการปฏิบัติงานจริงลงใน `ActivityPlan.details.actualRecord`
+  - ปรับ `ActivityPlanActualView` ให้ดึงเฉพาะประเภทกิจกรรมที่ถูกระบุไว้ในแผนงานมาแสดงให้กรอกแบบ 1 ต่อ 1 (Strict Filtering) โดยซ่อนกิจกรรมที่ไม่ได้ถูกเลือกไว้ในแผนงาน
+  - แมปข้อมูลเป้าหมายย่อยและข้อมูลสรุปแผนงานจาก DB มาแสดงเปรียบเทียบในหน้าบันทึกผลการปฏิบัติงาน
+
+

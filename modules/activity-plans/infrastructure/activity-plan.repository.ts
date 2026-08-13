@@ -278,6 +278,49 @@ export async function updateActivityPlan(
 }
 
 /**
+ * Save actual performance data into activity plan details
+ */
+export async function saveActivityPlanActual(
+  id: string,
+  actualRecord: any,
+  updatedUserId: string
+) {
+  return db.$transaction(async (tx) => {
+    const existing = await tx.activityPlan.findUnique({
+      where: { id },
+      select: { details: true, status: true },
+    });
+
+    if (!existing) {
+      throw new Error("ไม่พบ Trip Plan");
+    }
+
+    const currentDetails =
+      existing.details && typeof existing.details === "object"
+        ? (existing.details as Record<string, any>)
+        : {};
+
+    const updatedDetails = {
+      ...currentDetails,
+      actualRecord,
+      actualSubmittedAt: new Date().toISOString(),
+      actualSubmittedBy: updatedUserId,
+    };
+
+    const updatedPlan = await tx.activityPlan.update({
+      where: { id },
+      data: {
+        details: updatedDetails,
+        status: existing.status,
+      },
+    });
+
+    return updatedPlan;
+  });
+}
+
+
+/**
  * Soft delete activity plan and its helpers
  */
 export async function softDeleteActivityPlan(id: string) {

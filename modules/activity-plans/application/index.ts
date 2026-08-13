@@ -4,6 +4,7 @@ import {
   findActivityPlans,
   createActivityPlan,
   updateActivityPlan,
+  saveActivityPlanActual,
   softDeleteActivityPlan,
   findEmployeeByUserId,
   findOrCreateEmployeeForUser,
@@ -115,6 +116,21 @@ export async function deleteActivityPlanUseCase(id: string, userId: string) {
 
   await softDeleteActivityPlan(id);
   return { success: true as const };
+}
+
+/**
+ * Save actual performance data for an activity plan
+ */
+export async function saveActivityPlanActualUseCase(
+  id: string,
+  userId: string,
+  actualData: any
+) {
+  const plan = await findActivityPlanById(id);
+  if (!plan) return { success: false as const, error: "ไม่พบ Trip Plan" };
+
+  const updated = await saveActivityPlanActual(id, actualData, userId);
+  return { success: true as const, plan: updated };
 }
 
 // Re-exports validations, state machine transitions, and other functions

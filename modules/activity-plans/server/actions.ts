@@ -18,6 +18,7 @@ import {
   rejectActivityPlanUseCase,
   requestCorrectionPlanUseCase,
   cancelActivityPlanUseCase,
+  saveActivityPlanActualUseCase,
   findOrCreateEmployeeForUser,
   type ListActivityPlansParams,
 } from "../application";
@@ -271,6 +272,47 @@ export async function cancelActivityPlanAction(id: string) {
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath(`/activity-plans/${id}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
+}
+
+/**
+ * Action: Save Actual Performance Data for an Activity Plan
+ */
+export async function saveActivityPlanActualAction(
+  id: string,
+  actualData: unknown,
+) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const permissions = session.user.permissionKeys ?? [];
+  if (
+    !permissions.includes("activity.create") &&
+    !permissions.includes("activity.edit") &&
+    !permissions.includes("activity.manage")
+  ) {
+    return {
+      success: false,
+      error: "Forbidden: คุณไม่มีสิทธิ์บันทึกผลการปฏิบัติงาน Trip Plan",
+    };
+  }
+
+  try {
+    const result = await saveActivityPlanActualUseCase(
+      id,
+      session.user.id,
+      actualData,
+    );
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath(`/activity-plans/${id}`);
+      revalidatePath(`/activity-plans/${id}/actual`);
     }
     return serialize(result);
   } catch (err: any) {
