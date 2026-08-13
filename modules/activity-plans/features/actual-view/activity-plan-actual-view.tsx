@@ -140,6 +140,7 @@ export default function ActivityPlanActualView({
 
   // Active Work Type Selection Mode: "ALL" or specific type name
   const [activeTypeTab, setActiveTypeTab] = useState<string>("ALL");
+  const [planWorkTypes, setPlanWorkTypes] = useState<string[]>([]);
 
   // Targets derived from Create Plan Form Constants
   const targets = {
@@ -372,6 +373,30 @@ export default function ActivityPlanActualView({
             notes: p.notes || undefined,
             objective: p.objective || undefined,
           });
+
+          // Match created work type
+          let matchedWorkType = "";
+          if (p.activityType) {
+            if (typeof p.activityType === "object" && p.activityType.name) {
+              matchedWorkType = p.activityType.name;
+            } else if (typeof p.activityType === "object" && p.activityType.code) {
+              const idx = parseInt(p.activityType.code.replace("TYPE_", ""), 10) - 1;
+              if (idx >= 0 && idx < WORK_TYPES.length) {
+                matchedWorkType = WORK_TYPES[idx];
+              }
+            }
+          }
+          if (!matchedWorkType && p.activityTypeId) {
+            const idx = parseInt(p.activityTypeId.replace("TYPE_", ""), 10) - 1;
+            if (idx >= 0 && idx < WORK_TYPES.length) {
+              matchedWorkType = WORK_TYPES[idx];
+            }
+          }
+
+          if (matchedWorkType) {
+            setPlanWorkTypes([matchedWorkType]);
+            setActiveTypeTab(matchedWorkType);
+          }
         }
       } catch (e) {
         console.error("Failed to load plan for actual record", e);
@@ -646,54 +671,68 @@ export default function ActivityPlanActualView({
               <div className="flex flex-wrap items-center justify-between gap-2 px-1">
                 <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                   <Layers className="w-4 h-4 text-blue-600" />
-                  สลับดูแบบฟอร์มตามกิจกรรม (11 รูปแบบ):
+                  {planWorkTypes.length > 0
+                    ? `ประเภทงานที่เลือกในแผน (${planWorkTypes.length} กิจกรรม):`
+                    : "สลับดูแบบฟอร์มตามกิจกรรม (11 รูปแบบ):"}
                 </span>
                 <Select value={activeTypeTab} onValueChange={setActiveTypeTab}>
                   <SelectTrigger className="w-64 h-9 text-xs bg-white border-slate-200">
                     <SelectValue placeholder="เลือกกิจกรรม" />
                   </SelectTrigger>
                   <SelectContent>
+                    {(planWorkTypes.length > 0 ? planWorkTypes : WORK_TYPES).map(
+                      (typeName) => {
+                        const idx = WORK_TYPES.indexOf(typeName);
+                        return (
+                          <SelectItem key={typeName} value={typeName}>
+                            {idx + 1}. {typeName}
+                          </SelectItem>
+                        );
+                      },
+                    )}
                     <SelectItem value="ALL">
                       📋 แสดงแบบฟอร์มทั้งหมด (All 11 Types)
                     </SelectItem>
-                    {WORK_TYPES.map((typeName, idx) => (
-                      <SelectItem key={typeName} value={typeName}>
-                        {idx + 1}. {typeName}
-                      </SelectItem>
-                    ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex flex-wrap gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setActiveTypeTab("ALL")}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
-                    activeTypeTab === "ALL"
-                      ? "bg-slate-900 text-white shadow-xs"
-                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100",
-                  )}
-                >
-                  📋 ทั้งหมด
-                </button>
+                {(planWorkTypes.length > 0 ? planWorkTypes : WORK_TYPES).map(
+                  (typeName) => {
+                    const idx = WORK_TYPES.indexOf(typeName);
+                    return (
+                      <button
+                        key={typeName}
+                        type="button"
+                        onClick={() => setActiveTypeTab(typeName)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer",
+                          activeTypeTab === typeName
+                            ? "bg-blue-600 text-white shadow-xs font-semibold"
+                            : "bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-100",
+                        )}
+                      >
+                        {idx + 1}. {typeName}
+                      </button>
+                    );
+                  },
+                )}
 
-                {WORK_TYPES.map((typeName, idx) => (
+                {planWorkTypes.length > 0 && (
                   <button
-                    key={typeName}
                     type="button"
-                    onClick={() => setActiveTypeTab(typeName)}
+                    onClick={() => setActiveTypeTab("ALL")}
                     className={cn(
-                      "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer",
-                      activeTypeTab === typeName
-                        ? "bg-blue-600 text-white shadow-xs font-semibold"
-                        : "bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-100",
+                      "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ml-auto",
+                      activeTypeTab === "ALL"
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100",
                     )}
                   >
-                    {idx + 1}. {typeName.split(" / ")[0]}
+                    📋 แสดงทั้งหมด
                   </button>
-                ))}
+                )}
               </div>
             </div>
 
