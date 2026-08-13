@@ -369,9 +369,7 @@ export default function ActivityPlanActualView({
           const end = p.endDate ? new Date(p.endDate) : new Date();
 
           setPlanSummary({
-            planNo: p.id
-              ? `PLAN-${p.id.slice(-6).toUpperCase()}`
-              : "PLAN-2026-0789",
+            planNo: p.code || p.id || "-",
             title: p.title || "แปลงสาธิตของบ้านนา",
             startDateStr: format(start, "d MMM yyyy", { locale: th }),
             endDateStr: format(end, "d MMM yyyy", { locale: th }),
