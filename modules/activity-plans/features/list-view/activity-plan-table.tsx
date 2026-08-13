@@ -84,8 +84,8 @@ export function ActivityPlanTable({
             row.original.id;
           return (
             <div
-              className="truncate font-mono text-xs font-semibold text-slate-700 max-w-[120px]"
-              title={planNo}
+              className="truncate text-xs font-semibold text-slate-700 max-w-[130px]"
+              title={planNo || "-"}
             >
               {planNo || "-"}
             </div>
@@ -95,19 +95,32 @@ export function ActivityPlanTable({
       {
         accessorKey: "title",
         header: "ชื่อกิจกรรม",
-        cell: (info) => (
-          <div
-            className="truncate font-medium text-slate-900 max-w-[200px]"
-            title={info.getValue() as string}
-          >
-            {(info.getValue() as string) || "-"}
-          </div>
-        ),
+        cell: (info) => {
+          const val = (info.getValue() as string) || "-";
+          return (
+            <div
+              className="truncate font-medium text-slate-900 max-w-[200px]"
+              title={val}
+            >
+              {val}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "activityType",
         header: "ประเภท",
-        cell: (info) => <span>{info.getValue() as string}</span>,
+        cell: (info) => {
+          const val = (info.getValue() as string) || "-";
+          return (
+            <div
+              className="truncate text-xs text-slate-700 max-w-[160px]"
+              title={val}
+            >
+              {val}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "startDate",
@@ -115,10 +128,13 @@ export function ActivityPlanTable({
         cell: ({ row }) => {
           const start = new Date(row.original.startDate);
           const end = new Date(row.original.endDate);
+          const formatted = `${format(start, "dd MMM yy HH:mm", { locale: th })} - ${format(end, "dd MMM yy HH:mm", { locale: th })}`;
           return (
-            <div className="text-xs text-slate-600">
-              {format(start, "dd MMM yy HH:mm", { locale: th })} -{" "}
-              {format(end, "dd MMM yy HH:mm", { locale: th })}
+            <div
+              className="truncate text-xs text-slate-600 max-w-[200px]"
+              title={formatted}
+            >
+              {formatted}
             </div>
           );
         },
@@ -126,17 +142,25 @@ export function ActivityPlanTable({
       {
         accessorKey: "employee.name",
         header: "ผู้จัดทำแผน",
-        cell: (info) => (
-          <div className="truncate max-w-[120px]">
-            {info.getValue() as string}
-          </div>
-        ),
+        cell: (info) => {
+          const val = (info.getValue() as string) || "-";
+          return (
+            <div
+              className="truncate text-xs font-medium text-slate-700 max-w-[130px]"
+              title={val}
+            >
+              {val}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "status",
         header: "สถานะ",
         cell: (info) => (
-          <ActivityStatusBadge status={info.getValue() as ActivityStatus} />
+          <div className="whitespace-nowrap">
+            <ActivityStatusBadge status={info.getValue() as ActivityStatus} />
+          </div>
         ),
       },
       {
@@ -146,34 +170,27 @@ export function ActivityPlanTable({
           const approverName = row.original.currentApprover?.name;
           const status = row.original.status;
 
+          let display = approverName || "-";
+          let colorClass = "text-slate-700";
+
           if (status === "PENDING_BUDGET_APPROVAL") {
-            return (
-              <span className="text-xs text-blue-600 italic font-medium">
-                ผจก. แผนกงบประมาณ
-              </span>
-            );
-          }
-          if (status === "PENDING_HELPER_APPROVAL") {
-            return (
-              <span className="text-xs text-purple-600 italic font-medium">
-                ผจก. แผนกของคนช่วย
-              </span>
-            );
-          }
-          if (status === "APPROVED") {
-            return (
-              <span className="text-xs text-green-600 font-medium">
-                เสร็จสิ้น
-              </span>
-            );
+            display = "ผจก. แผนกงบประมาณ";
+            colorClass = "text-blue-600 italic";
+          } else if (status === "PENDING_HELPER_APPROVAL") {
+            display = "ผจก. แผนกของคนช่วย";
+            colorClass = "text-purple-600 italic";
+          } else if (status === "APPROVED") {
+            display = "เสร็จสิ้น";
+            colorClass = "text-green-600 font-medium";
           }
 
-          return approverName ? (
-            <div className="truncate text-xs font-medium text-slate-700">
-              {approverName}
+          return (
+            <div
+              className={`truncate text-xs font-medium max-w-[130px] ${colorClass}`}
+              title={display}
+            >
+              {display}
             </div>
-          ) : (
-            <span className="text-slate-400">-</span>
           );
         },
       },
