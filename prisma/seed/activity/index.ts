@@ -3,8 +3,6 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { seedActivityPermissions } from "./permissions";
 import { seedActivityDepartmentsAndPositions } from "./departments-positions";
-import { seedActivityRoles } from "./roles";
-import { seedActivityUsersAndEmployees } from "./users-employees";
 
 export async function seedActivityTestData(prisma: PrismaClient) {
   console.log("🏃 Starting Activity Test Data Seed...");
@@ -13,14 +11,7 @@ export async function seedActivityTestData(prisma: PrismaClient) {
   await seedActivityPermissions(prisma);
 
   // 2. Departments & Positions
-  const { departments, positions } =
-    await seedActivityDepartmentsAndPositions(prisma);
-
-  // 3. Roles & Data Access Permissions
-  const roles = await seedActivityRoles(prisma);
-
-  // 4. Test Users & Employee Hierarchy (Parallel Teams)
-  await seedActivityUsersAndEmployees(prisma, departments, positions, roles);
+  await seedActivityDepartmentsAndPositions(prisma);
 
   console.log("✅ Activity Test Data Seed completed successfully!");
 }
