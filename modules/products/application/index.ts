@@ -56,21 +56,45 @@ export async function getProductFormOptionsUseCase() {
       findProductABCTypes(),
     ]);
 
+  const uniqueUnitsMap = new Map<string, { value: string; label: string }>();
+  for (const u of units) {
+    if (u.description && !uniqueUnitsMap.has(u.description)) {
+      uniqueUnitsMap.set(u.description, {
+        value: u.description,
+        label: `${u.code} - ${u.description}`,
+      });
+    }
+  }
+
+  const uniqueBrandsMap = new Map<string, { value: string; label: string }>();
+  for (const b of brands) {
+    if (b.description && !uniqueBrandsMap.has(b.description)) {
+      uniqueBrandsMap.set(b.description, {
+        value: b.description,
+        label: b.description,
+      });
+    }
+  }
+
+  const uniquePlantsMap = new Map<string, { value: string; label: string }>();
+  for (const p of plants) {
+    if (p.name && !uniquePlantsMap.has(p.name)) {
+      uniquePlantsMap.set(p.name, {
+        value: p.name,
+        label: p.name,
+      });
+    }
+  }
+
   return {
-    units: units.map((u) => ({
-      value: u.description,
-      label: `${u.code} - ${u.description}`,
-    })),
+    units: Array.from(uniqueUnitsMap.values()),
     groups: groups.map((g) => ({ value: g.id, label: g.description })),
-    brands: brands.map((b) => ({
-      value: b.description,
-      label: b.description,
-    })),
+    brands: Array.from(uniqueBrandsMap.values()),
     chemicalGroups: chemicalGroups.map((g) => ({
       value: g.id,
       label: g.code + " - " + g.name,
     })),
-    plants: plants.map((p) => ({ value: p.name, label: p.name })),
+    plants: Array.from(uniquePlantsMap.values()),
     categories: categories.map((c) => ({
       value: c.id,
       label: c.code + " - " + c.description,

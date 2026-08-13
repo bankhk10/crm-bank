@@ -1,0 +1,474 @@
+﻿"use client";
+
+import React from "react";
+import {
+  FileText,
+  Calendar,
+  Clock,
+  CircleDollarSign,
+  Info,
+  Users,
+  CheckCircle2,
+  Receipt,
+  Megaphone,
+  TrendingUp,
+  MapPin,
+} from "lucide-react";
+import { PlanSummaryData } from "../types";
+
+interface ActualPlanSummaryProps {
+  summary: PlanSummaryData;
+}
+
+export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
+  const hasMarketingProducts =
+    summary.marketingProductItems && summary.marketingProductItems.length > 0;
+  const hasSalesPromotionItems =
+    summary.salesPromotionItems && summary.salesPromotionItems.length > 0;
+
+  const hasBudget =
+    (summary.marketingBudget && summary.marketingBudget > 0) ||
+    (summary.salesPromotionBudget && summary.salesPromotionBudget > 0) ||
+    (summary.extraExpenseAmount && summary.extraExpenseAmount > 0) ||
+    !!hasMarketingProducts ||
+    !!hasSalesPromotionItems ||
+    !!summary.isPromotionalMediaSelected ||
+    !!summary.isSalesPromotionSelected;
+
+  const hasRequisition =
+    summary.requisitionItems && summary.requisitionItems.length > 0;
+
+  const hasAdditionalInfo = !!summary.notes || !!summary.objective;
+
+  // Calculate budgets
+  // 1. สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่)
+  const marketingProductsTotal =
+    summary.marketingProductItems?.reduce(
+      (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
+      0,
+    ) || 0;
+  const marketingMediaBudget =
+    marketingProductsTotal || summary.marketingBudget || 0;
+
+  // 2. รายการส่งเสริมการขาย (แบ่งตามประเภทการใช้งบ)
+  const salesPromoMarketingTotal =
+    summary.salesPromotionItems?.reduce(
+      (sum, item) =>
+        item.budgetType === "งบการตลาด" ? sum + (item.amount || 0) : sum,
+      0,
+    ) || 0;
+
+  const salesPromoSalesTotal =
+    summary.salesPromotionItems?.reduce(
+      (sum, item) =>
+        !item.budgetType || item.budgetType === "งบขาย"
+          ? sum + (item.amount || 0)
+          : sum,
+      0,
+    ) || 0;
+
+  const salesPromoTotal =
+    summary.salesPromotionItems?.reduce(
+      (sum, item) => sum + (item.amount || 0),
+      0,
+    ) || 0;
+
+  // รวมงบการตลาด (สื่อส่งเสริมการขาย + รายการส่งเสริมการขายที่เป็นงบการตลาด)
+  const effectiveMarketingBudget =
+    marketingMediaBudget + salesPromoMarketingTotal;
+
+  // งบขาย (รวม)
+  const effectiveSalesPromoBudget = hasSalesPromotionItems
+    ? salesPromoSalesTotal
+    : summary.salesPromotionBudget || 0;
+
+  // งบประมาณรวมทั้งสิ้น
+  const totalBudget =
+    effectiveMarketingBudget +
+    effectiveSalesPromoBudget +
+    (summary.extraExpenseAmount || 0);
+
+  // สัดส่วนงบการตลาด (%) คำนวณจาก "สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่)" เท่านั้น
+  const budgetRatio =
+    summary.targetSales && summary.targetSales > 0
+      ? ((marketingMediaBudget / summary.targetSales) * 100).toFixed(2)
+      : null;
+
+  // Extract or format start / end times
+  const rawStartTime =
+    summary.startTimeStr ||
+    (summary.timeStr?.includes(" - ")
+      ? summary.timeStr.split(" - ")[0]
+      : summary.timeStr);
+  const rawEndTime =
+    summary.endTimeStr ||
+    (summary.timeStr?.includes(" - ")
+      ? summary.timeStr.split(" - ")[1]
+      : summary.timeStr);
+
+  const formatTime = (timeRaw?: string) => {
+    if (!timeRaw) return "-";
+    const t = timeRaw.trim();
+    if (t.endsWith("น.") || t.endsWith("น")) return t;
+    return `${t} น.`;
+  };
+
+  const startTimeDisplay = formatTime(rawStartTime);
+  const endTimeDisplay = formatTime(rawEndTime);
+
+  return (
+    <div className="space-y-4 md:space-y-6">
+      {/* ─── SECTION 1: ข้อมูลหลักของกิจกรรม ─── */}
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-widest">
+            {/* <FileText className="w-3.5 h-3.5 text-blue-500" />
+            ข้อมูลหลักของกิจกรรม (Main Activity Details) */}
+          </p>
+          {summary.planNo && (
+            <span className="text-xs bg-blue-50 border border-blue-200/80 text-blue-700 px-2.5 py-0.5 rounded-md font-semibold flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" />
+              เลขที่แผน: {summary.planNo}
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* ชื่องานกิจกรรม */}
+          <div className="bg-slate-50/80 border border-slate-200/60 p-3.5 rounded-xl transition-all duration-200">
+            <p className="text-[10px] text-slate-400 font-semibold mb-1 uppercase tracking-wider">
+              ชื่องานกิจกรรม
+            </p>
+            <p className="text-sm font-bold text-slate-800 leading-snug">
+              {summary.title}
+            </p>
+          </div>
+
+          {/* วันที่เริ่ม */}
+          <div className="bg-slate-50/80 border border-slate-200/60 p-3.5 rounded-xl transition-all duration-200">
+            <p className="text-[10px] text-slate-400 font-semibold mb-1.5 uppercase tracking-wider">
+              วันที่เริ่ม
+            </p>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-slate-700">
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                <span>{summary.startDateStr}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                <span>{startTimeDisplay}</span>
+              </div>
+              <span className="text-slate-400 font-normal">→</span>
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                <span>
+                  {(summary as any).endDateStr ?? summary.startDateStr}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                <span>{endTimeDisplay}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── SECTION 2: งบประมาณและค่าใช้จ่าย ─── */}
+      {hasBudget && (
+        <div className="space-y-3 pt-3 border-t border-slate-200">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1.5 uppercase tracking-widest">
+              <CircleDollarSign className="w-3.5 h-3.5" />
+              งบประมาณและค่าใช้จ่าย (Budget &amp; Expenses)
+            </p>
+            <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+              งบรวม {totalBudget.toLocaleString()} บาท
+            </span>
+          </div>
+
+          {/* Overview Stat Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            <div className="bg-blue-50/50 border border-blue-200/80 p-3 rounded-xl shadow-xs">
+              <span className="text-blue-700 block text-[10px] uppercase font-bold tracking-wider mb-0.5">
+                งบขาย (รวม)
+              </span>
+              <span className="font-extrabold text-blue-900 text-sm">
+                {effectiveSalesPromoBudget.toLocaleString()} บาท
+              </span>
+            </div>
+
+            <div className="bg-emerald-50/50 border border-emerald-200/80 p-3 rounded-xl shadow-xs space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-emerald-700 block text-[10px] uppercase font-bold tracking-wider">
+                  งบการตลาด (รวม)
+                </span>
+                <span className="font-extrabold text-emerald-900 text-sm">
+                  {effectiveMarketingBudget.toLocaleString()} บาท
+                </span>
+              </div>
+              <div className="pt-1.5 border-t border-emerald-200/60 space-y-0.5 text-[10px]">
+                <div className="flex justify-between items-center text-slate-600">
+                  <span>• สื่อส่งเสริมการขาย:</span>
+                  <span className="font-bold text-emerald-800">
+                    {marketingMediaBudget.toLocaleString()} บาท
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-slate-600">
+                  <span>• รายการส่งเสริมการขาย:</span>
+                  <span className="font-bold text-emerald-800">
+                    {salesPromoMarketingTotal.toLocaleString()} บาท
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {summary.targetSales ? (
+              <div className="bg-violet-50/50 border border-violet-200/80 p-3 rounded-xl shadow-xs sm:col-span-2 lg:col-span-1 flex items-center justify-between">
+                <div>
+                  <span className="text-violet-700 block text-[10px] uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3 text-violet-600" />
+                    เป้ายอดขายรวมจากกิจกรรม
+                  </span>
+                  <span className="font-extrabold text-violet-900 text-sm">
+                    {summary.targetSales.toLocaleString()} บาท
+                  </span>
+                </div>
+                {budgetRatio && (
+                  <div className="text-right">
+                    <span className="text-[10px] text-violet-600 font-medium block">
+                      สัดส่วนงบการตลาด (สื่อ)
+                    </span>
+                    <span className="text-xs font-black text-violet-800 bg-white px-2 py-0.5 rounded-md border border-violet-200 shadow-2xs">
+                      {budgetRatio}%
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </div>
+
+          {/* DETAILS CARD 1: สื่อส่งเสริมการขาย */}
+          {(hasMarketingProducts || summary.isPromotionalMediaSelected) && (
+            <div className="bg-emerald-50/40 border border-emerald-200/70 rounded-xl p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2">
+                <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                  <Megaphone className="h-4 w-4 text-emerald-600" />
+                  สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่)
+                </span>
+                <span className="text-[11px] font-bold text-emerald-700 bg-white border border-emerald-200 px-2 py-0.5 rounded-md">
+                  รวม ฿{marketingMediaBudget.toLocaleString()}
+                </span>
+              </div>
+
+              <div className="overflow-x-auto rounded-lg border border-emerald-200/80 bg-white">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-emerald-50/70 border-b border-emerald-200/80 text-emerald-900 font-bold">
+                    <tr>
+                      <th className="py-2 px-3 text-center w-10">ลำดับ</th>
+                      <th className="py-2 px-3">รายการ</th>
+                      <th className="py-2 px-3 w-24 text-center">จำนวน</th>
+                      <th className="py-2 px-3 w-28 text-right">ราคา/หน่วย</th>
+                      <th className="py-2 px-3 w-32 text-right">รวมเป็นเงิน</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {!hasMarketingProducts ? (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="py-3 text-center text-slate-400 italic"
+                        >
+                          ไม่มีรายการสื่อส่งเสริมการขาย
+                        </td>
+                      </tr>
+                    ) : (
+                      summary.marketingProductItems!.map((item, index) => {
+                        const itemTotal =
+                          (item.quantityCases || 0) * (item.pricePerCase || 0);
+                        return (
+                          <tr
+                            key={item.id || index}
+                            className="hover:bg-slate-50/80 transition-colors"
+                          >
+                            <td className="py-2 px-3 text-center text-slate-500 font-medium">
+                              {index + 1}
+                            </td>
+                            <td className="py-2 px-3 font-semibold text-slate-800">
+                              {item.productName}
+                            </td>
+                            <td className="py-2 px-3 text-center font-semibold text-slate-700">
+                              {item.quantityCases}
+                            </td>
+                            <td className="py-2 px-3 text-right text-slate-600">
+                              ฿{item.pricePerCase.toLocaleString()}
+                            </td>
+                            <td className="py-2 px-3 text-right font-bold text-emerald-700">
+                              ฿{itemTotal.toLocaleString()}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                  {hasMarketingProducts && (
+                    <tfoot className="bg-emerald-50/50 border-t border-emerald-200 text-xs font-bold text-emerald-950">
+                      <tr>
+                        <td colSpan={5} className="py-2 px-3 text-right">
+                          รวมงบสื่อส่งเสริมการขายทั้งสิ้น:
+                          <span className="text-emerald-700 ml-1">
+                            ฿{marketingProductsTotal.toLocaleString()}
+                          </span>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* DETAILS CARD 2: รายการส่งเสริมการขาย */}
+          {(hasSalesPromotionItems || summary.isSalesPromotionSelected) && (
+            <div className="bg-blue-50/40 border border-blue-200/70 rounded-xl p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between border-b border-blue-200/60 pb-2">
+                <span className="text-xs font-bold text-blue-800 flex items-center gap-1.5">
+                  <Receipt className="h-4 w-4 text-blue-600" />
+                  รายการส่งเสริมการขาย
+                </span>
+                <span className="text-[11px] font-bold text-blue-700 bg-white border border-blue-200 px-2 py-0.5 rounded-md">
+                  รวม ฿{effectiveSalesPromoBudget.toLocaleString()}
+                </span>
+              </div>
+
+              <div className="overflow-x-auto rounded-lg border border-blue-200/80 bg-white">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-blue-50/70 border-b border-blue-200/80 text-blue-900 font-bold">
+                    <tr>
+                      <th className="py-2 px-3 text-center w-10">ลำดับ</th>
+                      <th className="py-2 px-3 min-w-[180px]">รายละเอียด</th>
+                      <th className="py-2 px-3 w-32">การใช้งบ</th>
+                      <th className="py-2 px-3 w-32 text-right">
+                        จำนวนเงิน (บาท)
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {!hasSalesPromotionItems ? (
+                      <tr>
+                        <td
+                          colSpan={4}
+                          className="py-3 text-center text-slate-400 italic"
+                        >
+                          ไม่มีรายการส่งเสริมการขาย
+                        </td>
+                      </tr>
+                    ) : (
+                      summary.salesPromotionItems!.map((item, index) => (
+                        <tr
+                          key={item.id || index}
+                          className="hover:bg-slate-50/80 transition-colors"
+                        >
+                          <td className="py-2 px-3 text-center text-slate-500 font-medium">
+                            {index + 1}
+                          </td>
+                          <td className="py-2 px-3 font-semibold text-slate-800">
+                            {item.detail}
+                          </td>
+                          <td className="py-2 px-3">
+                            <span className="text-[11px] font-semibold text-blue-800 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
+                              {item.budgetType || "งบขาย"}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 text-right font-bold text-blue-700">
+                            ฿{item.amount.toLocaleString()}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                  {hasSalesPromotionItems && (
+                    <tfoot className="bg-blue-50/50 border-t border-blue-200 text-xs font-bold text-blue-950">
+                      <tr>
+                        <td colSpan={4} className="py-2 px-3 text-right">
+                          ผลรวมใช้งบทั้งสิ้น:
+                          <span className="text-blue-700 ml-1">
+                            ฿{salesPromoTotal.toLocaleString()}
+                          </span>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ─── SECTION 3: ข้อมูลเพิ่มเติม ─── */}
+      {hasAdditionalInfo && (
+        <div className="space-y-2 pt-3 border-t border-slate-200">
+          <p className="text-[11px] font-bold text-sky-600 flex items-center gap-1.5 uppercase tracking-widest">
+            <Info className="w-3.5 h-3.5" />
+            ข้อมูลเพิ่มเติม (Additional Info)
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {/* รายละเอียดพื้นที่จัดกิจกรรม */}
+            <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-xs hover:border-indigo-300 hover:shadow-sm transition-all duration-200 md:col-span-2">
+              <p className="text-[10px] text-slate-400 font-semibold mb-1 uppercase tracking-wider flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-red-500" />
+                รายละเอียดพื้นที่จัดกิจกรรม{" "}
+                <span className="text-red-500">*</span>
+              </p>
+              <p className="text-xs font-semibold text-slate-800 leading-snug whitespace-pre-wrap">
+                {summary.locationStr || "-"}
+              </p>
+            </div>
+
+            {/* ผู้ช่วยงานกิจกรรม (เลือกได้หลายคน) */}
+            <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-xs hover:border-indigo-300 hover:shadow-sm transition-all duration-200 md:col-span-2">
+              <p className="text-[10px] text-slate-400 font-semibold mb-1 uppercase tracking-wider flex items-center gap-1">
+                <Users className="w-3.5 h-3.5 text-indigo-500" />
+                ผู้ช่วยงานกิจกรรม{" "}
+                <span className="text-slate-400 text-[10px] font-normal">
+                  (เลือกได้หลายคน)
+                </span>
+              </p>
+              {summary.helperEmployeeNames &&
+              summary.helperEmployeeNames.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {summary.helperEmployeeNames.map((name, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-full font-medium"
+                    >
+                      {name}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic">
+                  ยังไม่ได้ระบุผู้ช่วยงานกิจกรรม
+                </p>
+              )}
+            </div>
+
+            {/* หมายเหตุเพิ่มเติม */}
+            {summary.notes && (
+              <div className="bg-white border border-slate-200 p-2.5 rounded-xl md:col-span-2 shadow-xs hover:border-sky-300 hover:shadow-sm transition-all duration-200">
+                <span className="text-slate-400 block text-[10px] uppercase tracking-wider mb-1">
+                  หมายเหตุเพิ่มเติม
+                </span>
+                <span className="text-xs font-medium text-slate-700 leading-relaxed">
+                  {summary.notes}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

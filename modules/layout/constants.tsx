@@ -152,6 +152,11 @@ export const navigationItems: SidebarNavItem[] = [
         label: "รายงาน",
         permissionKey: "menu.test_activity",
       },
+      {
+        href: "/activity-plans",
+        label: "แผนงาน (Trip Plan)",
+        permissionKey: "menu.activity_plans",
+      },
     ],
   },
   {
