@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import {
@@ -38,7 +38,17 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
   const hasRequisition =
     summary.requisitionItems && summary.requisitionItems.length > 0;
 
-  const hasAdditionalInfo = !!summary.notes || !!summary.objective;
+  const hasHelpers =
+    !!summary.helperEmployeeNames && summary.helperEmployeeNames.length > 0;
+  const hasNotes = !!summary.notes && summary.notes.trim() !== "";
+  const hasObjective = !!summary.objective && summary.objective.trim() !== "";
+  const hasLocation =
+    !!summary.locationStr &&
+    summary.locationStr.trim() !== "" &&
+    summary.locationStr !== "-";
+
+  const hasAdditionalInfo =
+    hasLocation || hasHelpers || hasNotes || hasObjective;
 
   // Calculate budgets
   // 1. สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถมตราปืนใหญ่)
@@ -416,30 +426,31 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {/* รายละเอียดพื้นที่จัดกิจกรรม */}
-            <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-xs hover:border-indigo-300 hover:shadow-sm transition-all duration-200 md:col-span-2">
-              <p className="text-[10px] text-slate-400 font-semibold mb-1 uppercase tracking-wider flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-red-500" />
-                รายละเอียดพื้นที่จัดกิจกรรม{" "}
-                <span className="text-red-500">*</span>
-              </p>
-              <p className="text-xs font-semibold text-slate-800 leading-snug whitespace-pre-wrap">
-                {summary.locationStr || "-"}
-              </p>
-            </div>
+            {hasLocation && (
+              <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-xs hover:border-indigo-300 hover:shadow-sm transition-all duration-200 md:col-span-2">
+                <p className="text-[10px] text-slate-400 font-semibold mb-1 uppercase tracking-wider flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-red-500" />
+                  รายละเอียดพื้นที่จัดกิจกรรม{" "}
+                  <span className="text-red-500">*</span>
+                </p>
+                <p className="text-xs font-semibold text-slate-800 leading-snug whitespace-pre-wrap">
+                  {summary.locationStr}
+                </p>
+              </div>
+            )}
 
             {/* ผู้ช่วยงานกิจกรรม (เลือกได้หลายคน) */}
-            <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-xs hover:border-indigo-300 hover:shadow-sm transition-all duration-200 md:col-span-2">
-              <p className="text-[10px] text-slate-400 font-semibold mb-1 uppercase tracking-wider flex items-center gap-1">
-                <Users className="w-3.5 h-3.5 text-indigo-500" />
-                ผู้ช่วยงานกิจกรรม{" "}
-                <span className="text-slate-400 text-[10px] font-normal">
-                  (เลือกได้หลายคน)
-                </span>
-              </p>
-              {summary.helperEmployeeNames &&
-              summary.helperEmployeeNames.length > 0 ? (
+            {hasHelpers && (
+              <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-xs hover:border-indigo-300 hover:shadow-sm transition-all duration-200 md:col-span-2">
+                <p className="text-[10px] text-slate-400 font-semibold mb-1 uppercase tracking-wider flex items-center gap-1">
+                  <Users className="w-3.5 h-3.5 text-indigo-500" />
+                  ผู้ช่วยงานกิจกรรม{" "}
+                  <span className="text-slate-400 text-[10px] font-normal">
+                    (เลือกได้หลายคน)
+                  </span>
+                </p>
                 <div className="flex flex-wrap gap-1.5 pt-1">
-                  {summary.helperEmployeeNames.map((name, idx) => (
+                  {summary.helperEmployeeNames!.map((name, idx) => (
                     <span
                       key={idx}
                       className="inline-flex items-center gap-1 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-full font-medium"
@@ -448,15 +459,23 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                     </span>
                   ))}
                 </div>
-              ) : (
-                <p className="text-xs text-slate-400 italic">
-                  ยังไม่ได้ระบุผู้ช่วยงานกิจกรรม
-                </p>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* วัตถุประสงค์ */}
+            {hasObjective && (
+              <div className="bg-white border border-slate-200 p-2.5 rounded-xl md:col-span-2 shadow-xs hover:border-sky-300 hover:shadow-sm transition-all duration-200">
+                <span className="text-slate-400 block text-[10px] uppercase tracking-wider mb-1">
+                  วัตถุประสงค์
+                </span>
+                <span className="text-xs font-medium text-slate-700 leading-relaxed">
+                  {summary.objective}
+                </span>
+              </div>
+            )}
 
             {/* หมายเหตุเพิ่มเติม */}
-            {summary.notes && (
+            {hasNotes && (
               <div className="bg-white border border-slate-200 p-2.5 rounded-xl md:col-span-2 shadow-xs hover:border-sky-300 hover:shadow-sm transition-all duration-200">
                 <span className="text-slate-400 block text-[10px] uppercase tracking-wider mb-1">
                   หมายเหตุเพิ่มเติม
