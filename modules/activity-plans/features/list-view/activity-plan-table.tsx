@@ -99,7 +99,7 @@ export function ActivityPlanTable({
           const val = (info.getValue() as string) || "-";
           return (
             <div
-              className="truncate font-medium text-slate-900 max-w-[200px]"
+              className="truncate text-sm font-medium text-slate-700 max-w-[200px]"
               title={val}
             >
               {val}
@@ -114,7 +114,7 @@ export function ActivityPlanTable({
           const val = (info.getValue() as string) || "-";
           return (
             <div
-              className="truncate text-xs text-slate-700 max-w-[250px]"
+              className="truncate text-sm font-medium text-slate-700 max-w-[250px]"
               title={val}
             >
               {val}
@@ -131,7 +131,7 @@ export function ActivityPlanTable({
           const formatted = `${format(start, "dd MMM yy HH:mm", { locale: th })} - ${format(end, "dd MMM yy HH:mm", { locale: th })}`;
           return (
             <div
-              className="truncate text-xs text-slate-600 max-w-[200px]"
+              className="truncate text-sm font-medium text-slate-700 max-w-[200px]"
               title={formatted}
             >
               {formatted}
@@ -146,7 +146,7 @@ export function ActivityPlanTable({
           const val = (info.getValue() as string) || "-";
           return (
             <div
-              className="truncate text-xs font-medium text-slate-700 max-w-[130px]"
+              className="truncate text-sm font-medium text-slate-700 max-w-[130px]"
               title={val}
             >
               {val}
