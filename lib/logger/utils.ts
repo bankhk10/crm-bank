@@ -44,7 +44,24 @@ export function maskSensitiveData<T extends Record<string, unknown>>(
 
     // Check if field should be completely masked
     if (
-      SENSITIVE_FIELDS.some((field) => lowerKey.includes(field.toLowerCase()))
+      SENSITIVE_FIELDS.some((field) => {
+        const lowerField = field.toLowerCase();
+        if (lowerField === "pin") {
+          // "pin" must match PIN codes (e.g. pin, pin_code, user_pin), NOT words like "shipping" or "mapping"
+          if (lowerKey.includes("shipping") || lowerKey.includes("mapping")) {
+            return false;
+          }
+          return (
+            lowerKey === "pin" ||
+            lowerKey.startsWith("pin_") ||
+            lowerKey.endsWith("_pin") ||
+            lowerKey.includes("pincode") ||
+            lowerKey.includes("pin_code") ||
+            /(^|_|[a-z])pin($|_|[A-Z0-9])/i.test(key)
+          );
+        }
+        return lowerKey.includes(lowerField);
+      })
     ) {
       masked[key] = "[REDACTED]";
       continue;

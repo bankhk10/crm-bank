@@ -36,7 +36,16 @@ export async function updateSaleUseCase(
   // 1. Check if sale exists
   const existingSale = await db.sale.findUnique({
     where: { id, deletedAt: null },
-    include: { customer: true },
+    include: {
+      customer: true,
+      employee: true,
+      items: {
+        include: {
+          product: true,
+        },
+      },
+      saleAddress: true,
+    },
   });
 
   if (!existingSale) {
