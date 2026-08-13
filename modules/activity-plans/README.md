@@ -38,13 +38,27 @@ modules/activity-plans/
 
 ---
 
-## 🗄️ โครงสร้างฐานข้อมูล (Database Schema)
+## 🗄️ โครงสร้างฐานข้อมูล (Database Schema) — Analytics-Ready
 
-ฟีเจอร์นี้สร้างตารางใหม่และเชื่อมโยงความสัมพันธ์ย้อนกลับ (Reverse Relations) โดยไม่กระทบโครงสร้างฐานข้อมูลเดิมที่มีอยู่ เพื่อรักษาเสถียรภาพของระบบ:
+ออกแบบใหม่ทั้งหมด (2026-08-13) เพื่อรองรับ Data Analytics Dashboard โดยตรง แทนที่ schema เดิม 3 ตาราง:
 
-1.  **`ActivityPlan`:** ตารางเก็บหัวข้อแผนกิจกรรม (เลขที่แผน `code` รูปแบบ `TPYYMMXXXX` เช่น `TP26080001`, ชื่องาน, ประเภท, วันเวลาเริ่ม/จบ, งบประมาณที่ขอใช้, พื้นที่จัดงาน, และสถานะการอนุมัติ)
-2.  **`ActivityHelper`:** ตารางเก็บรายชื่อและแผนกของพนักงานช่วยงานที่เชื่อมโยงกับกิจกรรม
-3.  **`ActivityApprovalLog`:** ตารางเก็บประวัติความคืบหน้า รายละเอียดการกดอนุมัติ/ตีกลับ/ปฏิเสธ พร้อมความเห็นของผู้บริหารย้อนหลัง
+### GROUP 1: Master / Lookup
+1. **`activity_types`:** ตาราง Master 11 ประเภทงาน (`TYPE_1`–`TYPE_11`) พร้อม `code`, `name`, `shortName`, `sortOrder` — ใช้ FK จาก `activity_plans.activity_type_id` ทำให้ Filter/Group ใน Dashboard ได้
+
+### GROUP 2: Core Transaction
+2. **`activity_plans`:** หัวเรื่องแผนงาน (ปรับปรุงจากเดิม) เพิ่ม:
+   - **Fiscal Dimensions:** `fiscal_year`, `fiscal_month`, `fiscal_quarter`, `duration_days` — คำนวณอัตโนมัติจาก `start_date` ใน application layer
+   - **Geo Fields:** `province`, `district` — เลือกจาก Dropdown แยกต่างหาก
+   - **Budget Split:** `sales_promotion_budget_requested` / `marketing_budget_requested` (ขอ) vs `*_approved` (อนุมัติ) — Variance Analysis
+   - **TAT Timestamps:** `submitted_at`, `approved_at`, `rejected_at`, `cancelled_at`
+3. **`activity_plan_items`:** **Wide Table แทน `details Json?` เดิม** — คอลัมน์ flat สำหรับ 11 ประเภทงาน Query ได้โดยตรง (`SUM`, `GROUP BY`, `AVG`)
+4. **`activity_helpers`:** ตารางพนักงานช่วยงาน เพิ่ม `department_name` (denormalized snapshot) และ `responded_at`
+
+### GROUP 3: Workflow
+5. **`activity_approval_logs`:** ประวัติการอนุมัติ เพิ่ม `from_status`, `to_status`, `step_duration_seconds` — TAT per step
+
+### GROUP 4: Post-Activity Result (ใหม่)
+6. **`activity_results`:** บันทึกผลหลังกิจกรรม (1:1 กับ `activity_plans`) — เก็บ `actual_start_date`, `actual_attendees_count`, งบที่ใช้จริง, KPI ตามประเภทงาน (ยอดขาย, ยอดเก็บเงิน, จำนวนแปลง, จำนวนผู้เข้าร่วม)
 
 ### 🔢 การรันเลขที่แผนกิจกรรม (Plan Code Generation)
 - **รูปแบบ:** `TPYYMMXXXX`
@@ -100,6 +114,21 @@ modules/activity-plans/
 ---
 
 ## 📝 บันทึกการอัปเดตฟีเจอร์ (Feature Change Log)
+
+### 2026-08-13: Redesign Schema ใหม่ — Analytics-Ready
+- **ขอบเขต:** ลบ schema เก่าทิ้งทั้งหมด ออกแบบใหม่ 6 ตารางเพื่อรองรับ Data Analytics Dashboard
+- **Migration:** `20260813084645_redesign_activity_plans_analytics`
+- **สิ่งสำคัญที่เปลี่ยน:**
+  - แทน `details Json?` ด้วย `activity_plan_items` (Wide Table, 11 ประเภทงาน คอลัมน์ flat)
+  - เพิ่ม Fiscal Dimensions: `fiscal_year`, `fiscal_month`, `fiscal_quarter`
+  - เพิ่ม Geo Fields: `province`, `district` (dropdown)
+  - เพิ่ม Budget Requested vs Approved columns
+  - เพิ่ม TAT Timestamps: `submitted_at`, `approved_at`
+  - เพิ่มตาราง `activity_types` (Master 11 ประเภท, seed แล้ว)
+  - เพิ่มตาราง `activity_results` (บันทึกผลหลังกิจกรรม)
+  - เพิ่ม Enum `ActivityResultStatus` (COMPLETED / PARTIAL / FAILED)
+  - เพิ่ม utilities: `computeFiscalFields()`, `computeTotalBudget()` ใน `validations.ts`
+  - เพิ่ม `activityResultSchema` validation ใน `validations.ts`
 
 ### 2026-08-11: ดึงข้อมูลแปลงสาธิตจาก Database ใน Type 10 (จัดงาน Field Day)
 - **คอมโพเนนต์ที่แก้ไข:** `type10-field-day.tsx`, `activity-plan-form.tsx`

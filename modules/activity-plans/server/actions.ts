@@ -356,60 +356,92 @@ export async function getCurrentUserEmployeeAction() {
 }
 
 /**
- * Action: Get existing demo plots from created activity plans + master plots
+ * Action: Get Activity Types Lookup
+ */
+export async function getActivityTypesAction() {
+  try {
+    const types = await db.activityType.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+    });
+    return serialize({ success: true, types });
+  } catch (err: any) {
+    return serialize({ success: false, types: [], error: err.message });
+  }
+}
+
+/**
+ * Action: Record Post-Activity Outcome (ActivityResult)
+ */
+export async function recordActivityResultAction(planId: string, rawData: unknown) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const { recordActivityResultUseCase } = await import("../application");
+    const result = await recordActivityResultUseCase(planId, session.user.id, rawData);
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath(`/activity-plans/${planId}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
+}
+
+/**
+ * Action: Get existing demo plots from created activity plans (from ActivityPlanItem wide table)
  */
 export async function getDemoPlotsAction() {
   try {
-    const plans = await db.activityPlan.findMany({
-      where: { deletedAt: null },
-      select: {
-        id: true,
-        code: true,
-        title: true,
-        location: true,
-        details: true,
+    const items = await db.activityPlanItem.findMany({
+      where: {
+        activityPlan: { deletedAt: null },
+        OR: [
+          { plotActivityType: "CREATE" },
+          { plotOwnerName: { not: null } },
+        ],
       },
-      orderBy: { createdAt: "desc" },
+      include: {
+        activityPlan: {
+          select: { id: true, location: true, startDate: true },
+        },
+      },
+      orderBy: { id: "desc" },
     });
 
     const realPlots: UserDemoPlotOption[] = [];
 
-    for (const plan of plans) {
-      if (!plan.details || typeof plan.details !== "object") continue;
-      const details = plan.details as any;
-      const type7Items = details.type7Items;
-      if (Array.isArray(type7Items)) {
-        for (const item of type7Items) {
-          // Only collect items where plotActivityType is CREATE or not set (legacy created plots)
-          if (item.plotActivityType === "FOLLOW_UP") continue;
-          if (!item.ownerName && !item.cropName) continue;
+    for (const item of items) {
+      if (item.plotActivityType === "FOLLOW_UP") continue;
+      if (!item.plotOwnerName && !item.plotCropName) continue;
 
-          const cropDisplay = item.customCropName || item.cropName || "";
-          const ownerDisplay = item.ownerName || "เกษตรกร";
-          const plotName = cropDisplay
-            ? `${ownerDisplay} - ${cropDisplay}`
-            : ownerDisplay;
+      const cropDisplay = item.plotCropName || "";
+      const ownerDisplay = item.plotOwnerName || item.customerName || "เกษตรกร";
+      const plotName = cropDisplay
+        ? `${ownerDisplay} - ${cropDisplay}`
+        : ownerDisplay;
 
-          realPlots.push({
-            id: `plot-${plan.id}-${item.id || Math.random()}`,
-            name: plotName,
-            location: plan.location || `แปลงสาธิต ${ownerDisplay}`,
-            targetCrop: cropDisplay,
-            showcase: item.productName || "สินค้าสาธิต",
-            ownerName: ownerDisplay,
-            cropCategory: item.cropCategory || "พืชสวน",
-            cropName: item.cropName || "พืชสวน",
-            productName: item.productName || "",
-            areaRai: item.areaRai || 0,
-            treeCount: item.treeCount || 0,
-            startDate: item.startDate || "",
-          });
-        }
-      }
+      realPlots.push({
+        id: `plot-${item.activityPlanId}-${item.id}`,
+        name: plotName,
+        location: item.activityPlan.location || `แปลงสาธิต ${ownerDisplay}`,
+        targetCrop: cropDisplay,
+        showcase: item.plotProductName || "สินค้าสาธิต",
+        ownerName: ownerDisplay,
+        cropCategory: item.plotCropCategory || "พืชสวน",
+        cropName: cropDisplay || "พืชสวน",
+        productName: item.plotProductName || "",
+        areaRai: item.plotAreaRai ? Number(item.plotAreaRai) : 0,
+        treeCount: item.plotTreeCount || 0,
+        startDate: item.activityPlan.startDate ? item.activityPlan.startDate.toISOString().split("T")[0] : "",
+      });
     }
 
     const combinedMap = new Map<string, UserDemoPlotOption>();
-    // Add real created plots saved in DB
     realPlots.forEach((p) => combinedMap.set(p.name, p));
 
     return serialize({
@@ -424,3 +456,4 @@ export async function getDemoPlotsAction() {
     });
   }
 }
+

@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
-import { getActivityPlanAction } from "../../server/actions";
+import { getActivityPlanAction, recordActivityResultAction } from "../../server/actions";
 import {
   WORK_TYPES,
   DEMO_OWNERS,
@@ -363,11 +363,11 @@ export default function ActivityPlanActualView({
             endDateStr: format(end, "d MMM yyyy", { locale: th }),
             timeStr: `${format(start, "HH:mm")} - ${format(end, "HH:mm")} น.`,
             locationStr: p.location || `${DEMO_OWNERS[0]} อ.เมือง จ.จันทบุรี`,
-            marketingBudget: p.marketingBudget
-              ? Number(p.marketingBudget)
+            marketingBudget: (p as any).marketingBudgetRequested
+              ? Number((p as any).marketingBudgetRequested)
               : undefined,
-            salesPromotionBudget: p.salesPromotionBudget
-              ? Number(p.salesPromotionBudget)
+            salesPromotionBudget: (p as any).salesPromotionBudgetRequested
+              ? Number((p as any).salesPromotionBudgetRequested)
               : undefined,
             notes: p.notes || undefined,
             objective: p.objective || undefined,
@@ -539,12 +539,34 @@ export default function ActivityPlanActualView({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
-
     setIsSubmitting(true);
-    setTimeout(() => {
+
+    try {
+      if (id) {
+        const payload = {
+          actualStartDate: new Date(),
+          actualEndDate: new Date(),
+          actualAttendeesCount: Number(t8ActualAttendees || t9ActualAttendees || t10ActualAttendees || 0),
+          resultStatus: "COMPLETED",
+          resultSummary: t1DiscussionResult || t2Detail || t6ProblemDetail || t7ProblemDescription || t8FeedbackQnA || "ทำกิจกรรมสำเร็จตามเป้าหมาย",
+          actualSalesPromotionSpent: Number(planSummary.salesPromotionBudget || 0),
+          actualMarketingSpent: Number(planSummary.marketingBudget || 0),
+          salesResultAmount: Number(t3ActualSales || t9ActualSales || 0),
+          collectResultAmount: Number(t4ReceivedAmount || 0),
+          demoPlotsCreated: t7PlotName ? 1 : 0,
+        };
+
+        const res = await recordActivityResultAction(id, payload);
+        if (!res.success) {
+          setFormError(res.error || "เกิดข้อผิดพลาดในการบันทึกผลกิจกรรม");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       setIsSubmitting(false);
       setSubmitSuccess(true);
       setTimeout(() => {
@@ -553,9 +575,13 @@ export default function ActivityPlanActualView({
         } else {
           router.push(id ? `/activity-plans/${id}` : "/activity-plans");
         }
-      }, 1200);
-    }, 800);
+      }, 1000);
+    } catch (err: any) {
+      setFormError(err.message || "เกิดข้อผิดพลาดในการบันทึกผลกิจกรรม");
+      setIsSubmitting(false);
+    }
   };
+
 
   const isTypeVisible = (typeTitle: string) => {
     if (activeTypeTab === "ALL") return true;

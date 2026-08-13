@@ -1,13 +1,17 @@
-import { activityPlanSchema } from "./validations";
+import { activityPlanSchema, activityResultSchema } from "./validations";
 import {
   findActivityPlanById,
   findActivityPlans,
   createActivityPlan,
   updateActivityPlan,
   softDeleteActivityPlan,
+  upsertActivityResult,
+  findActivityTypes,
+  findActivityTypeByCode,
   findEmployeeByUserId,
   findOrCreateEmployeeForUser,
   type ListActivityPlansParams,
+  type CreateActivityResultInput,
 } from "../infrastructure/activity-plan.repository";
 import { ActivityStatus } from "@prisma/client";
 
@@ -30,6 +34,13 @@ export async function listActivityPlansUseCase(params: ListActivityPlansParams) 
 }
 
 /**
+ * Get all activity type master lookups
+ */
+export async function getActivityTypesUseCase() {
+  return findActivityTypes();
+}
+
+/**
  * Create a new ActivityPlan (Draft by default)
  */
 export async function createActivityPlanUseCase(
@@ -48,21 +59,23 @@ export async function createActivityPlanUseCase(
     return { success: false as const, error: "ไม่สามารถสร้างหรือค้นหาโปรไฟล์พนักงานได้" };
   }
 
-  const { helperEmployeeIds, ...planFields } = parsed.data;
+  const { helperEmployeeIds, items, ...planFields } = parsed.data;
 
-  // Set initial status to DRAFT
   const data = {
     ...planFields,
-    salesPromotionBudget: planFields.salesPromotionBudget ?? null,
-    marketingBudget: planFields.marketingBudget ?? null,
-    details: planFields.details ?? null,
+    salesPromotionBudgetRequested: planFields.salesPromotionBudgetRequested ?? null,
+    marketingBudgetRequested: planFields.marketingBudgetRequested ?? null,
+    province: planFields.province ?? null,
+    district: planFields.district ?? null,
+    items: items ?? [],
+    helperEmployeeIds: helperEmployeeIds ?? [],
     status: ActivityStatus.DRAFT,
     employeeId: employee.id,
     createdById: userId,
-    currentApproverId: employee.managerId ?? null,
+    currentApproverEmployeeId: employee.managerId ?? null,
   };
 
-  const plan = await createActivityPlan(data, helperEmployeeIds);
+  const plan = await createActivityPlan(data);
   return { success: true as const, plan };
 }
 
@@ -87,19 +100,67 @@ export async function updateActivityPlanUseCase(id: string, userId: string, rawD
     return { success: false as const, error: "สามารถแก้ไขได้เฉพาะ Trip Plan ในสถานะร่างหรือรอแก้ไขเท่านั้น" };
   }
 
-  const { helperEmployeeIds, ...planFields } = parsed.data;
+  const { helperEmployeeIds, items, ...planFields } = parsed.data;
 
   const data = {
     ...planFields,
-    salesPromotionBudget: planFields.salesPromotionBudget ?? null,
-    marketingBudget: planFields.marketingBudget ?? null,
-    details: planFields.details ?? null,
+    salesPromotionBudgetRequested: planFields.salesPromotionBudgetRequested ?? null,
+    marketingBudgetRequested: planFields.marketingBudgetRequested ?? null,
+    province: planFields.province ?? null,
+    district: planFields.district ?? null,
+    items: items ?? [],
     helperEmployeeIds,
     updatedUserId: userId,
   };
 
   const updated = await updateActivityPlan(id, data);
   return { success: true as const, plan: updated };
+}
+
+/**
+ * Record post-activity result (only when plan status is APPROVED)
+ */
+export async function recordActivityResultUseCase(
+  planId: string,
+  userId: string,
+  rawData: unknown
+) {
+  const plan = await findActivityPlanById(planId);
+  if (!plan) return { success: false as const, error: "ไม่พบ Trip Plan" };
+
+  if (plan.status !== ActivityStatus.APPROVED) {
+    return { success: false as const, error: "สามารถบันทึกผลได้เฉพาะแผนกิจกรรมที่ได้รับการอนุมัติเรียบร้อยแล้วเท่านั้น" };
+  }
+
+  const parsed = activityResultSchema.safeParse(rawData);
+  if (!parsed.success) {
+    const errorMsg = parsed.error.errors.map((e) => e.message).join(", ");
+    return { success: false as const, error: errorMsg };
+  }
+
+  const resultInput: CreateActivityResultInput = {
+    activityPlanId: planId,
+    actualStartDate: parsed.data.actualStartDate,
+    actualEndDate: parsed.data.actualEndDate,
+    actualAttendeesCount: parsed.data.actualAttendeesCount,
+    resultStatus: parsed.data.resultStatus as any,
+    resultSummary: parsed.data.resultSummary,
+    problemFound: parsed.data.problemFound,
+    nextAction: parsed.data.nextAction,
+    actualSalesPromotionSpent: parsed.data.actualSalesPromotionSpent,
+    actualMarketingSpent: parsed.data.actualMarketingSpent,
+    salesResultAmount: parsed.data.salesResultAmount,
+    salesOrdersCount: parsed.data.salesOrdersCount,
+    collectResultAmount: parsed.data.collectResultAmount,
+    demoPlotsCreated: parsed.data.demoPlotsCreated,
+    demoPlotsFollowedUp: parsed.data.demoPlotsFollowedUp,
+    distributorsCount: parsed.data.distributorsCount,
+    farmersCount: parsed.data.farmersCount,
+    recordedById: userId,
+  };
+
+  const activityResult = await upsertActivityResult(resultInput);
+  return { success: true as const, result: activityResult };
 }
 
 /**
@@ -121,8 +182,10 @@ export async function deleteActivityPlanUseCase(id: string, userId: string) {
 export {
   activityPlanSchema,
   activityApprovalSchema,
+  activityResultSchema,
   type ActivityPlanFormValues,
   type ActivityApprovalFormValues,
+  type ActivityResultFormValues,
 } from "./validations";
 
 export {
@@ -132,5 +195,5 @@ export {
   requestCorrectionPlanUseCase,
   cancelActivityPlanUseCase,
 } from "./activity-plan-flow";
-export { findEmployeeById, findOrCreateEmployeeForUser } from "../infrastructure/activity-plan.repository";
+export { findEmployeeById, findOrCreateEmployeeForUser, findActivityTypes, findActivityTypeByCode } from "../infrastructure/activity-plan.repository";
 export type { ListActivityPlansParams };

@@ -82,8 +82,9 @@ export default function ActivityPlanApprovalListView() {
   // Filter plans into categories
   // 1. Line Approvals waiting specifically for the current user
   const lineApprovalsForMe = plans.filter(
-    (p) => p.status === "PENDING_LINE_APPROVAL" && p.currentApproverId === userEmployeeId
+    (p) => p.status === "PENDING_LINE_APPROVAL" && p.currentApproverEmployeeId === userEmployeeId
   );
+
 
   // 2. Budget approvals (Show all pending budget approvals - user can view details and the system will check role authority inside detail view)
   const budgetApprovals = plans.filter(
@@ -189,8 +190,8 @@ function PlanApprovalCard({
   const start = new Date(plan.startDate);
   const end = new Date(plan.endDate);
 
-  const salesPromo = plan.salesPromotionBudget ? Number(plan.salesPromotionBudget) : 0;
-  const marketing = plan.marketingBudget ? Number(plan.marketingBudget) : 0;
+  const salesPromo = plan.salesPromotionBudgetRequested ? Number(plan.salesPromotionBudgetRequested) : 0;
+  const marketing = plan.marketingBudgetRequested ? Number(plan.marketingBudgetRequested) : 0;
   const budgetTotal = salesPromo + marketing;
 
   return (

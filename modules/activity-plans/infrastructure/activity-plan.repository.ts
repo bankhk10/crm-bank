@@ -1,5 +1,12 @@
 import { db } from "@/lib/db";
-import { Prisma, ActivityStatus, ActivityHelperStatus, ActivityApprovalAction, ActivityApprovalStep } from "@prisma/client";
+import {
+  Prisma,
+  ActivityStatus,
+  ActivityHelperStatus,
+  ActivityApprovalAction,
+  ActivityApprovalStep,
+  ActivityResultStatus,
+} from "@prisma/client";
 
 export type ListActivityPlansParams = {
   page?: number;
@@ -8,15 +15,60 @@ export type ListActivityPlansParams = {
   status?: ActivityStatus;
   employeeId?: string;
   currentApproverId?: string;
+  activityTypeId?: string;
+  fiscalYear?: number;
+  fiscalMonth?: number;
+  province?: string;
 };
 
 /**
- * find activity plan by ID
+ * Utility to compute fiscal dimensions & duration from dates
+ */
+export function computeFiscalFields(startDate: Date, endDate: Date) {
+  const year = startDate.getFullYear();
+  const month = startDate.getMonth() + 1; // 1-12
+  const quarter = Math.ceil(month / 3);   // 1-4
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const durationDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / msPerDay));
+
+  return {
+    fiscalYear: year,
+    fiscalMonth: month,
+    fiscalQuarter: quarter,
+    durationDays,
+  };
+}
+
+/**
+ * Fetch all active activity types (lookup master)
+ */
+export async function findActivityTypes() {
+  return db.activityType.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" },
+  });
+}
+
+/**
+ * Find activity type by code (e.g. "TYPE_1")
+ */
+export async function findActivityTypeByCode(code: string) {
+  return db.activityType.findUnique({
+    where: { code },
+  });
+}
+
+/**
+ * Find activity plan by ID with full relations
  */
 export async function findActivityPlanById(id: string) {
   return db.activityPlan.findFirst({
     where: { id, deletedAt: null },
     include: {
+      activityType: true,
+      items: {
+        orderBy: { itemOrder: "asc" },
+      },
       employee: {
         include: {
           position: true,
@@ -52,6 +104,13 @@ export async function findActivityPlanById(id: string) {
         },
         orderBy: { createdAt: "desc" },
       },
+      result: {
+        include: {
+          recordedBy: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      },
     },
   });
 }
@@ -60,7 +119,18 @@ export async function findActivityPlanById(id: string) {
  * Find activity plans with pagination & filtering
  */
 export async function findActivityPlans(params: ListActivityPlansParams) {
-  const { page = 1, perPage = 10, q, status, employeeId, currentApproverId } = params;
+  const {
+    page = 1,
+    perPage = 10,
+    q,
+    status,
+    employeeId,
+    currentApproverId,
+    activityTypeId,
+    fiscalYear,
+    fiscalMonth,
+    province,
+  } = params;
 
   const where: Prisma.ActivityPlanWhereInput = { deletedAt: null };
 
@@ -73,7 +143,23 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
   }
 
   if (currentApproverId) {
-    where.currentApproverId = currentApproverId;
+    where.currentApproverEmployeeId = currentApproverId;
+  }
+
+  if (activityTypeId) {
+    where.activityTypeId = activityTypeId;
+  }
+
+  if (fiscalYear) {
+    where.fiscalYear = fiscalYear;
+  }
+
+  if (fiscalMonth) {
+    where.fiscalMonth = fiscalMonth;
+  }
+
+  if (province) {
+    where.province = province;
   }
 
   if (q) {
@@ -84,6 +170,8 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
       { location: { contains: q, mode: "insensitive" } },
       { objective: { contains: q, mode: "insensitive" } },
       { description: { contains: q, mode: "insensitive" } },
+      { province: { contains: q, mode: "insensitive" } },
+      { district: { contains: q, mode: "insensitive" } },
       { employee: { name: { contains: q, mode: "insensitive" } } },
     ];
   }
@@ -93,6 +181,9 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
     db.activityPlan.findMany({
       where,
       include: {
+        activityType: true,
+        items: true,
+        result: true,
         employee: {
           select: { id: true, name: true, positionTitle: true, departmentName: true },
         },
@@ -111,10 +202,6 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
 
 /**
  * Helper to generate Activity Plan Code (format: TPYYMMXXXX)
- * TP = Trip Plan
- * YY = Year 2 digits (e.g. 26 for 2026)
- * MM = Month 2 digits (e.g. 08 for August)
- * XXXX = 4-digit sequence (0001, 0002, ...)
  */
 export async function generateActivityPlanCode(
   tx: Prisma.TransactionClient | typeof db,
@@ -144,55 +231,134 @@ export async function generateActivityPlanCode(
   return `${prefix}${seqStr}`;
 }
 
+export type CreateActivityPlanInput = {
+  code?: string;
+  title: string;
+  startDate: Date;
+  endDate: Date;
+  activityTypeId: string;
+  location: string;
+  province?: string | null;
+  district?: string | null;
+  objective: string;
+  description?: string | null;
+  notes?: string | null;
+  salesPromotionBudgetRequested?: number | null;
+  marketingBudgetRequested?: number | null;
+  status?: ActivityStatus;
+  employeeId: string;
+  createdById: string;
+  currentApproverEmployeeId?: string | null;
+  items?: Record<string, any>[];
+  helperEmployeeIds?: string[];
+};
+
 /**
  * Create a new ActivityPlan inside a transaction
  */
-export async function createActivityPlan(
-  planData: Prisma.ActivityPlanUncheckedCreateInput,
-  helperEmployeeIds: string[]
-) {
+export async function createActivityPlan(input: CreateActivityPlanInput) {
   return db.$transaction(async (tx) => {
-    // Generate Activity Plan code if not provided
-    const code = planData.code || (await generateActivityPlanCode(tx));
+    const code = input.code || (await generateActivityPlanCode(tx, input.startDate));
+    const fiscal = computeFiscalFields(input.startDate, input.endDate);
 
-    // 1. Create the main ActivityPlan
+    const spRequested = input.salesPromotionBudgetRequested ?? 0;
+    const mktRequested = input.marketingBudgetRequested ?? 0;
+    const totalRequested = spRequested + mktRequested;
+
+    // 1. Create main ActivityPlan
     const plan = await tx.activityPlan.create({
       data: {
         code,
-        title: planData.title,
-        startDate: planData.startDate,
-        endDate: planData.endDate,
-        activityType: planData.activityType,
-        location: planData.location,
-        objective: planData.objective,
-        description: planData.description,
-        salesPromotionBudget: planData.salesPromotionBudget,
-        marketingBudget: planData.marketingBudget,
-        notes: planData.notes,
-        details: planData.details ?? Prisma.DbNull,
-        status: planData.status ?? ActivityStatus.DRAFT,
-        employeeId: planData.employeeId,
-        createdById: planData.createdById,
-        currentApproverId: planData.currentApproverId,
+        title: input.title,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        durationDays: fiscal.durationDays,
+        fiscalYear: fiscal.fiscalYear,
+        fiscalMonth: fiscal.fiscalMonth,
+        fiscalQuarter: fiscal.fiscalQuarter,
+        activityTypeId: input.activityTypeId,
+        location: input.location,
+        province: input.province ?? null,
+        district: input.district ?? null,
+        objective: input.objective,
+        description: input.description ?? null,
+        notes: input.notes ?? null,
+        salesPromotionBudgetRequested: input.salesPromotionBudgetRequested ? new Prisma.Decimal(input.salesPromotionBudgetRequested) : null,
+        marketingBudgetRequested: input.marketingBudgetRequested ? new Prisma.Decimal(input.marketingBudgetRequested) : null,
+        totalBudgetRequested: new Prisma.Decimal(totalRequested),
+        status: input.status ?? ActivityStatus.DRAFT,
+        employeeId: input.employeeId,
+        createdById: input.createdById,
+        currentApproverEmployeeId: input.currentApproverEmployeeId ?? null,
       },
     });
 
-    // 2. Create helpers if any
-    if (helperEmployeeIds && helperEmployeeIds.length > 0) {
-      await tx.activityHelper.createMany({
-        data: helperEmployeeIds.map((empId) => ({
+    // 2. Create Items (Wide Table)
+    if (input.items && input.items.length > 0) {
+      await tx.activityPlanItem.createMany({
+        data: input.items.map((item, idx) => ({
           activityPlanId: plan.id,
-          employeeId: empId,
-          status: ActivityHelperStatus.PENDING,
+          itemOrder: idx + 1,
+          customerName: item.customerName ?? item.ownerName ?? item.storeName ?? null,
+          detail: item.detail ?? null,
+          visitTopic: item.visitTopic ?? item.topic ?? null,
+          followupProductName: item.followupProductName ?? item.productName ?? null,
+          saleProductName: item.saleProductName ?? item.productName ?? null,
+          saleQuantity: item.saleQuantity ?? item.quantity ?? null,
+          saleUnitPrice: item.saleUnitPrice ? new Prisma.Decimal(item.saleUnitPrice) : (item.unitPrice ? new Prisma.Decimal(item.unitPrice) : null),
+          saleTotalPrice: item.saleTotalPrice ? new Prisma.Decimal(item.saleTotalPrice) : (item.price ? new Prisma.Decimal(item.price) : null),
+          collectAmount: item.collectAmount ? new Prisma.Decimal(item.collectAmount) : null,
+          surveyCompetitorProduct: item.surveyCompetitorProduct ?? item.comparedProduct ?? null,
+          surveyStoreName: item.surveyStoreName ?? item.storeName ?? null,
+          issueType: item.issueType ?? null,
+          plotActivityType: item.plotActivityType ?? null,
+          plotOwnerName: item.plotOwnerName ?? item.ownerName ?? null,
+          plotProductName: item.plotProductName ?? item.productName ?? null,
+          plotCropCategory: item.plotCropCategory ?? item.cropCategory ?? null,
+          plotCropName: item.plotCropName ?? item.cropName ?? item.customCropName ?? null,
+          plotAreaRai: item.plotAreaRai ? new Prisma.Decimal(item.plotAreaRai) : (item.areaRai ? new Prisma.Decimal(item.areaRai) : null),
+          plotTreeCount: item.plotTreeCount ?? item.treeCount ?? null,
+          plotCount: item.plotCount ?? item.plotsCount ?? null,
+          existingPlotId: item.existingPlotId ?? null,
+          plotGrowthStage: item.plotGrowthStage ?? item.growthStage ?? null,
+          plotStatus: item.plotStatus ?? null,
+          meetingTopic: item.meetingTopic ?? item.topic ?? null,
+          meetingAttendeesCount: item.meetingAttendeesCount ?? item.attendeesCount ?? null,
+          meetingTargetProducts: item.meetingTargetProducts ? (Array.isArray(item.meetingTargetProducts) ? item.meetingTargetProducts.join(",") : String(item.meetingTargetProducts)) : null,
+          storeProductName: item.storeProductName ?? item.productName ?? null,
+          storeQuantityCases: item.storeQuantityCases ?? item.quantityCases ?? null,
+          storePricePerCase: item.storePricePerCase ? new Prisma.Decimal(item.storePricePerCase) : (item.pricePerCase ? new Prisma.Decimal(item.pricePerCase) : null),
+          storeTotalAmount: item.storeTotalAmount ? new Prisma.Decimal(item.storeTotalAmount) : null,
         })),
       });
     }
 
-    // 3. Create initial approval log
+    // 3. Create Helpers
+    if (input.helperEmployeeIds && input.helperEmployeeIds.length > 0) {
+      const helperEmployees = await tx.employee.findMany({
+        where: { id: { in: input.helperEmployeeIds } },
+        include: { department: true },
+      });
+
+      await tx.activityHelper.createMany({
+        data: input.helperEmployeeIds.map((empId) => {
+          const emp = helperEmployees.find((e) => e.id === empId);
+          return {
+            activityPlanId: plan.id,
+            employeeId: empId,
+            departmentId: emp?.departmentId ?? null,
+            departmentName: emp?.departmentName || emp?.department?.name || null,
+            status: ActivityHelperStatus.PENDING,
+          };
+        }),
+      });
+    }
+
+    // 4. Create initial approval log
     await tx.activityApprovalLog.create({
       data: {
         activityPlanId: plan.id,
-        userId: planData.createdById,
+        userId: input.createdById,
         action: ActivityApprovalAction.SUBMIT,
         step: ActivityApprovalStep.LINE_APPROVAL,
         comment: "บันทึกแผนงานร่างแรก",
@@ -208,57 +374,138 @@ export async function createActivityPlan(
  */
 export async function updateActivityPlan(
   id: string,
-  planData: Partial<Prisma.ActivityPlanUncheckedUpdateInput> & {
+  planData: Partial<CreateActivityPlanInput> & {
     helperEmployeeIds?: string[];
     updatedUserId: string;
   }
 ) {
   return db.$transaction(async (tx) => {
-    const { helperEmployeeIds, updatedUserId, ...updateFields } = planData;
+    const { helperEmployeeIds, updatedUserId, items, ...updateFields } = planData;
 
-    // 1. Update the main ActivityPlan fields
+    // Build update dataset
+    const dataToUpdate: Prisma.ActivityPlanUncheckedUpdateInput = {};
+
+    if (updateFields.title !== undefined) dataToUpdate.title = updateFields.title;
+    if (updateFields.activityTypeId !== undefined) dataToUpdate.activityTypeId = updateFields.activityTypeId;
+    if (updateFields.location !== undefined) dataToUpdate.location = updateFields.location;
+    if (updateFields.province !== undefined) dataToUpdate.province = updateFields.province;
+    if (updateFields.district !== undefined) dataToUpdate.district = updateFields.district;
+    if (updateFields.objective !== undefined) dataToUpdate.objective = updateFields.objective;
+    if (updateFields.description !== undefined) dataToUpdate.description = updateFields.description;
+    if (updateFields.notes !== undefined) dataToUpdate.notes = updateFields.notes;
+    if (updateFields.status !== undefined) dataToUpdate.status = updateFields.status;
+
+    if (updateFields.startDate || updateFields.endDate) {
+      const existing = await tx.activityPlan.findUnique({ where: { id } });
+      const startDate = updateFields.startDate || existing?.startDate || new Date();
+      const endDate = updateFields.endDate || existing?.endDate || new Date();
+
+      const fiscal = computeFiscalFields(startDate, endDate);
+      dataToUpdate.startDate = startDate;
+      dataToUpdate.endDate = endDate;
+      dataToUpdate.durationDays = fiscal.durationDays;
+      dataToUpdate.fiscalYear = fiscal.fiscalYear;
+      dataToUpdate.fiscalMonth = fiscal.fiscalMonth;
+      dataToUpdate.fiscalQuarter = fiscal.fiscalQuarter;
+    }
+
+    if (updateFields.salesPromotionBudgetRequested !== undefined || updateFields.marketingBudgetRequested !== undefined) {
+      const existing = await tx.activityPlan.findUnique({ where: { id } });
+      const sp = updateFields.salesPromotionBudgetRequested !== undefined
+        ? updateFields.salesPromotionBudgetRequested
+        : (existing?.salesPromotionBudgetRequested ? Number(existing.salesPromotionBudgetRequested) : 0);
+      const mkt = updateFields.marketingBudgetRequested !== undefined
+        ? updateFields.marketingBudgetRequested
+        : (existing?.marketingBudgetRequested ? Number(existing.marketingBudgetRequested) : 0);
+
+      dataToUpdate.salesPromotionBudgetRequested = sp ? new Prisma.Decimal(sp) : null;
+      dataToUpdate.marketingBudgetRequested = mkt ? new Prisma.Decimal(mkt) : null;
+      dataToUpdate.totalBudgetRequested = new Prisma.Decimal((sp || 0) + (mkt || 0));
+    }
+
+    // 1. Update main record
     const updatedPlan = await tx.activityPlan.update({
       where: { id },
-      data: updateFields,
+      data: dataToUpdate,
     });
 
-    // 2. Sync helpers if provided
+    // 2. Sync Items if provided
+    if (items !== undefined) {
+      await tx.activityPlanItem.deleteMany({ where: { activityPlanId: id } });
+
+      if (items.length > 0) {
+        await tx.activityPlanItem.createMany({
+          data: items.map((item, idx) => ({
+            activityPlanId: id,
+            itemOrder: idx + 1,
+            customerName: item.customerName ?? item.ownerName ?? item.storeName ?? null,
+            detail: item.detail ?? null,
+            visitTopic: item.visitTopic ?? item.topic ?? null,
+            followupProductName: item.followupProductName ?? item.productName ?? null,
+            saleProductName: item.saleProductName ?? item.productName ?? null,
+            saleQuantity: item.saleQuantity ?? item.quantity ?? null,
+            saleUnitPrice: item.saleUnitPrice ? new Prisma.Decimal(item.saleUnitPrice) : (item.unitPrice ? new Prisma.Decimal(item.unitPrice) : null),
+            saleTotalPrice: item.saleTotalPrice ? new Prisma.Decimal(item.saleTotalPrice) : (item.price ? new Prisma.Decimal(item.price) : null),
+            collectAmount: item.collectAmount ? new Prisma.Decimal(item.collectAmount) : null,
+            surveyCompetitorProduct: item.surveyCompetitorProduct ?? item.comparedProduct ?? null,
+            surveyStoreName: item.surveyStoreName ?? item.storeName ?? null,
+            issueType: item.issueType ?? null,
+            plotActivityType: item.plotActivityType ?? null,
+            plotOwnerName: item.plotOwnerName ?? item.ownerName ?? null,
+            plotProductName: item.plotProductName ?? item.productName ?? null,
+            plotCropCategory: item.plotCropCategory ?? item.cropCategory ?? null,
+            plotCropName: item.plotCropName ?? item.cropName ?? item.customCropName ?? null,
+            plotAreaRai: item.plotAreaRai ? new Prisma.Decimal(item.plotAreaRai) : (item.areaRai ? new Prisma.Decimal(item.areaRai) : null),
+            plotTreeCount: item.plotTreeCount ?? item.treeCount ?? null,
+            plotCount: item.plotCount ?? item.plotsCount ?? null,
+            existingPlotId: item.existingPlotId ?? null,
+            plotGrowthStage: item.plotGrowthStage ?? item.growthStage ?? null,
+            plotStatus: item.plotStatus ?? null,
+            meetingTopic: item.meetingTopic ?? item.topic ?? null,
+            meetingAttendeesCount: item.meetingAttendeesCount ?? item.attendeesCount ?? null,
+            meetingTargetProducts: item.meetingTargetProducts ? (Array.isArray(item.meetingTargetProducts) ? item.meetingTargetProducts.join(",") : String(item.meetingTargetProducts)) : null,
+            storeProductName: item.storeProductName ?? item.productName ?? null,
+            storeQuantityCases: item.storeQuantityCases ?? item.quantityCases ?? null,
+            storePricePerCase: item.storePricePerCase ? new Prisma.Decimal(item.storePricePerCase) : (item.pricePerCase ? new Prisma.Decimal(item.pricePerCase) : null),
+            storeTotalAmount: item.storeTotalAmount ? new Prisma.Decimal(item.storeTotalAmount) : null,
+          })),
+        });
+      }
+    }
+
+    // 3. Sync Helpers if provided
     if (helperEmployeeIds !== undefined) {
       const existingHelpers = await tx.activityHelper.findMany({
         where: { activityPlanId: id },
       });
 
-      const existingEmpIds = existingHelpers.map((h) => h.employeeId);
-
-      // Helpers to remove (soft delete)
       const toRemove = existingHelpers.filter(
         (h) => !helperEmployeeIds.includes(h.employeeId) && h.deletedAt === null
       );
       if (toRemove.length > 0) {
         await tx.activityHelper.updateMany({
-          where: {
-            id: { in: toRemove.map((h) => h.id) },
-          },
-          data: {
-            deletedAt: new Date(),
-          },
+          where: { id: { in: toRemove.map((h) => h.id) } },
+          data: { deletedAt: new Date() },
         });
       }
 
-      // Helpers to add or restore
       for (const empId of helperEmployeeIds) {
         const match = existingHelpers.find((h) => h.employeeId === empId);
         if (!match) {
-          // Add new
+          const emp = await tx.employee.findUnique({
+            where: { id: empId },
+            include: { department: true },
+          });
           await tx.activityHelper.create({
             data: {
               activityPlanId: id,
               employeeId: empId,
+              departmentId: emp?.departmentId ?? null,
+              departmentName: emp?.departmentName || emp?.department?.name || null,
               status: ActivityHelperStatus.PENDING,
             },
           });
         } else if (match.deletedAt !== null) {
-          // Restore soft-deleted
           await tx.activityHelper.update({
             where: { id: match.id },
             data: {
@@ -295,17 +542,34 @@ export async function softDeleteActivityPlan(id: string) {
 }
 
 /**
- * Create an approval log entry
+ * Create an approval log entry with step duration tracking
  */
 export async function createApprovalLog(data: {
   activityPlanId: string;
   userId: string;
   action: ActivityApprovalAction;
   step: ActivityApprovalStep;
+  fromStatus?: ActivityStatus;
+  toStatus?: ActivityStatus;
   comment?: string;
 }) {
+  // Find last log to compute stepDurationSeconds
+  const lastLog = await db.activityApprovalLog.findFirst({
+    where: { activityPlanId: data.activityPlanId },
+    orderBy: { createdAt: "desc" },
+  });
+
+  let stepDurationSeconds: number | null = null;
+  if (lastLog) {
+    const durationMs = Date.now() - lastLog.createdAt.getTime();
+    stepDurationSeconds = Math.max(0, Math.floor(durationMs / 1000));
+  }
+
   return db.activityApprovalLog.create({
-    data,
+    data: {
+      ...data,
+      stepDurationSeconds,
+    },
   });
 }
 
@@ -331,6 +595,7 @@ export async function updateHelperStatus(
       approvedById,
       rejectionReason,
       approvedAt: status === ActivityHelperStatus.APPROVED ? new Date() : null,
+      respondedAt: new Date(),
     },
   });
 }
@@ -374,7 +639,6 @@ export async function findEmployeeByUserId(userId: string) {
  * Retrieve or auto-create employee profile for logged-in user
  */
 export async function findOrCreateEmployeeForUser(userId: string, userName?: string, userEmail?: string) {
-  // 1. Try finding by userId
   let employee = await db.employee.findFirst({
     where: { userId, deletedAt: null },
     include: {
@@ -385,7 +649,6 @@ export async function findOrCreateEmployeeForUser(userId: string, userName?: str
 
   if (employee) return employee;
 
-  // 2. Try finding by user email if available
   if (userEmail) {
     employee = await db.employee.findFirst({
       where: { email: userEmail, deletedAt: null },
@@ -396,7 +659,6 @@ export async function findOrCreateEmployeeForUser(userId: string, userName?: str
     });
 
     if (employee) {
-      // Link userId to existing employee
       if (!employee.userId) {
         await db.employee.update({
           where: { id: employee.id },
@@ -407,11 +669,9 @@ export async function findOrCreateEmployeeForUser(userId: string, userName?: str
     }
   }
 
-  // 3. Fallback: Create new employee profile for user
   const name = userName || "พนักงาน";
   const email = userEmail || `user-${userId}@crm.local`;
 
-  // Check email uniqueness
   const existingEmail = await db.employee.findFirst({ where: { email } });
   const finalEmail = existingEmail ? `emp-${userId.slice(-6)}@crm.local` : email;
 
@@ -437,6 +697,81 @@ export async function findEmployeeById(id: string) {
     include: {
       position: true,
       department: true,
+    },
+  });
+}
+
+export type CreateActivityResultInput = {
+  activityPlanId: string;
+  actualStartDate: Date;
+  actualEndDate: Date;
+  actualAttendeesCount?: number | null;
+  resultStatus?: ActivityResultStatus;
+  resultSummary?: string | null;
+  problemFound?: string | null;
+  nextAction?: string | null;
+  actualSalesPromotionSpent?: number | null;
+  actualMarketingSpent?: number | null;
+  salesResultAmount?: number | null;
+  salesOrdersCount?: number | null;
+  collectResultAmount?: number | null;
+  demoPlotsCreated?: number | null;
+  demoPlotsFollowedUp?: number | null;
+  distributorsCount?: number | null;
+  farmersCount?: number | null;
+  recordedById: string;
+};
+
+/**
+ * Create or update ActivityResult (Post-activity outcome recording)
+ */
+export async function upsertActivityResult(input: CreateActivityResultInput) {
+  const spSpent = input.actualSalesPromotionSpent ?? 0;
+  const mktSpent = input.actualMarketingSpent ?? 0;
+  const actualTotalSpent = spSpent + mktSpent;
+
+  return db.activityResult.upsert({
+    where: { activityPlanId: input.activityPlanId },
+    create: {
+      activityPlanId: input.activityPlanId,
+      actualStartDate: input.actualStartDate,
+      actualEndDate: input.actualEndDate,
+      actualAttendeesCount: input.actualAttendeesCount ?? null,
+      resultStatus: input.resultStatus ?? ActivityResultStatus.COMPLETED,
+      resultSummary: input.resultSummary ?? null,
+      problemFound: input.problemFound ?? null,
+      nextAction: input.nextAction ?? null,
+      actualSalesPromotionSpent: input.actualSalesPromotionSpent ? new Prisma.Decimal(input.actualSalesPromotionSpent) : null,
+      actualMarketingSpent: input.actualMarketingSpent ? new Prisma.Decimal(input.actualMarketingSpent) : null,
+      actualTotalSpent: new Prisma.Decimal(actualTotalSpent),
+      salesResultAmount: input.salesResultAmount ? new Prisma.Decimal(input.salesResultAmount) : null,
+      salesOrdersCount: input.salesOrdersCount ?? null,
+      collectResultAmount: input.collectResultAmount ? new Prisma.Decimal(input.collectResultAmount) : null,
+      demoPlotsCreated: input.demoPlotsCreated ?? null,
+      demoPlotsFollowedUp: input.demoPlotsFollowedUp ?? null,
+      distributorsCount: input.distributorsCount ?? null,
+      farmersCount: input.farmersCount ?? null,
+      recordedById: input.recordedById,
+    },
+    update: {
+      actualStartDate: input.actualStartDate,
+      actualEndDate: input.actualEndDate,
+      actualAttendeesCount: input.actualAttendeesCount ?? null,
+      resultStatus: input.resultStatus ?? ActivityResultStatus.COMPLETED,
+      resultSummary: input.resultSummary ?? null,
+      problemFound: input.problemFound ?? null,
+      nextAction: input.nextAction ?? null,
+      actualSalesPromotionSpent: input.actualSalesPromotionSpent ? new Prisma.Decimal(input.actualSalesPromotionSpent) : null,
+      actualMarketingSpent: input.actualMarketingSpent ? new Prisma.Decimal(input.actualMarketingSpent) : null,
+      actualTotalSpent: new Prisma.Decimal(actualTotalSpent),
+      salesResultAmount: input.salesResultAmount ? new Prisma.Decimal(input.salesResultAmount) : null,
+      salesOrdersCount: input.salesOrdersCount ?? null,
+      collectResultAmount: input.collectResultAmount ? new Prisma.Decimal(input.collectResultAmount) : null,
+      demoPlotsCreated: input.demoPlotsCreated ?? null,
+      demoPlotsFollowedUp: input.demoPlotsFollowedUp ?? null,
+      distributorsCount: input.distributorsCount ?? null,
+      farmersCount: input.farmersCount ?? null,
+      recordedById: input.recordedById,
     },
   });
 }

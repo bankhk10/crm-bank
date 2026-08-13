@@ -85,20 +85,21 @@ export default function ActivityPlanEditView({ id }: Props) {
 
           setInitialData({
             title: plan.title,
-            activityType: plan.activityType,
+            activityTypeId: plan.activityTypeId || (typeof plan.activityType === "object" ? plan.activityType?.id : ""),
+            activityType: typeof plan.activityType === "object" ? plan.activityType?.name : plan.activityType,
             startDate: plan.startDate,
             endDate: plan.endDate,
             location: plan.location,
             objective: plan.objective,
             description: plan.description,
-            salesPromotionBudget: plan.salesPromotionBudget
-              ? Number(plan.salesPromotionBudget)
+            salesPromotionBudgetRequested: plan.salesPromotionBudgetRequested
+              ? Number(plan.salesPromotionBudgetRequested)
               : 0,
-            marketingBudget: plan.marketingBudget
-              ? Number(plan.marketingBudget)
+            marketingBudgetRequested: plan.marketingBudgetRequested
+              ? Number(plan.marketingBudgetRequested)
               : 0,
             notes: plan.notes || "",
-            details: plan.details,
+            details: plan.items || [],
             helperEmployeeIds,
             planCode: plan.code || plan.id,
             employeeName: plan.employee?.name,

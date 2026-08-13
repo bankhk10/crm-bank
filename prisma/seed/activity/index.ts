@@ -2,11 +2,15 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { seedActivityDepartmentsAndPositions } from "./departments-positions";
+import { seedActivityTypes } from "./activity-types";
 
 export async function seedActivityTestData(prisma: PrismaClient) {
   console.log("🏃 Starting Activity Test Data Seed...");
 
-  // 1. Departments & Positions
+  // 1. ActivityType Master (11 ประเภทงาน)
+  await seedActivityTypes(prisma);
+
+  // 2. Departments & Positions
   await seedActivityDepartmentsAndPositions(prisma);
 
   console.log("✅ Activity Test Data Seed completed successfully!");

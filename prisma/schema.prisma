@@ -116,6 +116,7 @@ model User {
   salesTargetHistories           SalesTargetHistory[]     @relation("SalesTargetHistoryUser")
   activityPlans                  ActivityPlan[]           @relation("UserActivityPlans")
   activityApprovalLogs           ActivityApprovalLog[]    @relation("UserActivityApprovalLogs")
+  activityResults                ActivityResult[]         @relation("UserActivityResults")
 }
 
 model Company {
@@ -1480,6 +1481,7 @@ model LoginAnnouncement {
 }
 
 // ==========================================
+// ==========================================
 // ACTIVITY FEATURE ENUMS
 // ==========================================
 
@@ -1514,97 +1516,292 @@ enum ActivityApprovalStep {
   HELPER_APPROVAL             // ตรวจสอบการช่วยงาน (Step 4)
 }
 
+enum ActivityResultStatus {
+  COMPLETED                   // ทำสำเร็จตามแผน
+  PARTIAL                     // ทำได้บางส่วน
+  FAILED                      // ไม่สำเร็จ / ต้องยกเลิก ณ วันงาน
+}
+
 // ==========================================
 // ACTIVITY FEATURE MODELS
 // ==========================================
 
+// ─── GROUP 1: Master / Lookup ─────────────────────────────────────────────────
+
+model ActivityType {
+  id          String  @id @default(cuid())
+  code        String  @unique // "TYPE_1" ... "TYPE_11"
+  name        String          // "เข้าพบร้านค้า / Key Farmer"
+  shortName   String?         @map("short_name") // "Visit", "Sales", ...
+  description String?
+  sortOrder   Int     @default(0) @map("sort_order")
+  isActive    Boolean @default(true) @map("is_active")
+
+  activityPlans ActivityPlan[]
+
+  @@map("activity_types")
+}
+
+// ─── GROUP 2: Core Transaction ────────────────────────────────────────────────
+
 model ActivityPlan {
-  id                     String         @id @default(cuid())
-  code                   String?        @unique @map("code") // เลขที่แผน (TPYYMMXXXX)
-  title                  String         // ชื่อกิจกรรม
-  startDate              DateTime       @map("start_date") // วันและเวลาเริ่มต้น
-  endDate                DateTime       @map("end_date")   // วันและเวลาสิ้นสุด
-  activityType           String         @map("activity_type") // ประเภทกิจกรรม
-  location               String         // รายละเอียดพื้นที่จัดกิจกรรม
-  objective              String         // เป้าหมายกิจกรรม
-  description            String         // รายละเอียดกิจกรรม
-  
-  // การของบประมาณ (ใส่เป็นเงินขออนุมัติ, เป็น null หรือ 0 เมื่อไม่ได้ใช้งบนั้น)
-  salesPromotionBudget   Decimal?       @db.Decimal(15, 2) @map("sales_promotion_budget")
-  marketingBudget        Decimal?       @db.Decimal(15, 2) @map("marketing_budget")
-  
-  notes                  String?        // หมายเหตุเพิ่มเติม
-  details                Json?          @map("details") // รายละเอียดโครงสร้างข้อมูลแบบเลือกตอบในฟอร์ม
-  status                 ActivityStatus @default(DRAFT)
-  
-  // ความสัมพันธ์
-  employeeId             String         @map("employee_id")      // พนักงานผู้สร้างแผนกิจกรรม
-  createdById            String         @map("created_by_id")    // บัญชีผู้ใช้งานที่สร้างแผน
-  currentApproverId      String?        @map("current_approver_id") // ผู้รับผิดชอบอนุมัติคนปัจจุบัน (สำหรับการเดินสายงาน Line Approval)
+  id             String         @id @default(cuid())
+  code           String?        @unique @map("code") // เลขที่แผน (TPYYMMXXXX)
 
-  // ผลการอนุมัติงบในขั้นตอน Step 3 (เพื่อใช้ในการขยับ State ของงบคู่ขนาน)
-  salesPromotionApproved Boolean?       @map("sales_promotion_approved")
-  marketingApproved      Boolean?       @map("marketing_approved")
-  salesManagerApproved   Boolean?       @map("sales_manager_approved")
+  // ──── WHO ──────────────────────────────────────────────
+  employeeId     String         @map("employee_id")            // พนักงานผู้สร้างแผน
+  createdById    String         @map("created_by_id")          // บัญชีผู้ใช้งานที่สร้างแผน
 
-  // Metadata & Soft Delete ตาม Coding Standards
-  createdAt              DateTime       @default(now()) @map("created_at")
-  updatedAt              DateTime       @updatedAt @map("updated_at")
-  deletedAt              DateTime?      @map("deleted_at")
+  // ──── WHAT ─────────────────────────────────────────────
+  activityTypeId String         @map("activity_type_id")       // FK → ActivityType
+  title          String
+  objective      String
+  description    String?
+  notes          String?
+
+  // ──── WHEN (+ Fiscal Dimensions for Analytics) ─────────
+  startDate      DateTime       @map("start_date")
+  endDate        DateTime       @map("end_date")
+  durationDays   Int            @default(1) @map("duration_days")   // auto-computed
+  fiscalYear     Int            @map("fiscal_year")                  // auto-computed (e.g. 2026)
+  fiscalMonth    Int            @map("fiscal_month")                 // auto-computed (1–12)
+  fiscalQuarter  Int            @map("fiscal_quarter")               // auto-computed (1–4)
+
+  // ──── WHERE ────────────────────────────────────────────
+  province       String?        // จังหวัด (จาก dropdown)
+  district       String?        // อำเภอ (จาก dropdown)
+  location       String         // รายละเอียดสถานที่เต็ม
+
+  // ──── BUDGET REQUESTED (ณ วันสร้างแผน) ────────────────
+  salesPromotionBudgetRequested  Decimal? @db.Decimal(15, 2) @map("sales_promotion_budget_requested")
+  marketingBudgetRequested       Decimal? @db.Decimal(15, 2) @map("marketing_budget_requested")
+  totalBudgetRequested           Decimal  @default(0) @db.Decimal(15, 2) @map("total_budget_requested") // sum อัตโนมัติ
+
+  // ──── BUDGET APPROVED (อัปเดตเมื่อผ่าน Step 3) ────────
+  salesPromotionBudgetApproved   Decimal? @db.Decimal(15, 2) @map("sales_promotion_budget_approved")
+  marketingBudgetApproved        Decimal? @db.Decimal(15, 2) @map("marketing_budget_approved")
+  totalBudgetApproved            Decimal? @db.Decimal(15, 2) @map("total_budget_approved")
+
+  // ──── WORKFLOW STATUS ──────────────────────────────────
+  status                         ActivityStatus @default(DRAFT)
+  currentApproverEmployeeId      String?        @map("current_approver_employee_id")
+
+  // ──── APPROVAL FLAGS (Step 3 parallel tracking) ────────
+  salesPromotionApproved  Boolean? @map("sales_promotion_approved")
+  marketingApproved       Boolean? @map("marketing_approved")
+  salesManagerApproved    Boolean? @map("sales_manager_approved")
+
+  // ──── TAT TIMESTAMPS (สำหรับ SLA / TAT Analytics) ─────
+  submittedAt  DateTime? @map("submitted_at")   // เวลาที่ส่งขออนุมัติ
+  approvedAt   DateTime? @map("approved_at")    // เวลาที่ผ่านครบทุก Step
+  rejectedAt   DateTime? @map("rejected_at")    // เวลาที่ถูกปฏิเสธ
+  cancelledAt  DateTime? @map("cancelled_at")   // เวลาที่ยกเลิก
+
+  // ──── METADATA & SOFT DELETE ───────────────────────────
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
 
   // Relations
-  employee               Employee       @relation("EmployeeActivityPlans", fields: [employeeId], references: [id], onDelete: Restrict)
-  createdBy              User           @relation("UserActivityPlans", fields: [createdById], references: [id], onDelete: Restrict)
-  currentApprover        Employee?      @relation("EmployeeActivityApprovals", fields: [currentApproverId], references: [id], onDelete: SetNull)
-  
-  helpers                ActivityHelper[]
-  approvalLogs           ActivityApprovalLog[]
+  employee         Employee      @relation("EmployeeActivityPlans", fields: [employeeId], references: [id], onDelete: Restrict)
+  createdBy        User          @relation("UserActivityPlans", fields: [createdById], references: [id], onDelete: Restrict)
+  currentApprover  Employee?     @relation("EmployeeActivityApprovals", fields: [currentApproverEmployeeId], references: [id], onDelete: SetNull)
+  activityType     ActivityType  @relation(fields: [activityTypeId], references: [id])
+
+  items        ActivityPlanItem[]
+  helpers      ActivityHelper[]
+  approvalLogs ActivityApprovalLog[]
+  result       ActivityResult?         // 1:1 บันทึกผลหลังกิจกรรม
 
   @@index([employeeId])
-  @@index([currentApproverId])
+  @@index([activityTypeId])
   @@index([status])
+  @@index([fiscalYear, fiscalMonth])
+  @@index([fiscalYear, fiscalQuarter])
+  @@index([province])
+  @@index([submittedAt])
+  @@index([approvedAt])
+  @@map("activity_plans")
+}
+
+model ActivityPlanItem {
+  id             String  @id @default(cuid())
+  activityPlanId String  @map("activity_plan_id")
+  itemOrder      Int     @default(0) @map("item_order")   // ลำดับรายการ
+
+  // ──── SHARED (ใช้กับหลาย Type) ────────────────────────
+  customerName   String? @map("customer_name")             // ร้านค้า/เกษตรกร (Type 1,2,3,4,6,9,11)
+  detail         String?                                   // รายละเอียดทั่วไป
+
+  // ──── TYPE 1: เข้าพบร้านค้า / Key Farmer ─────────────
+  visitTopic     String? @map("visit_topic")               // หัวข้อเข้าพบ
+
+  // ──── TYPE 2: ติดตามผลการใช้สินค้า ───────────────────
+  followupProductName String? @map("followup_product_name")
+
+  // ──── TYPE 3: เสนอขายสินค้า ───────────────────────────
+  saleProductName String?  @map("sale_product_name")
+  saleQuantity    Int?     @map("sale_quantity")
+  saleUnitPrice   Decimal? @db.Decimal(15, 2) @map("sale_unit_price")
+  saleTotalPrice  Decimal? @db.Decimal(15, 2) @map("sale_total_price")
+
+  // ──── TYPE 4: วางบิล / เก็บเงิน ──────────────────────
+  collectAmount   Decimal? @db.Decimal(15, 2) @map("collect_amount")
+
+  // ──── TYPE 5: สำรวจตลาดคู่แข่ง ───────────────────────
+  surveyCompetitorProduct String? @map("survey_competitor_product")
+  surveyStoreName         String? @map("survey_store_name")
+
+  // ──── TYPE 6: แก้ปัญหา / รับเรื่องร้องเรียน ──────────
+  issueType      String? @map("issue_type")
+
+  // ──── TYPE 7: ทำ/ติดตามแปลงสาธิต ─────────────────────
+  plotActivityType  String?  @map("plot_activity_type")    // "CREATE" | "FOLLOW_UP"
+  plotOwnerName     String?  @map("plot_owner_name")
+  plotProductName   String?  @map("plot_product_name")
+  plotCropCategory  String?  @map("plot_crop_category")    // หมวดพืช เช่น "ไม้ผล","พืชไร่"
+  plotCropName      String?  @map("plot_crop_name")
+  plotAreaRai       Decimal? @db.Decimal(10, 2) @map("plot_area_rai")
+  plotTreeCount     Int?     @map("plot_tree_count")
+  plotCount         Int?     @map("plot_count")            // จำนวนแปลง
+  existingPlotId    String?  @map("existing_plot_id")      // FK → DemoPlot ถ้าเป็น FOLLOW_UP
+  plotGrowthStage   String?  @map("plot_growth_stage")
+  plotStatus        String?  @map("plot_status")
+
+  // ──── TYPE 8: จัดประชุม ───────────────────────────────
+  meetingTopic          String? @map("meeting_topic")
+  meetingAttendeesCount Int?    @map("meeting_attendees_count")
+  meetingTargetProducts String? @map("meeting_target_products") // CSV ชื่อสินค้าเป้าหมาย
+
+  // ──── TYPE 9: กิจกรรมส่งเสริมการขายหน้าร้าน ──────────
+  storeProductName   String?  @map("store_product_name")
+  storeQuantityCases Int?     @map("store_quantity_cases")
+  storePricePerCase  Decimal? @db.Decimal(15, 2) @map("store_price_per_case")
+  storeTotalAmount   Decimal? @db.Decimal(15, 2) @map("store_total_amount")
+
+  // TYPE 10 (Field Day): ใช้ existingPlotId + customerName ร่วมกับ Type 7
+  // TYPE 11 (Stock): ใช้ customerName (shared)
+
+  // Relations
+  activityPlan  ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+
+  @@index([activityPlanId])
+  @@index([customerName])
+  @@index([saleProductName])
+  @@index([plotCropCategory])
+  @@index([plotOwnerName])
+  @@map("activity_plan_items")
 }
 
 model ActivityHelper {
   id             String               @id @default(cuid())
   activityPlanId String               @map("activity_plan_id")
-  employeeId     String               @map("employee_id")     // พนักงานที่ไปช่วยงาน
-  status         ActivityHelperStatus @default(PENDING)
-  rejectionReason String?             @map("rejection_reason") // เหตุผลหากถูกปัดตก
-  
-  approvedById   String?              @map("approved_by_id")   // ผจก. แผนกของคนช่วยที่กดอนุมัติ
-  approvedAt     DateTime?            @map("approved_at")
+  employeeId     String               @map("employee_id")       // พนักงานที่ไปช่วยงาน
+
+  // Denormalized snapshot ณ วันที่สร้าง (Analytics — ไม่กระทบเมื่อโอนย้ายแผนก)
+  departmentId   String?              @map("department_id")
+  departmentName String?              @map("department_name")
+
+  status          ActivityHelperStatus @default(PENDING)
+  rejectionReason String?              @map("rejection_reason")
+
+  approvedById   String?   @map("approved_by_id")
+  approvedAt     DateTime? @map("approved_at")
+  respondedAt    DateTime? @map("responded_at")   // เวลาที่ผู้จัดการตอบ (approve/reject)
 
   // Metadata & Soft Delete
-  createdAt      DateTime             @default(now()) @map("created_at")
-  updatedAt      DateTime             @updatedAt @map("updated_at")
-  deletedAt      DateTime?            @map("deleted_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
 
-  // Relations
-  activityPlan   ActivityPlan         @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  employee       Employee             @relation("EmployeeActivityHelpers", fields: [employeeId], references: [id], onDelete: Restrict)
-  approvedBy     Employee?            @relation("EmployeeApprovedHelpers", fields: [approvedById], references: [id], onDelete: SetNull)
+  activityPlan ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  employee     Employee     @relation("EmployeeActivityHelpers", fields: [employeeId], references: [id], onDelete: Restrict)
+  approvedBy   Employee?    @relation("EmployeeApprovedHelpers", fields: [approvedById], references: [id], onDelete: SetNull)
 
   @@unique([activityPlanId, employeeId])
   @@index([employeeId])
+  @@index([status])
+  @@index([departmentName])
+  @@map("activity_helpers")
 }
+
+// ─── GROUP 3: Workflow ────────────────────────────────────────────────────────
 
 model ActivityApprovalLog {
   id             String                 @id @default(cuid())
   activityPlanId String                 @map("activity_plan_id")
-  userId         String                 @map("user_id") // บัญชีผู้ใช้งานที่ทำรายการ
-  
+  userId         String                 @map("user_id")          // บัญชีผู้ใช้งานที่ทำรายการ
+
   action         ActivityApprovalAction
   step           ActivityApprovalStep
-  comment        String?                // เหตุผล / หมายเหตุ / สิ่งที่ต้องแก้ไข
-  
-  createdAt      DateTime               @default(now()) @map("created_at")
+  fromStatus     ActivityStatus?        @map("from_status")      // สถานะก่อนเปลี่ยน
+  toStatus       ActivityStatus?        @map("to_status")        // สถานะหลังเปลี่ยน
+  comment        String?                                         // เหตุผล / หมายเหตุ
 
-  // Relations
-  activityPlan   ActivityPlan           @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  user           User                   @relation("UserActivityApprovalLogs", fields: [userId], references: [id], onDelete: Restrict)
+  // TAT tracking: เวลาที่ใช้ในแต่ละ step (วินาที) — คำนวณ ณ เวลาที่บันทึก Log
+  stepDurationSeconds Int? @map("step_duration_seconds")
+
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  activityPlan ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  user         User         @relation("UserActivityApprovalLogs", fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([activityPlanId])
+  @@index([action])
+  @@index([step])
+  @@index([createdAt])
+  @@map("activity_approval_logs")
+}
+
+// ─── GROUP 4: Post-Activity Result ───────────────────────────────────────────
+
+model ActivityResult {
+  id             String  @id @default(cuid())
+  activityPlanId String  @unique @map("activity_plan_id") // 1:1 กับ ActivityPlan
+
+  // ──── ผลการดำเนินงาน (General) ────────────────────────
+  actualStartDate      DateTime             @map("actual_start_date")      // วันที่ทำจริง
+  actualEndDate        DateTime             @map("actual_end_date")
+  actualAttendeesCount Int?                 @map("actual_attendees_count") // จำนวนผู้เข้าร่วมจริง
+
+  resultStatus  ActivityResultStatus @default(COMPLETED) @map("result_status")
+  resultSummary String?              @map("result_summary")  // สรุปผลกิจกรรมโดยรวม
+  problemFound  String?              @map("problem_found")    // ปัญหาที่พบระหว่างทำ
+  nextAction    String?              @map("next_action")       // แผนการต่อยอด / ติดตาม
+
+  // ──── งบประมาณที่ใช้จริง ───────────────────────────────
+  actualSalesPromotionSpent Decimal? @db.Decimal(15, 2) @map("actual_sales_promotion_spent")
+  actualMarketingSpent      Decimal? @db.Decimal(15, 2) @map("actual_marketing_spent")
+  actualTotalSpent          Decimal? @db.Decimal(15, 2) @map("actual_total_spent")
+
+  // ──── ผลลัพธ์เชิงตัวเลขตามประเภทงาน ──────────────────
+  // TYPE 3: ยอดขาย
+  salesResultAmount  Decimal? @db.Decimal(15, 2) @map("sales_result_amount")  // ยอดสั่งซื้อที่ได้จริง
+  salesOrdersCount   Int?     @map("sales_orders_count")                       // จำนวนใบสั่งซื้อ
+
+  // TYPE 4: ยอดเก็บเงิน
+  collectResultAmount Decimal? @db.Decimal(15, 2) @map("collect_result_amount") // เก็บได้จริง
+
+  // TYPE 7/10: ผลแปลงสาธิต
+  demoPlotsCreated    Int? @map("demo_plots_created")     // จำนวนแปลงที่สร้างจริง
+  demoPlotsFollowedUp Int? @map("demo_plots_followed_up")
+
+  // TYPE 8/9/10: ผู้เข้าร่วม
+  distributorsCount Int? @map("distributors_count") // จำนวนดีลเลอร์
+  farmersCount      Int? @map("farmers_count")       // จำนวนเกษตรกร
+
+  // ──── METADATA ─────────────────────────────────────────
+  recordedById String   @map("recorded_by_id")  // พนักงานที่บันทึกผล
+  recordedAt   DateTime @default(now()) @map("recorded_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  activityPlan ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  recordedBy   User         @relation("UserActivityResults", fields: [recordedById], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+  @@index([resultStatus])
+  @@index([actualStartDate])
+  @@map("activity_results")
 }
 
 // ==========================================

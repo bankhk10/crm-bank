@@ -188,11 +188,9 @@ export function ActivityPlanForm({
   const [endTime, setEndTime] = useState(initEnd.timeStr);
 
   // Work types selection state
-  const initialTypes = initial.activityType
-    ? initial.activityType
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
+  const initialTypesRaw = (initial as any)?.activityType || (initial as any)?.activityTypeId || "";
+  const initialTypes = typeof initialTypesRaw === "string"
+    ? initialTypesRaw.split(",").map((s: string) => s.trim()).filter(Boolean)
     : [];
   const [selectedWorkTypes, setSelectedWorkTypes] =
     useState<string[]>(initialTypes);
@@ -623,10 +621,10 @@ export function ActivityPlanForm({
   const [isPromotionalMediaSelected, setIsPromotionalMediaSelected] =
     useState<boolean>(
       initDetails?.isPromotionalMediaSelected ??
-        (initial.marketingBudget ?? 0) > 0,
+        ((initial.marketingBudgetRequested ?? (initial as any).marketingBudget ?? 0) > 0),
     );
   const [marketingBudgetAmount, setMarketingBudgetAmount] = useState<number>(
-    initDetails?.marketingBudgetAmount ?? initial.marketingBudget ?? 10000,
+    initDetails?.marketingBudgetAmount ?? initial.marketingBudgetRequested ?? (initial as any).marketingBudget ?? 10000,
   );
   const [marketingProductItems, setMarketingProductItems] = useState<
     MarketingBudgetProductItem[]
@@ -679,7 +677,7 @@ export function ActivityPlanForm({
   const [isSalesPromotionSelected, setIsSalesPromotionSelected] =
     useState<boolean>(
       initDetails?.isSalesPromotionSelected ??
-        (initial.salesPromotionBudget ?? 0) > 0,
+        ((initial.salesPromotionBudgetRequested ?? (initial as any).salesPromotionBudget ?? 0) > 0),
     );
   const [salesPromotionItems, setSalesPromotionItems] = useState<
     SalesPromotionItem[]
@@ -1127,20 +1125,26 @@ export function ActivityPlanForm({
     };
 
     try {
+      const firstType = selectedWorkTypes[0] || WORK_TYPES[0];
+      const typeIndex = WORK_TYPES.indexOf(firstType);
+      const activityTypeId = typeIndex >= 0 ? `TYPE_${typeIndex + 1}` : "TYPE_1";
+
       const res = await onSubmit({
         title,
         startDate: startDateTime,
         endDate: endDateTime,
-        activityType: selectedWorkTypes.join(", "),
+        activityTypeId,
+        province: (initial as any)?.province ?? null,
+        district: (initial as any)?.district ?? null,
         location: hasLocationRequirement
           ? locationText
           : locationText.trim() || "ไม่ระบุสถานที่",
         objective: compiledObjective,
         description: compiledDescription,
-        salesPromotionBudget,
-        marketingBudget,
+        salesPromotionBudgetRequested: salesPromotionBudget,
+        marketingBudgetRequested: marketingBudget,
         notes: extraNotes,
-        details,
+        items: (initDetails?.items || details?.type1Items || []) as any,
         helperEmployeeIds,
       });
 

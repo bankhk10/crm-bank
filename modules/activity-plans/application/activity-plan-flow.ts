@@ -135,9 +135,9 @@ async function getSalesDirectors(tx: Prisma.TransactionClient) {
 
 async function notifyBudgetApprovers(plan: any, tx: Prisma.TransactionClient) {
   const hasSalesPromotion =
-    plan.salesPromotionBudget && plan.salesPromotionBudget.toNumber() > 0;
+    plan.salesPromotionBudgetRequested && plan.salesPromotionBudgetRequested.toNumber() > 0;
   const hasMarketing =
-    plan.marketingBudget && plan.marketingBudget.toNumber() > 0;
+    plan.marketingBudgetRequested && plan.marketingBudgetRequested.toNumber() > 0;
 
   if (hasSalesPromotion && plan.salesPromotionApproved !== true) {
     const managers = await getSalesAdminManagers(tx);
@@ -304,7 +304,8 @@ export async function submitActivityPlanUseCase(
       where: { id: planId },
       data: {
         status: ActivityStatus.PENDING_LINE_APPROVAL,
-        currentApproverId: creator.managerId,
+        currentApproverEmployeeId: creator.managerId,
+        submittedAt: new Date(),
       },
     });
 
@@ -367,7 +368,7 @@ export async function approveActivityPlanUseCase(
     // Step 2: Line Approval
     // ────────────────────────────────────────────────────────
     if (plan.status === ActivityStatus.PENDING_LINE_APPROVAL) {
-      if (plan.currentApproverId !== approverEmployee.id) {
+      if (plan.currentApproverEmployeeId !== approverEmployee.id) {
         return {
           success: false,
           error: "คุณไม่มีสิทธิ์อนุมัติแผนงานนี้ในขั้นตอนนี้",
@@ -417,7 +418,7 @@ export async function approveActivityPlanUseCase(
         } else {
           await tx.activityPlan.update({
             where: { id: planId },
-            data: { currentApproverId: nextManagerId },
+            data: { currentApproverEmployeeId: nextManagerId },
           });
 
           await tx.activityApprovalLog.create({
@@ -452,7 +453,7 @@ export async function approveActivityPlanUseCase(
 
       // 1. Sales Promotion Budget Approval
       const hasSalesPromotion =
-        plan.salesPromotionBudget && plan.salesPromotionBudget.toNumber() > 0;
+        plan.salesPromotionBudgetRequested && plan.salesPromotionBudgetRequested.toNumber() > 0;
       if (hasSalesPromotion && plan.salesPromotionApproved !== true) {
         if (isSalesAdminManager(approverEmployee)) {
           plan.salesPromotionApproved = true;
@@ -471,7 +472,7 @@ export async function approveActivityPlanUseCase(
 
       // 2. Marketing Budget Approval
       const hasMarketing =
-        plan.marketingBudget && plan.marketingBudget.toNumber() > 0;
+        plan.marketingBudgetRequested && plan.marketingBudgetRequested.toNumber() > 0;
       if (hasMarketing && plan.marketingApproved !== true) {
         if (isMarketingManager(approverEmployee)) {
           plan.marketingApproved = true;
@@ -525,13 +526,24 @@ export async function approveActivityPlanUseCase(
         };
       }
 
-      // Update budget progress flags
+      // Update budget progress flags & approved budget amounts if complete
+      const isBudgetFullyApproved = requiredSalesPromotionOk && requiredMarketingOk && salesDirectorOk;
+      
+      const spApprovedAmount = (requiredSalesPromotionOk && hasSalesPromotion) ? plan.salesPromotionBudgetRequested : null;
+      const mktApprovedAmount = (requiredMarketingOk && hasMarketing) ? plan.marketingBudgetRequested : null;
+      const totalApprovedAmount = isBudgetFullyApproved
+        ? (Number(spApprovedAmount || 0) + Number(mktApprovedAmount || 0))
+        : null;
+
       const updatedPlan = await tx.activityPlan.update({
         where: { id: planId },
         data: {
           salesPromotionApproved: plan.salesPromotionApproved,
           marketingApproved: plan.marketingApproved,
           salesManagerApproved: plan.salesManagerApproved,
+          salesPromotionBudgetApproved: spApprovedAmount,
+          marketingBudgetApproved: mktApprovedAmount,
+          totalBudgetApproved: totalApprovedAmount ? new Prisma.Decimal(totalApprovedAmount) : undefined,
         },
         include: { employee: true },
       });
@@ -559,7 +571,10 @@ export async function approveActivityPlanUseCase(
       if (pendingHelpers.length === 0) {
         await tx.activityPlan.update({
           where: { id: planId },
-          data: { status: ActivityStatus.APPROVED },
+          data: {
+            status: ActivityStatus.APPROVED,
+            approvedAt: new Date(),
+          },
         });
 
         // Notify creator & helpers
@@ -658,7 +673,10 @@ export async function approveActivityPlanUseCase(
         // Complete the flow and transition to APPROVED (Step 5)
         await tx.activityPlan.update({
           where: { id: planId },
-          data: { status: ActivityStatus.APPROVED },
+          data: {
+            status: ActivityStatus.APPROVED,
+            approvedAt: new Date(),
+          },
         });
 
         await tx.activityApprovalLog.create({
@@ -750,7 +768,7 @@ export async function rejectActivityPlanUseCase(
     let step: ActivityApprovalStep = ActivityApprovalStep.LINE_APPROVAL;
 
     if (plan.status === ActivityStatus.PENDING_LINE_APPROVAL) {
-      hasAuthority = plan.currentApproverId === approverEmployee.id;
+      hasAuthority = plan.currentApproverEmployeeId === approverEmployee.id;
       step = ActivityApprovalStep.LINE_APPROVAL;
     } else if (plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL) {
       hasAuthority =
@@ -776,7 +794,8 @@ export async function rejectActivityPlanUseCase(
       where: { id: planId },
       data: {
         status: ActivityStatus.REJECTED,
-        currentApproverId: null,
+        currentApproverEmployeeId: null,
+        rejectedAt: new Date(),
       },
     });
 
@@ -842,7 +861,7 @@ export async function requestCorrectionPlanUseCase(
     let step: ActivityApprovalStep = ActivityApprovalStep.LINE_APPROVAL;
 
     if (plan.status === ActivityStatus.PENDING_LINE_APPROVAL) {
-      hasAuthority = plan.currentApproverId === approverEmployee.id;
+      hasAuthority = plan.currentApproverEmployeeId === approverEmployee.id;
       step = ActivityApprovalStep.LINE_APPROVAL;
     } else if (plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL) {
       hasAuthority =
@@ -897,13 +916,13 @@ export async function requestCorrectionPlanUseCase(
       where: { id: planId },
       data: {
         status: ActivityStatus.WAITING_FOR_CORRECTION,
-        currentApproverId: null,
+        currentApproverEmployeeId: null,
         salesPromotionApproved:
-          plan.salesPromotionBudget && plan.salesPromotionBudget.toNumber() > 0
+          plan.salesPromotionBudgetRequested && plan.salesPromotionBudgetRequested.toNumber() > 0
             ? false
             : null,
         marketingApproved:
-          plan.marketingBudget && plan.marketingBudget.toNumber() > 0
+          plan.marketingBudgetRequested && plan.marketingBudgetRequested.toNumber() > 0
             ? false
             : null,
         salesManagerApproved: false,
@@ -970,7 +989,8 @@ export async function cancelActivityPlanUseCase(
       where: { id: planId },
       data: {
         status: ActivityStatus.CANCELLED,
-        currentApproverId: null,
+        currentApproverEmployeeId: null,
+        cancelledAt: new Date(),
       },
     });
 
@@ -999,16 +1019,16 @@ async function initiateBudgetApproval(
   logComment: string,
 ) {
   const hasSalesPromotion =
-    plan.salesPromotionBudget && plan.salesPromotionBudget.toNumber() > 0;
+    plan.salesPromotionBudgetRequested && plan.salesPromotionBudgetRequested.toNumber() > 0;
   const hasMarketing =
-    plan.marketingBudget && plan.marketingBudget.toNumber() > 0;
+    plan.marketingBudgetRequested && plan.marketingBudgetRequested.toNumber() > 0;
 
   if (hasSalesPromotion || hasMarketing) {
     const updatedPlan = await tx.activityPlan.update({
       where: { id: plan.id },
       data: {
         status: ActivityStatus.PENDING_BUDGET_APPROVAL,
-        currentApproverId: null,
+        currentApproverEmployeeId: null,
         salesPromotionApproved: hasSalesPromotion ? false : null,
         marketingApproved: hasMarketing ? false : null,
         salesManagerApproved: false,
@@ -1059,7 +1079,7 @@ async function initiateHelperApproval(
       where: { id: plan.id },
       data: {
         status: ActivityStatus.PENDING_HELPER_APPROVAL,
-        currentApproverId: null,
+        currentApproverEmployeeId: null,
       },
       include: { employee: true },
     });
@@ -1082,7 +1102,8 @@ async function initiateHelperApproval(
       where: { id: plan.id },
       data: {
         status: ActivityStatus.APPROVED,
-        currentApproverId: null,
+        currentApproverEmployeeId: null,
+        approvedAt: new Date(),
       },
       include: { employee: true },
     });

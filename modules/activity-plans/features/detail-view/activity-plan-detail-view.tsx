@@ -96,7 +96,7 @@ export default function ActivityPlanDetailView({ id }: Props) {
   let approvalPrompt = "";
 
   if (plan.status === "PENDING_LINE_APPROVAL") {
-    canApproveThisStep = userEmployeeId === plan.currentApproverId;
+    canApproveThisStep = userEmployeeId === plan.currentApproverEmployeeId;
     approvalPrompt = "คุณคือหัวหน้างานในสายการอนุมัติ Trip Plan นี้";
   } else if (plan.status === "PENDING_BUDGET_APPROVAL") {
     const canApproveBudget =
@@ -200,10 +200,10 @@ export default function ActivityPlanDetailView({ id }: Props) {
     }
   };
 
-  const salesPromoVal = plan.salesPromotionBudget
-    ? Number(plan.salesPromotionBudget)
+  const salesPromoVal = plan.salesPromotionBudgetRequested
+    ? Number(plan.salesPromotionBudgetRequested)
     : 0;
-  const marketingVal = plan.marketingBudget ? Number(plan.marketingBudget) : 0;
+  const marketingVal = plan.marketingBudgetRequested ? Number(plan.marketingBudgetRequested) : 0;
   const budgetTotal = salesPromoVal + marketingVal;
 
   return (
@@ -268,7 +268,7 @@ export default function ActivityPlanDetailView({ id }: Props) {
               />
               <DetailItem
                 label="ประเภทกิจกรรม"
-                value={plan.activityType}
+                value={typeof plan.activityType === "object" ? plan.activityType?.name || plan.activityType?.code : (plan.activityType || "ไม่ระบุ")}
                 icon={<FileText className="h-4 w-4" />}
               />
               <DetailItem

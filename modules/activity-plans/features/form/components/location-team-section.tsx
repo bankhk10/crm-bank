@@ -1,6 +1,7 @@
 import React from "react";
 import { Search, X, Users, MapPin, UserCircle2 } from "lucide-react";
 import { SectionHeader } from "@/modules/sales/features/form/forms/section-header";
+import { ALL_THAI_PROVINCES } from "@/lib/province-region-mapping";
 
 export interface Employee {
   id: string;
@@ -24,6 +25,10 @@ interface Props {
   removeHelper: (id: string) => void;
   locationText: string;
   setLocationText: (val: string) => void;
+  province?: string;
+  setProvince?: (val: string) => void;
+  district?: string;
+  setDistrict?: (val: string) => void;
 }
 
 export function LocationTeamSection({
@@ -40,6 +45,10 @@ export function LocationTeamSection({
   removeHelper,
   locationText,
   setLocationText,
+  province = "",
+  setProvince,
+  district = "",
+  setDistrict,
 }: Props) {
   if (
     !selectedWorkTypes.some((t) =>
@@ -61,48 +70,93 @@ export function LocationTeamSection({
       <SectionHeader title="สถานที่และทีมงาน" color="gray" />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* รายละเอียดพื้นที่จัดกิจกรรม */}
-        <div className="lg:col-span-8 space-y-2">
-          <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-            <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
-            รายละเอียดพื้นที่จัดกิจกรรม
-            <span className="text-red-500 ml-0.5">*</span>
-          </label>
-
-          <div className="relative">
-            <textarea
-              rows={5}
-              value={locationText}
-              maxLength={500}
-              onChange={(e) => setLocationText(e.target.value)}
-              disabled={readonly}
-              placeholder="ระบุสถานที่ ที่อยู่ และจุดสังเกต..."
-              className="w-full rounded-xl border border-slate-200 bg-white p-3 pr-4 text-sm text-slate-800
-                         placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/60
-                         focus:border-blue-400 transition-all resize-none
-                         disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
-            />
-            {/* Character count bar */}
-            <div className="mt-1.5 flex items-center justify-between gap-3">
-              <div className="flex-1 h-1 rounded-full bg-slate-100 overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-300 ${
-                    charPercent >= 90
-                      ? "bg-red-400"
-                      : charPercent >= 70
-                        ? "bg-amber-400"
-                        : "bg-blue-400"
-                  }`}
-                  style={{ width: `${charPercent}%` }}
-                />
-              </div>
-              <span
-                className={`text-[11px] tabular-nums font-medium ${
-                  charPercent >= 90 ? "text-red-500" : "text-slate-400"
-                }`}
+        {/* รายละเอียดพื้นที่จัดกิจกรรม & จังหวัด / อำเภอ */}
+        <div className="lg:col-span-8 space-y-3">
+          {/* Province & District dropdowns */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+                <MapPin className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                จังหวัด
+              </label>
+              <select
+                value={province}
+                onChange={(e) => setProvince && setProvince(e.target.value)}
+                disabled={readonly}
+                className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-800
+                           focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-400
+                           disabled:bg-slate-50 disabled:text-slate-500"
               >
-                {charCount} / 500
-              </span>
+                <option value="">-- เลือกจังหวัด --</option>
+                {ALL_THAI_PROVINCES.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
+                <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                อำเภอ / เขต
+              </label>
+              <input
+                type="text"
+                value={district}
+                onChange={(e) => setDistrict && setDistrict(e.target.value)}
+                disabled={readonly}
+                placeholder="กรอกอำเภอ..."
+                className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-800
+                           placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-400
+                           disabled:bg-slate-50 disabled:text-slate-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1">
+              <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
+              รายละเอียดพื้นที่จัดกิจกรรม
+              <span className="text-red-500 ml-0.5">*</span>
+            </label>
+
+            <div className="relative">
+              <textarea
+                rows={4}
+                value={locationText}
+                maxLength={500}
+                onChange={(e) => setLocationText(e.target.value)}
+                disabled={readonly}
+                placeholder="ระบุสถานที่ ที่อยู่ และจุดสังเกต..."
+                className="w-full rounded-xl border border-slate-200 bg-white p-3 pr-4 text-sm text-slate-800
+                           placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/60
+                           focus:border-blue-400 transition-all resize-none
+                           disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
+              />
+
+              {/* Character count bar */}
+              <div className="mt-1.5 flex items-center justify-between gap-3">
+                <div className="flex-1 h-1 rounded-full bg-slate-100 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      charPercent >= 90
+                        ? "bg-red-400"
+                        : charPercent >= 70
+                          ? "bg-amber-400"
+                          : "bg-blue-400"
+                    }`}
+                    style={{ width: `${charPercent}%` }}
+                  />
+                </div>
+                <span
+                  className={`text-[11px] tabular-nums font-medium ${
+                    charPercent >= 90 ? "text-red-500" : "text-slate-400"
+                  }`}
+                >
+                  {charCount} / 500
+                </span>
+              </div>
             </div>
           </div>
         </div>
