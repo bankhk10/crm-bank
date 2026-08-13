@@ -178,9 +178,6 @@ export default function ActivityPlanListView() {
             <p className="mt-2 text-sm text-slate-500 leading-relaxed">
               คุณแน่ใจว่าต้องการลบ Trip Plan{" "}
               <strong>{deleteCandidate.title}</strong> ใช่หรือไม่?
-              การลบจะเป็นแบบ Soft Delete
-              ประวัติของแผนงานนี้จะไม่ถูกลบออกจากฐานข้อมูลถาวร
-              แต่จะไม่แสดงบนหน้าจอรายการ
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <Button
