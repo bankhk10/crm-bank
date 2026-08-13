@@ -650,18 +650,13 @@ export function ActivityPlanForm({
   );
 
   const addMarketingProductItem = () => {
-    const defaultCat = MARKETING_PRODUCT_CATEGORIES[0];
-    const firstProdObj = MARKETING_PRODUCTS_BY_CATEGORY[defaultCat]?.[0];
-    const firstProd = firstProdObj ? firstProdObj.name : "สมุดฉีก";
-    const defaultPrice = firstProdObj ? firstProdObj.price : 25;
-    const defaultUnit = firstProdObj?.unit || "เล่ม";
     const newItem: MarketingBudgetProductItem = {
       id: Date.now().toString(),
-      category: defaultCat,
-      productName: firstProd,
+      category: "อื่นๆ",
+      productName: "",
       quantityCases: 1,
-      unit: defaultUnit,
-      pricePerCase: defaultPrice,
+      unit: "ชิ้น",
+      pricePerCase: 0,
     };
     setMarketingProductItems((prev) => [...prev, newItem]);
   };

@@ -467,10 +467,23 @@ export function BudgetSection({
                               </span>
                               <input
                                 type="number"
-                                value={item.pricePerCase}
-                                disabled={true}
-                                readOnly={true}
-                                className="w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 text-xs text-slate-500 text-right font-bold bg-slate-100/70 cursor-not-allowed"
+                                min={0}
+                                value={item.pricePerCase ?? 0}
+                                onChange={(e) =>
+                                  updateMarketingProductItem(
+                                    item.id,
+                                    "pricePerCase",
+                                    parseFloat(e.target.value) || 0,
+                                  )
+                                }
+                                disabled={currentCat !== "อื่นๆ" || readonly}
+                                readOnly={currentCat !== "อื่นๆ" || readonly}
+                                className={cn(
+                                  "w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 text-xs text-right font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500",
+                                  currentCat === "อื่นๆ" && !readonly
+                                    ? "bg-white text-slate-800"
+                                    : "bg-slate-100/70 text-slate-500 cursor-not-allowed",
+                                )}
                               />
                             </div>
                           </td>
