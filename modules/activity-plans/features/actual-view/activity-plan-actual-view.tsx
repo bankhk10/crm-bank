@@ -142,8 +142,8 @@ export default function ActivityPlanActualView({
   const [activeTypeTab, setActiveTypeTab] = useState<string>("ALL");
   const [planWorkTypes, setPlanWorkTypes] = useState<string[]>([]);
 
-  // Targets derived from Create Plan Form Constants
-  const targets = {
+  // Targets derived from Create Plan Form Constants or DB
+  const [targets, setTargets] = useState({
     t1: {
       customer: DEMO_OWNERS[0],
       topic: "แจ้งข่าวสาร",
@@ -238,7 +238,7 @@ export default function ActivityPlanActualView({
       detail: `ตรวจเช็กสต็อก ${DEMO_PRODUCTS[0]} และปุ๋ยเคมีเพื่อเตรียมสั่งซื้อเติมหน้าร้าน`,
       targetOpportunity: "สูง",
     },
-  };
+  });
 
   // ────────────────────────────────────────────────────────
   // FORM STATES (11 WORK TYPES)
@@ -396,6 +396,79 @@ export default function ActivityPlanActualView({
           if (matchedWorkType) {
             setPlanWorkTypes([matchedWorkType]);
             setActiveTypeTab(matchedWorkType);
+          }
+
+          // Populate target cards from real DB items
+          if (p.items && p.items.length > 0) {
+            const firstItem = p.items[0] as any;
+            const allCustomers = Array.from(
+              new Set(p.items.map((i: any) => i.customerName).filter(Boolean)),
+            ).join(", ");
+
+            setTargets((prev) => ({
+              ...prev,
+              t1: {
+                ...prev.t1,
+                customer: allCustomers || firstItem.customerName || p.location || prev.t1.customer,
+                topic: firstItem.visitTopic || firstItem.topic || prev.t1.topic,
+                detail: firstItem.detail || prev.t1.detail,
+              },
+              t2: {
+                ...prev.t2,
+                customer: allCustomers || firstItem.customerName || prev.t2.customer,
+                product: firstItem.followupProductName || firstItem.productName || prev.t2.product,
+                detail: firstItem.detail || prev.t2.detail,
+              },
+              t3: {
+                ...prev.t3,
+                customer: allCustomers || firstItem.customerName || prev.t3.customer,
+                product: firstItem.saleProductName || firstItem.productName || prev.t3.product,
+                targetSales: firstItem.saleTotalPrice ? `${Number(firstItem.saleTotalPrice).toLocaleString()} บาท` : prev.t3.targetSales,
+              },
+              t4: {
+                ...prev.t4,
+                customer: allCustomers || firstItem.customerName || prev.t4.customer,
+                targetCollect: firstItem.collectAmount ? `${Number(firstItem.collectAmount).toLocaleString()} บาท` : prev.t4.targetCollect,
+              },
+              t5: {
+                ...prev.t5,
+                store: firstItem.surveyStoreName || firstItem.storeName || allCustomers || prev.t5.store,
+                product: firstItem.surveyCompetitorProduct || prev.t5.product,
+                detail: firstItem.detail || prev.t5.detail,
+              },
+              t6: {
+                ...prev.t6,
+                customer: allCustomers || firstItem.customerName || prev.t6.customer,
+                issueType: firstItem.issueType || prev.t6.issueType,
+                detail: firstItem.detail || prev.t6.detail,
+              },
+              t7: {
+                ...prev.t7,
+                owner: firstItem.plotOwnerName || allCustomers || prev.t7.owner,
+                product: firstItem.plotProductName || prev.t7.product,
+                crop: firstItem.plotCropName || prev.t7.crop,
+              },
+              t8: {
+                ...prev.t8,
+                topic: firstItem.meetingTopic || prev.t8.topic,
+                products: firstItem.meetingTargetProducts || prev.t8.products,
+                targetAttendees: firstItem.meetingAttendeesCount ? `${firstItem.meetingAttendeesCount} คน` : prev.t8.targetAttendees,
+              },
+              t9: {
+                ...prev.t9,
+                store: allCustomers || firstItem.customerName || prev.t9.store,
+                product: firstItem.storeProductName || prev.t9.product,
+              },
+              t10: {
+                ...prev.t10,
+                plot: allCustomers || firstItem.customerName || prev.t10.plot,
+              },
+              t11: {
+                ...prev.t11,
+                store: allCustomers || firstItem.customerName || prev.t11.store,
+                detail: firstItem.detail || prev.t11.detail,
+              },
+            }));
           }
         }
       } catch (e) {
