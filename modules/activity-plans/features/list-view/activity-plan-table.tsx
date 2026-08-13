@@ -128,13 +128,27 @@ export function ActivityPlanTable({
         cell: ({ row }) => {
           const start = new Date(row.original.startDate);
           const end = new Date(row.original.endDate);
-          const formatted = `${format(start, "dd MMM yy HH:mm", { locale: th })} - ${format(end, "dd MMM yy HH:mm", { locale: th })}`;
+
+          const formatToBE = (date: Date) => {
+            if (isNaN(date.getTime())) return "-";
+
+            const dayMonth = format(date, "dd MMM", { locale: th });
+            const yearBE = date.getFullYear() + 543;
+            const time = format(date, "HH:mm");
+
+            return `${dayMonth} ${yearBE} ${time}`;
+          };
+
+          const startFormatted = formatToBE(start);
+          const endFormatted = formatToBE(end);
+
           return (
             <div
-              className="truncate text-sm font-medium text-slate-700 max-w-[200px]"
-              title={formatted}
+              className="text-sm font-medium text-slate-700"
+              title={`${startFormatted} - ${endFormatted}`}
             >
-              {formatted}
+              <div>{startFormatted} ถึง</div>
+              <div>{endFormatted}</div>
             </div>
           );
         },
