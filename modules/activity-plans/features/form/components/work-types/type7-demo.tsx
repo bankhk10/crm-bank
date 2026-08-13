@@ -60,7 +60,8 @@ export function Type7Demo({
     .filter(
       (i) =>
         (i.plotActivityType || "CREATE") === "CREATE" &&
-        (i.ownerName || i.cropName),
+        Boolean(i.ownerName?.trim()) &&
+        Boolean(i.cropName?.trim() || i.customCropName?.trim()),
     )
     .map((i) => {
       const cropDisplay = i.customCropName || i.cropName || "";
@@ -562,7 +563,7 @@ export function Type7Demo({
                           options={existingPlotOptions}
                           placeholder="เลือกแปลงสาธิตที่มีอยู่แล้ว..."
                           searchPlaceholder="ค้นหาแปลงสาธิตเดิม..."
-                          emptyText="ไม่พบแปลงสาธิตเดิม"
+                          emptyText="ยังไม่มีแปลงสาธิตเดิม"
                           disabled={readonly}
                           required
                         />
