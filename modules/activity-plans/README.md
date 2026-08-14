@@ -119,6 +119,15 @@ modules/activity-plans/
 
 ## 📝 บันทึกการอัปเดตฟีเจอร์ (Feature Change Log)
 
+### 2026-08-14: ปรับปรุง Data Flow และแก้ไขการแสดงผล Work Type 6 (แก้ปัญหา / รับเรื่องร้องเรียน) ในหน้า Trip Plan Actual
+- **คอมโพเนนต์ที่แก้ไข:**
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type6-issue.tsx`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+- **ปัญหาที่แก้ไข:**
+  1. **รายละเอียดเพิ่มเติมไม่แสดงในหน้า Actual:** ในหน้า Create (`type6-issue.tsx`) มีการบันทึกฟิลด์ `detail` ลงฐานข้อมูลตาราง `activity_plan_items` เรียบร้อยแล้ว แต่ในหน้า Actual (`actual-type6-issue.tsx`) คอมโพเนนต์ `ActualTargetCard` แสดงเฉพาะ `ลูกค้า/ร้านค้า` และ `ประเภทปัญหา` โดยไม่ได้นำ `รายละเอียดเพิ่มเติม` (`target.detail`) มาแสดง
+  2. **Multi-Item Issue Target Support:** ปรับปรุง `activity-plan-actual-view.tsx` ให้ map ทุกรายการร้องเรียน (`t6ItemsFromDb`) เข้าสู่ `targets.t6` และใน `actual-type6-issue.tsx` รองรับการแสดงผลทั้งแบบ 1 รายการ (`grid-cols-1 sm:grid-cols-3`) และแบบหลายรายการพร้อมรายละเอียดเพิ่มเติมครบถ้วน
+- **ผลลัพธ์:** ข้อมูล "รายละเอียดเพิ่มเติม" ที่บันทึกไว้ตอนสร้างแผนถูกส่งต่อและนำมาแสดงผลในหน้า Trip Plan Actual อย่างถูกต้อง 100% ตรงกับที่บันทึกไว้ในฐานข้อมูล
+
 ### 2026-08-14: ปรับปรุง Data Flow และแก้ไขการแสดงผล Work Type 5 (สำรวจตลาดของคู่แข่ง) ในหน้า Trip Plan Actual
 - **คอมโพเนนต์ที่แก้ไข:**
   - `modules/activity-plans/features/actual-view/components/work-types/actual-type5-survey.tsx`

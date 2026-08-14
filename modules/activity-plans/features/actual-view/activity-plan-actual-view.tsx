@@ -183,6 +183,7 @@ export default function ActivityPlanActualView({
       issueType: "เคลมของ",
       detail: "",
       targetStatus: "เสร็จสิ้น",
+      items: [] as any[],
     },
     t7: {
       owner: "",
@@ -768,9 +769,27 @@ export default function ActivityPlanActualView({
                   i.surveyStoreName,
               );
 
-            const t6Item = allItems.find(
-              (i) => i.itemType === "TYPE_6" || i.issueType,
+            const type6DbItems = allItems.filter(
+              (i) =>
+                i.itemType !== "MARKETING_PRODUCT" &&
+                i.itemType !== "SALES_PROMOTION" &&
+                i.visitTopic !== "MARKETING_PRODUCT" &&
+                i.visitTopic !== "SALES_PROMOTION" &&
+                (i.itemType === "TYPE_6" || i.issueType),
             );
+
+            const t6ItemsFromDb =
+              type6DbItems.length > 0
+                ? type6DbItems.map((item) => ({
+                    customer: item.customerName || p.location || "",
+                    issueType: item.issueType || "เคลมของ",
+                    detail: item.detail || "",
+                  }))
+                : undefined;
+
+            const t6Item =
+              type6DbItems[0] ||
+              allItems.find((i) => i.itemType === "TYPE_6" || i.issueType);
 
             const t7Item = allItems.find(
               (i) =>
@@ -900,9 +919,33 @@ export default function ActivityPlanActualView({
               },
               t6: {
                 ...prev.t6,
-                customer: t6Item?.customerName || allCustomers || "",
-                issueType: t6Item?.issueType || prev.t6.issueType,
-                detail: t6Item?.detail || "",
+                customer:
+                  (t6ItemsFromDb &&
+                    Array.from(
+                      new Set(
+                        t6ItemsFromDb.map((i) => i.customer).filter(Boolean),
+                      ),
+                    ).join(", ")) ||
+                  t6Item?.customerName ||
+                  allCustomers ||
+                  "",
+                issueType:
+                  (t6ItemsFromDb &&
+                    t6ItemsFromDb
+                      .map((i) => i.issueType)
+                      .filter(Boolean)
+                      .join(", ")) ||
+                  t6Item?.issueType ||
+                  prev.t6.issueType,
+                detail:
+                  (t6ItemsFromDb &&
+                    t6ItemsFromDb
+                      .map((i) => i.detail)
+                      .filter(Boolean)
+                      .join(" | ")) ||
+                  t6Item?.detail ||
+                  "",
+                items: t6ItemsFromDb || [],
               },
               t7: {
                 ...prev.t7,

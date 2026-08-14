@@ -163,8 +163,11 @@ export function ActualType11Stock({
       <ActualTargetCard
         iconColorClass="text-slate-600"
         badgeColorClass="bg-slate-200 text-slate-800"
-        gridColsClass="grid-cols-1 sm:grid-cols-1"
-        items={[{ label: "ร้านค้าตรวจเช็ก:", value: target.store }]}
+        gridColsClass="grid-cols-1 sm:grid-cols-2"
+        items={[
+          { label: "ร้านค้าตรวจเช็ก:", value: target.store || "-" },
+          { label: "รายละเอียดเพิ่มเติม:", value: target.detail || "-" },
+        ]}
       />
 
       {/* ITEMS LIST SECTION */}
