@@ -73,46 +73,6 @@ export function LocationTeamSection({
         {/* รายละเอียดพื้นที่จัดกิจกรรม & จังหวัด / อำเภอ */}
         <div className="lg:col-span-8 space-y-3">
           {/* Province & District dropdowns */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
-                <MapPin className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                จังหวัด
-              </label>
-              <select
-                value={province}
-                onChange={(e) => setProvince && setProvince(e.target.value)}
-                disabled={readonly}
-                className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-800
-                           focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-400
-                           disabled:bg-slate-50 disabled:text-slate-500"
-              >
-                <option value="">-- เลือกจังหวัด --</option>
-                {ALL_THAI_PROVINCES.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
-                <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                อำเภอ / เขต
-              </label>
-              <input
-                type="text"
-                value={district}
-                onChange={(e) => setDistrict && setDistrict(e.target.value)}
-                disabled={readonly}
-                placeholder="กรอกอำเภอ..."
-                className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-800
-                           placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-400
-                           disabled:bg-slate-50 disabled:text-slate-500"
-              />
-            </div>
-          </div>
 
           <div>
             <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1">
