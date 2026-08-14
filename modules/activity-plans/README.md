@@ -139,6 +139,18 @@ modules/activity-plans/
   - **Database Persistence & Edit Support:** รองรับการบันทึกลงฟิลด์เฉพาะในตาราง `activity_results` (`cancel_reason`, `postponed_date`, `postponed_time`, `postponed_reason`, `postponed_notes`) พร้อมดึงกลับมาแสดงผลและแก้ไขได้ทันที
   - **Validation:** ตรวจสอบความถูกต้องของข้อมูลกรณีเลือกเลื่อนหรือยกเลิกก่อนส่งบันทึก
 
+### 2026-08-14: แก้ไข Bug ตรวจจับประเภทงานผิดพลาด (Work Type Detection Bug Fix)
+- **คอมโพเนนต์ที่แก้ไข:** `activity-plan-form.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-detail-view.tsx`
+- **ปัญหา:** หน้าแก้ไข (Edit View), หน้ารายละเอียด (Detail View) และหน้า Actual View ตรวจจับประเภทงานเพิ่มขึ้นมาเอง (เช่น วางบิล/เก็บเงิน, จัดกิจกรรมส่งเสริมการขายหน้าร้าน, แปลงสาธิต) แม้ตอนสร้างจะเลือกเพียง "เข้าพบร้านค้า / Key Farmer"
+- **สาเหตุ:**
+  1. รายการ "สื่อส่งเสริมการขาย" และ "รายการส่งเสริมการขาย" ถูกจัดเก็บในตาราง `activity_plan_items` โดยยืมฟิลด์ เช่น `collectAmount`, `storeProductName`, `plotCropCategory` มาใช้
+  2. เมื่อวนลูปตรวจสอบ items เพื่อดึงประเภทงานกลับมา ระบบตรวจพบฟิลด์เหล่านี้จึงเข้าใจผิดว่าเป็นประเภทงานอื่นๆ
+  3. มีการสแกน `description` ซึ่งมีบล็อกข้อความ `[สื่อส่งเสริมการขาย]` และ `[รายการส่งเสริมการขาย]` ทำให้เกิด string matching ผิดพลาด
+- **การแก้ไข:**
+  - เพิ่มเงื่อนไขกรอง (Filter out) `MARKETING_PRODUCT` และ `SALES_PROMOTION` ออกจากการตรวจจับประเภทงานและการเริ่มต้น State ของ items แต่ละประเภท
+  - ปรับการสแกน Header ให้ตรวจจับเฉพาะใน `objective` และ `title` โดยไม่นำ `description` มาสแกน
+  - อัปเดต `extractWorkTypeSections` ใน Detail View และ `detectedWorkTypes` ใน Actual View ให้ทำงานสอดคล้องกันอย่างถูกต้อง
+
 ### 2026-08-14: เพิ่มหน้าจอศูนย์ตรวจสอบและอนุมัติกิจกรรม & ปรับปรุง Actual Form Type 2
 - **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `actual-type2-followup.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-approval-list-view.tsx`, `approval-action-dialog.tsx`, `approval-detail-drawer.tsx`, `activity-plan.repository.ts`, `server/actions.ts`
 - **การปรับปรุง Actual Form Type 2 (ติดตามผลการใช้สินค้า):**

@@ -1229,11 +1229,15 @@ function extractWorkTypeSections(
   // ── 3. เสนอขายสินค้า ────────────────────────────────────
   const type3DbItems = items.filter(
     (i) =>
-      i.itemType === "TYPE_3" ||
-      i.saleProductName ||
-      i.saleTotalPrice != null ||
-      i.saleQuantity != null ||
-      i.saleUnitPrice != null,
+      i.itemType !== "MARKETING_PRODUCT" &&
+      i.itemType !== "SALES_PROMOTION" &&
+      i.visitTopic !== "MARKETING_PRODUCT" &&
+      i.visitTopic !== "SALES_PROMOTION" &&
+      (i.itemType === "TYPE_3" ||
+        i.saleProductName ||
+        i.saleTotalPrice != null ||
+        i.saleQuantity != null ||
+        i.saleUnitPrice != null),
   );
   const t3Line = objectiveLines.find(
     (l) => l.includes("[เสนอขายสินค้า]") || l.includes("เสนอขายสินค้า"),
@@ -1288,8 +1292,11 @@ function extractWorkTypeSections(
   // ── 4. วางบิล / เก็บเงิน ─────────────────────────────────
   const type4DbItems = items.filter(
     (i) =>
-      (i.itemType === "TYPE_4" || i.collectAmount != null) &&
-      i.itemType !== "SALES_PROMOTION",
+      i.itemType !== "MARKETING_PRODUCT" &&
+      i.itemType !== "SALES_PROMOTION" &&
+      i.visitTopic !== "MARKETING_PRODUCT" &&
+      i.visitTopic !== "SALES_PROMOTION" &&
+      (i.itemType === "TYPE_4" || (i.collectAmount != null && !i.visitTopic)),
   );
   const t4Line = objectiveLines.find(
     (l) =>
@@ -1416,11 +1423,15 @@ function extractWorkTypeSections(
   // ── 7. ติดตามแปลงสาธิต / ทำแปลง ────────────────────────
   const type7DbItems = items.filter(
     (i) =>
-      i.itemType === "TYPE_7" ||
-      i.plotActivityType ||
-      i.plotCropName ||
-      i.plotOwnerName ||
-      i.plotAreaRai != null,
+      i.itemType !== "MARKETING_PRODUCT" &&
+      i.itemType !== "SALES_PROMOTION" &&
+      i.visitTopic !== "MARKETING_PRODUCT" &&
+      i.visitTopic !== "SALES_PROMOTION" &&
+      (i.itemType === "TYPE_7" ||
+        i.plotActivityType ||
+        (i.plotCropName && !i.storePricePerCase) ||
+        (i.plotOwnerName && !i.storePricePerCase) ||
+        i.plotAreaRai != null),
   );
   const t7Line = objectiveLines.find(
     (l) =>
@@ -1549,10 +1560,13 @@ function extractWorkTypeSections(
   // ── 9. จัดกิจกรรมส่งเสริมการขายหน้าร้าน ─────────────────
   const type9DbItems = items.filter(
     (i) =>
+      i.itemType !== "MARKETING_PRODUCT" &&
+      i.itemType !== "SALES_PROMOTION" &&
+      i.visitTopic !== "MARKETING_PRODUCT" &&
+      i.visitTopic !== "SALES_PROMOTION" &&
       (i.itemType === "TYPE_9" ||
-        i.storeProductName ||
-        i.storeTotalAmount != null) &&
-      i.itemType !== "MARKETING_PRODUCT",
+        (i.storeProductName && !i.plotCropCategory) ||
+        (i.storeTotalAmount != null && !i.plotCropCategory)),
   );
   const t9Line = objectiveLines.find(
     (l) =>

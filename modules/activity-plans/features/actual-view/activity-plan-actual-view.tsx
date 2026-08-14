@@ -478,97 +478,103 @@ export default function ActivityPlanActualView({
             }
           }
 
-          // (B) From objective, description, notes, title (section headers / markers)
-          const fullPlanText = [p.objective, p.description, p.notes, p.title]
+          // (B) From objective / title (section headers / markers)
+          const objectiveText = [p.objective, p.title]
             .filter(Boolean)
             .join("\n");
 
-          if (fullPlanText) {
+          if (objectiveText) {
             if (
-              fullPlanText.includes("[เข้าพบร้านค้า") ||
-              fullPlanText.includes("เข้าพบร้านค้า") ||
-              fullPlanText.includes("Key Farmer")
+              objectiveText.includes("[เข้าพบร้านค้า") ||
+              objectiveText.includes("เข้าพบร้านค้า") ||
+              objectiveText.includes("Key Farmer")
             ) {
               detectedWorkTypes.add(WORK_TYPES[0]);
             }
             if (
-              fullPlanText.includes("[ติดตามผลการใช้สินค้า]") ||
-              fullPlanText.includes("ติดตามผลการใช้สินค้า")
+              objectiveText.includes("[ติดตามผลการใช้สินค้า]") ||
+              objectiveText.includes("ติดตามผลการใช้สินค้า")
             ) {
               detectedWorkTypes.add(WORK_TYPES[1]);
             }
             if (
-              fullPlanText.includes("[เสนอขายสินค้า]") ||
-              fullPlanText.includes("เสนอขายสินค้า")
+              objectiveText.includes("[เสนอขายสินค้า]") ||
+              objectiveText.includes("เสนอขายสินค้า")
             ) {
               detectedWorkTypes.add(WORK_TYPES[2]);
             }
             if (
-              fullPlanText.includes("[วางบิล") ||
-              fullPlanText.includes("วางบิล / เก็บเงิน") ||
-              fullPlanText.includes("วางบิล/เก็บเงิน") ||
-              fullPlanText.includes("เป้ายอดเก็บเงิน")
+              objectiveText.includes("[วางบิล") ||
+              objectiveText.includes("วางบิล / เก็บเงิน") ||
+              objectiveText.includes("วางบิล/เก็บเงิน") ||
+              objectiveText.includes("เป้ายอดเก็บเงิน")
             ) {
               detectedWorkTypes.add(WORK_TYPES[3]);
             }
             if (
-              fullPlanText.includes("[สำรวจตลาด") ||
-              fullPlanText.includes("สำรวจตลาดของคู่แข่ง") ||
-              fullPlanText.includes("สำรวจตลาดคู่แข่ง")
+              objectiveText.includes("[สำรวจตลาด") ||
+              objectiveText.includes("สำรวจตลาดของคู่แข่ง") ||
+              objectiveText.includes("สำรวจตลาดคู่แข่ง")
             ) {
               detectedWorkTypes.add(WORK_TYPES[4]);
             }
             if (
-              fullPlanText.includes("[แก้ปัญหา") ||
-              fullPlanText.includes("แก้ปัญหา / รับเรื่องร้องเรียน") ||
-              fullPlanText.includes("แก้ปัญหา/ร้องเรียน") ||
-              fullPlanText.includes("รับเรื่องร้องเรียน")
+              objectiveText.includes("[แก้ปัญหา") ||
+              objectiveText.includes("แก้ปัญหา / รับเรื่องร้องเรียน") ||
+              objectiveText.includes("แก้ปัญหา/ร้องเรียน") ||
+              objectiveText.includes("รับเรื่องร้องเรียน")
             ) {
               detectedWorkTypes.add(WORK_TYPES[5]);
             }
             if (
-              fullPlanText.includes("[ติดตามแปลงสาธิต") ||
-              fullPlanText.includes("ติดตามแปลงสาธิต / ทำแปลง") ||
-              fullPlanText.includes("ทำแปลงสาธิต") ||
-              fullPlanText.includes("แปลงสาธิต")
+              objectiveText.includes("[ติดตามแปลงสาธิต") ||
+              objectiveText.includes("ติดตามแปลงสาธิต / ทำแปลง") ||
+              objectiveText.includes("ทำแปลงสาธิต") ||
+              objectiveText.includes("แปลงสาธิต")
             ) {
               detectedWorkTypes.add(WORK_TYPES[6]);
             }
             if (
-              fullPlanText.includes("[จัดประชุม") ||
-              fullPlanText.includes("จัดประชุมการเกษตร") ||
-              fullPlanText.includes("ประชุมการเกษตร")
+              objectiveText.includes("[จัดประชุม") ||
+              objectiveText.includes("จัดประชุมการเกษตร") ||
+              objectiveText.includes("ประชุมการเกษตร")
             ) {
               detectedWorkTypes.add(WORK_TYPES[7]);
             }
             if (
-              fullPlanText.includes("[กิจกรรมหน้าร้าน]") ||
-              fullPlanText.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") ||
-              fullPlanText.includes("กิจกรรมส่งเสริมการขายหน้าร้าน") ||
-              fullPlanText.includes("ส่งเสริมการขายหน้าร้าน")
+              objectiveText.includes("[กิจกรรมหน้าร้าน]") ||
+              objectiveText.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")
             ) {
               detectedWorkTypes.add(WORK_TYPES[8]);
             }
             if (
-              fullPlanText.includes("[Field Day]") ||
-              fullPlanText.includes("Field Day") ||
-              fullPlanText.includes("จัดงาน Field Day")
+              objectiveText.includes("[Field Day]") ||
+              objectiveText.includes("Field Day") ||
+              objectiveText.includes("จัดงาน Field Day")
             ) {
               detectedWorkTypes.add(WORK_TYPES[9]);
             }
             if (
-              fullPlanText.includes("[ตรวจเช็กสต็อก") ||
-              fullPlanText.includes("ตรวจเช็กสต็อกหน้าร้าน") ||
-              fullPlanText.includes("เช็กสต็อกหน้าร้าน") ||
-              fullPlanText.includes("สต็อกหน้าร้าน")
+              objectiveText.includes("[ตรวจเช็กสต็อก") ||
+              objectiveText.includes("ตรวจเช็กสต็อกหน้าร้าน") ||
+              objectiveText.includes("เช็กสต็อกหน้าร้าน") ||
+              objectiveText.includes("สต็อกหน้าร้าน")
             ) {
               detectedWorkTypes.add(WORK_TYPES[10]);
             }
           }
 
-          // (C) From DB items
+          // (C) From DB items (excluding marketing & sales promo items)
           if (Array.isArray(p.items)) {
-            for (const item of p.items as any[]) {
+            const actualItems = (p.items as any[]).filter(
+              (item) =>
+                item.itemType !== "MARKETING_PRODUCT" &&
+                item.itemType !== "SALES_PROMOTION" &&
+                item.visitTopic !== "MARKETING_PRODUCT" &&
+                item.visitTopic !== "SALES_PROMOTION",
+            );
+
+            for (const item of actualItems) {
               if (item.itemType === "TYPE_1" || item.visitTopic) {
                 detectedWorkTypes.add(WORK_TYPES[0]);
               }
@@ -601,7 +607,6 @@ export default function ActivityPlanActualView({
                 item.itemType === "TYPE_7" ||
                 item.plotActivityType ||
                 item.plotCropName ||
-                item.plotCropCategory ||
                 item.plotOwnerName ||
                 item.plotAreaRai != null
               ) {
