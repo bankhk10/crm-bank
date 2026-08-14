@@ -77,14 +77,15 @@ export function ActualType5Survey({
 }: ActualType5SurveyProps) {
   const [internalUnit, setInternalUnit] = React.useState("ขวด");
   const unitValue =
-    competitorUnit !== undefined ? competitorUnit : internalUnit;
+    competitorUnit !== undefined && competitorUnit !== ""
+      ? competitorUnit
+      : internalUnit;
 
   const handleUnitChange = (val: string) => {
     if (setCompetitorUnit) {
       setCompetitorUnit(val);
-    } else {
-      setInternalUnit(val);
     }
+    setInternalUnit(val);
   };
 
   if (!isVisible) return null;

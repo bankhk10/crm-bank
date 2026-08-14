@@ -1076,6 +1076,12 @@ export default function ActivityPlanActualView({
               if (compPriceMatch && compPriceMatch[1]) {
                 setT5CompetitorPrice(compPriceMatch[1].split("\n")[0].trim());
               }
+              const compUnitMatch = summaryText.match(
+                /(?:หน่วยนับคู่แข่ง|หน่วยนับ):\s*(.+)/,
+              );
+              if (compUnitMatch && compUnitMatch[1]) {
+                setT5CompetitorUnit(compUnitMatch[1].split("\n")[0].trim());
+              }
               const promoMatch = summaryText.match(/โปรโมชันคู่แข่ง:\s*(.+)/);
               if (promoMatch && promoMatch[1]) {
                 setT5PromotionDetail(promoMatch[1].split("\n")[0].trim());
@@ -1521,6 +1527,7 @@ export default function ActivityPlanActualView({
           t5CompetitorBrand ? `แบรนด์คู่แข่ง: ${t5CompetitorBrand}` : null,
           t5CompetitorProduct ? `สินค้าคู่แข่ง: ${t5CompetitorProduct}` : null,
           t5CompetitorPrice ? `ราคาคู่แข่ง: ${t5CompetitorPrice}` : null,
+          t5CompetitorUnit ? `หน่วยนับคู่แข่ง: ${t5CompetitorUnit}` : null,
           t5PromotionDetail ? `โปรโมชันคู่แข่ง: ${t5PromotionDetail}` : null,
 
           // Type 6
