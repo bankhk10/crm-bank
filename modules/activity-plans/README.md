@@ -119,6 +119,17 @@ modules/activity-plans/
 
 ## 📝 บันทึกการอัปเดตฟีเจอร์ (Feature Change Log)
 
+### 2026-08-14: ปรับปรุง Data Flow และแก้ไขการแสดงผล Work Type 5 (สำรวจตลาดของคู่แข่ง) ในหน้า Trip Plan Actual
+- **คอมโพเนนต์ที่แก้ไข:**
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type5-survey.tsx`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+  - `modules/activity-plans/features/actual-view/components/actual-target-card.tsx`
+- **ปัญหาที่แก้ไข:**
+  1. **รายละเอียดเพิ่มเติมไม่แสดงในหน้า Actual:** ในหน้า Create (`type5-survey.tsx`) มีการบันทึกฟิลด์ `detail` ลงฐานข้อมูลตาราง `activity_plan_items` เรียบร้อยแล้ว แต่ในหน้า Actual (`actual-type5-survey.tsx`) ตัวคอมโพเนนต์ `ActualTargetCard` ส่งเฉพาะ `ร้านค้าที่สำรวจ` และ `สินค้าเปรียบเทียบ` โดยไม่ได้ใส่ `รายละเอียดเพิ่มเติม` เข้าไปในการ์ด
+  2. **Multi-Item Survey Target Support:** ปรับปรุง `activity-plan-actual-view.tsx` ให้ map ทุกรายการสำรวจ (`t5ItemsFromDb`) เข้าสู่ `targets.t5` และใน `actual-type5-survey.tsx` รองรับการแสดงผลทั้งแบบ 1 รายการ (`grid-cols-1 sm:grid-cols-3`) และแบบหลายรายการพร้อมรายละเอียดเพิ่มเติมครบถ้วน
+  3. **Text Wrapping Safety:** ปรับปรุง `actual-target-card.tsx` ให้มี `block break-words whitespace-pre-wrap` เพื่อรองรับข้อความรายละเอียดขนาดยาวโดยไม่ทำให้ UI Layout พัง
+- **ผลลัพธ์:** ข้อมูล "รายละเอียดเพิ่มเติม" ที่บันทึกไว้ตอนสร้างแผนถูกส่งต่อและนำมาแสดงผลในหน้า Trip Plan Actual อย่างถูกต้อง 100% โดยตรงจากฐานข้อมูล และแสดงเป็น `-` เมื่อไม่มีข้อมูลตามมาตรฐานระบบ
+
 ### 2026-08-14: ปรับปรุง Data Flow และแก้ไขการแสดงผล Work Type 3 (เสนอขายสินค้า) ระหว่างหน้า Create และ Actual
 - **คอมโพเนนต์ที่แก้ไข:**
   - `modules/activity-plans/features/actual-view/components/work-types/actual-type3-sales.tsx`

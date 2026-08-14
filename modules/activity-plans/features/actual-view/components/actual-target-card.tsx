@@ -50,7 +50,7 @@ export function ActualTargetCard({
             </span>
             <span
               className={cn(
-                "font-bold",
+                "font-bold block break-words whitespace-pre-wrap",
                 item.highlight ? "text-emerald-700" : "text-slate-900"
               )}
             >

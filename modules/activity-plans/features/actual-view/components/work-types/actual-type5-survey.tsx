@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Camera, X } from "lucide-react";
+import { Camera, X, BarChart2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ActualTargetCard } from "../actual-target-card";
@@ -29,12 +29,19 @@ export const COMPETITOR_PRODUCT_UNITS = [
   "ชิ้น",
 ];
 
+export interface TargetSurveyItem {
+  store: string;
+  product: string;
+  detail: string;
+}
+
 interface ActualType5SurveyProps {
   isVisible: boolean;
   target: {
     store: string;
     product: string;
     detail: string;
+    items?: TargetSurveyItem[];
   };
   competitorBrand: string;
   setCompetitorBrand: (v: string) => void;
@@ -82,6 +89,8 @@ export function ActualType5Survey({
 
   if (!isVisible) return null;
 
+  const hasMultipleItems = target.items && target.items.length > 1;
+
   return (
     <div className="border-2 border-amber-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
       <div className="flex items-center justify-between border-b border-amber-100 pb-3">
@@ -92,15 +101,68 @@ export function ActualType5Survey({
         </div>
       </div>
 
-      <ActualTargetCard
-        iconColorClass="text-amber-600"
-        badgeColorClass="bg-amber-100 text-amber-800"
-        gridColsClass="grid-cols-1 sm:grid-cols-2"
-        items={[
-          { label: "ร้านค้าที่สำรวจ:", value: target.store },
-          { label: "สินค้าเปรียบเทียบ:", value: target.product },
-        ]}
-      />
+      {hasMultipleItems ? (
+        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <BarChart2 className="w-4 h-4 text-amber-600" />
+              รายการเป้าหมายสำรวจตลาด ({target.items?.length} รายการ):
+            </span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+              จากฟอร์มสร้างแผน
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+            {target.items?.map((item, idx) => (
+              <div
+                key={idx}
+                className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs space-y-1.5"
+              >
+                <div className="flex items-center justify-between font-bold text-slate-900 border-b border-slate-100 pb-1.5">
+                  <span className="flex items-center gap-1.5 text-xs text-amber-900">
+                    <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-[10px] font-extrabold">
+                      {idx + 1}
+                    </span>
+                    ร้านค้า: {item.store || "-"}
+                  </span>
+                </div>
+                <div className="space-y-1 text-[11px]">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">
+                      สินค้าเปรียบเทียบ:
+                    </span>
+                    <span className="font-semibold text-slate-800">
+                      {item.product || "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">
+                      รายละเอียดเพิ่มเติม:
+                    </span>
+                    <span className="font-medium text-slate-700 block break-words whitespace-pre-wrap">
+                      {item.detail || "-"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <ActualTargetCard
+          iconColorClass="text-amber-600"
+          badgeColorClass="bg-amber-100 text-amber-800"
+          gridColsClass="grid-cols-1 sm:grid-cols-3"
+          items={[
+            { label: "ร้านค้าที่สำรวจ:", value: target.store || "-" },
+            { label: "สินค้าเปรียบเทียบ:", value: target.product || "-" },
+            {
+              label: "รายละเอียดเพิ่มเติม:",
+              value: target.detail || "-",
+            },
+          ]}
+        />
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 pt-1">
         <div className="space-y-1.5">

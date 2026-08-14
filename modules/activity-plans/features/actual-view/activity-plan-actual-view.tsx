@@ -176,6 +176,7 @@ export default function ActivityPlanActualView({
       store: "",
       product: "",
       detail: "",
+      items: [] as any[],
     },
     t6: {
       customer: "",
@@ -734,12 +735,38 @@ export default function ActivityPlanActualView({
               (i) => i.itemType === "TYPE_4" || i.collectAmount != null,
             );
 
-            const t5Item = allItems.find(
+            const type5DbItems = allItems.filter(
               (i) =>
-                i.itemType === "TYPE_5" ||
-                i.surveyCompetitorProduct ||
-                i.surveyStoreName,
+                i.itemType !== "MARKETING_PRODUCT" &&
+                i.itemType !== "SALES_PROMOTION" &&
+                i.visitTopic !== "MARKETING_PRODUCT" &&
+                i.visitTopic !== "SALES_PROMOTION" &&
+                (i.itemType === "TYPE_5" ||
+                  i.surveyCompetitorProduct ||
+                  i.surveyStoreName),
             );
+
+            const t5ItemsFromDb =
+              type5DbItems.length > 0
+                ? type5DbItems.map((item) => ({
+                    store:
+                      item.surveyStoreName ||
+                      item.customerName ||
+                      p.location ||
+                      "",
+                    product: item.surveyCompetitorProduct || "",
+                    detail: item.detail || "",
+                  }))
+                : undefined;
+
+            const t5Item =
+              type5DbItems[0] ||
+              allItems.find(
+                (i) =>
+                  i.itemType === "TYPE_5" ||
+                  i.surveyCompetitorProduct ||
+                  i.surveyStoreName,
+              );
 
             const t6Item = allItems.find(
               (i) => i.itemType === "TYPE_6" || i.issueType,
@@ -843,9 +870,33 @@ export default function ActivityPlanActualView({
               },
               t5: {
                 ...prev.t5,
-                store: t5Item?.surveyStoreName || allCustomers || "",
-                product: t5Item?.surveyCompetitorProduct || "",
-                detail: t5Item?.detail || "",
+                store:
+                  (t5ItemsFromDb &&
+                    Array.from(
+                      new Set(
+                        t5ItemsFromDb.map((i) => i.store).filter(Boolean),
+                      ),
+                    ).join(", ")) ||
+                  t5Item?.surveyStoreName ||
+                  allCustomers ||
+                  "",
+                product:
+                  (t5ItemsFromDb &&
+                    t5ItemsFromDb
+                      .map((i) => i.product)
+                      .filter(Boolean)
+                      .join(", ")) ||
+                  t5Item?.surveyCompetitorProduct ||
+                  "",
+                detail:
+                  (t5ItemsFromDb &&
+                    t5ItemsFromDb
+                      .map((i) => i.detail)
+                      .filter(Boolean)
+                      .join(" | ")) ||
+                  t5Item?.detail ||
+                  "",
+                items: t5ItemsFromDb || [],
               },
               t6: {
                 ...prev.t6,
