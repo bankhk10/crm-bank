@@ -91,11 +91,26 @@ export default function ActivityPlanDetailView({ id }: Props) {
   // Check if current user is an approver at the current state
   // ────────────────────────────────────────────────────────
   const userEmployeeId = session?.user?.employeeId;
+  const roles = (session?.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session?.user as any)?.role === "administrator" ||
+    (session?.user as any)?.role === "ADMIN";
 
   let canApproveThisStep = false;
   let approvalPrompt = "";
 
-  if (plan.status === "PENDING_LINE_APPROVAL") {
+  const isPending =
+    plan.status === "PENDING_LINE_APPROVAL" ||
+    plan.status === "PENDING_BUDGET_APPROVAL" ||
+    plan.status === "PENDING_HELPER_APPROVAL";
+
+  if (isAdmin && isPending) {
+    canApproveThisStep = true;
+    approvalPrompt = "คุณมีสิทธิ์ Administrator ในการอนุมัติ/จัดการ Trip Plan นี้";
+  } else if (plan.status === "PENDING_LINE_APPROVAL") {
     canApproveThisStep = userEmployeeId === plan.currentApproverEmployeeId;
     approvalPrompt = "คุณคือหัวหน้างานในสายการอนุมัติ Trip Plan นี้";
   } else if (plan.status === "PENDING_BUDGET_APPROVAL") {

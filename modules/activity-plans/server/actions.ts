@@ -161,7 +161,14 @@ export async function approveActivityPlanAction(id: string, comment?: string) {
   }
 
   const permissions = session.user.permissionKeys ?? [];
+  const roles = session.user.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo");
+
   if (
+    !isAdmin &&
     !permissions.includes("activity.approve") &&
     !permissions.includes("activity.manage")
   ) {
@@ -198,7 +205,14 @@ export async function rejectActivityPlanAction(id: string, comment?: string) {
   }
 
   const permissions = session.user.permissionKeys ?? [];
+  const roles = session.user.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo");
+
   if (
+    !isAdmin &&
     !permissions.includes("activity.approve") &&
     !permissions.includes("activity.manage")
   ) {
@@ -235,7 +249,14 @@ export async function requestCorrectionPlanAction(id: string, comment: string) {
   }
 
   const permissions = session.user.permissionKeys ?? [];
+  const roles = session.user.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo");
+
   if (
+    !isAdmin &&
     !permissions.includes("activity.approve") &&
     !permissions.includes("activity.manage")
   ) {
@@ -386,7 +407,15 @@ export async function getApprovalQueueDataAction() {
   }
 
   const permissions = session.user.permissionKeys ?? [];
+  const roles = session.user.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    permissions.includes("activity.manage");
+
   const canApprove =
+    isAdmin ||
     permissions.includes("activity.approve") ||
     permissions.includes("activity.manage") ||
     permissions.includes("menu.activity_plans");
@@ -408,7 +437,7 @@ export async function getApprovalQueueDataAction() {
     const lineApprovalsForMe = pendingPlans.filter(
       (p) =>
         p.status === "PENDING_LINE_APPROVAL" &&
-        p.currentApproverEmployeeId === userEmployeeId,
+        (isAdmin || p.currentApproverEmployeeId === userEmployeeId),
     );
 
     const lineApprovalsAll = pendingPlans.filter(
@@ -427,11 +456,12 @@ export async function getApprovalQueueDataAction() {
     const helperApprovalsForMe = pendingPlans.filter(
       (p) =>
         p.status === "PENDING_HELPER_APPROVAL" &&
-        p.helpers.some(
-          (h) =>
-            h.employeeId === userEmployeeId ||
-            h.approvedById === userEmployeeId,
-        ),
+        (isAdmin ||
+          p.helpers.some(
+            (h) =>
+              h.employeeId === userEmployeeId ||
+              h.approvedById === userEmployeeId,
+          )),
     );
 
     // Calculate requested budgets

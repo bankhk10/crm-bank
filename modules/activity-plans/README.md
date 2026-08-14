@@ -119,6 +119,15 @@ modules/activity-plans/
 
 ## 📝 บันทึกการอัปเดตฟีเจอร์ (Feature Change Log)
 
+### 2026-08-14: ยกระดับสิทธิ์ Roles Administrator ให้สามารถอนุมัติได้ทุกสายงานและทุกขั้นตอน
+- **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `activity-plan-approval-list-view.tsx`, `activity-plan-detail-view.tsx`, `activity-plan-flow.ts`, `server/actions.ts`
+- **ฟีเจอร์เด่น:**
+  - **Superuser Approval Authority:** บัญชีที่มี Role `administrator`, `admin` หรือ `ceo` สามารถ:
+    - อนุมัติ / ปฏิเสธ / ส่งกลับแก้ไข แผนงานได้ทุกรายการในทุกขั้นตอน (Line Approval, Budget Approval, Helper Approval)
+    - อนุมัติงบประมาณทุกประเภท (Sales Promotion, Marketing, Overall) ได้แบบเบ็ดเสร็จทันที
+    - อนุมัติคำขอพนักงานช่วยงาน (Helper Requests) ได้ทั้งหมดในครั้งเดียว
+  - **Full Visibility in Approval Hub:** แสดงรายการคิวงานทั้งหมดให้ Administrator มองเห็นและจัดการได้ทันที พร้อมแถบป้ายสถานะ `👑 สิทธิ์ Administrator`
+
 ### 2026-08-14: เพิ่มตัวเลือกสถานะผลการทำกิจกรรม (Activity Result Status) & ระบบจัดการผลดำเนินงาน
 - **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `activity-plan-actual-view.tsx`, `validations.ts`, `activity-plan.repository.ts`, `application/index.ts`, `prisma/schema.prisma`
 - **ฟีเจอร์เด่น:**

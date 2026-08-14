@@ -49,7 +49,16 @@ export default function ActivityPlanApprovalListView() {
     "menu.activity_plans",
   );
 
+  const roles = (session?.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session?.user as any)?.role === "administrator" ||
+    (session?.user as any)?.role === "ADMIN";
+
   const canApprove =
+    isAdmin ||
     hasPermission("activity.approve") ||
     hasPermission("activity.manage") ||
     hasPermission("activity.view");
@@ -128,7 +137,7 @@ export default function ActivityPlanApprovalListView() {
       source = source.filter(
         (p) =>
           p.status === "PENDING_LINE_APPROVAL" &&
-          p.currentApproverEmployeeId === userEmployeeId,
+          (isAdmin || p.currentApproverEmployeeId === userEmployeeId),
       );
     } else if (activeTab === "budget") {
       source = source.filter((p) => p.status === "PENDING_BUDGET_APPROVAL");
@@ -170,6 +179,7 @@ export default function ActivityPlanApprovalListView() {
     searchQuery,
     typeFilter,
     userEmployeeId,
+    isAdmin,
   ]);
 
   const handleOpenActionDialog = (
@@ -203,10 +213,20 @@ export default function ActivityPlanApprovalListView() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <PageHeader
-            title="ศูนย์อนุมัติแผนงานกิจกรรม (Trip Plan Approval Hub)"
-            description="ศูนย์รวมคิวงานสำหรับตรวจสอบ Trip Plan, อนุมัติตามสายงาน, งบประมาณ และพนักงานช่วยงาน"
-          />
+          <div>
+            <PageHeader
+              title="ศูนย์อนุมัติแผนงานกิจกรรม (Trip Plan Approval Hub)"
+              description="ศูนย์รวมคิวงานสำหรับตรวจสอบ Trip Plan, อนุมัติตามสายงาน, งบประมาณ และพนักงานช่วยงาน"
+            />
+            {isAdmin && (
+              <div className="flex items-center gap-2 mt-1.5">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-2xs">
+                  <ShieldCheck className="h-3.5 w-3.5 text-indigo-600" />
+                  สิทธิ์ Administrator: สามารถอนุมัติ, ส่งกลับแก้ไข หรือปฏิเสธได้ทุกแผนงานและทุกขั้นตอน
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-2 self-end sm:self-auto">
@@ -566,6 +586,7 @@ export default function ActivityPlanApprovalListView() {
               key={plan.id}
               plan={plan}
               currentUserEmployeeId={userEmployeeId}
+              isAdmin={isAdmin}
               onInspect={() => setSelectedPlanForDetail(plan)}
               onAction={(type) => handleOpenActionDialog(plan, type)}
             />
@@ -598,7 +619,8 @@ export default function ActivityPlanApprovalListView() {
                   const total = sp + mkt;
                   const isMyLine =
                     plan.status === "PENDING_LINE_APPROVAL" &&
-                    plan.currentApproverEmployeeId === userEmployeeId;
+                    (isAdmin ||
+                      plan.currentApproverEmployeeId === userEmployeeId);
 
                   return (
                     <tr
@@ -706,11 +728,13 @@ export default function ActivityPlanApprovalListView() {
 function PlanCard({
   plan,
   currentUserEmployeeId,
+  isAdmin,
   onInspect,
   onAction,
 }: {
   plan: ActivityPlanWithRelations;
   currentUserEmployeeId?: string | null;
+  isAdmin?: boolean;
   onInspect: () => void;
   onAction: (type: ApprovalActionType) => void;
 }) {
@@ -725,7 +749,7 @@ function PlanCard({
     : 0;
   const budgetTotal = salesPromo + marketing;
 
-  const isMyLine =
+  const isDirectApprover =
     plan.status === "PENDING_LINE_APPROVAL" &&
     plan.currentApproverEmployeeId === currentUserEmployeeId;
 
@@ -733,6 +757,8 @@ function PlanCard({
     plan.status === "PENDING_LINE_APPROVAL" ||
     plan.status === "PENDING_BUDGET_APPROVAL" ||
     plan.status === "PENDING_HELPER_APPROVAL";
+
+  const isMyLine = isDirectApprover || (isAdmin && isPending);
 
   const typeDisplay =
     typeof plan.activityType === "object"
@@ -743,9 +769,11 @@ function PlanCard({
     <div
       className={cn(
         "bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4",
-        isMyLine
+        isDirectApprover
           ? "border-amber-300 ring-1 ring-amber-400/40 bg-gradient-to-b from-amber-50/20 to-white"
-          : "border-slate-100",
+          : isAdmin && isPending
+            ? "border-indigo-200 ring-1 ring-indigo-300/30 bg-gradient-to-b from-indigo-50/15 to-white"
+            : "border-slate-100",
       )}
     >
       <div className="space-y-3">
@@ -755,11 +783,15 @@ function PlanCard({
             <span className="font-mono text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
               {plan.code || plan.id.slice(0, 8)}
             </span>
-            {isMyLine && (
+            {isDirectApprover ? (
               <span className="ml-1.5 text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">
                 ⚡ คิวของคุณ
               </span>
-            )}
+            ) : isAdmin && isPending ? (
+              <span className="ml-1.5 text-[10px] font-bold text-indigo-800 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded">
+                👑 สิทธิ์ Admin
+              </span>
+            ) : null}
           </div>
           <ActivityStatusBadge status={plan.status} />
         </div>
