@@ -600,8 +600,9 @@ export default function ActivityPlanActualView({
               const usageResultMatch = summaryText.match(/ผลลัพธ์การใช้:\s*(.+)/);
               if (usageResultMatch && usageResultMatch[1]) {
                 const resVal = usageResultMatch[1].split("\n")[0].trim();
-                if (resVal === "พืชตอบสนองดี" || resVal === "พบปัญหา") {
-                  setT2UsageResult(resVal);
+                setT2UsageResult(resVal as any);
+                if (resVal === "พืชตอบสนองดี") {
+                  setT2ProblemDetail("");
                 }
               }
 
@@ -718,7 +719,6 @@ export default function ActivityPlanActualView({
               setT10ActualAttendees(String(resData.actualAttendeesCount));
             }
             if (resData.problemFound) {
-              setT2ProblemDetail((prev) => prev || resData.problemFound || "");
               setT6ProblemDetail((prev) => prev || resData.problemFound || "");
               setT7CropProblemDescription((prev) => prev || resData.problemFound || "");
             }
@@ -912,7 +912,12 @@ export default function ActivityPlanActualView({
             ? `ติดตามผล: ${t2FollowupDetail || t2Detail}`
             : null,
           t2UsageResult ? `ผลลัพธ์การใช้: ${t2UsageResult}` : null,
-          t2ProblemDetail ? `ปัญหาการใช้สินค้า: ${t2ProblemDetail}` : null,
+          (t2UsageResult === "พบปัญหา" ||
+            (typeof t2UsageResult === "string" &&
+              t2UsageResult.includes("พบปัญหา"))) &&
+          t2ProblemDetail
+            ? `ปัญหาการใช้สินค้า: ${t2ProblemDetail}`
+            : null,
           t3SoldProducts ? `รายการขาย: ${t3SoldProducts}` : null,
           t3UnclosedReason ? `เหตุผลที่ปิดการขายไม่ได้: ${t3UnclosedReason}` : null,
           t4OrderNo ? `เลขที่บิล/ใบแจ้งหนี้: ${t4OrderNo}` : null,
@@ -936,13 +941,22 @@ export default function ActivityPlanActualView({
           t11ReorderOpportunity ? `โอกาสสั่งซื้อซ้ำ: ${t11ReorderOpportunity}` : null,
         ].filter(Boolean);
 
+        const t2HasProblem =
+          t2UsageResult === "พบปัญหา" ||
+          (typeof t2UsageResult === "string" &&
+            t2UsageResult.includes("พบปัญหา"));
+
         const payload = {
           actualStartDate: new Date(),
           actualEndDate: new Date(),
           actualAttendeesCount: Number(t8ActualAttendees || t9ActualAttendees || t10ActualAttendees || 0),
           resultStatus: "COMPLETED",
           resultSummary: summaryParts.length > 0 ? summaryParts.join("\n") : "ทำกิจกรรมสำเร็จตามเป้าหมาย",
-          problemFound: t6ProblemDetail || t7CropProblemDescription || null,
+          problemFound:
+            (t2HasProblem ? t2ProblemDetail : null) ||
+            t6ProblemDetail ||
+            t7CropProblemDescription ||
+            null,
           nextAction: t1NextAction || t11NextAction || null,
           actualSalesPromotionSpent: Number(planSummary.salesPromotionBudget || 0),
           actualMarketingSpent: Number(planSummary.marketingBudget || 0),

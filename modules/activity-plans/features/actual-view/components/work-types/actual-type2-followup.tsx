@@ -98,6 +98,27 @@ export function ActualType2Followup({
     return "";
   };
 
+  const getParsedUsageResult = (
+    text: string | undefined,
+    productName: string,
+    fallback?: "พืชตอบสนองดี" | "พบปัญหา" | ""
+  ): "พืชตอบสนองดี" | "พบปัญหา" | "" => {
+    if (!text) return fallback || "";
+    // Check if combined format "Prod1: พืชตอบสนองดี | Prod2: พบปัญหา"
+    const escaped = productName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(?:^|\\|\\s*)${escaped}:\\s*([^|]+)`, "i");
+    const match = text.match(regex);
+    if (match && match[1]) {
+      const val = match[1].trim();
+      if (val === "พืชตอบสนองดี" || val === "พบปัญหา") return val;
+    }
+    // If single value "พืชตอบสนองดี" or "พบปัญหา"
+    if (text === "พืชตอบสนองดี" || text === "พบปัญหา") {
+      return text;
+    }
+    return fallback || "";
+  };
+
   useEffect(() => {
     if (target.items && target.items.length > 0) {
       setProductItems((prev) =>
@@ -106,6 +127,33 @@ export function ActualType2Followup({
             prev && prev[idx]?.productName === item.productName
               ? prev[idx]
               : null;
+
+          const parsedUsage = getParsedUsageResult(
+            usageResult,
+            item.productName,
+            prevItem?.usageResult || item.usageResult
+          );
+
+          const activeUsage: "พืชตอบสนองดี" | "พบปัญหา" =
+            parsedUsage === "พืชตอบสนองดี" || parsedUsage === "พบปัญหา"
+              ? parsedUsage
+              : prevItem?.usageResult ||
+                item.usageResult ||
+                (item.expectedResult === "พบปัญหา"
+                  ? "พบปัญหา"
+                  : "พืชตอบสนองดี");
+
+          // Only parse problem if usage is "พบปัญหา"
+          const parsedProblem =
+            activeUsage === "พบปัญหา"
+              ? prevItem?.problemDetail ||
+                item.problemDetail ||
+                getParsedProblemDetail(
+                  problemDetail,
+                  item.productName,
+                  item.problemDetail
+                )
+              : "";
 
           const activeFollowup =
             prevItem?.followupDetail ||
@@ -116,33 +164,17 @@ export function ActualType2Followup({
               item.followupDetail
             );
 
-          const activeProblem =
-            prevItem?.problemDetail ||
-            item.problemDetail ||
-            getParsedProblemDetail(
-              problemDetail,
-              item.productName,
-              item.problemDetail
-            );
-
           return {
             ...item,
-            usageResult:
-              prevItem?.usageResult ||
-              item.usageResult ||
-              (activeProblem
-                ? "พบปัญหา"
-                : item.expectedResult === "พบปัญหา"
-                ? "พบปัญหา"
-                : "พืชตอบสนองดี"),
-            problemDetail: activeProblem,
+            usageResult: activeUsage,
+            problemDetail: parsedProblem,
             detail: item.detail || "", // รายละเอียดเพิ่มเติมจากแผนเดิม
             followupDetail: activeFollowup, // รายละเอียดการติดตามผลจริง
           };
         })
       );
     }
-  }, [target.items, followupDetail, problemDetail]);
+  }, [target.items, usageResult, problemDetail, followupDetail]);
 
   if (!isVisible) return null;
 
@@ -154,22 +186,46 @@ export function ActualType2Followup({
     value: string
   ) => {
     const updated = [...productItems];
-    updated[index] = { ...updated[index], [field]: value as any };
+    if (field === "usageResult") {
+      updated[index] = {
+        ...updated[index],
+        usageResult: value as any,
+        // When switching to "พืชตอบสนองดี", clear problemDetail
+        problemDetail:
+          value === "พืชตอบสนองดี" ? "" : updated[index].problemDetail,
+      };
+    } else {
+      updated[index] = { ...updated[index], [field]: value as any };
+    }
     setProductItems(updated);
 
     // Sync to parent component single state if needed
     if (updated.length > 0) {
-      setUsageResult(updated[0].usageResult || "");
-      setProblemDetail(
-        updated
-          .map((item) =>
-            item.problemDetail
-              ? `${item.productName}: ${item.problemDetail}`
-              : ""
-          )
-          .filter(Boolean)
-          .join(" | ")
-      );
+      const combinedUsageResult =
+        updated.length === 1
+          ? updated[0].usageResult || ""
+          : updated
+              .map((item) =>
+                item.usageResult
+                  ? `${item.productName}: ${item.usageResult}`
+                  : ""
+              )
+              .filter(Boolean)
+              .join(" | ");
+
+      setUsageResult(combinedUsageResult as any);
+
+      const combinedProblem = updated
+        .map((item) =>
+          item.usageResult === "พบปัญหา" && item.problemDetail
+            ? `${item.productName}: ${item.problemDetail}`
+            : ""
+        )
+        .filter(Boolean)
+        .join(" | ");
+
+      setProblemDetail(combinedProblem);
+
       const combinedFollowup = updated
         .map((item) =>
           item.followupDetail ? `${item.productName}: ${item.followupDetail}` : ""
@@ -370,7 +426,12 @@ export function ActualType2Followup({
                 <button
                   key={resOpt}
                   type="button"
-                  onClick={() => setUsageResult(resOpt)}
+                  onClick={() => {
+                    setUsageResult(resOpt);
+                    if (resOpt === "พืชตอบสนองดี") {
+                      setProblemDetail("");
+                    }
+                  }}
                   className={cn(
                     "py-2.5 px-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all flex items-center justify-center gap-1",
                     usageResult === resOpt
