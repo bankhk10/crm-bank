@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { format } from "date-fns";
 import {
   Calendar as CalendarIcon,
@@ -188,10 +188,189 @@ export function ActivityPlanForm({
   const [endTime, setEndTime] = useState(initEnd.timeStr);
 
   // Work types selection state
-  const initialTypesRaw = (initial as any)?.activityType || (initial as any)?.activityTypeId || "";
-  const initialTypes = typeof initialTypesRaw === "string"
-    ? initialTypesRaw.split(",").map((s: string) => s.trim()).filter(Boolean)
-    : [];
+  const initialTypes = useMemo(() => {
+    const detectedTypes = new Set<string>();
+    const initialTypesRaw =
+      (initial as any)?.activityType || (initial as any)?.activityTypeId || "";
+    if (typeof initialTypesRaw === "string") {
+      initialTypesRaw
+        .split(",")
+        .map((s: string) => s.trim())
+        .filter(Boolean)
+        .forEach((t) => {
+          if (WORK_TYPES.includes(t)) {
+            detectedTypes.add(t);
+          } else {
+            const idx = parseInt(t.replace("TYPE_", ""), 10) - 1;
+            if (idx >= 0 && idx < WORK_TYPES.length) {
+              detectedTypes.add(WORK_TYPES[idx]);
+            }
+          }
+        });
+    }
+
+    const fullPlanText = [
+      initial.objective,
+      initial.description,
+      initial.notes,
+      initial.title,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    if (fullPlanText) {
+      if (
+        fullPlanText.includes("[เข้าพบร้านค้า") ||
+        fullPlanText.includes("เข้าพบร้านค้า") ||
+        fullPlanText.includes("Key Farmer")
+      ) {
+        detectedTypes.add(WORK_TYPES[0]);
+      }
+      if (
+        fullPlanText.includes("[ติดตามผลการใช้สินค้า]") ||
+        fullPlanText.includes("ติดตามผลการใช้สินค้า")
+      ) {
+        detectedTypes.add(WORK_TYPES[1]);
+      }
+      if (
+        fullPlanText.includes("[เสนอขายสินค้า]") ||
+        fullPlanText.includes("เสนอขายสินค้า")
+      ) {
+        detectedTypes.add(WORK_TYPES[2]);
+      }
+      if (
+        fullPlanText.includes("[วางบิล") ||
+        fullPlanText.includes("วางบิล / เก็บเงิน") ||
+        fullPlanText.includes("วางบิล/เก็บเงิน") ||
+        fullPlanText.includes("เป้ายอดเก็บเงิน")
+      ) {
+        detectedTypes.add(WORK_TYPES[3]);
+      }
+      if (
+        fullPlanText.includes("[สำรวจตลาด") ||
+        fullPlanText.includes("สำรวจตลาดของคู่แข่ง") ||
+        fullPlanText.includes("สำรวจตลาดคู่แข่ง")
+      ) {
+        detectedTypes.add(WORK_TYPES[4]);
+      }
+      if (
+        fullPlanText.includes("[แก้ปัญหา") ||
+        fullPlanText.includes("แก้ปัญหา / รับเรื่องร้องเรียน") ||
+        fullPlanText.includes("แก้ปัญหา/ร้องเรียน") ||
+        fullPlanText.includes("รับเรื่องร้องเรียน")
+      ) {
+        detectedTypes.add(WORK_TYPES[5]);
+      }
+      if (
+        fullPlanText.includes("[ติดตามแปลงสาธิต") ||
+        fullPlanText.includes("ติดตามแปลงสาธิต / ทำแปลง") ||
+        fullPlanText.includes("ทำแปลงสาธิต") ||
+        fullPlanText.includes("แปลงสาธิต")
+      ) {
+        detectedTypes.add(WORK_TYPES[6]);
+      }
+      if (
+        fullPlanText.includes("[จัดประชุม") ||
+        fullPlanText.includes("จัดประชุมการเกษตร") ||
+        fullPlanText.includes("ประชุมการเกษตร")
+      ) {
+        detectedTypes.add(WORK_TYPES[7]);
+      }
+      if (
+        fullPlanText.includes("[กิจกรรมหน้าร้าน]") ||
+        fullPlanText.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") ||
+        fullPlanText.includes("กิจกรรมส่งเสริมการขายหน้าร้าน") ||
+        fullPlanText.includes("ส่งเสริมการขายหน้าร้าน")
+      ) {
+        detectedTypes.add(WORK_TYPES[8]);
+      }
+      if (
+        fullPlanText.includes("[Field Day]") ||
+        fullPlanText.includes("Field Day") ||
+        fullPlanText.includes("จัดงาน Field Day")
+      ) {
+        detectedTypes.add(WORK_TYPES[9]);
+      }
+      if (
+        fullPlanText.includes("[ตรวจเช็กสต็อก") ||
+        fullPlanText.includes("ตรวจเช็กสต็อกหน้าร้าน") ||
+        fullPlanText.includes("เช็กสต็อกหน้าร้าน") ||
+        fullPlanText.includes("สต็อกหน้าร้าน")
+      ) {
+        detectedTypes.add(WORK_TYPES[10]);
+      }
+    }
+
+    const items = (initial as any)?.details;
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        if (item.itemType === "TYPE_1" || item.visitTopic) {
+          detectedTypes.add(WORK_TYPES[0]);
+        }
+        if (item.itemType === "TYPE_2" || item.followupProductName) {
+          detectedTypes.add(WORK_TYPES[1]);
+        }
+        if (
+          item.itemType === "TYPE_3" ||
+          item.saleProductName ||
+          item.saleQuantity != null ||
+          item.saleUnitPrice != null ||
+          item.saleTotalPrice != null
+        ) {
+          detectedTypes.add(WORK_TYPES[2]);
+        }
+        if (item.itemType === "TYPE_4" || item.collectAmount != null) {
+          detectedTypes.add(WORK_TYPES[3]);
+        }
+        if (
+          item.itemType === "TYPE_5" ||
+          item.surveyCompetitorProduct ||
+          item.surveyStoreName
+        ) {
+          detectedTypes.add(WORK_TYPES[4]);
+        }
+        if (item.itemType === "TYPE_6" || item.issueType) {
+          detectedTypes.add(WORK_TYPES[5]);
+        }
+        if (
+          item.itemType === "TYPE_7" ||
+          item.plotActivityType ||
+          item.plotCropName ||
+          item.plotCropCategory ||
+          item.plotOwnerName ||
+          item.plotAreaRai != null
+        ) {
+          detectedTypes.add(WORK_TYPES[6]);
+        }
+        if (
+          item.itemType === "TYPE_8" ||
+          item.meetingTopic ||
+          item.meetingAttendeesCount != null ||
+          item.meetingTargetProducts
+        ) {
+          detectedTypes.add(WORK_TYPES[7]);
+        }
+        if (
+          item.itemType === "TYPE_9" ||
+          item.storeProductName ||
+          item.storeQuantityCases != null ||
+          item.storePricePerCase != null ||
+          item.storeTotalAmount != null
+        ) {
+          detectedTypes.add(WORK_TYPES[8]);
+        }
+        if (item.itemType === "TYPE_10") {
+          detectedTypes.add(WORK_TYPES[9]);
+        }
+        if (item.itemType === "TYPE_11") {
+          detectedTypes.add(WORK_TYPES[10]);
+        }
+      }
+    }
+
+    return WORK_TYPES.filter((t) => detectedTypes.has(t));
+  }, [initial]);
+
   const [selectedWorkTypes, setSelectedWorkTypes] =
     useState<string[]>(initialTypes);
   const [tempSelectedWorkTypes, setTempSelectedWorkTypes] =

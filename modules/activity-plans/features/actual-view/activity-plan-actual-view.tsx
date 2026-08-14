@@ -451,11 +451,17 @@ export default function ActivityPlanActualView({
             objective: p.objective || undefined,
           });
 
-          // Match created work type
-          let matchedWorkType = "";
+          // ────────────────────────────────────────────────────────
+          // 1. Detect ALL selected work types from the Trip Plan
+          // ────────────────────────────────────────────────────────
+          const detectedWorkTypes = new Set<string>();
+
+          // (A) From activityType / activityTypeId (primary type)
           if (p.activityType) {
             if (typeof p.activityType === "object" && p.activityType.name) {
-              matchedWorkType = p.activityType.name;
+              if (WORK_TYPES.includes(p.activityType.name)) {
+                detectedWorkTypes.add(p.activityType.name);
+              }
             } else if (
               typeof p.activityType === "object" &&
               p.activityType.code
@@ -463,37 +469,208 @@ export default function ActivityPlanActualView({
               const idx =
                 parseInt(p.activityType.code.replace("TYPE_", ""), 10) - 1;
               if (idx >= 0 && idx < WORK_TYPES.length) {
-                matchedWorkType = WORK_TYPES[idx];
+                detectedWorkTypes.add(WORK_TYPES[idx]);
+              }
+            } else if (typeof p.activityType === "string") {
+              if (WORK_TYPES.includes(p.activityType)) {
+                detectedWorkTypes.add(p.activityType);
               }
             }
           }
-          if (!matchedWorkType && p.activityTypeId) {
-            const idx = parseInt(p.activityTypeId.replace("TYPE_", ""), 10) - 1;
+          if (p.activityTypeId) {
+            const idx =
+              parseInt(String(p.activityTypeId).replace("TYPE_", ""), 10) - 1;
             if (idx >= 0 && idx < WORK_TYPES.length) {
-              matchedWorkType = WORK_TYPES[idx];
+              detectedWorkTypes.add(WORK_TYPES[idx]);
             }
           }
 
-          if (matchedWorkType) {
-            setPlanWorkTypes([matchedWorkType]);
-            setActiveTypeTab(matchedWorkType);
+          // (B) From objective, description, notes, title (section headers / markers)
+          const fullPlanText = [p.objective, p.description, p.notes, p.title]
+            .filter(Boolean)
+            .join("\n");
+
+          if (fullPlanText) {
+            if (
+              fullPlanText.includes("[เข้าพบร้านค้า") ||
+              fullPlanText.includes("เข้าพบร้านค้า") ||
+              fullPlanText.includes("Key Farmer")
+            ) {
+              detectedWorkTypes.add(WORK_TYPES[0]);
+            }
+            if (
+              fullPlanText.includes("[ติดตามผลการใช้สินค้า]") ||
+              fullPlanText.includes("ติดตามผลการใช้สินค้า")
+            ) {
+              detectedWorkTypes.add(WORK_TYPES[1]);
+            }
+            if (
+              fullPlanText.includes("[เสนอขายสินค้า]") ||
+              fullPlanText.includes("เสนอขายสินค้า")
+            ) {
+              detectedWorkTypes.add(WORK_TYPES[2]);
+            }
+            if (
+              fullPlanText.includes("[วางบิล") ||
+              fullPlanText.includes("วางบิล / เก็บเงิน") ||
+              fullPlanText.includes("วางบิล/เก็บเงิน") ||
+              fullPlanText.includes("เป้ายอดเก็บเงิน")
+            ) {
+              detectedWorkTypes.add(WORK_TYPES[3]);
+            }
+            if (
+              fullPlanText.includes("[สำรวจตลาด") ||
+              fullPlanText.includes("สำรวจตลาดของคู่แข่ง") ||
+              fullPlanText.includes("สำรวจตลาดคู่แข่ง")
+            ) {
+              detectedWorkTypes.add(WORK_TYPES[4]);
+            }
+            if (
+              fullPlanText.includes("[แก้ปัญหา") ||
+              fullPlanText.includes("แก้ปัญหา / รับเรื่องร้องเรียน") ||
+              fullPlanText.includes("แก้ปัญหา/ร้องเรียน") ||
+              fullPlanText.includes("รับเรื่องร้องเรียน")
+            ) {
+              detectedWorkTypes.add(WORK_TYPES[5]);
+            }
+            if (
+              fullPlanText.includes("[ติดตามแปลงสาธิต") ||
+              fullPlanText.includes("ติดตามแปลงสาธิต / ทำแปลง") ||
+              fullPlanText.includes("ทำแปลงสาธิต") ||
+              fullPlanText.includes("แปลงสาธิต")
+            ) {
+              detectedWorkTypes.add(WORK_TYPES[6]);
+            }
+            if (
+              fullPlanText.includes("[จัดประชุม") ||
+              fullPlanText.includes("จัดประชุมการเกษตร") ||
+              fullPlanText.includes("ประชุมการเกษตร")
+            ) {
+              detectedWorkTypes.add(WORK_TYPES[7]);
+            }
+            if (
+              fullPlanText.includes("[กิจกรรมหน้าร้าน]") ||
+              fullPlanText.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") ||
+              fullPlanText.includes("กิจกรรมส่งเสริมการขายหน้าร้าน") ||
+              fullPlanText.includes("ส่งเสริมการขายหน้าร้าน")
+            ) {
+              detectedWorkTypes.add(WORK_TYPES[8]);
+            }
+            if (
+              fullPlanText.includes("[Field Day]") ||
+              fullPlanText.includes("Field Day") ||
+              fullPlanText.includes("จัดงาน Field Day")
+            ) {
+              detectedWorkTypes.add(WORK_TYPES[9]);
+            }
+            if (
+              fullPlanText.includes("[ตรวจเช็กสต็อก") ||
+              fullPlanText.includes("ตรวจเช็กสต็อกหน้าร้าน") ||
+              fullPlanText.includes("เช็กสต็อกหน้าร้าน") ||
+              fullPlanText.includes("สต็อกหน้าร้าน")
+            ) {
+              detectedWorkTypes.add(WORK_TYPES[10]);
+            }
           }
 
-          // Populate target cards from real DB items
+          // (C) From DB items
+          if (Array.isArray(p.items)) {
+            for (const item of p.items as any[]) {
+              if (item.itemType === "TYPE_1" || item.visitTopic) {
+                detectedWorkTypes.add(WORK_TYPES[0]);
+              }
+              if (item.itemType === "TYPE_2" || item.followupProductName) {
+                detectedWorkTypes.add(WORK_TYPES[1]);
+              }
+              if (
+                item.itemType === "TYPE_3" ||
+                item.saleProductName ||
+                item.saleQuantity != null ||
+                item.saleUnitPrice != null ||
+                item.saleTotalPrice != null
+              ) {
+                detectedWorkTypes.add(WORK_TYPES[2]);
+              }
+              if (item.itemType === "TYPE_4" || item.collectAmount != null) {
+                detectedWorkTypes.add(WORK_TYPES[3]);
+              }
+              if (
+                item.itemType === "TYPE_5" ||
+                item.surveyCompetitorProduct ||
+                item.surveyStoreName
+              ) {
+                detectedWorkTypes.add(WORK_TYPES[4]);
+              }
+              if (item.itemType === "TYPE_6" || item.issueType) {
+                detectedWorkTypes.add(WORK_TYPES[5]);
+              }
+              if (
+                item.itemType === "TYPE_7" ||
+                item.plotActivityType ||
+                item.plotCropName ||
+                item.plotCropCategory ||
+                item.plotOwnerName ||
+                item.plotAreaRai != null
+              ) {
+                detectedWorkTypes.add(WORK_TYPES[6]);
+              }
+              if (
+                item.itemType === "TYPE_8" ||
+                item.meetingTopic ||
+                item.meetingAttendeesCount != null ||
+                item.meetingTargetProducts
+              ) {
+                detectedWorkTypes.add(WORK_TYPES[7]);
+              }
+              if (
+                item.itemType === "TYPE_9" ||
+                item.storeProductName ||
+                item.storeQuantityCases != null ||
+                item.storePricePerCase != null ||
+                item.storeTotalAmount != null
+              ) {
+                detectedWorkTypes.add(WORK_TYPES[8]);
+              }
+              if (item.itemType === "TYPE_10") {
+                detectedWorkTypes.add(WORK_TYPES[9]);
+              }
+              if (item.itemType === "TYPE_11") {
+                detectedWorkTypes.add(WORK_TYPES[10]);
+              }
+            }
+          }
+
+          const resolvedWorkTypes = WORK_TYPES.filter((t) =>
+            detectedWorkTypes.has(t),
+          );
+
+          if (resolvedWorkTypes.length > 0) {
+            setPlanWorkTypes(resolvedWorkTypes);
+            setActiveTypeTab(resolvedWorkTypes[0]);
+          } else {
+            setPlanWorkTypes([WORK_TYPES[0]]);
+            setActiveTypeTab(WORK_TYPES[0]);
+          }
+
+          // ────────────────────────────────────────────────────────
+          // 2. Populate target cards from real DB items
+          // ────────────────────────────────────────────────────────
           if (p.items && p.items.length > 0) {
-            const firstItem = p.items[0] as any;
+            const allItems = p.items as any[];
             const allCustomers = Array.from(
-              new Set(p.items.map((i: any) => i.customerName).filter(Boolean)),
+              new Set(allItems.map((i: any) => i.customerName).filter(Boolean)),
             ).join(", ");
 
-            // Type 2 (Followup) DB Items
-            const type2DbItems = (p.items as any[]).filter(
+            const t1Item =
+              allItems.find((i) => i.itemType === "TYPE_1" || i.visitTopic) ||
+              allItems[0];
+
+            const type2DbItems = allItems.filter(
               (i) =>
                 i.itemType === "TYPE_2" ||
                 i.visitTopic === "FOLLOWUP" ||
                 i.followupProductName,
             );
-
             const t2ItemsFromDb =
               type2DbItems.length > 0
                 ? type2DbItems.map((item) => ({
@@ -505,17 +682,72 @@ export default function ActivityPlanActualView({
                   }))
                 : undefined;
 
+            const t3Items = allItems.filter(
+              (i) =>
+                i.itemType === "TYPE_3" ||
+                i.saleProductName ||
+                i.saleTotalPrice != null,
+            );
+            const t3Item = t3Items[0];
+            const t3TotalSales = t3Items.reduce(
+              (sum, item) => sum + Number(item.saleTotalPrice || 0),
+              0,
+            );
+            const t3ProdNames = Array.from(
+              new Set(t3Items.map((i) => i.saleProductName).filter(Boolean)),
+            ).join(", ");
+
+            const t4Item = allItems.find(
+              (i) => i.itemType === "TYPE_4" || i.collectAmount != null,
+            );
+
+            const t5Item = allItems.find(
+              (i) =>
+                i.itemType === "TYPE_5" ||
+                i.surveyCompetitorProduct ||
+                i.surveyStoreName,
+            );
+
+            const t6Item = allItems.find(
+              (i) => i.itemType === "TYPE_6" || i.issueType,
+            );
+
+            const t7Item = allItems.find(
+              (i) =>
+                i.itemType === "TYPE_7" ||
+                i.plotActivityType ||
+                i.plotCropName ||
+                i.plotOwnerName,
+            );
+
+            const t8Item = allItems.find(
+              (i) =>
+                i.itemType === "TYPE_8" ||
+                i.meetingTopic ||
+                i.meetingAttendeesCount != null,
+            );
+
+            const t9Item = allItems.find(
+              (i) =>
+                i.itemType === "TYPE_9" ||
+                i.storeProductName ||
+                i.storeTotalAmount != null,
+            );
+
+            const t10Item = allItems.find((i) => i.itemType === "TYPE_10");
+            const t11Item = allItems.find((i) => i.itemType === "TYPE_11");
+
             setTargets((prev) => ({
               ...prev,
               t1: {
                 ...prev.t1,
                 customer:
+                  t1Item?.customerName ||
                   allCustomers ||
-                  firstItem.customerName ||
                   p.location ||
                   prev.t1.customer,
-                topic: firstItem.visitTopic || firstItem.topic || prev.t1.topic,
-                detail: firstItem.detail || prev.t1.detail,
+                topic: t1Item?.visitTopic || prev.t1.topic,
+                detail: t1Item?.detail || prev.t1.detail,
               },
               t2: {
                 ...prev.t2,
@@ -527,13 +759,10 @@ export default function ActivityPlanActualView({
                       ),
                     ).join(", ")) ||
                   allCustomers ||
-                  firstItem.customerName ||
                   prev.t2.customer,
                 product:
                   (t2ItemsFromDb &&
                     t2ItemsFromDb.map((i) => i.productName).join(", ")) ||
-                  firstItem.followupProductName ||
-                  firstItem.productName ||
                   prev.t2.product,
                 detail:
                   (t2ItemsFromDb &&
@@ -541,74 +770,79 @@ export default function ActivityPlanActualView({
                       .map((i) => i.detail)
                       .filter(Boolean)
                       .join(" | ")) ||
-                  firstItem.detail ||
                   prev.t2.detail,
                 items: t2ItemsFromDb || prev.t2.items,
               },
               t3: {
                 ...prev.t3,
                 customer:
-                  allCustomers || firstItem.customerName || prev.t3.customer,
+                  t3Item?.customerName || allCustomers || prev.t3.customer,
                 product:
-                  firstItem.saleProductName ||
-                  firstItem.productName ||
-                  prev.t3.product,
-                targetSales: firstItem.saleTotalPrice
-                  ? `${Number(firstItem.saleTotalPrice).toLocaleString()} บาท`
-                  : prev.t3.targetSales,
+                  t3ProdNames || t3Item?.saleProductName || prev.t3.product,
+                targetSales:
+                  t3TotalSales > 0
+                    ? `${t3TotalSales.toLocaleString()} บาท`
+                    : t3Item?.saleTotalPrice
+                      ? `${Number(t3Item.saleTotalPrice).toLocaleString()} บาท`
+                      : prev.t3.targetSales,
               },
               t4: {
                 ...prev.t4,
                 customer:
-                  allCustomers || firstItem.customerName || prev.t4.customer,
-                targetCollect: firstItem.collectAmount
-                  ? `${Number(firstItem.collectAmount).toLocaleString()} บาท`
+                  t4Item?.customerName || allCustomers || prev.t4.customer,
+                targetCollect: t4Item?.collectAmount
+                  ? `${Number(t4Item.collectAmount).toLocaleString()} บาท`
                   : prev.t4.targetCollect,
               },
               t5: {
                 ...prev.t5,
                 store:
-                  firstItem.surveyStoreName ||
-                  firstItem.storeName ||
-                  allCustomers ||
-                  prev.t5.store,
-                product: firstItem.surveyCompetitorProduct || prev.t5.product,
-                detail: firstItem.detail || prev.t5.detail,
+                  t5Item?.surveyStoreName || allCustomers || prev.t5.store,
+                product: t5Item?.surveyCompetitorProduct || prev.t5.product,
+                detail: t5Item?.detail || prev.t5.detail,
               },
               t6: {
                 ...prev.t6,
                 customer:
-                  allCustomers || firstItem.customerName || prev.t6.customer,
-                issueType: firstItem.issueType || prev.t6.issueType,
-                detail: firstItem.detail || prev.t6.detail,
+                  t6Item?.customerName || allCustomers || prev.t6.customer,
+                issueType: t6Item?.issueType || prev.t6.issueType,
+                detail: t6Item?.detail || prev.t6.detail,
               },
               t7: {
                 ...prev.t7,
-                owner: firstItem.plotOwnerName || allCustomers || prev.t7.owner,
-                product: firstItem.plotProductName || prev.t7.product,
-                crop: firstItem.plotCropName || prev.t7.crop,
+                owner:
+                  t7Item?.plotOwnerName || allCustomers || prev.t7.owner,
+                product: t7Item?.plotProductName || prev.t7.product,
+                crop: t7Item?.plotCropName || prev.t7.crop,
               },
               t8: {
                 ...prev.t8,
-                topic: firstItem.meetingTopic || prev.t8.topic,
-                products: firstItem.meetingTargetProducts || prev.t8.products,
-                targetAttendees: firstItem.meetingAttendeesCount
-                  ? `${firstItem.meetingAttendeesCount} คน`
+                topic: t8Item?.meetingTopic || prev.t8.topic,
+                products: t8Item?.meetingTargetProducts || prev.t8.products,
+                targetAttendees: t8Item?.meetingAttendeesCount
+                  ? `${t8Item.meetingAttendeesCount} คน`
                   : prev.t8.targetAttendees,
               },
               t9: {
                 ...prev.t9,
-                store: allCustomers || firstItem.customerName || prev.t9.store,
-                product: firstItem.storeProductName || prev.t9.product,
+                store:
+                  t9Item?.customerName ||
+                  t9Item?.surveyStoreName ||
+                  allCustomers ||
+                  prev.t9.store,
+                product: t9Item?.storeProductName || prev.t9.product,
+                targetSales: t9Item?.storeTotalAmount
+                  ? `${Number(t9Item.storeTotalAmount).toLocaleString()} บาท`
+                  : prev.t9.targetSales,
               },
               t10: {
                 ...prev.t10,
-                plot: allCustomers || firstItem.customerName || prev.t10.plot,
+                plot: t10Item?.customerName || allCustomers || prev.t10.plot,
               },
               t11: {
                 ...prev.t11,
-                store: allCustomers || firstItem.customerName || prev.t11.store,
-                detail: firstItem.detail || prev.t11.detail,
+                store: t11Item?.customerName || allCustomers || prev.t11.store,
+                detail: t11Item?.detail || prev.t11.detail,
               },
             }));
           }
