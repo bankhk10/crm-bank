@@ -6,6 +6,7 @@ import {
   ActivityApprovalAction,
   ActivityApprovalStep,
   ActivityResultStatus,
+  DemoPlotStatus,
 } from "@prisma/client";
 
 export type ListActivityPlansParams = {
@@ -929,3 +930,230 @@ export async function findApprovalQueueData() {
     activityTypes,
   };
 }
+
+/**
+ * ─────────────────────────────────────────────────────────────
+ * DEMO PLOT (WORK TYPE 7) REPOSITORY METHODS
+ * ─────────────────────────────────────────────────────────────
+ */
+
+export async function listAvailableDemoPlots(status?: DemoPlotStatus) {
+  const plots = await db.demoPlot.findMany({
+    where: {
+      deletedAt: null,
+      ...(status ? { status } : {}),
+    },
+    include: {
+      visits: {
+        orderBy: { visitDate: "asc" },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return plots.map((plot) => {
+    const visitsCount = plot.visits.length;
+    const totalCost = plot.visits.reduce(
+      (sum, v) => sum + (Number(v.totalVisitCost) || 0),
+      0,
+    );
+    const lastVisit = plot.visits[plot.visits.length - 1];
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const latestDate = lastVisit ? new Date(lastVisit.visitDate) : new Date();
+    const daysSinceStart = Math.max(
+      0,
+      Math.floor(
+        (latestDate.getTime() - new Date(plot.startDate).getTime()) / msPerDay,
+      ),
+    );
+
+    return {
+      ...plot,
+      visitsCount,
+      totalCost,
+      daysSinceStart,
+      lastVisit: lastVisit || null,
+    };
+  });
+}
+
+export async function getDemoPlotWithHistory(demoPlotId: string) {
+  return db.demoPlot.findUnique({
+    where: { id: demoPlotId },
+    include: {
+      visits: {
+        orderBy: { visitDate: "asc" },
+        include: {
+          activityPlan: {
+            select: {
+              id: true,
+              code: true,
+              title: true,
+              startDate: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+export async function createDemoPlotRecord(data: {
+  code?: string;
+  name: string;
+  ownerName: string;
+  customerId?: string | null;
+  employeeId: string;
+  cropCategory: string;
+  cropName: string;
+  customCropName?: string | null;
+  areaRai?: number | null;
+  treeCount?: number | null;
+  location?: string | null;
+  province?: string | null;
+  district?: string | null;
+  primaryProductId?: string | null;
+  primaryProductName: string;
+  objective?: string | null;
+  experimentDetail?: string | null;
+  startDate: Date;
+}) {
+  let code = data.code;
+  if (!code) {
+    const d = new Date(data.startDate);
+    const year = String(d.getFullYear()).slice(-2);
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const count = await db.demoPlot.count();
+    code = `DP${year}${month}${String(count + 1).padStart(4, "0")}`;
+  }
+
+  return db.demoPlot.create({
+    data: {
+      code,
+      name: data.name,
+      ownerName: data.ownerName,
+      customerId: data.customerId ?? null,
+      employeeId: data.employeeId,
+      cropCategory: data.cropCategory,
+      cropName: data.cropName,
+      customCropName: data.customCropName ?? null,
+      areaRai: data.areaRai ? new Prisma.Decimal(data.areaRai) : null,
+      treeCount: data.treeCount ?? null,
+      location: data.location ?? null,
+      province: data.province ?? null,
+      district: data.district ?? null,
+      primaryProductId: data.primaryProductId ?? null,
+      primaryProductName: data.primaryProductName,
+      objective: data.objective ?? null,
+      experimentDetail: data.experimentDetail ?? null,
+      startDate: data.startDate,
+      status: DemoPlotStatus.IN_PROGRESS,
+    },
+  });
+}
+
+export async function recordDemoPlotVisit(data: {
+  demoPlotId: string;
+  activityPlanId?: string | null;
+  visitDate: Date;
+  cropAgeValue?: number | null;
+  cropAgeUnit?: string | null;
+  growthStage?: string | null;
+  cropCondition?: string | null;
+  cropProblemDesc?: string | null;
+  productResponse?: string | null;
+  productProblemDesc?: string | null;
+  usageMethod?: string | null;
+  productUsedQty?: number | null;
+  productUnitPrice?: number | null;
+  otherExpenses?: number | null;
+  imageUrls?: string[];
+  notes?: string | null;
+  plotStatus?: DemoPlotStatus;
+  finalYieldKg?: number | null;
+  controlYieldKg?: number | null;
+  yieldIncreasePercent?: number | null;
+  farmerSatisfaction?: number | null;
+  commercialPotential?: string | null;
+  finalSummaryNotes?: string | null;
+}) {
+  const plot = await db.demoPlot.findUnique({
+    where: { id: data.demoPlotId },
+    include: { visits: true },
+  });
+
+  if (!plot) {
+    throw new Error(`DemoPlot not found: ${data.demoPlotId}`);
+  }
+
+  const visitNumber = plot.visits.length + 1;
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const daysSinceStart = Math.max(
+    0,
+    Math.floor(
+      (data.visitDate.getTime() - new Date(plot.startDate).getTime()) / msPerDay,
+    ),
+  );
+
+  const productUsedQty = data.productUsedQty || 0;
+  const productUnitPrice = data.productUnitPrice || 0;
+  const productCost = productUsedQty * productUnitPrice;
+  const otherExpenses = data.otherExpenses || 0;
+  const totalVisitCost = productCost + otherExpenses;
+
+  return db.$transaction(async (tx) => {
+    const visit = await tx.demoPlotVisit.create({
+      data: {
+        demoPlotId: data.demoPlotId,
+        activityPlanId: data.activityPlanId ?? null,
+        visitNumber,
+        visitDate: data.visitDate,
+        daysSinceStart,
+        cropAgeValue: data.cropAgeValue ?? null,
+        cropAgeUnit: data.cropAgeUnit ?? null,
+        growthStage: data.growthStage ?? null,
+        cropCondition: data.cropCondition ?? null,
+        cropProblemDesc: data.cropProblemDesc ?? null,
+        productResponse: data.productResponse ?? null,
+        productProblemDesc: data.productProblemDesc ?? null,
+        usageMethod: data.usageMethod ?? null,
+        productUsedQty,
+        productUnitPrice: new Prisma.Decimal(productUnitPrice),
+        productCost: new Prisma.Decimal(productCost),
+        otherExpenses: new Prisma.Decimal(otherExpenses),
+        totalVisitCost: new Prisma.Decimal(totalVisitCost),
+        imageUrls: data.imageUrls || [],
+        notes: data.notes ?? null,
+      },
+    });
+
+    if (data.plotStatus && data.plotStatus !== plot.status) {
+      await tx.demoPlot.update({
+        where: { id: data.demoPlotId },
+        data: {
+          status: data.plotStatus,
+          closedDate:
+            data.plotStatus === DemoPlotStatus.COMPLETED ||
+            data.plotStatus === DemoPlotStatus.FAILED
+              ? data.visitDate
+              : null,
+          demoYieldKg: data.finalYieldKg
+            ? new Prisma.Decimal(data.finalYieldKg)
+            : undefined,
+          controlYieldKg: data.controlYieldKg
+            ? new Prisma.Decimal(data.controlYieldKg)
+            : undefined,
+          yieldIncreasePercent: data.yieldIncreasePercent
+            ? new Prisma.Decimal(data.yieldIncreasePercent)
+            : undefined,
+          farmerSatisfaction: data.farmerSatisfaction ?? undefined,
+          commercialPotential: data.commercialPotential ?? undefined,
+          finalSummaryNotes: data.finalSummaryNotes ?? undefined,
+        },
+      });
+    }
+
+    return visit;
+  });
+}
+

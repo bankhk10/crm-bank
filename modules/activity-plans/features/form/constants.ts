@@ -355,6 +355,7 @@ export const MARKETING_UNITS = [
 
 export interface UserDemoPlotOption {
   id: string;
+  code?: string;
   name: string;
   location: string;
   targetCrop: string;
@@ -362,10 +363,17 @@ export interface UserDemoPlotOption {
   ownerName?: string;
   cropCategory?: string;
   cropName?: string;
+  customCropName?: string;
   productName?: string;
   areaRai?: number;
   treeCount?: number;
   startDate?: string;
+  status?: string;
+  visitsCount?: number;
+  totalCost?: number;
+  daysSinceStart?: number;
+  objective?: string;
+  experimentDetail?: string;
 }
 
 export const USER_DEMO_PLOTS: UserDemoPlotOption[] = [

@@ -1614,6 +1614,7 @@ model ActivityPlan {
   helpers      ActivityHelper[]
   approvalLogs ActivityApprovalLog[]
   result       ActivityResult?         // 1:1 บันทึกผลหลังกิจกรรม
+  demoPlotVisits DemoPlotVisit[]
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -1845,4 +1846,106 @@ model PromotionalMaterial {
   @@index([status])
   @@map("promotional_materials")
 }
+
+// ==========================================
+// DEMO PLOT LIFECYCLE (แปลงสาธิตและการติดตามผล)
+// ==========================================
+
+enum DemoPlotStatus {
+  IN_PROGRESS  // อยู่ระหว่างการทดลอง/ต้องติดตามต่อ
+  COMPLETED    // ปิดแปลงสมบูรณ์ (เก็บเกี่ยวและสรุปผลสำเร็จ)
+  FAILED       // ยุติการทดลอง/แปลงเสียหาย
+  CANCELLED    // ยกเลิกแปลง
+}
+
+model DemoPlot {
+  id                  String         @id @default(cuid())
+  code                String         @unique // รหัสแปลงสาธิต เช่น DP2603001
+  name                String         // ชื่อแปลง เช่น "แปลงสาธิตทุเรียนหมอนทอง นายสมชาย"
+  ownerName           String         @map("owner_name") // เจ้าของแปลง/ลูกค้า
+  customerId          String?        @map("customer_id") // FK -> Customer (ถ้ามี)
+  employeeId          String         @map("employee_id") // พนักงานผู้ดูแลแปลง
+
+  // ข้อมูลพืชและสถานที่
+  cropCategory        String         @map("crop_category") // หมวดพืช เช่น ไม้ผล, พืชไร่
+  cropName            String         @map("crop_name") // ชื่อพืช เช่น ทุเรียน, ข้าว
+  customCropName      String?        @map("custom_crop_name")
+  areaRai             Decimal?       @db.Decimal(10, 2) @map("area_rai")
+  treeCount           Int?           @map("tree_count")
+  location            String?
+  province            String?
+  district            String?
+
+  // ข้อมูลสินค้าและการทดลอง
+  primaryProductId    String?        @map("primary_product_id") // สินค้าหลักที่ใช้สาธิต
+  primaryProductName  String         @map("primary_product_name") // ชื่อสินค้า
+  objective           String?        // วัตถุประสงค์แปลง
+  experimentDetail    String?        @map("experiment_detail") // รายละเอียด/วิธีการทดลอง
+
+  // ข้อมูลเวลาและสถานะ
+  startDate           DateTime       @map("start_date") // วันที่เริ่มต้นทำแปลง
+  closedDate          DateTime?      @map("closed_date") // วันที่ปิดแปลง
+  status              DemoPlotStatus @default(IN_PROGRESS)
+
+  // ข้อมูลสรุปเมื่อปิดแปลง (Final Evaluation)
+  finalHarvestDate    DateTime?      @map("final_harvest_date")
+  controlYieldKg      Decimal?       @db.Decimal(12, 2) @map("control_yield_kg") // ผลผลิตแปลงควบคุม (ไม่ได้ใช้ยา)
+  demoYieldKg         Decimal?       @db.Decimal(12, 2) @map("demo_yield_kg") // ผลผลิตแปลงสาธิต (ใช้ยา)
+  yieldIncreasePercent Decimal?      @db.Decimal(6, 2) @map("yield_increase_percent") // % ผลผลิตที่เพิ่มขึ้น
+  farmerSatisfaction  Int?           @map("farmer_satisfaction") // คะแนนความพึงพอใจ (1-5)
+  commercialPotential String?        @map("commercial_potential") // โอกาสสั่งซื้อจริง (เช่น 50 ลัง)
+  finalSummaryNotes   String?        @map("final_summary_notes") // สรุปผลสัมฤทธิ์
+
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+  deletedAt           DateTime?      @map("deleted_at")
+
+  visits              DemoPlotVisit[]
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([cropCategory])
+  @@index([ownerName])
+  @@map("demo_plots")
+}
+
+model DemoPlotVisit {
+  id                 String        @id @default(cuid())
+  demoPlotId         String        @map("demo_plot_id")
+  activityPlanId     String?       @map("activity_plan_id") // ผูกกับ Trip Plan ที่มาตรวจรอบนี้
+  visitNumber        Int           @default(1) @map("visit_number") // ครั้งที่ 1, 2, 3...
+  visitDate          DateTime      @map("visit_date") // วันที่ตรวจจริง
+  daysSinceStart     Int           @default(0) @map("days_since_start") // จำนวนวันนับจากวันเริ่มแปลง (Auto Calc)
+
+  // ผลการตรวจรอบนี้
+  cropAgeValue       Int?          @map("crop_age_value") // อายุพืช
+  cropAgeUnit        String?       @map("crop_age_unit") // วัน/สัปดาห์/เดือน
+  growthStage        String?       @map("growth_stage") // ระยะการเจริญเติบโต
+  cropCondition      String?       @map("crop_condition") // สมบูรณ์ / มีปัญหา
+  cropProblemDesc    String?       @map("crop_problem_desc")
+  productResponse    String?       @map("product_response") // พืชตอบสนองดี / พบปัญหา
+  productProblemDesc String?       @map("product_problem_desc")
+  usageMethod        String?       @map("usage_method") // วิธีใช้/อัตราการใช้รอบนี้
+
+  // ค่าใช้จ่ายรอบนี้
+  productUsedQty     Int?          @default(0) @map("product_used_qty") // จำนวนสินค้าที่ใช้รอบนี้
+  productUnitPrice   Decimal?      @db.Decimal(12, 2) @map("product_unit_price")
+  productCost        Decimal?      @db.Decimal(12, 2) @map("product_cost") // qty * unitPrice
+  otherExpenses      Decimal?      @default(0) @db.Decimal(12, 2) @map("other_expenses") // ค่าใช้จ่ายอื่นๆ
+  totalVisitCost     Decimal?      @db.Decimal(12, 2) @map("total_visit_cost") // รวมค่าใช้จ่ายรอบนี้
+
+  imageUrls          String[]      @map("image_urls") // รูปภาพสภาพแปลงรอบนี้
+  notes              String?
+
+  demoPlot           DemoPlot      @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
+  activityPlan       ActivityPlan? @relation(fields: [activityPlanId], references: [id], onDelete: SetNull)
+
+  createdAt          DateTime      @default(now()) @map("created_at")
+
+  @@index([demoPlotId])
+  @@index([activityPlanId])
+  @@index([visitDate])
+  @@map("demo_plot_visits")
+}
+
 

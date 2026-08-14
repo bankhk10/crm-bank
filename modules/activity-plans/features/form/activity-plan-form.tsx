@@ -95,13 +95,14 @@ import { Type8Meeting } from "./components/work-types/type8-meeting";
 import { Type9Store } from "./components/work-types/type9-store";
 import { Type10FieldDay } from "./components/work-types/type10-field-day";
 import { Type11Stock } from "./components/work-types/type11-stock";
+import { getDemoPlotsAction } from "../../server/actions";
 
 export function ActivityPlanForm({
   initial = {},
   employees = [],
   customers: initialCustomers = [],
   products: initialProducts = [],
-  demoPlots = [],
+  demoPlots: initialDemoPlots = [],
   onSubmit,
   onCancel,
   submitLabel = "บันทึก",
@@ -110,6 +111,7 @@ export function ActivityPlanForm({
 }: Props) {
   const [fetchedCustomers, setFetchedCustomers] = useState<any[]>([]);
   const [fetchedProducts, setFetchedProducts] = useState<any[]>([]);
+  const [fetchedDemoPlots, setFetchedDemoPlots] = useState<UserDemoPlotOption[]>([]);
 
   const customersList =
     initialCustomers && initialCustomers.length > 0
@@ -120,6 +122,11 @@ export function ActivityPlanForm({
     initialProducts && initialProducts.length > 0
       ? initialProducts
       : fetchedProducts;
+
+  const demoPlotsList =
+    initialDemoPlots && initialDemoPlots.length > 0
+      ? initialDemoPlots
+      : fetchedDemoPlots;
 
   useEffect(() => {
     if (initialCustomers && initialCustomers.length > 0) return;
@@ -164,6 +171,26 @@ export function ActivityPlanForm({
       isMounted = false;
     };
   }, [initialProducts]);
+
+  useEffect(() => {
+    if (initialDemoPlots && initialDemoPlots.length > 0) return;
+
+    let isMounted = true;
+    async function loadDemoPlots() {
+      try {
+        const res = await getDemoPlotsAction();
+        if (isMounted && res.success && res.demoPlots) {
+          setFetchedDemoPlots(res.demoPlots);
+        }
+      } catch (err) {
+        console.error("Failed to load demo plots for Trip Plan:", err);
+      }
+    }
+    loadDemoPlots();
+    return () => {
+      isMounted = false;
+    };
+  }, [initialDemoPlots]);
   // Format initial dates
   const parseInitialDate = (date?: Date | string) => {
     if (!date)
@@ -2174,7 +2201,7 @@ export function ActivityPlanForm({
                       deleteType7Row={deleteType7Row}
                       customers={customersList}
                       products={productsList}
-                      demoPlots={demoPlots}
+                      demoPlots={demoPlotsList}
                       parentStartDate={startDate}
                     />
                   )}
@@ -2232,7 +2259,7 @@ export function ActivityPlanForm({
                       setType10Attendees={setType10Attendees}
                       type10BookingSales={type10BookingSales}
                       setType10BookingSales={setType10BookingSales}
-                      demoPlots={demoPlots}
+                      demoPlots={demoPlotsList}
                     />
                   )}
 

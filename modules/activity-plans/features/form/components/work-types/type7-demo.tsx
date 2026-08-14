@@ -657,9 +657,20 @@ export function Type7Demo({
                           <Info className="h-3.5 w-3.5 text-emerald-600" />
                           ข้อมูลแปลงสาธิตเดิม (Read-only)
                         </span>
-                        <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold text-[11px]">
-                          แปลงเดิมในระบบ
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {selectedPlot?.code && (
+                            <span className="font-mono text-[10px] text-slate-500 font-semibold">
+                              {selectedPlot.code}
+                            </span>
+                          )}
+                          <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold text-[11px]">
+                            {selectedPlot?.status === "COMPLETED"
+                              ? "ปิดแปลงแล้ว"
+                              : selectedPlot?.status === "FAILED"
+                                ? "ยุติการทดลอง"
+                                : "กำลังทดลอง"}
+                          </span>
+                        </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-slate-700">
                         <div>
@@ -711,6 +722,44 @@ export function Type7Demo({
                                 ? `${selectedPlot.treeCount} ต้น`
                                 : "-";
                             })()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Extended Metrics: Days elapsed, Visits count, Cumulative Cost */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-slate-200/50 text-[11px]">
+                        <div className="bg-white/80 p-1.5 rounded-lg border border-slate-200/60">
+                          <span className="text-slate-500 font-medium">
+                            ⏱️ เริ่มทำแปลง:{" "}
+                          </span>
+                          <span className="font-bold text-slate-800">
+                            {selectedPlot?.startDate || "-"}
+                          </span>
+                          {selectedPlot?.daysSinceStart !== undefined &&
+                            selectedPlot.daysSinceStart > 0 && (
+                              <span className="text-emerald-700 font-semibold ml-1">
+                                ({selectedPlot.daysSinceStart} วันที่ผ่านมา)
+                              </span>
+                            )}
+                        </div>
+                        <div className="bg-white/80 p-1.5 rounded-lg border border-slate-200/60">
+                          <span className="text-slate-500 font-medium">
+                            🔄 ประวัติการตรวจ:{" "}
+                          </span>
+                          <span className="font-bold text-slate-800">
+                            {selectedPlot?.visitsCount !== undefined
+                              ? `ตรวจแล้ว ${selectedPlot.visitsCount} ครั้ง`
+                              : "1 ครั้ง"}
+                          </span>
+                        </div>
+                        <div className="bg-white/80 p-1.5 rounded-lg border border-slate-200/60">
+                          <span className="text-slate-500 font-medium">
+                            💰 ค่าใช้จ่ายสะสม:{" "}
+                          </span>
+                          <span className="font-bold text-emerald-800">
+                            {selectedPlot?.totalCost
+                              ? `${selectedPlot.totalCost.toLocaleString()} บาท`
+                              : "0 บาท"}
                           </span>
                         </div>
                       </div>

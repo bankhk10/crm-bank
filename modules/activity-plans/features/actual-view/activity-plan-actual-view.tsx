@@ -25,6 +25,8 @@ import { cn } from "@/lib/utils";
 import {
   getActivityPlanAction,
   recordActivityResultAction,
+  getDemoPlotHistoryAction,
+  recordDemoPlotVisitAction,
 } from "../../server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";
 import {
@@ -296,6 +298,20 @@ export default function ActivityPlanActualView({
   >("");
   const [t7ProblemDescription, setT7ProblemDescription] = useState("");
   const [t7PlotImages, setT7PlotImages] = useState<ImageFile[]>([]);
+  const [t7PlotStatus, setT7PlotStatus] = useState<
+    "IN_PROGRESS" | "COMPLETED" | "FAILED"
+  >("IN_PROGRESS");
+  const [t7NextFollowUpDate, setT7NextFollowUpDate] = useState("");
+  const [t7FinalYieldKg, setT7FinalYieldKg] = useState("");
+  const [t7ControlYieldKg, setT7ControlYieldKg] = useState("");
+  const [t7YieldIncreasePercent, setT7YieldIncreasePercent] = useState("");
+  const [t7FarmerSatisfaction, setT7FarmerSatisfaction] = useState(5);
+  const [t7CommercialPotential, setT7CommercialPotential] = useState("");
+  const [t7FinalSummaryNotes, setT7FinalSummaryNotes] = useState("");
+  const [t7VisitHistory, setT7VisitHistory] = useState<any[]>([]);
+  const [t7StartDate, setT7StartDate] = useState("");
+  const [t7ProductPrice, setT7ProductPrice] = useState(500);
+  const [t7DemoPlotId, setT7DemoPlotId] = useState("");
 
   // Type 8
   const [t8ActualAttendees, setT8ActualAttendees] = useState("");
@@ -1123,6 +1139,44 @@ export default function ActivityPlanActualView({
                 detail: t11Item?.detail || "",
               },
             }));
+
+            if (p.startDate) {
+              setT7StartDate(new Date(p.startDate).toISOString().split("T")[0]);
+            }
+
+            const t7PlotIdentifier =
+              t7Item?.existingPlotId ||
+              t7Item?.plotOwnerName ||
+              t7Item?.plotCropName ||
+              "";
+            if (t7PlotIdentifier) {
+              setT7DemoPlotId(t7PlotIdentifier);
+              getDemoPlotHistoryAction(t7PlotIdentifier).then((histRes) => {
+                if (histRes.success && histRes.plot) {
+                  if (histRes.plot.visits) setT7VisitHistory(histRes.plot.visits);
+                  if (histRes.plot.status) setT7PlotStatus(histRes.plot.status as any);
+                  if (histRes.plot.startDate) {
+                    setT7StartDate(
+                      new Date(histRes.plot.startDate).toISOString().split("T")[0],
+                    );
+                  }
+                  if (histRes.plot.demoYieldKg)
+                    setT7FinalYieldKg(String(histRes.plot.demoYieldKg));
+                  if (histRes.plot.controlYieldKg)
+                    setT7ControlYieldKg(String(histRes.plot.controlYieldKg));
+                  if (histRes.plot.yieldIncreasePercent)
+                    setT7YieldIncreasePercent(
+                      String(histRes.plot.yieldIncreasePercent),
+                    );
+                  if (histRes.plot.farmerSatisfaction)
+                    setT7FarmerSatisfaction(histRes.plot.farmerSatisfaction);
+                  if (histRes.plot.commercialPotential)
+                    setT7CommercialPotential(histRes.plot.commercialPotential);
+                  if (histRes.plot.finalSummaryNotes)
+                    setT7FinalSummaryNotes(histRes.plot.finalSummaryNotes);
+                }
+              });
+            }
           }
 
           // Restore saved post-activity outcome (p.result) if exists
@@ -1354,6 +1408,49 @@ export default function ActivityPlanActualView({
                 setT7ProblemDescription(
                   t7ProblemMatch[1].split("\n")[0].trim(),
                 );
+              }
+              const statusMatch = summaryText.match(/สถานะแปลง:\s*(.+)/);
+              if (statusMatch && statusMatch[1]) {
+                const s = statusMatch[1].split("\n")[0].trim();
+                if (
+                  s === "IN_PROGRESS" ||
+                  s === "COMPLETED" ||
+                  s === "FAILED"
+                ) {
+                  setT7PlotStatus(s as any);
+                }
+              }
+              const nextVisitMatch = summaryText.match(
+                /กำหนดการติดตามครั้งถัดไป:\s*(.+)/,
+              );
+              if (nextVisitMatch && nextVisitMatch[1]) {
+                setT7NextFollowUpDate(nextVisitMatch[1].split("\n")[0].trim());
+              }
+              const yieldMatch = summaryText.match(/ผลผลิตแปลงสาธิต:\s*(.+)/);
+              if (yieldMatch && yieldMatch[1]) {
+                setT7FinalYieldKg(yieldMatch[1].replace(/[^0-9.]/g, ""));
+              }
+              const controlMatch = summaryText.match(/ผลผลิตแปลงควบคุม:\s*(.+)/);
+              if (controlMatch && controlMatch[1]) {
+                setT7ControlYieldKg(controlMatch[1].replace(/[^0-9.]/g, ""));
+              }
+              const incMatch = summaryText.match(/%\s*ผลผลิตเพิ่มขึ้น:\s*(.+)/);
+              if (incMatch && incMatch[1]) {
+                setT7YieldIncreasePercent(incMatch[1].replace(/[^0-9.]/g, ""));
+              }
+              const satMatch = summaryText.match(/ความพึงพอใจเกษตรกร:\s*(\d)/);
+              if (satMatch && satMatch[1]) {
+                setT7FarmerSatisfaction(parseInt(satMatch[1]) || 5);
+              }
+              const comMatch = summaryText.match(/โอกาสสั่งซื้อจริง:\s*(.+)/);
+              if (comMatch && comMatch[1]) {
+                setT7CommercialPotential(comMatch[1].split("\n")[0].trim());
+              }
+              const finalNotesMatch = summaryText.match(
+                /สรุปผลสัมฤทธิ์แปลง:\s*(.+)/,
+              );
+              if (finalNotesMatch && finalNotesMatch[1]) {
+                setT7FinalSummaryNotes(finalNotesMatch[1].split("\n")[0].trim());
               }
 
               // Type 8
@@ -1770,6 +1867,28 @@ export default function ActivityPlanActualView({
           t7ProblemDescription
             ? `รายละเอียดปัญหาการใช้ผลิตภัณฑ์: ${t7ProblemDescription}`
             : null,
+          t7PlotStatus ? `สถานะแปลง: ${t7PlotStatus}` : null,
+          t7NextFollowUpDate
+            ? `กำหนดการติดตามครั้งถัดไป: ${t7NextFollowUpDate}`
+            : null,
+          t7FinalYieldKg
+            ? `ผลผลิตแปลงสาธิต: ${t7FinalYieldKg} กก./ไร่`
+            : null,
+          t7ControlYieldKg
+            ? `ผลผลิตแปลงควบคุม: ${t7ControlYieldKg} กก./ไร่`
+            : null,
+          t7YieldIncreasePercent
+            ? `% ผลผลิตเพิ่มขึ้น: ${t7YieldIncreasePercent}%`
+            : null,
+          t7FarmerSatisfaction
+            ? `ความพึงพอใจเกษตรกร: ${t7FarmerSatisfaction}/5`
+            : null,
+          t7CommercialPotential
+            ? `โอกาสสั่งซื้อจริง: ${t7CommercialPotential}`
+            : null,
+          t7FinalSummaryNotes
+            ? `สรุปผลสัมฤทธิ์แปลง: ${t7FinalSummaryNotes}`
+            : null,
 
           // Type 8
           t8ActualAttendees
@@ -1854,6 +1973,44 @@ export default function ActivityPlanActualView({
           setFormError(res.error || "เกิดข้อผิดพลาดในการบันทึกผลกิจกรรม");
           setIsSubmitting(false);
           return;
+        }
+
+        if (
+          isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง") &&
+          (t7DemoPlotId || targets.t7.owner || targets.t7.product)
+        ) {
+          const qty =
+            targets.t7.demoProductQuantity != null &&
+            targets.t7.demoProductQuantity !== ""
+              ? Number(targets.t7.demoProductQuantity)
+              : 0;
+          await recordDemoPlotVisitAction({
+            demoPlotId: t7DemoPlotId || targets.t7.owner || "plot-default",
+            activityPlanId: id,
+            visitDate: new Date(),
+            cropAgeValue: t7CropAgeValue ? Number(t7CropAgeValue) : null,
+            cropAgeUnit: t7CropAgeUnit,
+            growthStage: t7GrowthStage,
+            cropCondition: t7CropCondition,
+            cropProblemDesc: t7CropProblemDescription,
+            productResponse: t7ProductResponse,
+            productProblemDesc: t7ProblemDescription,
+            usageMethod: t7UsageMethod,
+            productUsedQty: qty,
+            productUnitPrice: t7ProductPrice || 500,
+            imageUrls: t7PlotImages.map((img) => img.url),
+            plotStatus: t7PlotStatus,
+            finalYieldKg: t7FinalYieldKg ? Number(t7FinalYieldKg) : null,
+            controlYieldKg: t7ControlYieldKg ? Number(t7ControlYieldKg) : null,
+            yieldIncreasePercent: t7YieldIncreasePercent
+              ? Number(t7YieldIncreasePercent)
+              : null,
+            farmerSatisfaction: t7FarmerSatisfaction,
+            commercialPotential: t7CommercialPotential,
+            finalSummaryNotes: t7FinalSummaryNotes,
+          }).catch((err) =>
+            console.error("Failed to save DemoPlotVisit:", err),
+          );
         }
       }
 
@@ -2033,6 +2190,9 @@ export default function ActivityPlanActualView({
               <ActualType7Demo
                 isVisible={isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")}
                 target={targets.t7}
+                startDate={t7StartDate}
+                actualDate={new Date().toISOString().split("T")[0]}
+                productPrice={t7ProductPrice}
                 plotName={t7PlotName}
                 setPlotName={setT7PlotName}
                 usageMethod={t7UsageMethod}
@@ -2054,6 +2214,23 @@ export default function ActivityPlanActualView({
                 plotImages={t7PlotImages}
                 onUploadImages={createUploadHandler(setT7PlotImages)}
                 onRemoveImage={(id) => removeImage(setT7PlotImages, id)}
+                plotStatus={t7PlotStatus}
+                setPlotStatus={setT7PlotStatus}
+                nextFollowUpDate={t7NextFollowUpDate}
+                setNextFollowUpDate={setT7NextFollowUpDate}
+                finalYieldKg={t7FinalYieldKg}
+                setFinalYieldKg={setT7FinalYieldKg}
+                controlYieldKg={t7ControlYieldKg}
+                setControlYieldKg={setT7ControlYieldKg}
+                yieldIncreasePercent={t7YieldIncreasePercent}
+                setYieldIncreasePercent={setT7YieldIncreasePercent}
+                farmerSatisfaction={t7FarmerSatisfaction}
+                setFarmerSatisfaction={setT7FarmerSatisfaction}
+                commercialPotential={t7CommercialPotential}
+                setCommercialPotential={setT7CommercialPotential}
+                finalSummaryNotes={t7FinalSummaryNotes}
+                setFinalSummaryNotes={setT7FinalSummaryNotes}
+                visitHistory={t7VisitHistory}
               />
 
               {/* WORK TYPE 8 */}

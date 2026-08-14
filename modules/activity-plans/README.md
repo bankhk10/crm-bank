@@ -119,6 +119,25 @@ modules/activity-plans/
 
 ## 📝 บันทึกการอัปเดตฟีเจอร์ (Feature Change Log)
 
+### 2026-08-14: พัฒนาระบบติดตามแปลงสาธิตต่อเนื่องครบวงจร (Demo Plot Lifecycle, Duration/Cost Calculations & Plot Closing)
+- **คอมโพเนนต์ที่แก้ไข/เพิ่มใหม่:**
+  - `prisma/schema.prisma` (เพิ่ม `DemoPlotStatus`, `model DemoPlot`, `model DemoPlotVisit`)
+  - `modules/activity-plans/infrastructure/activity-plan.repository.ts`
+  - `modules/activity-plans/server/actions.ts`
+  - `modules/activity-plans/features/form/constants.ts`
+  - `modules/activity-plans/features/form/components/work-types/type7-demo.tsx`
+  - `modules/activity-plans/features/form/activity-plan-form.tsx`
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type7-demo.tsx`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+- **การเปลี่ยนแปลงที่ดำเนินการ:**
+  1. **Master Entity & Database Schema:** สร้างตาราง `demo_plots` และ `demo_plot_visits` ในฐานข้อมูล เพื่อให้แปลงสาธิตมีตัวตนถาวร (Plot Identity) อยู่ยาวนานข้ามหลาย Trip Plan และรองรับการบันทึกประวัติการเข้าตรวจหลายครั้ง
+  2. **Plan & FOLLOW_UP Linkage:** ปรับปรุง `type7-demo.tsx` และ `activity-plan-form.tsx` ให้โหลดแปลงสาธิตจริงจากฐานข้อมูลในโหมด `FOLLOW_UP` พร้อมแสดงการ์ดสรุปประวัติ: วันเริ่มทำแปลง, จำนวนวันสะสม, จำนวนครั้งที่ตรวจแล้ว, และค่าใช้จ่ายสะสม
+  3. **การคำนวณระยะเวลารวมสะสม (Duration Calculation):** คำนวณ `Days Elapsed` จาก `startDate` ถึงวันตรวจจริงใน `actual-type7-demo.tsx` อย่างแม่นยำ ไม่สับสนกับอายุพืช (`cropAge`)
+  4. **การคำนวณค่าใช้จ่ายสะสม (Cumulative Plot Costs):** คำนวณมูลค่าสินค้าสาธิต (`จำนวนสินค้า × ราคาต่อหน่วย`) และยอดค่าใช้จ่ายสะสมรวมทุกการเข้าตรวจ
+  5. **ประวัติการตรวจแปลงย้อนหลัง (Visit History Timeline):** แสดง Accordion ประวัติการตรวจแปลงรอบก่อนๆ (วันที่, ระยะพืช, สภาพแปลง, ผลตอบสนอง, รูปภาพ)
+  6. **วงจรชีวิตและการปิดแปลง (Plot Lifecycle & Harvest Evaluation):** เพิ่มตัวเลือกสถานะแปลง (`IN_PROGRESS`, `COMPLETED`, `FAILED`) พร้อมฟอร์มบันทึกผลผลิตเปรียบเทียบ (กก./ไร่), % ผลผลิตเพิ่มขึ้น (Auto Calc), ความพึงพอใจเกษตรกร (1-5 ดาว), โอกาสสั่งซื้อจริง, และข้อคิดเห็นสรุปผลสัมฤทธิ์
+- **ผลลัพธ์:** ระบบแปลงสาธิตสามารถติดตามต่อเนื่องตั้งแต่เริ่มสร้างแปลง → ติดตามหลายรอบ → คำนวณวันและเงินสะสม → สรุปผลผลิตและปิดแปลงได้อย่างสมบูรณ์แบบ 100%
+
 ### 2026-08-14: เพิ่มช่องกรอก "จำนวนสินค้าที่จะสาธิต" และเชื่อมต่อ Data Flow สำหรับ Work Type 7 (ติดตามแปลงสาธิต / ทำแปลง)
 - **คอมโพเนนต์ที่แก้ไข:**
   - `modules/activity-plans/features/form/components/work-types/type7-demo.tsx`

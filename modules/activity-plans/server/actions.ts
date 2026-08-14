@@ -532,10 +532,63 @@ export async function recordActivityResultAction(planId: string, rawData: unknow
 }
 
 /**
- * Action: Get existing demo plots from created activity plans (from ActivityPlanItem wide table)
+/**
+ * Action: Get available demo plots (with real DemoPlot master records + legacy plan items fallback)
  */
 export async function getDemoPlotsAction() {
   try {
+    // 1. Fetch from Master DemoPlot table
+    const masterPlots = await db.demoPlot.findMany({
+      where: { deletedAt: null },
+      include: {
+        visits: {
+          orderBy: { visitDate: "asc" },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const realPlots: UserDemoPlotOption[] = masterPlots.map((p) => {
+      const visitsCount = p.visits.length;
+      const totalCost = p.visits.reduce(
+        (sum, v) => sum + (Number(v.totalVisitCost) || 0),
+        0,
+      );
+      const lastVisit = p.visits[p.visits.length - 1];
+      const msPerDay = 1000 * 60 * 60 * 24;
+      const latestDate = lastVisit ? new Date(lastVisit.visitDate) : new Date();
+      const daysSinceStart = Math.max(
+        0,
+        Math.floor(
+          (latestDate.getTime() - new Date(p.startDate).getTime()) / msPerDay,
+        ),
+      );
+
+      return {
+        id: p.id,
+        code: p.code,
+        name: p.name,
+        location: p.location || `แปลงสาธิต ${p.ownerName}`,
+        targetCrop: p.customCropName || p.cropName,
+        showcase: p.primaryProductName,
+        ownerName: p.ownerName,
+        cropCategory: p.cropCategory,
+        cropName: p.cropName,
+        customCropName: p.customCropName || undefined,
+        productName: p.primaryProductName,
+        areaRai: p.areaRai ? Number(p.areaRai) : 0,
+        treeCount: p.treeCount || 0,
+        startDate: p.startDate ? p.startDate.toISOString().split("T")[0] : "",
+        status: p.status,
+        visitsCount,
+        totalCost,
+        daysSinceStart,
+        objective: p.objective || undefined,
+        experimentDetail: p.experimentDetail || undefined,
+      };
+    });
+
+    // 2. Fetch from ActivityPlanItem (legacy fallback for backward compatibility)
     const items = await db.activityPlanItem.findMany({
       where: {
         activityPlan: { deletedAt: null },
@@ -552,8 +605,6 @@ export async function getDemoPlotsAction() {
       orderBy: { id: "desc" },
     });
 
-    const realPlots: UserDemoPlotOption[] = [];
-
     for (const item of items) {
       if (item.plotActivityType === "FOLLOW_UP") continue;
       if (!item.plotOwnerName && !item.plotCropName) continue;
@@ -564,34 +615,153 @@ export async function getDemoPlotsAction() {
         ? `${ownerDisplay} - ${cropDisplay}`
         : ownerDisplay;
 
-      realPlots.push({
-        id: `plot-${item.activityPlanId}-${item.id}`,
-        name: plotName,
-        location: item.activityPlan.location || `แปลงสาธิต ${ownerDisplay}`,
-        targetCrop: cropDisplay,
-        showcase: item.plotProductName || "สินค้าสาธิต",
-        ownerName: ownerDisplay,
-        cropCategory: item.plotCropCategory || "พืชสวน",
-        cropName: cropDisplay || "พืชสวน",
-        productName: item.plotProductName || "",
-        areaRai: item.plotAreaRai ? Number(item.plotAreaRai) : 0,
-        treeCount: item.plotTreeCount || 0,
-        startDate: item.activityPlan.startDate ? item.activityPlan.startDate.toISOString().split("T")[0] : "",
-      });
+      // Only add if not already present in masterPlots
+      if (!realPlots.some((rp) => rp.name === plotName || rp.id === item.existingPlotId)) {
+        realPlots.push({
+          id: `legacy-${item.activityPlanId}-${item.id}`,
+          name: plotName,
+          location: item.activityPlan.location || `แปลงสาธิต ${ownerDisplay}`,
+          targetCrop: cropDisplay,
+          showcase: item.plotProductName || "สินค้าสาธิต",
+          ownerName: ownerDisplay,
+          cropCategory: item.plotCropCategory || "พืชสวน",
+          cropName: cropDisplay || "พืชสวน",
+          productName: item.plotProductName || "",
+          areaRai: item.plotAreaRai ? Number(item.plotAreaRai) : 0,
+          treeCount: item.plotTreeCount || 0,
+          startDate: item.activityPlan.startDate ? item.activityPlan.startDate.toISOString().split("T")[0] : "",
+          status: "IN_PROGRESS",
+          visitsCount: 1,
+          totalCost: 0,
+          daysSinceStart: 0,
+        });
+      }
     }
-
-    const combinedMap = new Map<string, UserDemoPlotOption>();
-    realPlots.forEach((p) => combinedMap.set(p.name, p));
 
     return serialize({
       success: true,
-      demoPlots: Array.from(combinedMap.values()),
+      demoPlots: realPlots,
     });
   } catch (err: any) {
     console.error("Failed to get demo plots", err);
     return serialize({
       success: false,
       demoPlots: [],
+    });
+  }
+}
+
+/**
+ * Action: Get Demo Plot History with all visits
+ */
+export async function getDemoPlotHistoryAction(demoPlotIdOrName: string) {
+  try {
+    let plot = await db.demoPlot.findFirst({
+      where: {
+        OR: [{ id: demoPlotIdOrName }, { name: demoPlotIdOrName }],
+      },
+      include: {
+        visits: {
+          orderBy: { visitDate: "asc" },
+          include: {
+            activityPlan: {
+              select: {
+                id: true,
+                code: true,
+                title: true,
+                startDate: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!plot) {
+      return serialize({
+        success: false,
+        error: "ไม่พบแปลงสาธิต",
+        plot: null,
+      });
+    }
+
+    const totalCost = plot.visits.reduce(
+      (sum, v) => sum + (Number(v.totalVisitCost) || 0),
+      0,
+    );
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const now = new Date();
+    const daysSinceStart = Math.max(
+      0,
+      Math.floor((now.getTime() - new Date(plot.startDate).getTime()) / msPerDay),
+    );
+
+    return serialize({
+      success: true,
+      plot: {
+        ...plot,
+        totalCost,
+        daysSinceStart,
+        visitsCount: plot.visits.length,
+      },
+    });
+  } catch (err: any) {
+    console.error("Failed to get demo plot history", err);
+    return serialize({
+      success: false,
+      error: err.message || "เกิดข้อผิดพลาดในการโหลดประวัติแปลง",
+      plot: null,
+    });
+  }
+}
+
+/**
+ * Action: Record Demo Plot Visit & Lifecycle status
+ */
+export async function recordDemoPlotVisitAction(rawData: any) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const { recordDemoPlotVisit } = await import(
+      "../infrastructure/activity-plan.repository"
+    );
+
+    const visit = await recordDemoPlotVisit({
+      demoPlotId: rawData.demoPlotId,
+      activityPlanId: rawData.activityPlanId ?? null,
+      visitDate: rawData.visitDate ? new Date(rawData.visitDate) : new Date(),
+      cropAgeValue: rawData.cropAgeValue ? Number(rawData.cropAgeValue) : null,
+      cropAgeUnit: rawData.cropAgeUnit ?? "วัน",
+      growthStage: rawData.growthStage ?? null,
+      cropCondition: rawData.cropCondition ?? null,
+      cropProblemDesc: rawData.cropProblemDesc ?? null,
+      productResponse: rawData.productResponse ?? null,
+      productProblemDesc: rawData.productProblemDesc ?? null,
+      usageMethod: rawData.usageMethod ?? null,
+      productUsedQty: rawData.productUsedQty ? Number(rawData.productUsedQty) : 0,
+      productUnitPrice: rawData.productUnitPrice ? Number(rawData.productUnitPrice) : 0,
+      otherExpenses: rawData.otherExpenses ? Number(rawData.otherExpenses) : 0,
+      imageUrls: rawData.imageUrls || [],
+      notes: rawData.notes ?? null,
+      plotStatus: rawData.plotStatus,
+      finalYieldKg: rawData.finalYieldKg ? Number(rawData.finalYieldKg) : null,
+      controlYieldKg: rawData.controlYieldKg ? Number(rawData.controlYieldKg) : null,
+      yieldIncreasePercent: rawData.yieldIncreasePercent ? Number(rawData.yieldIncreasePercent) : null,
+      farmerSatisfaction: rawData.farmerSatisfaction ? Number(rawData.farmerSatisfaction) : null,
+      commercialPotential: rawData.commercialPotential ?? null,
+      finalSummaryNotes: rawData.finalSummaryNotes ?? null,
+    });
+
+    revalidatePath("/activity-plans");
+    return serialize({ success: true, visit });
+  } catch (err: any) {
+    console.error("Failed to record demo plot visit", err);
+    return serialize({
+      success: false,
+      error: err.message || "เกิดข้อผิดพลาดในการบันทึกผลการเข้าตรวจแปลง",
     });
   }
 }
