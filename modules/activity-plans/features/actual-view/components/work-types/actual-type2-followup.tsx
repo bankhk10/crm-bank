@@ -159,7 +159,7 @@ export function ActualType2Followup({
             prevItem?.followupDetail ||
             item.followupDetail ||
             getParsedFollowupDetail(
-              followupDetail || detail,
+              followupDetail,
               item.productName,
               item.followupDetail
             );

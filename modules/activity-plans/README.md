@@ -139,17 +139,19 @@ modules/activity-plans/
   - **Database Persistence & Edit Support:** รองรับการบันทึกลงฟิลด์เฉพาะในตาราง `activity_results` (`cancel_reason`, `postponed_date`, `postponed_time`, `postponed_reason`, `postponed_notes`) พร้อมดึงกลับมาแสดงผลและแก้ไขได้ทันที
   - **Validation:** ตรวจสอบความถูกต้องของข้อมูลกรณีเลือกเลื่อนหรือยกเลิกก่อนส่งบันทึก
 
-### 2026-08-14: แก้ไข Bug ตรวจจับประเภทงานผิดพลาด (Work Type Detection Bug Fix)
-- **คอมโพเนนต์ที่แก้ไข:** `activity-plan-form.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-detail-view.tsx`
-- **ปัญหา:** หน้าแก้ไข (Edit View), หน้ารายละเอียด (Detail View) และหน้า Actual View ตรวจจับประเภทงานเพิ่มขึ้นมาเอง (เช่น วางบิล/เก็บเงิน, จัดกิจกรรมส่งเสริมการขายหน้าร้าน, แปลงสาธิต) แม้ตอนสร้างจะเลือกเพียง "เข้าพบร้านค้า / Key Farmer"
+### 2026-08-14: แก้ไข Bug ตรวจจับประเภทงานผิดพลาด & ป้องกัน Fallback Mock Data ในหน้า Actual View
+- **คอมโพเนนต์ที่แก้ไข:** `activity-plan-form.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-detail-view.tsx`, `actual-type2-followup.tsx`
+- **ปัญหาที่พบ:**
+  1. หน้าแก้ไขและหน้ารายละเอียดตรวจจับประเภทงานเพิ่มขึ้นมาเอง (จากรายการสื่อและส่งเสริมการขาย)
+  2. ในหน้าบันทึกผลงานจริง (Actual View Type 2 และประเภทอื่นๆ) หากตอนสร้างแผนไม่ได้กรอก "รายละเอียดเพิ่มเติม" กลับมีข้อความตัวอย่างจำลอง (เช่น *"ติดตามผลหลังเกษตรกรนำสินค้าไปทดลองใช้งานในพื้นที่"*) ปรากฏขึ้นมาเอง
 - **สาเหตุ:**
-  1. รายการ "สื่อส่งเสริมการขาย" และ "รายการส่งเสริมการขาย" ถูกจัดเก็บในตาราง `activity_plan_items` โดยยืมฟิลด์ เช่น `collectAmount`, `storeProductName`, `plotCropCategory` มาใช้
-  2. เมื่อวนลูปตรวจสอบ items เพื่อดึงประเภทงานกลับมา ระบบตรวจพบฟิลด์เหล่านี้จึงเข้าใจผิดว่าเป็นประเภทงานอื่นๆ
-  3. มีการสแกน `description` ซึ่งมีบล็อกข้อความ `[สื่อส่งเสริมการขาย]` และ `[รายการส่งเสริมการขาย]` ทำให้เกิด string matching ผิดพลาด
+  1. รายการสื่อและรายการส่งเสริมการขายใช้ฟิลด์ร่วมใน `activity_plan_items` ทำให้ตัวตรวจจับตีความผิด
+  2. State `targets` ใน `activity-plan-actual-view.tsx` มีการกำหนดข้อความจำลอง (Mock Defaults) ไว้ใน Initial State และเมื่อโหลดข้อมูลจาก DB หากฟิลด์ว่าง (`""`) มีการใช้ `|| prev.tX.detail` ทำให้ค่า Fallback กลับไปเป็นข้อความจำลองแทนที่จะเป็นค่าว่าง
+  3. ใน `actual-type2-followup.tsx` มีการดึง `followupDetail || detail` ทำให้ช่องกรอกผลการติดตามจริงดึงข้อความจากแผนมาใส่แทน
 - **การแก้ไข:**
-  - เพิ่มเงื่อนไขกรอง (Filter out) `MARKETING_PRODUCT` และ `SALES_PROMOTION` ออกจากการตรวจจับประเภทงานและการเริ่มต้น State ของ items แต่ละประเภท
-  - ปรับการสแกน Header ให้ตรวจจับเฉพาะใน `objective` และ `title` โดยไม่นำ `description` มาสแกน
-  - อัปเดต `extractWorkTypeSections` ใน Detail View และ `detectedWorkTypes` ใน Actual View ให้ทำงานสอดคล้องกันอย่างถูกต้อง
+  - กรอง `MARKETING_PRODUCT` และ `SALES_PROMOTION` ออกจากการตรวจจับประเภทงาน
+  - ล้าง Mock Defaults ใน `targets` ให้เริ่มต้นเป็นค่าว่าง และกำหนดค่าจาก DB ตรงๆ โดยไม่ Fallback ไปหา Mock String
+  - แยก `followupDetail` (ผลการติดตามจริง) ออกจาก `detail` (รายละเอียดจากแผน) อย่างเด็ดขาดใน `actual-type2-followup.tsx` ไม่ให้คัดลอกค่ามาใส่ในกล่องกรอกข้อมูลจริงอัตโนมัติ
 
 ### 2026-08-14: เพิ่มหน้าจอศูนย์ตรวจสอบและอนุมัติกิจกรรม & ปรับปรุง Actual Form Type 2
 - **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `actual-type2-followup.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-approval-list-view.tsx`, `approval-action-dialog.tsx`, `approval-detail-drawer.tsx`, `activity-plan.repository.ts`, `server/actions.ts`

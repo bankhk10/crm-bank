@@ -146,97 +146,71 @@ export default function ActivityPlanActualView({
   // Targets derived from Create Plan Form Constants or DB
   const [targets, setTargets] = useState({
     t1: {
-      customer: DEMO_OWNERS[0],
+      customer: "",
       topic: "แจ้งข่าวสาร",
-      detail: "เข้าพบเจ้าของร้านเพื่อแนะนำข้อมูลข่าวสารสินค้าประจำฤดูกาล",
+      detail: "",
       opportunity: "สูง",
-      nextDate: "05 ส.ค. 2568",
+      nextDate: "",
     },
     t2: {
-      product: `${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[1]}`,
-      customer: DEMO_OWNERS[0],
-      detail: "ติดตามผลหลังเกษตรกรนำสินค้าไปทดลองใช้งานในพื้นที่",
+      product: "",
+      customer: "",
+      detail: "",
       expectedResult: "พืชตอบสนองดี",
-      items: [
-        {
-          productName: DEMO_PRODUCTS[0],
-          customer: DEMO_OWNERS[0],
-          expectedResult: "พืชตอบสนองดี",
-        },
-        {
-          productName: DEMO_PRODUCTS[1],
-          customer: DEMO_OWNERS[0],
-          expectedResult: "พืชตอบสนองดี",
-        },
-      ],
+      items: [] as any[],
     },
     t3: {
-      product: `${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[1]}`,
-      customer: DEMO_OWNERS[0],
-      targetQty: "30 ลัง (A: 20 ลัง, B: 10 ลัง)",
-      targetSales: "17,500 บาท",
-      items: [
-        { productName: DEMO_PRODUCTS[0], qty: "20 ลัง", price: "10,000 บาท" },
-        { productName: DEMO_PRODUCTS[1], qty: "10 ลัง", price: "7,500 บาท" },
-      ],
+      product: "",
+      customer: "",
+      targetQty: "",
+      targetSales: "",
+      items: [] as any[],
     },
     t4: {
-      customer: `${DEMO_OWNERS[0]}, บริษัท ทรัพย์เกษตร จำกัด`,
-      orderNo: "INV-2026-0789",
-      targetCollect: "25,500 บาท",
-      items: [
-        {
-          companyName: DEMO_OWNERS[0],
-          targetCollect: "15,500 บาท",
-          receivedAmount: "15500",
-        },
-        {
-          companyName: "บริษัท ทรัพย์เกษตร จำกัด",
-          targetCollect: "10,000 บาท",
-          receivedAmount: "10000",
-        },
-      ],
+      customer: "",
+      orderNo: "",
+      targetCollect: "",
+      items: [] as any[],
     },
     t5: {
-      store: STORES_LIST[0],
-      product: DEMO_PRODUCTS[0],
-      detail: "สำรวจเปรียบเทียบราคา ป้ายราคา และโปรโมชันสินค้าคู่แข่งในพื้นที่",
+      store: "",
+      product: "",
+      detail: "",
     },
     t6: {
-      customer: DEMO_OWNERS[0],
+      customer: "",
       issueType: "เคลมของ",
-      detail:
-        "รับเรื่องร้องเรียนเรื่องสินค้าจากลูกค้าเพื่อประสานงานเปลี่ยน/เคลมสินค้า",
+      detail: "",
       targetStatus: "เสร็จสิ้น",
     },
     t7: {
-      owner: DEMO_OWNERS[0],
-      product: DEMO_PRODUCTS[0],
-      crop: "ทุเรียน",
-      plots: "20 ต้น",
+      owner: "",
+      product: "",
+      crop: "",
+      plots: "",
       targetCondition: "สมบูรณ์",
     },
     t8: {
-      topic: "ประชุมสัมมนาเทคนิคการใช้ปุ๋ยบำรุงพืชสวน",
-      products: `${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[1]}`,
-      targetAttendees: "10 คน",
+      topic: "",
+      products: "",
+      targetAttendees: "",
     },
     t9: {
-      store: STORES_LIST[0],
-      product: DEMO_PRODUCTS[0],
-      targetSales: "10,000 บาท",
-      targetAttendees: "28 คน",
+      store: "",
+      product: "",
+      targetSales: "",
+      targetAttendees: "",
     },
     t10: {
-      plot: `${USER_DEMO_PLOTS[0].name}`,
-      location: USER_DEMO_PLOTS[0].location,
-      showcase: `${USER_DEMO_PLOTS[0].targetCrop} / ${USER_DEMO_PLOTS[0].showcase}`,
-      targetAttendees: "100 คน",
-      targetSales: "150,000 บาท",
+      plot: "",
+      location: "",
+      showcase: "",
+      targetAttendees: "",
+      targetSales: "",
     },
     t11: {
-      store: STORES_LIST[0],
-      detail: `ตรวจเช็กสต็อก ${DEMO_PRODUCTS[0]} และปุ๋ยเคมีเพื่อเตรียมสั่งซื้อเติมหน้าร้าน`,
+      store: "",
+      detail: "",
       targetOpportunity: "สูง",
     },
   });
@@ -743,9 +717,9 @@ export default function ActivityPlanActualView({
                   t1Item?.customerName ||
                   allCustomers ||
                   p.location ||
-                  prev.t1.customer,
+                  "",
                 topic: t1Item?.visitTopic || prev.t1.topic,
-                detail: t1Item?.detail || prev.t1.detail,
+                detail: t1Item?.detail || "",
               },
               t2: {
                 ...prev.t2,
@@ -757,69 +731,69 @@ export default function ActivityPlanActualView({
                       ),
                     ).join(", ")) ||
                   allCustomers ||
-                  prev.t2.customer,
+                  "",
                 product:
                   (t2ItemsFromDb &&
                     t2ItemsFromDb.map((i) => i.productName).join(", ")) ||
-                  prev.t2.product,
+                  "",
                 detail:
                   (t2ItemsFromDb &&
                     t2ItemsFromDb
                       .map((i) => i.detail)
                       .filter(Boolean)
                       .join(" | ")) ||
-                  prev.t2.detail,
-                items: t2ItemsFromDb || prev.t2.items,
+                  "",
+                items: t2ItemsFromDb || [],
               },
               t3: {
                 ...prev.t3,
                 customer:
-                  t3Item?.customerName || allCustomers || prev.t3.customer,
+                  t3Item?.customerName || allCustomers || "",
                 product:
-                  t3ProdNames || t3Item?.saleProductName || prev.t3.product,
+                  t3ProdNames || t3Item?.saleProductName || "",
                 targetSales:
                   t3TotalSales > 0
                     ? `${t3TotalSales.toLocaleString()} บาท`
                     : t3Item?.saleTotalPrice
                       ? `${Number(t3Item.saleTotalPrice).toLocaleString()} บาท`
-                      : prev.t3.targetSales,
+                      : "",
               },
               t4: {
                 ...prev.t4,
                 customer:
-                  t4Item?.customerName || allCustomers || prev.t4.customer,
+                  t4Item?.customerName || allCustomers || "",
                 targetCollect: t4Item?.collectAmount
                   ? `${Number(t4Item.collectAmount).toLocaleString()} บาท`
-                  : prev.t4.targetCollect,
+                  : "",
               },
               t5: {
                 ...prev.t5,
                 store:
-                  t5Item?.surveyStoreName || allCustomers || prev.t5.store,
-                product: t5Item?.surveyCompetitorProduct || prev.t5.product,
-                detail: t5Item?.detail || prev.t5.detail,
+                  t5Item?.surveyStoreName || allCustomers || "",
+                product: t5Item?.surveyCompetitorProduct || "",
+                detail: t5Item?.detail || "",
               },
               t6: {
                 ...prev.t6,
                 customer:
-                  t6Item?.customerName || allCustomers || prev.t6.customer,
+                  t6Item?.customerName || allCustomers || "",
                 issueType: t6Item?.issueType || prev.t6.issueType,
-                detail: t6Item?.detail || prev.t6.detail,
+                detail: t6Item?.detail || "",
               },
               t7: {
                 ...prev.t7,
                 owner:
-                  t7Item?.plotOwnerName || allCustomers || prev.t7.owner,
-                product: t7Item?.plotProductName || prev.t7.product,
-                crop: t7Item?.plotCropName || prev.t7.crop,
+                  t7Item?.plotOwnerName || allCustomers || "",
+                product: t7Item?.plotProductName || "",
+                crop: t7Item?.plotCropName || "",
               },
               t8: {
                 ...prev.t8,
-                topic: t8Item?.meetingTopic || prev.t8.topic,
-                products: t8Item?.meetingTargetProducts || prev.t8.products,
+                topic: t8Item?.meetingTopic || "",
+                products: t8Item?.meetingTargetProducts || "",
                 targetAttendees: t8Item?.meetingAttendeesCount
                   ? `${t8Item.meetingAttendeesCount} คน`
-                  : prev.t8.targetAttendees,
+                  : "",
               },
               t9: {
                 ...prev.t9,
@@ -827,20 +801,20 @@ export default function ActivityPlanActualView({
                   t9Item?.customerName ||
                   t9Item?.surveyStoreName ||
                   allCustomers ||
-                  prev.t9.store,
-                product: t9Item?.storeProductName || prev.t9.product,
+                  "",
+                product: t9Item?.storeProductName || "",
                 targetSales: t9Item?.storeTotalAmount
                   ? `${Number(t9Item.storeTotalAmount).toLocaleString()} บาท`
-                  : prev.t9.targetSales,
+                  : "",
               },
               t10: {
                 ...prev.t10,
-                plot: t10Item?.customerName || allCustomers || prev.t10.plot,
+                plot: t10Item?.customerName || allCustomers || "",
               },
               t11: {
                 ...prev.t11,
-                store: t11Item?.customerName || allCustomers || prev.t11.store,
-                detail: t11Item?.detail || prev.t11.detail,
+                store: t11Item?.customerName || allCustomers || "",
+                detail: t11Item?.detail || "",
               },
             }));
           }
