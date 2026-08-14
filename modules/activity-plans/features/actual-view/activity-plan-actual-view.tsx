@@ -285,6 +285,9 @@ export default function ActivityPlanActualView({
 
   // Type 7
   const [t7PlotName, setT7PlotName] = useState("");
+  const [t7PlantingDate, setT7PlantingDate] = useState("");
+  const [t7PlantingAreaCondition, setT7PlantingAreaCondition] = useState("");
+  const [t7CropImages, setT7CropImages] = useState<ImageFile[]>([]);
   const [t7UsageMethod, setT7UsageMethod] = useState("");
   const [t7CropAgeValue, setT7CropAgeValue] = useState("");
   const [t7CropAgeUnit, setT7CropAgeUnit] = useState("วัน");
@@ -862,6 +865,7 @@ export default function ActivityPlanActualView({
                     }
 
                     return {
+                      activityType: item.plotActivityType || "CREATE",
                       owner:
                         item.plotOwnerName ||
                         item.customerName ||
@@ -1041,6 +1045,10 @@ export default function ActivityPlanActualView({
               },
               t7: {
                 ...prev.t7,
+                activityType:
+                  t7Item?.plotActivityType ||
+                  (t7ItemsFromDb && t7ItemsFromDb[0]?.activityType) ||
+                  "CREATE",
                 owner:
                   (t7ItemsFromDb &&
                     Array.from(
@@ -1407,6 +1415,16 @@ export default function ActivityPlanActualView({
               if (t7ProblemMatch && t7ProblemMatch[1]) {
                 setT7ProblemDescription(
                   t7ProblemMatch[1].split("\n")[0].trim(),
+                );
+              }
+              const plantingDateMatch = summaryText.match(/วันที่ปลูก:\s*(.+)/);
+              if (plantingDateMatch && plantingDateMatch[1]) {
+                setT7PlantingDate(plantingDateMatch[1].split("\n")[0].trim());
+              }
+              const areaCondMatch = summaryText.match(/สภาพพื้นที่ปลูก:\s*(.+)/);
+              if (areaCondMatch && areaCondMatch[1]) {
+                setT7PlantingAreaCondition(
+                  areaCondMatch[1].split("\n")[0].trim(),
                 );
               }
               const statusMatch = summaryText.match(/สถานะแปลง:\s*(.+)/);
@@ -1852,6 +1870,10 @@ export default function ActivityPlanActualView({
 
           // Type 7
           t7PlotName ? `ชื่อแปลงทดสอบ: ${t7PlotName}` : null,
+          t7PlantingDate ? `วันที่ปลูก: ${t7PlantingDate}` : null,
+          t7PlantingAreaCondition
+            ? `สภาพพื้นที่ปลูก: ${t7PlantingAreaCondition}`
+            : null,
           t7UsageMethod ? `วิธีใช้/อัตราการใช้: ${t7UsageMethod}` : null,
           t7CropAgeValue
             ? `อายุพืช: ${t7CropAgeValue} ${t7CropAgeUnit || "วัน"}`
@@ -2197,6 +2219,13 @@ export default function ActivityPlanActualView({
                 setPlotName={setT7PlotName}
                 usageMethod={t7UsageMethod}
                 setUsageMethod={setT7UsageMethod}
+                plantingDate={t7PlantingDate}
+                setPlantingDate={setT7PlantingDate}
+                plantingAreaCondition={t7PlantingAreaCondition}
+                setPlantingAreaCondition={setT7PlantingAreaCondition}
+                cropImages={t7CropImages}
+                onUploadCropImages={createUploadHandler(setT7CropImages)}
+                onRemoveCropImage={(id) => removeImage(setT7CropImages, id)}
                 cropAgeValue={t7CropAgeValue}
                 setCropAgeValue={setT7CropAgeValue}
                 cropAgeUnit={t7CropAgeUnit}

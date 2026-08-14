@@ -119,6 +119,22 @@ modules/activity-plans/
 
 ## 📝 บันทึกการอัปเดตฟีเจอร์ (Feature Change Log)
 
+### 2026-08-14: ปรับปรุง Work Type 7 (Demo Plot) แยกฟอร์ม Actual ตามประเภทงาน ("ทำแปลงสาธิต" vs "ติดตามแปลงสาธิต")
+- **คอมโพเนนต์ที่แก้ไข:**
+  - `modules/activity-plans/features/form/components/work-types/type7-demo.tsx`
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type7-demo.tsx`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+- **การเปลี่ยนแปลงที่ดำเนินการ:**
+  1. **Data Mapping จากฟิลด์ประเภทงานจริง:** ตรวจสอบจากค่า `plotActivityType` / `activityType` (`"CREATE"` vs `"FOLLOW_UP"`) ที่บันทึกในฐานข้อมูล ไม่ได้อิงจาก Label หน้าจอ
+  2. **กรณีประเภทงาน = "ทำแปลงสาธิต" (CREATE - เริ่มทำแปลงใหม่):**
+     - **ไม่แสดงช่องสำหรับการติดตาม:** ซ่อน อายุพืช, ระยะการเจริญเติบโต, สภาพพืช, ผลการใช้ผลิตภัณฑ์, และสถานะของแปลงสาธิต (Lifecycle Status)
+     - **เพิ่มช่องสำหรับสร้างแปลงใหม่:**
+       - **ข้อมูลการทำแปลง:** วันที่ปลูก (`plantingDate` *), สภาพพื้นที่ปลูก (`plantingAreaCondition`), วิธีการใช้ / อัตราการใช้ (`usageMethod`)
+       - **รูปภาพประกอบการทำแปลง:** รูปสภาพพืช (`cropImages`), รูปภาพสภาพแปลง (`plotImages`)
+  3. **กรณีประเภทงาน = "ติดตามแปลงสาธิต" (FOLLOW_UP - ติดตามแปลงเดิม):**
+     - คงฟอร์มการติดตามแปลงสาธิตตามรูปแบบเดิมอย่างครบถ้วน 100% (อายุพืช, ระยะการเจริญเติบโต, สภาพพืช, ผลการใช้ผลิตภัณฑ์, รูปภาพสภาพแปลงล่าสุด, ประวัติการเข้าตรวจ, Lifecycle Status, และฟอร์มสรุปปิดแปลง)
+- **ผลลัพธ์:** หน้า Trip Plan Actual แยกแบบฟอร์มการกรอกผลการปฏิบัติงานระหว่าง "การเริ่มทำแปลงใหม่" และ "การติดตามแปลงเดิม" ได้อย่างถูกต้อง ชัดเจน และสมบูรณ์แบบตาม Business Flow
+
 ### 2026-08-14: พัฒนาระบบติดตามแปลงสาธิตต่อเนื่องครบวงจร (Demo Plot Lifecycle, Duration/Cost Calculations & Plot Closing)
 - **คอมโพเนนต์ที่แก้ไข/เพิ่มใหม่:**
   - `prisma/schema.prisma` (เพิ่ม `DemoPlotStatus`, `model DemoPlot`, `model DemoPlotVisit`)
