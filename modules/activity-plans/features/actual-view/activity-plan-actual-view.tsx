@@ -1303,6 +1303,15 @@ export default function ActivityPlanActualView({
               if (t7MethodMatch && t7MethodMatch[1]) {
                 setT7UsageMethod(t7MethodMatch[1].split("\n")[0].trim());
               }
+              const t7AgeMatch = summaryText.match(
+                /อายุพืช:\s*(\d+)\s*(วัน|สัปดาห์|เดือน|ปี)?/,
+              );
+              if (t7AgeMatch && t7AgeMatch[1]) {
+                setT7CropAgeValue(t7AgeMatch[1].trim());
+                if (t7AgeMatch[2]) {
+                  setT7CropAgeUnit(t7AgeMatch[2].trim());
+                }
+              }
               const t7GrowthMatch = summaryText.match(
                 /ระยะการเจริญเติบโต:\s*(.+)/,
               );
@@ -1311,12 +1320,39 @@ export default function ActivityPlanActualView({
               }
               const t7CondMatch = summaryText.match(/สภาพแปลง:\s*(.+)/);
               if (t7CondMatch && t7CondMatch[1]) {
-                setT7CropCondition(t7CondMatch[1].split("\n")[0].trim() as any);
+                const cVal = t7CondMatch[1].split("\n")[0].trim();
+                if (
+                  cVal === "สมบูรณ์" ||
+                  cVal === "มีปัญหา" ||
+                  cVal === "ปานกลาง" ||
+                  cVal === "ทรุดโทรม"
+                ) {
+                  setT7CropCondition(cVal as any);
+                }
               }
-              const t7DescMatch = summaryText.match(/รายละเอียดแปลง:\s*(.+)/);
+              const t7DescMatch = summaryText.match(
+                /(?:ปัญหาของสภาพพืช|รายละเอียดแปลง):\s*(.+)/,
+              );
               if (t7DescMatch && t7DescMatch[1]) {
                 setT7CropProblemDescription(
                   t7DescMatch[1].split("\n")[0].trim(),
+                );
+              }
+              const t7ResponseMatch = summaryText.match(
+                /ผลการใช้ผลิตภัณฑ์:\s*(.+)/,
+              );
+              if (t7ResponseMatch && t7ResponseMatch[1]) {
+                const resp = t7ResponseMatch[1].split("\n")[0].trim();
+                if (resp === "พืชตอบสนองดี" || resp === "พบปัญหา") {
+                  setT7ProductResponse(resp);
+                }
+              }
+              const t7ProblemMatch = summaryText.match(
+                /รายละเอียดปัญหาการใช้ผลิตภัณฑ์:\s*(.+)/,
+              );
+              if (t7ProblemMatch && t7ProblemMatch[1]) {
+                setT7ProblemDescription(
+                  t7ProblemMatch[1].split("\n")[0].trim(),
                 );
               }
 
@@ -1437,9 +1473,6 @@ export default function ActivityPlanActualView({
             }
             if (resData.problemFound) {
               setT6ProblemDetail((prev) => prev || resData.problemFound || "");
-              setT7CropProblemDescription(
-                (prev) => prev || resData.problemFound || "",
-              );
             }
             if (resData.nextAction) {
               setT1NextAction(resData.nextAction);
@@ -1723,10 +1756,19 @@ export default function ActivityPlanActualView({
           // Type 7
           t7PlotName ? `ชื่อแปลงทดสอบ: ${t7PlotName}` : null,
           t7UsageMethod ? `วิธีใช้/อัตราการใช้: ${t7UsageMethod}` : null,
+          t7CropAgeValue
+            ? `อายุพืช: ${t7CropAgeValue} ${t7CropAgeUnit || "วัน"}`
+            : null,
           t7GrowthStage ? `ระยะการเจริญเติบโต: ${t7GrowthStage}` : null,
           t7CropCondition ? `สภาพแปลง: ${t7CropCondition}` : null,
           t7CropProblemDescription
-            ? `รายละเอียดแปลง: ${t7CropProblemDescription}`
+            ? `ปัญหาของสภาพพืช: ${t7CropProblemDescription}`
+            : null,
+          t7ProductResponse
+            ? `ผลการใช้ผลิตภัณฑ์: ${t7ProductResponse}`
+            : null,
+          t7ProblemDescription
+            ? `รายละเอียดปัญหาการใช้ผลิตภัณฑ์: ${t7ProblemDescription}`
             : null,
 
           // Type 8
@@ -1778,6 +1820,7 @@ export default function ActivityPlanActualView({
           problemFound:
             (t2HasProblem ? t2ProblemDetail : null) ||
             t6ProblemDetail ||
+            t7ProblemDescription ||
             t7CropProblemDescription ||
             null,
           nextAction: t1NextAction || t11NextAction || null,
