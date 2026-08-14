@@ -1883,7 +1883,10 @@ model DemoPlot {
   experimentDetail    String?        @map("experiment_detail") // รายละเอียด/วิธีการทดลอง
 
   // ข้อมูลเวลาและสถานะ
-  startDate           DateTime       @map("start_date") // วันที่เริ่มต้นทำแปลง
+  startDate           DateTime       @map("start_date") // วันที่เริ่มต้นทำแผนแปลง
+  plantingDate        DateTime?      @map("planting_date") // วันที่ปลูกจริง
+  plantingAreaCondition String?      @map("planting_area_condition") // สภาพพื้นที่ปลูกตอนเริ่มต้น
+  usageMethod         String?        @map("usage_method") // วิธีใช้/อัตราการใช้ตอนเริ่มต้น
   closedDate          DateTime?      @map("closed_date") // วันที่ปิดแปลง
   status              DemoPlotStatus @default(IN_PROGRESS)
 
@@ -1934,7 +1937,9 @@ model DemoPlotVisit {
   otherExpenses      Decimal?      @default(0) @db.Decimal(12, 2) @map("other_expenses") // ค่าใช้จ่ายอื่นๆ
   totalVisitCost     Decimal?      @db.Decimal(12, 2) @map("total_visit_cost") // รวมค่าใช้จ่ายรอบนี้
 
-  imageUrls          String[]      @map("image_urls") // รูปภาพสภาพแปลงรอบนี้
+  cropImageUrls      String[]      @default([]) @map("crop_image_urls") // รูปสภาพพืชรอบนี้
+  plotImageUrls      String[]      @default([]) @map("plot_image_urls") // รูปภาพสภาพแปลงรอบนี้
+  imageUrls          String[]      @default([]) @map("image_urls") // รูปภาพสภาพแปลงรอบนี้ (backward compatibility)
   notes              String?
 
   demoPlot           DemoPlot      @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)

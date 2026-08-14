@@ -119,6 +119,25 @@ modules/activity-plans/
 
 ## 📝 บันทึกการอัปเดตฟีเจอร์ (Feature Change Log)
 
+### 2026-08-14: ปรับปรุง UX/UI และ Data Flow ของ Demo Plot: แยกหน้าที่ Plan vs Actual, โครงสร้าง Master vs Visit และ History Timeline Modal
+- **คอมโพเนนต์ที่แก้ไข/เพิ่มใหม่:**
+  - `prisma/schema.prisma` (เพิ่ม `plantingDate`, `plantingAreaCondition`, `usageMethod` ใน `DemoPlot` และ `cropImageUrls`, `plotImageUrls` ใน `DemoPlotVisit`)
+  - `modules/activity-plans/infrastructure/activity-plan.repository.ts` (อัปเดต `createDemoPlotRecord`, `recordDemoPlotVisit`, `getDemoPlotWithHistory`)
+  - `modules/activity-plans/server/actions.ts` (ปรับปรุง `getDemoPlotHistoryAction`, `recordDemoPlotVisitAction`)
+  - `modules/activity-plans/features/form/components/work-types/type7-demo.tsx`
+  - `modules/activity-plans/features/actual-view/components/work-types/demo-plot-history-modal.tsx` (เพิ่มใหม่: Timeline Dialog ย้อนหลังทุกรอบตรวจ)
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type7-demo.tsx`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+- **การเปลี่ยนแปลงที่ดำเนินการ:**
+  1. **หน้าสร้างแผน (`type7-demo.tsx`)**: ในโหมด `FOLLOW_UP` ซ่อนช่องวันที่ติดตาม, จำนวนสินค้าที่จะสาธิต, และแถบสถิติสะสม (วันที่ผ่านมา, จำนวนครั้งที่ตรวจแล้ว, ค่าใช้จ่ายสะสม) โดยคงไว้เฉพาะการเลือกแปลงเดิมและการ์ดแสดงข้อมูลระบุตัวตนแปลงเดิมแบบ Read-only พร้อมช่องกรอกรายละเอียดที่ตั้งใจจะไปทำ
+  2. **หน้าบันทึกผลจริง (`actual-type7-demo.tsx`)**:
+     - กรณี `CREATE`: แสดงฟอร์มทำแปลงใหม่ (วันที่ปลูก *, สภาพพื้นที่ปลูก, วิธีการใช้เริ่มต้น, รูปสภาพพืช, รูปภาพสภาพแปลง)
+     - กรณี `FOLLOW_UP`: แสดง **"ข้อมูลอ้างอิงของแปลงสาธิต (จากตอนเริ่มทำแปลง)"** (วันที่ปลูก, สภาพพื้นที่ตอนเริ่ม, วิธีใช้เริ่มต้น, เจ้าของ, พืช, พื้นที่, สินค้า) อัตโนมัติโดยผู้ใช้ไม่ต้องกรอกซ้ำ
+     - เพิ่มปุ่มเด่น **"📋 ดูประวัติการติดตามแปลง (X ครั้ง)"** เพื่อเปิด Modal ประวัติการติดตาม
+     - ฟอร์มบันทึกผลการติดตามรอบนี้: อายุพืช *, ระยะการเจริญเติบโต *, สภาพพืช *, ผลการใช้ผลิตภัณฑ์ *, วิธีการใช้รอบนี้, รูปสภาพพืช (รอบนี้), รูปภาพสภาพแปลง (รอบนี้)
+  3. **History Timeline Modal (`demo-plot-history-modal.tsx`)**: แสดงประวัติการติดตามย้อนหลังทุกรอบตามลำดับเวลา (Visit #1, #2, #3...) พร้อมรูปถ่ายและผลการตรวจ โดยรูปภาพของแต่ละรอบจัดเก็บแยกกันอิสระ ไม่เขียนทับของเดิม
+- **ผลลัพธ์:** การทำงานของ Demo Plot มีความชัดเจนในหน้าที่ ไม่ซ้ำซ้อน ใช้งานง่าย และรองรับการติดตามแปลงเดิมอย่างต่อเนื่องสมบูรณ์แบบ
+
 ### 2026-08-14: ปรับปรุง Work Type 7 (Demo Plot) แยกฟอร์ม Actual ตามประเภทงาน ("ทำแปลงสาธิต" vs "ติดตามแปลงสาธิต")
 - **คอมโพเนนต์ที่แก้ไข:**
   - `modules/activity-plans/features/form/components/work-types/type7-demo.tsx`

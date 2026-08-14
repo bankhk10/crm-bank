@@ -315,6 +315,7 @@ export default function ActivityPlanActualView({
   const [t7StartDate, setT7StartDate] = useState("");
   const [t7ProductPrice, setT7ProductPrice] = useState(500);
   const [t7DemoPlotId, setT7DemoPlotId] = useState("");
+  const [t7DemoPlotData, setT7DemoPlotData] = useState<any>(null);
 
   // Type 8
   const [t8ActualAttendees, setT8ActualAttendees] = useState("");
@@ -1161,8 +1162,30 @@ export default function ActivityPlanActualView({
               setT7DemoPlotId(t7PlotIdentifier);
               getDemoPlotHistoryAction(t7PlotIdentifier).then((histRes) => {
                 if (histRes.success && histRes.plot) {
+                  setT7DemoPlotData(histRes.plot);
                   if (histRes.plot.visits) setT7VisitHistory(histRes.plot.visits);
                   if (histRes.plot.status) setT7PlotStatus(histRes.plot.status as any);
+                  if (histRes.plot.plantingDate) {
+                    setT7PlantingDate(
+                      new Date(histRes.plot.plantingDate)
+                        .toISOString()
+                        .split("T")[0],
+                    );
+                  } else if (histRes.plot.startDate) {
+                    setT7PlantingDate(
+                      new Date(histRes.plot.startDate)
+                        .toISOString()
+                        .split("T")[0],
+                    );
+                  }
+                  if (histRes.plot.plantingAreaCondition) {
+                    setT7PlantingAreaCondition(
+                      histRes.plot.plantingAreaCondition,
+                    );
+                  }
+                  if (histRes.plot.usageMethod && !t7UsageMethod) {
+                    setT7UsageMethod(histRes.plot.usageMethod);
+                  }
                   if (histRes.plot.startDate) {
                     setT7StartDate(
                       new Date(histRes.plot.startDate).toISOString().split("T")[0],
@@ -2018,8 +2041,12 @@ export default function ActivityPlanActualView({
             productResponse: t7ProductResponse,
             productProblemDesc: t7ProblemDescription,
             usageMethod: t7UsageMethod,
+            plantingDate: t7PlantingDate,
+            plantingAreaCondition: t7PlantingAreaCondition,
             productUsedQty: qty,
             productUnitPrice: t7ProductPrice || 500,
+            cropImageUrls: t7CropImages.map((img) => img.url),
+            plotImageUrls: t7PlotImages.map((img) => img.url),
             imageUrls: t7PlotImages.map((img) => img.url),
             plotStatus: t7PlotStatus,
             finalYieldKg: t7FinalYieldKg ? Number(t7FinalYieldKg) : null,
@@ -2260,6 +2287,7 @@ export default function ActivityPlanActualView({
                 finalSummaryNotes={t7FinalSummaryNotes}
                 setFinalSummaryNotes={setT7FinalSummaryNotes}
                 visitHistory={t7VisitHistory}
+                demoPlotData={t7DemoPlotData}
               />
 
               {/* WORK TYPE 8 */}

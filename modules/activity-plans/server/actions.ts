@@ -658,7 +658,11 @@ export async function getDemoPlotHistoryAction(demoPlotIdOrName: string) {
   try {
     let plot = await db.demoPlot.findFirst({
       where: {
-        OR: [{ id: demoPlotIdOrName }, { name: demoPlotIdOrName }],
+        OR: [
+          { id: demoPlotIdOrName },
+          { name: demoPlotIdOrName },
+          { code: demoPlotIdOrName },
+        ],
       },
       include: {
         visits: {
@@ -691,9 +695,10 @@ export async function getDemoPlotHistoryAction(demoPlotIdOrName: string) {
     );
     const msPerDay = 1000 * 60 * 60 * 24;
     const now = new Date();
+    const baseStartDate = plot.plantingDate || plot.startDate;
     const daysSinceStart = Math.max(
       0,
-      Math.floor((now.getTime() - new Date(plot.startDate).getTime()) / msPerDay),
+      Math.floor((now.getTime() - new Date(baseStartDate).getTime()) / msPerDay),
     );
 
     return serialize({
@@ -741,10 +746,14 @@ export async function recordDemoPlotVisitAction(rawData: any) {
       productResponse: rawData.productResponse ?? null,
       productProblemDesc: rawData.productProblemDesc ?? null,
       usageMethod: rawData.usageMethod ?? null,
+      plantingDate: rawData.plantingDate ? new Date(rawData.plantingDate) : null,
+      plantingAreaCondition: rawData.plantingAreaCondition ?? null,
       productUsedQty: rawData.productUsedQty ? Number(rawData.productUsedQty) : 0,
       productUnitPrice: rawData.productUnitPrice ? Number(rawData.productUnitPrice) : 0,
       otherExpenses: rawData.otherExpenses ? Number(rawData.otherExpenses) : 0,
-      imageUrls: rawData.imageUrls || [],
+      cropImageUrls: rawData.cropImageUrls || [],
+      plotImageUrls: rawData.plotImageUrls || [],
+      imageUrls: rawData.imageUrls || rawData.plotImageUrls || [],
       notes: rawData.notes ?? null,
       plotStatus: rawData.plotStatus,
       finalYieldKg: rawData.finalYieldKg ? Number(rawData.finalYieldKg) : null,

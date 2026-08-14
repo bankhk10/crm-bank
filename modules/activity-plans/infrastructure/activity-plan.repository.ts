@@ -1017,6 +1017,9 @@ export async function createDemoPlotRecord(data: {
   objective?: string | null;
   experimentDetail?: string | null;
   startDate: Date;
+  plantingDate?: Date | null;
+  plantingAreaCondition?: string | null;
+  usageMethod?: string | null;
 }) {
   let code = data.code;
   if (!code) {
@@ -1047,6 +1050,9 @@ export async function createDemoPlotRecord(data: {
       objective: data.objective ?? null,
       experimentDetail: data.experimentDetail ?? null,
       startDate: data.startDate,
+      plantingDate: data.plantingDate ?? null,
+      plantingAreaCondition: data.plantingAreaCondition ?? null,
+      usageMethod: data.usageMethod ?? null,
       status: DemoPlotStatus.IN_PROGRESS,
     },
   });
@@ -1067,8 +1073,12 @@ export async function recordDemoPlotVisit(data: {
   productUsedQty?: number | null;
   productUnitPrice?: number | null;
   otherExpenses?: number | null;
+  cropImageUrls?: string[];
+  plotImageUrls?: string[];
   imageUrls?: string[];
   notes?: string | null;
+  plantingDate?: Date | null;
+  plantingAreaCondition?: string | null;
   plotStatus?: DemoPlotStatus;
   finalYieldKg?: number | null;
   controlYieldKg?: number | null;
@@ -1088,10 +1098,11 @@ export async function recordDemoPlotVisit(data: {
 
   const visitNumber = plot.visits.length + 1;
   const msPerDay = 1000 * 60 * 60 * 24;
+  const baseStartDate = plot.plantingDate || plot.startDate;
   const daysSinceStart = Math.max(
     0,
     Math.floor(
-      (data.visitDate.getTime() - new Date(plot.startDate).getTime()) / msPerDay,
+      (data.visitDate.getTime() - new Date(baseStartDate).getTime()) / msPerDay,
     ),
   );
 
@@ -1100,6 +1111,10 @@ export async function recordDemoPlotVisit(data: {
   const productCost = productUsedQty * productUnitPrice;
   const otherExpenses = data.otherExpenses || 0;
   const totalVisitCost = productCost + otherExpenses;
+
+  const cropImageUrls = data.cropImageUrls || [];
+  const plotImageUrls = data.plotImageUrls || [];
+  const legacyImageUrls = data.imageUrls || plotImageUrls;
 
   return db.$transaction(async (tx) => {
     const visit = await tx.demoPlotVisit.create({
@@ -1122,34 +1137,58 @@ export async function recordDemoPlotVisit(data: {
         productCost: new Prisma.Decimal(productCost),
         otherExpenses: new Prisma.Decimal(otherExpenses),
         totalVisitCost: new Prisma.Decimal(totalVisitCost),
-        imageUrls: data.imageUrls || [],
+        cropImageUrls,
+        plotImageUrls,
+        imageUrls: legacyImageUrls,
         notes: data.notes ?? null,
       },
     });
 
+    // Update master plot initial info if not yet set or provided on visit 1
+    const plotUpdateData: any = {};
+    if (data.plantingDate && !plot.plantingDate) {
+      plotUpdateData.plantingDate = data.plantingDate;
+    }
+    if (data.plantingAreaCondition && !plot.plantingAreaCondition) {
+      plotUpdateData.plantingAreaCondition = data.plantingAreaCondition;
+    }
+    if (data.usageMethod && !plot.usageMethod) {
+      plotUpdateData.usageMethod = data.usageMethod;
+    }
+
     if (data.plotStatus && data.plotStatus !== plot.status) {
+      plotUpdateData.status = data.plotStatus;
+      plotUpdateData.closedDate =
+        data.plotStatus === DemoPlotStatus.COMPLETED ||
+        data.plotStatus === DemoPlotStatus.FAILED
+          ? data.visitDate
+          : null;
+      if (data.finalYieldKg) {
+        plotUpdateData.demoYieldKg = new Prisma.Decimal(data.finalYieldKg);
+      }
+      if (data.controlYieldKg) {
+        plotUpdateData.controlYieldKg = new Prisma.Decimal(data.controlYieldKg);
+      }
+      if (data.yieldIncreasePercent) {
+        plotUpdateData.yieldIncreasePercent = new Prisma.Decimal(
+          data.yieldIncreasePercent,
+        );
+      }
+      if (data.farmerSatisfaction) {
+        plotUpdateData.farmerSatisfaction = data.farmerSatisfaction;
+      }
+      if (data.commercialPotential) {
+        plotUpdateData.commercialPotential = data.commercialPotential;
+      }
+      if (data.finalSummaryNotes) {
+        plotUpdateData.finalSummaryNotes = data.finalSummaryNotes;
+      }
+    }
+
+    if (Object.keys(plotUpdateData).length > 0) {
       await tx.demoPlot.update({
         where: { id: data.demoPlotId },
-        data: {
-          status: data.plotStatus,
-          closedDate:
-            data.plotStatus === DemoPlotStatus.COMPLETED ||
-            data.plotStatus === DemoPlotStatus.FAILED
-              ? data.visitDate
-              : null,
-          demoYieldKg: data.finalYieldKg
-            ? new Prisma.Decimal(data.finalYieldKg)
-            : undefined,
-          controlYieldKg: data.controlYieldKg
-            ? new Prisma.Decimal(data.controlYieldKg)
-            : undefined,
-          yieldIncreasePercent: data.yieldIncreasePercent
-            ? new Prisma.Decimal(data.yieldIncreasePercent)
-            : undefined,
-          farmerSatisfaction: data.farmerSatisfaction ?? undefined,
-          commercialPotential: data.commercialPotential ?? undefined,
-          finalSummaryNotes: data.finalSummaryNotes ?? undefined,
-        },
+        data: plotUpdateData,
       });
     }
 
