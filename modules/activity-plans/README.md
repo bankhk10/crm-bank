@@ -119,16 +119,17 @@ modules/activity-plans/
 
 ## 📝 บันทึกการอัปเดตฟีเจอร์ (Feature Change Log)
 
-### 2026-08-14: เพิ่มหน้าจอศูนย์ตรวจสอบและอนุมัติกิจกรรม (Trip Plan Approval Hub & Queue)
-- **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `activity-plan-approval-list-view.tsx`, `approval-action-dialog.tsx`, `approval-detail-drawer.tsx`, `activity-plan.repository.ts`, `server/actions.ts`
-- **Routing:** `/activity-plans/approvals` และเพิ่มเมนูใน Sidebar + ปุ่มทางลัดใน Toolbar
-- **ฟีเจอร์เด่น:**
-  - **KPI Summary Cards:** แสดงจำนวนคำขออนุมัติตามสายงาน (พร้อมตัวบ่งชี้เมื่อมีงานที่รอการตัดสินใจของคุณ), คิวงบประมาณ, คิวคนช่วยงาน, และประวัติการดำเนินการ
-  - **Tabbed Filter Navigation:** กรองรายการ 5 แท็บ: คิวสายงานของฉัน (`my_line`), ทั้งหมดที่รออนุมัติ (`all`), งบประมาณ (`budget`), พนักงานช่วยงาน (`helper`), และประวัติ (`history`)
-  - **Search & Activity Type Filter:** ค้นหาแผนงาน รหัส ผู้สร้าง และตัวกรองประเภทกิจกรรม (Lookup master)
-  - **Dual View Mode:** สลับการแสดงผลแบบการ์ด (Card View - Mobile Friendly) และตาราง (Table View - Desktop Scan)
-  - **Quick Action Modal Dialog:** ยืนยันการอนุมัติ / ตีกลับแก้ไข / ปฏิเสธ พร้อมช่องระบุหมายเหตุโดยไม่ต้องเปลี่ยนหน้า
-  - **Quick Detail Inspection Drawer:** เปิดดูรายละเอียดเป้าหมาย งบประมาณ รายการสินค้า และประวัติ Timeline (Audit Logs) ได้ทันที
+### 2026-08-14: เพิ่มหน้าจอศูนย์ตรวจสอบและอนุมัติกิจกรรม & ปรับปรุง Actual Form Type 2
+- **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `actual-type2-followup.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-approval-list-view.tsx`, `approval-action-dialog.tsx`, `approval-detail-drawer.tsx`, `activity-plan.repository.ts`, `server/actions.ts`
+- **การปรับปรุง Actual Form Type 2 (ติดตามผลการใช้สินค้า):**
+  - แยกช่องกรอก **"รายละเอียดการติดตาม"** (`followupDetail`) ออกจาก **"รายละเอียดเพิ่มเติม"** (`detail` จากแผนเดิม) อย่างชัดเจน
+  - แสดง "รายละเอียดเพิ่มเติมจากแผน" เป็น Reference Box ให้อ่านอ้างอิง และให้ผู้ใช้กรอกผลการติดตามจริงในช่องกรอกแยกต่างหาก ไม่ทับซ้อนกัน
+- **Routing & Approval Hub:** `/activity-plans/approvals` และเพิ่มเมนูใน Sidebar + ปุ่มทางลัดใน Toolbar
+- **ฟีเจอร์เด่น Approval Hub:**
+  - **KPI Summary Cards:** แสดงจำนวนคำขออนุมัติตามสายงาน, คิวงบประมาณ, คิวคนช่วยงาน, และประวัติการดำเนินการ
+  - **Tabbed Filter Navigation:** กรองรายการ 5 แท็บ (`my_line`, `all`, `budget`, `helper`, `history`)
+  - **Dual View Mode:** สลับการแสดงผลแบบการ์ด (Card View) และตาราง (Table View)
+  - **Quick Actions & Inspection Drawer:** ยืนยันการอนุมัติ/ตีกลับ/ปฏิเสธ และเปิดดู Timeline ได้ทันที
 
 ### 2026-08-13: Redesign Schema ใหม่ — Analytics-Ready
 - **ขอบเขต:** ลบ schema เก่าทิ้งทั้งหมด ออกแบบใหม่ 6 ตารางเพื่อรองรับ Data Analytics Dashboard

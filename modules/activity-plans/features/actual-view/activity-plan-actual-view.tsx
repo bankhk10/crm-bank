@@ -257,6 +257,7 @@ export default function ActivityPlanActualView({
 
   // Type 2
   const [t2CustomerName, setT2CustomerName] = useState("");
+  const [t2FollowupDetail, setT2FollowupDetail] = useState("");
   const [t2Detail, setT2Detail] = useState("");
   const [t2UsageResult, setT2UsageResult] = useState<
     "พืชตอบสนองดี" | "พบปัญหา" | ""
@@ -570,24 +571,160 @@ export default function ActivityPlanActualView({
           if ((p as any).result) {
             const resData = (p as any).result;
             if (resData.resultSummary) {
-              const adviceMatch = resData.resultSummary.match(/สินค้าที่แนะนำ:\s*(.+)/);
+              const summaryText = resData.resultSummary;
+
+              // Type 1
+              const adviceMatch = summaryText.match(/สินค้าที่แนะนำ:\s*(.+)/);
               if (adviceMatch && adviceMatch[1]) {
                 setT1ProductAdvice(adviceMatch[1].split("\n")[0].trim());
               }
 
-              const discussionMatch = resData.resultSummary.match(/ผลการพูดคุย:\s*(.+)/);
+              const discussionMatch = summaryText.match(/ผลการพูดคุย:\s*(.+)/);
               if (discussionMatch && discussionMatch[1]) {
                 setT1DiscussionResult(discussionMatch[1].split("\n")[0].trim());
               }
 
-              const detailMatch = resData.resultSummary.match(/รายละเอียดเข้าพบ:\s*(.+)/);
+              const detailMatch = summaryText.match(/รายละเอียดเข้าพบ:\s*(.+)/);
               if (detailMatch && detailMatch[1]) {
                 setT1Detail(detailMatch[1].split("\n")[0].trim());
               }
+
+              // Type 2 (Followup)
+              const followupMatch = summaryText.match(/ติดตามผล:\s*(.+)/);
+              if (followupMatch && followupMatch[1]) {
+                const val = followupMatch[1].split("\n")[0].trim();
+                setT2FollowupDetail(val);
+                setT2Detail(val);
+              }
+
+              const usageResultMatch = summaryText.match(/ผลลัพธ์การใช้:\s*(.+)/);
+              if (usageResultMatch && usageResultMatch[1]) {
+                const resVal = usageResultMatch[1].split("\n")[0].trim();
+                if (resVal === "พืชตอบสนองดี" || resVal === "พบปัญหา") {
+                  setT2UsageResult(resVal);
+                }
+              }
+
+              const problemMatch = summaryText.match(/ปัญหาการใช้สินค้า:\s*(.+)/);
+              if (problemMatch && problemMatch[1]) {
+                setT2ProblemDetail(problemMatch[1].split("\n")[0].trim());
+              }
+
+              // Type 3
+              const soldMatch = summaryText.match(/รายการขาย:\s*(.+)/);
+              if (soldMatch && soldMatch[1]) {
+                setT3SoldProducts(soldMatch[1].split("\n")[0].trim());
+              }
+              const unclosedMatch = summaryText.match(/เหตุผลที่ปิดการขายไม่ได้:\s*(.+)/);
+              if (unclosedMatch && unclosedMatch[1]) {
+                setT3UnclosedReason(unclosedMatch[1].split("\n")[0].trim());
+              }
+
+              // Type 4
+              const orderNoMatch = summaryText.match(/เลขที่บิล\/ใบแจ้งหนี้:\s*(.+)/);
+              if (orderNoMatch && orderNoMatch[1]) {
+                setT4OrderNo(orderNoMatch[1].split("\n")[0].trim());
+              }
+
+              // Type 5
+              const compBrandMatch = summaryText.match(/แบรนด์คู่แข่ง:\s*(.+)/);
+              if (compBrandMatch && compBrandMatch[1]) {
+                setT5CompetitorBrand(compBrandMatch[1].split("\n")[0].trim());
+              }
+              const compProdMatch = summaryText.match(/สินค้าคู่แข่ง:\s*(.+)/);
+              if (compProdMatch && compProdMatch[1]) {
+                setT5CompetitorProduct(compProdMatch[1].split("\n")[0].trim());
+              }
+              const compPriceMatch = summaryText.match(/ราคาคู่แข่ง:\s*(.+)/);
+              if (compPriceMatch && compPriceMatch[1]) {
+                setT5CompetitorPrice(compPriceMatch[1].split("\n")[0].trim());
+              }
+              const promoMatch = summaryText.match(/โปรโมชันคู่แข่ง:\s*(.+)/);
+              if (promoMatch && promoMatch[1]) {
+                setT5PromotionDetail(promoMatch[1].split("\n")[0].trim());
+              }
+
+              // Type 6
+              const t6ProbMatch = summaryText.match(/ปัญหาลูกค้าร้องเรียน:\s*(.+)/);
+              if (t6ProbMatch && t6ProbMatch[1]) {
+                setT6ProblemDetail(t6ProbMatch[1].split("\n")[0].trim());
+              }
+              const t6SolMatch = summaryText.match(/แนวทางแก้ไขเบื้องต้น:\s*(.+)/);
+              if (t6SolMatch && t6SolMatch[1]) {
+                setT6InitialSolution(t6SolMatch[1].split("\n")[0].trim());
+              }
+              const t6StatusMatch = summaryText.match(/สถานะการแก้ปัญหา:\s*(.+)/);
+              if (t6StatusMatch && t6StatusMatch[1]) {
+                const sVal = t6StatusMatch[1].split("\n")[0].trim();
+                if (sVal === "เสร็จสิ้น" || sVal === "รอติดตาม") setT6Status(sVal);
+              }
+
+              // Type 7
+              const t7PlotMatch = summaryText.match(/ชื่อแปลงทดสอบ:\s*(.+)/);
+              if (t7PlotMatch && t7PlotMatch[1]) {
+                setT7PlotName(t7PlotMatch[1].split("\n")[0].trim());
+              }
+              const t7MethodMatch = summaryText.match(/วิธีใช้\/อัตราการใช้:\s*(.+)/);
+              if (t7MethodMatch && t7MethodMatch[1]) {
+                setT7UsageMethod(t7MethodMatch[1].split("\n")[0].trim());
+              }
+              const t7DescMatch = summaryText.match(/รายละเอียดแปลง:\s*(.+)/);
+              if (t7DescMatch && t7DescMatch[1]) {
+                setT7CropProblemDescription(t7DescMatch[1].split("\n")[0].trim());
+              }
+
+              // Type 8
+              const qnaMatch = summaryText.match(/Q&A:\s*(.+)/);
+              if (qnaMatch && qnaMatch[1]) {
+                setT8FeedbackQnA(qnaMatch[1].split("\n")[0].trim());
+              }
+
+              // Type 10
+              const t10FeedbackMatch = summaryText.match(/ความสนใจเกษตรกร:\s*(.+)/);
+              if (t10FeedbackMatch && t10FeedbackMatch[1]) {
+                setT10FarmerFeedback(t10FeedbackMatch[1].split("\n")[0].trim());
+              }
+              const t10FarmersMatch = summaryText.match(/รายชื่อเกษตรกรเป้าหมาย:\s*(.+)/);
+              if (t10FarmersMatch && t10FarmersMatch[1]) {
+                setT10TargetFarmersList(t10FarmersMatch[1].split("\n")[0].trim());
+              }
+
+              // Type 11
+              const t11RemarksMatch = summaryText.match(/ข้อสังเกตสต็อก:\s*(.+)/);
+              if (t11RemarksMatch && t11RemarksMatch[1]) {
+                setT11Remarks(t11RemarksMatch[1].split("\n")[0].trim());
+              }
+              const t11StatusMatch = summaryText.match(/สถานะสต็อก:\s*(.+)/);
+              if (t11StatusMatch && t11StatusMatch[1]) {
+                setT11StockStatus(t11StatusMatch[1].split("\n")[0].trim());
+              }
+              const t11ReorderMatch = summaryText.match(/โอกาสสั่งซื้อซ้ำ:\s*(.+)/);
+              if (t11ReorderMatch && t11ReorderMatch[1]) {
+                setT11ReorderOpportunity(t11ReorderMatch[1].split("\n")[0].trim());
+              }
             }
 
+            // Numeric and common fields from result
+            if (resData.salesResultAmount) {
+              setT3ActualSales(String(Number(resData.salesResultAmount)));
+              setT9ActualSales(String(Number(resData.salesResultAmount)));
+            }
+            if (resData.collectResultAmount) {
+              setT4ReceivedAmount(String(Number(resData.collectResultAmount)));
+            }
+            if (resData.actualAttendeesCount) {
+              setT8ActualAttendees(String(resData.actualAttendeesCount));
+              setT9ActualAttendees(String(resData.actualAttendeesCount));
+              setT10ActualAttendees(String(resData.actualAttendeesCount));
+            }
+            if (resData.problemFound) {
+              setT2ProblemDetail((prev) => prev || resData.problemFound || "");
+              setT6ProblemDetail((prev) => prev || resData.problemFound || "");
+              setT7CropProblemDescription((prev) => prev || resData.problemFound || "");
+            }
             if (resData.nextAction) {
               setT1NextAction(resData.nextAction);
+              setT11NextAction(resData.nextAction);
             }
           }
         }
@@ -622,8 +759,11 @@ export default function ActivityPlanActualView({
     setT2CustomerName(
       `${DEMO_OWNERS[0]} / ${DEMO_OWNERS[3] || "ร้านสหายพานิช"}`,
     );
+    setT2FollowupDetail(
+      "พืชตอบสนองดี ใบเขียวเข้มขึ้นอย่างเห็นได้ชัด แตกยอดสม่ำเสมอ เกษตรกรพึงพอใจมาก",
+    );
     setT2Detail(
-      `ติดตามผลหลังเกษตรกรนำ ${DEMO_PRODUCTS[0]} ไปฉีดพ่นทางใบผ่านไป 10 วัน`,
+      "พืชตอบสนองดี ใบเขียวเข้มขึ้นอย่างเห็นได้ชัด แตกยอดสม่ำเสมอ เกษตรกรพึงพอใจมาก",
     );
     setT2UsageResult("พืชตอบสนองดี");
     setT2ProblemDetail("");
@@ -768,11 +908,32 @@ export default function ActivityPlanActualView({
           t1ProductAdvice ? `สินค้าที่แนะนำ: ${t1ProductAdvice}` : null,
           t1DiscussionResult ? `ผลการพูดคุย: ${t1DiscussionResult}` : null,
           t1Detail ? `รายละเอียดเข้าพบ: ${t1Detail}` : null,
-          t2Detail ? `ติดตามผล: ${t2Detail}` : null,
+          t2FollowupDetail || t2Detail
+            ? `ติดตามผล: ${t2FollowupDetail || t2Detail}`
+            : null,
+          t2UsageResult ? `ผลลัพธ์การใช้: ${t2UsageResult}` : null,
+          t2ProblemDetail ? `ปัญหาการใช้สินค้า: ${t2ProblemDetail}` : null,
           t3SoldProducts ? `รายการขาย: ${t3SoldProducts}` : null,
-          t6ProblemDetail ? `ปัญหา: ${t6ProblemDetail}` : null,
-          t7ProblemDescription ? `รายละเอียดแปลง: ${t7ProblemDescription}` : null,
+          t3UnclosedReason ? `เหตุผลที่ปิดการขายไม่ได้: ${t3UnclosedReason}` : null,
+          t4OrderNo ? `เลขที่บิล/ใบแจ้งหนี้: ${t4OrderNo}` : null,
+          t5CompetitorBrand ? `แบรนด์คู่แข่ง: ${t5CompetitorBrand}` : null,
+          t5CompetitorProduct ? `สินค้าคู่แข่ง: ${t5CompetitorProduct}` : null,
+          t5CompetitorPrice ? `ราคาคู่แข่ง: ${t5CompetitorPrice}` : null,
+          t5PromotionDetail ? `โปรโมชันคู่แข่ง: ${t5PromotionDetail}` : null,
+          t6ProblemDetail ? `ปัญหาลูกค้าร้องเรียน: ${t6ProblemDetail}` : null,
+          t6InitialSolution ? `แนวทางแก้ไขเบื้องต้น: ${t6InitialSolution}` : null,
+          t6Status ? `สถานะการแก้ปัญหา: ${t6Status}` : null,
+          t7PlotName ? `ชื่อแปลงทดสอบ: ${t7PlotName}` : null,
+          t7UsageMethod ? `วิธีใช้/อัตราการใช้: ${t7UsageMethod}` : null,
+          t7GrowthStage ? `ระยะการเจริญเติบโต: ${t7GrowthStage}` : null,
+          t7CropCondition ? `สภาพแปลง: ${t7CropCondition}` : null,
+          t7CropProblemDescription ? `รายละเอียดแปลง: ${t7CropProblemDescription}` : null,
           t8FeedbackQnA ? `Q&A: ${t8FeedbackQnA}` : null,
+          t10FarmerFeedback ? `ความสนใจเกษตรกร: ${t10FarmerFeedback}` : null,
+          t10TargetFarmersList ? `รายชื่อเกษตรกรเป้าหมาย: ${t10TargetFarmersList}` : null,
+          t11Remarks ? `ข้อสังเกตสต็อก: ${t11Remarks}` : null,
+          t11StockStatus ? `สถานะสต็อก: ${t11StockStatus}` : null,
+          t11ReorderOpportunity ? `โอกาสสั่งซื้อซ้ำ: ${t11ReorderOpportunity}` : null,
         ].filter(Boolean);
 
         const payload = {
@@ -968,6 +1129,8 @@ export default function ActivityPlanActualView({
                 target={targets.t2}
                 customerName={t2CustomerName}
                 setCustomerName={setT2CustomerName}
+                followupDetail={t2FollowupDetail}
+                setFollowupDetail={setT2FollowupDetail}
                 detail={t2Detail}
                 setDetail={setT2Detail}
                 usageResult={t2UsageResult}

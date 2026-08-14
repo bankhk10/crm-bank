@@ -13,7 +13,8 @@ export interface FollowupProductItem {
   expectedResult?: string;
   usageResult?: "พืชตอบสนองดี" | "พบปัญหา" | "";
   problemDetail?: string;
-  detail?: string;
+  detail?: string; // รายละเอียดเพิ่มเติมจากแผนงาน
+  followupDetail?: string; // รายละเอียดการติดตามจากการปฏิบัติงานจริง
 }
 
 interface ActualType2FollowupProps {
@@ -21,7 +22,7 @@ interface ActualType2FollowupProps {
   target: {
     product: string;
     customer: string;
-    detail: string;
+    detail: string; // รายละเอียดเพิ่มเติมจากแผนงาน
     expectedResult: string;
     items?: FollowupProductItem[];
   };
@@ -29,6 +30,8 @@ interface ActualType2FollowupProps {
   setCustomerName: (v: string) => void;
   detail: string;
   setDetail: (v: string) => void;
+  followupDetail?: string;
+  setFollowupDetail?: (v: string) => void;
   usageResult: "พืชตอบสนองดี" | "พบปัญหา" | "";
   setUsageResult: (
     v: "พืชตอบสนองดี" | "พบปัญหา" | ""
@@ -44,6 +47,8 @@ export function ActualType2Followup({
   setCustomerName,
   detail,
   setDetail,
+  followupDetail,
+  setFollowupDetail,
   usageResult,
   setUsageResult,
   problemDetail,
@@ -54,20 +59,90 @@ export function ActualType2Followup({
     target.items || []
   );
 
+  // Helper to parse product-specific followup detail from combined string e.g. "Prod1: detail1 | Prod2: detail2"
+  const getParsedFollowupDetail = (
+    text: string | undefined,
+    productName: string,
+    fallbackItemVal?: string
+  ): string => {
+    if (fallbackItemVal) return fallbackItemVal;
+    if (!text) return "";
+    const escaped = productName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(?:^|\\|\\s*)${escaped}:\\s*([^|]+)`, "i");
+    const match = text.match(regex);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+    if (!text.includes(":") && !text.includes("|")) {
+      return text.trim();
+    }
+    return "";
+  };
+
+  const getParsedProblemDetail = (
+    text: string | undefined,
+    productName: string,
+    fallbackItemVal?: string
+  ): string => {
+    if (fallbackItemVal) return fallbackItemVal;
+    if (!text) return "";
+    const escaped = productName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(?:^|\\|\\s*)${escaped}:\\s*([^|]+)`, "i");
+    const match = text.match(regex);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+    if (!text.includes(":") && !text.includes("|")) {
+      return text.trim();
+    }
+    return "";
+  };
+
   useEffect(() => {
     if (target.items && target.items.length > 0) {
-      setProductItems(
-        target.items.map((item) => ({
-          ...item,
-          usageResult:
-            item.usageResult ||
-            (item.expectedResult === "พบปัญหา" ? "พบปัญหา" : "พืชตอบสนองดี"),
-          problemDetail: item.problemDetail || "",
-          detail: item.detail || "",
-        }))
+      setProductItems((prev) =>
+        target.items!.map((item, idx) => {
+          const prevItem =
+            prev && prev[idx]?.productName === item.productName
+              ? prev[idx]
+              : null;
+
+          const activeFollowup =
+            prevItem?.followupDetail ||
+            item.followupDetail ||
+            getParsedFollowupDetail(
+              followupDetail || detail,
+              item.productName,
+              item.followupDetail
+            );
+
+          const activeProblem =
+            prevItem?.problemDetail ||
+            item.problemDetail ||
+            getParsedProblemDetail(
+              problemDetail,
+              item.productName,
+              item.problemDetail
+            );
+
+          return {
+            ...item,
+            usageResult:
+              prevItem?.usageResult ||
+              item.usageResult ||
+              (activeProblem
+                ? "พบปัญหา"
+                : item.expectedResult === "พบปัญหา"
+                ? "พบปัญหา"
+                : "พืชตอบสนองดี"),
+            problemDetail: activeProblem,
+            detail: item.detail || "", // รายละเอียดเพิ่มเติมจากแผนเดิม
+            followupDetail: activeFollowup, // รายละเอียดการติดตามผลจริง
+          };
+        })
       );
     }
-  }, [target.items]);
+  }, [target.items, followupDetail, problemDetail]);
 
   if (!isVisible) return null;
 
@@ -75,7 +150,7 @@ export function ActualType2Followup({
 
   const handleProductChange = (
     index: number,
-    field: "usageResult" | "problemDetail" | "detail",
+    field: "usageResult" | "problemDetail" | "followupDetail",
     value: string
   ) => {
     const updated = [...productItems];
@@ -95,14 +170,17 @@ export function ActualType2Followup({
           .filter(Boolean)
           .join(" | ")
       );
-      setDetail(
-        updated
-          .map((item) =>
-            item.detail ? `${item.productName}: ${item.detail}` : ""
-          )
-          .filter(Boolean)
-          .join(" | ")
-      );
+      const combinedFollowup = updated
+        .map((item) =>
+          item.followupDetail ? `${item.productName}: ${item.followupDetail}` : ""
+        )
+        .filter(Boolean)
+        .join(" | ");
+
+      if (setFollowupDetail) {
+        setFollowupDetail(combinedFollowup);
+      }
+      setDetail(combinedFollowup);
     }
   };
 
@@ -261,6 +339,16 @@ export function ActualType2Followup({
                   </div>
                 )}
 
+                {/* ข้อมูลรายละเอียดเพิ่มเติมจากแผน (ถ้ามี) */}
+                {prod.detail && (
+                  <div className="bg-slate-100/80 border border-slate-200/60 rounded-xl p-2.5 text-xs text-slate-700 space-y-0.5">
+                    <span className="font-semibold text-slate-600 block text-[11px]">
+                      รายละเอียดเพิ่มเติม (จากแผนงาน):
+                    </span>
+                    <p className="text-slate-800 font-medium">{prod.detail}</p>
+                  </div>
+                )}
+
                 {/* 3. รายละเอียดการติดตาม */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-800">
@@ -268,9 +356,9 @@ export function ActualType2Followup({
                   </label>
                   <Textarea
                     rows={2}
-                    value={prod.detail || ""}
+                    value={prod.followupDetail || ""}
                     onChange={(e) =>
-                      handleProductChange(idx, "detail", e.target.value)
+                      handleProductChange(idx, "followupDetail", e.target.value)
                     }
                     placeholder={`ระบุข้อแนะนำ หรือรายละเอียดการติดตามสำหรับ ${prod.productName}`}
                     className="bg-white border-slate-300 text-xs"
@@ -330,9 +418,12 @@ export function ActualType2Followup({
             </label>
             <Textarea
               rows={2}
-              value={detail}
-              onChange={(e) => setDetail(e.target.value)}
-              placeholder="ระบุ (ถ้ามี)"
+              value={followupDetail !== undefined ? followupDetail : detail}
+              onChange={(e) => {
+                if (setFollowupDetail) setFollowupDetail(e.target.value);
+                setDetail(e.target.value);
+              }}
+              placeholder="ระบุข้อแนะนำ หรือรายละเอียดการติดตามผลจริง (ถ้ามี)"
               className="bg-white border-slate-300"
             />
           </div>
