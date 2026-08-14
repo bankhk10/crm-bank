@@ -96,12 +96,20 @@ export const activityResultSchema = z
       required_error: "กรุณาระบุวันที่สิ้นสุดจริง",
     }),
     actualAttendeesCount: z.coerce.number().int().min(0).optional().nullable(),
-    resultStatus: z.enum(["COMPLETED", "PARTIAL", "FAILED"], {
-      required_error: "กรุณาเลือกผลการดำเนินงาน",
-    }),
+    resultStatus: z
+      .enum(["PARTIAL", "COMPLETED", "POSTPONED", "CANCELLED", "FAILED"], {
+        required_error: "กรุณาเลือกผลการดำเนินงาน",
+      })
+      .default("PARTIAL"),
     resultSummary: z.string().optional().nullable(),
     problemFound: z.string().optional().nullable(),
     nextAction: z.string().optional().nullable(),
+    // กรณีเลื่อน หรือ ยกเลิก
+    cancelReason: z.string().optional().nullable(),
+    postponedDate: z.coerce.date().optional().nullable(),
+    postponedTime: z.string().optional().nullable(),
+    postponedReason: z.string().optional().nullable(),
+    postponedNotes: z.string().optional().nullable(),
     // งบประมาณที่ใช้จริง
     actualSalesPromotionSpent: z.coerce.number().min(0).optional().nullable(),
     actualMarketingSpent: z.coerce.number().min(0).optional().nullable(),
@@ -127,9 +135,12 @@ export const activityResultSchema = z
 export function computeFiscalFields(startDate: Date, endDate: Date) {
   const year = startDate.getFullYear();
   const month = startDate.getMonth() + 1; // 1–12
-  const quarter = Math.ceil(month / 3);   // 1–4
+  const quarter = Math.ceil(month / 3); // 1–4
   const msPerDay = 1000 * 60 * 60 * 24;
-  const durationDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / msPerDay));
+  const durationDays = Math.max(
+    1,
+    Math.ceil((endDate.getTime() - startDate.getTime()) / msPerDay),
+  );
   return {
     fiscalYear: year,
     fiscalMonth: month,

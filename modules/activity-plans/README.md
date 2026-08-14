@@ -119,6 +119,17 @@ modules/activity-plans/
 
 ## 📝 บันทึกการอัปเดตฟีเจอร์ (Feature Change Log)
 
+### 2026-08-14: เพิ่มตัวเลือกสถานะผลการทำกิจกรรม (Activity Result Status) & ระบบจัดการผลดำเนินงาน
+- **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `activity-plan-actual-view.tsx`, `validations.ts`, `activity-plan.repository.ts`, `application/index.ts`, `prisma/schema.prisma`
+- **ฟีเจอร์เด่น:**
+  - **4 สถานะผลการทำกิจกรรม:**
+    - `PARTIAL` : สำเร็จบางส่วน (ค่าเริ่มต้น)
+    - `COMPLETED` : สำเร็จ
+    - `POSTPONED` : เลื่อน (เปิดช่องกรอก: วันที่ใหม่*, เวลาใหม่, เหตุผลที่เลื่อน* [ลูกค้าขอเลื่อน, ผู้ปฏิบัติงานขอเลื่อน, ลูกค้าไม่สะดวก, สภาพอากาศ, เหตุสุดวิสัย, อื่น ๆ], ช่องกรอกหมายเหตุ)
+    - `CANCELLED` : ยกเลิก (เปิดช่องกรอก: สาเหตุที่ยกเลิก*)
+  - **Database Persistence & Edit Support:** รองรับการบันทึกลงฟิลด์เฉพาะในตาราง `activity_results` (`cancel_reason`, `postponed_date`, `postponed_time`, `postponed_reason`, `postponed_notes`) พร้อมดึงกลับมาแสดงผลและแก้ไขได้ทันที
+  - **Validation:** ตรวจสอบความถูกต้องของข้อมูลกรณีเลือกเลื่อนหรือยกเลิกก่อนส่งบันทึก
+
 ### 2026-08-14: เพิ่มหน้าจอศูนย์ตรวจสอบและอนุมัติกิจกรรม & ปรับปรุง Actual Form Type 2
 - **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `actual-type2-followup.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-approval-list-view.tsx`, `approval-action-dialog.tsx`, `approval-detail-drawer.tsx`, `activity-plan.repository.ts`, `server/actions.ts`
 - **การปรับปรุง Actual Form Type 2 (ติดตามผลการใช้สินค้า):**

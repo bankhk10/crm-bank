@@ -1517,9 +1517,11 @@ enum ActivityApprovalStep {
 }
 
 enum ActivityResultStatus {
+  PARTIAL                     // ทำได้บางส่วน (ค่าเริ่มต้น)
   COMPLETED                   // ทำสำเร็จตามแผน
-  PARTIAL                     // ทำได้บางส่วน
-  FAILED                      // ไม่สำเร็จ / ต้องยกเลิก ณ วันงาน
+  POSTPONED                   // เลื่อนกิจกรรม
+  CANCELLED                   // ยกเลิกกิจกรรม
+  FAILED                      // ไม่สำเร็จ
 }
 
 // ==========================================
@@ -1764,10 +1766,17 @@ model ActivityResult {
   actualEndDate        DateTime             @map("actual_end_date")
   actualAttendeesCount Int?                 @map("actual_attendees_count") // จำนวนผู้เข้าร่วมจริง
 
-  resultStatus  ActivityResultStatus @default(COMPLETED) @map("result_status")
+  resultStatus  ActivityResultStatus @default(PARTIAL) @map("result_status")
   resultSummary String?              @map("result_summary")  // สรุปผลกิจกรรมโดยรวม
   problemFound  String?              @map("problem_found")    // ปัญหาที่พบระหว่างทำ
   nextAction    String?              @map("next_action")       // แผนการต่อยอด / ติดตาม
+
+  // ──── กรณีเลื่อน หรือ ยกเลิก ────────────────────────
+  cancelReason        String?   @map("cancel_reason")          // สาเหตุที่ยกเลิก
+  postponedDate       DateTime? @map("postponed_date")         // วันที่ใหม่ (กรณีเลื่อน)
+  postponedTime       String?   @map("postponed_time")         // เวลาใหม่ (กรณีเลื่อน)
+  postponedReason     String?   @map("postponed_reason")       // เหตุผลที่เลื่อน
+  postponedNotes      String?   @map("postponed_notes")        // หมายเหตุการเลื่อน
 
   // ──── งบประมาณที่ใช้จริง ───────────────────────────────
   actualSalesPromotionSpent Decimal? @db.Decimal(15, 2) @map("actual_sales_promotion_spent")

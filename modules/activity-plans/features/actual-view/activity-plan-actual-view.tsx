@@ -16,6 +16,8 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/modules/sales/features/form/forms/section-header";
 import {
@@ -241,6 +243,18 @@ export default function ActivityPlanActualView({
       targetOpportunity: "สูง",
     },
   });
+
+  // ────────────────────────────────────────────────────────
+  // ACTIVITY RESULT STATUS (สถานะผลการทำกิจกรรม)
+  // ────────────────────────────────────────────────────────
+  const [activityResultStatus, setActivityResultStatus] = useState<
+    "PARTIAL" | "COMPLETED" | "POSTPONED" | "CANCELLED"
+  >("PARTIAL");
+  const [cancelReason, setCancelReason] = useState("");
+  const [postponedDate, setPostponedDate] = useState("");
+  const [postponedTime, setPostponedTime] = useState("");
+  const [postponedReason, setPostponedReason] = useState("");
+  const [postponedNotes, setPostponedNotes] = useState("");
 
   // ────────────────────────────────────────────────────────
   // FORM STATES (11 WORK TYPES)
@@ -705,6 +719,29 @@ export default function ActivityPlanActualView({
               }
             }
 
+            // Activity Result Status & Postponed / Cancelled fields
+            if (resData.resultStatus) {
+              setActivityResultStatus(resData.resultStatus as any);
+            }
+            if (resData.cancelReason) {
+              setCancelReason(resData.cancelReason);
+            }
+            if (resData.postponedDate) {
+              const d = new Date(resData.postponedDate);
+              setPostponedDate(
+                !isNaN(d.getTime()) ? d.toISOString().split("T")[0] : "",
+              );
+            }
+            if (resData.postponedTime) {
+              setPostponedTime(resData.postponedTime);
+            }
+            if (resData.postponedReason) {
+              setPostponedReason(resData.postponedReason);
+            }
+            if (resData.postponedNotes) {
+              setPostponedNotes(resData.postponedNotes);
+            }
+
             // Numeric and common fields from result
             if (resData.salesResultAmount) {
               setT3ActualSales(String(Number(resData.salesResultAmount)));
@@ -904,7 +941,52 @@ export default function ActivityPlanActualView({
 
     try {
       if (id) {
+        // Validate Cancel / Postponed fields
+        if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
+          setFormError("กรุณาระบุสาเหตุที่ยกเลิกกิจกรรม");
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (activityResultStatus === "POSTPONED") {
+          if (!postponedDate) {
+            setFormError("กรุณาระบุวันที่ใหม่สำหรับการเลื่อนกิจกรรม");
+            setIsSubmitting(false);
+            return;
+          }
+          if (!postponedReason) {
+            setFormError("กรุณาเลือกเหตุผลที่เลื่อนกิจกรรม");
+            setIsSubmitting(false);
+            return;
+          }
+        }
+
+        const statusLabel =
+          activityResultStatus === "COMPLETED"
+            ? "สำเร็จ"
+            : activityResultStatus === "POSTPONED"
+            ? "เลื่อน"
+            : activityResultStatus === "CANCELLED"
+            ? "ยกเลิก"
+            : "สำเร็จบางส่วน";
+
         const summaryParts = [
+          `สถานะผลกิจกรรม: ${statusLabel}`,
+          activityResultStatus === "CANCELLED" && cancelReason
+            ? `สาเหตุที่ยกเลิก: ${cancelReason}`
+            : null,
+          activityResultStatus === "POSTPONED" && postponedDate
+            ? `วันที่ใหม่: ${postponedDate}`
+            : null,
+          activityResultStatus === "POSTPONED" && postponedTime
+            ? `เวลาใหม่: ${postponedTime}`
+            : null,
+          activityResultStatus === "POSTPONED" && postponedReason
+            ? `เหตุผลที่เลื่อน: ${postponedReason}`
+            : null,
+          activityResultStatus === "POSTPONED" && postponedNotes
+            ? `หมายเหตุการเลื่อน: ${postponedNotes}`
+            : null,
           t1ProductAdvice ? `สินค้าที่แนะนำ: ${t1ProductAdvice}` : null,
           t1DiscussionResult ? `ผลการพูดคุย: ${t1DiscussionResult}` : null,
           t1Detail ? `รายละเอียดเข้าพบ: ${t1Detail}` : null,
@@ -949,16 +1031,44 @@ export default function ActivityPlanActualView({
         const payload = {
           actualStartDate: new Date(),
           actualEndDate: new Date(),
-          actualAttendeesCount: Number(t8ActualAttendees || t9ActualAttendees || t10ActualAttendees || 0),
-          resultStatus: "COMPLETED",
-          resultSummary: summaryParts.length > 0 ? summaryParts.join("\n") : "ทำกิจกรรมสำเร็จตามเป้าหมาย",
+          actualAttendeesCount: Number(
+            t8ActualAttendees ||
+              t9ActualAttendees ||
+              t10ActualAttendees ||
+              0,
+          ),
+          resultStatus: activityResultStatus,
+          resultSummary:
+            summaryParts.length > 0
+              ? summaryParts.join("\n")
+              : `สถานะผลกิจกรรม: ${statusLabel}`,
           problemFound:
             (t2HasProblem ? t2ProblemDetail : null) ||
             t6ProblemDetail ||
             t7CropProblemDescription ||
             null,
           nextAction: t1NextAction || t11NextAction || null,
-          actualSalesPromotionSpent: Number(planSummary.salesPromotionBudget || 0),
+          cancelReason:
+            activityResultStatus === "CANCELLED" ? cancelReason : null,
+          postponedDate:
+            activityResultStatus === "POSTPONED" && postponedDate
+              ? new Date(postponedDate)
+              : null,
+          postponedTime:
+            activityResultStatus === "POSTPONED"
+              ? postponedTime || null
+              : null,
+          postponedReason:
+            activityResultStatus === "POSTPONED"
+              ? postponedReason || null
+              : null,
+          postponedNotes:
+            activityResultStatus === "POSTPONED"
+              ? postponedNotes || null
+              : null,
+          actualSalesPromotionSpent: Number(
+            planSummary.salesPromotionBudget || 0,
+          ),
           actualMarketingSpent: Number(planSummary.marketingBudget || 0),
           salesResultAmount: Number(t3ActualSales || t9ActualSales || 0),
           collectResultAmount: Number(t4ReceivedAmount || 0),
@@ -1044,7 +1154,169 @@ export default function ActivityPlanActualView({
             {/* PLAN SUMMARY CARD */}
             <ActualPlanSummary summary={planSummary} />
 
-            {/* SECTION 2: ผลการปฏิบัติงานตามประเภทงาน */}
+            {/* SECTION 2: สถานะผลการทำกิจกรรม */}
+            <SectionHeader title="สถานะผลการทำกิจกรรม" color="gray" />
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                    <ClipboardCheck className="w-4 h-4 text-emerald-600" />
+                    เลือกผลการทำกิจกรรม <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-xs text-slate-400 font-medium">
+                    (กำหนดสถานะการดำเนินงานของกิจกรรมนี้)
+                  </span>
+                </div>
+
+                {/* Status Radio / Selectable Buttons */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {[
+                    {
+                      id: "PARTIAL" as const,
+                      label: "สำเร็จบางส่วน (ค่าเริ่มต้น)",
+                      icon: "⏳",
+                      activeClass:
+                        "bg-amber-50/90 border-amber-500 text-amber-950 ring-2 ring-amber-500/20 shadow-xs",
+                    },
+                    {
+                      id: "COMPLETED" as const,
+                      label: "สำเร็จ",
+                      icon: "✅",
+                      activeClass:
+                        "bg-emerald-50/90 border-emerald-500 text-emerald-950 ring-2 ring-emerald-500/20 shadow-xs",
+                    },
+                    {
+                      id: "POSTPONED" as const,
+                      label: "เลื่อน",
+                      icon: "🗓️",
+                      activeClass:
+                        "bg-sky-50/90 border-sky-500 text-sky-950 ring-2 ring-sky-500/20 shadow-xs",
+                    },
+                    {
+                      id: "CANCELLED" as const,
+                      label: "ยกเลิก",
+                      icon: "❌",
+                      activeClass:
+                        "bg-rose-50/90 border-rose-500 text-rose-950 ring-2 ring-rose-500/20 shadow-xs",
+                    },
+                  ].map((st) => (
+                    <button
+                      key={st.id}
+                      type="button"
+                      onClick={() => setActivityResultStatus(st.id)}
+                      className={cn(
+                        "py-3 px-3 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all flex items-center justify-center gap-2",
+                        activityResultStatus === st.id
+                          ? st.activeClass
+                          : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300",
+                      )}
+                    >
+                      <span className="text-base">{st.icon}</span>
+                      <span>{st.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* กรณีเลือก ยกเลิก (CANCELLED) */}
+              {activityResultStatus === "CANCELLED" && (
+                <div className="bg-rose-50/70 border border-rose-200 rounded-xl p-3.5 sm:p-4 space-y-2 animate-in fade-in-50">
+                  <label className="text-xs font-bold text-rose-800 flex items-center gap-1.5">
+                    <span>⚠️</span> สาเหตุที่ยกเลิก{" "}
+                    <span className="text-rose-500">*</span>
+                  </label>
+                  <Textarea
+                    rows={2}
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    placeholder="ระบุสาเหตุที่ต้องยกเลิกกิจกรรม..."
+                    className="bg-white border-rose-200 text-xs sm:text-sm"
+                  />
+                </div>
+              )}
+
+              {/* กรณีเลือก เลื่อน (POSTPONED) */}
+              {activityResultStatus === "POSTPONED" && (
+                <div className="bg-sky-50/70 border border-sky-200 rounded-xl p-3.5 sm:p-4 space-y-3.5 animate-in fade-in-50">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-sky-900 flex items-center gap-1">
+                        <span>📅</span> วันที่ใหม่{" "}
+                        <span className="text-rose-500">*</span>
+                      </label>
+                      <Input
+                        type="date"
+                        value={postponedDate}
+                        onChange={(e) => setPostponedDate(e.target.value)}
+                        className="bg-white border-sky-200 text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-sky-900 flex items-center gap-1">
+                        <span>⏰</span> เวลาใหม่
+                      </label>
+                      <Input
+                        type="text"
+                        value={postponedTime}
+                        onChange={(e) => setPostponedTime(e.target.value)}
+                        placeholder="เช่น 09:00 - 12:00 น."
+                        className="bg-white border-sky-200 text-xs sm:text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-sky-900 flex items-center gap-1">
+                      <span>📌</span> เหตุผลที่เลื่อน{" "}
+                      <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {[
+                        "ลูกค้าขอเลื่อน",
+                        "ผู้ปฏิบัติงานขอเลื่อน",
+                        "ลูกค้าไม่สะดวก",
+                        "สภาพอากาศ",
+                        "เหตุสุดวิสัย",
+                        "อื่น ๆ",
+                      ].map((reason) => (
+                        <button
+                          key={reason}
+                          type="button"
+                          onClick={() => setPostponedReason(reason)}
+                          className={cn(
+                            "py-2 px-2.5 rounded-lg border text-xs font-medium cursor-pointer transition-all text-left flex items-center justify-between",
+                            postponedReason === reason
+                              ? "bg-sky-600 text-white border-sky-600 shadow-2xs font-semibold"
+                              : "bg-white border-sky-200/80 text-sky-950 hover:bg-sky-100/60",
+                          )}
+                        >
+                          <span>{reason}</span>
+                          {postponedReason === reason && (
+                            <Check className="w-3.5 h-3.5 flex-shrink-0" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-sky-900 flex items-center gap-1">
+                      <span>📝</span> ช่องกรอกหมายเหตุ
+                    </label>
+                    <Textarea
+                      rows={2}
+                      value={postponedNotes}
+                      onChange={(e) => setPostponedNotes(e.target.value)}
+                      placeholder="ระบุหมายเหตุเพิ่มเติมกรณีเลื่อนกิจกรรม (ถ้ามี)..."
+                      className="bg-white border-sky-200 text-xs sm:text-sm"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* SECTION 3: ผลการปฏิบัติงานตามประเภทงาน */}
             <SectionHeader title="ผลการปฏิบัติงานตามประเภทงาน" color="gray" />
 
             {/* WORK TYPE SELECTOR TABS & DROPDOWN */}

@@ -749,6 +749,11 @@ export type CreateActivityResultInput = {
   resultSummary?: string | null;
   problemFound?: string | null;
   nextAction?: string | null;
+  cancelReason?: string | null;
+  postponedDate?: Date | null;
+  postponedTime?: string | null;
+  postponedReason?: string | null;
+  postponedNotes?: string | null;
   actualSalesPromotionSpent?: number | null;
   actualMarketingSpent?: number | null;
   salesResultAmount?: number | null;
@@ -776,10 +781,15 @@ export async function upsertActivityResult(input: CreateActivityResultInput) {
       actualStartDate: input.actualStartDate,
       actualEndDate: input.actualEndDate,
       actualAttendeesCount: input.actualAttendeesCount ?? null,
-      resultStatus: input.resultStatus ?? ActivityResultStatus.COMPLETED,
+      resultStatus: input.resultStatus ?? ActivityResultStatus.PARTIAL,
       resultSummary: input.resultSummary ?? null,
       problemFound: input.problemFound ?? null,
       nextAction: input.nextAction ?? null,
+      cancelReason: input.cancelReason ?? null,
+      postponedDate: input.postponedDate ?? null,
+      postponedTime: input.postponedTime ?? null,
+      postponedReason: input.postponedReason ?? null,
+      postponedNotes: input.postponedNotes ?? null,
       actualSalesPromotionSpent: input.actualSalesPromotionSpent ? new Prisma.Decimal(input.actualSalesPromotionSpent) : null,
       actualMarketingSpent: input.actualMarketingSpent ? new Prisma.Decimal(input.actualMarketingSpent) : null,
       actualTotalSpent: new Prisma.Decimal(actualTotalSpent),
@@ -796,10 +806,15 @@ export async function upsertActivityResult(input: CreateActivityResultInput) {
       actualStartDate: input.actualStartDate,
       actualEndDate: input.actualEndDate,
       actualAttendeesCount: input.actualAttendeesCount ?? null,
-      resultStatus: input.resultStatus ?? ActivityResultStatus.COMPLETED,
+      resultStatus: input.resultStatus ?? ActivityResultStatus.PARTIAL,
       resultSummary: input.resultSummary ?? null,
       problemFound: input.problemFound ?? null,
       nextAction: input.nextAction ?? null,
+      cancelReason: input.cancelReason ?? null,
+      postponedDate: input.postponedDate ?? null,
+      postponedTime: input.postponedTime ?? null,
+      postponedReason: input.postponedReason ?? null,
+      postponedNotes: input.postponedNotes ?? null,
       actualSalesPromotionSpent: input.actualSalesPromotionSpent ? new Prisma.Decimal(input.actualSalesPromotionSpent) : null,
       actualMarketingSpent: input.actualMarketingSpent ? new Prisma.Decimal(input.actualMarketingSpent) : null,
       actualTotalSpent: new Prisma.Decimal(actualTotalSpent),
