@@ -41,6 +41,7 @@ import {
 } from "../form/constants";
 import { ImageFile, PlanSummaryData } from "./types";
 import { ActualPlanSummary } from "./components/actual-plan-summary";
+import { DateTimePicker } from "../form/components/date-time-picker";
 
 // Work Type Components
 import { ActualType1Visit } from "./components/work-types/actual-type1-visit";
@@ -1239,31 +1240,16 @@ export default function ActivityPlanActualView({
               {/* กรณีเลือก เลื่อน (POSTPONED) */}
               {activityResultStatus === "POSTPONED" && (
                 <div className="bg-sky-50/70 border border-sky-200 rounded-xl p-3.5 sm:p-4 space-y-3.5 animate-in fade-in-50">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-sky-900 flex items-center gap-1">
-                        <span>📅</span> วันที่ใหม่{" "}
-                        <span className="text-rose-500">*</span>
-                      </label>
-                      <Input
-                        type="date"
-                        value={postponedDate}
-                        onChange={(e) => setPostponedDate(e.target.value)}
-                        className="bg-white border-sky-200 text-xs sm:text-sm"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-sky-900 flex items-center gap-1">
-                        <span>⏰</span> เวลาใหม่
-                      </label>
-                      <Input
-                        type="text"
-                        value={postponedTime}
-                        onChange={(e) => setPostponedTime(e.target.value)}
-                        placeholder="เช่น 09:00 - 12:00 น."
-                        className="bg-white border-sky-200 text-xs sm:text-sm"
-                      />
-                    </div>
+                  <div>
+                    <DateTimePicker
+                      label="วันที่ใหม่"
+                      required
+                      dateValue={postponedDate}
+                      timeValue={postponedTime || "10:00"}
+                      onDateChange={setPostponedDate}
+                      onTimeChange={setPostponedTime}
+                      accentColor="blue"
+                    />
                   </div>
 
                   <div className="space-y-1.5">
