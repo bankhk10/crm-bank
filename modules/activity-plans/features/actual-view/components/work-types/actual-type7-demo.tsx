@@ -19,6 +19,9 @@ import {
   Info,
   Package,
   User,
+  Star,
+  TrendingUp,
+  Sparkles,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -176,6 +179,22 @@ export function ActualType7Demo({
   plotImages = [],
   onUploadImages,
   onRemoveImage,
+  plotStatus = "IN_PROGRESS",
+  setPlotStatus,
+  nextFollowUpDate = "",
+  setNextFollowUpDate,
+  finalYieldKg = "",
+  setFinalYieldKg,
+  controlYieldKg = "",
+  setControlYieldKg,
+  yieldIncreasePercent = "",
+  setYieldIncreasePercent,
+  farmerSatisfaction = 5,
+  setFarmerSatisfaction,
+  commercialPotential = "",
+  setCommercialPotential,
+  finalSummaryNotes = "",
+  setFinalSummaryNotes,
   demoPlotData,
   visitHistory = [],
   isHistoryLoading = false,
@@ -207,10 +226,23 @@ export function ActualType7Demo({
     usageMethod: usageMethod,
     objective: target.objective,
     experimentDetail: target.experimentDetail,
+    status: plotStatus,
     visits: visitHistory,
   };
 
   const totalVisitsCount = visitHistory.length;
+
+  // Handle Yield calculation
+  const handleYieldChange = (finalVal: string, controlVal: string) => {
+    setFinalYieldKg?.(finalVal);
+    setControlYieldKg?.(controlVal);
+    const f = parseFloat(finalVal);
+    const c = parseFloat(controlVal);
+    if (!isNaN(f) && !isNaN(c) && c > 0) {
+      const inc = (((f - c) / c) * 100).toFixed(1);
+      setYieldIncreasePercent?.(inc);
+    }
+  };
 
   return (
     <div className="border-2 border-emerald-500 rounded-2xl p-4 md:p-6 bg-white space-y-5 shadow-xs">
@@ -228,13 +260,13 @@ export function ActualType7Demo({
             </h2>
             <p className="text-xs text-slate-500">
               {isFollowUp
-                ? "บันทึกผลการเข้าตรวจแปลงเดิม และติดตามการเจริญเติบโต"
+                ? "บันทึกผลการเข้าตรวจแปลงเดิม ติดตามการเจริญเติบโต และประเมินสถานะแปลง"
                 : "บันทึกข้อมูลการเริ่มต้นทำแปลงสาธิตใหม่ และภาพถ่ายสภาพแปลงเริ่มต้น"}
             </p>
           </div>
         </div>
 
-        {/* Type Badges */}
+        {/* Type & Status Badges */}
         <div className="flex items-center gap-2">
           <span
             className={cn(
@@ -256,6 +288,35 @@ export function ActualType7Demo({
               </>
             )}
           </span>
+
+          {isFollowUp && (
+            <span
+              className={cn(
+                "px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-2xs",
+                plotStatus === "COMPLETED"
+                  ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                  : plotStatus === "FAILED"
+                    ? "bg-rose-100 text-rose-800 border border-rose-300"
+                    : "bg-amber-100 text-amber-800 border border-amber-300",
+              )}
+            >
+              <span
+                className={cn(
+                  "w-2 h-2 rounded-full",
+                  plotStatus === "COMPLETED"
+                    ? "bg-emerald-500"
+                    : plotStatus === "FAILED"
+                      ? "bg-rose-500"
+                      : "bg-amber-500 animate-pulse",
+                )}
+              />
+              {plotStatus === "COMPLETED"
+                ? "ปิดแปลงสมบูรณ์"
+                : plotStatus === "FAILED"
+                  ? "ยุติการทดลอง"
+                  : "กำลังติดตามต่อเนื่อง"}
+            </span>
+          )}
         </div>
       </div>
 
@@ -583,7 +644,7 @@ export function ActualType7Demo({
                 <button
                   type="button"
                   onClick={() => setIsHistoryModalOpen(true)}
-                  className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all hover:shadow"
+                  className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all hover:shadow cursor-pointer"
                 >
                   <History className="w-3.5 h-3.5" />
                   <span>ดูประวัติการติดตามแปลง ({totalVisitsCount} ครั้ง)</span>
@@ -940,6 +1001,262 @@ export function ActualType7Demo({
                 )}
               </div>
             </div>
+          </div>
+
+          {/* 4. สถานะของแปลงสาธิต (Lifecycle Status & Plot Closing Evaluation) */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 md:p-5 space-y-4 shadow-2xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
+                <TrendingUp className="w-4 h-4 text-emerald-600" />
+                <span>สถานะของแปลงสาธิต (Lifecycle Status)</span>
+              </div>
+              <span className="text-[11px] text-slate-400">
+                ระบุสถานะความคืบหน้าของแปลง
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <button
+                type="button"
+                onClick={() => setPlotStatus?.("IN_PROGRESS")}
+                className={cn(
+                  "p-3 rounded-xl border text-left transition-all flex items-start gap-2.5 cursor-pointer",
+                  plotStatus === "IN_PROGRESS"
+                    ? "border-amber-500 bg-amber-50/60 ring-2 ring-amber-500/20"
+                    : "border-slate-200 hover:border-slate-300 bg-white",
+                )}
+              >
+                <div
+                  className={cn(
+                    "w-4 h-4 rounded-full border flex items-center justify-center mt-0.5 shrink-0",
+                    plotStatus === "IN_PROGRESS"
+                      ? "border-amber-600 bg-amber-600 text-white"
+                      : "border-slate-300",
+                  )}
+                >
+                  {plotStatus === "IN_PROGRESS" && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                  )}
+                </div>
+                <div>
+                  <div className="font-bold text-xs text-slate-800">
+                    กำลังติดตามต่อเนื่อง
+                  </div>
+                  <div className="text-[11px] text-slate-500">
+                    ยังไม่สิ้นสุดการทดลอง มีรอบติดตามต่อ
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPlotStatus?.("COMPLETED")}
+                className={cn(
+                  "p-3 rounded-xl border text-left transition-all flex items-start gap-2.5 cursor-pointer",
+                  plotStatus === "COMPLETED"
+                    ? "border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-500/20"
+                    : "border-slate-200 hover:border-slate-300 bg-white",
+                )}
+              >
+                <div
+                  className={cn(
+                    "w-4 h-4 rounded-full border flex items-center justify-center mt-0.5 shrink-0",
+                    plotStatus === "COMPLETED"
+                      ? "border-emerald-600 bg-emerald-600 text-white"
+                      : "border-slate-300",
+                  )}
+                >
+                  {plotStatus === "COMPLETED" && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                  )}
+                </div>
+                <div>
+                  <div className="font-bold text-xs text-slate-800">
+                    ปิดแปลงสมบูรณ์
+                  </div>
+                  <div className="text-[11px] text-slate-500">
+                    เก็บเกี่ยวผลผลิต/สิ้นสุดการทดลองสำเร็จ
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPlotStatus?.("FAILED")}
+                className={cn(
+                  "p-3 rounded-xl border text-left transition-all flex items-start gap-2.5 cursor-pointer",
+                  plotStatus === "FAILED"
+                    ? "border-rose-500 bg-rose-50/60 ring-2 ring-rose-500/20"
+                    : "border-slate-200 hover:border-slate-300 bg-white",
+                )}
+              >
+                <div
+                  className={cn(
+                    "w-4 h-4 rounded-full border flex items-center justify-center mt-0.5 shrink-0",
+                    plotStatus === "FAILED"
+                      ? "border-rose-600 bg-rose-600 text-white"
+                      : "border-slate-300",
+                  )}
+                >
+                  {plotStatus === "FAILED" && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                  )}
+                </div>
+                <div>
+                  <div className="font-bold text-xs text-slate-800">
+                    ยุติการทดลอง
+                  </div>
+                  <div className="text-[11px] text-slate-500">
+                    พืชเสียหาย/ภัยธรรมชาติ/ยกเลิก
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Condition 1: IN_PROGRESS -> Next Follow-up Date */}
+            {plotStatus === "IN_PROGRESS" && (
+              <div className="pt-2 border-t border-slate-100">
+                <div className="max-w-xs space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-amber-600" />
+                    <span>กำหนดการติดตามครั้งถัดไป</span>
+                  </label>
+                  <Input
+                    type="date"
+                    value={nextFollowUpDate}
+                    onChange={(e) => setNextFollowUpDate?.(e.target.value)}
+                    className="bg-white border-slate-300 text-xs"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Condition 2: COMPLETED -> Harvest & Final Evaluation Form */}
+            {plotStatus === "COMPLETED" && (
+              <div className="pt-3 border-t border-emerald-100 space-y-4 bg-emerald-50/30 -mx-4 md:-mx-5 -mb-4 md:-mb-5 p-4 md:p-5 rounded-b-xl">
+                <div className="flex items-center gap-2 text-emerald-900 font-bold text-xs">
+                  <Sparkles className="w-4 h-4 text-emerald-600" />
+                  <span>แบบประเมินผลผลิตและผลสัมฤทธิ์ของแปลงสาธิต (Harvest Evaluation)</span>
+                </div>
+
+                {/* Yield comparison */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700">
+                      ผลผลิตแปลงสาธิต (กก./ไร่)
+                    </label>
+                    <Input
+                      type="number"
+                      value={finalYieldKg}
+                      onChange={(e) =>
+                        handleYieldChange(e.target.value, controlYieldKg)
+                      }
+                      placeholder="เช่น 3500"
+                      className="bg-white border-slate-300 text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700">
+                      ผลผลิตแปลงควบคุม (กก./ไร่)
+                    </label>
+                    <Input
+                      type="number"
+                      value={controlYieldKg}
+                      onChange={(e) =>
+                        handleYieldChange(finalYieldKg, e.target.value)
+                      }
+                      placeholder="เช่น 2800"
+                      className="bg-white border-slate-300 text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-emerald-800">
+                      % ผลผลิตที่เพิ่มขึ้น (คำนวณอัตโนมัติ)
+                    </label>
+                    <div className="h-9 px-3 bg-emerald-100/80 border border-emerald-300 rounded-md flex items-center font-bold text-xs text-emerald-900">
+                      {yieldIncreasePercent ? `+${yieldIncreasePercent}%` : "-"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Farmer Satisfaction & Commercial Potential */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700 block">
+                      ความพึงพอใจของเกษตรกร (1-5 ดาว)
+                    </label>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setFarmerSatisfaction?.(star)}
+                          className="p-1 text-amber-400 hover:scale-110 transition-transform cursor-pointer"
+                        >
+                          <Star
+                            className={cn(
+                              "w-5 h-5",
+                              star <= farmerSatisfaction
+                                ? "fill-amber-400 text-amber-400"
+                                : "text-slate-300",
+                            )}
+                          />
+                        </button>
+                      ))}
+                      <span className="text-xs font-bold text-slate-600 ml-2">
+                        {farmerSatisfaction} / 5 คะแนน
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700">
+                      โอกาสในการสั่งซื้อจริงของเกษตรกร/พื้นที่ใกล้เคียง
+                    </label>
+                    <Input
+                      type="text"
+                      value={commercialPotential}
+                      onChange={(e) => setCommercialPotential?.(e.target.value)}
+                      placeholder="เช่น มีแนวโน้มสั่งซื้อ 20 ลัง ในฤดูกาลหน้า"
+                      className="bg-white border-slate-300 text-xs"
+                    />
+                  </div>
+                </div>
+
+                {/* Final Summary Notes */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700">
+                    สรุปผลสัมฤทธิ์ของแปลงสาธิต / ข้อคิดเห็นของทีมงาน
+                  </label>
+                  <Textarea
+                    rows={2}
+                    value={finalSummaryNotes}
+                    onChange={(e) => setFinalSummaryNotes?.(e.target.value)}
+                    placeholder="ระบุจุดเด่น ข้อเปรียบเทียบ ความคุ้มค่า หรือปัญหาที่พบตลอดการทดลอง"
+                    className="bg-white border-slate-300 text-xs"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Condition 3: FAILED -> Reason */}
+            {plotStatus === "FAILED" && (
+              <div className="pt-3 border-t border-rose-100 space-y-2 bg-rose-50/40 -mx-4 md:-mx-5 -mb-4 md:-mb-5 p-4 md:p-5 rounded-b-xl">
+                <label className="text-xs font-semibold text-rose-900 flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                  <span>สาเหตุที่ยุติการทดลอง / ปัญหาที่ไม่สามารถแก้ไขได้</span>
+                </label>
+                <Textarea
+                  rows={2}
+                  value={finalSummaryNotes}
+                  onChange={(e) => setFinalSummaryNotes?.(e.target.value)}
+                  placeholder="ระบุสาเหตุ เช่น น้ำท่วมแปลงทดลอง, เกษตรกรไถทิ้ง, โรคระบาดรุนแรงนอกเหนือการควบคุม"
+                  className="bg-white border-rose-300 text-xs"
+                />
+              </div>
+            )}
           </div>
         </div>
       )}

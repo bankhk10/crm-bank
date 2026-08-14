@@ -1272,7 +1272,7 @@ export async function recordDemoPlotVisit(data: {
 
     if (Object.keys(plotUpdateData).length > 0) {
       await tx.demoPlot.update({
-        where: { id: data.demoPlotId },
+        where: { id: plot.id },
         data: plotUpdateData,
       });
     }
