@@ -663,6 +663,7 @@ export async function getDemoPlotHistoryAction(demoPlotIdOrName: string) {
           { name: demoPlotIdOrName },
           { code: demoPlotIdOrName },
         ],
+        deletedAt: null,
       },
       include: {
         visits: {
@@ -680,6 +681,39 @@ export async function getDemoPlotHistoryAction(demoPlotIdOrName: string) {
         },
       },
     });
+
+    if (!plot && demoPlotIdOrName.startsWith("legacy-")) {
+      const parts = demoPlotIdOrName.replace("legacy-", "").split("-");
+      const planId = parts[0];
+      const itemId = parts[1];
+      if (planId) {
+        const item = await db.activityPlanItem.findFirst({
+          where: { id: itemId, activityPlanId: planId },
+        });
+        if (item) {
+          const owner = item.plotOwnerName || item.customerName || "เกษตรกร";
+          const crop = item.plotCropName || "พืชทั่วไป";
+          plot = await db.demoPlot.findFirst({
+            where: { ownerName: owner, cropName: crop, deletedAt: null },
+            include: {
+              visits: {
+                orderBy: { visitDate: "asc" },
+                include: {
+                  activityPlan: {
+                    select: {
+                      id: true,
+                      code: true,
+                      title: true,
+                      startDate: true,
+                    },
+                  },
+                },
+              },
+            },
+          });
+        }
+      }
+    }
 
     if (!plot) {
       return serialize({

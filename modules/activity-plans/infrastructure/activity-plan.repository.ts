@@ -1087,13 +1087,98 @@ export async function recordDemoPlotVisit(data: {
   commercialPotential?: string | null;
   finalSummaryNotes?: string | null;
 }) {
-  const plot = await db.demoPlot.findUnique({
-    where: { id: data.demoPlotId },
+  let plot = await db.demoPlot.findFirst({
+    where: {
+      OR: [
+        { id: data.demoPlotId },
+        { code: data.demoPlotId },
+        { name: data.demoPlotId },
+      ],
+      deletedAt: null,
+    },
     include: { visits: true },
   });
 
+  // If plot not found in demo_plots table, look up ActivityPlan and Auto-Create DemoPlot Master
   if (!plot) {
-    throw new Error(`DemoPlot not found: ${data.demoPlotId}`);
+    let plan: any = null;
+    let item: any = null;
+
+    if (data.activityPlanId) {
+      plan = await db.activityPlan.findUnique({
+        where: { id: data.activityPlanId },
+        include: {
+          items: true,
+        },
+      });
+      item = plan?.items?.find(
+        (it: any) =>
+          it.workType === "DEMO" ||
+          (typeof it.workType === "string" &&
+            (it.workType.includes("แปลงสาธิต") || it.workType.includes("7"))) ||
+          it.plotOwnerName ||
+          it.plotCropName,
+      );
+    } else if (data.demoPlotId.startsWith("legacy-")) {
+      const parts = data.demoPlotId.replace("legacy-", "").split("-");
+      const planId = parts[0];
+      const itemId = parts[1];
+      if (planId) {
+        plan = await db.activityPlan.findUnique({
+          where: { id: planId },
+          include: { items: true },
+        });
+        item = plan?.items?.find((it: any) => it.id === itemId);
+      }
+    }
+
+    const ownerName =
+      item?.plotOwnerName ||
+      item?.customerName ||
+      plan?.location ||
+      (data.demoPlotId.startsWith("legacy-") ? "เกษตรกร" : data.demoPlotId) ||
+      "เกษตรกร";
+    const cropName = item?.plotCropName || "พืชทั่วไป";
+    const productName = item?.plotProductName || "สินค้าสาธิต";
+    const plotName = `${ownerName} - ${cropName}`;
+
+    // Check if matching plot already exists by ownerName + cropName
+    plot = await db.demoPlot.findFirst({
+      where: {
+        ownerName,
+        cropName,
+        deletedAt: null,
+      },
+      include: { visits: true },
+    });
+
+    if (!plot) {
+      const count = await db.demoPlot.count();
+      const code = `DP-${new Date().getFullYear().toString().slice(-2)}${(count + 1).toString().padStart(4, "0")}`;
+
+      plot = await db.demoPlot.create({
+        data: {
+          code,
+          name: plotName,
+          ownerName,
+          customerId: item?.customerId || null,
+          employeeId: plan?.employeeId || "emp-system",
+          cropCategory: item?.plotCropCategory || "พืชทั่วไป",
+          cropName,
+          primaryProductName: productName,
+          areaRai: item?.plotAreaRai ? new Prisma.Decimal(item.plotAreaRai) : null,
+          treeCount: item?.plotTreeCount ? Number(item.plotTreeCount) : null,
+          startDate: plan?.startDate || data.visitDate,
+          plantingDate: data.plantingDate || plan?.startDate || data.visitDate,
+          plantingAreaCondition: data.plantingAreaCondition || null,
+          usageMethod: data.usageMethod || null,
+          objective: item?.plotObjective || null,
+          experimentDetail: item?.plotExperimentDetail || null,
+          status: data.plotStatus || DemoPlotStatus.IN_PROGRESS,
+        },
+        include: { visits: true },
+      });
+    }
   }
 
   const visitNumber = plot.visits.length + 1;
@@ -1119,7 +1204,7 @@ export async function recordDemoPlotVisit(data: {
   return db.$transaction(async (tx) => {
     const visit = await tx.demoPlotVisit.create({
       data: {
-        demoPlotId: data.demoPlotId,
+        demoPlotId: plot.id,
         activityPlanId: data.activityPlanId ?? null,
         visitNumber,
         visitDate: data.visitDate,
