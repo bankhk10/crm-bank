@@ -136,9 +136,14 @@ export default function ActivityPlanDetailView({ id }: Props) {
       <div className="p-6 max-w-4xl mx-auto space-y-4">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error || "ไม่พบข้อมูล Trip Plan"}</AlertDescription>
+          <AlertDescription>
+            {error || "ไม่พบข้อมูล Trip Plan"}
+          </AlertDescription>
         </Alert>
-        <Button variant="outline" onClick={() => router.push("/activity-plans")}>
+        <Button
+          variant="outline"
+          onClick={() => router.push("/activity-plans")}
+        >
           <ArrowLeft className="h-4 w-4 mr-2" /> กลับหน้ารายการแผนงาน
         </Button>
       </div>
@@ -167,7 +172,8 @@ export default function ActivityPlanDetailView({ id }: Props) {
 
   if (isAdmin && isPending) {
     canApproveThisStep = true;
-    approvalPrompt = "คุณมีสิทธิ์ Administrator ในการอนุมัติ/จัดการ Trip Plan นี้";
+    approvalPrompt =
+      "คุณมีสิทธิ์ Administrator ในการอนุมัติ/จัดการ Trip Plan นี้";
   } else if (plan.status === "PENDING_LINE_APPROVAL") {
     canApproveThisStep = userEmployeeId === plan.currentApproverEmployeeId;
     approvalPrompt = "คุณคือหัวหน้างานในสายการอนุมัติ Trip Plan นี้";
@@ -313,7 +319,10 @@ export default function ActivityPlanDetailView({ id }: Props) {
               </span>
               <ActivityStatusBadge status={plan.status} />
               {plan.durationDays > 1 && (
-                <Badge variant="outline" className="text-xs bg-slate-50 text-slate-700">
+                <Badge
+                  variant="outline"
+                  className="text-xs bg-slate-50 text-slate-700"
+                >
                   {plan.durationDays} วัน
                 </Badge>
               )}
@@ -346,7 +355,9 @@ export default function ActivityPlanDetailView({ id }: Props) {
             className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 text-xs font-bold shadow-sm"
           >
             <ClipboardList className="h-4 w-4" />
-            {plan.result ? "ดู / แก้ไขผลปฏิบัติงาน (Actual)" : "บันทึกผลปฏิบัติงาน (Actual)"}
+            {plan.result
+              ? "ดู / แก้ไขผลปฏิบัติงาน (Actual)"
+              : "บันทึกผลปฏิบัติงาน (Actual)"}
           </Button>
         </div>
       </div>
@@ -375,7 +386,9 @@ export default function ActivityPlanDetailView({ id }: Props) {
               {plan.employee.name}
             </span>
             <span className="text-xs text-slate-500 block truncate">
-              {plan.employee.positionTitle || plan.employee.departmentName || "พนักงาน"}
+              {plan.employee.positionTitle ||
+                plan.employee.departmentName ||
+                "พนักงาน"}
             </span>
           </div>
         </div>
@@ -407,11 +420,19 @@ export default function ActivityPlanDetailView({ id }: Props) {
             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
               สถานที่จัดกิจกรรม
             </span>
-            <span className="font-bold text-slate-900 text-sm block truncate mt-0.5" title={plan.location}>
+            <span
+              className="font-bold text-slate-900 text-sm block truncate mt-0.5"
+              title={plan.location}
+            >
               {plan.location}
             </span>
             <span className="text-xs text-slate-500 block truncate">
-              {[plan.district ? `อ.${plan.district}` : "", plan.province ? `จ.${plan.province}` : ""].filter(Boolean).join(" ") || "-"}
+              {[
+                plan.district ? `อ.${plan.district}` : "",
+                plan.province ? `จ.${plan.province}` : "",
+              ]
+                .filter(Boolean)
+                .join(" ") || "-"}
             </span>
           </div>
         </div>
@@ -426,10 +447,14 @@ export default function ActivityPlanDetailView({ id }: Props) {
               งบประมาณขออนุมัติ
             </span>
             <span className="font-bold text-slate-900 text-sm block mt-0.5">
-              {budgetTotal > 0 ? `${budgetTotal.toLocaleString()} บาท` : "ไม่มีงบประมาณ"}
+              {budgetTotal > 0
+                ? `${budgetTotal.toLocaleString()} บาท`
+                : "ไม่มีงบประมาณ"}
             </span>
             <span className="text-xs text-slate-500 block truncate">
-              {salesPromoVal > 0 ? `SP: ${salesPromoVal.toLocaleString()}฿` : ""}{" "}
+              {salesPromoVal > 0
+                ? `SP: ${salesPromoVal.toLocaleString()}฿`
+                : ""}{" "}
               {marketingVal > 0 ? `MKT: ${marketingVal.toLocaleString()}฿` : ""}
             </span>
           </div>
@@ -452,26 +477,37 @@ export default function ActivityPlanDetailView({ id }: Props) {
                   variant="outline"
                   className={cn(
                     "text-xs font-semibold",
-                    plan.result.resultStatus === "COMPLETED" && "bg-green-100 text-green-800 border-green-200",
-                    plan.result.resultStatus === "PARTIAL" && "bg-amber-100 text-amber-800 border-amber-200",
-                    plan.result.resultStatus === "POSTPONED" && "bg-blue-100 text-blue-800 border-blue-200",
-                    plan.result.resultStatus === "CANCELLED" && "bg-red-100 text-red-800 border-red-200",
+                    plan.result.resultStatus === "COMPLETED" &&
+                      "bg-green-100 text-green-800 border-green-200",
+                    plan.result.resultStatus === "PARTIAL" &&
+                      "bg-amber-100 text-amber-800 border-amber-200",
+                    plan.result.resultStatus === "POSTPONED" &&
+                      "bg-blue-100 text-blue-800 border-blue-200",
+                    plan.result.resultStatus === "CANCELLED" &&
+                      "bg-red-100 text-red-800 border-red-200",
                   )}
                 >
                   สถานะผล:{" "}
                   {plan.result.resultStatus === "COMPLETED"
                     ? "สำเร็จ"
                     : plan.result.resultStatus === "PARTIAL"
-                    ? "สำเร็จบางส่วน"
-                    : plan.result.resultStatus === "POSTPONED"
-                    ? "เลื่อนกิจกรรม"
-                    : "ยกเลิกกิจกรรม"}
+                      ? "สำเร็จบางส่วน"
+                      : plan.result.resultStatus === "POSTPONED"
+                        ? "เลื่อนกิจกรรม"
+                        : "ยกเลิกกิจกรรม"}
                 </Badge>
               )}
             </div>
             <p className="text-xs text-slate-600">
-              บันทึกผลเมื่อ {format(new Date(plan.result.recordedAt || plan.result.actualStartDate), "dd MMM yyyy HH:mm", { locale: th })}
-              {plan.result.recordedBy?.name ? ` โดย ${plan.result.recordedBy.name}` : ""}
+              บันทึกผลเมื่อ{" "}
+              {format(
+                new Date(plan.result.recordedAt || plan.result.actualStartDate),
+                "dd MMM yyyy HH:mm",
+                { locale: th },
+              )}
+              {plan.result.recordedBy?.name
+                ? ` โดย ${plan.result.recordedBy.name}`
+                : ""}
             </p>
           </div>
 
@@ -493,48 +529,15 @@ export default function ActivityPlanDetailView({ id }: Props) {
       <div className="grid gap-6 lg:grid-cols-3 items-start">
         {/* LEFT COLUMN: DETAILED WORK TYPES & BREAKDOWN (Col Span 2) */}
         <div className="lg:col-span-2 space-y-6">
-          {/* 1. Objective & Description Box */}
-          <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
-            <div className="border-b pb-3">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Target className="h-4 w-4 text-blue-600" />
-                วัตถุประสงค์และเป้าหมายกิจกรรม (Objectives)
-              </h3>
-            </div>
-            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50/60 p-4 rounded-xl border border-slate-100">
-              {plan.objective || "ไม่ได้ระบุวัตถุประสงค์"}
-            </p>
-
-            {plan.description && (
-              <div className="space-y-1.5 pt-2">
-                <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
-                  <FileText className="h-3.5 w-3.5 text-slate-500" />
-                  รายละเอียดงานเพิ่มเติม
-                </h4>
-                <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-line bg-slate-50/40 p-3 rounded-lg border border-slate-100">
-                  {plan.description}
-                </p>
-              </div>
-            )}
-
-            {plan.notes && (
-              <div className="space-y-1 pt-1">
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  หมายเหตุเพิ่มเติม:
-                </h4>
-                <p className="text-xs text-slate-600 italic bg-amber-50/30 p-2.5 rounded-lg border border-amber-100">
-                  "{plan.notes}"
-                </p>
-              </div>
-            )}
-          </div>
-
           {/* 2. Structured Work Types Activities Breakdown */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <Layers className="h-4 w-4 text-indigo-600" />
-                รายละเอียดกิจกรรมตามประเภทงานที่เลือก ({workTypeSections.length} กิจกรรม)
+                รายละเอียดกิจกรรมตามประเภทงานที่เลือก ({
+                  workTypeSections.length
+                }{" "}
+                กิจกรรม)
               </h3>
             </div>
 
@@ -559,7 +562,10 @@ export default function ActivityPlanDetailView({ id }: Props) {
                           {sec.title}
                         </h4>
                       </div>
-                      <Badge variant="outline" className="text-[11px] bg-white text-slate-700">
+                      <Badge
+                        variant="outline"
+                        className="text-[11px] bg-white text-slate-700"
+                      >
                         {sec.badge}
                       </Badge>
                     </div>
@@ -584,7 +590,10 @@ export default function ActivityPlanDetailView({ id }: Props) {
                                   <span>{idx + 1}.</span>
                                   <span>{item.title}</span>
                                   {item.badge && (
-                                    <Badge variant="outline" className="text-[10px] py-0">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-[10px] py-0"
+                                    >
                                       {item.badge}
                                     </Badge>
                                   )}
@@ -599,19 +608,24 @@ export default function ActivityPlanDetailView({ id }: Props) {
                                     รายละเอียด: {item.details}
                                   </div>
                                 )}
-                                {item.extraFields && item.extraFields.length > 0 && (
-                                  <div className="flex flex-wrap gap-2 pl-4 pt-1">
-                                    {item.extraFields.map((f, fIdx) => (
-                                      <span
-                                        key={fIdx}
-                                        className="inline-flex items-center gap-1 text-[11px] bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-700"
-                                      >
-                                        <span className="font-semibold text-slate-500">{f.label}:</span>
-                                        <span className="font-medium text-slate-900">{f.value}</span>
-                                      </span>
-                                    ))}
-                                  </div>
-                                )}
+                                {item.extraFields &&
+                                  item.extraFields.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 pl-4 pt-1">
+                                      {item.extraFields.map((f, fIdx) => (
+                                        <span
+                                          key={fIdx}
+                                          className="inline-flex items-center gap-1 text-[11px] bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-700"
+                                        >
+                                          <span className="font-semibold text-slate-500">
+                                            {f.label}:
+                                          </span>
+                                          <span className="font-medium text-slate-900">
+                                            {f.value}
+                                          </span>
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
                               </div>
 
                               {item.amount && (
@@ -637,15 +651,32 @@ export default function ActivityPlanDetailView({ id }: Props) {
                                   : "bg-slate-50 border-slate-200 text-slate-700",
                               )}
                             >
-                              <TrendingUp className={cn("h-3.5 w-3.5 shrink-0", tc.highlight ? "text-blue-500" : "text-slate-400")} />
-                              <span className="text-slate-500">{tc.label}:</span>
-                              <span className={cn("font-extrabold", tc.highlight ? "text-blue-700" : "text-slate-800")}>{tc.value}</span>
+                              <TrendingUp
+                                className={cn(
+                                  "h-3.5 w-3.5 shrink-0",
+                                  tc.highlight
+                                    ? "text-blue-500"
+                                    : "text-slate-400",
+                                )}
+                              />
+                              <span className="text-slate-500">
+                                {tc.label}:
+                              </span>
+                              <span
+                                className={cn(
+                                  "font-extrabold",
+                                  tc.highlight
+                                    ? "text-blue-700"
+                                    : "text-slate-800",
+                                )}
+                              >
+                                {tc.value}
+                              </span>
                             </div>
                           ))}
                         </div>
                       )}
                     </div>
-
                   </div>
                 ))}
               </div>
@@ -679,13 +710,17 @@ export default function ActivityPlanDetailView({ id }: Props) {
                           <div className="font-bold text-slate-900 flex items-center gap-1.5">
                             <span>{idx + 1}.</span>
                             <span>{m.productName}</span>
-                            <Badge variant="outline" className="text-[10px] bg-teal-50 text-teal-800 border-teal-200">
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] bg-teal-50 text-teal-800 border-teal-200"
+                            >
                               {m.category}
                             </Badge>
                           </div>
                           <div className="text-slate-500 pl-4">
                             จำนวน: {m.quantity} {m.unit}
-                            {m.pricePerUnit > 0 && ` @ ฿${m.pricePerUnit.toLocaleString()}/${m.unit}`}
+                            {m.pricePerUnit > 0 &&
+                              ` @ ฿${m.pricePerUnit.toLocaleString()}/${m.unit}`}
                           </div>
                         </div>
                         {m.totalAmount > 0 && (
@@ -704,11 +739,15 @@ export default function ActivityPlanDetailView({ id }: Props) {
                 <div className="space-y-2 pt-2">
                   <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
                     <Boxes className="h-3.5 w-3.5 text-blue-600" />
-                    รายการขอเบิกสินค้า/อุปกรณ์ทดลอง ({requisitions.length} รายการ)
+                    รายการขอเบิกสินค้า/อุปกรณ์ทดลอง ({requisitions.length}{" "}
+                    รายการ)
                   </h4>
                   <div className="divide-y border rounded-lg overflow-hidden bg-slate-50/20 text-xs">
                     {requisitions.map((r, idx) => (
-                      <div key={idx} className="p-3 flex items-center justify-between">
+                      <div
+                        key={idx}
+                        className="p-3 flex items-center justify-between"
+                      >
                         <span className="font-medium text-slate-800">
                           {idx + 1}. {r.productName}
                         </span>
@@ -771,7 +810,9 @@ export default function ActivityPlanDetailView({ id }: Props) {
                             : "bg-amber-50 text-amber-700 border-amber-200",
                         )}
                       >
-                        {plan.salesPromotionApproved ? "อนุมัติแล้ว" : "รออนุมัติ"}
+                        {plan.salesPromotionApproved
+                          ? "อนุมัติแล้ว"
+                          : "รออนุมัติ"}
                       </Badge>
                     )}
                   </div>
@@ -829,7 +870,10 @@ export default function ActivityPlanDetailView({ id }: Props) {
                   <div className="space-y-2 pt-1">
                     <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
                       <Gift className="h-3.5 w-3.5 text-blue-600" />
-                      รายการงบประมาณส่งเสริมการขาย ({salesPromotions.length} รายการ)
+                      รายการงบประมาณส่งเสริมการขาย ({
+                        salesPromotions.length
+                      }{" "}
+                      รายการ)
                     </h4>
                     <div className="divide-y border rounded-lg overflow-hidden bg-slate-50/20 text-xs">
                       {salesPromotions.map((sp, idx) => (
@@ -885,7 +929,9 @@ export default function ActivityPlanDetailView({ id }: Props) {
                       </span>
                       <span className="text-slate-500 mt-0.5 block">
                         ตำแหน่ง: {helper.employee.positionTitle || "-"} | แผนก:{" "}
-                        {helper.employee.departmentName || helper.departmentName || "-"}
+                        {helper.employee.departmentName ||
+                          helper.departmentName ||
+                          "-"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -893,9 +939,12 @@ export default function ActivityPlanDetailView({ id }: Props) {
                         variant="outline"
                         className={cn(
                           "text-xs font-semibold",
-                          helper.status === "APPROVED" && "bg-emerald-50 text-emerald-700 border-emerald-200",
-                          helper.status === "PENDING" && "bg-amber-50 text-amber-700 border-amber-200",
-                          helper.status === "REJECTED" && "bg-red-50 text-red-700 border-red-200",
+                          helper.status === "APPROVED" &&
+                            "bg-emerald-50 text-emerald-700 border-emerald-200",
+                          helper.status === "PENDING" &&
+                            "bg-amber-50 text-amber-700 border-amber-200",
+                          helper.status === "REJECTED" &&
+                            "bg-red-50 text-red-700 border-red-200",
                         )}
                       >
                         {helper.status === "APPROVED" && "อนุมัติแล้ว"}
@@ -903,7 +952,10 @@ export default function ActivityPlanDetailView({ id }: Props) {
                         {helper.status === "REJECTED" && "ปฏิเสธ/ติดขัด"}
                       </Badge>
                       {helper.rejectionReason && (
-                        <span className="text-red-500 font-medium max-w-[160px] truncate" title={helper.rejectionReason}>
+                        <span
+                          className="text-red-500 font-medium max-w-[160px] truncate"
+                          title={helper.rejectionReason}
+                        >
                           เหตุผล: {helper.rejectionReason}
                         </span>
                       )}
@@ -949,7 +1001,9 @@ export default function ActivityPlanDetailView({ id }: Props) {
                   onClick={handleRequestCorrection}
                   disabled={submitting || !comment.trim()}
                   className="text-amber-700 border-amber-300 hover:bg-amber-50 font-bold text-xs flex items-center justify-center gap-1 h-8"
-                  title={!comment.trim() ? "กรุณากรอกเหตุผลเพื่อส่งกลับแก้ไข" : ""}
+                  title={
+                    !comment.trim() ? "กรุณากรอกเหตุผลเพื่อส่งกลับแก้ไข" : ""
+                  }
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
                   ส่งกลับแก้ไข
@@ -993,26 +1047,32 @@ export default function ActivityPlanDetailView({ id }: Props) {
 
             <div className="relative pl-5 border-l-2 border-slate-100 space-y-5">
               {plan.approvalLogs.length === 0 ? (
-                <p className="text-xs text-slate-400 italic">ไม่มีข้อมูลประวัติ</p>
+                <p className="text-xs text-slate-400 italic">
+                  ไม่มีข้อมูลประวัติ
+                </p>
               ) : (
                 plan.approvalLogs.map((log) => {
                   let badgeColor = "bg-slate-400";
                   if (log.action === "APPROVE") badgeColor = "bg-emerald-500";
                   if (log.action === "REJECT") badgeColor = "bg-red-500";
-                  if (log.action === "REQUEST_CORRECTION") badgeColor = "bg-amber-500";
+                  if (log.action === "REQUEST_CORRECTION")
+                    badgeColor = "bg-amber-500";
                   if (log.action === "SUBMIT") badgeColor = "bg-blue-500";
 
                   let actionText = log.action as string;
                   if (log.action === "SUBMIT") actionText = "ยื่นคำขออนุมัติ";
                   if (log.action === "APPROVE") actionText = "อนุมัติแล้ว";
                   if (log.action === "REJECT") actionText = "ปฏิเสธแผน";
-                  if (log.action === "REQUEST_CORRECTION") actionText = "ส่งกลับให้แก้ไข";
+                  if (log.action === "REQUEST_CORRECTION")
+                    actionText = "ส่งกลับให้แก้ไข";
                   if (log.action === "CANCEL") actionText = "ยกเลิกคำขอ";
 
                   let stepText = log.step as string;
                   if (log.step === "LINE_APPROVAL") stepText = "ตรวจสอบสายงาน";
-                  if (log.step === "BUDGET_APPROVAL") stepText = "อนุมัติงบประมาณ";
-                  if (log.step === "HELPER_APPROVAL") stepText = "อนุมัติคนช่วยงาน";
+                  if (log.step === "BUDGET_APPROVAL")
+                    stepText = "อนุมัติงบประมาณ";
+                  if (log.step === "HELPER_APPROVAL")
+                    stepText = "อนุมัติคนช่วยงาน";
 
                   return (
                     <div key={log.id} className="relative text-xs">
@@ -1025,14 +1085,19 @@ export default function ActivityPlanDetailView({ id }: Props) {
                       />
 
                       <div className="flex justify-between items-center gap-2">
-                        <span className="font-bold text-slate-900">{actionText}</span>
+                        <span className="font-bold text-slate-900">
+                          {actionText}
+                        </span>
                         <span className="text-[10px] text-slate-400">
-                          {format(new Date(log.createdAt), "dd MMM HH:mm", { locale: th })}
+                          {format(new Date(log.createdAt), "dd MMM HH:mm", {
+                            locale: th,
+                          })}
                         </span>
                       </div>
 
                       <div className="text-slate-500 mt-0.5">
-                        {stepText ? `ขั้นตอน: ${stepText} | ` : ""}โดย: {log.user.name}
+                        {stepText ? `ขั้นตอน: ${stepText} | ` : ""}โดย:{" "}
+                        {log.user.name}
                       </div>
 
                       {log.comment && (
@@ -1092,12 +1157,23 @@ function extractWorkTypeSections(
       type1DbItems.length > 0
         ? type1DbItems.map((i) => {
             const extraFields: Array<{ label: string; value: string }> = [];
-            if (i.opportunity) extraFields.push({ label: "โอกาสการขาย", value: i.opportunity });
-            if (i.nextMeetingDate) extraFields.push({ label: "นัดหมายครั้งถัดไป", value: i.nextMeetingDate });
-            if (i.nextAction) extraFields.push({ label: "สิ่งที่ต้องดำเนินการ", value: i.nextAction });
+            if (i.opportunity)
+              extraFields.push({ label: "โอกาสการขาย", value: i.opportunity });
+            if (i.nextMeetingDate)
+              extraFields.push({
+                label: "นัดหมายครั้งถัดไป",
+                value: i.nextMeetingDate,
+              });
+            if (i.nextAction)
+              extraFields.push({
+                label: "สิ่งที่ต้องดำเนินการ",
+                value: i.nextAction,
+              });
             return {
               title: i.customerName || plan.location || "ลูกค้า/ร้านค้า",
-              subtitle: i.visitTopic ? `หัวข้อเป้าหมาย: ${i.visitTopic}` : undefined,
+              subtitle: i.visitTopic
+                ? `หัวข้อเป้าหมาย: ${i.visitTopic}`
+                : undefined,
               details: i.detail || undefined,
               extraFields: extraFields.length > 0 ? extraFields : undefined,
             };
@@ -1126,10 +1202,16 @@ function extractWorkTypeSections(
       type2DbItems.length > 0
         ? type2DbItems.map((i) => {
             const extraFields: Array<{ label: string; value: string }> = [];
-            if (i.expectedResult) extraFields.push({ label: "ผลที่คาดหวัง", value: i.expectedResult });
+            if (i.expectedResult)
+              extraFields.push({
+                label: "ผลที่คาดหวัง",
+                value: i.expectedResult,
+              });
             return {
               title: i.followupProductName || i.productName || "สินค้าติดตาม",
-              subtitle: i.customerName ? `ลูกค้า/แปลง: ${i.customerName}` : undefined,
+              subtitle: i.customerName
+                ? `ลูกค้า/แปลง: ${i.customerName}`
+                : undefined,
               details: i.detail || undefined,
               extraFields: extraFields.length > 0 ? extraFields : undefined,
             };
@@ -1173,15 +1255,25 @@ function extractWorkTypeSections(
               : "";
             return {
               title: i.saleProductName || "สินค้าเสนอขาย",
-              subtitle: i.customerName ? `ลูกค้า/ร้านค้า: ${i.customerName}` : undefined,
+              subtitle: i.customerName
+                ? `ลูกค้า/ร้านค้า: ${i.customerName}`
+                : undefined,
               amount: total || undefined,
               details: [qty, price, i.detail].filter(Boolean).join(" | "),
             };
           })
         : [];
-    const targetCards: Array<{ label: string; value: string; highlight?: boolean }> = [];
+    const targetCards: Array<{
+      label: string;
+      value: string;
+      highlight?: boolean;
+    }> = [];
     if (totalSales > 0) {
-      targetCards.push({ label: "เป้ายอดขายรวม", value: `฿${totalSales.toLocaleString()}`, highlight: true });
+      targetCards.push({
+        label: "เป้ายอดขายรวม",
+        value: `฿${totalSales.toLocaleString()}`,
+        highlight: true,
+      });
     }
     sections.push({
       typeIndex: 3,
@@ -1217,12 +1309,25 @@ function extractWorkTypeSections(
             amount: i.collectAmount
               ? `เป้าเก็บเงิน: ฿${Number(i.collectAmount).toLocaleString()}`
               : undefined,
-            details: i.detail || i.orderNo ? [i.detail, i.orderNo ? `เลขบิล: ${i.orderNo}` : ""].filter(Boolean).join(" | ") : undefined,
+            details:
+              i.detail || i.orderNo
+                ? [i.detail, i.orderNo ? `เลขบิล: ${i.orderNo}` : ""]
+                    .filter(Boolean)
+                    .join(" | ")
+                : undefined,
           }))
         : [];
-    const targetCards: Array<{ label: string; value: string; highlight?: boolean }> = [];
+    const targetCards: Array<{
+      label: string;
+      value: string;
+      highlight?: boolean;
+    }> = [];
     if (totalCollect > 0) {
-      targetCards.push({ label: "เป้ายอดเก็บเงินรวม", value: `฿${totalCollect.toLocaleString()}`, highlight: true });
+      targetCards.push({
+        label: "เป้ายอดเก็บเงินรวม",
+        value: `฿${totalCollect.toLocaleString()}`,
+        highlight: true,
+      });
     }
     sections.push({
       typeIndex: 4,
@@ -1237,9 +1342,7 @@ function extractWorkTypeSections(
   // ── 5. สำรวจตลาดของคู่แข่ง ──────────────────────────────
   const type5DbItems = items.filter(
     (i) =>
-      i.itemType === "TYPE_5" ||
-      i.surveyCompetitorProduct ||
-      i.surveyStoreName,
+      i.itemType === "TYPE_5" || i.surveyCompetitorProduct || i.surveyStoreName,
   );
   const t5Line = objectiveLines.find(
     (l) =>
@@ -1252,7 +1355,11 @@ function extractWorkTypeSections(
       type5DbItems.length > 0
         ? type5DbItems.map((i) => {
             const extraFields: Array<{ label: string; value: string }> = [];
-            if (i.surveyCompetitorBrand) extraFields.push({ label: "แบรนด์คู่แข่ง", value: i.surveyCompetitorBrand });
+            if (i.surveyCompetitorBrand)
+              extraFields.push({
+                label: "แบรนด์คู่แข่ง",
+                value: i.surveyCompetitorBrand,
+              });
             return {
               title: i.surveyStoreName || "ร้านค้าสำรวจ",
               subtitle: i.surveyCompetitorProduct
@@ -1287,7 +1394,8 @@ function extractWorkTypeSections(
       type6DbItems.length > 0
         ? type6DbItems.map((i) => {
             const extraFields: Array<{ label: string; value: string }> = [];
-            if (i.targetStatus) extraFields.push({ label: "เป้าสถานะ", value: i.targetStatus });
+            if (i.targetStatus)
+              extraFields.push({ label: "เป้าสถานะ", value: i.targetStatus });
             return {
               title: i.customerName || "ลูกค้า/เกษตรกร",
               badge: i.issueType || "ข้อร้องเรียน",
@@ -1328,18 +1436,18 @@ function extractWorkTypeSections(
               i.plotActivityType === "FOLLOW_UP"
                 ? "ติดตามแปลงสาธิต"
                 : i.plotActivityType === "NEW"
-                ? "ทำแปลงสาธิตใหม่"
-                : i.plotActivityType
-                ? i.plotActivityType
-                : "แปลงสาธิต";
+                  ? "ทำแปลงสาธิตใหม่"
+                  : i.plotActivityType
+                    ? i.plotActivityType
+                    : "แปลงสาธิต";
             const crop = [i.plotCropCategory, i.plotCropName]
               .filter(Boolean)
               .join(" - ");
             const size = i.plotAreaRai
               ? `${Number(i.plotAreaRai)} ไร่`
               : i.plotTreeCount
-              ? `${i.plotTreeCount} ต้น`
-              : "";
+                ? `${i.plotTreeCount} ต้น`
+                : "";
             const extraFields: Array<{ label: string; value: string }> = [];
             if (i.plotProductName) {
               extraFields.push({ label: "สินค้า", value: i.plotProductName });
@@ -1348,10 +1456,16 @@ function extractWorkTypeSections(
               extraFields.push({ label: "ขนาดแปลง", value: size });
             }
             if (i.growthStage) {
-              extraFields.push({ label: "ระยะการเจริญเติบโต", value: i.growthStage });
+              extraFields.push({
+                label: "ระยะการเจริญเติบโต",
+                value: i.growthStage,
+              });
             }
             if (i.targetCondition) {
-              extraFields.push({ label: "สภาพแปลงเป้าหมาย", value: i.targetCondition });
+              extraFields.push({
+                label: "สภาพแปลงเป้าหมาย",
+                value: i.targetCondition,
+              });
             }
 
             return {
@@ -1410,9 +1524,17 @@ function extractWorkTypeSections(
       (sum, i) => sum + Number(i.meetingAttendeesCount || 0),
       0,
     );
-    const targetCards: Array<{ label: string; value: string; highlight?: boolean }> = [];
+    const targetCards: Array<{
+      label: string;
+      value: string;
+      highlight?: boolean;
+    }> = [];
     if (totalAttendees > 0) {
-      targetCards.push({ label: "เป้าผู้เข้าร่วมรวม", value: `${totalAttendees} คน`, highlight: true });
+      targetCards.push({
+        label: "เป้าผู้เข้าร่วมรวม",
+        value: `${totalAttendees} คน`,
+        highlight: true,
+      });
     }
     sections.push({
       typeIndex: 8,
@@ -1427,7 +1549,9 @@ function extractWorkTypeSections(
   // ── 9. จัดกิจกรรมส่งเสริมการขายหน้าร้าน ─────────────────
   const type9DbItems = items.filter(
     (i) =>
-      (i.itemType === "TYPE_9" || i.storeProductName || i.storeTotalAmount != null) &&
+      (i.itemType === "TYPE_9" ||
+        i.storeProductName ||
+        i.storeTotalAmount != null) &&
       i.itemType !== "MARKETING_PRODUCT",
   );
   const t9Line = objectiveLines.find(
@@ -1458,7 +1582,10 @@ function extractWorkTypeSections(
               });
             }
             if (i.targetAttendees) {
-              extraFields.push({ label: "เป้าผู้เข้าร่วม", value: `${i.targetAttendees} คน` });
+              extraFields.push({
+                label: "เป้าผู้เข้าร่วม",
+                value: `${i.targetAttendees} คน`,
+              });
             }
             return {
               title: i.storeProductName || "สินค้าโปรโมชันหน้าร้าน",
@@ -1474,9 +1601,17 @@ function extractWorkTypeSections(
             };
           })
         : [];
-    const targetCards: Array<{ label: string; value: string; highlight?: boolean }> = [];
+    const targetCards: Array<{
+      label: string;
+      value: string;
+      highlight?: boolean;
+    }> = [];
     if (totalStoreAmount > 0) {
-      targetCards.push({ label: "เป้ายอดขายรวม", value: `฿${totalStoreAmount.toLocaleString()}`, highlight: true });
+      targetCards.push({
+        label: "เป้ายอดขายรวม",
+        value: `฿${totalStoreAmount.toLocaleString()}`,
+        highlight: true,
+      });
     }
     sections.push({
       typeIndex: 9,
@@ -1502,10 +1637,16 @@ function extractWorkTypeSections(
         ? type10DbItems.map((i) => {
             const extraFields: Array<{ label: string; value: string }> = [];
             if (i.targetAttendees || i.meetingAttendeesCount) {
-              extraFields.push({ label: "เป้าผู้เข้าร่วม", value: `${i.targetAttendees || i.meetingAttendeesCount} คน` });
+              extraFields.push({
+                label: "เป้าผู้เข้าร่วม",
+                value: `${i.targetAttendees || i.meetingAttendeesCount} คน`,
+              });
             }
             if (i.targetSales || i.saleTotalPrice) {
-              extraFields.push({ label: "เป้ายอดขาย", value: `฿${Number(i.targetSales || i.saleTotalPrice).toLocaleString()}` });
+              extraFields.push({
+                label: "เป้ายอดขาย",
+                value: `฿${Number(i.targetSales || i.saleTotalPrice).toLocaleString()}`,
+              });
             }
             return {
               title: i.customerName || i.plotOwnerName || "งาน Field Day",
@@ -1536,7 +1677,11 @@ function extractWorkTypeSections(
       type11DbItems.length > 0
         ? type11DbItems.map((i) => {
             const extraFields: Array<{ label: string; value: string }> = [];
-            if (i.targetOpportunity) extraFields.push({ label: "โอกาสสั่งซื้อ", value: i.targetOpportunity });
+            if (i.targetOpportunity)
+              extraFields.push({
+                label: "โอกาสสั่งซื้อ",
+                value: i.targetOpportunity,
+              });
             return {
               title: i.customerName || "ร้านค้าที่ตรวจเช็ก",
               details: i.detail || undefined,
@@ -1600,9 +1745,7 @@ function extractMarketingProducts(
     return lines.map((line) => {
       const catMatch = line.match(/\[(.*?)\]/);
       const category = catMatch ? catMatch[1] : "สื่อส่งเสริมการขาย";
-      const cleanLine = line
-        .replace(/^\d+\.\s*/, "")
-        .replace(/\[.*?\]\s*/, "");
+      const cleanLine = line.replace(/^\d+\.\s*/, "").replace(/\[.*?\]\s*/, "");
       return {
         category,
         productName: cleanLine,
@@ -1627,8 +1770,7 @@ function extractSalesPromotions(
   // (A) From DB items with SALES_PROMOTION type
   const dbSp = items.filter(
     (i) =>
-      i.itemType === "SALES_PROMOTION" ||
-      i.visitTopic === "SALES_PROMOTION",
+      i.itemType === "SALES_PROMOTION" || i.visitTopic === "SALES_PROMOTION",
   );
   if (dbSp.length > 0) {
     return dbSp.map((i) => ({
