@@ -20,13 +20,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/modules/sales/features/form/forms/section-header";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import {
@@ -646,10 +639,10 @@ export default function ActivityPlanActualView({
 
           if (resolvedWorkTypes.length > 0) {
             setPlanWorkTypes(resolvedWorkTypes);
-            setActiveTypeTab(resolvedWorkTypes[0]);
+            setActiveTypeTab("ALL");
           } else {
-            setPlanWorkTypes([WORK_TYPES[0]]);
-            setActiveTypeTab(WORK_TYPES[0]);
+            setPlanWorkTypes([]);
+            setActiveTypeTab("ALL");
           }
 
           // ────────────────────────────────────────────────────────
@@ -1403,8 +1396,10 @@ export default function ActivityPlanActualView({
   };
 
   const isTypeVisible = (typeTitle: string) => {
-    if (activeTypeTab === "ALL") return true;
-    return activeTypeTab === typeTitle;
+    if (planWorkTypes.length > 0) {
+      return planWorkTypes.includes(typeTitle);
+    }
+    return true;
   };
 
   if (loadingPlan) {
@@ -1460,76 +1455,30 @@ export default function ActivityPlanActualView({
             {/* SECTION 2: ผลการปฏิบัติงานตามประเภทงาน */}
             <SectionHeader title="ผลการปฏิบัติงานตามประเภทงาน" color="gray" />
 
-            {/* WORK TYPE SELECTOR TABS & DROPDOWN */}
-            <div className="bg-slate-50/80 border border-slate-200/60 rounded-xl p-3.5 space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <Layers className="w-4 h-4 text-blue-600" />
-                  {planWorkTypes.length > 0
-                    ? `ประเภทงานที่เลือกในแผน (${planWorkTypes.length} กิจกรรม):`
-                    : "สลับดูแบบฟอร์มตามกิจกรรม (11 รูปแบบ):"}
-                </span>
-                <Select value={activeTypeTab} onValueChange={setActiveTypeTab}>
-                  <SelectTrigger className="w-64 h-9 text-xs bg-white border-slate-200">
-                    <SelectValue placeholder="เลือกกิจกรรม" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(planWorkTypes.length > 0
-                      ? planWorkTypes
-                      : WORK_TYPES
-                    ).map((typeName) => {
-                      const idx = WORK_TYPES.indexOf(typeName);
-                      return (
-                        <SelectItem key={typeName} value={typeName}>
-                          {idx + 1}. {typeName}
-                        </SelectItem>
-                      );
-                    })}
-                    <SelectItem value="ALL">
-                      📋 แสดงแบบฟอร์มทั้งหมด (All 11 Types)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex flex-wrap gap-1.5">
-                {(planWorkTypes.length > 0 ? planWorkTypes : WORK_TYPES).map(
-                  (typeName) => {
+            {/* WORK TYPE SUMMARY BANNER */}
+            {planWorkTypes.length > 0 && (
+              <div className="bg-blue-50/70 border border-blue-200/70 rounded-xl p-3.5 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                  <span className="text-xs font-bold text-blue-900">
+                    ประเภทงานที่เลือกในแผน ({planWorkTypes.length} กิจกรรม):
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  {planWorkTypes.map((typeName) => {
                     const idx = WORK_TYPES.indexOf(typeName);
                     return (
-                      <button
+                      <span
                         key={typeName}
-                        type="button"
-                        onClick={() => setActiveTypeTab(typeName)}
-                        className={cn(
-                          "px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer",
-                          activeTypeTab === typeName
-                            ? "bg-blue-600 text-white shadow-xs font-semibold"
-                            : "bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-100",
-                        )}
+                        className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-blue-700 border border-blue-200 shadow-2xs"
                       >
                         {idx + 1}. {typeName}
-                      </button>
+                      </span>
                     );
-                  },
-                )}
-
-                {planWorkTypes.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveTypeTab("ALL")}
-                    className={cn(
-                      "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ml-auto",
-                      activeTypeTab === "ALL"
-                        ? "bg-slate-900 text-white shadow-xs"
-                        : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100",
-                    )}
-                  >
-                    📋 แสดงทั้งหมด
-                  </button>
-                )}
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="space-y-4 md:space-y-6">
               {/* WORK TYPE 1 */}
