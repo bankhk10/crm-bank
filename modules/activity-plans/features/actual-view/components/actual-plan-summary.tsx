@@ -190,7 +190,7 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1.5 uppercase tracking-widest">
               <CircleDollarSign className="w-3.5 h-3.5" />
-              งบประมาณและค่าใช้จ่าย (Budget &amp; Expenses)
+              งบประมาณและค่าใช้จ่าย
             </p>
             <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-200 px-2.5 py-0.5 rounded-full">
               งบรวม {totalBudget.toLocaleString()} บาท
@@ -278,7 +278,7 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                       <th className="py-2 px-3 text-center w-10">ลำดับ</th>
                       <th className="py-2 px-3">รายการ</th>
                       <th className="py-2 px-3 w-24 text-center">จำนวน</th>
-                      <th className="py-2 px-3 w-28 text-right">ราคา/หน่วย</th>
+                      <th className="py-2 px-3 w-28 text-right">ราคา</th>
                       <th className="py-2 px-3 w-32 text-right">รวมเป็นเงิน</th>
                     </tr>
                   </thead>
@@ -421,12 +421,12 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
         <div className="space-y-2 pt-3 border-t border-slate-200">
           <p className="text-[11px] font-bold text-sky-600 flex items-center gap-1.5 uppercase tracking-widest">
             <Info className="w-3.5 h-3.5" />
-            ข้อมูลเพิ่มเติม (Additional Info)
+            ข้อมูลเพิ่มเติม
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {/* รายละเอียดพื้นที่จัดกิจกรรม */}
-            {hasLocation && (
+            {hasLocation && summary.locationStr !== "ไม่ระบุสถานที่" && (
               <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-xs hover:border-indigo-300 hover:shadow-sm transition-all duration-200 md:col-span-2">
                 <p className="text-[10px] text-slate-400 font-semibold mb-1 uppercase tracking-wider flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5 text-red-500" />
@@ -459,18 +459,6 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
                     </span>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* วัตถุประสงค์ */}
-            {hasObjective && (
-              <div className="bg-white border border-slate-200 p-2.5 rounded-xl md:col-span-2 shadow-xs hover:border-sky-300 hover:shadow-sm transition-all duration-200">
-                <span className="text-slate-400 block text-[10px] uppercase tracking-wider mb-1">
-                  วัตถุประสงค์
-                </span>
-                <span className="text-xs font-medium text-slate-700 leading-relaxed">
-                  {summary.objective}
-                </span>
               </div>
             )}
 
