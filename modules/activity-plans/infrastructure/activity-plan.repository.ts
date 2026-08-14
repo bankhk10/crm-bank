@@ -814,3 +814,93 @@ export async function upsertActivityResult(input: CreateActivityResultInput) {
     },
   });
 }
+
+/**
+ * Find all plans currently in approval queues and recent approval history
+ */
+export async function findApprovalQueueData() {
+  const pendingStatuses: ActivityStatus[] = [
+    ActivityStatus.PENDING_LINE_APPROVAL,
+    ActivityStatus.PENDING_BUDGET_APPROVAL,
+    ActivityStatus.PENDING_HELPER_APPROVAL,
+  ];
+
+  const fullPlanInclude = {
+    activityType: true,
+    items: {
+      orderBy: { itemOrder: "asc" as const },
+    },
+    employee: {
+      include: {
+        position: true,
+        department: true,
+      },
+    },
+    createdBy: {
+      select: { id: true, name: true, email: true },
+    },
+    currentApprover: {
+      include: {
+        position: true,
+        department: true,
+      },
+    },
+    helpers: {
+      where: { deletedAt: null },
+      include: {
+        employee: {
+          include: {
+            position: true,
+            department: true,
+          },
+        },
+        approvedBy: true,
+      },
+    },
+    approvalLogs: {
+      include: {
+        user: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+      orderBy: { createdAt: "desc" as const },
+    },
+    result: true,
+  };
+
+  const [pendingPlans, historyPlans, activityTypes] = await Promise.all([
+    db.activityPlan.findMany({
+      where: {
+        deletedAt: null,
+        status: { in: pendingStatuses },
+      },
+      include: fullPlanInclude,
+      orderBy: { createdAt: "desc" },
+    }),
+    db.activityPlan.findMany({
+      where: {
+        deletedAt: null,
+        status: {
+          in: [
+            ActivityStatus.APPROVED,
+            ActivityStatus.REJECTED,
+            ActivityStatus.WAITING_FOR_CORRECTION,
+          ],
+        },
+      },
+      include: fullPlanInclude,
+      orderBy: { updatedAt: "desc" },
+      take: 50,
+    }),
+    db.activityType.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+    }),
+  ]);
+
+  return {
+    pendingPlans,
+    historyPlans,
+    activityTypes,
+  };
+}

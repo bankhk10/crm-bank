@@ -19,6 +19,7 @@ import {
   requestCorrectionPlanUseCase,
   cancelActivityPlanUseCase,
   findOrCreateEmployeeForUser,
+  findApprovalQueueData,
   type ListActivityPlansParams,
 } from "../application";
 
@@ -141,6 +142,7 @@ export async function submitActivityPlanAction(id: string) {
     const result = await submitActivityPlanUseCase(id, session.user.id);
     if (result.success) {
       revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
       revalidatePath(`/activity-plans/${id}`);
     }
     return serialize(result);
@@ -177,6 +179,7 @@ export async function approveActivityPlanAction(id: string, comment?: string) {
     );
     if (result.success) {
       revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
       revalidatePath(`/activity-plans/${id}`);
     }
     return serialize(result);
@@ -213,6 +216,7 @@ export async function rejectActivityPlanAction(id: string, comment?: string) {
     );
     if (result.success) {
       revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
       revalidatePath(`/activity-plans/${id}`);
     }
     return serialize(result);
@@ -249,6 +253,7 @@ export async function requestCorrectionPlanAction(id: string, comment: string) {
     );
     if (result.success) {
       revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
       revalidatePath(`/activity-plans/${id}`);
     }
     return serialize(result);
@@ -270,6 +275,7 @@ export async function cancelActivityPlanAction(id: string) {
     const result = await cancelActivityPlanUseCase(id, session.user.id);
     if (result.success) {
       revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
       revalidatePath(`/activity-plans/${id}`);
     }
     return serialize(result);
@@ -367,6 +373,109 @@ export async function getActivityTypesAction() {
     return serialize({ success: true, types });
   } catch (err: any) {
     return serialize({ success: false, types: [], error: err.message });
+  }
+}
+
+/**
+ * Action: Get approval queue data and statistics
+ */
+export async function getApprovalQueueDataAction() {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false as const, error: "Unauthorized" };
+  }
+
+  const permissions = session.user.permissionKeys ?? [];
+  const canApprove =
+    permissions.includes("activity.approve") ||
+    permissions.includes("activity.manage") ||
+    permissions.includes("menu.activity_plans");
+
+  if (!canApprove) {
+    return {
+      success: false as const,
+      error: "Forbidden: คุณไม่มีสิทธิ์เข้าถึงคิวงานอนุมัติ",
+    };
+  }
+
+  try {
+    const { pendingPlans, historyPlans, activityTypes } =
+      await findApprovalQueueData();
+
+    const userEmployeeId = session.user.employeeId;
+
+    // Categorize
+    const lineApprovalsForMe = pendingPlans.filter(
+      (p) =>
+        p.status === "PENDING_LINE_APPROVAL" &&
+        p.currentApproverEmployeeId === userEmployeeId,
+    );
+
+    const lineApprovalsAll = pendingPlans.filter(
+      (p) => p.status === "PENDING_LINE_APPROVAL",
+    );
+
+    const budgetApprovals = pendingPlans.filter(
+      (p) => p.status === "PENDING_BUDGET_APPROVAL",
+    );
+
+    const helperApprovals = pendingPlans.filter(
+      (p) => p.status === "PENDING_HELPER_APPROVAL",
+    );
+
+    // Helper approvals where current user is the helper or helper's line manager
+    const helperApprovalsForMe = pendingPlans.filter(
+      (p) =>
+        p.status === "PENDING_HELPER_APPROVAL" &&
+        p.helpers.some(
+          (h) =>
+            h.employeeId === userEmployeeId ||
+            h.approvedById === userEmployeeId,
+        ),
+    );
+
+    // Calculate requested budgets
+    let totalBudgetRequested = 0;
+    for (const plan of pendingPlans) {
+      const sp = plan.salesPromotionBudgetRequested
+        ? Number(plan.salesPromotionBudgetRequested)
+        : 0;
+      const mkt = plan.marketingBudgetRequested
+        ? Number(plan.marketingBudgetRequested)
+        : 0;
+      totalBudgetRequested += sp + mkt;
+    }
+
+    const counts = {
+      totalPending: pendingPlans.length,
+      myLinePending: lineApprovalsForMe.length,
+      allLinePending: lineApprovalsAll.length,
+      budgetPending: budgetApprovals.length,
+      helperPending: helperApprovals.length,
+      myHelperPending: helperApprovalsForMe.length,
+      historyCount: historyPlans.length,
+      totalBudgetRequested,
+    };
+
+    return serialize({
+      success: true as const,
+      pendingPlans,
+      historyPlans,
+      activityTypes,
+      counts,
+      currentUser: {
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+        employeeId: session.user.employeeId,
+        permissions,
+      },
+    });
+  } catch (err: any) {
+    return {
+      success: false as const,
+      error: err.message || "เกิดข้อผิดพลาดในการโหลดคิวงานอนุมัติ",
+    };
   }
 }
 

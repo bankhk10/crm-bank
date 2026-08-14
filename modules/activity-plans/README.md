@@ -31,7 +31,11 @@ modules/activity-plans/
 │   │       ├── requisition-section.tsx # ส่วนระบุรายการขอเบิกสินค้า
 │   │       └── location-team-section.tsx # ส่วนระบุสถานที่และค้นหาทีมงาน
 │   ├── detail-view/                 # หน้ารายละเอียดกิจกรรม Timeline และปุ่มอนุมัติ
-│   └── approve-view/                # แดชบอร์ดตรวจสอบสำหรับหัวหน้างาน (Approval Inbox)
+│   └── approve-view/                # ศูนย์ตรวจสอบและอนุมัติ Trip Plan (Approval Hub & Queue)
+│       ├── activity-plan-approval-list-view.tsx # หน้าจอหลักแดชบอร์ดคิวงานอนุมัติ
+│       └── components/
+│           ├── approval-action-dialog.tsx       # Dialog ยืนยันการอนุมัติ / ตีกลับแก้ไข / ปฏิเสธ
+│           └── approval-detail-drawer.tsx       # Drawer สรุปรายละเอียดก่อนการอนุมัติ
 └── types/                           # นิยามประเภทข้อมูล TypeScript
     └── index.ts                     # โครงสร้างความสัมพันธ์ของข้อมูลย่อย
 ```
@@ -114,6 +118,17 @@ modules/activity-plans/
 ---
 
 ## 📝 บันทึกการอัปเดตฟีเจอร์ (Feature Change Log)
+
+### 2026-08-14: เพิ่มหน้าจอศูนย์ตรวจสอบและอนุมัติกิจกรรม (Trip Plan Approval Hub & Queue)
+- **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `activity-plan-approval-list-view.tsx`, `approval-action-dialog.tsx`, `approval-detail-drawer.tsx`, `activity-plan.repository.ts`, `server/actions.ts`
+- **Routing:** `/activity-plans/approvals` และเพิ่มเมนูใน Sidebar + ปุ่มทางลัดใน Toolbar
+- **ฟีเจอร์เด่น:**
+  - **KPI Summary Cards:** แสดงจำนวนคำขออนุมัติตามสายงาน (พร้อมตัวบ่งชี้เมื่อมีงานที่รอการตัดสินใจของคุณ), คิวงบประมาณ, คิวคนช่วยงาน, และประวัติการดำเนินการ
+  - **Tabbed Filter Navigation:** กรองรายการ 5 แท็บ: คิวสายงานของฉัน (`my_line`), ทั้งหมดที่รออนุมัติ (`all`), งบประมาณ (`budget`), พนักงานช่วยงาน (`helper`), และประวัติ (`history`)
+  - **Search & Activity Type Filter:** ค้นหาแผนงาน รหัส ผู้สร้าง และตัวกรองประเภทกิจกรรม (Lookup master)
+  - **Dual View Mode:** สลับการแสดงผลแบบการ์ด (Card View - Mobile Friendly) และตาราง (Table View - Desktop Scan)
+  - **Quick Action Modal Dialog:** ยืนยันการอนุมัติ / ตีกลับแก้ไข / ปฏิเสธ พร้อมช่องระบุหมายเหตุโดยไม่ต้องเปลี่ยนหน้า
+  - **Quick Detail Inspection Drawer:** เปิดดูรายละเอียดเป้าหมาย งบประมาณ รายการสินค้า และประวัติ Timeline (Audit Logs) ได้ทันที
 
 ### 2026-08-13: Redesign Schema ใหม่ — Analytics-Ready
 - **ขอบเขต:** ลบ schema เก่าทิ้งทั้งหมด ออกแบบใหม่ 6 ตารางเพื่อรองรับ Data Analytics Dashboard

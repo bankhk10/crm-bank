@@ -195,5 +195,12 @@ export {
   requestCorrectionPlanUseCase,
   cancelActivityPlanUseCase,
 } from "./activity-plan-flow";
-export { findEmployeeById, findOrCreateEmployeeForUser, findActivityTypes, findActivityTypeByCode, resolveActivityTypeId } from "../infrastructure/activity-plan.repository";
+export {
+  findEmployeeById,
+  findOrCreateEmployeeForUser,
+  findActivityTypes,
+  findActivityTypeByCode,
+  resolveActivityTypeId,
+  findApprovalQueueData,
+} from "../infrastructure/activity-plan.repository";
 export type { ListActivityPlansParams };
