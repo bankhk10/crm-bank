@@ -852,6 +852,14 @@ export default function ActivityPlanActualView({
                 setT1ProductAdvice(adviceMatch[1].split("\n")[0].trim());
               }
 
+              const opportunityMatch = summaryText.match(/โอกาสการขาย:\s*(.+)/);
+              if (opportunityMatch && opportunityMatch[1]) {
+                const oppVal = opportunityMatch[1].split("\n")[0].trim();
+                if (oppVal === "สูง" || oppVal === "ต่ำ") {
+                  setT1SalesOpportunity(oppVal);
+                }
+              }
+
               const discussionMatch = summaryText.match(/ผลการพูดคุย:\s*(.+)/);
               if (discussionMatch && discussionMatch[1]) {
                 setT1DiscussionResult(discussionMatch[1].split("\n")[0].trim());
@@ -862,7 +870,32 @@ export default function ActivityPlanActualView({
                 setT1Detail(detailMatch[1].split("\n")[0].trim());
               }
 
+              const nextActionMatch = summaryText.match(
+                /สิ่งที่ต้องดำเนินการต่อ:\s*(.+)/,
+              );
+              if (nextActionMatch && nextActionMatch[1]) {
+                setT1NextAction(nextActionMatch[1].split("\n")[0].trim());
+              } else if (resData.nextAction) {
+                setT1NextAction(resData.nextAction);
+              }
+
+              const nextMeetingMatch = summaryText.match(
+                /วันที่นัดหมายครั้งถัดไป:\s*(.+)/,
+              );
+              if (nextMeetingMatch && nextMeetingMatch[1]) {
+                let val = nextMeetingMatch[1].split("\n")[0].trim();
+                if (val.includes("T")) {
+                  val = val.split("T")[0];
+                }
+                setT1NextMeetingDate(val);
+              }
+
               // Type 2 (Followup)
+              const customerMatch = summaryText.match(/ลูกค้าติดตาม:\s*(.+)/);
+              if (customerMatch && customerMatch[1]) {
+                setT2CustomerName(customerMatch[1].split("\n")[0].trim());
+              }
+
               const followupMatch = summaryText.match(/ติดตามผล:\s*(.+)/);
               if (followupMatch && followupMatch[1]) {
                 const val = followupMatch[1].split("\n")[0].trim();
@@ -893,6 +926,18 @@ export default function ActivityPlanActualView({
               if (soldMatch && soldMatch[1]) {
                 setT3SoldProducts(soldMatch[1].split("\n")[0].trim());
               }
+              const actualSalesMatch = summaryText.match(/ยอดขายจริง:\s*(.+)/);
+              if (actualSalesMatch && actualSalesMatch[1]) {
+                setT3ActualSales(actualSalesMatch[1].split("\n")[0].trim());
+              } else if (resData.salesResultAmount) {
+                setT3ActualSales(String(resData.salesResultAmount));
+              }
+              const actualQtyMatch = summaryText.match(
+                /จำนวนที่ขายจริง:\s*(.+)/,
+              );
+              if (actualQtyMatch && actualQtyMatch[1]) {
+                setT3ActualQuantity(actualQtyMatch[1].split("\n")[0].trim());
+              }
               const unclosedMatch = summaryText.match(
                 /เหตุผลที่ปิดการขายไม่ได้:\s*(.+)/,
               );
@@ -906,6 +951,14 @@ export default function ActivityPlanActualView({
               );
               if (orderNoMatch && orderNoMatch[1]) {
                 setT4OrderNo(orderNoMatch[1].split("\n")[0].trim());
+              }
+              const receivedMatch = summaryText.match(
+                /ยอดเงินที่เก็บได้จริง:\s*(.+)/,
+              );
+              if (receivedMatch && receivedMatch[1]) {
+                setT4ReceivedAmount(receivedMatch[1].split("\n")[0].trim());
+              } else if (resData.collectResultAmount) {
+                setT4ReceivedAmount(String(resData.collectResultAmount));
               }
 
               // Type 5
@@ -959,6 +1012,18 @@ export default function ActivityPlanActualView({
               if (t7MethodMatch && t7MethodMatch[1]) {
                 setT7UsageMethod(t7MethodMatch[1].split("\n")[0].trim());
               }
+              const t7GrowthMatch = summaryText.match(
+                /ระยะการเจริญเติบโต:\s*(.+)/,
+              );
+              if (t7GrowthMatch && t7GrowthMatch[1]) {
+                setT7GrowthStage(t7GrowthMatch[1].split("\n")[0].trim());
+              }
+              const t7CondMatch = summaryText.match(/สภาพแปลง:\s*(.+)/);
+              if (t7CondMatch && t7CondMatch[1]) {
+                setT7CropCondition(
+                  t7CondMatch[1].split("\n")[0].trim() as any,
+                );
+              }
               const t7DescMatch = summaryText.match(/รายละเอียดแปลง:\s*(.+)/);
               if (t7DescMatch && t7DescMatch[1]) {
                 setT7CropProblemDescription(
@@ -967,17 +1032,51 @@ export default function ActivityPlanActualView({
               }
 
               // Type 8
+              const t8AttendeesMatch = summaryText.match(
+                /จำนวนผู้เข้าร่วมประชุมจริง:\s*(.+)/,
+              );
+              if (t8AttendeesMatch && t8AttendeesMatch[1]) {
+                setT8ActualAttendees(
+                  t8AttendeesMatch[1].split("\n")[0].trim(),
+                );
+              }
               const qnaMatch = summaryText.match(/Q&A:\s*(.+)/);
               if (qnaMatch && qnaMatch[1]) {
                 setT8FeedbackQnA(qnaMatch[1].split("\n")[0].trim());
               }
 
+              // Type 9
+              const t9SalesMatch = summaryText.match(
+                /ยอดขายหน้าร้านจริง:\s*(.+)/,
+              );
+              if (t9SalesMatch && t9SalesMatch[1]) {
+                setT9ActualSales(t9SalesMatch[1].split("\n")[0].trim());
+              }
+              const t9AttendeesMatch = summaryText.match(
+                /จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน:\s*(.+)/,
+              );
+              if (t9AttendeesMatch && t9AttendeesMatch[1]) {
+                setT9ActualAttendees(
+                  t9AttendeesMatch[1].split("\n")[0].trim(),
+                );
+              }
+
               // Type 10
+              const t10AttendeesMatch = summaryText.match(
+                /จำนวนผู้เข้าร่วม Field Day จริง:\s*(.+)/,
+              );
+              if (t10AttendeesMatch && t10AttendeesMatch[1]) {
+                setT10ActualAttendees(
+                  t10AttendeesMatch[1].split("\n")[0].trim(),
+                );
+              }
               const t10FeedbackMatch = summaryText.match(
                 /ความสนใจเกษตรกร:\s*(.+)/,
               );
               if (t10FeedbackMatch && t10FeedbackMatch[1]) {
-                setT10FarmerFeedback(t10FeedbackMatch[1].split("\n")[0].trim());
+                setT10FarmerFeedback(
+                  t10FeedbackMatch[1].split("\n")[0].trim(),
+                );
               }
               const t10FarmersMatch = summaryText.match(
                 /รายชื่อเกษตรกรเป้าหมาย:\s*(.+)/,
@@ -997,17 +1096,28 @@ export default function ActivityPlanActualView({
               }
               const t11StatusMatch = summaryText.match(/สถานะสต็อก:\s*(.+)/);
               if (t11StatusMatch && t11StatusMatch[1]) {
-                setT11StockStatus(t11StatusMatch[1].split("\n")[0].trim());
+                setT11StockStatus(
+                  t11StatusMatch[1].split("\n")[0].trim() as any,
+                );
               }
               const t11ReorderMatch = summaryText.match(
                 /โอกาสสั่งซื้อซ้ำ:\s*(.+)/,
               );
               if (t11ReorderMatch && t11ReorderMatch[1]) {
                 setT11ReorderOpportunity(
-                  t11ReorderMatch[1].split("\n")[0].trim(),
+                  t11ReorderMatch[1].split("\n")[0].trim() as any,
+                );
+              }
+              const t11NextActionMatch = summaryText.match(
+                /แผนการติดตามสต็อก:\s*(.+)/,
+              );
+              if (t11NextActionMatch && t11NextActionMatch[1]) {
+                setT11NextAction(
+                  t11NextActionMatch[1].split("\n")[0].trim(),
                 );
               }
             }
+
 
             // Activity Result Status & Postponed / Cancelled fields
             if (resData.resultStatus) {
@@ -1279,9 +1389,16 @@ export default function ActivityPlanActualView({
           activityResultStatus === "POSTPONED" && postponedNotes
             ? `หมายเหตุการเลื่อน: ${postponedNotes}`
             : null,
+          // Type 1
           t1ProductAdvice ? `สินค้าที่แนะนำ: ${t1ProductAdvice}` : null,
+          t1SalesOpportunity ? `โอกาสการขาย: ${t1SalesOpportunity}` : null,
           t1DiscussionResult ? `ผลการพูดคุย: ${t1DiscussionResult}` : null,
           t1Detail ? `รายละเอียดเข้าพบ: ${t1Detail}` : null,
+          t1NextAction ? `สิ่งที่ต้องดำเนินการต่อ: ${t1NextAction}` : null,
+          t1NextMeetingDate ? `วันที่นัดหมายครั้งถัดไป: ${t1NextMeetingDate}` : null,
+
+          // Type 2
+          t2CustomerName ? `ลูกค้าติดตาม: ${t2CustomerName}` : null,
           t2FollowupDetail || t2Detail
             ? `ติดตามผล: ${t2FollowupDetail || t2Detail}`
             : null,
@@ -1292,20 +1409,33 @@ export default function ActivityPlanActualView({
           t2ProblemDetail
             ? `ปัญหาการใช้สินค้า: ${t2ProblemDetail}`
             : null,
+
+          // Type 3
           t3SoldProducts ? `รายการขาย: ${t3SoldProducts}` : null,
+          t3ActualSales ? `ยอดขายจริง: ${t3ActualSales}` : null,
+          t3ActualQuantity ? `จำนวนที่ขายจริง: ${t3ActualQuantity}` : null,
           t3UnclosedReason
             ? `เหตุผลที่ปิดการขายไม่ได้: ${t3UnclosedReason}`
             : null,
+
+          // Type 4
           t4OrderNo ? `เลขที่บิล/ใบแจ้งหนี้: ${t4OrderNo}` : null,
+          t4ReceivedAmount ? `ยอดเงินที่เก็บได้จริง: ${t4ReceivedAmount}` : null,
+
+          // Type 5
           t5CompetitorBrand ? `แบรนด์คู่แข่ง: ${t5CompetitorBrand}` : null,
           t5CompetitorProduct ? `สินค้าคู่แข่ง: ${t5CompetitorProduct}` : null,
           t5CompetitorPrice ? `ราคาคู่แข่ง: ${t5CompetitorPrice}` : null,
           t5PromotionDetail ? `โปรโมชันคู่แข่ง: ${t5PromotionDetail}` : null,
+
+          // Type 6
           t6ProblemDetail ? `ปัญหาลูกค้าร้องเรียน: ${t6ProblemDetail}` : null,
           t6InitialSolution
             ? `แนวทางแก้ไขเบื้องต้น: ${t6InitialSolution}`
             : null,
           t6Status ? `สถานะการแก้ปัญหา: ${t6Status}` : null,
+
+          // Type 7
           t7PlotName ? `ชื่อแปลงทดสอบ: ${t7PlotName}` : null,
           t7UsageMethod ? `วิธีใช้/อัตราการใช้: ${t7UsageMethod}` : null,
           t7GrowthStage ? `ระยะการเจริญเติบโต: ${t7GrowthStage}` : null,
@@ -1313,16 +1443,29 @@ export default function ActivityPlanActualView({
           t7CropProblemDescription
             ? `รายละเอียดแปลง: ${t7CropProblemDescription}`
             : null,
+
+          // Type 8
+          t8ActualAttendees ? `จำนวนผู้เข้าร่วมประชุมจริง: ${t8ActualAttendees}` : null,
           t8FeedbackQnA ? `Q&A: ${t8FeedbackQnA}` : null,
+
+          // Type 9
+          t9ActualSales ? `ยอดขายหน้าร้านจริง: ${t9ActualSales}` : null,
+          t9ActualAttendees ? `จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน: ${t9ActualAttendees}` : null,
+
+          // Type 10
+          t10ActualAttendees ? `จำนวนผู้เข้าร่วม Field Day จริง: ${t10ActualAttendees}` : null,
           t10FarmerFeedback ? `ความสนใจเกษตรกร: ${t10FarmerFeedback}` : null,
           t10TargetFarmersList
             ? `รายชื่อเกษตรกรเป้าหมาย: ${t10TargetFarmersList}`
             : null,
+
+          // Type 11
           t11Remarks ? `ข้อสังเกตสต็อก: ${t11Remarks}` : null,
           t11StockStatus ? `สถานะสต็อก: ${t11StockStatus}` : null,
           t11ReorderOpportunity
             ? `โอกาสสั่งซื้อซ้ำ: ${t11ReorderOpportunity}`
             : null,
+          t11NextAction ? `แผนการติดตามสต็อก: ${t11NextAction}` : null,
         ].filter(Boolean);
 
         const t2HasProblem =
