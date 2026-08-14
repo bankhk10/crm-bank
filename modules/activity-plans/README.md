@@ -129,9 +129,9 @@ modules/activity-plans/
   - `modules/activity-plans/features/actual-view/components/work-types/actual-type7-demo.tsx`
 - **การเปลี่ยนแปลงที่ดำเนินการ:**
   1. **หน้า Create (Trip Plan Form):** เพิ่มช่องกรอก "จำนวนสินค้าที่จะสาธิต" (ตัวเลข >= 0) ใน `type7-demo.tsx` ทั้งในโหมดทำแปลงใหม่ (CREATE) และโหมดติดตามแปลงเดิม (FOLLOW_UP) และแยกการเก็บข้อมูลออกจาก `areaRai`/`treeCount`
-  2. **Data Flow & Database Mapping:** ผูกข้อมูลเข้ากับฟิลด์ `plotsCount` ใน State และบันทึกลงคอลัมน์ `plot_count` (`plotCount`) ในตาราง `activity_plan_items` ของฐานข้อมูล
-  3. **หน้า Actual (Trip Plan Actual):** ดึงข้อมูล `plotCount` จาก Database ส่งต่อไปยัง `targets.t7.demoProductQuantity` และนำมาแสดงผลใน `actual-type7-demo.tsx` ทั้งในการ์ดเดี่ยว (`ActualTargetCard`) และการ์ดเป้าหมายแบบหลายแปลง (`target.items`) โดยแสดงเป็น `-` หากไม่ได้กรอก
-- **ผลลัพธ์:** ข้อมูลจำนวนสินค้าที่จะสาธิตจาก Plan ไหลตรงสู่ Actual อย่างถูกต้อง 100% ไม่สูญหายและไม่เกิดค่าติดลบ
+  2. **Data Flow & Database Mapping:** ผูกข้อมูลเข้ากับฟิลด์ `plotsCount` ใน State และบันทึกลงคอลัมน์ `plot_count` (`plotCount`) ในตาราง `activity_plan_items` ของฐานข้อมูล รวมถึงรวม `objective` และ `experimentDetail` เข้าในฟิลด์ `detail` เพื่อบันทึกอย่างครบถ้วน
+  3. **หน้า Actual (Trip Plan Actual):** ดึงข้อมูล `plotCount`, `objective` (วัตถุประสงค์ของแปลง) และ `experimentDetail` (รายละเอียด / วิธีการทดลอง) จาก Database ส่งต่อไปยัง `targets.t7` และนำมาแสดงผลใน `actual-type7-demo.tsx` ทั้งในการ์ดเดี่ยว (`ActualTargetCard`) และการ์ดเป้าหมายแบบหลายแปลง (`target.items`) โดยแสดงเป็น `-` หากไม่ได้กรอก
+- **ผลลัพธ์:** ข้อมูลจำนวนสินค้าที่จะสาธิต, วัตถุประสงค์ของแปลง และรายละเอียด / วิธีการทดลอง จาก Plan ไหลตรงสู่ Actual อย่างถูกต้อง 100% ไม่สูญหายและไม่เกิดค่าติดลบ
 
 ### 2026-08-14: ปรับปรุง Data Flow และแก้ไขการแสดงผล Work Type 6 (แก้ปัญหา / รับเรื่องร้องเรียน) ในหน้า Trip Plan Actual
 - **คอมโพเนนต์ที่แก้ไข:**

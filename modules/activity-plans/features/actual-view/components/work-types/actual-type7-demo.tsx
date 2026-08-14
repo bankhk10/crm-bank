@@ -21,6 +21,8 @@ export interface TargetDemoItem {
   crop: string;
   plots: string;
   demoProductQuantity?: string | number | null;
+  objective?: string;
+  experimentDetail?: string;
   detail?: string;
 }
 
@@ -33,6 +35,8 @@ interface ActualType7DemoProps {
     plots: string;
     targetCondition?: string;
     demoProductQuantity?: string | number | null;
+    objective?: string;
+    experimentDetail?: string;
     detail?: string;
     items?: TargetDemoItem[];
   };
@@ -158,13 +162,23 @@ export function ActualType7Demo({
                       {item.plots || "-"}
                     </span>
                   </div>
-                  {item.detail && (
+                  {item.objective && (
                     <div className="col-span-2">
                       <span className="text-slate-400 block text-[10px]">
-                        รายละเอียดเพิ่มเติม:
+                        วัตถุประสงค์ของแปลง:
                       </span>
                       <span className="font-medium text-slate-700 block break-words whitespace-pre-wrap">
-                        {item.detail}
+                        {item.objective}
+                      </span>
+                    </div>
+                  )}
+                  {(item.experimentDetail || item.detail) && (
+                    <div className="col-span-2">
+                      <span className="text-slate-400 block text-[10px]">
+                        รายละเอียด / วิธีการทดลอง:
+                      </span>
+                      <span className="font-medium text-slate-700 block break-words whitespace-pre-wrap">
+                        {item.experimentDetail || item.detail}
                       </span>
                     </div>
                   )}
@@ -192,7 +206,11 @@ export function ActualType7Demo({
             },
             { label: "พืชเป้าหมาย:", value: target.crop || "-" },
             { label: "พื้นที่/จำนวนต้น:", value: target.plots || "-" },
-            { label: "รายละเอียดเพิ่มเติม:", value: target.detail || "-" },
+            { label: "วัตถุประสงค์ของแปลง:", value: target.objective || "-" },
+            {
+              label: "รายละเอียด / วิธีการทดลอง:",
+              value: target.experimentDetail || target.detail || "-",
+            },
           ]}
         />
       )}

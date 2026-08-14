@@ -804,28 +804,42 @@ export function ActivityPlanForm({
           (item.itemType === "TYPE_7" || item.plotActivityType || item.plotOwnerName || item.plotAreaRai != null)
       );
       if (items.length > 0) {
-        return items.map((item: any, idx: number) => ({
-          id: item.id || String(idx + 1),
-          plotActivityType: item.plotActivityType || "CREATE",
-          ownerName: item.plotOwnerName || item.ownerName || "",
-          productName: item.plotProductName || item.productName || "",
-          cropCategory: item.plotCropCategory || item.cropCategory || "",
-          cropName: item.plotCropName || item.cropName || "",
-          customCropName: item.customCropName || "",
-          areaRai: item.plotAreaRai ? Number(item.plotAreaRai) : (item.areaRai || 0),
-          treeCount: item.plotTreeCount ?? item.treeCount ?? 0,
-          startDate: item.startDate || startDate || format(new Date(), "yyyy-MM-dd"),
-          followUpDate: item.followUpDate || startDate || format(new Date(), "yyyy-MM-dd"),
-          objective: item.objective || "",
-          plotsCount:
-            item.plotCount != null
-              ? Number(item.plotCount)
-              : item.plotsCount != null && item.plotsCount !== ""
-                ? Number(item.plotsCount)
-                : "",
-          existingPlotId: item.existingPlotId || "",
-          detail: item.detail || "",
-        }));
+        return items.map((item: any, idx: number) => {
+          const rawDetail = item.detail || "";
+          const objMatch = rawDetail.match(/(?:วัตถุประสงค์ของแปลง|วัตถุประสงค์):\s*([^|]+)/);
+          const expMatch = rawDetail.match(/(?:รายละเอียด \/ วิธีการทดลอง|วิธีการทดลอง|รายละเอียดการทดลอง):\s*([^|]+)/);
+
+          const parsedObjective = objMatch
+            ? objMatch[1].trim()
+            : item.objective || "";
+          const parsedExperiment = expMatch
+            ? expMatch[1].trim()
+            : item.experimentDetail || (!objMatch && rawDetail ? rawDetail : "");
+
+          return {
+            id: item.id || String(idx + 1),
+            plotActivityType: item.plotActivityType || "CREATE",
+            ownerName: item.plotOwnerName || item.ownerName || "",
+            productName: item.plotProductName || item.productName || "",
+            cropCategory: item.plotCropCategory || item.cropCategory || "",
+            cropName: item.plotCropName || item.cropName || "",
+            customCropName: item.customCropName || "",
+            areaRai: item.plotAreaRai ? Number(item.plotAreaRai) : (item.areaRai || 0),
+            treeCount: item.plotTreeCount ?? item.treeCount ?? 0,
+            startDate: item.startDate || startDate || format(new Date(), "yyyy-MM-dd"),
+            followUpDate: item.followUpDate || startDate || format(new Date(), "yyyy-MM-dd"),
+            objective: parsedObjective,
+            experimentDetail: parsedExperiment,
+            plotsCount:
+              item.plotCount != null
+                ? Number(item.plotCount)
+                : item.plotsCount != null && item.plotsCount !== ""
+                  ? Number(item.plotsCount)
+                  : "",
+            existingPlotId: item.existingPlotId || "",
+            detail: rawDetail,
+          };
+        });
       }
     }
     return [
@@ -1701,6 +1715,25 @@ export function ActivityPlanForm({
           });
         } else if (workType === "ติดตามแปลงสาธิต / ทำแปลง") {
           type7Items.forEach((item) => {
+            const detailParts = [];
+            if (item.objective?.trim()) {
+              detailParts.push(`วัตถุประสงค์: ${item.objective.trim()}`);
+            }
+            if (item.experimentDetail?.trim()) {
+              detailParts.push(`วิธีการทดลอง: ${item.experimentDetail.trim()}`);
+            }
+            if (
+              item.detail?.trim() &&
+              !item.detail.includes("วัตถุประสงค์:") &&
+              !item.detail.includes("วิธีการทดลอง:")
+            ) {
+              detailParts.push(item.detail.trim());
+            }
+            const combinedDetail =
+              detailParts.length > 0
+                ? detailParts.join(" | ")
+                : item.detail || null;
+
             allItemsToSend.push({
               itemType: "TYPE_7",
               plotActivityType: item.plotActivityType,
@@ -1717,7 +1750,7 @@ export function ActivityPlanForm({
               existingPlotId: item.existingPlotId,
               growthStage: item.growthStage,
               plotStatus: item.plotStatus,
-              detail: item.detail,
+              detail: combinedDetail,
             });
           });
         } else if (workType === "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์") {

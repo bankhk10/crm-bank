@@ -191,6 +191,8 @@ export default function ActivityPlanActualView({
       crop: "",
       plots: "",
       demoProductQuantity: "",
+      objective: "",
+      experimentDetail: "",
       detail: "",
       targetCondition: "สมบูรณ์",
       items: [] as any[],
@@ -824,6 +826,25 @@ export default function ActivityPlanActualView({
                       plotAreaStr = `${item.plotTreeCount} ต้น`;
                     }
 
+                    const rawDetail = item.detail || "";
+                    const objMatch = rawDetail.match(
+                      /(?:วัตถุประสงค์ของแปลง|วัตถุประสงค์):\s*([^|]+)/,
+                    );
+                    const expMatch = rawDetail.match(
+                      /(?:รายละเอียด \/ วิธีการทดลอง|วิธีการทดลอง|รายละเอียดการทดลอง):\s*([^|]+)/,
+                    );
+
+                    const parsedObjective = objMatch
+                      ? objMatch[1].trim()
+                      : item.objective || "";
+                    let parsedExperiment = expMatch
+                      ? expMatch[1].trim()
+                      : item.experimentDetail || "";
+
+                    if (!objMatch && !expMatch && rawDetail) {
+                      parsedExperiment = rawDetail;
+                    }
+
                     return {
                       owner:
                         item.plotOwnerName ||
@@ -835,7 +856,9 @@ export default function ActivityPlanActualView({
                       plots: plotAreaStr,
                       demoProductQuantity:
                         item.plotCount != null ? String(item.plotCount) : "-",
-                      detail: item.detail || "",
+                      objective: parsedObjective,
+                      experimentDetail: parsedExperiment,
+                      detail: rawDetail,
                     };
                   })
                 : undefined;
@@ -1046,6 +1069,20 @@ export default function ActivityPlanActualView({
                       .filter((v) => v && v !== "-")
                       .join(", ")) ||
                   (t7Item?.plotCount != null ? String(t7Item.plotCount) : "-"),
+                objective:
+                  (t7ItemsFromDb &&
+                    t7ItemsFromDb
+                      .map((i) => i.objective)
+                      .filter(Boolean)
+                      .join(" | ")) ||
+                  "",
+                experimentDetail:
+                  (t7ItemsFromDb &&
+                    t7ItemsFromDb
+                      .map((i) => i.experimentDetail)
+                      .filter(Boolean)
+                      .join(" | ")) ||
+                  "",
                 detail:
                   (t7ItemsFromDb &&
                     t7ItemsFromDb
