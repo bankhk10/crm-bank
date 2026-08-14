@@ -245,9 +245,6 @@ export function ActualType2Followup({
       {/* HEADER */}
       <div className="flex items-center justify-between border-b border-cyan-100 pb-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-cyan-600 text-white font-bold text-sm shadow-2xs">
-            2
-          </span>
           <h2 className="font-bold text-cyan-900 text-base md:text-lg">
             ติดตามผลการใช้สินค้า
           </h2>

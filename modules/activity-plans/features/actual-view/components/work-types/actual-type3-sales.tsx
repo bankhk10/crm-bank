@@ -128,9 +128,6 @@ export function ActualType3Sales({
       {/* HEADER */}
       <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-sm shadow-2xs">
-            3
-          </span>
           <h2 className="font-bold text-emerald-900 text-base md:text-lg">
             เสนอขายสินค้า
           </h2>

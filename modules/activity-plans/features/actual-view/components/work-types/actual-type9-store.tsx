@@ -53,9 +53,6 @@ export function ActualType9Store({
     <div className="border-2 border-blue-600 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
       <div className="flex items-center justify-between border-b border-blue-100 pb-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-2xs">
-            9
-          </span>
           <h2 className="font-bold text-blue-900 text-base md:text-lg">
             จัดกิจกรรมส่งเสริมการขายหน้าร้าน
           </h2>

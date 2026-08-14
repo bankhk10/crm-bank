@@ -37,7 +37,7 @@ export function ActualType4Collect({
 }: ActualType4CollectProps) {
   // Local state per company for multi-company collect support
   const [companyItems, setCompanyItems] = useState<TargetCollectCompanyItem[]>(
-    target.items || []
+    target.items || [],
   );
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export function ActualType4Collect({
           ...item,
           receivedAmount:
             item.receivedAmount || (idx === 0 ? "15500" : "10000"),
-        }))
+        })),
       );
     }
   }, [target.items]);
@@ -64,7 +64,7 @@ export function ActualType4Collect({
     // Sync total sum of received amounts to parent
     const totalSum = updated.reduce(
       (sum, item) => sum + (Number(item.receivedAmount) || 0),
-      0
+      0,
     );
     setReceivedAmount(totalSum > 0 ? String(totalSum) : "");
   };
@@ -74,9 +74,6 @@ export function ActualType4Collect({
       {/* HEADER */}
       <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-white font-bold text-sm shadow-2xs">
-            4
-          </span>
           <h2 className="font-bold text-indigo-900 text-base md:text-lg">
             วางบิล / เก็บเงิน
           </h2>
@@ -199,7 +196,9 @@ export function ActualType4Collect({
           <div className="bg-indigo-100/60 border border-indigo-200 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-2 shadow-2xs">
             <div className="flex items-center gap-2 text-indigo-950 font-bold text-xs md:text-sm">
               <CheckCircle2 className="w-4 h-4 text-indigo-600" />
-              <span>สรุปรวมรับชำระเงินจริงทั้งหมด ({companyItems.length} บริษัท):</span>
+              <span>
+                สรุปรวมรับชำระเงินจริงทั้งหมด ({companyItems.length} บริษัท):
+              </span>
             </div>
             <div className="flex items-center gap-3 text-xs">
               <span className="bg-white text-slate-800 font-bold px-3 py-1 rounded-lg border border-indigo-200">
@@ -208,7 +207,7 @@ export function ActualType4Collect({
                   {companyItems
                     .reduce(
                       (sum, item) => sum + (Number(item.receivedAmount) || 0),
-                      0
+                      0,
                     )
                     .toLocaleString()}{" "}
                   บาท

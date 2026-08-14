@@ -79,9 +79,6 @@ export function ActualType10FieldDay({
     <div className="border-2 border-orange-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
       <div className="flex items-center justify-between border-b border-orange-100 pb-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-white font-bold text-sm shadow-2xs">
-            10
-          </span>
           <h2 className="font-bold text-orange-900 text-base md:text-lg">
             จัดงาน Field Day
           </h2>

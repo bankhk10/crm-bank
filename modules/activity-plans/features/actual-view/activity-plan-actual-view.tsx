@@ -714,10 +714,7 @@ export default function ActivityPlanActualView({
               t1: {
                 ...prev.t1,
                 customer:
-                  t1Item?.customerName ||
-                  allCustomers ||
-                  p.location ||
-                  "",
+                  t1Item?.customerName || allCustomers || p.location || "",
                 topic: t1Item?.visitTopic || prev.t1.topic,
                 detail: t1Item?.detail || "",
               },
@@ -747,10 +744,8 @@ export default function ActivityPlanActualView({
               },
               t3: {
                 ...prev.t3,
-                customer:
-                  t3Item?.customerName || allCustomers || "",
-                product:
-                  t3ProdNames || t3Item?.saleProductName || "",
+                customer: t3Item?.customerName || allCustomers || "",
+                product: t3ProdNames || t3Item?.saleProductName || "",
                 targetSales:
                   t3TotalSales > 0
                     ? `${t3TotalSales.toLocaleString()} บาท`
@@ -760,30 +755,26 @@ export default function ActivityPlanActualView({
               },
               t4: {
                 ...prev.t4,
-                customer:
-                  t4Item?.customerName || allCustomers || "",
+                customer: t4Item?.customerName || allCustomers || "",
                 targetCollect: t4Item?.collectAmount
                   ? `${Number(t4Item.collectAmount).toLocaleString()} บาท`
                   : "",
               },
               t5: {
                 ...prev.t5,
-                store:
-                  t5Item?.surveyStoreName || allCustomers || "",
+                store: t5Item?.surveyStoreName || allCustomers || "",
                 product: t5Item?.surveyCompetitorProduct || "",
                 detail: t5Item?.detail || "",
               },
               t6: {
                 ...prev.t6,
-                customer:
-                  t6Item?.customerName || allCustomers || "",
+                customer: t6Item?.customerName || allCustomers || "",
                 issueType: t6Item?.issueType || prev.t6.issueType,
                 detail: t6Item?.detail || "",
               },
               t7: {
                 ...prev.t7,
-                owner:
-                  t7Item?.plotOwnerName || allCustomers || "",
+                owner: t7Item?.plotOwnerName || allCustomers || "",
                 product: t7Item?.plotProductName || "",
                 crop: t7Item?.plotCropName || "",
               },
@@ -999,9 +990,7 @@ export default function ActivityPlanActualView({
               }
               const t7CondMatch = summaryText.match(/สภาพแปลง:\s*(.+)/);
               if (t7CondMatch && t7CondMatch[1]) {
-                setT7CropCondition(
-                  t7CondMatch[1].split("\n")[0].trim() as any,
-                );
+                setT7CropCondition(t7CondMatch[1].split("\n")[0].trim() as any);
               }
               const t7DescMatch = summaryText.match(/รายละเอียดแปลง:\s*(.+)/);
               if (t7DescMatch && t7DescMatch[1]) {
@@ -1015,9 +1004,7 @@ export default function ActivityPlanActualView({
                 /จำนวนผู้เข้าร่วมประชุมจริง:\s*(.+)/,
               );
               if (t8AttendeesMatch && t8AttendeesMatch[1]) {
-                setT8ActualAttendees(
-                  t8AttendeesMatch[1].split("\n")[0].trim(),
-                );
+                setT8ActualAttendees(t8AttendeesMatch[1].split("\n")[0].trim());
               }
               const qnaMatch = summaryText.match(/Q&A:\s*(.+)/);
               if (qnaMatch && qnaMatch[1]) {
@@ -1035,9 +1022,7 @@ export default function ActivityPlanActualView({
                 /จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน:\s*(.+)/,
               );
               if (t9AttendeesMatch && t9AttendeesMatch[1]) {
-                setT9ActualAttendees(
-                  t9AttendeesMatch[1].split("\n")[0].trim(),
-                );
+                setT9ActualAttendees(t9AttendeesMatch[1].split("\n")[0].trim());
               }
 
               // Type 10
@@ -1053,9 +1038,7 @@ export default function ActivityPlanActualView({
                 /ความสนใจเกษตรกร:\s*(.+)/,
               );
               if (t10FeedbackMatch && t10FeedbackMatch[1]) {
-                setT10FarmerFeedback(
-                  t10FeedbackMatch[1].split("\n")[0].trim(),
-                );
+                setT10FarmerFeedback(t10FeedbackMatch[1].split("\n")[0].trim());
               }
               const t10FarmersMatch = summaryText.match(
                 /รายชื่อเกษตรกรเป้าหมาย:\s*(.+)/,
@@ -1091,12 +1074,9 @@ export default function ActivityPlanActualView({
                 /แผนการติดตามสต็อก:\s*(.+)/,
               );
               if (t11NextActionMatch && t11NextActionMatch[1]) {
-                setT11NextAction(
-                  t11NextActionMatch[1].split("\n")[0].trim(),
-                );
+                setT11NextAction(t11NextActionMatch[1].split("\n")[0].trim());
               }
             }
-
 
             // Activity Result Status & Postponed / Cancelled fields
             if (resData.resultStatus) {
@@ -1374,7 +1354,9 @@ export default function ActivityPlanActualView({
           t1DiscussionResult ? `ผลการพูดคุย: ${t1DiscussionResult}` : null,
           t1Detail ? `รายละเอียดเข้าพบ: ${t1Detail}` : null,
           t1NextAction ? `สิ่งที่ต้องดำเนินการต่อ: ${t1NextAction}` : null,
-          t1NextMeetingDate ? `วันที่นัดหมายครั้งถัดไป: ${t1NextMeetingDate}` : null,
+          t1NextMeetingDate
+            ? `วันที่นัดหมายครั้งถัดไป: ${t1NextMeetingDate}`
+            : null,
 
           // Type 2
           t2CustomerName ? `ลูกค้าติดตาม: ${t2CustomerName}` : null,
@@ -1399,7 +1381,9 @@ export default function ActivityPlanActualView({
 
           // Type 4
           t4OrderNo ? `เลขที่บิล/ใบแจ้งหนี้: ${t4OrderNo}` : null,
-          t4ReceivedAmount ? `ยอดเงินที่เก็บได้จริง: ${t4ReceivedAmount}` : null,
+          t4ReceivedAmount
+            ? `ยอดเงินที่เก็บได้จริง: ${t4ReceivedAmount}`
+            : null,
 
           // Type 5
           t5CompetitorBrand ? `แบรนด์คู่แข่ง: ${t5CompetitorBrand}` : null,
@@ -1424,15 +1408,21 @@ export default function ActivityPlanActualView({
             : null,
 
           // Type 8
-          t8ActualAttendees ? `จำนวนผู้เข้าร่วมประชุมจริง: ${t8ActualAttendees}` : null,
+          t8ActualAttendees
+            ? `จำนวนผู้เข้าร่วมประชุมจริง: ${t8ActualAttendees}`
+            : null,
           t8FeedbackQnA ? `Q&A: ${t8FeedbackQnA}` : null,
 
           // Type 9
           t9ActualSales ? `ยอดขายหน้าร้านจริง: ${t9ActualSales}` : null,
-          t9ActualAttendees ? `จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน: ${t9ActualAttendees}` : null,
+          t9ActualAttendees
+            ? `จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน: ${t9ActualAttendees}`
+            : null,
 
           // Type 10
-          t10ActualAttendees ? `จำนวนผู้เข้าร่วม Field Day จริง: ${t10ActualAttendees}` : null,
+          t10ActualAttendees
+            ? `จำนวนผู้เข้าร่วม Field Day จริง: ${t10ActualAttendees}`
+            : null,
           t10FarmerFeedback ? `ความสนใจเกษตรกร: ${t10FarmerFeedback}` : null,
           t10TargetFarmersList
             ? `รายชื่อเกษตรกรเป้าหมาย: ${t10TargetFarmersList}`
@@ -1576,31 +1566,6 @@ export default function ActivityPlanActualView({
 
             {/* SECTION 2: ผลการปฏิบัติงานตามประเภทงาน */}
             <SectionHeader title="ผลการปฏิบัติงานตามประเภทงาน" color="gray" />
-
-            {/* WORK TYPE SUMMARY BANNER */}
-            {planWorkTypes.length > 0 && (
-              <div className="bg-blue-50/70 border border-blue-200/70 rounded-xl p-3.5 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                  <span className="text-xs font-bold text-blue-900">
-                    ประเภทงานที่เลือกในแผน ({planWorkTypes.length} กิจกรรม):
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-1.5 pt-0.5">
-                  {planWorkTypes.map((typeName) => {
-                    const idx = WORK_TYPES.indexOf(typeName);
-                    return (
-                      <span
-                        key={typeName}
-                        className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-blue-700 border border-blue-200 shadow-2xs"
-                      >
-                        {idx + 1}. {typeName}
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             <div className="space-y-4 md:space-y-6">
               {/* WORK TYPE 1 */}

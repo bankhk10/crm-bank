@@ -64,18 +64,23 @@ export function ActualType1Visit({
 }: ActualType1VisitProps) {
   if (!isVisible) return null;
 
-  const productOptions = (
+  const productOptions =
     products && products.length > 0
       ? products.map((p) => p.name)
-      : DEMO_PRODUCTS
-  );
+      : DEMO_PRODUCTS;
 
   const displayProducts = Array.from(
-    new Set([...productOptions, ...(productAdvice ? productAdvice.split(",").map(s => s.trim()) : [])]),
+    new Set([
+      ...productOptions,
+      ...(productAdvice ? productAdvice.split(",").map((s) => s.trim()) : []),
+    ]),
   ).filter(Boolean);
 
   const selectedProducts = productAdvice
-    ? productAdvice.split(",").map((s) => s.trim()).filter(Boolean)
+    ? productAdvice
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
     : [];
 
   const handleAddProduct = (prod: string) => {
@@ -93,9 +98,6 @@ export function ActualType1Visit({
     <div className="border-2 border-teal-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
       <div className="flex items-center justify-between border-b border-teal-100 pb-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-teal-600 text-white font-bold text-sm shadow-2xs">
-            1
-          </span>
           <h2 className="font-bold text-teal-900 text-base md:text-lg">
             เข้าพบร้านค้า / Key Farmer
           </h2>
