@@ -339,16 +339,6 @@ export function ActualType2Followup({
                   </div>
                 )}
 
-                {/* ข้อมูลรายละเอียดเพิ่มเติมจากแผน (ถ้ามี) */}
-                {prod.detail && (
-                  <div className="bg-slate-100/80 border border-slate-200/60 rounded-xl p-2.5 text-xs text-slate-700 space-y-0.5">
-                    <span className="font-semibold text-slate-600 block text-[11px]">
-                      รายละเอียดเพิ่มเติม (จากแผนงาน):
-                    </span>
-                    <p className="text-slate-800 font-medium">{prod.detail}</p>
-                  </div>
-                )}
-
                 {/* 3. รายละเอียดการติดตาม */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-800">
