@@ -355,7 +355,12 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
           plotCropName: item.plotCropName ?? item.cropName ?? item.customCropName ?? null,
           plotAreaRai: item.plotAreaRai ? new Prisma.Decimal(item.plotAreaRai) : (item.areaRai ? new Prisma.Decimal(item.areaRai) : null),
           plotTreeCount: item.plotTreeCount ?? item.treeCount ?? null,
-          plotCount: item.plotCount ?? item.plotsCount ?? null,
+          plotCount:
+            item.plotCount != null
+              ? Number(item.plotCount)
+              : item.plotsCount != null && item.plotsCount !== ""
+                ? Number(item.plotsCount)
+                : null,
           existingPlotId: item.existingPlotId ?? null,
           plotGrowthStage: item.plotGrowthStage ?? item.growthStage ?? null,
           plotStatus: item.plotStatus ?? null,
@@ -496,7 +501,12 @@ export async function updateActivityPlan(
             plotCropName: item.plotCropName ?? item.cropName ?? item.customCropName ?? null,
             plotAreaRai: item.plotAreaRai ? new Prisma.Decimal(item.plotAreaRai) : (item.areaRai ? new Prisma.Decimal(item.areaRai) : null),
             plotTreeCount: item.plotTreeCount ?? item.treeCount ?? null,
-            plotCount: item.plotCount ?? item.plotsCount ?? null,
+            plotCount:
+              item.plotCount != null
+                ? Number(item.plotCount)
+                : item.plotsCount != null && item.plotsCount !== ""
+                  ? Number(item.plotsCount)
+                  : null,
             existingPlotId: item.existingPlotId ?? null,
             plotGrowthStage: item.plotGrowthStage ?? item.growthStage ?? null,
             plotStatus: item.plotStatus ?? null,

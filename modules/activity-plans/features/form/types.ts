@@ -83,7 +83,7 @@ export interface Type7DemoPlotItem {
   treeCount?: number;
   startDate?: string;
   objective?: string;
-  plotsCount: number;
+  plotsCount?: number | string | null; // จำนวนสินค้าที่จะสาธิต
   experimentDetail?: string;
   detail: string;
 

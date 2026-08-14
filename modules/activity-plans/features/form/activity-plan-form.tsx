@@ -817,7 +817,12 @@ export function ActivityPlanForm({
           startDate: item.startDate || startDate || format(new Date(), "yyyy-MM-dd"),
           followUpDate: item.followUpDate || startDate || format(new Date(), "yyyy-MM-dd"),
           objective: item.objective || "",
-          plotsCount: item.plotCount ?? item.plotsCount ?? 1,
+          plotsCount:
+            item.plotCount != null
+              ? Number(item.plotCount)
+              : item.plotsCount != null && item.plotsCount !== ""
+                ? Number(item.plotsCount)
+                : "",
           existingPlotId: item.existingPlotId || "",
           detail: item.detail || "",
         }));
@@ -836,7 +841,7 @@ export function ActivityPlanForm({
         startDate: format(new Date(), "yyyy-MM-dd"),
         followUpDate: startDate || format(new Date(), "yyyy-MM-dd"),
         objective: "",
-        plotsCount: 1,
+        plotsCount: "",
         detail: "",
       },
     ];
@@ -857,7 +862,7 @@ export function ActivityPlanForm({
         startDate: startDate || format(new Date(), "yyyy-MM-dd"),
         followUpDate: startDate || format(new Date(), "yyyy-MM-dd"),
         objective: "",
-        plotsCount: 1,
+        plotsCount: "",
         detail: "",
       },
     ]);
@@ -1705,7 +1710,10 @@ export function ActivityPlanForm({
               plotCropName: item.cropName || item.customCropName,
               plotAreaRai: item.areaRai,
               plotTreeCount: item.treeCount,
-              plotCount: item.plotsCount,
+              plotCount:
+                item.plotsCount !== "" && item.plotsCount != null
+                  ? Number(item.plotsCount)
+                  : null,
               existingPlotId: item.existingPlotId,
               growthStage: item.growthStage,
               plotStatus: item.plotStatus,

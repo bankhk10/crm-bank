@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Camera, X } from "lucide-react";
+import { Camera, X, Sprout } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -15,6 +15,15 @@ import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
 import { ImageFile } from "../../types";
 
+export interface TargetDemoItem {
+  owner: string;
+  product: string;
+  crop: string;
+  plots: string;
+  demoProductQuantity?: string | number | null;
+  detail?: string;
+}
+
 interface ActualType7DemoProps {
   isVisible: boolean;
   target: {
@@ -22,7 +31,10 @@ interface ActualType7DemoProps {
     product: string;
     crop: string;
     plots: string;
-    targetCondition: string;
+    targetCondition?: string;
+    demoProductQuantity?: string | number | null;
+    detail?: string;
+    items?: TargetDemoItem[];
   };
   plotName: string;
   setPlotName: (v: string) => void;
@@ -76,6 +88,8 @@ export function ActualType7Demo({
 }: ActualType7DemoProps) {
   if (!isVisible) return null;
 
+  const hasMultipleItems = target.items && target.items.length > 1;
+
   return (
     <div className="border-2 border-emerald-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
       <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
@@ -86,17 +100,102 @@ export function ActualType7Demo({
         </div>
       </div>
 
-      <ActualTargetCard
-        iconColorClass="text-emerald-600"
-        badgeColorClass="bg-emerald-100 text-emerald-800"
-        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-2"
-        items={[
-          { label: "เจ้าของแปลง:", value: target.owner },
-          { label: "สินค้าที่สาธิต:", value: target.product },
-          { label: "พืชเป้าหมาย:", value: target.crop },
-          { label: "จำนวน:", value: target.plots },
-        ]}
-      />
+      {hasMultipleItems ? (
+        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <Sprout className="w-4 h-4 text-emerald-600" />
+              รายการเป้าหมายแปลงสาธิต ({target.items?.length} รายการ):
+            </span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+              จากฟอร์มสร้างแผน
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+            {target.items?.map((item, idx) => (
+              <div
+                key={idx}
+                className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs space-y-1.5"
+              >
+                <div className="flex items-center justify-between font-bold text-slate-900 border-b border-slate-100 pb-1.5">
+                  <span className="flex items-center gap-1.5 text-xs text-emerald-900">
+                    <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px] font-extrabold">
+                      {idx + 1}
+                    </span>
+                    เจ้าของแปลง: {item.owner || "-"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">
+                      สินค้าที่สาธิต:
+                    </span>
+                    <span className="font-semibold text-slate-800">
+                      {item.product || "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">
+                      จำนวนสินค้าที่จะสาธิต:
+                    </span>
+                    <span className="font-bold text-emerald-700">
+                      {item.demoProductQuantity || "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">
+                      พืชเป้าหมาย:
+                    </span>
+                    <span className="font-semibold text-slate-800">
+                      {item.crop || "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">
+                      พื้นที่/จำนวนต้น:
+                    </span>
+                    <span className="font-semibold text-slate-800">
+                      {item.plots || "-"}
+                    </span>
+                  </div>
+                  {item.detail && (
+                    <div className="col-span-2">
+                      <span className="text-slate-400 block text-[10px]">
+                        รายละเอียดเพิ่มเติม:
+                      </span>
+                      <span className="font-medium text-slate-700 block break-words whitespace-pre-wrap">
+                        {item.detail}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <ActualTargetCard
+          iconColorClass="text-emerald-600"
+          badgeColorClass="bg-emerald-100 text-emerald-800"
+          gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
+          items={[
+            { label: "เจ้าของแปลง:", value: target.owner || "-" },
+            { label: "สินค้าที่สาธิต:", value: target.product || "-" },
+            {
+              label: "จำนวนสินค้าที่จะสาธิต:",
+              value:
+                target.demoProductQuantity != null &&
+                target.demoProductQuantity !== ""
+                  ? String(target.demoProductQuantity)
+                  : "-",
+              highlight: true,
+            },
+            { label: "พืชเป้าหมาย:", value: target.crop || "-" },
+            { label: "พื้นที่/จำนวนต้น:", value: target.plots || "-" },
+            { label: "รายละเอียดเพิ่มเติม:", value: target.detail || "-" },
+          ]}
+        />
+      )}
 
       <div className="space-y-1.5">
         <label className="text-sm font-semibold text-slate-800">

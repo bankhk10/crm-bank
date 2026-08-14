@@ -263,41 +263,75 @@ export function Type7Demo({
                 {/* 2. MODE: ทำแปลงสาธิต (CREATE) */}
                 {mode === "CREATE" && (
                   <div className="space-y-3.5 pt-1">
-                    {/* Row 1: เจ้าของแปลง + สินค้าที่จะสาธิต */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <FormCombobox
-                        id={`owner-combobox-${item.id}`}
-                        label="เจ้าของแปลง"
-                        labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
-                        triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                        value={item.ownerName}
-                        onChange={(val) =>
-                          updateType7Row(item.id, "ownerName", val)
-                        }
-                        options={customerOptions}
-                        placeholder="เลือกเจ้าของแปลง..."
-                        searchPlaceholder="ค้นหาเจ้าของแปลง / ลูกค้า..."
-                        emptyText="ไม่พบเจ้าของแปลง"
-                        disabled={readonly}
-                        required
-                      />
+                    {/* Row 1: เจ้าของแปลง + สินค้าที่จะสาธิต + จำนวนสินค้าที่จะสาธิต */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                      <div className="md:col-span-5">
+                        <FormCombobox
+                          id={`owner-combobox-${item.id}`}
+                          label="เจ้าของแปลง"
+                          labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                          triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                          value={item.ownerName}
+                          onChange={(val) =>
+                            updateType7Row(item.id, "ownerName", val)
+                          }
+                          options={customerOptions}
+                          placeholder="เลือกเจ้าของแปลง..."
+                          searchPlaceholder="ค้นหาเจ้าของแปลง / ลูกค้า..."
+                          emptyText="ไม่พบเจ้าของแปลง"
+                          disabled={readonly}
+                          required
+                        />
+                      </div>
 
-                      <FormCombobox
-                        id={`product-combobox-${item.id}`}
-                        label="สินค้าที่จะสาธิต"
-                        labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
-                        triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                        value={item.productName}
-                        onChange={(val) =>
-                          updateType7Row(item.id, "productName", val)
-                        }
-                        options={productOptions}
-                        placeholder="เลือกสินค้า..."
-                        searchPlaceholder="ค้นหาสินค้า..."
-                        emptyText="ไม่พบสินค้า"
-                        disabled={readonly}
-                        required
-                      />
+                      <div className="md:col-span-4">
+                        <FormCombobox
+                          id={`product-combobox-${item.id}`}
+                          label="สินค้าที่จะสาธิต"
+                          labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                          triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                          value={item.productName}
+                          onChange={(val) =>
+                            updateType7Row(item.id, "productName", val)
+                          }
+                          options={productOptions}
+                          placeholder="เลือกสินค้า..."
+                          searchPlaceholder="ค้นหาสินค้า..."
+                          emptyText="ไม่พบสินค้า"
+                          disabled={readonly}
+                          required
+                        />
+                      </div>
+
+                      <div className="md:col-span-3">
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          จำนวนสินค้าที่จะสาธิต
+                        </label>
+                        <div className="relative flex items-center">
+                          <input
+                            type="number"
+                            min={0}
+                            value={
+                              item.plotsCount !== undefined &&
+                              item.plotsCount !== null
+                                ? item.plotsCount
+                                : ""
+                            }
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              if (raw === "") {
+                                updateType7Row(item.id, "plotsCount", "" as any);
+                              } else {
+                                const num = Math.max(0, parseInt(raw) || 0);
+                                updateType7Row(item.id, "plotsCount", num);
+                              }
+                            }}
+                            disabled={readonly}
+                            placeholder="ระบุจำนวน..."
+                            className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                          />
+                        </div>
+                      </div>
                     </div>
 
                     {/* Row 2: หมวดพืช + ชื่อพืช + (ระบุชื่อพืชเพิ่มเติม) + พื้นที่แปลง + จำนวนต้น */}
@@ -408,12 +442,11 @@ export function Type7Demo({
                             min={1}
                             value={
                               isRaiUnit
-                                ? (item.areaRai ?? item.plotsCount ?? "")
-                                : (item.treeCount ?? item.plotsCount ?? "")
+                                ? (item.areaRai ?? "")
+                                : (item.treeCount ?? "")
                             }
                             onChange={(e) => {
-                              const val = parseInt(e.target.value) || 0;
-                              updateType7Row(item.id, "plotsCount", val);
+                              const val = Math.max(0, parseInt(e.target.value) || 0);
                               if (isRaiUnit) {
                                 updateType7Row(item.id, "areaRai", val);
                               } else {
@@ -498,7 +531,7 @@ export function Type7Demo({
                   <div className="space-y-3.5 pt-1">
                     {/* Select Existing Plot + Follow-up Date */}
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                      <div className="md:col-span-8">
+                      <div className="md:col-span-5">
                         <FormCombobox
                           id={`existing-plot-combobox-${item.id}`}
                           label="แปลงสาธิต"
@@ -585,6 +618,34 @@ export function Type7Demo({
                           }
                           disabled={readonly}
                           className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
+                        />
+                      </div>
+
+                      <div className="md:col-span-3 mt-1">
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          จำนวนสินค้าที่จะสาธิต
+                        </label>
+                        <input
+                          type="number"
+                          min={0}
+                          value={
+                            item.plotsCount !== undefined &&
+                            item.plotsCount !== null
+                              ? item.plotsCount
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === "") {
+                              updateType7Row(item.id, "plotsCount", "" as any);
+                            } else {
+                              const num = Math.max(0, parseInt(raw) || 0);
+                              updateType7Row(item.id, "plotsCount", num);
+                            }
+                          }}
+                          disabled={readonly}
+                          placeholder="ระบุจำนวน..."
+                          className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
                         />
                       </div>
                     </div>

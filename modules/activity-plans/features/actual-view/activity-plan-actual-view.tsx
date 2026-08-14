@@ -190,7 +190,10 @@ export default function ActivityPlanActualView({
       product: "",
       crop: "",
       plots: "",
+      demoProductQuantity: "",
+      detail: "",
       targetCondition: "สมบูรณ์",
+      items: [] as any[],
     },
     t8: {
       topic: "",
@@ -791,13 +794,63 @@ export default function ActivityPlanActualView({
               type6DbItems[0] ||
               allItems.find((i) => i.itemType === "TYPE_6" || i.issueType);
 
-            const t7Item = allItems.find(
+            const type7DbItems = allItems.filter(
               (i) =>
-                i.itemType === "TYPE_7" ||
-                i.plotActivityType ||
-                i.plotCropName ||
-                i.plotOwnerName,
+                i.itemType !== "MARKETING_PRODUCT" &&
+                i.itemType !== "SALES_PROMOTION" &&
+                i.visitTopic !== "MARKETING_PRODUCT" &&
+                i.visitTopic !== "SALES_PROMOTION" &&
+                (i.itemType === "TYPE_7" ||
+                  i.plotActivityType ||
+                  i.plotCropName ||
+                  i.plotOwnerName ||
+                  i.plotAreaRai != null ||
+                  i.plotCount != null),
             );
+
+            const t7ItemsFromDb =
+              type7DbItems.length > 0
+                ? type7DbItems.map((item) => {
+                    let plotAreaStr = "";
+                    if (
+                      item.plotAreaRai != null &&
+                      Number(item.plotAreaRai) > 0
+                    ) {
+                      plotAreaStr = `${item.plotAreaRai} ไร่`;
+                    } else if (
+                      item.plotTreeCount != null &&
+                      item.plotTreeCount > 0
+                    ) {
+                      plotAreaStr = `${item.plotTreeCount} ต้น`;
+                    }
+
+                    return {
+                      owner:
+                        item.plotOwnerName ||
+                        item.customerName ||
+                        p.location ||
+                        "",
+                      product: item.plotProductName || "",
+                      crop: item.plotCropName || "",
+                      plots: plotAreaStr,
+                      demoProductQuantity:
+                        item.plotCount != null ? String(item.plotCount) : "-",
+                      detail: item.detail || "",
+                    };
+                  })
+                : undefined;
+
+            const t7Item =
+              type7DbItems[0] ||
+              allItems.find(
+                (i) =>
+                  i.itemType === "TYPE_7" ||
+                  i.plotActivityType ||
+                  i.plotCropName ||
+                  i.plotOwnerName ||
+                  i.plotAreaRai != null ||
+                  i.plotCount != null,
+              );
 
             const t8Item = allItems.find(
               (i) =>
@@ -949,9 +1002,59 @@ export default function ActivityPlanActualView({
               },
               t7: {
                 ...prev.t7,
-                owner: t7Item?.plotOwnerName || allCustomers || "",
-                product: t7Item?.plotProductName || "",
-                crop: t7Item?.plotCropName || "",
+                owner:
+                  (t7ItemsFromDb &&
+                    Array.from(
+                      new Set(
+                        t7ItemsFromDb.map((i) => i.owner).filter(Boolean),
+                      ),
+                    ).join(", ")) ||
+                  t7Item?.plotOwnerName ||
+                  allCustomers ||
+                  "",
+                product:
+                  (t7ItemsFromDb &&
+                    Array.from(
+                      new Set(
+                        t7ItemsFromDb.map((i) => i.product).filter(Boolean),
+                      ),
+                    ).join(", ")) ||
+                  t7Item?.plotProductName ||
+                  "",
+                crop:
+                  (t7ItemsFromDb &&
+                    Array.from(
+                      new Set(t7ItemsFromDb.map((i) => i.crop).filter(Boolean)),
+                    ).join(", ")) ||
+                  t7Item?.plotCropName ||
+                  "",
+                plots:
+                  (t7ItemsFromDb &&
+                    t7ItemsFromDb
+                      .map((i) => i.plots)
+                      .filter(Boolean)
+                      .join(", ")) ||
+                  (t7Item?.plotAreaRai != null && Number(t7Item.plotAreaRai) > 0
+                    ? `${t7Item.plotAreaRai} ไร่`
+                    : t7Item?.plotTreeCount != null && t7Item.plotTreeCount > 0
+                      ? `${t7Item.plotTreeCount} ต้น`
+                      : ""),
+                demoProductQuantity:
+                  (t7ItemsFromDb &&
+                    t7ItemsFromDb
+                      .map((i) => i.demoProductQuantity)
+                      .filter((v) => v && v !== "-")
+                      .join(", ")) ||
+                  (t7Item?.plotCount != null ? String(t7Item.plotCount) : "-"),
+                detail:
+                  (t7ItemsFromDb &&
+                    t7ItemsFromDb
+                      .map((i) => i.detail)
+                      .filter(Boolean)
+                      .join(" | ")) ||
+                  t7Item?.detail ||
+                  "",
+                items: t7ItemsFromDb || [],
               },
               t8: {
                 ...prev.t8,
