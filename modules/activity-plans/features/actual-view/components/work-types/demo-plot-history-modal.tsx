@@ -24,6 +24,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 interface DemoPlotHistoryModalProps {
@@ -141,9 +142,12 @@ export function DemoPlotHistoryModal({
                   บันทึกแล้ว {totalVisits} ครั้ง
                 </span>
               </div>
-              <h2 className="text-lg font-bold tracking-tight text-white">
+              <DialogTitle className="text-lg font-bold tracking-tight text-white">
                 {plot.name || `แปลงสาธิต ${plot.ownerName || ""}`}
-              </h2>
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                ประวัติการติดตามแปลงสาธิตและผลการตรวจแปลง
+              </DialogDescription>
             </div>
 
             <button
