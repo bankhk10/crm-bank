@@ -509,24 +509,29 @@ export function ActivityPlanForm({
           (item.itemType === "TYPE_3" || item.saleProductName)
       );
       if (items.length > 0) {
-        return items.map((item: any, idx: number) => ({
-          id: item.id || String(idx + 1),
-          customerName: item.customerName || DEMO_OWNERS[0] || "",
-          products: [
-            {
-              id: "p-" + idx,
-              productName: item.saleProductName || "",
-              quantity: item.saleQuantity || 1,
-              unitPrice: item.saleUnitPrice ? Number(item.saleUnitPrice) : 0,
-              price: item.saleTotalPrice ? Number(item.saleTotalPrice) : 0,
-            },
-          ],
-          productName: item.saleProductName || "",
-          quantity: item.saleQuantity || 1,
-          unitPrice: item.saleUnitPrice ? Number(item.saleUnitPrice) : 0,
-          price: item.saleTotalPrice ? Number(item.saleTotalPrice) : 0,
-          detail: item.detail || "",
-        }));
+        return items.map((item: any, idx: number) => {
+          const qty = item.saleQuantity != null ? Number(item.saleQuantity) : 1;
+          const uPrice = item.saleUnitPrice != null ? Number(item.saleUnitPrice) : 0;
+          const totalPrice = item.saleTotalPrice != null ? Number(item.saleTotalPrice) : qty * uPrice;
+          return {
+            id: item.id || String(idx + 1),
+            customerName: item.customerName || DEMO_OWNERS[0] || "",
+            products: [
+              {
+                id: "p-" + idx,
+                productName: item.saleProductName || "",
+                quantity: qty,
+                unitPrice: uPrice,
+                price: totalPrice,
+              },
+            ],
+            productName: item.saleProductName || "",
+            quantity: qty,
+            unitPrice: uPrice,
+            price: totalPrice,
+            detail: item.detail || "",
+          };
+        });
       }
     }
     return [

@@ -91,9 +91,9 @@ export function Type3Sales({
             {
               id: "p-1",
               productName: currentItem.productName || "",
-              quantity: currentItem.quantity || 1,
+              quantity: currentItem.quantity != null ? currentItem.quantity : 1,
               unitPrice: currentItem.unitPrice || 0,
-              price: (currentItem.quantity || 1) * (currentItem.unitPrice || 0),
+              price: (currentItem.quantity != null ? currentItem.quantity : 1) * (currentItem.unitPrice || 0),
             },
           ];
 
@@ -126,9 +126,9 @@ export function Type3Sales({
             {
               id: "p-1",
               productName: currentItem.productName || "",
-              quantity: currentItem.quantity || 1,
+              quantity: currentItem.quantity != null ? currentItem.quantity : 1,
               unitPrice: currentItem.unitPrice || 0,
-              price: (currentItem.quantity || 1) * (currentItem.unitPrice || 0),
+              price: (currentItem.quantity != null ? currentItem.quantity : 1) * (currentItem.unitPrice || 0),
             },
           ];
 
@@ -227,9 +227,9 @@ export function Type3Sales({
                     {
                       id: "p-1",
                       productName: item.productName || "",
-                      quantity: item.quantity || 1,
+                      quantity: item.quantity != null ? item.quantity : 1,
                       unitPrice: item.unitPrice || 0,
-                      price: (item.quantity || 1) * (item.unitPrice || 0),
+                      price: (item.quantity != null ? item.quantity : 1) * (item.unitPrice || 0),
                     },
                   ];
 

@@ -654,20 +654,81 @@ export default function ActivityPlanActualView({
                   }))
                 : undefined;
 
-            const t3Items = allItems.filter(
+            const type3DbItems = allItems.filter(
               (i) =>
-                i.itemType === "TYPE_3" ||
-                i.saleProductName ||
-                i.saleTotalPrice != null,
+                i.itemType !== "MARKETING_PRODUCT" &&
+                i.itemType !== "SALES_PROMOTION" &&
+                i.visitTopic !== "MARKETING_PRODUCT" &&
+                i.visitTopic !== "SALES_PROMOTION" &&
+                (i.itemType === "TYPE_3" ||
+                  i.saleProductName ||
+                  i.saleTotalPrice != null ||
+                  i.saleQuantity != null ||
+                  i.saleUnitPrice != null),
             );
-            const t3Item = t3Items[0];
-            const t3TotalSales = t3Items.reduce(
-              (sum, item) => sum + Number(item.saleTotalPrice || 0),
+
+            const t3ItemsFromDb =
+              type3DbItems.length > 0
+                ? type3DbItems.map((item) => {
+                    const productName =
+                      item.saleProductName || item.productName || "สินค้าเสนอขาย";
+                    const qtyVal =
+                      item.saleQuantity != null
+                        ? String(item.saleQuantity)
+                        : "";
+                    const uPriceVal =
+                      item.saleUnitPrice != null
+                        ? `${Number(item.saleUnitPrice).toLocaleString()} บาท`
+                        : "";
+                    const totalPriceVal =
+                      item.saleTotalPrice != null
+                        ? `${Number(item.saleTotalPrice).toLocaleString()} บาท`
+                        : item.saleQuantity != null && item.saleUnitPrice != null
+                          ? `${(Number(item.saleQuantity) * Number(item.saleUnitPrice)).toLocaleString()} บาท`
+                          : "";
+
+                    return {
+                      productName,
+                      customer: item.customerName || p.location || "",
+                      qty: qtyVal,
+                      unitPrice: uPriceVal,
+                      price: totalPriceVal,
+                      detail: item.detail || "",
+                    };
+                  })
+                : undefined;
+
+            const t3Item = type3DbItems[0];
+            const t3TotalSales = type3DbItems.reduce(
+              (sum, item) =>
+                sum +
+                (item.saleTotalPrice != null
+                  ? Number(item.saleTotalPrice)
+                  : (Number(item.saleQuantity) || 0) *
+                    (Number(item.saleUnitPrice) || 0)),
               0,
             );
             const t3ProdNames = Array.from(
-              new Set(t3Items.map((i) => i.saleProductName).filter(Boolean)),
+              new Set(
+                type3DbItems
+                  .map((i) => i.saleProductName || i.productName)
+                  .filter(Boolean),
+              ),
             ).join(", ");
+            const t3TotalQty = type3DbItems.reduce(
+              (sum, item) => sum + (Number(item.saleQuantity) || 0),
+              0,
+            );
+            const t3SingleQty =
+              t3Item?.saleQuantity != null
+                ? String(t3Item.saleQuantity)
+                : t3TotalQty > 0
+                  ? String(t3TotalQty)
+                  : "";
+            const t3SingleUnitPrice =
+              t3Item?.saleUnitPrice != null
+                ? `${Number(t3Item.saleUnitPrice).toLocaleString()} บาท`
+                : "";
 
             const t4Item = allItems.find(
               (i) => i.itemType === "TYPE_4" || i.collectAmount != null,
@@ -744,14 +805,34 @@ export default function ActivityPlanActualView({
               },
               t3: {
                 ...prev.t3,
-                customer: t3Item?.customerName || allCustomers || "",
+                customer:
+                  (t3ItemsFromDb &&
+                    Array.from(
+                      new Set(
+                        t3ItemsFromDb.map((i) => i.customer).filter(Boolean),
+                      ),
+                    ).join(", ")) ||
+                  t3Item?.customerName ||
+                  allCustomers ||
+                  "",
                 product: t3ProdNames || t3Item?.saleProductName || "",
+                targetQty: t3SingleQty,
+                unitPrice: t3SingleUnitPrice,
+                detail:
+                  (t3ItemsFromDb &&
+                    t3ItemsFromDb
+                      .map((i) => i.detail)
+                      .filter(Boolean)
+                      .join(" | ")) ||
+                  t3Item?.detail ||
+                  "",
                 targetSales:
                   t3TotalSales > 0
                     ? `${t3TotalSales.toLocaleString()} บาท`
                     : t3Item?.saleTotalPrice
                       ? `${Number(t3Item.saleTotalPrice).toLocaleString()} บาท`
                       : "",
+                items: t3ItemsFromDb || [],
               },
               t4: {
                 ...prev.t4,

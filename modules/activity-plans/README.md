@@ -119,6 +119,20 @@ modules/activity-plans/
 
 ## 📝 บันทึกการอัปเดตฟีเจอร์ (Feature Change Log)
 
+### 2026-08-14: ปรับปรุง Data Flow และแก้ไขการแสดงผล Work Type 3 (เสนอขายสินค้า) ระหว่างหน้า Create และ Actual
+- **คอมโพเนนต์ที่แก้ไข:**
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type3-sales.tsx`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+  - `modules/activity-plans/features/form/components/work-types/type3-sales.tsx`
+  - `modules/activity-plans/features/form/activity-plan-form.tsx`
+  - `modules/activity-plans/infrastructure/activity-plan.repository.ts`
+- **ปัญหาที่แก้ไข:**
+  1. **จำนวนไม่แสดง:** ในหน้า Actual เดิมไม่ได้ส่ง `items` และ `targetQty` จาก DB ไปยัง `targets.t3` ส่งผลให้การ์ดแสดงผลไม่มีข้อมูลจำนวน
+  2. **ราคาไม่ถูกต้อง & Fallback Hardcode:** ในหน้า Actual เดิมมีการ fallback เป็นราคาตัวอย่าง เช่น `500 บาท/ลัง`, `750 บาท/ลัง`, `500 บาท/หน่วย` และใส่ dummy data ใน `useEffect` (`actualQty: 20/10`, `actualSales: 10000/7500`)
+  3. **Label:** ปรับ label จาก `"ราคา/หน่วย (บาท)"` เป็น `"ราคา (บาท)"` ให้สอดคล้องกันทุกจุด
+  4. **Data Integrity:** ปรับ ternary condition ใน Repository (`activity-plan.repository.ts`) ให้ตรวจ `!= null` ป้องกันการบันทึกค่า `0` เป็น `null` สำหรับ `Decimal` fields
+- **ผลลัพธ์:** ข้อมูลสินค้า จำนวน ราคา และยอดรวมในหน้า Trip Plan Actual ดึงมาจากข้อมูลที่บันทึกไว้ใน Trip Plan Create จริง 100% โดยตรง ไม่มีการ recalculate หรือ fallback ปลอม
+
 ### 2026-08-14: ยกระดับสิทธิ์ Roles Administrator ให้สามารถอนุมัติได้ทุกสายงานและทุกขั้นตอน
 - **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `activity-plan-approval-list-view.tsx`, `activity-plan-detail-view.tsx`, `activity-plan-flow.ts`, `server/actions.ts`
 - **ฟีเจอร์เด่น:**

@@ -63,20 +63,22 @@ export function ActualType3Sales({
     target.items || [],
   );
 
-  // Initialize per-product values when target.items changes or sample data pre-filled
+  // Initialize per-product values when target.items changes
   useEffect(() => {
     if (target.items && target.items.length > 0) {
-      setProductItems(
-        target.items.map((item, idx) => ({
-          ...item,
-          actualQty:
-            item.actualQty || (idx === 0 ? "20" : idx === 1 ? "10" : ""),
-          actualSales:
-            item.actualSales || (idx === 0 ? "10000" : idx === 1 ? "7500" : ""),
-          unclosedReason:
-            item.unclosedReason || "ปิดการขายได้สำเร็จตามเป้าหมาย",
-        })),
+      setProductItems((prev) =>
+        target.items!.map((item, idx) => {
+          const existing = prev[idx];
+          return {
+            ...item,
+            actualQty: existing?.actualQty ?? item.actualQty ?? "",
+            actualSales: existing?.actualSales ?? item.actualSales ?? "",
+            unclosedReason: existing?.unclosedReason ?? item.unclosedReason ?? "",
+          };
+        }),
       );
+    } else {
+      setProductItems([]);
     }
   }, [target.items]);
 
@@ -121,6 +123,16 @@ export function ActualType3Sales({
       .filter(Boolean)
       .join(" | ");
     setUnclosedReason(concatReasons);
+
+    // Sync sold products
+    const soldList = updated
+      .filter((item) => Number(item.actualQty) > 0 || Number(item.actualSales) > 0)
+      .map(
+        (item) =>
+          `${item.productName} (${item.actualQty || "0"} ${item.unit || extractUnit(item.qty)})`,
+      )
+      .join(", ");
+    setSoldProducts(soldList);
   };
 
   return (
@@ -148,14 +160,14 @@ export function ActualType3Sales({
               <span className="text-[11px] font-semibold text-slate-500">
                 ชื่อร้านค้า / Key Farmer:
               </span>
-              <p className="font-bold text-slate-900">{target.customer}</p>
+              <p className="font-bold text-slate-900">{target.customer || "-"}</p>
             </div>
             <div className="space-y-0.5">
               <span className="text-[11px] font-semibold text-slate-500">
                 รายละเอียดเพิ่มเติม:
               </span>
               <p className="font-medium text-slate-800">
-                {target.detail || "เสนอขายสินค้าประจำฤดูกาลพร้อมส่วนลดพิเศษ 5%"}
+                {target.detail || "-"}
               </p>
             </div>
           </div>
@@ -166,9 +178,11 @@ export function ActualType3Sales({
                 <Target className="w-4 h-4 text-emerald-600" />
                 รายการสินค้าที่จะเสนอขาย ({productItems.length} รายการ):
               </span>
-              <span className="text-xs font-extrabold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md">
-                เป้ายอดขายรวม {target.targetSales}
-              </span>
+              {target.targetSales && (
+                <span className="text-xs font-extrabold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md">
+                  เป้ายอดขายรวม {target.targetSales}
+                </span>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
@@ -190,16 +204,15 @@ export function ActualType3Sales({
                     <div>
                       <span className="text-slate-400 block">จำนวน:</span>
                       <span className="font-bold text-slate-800">
-                        {item.qty}
+                        {item.qty || "-"}
                       </span>
                     </div>
                     <div>
                       <span className="text-slate-400 block">
-                        ราคา/หน่วย (บาท):
+                        ราคา (บาท):
                       </span>
                       <span className="font-bold text-emerald-700">
-                        {item.unitPrice ||
-                          (idx === 0 ? "500 บาท/ลัง" : "750 บาท/ลัง")}
+                        {item.unitPrice || "-"}
                       </span>
                     </div>
                   </div>
@@ -214,12 +227,12 @@ export function ActualType3Sales({
           badgeColorClass="bg-emerald-100 text-emerald-800"
           gridColsClass="grid-cols-1 sm:grid-cols-3"
           items={[
-            { label: "สินค้าที่จะเสนอขาย:", value: target.product },
-            { label: "ชื่อร้านค้า / Key Farmer:", value: target.customer },
-            { label: "จำนวน:", value: target.targetQty },
+            { label: "สินค้าที่จะเสนอขาย:", value: target.product || "-" },
+            { label: "ชื่อร้านค้า / Key Farmer:", value: target.customer || "-" },
+            { label: "จำนวน:", value: target.targetQty || "-" },
             {
-              label: "ราคา/หน่วย (บาท):",
-              value: target.unitPrice || "500 บาท/หน่วย",
+              label: "ราคา (บาท):",
+              value: target.unitPrice || "-",
             },
             { label: "รายละเอียดเพิ่มเติม:", value: target.detail || "-" },
           ]}
@@ -257,7 +270,7 @@ export function ActualType3Sales({
                       <span>สินค้า: {prod.productName}</span>
                     </div>
                     <span className="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-0.5 rounded-md">
-                      เป้าหมาย: {prod.qty} ({prod.price})
+                      เป้าหมาย: {prod.qty || "-"} {prod.price ? `(${prod.price})` : ""}
                     </span>
                   </div>
 
