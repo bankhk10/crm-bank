@@ -191,7 +191,7 @@ export function ActualType1Visit({
                   salesOpportunity === opt
                     ? opt === "สูง"
                       ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
-                      : "bg-slate-100 border-slate-400 text-slate-800 ring-2 ring-slate-400/20"
+                      : "bg-red-100 border-red-400 text-red-800 ring-2 ring-red-400/20"
                     : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
                 )}
               >
