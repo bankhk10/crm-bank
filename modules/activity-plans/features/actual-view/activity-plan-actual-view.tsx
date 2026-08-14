@@ -29,7 +29,10 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
-import { getActivityPlanAction, recordActivityResultAction } from "../../server/actions";
+import {
+  getActivityPlanAction,
+  recordActivityResultAction,
+} from "../../server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";
 import {
   WORK_TYPES,
@@ -394,7 +397,9 @@ export default function ActivityPlanActualView({
                 .map((item) => ({
                   id: item.id,
                   productName:
-                    item.storeProductName || item.productName || "สื่อส่งเสริมการขาย",
+                    item.storeProductName ||
+                    item.productName ||
+                    "สื่อส่งเสริมการขาย",
                   quantityCases: item.storeQuantityCases || 1,
                   pricePerCase: item.storePricePerCase
                     ? Number(item.storePricePerCase)
@@ -451,8 +456,12 @@ export default function ActivityPlanActualView({
           if (p.activityType) {
             if (typeof p.activityType === "object" && p.activityType.name) {
               matchedWorkType = p.activityType.name;
-            } else if (typeof p.activityType === "object" && p.activityType.code) {
-              const idx = parseInt(p.activityType.code.replace("TYPE_", ""), 10) - 1;
+            } else if (
+              typeof p.activityType === "object" &&
+              p.activityType.code
+            ) {
+              const idx =
+                parseInt(p.activityType.code.replace("TYPE_", ""), 10) - 1;
               if (idx >= 0 && idx < WORK_TYPES.length) {
                 matchedWorkType = WORK_TYPES[idx];
               }
@@ -500,7 +509,11 @@ export default function ActivityPlanActualView({
               ...prev,
               t1: {
                 ...prev.t1,
-                customer: allCustomers || firstItem.customerName || p.location || prev.t1.customer,
+                customer:
+                  allCustomers ||
+                  firstItem.customerName ||
+                  p.location ||
+                  prev.t1.customer,
                 topic: firstItem.visitTopic || firstItem.topic || prev.t1.topic,
                 detail: firstItem.detail || prev.t1.detail,
               },
@@ -509,7 +522,9 @@ export default function ActivityPlanActualView({
                 customer:
                   (t2ItemsFromDb &&
                     Array.from(
-                      new Set(t2ItemsFromDb.map((i) => i.customer).filter(Boolean)),
+                      new Set(
+                        t2ItemsFromDb.map((i) => i.customer).filter(Boolean),
+                      ),
                     ).join(", ")) ||
                   allCustomers ||
                   firstItem.customerName ||
@@ -532,24 +547,38 @@ export default function ActivityPlanActualView({
               },
               t3: {
                 ...prev.t3,
-                customer: allCustomers || firstItem.customerName || prev.t3.customer,
-                product: firstItem.saleProductName || firstItem.productName || prev.t3.product,
-                targetSales: firstItem.saleTotalPrice ? `${Number(firstItem.saleTotalPrice).toLocaleString()} บาท` : prev.t3.targetSales,
+                customer:
+                  allCustomers || firstItem.customerName || prev.t3.customer,
+                product:
+                  firstItem.saleProductName ||
+                  firstItem.productName ||
+                  prev.t3.product,
+                targetSales: firstItem.saleTotalPrice
+                  ? `${Number(firstItem.saleTotalPrice).toLocaleString()} บาท`
+                  : prev.t3.targetSales,
               },
               t4: {
                 ...prev.t4,
-                customer: allCustomers || firstItem.customerName || prev.t4.customer,
-                targetCollect: firstItem.collectAmount ? `${Number(firstItem.collectAmount).toLocaleString()} บาท` : prev.t4.targetCollect,
+                customer:
+                  allCustomers || firstItem.customerName || prev.t4.customer,
+                targetCollect: firstItem.collectAmount
+                  ? `${Number(firstItem.collectAmount).toLocaleString()} บาท`
+                  : prev.t4.targetCollect,
               },
               t5: {
                 ...prev.t5,
-                store: firstItem.surveyStoreName || firstItem.storeName || allCustomers || prev.t5.store,
+                store:
+                  firstItem.surveyStoreName ||
+                  firstItem.storeName ||
+                  allCustomers ||
+                  prev.t5.store,
                 product: firstItem.surveyCompetitorProduct || prev.t5.product,
                 detail: firstItem.detail || prev.t5.detail,
               },
               t6: {
                 ...prev.t6,
-                customer: allCustomers || firstItem.customerName || prev.t6.customer,
+                customer:
+                  allCustomers || firstItem.customerName || prev.t6.customer,
                 issueType: firstItem.issueType || prev.t6.issueType,
                 detail: firstItem.detail || prev.t6.detail,
               },
@@ -563,7 +592,9 @@ export default function ActivityPlanActualView({
                 ...prev.t8,
                 topic: firstItem.meetingTopic || prev.t8.topic,
                 products: firstItem.meetingTargetProducts || prev.t8.products,
-                targetAttendees: firstItem.meetingAttendeesCount ? `${firstItem.meetingAttendeesCount} คน` : prev.t8.targetAttendees,
+                targetAttendees: firstItem.meetingAttendeesCount
+                  ? `${firstItem.meetingAttendeesCount} คน`
+                  : prev.t8.targetAttendees,
               },
               t9: {
                 ...prev.t9,
@@ -612,7 +643,9 @@ export default function ActivityPlanActualView({
                 setT2Detail(val);
               }
 
-              const usageResultMatch = summaryText.match(/ผลลัพธ์การใช้:\s*(.+)/);
+              const usageResultMatch = summaryText.match(
+                /ผลลัพธ์การใช้:\s*(.+)/,
+              );
               if (usageResultMatch && usageResultMatch[1]) {
                 const resVal = usageResultMatch[1].split("\n")[0].trim();
                 setT2UsageResult(resVal as any);
@@ -621,7 +654,9 @@ export default function ActivityPlanActualView({
                 }
               }
 
-              const problemMatch = summaryText.match(/ปัญหาการใช้สินค้า:\s*(.+)/);
+              const problemMatch = summaryText.match(
+                /ปัญหาการใช้สินค้า:\s*(.+)/,
+              );
               if (problemMatch && problemMatch[1]) {
                 setT2ProblemDetail(problemMatch[1].split("\n")[0].trim());
               }
@@ -631,13 +666,17 @@ export default function ActivityPlanActualView({
               if (soldMatch && soldMatch[1]) {
                 setT3SoldProducts(soldMatch[1].split("\n")[0].trim());
               }
-              const unclosedMatch = summaryText.match(/เหตุผลที่ปิดการขายไม่ได้:\s*(.+)/);
+              const unclosedMatch = summaryText.match(
+                /เหตุผลที่ปิดการขายไม่ได้:\s*(.+)/,
+              );
               if (unclosedMatch && unclosedMatch[1]) {
                 setT3UnclosedReason(unclosedMatch[1].split("\n")[0].trim());
               }
 
               // Type 4
-              const orderNoMatch = summaryText.match(/เลขที่บิล\/ใบแจ้งหนี้:\s*(.+)/);
+              const orderNoMatch = summaryText.match(
+                /เลขที่บิล\/ใบแจ้งหนี้:\s*(.+)/,
+              );
               if (orderNoMatch && orderNoMatch[1]) {
                 setT4OrderNo(orderNoMatch[1].split("\n")[0].trim());
               }
@@ -661,18 +700,25 @@ export default function ActivityPlanActualView({
               }
 
               // Type 6
-              const t6ProbMatch = summaryText.match(/ปัญหาลูกค้าร้องเรียน:\s*(.+)/);
+              const t6ProbMatch = summaryText.match(
+                /ปัญหาลูกค้าร้องเรียน:\s*(.+)/,
+              );
               if (t6ProbMatch && t6ProbMatch[1]) {
                 setT6ProblemDetail(t6ProbMatch[1].split("\n")[0].trim());
               }
-              const t6SolMatch = summaryText.match(/แนวทางแก้ไขเบื้องต้น:\s*(.+)/);
+              const t6SolMatch = summaryText.match(
+                /แนวทางแก้ไขเบื้องต้น:\s*(.+)/,
+              );
               if (t6SolMatch && t6SolMatch[1]) {
                 setT6InitialSolution(t6SolMatch[1].split("\n")[0].trim());
               }
-              const t6StatusMatch = summaryText.match(/สถานะการแก้ปัญหา:\s*(.+)/);
+              const t6StatusMatch = summaryText.match(
+                /สถานะการแก้ปัญหา:\s*(.+)/,
+              );
               if (t6StatusMatch && t6StatusMatch[1]) {
                 const sVal = t6StatusMatch[1].split("\n")[0].trim();
-                if (sVal === "เสร็จสิ้น" || sVal === "รอติดตาม") setT6Status(sVal);
+                if (sVal === "เสร็จสิ้น" || sVal === "รอติดตาม")
+                  setT6Status(sVal);
               }
 
               // Type 7
@@ -680,13 +726,17 @@ export default function ActivityPlanActualView({
               if (t7PlotMatch && t7PlotMatch[1]) {
                 setT7PlotName(t7PlotMatch[1].split("\n")[0].trim());
               }
-              const t7MethodMatch = summaryText.match(/วิธีใช้\/อัตราการใช้:\s*(.+)/);
+              const t7MethodMatch = summaryText.match(
+                /วิธีใช้\/อัตราการใช้:\s*(.+)/,
+              );
               if (t7MethodMatch && t7MethodMatch[1]) {
                 setT7UsageMethod(t7MethodMatch[1].split("\n")[0].trim());
               }
               const t7DescMatch = summaryText.match(/รายละเอียดแปลง:\s*(.+)/);
               if (t7DescMatch && t7DescMatch[1]) {
-                setT7CropProblemDescription(t7DescMatch[1].split("\n")[0].trim());
+                setT7CropProblemDescription(
+                  t7DescMatch[1].split("\n")[0].trim(),
+                );
               }
 
               // Type 8
@@ -696,17 +746,25 @@ export default function ActivityPlanActualView({
               }
 
               // Type 10
-              const t10FeedbackMatch = summaryText.match(/ความสนใจเกษตรกร:\s*(.+)/);
+              const t10FeedbackMatch = summaryText.match(
+                /ความสนใจเกษตรกร:\s*(.+)/,
+              );
               if (t10FeedbackMatch && t10FeedbackMatch[1]) {
                 setT10FarmerFeedback(t10FeedbackMatch[1].split("\n")[0].trim());
               }
-              const t10FarmersMatch = summaryText.match(/รายชื่อเกษตรกรเป้าหมาย:\s*(.+)/);
+              const t10FarmersMatch = summaryText.match(
+                /รายชื่อเกษตรกรเป้าหมาย:\s*(.+)/,
+              );
               if (t10FarmersMatch && t10FarmersMatch[1]) {
-                setT10TargetFarmersList(t10FarmersMatch[1].split("\n")[0].trim());
+                setT10TargetFarmersList(
+                  t10FarmersMatch[1].split("\n")[0].trim(),
+                );
               }
 
               // Type 11
-              const t11RemarksMatch = summaryText.match(/ข้อสังเกตสต็อก:\s*(.+)/);
+              const t11RemarksMatch = summaryText.match(
+                /ข้อสังเกตสต็อก:\s*(.+)/,
+              );
               if (t11RemarksMatch && t11RemarksMatch[1]) {
                 setT11Remarks(t11RemarksMatch[1].split("\n")[0].trim());
               }
@@ -714,9 +772,13 @@ export default function ActivityPlanActualView({
               if (t11StatusMatch && t11StatusMatch[1]) {
                 setT11StockStatus(t11StatusMatch[1].split("\n")[0].trim());
               }
-              const t11ReorderMatch = summaryText.match(/โอกาสสั่งซื้อซ้ำ:\s*(.+)/);
+              const t11ReorderMatch = summaryText.match(
+                /โอกาสสั่งซื้อซ้ำ:\s*(.+)/,
+              );
               if (t11ReorderMatch && t11ReorderMatch[1]) {
-                setT11ReorderOpportunity(t11ReorderMatch[1].split("\n")[0].trim());
+                setT11ReorderOpportunity(
+                  t11ReorderMatch[1].split("\n")[0].trim(),
+                );
               }
             }
 
@@ -758,7 +820,9 @@ export default function ActivityPlanActualView({
             }
             if (resData.problemFound) {
               setT6ProblemDetail((prev) => prev || resData.problemFound || "");
-              setT7CropProblemDescription((prev) => prev || resData.problemFound || "");
+              setT7CropProblemDescription(
+                (prev) => prev || resData.problemFound || "",
+              );
             }
             if (resData.nextAction) {
               setT1NextAction(resData.nextAction);
@@ -966,10 +1030,10 @@ export default function ActivityPlanActualView({
           activityResultStatus === "COMPLETED"
             ? "สำเร็จ"
             : activityResultStatus === "POSTPONED"
-            ? "เลื่อน"
-            : activityResultStatus === "CANCELLED"
-            ? "ยกเลิก"
-            : "สำเร็จบางส่วน";
+              ? "เลื่อน"
+              : activityResultStatus === "CANCELLED"
+                ? "ยกเลิก"
+                : "สำเร็จบางส่วน";
 
         const summaryParts = [
           `สถานะผลกิจกรรม: ${statusLabel}`,
@@ -1002,26 +1066,36 @@ export default function ActivityPlanActualView({
             ? `ปัญหาการใช้สินค้า: ${t2ProblemDetail}`
             : null,
           t3SoldProducts ? `รายการขาย: ${t3SoldProducts}` : null,
-          t3UnclosedReason ? `เหตุผลที่ปิดการขายไม่ได้: ${t3UnclosedReason}` : null,
+          t3UnclosedReason
+            ? `เหตุผลที่ปิดการขายไม่ได้: ${t3UnclosedReason}`
+            : null,
           t4OrderNo ? `เลขที่บิล/ใบแจ้งหนี้: ${t4OrderNo}` : null,
           t5CompetitorBrand ? `แบรนด์คู่แข่ง: ${t5CompetitorBrand}` : null,
           t5CompetitorProduct ? `สินค้าคู่แข่ง: ${t5CompetitorProduct}` : null,
           t5CompetitorPrice ? `ราคาคู่แข่ง: ${t5CompetitorPrice}` : null,
           t5PromotionDetail ? `โปรโมชันคู่แข่ง: ${t5PromotionDetail}` : null,
           t6ProblemDetail ? `ปัญหาลูกค้าร้องเรียน: ${t6ProblemDetail}` : null,
-          t6InitialSolution ? `แนวทางแก้ไขเบื้องต้น: ${t6InitialSolution}` : null,
+          t6InitialSolution
+            ? `แนวทางแก้ไขเบื้องต้น: ${t6InitialSolution}`
+            : null,
           t6Status ? `สถานะการแก้ปัญหา: ${t6Status}` : null,
           t7PlotName ? `ชื่อแปลงทดสอบ: ${t7PlotName}` : null,
           t7UsageMethod ? `วิธีใช้/อัตราการใช้: ${t7UsageMethod}` : null,
           t7GrowthStage ? `ระยะการเจริญเติบโต: ${t7GrowthStage}` : null,
           t7CropCondition ? `สภาพแปลง: ${t7CropCondition}` : null,
-          t7CropProblemDescription ? `รายละเอียดแปลง: ${t7CropProblemDescription}` : null,
+          t7CropProblemDescription
+            ? `รายละเอียดแปลง: ${t7CropProblemDescription}`
+            : null,
           t8FeedbackQnA ? `Q&A: ${t8FeedbackQnA}` : null,
           t10FarmerFeedback ? `ความสนใจเกษตรกร: ${t10FarmerFeedback}` : null,
-          t10TargetFarmersList ? `รายชื่อเกษตรกรเป้าหมาย: ${t10TargetFarmersList}` : null,
+          t10TargetFarmersList
+            ? `รายชื่อเกษตรกรเป้าหมาย: ${t10TargetFarmersList}`
+            : null,
           t11Remarks ? `ข้อสังเกตสต็อก: ${t11Remarks}` : null,
           t11StockStatus ? `สถานะสต็อก: ${t11StockStatus}` : null,
-          t11ReorderOpportunity ? `โอกาสสั่งซื้อซ้ำ: ${t11ReorderOpportunity}` : null,
+          t11ReorderOpportunity
+            ? `โอกาสสั่งซื้อซ้ำ: ${t11ReorderOpportunity}`
+            : null,
         ].filter(Boolean);
 
         const t2HasProblem =
@@ -1033,10 +1107,7 @@ export default function ActivityPlanActualView({
           actualStartDate: new Date(),
           actualEndDate: new Date(),
           actualAttendeesCount: Number(
-            t8ActualAttendees ||
-              t9ActualAttendees ||
-              t10ActualAttendees ||
-              0,
+            t8ActualAttendees || t9ActualAttendees || t10ActualAttendees || 0,
           ),
           resultStatus: activityResultStatus,
           resultSummary:
@@ -1056,9 +1127,7 @@ export default function ActivityPlanActualView({
               ? new Date(postponedDate)
               : null,
           postponedTime:
-            activityResultStatus === "POSTPONED"
-              ? postponedTime || null
-              : null,
+            activityResultStatus === "POSTPONED" ? postponedTime || null : null,
           postponedReason:
             activityResultStatus === "POSTPONED"
               ? postponedReason || null
@@ -1098,7 +1167,6 @@ export default function ActivityPlanActualView({
       setIsSubmitting(false);
     }
   };
-
 
   const isTypeVisible = (typeTitle: string) => {
     if (activeTypeTab === "ALL") return true;
@@ -1155,154 +1223,7 @@ export default function ActivityPlanActualView({
             {/* PLAN SUMMARY CARD */}
             <ActualPlanSummary summary={planSummary} />
 
-            {/* SECTION 2: สถานะผลการทำกิจกรรม */}
-            <SectionHeader title="สถานะผลการทำกิจกรรม" color="gray" />
-
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                    <ClipboardCheck className="w-4 h-4 text-emerald-600" />
-                    เลือกผลการทำกิจกรรม <span className="text-rose-500">*</span>
-                  </label>
-                  <span className="text-xs text-slate-400 font-medium">
-                    (กำหนดสถานะการดำเนินงานของกิจกรรมนี้)
-                  </span>
-                </div>
-
-                {/* Status Radio / Selectable Buttons */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {[
-                    {
-                      id: "PARTIAL" as const,
-                      label: "สำเร็จบางส่วน (ค่าเริ่มต้น)",
-                      icon: "⏳",
-                      activeClass:
-                        "bg-amber-50/90 border-amber-500 text-amber-950 ring-2 ring-amber-500/20 shadow-xs",
-                    },
-                    {
-                      id: "COMPLETED" as const,
-                      label: "สำเร็จ",
-                      icon: "✅",
-                      activeClass:
-                        "bg-emerald-50/90 border-emerald-500 text-emerald-950 ring-2 ring-emerald-500/20 shadow-xs",
-                    },
-                    {
-                      id: "POSTPONED" as const,
-                      label: "เลื่อน",
-                      icon: "🗓️",
-                      activeClass:
-                        "bg-sky-50/90 border-sky-500 text-sky-950 ring-2 ring-sky-500/20 shadow-xs",
-                    },
-                    {
-                      id: "CANCELLED" as const,
-                      label: "ยกเลิก",
-                      icon: "❌",
-                      activeClass:
-                        "bg-rose-50/90 border-rose-500 text-rose-950 ring-2 ring-rose-500/20 shadow-xs",
-                    },
-                  ].map((st) => (
-                    <button
-                      key={st.id}
-                      type="button"
-                      onClick={() => setActivityResultStatus(st.id)}
-                      className={cn(
-                        "py-3 px-3 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all flex items-center justify-center gap-2",
-                        activityResultStatus === st.id
-                          ? st.activeClass
-                          : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300",
-                      )}
-                    >
-                      <span className="text-base">{st.icon}</span>
-                      <span>{st.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* กรณีเลือก ยกเลิก (CANCELLED) */}
-              {activityResultStatus === "CANCELLED" && (
-                <div className="bg-rose-50/70 border border-rose-200 rounded-xl p-3.5 sm:p-4 space-y-2 animate-in fade-in-50">
-                  <label className="text-xs font-bold text-rose-800 flex items-center gap-1.5">
-                    <span>⚠️</span> สาเหตุที่ยกเลิก{" "}
-                    <span className="text-rose-500">*</span>
-                  </label>
-                  <Textarea
-                    rows={2}
-                    value={cancelReason}
-                    onChange={(e) => setCancelReason(e.target.value)}
-                    placeholder="ระบุสาเหตุที่ต้องยกเลิกกิจกรรม..."
-                    className="bg-white border-rose-200 text-xs sm:text-sm"
-                  />
-                </div>
-              )}
-
-              {/* กรณีเลือก เลื่อน (POSTPONED) */}
-              {activityResultStatus === "POSTPONED" && (
-                <div className="bg-sky-50/70 border border-sky-200 rounded-xl p-3.5 sm:p-4 space-y-3.5 animate-in fade-in-50">
-                  <div>
-                    <DateTimePicker
-                      label="วันที่ใหม่"
-                      required
-                      dateValue={postponedDate}
-                      timeValue={postponedTime || "10:00"}
-                      onDateChange={setPostponedDate}
-                      onTimeChange={setPostponedTime}
-                      accentColor="blue"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-sky-900 flex items-center gap-1">
-                      <span>📌</span> เหตุผลที่เลื่อน{" "}
-                      <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {[
-                        "ลูกค้าขอเลื่อน",
-                        "ผู้ปฏิบัติงานขอเลื่อน",
-                        "ลูกค้าไม่สะดวก",
-                        "สภาพอากาศ",
-                        "เหตุสุดวิสัย",
-                        "อื่น ๆ",
-                      ].map((reason) => (
-                        <button
-                          key={reason}
-                          type="button"
-                          onClick={() => setPostponedReason(reason)}
-                          className={cn(
-                            "py-2 px-2.5 rounded-lg border text-xs font-medium cursor-pointer transition-all text-left flex items-center justify-between",
-                            postponedReason === reason
-                              ? "bg-sky-600 text-white border-sky-600 shadow-2xs font-semibold"
-                              : "bg-white border-sky-200/80 text-sky-950 hover:bg-sky-100/60",
-                          )}
-                        >
-                          <span>{reason}</span>
-                          {postponedReason === reason && (
-                            <Check className="w-3.5 h-3.5 flex-shrink-0" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-sky-900 flex items-center gap-1">
-                      <span>📝</span> ช่องกรอกหมายเหตุ
-                    </label>
-                    <Textarea
-                      rows={2}
-                      value={postponedNotes}
-                      onChange={(e) => setPostponedNotes(e.target.value)}
-                      placeholder="ระบุหมายเหตุเพิ่มเติมกรณีเลื่อนกิจกรรม (ถ้ามี)..."
-                      className="bg-white border-sky-200 text-xs sm:text-sm"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* SECTION 3: ผลการปฏิบัติงานตามประเภทงาน */}
+            {/* SECTION 2: ผลการปฏิบัติงานตามประเภทงาน */}
             <SectionHeader title="ผลการปฏิบัติงานตามประเภทงาน" color="gray" />
 
             {/* WORK TYPE SELECTOR TABS & DROPDOWN */}
@@ -1319,16 +1240,17 @@ export default function ActivityPlanActualView({
                     <SelectValue placeholder="เลือกกิจกรรม" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(planWorkTypes.length > 0 ? planWorkTypes : WORK_TYPES).map(
-                      (typeName) => {
-                        const idx = WORK_TYPES.indexOf(typeName);
-                        return (
-                          <SelectItem key={typeName} value={typeName}>
-                            {idx + 1}. {typeName}
-                          </SelectItem>
-                        );
-                      },
-                    )}
+                    {(planWorkTypes.length > 0
+                      ? planWorkTypes
+                      : WORK_TYPES
+                    ).map((typeName) => {
+                      const idx = WORK_TYPES.indexOf(typeName);
+                      return (
+                        <SelectItem key={typeName} value={typeName}>
+                          {idx + 1}. {typeName}
+                        </SelectItem>
+                      );
+                    })}
                     <SelectItem value="ALL">
                       📋 แสดงแบบฟอร์มทั้งหมด (All 11 Types)
                     </SelectItem>
@@ -1567,6 +1489,153 @@ export default function ActivityPlanActualView({
                 nextAction={t11NextAction}
                 setNextAction={setT11NextAction}
               />
+            </div>
+
+            {/* SECTION 3: สถานะผลการทำกิจกรรม */}
+            <SectionHeader title="สถานะผลการทำกิจกรรม" color="gray" />
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                    <ClipboardCheck className="w-4 h-4 text-emerald-600" />
+                    เลือกผลการทำกิจกรรม <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-xs text-slate-400 font-medium">
+                    (กำหนดสถานะการดำเนินงานของกิจกรรมนี้)
+                  </span>
+                </div>
+
+                {/* Status Radio / Selectable Buttons */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {[
+                    {
+                      id: "PARTIAL" as const,
+                      label: "สำเร็จบางส่วน (ค่าเริ่มต้น)",
+                      icon: "⏳",
+                      activeClass:
+                        "bg-amber-50/90 border-amber-500 text-amber-950 ring-2 ring-amber-500/20 shadow-xs",
+                    },
+                    {
+                      id: "COMPLETED" as const,
+                      label: "สำเร็จ",
+                      icon: "✅",
+                      activeClass:
+                        "bg-emerald-50/90 border-emerald-500 text-emerald-950 ring-2 ring-emerald-500/20 shadow-xs",
+                    },
+                    {
+                      id: "POSTPONED" as const,
+                      label: "เลื่อน",
+                      icon: "🗓️",
+                      activeClass:
+                        "bg-sky-50/90 border-sky-500 text-sky-950 ring-2 ring-sky-500/20 shadow-xs",
+                    },
+                    {
+                      id: "CANCELLED" as const,
+                      label: "ยกเลิก",
+                      icon: "❌",
+                      activeClass:
+                        "bg-rose-50/90 border-rose-500 text-rose-950 ring-2 ring-rose-500/20 shadow-xs",
+                    },
+                  ].map((st) => (
+                    <button
+                      key={st.id}
+                      type="button"
+                      onClick={() => setActivityResultStatus(st.id)}
+                      className={cn(
+                        "py-3 px-3 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all flex items-center justify-center gap-2",
+                        activityResultStatus === st.id
+                          ? st.activeClass
+                          : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300",
+                      )}
+                    >
+                      <span className="text-base">{st.icon}</span>
+                      <span>{st.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* กรณีเลือก ยกเลิก (CANCELLED) */}
+              {activityResultStatus === "CANCELLED" && (
+                <div className="bg-rose-50/70 border border-rose-200 rounded-xl p-3.5 sm:p-4 space-y-2 animate-in fade-in-50">
+                  <label className="text-xs font-bold text-rose-800 flex items-center gap-1.5">
+                    <span>⚠️</span> สาเหตุที่ยกเลิก{" "}
+                    <span className="text-rose-500">*</span>
+                  </label>
+                  <Textarea
+                    rows={2}
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    placeholder="ระบุสาเหตุที่ต้องยกเลิกกิจกรรม..."
+                    className="bg-white border-rose-200 text-xs sm:text-sm"
+                  />
+                </div>
+              )}
+
+              {/* กรณีเลือก เลื่อน (POSTPONED) */}
+              {activityResultStatus === "POSTPONED" && (
+                <div className="bg-sky-50/70 border border-sky-200 rounded-xl p-3.5 sm:p-4 space-y-3.5 animate-in fade-in-50">
+                  <div>
+                    <DateTimePicker
+                      label="วันที่ใหม่"
+                      required
+                      dateValue={postponedDate}
+                      timeValue={postponedTime || "10:00"}
+                      onDateChange={setPostponedDate}
+                      onTimeChange={setPostponedTime}
+                      accentColor="blue"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-sky-900 flex items-center gap-1">
+                      <span>📌</span> เหตุผลที่เลื่อน{" "}
+                      <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {[
+                        "ลูกค้าขอเลื่อน",
+                        "ผู้ปฏิบัติงานขอเลื่อน",
+                        "ลูกค้าไม่สะดวก",
+                        "สภาพอากาศ",
+                        "เหตุสุดวิสัย",
+                        "อื่น ๆ",
+                      ].map((reason) => (
+                        <button
+                          key={reason}
+                          type="button"
+                          onClick={() => setPostponedReason(reason)}
+                          className={cn(
+                            "py-2 px-2.5 rounded-lg border text-xs font-medium cursor-pointer transition-all text-left flex items-center justify-between",
+                            postponedReason === reason
+                              ? "bg-sky-600 text-white border-sky-600 shadow-2xs font-semibold"
+                              : "bg-white border-sky-200/80 text-sky-950 hover:bg-sky-100/60",
+                          )}
+                        >
+                          <span>{reason}</span>
+                          {postponedReason === reason && (
+                            <Check className="w-3.5 h-3.5 flex-shrink-0" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-sky-900 flex items-center gap-1">
+                      <span>📝</span> ช่องกรอกหมายเหตุ
+                    </label>
+                    <Textarea
+                      rows={2}
+                      value={postponedNotes}
+                      onChange={(e) => setPostponedNotes(e.target.value)}
+                      placeholder="ระบุหมายเหตุเพิ่มเติมกรณีเลื่อนกิจกรรม (ถ้ามี)..."
+                      className="bg-white border-sky-200 text-xs sm:text-sm"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Bottom Action Footer */}
