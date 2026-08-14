@@ -64,7 +64,13 @@ export function ActualType8Meeting({
 
   useEffect(() => {
     if (productSalesDetails && productSalesDetails.length > 0) {
-      setLocalProductSales(productSalesDetails);
+      const merged = [...productSalesDetails];
+      productList.forEach((pName) => {
+        if (!merged.some((m) => m.productName === pName)) {
+          merged.push({ productName: pName, actualQty: "", actualSales: "" });
+        }
+      });
+      setLocalProductSales(merged);
     } else if (productList.length > 0) {
       setLocalProductSales(
         productList.map((pName) => ({
@@ -81,11 +87,13 @@ export function ActualType8Meeting({
   const currentSalesList =
     localProductSales.length > 0
       ? localProductSales
-      : productList.map((p) => ({
-          productName: p,
-          actualQty: "",
-          actualSales: "",
-        }));
+      : productSalesDetails && productSalesDetails.length > 0
+        ? productSalesDetails
+        : productList.map((p) => ({
+            productName: p,
+            actualQty: "",
+            actualSales: "",
+          }));
 
   const handleProductSaleChange = (
     index: number,

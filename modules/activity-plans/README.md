@@ -119,6 +119,16 @@ modules/activity-plans/
 
 ## 📝 บันทึกการอัปเดตฟีเจอร์ (Feature Change Log)
 
+### 2026-08-14: แก้ไข Work Type 8 (Meeting) การบันทึกและโหลดข้อมูลยอดขาย/จำนวนแยกตามสินค้าในหน้า Actual
+- **คอมโพเนนต์ที่แก้ไข:**
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type8-meeting.tsx`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+- **การเปลี่ยนแปลงที่ดำเนินการ:**
+  1. **การบันทึก (`handleSubmit`)**: เพิ่ม `t8ProductSalesDetails` (ยอดขายและจำนวนขายแยกตามสินค้า) ลงใน `resultSummary` ของผลกิจกรรม
+  2. **การโหลดข้อมูล (`loadData`)**: เพิ่ม regex JSON parser เพื่อดึงประวัติการกรอกยอดขายและจำนวนขายแต่ละสินค้ากลับมาแสดงผลในฟอร์มเมื่อเปิดดูภายหลังได้อย่างถูกต้อง ไม่สูญหาย
+  3. **State Synchronization**: ปรับปรุง `currentSalesList` ให้ merge ข้อมูลระหว่างสินค้าจากแผน (`productList`) และยอดขายที่บันทึกแล้ว (`productSalesDetails`) อย่างสมบูรณ์
+- **ผลลัพธ์:** ข้อมูลจำนวนที่ขายได้/จอง และยอดขายรวม (บาท) ของแต่ละสินค้าใน Work Type 8 ถูกบันทึกและแสดงผลย้อนหลังได้อย่างถูกต้อง 100%
+
 ### 2026-08-14: ปรับปรุง UX/UI และ Data Flow ของ Demo Plot: แยกหน้าที่ Plan vs Actual, โครงสร้าง Master vs Visit และ History Timeline Modal
 - **คอมโพเนนต์ที่แก้ไข/เพิ่มใหม่:**
   - `prisma/schema.prisma` (เพิ่ม `plantingDate`, `plantingAreaCondition`, `usageMethod` ใน `DemoPlot` และ `cropImageUrls`, `plotImageUrls` ใน `DemoPlotVisit`)

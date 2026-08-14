@@ -896,12 +896,21 @@ export default function ActivityPlanActualView({
                   i.plotCount != null,
               );
 
-            const t8Item = allItems.find(
+            const type8DbItems = allItems.filter(
               (i) =>
                 i.itemType === "TYPE_8" ||
                 i.meetingTopic ||
                 i.meetingAttendeesCount != null,
             );
+
+            const t8Item =
+              type8DbItems[0] ||
+              allItems.find(
+                (i) =>
+                  i.itemType === "TYPE_8" ||
+                  i.meetingTopic ||
+                  i.meetingAttendeesCount != null,
+              );
 
             const t9Item = allItems.find(
               (i) =>
@@ -1120,11 +1129,32 @@ export default function ActivityPlanActualView({
               },
               t8: {
                 ...prev.t8,
-                topic: t8Item?.meetingTopic || "",
-                products: t8Item?.meetingTargetProducts || "",
-                targetAttendees: t8Item?.meetingAttendeesCount
-                  ? `${t8Item.meetingAttendeesCount} คน`
-                  : "",
+                topic:
+                  type8DbItems
+                    .map((i) => i.meetingTopic)
+                    .filter(Boolean)
+                    .join(", ") ||
+                  t8Item?.meetingTopic ||
+                  "",
+                products:
+                  type8DbItems
+                    .map((i) => i.meetingTargetProducts)
+                    .filter(Boolean)
+                    .join(", ") ||
+                  t8Item?.meetingTargetProducts ||
+                  "",
+                targetAttendees:
+                  type8DbItems
+                    .map((i) =>
+                      i.meetingAttendeesCount
+                        ? `${i.meetingAttendeesCount} คน`
+                        : "",
+                    )
+                    .filter(Boolean)
+                    .join(", ") ||
+                  (t8Item?.meetingAttendeesCount
+                    ? `${t8Item.meetingAttendeesCount} คน`
+                    : ""),
               },
               t9: {
                 ...prev.t9,
@@ -1504,6 +1534,19 @@ export default function ActivityPlanActualView({
               const qnaMatch = summaryText.match(/Q&A:\s*(.+)/);
               if (qnaMatch && qnaMatch[1]) {
                 setT8FeedbackQnA(qnaMatch[1].split("\n")[0].trim());
+              }
+              const t8SalesMatch = summaryText.match(
+                /ยอดขายแยกสินค้าประชุม:\s*(.+)/,
+              );
+              if (t8SalesMatch && t8SalesMatch[1]) {
+                try {
+                  const parsed = JSON.parse(t8SalesMatch[1].trim());
+                  if (Array.isArray(parsed)) {
+                    setT8ProductSalesDetails(parsed);
+                  }
+                } catch (e) {
+                  console.error("Failed to parse t8ProductSalesDetails", e);
+                }
               }
 
               // Type 9
@@ -1940,6 +1983,11 @@ export default function ActivityPlanActualView({
             ? `จำนวนผู้เข้าร่วมประชุมจริง: ${t8ActualAttendees}`
             : null,
           t8FeedbackQnA ? `Q&A: ${t8FeedbackQnA}` : null,
+          t8ProductSalesDetails &&
+          t8ProductSalesDetails.length > 0 &&
+          t8ProductSalesDetails.some((d) => d.actualQty || d.actualSales)
+            ? `ยอดขายแยกสินค้าประชุม: ${JSON.stringify(t8ProductSalesDetails)}`
+            : null,
 
           // Type 9
           t9ActualSales ? `ยอดขายหน้าร้านจริง: ${t9ActualSales}` : null,
