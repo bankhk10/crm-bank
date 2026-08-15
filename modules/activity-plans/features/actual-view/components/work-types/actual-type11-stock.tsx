@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Plus, Trash2, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
 import { DEMO_PRODUCTS } from "../../../form/constants";
+import { listProductsAction } from "@/modules/products/server/actions";
 
 const OTHER_OPTION = "ไม่พบข้อมูล / ระบุเพิ่มเติม";
 
@@ -33,6 +34,7 @@ interface ActualType11StockProps {
     detail: string;
     targetOpportunity: string;
   };
+  products?: Array<{ id: string; name: string } | string>;
   productList?: string;
   setProductList?: (v: string) => void;
   remainingQty?: string;
@@ -52,6 +54,7 @@ interface ActualType11StockProps {
 export function ActualType11Stock({
   isVisible,
   target,
+  products = [],
   productList = "",
   setProductList,
   remainingQty = "",
@@ -67,16 +70,72 @@ export function ActualType11Stock({
   nextAction,
   setNextAction,
 }: ActualType11StockProps) {
+  const [dbProducts, setDbProducts] = useState<string[]>([]);
+
+  // Fetch active products from DB if not provided
+  useEffect(() => {
+    let isMounted = true;
+    async function loadProducts() {
+      try {
+        const res = await listProductsAction({ status: "ACTIVE", perPage: 1000 });
+        if (isMounted && res?.products && res.products.length > 0) {
+          const names = res.products
+            .map((p: any) => (typeof p === "string" ? p : p.name))
+            .filter(Boolean);
+          setDbProducts(names);
+        }
+      } catch (err) {
+        console.error("Failed to load products in ActualType11Stock:", err);
+      }
+    }
+    if (!products || products.length === 0) {
+      loadProducts();
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [products]);
+
+  const availableProducts = useMemo(() => {
+    let list: string[] = [];
+    if (products && products.length > 0) {
+      list = products
+        .map((p) => (typeof p === "string" ? p : p.name))
+        .filter(Boolean);
+    } else if (dbProducts.length > 0) {
+      list = dbProducts;
+    } else {
+      list = DEMO_PRODUCTS;
+    }
+    // Deduplicate product names to ensure unique React keys and Select values
+    return Array.from(new Set(list));
+  }, [products, dbProducts]);
+
   // Local state for stock items
   const [items, setItems] = useState<StockCheckItem[]>(() => {
     if (stockItems && stockItems.length > 0) return stockItems;
+    if (productList || remainingQty || remarks) {
+      const pList = productList ? productList.split(",").map((s) => s.trim()) : [""];
+      const qList = remainingQty ? remainingQty.split(",").map((s) => s.trim()) : [""];
+      const rList = remarks ? remarks.split(",").map((s) => s.trim()) : [""];
+      const maxLen = Math.max(pList.length, qList.length, rList.length);
+      const initial: StockCheckItem[] = [];
+      for (let i = 0; i < maxLen; i++) {
+        initial.push({
+          productName: pList[i] || "",
+          remainingQty: qList[i] || "",
+          remarks: rList[i] || "",
+          isCustom: false,
+        });
+      }
+      return initial;
+    }
     return [
       {
-        productName: productList || "",
-        remainingQty: remainingQty || "",
-        remarks: remarks || "",
-        isCustom:
-          productList && !DEMO_PRODUCTS.includes(productList) ? true : false,
+        productName: "",
+        remainingQty: "",
+        remarks: "",
+        isCustom: false,
       },
     ];
   });
@@ -192,11 +251,11 @@ export function ActualType11Stock({
 
         <div className="space-y-3">
           {items.map((item, idx) => {
-            const selectValue = DEMO_PRODUCTS.includes(item.productName)
+            const selectValue = availableProducts.includes(item.productName)
               ? item.productName
               : item.isCustom ||
                   (item.productName !== "" &&
-                    !DEMO_PRODUCTS.includes(item.productName))
+                    !availableProducts.includes(item.productName))
                 ? OTHER_OPTION
                 : "";
 
@@ -235,7 +294,7 @@ export function ActualType11Stock({
                       onValueChange={(val) => {
                         if (val === OTHER_OPTION) {
                           handleItemChange(idx, "isCustom", true);
-                          if (DEMO_PRODUCTS.includes(item.productName)) {
+                          if (availableProducts.includes(item.productName)) {
                             handleItemChange(idx, "productName", "");
                           }
                         } else {
@@ -247,17 +306,20 @@ export function ActualType11Stock({
                       <SelectTrigger className="w-full bg-white border-slate-300 text-xs h-9">
                         <SelectValue placeholder="เลือกรายการสินค้า" />
                       </SelectTrigger>
-                      <SelectContent>
-                        {DEMO_PRODUCTS.map((prod) => (
+                      <SelectContent className="max-h-72">
+                        {availableProducts.map((prod, pIdx) => (
                           <SelectItem
-                            key={prod}
+                            key={`${prod}-${pIdx}`}
                             value={prod}
                             className="text-xs"
                           >
                             {prod}
                           </SelectItem>
                         ))}
-                        <SelectItem value={OTHER_OPTION} className="text-xs">
+                        <SelectItem
+                          value={OTHER_OPTION}
+                          className="text-xs font-medium text-slate-700"
+                        >
                           {OTHER_OPTION}
                         </SelectItem>
                       </SelectContent>

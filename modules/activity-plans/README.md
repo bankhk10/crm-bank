@@ -245,6 +245,19 @@ modules/activity-plans/
     - อนุมัติคำขอพนักงานช่วยงาน (Helper Requests) ได้ทั้งหมดในครั้งเดียว
   - **Full Visibility in Approval Hub:** แสดงรายการคิวงานทั้งหมดให้ Administrator มองเห็นและจัดการได้ทันที พร้อมแถบป้ายสถานะ `👑 สิทธิ์ Administrator`
 
+### 2026-08-15: แก้ไข Console Warning Duplicate Key รายการสินค้าใน Type 11 (ตรวจเช็กสต็อกหน้าร้าน)
+- **คอมโพเนนต์ที่แก้ไข:** `actual-type11-stock.tsx`
+- **ปัญหา:** พบ Console Error `Encountered two children with the same key` เนื่องจากในฐานข้อมูลมีรายการสินค้าที่มีชื่อ/ขนาดซ้ำกัน ทำให้เกิด duplicate key และ duplicate value ใน SelectItem
+- **การแก้ไข:** ใช้ `Array.from(new Set(list))` ใน `useMemo` เพื่อ Deduplicate รายชื่อสินค้าทั้งหมด พร้อมทั้งใส่ Indexed key ใน `SelectItem`
+
+### 2026-08-15: ดึงสินค้าจริงจาก Database และแก้ไขการบันทึกจำนวนคงเหลือสต็อก สำหรับ Type 11 (ตรวจเช็กสต็อกหน้าร้าน)
+- **คอมโพเนนต์ที่แก้ไข:** `actual-type11-stock.tsx`, `activity-plan-actual-view.tsx`
+- **การเปลี่ยนแปลง:**
+  1. **รายการสินค้า *:** ดึงรายการสินค้าจริงที่เปิดใช้งาน (`status = ACTIVE`) จากฐานข้อมูลผ่าน `listProductsAction` / `products` prop แทนการใช้ mock data เดิม พร้อมทั้งยังคงตัวเลือก **"ไม่พบข้อมูล / ระบุเพิ่มเติม"** สำหรับระบุชื่อสินค้าเอง
+  2. **ช่อง จำนวนคงเหลือ & รายการสินค้าตรวจเช็ก:**
+     - ใน `handleSubmit` ของ `activity-plan-actual-view.tsx` เพิ่มการ Serialize ข้อมูลรายการสต็อก `t11StockItems` (JSON), `t11ProductList` และ `t11RemainingQty` ลงใน `summaryParts`
+     - ใน `loadData` เพิ่มการ Parse ข้อมูล `รายการตรวจเช็กสต็อก:`, `รายการสินค้าตรวจเช็ก:` และ `จำนวนคงเหลือสต็อก:` กลับมา Restore state `t11StockItems`, `t11ProductList` และ `t11RemainingQty` ทันที ทำให้ข้อมูลจำนวนคงเหลือและสินค้าไม่หายเมื่อเปิดกลับมาดู
+
 ### 2026-08-15: ดึงรายชื่อเกษตรกรจริงเข้าสู่ Dropdown "รายชื่อเกษตรกรเป้าหมายที่สนใจ" สำหรับ Type 10 (จัดงาน Field Day)
 - **คอมโพเนนต์ที่แก้ไข:** `actual-type10-field-day.tsx`, `actions.ts`
 - **การเปลี่ยนแปลง:**

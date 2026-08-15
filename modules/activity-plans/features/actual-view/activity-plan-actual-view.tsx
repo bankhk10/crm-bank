@@ -1767,6 +1767,31 @@ export default function ActivityPlanActualView({
               }
 
               // Type 11
+              const t11StockItemsMatch = summaryText.match(
+                /รายการตรวจเช็กสต็อก:\s*(.+)/,
+              );
+              if (t11StockItemsMatch && t11StockItemsMatch[1]) {
+                try {
+                  const parsed = JSON.parse(t11StockItemsMatch[1].trim());
+                  if (Array.isArray(parsed) && parsed.length > 0) {
+                    setT11StockItems(parsed);
+                  }
+                } catch (e) {
+                  console.error("Failed to parse t11StockItems", e);
+                }
+              }
+              const t11ProductMatch = summaryText.match(
+                /รายการสินค้าตรวจเช็ก:\s*(.+)/,
+              );
+              if (t11ProductMatch && t11ProductMatch[1]) {
+                setT11ProductList(t11ProductMatch[1].split("\n")[0].trim());
+              }
+              const t11QtyMatch = summaryText.match(
+                /จำนวนคงเหลือสต็อก:\s*(.+)/,
+              );
+              if (t11QtyMatch && t11QtyMatch[1]) {
+                setT11RemainingQty(t11QtyMatch[1].split("\n")[0].trim());
+              }
               const t11RemarksMatch = summaryText.match(
                 /ข้อสังเกตสต็อก:\s*(.+)/,
               );
@@ -2192,6 +2217,13 @@ export default function ActivityPlanActualView({
             : null,
 
           // Type 11
+          t11StockItems &&
+          t11StockItems.length > 0 &&
+          t11StockItems.some((i) => i.productName || i.remainingQty || i.remarks)
+            ? `รายการตรวจเช็กสต็อก: ${JSON.stringify(t11StockItems)}`
+            : null,
+          t11ProductList ? `รายการสินค้าตรวจเช็ก: ${t11ProductList}` : null,
+          t11RemainingQty ? `จำนวนคงเหลือสต็อก: ${t11RemainingQty}` : null,
           t11Remarks ? `ข้อสังเกตสต็อก: ${t11Remarks}` : null,
           t11StockStatus ? `สถานะสต็อก: ${t11StockStatus}` : null,
           t11ReorderOpportunity
@@ -2582,6 +2614,7 @@ export default function ActivityPlanActualView({
               <ActualType11Stock
                 isVisible={isTypeVisible("ตรวจเช็กสต็อกหน้าร้าน")}
                 target={targets.t11}
+                products={products}
                 stockItems={t11StockItems}
                 setStockItems={setT11StockItems}
                 productList={t11ProductList}
