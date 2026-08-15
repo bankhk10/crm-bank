@@ -88,9 +88,10 @@ export function ActualType10FieldDay({
       <ActualTargetCard
         iconColorClass="text-orange-600"
         badgeColorClass="bg-orange-100 text-orange-800"
-        gridColsClass="grid-cols-1 sm:grid-cols-3"
+        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
         items={[
           { label: "แปลงสาธิตจัดงาน:", value: target.plot },
+          { label: "สถานที่แปลง:", value: target.location || "-" },
           { label: "เป้าหมายผู้เข้าร่วม:", value: target.targetAttendees },
           {
             label: "เป้ายอดขาย/จอง:",

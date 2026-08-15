@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Sprout, CheckCircle2 } from "lucide-react";
+import { Sprout, CheckCircle2, MapPin } from "lucide-react";
 import { FormCombobox } from "@/components/custom/form-components";
 import { type UserDemoPlotOption } from "../../constants";
 import { getDemoPlotsAction } from "@/modules/activity-plans/server/actions";
@@ -19,6 +19,28 @@ interface Props {
   type10BookingSales: number;
   setType10BookingSales: (val: number) => void;
   demoPlots?: UserDemoPlotOption[];
+}
+
+function getPlotCoordinates(plot?: UserDemoPlotOption | null): string {
+  if (!plot) return "-";
+  const lat = plot.latitude ? String(plot.latitude).trim() : "";
+  const lng = plot.longitude ? String(plot.longitude).trim() : "";
+
+  if (lat && lng) {
+    return `${lat}, ${lng}`;
+  }
+  if (lat) return lat;
+  if (lng) return lng;
+
+  if (plot.location && plot.location.trim() !== "") {
+    const coordMatch = plot.location.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+    if (coordMatch) {
+      return `${coordMatch[1]}, ${coordMatch[2]}`;
+    }
+    return plot.location.trim();
+  }
+
+  return "-";
 }
 
 export function Type10FieldDay({
@@ -76,11 +98,14 @@ export function Type10FieldDay({
     (p) => p.name === type10DemoPlot || p.id === type10DemoPlot,
   );
 
-  const plotOptions = plotList.map((plot) => ({
-    value: plot.name,
-    label: plot.name,
-    subLabel: plot.location ? `สถานที่: ${plot.location}` : undefined,
-  }));
+  const plotOptions = plotList.map((plot) => {
+    const coords = getPlotCoordinates(plot);
+    return {
+      value: plot.name,
+      label: plot.name,
+      subLabel: coords !== "-" ? `พิกัด/สถานที่: ${coords}` : undefined,
+    };
+  });
 
   return (
     <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4">
@@ -104,7 +129,8 @@ export function Type10FieldDay({
               setType10DemoPlot(selectedName);
               const selected = plotList.find((p) => p.name === selectedName);
               if (selected) {
-                setType10Location(selected.location || "");
+                const loc = getPlotCoordinates(selected);
+                setType10Location(loc === "-" ? "" : loc);
                 setType10TargetCrop(
                   selected.targetCrop || selected.cropName || "",
                 );
@@ -159,13 +185,25 @@ export function Type10FieldDay({
                     {foundPlot.showcase || foundPlot.productName || "-"}
                   </span>
                 </div>
-                <div className="sm:col-span-2">
+                <div className="sm:col-span-2 flex flex-wrap items-center gap-1.5">
                   <span className="text-slate-500 font-medium">
                     สถานที่แปลง:
                   </span>{" "}
                   <span className="font-semibold text-slate-800">
-                    {foundPlot.location || "-"}
+                    {getPlotCoordinates(foundPlot)}
                   </span>
+                  {foundPlot.latitude && foundPlot.longitude && (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${foundPlot.latitude},${foundPlot.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 hover:underline ml-1 font-medium bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200"
+                      title="เปิดใน Google Maps"
+                    >
+                      <MapPin className="w-3 h-3 text-blue-500" />
+                      <span>เปิดแผนที่</span>
+                    </a>
+                  )}
                 </div>
                 {foundPlot.areaRai || foundPlot.treeCount ? (
                   <div>

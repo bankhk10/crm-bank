@@ -537,7 +537,30 @@ export async function recordActivityResultAction(planId: string, rawData: unknow
  */
 export async function getDemoPlotsAction() {
   try {
-    // 1. Fetch from Master DemoPlot table
+    // 1. Fetch Farmer Customers to retrieve farm plots created in customer-form-farmer
+    const farmerCustomers = await db.customer.findMany({
+      where: {
+        deletedAt: null,
+        customerType: "FARMER",
+      },
+      select: {
+        id: true,
+        name: true,
+        latitude: true,
+        longitude: true,
+        farmPlots: true,
+        addresses: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const farmerMap = new Map<string, (typeof farmerCustomers)[0]>();
+    farmerCustomers.forEach((f) => {
+      farmerMap.set(f.id, f);
+      if (f.name) farmerMap.set(f.name.trim(), f);
+    });
+
+    // 2. Fetch from Master DemoPlot table
     const masterPlots = await db.demoPlot.findMany({
       where: { deletedAt: null },
       include: {
@@ -564,11 +587,53 @@ export async function getDemoPlotsAction() {
         ),
       );
 
+      // Check coordinates from linked farmer customer or location field
+      const linkedCustomer =
+        (p.customerId && farmerMap.get(p.customerId)) ||
+        (p.ownerName && farmerMap.get(p.ownerName.trim()));
+
+      let plotLat: string | undefined = undefined;
+      let plotLng: string | undefined = undefined;
+
+      if (linkedCustomer) {
+        if (linkedCustomer.farmPlots && Array.isArray(linkedCustomer.farmPlots)) {
+          const matchedPlot = (linkedCustomer.farmPlots as any[]).find(
+            (fp) =>
+              (fp.cropType && fp.cropType === p.cropName) ||
+              (fp.latitude && fp.longitude),
+          );
+          if (matchedPlot) {
+            plotLat = matchedPlot.latitude ? String(matchedPlot.latitude).trim() : undefined;
+            plotLng = matchedPlot.longitude ? String(matchedPlot.longitude).trim() : undefined;
+          }
+        }
+        if (!plotLat && linkedCustomer.latitude) {
+          plotLat = String(linkedCustomer.latitude).trim();
+        }
+        if (!plotLng && linkedCustomer.longitude) {
+          plotLng = String(linkedCustomer.longitude).trim();
+        }
+      }
+
+      // Check if location string is formatted like "13.xxx, 100.xxx"
+      if (!plotLat && !plotLng && p.location) {
+        const coordMatch = p.location.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+        if (coordMatch) {
+          plotLat = coordMatch[1];
+          plotLng = coordMatch[2];
+        }
+      }
+
+      const formattedLocation =
+        plotLat && plotLng
+          ? `${plotLat}, ${plotLng}`
+          : p.location || (p.ownerName ? `แปลงสาธิต ${p.ownerName}` : "");
+
       return {
         id: p.id,
         code: p.code,
         name: p.name,
-        location: p.location || `แปลงสาธิต ${p.ownerName}`,
+        location: formattedLocation,
         targetCrop: p.customCropName || p.cropName,
         showcase: p.primaryProductName,
         ownerName: p.ownerName,
@@ -585,10 +650,90 @@ export async function getDemoPlotsAction() {
         daysSinceStart,
         objective: p.objective || undefined,
         experimentDetail: p.experimentDetail || undefined,
+        latitude: plotLat,
+        longitude: plotLng,
       };
     });
 
-    // 2. Fetch from ActivityPlanItem (legacy fallback for backward compatibility)
+    // 3. Add Farmer Farm Plots from customer-form-farmer records
+    farmerCustomers.forEach((farmer) => {
+      const farmerDisplayName = farmer.name || "เกษตรกร";
+      const plots = Array.isArray(farmer.farmPlots) ? (farmer.farmPlots as any[]) : [];
+
+      if (plots.length > 0) {
+        plots.forEach((plot, idx) => {
+          const lat = plot.latitude
+            ? String(plot.latitude).trim()
+            : farmer.latitude
+              ? String(farmer.latitude).trim()
+              : "";
+          const lng = plot.longitude
+            ? String(plot.longitude).trim()
+            : farmer.longitude
+              ? String(farmer.longitude).trim()
+              : "";
+
+          const cropName = plot.cropType || "";
+          const variety = plot.variety || "";
+          const targetCrop =
+            [cropName, variety].filter(Boolean).join(" ") || "พืชเกษตร";
+          const plotName = `${farmerDisplayName} - แปลงที่ ${idx + 1}${cropName ? ` (${cropName})` : ""}`;
+          const locDisplay = lat && lng ? `${lat}, ${lng}` : (lat ? `Lat: ${lat}` : (lng ? `Long: ${lng}` : ""));
+
+          // Avoid duplicates if plot is already listed
+          if (!realPlots.some((rp) => rp.name === plotName || rp.id === `farmer-${farmer.id}-plot-${idx + 1}`)) {
+            realPlots.push({
+              id: `farmer-${farmer.id}-plot-${idx + 1}`,
+              name: plotName,
+              location: locDisplay,
+              targetCrop,
+              showcase: "สินค้าสาธิต",
+              ownerName: farmerDisplayName,
+              cropCategory: "พืชไร่/พืชสวน",
+              cropName: cropName || "พืชเกษตร",
+              areaRai: plot.areaRai ? Number(plot.areaRai) : 0,
+              treeCount: 0,
+              startDate: "",
+              status: "IN_PROGRESS",
+              visitsCount: 0,
+              totalCost: 0,
+              daysSinceStart: 0,
+              latitude: lat || undefined,
+              longitude: lng || undefined,
+            });
+          }
+        });
+      } else {
+        const lat = farmer.latitude ? String(farmer.latitude).trim() : "";
+        const lng = farmer.longitude ? String(farmer.longitude).trim() : "";
+        const plotName = `${farmerDisplayName} (แปลงเกษตรกร)`;
+        const locDisplay = lat && lng ? `${lat}, ${lng}` : (lat ? `Lat: ${lat}` : (lng ? `Long: ${lng}` : ""));
+
+        if (!realPlots.some((rp) => rp.name === plotName || rp.ownerName === farmerDisplayName)) {
+          realPlots.push({
+            id: `farmer-${farmer.id}`,
+            name: plotName,
+            location: locDisplay,
+            targetCrop: "พืชเกษตร",
+            showcase: "สินค้าสาธิต",
+            ownerName: farmerDisplayName,
+            cropCategory: "พืชไร่/พืชสวน",
+            cropName: "พืชเกษตร",
+            areaRai: 0,
+            treeCount: 0,
+            startDate: "",
+            status: "IN_PROGRESS",
+            visitsCount: 0,
+            totalCost: 0,
+            daysSinceStart: 0,
+            latitude: lat || undefined,
+            longitude: lng || undefined,
+          });
+        }
+      }
+    });
+
+    // 4. Fetch from ActivityPlanItem (legacy fallback for backward compatibility)
     const items = await db.activityPlanItem.findMany({
       where: {
         activityPlan: { deletedAt: null },

@@ -1264,6 +1264,18 @@ export default function ActivityPlanActualView({
               t10: {
                 ...prev.t10,
                 plot: t10Item?.customerName || allCustomers || "",
+                location: (() => {
+                  const match = t10Item?.detail?.match(/สถานที่:\s*([^|]+)/);
+                  return match ? match[1].trim() : (p.location || prev.t10.location || "");
+                })(),
+                targetAttendees: (() => {
+                  const match = t10Item?.detail?.match(/ผู้ร่วมงาน:\s*([^|]+)/);
+                  return match ? match[1].trim() : (prev.t10.targetAttendees || "");
+                })(),
+                targetSales: (() => {
+                  const match = t10Item?.detail?.match(/เป้ายอดจอง:\s*([^|]+)/);
+                  return match ? match[1].trim() : (prev.t10.targetSales || "");
+                })(),
               },
               t11: {
                 ...prev.t11,

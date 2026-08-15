@@ -245,6 +245,19 @@ modules/activity-plans/
     - อนุมัติคำขอพนักงานช่วยงาน (Helper Requests) ได้ทั้งหมดในครั้งเดียว
   - **Full Visibility in Approval Hub:** แสดงรายการคิวงานทั้งหมดให้ Administrator มองเห็นและจัดการได้ทันที พร้อมแถบป้ายสถานะ `👑 สิทธิ์ Administrator`
 
+### 2026-08-15: เชื่อมโยงข้อมูลพิกัด (Latitude / Longitude) จากแปลงเกษตรกรเข้าสู่ Type 10 (จัดงาน Field Day)
+- **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `type10-field-day.tsx`, `actions.ts`, `constants.ts`, `activity-plan-actual-view.tsx`, `actual-type10-field-day.tsx`
+- **ความต้องการ:**
+  - ในช่อง **สถานที่แปลง** ของ Type 10 ให้ดึงข้อมูล **Latitude / Longitude** จากข้อมูลแปลงเกษตรของเกษตรกร (`farmPlots`) ที่บันทึกไว้ในหน้า `customer-form-farmer.tsx`
+  - หากมี Latitude / Longitude ให้แสดงค่าจริง (เช่น `13.7563, 100.5018`) พร้อมปุ่มเปิด Google Maps
+  - หากไม่มีข้อมูล ให้แสดง `-`
+  - นำข้อมูลที่มีอยู่เดิมมาแสดงโดยไม่สร้างข้อมูลซ้ำ และไม่กระทบ Work Type อื่น
+- **การแก้ไข:**
+  - เพิ่มฟิลด์ `latitude` และ `longitude` ใน `UserDemoPlotOption`
+  - ปรับปรุง `getDemoPlotsAction` ให้ดึงข้อมูลแปลงเกษตรกร (`farmPlots`) ของ Customer ประเภท `FARMER` พร้อมสกัดค่า Latitude / Longitude และนำมารวมในรายการแปลงสาธิต/แปลงเกษตรกรโดยไม่ซ้ำซ้อน
+  - ปรับปรุง `type10-field-day.tsx` ให้แสดงพิกัดจริง `Latitude, Longitude` ในช่องสถานที่แปลง และในป้ายกำกับของตัวเลือกแปลง
+  - ปรับ `actual-type10-field-day.tsx` และ `activity-plan-actual-view.tsx` ให้แสดงข้อมูลสถานที่แปลงที่ผูกกับพิกัดใน Actual Target Card ได้ถูกต้อง
+
 ### 2026-08-15: ปรับปรุง Data Flow & บันทึกยอดขายจริงรายสินค้าสำหรับ Type 9 (จัดกิจกรรมส่งเสริมการขายหน้าร้าน)
 - **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `actual-type9-store.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-form.tsx`
 - **ปัญหา & ข้อกำหนดใหม่:**

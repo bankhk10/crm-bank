@@ -374,6 +374,8 @@ export interface UserDemoPlotOption {
   daysSinceStart?: number;
   objective?: string;
   experimentDetail?: string;
+  latitude?: string;
+  longitude?: string;
 }
 
 export const USER_DEMO_PLOTS: UserDemoPlotOption[] = [
