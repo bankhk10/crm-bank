@@ -206,9 +206,12 @@ export default function ActivityPlanActualView({
     },
     t9: {
       store: "",
+      isSubDealer: false,
+      subDealerStore: "",
       product: "",
       targetSales: "",
       targetAttendees: "",
+      items: [] as any[],
     },
     t10: {
       plot: "",
@@ -912,12 +915,92 @@ export default function ActivityPlanActualView({
                   i.meetingAttendeesCount != null,
               );
 
-            const t9Item = allItems.find(
+            const type9DbItems = allItems.filter(
               (i) =>
-                i.itemType === "TYPE_9" ||
-                i.storeProductName ||
-                i.storeTotalAmount != null,
+                i.itemType !== "MARKETING_PRODUCT" &&
+                i.itemType !== "SALES_PROMOTION" &&
+                i.visitTopic !== "MARKETING_PRODUCT" &&
+                i.visitTopic !== "SALES_PROMOTION" &&
+                (i.itemType === "TYPE_9" ||
+                  (i.storeProductName && !i.plotCropCategory) ||
+                  (i.storeTotalAmount != null && !i.plotCropCategory)),
             );
+
+            const t9Item =
+              type9DbItems[0] ||
+              allItems.find(
+                (i) =>
+                  i.itemType === "TYPE_9" ||
+                  i.storeProductName ||
+                  i.storeTotalAmount != null,
+              );
+
+            const t9ItemsFromDb =
+              type9DbItems.length > 0
+                ? type9DbItems
+                    .filter((i) => i.storeProductName)
+                    .map((item, idx) => ({
+                      id: item.id || String(idx + 1),
+                      productName: item.storeProductName || "",
+                      quantityCases: item.storeQuantityCases
+                        ? Number(item.storeQuantityCases)
+                        : 0,
+                      pricePerCase: item.storePricePerCase
+                        ? Number(item.storePricePerCase)
+                        : 0,
+                      totalAmount: item.storeTotalAmount
+                        ? Number(item.storeTotalAmount)
+                        : (Number(item.storeQuantityCases) || 0) *
+                          (Number(item.storePricePerCase) || 0),
+                    }))
+                : [];
+
+            const rawCustomerName =
+              type9DbItems.find((i) => i.customerName)?.customerName ||
+              t9Item?.customerName ||
+              "";
+
+            let t9MainStore = rawCustomerName;
+            let t9IsSubDealer = false;
+            let t9SubDealerStore = "";
+
+            const subDealerMatch = rawCustomerName.match(
+              /^(.*?)\s*\((?:ร้าน\s*)?Sub Dealer:\s*(.*?)\)$/i,
+            );
+            if (subDealerMatch) {
+              t9MainStore = subDealerMatch[1].trim();
+              t9IsSubDealer = true;
+              t9SubDealerStore = subDealerMatch[2].trim();
+            } else if (p.objective) {
+              const objMatch = p.objective.match(
+                /\[กิจกรรมหน้าร้าน\].*?ร้านค้า:\s*([^|\n]+)/i,
+              );
+              if (objMatch) {
+                const rawObjStore = objMatch[1].trim();
+                const match = rawObjStore.match(
+                  /^(.*?)\s*\((?:ร้าน\s*)?Sub Dealer:\s*(.*?)\)$/i,
+                );
+                if (match) {
+                  if (!t9MainStore) t9MainStore = match[1].trim();
+                  t9IsSubDealer = true;
+                  t9SubDealerStore = match[2].trim();
+                }
+              }
+            }
+
+            const t9TotalSales = type9DbItems.reduce(
+              (sum, item) =>
+                sum +
+                (item.storeTotalAmount != null
+                  ? Number(item.storeTotalAmount)
+                  : (Number(item.storeQuantityCases) || 0) *
+                    (Number(item.storePricePerCase) || 0)),
+              0,
+            );
+
+            const t9ProductSummary = t9ItemsFromDb
+              .map((prod) => `${prod.productName} (${prod.quantityCases} ลัง)`)
+              .join(", ");
 
             const t10Item = allItems.find((i) => i.itemType === "TYPE_10");
             const t11Item = allItems.find((i) => i.itemType === "TYPE_11");
@@ -1159,14 +1242,21 @@ export default function ActivityPlanActualView({
               t9: {
                 ...prev.t9,
                 store:
-                  t9Item?.customerName ||
+                  t9MainStore ||
+                  rawCustomerName ||
                   t9Item?.surveyStoreName ||
                   allCustomers ||
                   "",
-                product: t9Item?.storeProductName || "",
-                targetSales: t9Item?.storeTotalAmount
-                  ? `${Number(t9Item.storeTotalAmount).toLocaleString()} บาท`
-                  : "",
+                isSubDealer: t9IsSubDealer,
+                subDealerStore: t9SubDealerStore,
+                product: t9ProductSummary || t9Item?.storeProductName || "",
+                targetSales:
+                  t9TotalSales > 0
+                    ? `${t9TotalSales.toLocaleString()} บาท`
+                    : t9Item?.storeTotalAmount
+                      ? `${Number(t9Item.storeTotalAmount).toLocaleString()} บาท`
+                      : "",
+                items: t9ItemsFromDb,
               },
               t10: {
                 ...prev.t10,

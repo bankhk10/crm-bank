@@ -1,19 +1,30 @@
 "use client";
 
 import React from "react";
-import { Store, X } from "lucide-react";
+import { Store, Package, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
 import { ImageFile } from "../../types";
 
+export interface Type9TargetProductItem {
+  id?: string;
+  productName: string;
+  quantityCases?: number;
+  pricePerCase?: number;
+  totalAmount?: number;
+}
+
 interface ActualType9StoreProps {
   isVisible: boolean;
   target: {
     store: string;
-    product: string;
+    isSubDealer?: boolean;
+    subDealerStore?: string;
+    product?: string;
     targetSales: string;
-    targetAttendees: string;
+    targetAttendees?: string;
+    items?: Type9TargetProductItem[];
   };
   formats: string[];
   setFormats: (v: string[]) => void;
@@ -49,6 +60,30 @@ export function ActualType9Store({
     }
   };
 
+  const targetCardItems = [
+    {
+      label: target.isSubDealer ? "ร้านค้าหลัก (Dealer):" : "ร้านค้าจัดกิจกรรม:",
+      value: target.store || "-",
+    },
+    ...(target.isSubDealer && target.subDealerStore
+      ? [
+          {
+            label: "ชื่อร้านค้า Sub Dealer:",
+            value: target.subDealerStore,
+            highlight: true,
+          },
+        ]
+      : []),
+    {
+      label: "เป้ายอดขายหน้าร้าน:",
+      value: target.targetSales || "-",
+      highlight: true,
+    },
+    ...(target.targetAttendees
+      ? [{ label: "เป้าหมายผู้เข้าร่วม:", value: target.targetAttendees }]
+      : []),
+  ];
+
   return (
     <div className="border-2 border-blue-600 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
       <div className="flex items-center justify-between border-b border-blue-100 pb-3">
@@ -62,17 +97,94 @@ export function ActualType9Store({
       <ActualTargetCard
         iconColorClass="text-blue-600"
         badgeColorClass="bg-blue-100 text-blue-800"
-        gridColsClass="grid-cols-1 sm:grid-cols-3"
-        items={[
-          { label: "ร้านค้าจัดกิจกรรม:", value: target.store },
-          {
-            label: "เป้ายอดขายหน้าร้าน:",
-            value: target.targetSales,
-            highlight: true,
-          },
-          { label: "เป้าหมายผู้เข้าร่วม:", value: target.targetAttendees },
-        ]}
+        gridColsClass={cn(
+          "grid-cols-1 sm:grid-cols-2",
+          targetCardItems.length >= 3 && "md:grid-cols-3",
+          targetCardItems.length >= 4 && "lg:grid-cols-4",
+        )}
+        items={targetCardItems}
       />
+
+      {/* Planned Products Table */}
+      {target.items && target.items.length > 0 && (
+        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <Package className="w-4 h-4 text-blue-600" />
+              รายการสินค้าที่เสนอขาย / โปรโมชันหน้าร้าน (ตามแผนงาน):
+            </span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+              {target.items.length} รายการ
+            </span>
+          </div>
+
+          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                <tr>
+                  <th className="py-2 px-3 text-center w-10">ลำดับ</th>
+                  <th className="py-2 px-3 min-w-[180px]">สินค้า</th>
+                  <th className="py-2 px-3 w-28 text-center">จำนวน (ลัง)</th>
+                  <th className="py-2 px-3 w-32 text-right">ราคา/ลัง (บาท)</th>
+                  <th className="py-2 px-3 w-36 text-right">ยอดรวมเป้าหมาย</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-800">
+                {target.items.map((item, idx) => {
+                  const lineTotal =
+                    item.totalAmount != null
+                      ? item.totalAmount
+                      : (item.quantityCases || 0) * (item.pricePerCase || 0);
+                  return (
+                    <tr key={item.id || idx} className="hover:bg-slate-50/60">
+                      <td className="py-2 px-3 text-center font-medium text-slate-400">
+                        {idx + 1}
+                      </td>
+                      <td className="py-2 px-3 font-semibold text-slate-900">
+                        {item.productName || "-"}
+                      </td>
+                      <td className="py-2 px-3 text-center">
+                        {item.quantityCases != null
+                          ? `${item.quantityCases.toLocaleString()} ลัง`
+                          : "-"}
+                      </td>
+                      <td className="py-2 px-3 text-right">
+                        {item.pricePerCase != null
+                          ? `฿${Number(item.pricePerCase).toLocaleString()}`
+                          : "-"}
+                      </td>
+                      <td className="py-2 px-3 text-right font-semibold text-blue-700">
+                        ฿{lineTotal.toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot className="bg-blue-50/50 border-t border-blue-100 font-semibold text-xs">
+                <tr>
+                  <td colSpan={4} className="py-2 px-3 text-right text-slate-700">
+                    รวมเป้ายอดขายสินค้า:
+                  </td>
+                  <td className="py-2 px-3 text-right text-blue-800 font-bold">
+                    ฿
+                    {target.items
+                      .reduce(
+                        (sum, item) =>
+                          sum +
+                          (item.totalAmount != null
+                            ? item.totalAmount
+                            : (item.quantityCases || 0) *
+                              (item.pricePerCase || 0)),
+                        0,
+                      )
+                      .toLocaleString()}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1.5">

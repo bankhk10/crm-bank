@@ -995,26 +995,98 @@ export function ActivityPlanForm({
             i.storeProductName &&
             !i.plotCropCategory),
       );
-      if (item) return item.customerName || "";
+      if (item && item.customerName) {
+        const match = item.customerName.match(
+          /^(.*?)\s*\((?:ร้าน\s*)?Sub Dealer:\s*(.*?)\)$/i,
+        );
+        if (match) return match[1].trim();
+        return item.customerName;
+      }
     }
     return "";
   });
-  const [type9IsSubDealer, setType9IsSubDealer] = useState(
-    initDetails?.type9IsSubDealer ?? false,
-  );
-  const [type9SubDealerStore, setType9SubDealerStore] = useState(
-    initDetails?.type9SubDealerStore ?? "",
-  );
-  const [type9Sales, setType9Sales] = useState<number>(
-    initDetails?.type9Sales ?? 0,
-  );
+  const [type9IsSubDealer, setType9IsSubDealer] = useState(() => {
+    if (initDetails?.type9IsSubDealer !== undefined)
+      return initDetails.type9IsSubDealer;
+    if (Array.isArray(initDetails)) {
+      const item = initDetails.find(
+        (i: any) =>
+          i.itemType === "TYPE_9" ||
+          (i.itemType !== "MARKETING_PRODUCT" &&
+            i.itemType !== "SALES_PROMOTION" &&
+            i.visitTopic !== "MARKETING_PRODUCT" &&
+            i.visitTopic !== "SALES_PROMOTION" &&
+            i.storeProductName &&
+            !i.plotCropCategory),
+      );
+      if (item && item.customerName) {
+        return /\((?:ร้าน\s*)?Sub Dealer:/i.test(item.customerName);
+      }
+    }
+    return false;
+  });
+  const [type9SubDealerStore, setType9SubDealerStore] = useState(() => {
+    if (initDetails?.type9SubDealerStore !== undefined)
+      return initDetails.type9SubDealerStore;
+    if (Array.isArray(initDetails)) {
+      const item = initDetails.find(
+        (i: any) =>
+          i.itemType === "TYPE_9" ||
+          (i.itemType !== "MARKETING_PRODUCT" &&
+            i.itemType !== "SALES_PROMOTION" &&
+            i.visitTopic !== "MARKETING_PRODUCT" &&
+            i.visitTopic !== "SALES_PROMOTION" &&
+            i.storeProductName &&
+            !i.plotCropCategory),
+      );
+      if (item && item.customerName) {
+        const match = item.customerName.match(
+          /\((?:ร้าน\s*)?Sub Dealer:\s*(.*?)\)/i,
+        );
+        if (match) return match[1].trim();
+      }
+    }
+    return "";
+  });
+  const [type9Sales, setType9Sales] = useState<number>(() => {
+    if (initDetails?.type9Sales !== undefined) return initDetails.type9Sales;
+    if (Array.isArray(initDetails)) {
+      const items = initDetails.filter(
+        (i: any) =>
+          i.itemType === "TYPE_9" ||
+          (i.itemType !== "MARKETING_PRODUCT" &&
+            i.itemType !== "SALES_PROMOTION" &&
+            i.visitTopic !== "MARKETING_PRODUCT" &&
+            i.visitTopic !== "SALES_PROMOTION" &&
+            i.storeProductName &&
+            !i.plotCropCategory),
+      );
+      if (items.length > 0) {
+        const sum = items.reduce(
+          (acc: number, cur: any) =>
+            acc +
+            (cur.storeTotalAmount != null
+              ? Number(cur.storeTotalAmount)
+              : (Number(cur.storeQuantityCases) || 0) *
+                (Number(cur.storePricePerCase) || 0)),
+          0,
+        );
+        if (sum > 0) return sum;
+      }
+    }
+    return 0;
+  });
   const [type9Products, setType9Products] = useState(
     initDetails?.type9Products ?? "",
   );
   const [type9ProductItems, setType9ProductItems] = useState<
     Type9ProductItem[]
   >(() => {
-    if (initDetails?.type9ProductItems && Array.isArray(initDetails.type9ProductItems) && initDetails.type9ProductItems.length > 0) {
+    if (
+      initDetails?.type9ProductItems &&
+      Array.isArray(initDetails.type9ProductItems) &&
+      initDetails.type9ProductItems.length > 0
+    ) {
       return initDetails.type9ProductItems;
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
@@ -1024,16 +1096,20 @@ export function ActivityPlanForm({
           item.itemType !== "SALES_PROMOTION" &&
           item.visitTopic !== "MARKETING_PRODUCT" &&
           item.visitTopic !== "SALES_PROMOTION" &&
-          (item.itemType === "TYPE_9" || (item.storeProductName && !item.plotCropCategory))
+          (item.itemType === "TYPE_9" ||
+            (item.storeProductName && !item.plotCropCategory)),
       );
-      if (items.length > 0) {
-        return items.map((item: any, idx: number) => ({
+      const mapped = items
+        .filter((item: any) => item.storeProductName || item.productName)
+        .map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
           productName: item.storeProductName || item.productName || "",
           quantityCases: item.storeQuantityCases ?? item.quantityCases ?? 0,
-          pricePerCase: item.storePricePerCase ? Number(item.storePricePerCase) : (item.pricePerCase ?? 0),
+          pricePerCase: item.storePricePerCase
+            ? Number(item.storePricePerCase)
+            : item.pricePerCase ?? 0,
         }));
-      }
+      if (mapped.length > 0) return mapped;
     }
     return [
       {
@@ -1791,20 +1867,37 @@ export function ActivityPlanForm({
             });
           });
         } else if (workType === "จัดกิจกรรมส่งเสริมการขายหน้าร้าน") {
-          type9ProductItems.forEach((item) => {
+          const finalCustomerName =
+            type9IsSubDealer && type9SubDealerStore
+              ? `${type9Store} (Sub Dealer: ${type9SubDealerStore})`
+              : type9Store;
+
+          const validProductItems = type9ProductItems.filter(
+            (item) => item.productName && item.productName.trim() !== "",
+          );
+
+          if (validProductItems.length > 0) {
+            validProductItems.forEach((item) => {
+              allItemsToSend.push({
+                itemType: "TYPE_9",
+                customerName: finalCustomerName,
+                storeProductName: item.productName,
+                storeQuantityCases: item.quantityCases,
+                storePricePerCase: item.pricePerCase,
+                storeTotalAmount:
+                  (item.quantityCases || 0) * (item.pricePerCase || 0),
+              });
+            });
+          } else if (finalCustomerName) {
             allItemsToSend.push({
               itemType: "TYPE_9",
-              customerName:
-                type9IsSubDealer && type9SubDealerStore
-                  ? `${type9Store} (Sub Dealer: ${type9SubDealerStore})`
-                  : type9Store,
-              storeProductName: item.productName,
-              storeQuantityCases: item.quantityCases,
-              storePricePerCase: item.pricePerCase,
-              storeTotalAmount:
-                (item.quantityCases || 0) * (item.pricePerCase || 0),
+              customerName: finalCustomerName,
+              storeProductName: null,
+              storeQuantityCases: null,
+              storePricePerCase: null,
+              storeTotalAmount: type9Sales || null,
             });
-          });
+          }
         } else if (workType === "จัดงาน Field Day") {
           if (type10DemoPlot) {
             allItemsToSend.push({
