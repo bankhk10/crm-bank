@@ -344,16 +344,25 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
           saleProductName: item.saleProductName ?? item.productName ?? null,
           saleQuantity: item.saleQuantity ?? item.quantity ?? null,
           saleUnitPrice: item.saleUnitPrice != null ? new Prisma.Decimal(item.saleUnitPrice) : (item.unitPrice != null ? new Prisma.Decimal(item.unitPrice) : null),
-          saleTotalPrice: item.saleTotalPrice != null ? new Prisma.Decimal(item.saleTotalPrice) : (item.price != null ? new Prisma.Decimal(item.price) : null),
+          saleTotalPrice:
+            item.saleTotalPrice != null
+              ? new Prisma.Decimal(item.saleTotalPrice)
+              : item.bookingSales != null
+                ? new Prisma.Decimal(item.bookingSales)
+                : item.targetSales != null
+                  ? new Prisma.Decimal(item.targetSales)
+                  : item.price != null
+                    ? new Prisma.Decimal(item.price)
+                    : null,
           collectAmount: item.collectAmount != null ? new Prisma.Decimal(item.collectAmount) : null,
           surveyCompetitorProduct: item.surveyCompetitorProduct ?? item.comparedProduct ?? null,
           surveyStoreName: item.surveyStoreName ?? item.storeName ?? null,
           issueType: item.issueType ?? null,
           plotActivityType: item.plotActivityType ?? null,
           plotOwnerName: item.plotOwnerName ?? item.ownerName ?? null,
-          plotProductName: item.plotProductName ?? item.productName ?? null,
+          plotProductName: item.plotProductName ?? item.showcase ?? item.productName ?? null,
           plotCropCategory: item.plotCropCategory ?? item.cropCategory ?? null,
-          plotCropName: item.plotCropName ?? item.cropName ?? item.customCropName ?? null,
+          plotCropName: item.plotCropName ?? item.targetCrop ?? item.cropName ?? item.customCropName ?? null,
           plotAreaRai: item.plotAreaRai ? new Prisma.Decimal(item.plotAreaRai) : (item.areaRai ? new Prisma.Decimal(item.areaRai) : null),
           plotTreeCount: item.plotTreeCount ?? item.treeCount ?? null,
           plotCount:
@@ -366,7 +375,7 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
           plotGrowthStage: item.plotGrowthStage ?? item.growthStage ?? null,
           plotStatus: item.plotStatus ?? null,
           meetingTopic: item.meetingTopic ?? item.topic ?? null,
-          meetingAttendeesCount: item.meetingAttendeesCount ?? item.attendeesCount ?? null,
+          meetingAttendeesCount: item.meetingAttendeesCount ?? item.targetAttendees ?? item.attendeesCount ?? null,
           meetingTargetProducts: item.meetingTargetProducts ? (Array.isArray(item.meetingTargetProducts) ? item.meetingTargetProducts.join(",") : String(item.meetingTargetProducts)) : null,
           storeProductName: item.storeProductName ?? item.productName ?? null,
           storeQuantityCases: item.storeQuantityCases ?? item.quantityCases ?? null,
@@ -490,16 +499,25 @@ export async function updateActivityPlan(
             saleProductName: item.saleProductName ?? item.productName ?? null,
             saleQuantity: item.saleQuantity ?? item.quantity ?? null,
             saleUnitPrice: item.saleUnitPrice != null ? new Prisma.Decimal(item.saleUnitPrice) : (item.unitPrice != null ? new Prisma.Decimal(item.unitPrice) : null),
-            saleTotalPrice: item.saleTotalPrice != null ? new Prisma.Decimal(item.saleTotalPrice) : (item.price != null ? new Prisma.Decimal(item.price) : null),
+            saleTotalPrice:
+              item.saleTotalPrice != null
+                ? new Prisma.Decimal(item.saleTotalPrice)
+                : item.bookingSales != null
+                  ? new Prisma.Decimal(item.bookingSales)
+                  : item.targetSales != null
+                    ? new Prisma.Decimal(item.targetSales)
+                    : item.price != null
+                      ? new Prisma.Decimal(item.price)
+                      : null,
             collectAmount: item.collectAmount != null ? new Prisma.Decimal(item.collectAmount) : null,
             surveyCompetitorProduct: item.surveyCompetitorProduct ?? item.comparedProduct ?? null,
             surveyStoreName: item.surveyStoreName ?? item.storeName ?? null,
             issueType: item.issueType ?? null,
             plotActivityType: item.plotActivityType ?? null,
             plotOwnerName: item.plotOwnerName ?? item.ownerName ?? null,
-            plotProductName: item.plotProductName ?? item.productName ?? null,
+            plotProductName: item.plotProductName ?? item.showcase ?? item.productName ?? null,
             plotCropCategory: item.plotCropCategory ?? item.cropCategory ?? null,
-            plotCropName: item.plotCropName ?? item.cropName ?? item.customCropName ?? null,
+            plotCropName: item.plotCropName ?? item.targetCrop ?? item.cropName ?? item.customCropName ?? null,
             plotAreaRai: item.plotAreaRai ? new Prisma.Decimal(item.plotAreaRai) : (item.areaRai ? new Prisma.Decimal(item.areaRai) : null),
             plotTreeCount: item.plotTreeCount ?? item.treeCount ?? null,
             plotCount:
@@ -512,7 +530,7 @@ export async function updateActivityPlan(
             plotGrowthStage: item.plotGrowthStage ?? item.growthStage ?? null,
             plotStatus: item.plotStatus ?? null,
             meetingTopic: item.meetingTopic ?? item.topic ?? null,
-            meetingAttendeesCount: item.meetingAttendeesCount ?? item.attendeesCount ?? null,
+            meetingAttendeesCount: item.meetingAttendeesCount ?? item.targetAttendees ?? item.attendeesCount ?? null,
             meetingTargetProducts: item.meetingTargetProducts ? (Array.isArray(item.meetingTargetProducts) ? item.meetingTargetProducts.join(",") : String(item.meetingTargetProducts)) : null,
             storeProductName: item.storeProductName ?? item.productName ?? null,
             storeQuantityCases: item.storeQuantityCases ?? item.quantityCases ?? null,

@@ -1425,19 +1425,21 @@ function extractWorkTypeSections(
     (i) =>
       i.itemType !== "MARKETING_PRODUCT" &&
       i.itemType !== "SALES_PROMOTION" &&
+      i.itemType !== "TYPE_10" &&
       i.visitTopic !== "MARKETING_PRODUCT" &&
       i.visitTopic !== "SALES_PROMOTION" &&
       (i.itemType === "TYPE_7" ||
         i.plotActivityType ||
-        (i.plotCropName && !i.storePricePerCase) ||
-        (i.plotOwnerName && !i.storePricePerCase) ||
-        i.plotAreaRai != null),
+        (i.plotCropName && !i.storePricePerCase && !i.itemType) ||
+        (i.plotOwnerName && !i.storePricePerCase && !i.itemType) ||
+        (i.plotAreaRai != null && !i.itemType)),
   );
   const t7Line = objectiveLines.find(
     (l) =>
       l.includes("[ติดตามแปลงสาธิต") ||
-      l.includes("แปลงสาธิต") ||
-      l.includes("ทำแปลง"),
+      l.includes("ติดตามแปลงสาธิต / ทำแปลง") ||
+      l.includes("ทำแปลงสาธิต") ||
+      (l.includes("ทำแปลง") && !l.includes("Field Day") && !l.includes("[Field Day]")),
   );
   if (type7DbItems.length > 0 || t7Line) {
     const list =

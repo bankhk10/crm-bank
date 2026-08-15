@@ -90,12 +90,12 @@ export function ActualType10FieldDay({
         badgeColorClass="bg-orange-100 text-orange-800"
         gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
         items={[
-          { label: "แปลงสาธิตจัดงาน:", value: target.plot },
+          { label: "แปลงสาธิตจัดงาน:", value: target.plot || "-" },
           { label: "สถานที่แปลง:", value: target.location || "-" },
-          { label: "เป้าหมายผู้เข้าร่วม:", value: target.targetAttendees },
+          { label: "เป้าหมายผู้เข้าร่วม:", value: target.targetAttendees || "-" },
           {
             label: "เป้ายอดขาย/จอง:",
-            value: target.targetSales,
+            value: target.targetSales || "-",
             highlight: true,
           },
         ]}

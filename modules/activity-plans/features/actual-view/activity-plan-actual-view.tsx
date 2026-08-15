@@ -536,8 +536,7 @@ export default function ActivityPlanActualView({
             if (
               objectiveText.includes("[ติดตามแปลงสาธิต") ||
               objectiveText.includes("ติดตามแปลงสาธิต / ทำแปลง") ||
-              objectiveText.includes("ทำแปลงสาธิต") ||
-              objectiveText.includes("แปลงสาธิต")
+              objectiveText.includes("ทำแปลงสาธิต")
             ) {
               detectedWorkTypes.add(WORK_TYPES[6]);
             }
@@ -612,10 +611,11 @@ export default function ActivityPlanActualView({
               }
               if (
                 item.itemType === "TYPE_7" ||
-                item.plotActivityType ||
-                item.plotCropName ||
-                item.plotOwnerName ||
-                item.plotAreaRai != null
+                (item.itemType !== "TYPE_10" &&
+                  (item.plotActivityType ||
+                    (item.plotCropName && !item.storePricePerCase && !item.itemType) ||
+                    (item.plotOwnerName && !item.storePricePerCase && !item.itemType) ||
+                    (item.plotAreaRai != null && !item.itemType)))
               ) {
                 detectedWorkTypes.add(WORK_TYPES[6]);
               }
@@ -636,7 +636,11 @@ export default function ActivityPlanActualView({
               ) {
                 detectedWorkTypes.add(WORK_TYPES[8]);
               }
-              if (item.itemType === "TYPE_10") {
+              if (
+                item.itemType === "TYPE_10" ||
+                item.meetingTopic?.includes("Field Day") ||
+                (item.detail && item.detail.includes("จัดงาน Field Day"))
+              ) {
                 detectedWorkTypes.add(WORK_TYPES[9]);
               }
               if (item.itemType === "TYPE_11") {
@@ -1263,18 +1267,51 @@ export default function ActivityPlanActualView({
               },
               t10: {
                 ...prev.t10,
-                plot: t10Item?.customerName || allCustomers || "",
+                plot: t10Item?.customerName || t10Item?.plotOwnerName || allCustomers || "",
                 location: (() => {
-                  const match = t10Item?.detail?.match(/สถานที่:\s*([^|]+)/);
-                  return match ? match[1].trim() : (p.location || prev.t10.location || "");
+                  if (t10Item?.detail) {
+                    const match = t10Item.detail.match(/สถานที่:\s*([^|]+)/);
+                    if (match) return match[1].trim();
+                  }
+                  return p.location || prev.t10.location || "";
+                })(),
+                showcase: (() => {
+                  if (t10Item?.plotProductName) return t10Item.plotProductName;
+                  if (t10Item?.detail) {
+                    const match = t10Item.detail.match(/สินค้าโชว์:\s*([^|]+)/);
+                    if (match) return match[1].trim();
+                  }
+                  return "";
                 })(),
                 targetAttendees: (() => {
-                  const match = t10Item?.detail?.match(/ผู้ร่วมงาน:\s*([^|]+)/);
-                  return match ? match[1].trim() : (prev.t10.targetAttendees || "");
+                  if (t10Item?.meetingAttendeesCount != null && Number(t10Item.meetingAttendeesCount) > 0) {
+                    return `${t10Item.meetingAttendeesCount} คน`;
+                  }
+                  if (t10Item?.targetAttendees != null && Number(t10Item.targetAttendees) > 0) {
+                    return `${t10Item.targetAttendees} คน`;
+                  }
+                  if (t10Item?.detail) {
+                    const match = t10Item.detail.match(/ผู้ร่วมงาน:\s*([^|]+)/);
+                    if (match) return match[1].trim();
+                  }
+                  const objMatch = objectiveText.match(/ผู้ร่วมงาน:\s*([^|,\n]+)/);
+                  if (objMatch) return objMatch[1].trim();
+                  return prev.t10.targetAttendees || "";
                 })(),
                 targetSales: (() => {
-                  const match = t10Item?.detail?.match(/เป้ายอดจอง:\s*([^|]+)/);
-                  return match ? match[1].trim() : (prev.t10.targetSales || "");
+                  if (t10Item?.saleTotalPrice != null && Number(t10Item.saleTotalPrice) > 0) {
+                    return `฿${Number(t10Item.saleTotalPrice).toLocaleString()}`;
+                  }
+                  if (t10Item?.targetSales != null && Number(t10Item.targetSales) > 0) {
+                    return `฿${Number(t10Item.targetSales).toLocaleString()}`;
+                  }
+                  if (t10Item?.detail) {
+                    const match = t10Item.detail.match(/เป้ายอดจอง:\s*([^|]+)/);
+                    if (match) return match[1].trim();
+                  }
+                  const objMatch = objectiveText.match(/เป้ายอดจอง:\s*([^|,\n]+)/);
+                  if (objMatch) return objMatch[1].trim();
+                  return prev.t10.targetSales || "";
                 })(),
               },
               t11: {

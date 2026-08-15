@@ -245,6 +245,17 @@ modules/activity-plans/
     - อนุมัติคำขอพนักงานช่วยงาน (Helper Requests) ได้ทั้งหมดในครั้งเดียว
   - **Full Visibility in Approval Hub:** แสดงรายการคิวงานทั้งหมดให้ Administrator มองเห็นและจัดการได้ทันที พร้อมแถบป้ายสถานะ `👑 สิทธิ์ Administrator`
 
+### 2026-08-15: แก้ปัญหา Data Flow และการแสดงผลประเภทงานสำหรับ Type 10 (จัดงาน Field Day)
+- **คอมโพเนนต์ที่แก้ไข:** `activity-plan-form.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-detail-view.tsx`, `activity-plan.repository.ts`, `actual-type10-field-day.tsx`
+- **สาเหตุของปัญหา:**
+  1. **แสดงประเภทงานผิด (มีส่วนทำแปลงสาธิต Type 7 โผล่ขึ้นมา):** ใน `activity-plan-actual-view.tsx` และ `activity-plan-detail-view.tsx` มี logic ตรวจจับข้อความ `objectiveText.includes("แปลงสาธิต")` แบบกว้างเกินไป ทำให้เมื่องาน Type 10 มีชื่อแปลงสาธิต เช่น "จัดงาน Field Day - แปลงสาธิต..." ระบบตรวจจับว่ามี Type 7 ปนมาด้วย และใน item loop ไม่ได้ยกเว้น `itemType === 'TYPE_10'`
+  2. **ข้อมูล Field Day ไม่แสดงในหน้า Actual:** ใน `activity-plan-form.tsx` เมื่อส่งข้อมูล Type 10 ไม่ได้ส่ง `meetingAttendeesCount` (เป้าหมายผู้เข้าร่วม) และ `saleTotalPrice` (เป้ายอดขาย/จอง) เป็น structured fields แยกชัดเจน รวมทั้งตัวโหลด `targets.t10` ใน Actual View ไม่ได้ fallback ดึงค่าเป้าหมายอย่างครบถ้วน
+- **การแก้ไข:**
+  - ปรับปรุง `activity-plan-form.tsx` ให้ส่งค่า `meetingAttendeesCount`, `saleTotalPrice`, `targetAttendees`, `targetSales`, `bookingSales` ไปยัง backend อย่างครบถ้วน และรองรับการดึงข้อมูลคืนใน Edit mode
+  - ปรับปรุง `activity-plan.repository.ts` ให้ map ข้อมูล `saleTotalPrice` และ `meetingAttendeesCount` สำหรับ Type 10 ทั้งตอน `createActivityPlan` และ `updateActivityPlan`
+  - ปรับปรุง `activity-plan-actual-view.tsx` และ `activity-plan-detail-view.tsx` ให้แยกแยะ Type 10 และ Type 7 อย่างแม่นยำ ไม่ให้คำว่า "แปลงสาธิต" ไป trigger Type 7 โดยไม่ได้ตั้งใจ
+  - ปรับปรุงตัวดึงข้อมูล `targets.t10` ให้ดึงทั้งจากฟิลด์ตัวเลขของ Item และข้อความรายละเอียด (Regex) พร้อม fallback ที่สมบูรณ์
+
 ### 2026-08-15: เชื่อมโยงข้อมูลพิกัด (Latitude / Longitude) จากแปลงเกษตรกรเข้าสู่ Type 10 (จัดงาน Field Day)
 - **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `type10-field-day.tsx`, `actions.ts`, `constants.ts`, `activity-plan-actual-view.tsx`, `actual-type10-field-day.tsx`
 - **ความต้องการ:**

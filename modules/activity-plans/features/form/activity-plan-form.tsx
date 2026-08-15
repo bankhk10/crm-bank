@@ -1125,25 +1125,71 @@ export function ActivityPlanForm({
     if (initDetails?.type10DemoPlot) return initDetails.type10DemoPlot;
     if (Array.isArray(initDetails)) {
       const item = initDetails.find((i: any) => i.itemType === "TYPE_10");
-      if (item) return item.customerName || "";
+      if (item) return item.customerName || item.plotOwnerName || "";
     }
     return "";
   });
-  const [type10Location, setType10Location] = useState(
-    initDetails?.type10Location ?? "",
-  );
-  const [type10TargetCrop, setType10TargetCrop] = useState(
-    initDetails?.type10TargetCrop ?? "",
-  );
-  const [type10Showcase, setType10Showcase] = useState(
-    initDetails?.type10Showcase ?? "",
-  );
-  const [type10Attendees, setType10Attendees] = useState<number>(
-    initDetails?.type10Attendees ?? 0,
-  );
-  const [type10BookingSales, setType10BookingSales] = useState<number>(
-    initDetails?.type10BookingSales ?? 0,
-  );
+  const [type10Location, setType10Location] = useState(() => {
+    if (initDetails?.type10Location) return initDetails.type10Location;
+    if (Array.isArray(initDetails)) {
+      const item = initDetails.find((i: any) => i.itemType === "TYPE_10");
+      if (item?.detail) {
+        const match = item.detail.match(/สถานที่:\s*([^|]+)/);
+        if (match) return match[1].trim();
+      }
+    }
+    return "";
+  });
+  const [type10TargetCrop, setType10TargetCrop] = useState(() => {
+    if (initDetails?.type10TargetCrop) return initDetails.type10TargetCrop;
+    if (Array.isArray(initDetails)) {
+      const item = initDetails.find((i: any) => i.itemType === "TYPE_10");
+      if (item?.plotCropName) return item.plotCropName;
+      if (item?.detail) {
+        const match = item.detail.match(/พืชเป้าหมาย:\s*([^|]+)/);
+        if (match) return match[1].trim();
+      }
+    }
+    return "";
+  });
+  const [type10Showcase, setType10Showcase] = useState(() => {
+    if (initDetails?.type10Showcase) return initDetails.type10Showcase;
+    if (Array.isArray(initDetails)) {
+      const item = initDetails.find((i: any) => i.itemType === "TYPE_10");
+      if (item?.plotProductName) return item.plotProductName;
+      if (item?.detail) {
+        const match = item.detail.match(/สินค้าโชว์:\s*([^|]+)/);
+        if (match) return match[1].trim();
+      }
+    }
+    return "";
+  });
+  const [type10Attendees, setType10Attendees] = useState<number>(() => {
+    if (initDetails?.type10Attendees != null) return Number(initDetails.type10Attendees);
+    if (Array.isArray(initDetails)) {
+      const item = initDetails.find((i: any) => i.itemType === "TYPE_10");
+      if (item?.meetingAttendeesCount != null) return Number(item.meetingAttendeesCount);
+      if (item?.targetAttendees != null) return Number(item.targetAttendees);
+      if (item?.detail) {
+        const match = item.detail.match(/ผู้ร่วมงาน:\s*(\d+)/);
+        if (match) return Number(match[1]);
+      }
+    }
+    return 0;
+  });
+  const [type10BookingSales, setType10BookingSales] = useState<number>(() => {
+    if (initDetails?.type10BookingSales != null) return Number(initDetails.type10BookingSales);
+    if (Array.isArray(initDetails)) {
+      const item = initDetails.find((i: any) => i.itemType === "TYPE_10");
+      if (item?.saleTotalPrice != null) return Number(item.saleTotalPrice);
+      if (item?.targetSales != null) return Number(item.targetSales);
+      if (item?.detail) {
+        const match = item.detail.match(/เป้ายอดจอง:\s*(?:฿)?([\d,]+)/);
+        if (match) return Number(match[1].replace(/,/g, ""));
+      }
+    }
+    return 0;
+  });
 
   const [type11Stores, setType11Stores] = useState(() => {
     if (initDetails?.type11Stores) return initDetails.type11Stores;
@@ -1903,7 +1949,15 @@ export function ActivityPlanForm({
             allItemsToSend.push({
               itemType: "TYPE_10",
               customerName: type10DemoPlot,
-              detail: `สถานที่: ${type10Location} | พืชเป้าหมาย: ${type10TargetCrop} | สินค้าโชว์: ${type10Showcase} | ผู้ร่วมงาน: ${type10Attendees} คน | เป้ายอดจอง: ฿${type10BookingSales.toLocaleString()}`,
+              plotOwnerName: type10DemoPlot,
+              plotCropName: type10TargetCrop || null,
+              plotProductName: type10Showcase || null,
+              meetingAttendeesCount: type10Attendees ? Number(type10Attendees) : null,
+              saleTotalPrice: type10BookingSales ? Number(type10BookingSales) : null,
+              targetAttendees: type10Attendees ? Number(type10Attendees) : null,
+              bookingSales: type10BookingSales ? Number(type10BookingSales) : null,
+              targetSales: type10BookingSales ? Number(type10BookingSales) : null,
+              detail: `สถานที่: ${type10Location} | พืชเป้าหมาย: ${type10TargetCrop} | สินค้าโชว์: ${type10Showcase} | ผู้ร่วมงาน: ${type10Attendees} คน | เป้ายอดจอง: ฿${Number(type10BookingSales || 0).toLocaleString()}`,
             });
           }
         } else if (workType === "ตรวจเช็กสต็อกหน้าร้าน") {
