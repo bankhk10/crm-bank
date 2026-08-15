@@ -1726,12 +1726,36 @@ export default function ActivityPlanActualView({
                 setT10ActualAttendees(
                   t10AttendeesMatch[1].split("\n")[0].trim(),
                 );
+              } else if (
+                resData.actualAttendeesCount != null &&
+                Number(resData.actualAttendeesCount) > 0
+              ) {
+                setT10ActualAttendees(String(resData.actualAttendeesCount));
               }
+
+              const t10SalesMatch = summaryText.match(
+                /ยอดขายหรือยอดจอง Field Day จริง:\s*(.+)/,
+              );
+              if (t10SalesMatch && t10SalesMatch[1]) {
+                setT10ActualSalesOrBooking(
+                  t10SalesMatch[1].split("\n")[0].trim(),
+                );
+              } else if (
+                resData.salesResultAmount != null &&
+                Number(resData.salesResultAmount) > 0
+              ) {
+                setT10ActualSalesOrBooking(
+                  String(Number(resData.salesResultAmount)),
+                );
+              }
+
               const t10FeedbackMatch = summaryText.match(
                 /ความสนใจเกษตรกร:\s*(.+)/,
               );
               if (t10FeedbackMatch && t10FeedbackMatch[1]) {
-                setT10FarmerFeedback(t10FeedbackMatch[1].split("\n")[0].trim());
+                setT10FarmerFeedback(
+                  t10FeedbackMatch[1].split("\n")[0].trim() as any,
+                );
               }
               const t10FarmersMatch = summaryText.match(
                 /รายชื่อเกษตรกรเป้าหมาย:\s*(.+)/,
@@ -2159,6 +2183,9 @@ export default function ActivityPlanActualView({
           t10ActualAttendees
             ? `จำนวนผู้เข้าร่วม Field Day จริง: ${t10ActualAttendees}`
             : null,
+          t10ActualSalesOrBooking
+            ? `ยอดขายหรือยอดจอง Field Day จริง: ${t10ActualSalesOrBooking}`
+            : null,
           t10FarmerFeedback ? `ความสนใจเกษตรกร: ${t10FarmerFeedback}` : null,
           t10TargetFarmersList
             ? `รายชื่อเกษตรกรเป้าหมาย: ${t10TargetFarmersList}`
@@ -2216,7 +2243,9 @@ export default function ActivityPlanActualView({
             planSummary.salesPromotionBudget || 0,
           ),
           actualMarketingSpent: Number(planSummary.marketingBudget || 0),
-          salesResultAmount: Number(t3ActualSales || t9ActualSales || 0),
+          salesResultAmount: Number(
+            t3ActualSales || t9ActualSales || t10ActualSalesOrBooking || 0,
+          ),
           collectResultAmount: Number(t4ReceivedAmount || 0),
           demoPlotsCreated: t7PlotName ? 1 : 0,
         };

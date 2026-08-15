@@ -245,6 +245,16 @@ modules/activity-plans/
     - อนุมัติคำขอพนักงานช่วยงาน (Helper Requests) ได้ทั้งหมดในครั้งเดียว
   - **Full Visibility in Approval Hub:** แสดงรายการคิวงานทั้งหมดให้ Administrator มองเห็นและจัดการได้ทันที พร้อมแถบป้ายสถานะ `👑 สิทธิ์ Administrator`
 
+### 2026-08-15: แก้ไขการบันทึกและแสดงผลยอดขาย/ยอดจองจริงสำหรับ Type 10 (จัดงาน Field Day)
+- **คอมโพเนนต์ที่แก้ไข:** `activity-plan-actual-view.tsx`
+- **ปัญหา:** เมื่อกรอก **"ยอดขายหรือยอดจองที่เกิดขึ้นจริง (บาท) *"** ในหน้า Actual ของ Type 10 แล้วกดบันทึก เมื่อเปิดกลับมาดูข้อมูลช่องดังกล่าวยังคงว่างเปล่า
+- **สาเหตุ:**
+  1. ในฟังก์ชัน `handleSubmit` ของ `activity-plan-actual-view.tsx` ยังไม่มีการใส่ `t10ActualSalesOrBooking` ลงใน `summaryParts` (`ยอดขายหรือยอดจอง Field Day จริง: ...`) และไม่ได้รวมใน `payload.salesResultAmount`
+  2. ในฟังก์ชัน `loadData` ตอนโหลดข้อมูลบันทึกผลงานจริง ยังไม่มี parser ดึงค่า `ยอดขายหรือยอดจอง Field Day จริง` กลับมาใส่ใน state `t10ActualSalesOrBooking`
+- **การแก้ไข:**
+  - เพิ่ม `t10ActualSalesOrBooking` ลงใน `summaryParts` และ `payload.salesResultAmount` ตอน Submit
+  - เพิ่ม Regex Parser สำหรับ `ยอดขายหรือยอดจอง Field Day จริง` พร้อม Fallback ดึงค่าจาก `resData.salesResultAmount` เมื่อโหลดข้อมูลกลับมาแสดงในหน้า Actual View
+
 ### 2026-08-15: แก้ปัญหา Data Flow และการแสดงผลประเภทงานสำหรับ Type 10 (จัดงาน Field Day)
 - **คอมโพเนนต์ที่แก้ไข:** `activity-plan-form.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-detail-view.tsx`, `activity-plan.repository.ts`, `actual-type10-field-day.tsx`
 - **สาเหตุของปัญหา:**
