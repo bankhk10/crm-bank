@@ -797,6 +797,92 @@ export async function getDemoPlotsAction() {
 }
 
 /**
+ * Action: Get list of Farmer customers for Type 10 Field Day target selection
+ */
+export async function getFarmerCustomersAction() {
+  try {
+    const farmers = await db.customer.findMany({
+      where: {
+        deletedAt: null,
+        customerType: "FARMER",
+      },
+      select: {
+        id: true,
+        name: true,
+        farmPlots: true,
+        province: true,
+        district: true,
+      },
+      orderBy: { name: "asc" },
+    });
+
+    const options: string[] = [];
+
+    farmers.forEach((f) => {
+      const name = f.name?.trim();
+      if (!name) return;
+
+      const plots = Array.isArray(f.farmPlots) ? (f.farmPlots as any[]) : [];
+      if (plots.length > 0) {
+        const totalRai = plots.reduce(
+          (sum, p) => sum + (Number(p.areaRai) || 0),
+          0,
+        );
+        const crops = Array.from(
+          new Set(plots.map((p) => p.cropType).filter(Boolean)),
+        ).join(", ");
+
+        const details: string[] = [];
+        if (crops) details.push(crops);
+        if (totalRai > 0) details.push(`${totalRai} ไร่`);
+        else if (f.district || f.province) {
+          details.push([f.district, f.province].filter(Boolean).join(" "));
+        }
+
+        const label =
+          details.length > 0 ? `${name} (${details.join(" ")})` : name;
+        options.push(label);
+      } else {
+        const loc = [f.district, f.province].filter(Boolean).join(" ");
+        const label = loc ? `${name} (${loc})` : name;
+        options.push(label);
+      }
+    });
+
+    // Also include demo plot owner names if any
+    const demoPlots = await db.demoPlot.findMany({
+      where: { deletedAt: null },
+      select: { ownerName: true, areaRai: true, cropName: true },
+    });
+
+    demoPlots.forEach((dp) => {
+      const name = dp.ownerName?.trim();
+      if (!name) return;
+      const alreadyHas = options.some((opt) => opt.startsWith(name));
+      if (!alreadyHas) {
+        const details: string[] = [];
+        if (dp.cropName) details.push(dp.cropName);
+        if (dp.areaRai) details.push(`${Number(dp.areaRai)} ไร่`);
+        const label =
+          details.length > 0 ? `${name} (${details.join(" ")})` : name;
+        options.push(label);
+      }
+    });
+
+    return serialize({
+      success: true,
+      farmers: Array.from(new Set(options)),
+    });
+  } catch (err: any) {
+    console.error("Failed to get farmer customers:", err);
+    return serialize({
+      success: false,
+      farmers: [],
+    });
+  }
+}
+
+/**
  * Action: Get Demo Plot History with all visits
  */
 export async function getDemoPlotHistoryAction(demoPlotIdOrName: string) {

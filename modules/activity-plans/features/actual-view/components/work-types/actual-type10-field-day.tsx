@@ -14,15 +14,9 @@ import {
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
 import { ImageFile } from "../../types";
+import { getFarmerCustomersAction } from "@/modules/activity-plans/server/actions";
 
 const OTHER_OPTION = "ไม่พบข้อมูล / ระบุเพิ่มเติม";
-const DEFAULT_FARMER_OPTIONS = [
-  "นายประเสริฐ (100 ไร่)",
-  "นายวิชัย (50 ไร่)",
-  "สวนผู้ใหญ่สมศักดิ์ (80 ไร่)",
-  "นายสมชาย (สวนทุเรียน 30 ไร่)",
-  "นายสุรชัย (สวนส้ม 40 ไร่)",
-];
 
 interface ActualType10FieldDayProps {
   isVisible: boolean;
@@ -62,16 +56,44 @@ export function ActualType10FieldDay({
   onRemoveImage,
 }: ActualType10FieldDayProps) {
   const [selectedOption, setSelectedOption] = useState<string>("");
+  const [farmerOptions, setFarmerOptions] = useState<string[]>([]);
+  const [loadingFarmers, setLoadingFarmers] = useState<boolean>(false);
 
   useEffect(() => {
-    if (DEFAULT_FARMER_OPTIONS.includes(targetFarmersList)) {
+    let isMounted = true;
+    async function loadFarmers() {
+      try {
+        setLoadingFarmers(true);
+        const res = await getFarmerCustomersAction();
+        if (
+          isMounted &&
+          res?.success &&
+          Array.isArray(res.farmers) &&
+          res.farmers.length > 0
+        ) {
+          setFarmerOptions(res.farmers);
+        }
+      } catch (err) {
+        console.error("Failed to load real farmer options:", err);
+      } finally {
+        if (isMounted) setLoadingFarmers(false);
+      }
+    }
+    loadFarmers();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (farmerOptions.includes(targetFarmersList)) {
       setSelectedOption(targetFarmersList);
     } else if (targetFarmersList) {
       setSelectedOption(OTHER_OPTION);
     } else if (selectedOption !== OTHER_OPTION) {
       setSelectedOption("");
     }
-  }, [targetFarmersList]);
+  }, [targetFarmersList, farmerOptions]);
 
   if (!isVisible) return null;
 
@@ -151,7 +173,7 @@ export function ActualType10FieldDay({
           onValueChange={(val) => {
             setSelectedOption(val);
             if (val === OTHER_OPTION) {
-              if (DEFAULT_FARMER_OPTIONS.includes(targetFarmersList)) {
+              if (farmerOptions.includes(targetFarmersList)) {
                 setTargetFarmersList("");
               }
             } else {
@@ -160,10 +182,16 @@ export function ActualType10FieldDay({
           }}
         >
           <SelectTrigger className="w-full bg-white border-slate-300">
-            <SelectValue placeholder="เลือกรายชื่อเกษตรกรเป้าหมายที่สนใจ" />
+            <SelectValue
+              placeholder={
+                loadingFarmers
+                  ? "กำลังโหลดรายชื่อเกษตรกร..."
+                  : "เลือกรายชื่อเกษตรกรเป้าหมายที่สนใจ"
+              }
+            />
           </SelectTrigger>
-          <SelectContent>
-            {DEFAULT_FARMER_OPTIONS.map((farmer) => (
+          <SelectContent className="max-h-72">
+            {farmerOptions.map((farmer) => (
               <SelectItem key={farmer} value={farmer}>
                 {farmer}
               </SelectItem>
