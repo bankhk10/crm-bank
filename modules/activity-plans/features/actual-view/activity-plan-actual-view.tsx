@@ -331,6 +331,9 @@ export default function ActivityPlanActualView({
   // Type 9
   const [t9Formats, setT9Formats] = useState<string[]>([]);
   const [t9ActualSales, setT9ActualSales] = useState("");
+  const [t9ProductSalesDetails, setT9ProductSalesDetails] = useState<
+    { id?: string; productName: string; actualQuantityCases?: string; actualSales?: string }[]
+  >([]);
   const [t9ActualAttendees, setT9ActualAttendees] = useState("");
   const [t9Images, setT9Images] = useState<ImageFile[]>([]);
 
@@ -1646,6 +1649,19 @@ export default function ActivityPlanActualView({
               if (t9SalesMatch && t9SalesMatch[1]) {
                 setT9ActualSales(t9SalesMatch[1].split("\n")[0].trim());
               }
+              const t9ProductsMatch = summaryText.match(
+                /ยอดขายแยกสินค้าหน้าร้าน:\s*(.+)/,
+              );
+              if (t9ProductsMatch && t9ProductsMatch[1]) {
+                try {
+                  const parsed = JSON.parse(t9ProductsMatch[1].trim());
+                  if (Array.isArray(parsed)) {
+                    setT9ProductSalesDetails(parsed);
+                  }
+                } catch (e) {
+                  console.error("Failed to parse t9ProductSalesDetails", e);
+                }
+              }
               const t9AttendeesMatch = summaryText.match(
                 /จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน:\s*(.+)/,
               );
@@ -2081,6 +2097,11 @@ export default function ActivityPlanActualView({
 
           // Type 9
           t9ActualSales ? `ยอดขายหน้าร้านจริง: ${t9ActualSales}` : null,
+          t9ProductSalesDetails &&
+          t9ProductSalesDetails.length > 0 &&
+          t9ProductSalesDetails.some((d) => d.actualQuantityCases || d.actualSales)
+            ? `ยอดขายแยกสินค้าหน้าร้าน: ${JSON.stringify(t9ProductSalesDetails)}`
+            : null,
           t9ActualAttendees
             ? `จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน: ${t9ActualAttendees}`
             : null,
@@ -2453,6 +2474,8 @@ export default function ActivityPlanActualView({
                 setFormats={setT9Formats}
                 actualSales={t9ActualSales}
                 setActualSales={setT9ActualSales}
+                productSalesDetails={t9ProductSalesDetails}
+                setProductSalesDetails={setT9ProductSalesDetails}
                 actualAttendees={t9ActualAttendees}
                 setActualAttendees={setT9ActualAttendees}
                 images={t9Images}

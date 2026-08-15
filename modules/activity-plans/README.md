@@ -245,17 +245,18 @@ modules/activity-plans/
     - อนุมัติคำขอพนักงานช่วยงาน (Helper Requests) ได้ทั้งหมดในครั้งเดียว
   - **Full Visibility in Approval Hub:** แสดงรายการคิวงานทั้งหมดให้ Administrator มองเห็นและจัดการได้ทันที พร้อมแถบป้ายสถานะ `👑 สิทธิ์ Administrator`
 
-### 2026-08-15: ปรับปรุง Data Flow สำหรับงานประเภท Type 9 (จัดกิจกรรมส่งเสริมการขายหน้าร้าน)
+### 2026-08-15: ปรับปรุง Data Flow & บันทึกยอดขายจริงรายสินค้าสำหรับ Type 9 (จัดกิจกรรมส่งเสริมการขายหน้าร้าน)
 - **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `actual-type9-store.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-form.tsx`
-- **ปัญหาที่พบ:**
+- **ปัญหา & ข้อกำหนดใหม่:**
   1. ในหน้าสร้าง/แก้ไขแผน (`type9-store.tsx`) มีการกรอก "ชื่อร้านค้า Sub Dealer" และ "รายการสินค้าที่เสนอขาย / โปรโมชันหน้าร้าน" แต่เมื่อเปิดหน้าบันทึกผลงานจริง (`actual-type9-store.tsx`) ข้อมูลดังกล่าวไม่แสดงผล
-  2. เมื่อเปิดหน้า Edit Plan ข้อมูล Sub Dealer ไม่ถูกแยกออกจากชื่อร้านค้าหลัก
-- **สาเหตุ:**
-  1. ใน `activity-plan-actual-view.tsx` ใช้ `allItems.find(...)` เพียงรายการเดียว ไม่ได้ส่ง array สินค้าทั้งหมดเข้า `targets.t9`
-  2. ไม่ได้ทำการ parse แยกชื่อร้านค้าหลักและร้านค้า Sub Dealer ออกจาก `customerName`
-  3. `actual-type9-store.tsx` ขาดการแสดงผลร้านค้า Sub Dealer ใน `ActualTargetCard` และไม่มีตารางแสดงรายการสินค้าตามแผนงาน
+  2. ปรับหน้า Actual View Type 9 ไม่ต้องมีช่องกรอกจำนวนลูกค้าที่เข้าร่วมจริง (คน)
+  3. ปรับยอดขายที่เกิดขึ้นจริง (บาท) ให้รองรับการกรอกยอดขายจริงและจำนวนลังจริงแยกตามรายสินค้าแต่ละตัว พร้อมคำนวณยอดขายรวมจริงอัตโนมัติ
+  4. แก้ไขปัญหาเมื่อกดบันทึกแล้วกลับมาดู ข้อมูลจำนวนลังและยอดขายจริงรายสินค้าของ Type 9 ไม่ปรากฏในช่องกรอก (State & Persistence Sync)
 - **การแก้ไข:**
-  - อัปเดต `actual-type9-store.tsx` ให้ `ActualTargetCard` แสดงทั้งร้านค้าหลัก (Dealer) และร้านค้า Sub Dealer พร้อมเพิ่มตารางแสดง "รายการสินค้าที่เสนอขาย / โปรโมชันหน้าร้าน (ตามแผนงาน)" แสดง ลำดับ, สินค้า, จำนวน (ลัง), ราคาต่อลัง (บาท), และยอดรวมเป้าหมาย
+  - อัปเดต `actual-type9-store.tsx` ให้ `ActualTargetCard` แสดงทั้งร้านค้าหลัก (Dealer) และร้านค้า Sub Dealer
+  - เพิ่มระบบบันทึกยอดขายจริงแยกรายสินค้าแต่ละตัว (Per-Product Actual Recording) พร้อมผูก `productSalesDetails` และ `setProductSalesDetails` ซิงค์กับ `activity-plan-actual-view.tsx`
+  - บันทึกและดึงข้อมูล `ยอดขายแยกสินค้าหน้าร้าน` (`t9ProductSalesDetails`) ผ่าน `resultSummary` ทำให้เมื่อบันทึกแล้วกลับมาเปิดดูอีกครั้ง ข้อมูลในช่องกรอกของสินค้าแต่ละตัวยังคงอยู่ครบถ้วน
+  - นำช่องกรอก "จำนวนลูกค้าที่เข้าร่วมจริง (คน)" ออกจากหน้า Type 9 ตามที่ผู้ใช้ระบุ
   - ปรับ `activity-plan-actual-view.tsx` ให้กรองทุกไอเทมของ Type 9 (`type9DbItems`), คำนวณยอดขายเป้าหมายรวม (`t9TotalSales`), แยกชื่อร้านหลัก/Sub Dealer, และส่ง `items` array เข้าสู่ `targets.t9`
   - ปรับ `activity-plan-form.tsx` ให้ parse `type9Store`, `type9IsSubDealer`, `type9SubDealerStore`, `type9Sales`, `type9ProductItems` กลับมาในช่องกรอกได้อย่างถูกต้องใน Edit Mode
 

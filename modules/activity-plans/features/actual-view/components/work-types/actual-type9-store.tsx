@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { Store, Package, X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Store, Package, ShoppingBag, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
@@ -13,6 +13,15 @@ export interface Type9TargetProductItem {
   quantityCases?: number;
   pricePerCase?: number;
   totalAmount?: number;
+  actualQuantityCases?: number | string;
+  actualSales?: number | string;
+}
+
+export interface Type9ProductSaleDetail {
+  id?: string;
+  productName: string;
+  actualQuantityCases?: string;
+  actualSales?: string;
 }
 
 interface ActualType9StoreProps {
@@ -26,12 +35,14 @@ interface ActualType9StoreProps {
     targetAttendees?: string;
     items?: Type9TargetProductItem[];
   };
-  formats: string[];
-  setFormats: (v: string[]) => void;
+  formats?: string[];
+  setFormats?: (v: string[]) => void;
   actualSales: string;
   setActualSales: (v: string) => void;
-  actualAttendees: string;
-  setActualAttendees: (v: string) => void;
+  productSalesDetails?: Type9ProductSaleDetail[];
+  setProductSalesDetails?: (v: Type9ProductSaleDetail[]) => void;
+  actualAttendees?: string;
+  setActualAttendees?: (v: string) => void;
   images: ImageFile[];
   onUploadImages: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveImage: (id: string) => void;
@@ -40,24 +51,102 @@ interface ActualType9StoreProps {
 export function ActualType9Store({
   isVisible,
   target,
-  formats,
-  setFormats,
   actualSales,
   setActualSales,
-  actualAttendees,
-  setActualAttendees,
+  productSalesDetails,
+  setProductSalesDetails,
   images,
   onUploadImages,
   onRemoveImage,
 }: ActualType9StoreProps) {
+  const [localItems, setLocalItems] = useState<Type9TargetProductItem[]>(
+    target.items || [],
+  );
+
+  useEffect(() => {
+    if (target.items && target.items.length > 0) {
+      setLocalItems(
+        target.items.map((item, idx) => {
+          const saved =
+            productSalesDetails?.find(
+              (d) =>
+                (item.id && d.id === item.id) ||
+                d.productName === item.productName,
+            ) || productSalesDetails?.[idx];
+
+          return {
+            ...item,
+            actualQuantityCases:
+              saved?.actualQuantityCases ?? item.actualQuantityCases ?? "",
+            actualSales: saved?.actualSales ?? item.actualSales ?? "",
+          };
+        }),
+      );
+    } else {
+      setLocalItems([]);
+    }
+  }, [target.items, productSalesDetails]);
+
   if (!isVisible) return null;
 
-  const toggleFormat = (fmt: string) => {
-    if (formats.includes(fmt)) {
-      setFormats(formats.filter((f) => f !== fmt));
-    } else {
-      setFormats([...formats, fmt]);
+  const hasMultipleProducts = localItems && localItems.length > 0;
+
+  const handleItemChange = (
+    index: number,
+    field: "actualQuantityCases" | "actualSales",
+    value: string,
+  ) => {
+    const updated = [...localItems];
+    const currentItem = { ...updated[index], [field]: value };
+
+    // Auto calculate actual sales if quantity is typed and price exists
+    if (field === "actualQuantityCases") {
+      const qtyNum = parseFloat(value) || 0;
+      const priceNum = currentItem.pricePerCase
+        ? Number(currentItem.pricePerCase)
+        : 0;
+      if (priceNum > 0 && value !== "") {
+        currentItem.actualSales = String(qtyNum * priceNum);
+      }
     }
+
+    updated[index] = currentItem;
+    setLocalItems(updated);
+
+    // Sync product sales details to parent
+    if (setProductSalesDetails) {
+      setProductSalesDetails(
+        updated.map((item) => ({
+          id: item.id,
+          productName: item.productName,
+          actualQuantityCases:
+            item.actualQuantityCases != null && item.actualQuantityCases !== ""
+              ? String(item.actualQuantityCases)
+              : "",
+          actualSales:
+            item.actualSales != null && item.actualSales !== ""
+              ? String(item.actualSales)
+              : "",
+        })),
+      );
+    }
+
+    // Sum all actual sales and sync to parent
+    const totalSalesSum = updated.reduce(
+      (sum, item) => sum + (parseFloat(String(item.actualSales)) || 0),
+      0,
+    );
+
+    const hasAnySalesInput = updated.some(
+      (i) => i.actualSales !== "" && i.actualSales != null,
+    );
+    setActualSales(
+      totalSalesSum > 0
+        ? String(totalSalesSum)
+        : hasAnySalesInput
+          ? "0"
+          : "",
+    );
   };
 
   const targetCardItems = [
@@ -79,114 +168,157 @@ export function ActualType9Store({
       value: target.targetSales || "-",
       highlight: true,
     },
-    ...(target.targetAttendees
-      ? [{ label: "เป้าหมายผู้เข้าร่วม:", value: target.targetAttendees }]
-      : []),
   ];
 
+  const totalActualSalesSum = localItems.reduce(
+    (sum, item) => sum + (parseFloat(String(item.actualSales)) || 0),
+    0,
+  );
+
   return (
-    <div className="border-2 border-blue-600 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
+    <div className="border-2 border-blue-600 rounded-2xl p-4 md:p-6 bg-white space-y-5 shadow-xs">
       <div className="flex items-center justify-between border-b border-blue-100 pb-3">
         <div className="flex items-center gap-2.5">
           <h2 className="font-bold text-blue-900 text-base md:text-lg">
             จัดกิจกรรมส่งเสริมการขายหน้าร้าน
           </h2>
         </div>
+        {hasMultipleProducts && (
+          <span className="text-xs bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
+            <ShoppingBag className="w-3.5 h-3.5" />
+            เป้าหมาย {localItems.length} รายการสินค้า
+          </span>
+        )}
       </div>
 
+      {/* Target Summary Card */}
       <ActualTargetCard
         iconColorClass="text-blue-600"
         badgeColorClass="bg-blue-100 text-blue-800"
         gridColsClass={cn(
           "grid-cols-1 sm:grid-cols-2",
           targetCardItems.length >= 3 && "md:grid-cols-3",
-          targetCardItems.length >= 4 && "lg:grid-cols-4",
         )}
         items={targetCardItems}
       />
 
-      {/* Planned Products Table */}
-      {target.items && target.items.length > 0 && (
-        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+      {/* PER-PRODUCT ACTUAL SALES RECORDING */}
+      {hasMultipleProducts ? (
+        <div className="space-y-3.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <label className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <Package className="w-4 h-4 text-blue-600" />
-              รายการสินค้าที่เสนอขาย / โปรโมชันหน้าร้าน (ตามแผนงาน):
-            </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
-              {target.items.length} รายการ
+              บันทึกยอดขายที่เกิดขึ้นจริง (แยกตามรายสินค้า) <span className="text-rose-500">*</span>
+            </label>
+            <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+              * กรอกจำนวนลังหรือยอดขายแยกตามสินค้าแต่ละตัว
             </span>
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-                <tr>
-                  <th className="py-2 px-3 text-center w-10">ลำดับ</th>
-                  <th className="py-2 px-3 min-w-[180px]">สินค้า</th>
-                  <th className="py-2 px-3 w-28 text-center">จำนวน (ลัง)</th>
-                  <th className="py-2 px-3 w-32 text-right">ราคา/ลัง (บาท)</th>
-                  <th className="py-2 px-3 w-36 text-right">ยอดรวมเป้าหมาย</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-800">
-                {target.items.map((item, idx) => {
-                  const lineTotal =
-                    item.totalAmount != null
-                      ? item.totalAmount
-                      : (item.quantityCases || 0) * (item.pricePerCase || 0);
-                  return (
-                    <tr key={item.id || idx} className="hover:bg-slate-50/60">
-                      <td className="py-2 px-3 text-center font-medium text-slate-400">
+          <div className="space-y-3">
+            {localItems.map((item, idx) => {
+              const targetQty = item.quantityCases ?? 0;
+              const unitPrice = item.pricePerCase ? Number(item.pricePerCase) : 0;
+              const targetLineTotal =
+                item.totalAmount != null
+                  ? item.totalAmount
+                  : targetQty * unitPrice;
+
+              return (
+                <div
+                  key={item.id || idx}
+                  className="bg-slate-50 border border-slate-200/90 rounded-xl p-3.5 sm:p-4 space-y-3 transition-colors hover:border-blue-300"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-200/70 pb-2">
+                    <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                      <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center text-xs font-semibold">
                         {idx + 1}
-                      </td>
-                      <td className="py-2 px-3 font-semibold text-slate-900">
-                        {item.productName || "-"}
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        {item.quantityCases != null
-                          ? `${item.quantityCases.toLocaleString()} ลัง`
-                          : "-"}
-                      </td>
-                      <td className="py-2 px-3 text-right">
-                        {item.pricePerCase != null
-                          ? `฿${Number(item.pricePerCase).toLocaleString()}`
-                          : "-"}
-                      </td>
-                      <td className="py-2 px-3 text-right font-semibold text-blue-700">
-                        ฿{lineTotal.toLocaleString()}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot className="bg-blue-50/50 border-t border-blue-100 font-semibold text-xs">
-                <tr>
-                  <td colSpan={4} className="py-2 px-3 text-right text-slate-700">
-                    รวมเป้ายอดขายสินค้า:
-                  </td>
-                  <td className="py-2 px-3 text-right text-blue-800 font-bold">
-                    ฿
-                    {target.items
-                      .reduce(
-                        (sum, item) =>
-                          sum +
-                          (item.totalAmount != null
-                            ? item.totalAmount
-                            : (item.quantityCases || 0) *
-                              (item.pricePerCase || 0)),
-                        0,
-                      )
-                      .toLocaleString()}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
+                      </span>
+                      <span>{item.productName || "สินค้าโปรโมชัน"}</span>
+                    </div>
+
+                    <div className="text-xs text-slate-500 flex items-center gap-3">
+                      <span>
+                        เป้าหมาย:{" "}
+                        <strong className="text-slate-700">
+                          {targetQty.toLocaleString()} ลัง
+                        </strong>
+                        {unitPrice > 0 && (
+                          <> @ ฿{unitPrice.toLocaleString()}/ลัง</>
+                        )}
+                      </span>
+                      {targetLineTotal > 0 && (
+                        <span className="text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                          เป้า: ฿{targetLineTotal.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-0.5">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-700">
+                        จำนวนที่ขายได้จริง (ลัง)
+                      </label>
+                      <div className="relative flex items-center">
+                        <Input
+                          type="number"
+                          min="0"
+                          value={item.actualQuantityCases ?? ""}
+                          onChange={(e) =>
+                            handleItemChange(
+                              idx,
+                              "actualQuantityCases",
+                              e.target.value,
+                            )
+                          }
+                          placeholder="0"
+                          className="bg-white border-slate-300 pr-12 text-xs font-medium"
+                        />
+                        <span className="absolute right-3 text-xs text-slate-400 font-medium pointer-events-none">
+                          ลัง
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-700">
+                        ยอดขายที่เกิดขึ้นจริง (บาท) <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <Input
+                          type="number"
+                          min="0"
+                          value={item.actualSales ?? ""}
+                          onChange={(e) =>
+                            handleItemChange(idx, "actualSales", e.target.value)
+                          }
+                          placeholder="0.00"
+                          className="bg-white border-slate-300 pr-12 text-xs font-bold text-blue-800"
+                        />
+                        <span className="absolute right-3 text-xs text-slate-400 font-medium pointer-events-none">
+                          บาท
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* TOTAL ACTUAL SALES SUMMARY BAR */}
+          <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-3 flex items-center justify-between">
+            <span className="text-xs font-bold text-blue-900">
+              รวมยอดขายที่เกิดขึ้นจริงทั้งหมด ({localItems.length} รายการ):
+            </span>
+            <span className="text-sm font-extrabold text-blue-800">
+              ฿{totalActualSalesSum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท
+            </span>
           </div>
         </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      ) : (
+        /* SINGLE ACTUAL SALES INPUT (WHEN NO PER-PRODUCT ITEMS DEFINED) */
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-800">
             ยอดขายที่เกิดขึ้นจริง (บาท) <span className="text-rose-500">*</span>
@@ -198,35 +330,16 @@ export function ActualType9Store({
               value={actualSales}
               onChange={(e) => setActualSales(e.target.value)}
               placeholder="0.00"
-              className="bg-white border-slate-300 pr-12"
+              className="bg-white border-slate-300 pr-12 font-bold text-blue-800"
             />
             <span className="absolute right-3 text-xs font-semibold text-slate-500">
               บาท
             </span>
           </div>
         </div>
+      )}
 
-        <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-slate-800">
-            จำนวนลูกค้าที่เข้าร่วมจริง (คน){" "}
-            <span className="text-rose-500">*</span>
-          </label>
-          <div className="relative flex items-center">
-            <Input
-              type="number"
-              min="0"
-              value={actualAttendees}
-              onChange={(e) => setActualAttendees(e.target.value)}
-              placeholder="ระบุจำนวน"
-              className="bg-white border-slate-300 pr-12"
-            />
-            <span className="absolute right-3 text-xs font-semibold text-slate-500">
-              คน
-            </span>
-          </div>
-        </div>
-      </div>
-
+      {/* ATMOSPHERE IMAGES */}
       <div className="space-y-2">
         <label className="text-sm font-semibold text-slate-800">
           รูปภาพบรรยากาศ <span className="text-rose-500">*</span>
