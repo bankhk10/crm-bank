@@ -4,12 +4,6 @@ import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
 import type { Type3SalesItem, Type3SalesProductLine } from "../../types";
-import {
-  DEMO_PRODUCTS,
-  DEMO_OWNERS,
-  DEMO_PRODUCT_PRICES,
-} from "../../constants";
-
 export interface CustomerOption {
   id: string;
   name: string;
@@ -44,15 +38,7 @@ export function Type3Sales({
   customers = [],
   products = [],
 }: Props) {
-  const customerOptions = (
-    customers && customers.length > 0
-      ? customers
-      : DEMO_OWNERS.map((owner) => ({
-          id: owner,
-          name: owner,
-          customerCode: null,
-        }))
-  ).map((c) => ({
+  const customerOptions = (customers || []).map((c) => ({
     value: c.name,
     label: c.name,
   }));
@@ -62,17 +48,7 @@ export function Type3Sales({
   );
 
   const productOptions = (
-    boxProducts.length > 0
-      ? boxProducts
-      : products && products.length > 0
-        ? products
-        : DEMO_PRODUCTS.map((prod) => ({
-            id: prod,
-            name: prod,
-            productCode: null,
-            price: DEMO_PRODUCT_PRICES[prod] ?? 500,
-            unit: "กล่อง",
-          }))
+    boxProducts.length > 0 ? boxProducts : products || []
   ).map((p) => ({
     value: p.name,
     label: p.name,
@@ -142,8 +118,6 @@ export function Type3Sales({
           const foundProd = (products || []).find((prod) => prod.name === val);
           if (foundProd && foundProd.price != null) {
             updated.unitPrice = Number(foundProd.price);
-          } else if (DEMO_PRODUCT_PRICES[val] !== undefined) {
-            updated.unitPrice = DEMO_PRODUCT_PRICES[val];
           } else {
             updated.unitPrice = 0;
           }

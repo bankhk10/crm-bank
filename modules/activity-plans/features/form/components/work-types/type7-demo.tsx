@@ -5,12 +5,8 @@ import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
 import type { Type7DemoPlotItem } from "../../types";
 import {
-  DEMO_PRODUCTS,
-  DEMO_OWNERS,
   CROP_CATEGORIES,
   CROPS_BY_CATEGORY,
-  DEMO_PRODUCT_PRICES,
-  USER_DEMO_PLOTS,
   type UserDemoPlotOption,
 } from "../../constants";
 
@@ -55,71 +51,14 @@ export function Type7Demo({
   demoPlots = [],
   parentStartDate = "",
 }: Props) {
-  // Collect plots created in the current form state (CREATE mode items)
-  const currentFormCreatedPlots: UserDemoPlotOption[] = type7Items
-    .filter(
-      (i) =>
-        (i.plotActivityType || "CREATE") === "CREATE" &&
-        Boolean(i.ownerName?.trim()) &&
-        Boolean(i.cropName?.trim() || i.customCropName?.trim()),
-    )
-    .map((i) => {
-      const cropDisplay = i.customCropName || i.cropName || "";
-      const ownerDisplay = i.ownerName || "เกษตรกร";
-      const name = cropDisplay
-        ? `${ownerDisplay} - ${cropDisplay}`
-        : ownerDisplay;
-      return {
-        id: `form-created-${i.id}`,
-        name,
-        location: `แปลงสาธิต ${ownerDisplay}`,
-        targetCrop: cropDisplay,
-        showcase: i.productName || "สินค้าสาธิต",
-        ownerName: ownerDisplay,
-        cropCategory: i.cropCategory || "พืชสวน",
-        cropName: i.cropName || "พืชสวน",
-        productName: i.productName || "",
-        areaRai: i.areaRai || 0,
-        treeCount: i.treeCount || 0,
-        startDate: i.startDate || "",
-      };
-    });
+  const plotList = demoPlots || [];
 
-  const basePlotList = demoPlots || [];
-
-  const combinedPlotsMap = new Map<string, UserDemoPlotOption>();
-  currentFormCreatedPlots.forEach((p) => combinedPlotsMap.set(p.name, p));
-  basePlotList.forEach((p) => {
-    if (!combinedPlotsMap.has(p.name)) {
-      combinedPlotsMap.set(p.name, p);
-    }
-  });
-
-  const plotList = Array.from(combinedPlotsMap.values());
-
-  const customerOptions = (
-    customers && customers.length > 0
-      ? customers
-      : DEMO_OWNERS.map((owner) => ({
-          id: owner,
-          name: owner,
-          customerCode: null,
-        }))
-  ).map((c) => ({
+  const customerOptions = (customers || []).map((c) => ({
     value: c.name,
     label: c.name,
   }));
 
-  const productOptions = (
-    products && products.length > 0
-      ? products
-      : DEMO_PRODUCTS.map((prod) => ({
-          id: prod,
-          name: prod,
-          productCode: null,
-          price: DEMO_PRODUCT_PRICES[prod] ?? 500,
-        }))
-  ).map((p) => ({
+  const productOptions = (products || []).map((p) => ({
     value: p.name,
     label: p.name,
     subLabel: p.productCode || undefined,

@@ -3,11 +3,7 @@ import { BarChart2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
 import type { Type5SurveyItem } from "../../types";
-import {
-  DEMO_PRODUCTS,
-  STORES_LIST,
-  DEMO_PRODUCT_PRICES,
-} from "../../constants";
+import { STORES_LIST } from "../../constants";
 
 export interface CustomerOption {
   id: string;
@@ -43,15 +39,7 @@ export function Type5Survey({
   customers = [],
   products = [],
 }: Props) {
-  const customerOptions = (
-    customers && customers.length > 0
-      ? customers
-      : STORES_LIST.map((st) => ({
-          id: st,
-          name: st,
-          customerCode: null,
-        }))
-  ).map((c) => ({
+  const customerOptions = (customers || []).map((c) => ({
     value: c.name,
     label: c.name,
   }));
@@ -61,17 +49,7 @@ export function Type5Survey({
   );
 
   const productOptions = (
-    boxProducts.length > 0
-      ? boxProducts
-      : products && products.length > 0
-        ? products
-        : DEMO_PRODUCTS.map((prod) => ({
-            id: prod,
-            name: prod,
-            productCode: null,
-            price: DEMO_PRODUCT_PRICES[prod] ?? 500,
-            unit: "กล่อง",
-          }))
+    boxProducts.length > 0 ? boxProducts : products || []
   ).map((p) => ({
     value: p.name,
     label: p.name,

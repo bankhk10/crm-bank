@@ -4,11 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormCombobox } from "@/components/custom/form-components";
 import type { Type9ProductItem } from "../../types";
-import {
-  STORES_LIST,
-  DEMO_PRODUCTS,
-  DEMO_PRODUCT_PRICES,
-} from "../../constants";
+import { STORES_LIST } from "../../constants";
 
 export interface CustomerOption {
   id: string;
@@ -91,17 +87,7 @@ export function Type9Store({
   );
 
   const productOptions = (
-    boxProducts.length > 0
-      ? boxProducts
-      : products && products.length > 0
-        ? products
-        : DEMO_PRODUCTS.map((prod) => ({
-            id: prod,
-            name: prod,
-            productCode: null,
-            price: DEMO_PRODUCT_PRICES[prod] ?? 500,
-            unit: "กล่อง",
-          }))
+    boxProducts.length > 0 ? boxProducts : products || []
   ).map((p) => ({
     value: p.name,
     label: p.name,

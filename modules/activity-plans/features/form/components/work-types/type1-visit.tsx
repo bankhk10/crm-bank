@@ -3,8 +3,6 @@ import { Users, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
 import type { Type1VisitItem } from "../../types";
-import { DEMO_OWNERS } from "../../constants";
-
 export interface CustomerOption {
   id: string;
   name: string;
@@ -37,15 +35,7 @@ export function Type1Visit({
   deleteType1Row,
   customers = [],
 }: Props) {
-  const baseCustomerOptions = (
-    customers && customers.length > 0
-      ? customers
-      : DEMO_OWNERS.map((owner) => ({
-          id: owner,
-          name: owner,
-          customerCode: null,
-        }))
-  ).map((c) => ({
+  const baseCustomerOptions = (customers || []).map((c) => ({
     value: c.name,
     label: c.name,
   }));

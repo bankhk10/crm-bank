@@ -3,8 +3,6 @@ import { Users, Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
 import type { Type8MeetingItem } from "../../types";
-import { DEMO_PRODUCTS } from "../../constants";
-
 export interface ProductOption {
   id: string;
   name: string;
@@ -29,15 +27,7 @@ export function Type8Meeting({
   deleteType8Row,
   products = [],
 }: Props) {
-  const productOptions = (
-    products && products.length > 0
-      ? products
-      : DEMO_PRODUCTS.map((prod) => ({
-          id: prod,
-          name: prod,
-          productCode: null,
-        }))
-  ).map((p) => ({
+  const productOptions = (products || []).map((p) => ({
     value: p.name,
     label: p.name,
     subLabel: p.productCode || undefined,

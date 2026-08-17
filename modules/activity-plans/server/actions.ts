@@ -655,92 +655,12 @@ export async function getDemoPlotsAction() {
       };
     });
 
-    // 3. Add Farmer Farm Plots from customer-form-farmer records
-    farmerCustomers.forEach((farmer) => {
-      const farmerDisplayName = farmer.name || "เกษตรกร";
-      const plots = Array.isArray(farmer.farmPlots) ? (farmer.farmPlots as any[]) : [];
-
-      if (plots.length > 0) {
-        plots.forEach((plot, idx) => {
-          const lat = plot.latitude
-            ? String(plot.latitude).trim()
-            : farmer.latitude
-              ? String(farmer.latitude).trim()
-              : "";
-          const lng = plot.longitude
-            ? String(plot.longitude).trim()
-            : farmer.longitude
-              ? String(farmer.longitude).trim()
-              : "";
-
-          const cropName = plot.cropType || "";
-          const variety = plot.variety || "";
-          const targetCrop =
-            [cropName, variety].filter(Boolean).join(" ") || "พืชเกษตร";
-          const plotName = `${farmerDisplayName} - แปลงที่ ${idx + 1}${cropName ? ` (${cropName})` : ""}`;
-          const locDisplay = lat && lng ? `${lat}, ${lng}` : (lat ? `Lat: ${lat}` : (lng ? `Long: ${lng}` : ""));
-
-          // Avoid duplicates if plot is already listed
-          if (!realPlots.some((rp) => rp.name === plotName || rp.id === `farmer-${farmer.id}-plot-${idx + 1}`)) {
-            realPlots.push({
-              id: `farmer-${farmer.id}-plot-${idx + 1}`,
-              name: plotName,
-              location: locDisplay,
-              targetCrop,
-              showcase: "สินค้าสาธิต",
-              ownerName: farmerDisplayName,
-              cropCategory: "พืชไร่/พืชสวน",
-              cropName: cropName || "พืชเกษตร",
-              areaRai: plot.areaRai ? Number(plot.areaRai) : 0,
-              treeCount: 0,
-              startDate: "",
-              status: "IN_PROGRESS",
-              visitsCount: 0,
-              totalCost: 0,
-              daysSinceStart: 0,
-              latitude: lat || undefined,
-              longitude: lng || undefined,
-            });
-          }
-        });
-      } else {
-        const lat = farmer.latitude ? String(farmer.latitude).trim() : "";
-        const lng = farmer.longitude ? String(farmer.longitude).trim() : "";
-        const plotName = `${farmerDisplayName} (แปลงเกษตรกร)`;
-        const locDisplay = lat && lng ? `${lat}, ${lng}` : (lat ? `Lat: ${lat}` : (lng ? `Long: ${lng}` : ""));
-
-        if (!realPlots.some((rp) => rp.name === plotName || rp.ownerName === farmerDisplayName)) {
-          realPlots.push({
-            id: `farmer-${farmer.id}`,
-            name: plotName,
-            location: locDisplay,
-            targetCrop: "พืชเกษตร",
-            showcase: "สินค้าสาธิต",
-            ownerName: farmerDisplayName,
-            cropCategory: "พืชไร่/พืชสวน",
-            cropName: "พืชเกษตร",
-            areaRai: 0,
-            treeCount: 0,
-            startDate: "",
-            status: "IN_PROGRESS",
-            visitsCount: 0,
-            totalCost: 0,
-            daysSinceStart: 0,
-            latitude: lat || undefined,
-            longitude: lng || undefined,
-          });
-        }
-      }
-    });
-
-    // 4. Fetch from ActivityPlanItem (legacy fallback for backward compatibility)
+    // 3. Fetch from ActivityPlanItem (legacy fallback for backward compatibility)
     const items = await db.activityPlanItem.findMany({
       where: {
         activityPlan: { deletedAt: null },
-        OR: [
-          { plotActivityType: "CREATE" },
-          { plotOwnerName: { not: null } },
-        ],
+        plotActivityType: "CREATE",
+        plotOwnerName: { not: null },
       },
       include: {
         activityPlan: {
@@ -751,7 +671,6 @@ export async function getDemoPlotsAction() {
     });
 
     for (const item of items) {
-      if (item.plotActivityType === "FOLLOW_UP") continue;
       if (!item.plotOwnerName && !item.plotCropName) continue;
 
       const cropDisplay = item.plotCropName || "";
@@ -767,7 +686,7 @@ export async function getDemoPlotsAction() {
           name: plotName,
           location: item.activityPlan.location || `แปลงสาธิต ${ownerDisplay}`,
           targetCrop: cropDisplay,
-          showcase: item.plotProductName || "สินค้าสาธิต",
+          showcase: item.plotProductName || "",
           ownerName: ownerDisplay,
           cropCategory: item.plotCropCategory || "พืชสวน",
           cropName: cropDisplay || "พืชสวน",

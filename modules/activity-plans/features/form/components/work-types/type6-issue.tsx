@@ -3,8 +3,6 @@ import { HelpCircle, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
 import type { Type6IssueItem } from "../../types";
-import { DEMO_OWNERS } from "../../constants";
-
 export interface CustomerOption {
   id: string;
   name: string;
@@ -31,15 +29,7 @@ export function Type6Issue({
   deleteType6Row,
   customers = [],
 }: Props) {
-  const customerOptions = (
-    customers && customers.length > 0
-      ? customers
-      : DEMO_OWNERS.map((owner) => ({
-          id: owner,
-          name: owner,
-          customerCode: null,
-        }))
-  ).map((c) => ({
+  const customerOptions = (customers || []).map((c) => ({
     value: c.name,
     label: c.name,
   }));
