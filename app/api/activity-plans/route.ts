@@ -49,6 +49,7 @@ export async function GET(request: Request) {
     db.activityPlan.findMany({
       where,
       include: {
+        activityType: true,
         employee: {
           select: { id: true, name: true, positionTitle: true, departmentName: true },
         },

@@ -112,7 +112,12 @@ export function ActivityPlanTable({
         accessorKey: "activityType",
         header: "ประเภทงาน",
         cell: (info) => {
-          const val = (info.getValue() as string) || "-";
+          const raw = info.getValue();
+          const val =
+            typeof raw === "object" && raw !== null
+              ? (raw as any).name || (raw as any).code || "-"
+              : (raw as string) || "-";
+          console.log(info);
           return (
             <div
               className="truncate text-xs text-slate-700 max-w-[250px]"
