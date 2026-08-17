@@ -754,19 +754,7 @@ export function ActualType7Demo({
                   </span>
                 </div>
               )}
-              <div className="col-span-2 sm:col-span-4">
-                <span className="font-semibold text-slate-400 block text-[11px]">
-                  รายละเอียด / วิธีการทดลอง (ตอนเริ่มทำแปลง):
-                </span>
-                <span className="text-slate-800 whitespace-pre-wrap">
-                  {demoPlotData?.experimentDetail ||
-                    demoPlotData?.usageMethod ||
-                    (target.activityType === "CREATE"
-                      ? target.experimentDetail
-                      : "") ||
-                    "-"}
-                </span>
-              </div>
+     
               {target.detail &&
                 target.detail !== demoPlotData?.experimentDetail &&
                 target.detail !== target.objective && (
