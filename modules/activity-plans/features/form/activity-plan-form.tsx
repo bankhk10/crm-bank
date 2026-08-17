@@ -111,7 +111,9 @@ export function ActivityPlanForm({
 }: Props) {
   const [fetchedCustomers, setFetchedCustomers] = useState<any[]>([]);
   const [fetchedProducts, setFetchedProducts] = useState<any[]>([]);
-  const [fetchedDemoPlots, setFetchedDemoPlots] = useState<UserDemoPlotOption[]>([]);
+  const [fetchedDemoPlots, setFetchedDemoPlots] = useState<
+    UserDemoPlotOption[]
+  >([]);
 
   const customersList =
     initialCustomers && initialCustomers.length > 0
@@ -411,7 +413,11 @@ export function ActivityPlanForm({
 
   // Work Type 1: เข้าพบร้านค้า / Key Farmer
   const [type1Items, setType1Items] = useState<Type1VisitItem[]>(() => {
-    if (initDetails?.type1Items && Array.isArray(initDetails.type1Items) && initDetails.type1Items.length > 0) {
+    if (
+      initDetails?.type1Items &&
+      Array.isArray(initDetails.type1Items) &&
+      initDetails.type1Items.length > 0
+    ) {
       return initDetails.type1Items;
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
@@ -421,12 +427,17 @@ export function ActivityPlanForm({
           item.visitTopic !== "SALES_PROMOTION" &&
           item.itemType !== "MARKETING_PRODUCT" &&
           item.itemType !== "SALES_PROMOTION" &&
-          (item.visitTopic || item.itemType === "TYPE_1")
+          (item.visitTopic || item.itemType === "TYPE_1"),
       );
       if (items.length > 0) {
         return items.map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
-          customerName: item.customerName || item.storeName || item.ownerName || DEMO_OWNERS[0] || "",
+          customerName:
+            item.customerName ||
+            item.storeName ||
+            item.ownerName ||
+            DEMO_OWNERS[0] ||
+            "",
           topic: item.visitTopic || item.topic || "แจ้งข่าวสาร",
           detail: item.detail || "",
         }));
@@ -435,7 +446,7 @@ export function ActivityPlanForm({
     return [
       {
         id: "1",
-        customerName: DEMO_OWNERS[0] || "",
+        customerName: "",
         topic: "แจ้งข่าวสาร",
         detail: "",
       },
@@ -466,37 +477,48 @@ export function ActivityPlanForm({
     setType1Items((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const [type2Items, setType2Items] = useState<Type2ProductFollowupItem[]>(() => {
-    if (initDetails?.type2Items && Array.isArray(initDetails.type2Items) && initDetails.type2Items.length > 0) {
-      return initDetails.type2Items;
-    }
-    if (Array.isArray(initDetails) && initDetails.length > 0) {
-      const items = initDetails.filter(
-        (item: any) =>
-          item.itemType !== "MARKETING_PRODUCT" &&
-          item.itemType !== "SALES_PROMOTION" &&
-          item.visitTopic !== "MARKETING_PRODUCT" &&
-          item.visitTopic !== "SALES_PROMOTION" &&
-          (item.followupProductName || item.itemType === "TYPE_2")
-      );
-      if (items.length > 0) {
-        return items.map((item: any, idx: number) => ({
-          id: item.id || String(idx + 1),
-          productName: item.followupProductName || item.productName || DEMO_PRODUCTS[0] || "",
-          customerName: item.customerName || item.ownerName || DEMO_OWNERS[0] || "",
-          detail: item.detail || "",
-        }));
+  const [type2Items, setType2Items] = useState<Type2ProductFollowupItem[]>(
+    () => {
+      if (
+        initDetails?.type2Items &&
+        Array.isArray(initDetails.type2Items) &&
+        initDetails.type2Items.length > 0
+      ) {
+        return initDetails.type2Items;
       }
-    }
-    return [
-      {
-        id: "1",
-        productName: DEMO_PRODUCTS[0] || "",
-        customerName: DEMO_OWNERS[0] || "",
-        detail: "",
-      },
-    ];
-  });
+      if (Array.isArray(initDetails) && initDetails.length > 0) {
+        const items = initDetails.filter(
+          (item: any) =>
+            item.itemType !== "MARKETING_PRODUCT" &&
+            item.itemType !== "SALES_PROMOTION" &&
+            item.visitTopic !== "MARKETING_PRODUCT" &&
+            item.visitTopic !== "SALES_PROMOTION" &&
+            (item.followupProductName || item.itemType === "TYPE_2"),
+        );
+        if (items.length > 0) {
+          return items.map((item: any, idx: number) => ({
+            id: item.id || String(idx + 1),
+            productName:
+              item.followupProductName ||
+              item.productName ||
+              DEMO_PRODUCTS[0] ||
+              "",
+            customerName:
+              item.customerName || item.ownerName || DEMO_OWNERS[0] || "",
+            detail: item.detail || "",
+          }));
+        }
+      }
+      return [
+        {
+          id: "1",
+          productName: DEMO_PRODUCTS[0] || "",
+          customerName: DEMO_OWNERS[0] || "",
+          detail: "",
+        },
+      ];
+    },
+  );
 
   const addType2Row = () => {
     const newItem: Type2ProductFollowupItem = {
@@ -523,7 +545,11 @@ export function ActivityPlanForm({
   };
 
   const [type3Items, setType3Items] = useState<Type3SalesItem[]>(() => {
-    if (initDetails?.type3Items && Array.isArray(initDetails.type3Items) && initDetails.type3Items.length > 0) {
+    if (
+      initDetails?.type3Items &&
+      Array.isArray(initDetails.type3Items) &&
+      initDetails.type3Items.length > 0
+    ) {
       return initDetails.type3Items;
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
@@ -533,13 +559,17 @@ export function ActivityPlanForm({
           item.itemType !== "SALES_PROMOTION" &&
           item.visitTopic !== "MARKETING_PRODUCT" &&
           item.visitTopic !== "SALES_PROMOTION" &&
-          (item.itemType === "TYPE_3" || item.saleProductName)
+          (item.itemType === "TYPE_3" || item.saleProductName),
       );
       if (items.length > 0) {
         return items.map((item: any, idx: number) => {
           const qty = item.saleQuantity != null ? Number(item.saleQuantity) : 1;
-          const uPrice = item.saleUnitPrice != null ? Number(item.saleUnitPrice) : 0;
-          const totalPrice = item.saleTotalPrice != null ? Number(item.saleTotalPrice) : qty * uPrice;
+          const uPrice =
+            item.saleUnitPrice != null ? Number(item.saleUnitPrice) : 0;
+          const totalPrice =
+            item.saleTotalPrice != null
+              ? Number(item.saleTotalPrice)
+              : qty * uPrice;
           return {
             id: item.id || String(idx + 1),
             customerName: item.customerName || DEMO_OWNERS[0] || "",
@@ -654,7 +684,11 @@ export function ActivityPlanForm({
 
   // Work Type 4: วางบิล / เก็บเงิน
   const [type4Items, setType4Items] = useState<Type4CollectItem[]>(() => {
-    if (initDetails?.type4Items && Array.isArray(initDetails.type4Items) && initDetails.type4Items.length > 0) {
+    if (
+      initDetails?.type4Items &&
+      Array.isArray(initDetails.type4Items) &&
+      initDetails.type4Items.length > 0
+    ) {
       return initDetails.type4Items;
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
@@ -664,7 +698,8 @@ export function ActivityPlanForm({
           item.itemType !== "SALES_PROMOTION" &&
           item.visitTopic !== "MARKETING_PRODUCT" &&
           item.visitTopic !== "SALES_PROMOTION" &&
-          (item.itemType === "TYPE_4" || (item.collectAmount != null && !item.visitTopic))
+          (item.itemType === "TYPE_4" ||
+            (item.collectAmount != null && !item.visitTopic)),
       );
       if (items.length > 0) {
         return items.map((item: any, idx: number) => ({
@@ -710,7 +745,11 @@ export function ActivityPlanForm({
 
   // Work Type 5: สำรวจตลาดของคู่แข่ง
   const [type5Items, setType5Items] = useState<Type5SurveyItem[]>(() => {
-    if (initDetails?.type5Items && Array.isArray(initDetails.type5Items) && initDetails.type5Items.length > 0) {
+    if (
+      initDetails?.type5Items &&
+      Array.isArray(initDetails.type5Items) &&
+      initDetails.type5Items.length > 0
+    ) {
       return initDetails.type5Items;
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
@@ -718,13 +757,16 @@ export function ActivityPlanForm({
         (item: any) =>
           item.itemType !== "MARKETING_PRODUCT" &&
           item.itemType !== "SALES_PROMOTION" &&
-          (item.itemType === "TYPE_5" || item.surveyCompetitorProduct || item.surveyStoreName)
+          (item.itemType === "TYPE_5" ||
+            item.surveyCompetitorProduct ||
+            item.surveyStoreName),
       );
       if (items.length > 0) {
         return items.map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
           storeName: item.surveyStoreName || item.storeName || "",
-          comparedProduct: item.surveyCompetitorProduct || DEMO_PRODUCTS[0] || "",
+          comparedProduct:
+            item.surveyCompetitorProduct || DEMO_PRODUCTS[0] || "",
           detail: item.detail || "",
         }));
       }
@@ -764,7 +806,11 @@ export function ActivityPlanForm({
 
   // Work Type 6: แก้ปัญหา / รับเรื่องร้องเรียน
   const [type6Items, setType6Items] = useState<Type6IssueItem[]>(() => {
-    if (initDetails?.type6Items && Array.isArray(initDetails.type6Items) && initDetails.type6Items.length > 0) {
+    if (
+      initDetails?.type6Items &&
+      Array.isArray(initDetails.type6Items) &&
+      initDetails.type6Items.length > 0
+    ) {
       return initDetails.type6Items;
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
@@ -772,7 +818,7 @@ export function ActivityPlanForm({
         (item: any) =>
           item.itemType !== "MARKETING_PRODUCT" &&
           item.itemType !== "SALES_PROMOTION" &&
-          (item.itemType === "TYPE_6" || item.issueType)
+          (item.itemType === "TYPE_6" || item.issueType),
       );
       if (items.length > 0) {
         return items.map((item: any, idx: number) => ({
@@ -818,7 +864,11 @@ export function ActivityPlanForm({
 
   // Work Type 7: ติดตามแปลงสาธิต / ทำแปลง
   const [type7Items, setType7Items] = useState<Type7DemoPlotItem[]>(() => {
-    if (initDetails?.type7Items && Array.isArray(initDetails.type7Items) && initDetails.type7Items.length > 0) {
+    if (
+      initDetails?.type7Items &&
+      Array.isArray(initDetails.type7Items) &&
+      initDetails.type7Items.length > 0
+    ) {
       return initDetails.type7Items;
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
@@ -828,20 +878,28 @@ export function ActivityPlanForm({
           item.itemType !== "SALES_PROMOTION" &&
           item.visitTopic !== "MARKETING_PRODUCT" &&
           item.visitTopic !== "SALES_PROMOTION" &&
-          (item.itemType === "TYPE_7" || item.plotActivityType || item.plotOwnerName || item.plotAreaRai != null)
+          (item.itemType === "TYPE_7" ||
+            item.plotActivityType ||
+            item.plotOwnerName ||
+            item.plotAreaRai != null),
       );
       if (items.length > 0) {
         return items.map((item: any, idx: number) => {
           const rawDetail = item.detail || "";
-          const objMatch = rawDetail.match(/(?:วัตถุประสงค์ของแปลง|วัตถุประสงค์):\s*([^|]+)/);
-          const expMatch = rawDetail.match(/(?:รายละเอียด \/ วิธีการทดลอง|วิธีการทดลอง|รายละเอียดการทดลอง):\s*([^|]+)/);
+          const objMatch = rawDetail.match(
+            /(?:วัตถุประสงค์ของแปลง|วัตถุประสงค์):\s*([^|]+)/,
+          );
+          const expMatch = rawDetail.match(
+            /(?:รายละเอียด \/ วิธีการทดลอง|วิธีการทดลอง|รายละเอียดการทดลอง):\s*([^|]+)/,
+          );
 
           const parsedObjective = objMatch
             ? objMatch[1].trim()
             : item.objective || "";
           const parsedExperiment = expMatch
             ? expMatch[1].trim()
-            : item.experimentDetail || (!objMatch && rawDetail ? rawDetail : "");
+            : item.experimentDetail ||
+              (!objMatch && rawDetail ? rawDetail : "");
 
           return {
             id: item.id || String(idx + 1),
@@ -851,10 +909,16 @@ export function ActivityPlanForm({
             cropCategory: item.plotCropCategory || item.cropCategory || "",
             cropName: item.plotCropName || item.cropName || "",
             customCropName: item.customCropName || "",
-            areaRai: item.plotAreaRai ? Number(item.plotAreaRai) : (item.areaRai || 0),
+            areaRai: item.plotAreaRai
+              ? Number(item.plotAreaRai)
+              : item.areaRai || 0,
             treeCount: item.plotTreeCount ?? item.treeCount ?? 0,
-            startDate: item.startDate || startDate || format(new Date(), "yyyy-MM-dd"),
-            followUpDate: item.followUpDate || startDate || format(new Date(), "yyyy-MM-dd"),
+            startDate:
+              item.startDate || startDate || format(new Date(), "yyyy-MM-dd"),
+            followUpDate:
+              item.followUpDate ||
+              startDate ||
+              format(new Date(), "yyyy-MM-dd"),
             objective: parsedObjective,
             experimentDetail: parsedExperiment,
             plotsCount:
@@ -923,7 +987,11 @@ export function ActivityPlanForm({
 
   // Work Type 8: จัดประชุมเกษตรกร / ร้านค้า
   const [type8Items, setType8Items] = useState<Type8MeetingItem[]>(() => {
-    if (initDetails?.type8Items && Array.isArray(initDetails.type8Items) && initDetails.type8Items.length > 0) {
+    if (
+      initDetails?.type8Items &&
+      Array.isArray(initDetails.type8Items) &&
+      initDetails.type8Items.length > 0
+    ) {
       return initDetails.type8Items;
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
@@ -931,18 +999,23 @@ export function ActivityPlanForm({
         (item: any) =>
           item.itemType !== "MARKETING_PRODUCT" &&
           item.itemType !== "SALES_PROMOTION" &&
-          (item.itemType === "TYPE_8" || item.meetingTopic || item.meetingAttendeesCount != null)
+          (item.itemType === "TYPE_8" ||
+            item.meetingTopic ||
+            item.meetingAttendeesCount != null),
       );
       if (items.length > 0) {
         return items.map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
           topic: item.meetingTopic || item.topic || "",
           targetProducts: item.meetingTargetProducts
-            ? (Array.isArray(item.meetingTargetProducts)
-                ? item.meetingTargetProducts
-                : String(item.meetingTargetProducts).split(",").map((s: string) => s.trim()))
+            ? Array.isArray(item.meetingTargetProducts)
+              ? item.meetingTargetProducts
+              : String(item.meetingTargetProducts)
+                  .split(",")
+                  .map((s: string) => s.trim())
             : [],
-          attendeesCount: item.meetingAttendeesCount ?? item.attendeesCount ?? 1,
+          attendeesCount:
+            item.meetingAttendeesCount ?? item.attendeesCount ?? 1,
           detail: item.detail || "",
         }));
       }
@@ -1107,7 +1180,7 @@ export function ActivityPlanForm({
           quantityCases: item.storeQuantityCases ?? item.quantityCases ?? 0,
           pricePerCase: item.storePricePerCase
             ? Number(item.storePricePerCase)
-            : item.pricePerCase ?? 0,
+            : (item.pricePerCase ?? 0),
         }));
       if (mapped.length > 0) return mapped;
     }
@@ -1165,10 +1238,12 @@ export function ActivityPlanForm({
     return "";
   });
   const [type10Attendees, setType10Attendees] = useState<number>(() => {
-    if (initDetails?.type10Attendees != null) return Number(initDetails.type10Attendees);
+    if (initDetails?.type10Attendees != null)
+      return Number(initDetails.type10Attendees);
     if (Array.isArray(initDetails)) {
       const item = initDetails.find((i: any) => i.itemType === "TYPE_10");
-      if (item?.meetingAttendeesCount != null) return Number(item.meetingAttendeesCount);
+      if (item?.meetingAttendeesCount != null)
+        return Number(item.meetingAttendeesCount);
       if (item?.targetAttendees != null) return Number(item.targetAttendees);
       if (item?.detail) {
         const match = item.detail.match(/ผู้ร่วมงาน:\s*(\d+)/);
@@ -1178,7 +1253,8 @@ export function ActivityPlanForm({
     return 0;
   });
   const [type10BookingSales, setType10BookingSales] = useState<number>(() => {
-    if (initDetails?.type10BookingSales != null) return Number(initDetails.type10BookingSales);
+    if (initDetails?.type10BookingSales != null)
+      return Number(initDetails.type10BookingSales);
     if (Array.isArray(initDetails)) {
       const item = initDetails.find((i: any) => i.itemType === "TYPE_10");
       if (item?.saleTotalPrice != null) return Number(item.saleTotalPrice);
@@ -1760,7 +1836,8 @@ export function ActivityPlanForm({
         return;
       }
       const calculatedMarketingSum = marketingProductItems.reduce(
-        (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
+        (sum, item) =>
+          sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
         0,
       );
       marketingBudget = calculatedMarketingSum;
@@ -1787,7 +1864,8 @@ export function ActivityPlanForm({
     try {
       const firstType = selectedWorkTypes[0] || WORK_TYPES[0];
       const typeIndex = WORK_TYPES.indexOf(firstType);
-      const activityTypeId = typeIndex >= 0 ? `TYPE_${typeIndex + 1}` : "TYPE_1";
+      const activityTypeId =
+        typeIndex >= 0 ? `TYPE_${typeIndex + 1}` : "TYPE_1";
 
       const allItemsToSend: any[] = [];
 
@@ -1952,11 +2030,19 @@ export function ActivityPlanForm({
               plotOwnerName: type10DemoPlot,
               plotCropName: type10TargetCrop || null,
               plotProductName: type10Showcase || null,
-              meetingAttendeesCount: type10Attendees ? Number(type10Attendees) : null,
-              saleTotalPrice: type10BookingSales ? Number(type10BookingSales) : null,
+              meetingAttendeesCount: type10Attendees
+                ? Number(type10Attendees)
+                : null,
+              saleTotalPrice: type10BookingSales
+                ? Number(type10BookingSales)
+                : null,
               targetAttendees: type10Attendees ? Number(type10Attendees) : null,
-              bookingSales: type10BookingSales ? Number(type10BookingSales) : null,
-              targetSales: type10BookingSales ? Number(type10BookingSales) : null,
+              bookingSales: type10BookingSales
+                ? Number(type10BookingSales)
+                : null,
+              targetSales: type10BookingSales
+                ? Number(type10BookingSales)
+                : null,
               detail: `สถานที่: ${type10Location} | พืชเป้าหมาย: ${type10TargetCrop} | สินค้าโชว์: ${type10Showcase} | ผู้ร่วมงาน: ${type10Attendees} คน | เป้ายอดจอง: ฿${Number(type10BookingSales || 0).toLocaleString()}`,
             });
           }
@@ -1976,8 +2062,7 @@ export function ActivityPlanForm({
           allItemsToSend.push({
             itemType: "MARKETING_PRODUCT",
             visitTopic: "MARKETING_PRODUCT",
-            plotCropCategory:
-              mItem.category || MARKETING_PRODUCT_CATEGORIES[0],
+            plotCropCategory: mItem.category || MARKETING_PRODUCT_CATEGORIES[0],
             storeProductName: mItem.productName,
             storeQuantityCases: mItem.quantityCases,
             plotCropName: mItem.unit || "ชิ้น",
