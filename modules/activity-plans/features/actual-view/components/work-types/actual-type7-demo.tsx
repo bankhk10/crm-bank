@@ -630,141 +630,113 @@ export function ActualType7Demo({
       {isFollowUp && (
         <div className="space-y-5 pt-1">
           {/* 1. Master Setup Reference Card */}
-          <div className="bg-emerald-50/60 border border-emerald-200 rounded-xl p-4 md:p-5 space-y-3 shadow-2xs">
-            <div className="flex flex-wrap items-center justify-between border-b border-emerald-200/80 pb-2.5 gap-2">
-              <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
-                <Info className="w-4 h-4 text-emerald-600" />
-                ข้อมูลอ้างอิงของแปลงสาธิต (จากตอนเริ่มทำแปลง)
+          <div className="bg-emerald-50/60 border border-emerald-200 rounded-xl overflow-hidden shadow-2xs">
+            {/* Header */}
+            <div className="flex flex-wrap items-center justify-between bg-emerald-100/70 border-b border-emerald-200 px-4 py-2.5 gap-2">
+              <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                ข้อมูลอ้างอิงของแปลงสาธิต
               </span>
               <div className="flex items-center gap-2">
                 {demoPlotData?.code && (
-                  <span className="px-2 py-0.5 rounded font-mono text-[11px] font-bold bg-white text-slate-700 border border-slate-200">
+                  <span className="px-2 py-0.5 rounded font-mono text-[11px] font-bold bg-white text-slate-600 border border-slate-200">
                     {demoPlotData.code}
                   </span>
                 )}
-                {/* 2. Prominent Button: View History Modal */}
+                {/* View History Button */}
                 <button
                   type="button"
                   onClick={() => setIsHistoryModalOpen(true)}
                   className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all hover:shadow cursor-pointer"
                 >
                   <History className="w-3.5 h-3.5" />
-                  <span>ดูประวัติการติดตามแปลง ({totalVisitsCount} ครั้ง)</span>
+                  <span>ประวัติการติดตาม ({totalVisitsCount} ครั้ง)</span>
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-slate-700">
-              <div>
-                <span className="font-semibold text-slate-400 block text-[11px]">
-                  เจ้าของแปลง:
-                </span>
-                <span className="font-bold text-slate-900">
-                  {target.owner || demoPlotData?.ownerName || "-"}
-                </span>
-              </div>
-              <div>
-                <span className="font-semibold text-slate-400 block text-[11px]">
-                  พืช:
-                </span>
-                <span className="font-bold text-slate-900">
-                  {target.crop || demoPlotData?.cropName || "-"}
-                </span>
-              </div>
-              <div>
-                <span className="font-semibold text-slate-400 block text-[11px]">
-                  สินค้าสาธิต:
-                </span>
-                <span className="font-bold text-emerald-800">
-                  {target.product ||
-                    demoPlotData?.primaryProductName ||
-                    demoPlotData?.productName ||
-                    "-"}
-                </span>
-              </div>
-              <div>
-                <span className="font-semibold text-slate-400 block text-[11px]">
-                  จำนวนสินค้าที่จะสาธิต:
-                </span>
-                <span className="font-bold text-emerald-800">
-                  {demoPlotData?.demoProductQuantity != null &&
-                  demoPlotData?.demoProductQuantity !== "" &&
-                  demoPlotData?.demoProductQuantity !== "-"
-                    ? String(demoPlotData.demoProductQuantity)
-                    : demoPlotData?.plotCount != null &&
-                      demoPlotData?.plotCount !== "" &&
-                      demoPlotData?.plotCount !== "-"
-                      ? String(demoPlotData.plotCount)
-                      : target.demoProductQuantity != null &&
-                        target.demoProductQuantity !== "" &&
-                        target.demoProductQuantity !== "-"
-                        ? String(target.demoProductQuantity)
-                        : "-"}
-                </span>
-              </div>
-              <div>
-                <span className="font-semibold text-slate-400 block text-[11px]">
-                  วันเริ่มแปลง / วันปลูก:
-                </span>
-                <span className="font-bold text-slate-900">
-                  {plantingDate ||
-                    demoPlotData?.plantingDate ||
-                    startDate ||
-                    demoPlotData?.startDate ||
-                    "-"}
-                </span>
-              </div>
-              {(target.plots ||
-                demoPlotData?.areaRai != null ||
-                demoPlotData?.treeCount != null) && (
-                <div>
-                  <span className="font-semibold text-slate-400 block text-[11px]">
-                    พื้นที่ / จำนวน:
-                  </span>
-                  <span className="font-bold text-slate-900">
-                    {target.plots ||
-                      (demoPlotData?.areaRai
-                        ? `${demoPlotData.areaRai} ไร่`
-                        : "") ||
-                      (demoPlotData?.treeCount
-                        ? `${demoPlotData.treeCount} ต้น`
-                        : "") ||
-                      "-"}
+            <div className="p-4 space-y-3">
+              {/* Row 1: เจ้าของ, พืช, สินค้า, จำนวนสินค้า */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2.5 text-xs">
+                <div className="space-y-0.5">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide block">เจ้าของแปลง</span>
+                  <span className="font-bold text-slate-900 block">{target.owner || demoPlotData?.ownerName || "-"}</span>
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide block">พืช</span>
+                  <span className="font-bold text-slate-900 block">{target.crop || demoPlotData?.cropName || "-"}</span>
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide block">สินค้าสาธิต</span>
+                  <span className="font-bold text-emerald-800 block">
+                    {target.product || demoPlotData?.primaryProductName || demoPlotData?.productName || "-"}
                   </span>
                 </div>
-              )}
-              {plantingAreaCondition && (
-                <div className="col-span-2 sm:col-span-2">
-                  <span className="font-semibold text-slate-400 block text-[11px]">
-                    สภาพพื้นที่ปลูกตอนเริ่ม:
-                  </span>
-                  <span className="font-medium text-slate-800">
-                    {plantingAreaCondition}
-                  </span>
-                </div>
-              )}
-              {(demoPlotData?.objective ||
-                (target.objective && target.objective !== target.detail)) && (
-                <div className="col-span-2 sm:col-span-2">
-                  <span className="font-semibold text-slate-400 block text-[11px]">
-                    วัตถุประสงค์ (ตอนเริ่มทำแปลง):
-                  </span>
-                  <span className="text-slate-800">
-                    {demoPlotData?.objective || target.objective}
+                <div className="space-y-0.5">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide block">จำนวนสินค้าสาธิต</span>
+                  <span className="font-bold text-emerald-800 block">
+                    {demoPlotData?.demoProductQuantity != null &&
+                    demoPlotData?.demoProductQuantity !== "" &&
+                    demoPlotData?.demoProductQuantity !== "-"
+                      ? String(demoPlotData.demoProductQuantity)
+                      : demoPlotData?.plotCount != null &&
+                        demoPlotData?.plotCount !== "" &&
+                        demoPlotData?.plotCount !== "-"
+                        ? String(demoPlotData.plotCount)
+                        : target.demoProductQuantity != null &&
+                          target.demoProductQuantity !== "" &&
+                          target.demoProductQuantity !== "-"
+                          ? String(target.demoProductQuantity)
+                          : "-"}
                   </span>
                 </div>
+              </div>
+
+              {/* Row 2: วันเริ่มแปลง, พื้นที่, สภาพพื้นที่ */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2.5 text-xs border-t border-emerald-200/50 pt-2.5">
+                <div className="space-y-0.5">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide block">วันเริ่มแปลง / วันปลูก</span>
+                  <span className="font-bold text-slate-900 block">
+                    {plantingDate || demoPlotData?.plantingDate || startDate || demoPlotData?.startDate || "-"}
+                  </span>
+                </div>
+                {(target.plots || demoPlotData?.areaRai != null || demoPlotData?.treeCount != null) && (
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide block">พื้นที่ / จำนวนต้น</span>
+                    <span className="font-bold text-slate-900 block">
+                      {target.plots ||
+                        (demoPlotData?.areaRai ? `${demoPlotData.areaRai} ไร่` : "") ||
+                        (demoPlotData?.treeCount ? `${demoPlotData.treeCount} ต้น` : "") ||
+                        "-"}
+                    </span>
+                  </div>
+                )}
+                {plantingAreaCondition && (
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide block">สภาพพื้นที่ตอนเริ่ม</span>
+                    <span className="font-medium text-slate-800 block">{plantingAreaCondition}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Row 3: วัตถุประสงค์ */}
+              {(demoPlotData?.objective || (target.objective && target.objective !== target.detail)) && (
+                <div className="border-t border-emerald-200/50 pt-2.5 space-y-0.5">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide block">วัตถุประสงค์ของแปลง</span>
+                  <p className="text-xs text-slate-800 leading-relaxed">{demoPlotData?.objective || target.objective}</p>
+                </div>
               )}
-     
+
+              {/* Row 4: สิ่งที่ตั้งใจจะมาติดตาม */}
               {target.detail &&
                 target.detail !== demoPlotData?.experimentDetail &&
                 target.detail !== target.objective && (
-                  <div className="col-span-2 sm:col-span-4 pt-1.5 border-t border-emerald-200/50">
-                    <span className="font-semibold text-slate-500 block text-[11px]">
-                      สิ่งที่ตั้งใจมาติดตามรอบนี้ (จากแผนงาน):
+                  <div className="bg-amber-50/70 border border-amber-200/60 rounded-lg px-3 py-2.5 space-y-0.5">
+                    <span className="text-[10px] font-semibold text-amber-700 uppercase tracking-wide flex items-center gap-1 block">
+                      <Sprout className="w-3 h-3" />
+                      สิ่งที่ตั้งใจมาติดตามรอบนี้ (จากแผนงาน)
                     </span>
-                    <span className="text-slate-700 whitespace-pre-wrap">
-                      {target.detail}
-                    </span>
+                    <p className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">{target.detail}</p>
                   </div>
                 )}
             </div>
