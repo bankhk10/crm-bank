@@ -254,9 +254,7 @@ export function ActualType7Demo({
           </div>
           <div>
             <h2 className="font-bold text-emerald-900 text-base md:text-lg">
-              {isFollowUp
-                ? "ติดตามแปลงสาธิต"
-                : "ทำแปลงสาธิต (เริ่มทำแปลงใหม่)"}
+              {isFollowUp ? "ติดตามแปลงสาธิต" : "ทำแปลงสาธิต (เริ่มทำแปลงใหม่)"}
             </h2>
             <p className="text-xs text-slate-500">
               {isFollowUp
@@ -353,7 +351,9 @@ export function ActualType7Demo({
                 </div>
                 <div className="grid grid-cols-2 gap-1.5 text-slate-600 text-[11px]">
                   <div>
-                    <span className="font-semibold text-slate-400">สินค้า: </span>
+                    <span className="font-semibold text-slate-400">
+                      สินค้า:{" "}
+                    </span>
                     <span className="font-bold text-slate-800">
                       {item.product || "-"}
                     </span>
@@ -430,7 +430,7 @@ export function ActualType7Demo({
               value:
                 target.demoProductQuantity != null &&
                 target.demoProductQuantity !== ""
-                  ? `${target.demoProductQuantity} หน่วย`
+                  ? `${target.demoProductQuantity}`
                   : "-",
             },
             { label: "พืช", value: target.crop },
@@ -805,7 +805,8 @@ export function ActualType7Demo({
                 {cropCondition === "มีปัญหา" && (
                   <div className="space-y-1 pt-1">
                     <label className="text-xs font-medium text-slate-600">
-                      ระบุปัญหาที่พบ (สภาพพืช) <span className="text-rose-500">*</span>
+                      ระบุปัญหาที่พบ (สภาพพืช){" "}
+                      <span className="text-rose-500">*</span>
                     </label>
                     <Input
                       type="text"
@@ -1136,7 +1137,10 @@ export function ActualType7Demo({
               <div className="pt-3 border-t border-emerald-100 space-y-4 bg-emerald-50/30 -mx-4 md:-mx-5 -mb-4 md:-mb-5 p-4 md:p-5 rounded-b-xl">
                 <div className="flex items-center gap-2 text-emerald-900 font-bold text-xs">
                   <Sparkles className="w-4 h-4 text-emerald-600" />
-                  <span>แบบประเมินผลผลิตและผลสัมฤทธิ์ของแปลงสาธิต (Harvest Evaluation)</span>
+                  <span>
+                    แบบประเมินผลผลิตและผลสัมฤทธิ์ของแปลงสาธิต (Harvest
+                    Evaluation)
+                  </span>
                 </div>
 
                 {/* Yield comparison */}
