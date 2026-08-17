@@ -347,6 +347,17 @@ modules/activity-plans/
   - ล้าง Mock Defaults ใน `targets` ให้เริ่มต้นเป็นค่าว่าง และกำหนดค่าจาก DB ตรงๆ โดยไม่ Fallback ไปหา Mock String
   - แยก `followupDetail` (ผลการติดตามจริง) ออกจาก `detail` (รายละเอียดจากแผน) อย่างเด็ดขาดใน `actual-type2-followup.tsx` ไม่ให้คัดลอกค่ามาใส่ในกล่องกรอกข้อมูลจริงอัตโนมัติ
 
+### 2026-08-17: แก้ไขปัญหา Work Type ของ Field Day (Type 10) ซ้ำซ้อนกับ Type 3, Type 7, Type 8
+- **คอมโพเนนต์ที่แก้ไข:** `constants.ts`, `activity-plan-actual-view.tsx`, `activity-plan-form.tsx`, `activity-plan-detail-view.tsx`
+- **สาเหตุของปัญหา:**
+  - ตาราง `activity_plan_items` ไม่มีฟิลด์ `itemType` ในฐานข้อมูล ข้อมูล Field Day ถูกบันทึกลง `saleTotalPrice` (ยอดจอง), `plotCropName` (พืชเป้าหมาย), และ `meetingAttendeesCount` (ผู้ร่วมงาน)
+  - ทำให้ฝั่ง Actual View / Form / Detail View ตรวจจับผิดเป็น Type 3 (เสนอขายสินค้า), Type 7 (แปลงสาธิต), และ Type 8 (จัดประชุม)
+- **แนวทางแก้ไข:**
+  - เพิ่มฟังก์ชัน `isFieldDayItem(item)` ใน `constants.ts` เพื่อแยกแยะรายการ Field Day ได้อย่างแม่นยำ รองรับทั้ง Legacy และ New Plans
+  - ปรับปรุงการ Filter ใน `activity-plan-actual-view.tsx`, `activity-plan-form.tsx` และ `activity-plan-detail-view.tsx` โดยใส่ Guard `!isFieldDayItem(item)` ให้กับประเภทงานอื่น
+  - ดึงข้อมูลใส่ Target Cards ของ Field Day (`t10`) อย่างครบถ้วน (แปลง, สถานที่, สินค้าโชว์, เป้าผู้ร่วมงาน, เป้ายอดจอง)
+  - เพิ่ม Prefix `[Field Day]` ในฟิลด์ `detail` ตอนบันทึกเพื่อความชัดเจนของข้อมูล
+
 ### 2026-08-14: เพิ่มหน้าจอศูนย์ตรวจสอบและอนุมัติกิจกรรม & ปรับปรุง Actual Form Type 2
 - **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `actual-type2-followup.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-approval-list-view.tsx`, `approval-action-dialog.tsx`, `approval-detail-drawer.tsx`, `activity-plan.repository.ts`, `server/actions.ts`
 - **การปรับปรุง Actual Form Type 2 (ติดตามผลการใช้สินค้า):**

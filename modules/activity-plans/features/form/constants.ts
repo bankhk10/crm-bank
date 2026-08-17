@@ -436,3 +436,37 @@ export const USER_DEMO_PLOTS: UserDemoPlotOption[] = [
     startDate: "2026-01-20",
   },
 ];
+
+/**
+ * Helper to identify whether an ActivityPlanItem is a Type 10 (Field Day) item
+ */
+export function isFieldDayItem(item: any): boolean {
+  if (!item) return false;
+  if (item.itemType === "TYPE_10") return true;
+  if (typeof item.meetingTopic === "string" && item.meetingTopic.includes("Field Day")) return true;
+  const detailStr = String(item.detail || "");
+  if (
+    detailStr.includes("[Field Day]") ||
+    detailStr.includes("Field Day") ||
+    detailStr.includes("จัดงาน Field Day")
+  ) {
+    return true;
+  }
+  if (
+    detailStr.includes("สินค้าโชว์:") ||
+    (detailStr.includes("พืชเป้าหมาย:") && (detailStr.includes("เป้ายอดจอง:") || detailStr.includes("ผู้ร่วมงาน:")))
+  ) {
+    return true;
+  }
+  if (
+    item.plotProductName &&
+    item.plotCropName &&
+    item.meetingAttendeesCount != null &&
+    item.saleTotalPrice != null &&
+    !item.saleQuantity &&
+    !item.plotActivityType
+  ) {
+    return true;
+  }
+  return false;
+}

@@ -46,7 +46,7 @@ import {
   requestCorrectionPlanAction,
   cancelActivityPlanAction,
 } from "../../server/actions";
-import { WORK_TYPES } from "../form/constants";
+import { WORK_TYPES, isFieldDayItem } from "../form/constants";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -1309,15 +1309,18 @@ function extractWorkTypeSections(
   // ── 3. เสนอขายสินค้า ────────────────────────────────────
   const type3DbItems = items.filter(
     (i) =>
+      !isFieldDayItem(i) &&
       i.itemType !== "MARKETING_PRODUCT" &&
       i.itemType !== "SALES_PROMOTION" &&
       i.visitTopic !== "MARKETING_PRODUCT" &&
       i.visitTopic !== "SALES_PROMOTION" &&
       (i.itemType === "TYPE_3" ||
         i.saleProductName ||
-        i.saleTotalPrice != null ||
-        i.saleQuantity != null ||
-        i.saleUnitPrice != null),
+        (i.saleQuantity != null && i.saleUnitPrice != null) ||
+        (i.saleTotalPrice != null &&
+          !i.storeTotalAmount &&
+          !i.collectAmount &&
+          i.meetingAttendeesCount == null)),
   );
   const t3Line = objectiveLines.find(
     (l) => l.includes("[เสนอขายสินค้า]") || l.includes("เสนอขายสินค้า"),
@@ -1372,6 +1375,7 @@ function extractWorkTypeSections(
   // ── 4. วางบิล / เก็บเงิน ─────────────────────────────────
   const type4DbItems = items.filter(
     (i) =>
+      !isFieldDayItem(i) &&
       i.itemType !== "MARKETING_PRODUCT" &&
       i.itemType !== "SALES_PROMOTION" &&
       i.visitTopic !== "MARKETING_PRODUCT" &&
@@ -1429,7 +1433,8 @@ function extractWorkTypeSections(
   // ── 5. สำรวจตลาดของคู่แข่ง ──────────────────────────────
   const type5DbItems = items.filter(
     (i) =>
-      i.itemType === "TYPE_5" || i.surveyCompetitorProduct || i.surveyStoreName,
+      !isFieldDayItem(i) &&
+      (i.itemType === "TYPE_5" || i.surveyCompetitorProduct || i.surveyStoreName),
   );
   const t5Line = objectiveLines.find(
     (l) =>
@@ -1468,7 +1473,7 @@ function extractWorkTypeSections(
 
   // ── 6. แก้ปัญหา / รับเรื่องร้องเรียน ───────────────────
   const type6DbItems = items.filter(
-    (i) => i.itemType === "TYPE_6" || i.issueType,
+    (i) => !isFieldDayItem(i) && (i.itemType === "TYPE_6" || i.issueType),
   );
   const t6Line = objectiveLines.find(
     (l) =>
@@ -1503,6 +1508,7 @@ function extractWorkTypeSections(
   // ── 7. ติดตามแปลงสาธิต / ทำแปลง ────────────────────────
   const type7DbItems = items.filter(
     (i) =>
+      !isFieldDayItem(i) &&
       i.itemType !== "MARKETING_PRODUCT" &&
       i.itemType !== "SALES_PROMOTION" &&
       i.itemType !== "TYPE_10" &&
@@ -1510,16 +1516,21 @@ function extractWorkTypeSections(
       i.visitTopic !== "SALES_PROMOTION" &&
       (i.itemType === "TYPE_7" ||
         i.plotActivityType ||
-        (i.plotCropName && !i.storePricePerCase && !i.itemType) ||
-        (i.plotOwnerName && !i.storePricePerCase && !i.itemType) ||
-        (i.plotAreaRai != null && !i.itemType)),
+        i.existingPlotId ||
+        ((i.plotCropName ||
+          i.plotOwnerName ||
+          i.plotAreaRai != null ||
+          i.plotTreeCount != null) &&
+          !i.storePricePerCase)),
   );
   const t7Line = objectiveLines.find(
     (l) =>
       l.includes("[ติดตามแปลงสาธิต") ||
       l.includes("ติดตามแปลงสาธิต / ทำแปลง") ||
       l.includes("ทำแปลงสาธิต") ||
-      (l.includes("ทำแปลง") && !l.includes("Field Day") && !l.includes("[Field Day]")),
+      (l.includes("แปลงสาธิต") &&
+        !l.includes("Field Day") &&
+        !l.includes("[Field Day]")),
   );
   if (type7DbItems.length > 0 || t7Line) {
     const list =
@@ -1582,9 +1593,13 @@ function extractWorkTypeSections(
   // ── 8. จัดประชุมการเกษตร / ดีลเลอร์ ─────────────────────
   const type8DbItems = items.filter(
     (i) =>
-      i.itemType === "TYPE_8" ||
-      i.meetingTopic ||
-      i.meetingAttendeesCount != null,
+      !isFieldDayItem(i) &&
+      i.itemType !== "MARKETING_PRODUCT" &&
+      i.itemType !== "SALES_PROMOTION" &&
+      (i.itemType === "TYPE_8" ||
+        i.meetingTopic ||
+        i.meetingTargetProducts ||
+        (i.meetingAttendeesCount != null && !i.storeProductName)),
   );
   const t8Line = objectiveLines.find(
     (l) =>
@@ -1642,6 +1657,7 @@ function extractWorkTypeSections(
   // ── 9. จัดกิจกรรมส่งเสริมการขายหน้าร้าน ─────────────────
   const type9DbItems = items.filter(
     (i) =>
+      !isFieldDayItem(i) &&
       i.itemType !== "MARKETING_PRODUCT" &&
       i.itemType !== "SALES_PROMOTION" &&
       i.visitTopic !== "MARKETING_PRODUCT" &&
@@ -1720,7 +1736,9 @@ function extractWorkTypeSections(
   }
 
   // ── 10. จัดงาน Field Day ─────────────────────────────────
-  const type10DbItems = items.filter((i) => i.itemType === "TYPE_10");
+  const type10DbItems = items.filter(
+    (i) => i.itemType === "TYPE_10" || isFieldDayItem(i),
+  );
   const t10Line = objectiveLines.find(
     (l) =>
       l.includes("[Field Day]") ||
@@ -1732,6 +1750,12 @@ function extractWorkTypeSections(
       type10DbItems.length > 0
         ? type10DbItems.map((i) => {
             const extraFields: Array<{ label: string; value: string }> = [];
+            if (i.plotCropName) {
+              extraFields.push({ label: "พืชเป้าหมาย", value: i.plotCropName });
+            }
+            if (i.plotProductName) {
+              extraFields.push({ label: "สินค้าโชว์", value: i.plotProductName });
+            }
             if (i.targetAttendees || i.meetingAttendeesCount) {
               extraFields.push({
                 label: "เป้าผู้เข้าร่วม",
@@ -1740,7 +1764,7 @@ function extractWorkTypeSections(
             }
             if (i.targetSales || i.saleTotalPrice) {
               extraFields.push({
-                label: "เป้ายอดขาย",
+                label: "เป้ายอดขาย/ยอดจอง",
                 value: `฿${Number(i.targetSales || i.saleTotalPrice).toLocaleString()}`,
               });
             }
@@ -1761,7 +1785,13 @@ function extractWorkTypeSections(
   }
 
   // ── 11. ตรวจเช็กสต็อกหน้าร้าน ───────────────────────────
-  const type11DbItems = items.filter((i) => i.itemType === "TYPE_11");
+  const type11DbItems = items.filter(
+    (i) =>
+      !isFieldDayItem(i) &&
+      (i.itemType === "TYPE_11" ||
+        i.targetOpportunity ||
+        (i.detail && i.detail.includes("ตรวจเช็กสต็อกหน้าร้าน"))),
+  );
   const t11Line = objectiveLines.find(
     (l) =>
       l.includes("[ตรวจเช็กสต็อก") ||

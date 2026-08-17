@@ -65,6 +65,7 @@ import {
   MARKETING_PRODUCT_CATEGORIES,
   MARKETING_PRODUCTS_BY_CATEGORY,
   USER_DEMO_PLOTS,
+  isFieldDayItem,
   type UserDemoPlotOption,
 } from "./constants";
 
@@ -290,7 +291,9 @@ export function ActivityPlanForm({
         objectiveText.includes("[ติดตามแปลงสาธิต") ||
         objectiveText.includes("ติดตามแปลงสาธิต / ทำแปลง") ||
         objectiveText.includes("ทำแปลงสาธิต") ||
-        objectiveText.includes("แปลงสาธิต")
+        (objectiveText.includes("แปลงสาธิต") &&
+          !objectiveText.includes("Field Day") &&
+          !objectiveText.includes("[Field Day]"))
       ) {
         detectedTypes.add(WORK_TYPES[6]);
       }
@@ -336,28 +339,48 @@ export function ActivityPlanForm({
       );
 
       for (const item of actualItems) {
-        if (item.itemType === "TYPE_1" || item.visitTopic) {
+        const isFD = isFieldDayItem(item);
+
+        if (
+          item.itemType === "TYPE_1" ||
+          (item.visitTopic &&
+            item.visitTopic !== "FOLLOWUP" &&
+            item.visitTopic !== "MARKETING_PRODUCT" &&
+            item.visitTopic !== "SALES_PROMOTION")
+        ) {
           detectedTypes.add(WORK_TYPES[0]);
         }
-        if (item.itemType === "TYPE_2" || item.followupProductName) {
+        if (
+          item.itemType === "TYPE_2" ||
+          item.visitTopic === "FOLLOWUP" ||
+          item.followupProductName
+        ) {
           detectedTypes.add(WORK_TYPES[1]);
         }
         if (
-          item.itemType === "TYPE_3" ||
-          item.saleProductName ||
-          item.saleQuantity != null ||
-          item.saleUnitPrice != null ||
-          item.saleTotalPrice != null
+          !isFD &&
+          (item.itemType === "TYPE_3" ||
+            item.saleProductName ||
+            (item.saleQuantity != null && item.saleUnitPrice != null) ||
+            (item.saleTotalPrice != null &&
+              !item.storeTotalAmount &&
+              !item.collectAmount &&
+              item.meetingAttendeesCount == null))
         ) {
           detectedTypes.add(WORK_TYPES[2]);
         }
-        if (item.itemType === "TYPE_4" || item.collectAmount != null) {
+        if (
+          !isFD &&
+          (item.itemType === "TYPE_4" ||
+            (item.collectAmount != null &&
+              item.visitTopic !== "SALES_PROMOTION"))
+        ) {
           detectedTypes.add(WORK_TYPES[3]);
         }
         if (
           item.itemType === "TYPE_5" ||
           item.surveyCompetitorProduct ||
-          item.surveyStoreName
+          (item.surveyStoreName && item.itemType !== "TYPE_9")
         ) {
           detectedTypes.add(WORK_TYPES[4]);
         }
@@ -365,35 +388,48 @@ export function ActivityPlanForm({
           detectedTypes.add(WORK_TYPES[5]);
         }
         if (
-          item.itemType === "TYPE_7" ||
-          item.plotActivityType ||
-          item.plotCropName ||
-          item.plotOwnerName ||
-          item.plotAreaRai != null
+          !isFD &&
+          (item.itemType === "TYPE_7" ||
+            item.plotActivityType ||
+            item.existingPlotId ||
+            ((item.plotCropName ||
+              item.plotOwnerName ||
+              item.plotAreaRai != null) &&
+              !item.storePricePerCase))
         ) {
           detectedTypes.add(WORK_TYPES[6]);
         }
         if (
-          item.itemType === "TYPE_8" ||
-          item.meetingTopic ||
-          item.meetingAttendeesCount != null ||
-          item.meetingTargetProducts
+          !isFD &&
+          (item.itemType === "TYPE_8" ||
+            item.meetingTopic ||
+            item.meetingTargetProducts ||
+            (item.meetingAttendeesCount != null && !item.storeProductName))
         ) {
           detectedTypes.add(WORK_TYPES[7]);
         }
         if (
-          item.itemType === "TYPE_9" ||
-          item.storeProductName ||
-          item.storeQuantityCases != null ||
-          item.storePricePerCase != null ||
-          item.storeTotalAmount != null
+          !isFD &&
+          (item.itemType === "TYPE_9" ||
+            (item.storeProductName &&
+              item.visitTopic !== "MARKETING_PRODUCT") ||
+            (item.storeQuantityCases != null &&
+              item.visitTopic !== "MARKETING_PRODUCT") ||
+            (item.storePricePerCase != null &&
+              item.visitTopic !== "MARKETING_PRODUCT") ||
+            (item.storeTotalAmount != null &&
+              item.visitTopic !== "MARKETING_PRODUCT"))
         ) {
           detectedTypes.add(WORK_TYPES[8]);
         }
-        if (item.itemType === "TYPE_10") {
+        if (isFD || item.itemType === "TYPE_10") {
           detectedTypes.add(WORK_TYPES[9]);
         }
-        if (item.itemType === "TYPE_11") {
+        if (
+          item.itemType === "TYPE_11" ||
+          item.targetOpportunity ||
+          (item.detail && item.detail.includes("ตรวจเช็กสต็อกหน้าร้าน"))
+        ) {
           detectedTypes.add(WORK_TYPES[10]);
         }
       }
@@ -550,6 +586,7 @@ export function ActivityPlanForm({
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
         (item: any) =>
+          !isFieldDayItem(item) &&
           item.itemType !== "MARKETING_PRODUCT" &&
           item.itemType !== "SALES_PROMOTION" &&
           item.visitTopic !== "MARKETING_PRODUCT" &&
@@ -689,6 +726,7 @@ export function ActivityPlanForm({
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
         (item: any) =>
+          !isFieldDayItem(item) &&
           item.itemType !== "MARKETING_PRODUCT" &&
           item.itemType !== "SALES_PROMOTION" &&
           item.visitTopic !== "MARKETING_PRODUCT" &&
@@ -750,6 +788,7 @@ export function ActivityPlanForm({
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
         (item: any) =>
+          !isFieldDayItem(item) &&
           item.itemType !== "MARKETING_PRODUCT" &&
           item.itemType !== "SALES_PROMOTION" &&
           (item.itemType === "TYPE_5" ||
@@ -811,6 +850,7 @@ export function ActivityPlanForm({
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
         (item: any) =>
+          !isFieldDayItem(item) &&
           item.itemType !== "MARKETING_PRODUCT" &&
           item.itemType !== "SALES_PROMOTION" &&
           (item.itemType === "TYPE_6" || item.issueType),
@@ -869,6 +909,7 @@ export function ActivityPlanForm({
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
         (item: any) =>
+          !isFieldDayItem(item) &&
           item.itemType !== "MARKETING_PRODUCT" &&
           item.itemType !== "SALES_PROMOTION" &&
           item.visitTopic !== "MARKETING_PRODUCT" &&
@@ -992,6 +1033,7 @@ export function ActivityPlanForm({
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
         (item: any) =>
+          !isFieldDayItem(item) &&
           item.itemType !== "MARKETING_PRODUCT" &&
           item.itemType !== "SALES_PROMOTION" &&
           (item.itemType === "TYPE_8" ||
@@ -1032,7 +1074,7 @@ export function ActivityPlanForm({
         id: Date.now().toString(),
         topic: "",
         targetProducts: [],
-        attendeesCount: 10,
+        attendeesCount: 1,
         detail: "",
       },
     ]);
@@ -1055,13 +1097,14 @@ export function ActivityPlanForm({
     if (Array.isArray(initDetails)) {
       const item = initDetails.find(
         (i: any) =>
-          i.itemType === "TYPE_9" ||
-          (i.itemType !== "MARKETING_PRODUCT" &&
-            i.itemType !== "SALES_PROMOTION" &&
-            i.visitTopic !== "MARKETING_PRODUCT" &&
-            i.visitTopic !== "SALES_PROMOTION" &&
-            i.storeProductName &&
-            !i.plotCropCategory),
+          !isFieldDayItem(i) &&
+          (i.itemType === "TYPE_9" ||
+            (i.itemType !== "MARKETING_PRODUCT" &&
+              i.itemType !== "SALES_PROMOTION" &&
+              i.visitTopic !== "MARKETING_PRODUCT" &&
+              i.visitTopic !== "SALES_PROMOTION" &&
+              i.storeProductName &&
+              !i.plotCropCategory)),
       );
       if (item && item.customerName) {
         const match = item.customerName.match(
@@ -1079,13 +1122,14 @@ export function ActivityPlanForm({
     if (Array.isArray(initDetails)) {
       const item = initDetails.find(
         (i: any) =>
-          i.itemType === "TYPE_9" ||
-          (i.itemType !== "MARKETING_PRODUCT" &&
-            i.itemType !== "SALES_PROMOTION" &&
-            i.visitTopic !== "MARKETING_PRODUCT" &&
-            i.visitTopic !== "SALES_PROMOTION" &&
-            i.storeProductName &&
-            !i.plotCropCategory),
+          !isFieldDayItem(i) &&
+          (i.itemType === "TYPE_9" ||
+            (i.itemType !== "MARKETING_PRODUCT" &&
+              i.itemType !== "SALES_PROMOTION" &&
+              i.visitTopic !== "MARKETING_PRODUCT" &&
+              i.visitTopic !== "SALES_PROMOTION" &&
+              i.storeProductName &&
+              !i.plotCropCategory)),
       );
       if (item && item.customerName) {
         return /\((?:ร้าน\s*)?Sub Dealer:/i.test(item.customerName);
@@ -1099,13 +1143,14 @@ export function ActivityPlanForm({
     if (Array.isArray(initDetails)) {
       const item = initDetails.find(
         (i: any) =>
-          i.itemType === "TYPE_9" ||
-          (i.itemType !== "MARKETING_PRODUCT" &&
-            i.itemType !== "SALES_PROMOTION" &&
-            i.visitTopic !== "MARKETING_PRODUCT" &&
-            i.visitTopic !== "SALES_PROMOTION" &&
-            i.storeProductName &&
-            !i.plotCropCategory),
+          !isFieldDayItem(i) &&
+          (i.itemType === "TYPE_9" ||
+            (i.itemType !== "MARKETING_PRODUCT" &&
+              i.itemType !== "SALES_PROMOTION" &&
+              i.visitTopic !== "MARKETING_PRODUCT" &&
+              i.visitTopic !== "SALES_PROMOTION" &&
+              i.storeProductName &&
+              !i.plotCropCategory)),
       );
       if (item && item.customerName) {
         const match = item.customerName.match(
@@ -1121,13 +1166,14 @@ export function ActivityPlanForm({
     if (Array.isArray(initDetails)) {
       const items = initDetails.filter(
         (i: any) =>
-          i.itemType === "TYPE_9" ||
-          (i.itemType !== "MARKETING_PRODUCT" &&
-            i.itemType !== "SALES_PROMOTION" &&
-            i.visitTopic !== "MARKETING_PRODUCT" &&
-            i.visitTopic !== "SALES_PROMOTION" &&
-            i.storeProductName &&
-            !i.plotCropCategory),
+          !isFieldDayItem(i) &&
+          (i.itemType === "TYPE_9" ||
+            (i.itemType !== "MARKETING_PRODUCT" &&
+              i.itemType !== "SALES_PROMOTION" &&
+              i.visitTopic !== "MARKETING_PRODUCT" &&
+              i.visitTopic !== "SALES_PROMOTION" &&
+              i.storeProductName &&
+              !i.plotCropCategory)),
       );
       if (items.length > 0) {
         const sum = items.reduce(
@@ -1160,6 +1206,7 @@ export function ActivityPlanForm({
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
         (item: any) =>
+          !isFieldDayItem(item) &&
           item.itemType !== "MARKETING_PRODUCT" &&
           item.itemType !== "SALES_PROMOTION" &&
           item.visitTopic !== "MARKETING_PRODUCT" &&
@@ -1192,7 +1239,7 @@ export function ActivityPlanForm({
   const [type10DemoPlot, setType10DemoPlot] = useState(() => {
     if (initDetails?.type10DemoPlot) return initDetails.type10DemoPlot;
     if (Array.isArray(initDetails)) {
-      const item = initDetails.find((i: any) => i.itemType === "TYPE_10");
+      const item = initDetails.find(isFieldDayItem);
       if (item) return item.customerName || item.plotOwnerName || "";
     }
     return "";
@@ -1200,7 +1247,7 @@ export function ActivityPlanForm({
   const [type10Location, setType10Location] = useState(() => {
     if (initDetails?.type10Location) return initDetails.type10Location;
     if (Array.isArray(initDetails)) {
-      const item = initDetails.find((i: any) => i.itemType === "TYPE_10");
+      const item = initDetails.find(isFieldDayItem);
       if (item?.detail) {
         const match = item.detail.match(/สถานที่:\s*([^|]+)/);
         if (match) return match[1].trim();
@@ -1211,7 +1258,7 @@ export function ActivityPlanForm({
   const [type10TargetCrop, setType10TargetCrop] = useState(() => {
     if (initDetails?.type10TargetCrop) return initDetails.type10TargetCrop;
     if (Array.isArray(initDetails)) {
-      const item = initDetails.find((i: any) => i.itemType === "TYPE_10");
+      const item = initDetails.find(isFieldDayItem);
       if (item?.plotCropName) return item.plotCropName;
       if (item?.detail) {
         const match = item.detail.match(/พืชเป้าหมาย:\s*([^|]+)/);
@@ -1223,7 +1270,7 @@ export function ActivityPlanForm({
   const [type10Showcase, setType10Showcase] = useState(() => {
     if (initDetails?.type10Showcase) return initDetails.type10Showcase;
     if (Array.isArray(initDetails)) {
-      const item = initDetails.find((i: any) => i.itemType === "TYPE_10");
+      const item = initDetails.find(isFieldDayItem);
       if (item?.plotProductName) return item.plotProductName;
       if (item?.detail) {
         const match = item.detail.match(/สินค้าโชว์:\s*([^|]+)/);
@@ -1236,12 +1283,14 @@ export function ActivityPlanForm({
     if (initDetails?.type10Attendees != null)
       return Number(initDetails.type10Attendees);
     if (Array.isArray(initDetails)) {
-      const item = initDetails.find((i: any) => i.itemType === "TYPE_10");
+      const item = initDetails.find(isFieldDayItem);
       if (item?.meetingAttendeesCount != null)
         return Number(item.meetingAttendeesCount);
       if (item?.targetAttendees != null) return Number(item.targetAttendees);
       if (item?.detail) {
-        const match = item.detail.match(/ผู้ร่วมงาน:\s*(\d+)/);
+        const match =
+          item.detail.match(/ผู้ร่วมงาน:\s*(\d+)/) ||
+          item.detail.match(/เป้าผู้ร่วมงาน:\s*(\d+)/);
         if (match) return Number(match[1]);
       }
     }
@@ -1251,7 +1300,7 @@ export function ActivityPlanForm({
     if (initDetails?.type10BookingSales != null)
       return Number(initDetails.type10BookingSales);
     if (Array.isArray(initDetails)) {
-      const item = initDetails.find((i: any) => i.itemType === "TYPE_10");
+      const item = initDetails.find(isFieldDayItem);
       if (item?.saleTotalPrice != null) return Number(item.saleTotalPrice);
       if (item?.targetSales != null) return Number(item.targetSales);
       if (item?.detail) {
@@ -2038,7 +2087,7 @@ export function ActivityPlanForm({
               targetSales: type10BookingSales
                 ? Number(type10BookingSales)
                 : null,
-              detail: `สถานที่: ${type10Location} | พืชเป้าหมาย: ${type10TargetCrop} | สินค้าโชว์: ${type10Showcase} | ผู้ร่วมงาน: ${type10Attendees} คน | เป้ายอดจอง: ฿${Number(type10BookingSales || 0).toLocaleString()}`,
+              detail: `[Field Day] แปลงสาธิต: ${type10DemoPlot} | สถานที่: ${type10Location} | พืชเป้าหมาย: ${type10TargetCrop} | สินค้าโชว์: ${type10Showcase} | เป้าผู้ร่วมงาน: ${type10Attendees} คน | เป้ายอดจอง: ฿${Number(type10BookingSales || 0).toLocaleString()}`,
             });
           }
         } else if (workType === "ตรวจเช็กสต็อกหน้าร้าน") {

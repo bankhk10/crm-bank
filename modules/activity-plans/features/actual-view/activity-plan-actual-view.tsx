@@ -36,6 +36,7 @@ import {
   DEMO_PRODUCT_PRICES,
   STORES_LIST,
   USER_DEMO_PLOTS,
+  isFieldDayItem,
 } from "../form/constants";
 import { ImageFile, PlanSummaryData } from "./types";
 import { ActualPlanSummary } from "./components/actual-plan-summary";
@@ -536,7 +537,10 @@ export default function ActivityPlanActualView({
             if (
               objectiveText.includes("[ติดตามแปลงสาธิต") ||
               objectiveText.includes("ติดตามแปลงสาธิต / ทำแปลง") ||
-              objectiveText.includes("ทำแปลงสาธิต")
+              objectiveText.includes("ทำแปลงสาธิต") ||
+              (objectiveText.includes("แปลงสาธิต") &&
+                !objectiveText.includes("Field Day") &&
+                !objectiveText.includes("[Field Day]"))
             ) {
               detectedWorkTypes.add(WORK_TYPES[6]);
             }
@@ -581,28 +585,48 @@ export default function ActivityPlanActualView({
             );
 
             for (const item of actualItems) {
-              if (item.itemType === "TYPE_1" || item.visitTopic) {
+              const isFD = isFieldDayItem(item);
+
+              if (
+                item.itemType === "TYPE_1" ||
+                (item.visitTopic &&
+                  item.visitTopic !== "FOLLOWUP" &&
+                  item.visitTopic !== "MARKETING_PRODUCT" &&
+                  item.visitTopic !== "SALES_PROMOTION")
+              ) {
                 detectedWorkTypes.add(WORK_TYPES[0]);
               }
-              if (item.itemType === "TYPE_2" || item.followupProductName) {
+              if (
+                item.itemType === "TYPE_2" ||
+                item.visitTopic === "FOLLOWUP" ||
+                item.followupProductName
+              ) {
                 detectedWorkTypes.add(WORK_TYPES[1]);
               }
               if (
-                item.itemType === "TYPE_3" ||
-                item.saleProductName ||
-                item.saleQuantity != null ||
-                item.saleUnitPrice != null ||
-                item.saleTotalPrice != null
+                !isFD &&
+                (item.itemType === "TYPE_3" ||
+                  item.saleProductName ||
+                  (item.saleQuantity != null && item.saleUnitPrice != null) ||
+                  (item.saleTotalPrice != null &&
+                    !item.storeTotalAmount &&
+                    !item.collectAmount &&
+                    item.meetingAttendeesCount == null))
               ) {
                 detectedWorkTypes.add(WORK_TYPES[2]);
               }
-              if (item.itemType === "TYPE_4" || item.collectAmount != null) {
+              if (
+                !isFD &&
+                (item.itemType === "TYPE_4" ||
+                  (item.collectAmount != null &&
+                    item.visitTopic !== "SALES_PROMOTION"))
+              ) {
                 detectedWorkTypes.add(WORK_TYPES[3]);
               }
               if (
                 item.itemType === "TYPE_5" ||
                 item.surveyCompetitorProduct ||
-                item.surveyStoreName
+                (item.surveyStoreName && item.itemType !== "TYPE_9")
               ) {
                 detectedWorkTypes.add(WORK_TYPES[4]);
               }
@@ -610,40 +634,49 @@ export default function ActivityPlanActualView({
                 detectedWorkTypes.add(WORK_TYPES[5]);
               }
               if (
-                item.itemType === "TYPE_7" ||
-                (item.itemType !== "TYPE_10" &&
-                  (item.plotActivityType ||
-                    (item.plotCropName && !item.storePricePerCase && !item.itemType) ||
-                    (item.plotOwnerName && !item.storePricePerCase && !item.itemType) ||
-                    (item.plotAreaRai != null && !item.itemType)))
+                !isFD &&
+                (item.itemType === "TYPE_7" ||
+                  item.plotActivityType ||
+                  item.existingPlotId ||
+                  ((item.plotCropName ||
+                    item.plotOwnerName ||
+                    item.plotAreaRai != null ||
+                    item.plotTreeCount != null) &&
+                    !item.storePricePerCase))
               ) {
                 detectedWorkTypes.add(WORK_TYPES[6]);
               }
               if (
-                item.itemType === "TYPE_8" ||
-                item.meetingTopic ||
-                item.meetingAttendeesCount != null ||
-                item.meetingTargetProducts
+                !isFD &&
+                (item.itemType === "TYPE_8" ||
+                  item.meetingTopic ||
+                  item.meetingTargetProducts ||
+                  (item.meetingAttendeesCount != null && !item.storeProductName))
               ) {
                 detectedWorkTypes.add(WORK_TYPES[7]);
               }
               if (
-                item.itemType === "TYPE_9" ||
-                item.storeProductName ||
-                item.storeQuantityCases != null ||
-                item.storePricePerCase != null ||
-                item.storeTotalAmount != null
+                !isFD &&
+                (item.itemType === "TYPE_9" ||
+                  (item.storeProductName &&
+                    item.visitTopic !== "MARKETING_PRODUCT") ||
+                  (item.storeQuantityCases != null &&
+                    item.visitTopic !== "MARKETING_PRODUCT") ||
+                  (item.storePricePerCase != null &&
+                    item.visitTopic !== "MARKETING_PRODUCT") ||
+                  (item.storeTotalAmount != null &&
+                    item.visitTopic !== "MARKETING_PRODUCT"))
               ) {
                 detectedWorkTypes.add(WORK_TYPES[8]);
               }
-              if (
-                item.itemType === "TYPE_10" ||
-                item.meetingTopic?.includes("Field Day") ||
-                (item.detail && item.detail.includes("จัดงาน Field Day"))
-              ) {
+              if (isFD || item.itemType === "TYPE_10") {
                 detectedWorkTypes.add(WORK_TYPES[9]);
               }
-              if (item.itemType === "TYPE_11") {
+              if (
+                item.itemType === "TYPE_11" ||
+                item.targetOpportunity ||
+                (item.detail && item.detail.includes("ตรวจเช็กสต็อกหน้าร้าน"))
+              ) {
                 detectedWorkTypes.add(WORK_TYPES[10]);
               }
             }
@@ -671,14 +704,26 @@ export default function ActivityPlanActualView({
             ).join(", ");
 
             const t1Item =
-              allItems.find((i) => i.itemType === "TYPE_1" || i.visitTopic) ||
-              allItems[0];
+              allItems.find(
+                (i) =>
+                  !isFieldDayItem(i) &&
+                  i.itemType !== "MARKETING_PRODUCT" &&
+                  i.itemType !== "SALES_PROMOTION" &&
+                  (i.itemType === "TYPE_1" ||
+                    (i.visitTopic &&
+                      i.visitTopic !== "FOLLOWUP" &&
+                      i.visitTopic !== "MARKETING_PRODUCT" &&
+                      i.visitTopic !== "SALES_PROMOTION")),
+              ) || (detectedWorkTypes.has(WORK_TYPES[0]) ? allItems[0] : undefined);
 
             const type2DbItems = allItems.filter(
               (i) =>
-                i.itemType === "TYPE_2" ||
-                i.visitTopic === "FOLLOWUP" ||
-                i.followupProductName,
+                !isFieldDayItem(i) &&
+                i.itemType !== "MARKETING_PRODUCT" &&
+                i.itemType !== "SALES_PROMOTION" &&
+                (i.itemType === "TYPE_2" ||
+                  i.visitTopic === "FOLLOWUP" ||
+                  i.followupProductName),
             );
             const t2ItemsFromDb =
               type2DbItems.length > 0
@@ -693,15 +738,18 @@ export default function ActivityPlanActualView({
 
             const type3DbItems = allItems.filter(
               (i) =>
+                !isFieldDayItem(i) &&
                 i.itemType !== "MARKETING_PRODUCT" &&
                 i.itemType !== "SALES_PROMOTION" &&
                 i.visitTopic !== "MARKETING_PRODUCT" &&
                 i.visitTopic !== "SALES_PROMOTION" &&
                 (i.itemType === "TYPE_3" ||
                   i.saleProductName ||
-                  i.saleTotalPrice != null ||
-                  i.saleQuantity != null ||
-                  i.saleUnitPrice != null),
+                  (i.saleQuantity != null && i.saleUnitPrice != null) ||
+                  (i.saleTotalPrice != null &&
+                    !i.storeTotalAmount &&
+                    !i.collectAmount &&
+                    i.meetingAttendeesCount == null)),
             );
 
             const t3ItemsFromDb =
@@ -768,18 +816,25 @@ export default function ActivityPlanActualView({
                 : "";
 
             const t4Item = allItems.find(
-              (i) => i.itemType === "TYPE_4" || i.collectAmount != null,
+              (i) =>
+                !isFieldDayItem(i) &&
+                i.itemType !== "MARKETING_PRODUCT" &&
+                i.itemType !== "SALES_PROMOTION" &&
+                (i.itemType === "TYPE_4" ||
+                  (i.collectAmount != null &&
+                    i.visitTopic !== "SALES_PROMOTION")),
             );
 
             const type5DbItems = allItems.filter(
               (i) =>
+                !isFieldDayItem(i) &&
                 i.itemType !== "MARKETING_PRODUCT" &&
                 i.itemType !== "SALES_PROMOTION" &&
                 i.visitTopic !== "MARKETING_PRODUCT" &&
                 i.visitTopic !== "SALES_PROMOTION" &&
                 (i.itemType === "TYPE_5" ||
                   i.surveyCompetitorProduct ||
-                  i.surveyStoreName),
+                  (i.surveyStoreName && i.itemType !== "TYPE_9")),
             );
 
             const t5ItemsFromDb =
@@ -799,13 +854,15 @@ export default function ActivityPlanActualView({
               type5DbItems[0] ||
               allItems.find(
                 (i) =>
-                  i.itemType === "TYPE_5" ||
-                  i.surveyCompetitorProduct ||
-                  i.surveyStoreName,
+                  !isFieldDayItem(i) &&
+                  (i.itemType === "TYPE_5" ||
+                    i.surveyCompetitorProduct ||
+                    i.surveyStoreName),
               );
 
             const type6DbItems = allItems.filter(
               (i) =>
+                !isFieldDayItem(i) &&
                 i.itemType !== "MARKETING_PRODUCT" &&
                 i.itemType !== "SALES_PROMOTION" &&
                 i.visitTopic !== "MARKETING_PRODUCT" &&
@@ -824,20 +881,27 @@ export default function ActivityPlanActualView({
 
             const t6Item =
               type6DbItems[0] ||
-              allItems.find((i) => i.itemType === "TYPE_6" || i.issueType);
+              allItems.find(
+                (i) =>
+                  !isFieldDayItem(i) &&
+                  (i.itemType === "TYPE_6" || i.issueType),
+              );
 
             const type7DbItems = allItems.filter(
               (i) =>
+                !isFieldDayItem(i) &&
                 i.itemType !== "MARKETING_PRODUCT" &&
                 i.itemType !== "SALES_PROMOTION" &&
                 i.visitTopic !== "MARKETING_PRODUCT" &&
                 i.visitTopic !== "SALES_PROMOTION" &&
                 (i.itemType === "TYPE_7" ||
                   i.plotActivityType ||
-                  i.plotCropName ||
-                  i.plotOwnerName ||
-                  i.plotAreaRai != null ||
-                  i.plotCount != null),
+                  i.existingPlotId ||
+                  ((i.plotCropName ||
+                    i.plotOwnerName ||
+                    i.plotAreaRai != null ||
+                    i.plotTreeCount != null) &&
+                    !i.storePricePerCase)),
             );
 
             const t7ItemsFromDb =
@@ -904,32 +968,41 @@ export default function ActivityPlanActualView({
               type7DbItems[0] ||
               allItems.find(
                 (i) =>
-                  i.itemType === "TYPE_7" ||
-                  i.plotActivityType ||
-                  i.plotCropName ||
-                  i.plotOwnerName ||
-                  i.plotAreaRai != null ||
-                  i.plotCount != null,
+                  !isFieldDayItem(i) &&
+                  (i.itemType === "TYPE_7" ||
+                    i.plotActivityType ||
+                    i.plotCropName ||
+                    i.plotOwnerName ||
+                    i.plotAreaRai != null ||
+                    i.plotCount != null),
               );
 
             const type8DbItems = allItems.filter(
               (i) =>
-                i.itemType === "TYPE_8" ||
-                i.meetingTopic ||
-                i.meetingAttendeesCount != null,
+                !isFieldDayItem(i) &&
+                i.itemType !== "MARKETING_PRODUCT" &&
+                i.itemType !== "SALES_PROMOTION" &&
+                i.visitTopic !== "MARKETING_PRODUCT" &&
+                i.visitTopic !== "SALES_PROMOTION" &&
+                (i.itemType === "TYPE_8" ||
+                  i.meetingTopic ||
+                  i.meetingTargetProducts ||
+                  (i.meetingAttendeesCount != null && !i.storeProductName)),
             );
 
             const t8Item =
               type8DbItems[0] ||
               allItems.find(
                 (i) =>
-                  i.itemType === "TYPE_8" ||
-                  i.meetingTopic ||
-                  i.meetingAttendeesCount != null,
+                  !isFieldDayItem(i) &&
+                  (i.itemType === "TYPE_8" ||
+                    i.meetingTopic ||
+                    i.meetingAttendeesCount != null),
               );
 
             const type9DbItems = allItems.filter(
               (i) =>
+                !isFieldDayItem(i) &&
                 i.itemType !== "MARKETING_PRODUCT" &&
                 i.itemType !== "SALES_PROMOTION" &&
                 i.visitTopic !== "MARKETING_PRODUCT" &&
@@ -943,9 +1016,10 @@ export default function ActivityPlanActualView({
               type9DbItems[0] ||
               allItems.find(
                 (i) =>
-                  i.itemType === "TYPE_9" ||
-                  i.storeProductName ||
-                  i.storeTotalAmount != null,
+                  !isFieldDayItem(i) &&
+                  (i.itemType === "TYPE_9" ||
+                    i.storeProductName ||
+                    i.storeTotalAmount != null),
               );
 
             const t9ItemsFromDb =
@@ -1015,8 +1089,19 @@ export default function ActivityPlanActualView({
               .map((prod) => `${prod.productName} (${prod.quantityCases} ลัง)`)
               .join(", ");
 
-            const t10Item = allItems.find((i) => i.itemType === "TYPE_10");
-            const t11Item = allItems.find((i) => i.itemType === "TYPE_11");
+            const type10DbItems = allItems.filter(isFieldDayItem);
+            const t10Item =
+              type10DbItems[0] ||
+              allItems.find((i) => i.itemType === "TYPE_10");
+
+            const type11DbItems = allItems.filter(
+              (i) =>
+                !isFieldDayItem(i) &&
+                (i.itemType === "TYPE_11" ||
+                  i.targetOpportunity ||
+                  (i.detail && i.detail.includes("ตรวจเช็กสต็อกหน้าร้าน"))),
+            );
+            const t11Item = type11DbItems[0];
 
             setTargets((prev) => ({
               ...prev,
@@ -1277,7 +1362,12 @@ export default function ActivityPlanActualView({
               },
               t10: {
                 ...prev.t10,
-                plot: t10Item?.customerName || t10Item?.plotOwnerName || allCustomers || "",
+                plot:
+                  t10Item?.customerName ||
+                  t10Item?.plotOwnerName ||
+                  (detectedWorkTypes.has(WORK_TYPES[9]) && allCustomers
+                    ? allCustomers
+                    : ""),
                 location: (() => {
                   if (t10Item?.detail) {
                     const match = t10Item.detail.match(/สถานที่:\s*([^|]+)/);
@@ -1294,25 +1384,39 @@ export default function ActivityPlanActualView({
                   return "";
                 })(),
                 targetAttendees: (() => {
-                  if (t10Item?.meetingAttendeesCount != null && Number(t10Item.meetingAttendeesCount) > 0) {
+                  if (
+                    t10Item?.meetingAttendeesCount != null &&
+                    Number(t10Item.meetingAttendeesCount) > 0
+                  ) {
                     return `${t10Item.meetingAttendeesCount} คน`;
                   }
-                  if (t10Item?.targetAttendees != null && Number(t10Item.targetAttendees) > 0) {
+                  if (
+                    t10Item?.targetAttendees != null &&
+                    Number(t10Item.targetAttendees) > 0
+                  ) {
                     return `${t10Item.targetAttendees} คน`;
                   }
                   if (t10Item?.detail) {
                     const match = t10Item.detail.match(/ผู้ร่วมงาน:\s*([^|]+)/);
                     if (match) return match[1].trim();
                   }
-                  const objMatch = objectiveText.match(/ผู้ร่วมงาน:\s*([^|,\n]+)/);
+                  const objMatch =
+                    objectiveText.match(/เป้าผู้ร่วมงาน:\s*([^|,\n]+)/) ||
+                    objectiveText.match(/ผู้ร่วมงาน:\s*([^|,\n]+)/);
                   if (objMatch) return objMatch[1].trim();
                   return prev.t10.targetAttendees || "";
                 })(),
                 targetSales: (() => {
-                  if (t10Item?.saleTotalPrice != null && Number(t10Item.saleTotalPrice) > 0) {
+                  if (
+                    t10Item?.saleTotalPrice != null &&
+                    Number(t10Item.saleTotalPrice) > 0
+                  ) {
                     return `฿${Number(t10Item.saleTotalPrice).toLocaleString()}`;
                   }
-                  if (t10Item?.targetSales != null && Number(t10Item.targetSales) > 0) {
+                  if (
+                    t10Item?.targetSales != null &&
+                    Number(t10Item.targetSales) > 0
+                  ) {
                     return `฿${Number(t10Item.targetSales).toLocaleString()}`;
                   }
                   if (t10Item?.detail) {
