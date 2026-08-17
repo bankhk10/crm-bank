@@ -872,7 +872,9 @@ export default function ActivityPlanActualView({
                       : item.experimentDetail || "";
 
                     if (!objMatch && !expMatch && rawDetail) {
-                      parsedExperiment = rawDetail;
+                      if (item.plotActivityType === "CREATE") {
+                        parsedExperiment = rawDetail;
+                      }
                     }
 
                     return {
@@ -886,7 +888,11 @@ export default function ActivityPlanActualView({
                       crop: item.plotCropName || "",
                       plots: plotAreaStr,
                       demoProductQuantity:
-                        item.plotCount != null ? String(item.plotCount) : "-",
+                        item.plotCount != null && item.plotCount !== ""
+                          ? String(item.plotCount)
+                          : item.plotsCount != null && item.plotsCount !== ""
+                            ? String(item.plotsCount)
+                            : "-",
                       objective: parsedObjective,
                       experimentDetail: parsedExperiment,
                       detail: rawDetail,
@@ -1192,7 +1198,11 @@ export default function ActivityPlanActualView({
                       .map((i) => i.demoProductQuantity)
                       .filter((v) => v && v !== "-")
                       .join(", ")) ||
-                  (t7Item?.plotCount != null ? String(t7Item.plotCount) : "-"),
+                  (t7Item?.plotCount != null && t7Item?.plotCount !== ""
+                    ? String(t7Item.plotCount)
+                    : t7Item?.plotsCount != null && t7Item?.plotsCount !== ""
+                      ? String(t7Item.plotsCount)
+                      : "-"),
                 objective:
                   (t7ItemsFromDb &&
                     t7ItemsFromDb

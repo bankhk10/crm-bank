@@ -806,12 +806,13 @@ export async function getFarmerCustomersAction() {
  */
 export async function getDemoPlotHistoryAction(demoPlotIdOrName: string) {
   try {
-    let plot = await db.demoPlot.findFirst({
+    let plot: any = await db.demoPlot.findFirst({
       where: {
         OR: [
           { id: demoPlotIdOrName },
           { name: demoPlotIdOrName },
           { code: demoPlotIdOrName },
+          { ownerName: demoPlotIdOrName },
         ],
         deletedAt: null,
       },
@@ -832,17 +833,24 @@ export async function getDemoPlotHistoryAction(demoPlotIdOrName: string) {
       },
     });
 
+    let originalCreateItem: any = null;
+
     if (!plot && demoPlotIdOrName.startsWith("legacy-")) {
       const parts = demoPlotIdOrName.replace("legacy-", "").split("-");
       const planId = parts[0];
       const itemId = parts[1];
       if (planId) {
-        const item = await db.activityPlanItem.findFirst({
+        originalCreateItem = await db.activityPlanItem.findFirst({
           where: { id: itemId, activityPlanId: planId },
+          include: {
+            activityPlan: {
+              select: { id: true, code: true, title: true, startDate: true, location: true },
+            },
+          },
         });
-        if (item) {
-          const owner = item.plotOwnerName || item.customerName || "เกษตรกร";
-          const crop = item.plotCropName || "พืชทั่วไป";
+        if (originalCreateItem) {
+          const owner = originalCreateItem.plotOwnerName || originalCreateItem.customerName || "เกษตรกร";
+          const crop = originalCreateItem.plotCropName || "พืชทั่วไป";
           plot = await db.demoPlot.findFirst({
             where: { ownerName: owner, cropName: crop, deletedAt: null },
             include: {
@@ -865,6 +873,64 @@ export async function getDemoPlotHistoryAction(demoPlotIdOrName: string) {
       }
     }
 
+    // Also look up CREATE ActivityPlanItem if not yet found
+    if (!originalCreateItem) {
+      const ownerToSearch = plot?.ownerName || (demoPlotIdOrName.includes(" - ") ? demoPlotIdOrName.split(" - ")[0].trim() : demoPlotIdOrName);
+      const cropToSearch = plot?.cropName || (demoPlotIdOrName.includes(" - ") ? demoPlotIdOrName.split(" - ")[1].trim() : undefined);
+
+      originalCreateItem = await db.activityPlanItem.findFirst({
+        where: {
+          plotActivityType: "CREATE",
+          activityPlan: { deletedAt: null },
+          plotOwnerName: ownerToSearch,
+          ...(cropToSearch ? { plotCropName: cropToSearch } : {}),
+        },
+        include: {
+          activityPlan: {
+            select: { id: true, code: true, title: true, startDate: true, location: true },
+          },
+        },
+        orderBy: { id: "desc" },
+      });
+    }
+
+    // Parse objective and experimentDetail from create item's detail
+    let parsedObjective = "";
+    let parsedExperiment = "";
+    if (originalCreateItem?.detail) {
+      const raw = originalCreateItem.detail;
+      const objMatch = raw.match(/(?:วัตถุประสงค์ของแปลง|วัตถุประสงค์):\s*([^|]+)/);
+      const expMatch = raw.match(/(?:รายละเอียด \/ วิธีการทดลอง|วิธีการทดลอง|รายละเอียดการทดลอง):\s*([^|]+)/);
+      parsedObjective = objMatch ? objMatch[1].trim() : "";
+      parsedExperiment = expMatch ? expMatch[1].trim() : (objMatch ? "" : raw);
+    }
+
+    if (!plot && originalCreateItem) {
+      const owner = originalCreateItem.plotOwnerName || originalCreateItem.customerName || "เกษตรกร";
+      const crop = originalCreateItem.plotCropName || "พืชทั่วไป";
+      const plotName = `${owner} - ${crop}`;
+      plot = {
+        id: originalCreateItem.id,
+        code: `DP-INIT`,
+        name: plotName,
+        ownerName: owner,
+        cropName: crop,
+        cropCategory: originalCreateItem.plotCropCategory || "พืชทั่วไป",
+        primaryProductName: originalCreateItem.plotProductName || "",
+        productName: originalCreateItem.plotProductName || "",
+        areaRai: originalCreateItem.plotAreaRai ? Number(originalCreateItem.plotAreaRai) : null,
+        treeCount: originalCreateItem.plotTreeCount || null,
+        plotCount: originalCreateItem.plotCount != null ? Number(originalCreateItem.plotCount) : null,
+        demoProductQuantity: originalCreateItem.plotCount != null ? Number(originalCreateItem.plotCount) : null,
+        startDate: originalCreateItem.activityPlan?.startDate || new Date(),
+        plantingDate: originalCreateItem.activityPlan?.startDate || null,
+        objective: parsedObjective || null,
+        experimentDetail: parsedExperiment || null,
+        status: "IN_PROGRESS",
+        visits: [],
+      };
+    }
+
     if (!plot) {
       return serialize({
         success: false,
@@ -873,13 +939,19 @@ export async function getDemoPlotHistoryAction(demoPlotIdOrName: string) {
       });
     }
 
-    const totalCost = plot.visits.reduce(
-      (sum, v) => sum + (Number(v.totalVisitCost) || 0),
+    // Fill in objective and experimentDetail if empty in demoPlot record
+    const finalObjective = plot.objective || parsedObjective || undefined;
+    const finalExperiment = plot.experimentDetail || parsedExperiment || undefined;
+    const finalPlotCount = (plot as any).plotCount ?? (originalCreateItem?.plotCount != null ? Number(originalCreateItem.plotCount) : undefined);
+
+    const visits = plot.visits || [];
+    const totalCost = visits.reduce(
+      (sum: number, v: any) => sum + (Number(v.totalVisitCost) || 0),
       0,
     );
     const msPerDay = 1000 * 60 * 60 * 24;
     const now = new Date();
-    const baseStartDate = plot.plantingDate || plot.startDate;
+    const baseStartDate = plot.plantingDate || plot.startDate || now;
     const daysSinceStart = Math.max(
       0,
       Math.floor((now.getTime() - new Date(baseStartDate).getTime()) / msPerDay),
@@ -889,9 +961,13 @@ export async function getDemoPlotHistoryAction(demoPlotIdOrName: string) {
       success: true,
       plot: {
         ...plot,
+        objective: finalObjective,
+        experimentDetail: finalExperiment,
+        plotCount: finalPlotCount,
+        demoProductQuantity: finalPlotCount,
         totalCost,
         daysSinceStart,
-        visitsCount: plot.visits.length,
+        visitsCount: visits.length,
       },
     });
   } catch (err: any) {

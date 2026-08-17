@@ -687,15 +687,19 @@ export function ActualType7Demo({
                   จำนวนสินค้าที่จะสาธิต:
                 </span>
                 <span className="font-bold text-emerald-800">
-                  {target.demoProductQuantity != null &&
-                  target.demoProductQuantity !== "" &&
-                  target.demoProductQuantity !== "-"
-                    ? String(target.demoProductQuantity)
-                    : demoPlotData?.demoProductQuantity ||
-                      demoPlotData?.plotCount ||
-                      demoPlotData?.productQuantity ||
-                      target.demoProductQuantity ||
-                      "-"}
+                  {demoPlotData?.demoProductQuantity != null &&
+                  demoPlotData?.demoProductQuantity !== "" &&
+                  demoPlotData?.demoProductQuantity !== "-"
+                    ? String(demoPlotData.demoProductQuantity)
+                    : demoPlotData?.plotCount != null &&
+                      demoPlotData?.plotCount !== "" &&
+                      demoPlotData?.plotCount !== "-"
+                      ? String(demoPlotData.plotCount)
+                      : target.demoProductQuantity != null &&
+                        target.demoProductQuantity !== "" &&
+                        target.demoProductQuantity !== "-"
+                        ? String(target.demoProductQuantity)
+                        : "-"}
                 </span>
               </div>
               <div>
@@ -739,29 +743,42 @@ export function ActualType7Demo({
                   </span>
                 </div>
               )}
-              {(target.objective || demoPlotData?.objective) && (
+              {(demoPlotData?.objective ||
+                (target.objective && target.objective !== target.detail)) && (
                 <div className="col-span-2 sm:col-span-2">
                   <span className="font-semibold text-slate-400 block text-[11px]">
-                    วัตถุประสงค์:
+                    วัตถุประสงค์ (ตอนเริ่มทำแปลง):
                   </span>
                   <span className="text-slate-800">
-                    {target.objective || demoPlotData?.objective}
+                    {demoPlotData?.objective || target.objective}
                   </span>
                 </div>
               )}
               <div className="col-span-2 sm:col-span-4">
                 <span className="font-semibold text-slate-400 block text-[11px]">
-                  รายละเอียด / วิธีการทดลอง:
+                  รายละเอียด / วิธีการทดลอง (ตอนเริ่มทำแปลง):
                 </span>
                 <span className="text-slate-800 whitespace-pre-wrap">
-                  {target.experimentDetail ||
-                    demoPlotData?.experimentDetail ||
-                    target.detail ||
+                  {demoPlotData?.experimentDetail ||
                     demoPlotData?.usageMethod ||
-                    demoPlotData?.detail ||
+                    (target.activityType === "CREATE"
+                      ? target.experimentDetail
+                      : "") ||
                     "-"}
                 </span>
               </div>
+              {target.detail &&
+                target.detail !== demoPlotData?.experimentDetail &&
+                target.detail !== target.objective && (
+                  <div className="col-span-2 sm:col-span-4 pt-1.5 border-t border-emerald-200/50">
+                    <span className="font-semibold text-slate-500 block text-[11px]">
+                      สิ่งที่ตั้งใจมาติดตามรอบนี้ (จากแผนงาน):
+                    </span>
+                    <span className="text-slate-700 whitespace-pre-wrap">
+                      {target.detail}
+                    </span>
+                  </div>
+                )}
             </div>
           </div>
 
