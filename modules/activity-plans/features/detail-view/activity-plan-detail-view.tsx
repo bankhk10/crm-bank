@@ -318,6 +318,14 @@ export default function ActivityPlanDetailView({ id }: Props) {
                 {plan.code || plan.id.slice(0, 8)}
               </span>
               <ActivityStatusBadge status={plan.status} />
+              {(plan.activityType as any)?.name && (
+                <Badge
+                  variant="outline"
+                  className="text-xs bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold"
+                >
+                  {(plan.activityType as any).name}
+                </Badge>
+              )}
               {plan.durationDays > 1 && (
                 <Badge
                   variant="outline"
@@ -529,6 +537,30 @@ export default function ActivityPlanDetailView({ id }: Props) {
       <div className="grid gap-6 lg:grid-cols-3 items-start">
         {/* LEFT COLUMN: DETAILED WORK TYPES & BREAKDOWN (Col Span 2) */}
         <div className="lg:col-span-2 space-y-6">
+          {/* 1. Objective & Notes */}
+          {plan.objective && (
+            <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs space-y-2">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 pb-2 border-b border-slate-100">
+                <FileText className="h-4 w-4 text-slate-500" />
+                วัตถุประสงค์และสรุปแผนงาน
+              </h3>
+              <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">
+                {plan.objective}
+              </p>
+            </div>
+          )}
+          {(plan as any).notes && (
+            <div className="bg-amber-50/60 rounded-xl p-4 border border-amber-100">
+              <h4 className="text-xs font-bold text-amber-800 flex items-center gap-1.5 mb-2">
+                <AlertCircle className="h-3.5 w-3.5" />
+                หมายเหตุ
+              </h4>
+              <p className="text-xs text-amber-900 leading-relaxed whitespace-pre-line">
+                {(plan as any).notes}
+              </p>
+            </div>
+          )}
+
           {/* 2. Structured Work Types Activities Breakdown */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -1037,6 +1069,54 @@ export default function ActivityPlanDetailView({ id }: Props) {
                 </Button>
               </div>
             )}
+
+          {/* Plan Meta Info Card */}
+          <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs space-y-2">
+            <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+              <Tag className="h-3.5 w-3.5 text-indigo-500" />
+              ข้อมูลแผนงาน
+            </h4>
+            <div className="space-y-2 text-xs">
+              {(plan.activityType as any)?.name && (
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-slate-500 shrink-0">ประเภทงาน</span>
+                  <span className="font-semibold text-slate-800 text-right">
+                    {(plan.activityType as any).name}
+                  </span>
+                </div>
+              )}
+              {(plan as any).fiscalYear && (
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-slate-500 shrink-0">ปีงบประมาณ</span>
+                  <span className="font-semibold text-slate-800">
+                    {(plan as any).fiscalYear}
+                  </span>
+                </div>
+              )}
+              {(plan as any).fiscalMonth && (
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-slate-500 shrink-0">เดือนงบประมาณ</span>
+                  <span className="font-semibold text-slate-800">
+                    {(plan as any).fiscalMonth}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-slate-500 shrink-0">วันที่จัดทำ</span>
+                <span className="font-semibold text-slate-800">
+                  {format(new Date((plan as any).createdAt), "dd MMM yyyy", { locale: th })}
+                </span>
+              </div>
+              {plan.durationDays > 1 && (
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-slate-500 shrink-0">จำนวนวัน</span>
+                  <span className="font-semibold text-slate-800">
+                    {plan.durationDays} วัน
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Workflow Progress Timeline */}
           <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs space-y-4">
