@@ -284,7 +284,7 @@ export function ActivityPlanTable({
         }
       />
       <div className="flex flex-wrap items-center justify-end gap-3">
-        <Link href="/activity-plans/approvals" className="w-full sm:w-auto">
+        {/* <Link href="/activity-plans/approvals" className="w-full sm:w-auto">
           <Button
             variant="outline"
             className="w-full lg:w-auto border-amber-500 text-amber-800 hover:bg-amber-50 flex items-center gap-2 font-semibold"
@@ -292,8 +292,8 @@ export function ActivityPlanTable({
             <ShieldCheck className="h-4 w-4 text-amber-600" />
             คิวงานอนุมัติ
           </Button>
-        </Link>
-        <Link href="/activity-plans/actual" className="w-full sm:w-auto">
+        </Link> */}
+        {/* <Link href="/activity-plans/actual" className="w-full sm:w-auto">
           <Button
             variant="outline"
             className="w-full lg:w-auto border-emerald-600 text-emerald-700 hover:bg-emerald-50 flex items-center gap-2 font-semibold"
@@ -301,7 +301,7 @@ export function ActivityPlanTable({
             <ClipboardList className="h-4 w-4 text-emerald-600" />
             บันทึกผลปฏิบัติงาน (Actual)
           </Button>
-        </Link>
+        </Link> */}
         {canCreate ? (
           <Link href="/activity-plans/new" className="w-full sm:w-auto">
             <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 font-semibold">
@@ -310,7 +310,11 @@ export function ActivityPlanTable({
             </Button>
           </Link>
         ) : (
-          <Button className="w-full sm:w-auto font-semibold" variant="outline" disabled>
+          <Button
+            className="w-full sm:w-auto font-semibold"
+            variant="outline"
+            disabled
+          >
             <PlusCircle className="h-5 w-5" />
             สร้างแผนงานใหม่
           </Button>
