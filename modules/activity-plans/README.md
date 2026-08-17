@@ -297,7 +297,15 @@ modules/activity-plans/
   - เพิ่มฟิลด์ `latitude` และ `longitude` ใน `UserDemoPlotOption`
   - ปรับปรุง `getDemoPlotsAction` ให้ดึงข้อมูลแปลงเกษตรกร (`farmPlots`) ของ Customer ประเภท `FARMER` พร้อมสกัดค่า Latitude / Longitude และนำมารวมในรายการแปลงสาธิต/แปลงเกษตรกรโดยไม่ซ้ำซ้อน
   - ปรับปรุง `type10-field-day.tsx` ให้แสดงพิกัดจริง `Latitude, Longitude` ในช่องสถานที่แปลง และในป้ายกำกับของตัวเลือกแปลง
-  - ปรับ `actual-type10-field-day.tsx` และ `activity-plan-actual-view.tsx` ให้แสดงข้อมูลสถานที่แปลงที่ผูกกับพิกัดใน Actual Target Card ได้ถูกต้อง
+### 2026-08-17: ปรับปรุงการแสดงผลหน้าบันทึกผลงานจริง Type 7 (แปลงสาธิต - ติดตามแปลงสาธิต / ทำแปลงใหม่)
+- **คอมโพเนนต์ที่ปรับปรุง:** `actual-type7-demo.tsx`
+- **รายละเอียดการปรับปรุง:**
+  1. **กรณีงานเป็น "ติดตามแปลงสาธิต" (Follow-up):**
+     - ปิดการแสดงผลกล่องเป้าหมายที่ตั้งไว้ตอนสร้างแผน (Planned Target: `ActualTargetCard` และ Multi-item Planned Targets) เพื่อไม่ให้แสดงข้อมูลซ้ำซ้อนกับข้อมูลอ้างอิงของแปลงเดิม
+  2. **กล่องข้อมูลอ้างอิงของแปลงสาธิต (จากตอนเริ่มทำแปลง):**
+     - เพิ่มการแสดง **"จำนวนสินค้าที่จะสาธิต"** (`demoProductQuantity`)
+     - เพิ่มการแสดง **"รายละเอียด / วิธีการทดลอง"** (`experimentDetail` / `detail` / `usageMethod`)
+     - ปรับโครงสร้าง Grid Layout และ Mobile-First Breakpoints ให้แสดงผลได้สมบูรณ์และสวยงามทุกขนาดหน้าจอ
 
 ### 2026-08-15: ปรับปรุง Data Flow & บันทึกยอดขายจริงรายสินค้าสำหรับ Type 9 (จัดกิจกรรมส่งเสริมการขายหน้าร้าน)
 - **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `actual-type9-store.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-form.tsx`

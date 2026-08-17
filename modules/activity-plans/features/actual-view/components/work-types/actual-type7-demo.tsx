@@ -219,13 +219,14 @@ export function ActualType7Demo({
     cropName: target.crop,
     primaryProductName: target.product,
     productName: target.product,
+    demoProductQuantity: target.demoProductQuantity,
     areaRai: target.plots,
     startDate: startDate,
     plantingDate: plantingDate || startDate,
     plantingAreaCondition: plantingAreaCondition,
     usageMethod: usageMethod,
     objective: target.objective,
-    experimentDetail: target.experimentDetail,
+    experimentDetail: target.experimentDetail || target.detail,
     status: plotStatus,
     visits: visitHistory,
   };
@@ -318,131 +319,132 @@ export function ActualType7Demo({
         </div>
       </div>
 
-      {/* Target Details from Plan */}
-      {hasMultipleItems ? (
-        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <Sprout className="w-4 h-4 text-emerald-600" />
-              รายการเป้าหมายแปลงสาธิต ({target.items?.length} รายการ):
-            </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-              จากฟอร์มสร้างแผน
-            </span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-            {target.items?.map((item, idx) => (
-              <div
-                key={idx}
-                className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs space-y-1.5"
-              >
-                <div className="flex items-center justify-between font-bold text-slate-900 border-b border-slate-100 pb-1.5">
-                  <span className="flex items-center gap-1.5 text-xs text-emerald-900">
-                    <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px] font-extrabold">
-                      {idx + 1}
+      {/* Target Details from Plan (เฉพาะประเภททำแปลงสาธิตใหม่ ไม่แสดงตอนติดตามแปลง) */}
+      {!isFollowUp &&
+        (hasMultipleItems ? (
+          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <Sprout className="w-4 h-4 text-emerald-600" />
+                รายการเป้าหมายแปลงสาธิต ({target.items?.length} รายการ):
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                จากฟอร์มสร้างแผน
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+              {target.items?.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs space-y-1.5"
+                >
+                  <div className="flex items-center justify-between font-bold text-slate-900 border-b border-slate-100 pb-1.5">
+                    <span className="flex items-center gap-1.5 text-xs text-emerald-900">
+                      <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px] font-extrabold">
+                        {idx + 1}
+                      </span>
+                      เจ้าของแปลง: {item.owner || "-"}
                     </span>
-                    เจ้าของแปลง: {item.owner || "-"}
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                    {item.activityType === "FOLLOW_UP"
-                      ? "ติดตามแปลง"
-                      : "ทำแปลงใหม่"}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-1.5 text-slate-600 text-[11px]">
-                  <div>
-                    <span className="font-semibold text-slate-400">
-                      สินค้า:{" "}
-                    </span>
-                    <span className="font-bold text-slate-800">
-                      {item.product || "-"}
+                    <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                      {item.activityType === "FOLLOW_UP"
+                        ? "ติดตามแปลง"
+                        : "ทำแปลงใหม่"}
                     </span>
                   </div>
-                  <div>
-                    <span className="font-semibold text-slate-400">
-                      จำนวนสินค้า:{" "}
-                    </span>
-                    <span className="font-bold text-emerald-800">
-                      {item.demoProductQuantity != null &&
-                      item.demoProductQuantity !== ""
-                        ? `${item.demoProductQuantity} หน่วย`
-                        : "-"}
-                    </span>
+                  <div className="grid grid-cols-2 gap-1.5 text-slate-600 text-[11px]">
+                    <div>
+                      <span className="font-semibold text-slate-400">
+                        สินค้า:{" "}
+                      </span>
+                      <span className="font-bold text-slate-800">
+                        {item.product || "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-slate-400">
+                        จำนวนสินค้า:{" "}
+                      </span>
+                      <span className="font-bold text-emerald-800">
+                        {item.demoProductQuantity != null &&
+                        item.demoProductQuantity !== ""
+                          ? `${item.demoProductQuantity} หน่วย`
+                          : "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-slate-400">พืช: </span>
+                      <span className="font-bold text-slate-800">
+                        {item.crop || "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-slate-400">
+                        พื้นที่/ต้น:{" "}
+                      </span>
+                      <span className="font-bold text-slate-800">
+                        {item.plots || "-"}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-semibold text-slate-400">พืช: </span>
-                    <span className="font-bold text-slate-800">
-                      {item.crop || "-"}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-slate-400">
-                      พื้นที่/ต้น:{" "}
-                    </span>
-                    <span className="font-bold text-slate-800">
-                      {item.plots || "-"}
-                    </span>
-                  </div>
-                </div>
-                {(item.objective || item.experimentDetail || item.detail) && (
-                  <div className="pt-1 border-t border-slate-100 text-[11px] space-y-0.5">
-                    {item.objective && (
-                      <div>
-                        <span className="font-semibold text-slate-400">
-                          วัตถุประสงค์:{" "}
-                        </span>
-                        <span className="text-slate-700">{item.objective}</span>
-                      </div>
-                    )}
-                    {item.experimentDetail && (
-                      <div>
-                        <span className="font-semibold text-slate-400">
-                          วิธีการทดลอง:{" "}
-                        </span>
-                        <span className="text-slate-700">
-                          {item.experimentDetail}
-                        </span>
-                      </div>
-                    )}
-                    {item.detail &&
-                      item.detail !== item.objective &&
-                      item.detail !== item.experimentDetail && (
+                  {(item.objective || item.experimentDetail || item.detail) && (
+                    <div className="pt-1 border-t border-slate-100 text-[11px] space-y-0.5">
+                      {item.objective && (
                         <div>
                           <span className="font-semibold text-slate-400">
-                            รายละเอียด:{" "}
+                            วัตถุประสงค์:{" "}
                           </span>
-                          <span className="text-slate-700">{item.detail}</span>
+                          <span className="text-slate-700">{item.objective}</span>
                         </div>
                       )}
-                  </div>
-                )}
-              </div>
-            ))}
+                      {item.experimentDetail && (
+                        <div>
+                          <span className="font-semibold text-slate-400">
+                            วิธีการทดลอง:{" "}
+                          </span>
+                          <span className="text-slate-700">
+                            {item.experimentDetail}
+                          </span>
+                        </div>
+                      )}
+                      {item.detail &&
+                        item.detail !== item.objective &&
+                        item.detail !== item.experimentDetail && (
+                          <div>
+                            <span className="font-semibold text-slate-400">
+                              รายละเอียด:{" "}
+                            </span>
+                            <span className="text-slate-700">{item.detail}</span>
+                          </div>
+                        )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      ) : (
-        <ActualTargetCard
-          items={[
-            { label: "เจ้าของแปลง", value: target.owner },
-            { label: "สินค้าที่จะสาธิต", value: target.product },
-            {
-              label: "จำนวนสินค้าที่จะสาธิต",
-              value:
-                target.demoProductQuantity != null &&
-                target.demoProductQuantity !== ""
-                  ? `${target.demoProductQuantity}`
-                  : "-",
-            },
-            { label: "พืช", value: target.crop },
-            { label: "พื้นที่ / จำนวน", value: target.plots },
-            { label: "วัตถุประสงค์", value: target.objective || "-" },
-            {
-              label: "รายละเอียด / วิธีการทดลอง",
-              value: target.experimentDetail || target.detail || "-",
-            },
-          ]}
-        />
-      )}
+        ) : (
+          <ActualTargetCard
+            items={[
+              { label: "เจ้าของแปลง", value: target.owner },
+              { label: "สินค้าที่จะสาธิต", value: target.product },
+              {
+                label: "จำนวนสินค้าที่จะสาธิต",
+                value:
+                  target.demoProductQuantity != null &&
+                  target.demoProductQuantity !== ""
+                    ? `${target.demoProductQuantity}`
+                    : "-",
+              },
+              { label: "พืช", value: target.crop },
+              { label: "พื้นที่ / จำนวน", value: target.plots },
+              { label: "วัตถุประสงค์", value: target.objective || "-" },
+              {
+                label: "รายละเอียด / วิธีการทดลอง",
+                value: target.experimentDetail || target.detail || "-",
+              },
+            ]}
+          />
+        ))}
 
       {/* ========================================================================= */}
       {/* CASE A: ประเภทงาน = "ทำแปลงสาธิต" (CREATE - เริ่มทำแปลงใหม่)                 */}
@@ -682,6 +684,22 @@ export function ActualType7Demo({
               </div>
               <div>
                 <span className="font-semibold text-slate-400 block text-[11px]">
+                  จำนวนสินค้าที่จะสาธิต:
+                </span>
+                <span className="font-bold text-emerald-800">
+                  {target.demoProductQuantity != null &&
+                  target.demoProductQuantity !== "" &&
+                  target.demoProductQuantity !== "-"
+                    ? String(target.demoProductQuantity)
+                    : demoPlotData?.demoProductQuantity ||
+                      demoPlotData?.plotCount ||
+                      demoPlotData?.productQuantity ||
+                      target.demoProductQuantity ||
+                      "-"}
+                </span>
+              </div>
+              <div>
+                <span className="font-semibold text-slate-400 block text-[11px]">
                   วันเริ่มแปลง / วันปลูก:
                 </span>
                 <span className="font-bold text-slate-900">
@@ -692,8 +710,27 @@ export function ActualType7Demo({
                     "-"}
                 </span>
               </div>
+              {(target.plots ||
+                demoPlotData?.areaRai != null ||
+                demoPlotData?.treeCount != null) && (
+                <div>
+                  <span className="font-semibold text-slate-400 block text-[11px]">
+                    พื้นที่ / จำนวน:
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {target.plots ||
+                      (demoPlotData?.areaRai
+                        ? `${demoPlotData.areaRai} ไร่`
+                        : "") ||
+                      (demoPlotData?.treeCount
+                        ? `${demoPlotData.treeCount} ต้น`
+                        : "") ||
+                      "-"}
+                  </span>
+                </div>
+              )}
               {plantingAreaCondition && (
-                <div className="sm:col-span-2">
+                <div className="col-span-2 sm:col-span-2">
                   <span className="font-semibold text-slate-400 block text-[11px]">
                     สภาพพื้นที่ปลูกตอนเริ่ม:
                   </span>
@@ -703,7 +740,7 @@ export function ActualType7Demo({
                 </div>
               )}
               {(target.objective || demoPlotData?.objective) && (
-                <div className="sm:col-span-2">
+                <div className="col-span-2 sm:col-span-2">
                   <span className="font-semibold text-slate-400 block text-[11px]">
                     วัตถุประสงค์:
                   </span>
@@ -712,6 +749,19 @@ export function ActualType7Demo({
                   </span>
                 </div>
               )}
+              <div className="col-span-2 sm:col-span-4">
+                <span className="font-semibold text-slate-400 block text-[11px]">
+                  รายละเอียด / วิธีการทดลอง:
+                </span>
+                <span className="text-slate-800 whitespace-pre-wrap">
+                  {target.experimentDetail ||
+                    demoPlotData?.experimentDetail ||
+                    target.detail ||
+                    demoPlotData?.usageMethod ||
+                    demoPlotData?.detail ||
+                    "-"}
+                </span>
+              </div>
             </div>
           </div>
 
