@@ -85,7 +85,7 @@ export function ActivityPlanTable({
             row.original.id;
           return (
             <div
-              className="truncate text-sm font-medium text-slate-700 max-w-[130px]"
+              className="truncate text-sm text-slate-700 max-w-[130px]"
               title={planNo || "-"}
             >
               {planNo || "-"}
@@ -100,7 +100,7 @@ export function ActivityPlanTable({
           const val = (info.getValue() as string) || "-";
           return (
             <div
-              className="truncate font-medium text-slate-900 max-w-[200px]"
+              className="truncate text-sm text-slate-700 max-w-[200px]"
               title={val}
             >
               {val}
@@ -120,7 +120,7 @@ export function ActivityPlanTable({
           console.log(info);
           return (
             <div
-              className="truncate text-xs text-slate-700 max-w-[250px]"
+              className="truncate text-sm text-slate-700 max-w-[250px]"
               title={val}
             >
               {val}
@@ -137,7 +137,7 @@ export function ActivityPlanTable({
           const formatted = `${format(start, "dd MMM yy HH:mm", { locale: th })} - ${format(end, "dd MMM yy HH:mm", { locale: th })}`;
           return (
             <div
-              className="truncate text-xs text-slate-600 max-w-[200px]"
+              className="truncatetext-sm text-slate-700 max-w-[200px]"
               title={formatted}
             >
               {formatted}
@@ -152,7 +152,7 @@ export function ActivityPlanTable({
           const val = (info.getValue() as string) || "-";
           return (
             <div
-              className="truncate text-xs font-medium text-slate-700 max-w-[130px]"
+              className="truncate text-sm text-slate-700 max-w-[130px]"
               title={val}
             >
               {val}
@@ -168,37 +168,6 @@ export function ActivityPlanTable({
             <ActivityStatusBadge status={info.getValue() as ActivityStatus} />
           </div>
         ),
-      },
-      {
-        accessorKey: "currentApprover.name",
-        header: "ผู้อนุมัติถัดไป",
-        cell: ({ row }) => {
-          const approverName = row.original.currentApprover?.name;
-          const status = row.original.status;
-
-          let display = approverName || "-";
-          let colorClass = "text-slate-700";
-
-          if (status === "PENDING_BUDGET_APPROVAL") {
-            display = "ผจก. แผนกงบประมาณ";
-            colorClass = "text-blue-600 italic";
-          } else if (status === "PENDING_HELPER_APPROVAL") {
-            display = "ผจก. แผนกของคนช่วย";
-            colorClass = "text-purple-600 italic";
-          } else if (status === "APPROVED") {
-            display = "เสร็จสิ้น";
-            colorClass = "text-green-600 font-medium";
-          }
-
-          return (
-            <div
-              className={`truncate text-xs font-medium max-w-[130px] ${colorClass}`}
-              title={display}
-            >
-              {display}
-            </div>
-          );
-        },
       },
       {
         id: "actions",
