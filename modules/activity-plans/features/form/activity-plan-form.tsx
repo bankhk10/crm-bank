@@ -433,11 +433,7 @@ export function ActivityPlanForm({
         return items.map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
           customerName:
-            item.customerName ||
-            item.storeName ||
-            item.ownerName ||
-            DEMO_OWNERS[0] ||
-            "",
+            item.customerName || item.storeName || item.ownerName || "",
           topic: item.visitTopic || item.topic || "แจ้งข่าวสาร",
           detail: item.detail || "",
         }));
@@ -456,7 +452,7 @@ export function ActivityPlanForm({
   const addType1Row = () => {
     const newItem: Type1VisitItem = {
       id: Date.now().toString(),
-      customerName: DEMO_OWNERS[0] || "",
+      customerName: "",
       topic: "แจ้งข่าวสาร",
       detail: "",
     };
@@ -503,8 +499,7 @@ export function ActivityPlanForm({
               item.productName ||
               DEMO_PRODUCTS[0] ||
               "",
-            customerName:
-              item.customerName || item.ownerName || DEMO_OWNERS[0] || "",
+            customerName: item.customerName || item.ownerName || "",
             detail: item.detail || "",
           }));
         }
@@ -512,8 +507,8 @@ export function ActivityPlanForm({
       return [
         {
           id: "1",
-          productName: DEMO_PRODUCTS[0] || "",
-          customerName: DEMO_OWNERS[0] || "",
+          productName: "",
+          customerName: "",
           detail: "",
         },
       ];
@@ -523,8 +518,8 @@ export function ActivityPlanForm({
   const addType2Row = () => {
     const newItem: Type2ProductFollowupItem = {
       id: Date.now().toString(),
-      productName: DEMO_PRODUCTS[0] || "",
-      customerName: DEMO_OWNERS[0] || "",
+      productName: "",
+      customerName: "",
       detail: "",
     };
     setType2Items((prev) => [...prev, newItem]);
@@ -572,7 +567,7 @@ export function ActivityPlanForm({
               : qty * uPrice;
           return {
             id: item.id || String(idx + 1),
-            customerName: item.customerName || DEMO_OWNERS[0] || "",
+            customerName: item.customerName || "",
             products: [
               {
                 id: "p-" + idx,
@@ -594,7 +589,7 @@ export function ActivityPlanForm({
     return [
       {
         id: "1",
-        customerName: DEMO_OWNERS[0] || "",
+        customerName: "",
         products: [
           {
             id: "p-1",
@@ -616,7 +611,7 @@ export function ActivityPlanForm({
   const addType3Row = () => {
     const newItem: Type3SalesItem = {
       id: Date.now().toString(),
-      customerName: DEMO_OWNERS[0] || "",
+      customerName: "",
       products: [
         {
           id: "p-" + Date.now().toString(),
@@ -704,7 +699,7 @@ export function ActivityPlanForm({
       if (items.length > 0) {
         return items.map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
-          customerName: item.customerName || DEMO_OWNERS[0] || "",
+          customerName: item.customerName || "",
           collectAmount: item.collectAmount ? Number(item.collectAmount) : 0,
           detail: item.detail || "",
         }));
@@ -713,7 +708,7 @@ export function ActivityPlanForm({
     return [
       {
         id: "1",
-        customerName: DEMO_OWNERS[0] || "",
+        customerName: "",
         collectAmount: 0,
         detail: "",
       },
@@ -724,7 +719,7 @@ export function ActivityPlanForm({
       ...prev,
       {
         id: Date.now().toString(),
-        customerName: DEMO_OWNERS[0] || "",
+        customerName: "",
         collectAmount: 0,
         detail: "",
       },
@@ -823,7 +818,7 @@ export function ActivityPlanForm({
       if (items.length > 0) {
         return items.map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
-          customerName: item.customerName || DEMO_OWNERS[0] || "",
+          customerName: item.customerName || "",
           issueType: item.issueType || "เคลมของ",
           detail: item.detail || "",
         }));
@@ -832,7 +827,7 @@ export function ActivityPlanForm({
     return [
       {
         id: "1",
-        customerName: DEMO_OWNERS[0] || "",
+        customerName: "",
         issueType: "เคลมของ",
         detail: "",
       },
@@ -843,7 +838,7 @@ export function ActivityPlanForm({
       ...prev,
       {
         id: Date.now().toString(),
-        customerName: DEMO_OWNERS[0] || "",
+        customerName: "",
         issueType: "เคลมของ",
         detail: "",
       },
