@@ -147,21 +147,21 @@ export const navigationItems: SidebarNavItem[] = [
     permissionKey: "menu.test_activity",
     icon: <ClipboardList className="h-4 w-4" />,
     children: [
-      {
-        href: "/test-activity/reports",
-        label: "รายงาน",
-        permissionKey: "menu.test_activity",
-      },
+      // {
+      //   href: "/test-activity/reports",
+      //   label: "รายงาน",
+      //   permissionKey: "menu.test_activity",
+      // },
       {
         href: "/activity-plans",
         label: "แผนงาน (Trip Plan)",
         permissionKey: "menu.activity_plans",
       },
-      {
-        href: "/activity-plans/approvals",
-        label: "อนุมัติแผนงาน (Approvals)",
-        permissionKey: "menu.activity_plans",
-      },
+      // {
+      //   href: "/activity-plans/approvals",
+      //   label: "อนุมัติแผนงาน (Approvals)",
+      //   permissionKey: "menu.activity_plans",
+      // },
     ],
   },
   {

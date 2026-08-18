@@ -210,7 +210,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
               </label>
             </div>
 
-            {process.env.NODE_ENV === "development" && (
+            {/* {process.env.NODE_ENV === "development" && (
               <div className="flex justify-center pt-2">
                 <Button
                   type="button"
@@ -222,7 +222,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
                   🔧 Admin Login (DEV)
                 </Button>
               </div>
-            )}
+            )} */}
 
             {/* Submit */}
             <div className="flex justify-center pt-2">
