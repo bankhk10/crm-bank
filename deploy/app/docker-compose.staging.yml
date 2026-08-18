@@ -1,0 +1,143 @@
+# ===========================================
+# CRM-Bank Staging Application Stack
+# Domain: test-csone.cropsciences.co.th
+# ===========================================
+# Requires: Staging Database stack running first (crm-postgres-staging healthy)
+# Deploy: docker compose -f docker-compose.staging.yml --env-file ../.env.staging up -d
+
+services:
+  # ===========================================
+  # Next.js Application (Staging)
+  # ===========================================
+  app-staging:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    image: crm-app-staging:latest
+    container_name: crm-app-staging
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_staging_admin}:${POSTGRES_PASSWORD}@crm-postgres-staging:5432/${POSTGRES_DB:-crm_staging}
+      AUTH_SECRET: ${AUTH_SECRET:?Auth secret is required}
+      AUTH_TRUST_HOST: "true"
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://test-csone.cropsciences.co.th}
+      NEXT_PUBLIC_SHOW_RANDOM_FILL: "true"
+    networks:
+      - crm-network
+    user: root
+    volumes:
+      - /home/bank/crm-data-staging/uploads:/app/public/uploads
+    # Internal port only - Nginx จาก Production stack จะ proxy มาที่นี่
+    expose:
+      - "3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://127.0.0.1:3000/api/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ===========================================
+  # Database Migration (Staging One-time job)
+  # Profile: migrate
+  # ===========================================
+  migrate:
+    build:
+      context: ../..
+      dockerfile: Dockerfile.migrate
+    image: crm-migrate-staging:latest
+    container_name: crm-migrate-staging
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_staging_admin}:${POSTGRES_PASSWORD}@crm-postgres-staging:5432/${POSTGRES_DB:-crm_staging}
+    networks:
+      - crm-network
+    command: >
+      sh -c "
+        echo 'Waiting for staging database...' &&
+        until pg_isready -h crm-postgres-staging -p 5432 -U ${POSTGRES_USER:-crm_staging_admin}; do
+          echo 'Database not ready, retrying in 2s...'
+          sleep 2
+        done &&
+        echo 'Database is ready!' &&
+        pnpm exec prisma migrate deploy
+      "
+    restart: "no"
+    profiles:
+      - migrate
+
+  # ===========================================
+  # Database Push (Staging One-time job)
+  # Profile: db-push
+  # ===========================================
+  db-push:
+    build:
+      context: ../..
+      dockerfile: Dockerfile.migrate
+    image: crm-migrate-staging:latest
+    container_name: crm-db-push-staging
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_staging_admin}:${POSTGRES_PASSWORD}@crm-postgres-staging:5432/${POSTGRES_DB:-crm_staging}
+    networks:
+      - crm-network
+    command: >
+      sh -c "
+        echo 'Waiting for staging database...' &&
+        until pg_isready -h crm-postgres-staging -p 5432 -U ${POSTGRES_USER:-crm_staging_admin}; do
+          echo 'Database not ready, retrying in 2s...'
+          sleep 2
+        done &&
+        echo 'Database is ready!' &&
+        pnpm exec prisma db push --accept-data-loss
+      "
+    restart: "no"
+    profiles:
+      - db-push
+
+  # ===========================================
+  # Database Seed (Staging One-time job)
+  # Profile: seed
+  # ===========================================
+  seed:
+    build:
+      context: ../..
+      dockerfile: Dockerfile.migrate
+    image: crm-seed-staging:latest
+    container_name: crm-seed-staging
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_staging_admin}:${POSTGRES_PASSWORD}@crm-postgres-staging:5432/${POSTGRES_DB:-crm_staging}
+    networks:
+      - crm-network
+    command: >
+      sh -c "
+        echo 'Waiting for staging database...' &&
+        until pg_isready -h crm-postgres-staging -p 5432 -U ${POSTGRES_USER:-crm_staging_admin}; do
+          echo 'Database not ready, retrying in 2s...'
+          sleep 2
+        done &&
+        echo 'Database is ready!' &&
+        pnpm exec prisma generate &&
+        pnpm run seed
+      "
+    restart: "no"
+    profiles:
+      - seed
+
+# ===========================================
+# Networks (External - shared crm-network)
+# ===========================================
+networks:
+  crm-network:
+    name: crm-network
+    external: true

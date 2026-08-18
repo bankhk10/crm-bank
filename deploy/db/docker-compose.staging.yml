@@ -1,0 +1,52 @@
+# ===========================================
+# CRM-Bank Staging Database Stack
+# Domain: test-csone.cropsciences.co.th
+# ===========================================
+# Deploy: docker compose -f docker-compose.staging.yml --env-file ../.env.staging up -d
+
+services:
+  # ===========================================
+  # PostgreSQL Database (Staging)
+  # ===========================================
+  postgres-staging:
+    image: postgres:16-alpine
+    container_name: crm-postgres-staging
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-crm_staging_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Database password is required}
+      POSTGRES_DB: ${POSTGRES_DB:-crm_staging}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    networks:
+      - crm-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-crm_staging_admin} -d ${POSTGRES_DB:-crm_staging}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    # Security: bind port 5433 บน localhost เท่านั้น (ไม่ชนกับ production 5432)
+    ports:
+      - "127.0.0.1:5433:5432"
+
+# ===========================================
+# Networks (External - shared crm-network)
+# ===========================================
+networks:
+  crm-network:
+    name: crm-network
+    external: true
+
+# ===========================================
+# Volumes
+# ===========================================
+volumes:
+  postgres_staging_data:
+    driver: local
