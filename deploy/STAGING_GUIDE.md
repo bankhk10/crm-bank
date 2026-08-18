@@ -103,8 +103,8 @@ cd /opt
 git clone <your-git-repo-url> crm-bank-staging
 cd crm-bank-staging
 
-# 3. สลับไป Branch สำหรับทดสอบ (เช่น develop หรือ staging)
-git checkout develop
+# 3. สลับไป Branch สำหรับทดสอบ (Branch: Test)
+git checkout Test
 
 # 4. สร้างและตั้งค่าไฟล์ .env.staging
 cp deploy/.env.staging.example deploy/.env.staging
@@ -183,9 +183,9 @@ ssh user@your-vps-ip
 # เข้าโฟลเดอร์ Staging
 cd /opt/crm-bank-staging
 
-# 1. ดึงโค้ดล่าสุดจาก Branch ทดสอบ
+# 1. ดึงโค้ดล่าสุดจาก Branch ทดสอบ (Test)
 git reset --hard
-git pull origin develop
+git pull origin Test
 
 # ============================================================
 # กรณี A: อัปเดตเฉพาะ Code (ไม่มีการเปลี่ยน DB Schema)
