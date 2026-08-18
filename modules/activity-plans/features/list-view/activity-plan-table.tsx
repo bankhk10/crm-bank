@@ -134,13 +134,23 @@ export function ActivityPlanTable({
         cell: ({ row }) => {
           const start = new Date(row.original.startDate);
           const end = new Date(row.original.endDate);
-          const formatted = `${format(start, "dd MMM yy HH:mm", { locale: th })} - ${format(end, "dd MMM yy HH:mm", { locale: th })}`;
+
+          const formatThaiDateTime = (date: Date) => {
+            return `${format(date, "dd MMM", { locale: th })} ${
+              date.getFullYear() + 543
+            } ${format(date, "HH:mm")}`;
+          };
+
+          const startFormatted = formatThaiDateTime(start);
+          const endFormatted = formatThaiDateTime(end);
+
           return (
             <div
-              className="truncatetext-sm text-slate-700 max-w-[200px]"
-              title={formatted}
+              className="text-sm text-slate-700"
+              title={`${startFormatted} - ${endFormatted}`}
             >
-              {formatted}
+              <div>{startFormatted} ถึง</div>
+              <div>{endFormatted}</div>
             </div>
           );
         },
