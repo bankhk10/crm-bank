@@ -15,7 +15,8 @@
     "db:migrate": "prisma migrate deploy",
     "migrate:product-groups": "tsx --env-file=.env scripts/migrate-product-groups.ts",
     "sync:sale-snapshots": "tsx --env-file=.env scripts/sync-sale-items-snapshot.ts",
-    "cleanup:tradename-groups": "tsx --env-file=.env scripts/cleanup-unused-tradename-groups.ts"
+    "cleanup:tradename-groups": "tsx --env-file=.env scripts/cleanup-unused-tradename-groups.ts",
+    "sync:sale-item-names": "tsx --env-file=.env scripts/sync-sale-item-names.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.5.0",
