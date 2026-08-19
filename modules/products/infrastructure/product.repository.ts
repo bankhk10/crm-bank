@@ -598,3 +598,84 @@ export async function findProductABCTypes() {
     take: 1000,
   });
 }
+
+/**
+ * Extracts trade name group from a trade name string.
+ * Logic: Take text before ':', trim leading and trailing spaces.
+ * If no ':', use full text after trim.
+ */
+export function extractTradeNameGroup(tradeName: string): string {
+  if (!tradeName || typeof tradeName !== "string") return "";
+  const colonIndex = tradeName.indexOf(":");
+  if (colonIndex !== -1) {
+    return tradeName.substring(0, colonIndex).trim();
+  }
+  return tradeName.trim();
+}
+
+/**
+ * Finds or creates a TradeNameGroup record based on product trade name.
+ * If group exists, returns its ID. If soft-deleted, restores it.
+ * If not exists, creates a new TradeNameGroup record.
+ */
+export async function findOrCreateTradeNameGroup(
+  nameOrGroupName: string,
+): Promise<string | null> {
+  const groupName = extractTradeNameGroup(nameOrGroupName);
+  if (!groupName) return null;
+
+  try {
+    // 1. Try finding existing active TradeNameGroup
+    let group = await db.tradeNameGroup.findFirst({
+      where: {
+        OR: [
+          { description: { equals: groupName, mode: "insensitive" } },
+          { code: { equals: groupName, mode: "insensitive" } },
+        ],
+        deletedAt: null,
+      },
+    });
+
+    if (group) return group.id;
+
+    // 2. Try finding soft-deleted TradeNameGroup and restore it
+    group = await db.tradeNameGroup.findFirst({
+      where: {
+        OR: [
+          { description: { equals: groupName, mode: "insensitive" } },
+          { code: { equals: groupName, mode: "insensitive" } },
+        ],
+      },
+    });
+
+    if (group) {
+      if (group.deletedAt) {
+        group = await db.tradeNameGroup.update({
+          where: { id: group.id },
+          data: { deletedAt: null },
+        });
+      }
+      return group.id;
+    }
+
+    // 3. Create new TradeNameGroup
+    const created = await db.tradeNameGroup.create({
+      data: {
+        code: groupName,
+        description: groupName,
+      },
+    });
+    return created.id;
+  } catch {
+    // Fallback if concurrent creation or collision occurs
+    const fallback = await db.tradeNameGroup.findFirst({
+      where: {
+        OR: [
+          { description: { equals: groupName, mode: "insensitive" } },
+          { code: { equals: groupName, mode: "insensitive" } },
+        ],
+      },
+    });
+    return fallback?.id ?? null;
+  }
+}

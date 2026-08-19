@@ -2,6 +2,7 @@ import { Prisma } from "@/lib/db";
 import {
   findProductById,
   updateProduct,
+  findOrCreateTradeNameGroup,
 } from "../infrastructure/product.repository";
 import { productUpdateSchema } from "./validations";
 
@@ -28,6 +29,21 @@ export async function updateProductUseCase(id: string, rawData: unknown) {
 
   try {
     const payloadToUpdate: Record<string, any> = { ...parsed.data };
+
+    // If name is updated, automatically resolve tradeNameGroupId from product name
+    if (payloadToUpdate.name) {
+      const resolvedGroupId = await findOrCreateTradeNameGroup(
+        payloadToUpdate.name,
+      );
+      if (resolvedGroupId) {
+        payloadToUpdate.tradeNameGroupId = resolvedGroupId;
+      }
+    }
+
+    if ("productGroupId" in payloadToUpdate) {
+      payloadToUpdate.productGroupId = payloadToUpdate.productGroupId || null;
+    }
+
     if ("parentId" in payloadToUpdate) {
       payloadToUpdate.parentId = payloadToUpdate.parentId || null;
     }

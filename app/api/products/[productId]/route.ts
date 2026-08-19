@@ -14,7 +14,10 @@ import {
 import type { RequestContext } from "@/lib/logger/types";
 import { deleteFile, deleteFolder } from "@/lib/file-storage";
 
-import { findProductById } from "@/modules/products/infrastructure/product.repository";
+import {
+  findProductById,
+  findOrCreateTradeNameGroup,
+} from "@/modules/products/infrastructure/product.repository";
 
 const resourcePath = "/api/products";
 
@@ -23,9 +26,9 @@ const productSchema = z.object({
   name: z.string().min(1, "ชื่อสินค้าต้องไม่ว่าง"),
   commonName: z.string().optional(),
   unit: z.string().optional(),
-  tradeNameGroupId: z.string().optional(), // กลุ่มชื่อการค้า (Trade Name Group)
+  tradeNameGroupId: z.string().nullable().optional(), // กลุ่มชื่อการค้า (Trade Name Group)
   brand: z.string().optional(),
-  productGroupId: z.string().optional(), // กลุ่มสินค้า (Product Group)
+  productGroupId: z.string().nullable().optional(), // กลุ่มสินค้า (Product Group)
   packageSize: z.coerce.number().optional(),
   packageSizeUnit: z.string().optional(),
   packageSizePerBox: z.coerce.number().optional(),
@@ -36,8 +39,8 @@ const productSchema = z.object({
   properties: z.string().optional(),
   pointPerUnit: z.number().int().min(0).optional(),
   // New fields
-  categoryId: z.string().optional(), // FK to ProductCategory (หมวดสินค้า)
-  productABCTypeId: z.string().optional(), // FK to ProductABCTypes (ประเภท (ABC Code))
+  categoryId: z.string().nullable().optional(), // FK to ProductCategory (หมวดสินค้า)
+  productABCTypeId: z.string().nullable().optional(), // FK to ProductABCTypes (ประเภท (ABC Code))
   parentId: z.string().nullable().optional(),
 });
 
@@ -128,10 +131,25 @@ export async function PATCH(
       metadata: { productId, productCode: existing.productCode },
     });
 
+    // Prepare update data
+    const updateData: Record<string, any> = { ...parsed.data };
+    if (updateData.name) {
+      const resolvedGroupId = await findOrCreateTradeNameGroup(updateData.name);
+      if (resolvedGroupId) {
+        updateData.tradeNameGroupId = resolvedGroupId;
+      }
+    }
+    if ("productGroupId" in updateData) {
+      updateData.productGroupId = updateData.productGroupId || null;
+    }
+    if ("parentId" in updateData) {
+      updateData.parentId = updateData.parentId || null;
+    }
+
     // Update product
     const product = await db.product.update({
       where: { id: productId },
-      data: parsed.data,
+      data: updateData,
       include: {
         images: true,
       },

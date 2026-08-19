@@ -202,14 +202,6 @@ export function ProductForm({
       newErrors.unit = "กรุณาเลือกหน่วยนับ";
     }
 
-    if (!formData.tradeNameGroupId) {
-      newErrors.tradeNameGroupId = "กรุณาเลือกกลุ่มชื่อการค้า";
-    }
-
-    if (!formData.productGroupId) {
-      newErrors.productGroupId = "กรุณาเลือกกลุ่มสินค้า";
-    }
-
     if (!formData.categoryId) {
       newErrors.categoryId = "กรุณาเลือกหมวดสินค้า";
     }
@@ -248,7 +240,7 @@ export function ProductForm({
         unit: formData.unit || undefined,
         tradeNameGroupId: formData.tradeNameGroupId || undefined,
         brand: formData.brand ?? "",
-        productGroupId: formData.productGroupId || undefined,
+        productGroupId: "",
         packageSize: formData.packageSize || undefined,
         packageSizeUnit: formData.packageSizeUnit || "G",
         packageSizePerBox: formData.packageSizePerBox || undefined,
@@ -576,32 +568,6 @@ export function ProductForm({
           searchPlaceholder="ค้นหาแบรนด์..."
           emptyText="ไม่พบแบรนด์"
           disabled={loading}
-        />
-
-        <FormCombobox
-          label="กลุ่มสินค้า"
-          value={formData.productGroupId || ""}
-          onChange={(v) => updateField("productGroupId", v)}
-          required
-          options={chemicalGroupOptions}
-          placeholder="เลือกกลุ่มสินค้า"
-          searchPlaceholder="ค้นหากลุ่มสินค้า..."
-          emptyText="ไม่พบกลุ่มสินค้า"
-          disabled={loading}
-          error={errors.productGroupId}
-        />
-
-        <FormCombobox
-          label="กลุ่มชื่อการค้า"
-          value={formData.tradeNameGroupId || ""}
-          onChange={(v) => updateField("tradeNameGroupId", v)}
-          required
-          options={groupOptions}
-          placeholder="เลือกกลุ่มชื่อการค้า"
-          searchPlaceholder="ค้นหากลุ่มชื่อการค้า..."
-          emptyText="ไม่พบกลุ่มชื่อการค้า"
-          disabled={loading}
-          error={errors.tradeNameGroupId}
         />
 
         <FormCombobox
