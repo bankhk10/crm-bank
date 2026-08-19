@@ -133,24 +133,42 @@ docker logs crm-postgres-staging
 
 ---
 
-### Step 5: รัน Migration และ Seed ข้อมูลทดสอบ
+### Step 5: การเตรียมข้อมูลใน Staging Database
 
+คุณสามารถเลือกได้ 2 แนวทาง:
+
+#### ทางเลือก A: เริ่มจาก Database เปล่า + รัน Seed ข้อมูล
 ```bash
 cd /opt/crm-bank-staging/deploy/app
 
-# รัน Migration
+# 1. รัน Migration
 docker compose -f docker-compose.staging.yml --env-file ../.env.staging \
   --profile migrate up migrate
 
-# ตรวจสอบ log migration
-docker logs crm-migrate-staging
-
-# รัน Seed ข้อมูลเริ่มต้น
+# 2. รัน Seed ข้อมูลระบบหลัก (Core Master Data, RBAC, Users)
 docker compose -f docker-compose.staging.yml --env-file ../.env.staging \
   --profile seed up seed
 
-# ตรวจสอบ log seed
-docker logs crm-seed-staging
+# 3. (ทางเลือก) รัน Seed ข้อมูลทดสอบกิจกรรม (Activity Test Data)
+docker compose -f docker-compose.staging.yml --env-file ../.env.staging \
+  --profile seed-activity up seed-activity
+```
+
+#### ทางเลือก B: คัดลอกข้อมูลจริงและรูปภาพจาก Production (แนะนำ ⭐)
+วิธีนี้จะทำให้ได้ข้อมูลเหมือน Production 100% พร้อมทดสอบ:
+
+```bash
+# 1. Dump ข้อมูลจาก Production DB แล้ว Restore เข้า Staging DB โดยตรง
+docker exec crm-postgres pg_dump -U crm_admin -d crm | docker exec -i crm-postgres-staging psql -U crm_staging_admin -d crm_staging
+
+# 2. คัดลอกไฟล์รูปภาพและเอกสาร (Uploads) จาก Production มายัง Staging
+sudo cp -r /home/bank/crm-data/uploads/* /home/bank/crm-data-staging/uploads/
+sudo chown -R $USER:$USER /home/bank/crm-data-staging/uploads
+
+# 3. รัน Migration บน Staging เพื่ออัปเดต Schema ใหม่ (กรณี Branch Test มีตารางใหม่ที่ Production ยังไม่มี)
+cd /opt/crm-bank-staging/deploy/app
+docker compose -f docker-compose.staging.yml --env-file ../.env.staging \
+  --profile migrate up migrate
 ```
 
 ---
@@ -248,3 +266,53 @@ cd ../app
 docker compose -f docker-compose.staging.yml --env-file ../.env.staging --profile migrate up migrate
 docker compose -f docker-compose.staging.yml --env-file ../.env.staging --profile seed up seed
 ```
+
+---
+
+## 6. การ Sync ข้อมูลจริงจาก Production มายัง Staging (Data & Uploads Sync)
+
+เมื่อต้องการอัปเดตข้อมูลใน Staging ให้เป็นปัจจุบันเหมือน Production:
+
+### วิธีที่ 1: รันคำสั่งผ่าน VPS โดยตรง (แนะนำ - รวดเร็วที่สุด)
+
+```bash
+# 1. สั่ง Dump ข้อมูลจาก Production และ Restore เข้า Staging ในคำสั่งเดียว
+docker exec crm-postgres pg_dump -U crm_admin -d crm --clean --if-exists | \
+  docker exec -i crm-postgres-staging psql -U crm_staging_admin -d crm_staging
+
+# 2. คัดลอกไฟล์รูปภาพ/เอกสาร (Uploads) ล่าสุด
+sudo cp -r /home/bank/crm-data/uploads/* /home/bank/crm-data-staging/uploads/
+sudo chown -R $USER:$USER /home/bank/crm-data-staging/uploads
+
+# 3. รัน Migration บน Staging เพื่ออัปเดต Schema ล่าสุดของ Branch Test
+cd /opt/crm-bank-staging/deploy/app
+docker compose -f docker-compose.staging.yml --env-file ../.env.staging --profile migrate up migrate
+
+# 4. Restart Staging App เพื่อเคลียร์ Cache
+docker compose -f docker-compose.staging.yml restart app-staging
+```
+
+### วิธีที่ 2: ผ่าน Navicat (GUI)
+1. **Export จาก Production:** คลิกขวาที่ Database `crm` บน Connection Production $\rightarrow$ เลือก **Dump SQL File** $\rightarrow$ **Structure and Data**
+2. **Import เข้า Staging:** คลิกขวาที่ Database `crm_staging` บน Connection Staging (Port 5433) $\rightarrow$ เลือก **Execute SQL File** $\rightarrow$ เลือกไฟล์ `.sql` ที่เพิ่ง Dump ออกมา
+3. **Sync รูปภาพ:** รันคำสั่ง `sudo cp -r /home/bank/crm-data/uploads/* /home/bank/crm-data-staging/uploads/` บน VPS
+
+---
+
+## 7. การเชื่อมต่อ Database Staging ผ่าน Navicat / DBeaver (SSH Tunnel)
+
+คุณสามารถเชื่อมต่อเข้ามาดูหรือแก้ไขข้อมูลใน Database Staging จากเครื่อง Local ได้เช่นเดียวกับ Production:
+
+* **แท็บ General:**
+  * **Host:** `127.0.0.1`
+  * **Port:** `5433` *(Staging ใช้ Port 5433 เพื่อไม่ให้ชนกับ 5432 ของ Production)*
+  * **Initial Database:** `crm_staging`
+  * **User Name:** `crm_staging_admin`
+  * **Password:** *(รหัสผ่านใน `.env.staging`)*
+
+* **แท็บ SSH:**
+  * ☑️ **Use SSH Tunnel**
+  * **Host:** `IP_VPS_ของคุณ`
+  * **Port:** `22`
+  * **User Name:** `bank` *(หรือ user ที่ใช้ SSH)*
+  * **Authentication Method:** `Password` หรือ `Private Key`
