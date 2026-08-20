@@ -74,3 +74,4 @@ export {
 } from "./utils";
 
 export { applyDataAccessFilters } from "./authorization";
+export { buildSaleDetailExportWorkbook } from "./export-sale-detail";

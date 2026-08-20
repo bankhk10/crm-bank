@@ -204,6 +204,8 @@ export async function findSaleById(id: string) {
       employee: true,
       createdBy: true,
       approvedBy: true,
+      pickupCompany: true,
+      shippingCompany: true,
       saleAddress: true,
 
       items: {
@@ -212,6 +214,11 @@ export async function findSaleById(id: string) {
             include: {
               stockLots: { where: { isUsed: false } },
               stock: true,
+            },
+          },
+          lotAllocations: {
+            include: {
+              lot: true,
             },
           },
         },

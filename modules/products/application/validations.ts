@@ -5,9 +5,9 @@ export const productSchema = z.object({
   name: z.string().min(1, "ชื่อสินค้าต้องไม่ว่าง"),
   commonName: z.string().optional(),
   unit: z.string().optional(),
-  tradeNameGroupId: z.string().optional(),
+  tradeNameGroupId: z.string().nullable().optional(),
   brand: z.string().optional(),
-  productGroupId: z.string().optional(),
+  productGroupId: z.string().nullable().optional(),
   packageSize: z.coerce.number().optional(),
   packageSizeUnit: z.string().optional(),
   packageSizePerBox: z.coerce.number().optional(),
@@ -17,8 +17,8 @@ export const productSchema = z.object({
   salesPoint: z.string().optional(),
   properties: z.string().optional(),
   pointPerUnit: z.number().int().min(0).optional(),
-  categoryId: z.string().optional(),
-  productABCTypeId: z.string().optional(),
+  categoryId: z.string().nullable().optional(),
+  productABCTypeId: z.string().nullable().optional(),
   parentId: z.string().nullable().optional(),
 });
 

@@ -1,5 +1,8 @@
 import { Prisma } from "@/lib/db";
-import { createProduct } from "../infrastructure/product.repository";
+import {
+  createProduct,
+  findOrCreateTradeNameGroup,
+} from "../infrastructure/product.repository";
 import { productSchema } from "./validations";
 
 /**
@@ -18,8 +21,19 @@ export async function createProductUseCase(rawData: unknown) {
   }
 
   try {
+    // Automatically resolve tradeNameGroupId from product name
+    let tradeNameGroupId = parsed.data.tradeNameGroupId || null;
+    if (parsed.data.name) {
+      const resolvedGroupId = await findOrCreateTradeNameGroup(parsed.data.name);
+      if (resolvedGroupId) {
+        tradeNameGroupId = resolvedGroupId;
+      }
+    }
+
     const product = await createProduct({
       ...parsed.data,
+      tradeNameGroupId,
+      productGroupId: parsed.data.productGroupId || null,
       status: parsed.data.status as "ACTIVE" | "INACTIVE",
       packageSizeUnit: parsed.data.packageSizeUnit,
       categoryId: parsed.data.categoryId || null,

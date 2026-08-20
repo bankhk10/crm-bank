@@ -5,6 +5,7 @@ import { Prisma } from "@/lib/db";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db } from "@/lib/db";
 import { isAuthorized } from "@/modules/rbac";
+import { findOrCreateTradeNameGroup } from "@/modules/products/infrastructure/product.repository";
 
 const resourcePath = "/api/products";
 
@@ -13,9 +14,9 @@ const productSchema = z.object({
   name: z.string().min(1, "ชื่อสินค้าต้องไม่ว่าง"),
   commonName: z.string().optional(),
   unit: z.string().optional(),
-  tradeNameGroupId: z.string().optional(), // กลุ่มชื่อการค้า (Trade Name Group)
+  tradeNameGroupId: z.string().nullable().optional(), // กลุ่มชื่อการค้า (Trade Name Group)
   brand: z.string().optional(),
-  productGroupId: z.string().optional(), // กลุ่มสินค้า (Product Group)
+  productGroupId: z.string().nullable().optional(), // กลุ่มสินค้า (Product Group)
   packageSize: z.coerce.number().optional(),
   packageSizeUnit: z.string().optional(),
   packageSizePerBox: z.coerce.number().optional(),
@@ -26,8 +27,8 @@ const productSchema = z.object({
   properties: z.string().optional(),
   pointPerUnit: z.number().int().min(0).optional(),
   // New fields
-  categoryId: z.string().optional(), // FK to ProductCategory (หมวดสินค้า)
-  productABCTypeId: z.string().optional(), // FK to ProductABCTypes (ประเภท (ABC Code))
+  categoryId: z.string().nullable().optional(), // FK to ProductCategory (หมวดสินค้า)
+  productABCTypeId: z.string().nullable().optional(), // FK to ProductABCTypes (ประเภท (ABC Code))
   parentId: z.string().nullable().optional(),
 });
 
@@ -280,29 +281,39 @@ export async function POST(request: Request) {
   }
 
   try {
-      const product = await db.product.create({
-        data: {
-          productCode: parsed.data.productCode,
-          name: parsed.data.name,
-          commonName: parsed.data.commonName,
-          unit: parsed.data.unit,
-          tradeNameGroupId: parsed.data.tradeNameGroupId,
-          brand: parsed.data.brand,
-          productGroupId: parsed.data.productGroupId,
-          packageSize: parsed.data.packageSize,
-          packageSizeUnit: parsed.data.packageSizeUnit,
-          packageSizePerBox: parsed.data.packageSizePerBox,
-          totalPackageSizePerBox: parsed.data.totalPackageSizePerBox,
-          status: parsed.data.status,
-          usedForPlants: parsed.data.usedForPlants,
-          salesPoint: parsed.data.salesPoint,
-          properties: parsed.data.properties,
-          pointPerUnit: parsed.data.pointPerUnit ?? 0,
-          // New fields
-          categoryId: parsed.data.categoryId || null,
-          productABCTypeId: parsed.data.productABCTypeId || null,
-          parentId: parsed.data.parentId || null,
-        } as any,
+    let tradeNameGroupId = parsed.data.tradeNameGroupId || null;
+    if (parsed.data.name) {
+      const resolvedGroupId = await findOrCreateTradeNameGroup(
+        parsed.data.name,
+      );
+      if (resolvedGroupId) {
+        tradeNameGroupId = resolvedGroupId;
+      }
+    }
+
+    const product = await db.product.create({
+      data: {
+        productCode: parsed.data.productCode,
+        name: parsed.data.name,
+        commonName: parsed.data.commonName,
+        unit: parsed.data.unit,
+        tradeNameGroupId,
+        brand: parsed.data.brand,
+        productGroupId: parsed.data.productGroupId || null,
+        packageSize: parsed.data.packageSize,
+        packageSizeUnit: parsed.data.packageSizeUnit,
+        packageSizePerBox: parsed.data.packageSizePerBox,
+        totalPackageSizePerBox: parsed.data.totalPackageSizePerBox,
+        status: parsed.data.status,
+        usedForPlants: parsed.data.usedForPlants,
+        salesPoint: parsed.data.salesPoint,
+        properties: parsed.data.properties,
+        pointPerUnit: parsed.data.pointPerUnit ?? 0,
+        // New fields
+        categoryId: parsed.data.categoryId || null,
+        productABCTypeId: parsed.data.productABCTypeId || null,
+        parentId: parsed.data.parentId || null,
+      } as any,
       include: {
         images: true,
       },

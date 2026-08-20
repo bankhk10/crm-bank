@@ -15,6 +15,7 @@ export interface SaleWithRelations extends Sale {
     id: string;
     name: string;
     customerCode: string;
+    customerType?: string | null;
     phone?: string | null;
     email?: string | null;
     taxId?: string | null;
