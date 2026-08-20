@@ -2,17 +2,20 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
+import { hasPermission } from "@/lib/permission-check";
 import { applyDataScope } from "@/lib/data-scope";
 import type { SaleFormData } from "@/modules/sales/types";
 import type { SaleStatus, PaymentTerm } from "@/lib/db";
 import { auditLogger } from "@/lib/logger/audit-logger";
 import { createActionLogger } from "@/lib/logger/middleware";
+import { format } from "date-fns";
 import {
   createSaleUseCase,
   updateSaleUseCase,
   getSaleDetailUseCase,
   listSalesUseCase,
   deleteSaleUseCase,
+  buildSaleDetailExportWorkbook,
 } from "../application";
 import {
   getSaleDetailForApproval,
@@ -246,3 +249,57 @@ export async function rejectSaleAction(id: string, reason: string) {
     };
   }
 }
+
+// ─────────────────────────────────────────────
+// Export
+// ─────────────────────────────────────────────
+
+/**
+ * Server action to export a single sale detail record to Excel (.xlsx)
+ * Requires permission: menu.exports
+ */
+export async function exportSaleDetailAction(
+  id: string
+): Promise<{
+  success: boolean;
+  data?: { filename: string; base64: string };
+  error?: string;
+}> {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return { success: false, error: "กรุณาเข้าสู่ระบบก่อนใช้งาน" };
+    }
+
+    if (!hasPermission(session, "menu.exports")) {
+      return {
+        success: false,
+        error: "คุณไม่มีสิทธิ์ในการส่งออกข้อมูล (menu.exports)",
+      };
+    }
+
+    const result = await getSaleDetailUseCase(id);
+    if (!result.success || !result.sale) {
+      return { success: false, error: "ไม่พบข้อมูลรายการขาย" };
+    }
+
+    const base64 = await buildSaleDetailExportWorkbook(result.sale as any);
+    const dateStr = format(new Date(), "yyyyMMdd-HHmm");
+    const saleNo = result.sale.saleNumber
+      ? result.sale.saleNumber.replace(/[^a-zA-Z0-9-_]/g, "_")
+      : id;
+    const filename = `sale-detail-${saleNo}-${dateStr}.xlsx`;
+
+    return {
+      success: true,
+      data: { filename, base64 },
+    };
+  } catch (err: any) {
+    console.error("exportSaleDetailAction error:", err);
+    return {
+      success: false,
+      error: err.message || "เกิดข้อผิดพลาดในการส่งออกข้อมูลรายการขาย",
+    };
+  }
+}
+

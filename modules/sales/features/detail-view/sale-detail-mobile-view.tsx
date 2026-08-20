@@ -33,7 +33,10 @@ import {
   ExternalLink,
   Truck,
   MapPin,
+  Download,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -41,8 +44,9 @@ import { usePermission } from "@/hooks/use-permission";
 import { DetailItem } from "@/components/custom/detail-item";
 import { SectionHeader } from "@/components/custom/section-header";
 import { DetailHero } from "@/components/custom/detail-hero";
-import { getSaleAction } from "../../server/actions";
+import { getSaleAction, exportSaleDetailAction } from "../../server/actions";
 import { formatAddress } from "@/lib/address-utils";
+import { downloadBase64File } from "@/lib/export-utils";
 
 interface SaleDetailMobileViewProps {
   id: string;
@@ -94,11 +98,13 @@ const AppSectionHeader = ({
 
 export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
   const router = useRouter();
-  const { hasPermission } = usePermission("menu.sales");
+  const { hasPermission } = usePermission();
+  const canExport = hasPermission("menu.exports");
   const canViewPdf = hasPermission("menu.fulfillment");
 
   const [data, setData] = useState<{ sale: SaleWithRelations } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -197,6 +203,29 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
   const displayDeliveryDate =
     latestShipment?.scheduledDate ?? sale.deliveryDate;
 
+  const handleExport = async () => {
+    if (!canExport) {
+      toast.error("คุณไม่มีสิทธิ์ในการส่งออกข้อมูล (menu.exports)");
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const res = await exportSaleDetailAction(sale.id);
+      if (!res.success || !res.data) {
+        toast.error(res.error || "เกิดข้อผิดพลาดในการส่งออกข้อมูล");
+        return;
+      }
+
+      downloadBase64File(res.data.base64, res.data.filename);
+      toast.success("ส่งออกข้อมูลการขายสำเร็จ");
+    } catch (err: any) {
+      toast.error(err.message || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen">
       {/* ── Hero Header ──────────────────────────────────────────────── */}
@@ -223,6 +252,27 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
               {SaleStatusLabels[sale.status]}
             </span>
           </>
+        }
+        actions={
+          canExport ? (
+            <Button
+              onClick={handleExport}
+              disabled={isExporting}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-md shadow-emerald-600/20 gap-2 h-10 px-4 rounded-xl border border-emerald-500/30 transition-all hover:shadow-lg hover:shadow-emerald-600/30"
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="hidden sm:inline">กำลังส่งออก...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" />
+                  <span>Export Data</span>
+                </>
+              )}
+            </Button>
+          ) : undefined
         }
       />
 
@@ -932,6 +982,25 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
               กลับหน้าข้อมูลการขาย
             </Link>
           </Button>
+          {canExport && (
+            <Button
+              onClick={handleExport}
+              disabled={isExporting}
+              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white h-11 font-medium px-6 shadow-md shadow-emerald-500/20 gap-2"
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>กำลังส่งออก...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" />
+                  <span>Export Data</span>
+                </>
+              )}
+            </Button>
+          )}
           {canViewPdf && (
             <>
               <Button
