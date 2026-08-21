@@ -6,7 +6,12 @@ import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { ActivityPlanForm } from "./activity-plan-form";
-import { createActivityPlanAction, getCurrentUserEmployeeAction, getDemoPlotsAction } from "../../server/actions";
+import {
+  createActivityPlanAction,
+  getCurrentUserEmployeeAction,
+  getDemoPlotsAction,
+  getActivePromotionalMaterialsGroupedAction,
+} from "../../server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";
@@ -22,18 +27,22 @@ export default function ActivityPlanCreateView() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [demoPlots, setDemoPlots] = useState<any[]>([]);
+  const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] = useState<
+    Record<string, any[]> | undefined
+  >(undefined);
   const [currentEmployeeName, setCurrentEmployeeName] = useState<string>("");
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [empRes, userRes, custRes, prodRes, plotRes] = await Promise.all([
+        const [empRes, userRes, custRes, prodRes, plotRes, mktRes] = await Promise.all([
           getAllEmployeesAction(),
           getCurrentUserEmployeeAction(),
           getCustomersAction({ perPage: 1000 }).catch(() => ({ customers: [] })),
           listProductsAction({ status: "ACTIVE", perPage: 1000 }).catch(() => ({ products: [] })),
           getDemoPlotsAction().catch(() => ({ demoPlots: [] })),
+          getActivePromotionalMaterialsGroupedAction().catch(() => ({ success: false, grouped: {} })),
         ]);
 
         if (empRes.success && empRes.employees) {
@@ -52,6 +61,10 @@ export default function ActivityPlanCreateView() {
 
         if (plotRes && plotRes.demoPlots) {
           setDemoPlots(plotRes.demoPlots);
+        }
+
+        if (mktRes && mktRes.success && mktRes.grouped) {
+          setPromotionalMaterialsByCategory(mktRes.grouped);
         }
 
         if (userRes.success) {
@@ -105,6 +118,7 @@ export default function ActivityPlanCreateView() {
         customers={customers}
         products={products}
         demoPlots={demoPlots}
+        promotionalMaterialsByCategory={promotionalMaterialsByCategory}
         onSubmit={handleSubmit}
         onCancel={() => router.push("/activity-plans")}
         submitLabel="บันทึก"

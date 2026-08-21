@@ -1,25 +1,33 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Plus, Trash2, Check, Package, Receipt, Coins, Target, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FormCombobox } from "@/components/custom/form-components";
 import { SectionHeader } from "@/modules/sales/features/form/forms/section-header";
 import type { MarketingBudgetProductItem, SalesPromotionItem } from "../types";
-import {
-  DEMO_PRODUCTS,
-  DEMO_PRODUCT_PRICES,
-  MARKETING_PRODUCT_CATEGORIES,
-  MARKETING_PRODUCTS_BY_CATEGORY,
-  MARKETING_UNITS,
-} from "../constants";
+import { MARKETING_UNITS } from "../constants";
 
-function getCategoryForProduct(productName: string): string {
-  for (const [cat, items] of Object.entries(MARKETING_PRODUCTS_BY_CATEGORY)) {
-    if (items.some((i) => i.name === productName)) {
-      return cat;
+export interface PromotionalProductOption {
+  name: string;
+  price: number;
+  unit?: string;
+  category?: string;
+  sku?: string;
+}
+
+function getCategoryForProduct(
+  productName: string,
+  materialsByCategory?: Record<string, PromotionalProductOption[]>,
+  fallbackCategory = "Premium_item",
+): string {
+  if (materialsByCategory) {
+    for (const [cat, items] of Object.entries(materialsByCategory)) {
+      if (items.some((i) => i.name === productName)) {
+        return cat;
+      }
     }
   }
-  return MARKETING_PRODUCT_CATEGORIES[0];
+  return fallbackCategory;
 }
 
 interface Props {
@@ -48,6 +56,7 @@ interface Props {
   ) => void;
   deleteSalesPromotionRow: (id: string) => void;
   targetSales: number;
+  promotionalMaterialsByCategory?: Record<string, PromotionalProductOption[]>;
 }
 
 export function BudgetSection({
@@ -68,7 +77,24 @@ export function BudgetSection({
   updateSalesPromotionRow,
   deleteSalesPromotionRow,
   targetSales = 0,
+  promotionalMaterialsByCategory,
 }: Props) {
+  const availableCategories = useMemo(() => {
+    const set = new Set<string>();
+    if (promotionalMaterialsByCategory) {
+      Object.keys(promotionalMaterialsByCategory).forEach((c) => set.add(c));
+    }
+    if (set.size === 0) {
+      set.add("Premium_item");
+      set.add("PP_Board");
+      set.add("Banner");
+      set.add("Leaflet");
+      set.add("อุปกรณ์จัดงาน");
+    }
+    set.add("อื่นๆ");
+    return Array.from(set);
+  }, [promotionalMaterialsByCategory]);
+
   return (
     <div className="space-y-4">
       <SectionHeader title="งบประมาณและค่าใช้จ่าย" color="gray" />
@@ -280,9 +306,13 @@ export function BudgetSection({
                         (item.quantityCases || 0) * (item.pricePerCase || 0);
                       const currentCat =
                         item.category ||
-                        getCategoryForProduct(item.productName);
+                        getCategoryForProduct(
+                          item.productName,
+                          promotionalMaterialsByCategory,
+                          availableCategories[0],
+                        );
                       const availableProds =
-                        MARKETING_PRODUCTS_BY_CATEGORY[currentCat] || [];
+                        promotionalMaterialsByCategory?.[currentCat] || [];
                       const currentProdObj = availableProds.find(
                         (p) => p.name === item.productName,
                       );
@@ -314,7 +344,7 @@ export function BudgetSection({
                               value={currentCat}
                               onChange={(newCat) => {
                                 const prods =
-                                  MARKETING_PRODUCTS_BY_CATEGORY[newCat] || [];
+                                  promotionalMaterialsByCategory?.[newCat] || [];
                                 const firstProdObj = prods[0];
                                 const firstProd = firstProdObj
                                   ? firstProdObj.name
@@ -353,7 +383,7 @@ export function BudgetSection({
                                   firstUnit,
                                 );
                               }}
-                              options={MARKETING_PRODUCT_CATEGORIES.map(
+                              options={availableCategories.map(
                                 (cat) => ({
                                   value: cat,
                                   label: cat,
@@ -394,7 +424,7 @@ export function BudgetSection({
                                   );
                                   const price = prodObj
                                     ? prodObj.price
-                                    : (DEMO_PRODUCT_PRICES[val] ?? 500);
+                                    : 0;
                                   const unit =
                                     prodObj?.unit ||
                                     (currentCat === "PP_Board"

@@ -10,6 +10,7 @@ import {
   getActivityPlanAction,
   updateActivityPlanAction,
   getDemoPlotsAction,
+  getActivePromotionalMaterialsGroupedAction,
 } from "../../server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
@@ -37,6 +38,9 @@ export default function ActivityPlanEditView({ id }: Props) {
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [demoPlots, setDemoPlots] = useState<any[]>([]);
+  const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] = useState<
+    Record<string, any[]> | undefined
+  >(undefined);
   const [initialData, setInitialData] = useState<any>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
@@ -45,7 +49,7 @@ export default function ActivityPlanEditView({ id }: Props) {
     async function loadData() {
       setPageLoading(true);
       try {
-        const [empRes, planRes, custRes, prodRes, plotRes] = await Promise.all([
+        const [empRes, planRes, custRes, prodRes, plotRes, mktRes] = await Promise.all([
           getAllEmployeesAction(),
           getActivityPlanAction(id),
           getCustomersAction({ perPage: 1000 }).catch(() => ({
@@ -55,6 +59,7 @@ export default function ActivityPlanEditView({ id }: Props) {
             products: [],
           })),
           getDemoPlotsAction().catch(() => ({ demoPlots: [] })),
+          getActivePromotionalMaterialsGroupedAction().catch(() => ({ success: false, grouped: {} })),
         ]);
 
         if (empRes.success && empRes.employees) {
@@ -73,6 +78,10 @@ export default function ActivityPlanEditView({ id }: Props) {
 
         if (plotRes && plotRes.demoPlots) {
           setDemoPlots(plotRes.demoPlots);
+        }
+
+        if (mktRes && mktRes.success && mktRes.grouped) {
+          setPromotionalMaterialsByCategory(mktRes.grouped);
         }
 
         if (planRes.success && planRes.plan) {
@@ -155,6 +164,7 @@ export default function ActivityPlanEditView({ id }: Props) {
           customers={customers}
           products={products}
           demoPlots={demoPlots}
+          promotionalMaterialsByCategory={promotionalMaterialsByCategory}
           onSubmit={handleSubmit}
           onCancel={() => router.push("/activity-plans")}
           submitLabel="บันทึก"

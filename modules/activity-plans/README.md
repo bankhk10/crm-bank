@@ -385,9 +385,21 @@ modules/activity-plans/
   - เพิ่ม utilities: `computeFiscalFields()`, `computeTotalBudget()` ใน `validations.ts`
   - เพิ่ม `activityResultSchema` validation ใน `validations.ts`
 
-### 2026-08-11: ดึงข้อมูลแปลงสาธิตจาก Database ใน Type 10 (จัดงาน Field Day)
-- **คอมโพเนนต์ที่แก้ไข:** `type10-field-day.tsx`, `activity-plan-form.tsx`
-- **รายละเอียด:**
-  - ปรับการเลือกแปลงสาธิตให้ดึงข้อมูลจริงจาก Database ผ่าน Server Action `getDemoPlotsAction()` (รวมถึงแปลงที่ถูกสร้างจาก Type 7)
-  - ใช้ `FormCombobox` รองรับการค้นหาชื่อแปลงสาธิตและเจ้าของแปลง
-  - แสดงข้อความและหน่วยขนาดพื้นที่ / จำนวนต้น แบบไดนามิกตามหมวดพืช (เช่น หมวดพืชสวนแสดง "จำนวนต้น:" และหน่วย "ต้น", หมวดพืชไร่/ผักแสดง "ขนาดพื้นที่:" และหน่วย "ไร่") สอดคล้องกับหน้า Type 7
+### 2026-08-21: พัฒนาระบบจัดการสื่อส่งเสริมการขายผ่าน Database (Promotional Materials Master Data Management)
+- **ขอบเขต:** ปรับระบบ "สื่อส่งเสริมการขาย" (PVC, ไวนิล, ของแถมตราปืนใหญ่ ทุกชนิด) จากข้อมูล static constants ใน `constants.ts` เป็นระบบ Database Master Data จัดการผ่านหน้าเว็บแบบ Full CRUD
+- **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:**
+  - `prisma/seed/core/promotional-materials.ts` & `prisma/seed/activity/index.ts` (Idempotent seed 197 รายการ)
+  - `prisma/seed/core/rbac.ts` (เพิ่ม Permission Group `promotionalMaterials` และสิทธิ์ `menu.promotional_materials`, `promotional_material.create`, `promotional_material.edit`, `promotional_material.delete`, `promotional_material.view`)
+  - `modules/activity-plans/infrastructure/promotional-material.repository.ts` (Repository Layer จัดการค้นหา, แบ่งหน้า, กรองหมวดหมู่/สถานะ, Soft Delete, และนับประวัติการใช้งาน)
+  - `modules/activity-plans/application/promotional-materials.ts` (Application Layer พร้อม Zod Schemas และ Use Cases)
+  - `modules/activity-plans/server/actions.ts` (Server Actions: `getPromotionalMaterialsAction`, `getActivePromotionalMaterialsGroupedAction`, `createPromotionalMaterialAction`, `updatePromotionalMaterialAction`, `deletePromotionalMaterialAction`)
+  - `modules/activity-plans/features/promotional-materials/` (หน้าจอและไดอะล็อกจัดการ: `promotional-materials-view.tsx`, `promotional-materials-table.tsx`, `promotional-material-form-dialog.tsx`, `delete-material-dialog.tsx`)
+  - `app/(main)/activity-plans/promotional-materials/page.tsx` (Route Page เชื่อมต่อเมนูหลัก)
+  - `modules/layout/constants.tsx` (เพิ่มเมนูใน Sidebar: "สื่อส่งเสริมการขาย" ภายใต้เมนูทดสอบกิจกรรม)
+  - `modules/activity-plans/features/form/components/budget-section.tsx` (ดึงรายการสื่อส่งเสริมการขายแบบไดนามิกจาก Database Grouped By Category)
+  - `modules/activity-plans/features/form/activity-plan-form.tsx`, `activity-plan-create-view.tsx`, `activity-plan-edit-view.tsx` (โหลดและส่งต่อข้อมูลสินค้าสื่อส่งเสริมการขาย)
+- **คุณสมบัติเด่น:**
+  1. **Full CRUD:** รองรับการเพิ่ม, แก้ไข, ลบ (Soft Delete ปลอดภัย), แสดงรายการ แบ่งหน้า ค้นหาตามชื่อ/SKU และกรองตามหมวดหมู่/สถานะ
+  2. **Idempotent Seeding:** คำสั่ง `pnpm seed:activity` และ `pnpm seed:core` นำเข้าข้อมูลสินค้าตั้งต้น 197 รายการแบบ `upsert` โดยไม่สร้างข้อมูลซ้ำ
+  3. **Safe Historical Data:** การลบใช้ `deletedAt` Soft Delete ข้อมูลใน Activity Plan เดิมที่บันทึกไว้จะไม่ได้รับผลกระทบ
+  4. **Dynamic Dropdowns:** ในหน้าสร้าง/แก้ไข Trip Plan เมื่อมีการเพิ่มรายการสื่อส่งเสริมการขายใหม่ในระบบ รายการจะปรากฏใน Dropdown ของงบประมาณทันทีพร้อมราคาและหน่วยนับอัตโนมัติ

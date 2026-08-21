@@ -157,11 +157,11 @@ export const navigationItems: SidebarNavItem[] = [
         label: "แผนงาน (Trip Plan)",
         permissionKey: "menu.activity_plans",
       },
-      // {
-      //   href: "/activity-plans/approvals",
-      //   label: "อนุมัติแผนงาน (Approvals)",
-      //   permissionKey: "menu.activity_plans",
-      // },
+      {
+        href: "/activity-plans/promotional-materials",
+        label: "สื่อส่งเสริมการขาย",
+        permissionKey: "menu.promotional_materials",
+      },
     ],
   },
   {

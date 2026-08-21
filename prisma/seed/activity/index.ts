@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { seedActivityDepartmentsAndPositions } from "./departments-positions";
 import { seedActivityTypes } from "./activity-types";
+import { seedPromotionalMaterials } from "../core/promotional-materials";
 
 export async function seedActivityTestData(prisma: PrismaClient) {
   console.log("🏃 Starting Activity Test Data Seed...");
@@ -12,6 +13,9 @@ export async function seedActivityTestData(prisma: PrismaClient) {
 
   // 2. Departments & Positions
   await seedActivityDepartmentsAndPositions(prisma);
+
+  // 3. Promotional Materials (สื่อส่งเสริมการขาย)
+  await seedPromotionalMaterials(prisma);
 
   console.log("✅ Activity Test Data Seed completed successfully!");
 }

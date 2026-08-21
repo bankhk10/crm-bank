@@ -50,6 +50,10 @@ interface Props {
     price?: number | null;
   }>;
   demoPlots?: Array<UserDemoPlotOption>;
+  promotionalMaterialsByCategory?: Record<
+    string,
+    Array<{ name: string; price: number; unit?: string }>
+  >;
   onSubmit: (payload: ActivityPlanFormValues) => Promise<SubmitResult | void>;
   onCancel?: () => void;
   submitLabel?: string;
@@ -104,6 +108,7 @@ export function ActivityPlanForm({
   customers: initialCustomers = [],
   products: initialProducts = [],
   demoPlots: initialDemoPlots = [],
+  promotionalMaterialsByCategory,
   onSubmit,
   onCancel,
   submitLabel = "บันทึก",
@@ -115,6 +120,35 @@ export function ActivityPlanForm({
   const [fetchedDemoPlots, setFetchedDemoPlots] = useState<
     UserDemoPlotOption[]
   >([]);
+  const [fetchedMaterialsByCategory, setFetchedMaterialsByCategory] = useState<
+    Record<string, Array<{ name: string; price: number; unit?: string }>> | undefined
+  >(promotionalMaterialsByCategory);
+
+  useEffect(() => {
+    if (promotionalMaterialsByCategory) {
+      setFetchedMaterialsByCategory(promotionalMaterialsByCategory);
+      return;
+    }
+
+    let isMounted = true;
+    async function loadPromotionalMaterials() {
+      try {
+        const { getActivePromotionalMaterialsGroupedAction } = await import(
+          "../../server/actions"
+        );
+        const res = await getActivePromotionalMaterialsGroupedAction();
+        if (isMounted && res.success && res.grouped) {
+          setFetchedMaterialsByCategory(res.grouped);
+        }
+      } catch (err) {
+        console.error("Failed to load promotional materials for Trip Plan:", err);
+      }
+    }
+    loadPromotionalMaterials();
+    return () => {
+      isMounted = false;
+    };
+  }, [promotionalMaterialsByCategory]);
 
   const customersList =
     initialCustomers && initialCustomers.length > 0
@@ -2587,6 +2621,9 @@ export function ActivityPlanForm({
               addSalesPromotionRow={addSalesPromotionRow}
               updateSalesPromotionRow={updateSalesPromotionRow}
               deleteSalesPromotionRow={deleteSalesPromotionRow}
+              promotionalMaterialsByCategory={
+                fetchedMaterialsByCategory || promotionalMaterialsByCategory
+              }
               targetSales={(() => {
                 let total = 0;
                 if (
