@@ -26,6 +26,7 @@ import {
   ShieldAlert,
   Clock,
   Package,
+  Boxes,
   Sparkles,
   Info,
 } from "lucide-react";
@@ -58,6 +59,7 @@ import {
 import {
   exportSalesAdminAction,
   exportPendingDeliveriesAction,
+  exportProductStockAction,
 } from "../server/actions";
 
 const SALE_STATUS_OPTIONS = [
@@ -564,16 +566,137 @@ function PendingDeliveriesExportCard({
   );
 }
 
+/**
+ * Product Stock Export Component
+ */
+function ProductStockExportCard({
+  canExport,
+  isLoadingPermission,
+}: {
+  canExport: boolean;
+  isLoadingPermission: boolean;
+}) {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (!canExport) {
+      toast.error("คุณไม่มีสิทธิ์ในการส่งออกข้อมูลสต็อกสินค้า");
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const res = await exportProductStockAction();
+
+      if (!res.success || !res.data) {
+        toast.error(
+          res.error || "เกิดข้อผิดพลาดในการส่งออกข้อมูลสต็อกสินค้า",
+        );
+        return;
+      }
+
+      triggerDownload(res.data.base64, res.data.filename);
+      toast.success("ส่งออกข้อมูลสต็อกสินค้าสำเร็จ");
+    } catch (error: any) {
+      toast.error(error.message || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return (
+    <Card className="group relative flex flex-col justify-between overflow-hidden border-border/60 bg-card transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/5 hover:border-emerald-500/30">
+      {/* Accent top bar */}
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
+
+      <CardHeader className="space-y-3 pb-4 pt-7">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/15 to-teal-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/10 transition-transform duration-300 group-hover:scale-105">
+            <Boxes className="h-5 w-5" />
+          </div>
+          <PermissionBadge
+            isLoading={isLoadingPermission}
+            hasAccess={canExport}
+          />
+        </div>
+
+        <div>
+          <CardTitle className="text-base font-bold tracking-tight">
+            สต็อกสินค้า
+          </CardTitle>
+          <CardDescription className="mt-1 text-xs leading-relaxed">
+            ส่งออกข้อมูลสินค้าคงคลัง ยอดสต็อกทั้งหมด สต็อกจอง และสต็อกคงเหลือ
+          </CardDescription>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4 pt-0">
+        {/* Info callout */}
+        <div className="flex items-start gap-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/15 px-3.5 py-3 text-[11px] text-emerald-800 dark:text-emerald-300/80">
+          <Sparkles className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+          <span>
+            รายงานนี้จะดึงข้อมูลสต็อกปัจจุบันของสินค้าทุกรายการ (Physical, Reserved, Available)
+          </span>
+        </div>
+
+        {/* Column Details */}
+        <FileColumnDetails
+          items={[
+            "รหัสสินค้า",
+            "ชื่อสินค้า",
+            "หน่วยนับ",
+            "ราคาหน่วย",
+            "ราคาลัง",
+            "สต็อกทั้งหมด",
+            "สต็อกจอง",
+            "สต็อกคงเหลือ",
+          ]}
+        />
+      </CardContent>
+
+      <CardFooter className="pt-3 pb-5 px-6">
+        <Button
+          onClick={handleExport}
+          disabled={isExporting || !canExport || isLoadingPermission}
+          className="w-full gap-2.5 h-10 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold text-sm shadow-md shadow-emerald-600/20 transition-all duration-200 hover:shadow-lg hover:shadow-emerald-600/30 disabled:opacity-50 disabled:shadow-none"
+        >
+          {isExporting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>กำลังสร้างไฟล์ Excel...</span>
+            </>
+          ) : !canExport ? (
+            <>
+              <Lock className="h-4 w-4" />
+              <span>ไม่มีสิทธิ์ส่งออกข้อมูล</span>
+            </>
+          ) : (
+            <>
+              <FileSpreadsheet className="h-4 w-4" />
+              <span>ส่งออกสต็อกสินค้า .xlsx</span>
+            </>
+          )}
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
+
 export function ExportListView() {
   const { hasPermission, isLoading: isPermissionLoading } = usePermission();
 
   const canExportSalesAdmin = hasPermission("export.sales_admin");
   const canExportPending =
     hasPermission("export.sales_admin") || hasPermission("menu.fulfillment");
+  const canExportProductStock =
+    hasPermission("export.sales_admin") ||
+    hasPermission("product.stock.view") ||
+    hasPermission("product.view") ||
+    hasPermission("menu.products");
 
   return (
     <TooltipProvider>
-      <div className="container mx-auto space-y-6 p-4 md:p-6 lg:p-8 max-w-5xl">
+      <div className="container mx-auto space-y-6 p-4 md:p-6 lg:p-8 max-w-7xl">
         {/* Hero Header */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-6 py-8 md:px-8 md:py-10 shadow-xl">
           {/* Background decorations */}
@@ -602,10 +725,13 @@ export function ExportListView() {
                   <FileSpreadsheet className="h-4 w-4" />
                   <span>
                     {
-                      [canExportSalesAdmin, canExportPending].filter(Boolean)
-                        .length
+                      [
+                        canExportSalesAdmin,
+                        canExportPending,
+                        canExportProductStock,
+                      ].filter(Boolean).length
                     }{" "}
-                    / 2 รายการพร้อมส่งออก
+                    / 3 รายการพร้อมส่งออก
                   </span>
                 </div>
               </TooltipTrigger>
@@ -617,7 +743,7 @@ export function ExportListView() {
         </div>
 
         {/* Export Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full">
           <SalesAdminExportCard
             canExport={canExportSalesAdmin}
             isLoadingPermission={isPermissionLoading}
@@ -626,10 +752,16 @@ export function ExportListView() {
             canExport={canExportPending}
             isLoadingPermission={isPermissionLoading}
           />
+          <ProductStockExportCard
+            canExport={canExportProductStock}
+            isLoadingPermission={isPermissionLoading}
+          />
         </div>
 
         {/* Security Notice */}
-        {(!canExportSalesAdmin || !canExportPending) &&
+        {(!canExportSalesAdmin ||
+          !canExportPending ||
+          !canExportProductStock) &&
           !isPermissionLoading && (
             <div className="flex items-start gap-3 rounded-xl border border-amber-500/15 bg-amber-500/5 p-4 text-amber-800 dark:text-amber-300/80 w-full">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 flex-shrink-0">
@@ -650,3 +782,4 @@ export function ExportListView() {
     </TooltipProvider>
   );
 }
+
