@@ -12,7 +12,9 @@ export const productSchema = z.object({
   packageSizeUnit: z.string().optional(),
   packageSizePerBox: z.coerce.number().optional(),
   totalPackageSizePerBox: z.coerce.number().optional(),
-  status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
+  status: z
+    .enum(["ACTIVE", "INACTIVE", "PENDING_APPROVAL"])
+    .default("PENDING_APPROVAL"),
   usedForPlants: z.array(z.string()).default([]),
   salesPoint: z.string().optional(),
   properties: z.string().optional(),

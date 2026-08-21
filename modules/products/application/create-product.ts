@@ -34,7 +34,7 @@ export async function createProductUseCase(rawData: unknown) {
       ...parsed.data,
       tradeNameGroupId,
       productGroupId: parsed.data.productGroupId || null,
-      status: parsed.data.status as "ACTIVE" | "INACTIVE",
+      status: "PENDING_APPROVAL",
       packageSizeUnit: parsed.data.packageSizeUnit,
       categoryId: parsed.data.categoryId || null,
       productABCTypeId: parsed.data.productABCTypeId || null,

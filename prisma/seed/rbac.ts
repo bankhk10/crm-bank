@@ -301,6 +301,12 @@ const permissionGroups: Record<string, PermissionGroup> = {
         resource: "product",
         action: "export",
       },
+      {
+        key: "product.approve",
+        name: "อนุมัติสินค้า",
+        resource: "product",
+        action: "approve",
+      },
     ],
   },
 
@@ -1352,6 +1358,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "product.delete" },
     { key: "product.view" },
     { key: "product.manage" },
+    { key: "product.approve" },
     // Customer permissions
     { key: "customer.create.dealer" },
     { key: "customer.create.subdealer" },

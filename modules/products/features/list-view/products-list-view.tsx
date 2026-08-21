@@ -9,11 +9,13 @@ import {
   ProductsTable,
   listProductsAction,
   deleteProductAction,
+  approveProductAction,
+  getPendingApprovalProductsCountAction,
   getProductFormOptionsAction,
   ALL_STATUS_VALUE,
   type ProductRecord,
 } from "@/modules/products";
-import { Package, Upload, AlertTriangle } from "lucide-react";
+import { Package, Upload, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { PageHeader } from "@/components/custom/page-header";
 import { PAGINATION } from "@/lib/constants";
 import { toast } from "sonner";
@@ -36,6 +38,7 @@ export default function ProductsListView() {
   const canManage = hasPermission("product.manage");
   const canCopy = hasPermission("product.copy");
   const canViewStock = hasPermission("product.stock.view");
+  const canApprove = hasPermission("product.approve");
 
   const [products, setProducts] = useState<ProductRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +79,19 @@ export default function ProductsListView() {
   const [deleteCandidate, setDeleteCandidate] = useState<ProductRecord | null>(
     null,
   );
+  const [approveCandidate, setApproveCandidate] =
+    useState<ProductRecord | null>(null);
+  const [pendingApprovalCount, setPendingApprovalCount] = useState<number>(0);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Fetch pending approval count
+  useEffect(() => {
+    if (canApprove) {
+      getPendingApprovalProductsCountAction().then((count) => {
+        setPendingApprovalCount(count);
+      });
+    }
+  }, [canApprove, products]);
 
   const handleApplyFilters = useCallback(
     (newParams: {
@@ -182,6 +197,28 @@ export default function ProductsListView() {
     }
   };
 
+  const handleApprove = async () => {
+    if (!approveCandidate) return;
+    setActionLoading(true);
+    try {
+      const result = await approveProductAction(approveCandidate.id);
+      if (!result.success) throw new Error(result.error || "Approve failed");
+      toast.success("อนุมัติสินค้าเรียบร้อยแล้ว (สถานะ: ใช้งาน)");
+      setApproveCandidate(null);
+      await fetchProducts();
+      if (canApprove) {
+        const count = await getPendingApprovalProductsCountAction();
+        setPendingApprovalCount(count);
+      }
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message || String(err));
+      toast.error(err.message || "ไม่สามารถอนุมัติสินค้าได้");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (checkingPermission) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -204,6 +241,56 @@ export default function ProductsListView() {
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
+      )}
+
+      {/* Approve confirm dialog */}
+      {approveCandidate && (
+        <div className="fixed inset-0 min-h-screen z-50 flex items-end sm:items-center justify-center p-4">
+          <div
+            className="bg-black/40 backdrop-blur-sm absolute inset-0 transition-opacity"
+            onClick={() => setApproveCandidate(null)}
+          />
+          <div className="relative z-10 w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl ring-1 ring-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-200">
+            {/* Icon */}
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 ring-1 ring-emerald-200">
+                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+              </div>
+
+              <h3 className="text-lg font-semibold text-slate-900">
+                ยืนยันการอนุมัติสินค้า
+              </h3>
+            </div>
+            <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+              คุณต้องการอนุมัติสินค้า{" "}
+              <span className="font-semibold text-slate-900">
+                {approveCandidate.name} ({approveCandidate.productCode})
+              </span>{" "}
+              ใช่หรือไม่?
+              <br />
+              <span className="text-xs text-slate-500 mt-1 block">
+                เมื่ออนุมัติแล้ว สินค้าจะเปลี่ยนสถานะเป็น &quot;ใช้งาน&quot;
+                และสามารถนำไปสร้างรายการขายได้ทันที
+              </span>
+            </p>
+            <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => setApproveCandidate(null)}
+              >
+                ยกเลิก
+              </Button>
+              <Button
+                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-semibold shadow-sm shadow-emerald-700/20"
+                onClick={handleApprove}
+                disabled={actionLoading}
+              >
+                {actionLoading ? "กำลังอนุมัติ..." : "อนุมัติสินค้า"}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Delete confirm dialog */}
@@ -282,6 +369,9 @@ export default function ProductsListView() {
             canDelete={canDelete}
             canManage={canManage}
             canViewStock={canViewStock}
+            canApprove={canApprove}
+            onApproveRequest={setApproveCandidate}
+            pendingApprovalCount={pendingApprovalCount}
             onDeleteRequest={setDeleteCandidate}
             searchValue={filterDraft.query}
             onSearchChange={(value) =>

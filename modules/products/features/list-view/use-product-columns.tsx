@@ -8,6 +8,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   Copy,
+  CheckCircle2,
 } from "lucide-react";
 import { ProductRecord } from "../../types";
 import { ActionButton } from "@/components/custom/action-button";
@@ -44,6 +45,8 @@ export function useProductColumns(
   canManage: boolean,
   canCopy: boolean,
   canViewStock: boolean = true,
+  canApprove: boolean = false,
+  onApproveRequest?: (product: ProductRecord) => void,
 ) {
   return React.useMemo<ColumnDef<ProductRecord>[]>(
     () => [
@@ -249,6 +252,16 @@ export function useProductColumns(
           const product = row.original;
           return (
             <div className="flex items-center justify-center gap-1.5">
+              {product.status === "PENDING_APPROVAL" &&
+                canApprove &&
+                onApproveRequest && (
+                  <ActionButton
+                    icon={CheckCircle2}
+                    label="อนุมัติ"
+                    colorClass="bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 rounded-md font-semibold"
+                    onClick={() => onApproveRequest(product)}
+                  />
+                )}
               {canView && (
                 <ActionButton
                   href={`/products/${product.id}`}
@@ -301,6 +314,8 @@ export function useProductColumns(
       canDelete,
       canCopy,
       canViewStock,
+      canApprove,
+      onApproveRequest,
       onDeleteRequest,
     ],
   );

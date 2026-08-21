@@ -25,7 +25,8 @@ import {
 } from "@/components/custom/form-components";
 import FormActions from "@/components/custom/form-actions";
 import { MultiSelect } from "@/components/custom/multi-select";
-import { STATUS_OPTIONS, type ProductFormData } from "@/modules/products/types";
+import { type ProductFormData } from "@/modules/products/types";
+import { STATUS_OPTIONS } from "@/modules/products/constants";
 
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 
@@ -70,7 +71,7 @@ export function ProductForm({
     packageSize: initialData?.packageSize || "",
     packageSizeUnit: initialData?.packageSizeUnit || "G",
     packageSizePerBox: initialData?.packageSizePerBox || "",
-    status: initialData?.status || "ACTIVE",
+    status: initialData?.status || (isEdit ? "ACTIVE" : "PENDING_APPROVAL"),
     usedForPlants: initialData?.usedForPlants || [],
     salesPoint: initialData?.salesPoint || "",
     properties: initialData?.properties || "",
@@ -416,7 +417,12 @@ export function ProductForm({
         }
 
 
-        toast.success(successMessage || (isEdit ? "บันทึกการแก้ไขเรียบร้อยแล้ว" : "สร้างสินค้าใหม่เรียบร้อยแล้ว"));
+        toast.success(
+          successMessage ||
+            (isEdit
+              ? "บันทึกการแก้ไขเรียบร้อยแล้ว"
+              : "สร้างสินค้าใหม่เรียบร้อยแล้ว (สถานะ: รออนุมัติ)"),
+        );
 
         setTimeout(() => {
           router.push(redirectPath || "/products");
@@ -705,10 +711,10 @@ export function ProductForm({
           onChange={(v) =>
             setFormData((prev) => ({
               ...prev,
-              status: v as "ACTIVE" | "INACTIVE",
+              status: v as "ACTIVE" | "INACTIVE" | "PENDING_APPROVAL",
             }))
           }
-          options={STATUS_OPTIONS}
+          options={[...STATUS_OPTIONS]}
           placeholder="เลือกสถานะ"
           groupLabel="สถานะ"
           disabled={loading}

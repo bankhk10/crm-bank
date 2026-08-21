@@ -35,16 +35,22 @@ import {
   Edit,
   Trash2,
   Copy,
+  Clock,
+  Loader2,
+  UserCheck,
+  ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
 import {
   getProductAction,
   deleteProductAction,
+  approveProductAction,
   type Product,
 } from "@/modules/products";
 import { PACKAGE_UNIT_OPTIONS } from "@/modules/products/constants";
 import { DetailHero } from "@/components/custom/detail-hero";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 export default function ProductDetailView() {
   const { productId } = useParams() as { productId: string };
@@ -55,12 +61,14 @@ export default function ProductDetailView() {
     hasPermission("product.edit") || hasPermission("product.manage");
   const canDelete = hasPermission("product.delete");
   const canCreate = hasPermission("product.create");
+  const canApprove = hasPermission("product.approve");
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [approving, setApproving] = useState(false);
 
   // Image gallery state
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -109,6 +117,23 @@ export default function ProductDetailView() {
     } finally {
       setDeleting(false);
       setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleApprove = async () => {
+    if (!product) return;
+    setApproving(true);
+    try {
+      const res = await approveProductAction(productId);
+      if (!res.success)
+        throw new Error(res.error || "ไม่สามารถอนุมัติสินค้าได้");
+      toast.success("อนุมัติสินค้าเรียบร้อยแล้ว (สถานะ: ใช้งาน)");
+      setProduct((prev) => (prev ? { ...prev, status: "ACTIVE" } : null));
+      router.refresh();
+    } catch (err: any) {
+      toast.error(err.message || "เกิดข้อผิดพลาดในการอนุมัติสินค้า");
+    } finally {
+      setApproving(false);
     }
   };
 
@@ -239,6 +264,11 @@ export default function ProductDetailView() {
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 ใช้งาน
               </span>
+            ) : product.status === "PENDING_APPROVAL" ? (
+              <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-amber-300 bg-amber-400/20 border border-amber-400/50 px-3 py-1 rounded-full uppercase tracking-wider">
+                <Clock className="h-3.5 w-3.5" />
+                รออนุมัติ
+              </span>
             ) : (
               <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full uppercase tracking-wider">
                 <XCircle className="h-3.5 w-3.5" />
@@ -249,6 +279,21 @@ export default function ProductDetailView() {
         }
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            {product.status === "PENDING_APPROVAL" && canApprove && (
+              <Button
+                size="sm"
+                className="h-10 px-4 sm:px-6 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-400/40 rounded-xl shadow-lg shadow-emerald-950/20 backdrop-blur-md transition-all active:scale-[0.98]"
+                onClick={handleApprove}
+                disabled={approving}
+              >
+                {approving ? (
+                  <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-3.5 w-3.5 mr-2" />
+                )}
+                อนุมัติสินค้า
+              </Button>
+            )}
             {canCreate && (
               <Button
                 size="sm"
@@ -287,7 +332,41 @@ export default function ProductDetailView() {
         }
       />
 
-      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* Pending Approval Banner */}
+        {product.status === "PENDING_APPROVAL" && (
+          <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600 ring-1 ring-amber-300/60 shadow-sm">
+                <Clock className="h-5 w-5" />
+              </span>
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-amber-900">
+                  สินค้านี้อยู่ระหว่างรอการอนุมัติ
+                </h3>
+                <p className="text-xs sm:text-sm text-amber-700 mt-0.5">
+                  สินค้ายังไม่สามารถนำไปสร้างใบสั่งขาย (Sales Note / Order) ได้ จนกว่าจะได้รับการตรวจสอบและอนุมัติ
+                </p>
+              </div>
+            </div>
+            {canApprove && (
+              <Button
+                size="sm"
+                className="w-full sm:w-auto font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-5 shadow-md shadow-emerald-700/20 transition-all shrink-0"
+                onClick={handleApprove}
+                disabled={approving}
+              >
+                {approving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                )}
+                อนุมัติสินค้านี้
+              </Button>
+            )}
+          </div>
+        )}
+
         {/* Main product layout */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
@@ -499,6 +578,23 @@ export default function ProductDetailView() {
                       : undefined
                   }
                 />
+                {product.approvedBy && (
+                  <AttributeRow
+                    icon={<UserCheck className="h-4 w-4" />}
+                    label="ผู้อนุมัติ"
+                    value={product.approvedBy.name}
+                  />
+                )}
+                {product.approvedAt && (
+                  <AttributeRow
+                    icon={<Clock className="h-4 w-4" />}
+                    label="วันที่อนุมัติ"
+                    value={format(
+                      new Date(product.approvedAt),
+                      "dd/MM/yyyy HH:mm น.",
+                    )}
+                  />
+                )}
               </div>
 
               {/* Used For Plants */}

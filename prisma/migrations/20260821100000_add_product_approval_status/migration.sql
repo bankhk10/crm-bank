@@ -1,0 +1,10 @@
+-- AlterEnum
+ALTER TYPE "ProductStatus" ADD VALUE 'PENDING_APPROVAL';
+
+-- AlterTable
+ALTER TABLE "Product" ALTER COLUMN "status" SET DEFAULT 'PENDING_APPROVAL',
+ADD COLUMN "approvedAt" TIMESTAMP(3),
+ADD COLUMN "approvedById" TEXT;
+
+-- AddForeignKey
+ALTER TABLE "Product" ADD CONSTRAINT "Product_approvedById_fkey" FOREIGN KEY ("approvedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

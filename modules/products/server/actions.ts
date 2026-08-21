@@ -7,12 +7,14 @@ import {
   createProductUseCase,
   updateProductUseCase,
   manageProductUseCase,
+  approveProductUseCase,
   getProductDetailUseCase,
   listProductsUseCase,
   getProductFormOptionsUseCase,
 } from "../application";
 import {
   softDeleteProduct,
+  findPendingApprovalProductsCount,
   type ListProductsParams,
 } from "../infrastructure/product.repository";
 import { deleteFolder } from "@/lib/file-storage";
@@ -219,3 +221,63 @@ export async function getProductFormOptionsAction() {
     return null;
   }
 }
+
+/**
+ * Approve a product.
+ * Requires 'product.approve' permission.
+ */
+export async function approveProductAction(id: string) {
+  const session = await auth();
+
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const permissionKeys = session.user.permissionKeys ?? [];
+  if (!isAuthorized(resourcePath, permissionKeys)) {
+    return { success: false, error: "Forbidden" };
+  }
+
+  if (!permissionKeys.includes("product.approve")) {
+    return {
+      success: false,
+      error: "คุณไม่มีสิทธิ์อนุมัติสินค้า (Missing product.approve)",
+    };
+  }
+
+  try {
+    const userId = session.user.id;
+    const result = await approveProductUseCase(id, userId);
+    if (result.success) {
+      revalidatePath("/products");
+      revalidatePath("/products/approvals");
+      revalidatePath(`/products/${id}`);
+    }
+    return JSON.parse(JSON.stringify(result));
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message ?? "An unexpected error occurred during approval.",
+    };
+  }
+}
+
+/**
+ * Get count of products pending approval.
+ */
+export async function getPendingApprovalProductsCountAction() {
+  const session = await auth();
+  if (!session?.user) return 0;
+
+  const permissionKeys = session.user.permissionKeys ?? [];
+  if (!isAuthorized(resourcePath, permissionKeys)) {
+    return 0;
+  }
+
+  try {
+    return await findPendingApprovalProductsCount();
+  } catch {
+    return 0;
+  }
+}
+
