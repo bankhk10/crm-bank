@@ -37,7 +37,11 @@ import {
   Copy,
 } from "lucide-react";
 import Link from "next/link";
-import { getProductAction, deleteProductAction, type Product } from "@/modules/products";
+import {
+  getProductAction,
+  deleteProductAction,
+  type Product,
+} from "@/modules/products";
 import { PACKAGE_UNIT_OPTIONS } from "@/modules/products/constants";
 import { DetailHero } from "@/components/custom/detail-hero";
 import { toast } from "sonner";
@@ -45,8 +49,10 @@ import { toast } from "sonner";
 export default function ProductDetailView() {
   const { productId } = useParams() as { productId: string };
   const router = useRouter();
-  const { hasPermission, isLoading: permissionLoading } = usePermission("product.view");
-  const canEdit = hasPermission("product.edit") || hasPermission("product.manage");
+  const { hasPermission, isLoading: permissionLoading } =
+    usePermission("product.view");
+  const canEdit =
+    hasPermission("product.edit") || hasPermission("product.manage");
   const canDelete = hasPermission("product.delete");
   const canCreate = hasPermission("product.create");
 
@@ -58,7 +64,9 @@ export default function ProductDetailView() {
 
   // Image gallery state
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
+    null,
+  );
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -71,7 +79,8 @@ export default function ProductDetailView() {
       setLoading(true);
       try {
         const res = await getProductAction(productId);
-        if (!res.success || !("product" in res)) throw new Error((res as any).error || "ไม่สามารถโหลดข้อมูลสินค้าได้");
+        if (!res.success || !("product" in res))
+          throw new Error((res as any).error || "ไม่สามารถโหลดข้อมูลสินค้าได้");
         setProduct(res.product as Product);
       } catch (err: any) {
         setError(err.message);
@@ -106,7 +115,7 @@ export default function ProductDetailView() {
   const handleNextImage = () => {
     if (selectedImageIndex === null || !product?.images) return;
     setSelectedImageIndex((prev) =>
-      prev === null ? null : (prev + 1) % product.images!.length
+      prev === null ? null : (prev + 1) % product.images!.length,
     );
     setZoom(1);
     setPan({ x: 0, y: 0 });
@@ -117,7 +126,7 @@ export default function ProductDetailView() {
     setSelectedImageIndex((prev) =>
       prev === null
         ? null
-        : (prev - 1 + product.images!.length) % product.images!.length
+        : (prev - 1 + product.images!.length) % product.images!.length,
     );
     setZoom(1);
     setPan({ x: 0, y: 0 });
@@ -311,10 +320,11 @@ export default function ProductDetailView() {
                         <button
                           key={image.id}
                           onClick={() => setActiveImageIndex(index)}
-                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all duration-200 bg-white flex items-center justify-center p-1 ${index === activeImageIndex
-                            ? "border-blue-500 ring-2 ring-blue-200"
-                            : "border-gray-200 hover:border-blue-300"
-                            }`}
+                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all duration-200 bg-white flex items-center justify-center p-1 ${
+                            index === activeImageIndex
+                              ? "border-blue-500 ring-2 ring-blue-200"
+                              : "border-gray-200 hover:border-blue-300"
+                          }`}
                         >
                           <img
                             src={image.url}
@@ -347,15 +357,20 @@ export default function ProductDetailView() {
               )}
 
               {/* Price */}
-              {(Number(product.price) > 0 || Number(product.cartonPrice) > 0) && (
+              {(Number(product.price) > 0 ||
+                Number(product.cartonPrice) > 0) && (
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100 space-y-2">
-                  <p className="text-xl font-semibold text-blue-700 uppercase tracking-wide">ราคาสินค้า</p>
+                  <p className="text-xl font-semibold text-blue-700 uppercase tracking-wide">
+                    ราคาสินค้า
+                  </p>
                   {Number(product.price) > 0 && (
                     <div>
                       <p className="text-sm text-blue-400">ราคาต่อชิ้น</p>
                       <p className="text-2xl font-bold text-blue-700">
                         {Number(product.price).toLocaleString()}
-                        <span className="text-sm font-normal text-blue-500 ml-1">บาท</span>
+                        <span className="text-sm font-normal text-blue-500 ml-1">
+                          บาท
+                        </span>
                       </p>
                     </div>
                   )}
@@ -364,14 +379,17 @@ export default function ProductDetailView() {
                       <p className="text-sm text-blue-400">ราคาต่อลัง</p>
                       <p className="text-2xl font-bold text-blue-700">
                         {Number(product.cartonPrice).toLocaleString()}
-                        <span className="text-sm font-normal text-blue-500 ml-1">บาท</span>
+                        <span className="text-sm font-normal text-blue-500 ml-1">
+                          บาท
+                        </span>
                       </p>
                     </div>
                   )}
                   {Number(product.promotionBudget) > 0 && (
                     <p className="text-sm text-purple-600 flex items-center gap-1">
                       <TrendingUp className="h-3.5 w-3.5" />
-                      งบส่งเสริม: {Number(product.promotionBudget).toLocaleString()} บาท
+                      งบส่งเสริม:{" "}
+                      {Number(product.promotionBudget).toLocaleString()} บาท
                     </p>
                   )}
                   {Number(product.pointPerUnit) > 0 && (
@@ -385,17 +403,45 @@ export default function ProductDetailView() {
 
               {/* Attributes */}
               <div className="space-y-0 divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden shadow-sm">
-                <AttributeRow icon={<Hash className="h-4 w-4" />} label="รหัสสินค้า" value={product.productCode} />
-                <AttributeRow icon={<Tag className="h-4 w-4" />} label="ชื่อสามัญ" value={product.commonName} />
-                <AttributeRow icon={<Layers className="h-4 w-4" />} label="กลุ่มชื่อการค้า" value={product.tradeNameGroup ? `${product.tradeNameGroup.code} - ${product.tradeNameGroup.description}` : undefined} />
-                <AttributeRow icon={<Beaker className="h-4 w-4" />} label="กลุ่มสินค้า" value={product.productGroup ? `${product.productGroup.code} - ${product.productGroup.name}` : undefined} />
-                <AttributeRow icon={<Tag className="h-4 w-4" />} label="แบรนด์" value={product.brand} />
+                <AttributeRow
+                  icon={<Hash className="h-4 w-4" />}
+                  label="รหัสสินค้า"
+                  value={product.productCode}
+                />
+                <AttributeRow
+                  icon={<Tag className="h-4 w-4" />}
+                  label="ชื่อสามัญ"
+                  value={product.commonName}
+                />
+                <AttributeRow
+                  icon={<Layers className="h-4 w-4" />}
+                  label="กลุ่มชื่อการค้า"
+                  value={
+                    product.tradeNameGroup
+                      ? `${product.tradeNameGroup.code}`
+                      : undefined
+                  }
+                />
+                <AttributeRow
+                  icon={<Beaker className="h-4 w-4" />}
+                  label="กลุ่มสินค้า"
+                  value={
+                    product.productGroup
+                      ? `${product.productGroup.code} - ${product.productGroup.name}`
+                      : undefined
+                  }
+                />
+                <AttributeRow
+                  icon={<Tag className="h-4 w-4" />}
+                  label="แบรนด์"
+                  value={product.brand}
+                />
                 <AttributeRow
                   icon={<FolderOpen className="h-4 w-4" />}
                   label="หมวดสินค้า"
                   value={
                     product.category
-                      ? `${product.category.code} - ${product.category.description}`
+                      ? `${product.category.description}`
                       : undefined
                   }
                 />
@@ -431,17 +477,25 @@ export default function ProductDetailView() {
                   label="ขนาดบรรจุ"
                   value={
                     product.packageSize
-                      ? `${product.packageSize} ${PACKAGE_UNIT_OPTIONS.find(opt => opt.value === product.packageSizeUnit)?.label || product.packageSizeUnit || ''}`
+                      ? `${product.packageSize} ${PACKAGE_UNIT_OPTIONS.find((opt) => opt.value === product.packageSizeUnit)?.label || product.packageSizeUnit || ""}`
                       : undefined
                   }
                 />
-                <AttributeRow icon={<Layers className="h-4 w-4" />} label="จำนวนบรรจุต่อลัง" value={product.packageSizePerBox ? `${product.packageSizePerBox} ชิ้น` : undefined} />
+                <AttributeRow
+                  icon={<Layers className="h-4 w-4" />}
+                  label="จำนวนบรรจุต่อลัง"
+                  value={
+                    product.packageSizePerBox
+                      ? `${product.packageSizePerBox} ชิ้น`
+                      : undefined
+                  }
+                />
                 <AttributeRow
                   icon={<Ruler className="h-4 w-4" />}
                   label="ขนาดบรรจุรวมต่อลัง"
                   value={
                     product.totalPackageSizePerBox
-                      ? `${product.totalPackageSizePerBox} ${PACKAGE_UNIT_OPTIONS.find(opt => opt.value === product.packageSizeUnit)?.label || product.packageSizeUnit || ''}`
+                      ? `${product.totalPackageSizePerBox} ${PACKAGE_UNIT_OPTIONS.find((opt) => opt.value === product.packageSizeUnit)?.label || product.packageSizeUnit || ""}`
                       : undefined
                   }
                 />
@@ -580,7 +634,10 @@ export default function ProductDetailView() {
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
                   onDoubleClick={handleDoubleClick}
-                  style={{ cursor: zoom > 1 ? (isDragging ? "grabbing" : "grab") : "default" }}
+                  style={{
+                    cursor:
+                      zoom > 1 ? (isDragging ? "grabbing" : "grab") : "default",
+                  }}
                 >
                   <img
                     src={product.images[selectedImageIndex].url}
@@ -600,7 +657,8 @@ export default function ProductDetailView() {
                   )}
 
                   <div className="absolute bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl bg-black/60 backdrop-blur-md text-white text-xs font-medium border border-white/10 shadow-2xl opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                    🖱️ ล้อเมาส์เพื่อซูม • ลากเพื่อเลื่อน • ดับเบิลคลิกเพื่อรีเซ็ต
+                    🖱️ ล้อเมาส์เพื่อซูม • ลากเพื่อเลื่อน •
+                    ดับเบิลคลิกเพื่อรีเซ็ต
                   </div>
 
                   <div className="mt-6 px-6 py-2.5 rounded-2xl bg-white/10 backdrop-blur-md text-white text-base font-bold border border-white/20 shadow-2xl">
@@ -612,8 +670,6 @@ export default function ProductDetailView() {
           </DialogContent>
         </Dialog>
       )}
-
-
     </div>
   );
 }
@@ -633,7 +689,9 @@ function AttributeRow({
       <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
         <div className="flex items-center gap-2 shrink-0 sm:w-40 mb-0.5 sm:mb-0">
           {icon && <span className="text-gray-400 shrink-0">{icon}</span>}
-          <span className="text-xs sm:text-sm text-gray-500 font-medium">{label}</span>
+          <span className="text-xs sm:text-sm text-gray-500 font-medium">
+            {label}
+          </span>
         </div>
         <span className="text-sm font-semibold text-gray-900 overflow-wrap-anywhere break-words min-w-0 pl-6 sm:pl-0 leading-snug">
           {value}
