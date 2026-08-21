@@ -16,6 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Clock, Power } from "lucide-react";
 import {
   FormInput,
   FormSelect,
@@ -725,20 +727,77 @@ export function ProductForm({
           disabled={loading}
         />
 
-        <FormSelect
-          label="สถานะสินค้า"
-          value={formData.status}
-          onChange={(v) =>
-            setFormData((prev) => ({
-              ...prev,
-              status: v as "ACTIVE" | "INACTIVE" | "PENDING_APPROVAL",
-            }))
-          }
-          options={[...STATUS_OPTIONS]}
-          placeholder="เลือกสถานะ"
-          groupLabel="สถานะ"
-          disabled={loading}
-        />
+        <div className="space-y-2">
+          <Label className="text-base font-medium mx-2">สถานะสินค้า</Label>
+          {!isEdit ? (
+            <div className="flex items-center gap-3 p-3.5 rounded-xl border border-amber-200 bg-amber-50/60 min-h-[58px]">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                <Clock className="h-4 w-4" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-amber-900">
+                  รออนุมัติ (เมื่อสร้างใหม่)
+                </p>
+                <p className="text-xs text-amber-700 mt-0.5">
+                  สินค้าใหม่จะถูกส่งไปยังหน้าตรวจสอบและอนุมัติก่อนเปิดใช้งาน
+                </p>
+              </div>
+            </div>
+          ) : formData.status === "PENDING_APPROVAL" ? (
+            <div className="flex items-center justify-between p-3.5 rounded-xl border border-amber-200 bg-amber-50/60 min-h-[58px]">
+              <div className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                  <Clock className="h-4 w-4" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-amber-900">
+                    รออนุมัติ (PENDING APPROVAL)
+                  </p>
+                  <p className="text-xs text-amber-700 mt-0.5">
+                    สินค้านี้ต้องผ่านการอนุมัติจากหน้าตรวจสอบก่อนจึงจะเปิดใช้งานได้
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 min-h-[58px]">
+              <div className="flex items-center gap-3">
+                <span
+                  className={cn(
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
+                    formData.status === "ACTIVE"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-slate-200 text-slate-600",
+                  )}
+                >
+                  <Power className="h-4 w-4" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">
+                    {formData.status === "ACTIVE"
+                      ? "เปิดใช้งาน (ACTIVE)"
+                      : "ปิดใช้งาน (INACTIVE)"}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {formData.status === "ACTIVE"
+                      ? "สินค้าพร้อมสำหรับเปิดใบสั่งขายและทำรายการในระบบ"
+                      : "พักการขายชั่วคราว / ปิดการใช้งานสินค้านี้"}
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={formData.status === "ACTIVE"}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    status: checked ? "ACTIVE" : "INACTIVE",
+                  }))
+                }
+                disabled={loading}
+              />
+            </div>
+          )}
+        </div>
 
         <FormTextarea
           label="จุดขายสินค้า"
