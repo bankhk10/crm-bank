@@ -515,8 +515,8 @@ export async function buildSalesAdminExportWorkbook(
       // Number formatting for numeric columns when row > 1
       if (rowNumber > 1 && typeof cell.value === "number") {
         if (colNumber === 10 || colNumber === 16) {
-          // ลิตร/กก. and ผลรวมลิตร/กก.
-          cell.numFmt = "#,##0.####";
+          // ลิตร/กก. and ผลรวมลิตร/กก. (ถ้าเป็นจำนวนเต็มไม่แสดงจุดทศนิยม เช่น 6, ถ้ามีทศนิยมแสดงตามจริง เช่น 1.2)
+          cell.numFmt = Number.isInteger(cell.value) ? "#,##0" : "#,##0.####";
         } else if (colNumber === 15) {
           // SALES BY Q (Carton)
           cell.numFmt = "#,##0";
