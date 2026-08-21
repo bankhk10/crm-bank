@@ -8,12 +8,12 @@ The seeding logic has been refactored into modular subfolders in `prisma/seed/`:
 - `index.ts`: Entry point สำหรับการ seed ข้อมูลหลักของระบบ
 - `master.ts`: Companies, Departments, Units, Categories, Plants
 - `product-master.ts`: TradeNameGroup, ProductGroup, Brand, ProductABCTypes
-- `promotional-materials.ts`: Promotional Materials
 - `rbac.ts`: Roles, Permissions (รวมสิทธิ์ของระบบการวางแผนกิจกรรม), และ RolePermissions
 - `users.ts`: Default admin user (`b@b.com`) และ Positions หลัก
 
 ### 📂 `prisma/seed/activity/` (ข้อมูลทดสอบระบบกิจกรรม)
 - `index.ts`: Entry point ประสานงานการรัน seed ข้อมูลทดสอบระบบกิจกรรม
+- `promotional-materials.ts`: Promotional Materials (สื่อส่งเสริมการขาย 197 รายการ)
 - `departments-positions.ts`: การสร้างแผนกและตำแหน่งเฉพาะระบบกิจกรรม
 - `users-employees.ts`: การสร้างข้อมูลผู้ใช้และสายการอนุมัติ 2 ทีมคู่ขนาน (Team 1 & Team 2)
 

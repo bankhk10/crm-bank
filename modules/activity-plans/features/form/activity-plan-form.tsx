@@ -67,7 +67,6 @@ import {
   DEMO_PRODUCTS,
   DEMO_PRODUCT_PRICES,
   MARKETING_PRODUCT_CATEGORIES,
-  MARKETING_PRODUCTS_BY_CATEGORY,
   USER_DEMO_PLOTS,
   isFieldDayItem,
   type UserDemoPlotOption,
@@ -1423,17 +1422,11 @@ export function ActivityPlanForm({
     return [
       {
         id: "1",
-        category: MARKETING_PRODUCT_CATEGORIES[0],
-        productName:
-          MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
-            ?.name || "สมุดฉีก",
+        category: MARKETING_PRODUCT_CATEGORIES[0] || "Premium_item",
+        productName: "สมุดฉีก",
         quantityCases: 1,
-        unit:
-          MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
-            ?.unit || "เล่ม",
-        pricePerCase:
-          MARKETING_PRODUCTS_BY_CATEGORY[MARKETING_PRODUCT_CATEGORIES[0]]?.[0]
-            ?.price || 25,
+        unit: "เล่ม",
+        pricePerCase: 25,
       },
     ];
   });

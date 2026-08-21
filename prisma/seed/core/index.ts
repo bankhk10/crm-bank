@@ -3,7 +3,6 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { seedMaster } from "./master";
 import { seedProductMaster } from "./product-master";
-import { seedPromotionalMaterials } from "./promotional-materials";
 import { seedRBAC } from "./rbac";
 import { seedUsers } from "./users";
 
@@ -27,13 +26,10 @@ export async function seedCore() {
     // 2. Product Master (requires Category from Master)
     await seedProductMaster(prisma);
 
-    // 3. Promotional Materials
-    await seedPromotionalMaterials(prisma);
-
-    // 4. RBAC (Roles, Permissions)
+    // 3. RBAC (Roles, Permissions)
     await seedRBAC(prisma);
 
-    // 5. Users (requires Dept, Roles)
+    // 4. Users (requires Dept, Roles)
     await seedUsers(prisma);
 
     console.log("✅ Core Database Seeding completed successfully!");

@@ -388,7 +388,7 @@ modules/activity-plans/
 ### 2026-08-21: พัฒนาระบบจัดการสื่อส่งเสริมการขายผ่าน Database (Promotional Materials Master Data Management)
 - **ขอบเขต:** ปรับระบบ "สื่อส่งเสริมการขาย" (PVC, ไวนิล, ของแถมตราปืนใหญ่ ทุกชนิด) จากข้อมูล static constants ใน `constants.ts` เป็นระบบ Database Master Data จัดการผ่านหน้าเว็บแบบ Full CRUD
 - **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:**
-  - `prisma/seed/core/promotional-materials.ts` & `prisma/seed/activity/index.ts` (Idempotent seed 197 รายการ)
+  - `prisma/seed/activity/promotional-materials.ts` & `prisma/seed/activity/index.ts` (Idempotent seed 197 รายการ)
   - `prisma/seed/core/rbac.ts` (เพิ่ม Permission Group `promotionalMaterials` และสิทธิ์ `menu.promotional_materials`, `promotional_material.create`, `promotional_material.edit`, `promotional_material.delete`, `promotional_material.view`)
   - `modules/activity-plans/infrastructure/promotional-material.repository.ts` (Repository Layer จัดการค้นหา, แบ่งหน้า, กรองหมวดหมู่/สถานะ, Soft Delete, และนับประวัติการใช้งาน)
   - `modules/activity-plans/application/promotional-materials.ts` (Application Layer พร้อม Zod Schemas และ Use Cases)

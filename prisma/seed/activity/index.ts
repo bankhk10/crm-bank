@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { seedActivityDepartmentsAndPositions } from "./departments-positions";
 import { seedActivityTypes } from "./activity-types";
-import { seedPromotionalMaterials } from "../core/promotional-materials";
+import { seedPromotionalMaterials } from "./promotional-materials";
 
 export async function seedActivityTestData(prisma: PrismaClient) {
   console.log("🏃 Starting Activity Test Data Seed...");
