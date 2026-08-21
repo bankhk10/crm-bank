@@ -116,9 +116,12 @@ export async function upsertProductStock(
   const updateData: Prisma.ProductStockUpdateInput = {};
   const createData: Prisma.ProductStockCreateInput = {
     product: { connect: { id: productId } },
-    physicalBalance: data.physicalBalance ?? 0,
-    availableQuantity: data.availableQuantity ?? 0,
-    reservedQuantity: data.reservedQuantity ?? 0,
+    physicalBalance:
+      (data.physicalBalance ?? 0) + (data.physicalBalanceIncrement ?? 0),
+    availableQuantity:
+      (data.availableQuantity ?? 0) + (data.availableQuantityIncrement ?? 0),
+    reservedQuantity:
+      (data.reservedQuantity ?? 0) + (data.reservedQuantityIncrement ?? 0),
   };
 
   // Handle increments in update
@@ -142,7 +145,7 @@ export async function upsertProductStock(
 }
 
 /**
- * Update product stock quantities
+ * Update product stock quantities (safe upsert)
  */
 export async function updateProductStock(
   productId: string,
@@ -153,26 +156,15 @@ export async function updateProductStock(
   },
   tx?: Prisma.TransactionClient,
 ) {
-  const db = tx || prisma;
-
-  const updateData: Prisma.ProductStockUpdateInput = {};
-
-  if (data.physicalBalanceIncrement !== undefined) {
-    updateData.physicalBalance = { increment: data.physicalBalanceIncrement };
-  }
-  if (data.availableQuantityIncrement !== undefined) {
-    updateData.availableQuantity = {
-      increment: data.availableQuantityIncrement,
-    };
-  }
-  if (data.reservedQuantityIncrement !== undefined) {
-    updateData.reservedQuantity = { increment: data.reservedQuantityIncrement };
-  }
-
-  return db.productStock.update({
-    where: { productId },
-    data: updateData,
-  });
+  return upsertProductStock(
+    productId,
+    {
+      physicalBalanceIncrement: data.physicalBalanceIncrement,
+      availableQuantityIncrement: data.availableQuantityIncrement,
+      reservedQuantityIncrement: data.reservedQuantityIncrement,
+    },
+    tx,
+  );
 }
 
 /**

@@ -1,5 +1,8 @@
 import { db as prisma, Prisma } from "@/lib/db";
-import { releaseStockUseCase as releaseStock } from "@/modules/products/application";
+import {
+  releaseStockUseCase as releaseStock,
+  confirmStockDeductionUseCase as confirmStockDeduction,
+} from "@/modules/products/application";
 import { ORDER_CONFIG } from "@/modules/sales/constants";
 import {
   OrderCheckResult,
@@ -224,14 +227,11 @@ export async function updateDeliveryDateUseCase(
           },
         });
 
-        // Deduct both reservedQuantity and physicalBalance
-        for (const item of sale.items) {
-          await tx.productStock.updateMany({
-            where: { productId: item.productId },
-            data: {
-              reservedQuantity: { decrement: Number(item.quantity) },
-              physicalBalance: { decrement: Number(item.quantity) },
-            },
+        if (!sale.isStockDeducted) {
+          await confirmStockDeduction(saleId, tx);
+          await tx.sale.update({
+            where: { id: saleId },
+            data: { isStockDeducted: true },
           });
         }
       }

@@ -68,9 +68,6 @@ export async function allocateStockUseCase(
         await StockRepository.upsertProductStock(
           item.productId,
           {
-            physicalBalance: 0,
-            availableQuantity: -requestedQty,
-            reservedQuantity: requestedQty,
             availableQuantityIncrement: -requestedQty,
             reservedQuantityIncrement: requestedQty,
           },
@@ -118,74 +115,18 @@ export async function releaseStockUseCase(
   const didDeductPhysical = sale.isStockDeducted;
 
   const release = async (client: Prisma.TransactionClient) => {
-    // Determine shipped quantities for partial delivery
-    const shippedQtyMap = new Map<string, number>();
-    if (!didDeductPhysical && sale.hasPartialDelivery) {
-      const shipmentItems = await client.shipmentItem.findMany({
-        where: {
-          saleItemId: { in: sale.items.map((i) => i.id) },
-          shipment: {
-            status: { in: ["IN_TRANSIT", "DELIVERED", "COMPLETED"] },
-          },
-        },
-      });
-      for (const si of shipmentItems) {
-        shippedQtyMap.set(
-          si.saleItemId,
-          (shippedQtyMap.get(si.saleItemId) || 0) + si.quantity,
-        );
-      }
+    // Delete any allocated sale item lots
+    try {
+      await StockRepository.deleteSaleItemLots(saleId, client);
+    } catch (e) {
+      console.warn("Could not delete lots during releaseStockUseCase", e);
     }
 
-    // Restore lot quantities FIRST because we do it for both Normal and Partial flows
-    if (didDeductPhysical || sale.hasPartialDelivery) {
-      try {
-        const saleItemLots = await StockRepository.getSaleItemLots(
-          saleId,
-          client,
-        );
-        for (const saleItemLot of saleItemLots) {
-          await StockRepository.updateLotQuantity(
-            saleItemLot.lotId,
-            saleItemLot.quantity,
-            client,
-          );
-        }
-        await StockRepository.deleteSaleItemLots(saleId, client);
-      } catch (e) {
-        console.warn("Could not restore lots during releaseStockUseCase", e);
-      }
-    }
-
-    for (const item of sale.items) {
-      const releaseQty = item.quantity;
-      const shippedQty = shippedQtyMap.get(item.id) || 0;
-
-      try {
-        if (didDeductPhysical) {
-          // Normal Flow: physical was fully deducted.
-          await StockRepository.updateProductStock(
-            item.productId,
-            {
-              availableQuantityIncrement: releaseQty,
-              physicalBalanceIncrement: releaseQty,
-            },
-            client,
-          );
-        } else if (shippedQty > 0) {
-          // Partial Delivery Flow: restore physical for what was shipped, clear remaining reserved
-          const remainingReserved = releaseQty - shippedQty;
-          await StockRepository.updateProductStock(
-            item.productId,
-            {
-              availableQuantityIncrement: releaseQty,
-              physicalBalanceIncrement: shippedQty,
-              reservedQuantityIncrement: -remainingReserved,
-            },
-            client,
-          );
-        } else {
-          // Only reserved was deducted (no shipments were sent)
+    // Only un-reserve stock if it was currently reserved (i.e. not yet deducted/fulfilled)
+    if (!sale.isStockDeducted) {
+      for (const item of sale.items) {
+        const releaseQty = item.quantity;
+        try {
           await StockRepository.updateProductStock(
             item.productId,
             {
@@ -194,9 +135,9 @@ export async function releaseStockUseCase(
             },
             client,
           );
+        } catch {
+          console.warn(`Could not update product stock for ${item.productId}`);
         }
-      } catch {
-        console.warn(`Could not update product stock for ${item.productId}`);
       }
     }
   };
@@ -211,7 +152,9 @@ export async function releaseStockUseCase(
 }
 
 /**
- * Use case: Confirms stock deduction when a delivery date is set.
+ * Use case: Confirms stock deduction (clears reservation) when a delivery date is set / fulfilled.
+ * Note: CS One does NOT own Physical Stock (Physical comes from E-Con).
+ * Fulfilling an order only unreserves the stock without modifying physicalBalance.
  */
 export async function confirmStockDeductionUseCase(
   saleId: string,
@@ -229,7 +172,7 @@ export async function confirmStockDeductionUseCase(
     for (const item of sale.items) {
       const requestedQty = item.quantity;
 
-      // Auto-assign LOTs (FIFO) for traceability without blocking on insufficient stock
+      // Auto-assign LOTs (FIFO) for traceability records without modifying physical lot balance
       const lots = await StockRepository.getAvailableLotsOrderByDate(
         item.productId,
         client,
@@ -240,14 +183,12 @@ export async function confirmStockDeductionUseCase(
         if (allocated >= requestedQty) break;
         const remainingToAllocate = requestedQty - allocated;
 
-        // Take up to remainingToAllocate.
         const deduction = Math.min(
           Math.max(0, lot.quantity),
           remainingToAllocate,
         );
 
         if (deduction > 0) {
-          await StockRepository.updateLotQuantity(lot.id, -deduction, client);
           await StockRepository.createSaleItemLot(
             {
               saleItemId: item.id,
@@ -265,11 +206,6 @@ export async function confirmStockDeductionUseCase(
         const anyLot = await StockRepository.getAnyLot(item.productId, client);
 
         if (anyLot) {
-          await StockRepository.updateLotQuantity(
-            anyLot.id,
-            -remainingToAllocate,
-            client,
-          );
           await StockRepository.createSaleItemLot(
             {
               saleItemId: item.id,
@@ -285,11 +221,12 @@ export async function confirmStockDeductionUseCase(
         }
       }
 
+      // Un-reserve stock (Physical is NOT modified)
       await StockRepository.updateProductStock(
         item.productId,
         {
           reservedQuantityIncrement: -requestedQty,
-          physicalBalanceIncrement: -requestedQty,
+          availableQuantityIncrement: requestedQty,
         },
         client,
       );
@@ -321,29 +258,21 @@ export async function revertStockDeductionUseCase(
   if (!sale) throw new Error("Sale not found");
 
   const revert = async (client: Prisma.TransactionClient) => {
+    // Delete any allocated sale item lots
+    try {
+      await StockRepository.deleteSaleItemLots(saleId, client);
+    } catch (e) {
+      console.warn("Could not delete lots during revertStockDeductionUseCase", e);
+    }
+
     for (const item of sale.items) {
       const returnQty = item.quantity;
-
-      const lot = await StockRepository.getFirstAvailableLot(
-        item.productId,
-        client,
-      );
-
-      if (lot) {
-        await StockRepository.updateLotQuantity(lot.id, returnQty, client);
-      } else {
-        const anyLot = await StockRepository.getAnyLot(item.productId, client);
-
-        if (anyLot) {
-          await StockRepository.reactivateLot(anyLot.id, returnQty, client);
-        }
-      }
 
       await StockRepository.updateProductStock(
         item.productId,
         {
           reservedQuantityIncrement: returnQty,
-          physicalBalanceIncrement: returnQty,
+          availableQuantityIncrement: -returnQty,
         },
         client,
       );
@@ -384,28 +313,6 @@ export async function confirmStockDeductionWithLotsUseCase(
       allocationsByItem.set(alloc.saleItemId, existing);
     }
 
-    // Pre-validate: aggregate total requested quantity per lot across ALL items
-    const totalByLot = new Map<string, number>();
-    for (const alloc of lotAllocations) {
-      totalByLot.set(
-        alloc.lotId,
-        (totalByLot.get(alloc.lotId) || 0) + alloc.quantity,
-      );
-    }
-
-    for (const [lotId, totalRequested] of totalByLot.entries()) {
-      const lot = await StockRepository.getLotById(lotId, client);
-      if (!lot) {
-        throw new Error(`LOT ${lotId} not found`);
-      }
-      if (lot.quantity < totalRequested) {
-        console.warn(
-          `[Warning] LOT ${lot.lotNumber} has insufficient quantity: ` +
-            `available ${lot.quantity}, total requested across items ${totalRequested}. Proceeding with negative inventory.`,
-        );
-      }
-    }
-
     for (const item of sale.items) {
       const itemAllocations = allocationsByItem.get(item.id) || [];
 
@@ -426,22 +333,11 @@ export async function confirmStockDeductionWithLotsUseCase(
         if (!lot) {
           throw new Error(`LOT ${alloc.lotId} not found`);
         }
-        if (lot.quantity < alloc.quantity) {
-          console.warn(
-            `[Warning] LOT ${lot.lotNumber} has insufficient quantity: ` +
-              `available ${lot.quantity}, requested ${alloc.quantity}. Proceeding with negative inventory.`,
-          );
-        }
         if (lot.productId !== item.productId) {
           throw new Error(`LOT ${lot.lotNumber} is for a different product`);
         }
 
-        await StockRepository.updateLotQuantity(
-          lot.id,
-          -alloc.quantity,
-          client,
-        );
-
+        // Record for traceability
         await StockRepository.createSaleItemLot(
           {
             saleItemId: item.id,
@@ -452,11 +348,12 @@ export async function confirmStockDeductionWithLotsUseCase(
         );
       }
 
+      // Un-reserve stock (Physical is NOT modified)
       await StockRepository.updateProductStock(
         item.productId,
         {
           reservedQuantityIncrement: -item.quantity,
-          physicalBalanceIncrement: -item.quantity,
+          availableQuantityIncrement: item.quantity,
         },
         client,
       );
@@ -495,26 +392,19 @@ export async function revertStockDeductionFromLotsUseCase(
   if (!sale) throw new Error("Sale not found");
 
   const revert = async (client: Prisma.TransactionClient) => {
-    for (const saleItemLot of saleItemLots) {
-      await StockRepository.updateLotQuantity(
-        saleItemLot.lotId,
-        saleItemLot.quantity,
-        client,
-      );
-    }
+    // Delete traceability records
+    await StockRepository.deleteSaleItemLots(saleId, client);
 
     for (const item of sale.items) {
       await StockRepository.updateProductStock(
         item.productId,
         {
           reservedQuantityIncrement: item.quantity,
-          physicalBalanceIncrement: item.quantity,
+          availableQuantityIncrement: -item.quantity,
         },
         client,
       );
     }
-
-    await StockRepository.deleteSaleItemLots(saleId, client);
   };
 
   if (tx) {
@@ -527,7 +417,7 @@ export async function revertStockDeductionFromLotsUseCase(
 }
 
 /**
- * Use case: Deducts physical stock and auto-assigns LOTs for a specific Shipment (Partial Delivery) using FIFO.
+ * Use case: Un-reserves stock and records LOTs for a specific Shipment (Partial Delivery).
  */
 export async function deductStockForShipmentUseCase(
   shipmentId: string,
@@ -563,15 +453,12 @@ export async function deductStockForShipmentUseCase(
         if (allocated >= requestedQty) break;
         const remainingToAllocate = requestedQty - allocated;
 
-        // Even if lot.quantity is small, we take up to remainingToAllocate
-        // If it goes negative, that's fine. We use Math.min only if lot has more than we need.
         const deduction = Math.min(
           Math.max(0, lot.quantity),
           remainingToAllocate,
         );
 
         if (deduction > 0) {
-          await StockRepository.updateLotQuantity(lot.id, -deduction, client);
           await StockRepository.createSaleItemLot(
             {
               saleItemId: shipmentItem.saleItemId,
@@ -584,19 +471,11 @@ export async function deductStockForShipmentUseCase(
         }
       }
 
-      // If we still haven't allocated enough (all lots were 0 or no lots existed)
       if (allocated < requestedQty) {
         const remainingToAllocate = requestedQty - allocated;
-
-        // Find ANY lot for this product, preferably the newest one
         const anyLot = await StockRepository.getAnyLot(productId, client);
 
         if (anyLot) {
-          await StockRepository.updateLotQuantity(
-            anyLot.id,
-            -remainingToAllocate,
-            client,
-          );
           await StockRepository.createSaleItemLot(
             {
               saleItemId: shipmentItem.saleItemId,
@@ -612,12 +491,12 @@ export async function deductStockForShipmentUseCase(
         }
       }
 
-      // Deduct Physical Stock for this ShipmentItem
+      // Un-reserve stock for this ShipmentItem (Physical is NOT modified)
       await StockRepository.updateProductStock(
         productId,
         {
           reservedQuantityIncrement: -requestedQty,
-          physicalBalanceIncrement: -requestedQty,
+          availableQuantityIncrement: requestedQty,
         },
         client,
       );
@@ -634,7 +513,7 @@ export async function deductStockForShipmentUseCase(
 }
 
 /**
- * Use case: Reverts physical stock and restores LOT quantities (LIFO) when a Shipment is cancelled.
+ * Use case: Restores reservation when a Shipment is cancelled.
  */
 export async function revertStockForShipmentUseCase(
   shipmentId: string,
@@ -661,18 +540,17 @@ export async function revertStockForShipmentUseCase(
       const productId = shipmentItem.saleItem.productId;
       const saleItemId = shipmentItem.saleItemId;
 
-      // 1. Restore Physical Stock
+      // 1. Restore reservation (Physical is NOT modified)
       await StockRepository.updateProductStock(
         productId,
         {
           reservedQuantityIncrement: shipmentItem.quantity,
-          physicalBalanceIncrement: shipmentItem.quantity,
+          availableQuantityIncrement: -shipmentItem.quantity,
         },
         client,
       );
 
-      // 2. Restore LOTs using LIFO from SaleItemLot
-      // Get all SaleItemLots for this saleItem, ordered by latest updated
+      // 2. Clean up SaleItemLot records
       const saleItemLots = await client.saleItemLot.findMany({
         where: { saleItemId: saleItemId },
         orderBy: { updatedAt: "desc" },
@@ -684,14 +562,6 @@ export async function revertStockForShipmentUseCase(
         const restoreQty = Math.min(saleItemLot.quantity, quantityToRestore);
 
         if (restoreQty > 0) {
-          // Add back to LOT
-          await StockRepository.updateLotQuantity(
-            saleItemLot.lotId,
-            restoreQty,
-            client,
-          );
-
-          // Update SaleItemLot
           if (saleItemLot.quantity === restoreQty) {
             await client.saleItemLot.delete({ where: { id: saleItemLot.id } });
           } else {

@@ -286,9 +286,17 @@ export async function createProduct(data: {
       categoryId: data.categoryId || null,
       productABCTypeId: data.productABCTypeId || null,
       parentId: data.parentId || null,
+      stock: {
+        create: {
+          physicalBalance: 0,
+          reservedQuantity: 0,
+          availableQuantity: 0,
+        },
+      },
     },
     include: {
       images: true,
+      stock: true,
     },
   } as any);
 }
