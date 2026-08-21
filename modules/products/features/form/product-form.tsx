@@ -725,6 +725,21 @@ export function ProductForm({
           disabled={loading}
         />
 
+        <FormSelect
+          label="สถานะสินค้า"
+          value={formData.status}
+          onChange={(v) =>
+            setFormData((prev) => ({
+              ...prev,
+              status: v as "ACTIVE" | "INACTIVE" | "PENDING_APPROVAL",
+            }))
+          }
+          options={[...STATUS_OPTIONS]}
+          placeholder="เลือกสถานะ"
+          groupLabel="สถานะ"
+          disabled={loading}
+        />
+
         <FormTextarea
           label="จุดขายสินค้า"
           value={formData.salesPoint || ""}
