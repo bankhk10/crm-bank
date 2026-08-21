@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import GalleryUpload from "@/components/custom/gallery-upload";
 
-
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
@@ -143,17 +142,17 @@ export function ProductForm({
         console.error("Failed to fetch options:", err);
       }
       try {
-        const res = await fetch('/api/products?page=1&perPage=1000');
+        const res = await fetch("/api/products?page=1&perPage=1000");
         const data = await res.json();
         if (data?.products) {
           const parentItems = data.products
             .filter((p: any) => p.id !== productId)
-            .map((p: any) => ({ value: p.id, label: `${p.productCode} - ${p.name}` }));
+            .map((p: any) => ({
+              value: p.id,
+              label: `${p.productCode} - ${p.name}`,
+            }));
 
-          setParentOptions([
-            { value: "none", label: "ไม่มี" },
-            ...parentItems
-          ]);
+          setParentOptions([{ value: "none", label: "ไม่มี" }, ...parentItems]);
         }
       } catch (err) {
         console.error("Failed to fetch products:", err);
@@ -165,8 +164,12 @@ export function ProductForm({
 
   // Calculate total package size per box when packageSize, packageSizeUnit, or packageSizePerBox changes
   useEffect(() => {
-    const packageSizeValue = parseFloat(formData.packageSize?.toString() || "0");
-    const packageSizePerBox = parseFloat(formData.packageSizePerBox?.toString() || "0");
+    const packageSizeValue = parseFloat(
+      formData.packageSize?.toString() || "0",
+    );
+    const packageSizePerBox = parseFloat(
+      formData.packageSizePerBox?.toString() || "0",
+    );
 
     if (packageSizeValue && packageSizePerBox) {
       const total = packageSizeValue * packageSizePerBox;
@@ -182,7 +185,11 @@ export function ProductForm({
         totalPackageSizePerBox: "",
       }));
     }
-  }, [formData.packageSize, formData.packageSizeUnit, formData.packageSizePerBox]);
+  }, [
+    formData.packageSize,
+    formData.packageSizeUnit,
+    formData.packageSizePerBox,
+  ]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -253,7 +260,10 @@ export function ProductForm({
         coverIndex: formData.coverIndex ?? undefined,
         categoryId: (formData as any).categoryId || undefined,
         productABCTypeId: (formData as any).productABCTypeId || undefined,
-        parentId: (formData as any).parentId === "none" ? null : ((formData as any).parentId || undefined),
+        parentId:
+          (formData as any).parentId === "none"
+            ? null
+            : (formData as any).parentId || undefined,
       };
 
       const url = isEdit ? `/api/products/${productId}` : "/api/products";
@@ -264,8 +274,8 @@ export function ProductForm({
         if (!result.success) {
           setError(
             result.error ??
-            Object.values(result.issues ?? {})[0]?.[0] ??
-            "Server error",
+              Object.values(result.issues ?? {})[0]?.[0] ??
+              "Server error",
           );
           setLoading(false);
           setUploadProgress(null);
@@ -331,9 +341,12 @@ export function ProductForm({
             }
           }
 
-
-
-          toast.success(successMessage || (isEdit ? "บันทึกการแก้ไขเรียบร้อยแล้ว" : "สร้างสินค้าใหม่เรียบร้อยแล้ว"));
+          toast.success(
+            successMessage ||
+              (isEdit
+                ? "บันทึกการแก้ไขเรียบร้อยแล้ว"
+                : "สร้างสินค้าใหม่เรียบร้อยแล้ว"),
+          );
           setTimeout(() => {
             router.push(redirectPath || "/products");
             router.refresh();
@@ -416,7 +429,6 @@ export function ProductForm({
           }
         }
 
-
         toast.success(
           successMessage ||
             (isEdit
@@ -436,8 +448,6 @@ export function ProductForm({
       setUploadProgress(null);
     }
   };
-
-
 
   const updateField = (field: keyof ProductFormData, value: any) => {
     let cleanValue = value;
@@ -531,8 +541,6 @@ export function ProductForm({
         </Alert>
       )}
 
-
-
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลสินค้า
       </h3>
@@ -616,7 +624,12 @@ export function ProductForm({
         />
 
         <div className="space-y-2">
-          <Label className={cn("text-base font-medium mx-2", errors.packageSize && "text-red-600")}>
+          <Label
+            className={cn(
+              "text-base font-medium mx-2",
+              errors.packageSize && "text-red-600",
+            )}
+          >
             ขนาดบรรจุ
             <span className="text-red-500 ml-1">*</span>
           </Label>
@@ -631,7 +644,9 @@ export function ProductForm({
             />
             <Select
               value={formData.packageSizeUnit || "G"}
-              onValueChange={(newUnit) => setFormData(prev => ({ ...prev, packageSizeUnit: newUnit }))}
+              onValueChange={(newUnit) =>
+                setFormData((prev) => ({ ...prev, packageSizeUnit: newUnit }))
+              }
               disabled={loading}
             >
               <SelectTrigger className="w-[140px]">
@@ -646,7 +661,9 @@ export function ProductForm({
               </SelectContent>
             </Select>
           </div>
-          {errors.packageSize && <p className="text-xs text-red-600 mt-1">{errors.packageSize}</p>}
+          {errors.packageSize && (
+            <p className="text-xs text-red-600 mt-1">{errors.packageSize}</p>
+          )}
         </div>
 
         <FormInput
@@ -661,7 +678,9 @@ export function ProductForm({
         />
 
         <div className="space-y-2">
-          <Label className="text-base font-medium mx-2">ขนาดบรรจุรวมต่อลัง</Label>
+          <Label className="text-base font-medium mx-2">
+            ขนาดบรรจุรวมต่อลัง
+          </Label>
           <div className="flex gap-2">
             <Input
               value={formData.totalPackageSizePerBox || ""}
@@ -671,7 +690,9 @@ export function ProductForm({
               className="bg-gray-50 flex-1"
             />
             <div className="w-[140px] flex items-center justify-center border rounded-md bg-gray-100 text-gray-500 text-sm font-medium">
-              {PACKAGE_UNIT_OPTIONS.find(opt => opt.value === formData.packageSizeUnit)?.label || formData.packageSizeUnit}
+              {PACKAGE_UNIT_OPTIONS.find(
+                (opt) => opt.value === formData.packageSizeUnit,
+              )?.label || formData.packageSizeUnit}
             </div>
           </div>
         </div>
@@ -701,22 +722,6 @@ export function ProductForm({
           placeholder="เลือกสินค้าหลัก"
           searchPlaceholder="ค้นหาสินค้าหลัก..."
           emptyText="ไม่พบสินค้า"
-          disabled={loading}
-        />
-
-
-        <FormSelect
-          label="สถานะสินค้า"
-          value={formData.status}
-          onChange={(v) =>
-            setFormData((prev) => ({
-              ...prev,
-              status: v as "ACTIVE" | "INACTIVE" | "PENDING_APPROVAL",
-            }))
-          }
-          options={[...STATUS_OPTIONS]}
-          placeholder="เลือกสถานะ"
-          groupLabel="สถานะ"
           disabled={loading}
         />
 
@@ -781,8 +786,6 @@ export function ProductForm({
         submitLabel="บันทึก"
         className="pt-6 sm:pt-8 border-t mt-6 sm:mt-8"
       />
-
-
     </form>
   );
 }
