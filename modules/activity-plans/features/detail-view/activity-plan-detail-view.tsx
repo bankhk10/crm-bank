@@ -241,7 +241,7 @@ export default function ActivityPlanDetailView({ id }: Props) {
   const requisitions = extractRequisitions(plan);
 
   return (
-    <section className="space-y-5 p-4 md:p-6 pb-28 md:pb-12 max-w-6xl mx-auto">
+    <section className="space-y-5 p-4 md:p-6 pb-28 md:pb-12 mx-auto bg-white rounded-lg">
       {/* 1. Header (Code, Title, Status, Actions) */}
       <DetailHeader plan={plan} canEdit={canEdit} />
 
@@ -259,7 +259,7 @@ export default function ActivityPlanDetailView({ id }: Props) {
       <PlanVsActual plan={plan} />
 
       {/* 4. Main 2-Column Layout */}
-      <div className="grid gap-5 lg:grid-cols-3 items-start">
+      <div className="grid gap-5 lg:grid-cols-1 items-start">
         {/* Left Column (2/3) */}
         <div className="lg:col-span-2 space-y-5">
           {/* Plan Summary (Objective & Notes) */}
@@ -279,29 +279,6 @@ export default function ActivityPlanDetailView({ id }: Props) {
 
           {/* Helper Employees */}
           <HelpersSection helpers={plan.helpers} />
-        </div>
-
-        {/* Right Column (1/3) */}
-        <div className="space-y-5">
-          {/* Approval Action Panel & Cancel */}
-          <ApprovalActionPanel
-            canApprove={canApproveThisStep}
-            approvalPrompt={approvalPrompt}
-            comment={comment}
-            onCommentChange={setComment}
-            submitting={submitting}
-            onApprove={handleApprove}
-            onRequestCorrection={handleRequestCorrection}
-            onReject={handleReject}
-            canCancel={canCancel}
-            onCancel={handleCancelPlan}
-          />
-
-          {/* Plan Metadata */}
-          <PlanMetaInfo plan={plan} />
-
-          {/* Approval History Timeline */}
-          <ApprovalHistory logs={plan.approvalLogs} />
         </div>
       </div>
     </section>
