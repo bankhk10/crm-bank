@@ -120,7 +120,8 @@ export function ActivityPlanForm({
     UserDemoPlotOption[]
   >([]);
   const [fetchedMaterialsByCategory, setFetchedMaterialsByCategory] = useState<
-    Record<string, Array<{ name: string; price: number; unit?: string }>> | undefined
+    | Record<string, Array<{ name: string; price: number; unit?: string }>>
+    | undefined
   >(promotionalMaterialsByCategory);
 
   useEffect(() => {
@@ -132,15 +133,17 @@ export function ActivityPlanForm({
     let isMounted = true;
     async function loadPromotionalMaterials() {
       try {
-        const { getActivePromotionalMaterialsGroupedAction } = await import(
-          "../../server/actions"
-        );
+        const { getActivePromotionalMaterialsGroupedAction } =
+          await import("../../server/actions");
         const res = await getActivePromotionalMaterialsGroupedAction();
         if (isMounted && res.success && res.grouped) {
           setFetchedMaterialsByCategory(res.grouped);
         }
       } catch (err) {
-        console.error("Failed to load promotional materials for Trip Plan:", err);
+        console.error(
+          "Failed to load promotional materials for Trip Plan:",
+          err,
+        );
       }
     }
     loadPromotionalMaterials();
@@ -2216,7 +2219,11 @@ export function ActivityPlanForm({
             )}
 
             {/* SECTION 1: ข้อมูลระบบ (System Info) */}
-            <SectionHeader title="ข้อมูลระบบ" color="gray" />
+            <SectionHeader
+              title="ข้อมูลระบบ"
+              className="rounded-xl"
+              accentColor="#808080"
+            />
 
             <div
               className={cn(
@@ -2258,7 +2265,11 @@ export function ActivityPlanForm({
             </div>
 
             {/* SECTION 2: ข้อมูลหลักของกิจกรรม (Main Activity Details) */}
-            <SectionHeader title="ข้อมูลหลักของกิจกรรม" color="gray" />
+            <SectionHeader
+              title="ข้อมูลหลักของกิจกรรม"
+              className="rounded-xl"
+              accentColor="#808080"
+            />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               {/* ชื่อกิจกรรม */}
@@ -2414,7 +2425,11 @@ export function ActivityPlanForm({
             {/* SECTION 3: วัตถุประสงค์ของประเภทงาน (Dynamic Objective) */}
             {selectedWorkTypes.length > 0 && (
               <div className="space-y-4">
-                <SectionHeader title="วัตถุประสงค์ของประเภทงาน" color="gray" />
+                <SectionHeader
+                  title="วัตถุประสงค์ของประเภทงาน"
+                  className="rounded-xl"
+                  accentColor="#808080"
+                />
 
                 <div className="space-y-5">
                   {/* Work Type 1: เข้าพบร้านค้า / Key Farmer */}
@@ -2641,7 +2656,11 @@ export function ActivityPlanForm({
             />
 
             {/* SECTION 6: ข้อมูลเพิ่มเติม (Additional Info) */}
-            <SectionHeader title="ข้อมูลเพิ่มเติม" color="gray" />
+            <SectionHeader
+              title="ข้อมูลเพิ่มเติม"
+              className="rounded-xl"
+              accentColor="#808080"
+            />
 
             <div className="space-y-1">
               <label className="block text-sm font-medium text-slate-700 mb-1">

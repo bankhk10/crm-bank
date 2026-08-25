@@ -62,7 +62,11 @@ export function LocationTeamSection({
 
   return (
     <div className="space-y-4 relative z-20">
-      <SectionHeader title="สถานที่และทีมงาน" color="gray" />
+      <SectionHeader
+        title="สถานที่และทีมงาน"
+        className="rounded-xl"
+        accentColor="#808080"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* รายละเอียดพื้นที่จัดกิจกรรม & จังหวัด / อำเภอ */}
@@ -151,9 +155,11 @@ export function LocationTeamSection({
                     className="fixed inset-0 z-40"
                     onClick={() => setShowHelperDropdown(false)}
                   />
-                  <ul className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-56 overflow-y-auto
+                  <ul
+                    className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-56 overflow-y-auto
                                   rounded-xl bg-white p-1.5 text-sm shadow-xl shadow-slate-200/80
-                                  border border-slate-100 custom-scrollbar">
+                                  border border-slate-100 custom-scrollbar"
+                  >
                     {filteredEmployees.length === 0 ? (
                       <li className="p-3 text-slate-400 text-xs italic text-center">
                         ไม่พบข้อมูลพนักงาน
@@ -166,8 +172,10 @@ export function LocationTeamSection({
                           className="cursor-pointer px-3 py-2 hover:bg-blue-50 rounded-lg
                                      flex items-center gap-2.5 text-slate-700 transition-colors group"
                         >
-                          <div className="h-7 w-7 rounded-full bg-slate-100 flex items-center justify-center shrink-0
-                                          group-hover:bg-blue-100 transition-colors">
+                          <div
+                            className="h-7 w-7 rounded-full bg-slate-100 flex items-center justify-center shrink-0
+                                          group-hover:bg-blue-100 transition-colors"
+                          >
                             <UserCircle2 className="h-4 w-4 text-slate-400 group-hover:text-blue-500 transition-colors" />
                           </div>
                           <div className="min-w-0">
@@ -175,7 +183,9 @@ export function LocationTeamSection({
                               {emp.name}
                             </p>
                             <p className="text-[10px] text-slate-400 truncate">
-                              {emp.positionTitle || emp.departmentName || "พนักงาน"}
+                              {emp.positionTitle ||
+                                emp.departmentName ||
+                                "พนักงาน"}
                             </p>
                           </div>
                         </li>

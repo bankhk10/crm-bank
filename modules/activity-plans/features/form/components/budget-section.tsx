@@ -1,5 +1,14 @@
 import React, { useMemo } from "react";
-import { Plus, Trash2, Check, Package, Receipt, Coins, Target, Percent } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Check,
+  Package,
+  Receipt,
+  Coins,
+  Target,
+  Percent,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FormCombobox } from "@/components/custom/form-components";
@@ -95,7 +104,11 @@ export function BudgetSection({
 
   return (
     <div className="space-y-4">
-      <SectionHeader title="งบประมาณและค่าใช้จ่าย" color="gray" />
+      <SectionHeader
+        title="งบประมาณและค่าใช้จ่าย"
+        className="rounded-xl"
+        accentColor="#808080"
+      />
 
       {/* Checkbox Options Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -342,7 +355,8 @@ export function BudgetSection({
                               value={currentCat}
                               onChange={(newCat) => {
                                 const prods =
-                                  promotionalMaterialsByCategory?.[newCat] || [];
+                                  promotionalMaterialsByCategory?.[newCat] ||
+                                  [];
                                 const firstProdObj = prods[0];
                                 const firstProd = firstProdObj
                                   ? firstProdObj.name
@@ -381,12 +395,10 @@ export function BudgetSection({
                                   firstUnit,
                                 );
                               }}
-                              options={availableCategories.map(
-                                (cat) => ({
-                                  value: cat,
-                                  label: cat,
-                                }),
-                              )}
+                              options={availableCategories.map((cat) => ({
+                                value: cat,
+                                label: cat,
+                              }))}
                               placeholder="เลือกหมวดหมู่..."
                               searchPlaceholder="ค้นหาหมวดหมู่..."
                               emptyText="ไม่พบหมวดหมู่"
@@ -420,9 +432,7 @@ export function BudgetSection({
                                   const prodObj = availableProds.find(
                                     (p) => p.name === val,
                                   );
-                                  const price = prodObj
-                                    ? prodObj.price
-                                    : 0;
+                                  const price = prodObj ? prodObj.price : 0;
                                   const unit =
                                     prodObj?.unit ||
                                     (currentCat === "PP_Board"
@@ -708,48 +718,52 @@ export function BudgetSection({
                   })
                 )}
               </tbody>
-              {salesPromotionItems.length > 0 && (() => {
-                const marketingTotal = salesPromotionItems
-                  .filter((item) => (item.budgetType || "งบการตลาด") === "งบการตลาด")
-                  .reduce((sum, item) => sum + (item.amount || 0), 0);
-                const salesTotal = salesPromotionItems
-                  .filter((item) => item.budgetType === "งบขาย")
-                  .reduce((sum, item) => sum + (item.amount || 0), 0);
-                const grandTotal = marketingTotal + salesTotal;
+              {salesPromotionItems.length > 0 &&
+                (() => {
+                  const marketingTotal = salesPromotionItems
+                    .filter(
+                      (item) =>
+                        (item.budgetType || "งบการตลาด") === "งบการตลาด",
+                    )
+                    .reduce((sum, item) => sum + (item.amount || 0), 0);
+                  const salesTotal = salesPromotionItems
+                    .filter((item) => item.budgetType === "งบขาย")
+                    .reduce((sum, item) => sum + (item.amount || 0), 0);
+                  const grandTotal = marketingTotal + salesTotal;
 
-                return (
-                  <tfoot className="bg-slate-50/90 border-t-2 border-slate-200 text-xs text-slate-700">
-                    <tr>
-                      <td colSpan={readonly ? 4 : 5} className="py-3 px-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2.5">
-                          <div className="flex flex-wrap items-center gap-3">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-medium shadow-2xs">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                              รวมงบการตลาด:{" "}
-                              <strong className="font-bold text-emerald-700">
-                                ฿ {marketingTotal.toLocaleString()}
-                              </strong>
-                            </span>
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200/80 text-blue-800 text-xs font-medium shadow-2xs">
-                              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                              รวมงบขาย:{" "}
-                              <strong className="font-bold text-blue-700">
-                                ฿ {salesTotal.toLocaleString()}
-                              </strong>
-                            </span>
+                  return (
+                    <tfoot className="bg-slate-50/90 border-t-2 border-slate-200 text-xs text-slate-700">
+                      <tr>
+                        <td colSpan={readonly ? 4 : 5} className="py-3 px-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2.5">
+                            <div className="flex flex-wrap items-center gap-3">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-medium shadow-2xs">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                รวมงบการตลาด:{" "}
+                                <strong className="font-bold text-emerald-700">
+                                  ฿ {marketingTotal.toLocaleString()}
+                                </strong>
+                              </span>
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200/80 text-blue-800 text-xs font-medium shadow-2xs">
+                                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                                รวมงบขาย:{" "}
+                                <strong className="font-bold text-blue-700">
+                                  ฿ {salesTotal.toLocaleString()}
+                                </strong>
+                              </span>
+                            </div>
+                            <div className="text-xs font-bold text-slate-800 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                              ผลรวมใช้งบทั้งสิ้น:{" "}
+                              <span className="text-xs sm:text-sm font-extrabold text-slate-900">
+                                ฿ {grandTotal.toLocaleString()}
+                              </span>
+                            </div>
                           </div>
-                          <div className="text-xs font-bold text-slate-800 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-2xs">
-                            ผลรวมใช้งบทั้งสิ้น:{" "}
-                            <span className="text-xs sm:text-sm font-extrabold text-slate-900">
-                              ฿ {grandTotal.toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  </tfoot>
-                );
-              })()}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  );
+                })()}
             </table>
           </div>
         </div>
