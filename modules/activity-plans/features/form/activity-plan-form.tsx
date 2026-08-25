@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { SectionHeader } from "@/modules/sales/features/form/forms/section-header";
+import { SectionHeader } from "@/components/custom/section-header";
 import { cn } from "@/lib/utils";
 import type { ActivityPlanFormValues } from "../../application/validations";
 import { DateTimePicker } from "./components/date-time-picker";
@@ -70,7 +70,7 @@ import {
   USER_DEMO_PLOTS,
   isFieldDayItem,
   type UserDemoPlotOption,
-} from "./constants";
+} from "../../constants";
 
 import {
   RequisitionItem,

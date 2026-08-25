@@ -8,13 +8,11 @@ import {
   Sprout,
   CheckCircle2,
   AlertTriangle,
-  FileText,
   Image as ImageIcon,
   ChevronDown,
   ChevronUp,
   Maximize2,
   Info,
-  MapPin,
   Package,
   User,
 } from "lucide-react";
@@ -22,7 +20,6 @@ import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";

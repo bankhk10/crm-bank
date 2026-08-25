@@ -6,11 +6,6 @@ import {
   ActivityApprovalAction,
   ActivityApprovalStep,
 } from "@prisma/client";
-import {
-  findActivityPlanById,
-  createApprovalLog,
-  updateHelperStatus,
-} from "../infrastructure/activity-plan.repository";
 import { syncActivityPlanToCalendarUseCase } from "./calendar-integration";
 
 // ────────────────────────────────────────────────────────

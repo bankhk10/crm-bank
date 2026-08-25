@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { createPromotionalMaterialAction, updatePromotionalMaterialAction } from "../../server/actions";
-import { MARKETING_UNITS } from "../form/constants";
+import { MARKETING_UNITS } from "../../constants";
 import { Loader2, PackagePlus, Pencil } from "lucide-react";
 
 interface PromotionalMaterialItem {

@@ -1,7 +1,7 @@
 import React from "react";
 import { ClipboardList, X } from "lucide-react";
 import { FormCombobox } from "@/components/custom/form-components";
-import { STORES_LIST } from "../../constants";
+import { STORES_LIST } from "../../../../constants";
 
 export interface CustomerOption {
   id: string;

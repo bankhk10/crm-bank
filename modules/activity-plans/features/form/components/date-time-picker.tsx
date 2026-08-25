@@ -28,6 +28,76 @@ const MINUTES = [
   "55",
 ];
 
+interface TimePickerPanelProps {
+  currentHour: string;
+  currentMinute: string;
+  onSelectTime: (time: string) => void;
+}
+
+function TimePickerPanel({
+  currentHour,
+  currentMinute,
+  onSelectTime,
+}: TimePickerPanelProps) {
+  return (
+    <div className="p-3 flex flex-col justify-start">
+      <div className="grid grid-cols-2 text-[12px] font-medium text-slate-500 mb-2 text-center">
+        <span>ชั่วโมง</span>
+        <span>นาที</span>
+      </div>
+
+      <div className="flex gap-1.5 flex-1 max-h-[280px]">
+        {/* Hours Column */}
+        <div className="w-14 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+          {HOURS.map((h) => {
+            const isSelected = currentHour === h;
+            return (
+              <button
+                key={h}
+                type="button"
+                onClick={() => onSelectTime(`${h}:${currentMinute}`)}
+                className={cn(
+                  "w-full py-1.5 px-1 rounded-lg text-xs font-medium text-center transition-all",
+                  isSelected
+                    ? "bg-blue-600 text-white font-bold shadow-xs"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                )}
+              >
+                {h}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Vertical Separator */}
+        <div className="w-[1px] bg-slate-100" />
+
+        {/* Minutes Column */}
+        <div className="w-14 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+          {MINUTES.map((m) => {
+            const isSelected = currentMinute === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => onSelectTime(`${currentHour}:${m}`)}
+                className={cn(
+                  "w-full py-1.5 px-1 rounded-lg text-xs font-medium text-center transition-all",
+                  isSelected
+                    ? "bg-blue-600 text-white font-bold shadow-xs"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                )}
+              >
+                {m}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface DateTimePickerProps {
   label: string;
   required?: boolean;
@@ -111,65 +181,6 @@ export function DateTimePicker({
     }
     setOpen(false);
   };
-
-  // Time picker panel (shared between mobile step 2 and desktop right panel)
-  const TimePicker = () => (
-    <div className="p-3 flex flex-col justify-start">
-      <div className="grid grid-cols-2 text-[12px] font-medium text-slate-500 mb-2 text-center">
-        <span>ชั่วโมง</span>
-        <span>นาที</span>
-      </div>
-
-      <div className="flex gap-1.5 flex-1 max-h-[280px]">
-        {/* Hours Column */}
-        <div className="w-14 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-          {HOURS.map((h) => {
-            const isSelected = currentHour === h;
-            return (
-              <button
-                key={h}
-                type="button"
-                onClick={() => setTempTime(`${h}:${currentMinute}`)}
-                className={cn(
-                  "w-full py-1.5 px-1 rounded-lg text-xs font-medium text-center transition-all",
-                  isSelected
-                    ? "bg-blue-600 text-white font-bold shadow-xs"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-                )}
-              >
-                {h}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Vertical Separator */}
-        <div className="w-[1px] bg-slate-100" />
-
-        {/* Minutes Column */}
-        <div className="w-14 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-          {MINUTES.map((m) => {
-            const isSelected = currentMinute === m;
-            return (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setTempTime(`${currentHour}:${m}`)}
-                className={cn(
-                  "w-full py-1.5 px-1 rounded-lg text-xs font-medium text-center transition-all",
-                  isSelected
-                    ? "bg-blue-600 text-white font-bold shadow-xs"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-                )}
-              >
-                {m}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div>
@@ -285,7 +296,11 @@ export function DateTimePicker({
                   <span className="text-[11px] text-slate-400">ขั้นที่ 2/2</span>
                 </div>
 
-                <TimePicker />
+                <TimePickerPanel
+                  currentHour={currentHour}
+                  currentMinute={currentMinute}
+                  onSelectTime={setTempTime}
+                />
 
                 {/* Footer: Back + Confirm */}
                 <div className="p-3 bg-slate-50/60 border-t border-slate-100 flex items-center gap-3 justify-center">
@@ -328,7 +343,11 @@ export function DateTimePicker({
             <div className="w-[1px] bg-slate-100 my-3" />
 
             {/* Right: Time Picker */}
-            <TimePicker />
+            <TimePickerPanel
+              currentHour={currentHour}
+              currentMinute={currentMinute}
+              onSelectTime={setTempTime}
+            />
           </div>
 
           {/* ─── DESKTOP: Footer ─── */}

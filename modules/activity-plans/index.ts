@@ -1,4 +1,4 @@
-// Export views
+// Export views (Client UI)
 export { default as ActivityPlanListView } from "./features/list-view/activity-plan-list-view";
 export { default as ActivityPlanCreateView } from "./features/form/activity-plan-create-view";
 export { default as ActivityPlanEditView } from "./features/form/activity-plan-edit-view";
@@ -7,7 +7,6 @@ export { default as ActivityPlanApprovalListView } from "./features/approve-view
 export { default as ActivityPlanActualView } from "./features/actual-view/activity-plan-actual-view";
 export { default as PromotionalMaterialsView } from "./features/promotional-materials/promotional-materials-view";
 
-// Export types
+// Export types & constants
 export type { ActivityPlanWithRelations } from "./types";
-export * from "./server/actions";
-
+export * from "./constants";

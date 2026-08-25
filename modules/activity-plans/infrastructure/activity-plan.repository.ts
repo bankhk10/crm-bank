@@ -22,23 +22,8 @@ export type ListActivityPlansParams = {
   province?: string;
 };
 
-/**
- * Utility to compute fiscal dimensions & duration from dates
- */
-export function computeFiscalFields(startDate: Date, endDate: Date) {
-  const year = startDate.getFullYear();
-  const month = startDate.getMonth() + 1; // 1-12
-  const quarter = Math.ceil(month / 3);   // 1-4
-  const msPerDay = 1000 * 60 * 60 * 24;
-  const durationDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / msPerDay));
-
-  return {
-    fiscalYear: year,
-    fiscalMonth: month,
-    fiscalQuarter: quarter,
-    durationDays,
-  };
-}
+import { computeFiscalFields } from "../application/validations";
+export { computeFiscalFields };
 
 /**
  * Fetch all active activity types (lookup master)
@@ -432,7 +417,11 @@ export async function updateActivityPlan(
   }
 ) {
   return db.$transaction(async (tx) => {
-    const { helperEmployeeIds, updatedUserId, items, ...updateFields } = planData;
+    const { helperEmployeeIds, items } = planData;
+    const updateFields: any = { ...planData };
+    delete updateFields.updatedUserId;
+    delete updateFields.helperEmployeeIds;
+    delete updateFields.items;
 
     // Build update dataset
     const dataToUpdate: Prisma.ActivityPlanUncheckedUpdateInput = {};
@@ -1296,6 +1285,184 @@ export async function recordDemoPlotVisit(data: {
     }
 
     return visit;
+  });
+}
+
+/**
+ * Fetch Farmer Customers to retrieve farm plots
+ */
+export async function findFarmerCustomersForPlots() {
+  return db.customer.findMany({
+    where: {
+      deletedAt: null,
+      customerType: "FARMER",
+    },
+    select: {
+      id: true,
+      name: true,
+      latitude: true,
+      longitude: true,
+      farmPlots: true,
+      addresses: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+/**
+ * Fetch all master demo plots with visits
+ */
+export async function findMasterDemoPlots() {
+  return db.demoPlot.findMany({
+    where: { deletedAt: null },
+    include: {
+      visits: {
+        orderBy: { visitDate: "asc" },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+/**
+ * Fetch legacy demo plot items from ActivityPlanItem
+ */
+export async function findLegacyDemoPlotItems() {
+  return db.activityPlanItem.findMany({
+    where: {
+      activityPlan: { deletedAt: null },
+      plotActivityType: "CREATE",
+      plotOwnerName: { not: null },
+    },
+    include: {
+      activityPlan: {
+        select: { id: true, location: true, startDate: true },
+      },
+    },
+    orderBy: { id: "desc" },
+  });
+}
+
+/**
+ * Fetch Farmer customers for selection in Field Day
+ */
+export async function findFarmerCustomerOptions() {
+  return db.customer.findMany({
+    where: {
+      deletedAt: null,
+      customerType: "FARMER",
+    },
+    select: {
+      id: true,
+      name: true,
+      farmPlots: true,
+      province: true,
+      district: true,
+    },
+    orderBy: { name: "asc" },
+  });
+}
+
+/**
+ * Fetch Demo plot owners for selection in Field Day
+ */
+export async function findDemoPlotOwners() {
+  return db.demoPlot.findMany({
+    where: { deletedAt: null },
+    select: { ownerName: true, areaRai: true, cropName: true },
+  });
+}
+
+/**
+ * Find demo plot by ID, Name, Code, or OwnerName
+ */
+export async function findDemoPlotByIdOrName(demoPlotIdOrName: string) {
+  return db.demoPlot.findFirst({
+    where: {
+      OR: [
+        { id: demoPlotIdOrName },
+        { name: demoPlotIdOrName },
+        { code: demoPlotIdOrName },
+        { ownerName: demoPlotIdOrName },
+      ],
+      deletedAt: null,
+    },
+    include: {
+      visits: {
+        orderBy: { visitDate: "asc" },
+        include: {
+          activityPlan: {
+            select: {
+              id: true,
+              code: true,
+              title: true,
+              startDate: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+/**
+ * Find legacy activity plan item for demo plot
+ */
+export async function findLegacyActivityItemForDemoPlot(itemId: string, planId?: string) {
+  return db.activityPlanItem.findFirst({
+    where: {
+      id: itemId,
+      ...(planId ? { activityPlanId: planId } : {}),
+    },
+    include: {
+      activityPlan: {
+        select: { id: true, code: true, title: true, startDate: true, location: true },
+      },
+    },
+  });
+}
+
+/**
+ * Find demo plot by owner name and crop name
+ */
+export async function findDemoPlotByOwnerAndCrop(ownerName: string, cropName: string) {
+  return db.demoPlot.findFirst({
+    where: { ownerName, cropName, deletedAt: null },
+    include: {
+      visits: {
+        orderBy: { visitDate: "asc" },
+        include: {
+          activityPlan: {
+            select: {
+              id: true,
+              code: true,
+              title: true,
+              startDate: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+/**
+ * Find latest CREATE activity plan item for demo plot
+ */
+export async function findLatestCreateItemForDemoPlot(ownerName: string, cropName?: string) {
+  return db.activityPlanItem.findFirst({
+    where: {
+      plotActivityType: "CREATE",
+      activityPlan: { deletedAt: null },
+      plotOwnerName: ownerName,
+      ...(cropName ? { plotCropName: cropName } : {}),
+    },
+    include: {
+      activityPlan: {
+        select: { id: true, code: true, title: true, startDate: true, location: true },
+      },
+    },
+    orderBy: { id: "desc" },
   });
 }
 

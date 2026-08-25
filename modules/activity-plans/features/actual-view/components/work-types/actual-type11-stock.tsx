@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
-import { DEMO_PRODUCTS } from "../../../form/constants";
+import { DEMO_PRODUCTS } from "../../../../constants";
 import { listProductsAction } from "@/modules/products/server/actions";
 
 const OTHER_OPTION = "ไม่พบข้อมูล / ระบุเพิ่มเติม";

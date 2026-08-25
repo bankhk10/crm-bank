@@ -7,8 +7,6 @@ import {
   softDeleteActivityPlan,
   upsertActivityResult,
   findActivityTypes,
-  findActivityTypeByCode,
-  findEmployeeByUserId,
   findOrCreateEmployeeForUser,
   type ListActivityPlansParams,
   type CreateActivityResultInput,
@@ -200,6 +198,18 @@ export {
   requestCorrectionPlanUseCase,
   cancelActivityPlanUseCase,
 } from "./activity-plan-flow";
+
+export {
+  getDemoPlotsUseCase,
+  getFarmerCustomersUseCase,
+  getDemoPlotHistoryUseCase,
+  recordDemoPlotVisitUseCase,
+} from "./demo-plots";
+
+export {
+  getApprovalQueueDataUseCase,
+} from "./approval-queue";
+
 export {
   findEmployeeById,
   findOrCreateEmployeeForUser,

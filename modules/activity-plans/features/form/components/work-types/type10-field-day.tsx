@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Sprout, CheckCircle2, MapPin } from "lucide-react";
 import { FormCombobox } from "@/components/custom/form-components";
-import { type UserDemoPlotOption } from "../../constants";
+import { type UserDemoPlotOption } from "../../../../constants";
 import { getDemoPlotsAction } from "@/modules/activity-plans/server/actions";
 
 interface Props {
@@ -47,11 +47,8 @@ export function Type10FieldDay({
   readonly = false,
   type10DemoPlot,
   setType10DemoPlot,
-  type10Location,
   setType10Location,
-  type10TargetCrop,
   setType10TargetCrop,
-  type10Showcase,
   setType10Showcase,
   type10Attendees,
   setType10Attendees,

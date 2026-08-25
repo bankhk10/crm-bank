@@ -8,7 +8,7 @@ import {
   CROP_CATEGORIES,
   CROPS_BY_CATEGORY,
   type UserDemoPlotOption,
-} from "../../constants";
+} from "../../../../constants";
 
 export interface CustomerOption {
   id: string;
@@ -49,7 +49,6 @@ export function Type7Demo({
   customers = [],
   products = [],
   demoPlots = [],
-  parentStartDate = "",
 }: Props) {
   const plotList = demoPlots || [];
 

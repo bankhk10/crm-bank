@@ -3,9 +3,9 @@ import { Plus, Trash2, Check, Package, Receipt, Coins, Target, Percent } from "l
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FormCombobox } from "@/components/custom/form-components";
-import { SectionHeader } from "@/modules/sales/features/form/forms/section-header";
+import { SectionHeader } from "@/components/custom/section-header";
 import type { MarketingBudgetProductItem, SalesPromotionItem } from "../types";
-import { MARKETING_UNITS } from "../constants";
+import { MARKETING_UNITS } from "../../../constants";
 
 export interface PromotionalProductOption {
   name: string;
@@ -60,7 +60,6 @@ interface Props {
 }
 
 export function BudgetSection({
-  selectedWorkTypes,
   readonly = false,
   isPromotionalMediaSelected,
   setIsPromotionalMediaSelected,
@@ -68,7 +67,6 @@ export function BudgetSection({
   setIsSalesPromotionSelected,
   marketingProductItems,
   marketingBudgetAmount,
-  setMarketingBudgetAmount,
   addMarketingProductItem,
   updateMarketingProductItem,
   deleteMarketingProductItem,

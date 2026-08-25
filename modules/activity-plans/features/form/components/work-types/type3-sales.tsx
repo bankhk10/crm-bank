@@ -278,8 +278,6 @@ export function Type3Sales({
                   </div>
 
                   {prodListLines.map((prodLine, pIdx) => {
-                    const lineTotal =
-                      (prodLine.quantity || 0) * (prodLine.unitPrice || 0);
                     return (
                       <div
                         key={prodLine.id}

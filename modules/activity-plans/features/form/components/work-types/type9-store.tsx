@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormCombobox } from "@/components/custom/form-components";
 import type { Type9ProductItem } from "../../types";
-import { STORES_LIST } from "../../constants";
+import { STORES_LIST } from "../../../../constants";
 
 export interface CustomerOption {
   id: string;

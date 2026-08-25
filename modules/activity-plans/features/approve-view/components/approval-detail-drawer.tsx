@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { DetailItem } from "@/components/custom/detail-item";
 import { ActivityStatusBadge } from "../../../ui/activity-status-badge";
 import type { ActivityPlanWithRelations } from "../../../types";
@@ -29,8 +28,6 @@ import {
   RotateCcw,
   ExternalLink,
   History,
-  Clock,
-  ShieldCheck,
   User,
   Layers,
   Package,

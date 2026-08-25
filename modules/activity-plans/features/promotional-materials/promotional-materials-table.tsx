@@ -11,16 +11,12 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Search,
   Pencil,
   Trash2,
   ChevronLeft,
   ChevronRight,
-  Filter,
-  CheckCircle2,
-  XCircle,
   Package,
 } from "lucide-react";
 import { cn } from "@/lib/utils";

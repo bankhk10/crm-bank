@@ -46,7 +46,7 @@ import {
   requestCorrectionPlanAction,
   cancelActivityPlanAction,
 } from "../../server/actions";
-import { WORK_TYPES, isFieldDayItem } from "../form/constants";
+import { WORK_TYPES, isFieldDayItem } from "../../constants";
 import { cn } from "@/lib/utils";
 
 interface Props {

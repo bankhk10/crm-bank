@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { SectionHeader } from "@/modules/sales/features/form/forms/section-header";
+import { SectionHeader } from "@/components/custom/section-header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import {
@@ -37,7 +37,7 @@ import {
   STORES_LIST,
   USER_DEMO_PLOTS,
   isFieldDayItem,
-} from "../form/constants";
+} from "../../constants";
 import { ImageFile, PlanSummaryData } from "./types";
 import { ActualPlanSummary } from "./components/actual-plan-summary";
 import { DateTimePicker } from "../form/components/date-time-picker";

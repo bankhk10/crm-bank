@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
-import { DEMO_PRODUCTS } from "../../../form/constants";
+import { DEMO_PRODUCTS } from "../../../../constants";
 
 export interface ProductOption {
   id: string;

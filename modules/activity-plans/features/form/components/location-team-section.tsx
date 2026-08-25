@@ -1,7 +1,6 @@
 import React from "react";
 import { Search, X, Users, MapPin, UserCircle2 } from "lucide-react";
-import { SectionHeader } from "@/modules/sales/features/form/forms/section-header";
-import { ALL_THAI_PROVINCES } from "@/lib/province-region-mapping";
+import { SectionHeader } from "@/components/custom/section-header";
 
 export interface Employee {
   id: string;
@@ -45,10 +44,6 @@ export function LocationTeamSection({
   removeHelper,
   locationText,
   setLocationText,
-  province = "",
-  setProvince,
-  district = "",
-  setDistrict,
 }: Props) {
   if (
     !selectedWorkTypes.some((t) =>

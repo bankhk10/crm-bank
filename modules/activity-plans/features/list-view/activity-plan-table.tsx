@@ -11,9 +11,7 @@ import {
   Trash2,
   Send,
   PlusCircle,
-  Filter,
   ClipboardList,
-  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations, ActivityStatus } from "../../types";
