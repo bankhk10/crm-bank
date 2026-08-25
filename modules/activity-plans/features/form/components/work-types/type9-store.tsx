@@ -268,6 +268,12 @@ export function Type9Store({
                                 "pricePerCase",
                                 found.price,
                               );
+                            } else {
+                              updateType9ProductItem(
+                                item.id,
+                                "pricePerCase",
+                                0,
+                              );
                             }
                           }}
                           options={productOptions}
@@ -301,6 +307,7 @@ export function Type9Store({
                           <input
                             type="number"
                             min={0}
+                            step="any"
                             value={item.pricePerCase ?? 0}
                             onChange={(e) =>
                               updateType9ProductItem(
@@ -309,9 +316,13 @@ export function Type9Store({
                                 parseFloat(e.target.value) || 0,
                               )
                             }
-                            disabled={true}
+                            disabled={readonly}
                             placeholder="0"
-                            className="w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 bg-slate-100 text-slate-500 text-xs text-right font-medium focus:outline-none cursor-not-allowed"
+                            className={`w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 text-xs text-right font-medium focus:outline-none ${
+                              readonly
+                                ? "bg-slate-100 text-slate-500 cursor-not-allowed"
+                                : "bg-white text-slate-800 focus:ring-2 focus:ring-teal-500"
+                            }`}
                           />
                         </div>
                       </td>
