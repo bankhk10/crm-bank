@@ -20,6 +20,12 @@ export const STATUS_STYLE: Record<
       "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-50",
     dot: "bg-emerald-500",
   },
+  PENDING_APPROVAL: {
+    label: "รออนุมัติ",
+    className:
+      "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-50",
+    dot: "bg-amber-500",
+  },
   INACTIVE: {
     label: "ไม่ได้ใช้งาน",
     className:
@@ -27,5 +33,11 @@ export const STATUS_STYLE: Record<
     dot: "bg-slate-400",
   },
 };
+
+export const STATUS_OPTIONS = [
+  { value: "ACTIVE", label: "ใช้งาน" },
+  { value: "PENDING_APPROVAL", label: "รออนุมัติ" },
+  { value: "INACTIVE", label: "ไม่ได้ใช้งาน" },
+] as const;
 
 export const ALL_STATUS_VALUE = "__ALL_STATUS__";

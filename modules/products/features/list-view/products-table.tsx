@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { PlusCircle, Eye, Edit, Settings, Package, Copy } from "lucide-react";
+import { PlusCircle, Eye, Edit, Settings, Package, Copy, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -130,6 +130,9 @@ export function ProductsTable(props: ProductsTableProps) {
     canDelete,
     canManage = false,
     canViewStock = true,
+    canApprove = false,
+    onApproveRequest,
+    pendingApprovalCount,
     onDeleteRequest,
     searchValue,
     onSearchChange,
@@ -150,6 +153,8 @@ export function ProductsTable(props: ProductsTableProps) {
     canManage,
     canCopy,
     canViewStock,
+    canApprove,
+    onApproveRequest,
   );
 
   const uniqueUnits = React.useMemo(() => {
@@ -227,16 +232,33 @@ export function ProductsTable(props: ProductsTableProps) {
           </div>
         }
       />
-      {canCreate && (
-        <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-end gap-2.5">
+        {canApprove && (
+          <Link href="/products/approvals" className="w-full sm:w-auto">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto border-amber-300 bg-amber-50/80 hover:bg-amber-100/90 text-amber-900 gap-2 shadow-sm font-semibold relative"
+            >
+              <Clock className="h-4 w-4 text-amber-600" />
+              ตรวจสอบ / อนุมัติสินค้า
+              {typeof pendingApprovalCount === "number" &&
+                pendingApprovalCount > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold bg-amber-500 text-white rounded-full">
+                    {pendingApprovalCount}
+                  </span>
+                )}
+            </Button>
+          </Link>
+        )}
+        {canCreate && (
           <Link href="/products/new" className="w-full sm:w-auto">
             <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white gap-2 shadow-sm">
               <PlusCircle className="h-4 w-4" />
               สร้างสินค้าใหม่
             </Button>
           </Link>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 

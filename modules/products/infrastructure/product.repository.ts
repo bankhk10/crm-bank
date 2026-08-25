@@ -55,7 +55,12 @@ export async function findProducts(params: ListProductsParams) {
     where.id = { in: ids };
   }
 
-  if (status && (status === "ACTIVE" || status === "INACTIVE")) {
+  if (
+    status &&
+    (status === "ACTIVE" ||
+      status === "INACTIVE" ||
+      status === "PENDING_APPROVAL")
+  ) {
     where.status = status;
   }
 
@@ -214,6 +219,12 @@ export async function findProductById(id: string) {
       productABCType: true,
       tradeNameGroup: true,
       productGroup: true,
+      approvedBy: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       parent: {
         select: {
           id: true,
@@ -256,7 +267,7 @@ export async function createProduct(data: {
   packageSizeUnit?: string | null;
   packageSizePerBox?: string | number | null;
   totalPackageSizePerBox?: string | number | null;
-  status: "ACTIVE" | "INACTIVE";
+  status: "ACTIVE" | "INACTIVE" | "PENDING_APPROVAL";
   usedForPlants: string[];
   salesPoint?: string;
   properties?: string;
@@ -286,9 +297,17 @@ export async function createProduct(data: {
       categoryId: data.categoryId || null,
       productABCTypeId: data.productABCTypeId || null,
       parentId: data.parentId || null,
+      stock: {
+        create: {
+          physicalBalance: 0,
+          reservedQuantity: 0,
+          availableQuantity: 0,
+        },
+      },
     },
     include: {
       images: true,
+      stock: true,
     },
   } as any);
 }
@@ -679,3 +698,38 @@ export async function findOrCreateTradeNameGroup(
     return fallback?.id ?? null;
   }
 }
+
+/**
+ * Approve a product, changing its status to ACTIVE and recording approval audit info.
+ */
+export async function approveProduct(id: string, approverId?: string | null) {
+  return db.product.update({
+    where: { id },
+    data: {
+      status: "ACTIVE",
+      approvedAt: new Date(),
+      ...(approverId ? { approvedById: approverId } : {}),
+    },
+    include: {
+      approvedBy: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+}
+
+/**
+ * Count products currently waiting for approval.
+ */
+export async function findPendingApprovalProductsCount() {
+  return db.product.count({
+    where: {
+      status: "PENDING_APPROVAL",
+      deletedAt: null,
+    },
+  });
+}
+

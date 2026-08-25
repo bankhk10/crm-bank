@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import GalleryUpload from "@/components/custom/gallery-upload";
 
-
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
@@ -17,6 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Clock, Power } from "lucide-react";
 import {
   FormInput,
   FormSelect,
@@ -25,7 +26,8 @@ import {
 } from "@/components/custom/form-components";
 import FormActions from "@/components/custom/form-actions";
 import { MultiSelect } from "@/components/custom/multi-select";
-import { STATUS_OPTIONS, type ProductFormData } from "@/modules/products/types";
+import { type ProductFormData } from "@/modules/products/types";
+import { STATUS_OPTIONS } from "@/modules/products/constants";
 
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 
@@ -70,7 +72,7 @@ export function ProductForm({
     packageSize: initialData?.packageSize || "",
     packageSizeUnit: initialData?.packageSizeUnit || "G",
     packageSizePerBox: initialData?.packageSizePerBox || "",
-    status: initialData?.status || "ACTIVE",
+    status: initialData?.status || (isEdit ? "ACTIVE" : "PENDING_APPROVAL"),
     usedForPlants: initialData?.usedForPlants || [],
     salesPoint: initialData?.salesPoint || "",
     properties: initialData?.properties || "",
@@ -142,17 +144,17 @@ export function ProductForm({
         console.error("Failed to fetch options:", err);
       }
       try {
-        const res = await fetch('/api/products?page=1&perPage=1000');
+        const res = await fetch("/api/products?page=1&perPage=1000");
         const data = await res.json();
         if (data?.products) {
           const parentItems = data.products
             .filter((p: any) => p.id !== productId)
-            .map((p: any) => ({ value: p.id, label: `${p.productCode} - ${p.name}` }));
+            .map((p: any) => ({
+              value: p.id,
+              label: `${p.productCode} - ${p.name}`,
+            }));
 
-          setParentOptions([
-            { value: "none", label: "ไม่มี" },
-            ...parentItems
-          ]);
+          setParentOptions([{ value: "none", label: "ไม่มี" }, ...parentItems]);
         }
       } catch (err) {
         console.error("Failed to fetch products:", err);
@@ -164,8 +166,12 @@ export function ProductForm({
 
   // Calculate total package size per box when packageSize, packageSizeUnit, or packageSizePerBox changes
   useEffect(() => {
-    const packageSizeValue = parseFloat(formData.packageSize?.toString() || "0");
-    const packageSizePerBox = parseFloat(formData.packageSizePerBox?.toString() || "0");
+    const packageSizeValue = parseFloat(
+      formData.packageSize?.toString() || "0",
+    );
+    const packageSizePerBox = parseFloat(
+      formData.packageSizePerBox?.toString() || "0",
+    );
 
     if (packageSizeValue && packageSizePerBox) {
       const total = packageSizeValue * packageSizePerBox;
@@ -181,7 +187,11 @@ export function ProductForm({
         totalPackageSizePerBox: "",
       }));
     }
-  }, [formData.packageSize, formData.packageSizeUnit, formData.packageSizePerBox]);
+  }, [
+    formData.packageSize,
+    formData.packageSizeUnit,
+    formData.packageSizePerBox,
+  ]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -252,7 +262,10 @@ export function ProductForm({
         coverIndex: formData.coverIndex ?? undefined,
         categoryId: (formData as any).categoryId || undefined,
         productABCTypeId: (formData as any).productABCTypeId || undefined,
-        parentId: (formData as any).parentId === "none" ? null : ((formData as any).parentId || undefined),
+        parentId:
+          (formData as any).parentId === "none"
+            ? null
+            : (formData as any).parentId || undefined,
       };
 
       const url = isEdit ? `/api/products/${productId}` : "/api/products";
@@ -263,8 +276,8 @@ export function ProductForm({
         if (!result.success) {
           setError(
             result.error ??
-            Object.values(result.issues ?? {})[0]?.[0] ??
-            "Server error",
+              Object.values(result.issues ?? {})[0]?.[0] ??
+              "Server error",
           );
           setLoading(false);
           setUploadProgress(null);
@@ -330,9 +343,12 @@ export function ProductForm({
             }
           }
 
-
-
-          toast.success(successMessage || (isEdit ? "บันทึกการแก้ไขเรียบร้อยแล้ว" : "สร้างสินค้าใหม่เรียบร้อยแล้ว"));
+          toast.success(
+            successMessage ||
+              (isEdit
+                ? "บันทึกการแก้ไขเรียบร้อยแล้ว"
+                : "สร้างสินค้าใหม่เรียบร้อยแล้ว"),
+          );
           setTimeout(() => {
             router.push(redirectPath || "/products");
             router.refresh();
@@ -415,8 +431,12 @@ export function ProductForm({
           }
         }
 
-
-        toast.success(successMessage || (isEdit ? "บันทึกการแก้ไขเรียบร้อยแล้ว" : "สร้างสินค้าใหม่เรียบร้อยแล้ว"));
+        toast.success(
+          successMessage ||
+            (isEdit
+              ? "บันทึกการแก้ไขเรียบร้อยแล้ว"
+              : "สร้างสินค้าใหม่เรียบร้อยแล้ว (สถานะ: รออนุมัติ)"),
+        );
 
         setTimeout(() => {
           router.push(redirectPath || "/products");
@@ -430,8 +450,6 @@ export function ProductForm({
       setUploadProgress(null);
     }
   };
-
-
 
   const updateField = (field: keyof ProductFormData, value: any) => {
     let cleanValue = value;
@@ -525,8 +543,6 @@ export function ProductForm({
         </Alert>
       )}
 
-
-
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลสินค้า
       </h3>
@@ -610,7 +626,12 @@ export function ProductForm({
         />
 
         <div className="space-y-2">
-          <Label className={cn("text-base font-medium mx-2", errors.packageSize && "text-red-600")}>
+          <Label
+            className={cn(
+              "text-base font-medium mx-2",
+              errors.packageSize && "text-red-600",
+            )}
+          >
             ขนาดบรรจุ
             <span className="text-red-500 ml-1">*</span>
           </Label>
@@ -625,7 +646,9 @@ export function ProductForm({
             />
             <Select
               value={formData.packageSizeUnit || "G"}
-              onValueChange={(newUnit) => setFormData(prev => ({ ...prev, packageSizeUnit: newUnit }))}
+              onValueChange={(newUnit) =>
+                setFormData((prev) => ({ ...prev, packageSizeUnit: newUnit }))
+              }
               disabled={loading}
             >
               <SelectTrigger className="w-[140px]">
@@ -640,7 +663,9 @@ export function ProductForm({
               </SelectContent>
             </Select>
           </div>
-          {errors.packageSize && <p className="text-xs text-red-600 mt-1">{errors.packageSize}</p>}
+          {errors.packageSize && (
+            <p className="text-xs text-red-600 mt-1">{errors.packageSize}</p>
+          )}
         </div>
 
         <FormInput
@@ -655,7 +680,9 @@ export function ProductForm({
         />
 
         <div className="space-y-2">
-          <Label className="text-base font-medium mx-2">ขนาดบรรจุรวมต่อลัง</Label>
+          <Label className="text-base font-medium mx-2">
+            ขนาดบรรจุรวมต่อลัง
+          </Label>
           <div className="flex gap-2">
             <Input
               value={formData.totalPackageSizePerBox || ""}
@@ -665,7 +692,9 @@ export function ProductForm({
               className="bg-gray-50 flex-1"
             />
             <div className="w-[140px] flex items-center justify-center border rounded-md bg-gray-100 text-gray-500 text-sm font-medium">
-              {PACKAGE_UNIT_OPTIONS.find(opt => opt.value === formData.packageSizeUnit)?.label || formData.packageSizeUnit}
+              {PACKAGE_UNIT_OPTIONS.find(
+                (opt) => opt.value === formData.packageSizeUnit,
+              )?.label || formData.packageSizeUnit}
             </div>
           </div>
         </div>
@@ -698,21 +727,77 @@ export function ProductForm({
           disabled={loading}
         />
 
-
-        <FormSelect
-          label="สถานะสินค้า"
-          value={formData.status}
-          onChange={(v) =>
-            setFormData((prev) => ({
-              ...prev,
-              status: v as "ACTIVE" | "INACTIVE",
-            }))
-          }
-          options={STATUS_OPTIONS}
-          placeholder="เลือกสถานะ"
-          groupLabel="สถานะ"
-          disabled={loading}
-        />
+        <div className="space-y-2">
+          <Label className="text-base font-medium mx-2">สถานะสินค้า</Label>
+          {!isEdit ? (
+            <div className="flex items-center gap-3 p-3.5 rounded-xl border border-amber-200 bg-amber-50/60 min-h-[58px]">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                <Clock className="h-4 w-4" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-amber-900">
+                  รออนุมัติ (เมื่อสร้างใหม่)
+                </p>
+                <p className="text-xs text-amber-700 mt-0.5">
+                  สินค้าใหม่จะถูกส่งไปยังหน้าตรวจสอบและอนุมัติก่อนเปิดใช้งาน
+                </p>
+              </div>
+            </div>
+          ) : formData.status === "PENDING_APPROVAL" ? (
+            <div className="flex items-center justify-between p-3.5 rounded-xl border border-amber-200 bg-amber-50/60 min-h-[58px]">
+              <div className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                  <Clock className="h-4 w-4" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-amber-900">
+                    รออนุมัติ (PENDING APPROVAL)
+                  </p>
+                  <p className="text-xs text-amber-700 mt-0.5">
+                    สินค้านี้ต้องผ่านการอนุมัติจากหน้าตรวจสอบก่อนจึงจะเปิดใช้งานได้
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 min-h-[58px]">
+              <div className="flex items-center gap-3">
+                <span
+                  className={cn(
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
+                    formData.status === "ACTIVE"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-slate-200 text-slate-600",
+                  )}
+                >
+                  <Power className="h-4 w-4" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">
+                    {formData.status === "ACTIVE"
+                      ? "เปิดใช้งาน (ACTIVE)"
+                      : "ปิดใช้งาน (INACTIVE)"}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {formData.status === "ACTIVE"
+                      ? "สินค้าพร้อมสำหรับเปิดใบสั่งขายและทำรายการในระบบ"
+                      : "พักการขายชั่วคราว / ปิดการใช้งานสินค้านี้"}
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={formData.status === "ACTIVE"}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    status: checked ? "ACTIVE" : "INACTIVE",
+                  }))
+                }
+                disabled={loading}
+              />
+            </div>
+          )}
+        </div>
 
         <FormTextarea
           label="จุดขายสินค้า"
@@ -775,8 +860,6 @@ export function ProductForm({
         submitLabel="บันทึก"
         className="pt-6 sm:pt-8 border-t mt-6 sm:mt-8"
       />
-
-
     </form>
   );
 }

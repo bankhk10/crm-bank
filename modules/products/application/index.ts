@@ -113,6 +113,7 @@ export async function getProductFormOptionsUseCase() {
 export { createProductUseCase } from "./create-product";
 export { updateProductUseCase } from "./update-product";
 export { manageProductUseCase } from "./manage-product";
+export { approveProductUseCase } from "./approve-product";
 
 // Stock Management
 export {

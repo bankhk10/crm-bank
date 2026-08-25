@@ -281,3 +281,37 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
   return { sales, targets };
 }
 
+export async function getProductStockExportRecords() {
+  const products = await db.product.findMany({
+    where: {
+      deletedAt: null,
+    },
+    include: {
+      stock: true,
+    },
+    orderBy: {
+      productCode: "asc",
+    },
+  });
+
+  return products.map((product) => {
+    const physical = product.stock?.physicalBalance ?? 0;
+    const reserved = product.stock?.reservedQuantity ?? 0;
+    const available = product.stock
+      ? product.stock.availableQuantity
+      : physical - reserved;
+
+    return {
+      productCode: product.productCode,
+      productName: product.name,
+      unit: product.unit || "-",
+      price: product.price ? Number(product.price) : 0,
+      cartonPrice: product.cartonPrice ? Number(product.cartonPrice) : 0,
+      physicalStock: physical,
+      reservedStock: reserved,
+      availableStock: available,
+    };
+  });
+}
+
+

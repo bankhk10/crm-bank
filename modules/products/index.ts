@@ -39,6 +39,8 @@ export {
   manageProductAction,
   deleteProductAction,
   getProductFormOptionsAction,
+  approveProductAction,
+  getPendingApprovalProductsCountAction,
 } from "./server/actions";
 
 // UI Components
@@ -48,6 +50,7 @@ export { ProductStatusBadge, statusStyle } from "./ui/product-status-badge";
 export { ProductsTable } from "./features/list-view/products-table";
 export { useProductColumns } from "./features/list-view/use-product-columns";
 export { default as ProductsListView } from "./features/list-view/products-list-view";
+export { default as ProductApprovalListView } from "./features/approval-view/product-approval-list-view";
 
 // Features - Detail View
 export { default as ProductDetailView } from "./features/detail-view/product-detail-view";

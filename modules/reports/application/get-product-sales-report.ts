@@ -99,11 +99,43 @@ export async function getProductSalesReport(filter: DateRangeFilter, session: an
   // Unit conversion to liters
   const convertToLiters = (value: number, unit: string): number => {
     const u = unit.toUpperCase().trim();
-    if (u === "L") return value;
-    if (u === "ML" || u === "CC") return value / 1000;
-    if (u === "KG") return value; // KG kept as-is (weight), user converts on UI
-    if (u === "G") return value / 1000; // G→KG equivalent, user converts on UI
-    return 0;
+    if (
+      [
+        "ML",
+        "CC",
+        "G",
+        "GM",
+        "GR",
+        "มล.",
+        "มล",
+        "ซีซี",
+        "กรัม",
+        "ML.",
+        "G.",
+      ].includes(u)
+    ) {
+      return value / 1000;
+    }
+    if (
+      [
+        "L",
+        "KG",
+        "กก.",
+        "กก",
+        "ลิตร",
+        "กิโลกรัม",
+        "L.",
+        "KG.",
+        "LTR",
+        "LITER",
+        "LITRE",
+        "KILO",
+        "KILOGRAM",
+      ].includes(u)
+    ) {
+      return value;
+    }
+    return value;
   };
   // 1. Get all active products first
   const activeProducts = await repo.findManyProductsData({

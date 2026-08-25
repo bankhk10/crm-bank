@@ -48,6 +48,113 @@ function formatCustomerName(name?: string | null): string {
 }
 
 
+function roundNumber(num: number, decimals: number = 4): number {
+  const factor = Math.pow(10, decimals);
+  return Math.round((num + Number.EPSILON) * factor) / factor;
+}
+
+/**
+ * Calculate volume/weight in Liters (L) or Kilograms (KG) per sales unit and total sold
+ */
+export function calculateLitersOrKg(item: {
+  quantity?: number | null;
+  packageSize?: number | string | null;
+  packageSizeUnit?: string | null;
+  packageSizePerBox?: number | string | null;
+  totalPackageSizePerBox?: number | string | null;
+  unit?: string | null;
+  product?: {
+    packageSize?: number | string | null;
+    packageSizeUnit?: string | null;
+    packageSizePerBox?: number | string | null;
+    totalPackageSizePerBox?: number | string | null;
+    unit?: string | null;
+  } | null;
+}): { litersOrKgPerUnit: number | string; totalLitersOrKg: number | string } {
+  const pkgSize = Number(item.packageSize ?? item.product?.packageSize);
+  const perBox = Number(
+    item.packageSizePerBox ?? item.product?.packageSizePerBox ?? 1,
+  );
+
+  let baseTotalPerBox = Number(
+    item.totalPackageSizePerBox ?? item.product?.totalPackageSizePerBox,
+  );
+
+  if (!baseTotalPerBox || isNaN(baseTotalPerBox)) {
+    if (!isNaN(pkgSize) && pkgSize > 0) {
+      baseTotalPerBox = pkgSize * (!isNaN(perBox) && perBox > 0 ? perBox : 1);
+    } else {
+      baseTotalPerBox = 0;
+    }
+  }
+
+  const rawUnit = (
+    item.packageSizeUnit ??
+    item.product?.packageSizeUnit ??
+    item.unit ??
+    item.product?.unit ??
+    ""
+  )
+    .trim()
+    .toUpperCase();
+
+  if (baseTotalPerBox === 0 && (isNaN(pkgSize) || pkgSize === 0)) {
+    return {
+      litersOrKgPerUnit: "-",
+      totalLitersOrKg: "-",
+    };
+  }
+
+  let convertedPerUnit = baseTotalPerBox;
+
+  if (
+    [
+      "ML",
+      "CC",
+      "G",
+      "GM",
+      "GR",
+      "มล.",
+      "มล",
+      "ซีซี",
+      "กรัม",
+      "ML.",
+      "G.",
+    ].includes(rawUnit)
+  ) {
+    convertedPerUnit = baseTotalPerBox / 1000;
+  } else if (
+    [
+      "L",
+      "KG",
+      "กก.",
+      "กก",
+      "ลิตร",
+      "กิโลกรัม",
+      "L.",
+      "KG.",
+      "LTR",
+      "LITER",
+      "LITRE",
+      "KILO",
+      "KILOGRAM",
+    ].includes(rawUnit)
+  ) {
+    convertedPerUnit = baseTotalPerBox;
+  } else {
+    convertedPerUnit = baseTotalPerBox;
+  }
+
+  const roundedPerUnit = roundNumber(convertedPerUnit, 4);
+  const quantity = item.quantity || 0;
+  const totalLitersOrKg = roundNumber(quantity * roundedPerUnit, 4);
+
+  return {
+    litersOrKgPerUnit: roundedPerUnit,
+    totalLitersOrKg: totalLitersOrKg,
+  };
+}
+
 export async function buildSalesAdminExportWorkbook(
   exportData: any[] | { sales?: any[]; targets?: any[] },
 ): Promise<string> {
@@ -168,16 +275,8 @@ export async function buildSalesAdminExportWorkbook(
             ? `${Number(pkgSizeRaw)} ${pkgUnitRaw}`.trim()
             : "";
 
-        const totalPerBox = Number(
-          item.totalPackageSizePerBox ??
-            item.packageSizePerBox ??
-            item.product?.totalPackageSizePerBox ??
-            item.product?.packageSizePerBox ??
-            0,
-        );
-
+        const { litersOrKgPerUnit, totalLitersOrKg } = calculateLitersOrKg(item);
         const quantityNum = item.quantity || 0;
-        const totalBoxSold = quantityNum * totalPerBox;
 
         worksheet.addRow({
           year: saleYear,
@@ -189,14 +288,14 @@ export async function buildSalesAdminExportWorkbook(
           productCode: item.productCode || "",
           tradeNameStr: tradeNameStr,
           packageSizeStr: packageSizeStr,
-          totalPerBox: totalPerBox,
+          totalPerBox: litersOrKgPerUnit,
 
           employeeNickname: sale.employee?.nickname || "",
           regionStr: regionStr,
           customerName: customerName,
           province: sale.customer?.province || "",
           quantityNum: quantityNum,
-          totalBoxSold: totalBoxSold,
+          totalBoxSold: totalLitersOrKg,
           totalItemPrice: Number(item.totalPrice) || 0,
           paymentDateStr: paymentDateStr,
           salesOrderNo: salesOrderNo,
@@ -227,14 +326,14 @@ export async function buildSalesAdminExportWorkbook(
         productCode: "-",
         tradeNameStr: "-",
         packageSizeStr: "-",
-        totalPerBox: 0,
+        totalPerBox: "-",
 
         employeeNickname: sale.employee?.nickname || "",
         regionStr: regionStr,
         customerName: customerName,
         province: sale.customer?.province || "",
         quantityNum: 0,
-        totalBoxSold: 0,
+        totalBoxSold: "-",
         totalItemPrice: 0,
         paymentDateStr: paymentDateStr,
         salesOrderNo: salesOrderNo,
@@ -303,14 +402,12 @@ export async function buildSalesAdminExportWorkbook(
                 ? `${Number(pkgSizeRaw)} ${pkgUnitRaw}`.trim()
                 : "";
 
-            const totalPerBox = Number(
-              product?.totalPackageSizePerBox ??
-                product?.packageSizePerBox ??
-                0,
-            );
+            const { litersOrKgPerUnit, totalLitersOrKg } = calculateLitersOrKg({
+              quantity: item.qtyPerBox,
+              product: product,
+            });
 
             const quantityNum = item.qtyPerBox || 0;
-            const totalBoxSold = quantityNum * totalPerBox;
             const pricePerBox = Number(item.pricePerBox) || 0;
             const targetAmount = Number(item.targetAmount) || 0;
 
@@ -324,14 +421,14 @@ export async function buildSalesAdminExportWorkbook(
               productCode: product?.productCode || "",
               tradeNameStr: tradeNameStr,
               packageSizeStr: packageSizeStr,
-              totalPerBox: totalPerBox,
+              totalPerBox: litersOrKgPerUnit,
 
               employeeNickname: employeeNickname,
               regionStr: regionStr,
               customerName: customerName,
               province: province,
               quantityNum: quantityNum,
-              totalBoxSold: totalBoxSold,
+              totalBoxSold: totalLitersOrKg,
               totalItemPrice: targetAmount,
               paymentDateStr: pricePerBox,
               salesOrderNo: "-",
@@ -362,14 +459,14 @@ export async function buildSalesAdminExportWorkbook(
             productCode: "-",
             tradeNameStr: "-",
             packageSizeStr: "-",
-            totalPerBox: 0,
+            totalPerBox: "-",
 
             employeeNickname: employeeNickname,
             regionStr: regionStr,
             customerName: customerName,
             province: province,
             quantityNum: 0,
-            totalBoxSold: 0,
+            totalBoxSold: "-",
             totalItemPrice: 0,
             paymentDateStr: 0,
             salesOrderNo: "-",
@@ -393,9 +490,9 @@ export async function buildSalesAdminExportWorkbook(
     }
   }
 
-  // Set Angsana New font for all rows and cells
+  // Set Angsana New font for all rows and cells, format numbers & alignments
   worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
-    row.eachCell({ includeEmpty: true }, (cell) => {
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
       cell.font = {
         name: "Angsana New",
         size: 14,
@@ -403,10 +500,37 @@ export async function buildSalesAdminExportWorkbook(
       };
       cell.alignment = {
         vertical: "middle",
+        horizontal:
+          rowNumber === 1
+            ? "center"
+            : [1, 2, 3, 4, 7, 11, 12, 14, 18, 19, 20, 22, 24, 26].includes(
+                colNumber,
+              )
+              ? "center"
+              : [10, 15, 16, 17, 23, 27, 28, 29, 30].includes(colNumber)
+                ? "right"
+                : "left",
       };
+
+      // Number formatting for numeric columns when row > 1
+      if (rowNumber > 1 && typeof cell.value === "number") {
+        if (colNumber === 10 || colNumber === 16) {
+          // ลิตร/กก. and ผลรวมลิตร/กก. (ถ้าเป็นจำนวนเต็มไม่แสดงจุดทศนิยม เช่น 6, ถ้ามีทศนิยมแสดงตามจริง เช่น 1.2)
+          cell.numFmt = Number.isInteger(cell.value) ? "#,##0" : "#,##0.####";
+        } else if (colNumber === 15) {
+          // SALES BY Q (Carton)
+          cell.numFmt = "#,##0";
+        } else if (
+          [17, 23, 27, 28, 29, 30].includes(colNumber)
+        ) {
+          // Money fields
+          cell.numFmt = "#,##0.00";
+        }
+      }
     });
   });
 
   const buffer = await workbook.xlsx.writeBuffer();
   return Buffer.from(buffer).toString("base64");
 }
+

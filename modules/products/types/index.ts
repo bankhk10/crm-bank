@@ -3,7 +3,7 @@
  * Type definitions for product feature components
  */
 
-export type ProductStatus = "ACTIVE" | "INACTIVE";
+export type ProductStatus = "ACTIVE" | "INACTIVE" | "PENDING_APPROVAL";
 
 export interface ProductGroup {
   id: string;
@@ -122,6 +122,8 @@ export interface Product {
   cartonPrice: number | null;
   promotionBudget: number | null;
   pointPerUnit: number | null;
+  approvedAt?: Date | string | null;
+  approvedById?: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
   deletedAt: Date | string | null;
@@ -134,6 +136,7 @@ export interface Product {
   productABCType?: ProductABCType | null;
   tradeNameGroup?: TradeNameGroup | null;
   productGroup?: ProductGroup | null;
+  approvedBy?: { id: string; name: string } | null;
   parent?: Pick<Product, "id" | "productCode" | "name"> | null;
   images?: ProductImage[];
   promotionItems?: ProductPromotionItem[];
@@ -212,11 +215,6 @@ export interface ProductManagementFormData {
   }>;
 }
 
-export const STATUS_OPTIONS = [
-  { value: "ACTIVE", label: "ใช้งาน" },
-  { value: "INACTIVE", label: "ไม่ใช้งาน" },
-];
-
 export const STORAGE_LOCATION_OPTIONS = [
   { value: "คลังบางเลน", label: "คลังบางเลน" },
   // { value: "คลังบางเลน B", label: "คลังบางเลน B" },
@@ -273,6 +271,9 @@ export interface ProductsTableProps {
   canDelete: boolean;
   canManage?: boolean;
   canViewStock?: boolean;
+  canApprove?: boolean;
+  onApproveRequest?: (product: ProductRecord) => void;
+  pendingApprovalCount?: number;
   onDeleteRequest: (product: ProductRecord) => void;
   searchValue: string;
   onSearchChange: (value: string) => void;

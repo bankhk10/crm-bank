@@ -117,6 +117,7 @@ model User {
   activityPlans                  ActivityPlan[]           @relation("UserActivityPlans")
   activityApprovalLogs           ActivityApprovalLog[]    @relation("UserActivityApprovalLogs")
   activityResults                ActivityResult[]         @relation("UserActivityResults")
+  approvedProducts               Product[]                @relation("ProductApprovedByUser")
 }
 
 model Company {
@@ -625,6 +626,7 @@ model Plant {
 enum ProductStatus {
   ACTIVE
   INACTIVE
+  PENDING_APPROVAL
 }
 
 model Product {
@@ -639,7 +641,7 @@ model Product {
   packageSizeUnit        String?
   packageSizePerBox      Decimal?      @db.Decimal(15, 3)
   totalPackageSizePerBox Decimal?      @db.Decimal(15, 3)
-  status                 ProductStatus @default(ACTIVE)
+  status                 ProductStatus @default(PENDING_APPROVAL)
   usedForPlants          String[]
   salesPoint             String?
   properties             String?
@@ -647,6 +649,8 @@ model Product {
   cartonPrice            Decimal?      @db.Decimal(15, 2)
   promotionBudget        Decimal?      @db.Decimal(15, 2)
   pointPerUnit           Int           @default(0)
+  approvedAt             DateTime?
+  approvedById           String?
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @updatedAt
   deletedAt              DateTime?
@@ -660,6 +664,7 @@ model Product {
   productABCType ProductABCTypes? @relation(fields: [productABCTypeId], references: [id], onDelete: SetNull)
   tradeNameGroup TradeNameGroup?  @relation(fields: [tradeNameGroupId], references: [id], onDelete: SetNull)
   productGroup   ProductGroup?    @relation(fields: [productGroupId], references: [id], onDelete: SetNull)
+  approvedBy     User?            @relation("ProductApprovedByUser", fields: [approvedById], references: [id], onDelete: SetNull)
 
   images               ProductImage[]
   promotionItems       ProductPromotionItem[]

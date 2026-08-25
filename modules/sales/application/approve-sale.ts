@@ -6,6 +6,7 @@
  */
 
 import { db } from "@/lib/db";
+import { upsertProductStock } from "@/modules/products/infrastructure/stock.repository";
 import type { SaleDetailResponse } from "../types";
 
 // ─────────────────────────────────────────────
@@ -179,13 +180,17 @@ export async function approveSaleUseCase(
 
     // Reserve stock for each item
     for (const item of sale.items) {
-      await tx.productStock.updateMany({
-        where: { productId: item.productId },
-        data: {
-          reservedQuantity: { increment: Number(item.quantity) },
-          availableQuantity: { decrement: Number(item.quantity) },
-        },
-      });
+      const qty = Number(item.quantity);
+      if (qty > 0) {
+        await upsertProductStock(
+          item.productId,
+          {
+            reservedQuantityIncrement: qty,
+            availableQuantityIncrement: -qty,
+          },
+          tx,
+        );
+      }
     }
 
     // Deduct credit limit (non-PREPAID)

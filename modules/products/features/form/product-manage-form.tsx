@@ -114,7 +114,7 @@ const PriceManagementSection: React.FC<SectionProps> = ({
 
       <div className="space-y-6">
         {/* แถวราคา */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* ราคาต่อหน่วย */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">ราคาต่อหน่วย (บาท)</Label>
@@ -180,12 +180,33 @@ const PriceManagementSection: React.FC<SectionProps> = ({
               *คำนวณอัตโนมัติจาก ราคาต่อหน่วย × จำนวนบรรจุต่อลัง
             </p>
           </div>
-        </div>
 
-        {/* แถวอื่น ๆ */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* งบส่งเสริมการขาย */}
+          {/* คะแนน */}
           <div className="space-y-2">
+            <Label className="text-sm font-medium">คะแนน</Label>
+            <Input
+              type="number"
+              min={0}
+              placeholder="0"
+              value={formData.pointPerUnit ?? ""}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  pointPerUnit: e.target.value
+                    ? Number(e.target.value)
+                    : undefined,
+                }))
+              }
+              disabled={saving}
+              className="h-12 text-lg w-auto"
+              onWheel={(e) => e.currentTarget.blur()}
+            />
+            <p className="text-xs text-muted-foreground">
+              ใช้คำนวณคะแนนสะสมของพนักงานต่อสินค้าที่ขายได้
+            </p>
+          </div>
+
+          {/* <div className="space-y-2">
             <Label className="text-sm font-medium">
               งบส่งเสริมการขายต่อลัง (บาท)
             </Label>
@@ -209,32 +230,7 @@ const PriceManagementSection: React.FC<SectionProps> = ({
                 ฿
               </div>
             </div>
-          </div>
-
-          {/* คะแนน */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">คะแนน</Label>
-            <Input
-              type="number"
-              min={0}
-              placeholder="0"
-              value={formData.pointPerUnit ?? ""}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  pointPerUnit: e.target.value
-                    ? Number(e.target.value)
-                    : undefined,
-                }))
-              }
-              disabled={saving}
-              className="h-12 text-lg"
-              onWheel={(e) => e.currentTarget.blur()}
-            />
-            <p className="text-xs text-muted-foreground">
-              ใช้สำหรับคำนวณคะแนนสะสมของพนักงานต่อสินค้าที่ขายได้
-            </p>
-          </div>
+          </div> */}
         </div>
       </div>
     </Card>

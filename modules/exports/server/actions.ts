@@ -3,6 +3,7 @@
 import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { hasPermission } from "@/lib/permission-check";
 import {
+  getProductStockExportRecords,
   getSalesAdminExportRecords,
   type ExportFilterParams,
 } from "../infrastructure/export.repository";
@@ -11,6 +12,7 @@ import { format } from "date-fns";
 
 import { exportPendingDeliveriesUseCase } from "@/modules/fulfillment/application";
 import { buildPendingDeliveriesExportWorkbook } from "../application/export-pending-deliveries";
+import { buildProductStockExportWorkbook } from "../application/export-product-stock";
 
 export interface ActionResult<T> {
   success: boolean;
@@ -98,5 +100,49 @@ export async function exportPendingDeliveriesAction(): Promise<
     };
   }
 }
+
+/**
+ * Server action to export Product Stock data
+ * Requires permission: export.sales_admin, product.stock.view, product.view, or menu.products
+ */
+export async function exportProductStockAction(): Promise<
+  ActionResult<ExportFileResult>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return { success: false, error: "กรุณาเข้าสู่ระบบก่อนใช้งาน" };
+    }
+
+    if (
+      !hasPermission(session, "export.sales_admin") &&
+      !hasPermission(session, "product.stock.view") &&
+      !hasPermission(session, "product.view") &&
+      !hasPermission(session, "menu.products")
+    ) {
+      return {
+        success: false,
+        error: "คุณไม่มีสิทธิ์ในการส่งออกข้อมูลสต็อกสินค้า",
+      };
+    }
+
+    const records = await getProductStockExportRecords();
+    const base64 = await buildProductStockExportWorkbook(records);
+    const dateStr = format(new Date(), "yyyyMMdd-HHmm");
+    const filename = `product-stock-export-${dateStr}.xlsx`;
+
+    return {
+      success: true,
+      data: { filename, base64 },
+    };
+  } catch (err: any) {
+    console.error("exportProductStockAction error:", err);
+    return {
+      success: false,
+      error: err.message || "เกิดข้อผิดพลาดในการส่งออกข้อมูลสต็อกสินค้า",
+    };
+  }
+}
+
 
 
