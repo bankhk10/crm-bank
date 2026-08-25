@@ -100,6 +100,10 @@ export default function ActivityPlanDetailView({ id }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(
+    new Set(),
+  );
+  const [showAllLogs, setShowAllLogs] = useState(false);
 
   // Load details
   async function loadData() {
@@ -296,77 +300,112 @@ export default function ActivityPlanDetailView({ id }: Props) {
   const salesPromotions = extractSalesPromotions(plan);
   const requisitions = extractRequisitions(plan);
 
+  // Toggle accordion section
+  const toggleSection = (typeIndex: number) => {
+    setExpandedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(typeIndex)) next.delete(typeIndex);
+      else next.add(typeIndex);
+      return next;
+    });
+  };
+
+  // Approval logs - show limited or all
+  const sortedLogs = [...plan.approvalLogs].reverse();
+  const visibleLogs = showAllLogs ? sortedLogs : sortedLogs.slice(0, 3);
+
   return (
-    <section className="space-y-6 p-4 md:p-6 pb-28 md:pb-12 max-w-6xl mx-auto">
-      {/* ──────────────────────────────────────────────────────── */}
-      {/* TOP ACTION BAR & TITLE */}
-      {/* ──────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+    <section className="space-y-5 p-4 md:p-6 pb-28 md:pb-12 max-w-6xl mx-auto">
+      {/* ════════════════════════════════════════════════════════ */}
+      {/* 1. HEADER                                               */}
+      {/* ════════════════════════════════════════════════════════ */}
+      <div className="space-y-3">
+        {/* Back + Code + Status row */}
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
-            variant="outline"
-            size="icon"
+            variant="ghost"
+            size="sm"
             onClick={() => router.push("/activity-plans")}
-            className="rounded-full h-9 w-9 flex-shrink-0"
-            title="กลับหน้ารายการแผนงาน"
+            className="text-slate-500 hover:text-slate-800 -ml-2 h-8 px-2"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            รายการแผนงาน
           </Button>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-md">
-                {plan.code || plan.id.slice(0, 8)}
-              </span>
-              <ActivityStatusBadge status={plan.status} />
+          <span className="text-slate-300">|</span>
+          <span className="font-mono text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
+            {plan.code || plan.id.slice(0, 8)}
+          </span>
+          <ActivityStatusBadge status={plan.status} />
+        </div>
+
+        {/* Title + Badges + Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+          <div className="space-y-1.5 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight">
+              {plan.title}
+            </h1>
+            <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
               {(plan.activityType as any)?.name && (
                 <Badge
                   variant="outline"
-                  className="text-xs bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold"
+                  className="text-[11px] bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold"
                 >
                   {(plan.activityType as any).name}
                 </Badge>
               )}
-              {plan.durationDays > 1 && (
-                <Badge
-                  variant="outline"
-                  className="text-xs bg-slate-50 text-slate-700"
-                >
-                  {plan.durationDays} วัน
-                </Badge>
-              )}
-            </div>
-            <h1 className="text-lg sm:text-2xl font-extrabold text-slate-900 mt-1 leading-tight">
-              {plan.title}
-            </h1>
-          </div>
-        </div>
-
-        {/* Action Button Group */}
-        <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto">
-          {(plan.status === "DRAFT" ||
-            plan.status === "WAITING_FOR_CORRECTION") &&
-            (plan.createdById === session?.user?.id || isAdmin) && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push(`/activity-plans/${plan.id}/edit`)}
-                className="text-xs font-semibold gap-1.5 border-slate-300"
+              <span className="inline-flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {format(start, "dd MMM yyyy", { locale: th })}
+                {plan.durationDays > 1 &&
+                  ` — ${format(end, "dd MMM yyyy", { locale: th })}`}
+              </span>
+              <span>•</span>
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {plan.durationDays} วัน
+              </span>
+              <span>•</span>
+              <span
+                className="inline-flex items-center gap-1 truncate max-w-[200px]"
+                title={plan.location}
               >
-                <Edit className="h-3.5 w-3.5" />
-                แก้ไขแผนงาน
-              </Button>
-            )}
+                <MapPin className="h-3 w-3 shrink-0" />
+                {plan.province || plan.location}
+              </span>
+            </div>
+          </div>
 
-          <Button
-            size="sm"
-            onClick={() => router.push(`/activity-plans/${plan.id}/actual`)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 text-xs font-bold shadow-sm"
-          >
-            <ClipboardList className="h-4 w-4" />
-            {plan.result
-              ? "ดู / แก้ไขผลปฏิบัติงาน (Actual)"
-              : "บันทึกผลปฏิบัติงาน (Actual)"}
-          </Button>
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {(plan.status === "DRAFT" ||
+              plan.status === "WAITING_FOR_CORRECTION") &&
+              (plan.createdById === session?.user?.id || isAdmin) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    router.push(`/activity-plans/${plan.id}/edit`)
+                  }
+                  className="text-xs font-semibold gap-1.5 border-slate-300"
+                >
+                  <Edit className="h-3.5 w-3.5" />
+                  แก้ไขแผนงาน
+                </Button>
+              )}
+
+            <Button
+              size="sm"
+              onClick={() =>
+                router.push(`/activity-plans/${plan.id}/actual`)
+              }
+              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 text-xs font-bold shadow-sm"
+            >
+              <ClipboardList className="h-4 w-4" />
+              {plan.result
+                ? "ดู / แก้ไขผลปฏิบัติงาน (Actual)"
+                : "บันทึกผลปฏิบัติงาน (Actual)"}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -377,458 +416,526 @@ export default function ActivityPlanDetailView({ id }: Props) {
         </Alert>
       )}
 
-      {/* ──────────────────────────────────────────────────────── */}
-      {/* 4 HIGHLIGHT OVERVIEW CARDS */}
-      {/* ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {/* Card 1: Creator & Team */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-start gap-3">
-          <div className="p-2.5 rounded-lg bg-blue-50 text-blue-600 flex-shrink-0">
-            <User className="h-5 w-5" />
+      {/* ════════════════════════════════════════════════════════ */}
+      {/* 2. OVERVIEW SUMMARY CARDS                               */}
+      {/* ════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Card 1: Creator */}
+        <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-blue-50 text-blue-600 shrink-0">
+            <User className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-              ผู้จัดทำแผน
-            </span>
-            <span className="font-bold text-slate-900 text-sm block truncate mt-0.5">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+              ผู้จัดทำ
+            </p>
+            <p className="text-sm font-bold text-slate-900 truncate">
               {plan.employee.name}
-            </span>
-            <span className="text-xs text-slate-500 block truncate">
+            </p>
+            <p className="text-[11px] text-slate-500 truncate">
               {plan.employee.positionTitle ||
                 plan.employee.departmentName ||
                 "พนักงาน"}
-            </span>
+            </p>
           </div>
         </div>
 
-        {/* Card 2: Date & Time */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-start gap-3">
-          <div className="p-2.5 rounded-lg bg-emerald-50 text-emerald-600 flex-shrink-0">
-            <Calendar className="h-5 w-5" />
+        {/* Card 2: Date */}
+        <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600 shrink-0">
+            <Calendar className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-              วันเวลาจัดงาน ({plan.durationDays} วัน)
-            </span>
-            <span className="font-bold text-slate-900 text-sm block truncate mt-0.5">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+              วันที่ ({plan.durationDays} วัน)
+            </p>
+            <p className="text-sm font-bold text-slate-900 truncate">
               {format(start, "dd MMM yyyy", { locale: th })}
-            </span>
-            <span className="text-xs text-slate-500 block truncate">
+            </p>
+            <p className="text-[11px] text-slate-500">
               {format(start, "HH:mm")} - {format(end, "HH:mm")} น.
-            </span>
+            </p>
           </div>
         </div>
 
         {/* Card 3: Location */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-start gap-3">
-          <div className="p-2.5 rounded-lg bg-amber-50 text-amber-600 flex-shrink-0">
-            <MapPin className="h-5 w-5" />
+        <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-amber-50 text-amber-600 shrink-0">
+            <MapPin className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-              สถานที่จัดกิจกรรม
-            </span>
-            <span
-              className="font-bold text-slate-900 text-sm block truncate mt-0.5"
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+              สถานที่
+            </p>
+            <p
+              className="text-sm font-bold text-slate-900 truncate"
               title={plan.location}
             >
               {plan.location}
-            </span>
-            <span className="text-xs text-slate-500 block truncate">
+            </p>
+            <p className="text-[11px] text-slate-500 truncate">
               {[
                 plan.district ? `อ.${plan.district}` : "",
                 plan.province ? `จ.${plan.province}` : "",
               ]
                 .filter(Boolean)
                 .join(" ") || "-"}
-            </span>
+            </p>
           </div>
         </div>
 
-        {/* Card 4: Total Budget */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-start gap-3">
-          <div className="p-2.5 rounded-lg bg-purple-50 text-purple-600 flex-shrink-0">
-            <DollarSign className="h-5 w-5" />
+        {/* Card 4: Budget */}
+        <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-purple-50 text-purple-600 shrink-0">
+            <DollarSign className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-              งบประมาณขออนุมัติ
-            </span>
-            <span className="font-bold text-slate-900 text-sm block mt-0.5">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+              งบประมาณ
+            </p>
+            <p className="text-sm font-bold text-slate-900">
               {budgetTotal > 0
-                ? `${budgetTotal.toLocaleString()} บาท`
+                ? `${budgetTotal.toLocaleString()} ฿`
                 : "ไม่มีงบประมาณ"}
-            </span>
-            <span className="text-xs text-slate-500 block truncate">
+            </p>
+            <p className="text-[11px] text-slate-500 truncate">
               {salesPromoVal > 0
                 ? `SP: ${salesPromoVal.toLocaleString()}฿`
                 : ""}{" "}
-              {marketingVal > 0 ? `MKT: ${marketingVal.toLocaleString()}฿` : ""}
-            </span>
+              {marketingVal > 0
+                ? `MKT: ${marketingVal.toLocaleString()}฿`
+                : ""}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* ──────────────────────────────────────────────────────── */}
-      {/* POST-ACTIVITY ACTUAL RESULT BANNER (IF RECORDED) */}
-      {/* ──────────────────────────────────────────────────────── */}
-      {plan.result && (
-        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 text-xs font-bold bg-emerald-600 text-white px-2.5 py-0.5 rounded-full">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                บันทึกผลสำเร็จแล้ว (Actual Recorded)
-              </span>
-              {plan.result.resultStatus && (
-                <Badge
+      {/* ════════════════════════════════════════════════════════ */}
+      {/* 3. PLAN VS ACTUAL COMPARISON (if result recorded)       */}
+      {/* ════════════════════════════════════════════════════════ */}
+      {plan.result &&
+        (() => {
+          const result = plan.result;
+          const actualTotal = result.actualTotalSpent
+            ? Number(result.actualTotalSpent)
+            : 0;
+          const plannedSales =
+            (plan.items as any[])?.reduce(
+              (s: number, i: any) => s + Number(i.saleTotalPrice || 0),
+              0,
+            ) || 0;
+          const actualSales = result.salesResultAmount
+            ? Number(result.salesResultAmount)
+            : 0;
+          const plannedCollect =
+            (plan.items as any[])?.reduce(
+              (s: number, i: any) => s + Number(i.collectAmount || 0),
+              0,
+            ) || 0;
+          const actualCollect = result.collectResultAmount
+            ? Number(result.collectResultAmount)
+            : 0;
+
+          const metrics = [
+            {
+              label: "งบประมาณ",
+              plan: budgetTotal,
+              actual: actualTotal,
+              unit: "฿",
+              inverse: true,
+            },
+            ...(plannedSales > 0 || actualSales > 0
+              ? [
+                  {
+                    label: "ยอดขาย",
+                    plan: plannedSales,
+                    actual: actualSales,
+                    unit: "฿",
+                    inverse: false,
+                  },
+                ]
+              : []),
+            ...(plannedCollect > 0 || actualCollect > 0
+              ? [
+                  {
+                    label: "เก็บเงิน",
+                    plan: plannedCollect,
+                    actual: actualCollect,
+                    unit: "฿",
+                    inverse: false,
+                  },
+                ]
+              : []),
+          ];
+
+          return (
+            <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+              {/* Banner */}
+              <div className="px-5 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                  <span className="text-sm font-bold text-emerald-800">
+                    บันทึกผลสำเร็จแล้ว
+                  </span>
+                  {result.resultStatus && (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-[11px] font-semibold",
+                        result.resultStatus === "COMPLETED" &&
+                          "bg-green-100 text-green-800 border-green-200",
+                        result.resultStatus === "PARTIAL" &&
+                          "bg-amber-100 text-amber-800 border-amber-200",
+                        result.resultStatus === "POSTPONED" &&
+                          "bg-blue-100 text-blue-800 border-blue-200",
+                        result.resultStatus === "CANCELLED" &&
+                          "bg-red-100 text-red-800 border-red-200",
+                      )}
+                    >
+                      {result.resultStatus === "COMPLETED"
+                        ? "สำเร็จ"
+                        : result.resultStatus === "PARTIAL"
+                          ? "สำเร็จบางส่วน"
+                          : result.resultStatus === "POSTPONED"
+                            ? "เลื่อนกิจกรรม"
+                            : "ยกเลิกกิจกรรม"}
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  size="sm"
                   variant="outline"
+                  onClick={() =>
+                    router.push(`/activity-plans/${plan.id}/actual`)
+                  }
+                  className="bg-white hover:bg-emerald-50 text-emerald-700 border-emerald-300 text-xs font-bold shrink-0 h-8"
+                >
+                  ดูรายละเอียดผลจริง
+                  <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                </Button>
+              </div>
+
+              {/* Comparison Table */}
+              {metrics.length > 0 && (
+                <div className="p-4">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-100">
+                        <th className="text-left py-2 text-slate-500 font-semibold">
+                          Metric
+                        </th>
+                        <th className="text-right py-2 text-slate-500 font-semibold">
+                          Plan
+                        </th>
+                        <th className="text-right py-2 text-slate-500 font-semibold">
+                          Actual
+                        </th>
+                        <th className="text-right py-2 text-slate-500 font-semibold">
+                          Variance
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {metrics.map((m) => {
+                        const variance = m.actual - m.plan;
+                        const isGood = m.inverse
+                          ? variance <= 0
+                          : variance >= 0;
+                        return (
+                          <tr
+                            key={m.label}
+                            className="border-b border-slate-50 last:border-0"
+                          >
+                            <td className="py-2.5 font-semibold text-slate-800">
+                              {m.label}
+                            </td>
+                            <td className="py-2.5 text-right text-slate-600">
+                              {m.plan > 0
+                                ? `${m.unit}${m.plan.toLocaleString()}`
+                                : "-"}
+                            </td>
+                            <td className="py-2.5 text-right font-bold text-slate-900">
+                              {m.actual > 0
+                                ? `${m.unit}${m.actual.toLocaleString()}`
+                                : "-"}
+                            </td>
+                            <td
+                              className={cn(
+                                "py-2.5 text-right font-bold",
+                                m.plan === 0 && m.actual === 0
+                                  ? "text-slate-400"
+                                  : isGood
+                                    ? "text-emerald-600"
+                                    : "text-red-600",
+                              )}
+                            >
+                              {m.plan === 0 && m.actual === 0 ? (
+                                "-"
+                              ) : (
+                                <>
+                                  {variance > 0 ? "+" : ""}
+                                  {m.unit}
+                                  {variance.toLocaleString()}
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+      {/* ════════════════════════════════════════════════════════ */}
+      {/* MAIN LAYOUT: Content + Sidebar                          */}
+      {/* ════════════════════════════════════════════════════════ */}
+      <div className="grid gap-5 lg:grid-cols-3 items-start">
+        {/* ──── LEFT COLUMN (2/3) ──── */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* ──── 4. PLAN SUMMARY (Objective + Notes) ──── */}
+          {(plan.objective || (plan as any).notes) && (
+            <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+              {plan.objective && (
+                <div className="p-4 sm:p-5">
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                    <FileText className="h-3.5 w-3.5" />
+                    วัตถุประสงค์
+                  </h3>
+                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                    {plan.objective}
+                  </p>
+                </div>
+              )}
+              {(plan as any).notes && (
+                <div
                   className={cn(
-                    "text-xs font-semibold",
-                    plan.result.resultStatus === "COMPLETED" &&
-                      "bg-green-100 text-green-800 border-green-200",
-                    plan.result.resultStatus === "PARTIAL" &&
-                      "bg-amber-100 text-amber-800 border-amber-200",
-                    plan.result.resultStatus === "POSTPONED" &&
-                      "bg-blue-100 text-blue-800 border-blue-200",
-                    plan.result.resultStatus === "CANCELLED" &&
-                      "bg-red-100 text-red-800 border-red-200",
+                    "px-4 sm:px-5 pb-4 sm:pb-5",
+                    plan.objective && "pt-0",
                   )}
                 >
-                  สถานะผล:{" "}
-                  {plan.result.resultStatus === "COMPLETED"
-                    ? "สำเร็จ"
-                    : plan.result.resultStatus === "PARTIAL"
-                      ? "สำเร็จบางส่วน"
-                      : plan.result.resultStatus === "POSTPONED"
-                        ? "เลื่อนกิจกรรม"
-                        : "ยกเลิกกิจกรรม"}
-                </Badge>
+                  <div className="bg-amber-50/60 rounded-lg p-3 border border-amber-100">
+                    <h4 className="text-[11px] font-bold text-amber-700 flex items-center gap-1 mb-1">
+                      <AlertCircle className="h-3 w-3" />
+                      หมายเหตุ
+                    </h4>
+                    <p className="text-xs text-amber-900 leading-relaxed whitespace-pre-line">
+                      {(plan as any).notes}
+                    </p>
+                  </div>
+                </div>
               )}
-            </div>
-            <p className="text-xs text-slate-600">
-              บันทึกผลเมื่อ{" "}
-              {format(
-                new Date(plan.result.recordedAt || plan.result.actualStartDate),
-                "dd MMM yyyy HH:mm",
-                { locale: th },
-              )}
-              {plan.result.recordedBy?.name
-                ? ` โดย ${plan.result.recordedBy.name}`
-                : ""}
-            </p>
-          </div>
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => router.push(`/activity-plans/${plan.id}/actual`)}
-            className="bg-white hover:bg-emerald-50 text-emerald-700 border-emerald-300 text-xs font-bold shrink-0"
-          >
-            ดูรายละเอียดผลงานจริง (Actual)
-            <ChevronRight className="h-3.5 w-3.5 ml-1" />
-          </Button>
-        </div>
-      )}
-
-      {/* ──────────────────────────────────────────────────────── */}
-      {/* MAIN TWO-COLUMN LAYOUT: Content (Col 2) + Sidebar (Col 1) */}
-      {/* ──────────────────────────────────────────────────────── */}
-      <div className="grid gap-6 lg:grid-cols-3 items-start">
-        {/* LEFT COLUMN: DETAILED WORK TYPES & BREAKDOWN (Col Span 2) */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* 1. Objective & Notes */}
-          {plan.objective && (
-            <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs space-y-2">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 pb-2 border-b border-slate-100">
-                <FileText className="h-4 w-4 text-slate-500" />
-                วัตถุประสงค์และสรุปแผนงาน
-              </h3>
-              <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">
-                {plan.objective}
-              </p>
-            </div>
-          )}
-          {(plan as any).notes && (
-            <div className="bg-amber-50/60 rounded-xl p-4 border border-amber-100">
-              <h4 className="text-xs font-bold text-amber-800 flex items-center gap-1.5 mb-2">
-                <AlertCircle className="h-3.5 w-3.5" />
-                หมายเหตุ
-              </h4>
-              <p className="text-xs text-amber-900 leading-relaxed whitespace-pre-line">
-                {(plan as any).notes}
-              </p>
             </div>
           )}
 
-          {/* 2. Structured Work Types Activities Breakdown */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Layers className="h-4 w-4 text-indigo-600" />
-                รายละเอียดกิจกรรมตามประเภทงานที่เลือก ({
-                  workTypeSections.length
-                }{" "}
-                กิจกรรม)
-              </h3>
-            </div>
+          {/* ──── 5. ACTIVITY / WORK TYPES ACCORDION ──── */}
+          <div className="space-y-2">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 px-1">
+              <Layers className="h-3.5 w-3.5 text-indigo-500" />
+              รายละเอียดกิจกรรม ({workTypeSections.length} ประเภท)
+            </h3>
 
             {workTypeSections.length === 0 ? (
-              <div className="bg-white rounded-xl p-6 border border-slate-200 text-center text-xs text-slate-400">
+              <div className="bg-white rounded-xl p-6 border border-slate-200/80 text-center text-xs text-slate-400">
                 ไม่มีรายการกิจกรรมเฉพาะ
               </div>
             ) : (
-              <div className="space-y-4">
-                {workTypeSections.map((sec) => (
-                  <div
-                    key={sec.typeIndex}
-                    className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden"
-                  >
-                    {/* Section Header */}
-                    <div className="bg-slate-50/80 px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                          รูปแบบที่ {sec.typeIndex}
-                        </span>
-                        <h4 className="text-sm font-bold text-slate-900">
-                          {sec.title}
-                        </h4>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className="text-[11px] bg-white text-slate-700"
+              <div className="space-y-2">
+                {workTypeSections.map((sec, secIdx) => {
+                  const isOpen =
+                    expandedSections.has(sec.typeIndex) ||
+                    (expandedSections.size === 0 && secIdx === 0);
+                  return (
+                    <div
+                      key={sec.typeIndex}
+                      className="bg-white rounded-xl border border-slate-200/80 overflow-hidden"
+                    >
+                      {/* Accordion Header */}
+                      <button
+                        type="button"
+                        onClick={() => toggleSection(sec.typeIndex)}
+                        className="w-full px-4 py-3 flex items-center justify-between gap-2 hover:bg-slate-50/50 transition-colors text-left"
                       >
-                        {sec.badge}
-                      </Badge>
-                    </div>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="font-mono text-[10px] font-bold bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded shrink-0">
+                            {sec.typeIndex}
+                          </span>
+                          <span className="text-sm font-bold text-slate-900 truncate">
+                            {sec.title}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] bg-slate-50 text-slate-600 shrink-0"
+                          >
+                            {sec.badge} • {sec.items.length} รายการ
+                          </Badge>
+                        </div>
+                        <ChevronRight
+                          className={cn(
+                            "h-4 w-4 text-slate-400 shrink-0 transition-transform duration-200",
+                            isOpen && "rotate-90",
+                          )}
+                        />
+                      </button>
 
-                    {/* Section Content */}
-                    <div className="p-4 space-y-3">
-                      {sec.rawSummary && (
-                        <p className="text-xs text-slate-600 leading-relaxed bg-blue-50/30 p-3 rounded-lg border border-blue-50">
-                          {sec.rawSummary}
-                        </p>
-                      )}
+                      {/* Accordion Content */}
+                      {isOpen && (
+                        <div className="border-t border-slate-100 p-4 space-y-3">
+                          {sec.rawSummary && (
+                            <p className="text-xs text-slate-600 bg-blue-50/40 p-2.5 rounded-lg border border-blue-50 leading-relaxed">
+                              {sec.rawSummary}
+                            </p>
+                          )}
 
-                      {sec.items.length > 0 && (
-                        <div className="divide-y border rounded-lg overflow-hidden bg-slate-50/20">
-                          {sec.items.map((item, idx) => (
-                            <div
-                              key={idx}
-                              className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
-                            >
-                              <div className="space-y-0.5">
-                                <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                                  <span>{idx + 1}.</span>
-                                  <span>{item.title}</span>
-                                  {item.badge && (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-[10px] py-0"
-                                    >
-                                      {item.badge}
-                                    </Badge>
-                                  )}
-                                </div>
-                                {item.subtitle && (
-                                  <div className="text-slate-500 pl-4">
-                                    {item.subtitle}
-                                  </div>
-                                )}
-                                {item.details && (
-                                  <div className="text-slate-600 pl-4 italic">
-                                    รายละเอียด: {item.details}
-                                  </div>
-                                )}
-                                {item.extraFields &&
-                                  item.extraFields.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 pl-4 pt-1">
-                                      {item.extraFields.map((f, fIdx) => (
-                                        <span
-                                          key={fIdx}
-                                          className="inline-flex items-center gap-1 text-[11px] bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-700"
+                          {sec.items.length > 0 && (
+                            <div className="divide-y border rounded-lg overflow-hidden">
+                              {sec.items.map((item, idx) => (
+                                <div
+                                  key={idx}
+                                  className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                                >
+                                  <div className="space-y-0.5 min-w-0">
+                                    <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                                      <span className="text-slate-400">
+                                        {idx + 1}.
+                                      </span>
+                                      <span className="truncate">
+                                        {item.title}
+                                      </span>
+                                      {item.badge && (
+                                        <Badge
+                                          variant="outline"
+                                          className="text-[10px] py-0 shrink-0"
                                         >
-                                          <span className="font-semibold text-slate-500">
-                                            {f.label}:
-                                          </span>
-                                          <span className="font-medium text-slate-900">
-                                            {f.value}
-                                          </span>
-                                        </span>
-                                      ))}
+                                          {item.badge}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    {item.subtitle && (
+                                      <div className="text-slate-500 pl-5">
+                                        {item.subtitle}
+                                      </div>
+                                    )}
+                                    {item.details && (
+                                      <div className="text-slate-500 pl-5 italic">
+                                        {item.details}
+                                      </div>
+                                    )}
+                                    {item.extraFields &&
+                                      item.extraFields.length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 pl-5 pt-1">
+                                          {item.extraFields.map((f, fIdx) => (
+                                            <span
+                                              key={fIdx}
+                                              className="inline-flex items-center gap-1 text-[10px] bg-slate-50 px-2 py-0.5 rounded border border-slate-200 text-slate-600"
+                                            >
+                                              <span className="font-semibold text-slate-400">
+                                                {f.label}:
+                                              </span>
+                                              <span className="font-medium text-slate-800">
+                                                {f.value}
+                                              </span>
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+                                  </div>
+
+                                  {item.amount && (
+                                    <div className="text-sm font-extrabold text-blue-700 sm:text-right shrink-0">
+                                      {item.amount}
                                     </div>
                                   )}
-                              </div>
-
-                              {item.amount && (
-                                <div className="text-sm font-extrabold text-blue-700 sm:text-right shrink-0">
-                                  {item.amount}
                                 </div>
-                              )}
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      )}
+                          )}
 
-                      {/* Target Summary Cards — สรุปเป้าหมายของ work type นี้ */}
-                      {sec.targetCards && sec.targetCards.length > 0 && (
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          {sec.targetCards.map((tc, tcIdx) => (
-                            <div
-                              key={tcIdx}
-                              className={cn(
-                                "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold border",
-                                tc.highlight
-                                  ? "bg-blue-50 border-blue-200 text-blue-800"
-                                  : "bg-slate-50 border-slate-200 text-slate-700",
-                              )}
-                            >
-                              <TrendingUp
-                                className={cn(
-                                  "h-3.5 w-3.5 shrink-0",
-                                  tc.highlight
-                                    ? "text-blue-500"
-                                    : "text-slate-400",
-                                )}
-                              />
-                              <span className="text-slate-500">
-                                {tc.label}:
-                              </span>
-                              <span
-                                className={cn(
-                                  "font-extrabold",
-                                  tc.highlight
-                                    ? "text-blue-700"
-                                    : "text-slate-800",
-                                )}
-                              >
-                                {tc.value}
-                              </span>
+                          {/* Target Summary Cards */}
+                          {sec.targetCards && sec.targetCards.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              {sec.targetCards.map((tc, tcIdx) => (
+                                <div
+                                  key={tcIdx}
+                                  className={cn(
+                                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border",
+                                    tc.highlight
+                                      ? "bg-blue-50 border-blue-200 text-blue-800"
+                                      : "bg-slate-50 border-slate-200 text-slate-700",
+                                  )}
+                                >
+                                  <TrendingUp
+                                    className={cn(
+                                      "h-3 w-3 shrink-0",
+                                      tc.highlight
+                                        ? "text-blue-500"
+                                        : "text-slate-400",
+                                    )}
+                                  />
+                                  <span className="text-slate-500">
+                                    {tc.label}:
+                                  </span>
+                                  <span
+                                    className={cn(
+                                      "font-extrabold",
+                                      tc.highlight
+                                        ? "text-blue-700"
+                                        : "text-slate-800",
+                                    )}
+                                  >
+                                    {tc.value}
+                                  </span>
+                                </div>
+                              ))}
                             </div>
-                          ))}
+                          )}
                         </div>
                       )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
 
-          {/* 3. Promotional Media & Materials Requisition (สื่อส่งเสริมการขายและขอเบิก) */}
-          {(marketingProducts.length > 0 || requisitions.length > 0) && (
-            <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
-              <div className="border-b pb-3 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <Package className="h-4 w-4 text-teal-600" />
-                  สื่อส่งเสริมการขายและรายการขอเบิกวัสดุ
-                </h3>
-              </div>
-
-              {/* Marketing Products */}
-              {marketingProducts.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
-                    <Tag className="h-3.5 w-3.5 text-teal-600" />
-                    สื่อส่งเสริมการขาย ({marketingProducts.length} รายการ)
-                  </h4>
-                  <div className="divide-y border rounded-lg overflow-hidden bg-slate-50/20 text-xs">
-                    {marketingProducts.map((m, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-                      >
-                        <div className="space-y-0.5">
-                          <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                            <span>{idx + 1}.</span>
-                            <span>{m.productName}</span>
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] bg-teal-50 text-teal-800 border-teal-200"
-                            >
-                              {m.category}
-                            </Badge>
-                          </div>
-                          <div className="text-slate-500 pl-4">
-                            จำนวน: {m.quantity} {m.unit}
-                            {m.pricePerUnit > 0 &&
-                              ` @ ฿${m.pricePerUnit.toLocaleString()}/${m.unit}`}
-                          </div>
-                        </div>
-                        {m.totalAmount > 0 && (
-                          <div className="text-sm font-extrabold text-teal-700 sm:text-right shrink-0">
-                            ฿{m.totalAmount.toLocaleString()}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* General Requisitions */}
-              {requisitions.length > 0 && (
-                <div className="space-y-2 pt-2">
-                  <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
-                    <Boxes className="h-3.5 w-3.5 text-blue-600" />
-                    รายการขอเบิกสินค้า/อุปกรณ์ทดลอง ({requisitions.length}{" "}
-                    รายการ)
-                  </h4>
-                  <div className="divide-y border rounded-lg overflow-hidden bg-slate-50/20 text-xs">
-                    {requisitions.map((r, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3 flex items-center justify-between"
-                      >
-                        <span className="font-medium text-slate-800">
-                          {idx + 1}. {r.productName}
-                        </span>
-                        {r.quantity > 0 && (
-                          <span className="text-slate-500">
-                            {r.quantity} {r.unit}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 4. Budget Information Card */}
-          <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-emerald-600" />
-                ข้อมูลและการอนุมัติงบประมาณ
+          {/* ──── 6. BUDGET INFORMATION ──── */}
+          <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
+                งบประมาณ
               </h3>
               <span className="text-sm font-extrabold text-slate-900">
-                ยอดขออนุมัติรวม: {budgetTotal.toLocaleString()} บาท
+                {budgetTotal > 0
+                  ? `${budgetTotal.toLocaleString()} ฿`
+                  : "ไม่มีงบ"}
               </span>
             </div>
 
             {budgetTotal === 0 ? (
-              <p className="text-xs text-slate-400 italic">
+              <p className="text-xs text-slate-400 italic p-4">
                 ไม่มีความจำเป็นต้องใช้วงเงินงบประมาณในกิจกรรมนี้
               </p>
             ) : (
-              <div className="space-y-4">
-                <div className="grid gap-3.5 sm:grid-cols-2">
-                  {/* Sales Promo Budget */}
+              <div className="p-4 space-y-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {/* Sales Promo */}
                   <div
                     className={cn(
-                      "p-4 rounded-xl border flex justify-between items-center",
+                      "p-3 rounded-lg border flex justify-between items-center",
                       salesPromoVal > 0
-                        ? "bg-blue-50/40 border-blue-100"
-                        : "bg-slate-50/40 border-slate-100",
+                        ? "bg-blue-50/30 border-blue-100"
+                        : "bg-slate-50/30 border-slate-100",
                     )}
                   >
                     <div>
-                      <span className="text-xs text-slate-500 font-semibold block">
-                        งบส่งเสริมการขาย (Sales Promotion)
+                      <span className="text-[11px] text-slate-500 font-medium block">
+                        Sales Promotion
                       </span>
-                      <span className="text-base font-extrabold text-slate-900 mt-1 block">
+                      <span className="text-sm font-extrabold text-slate-900 block">
                         {salesPromoVal.toLocaleString()} ฿
                       </span>
                     </div>
@@ -836,33 +943,31 @@ export default function ActivityPlanDetailView({ id }: Props) {
                       <Badge
                         variant="outline"
                         className={cn(
-                          "text-xs font-semibold",
+                          "text-[10px] font-semibold",
                           plan.salesPromotionApproved
                             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                             : "bg-amber-50 text-amber-700 border-amber-200",
                         )}
                       >
-                        {plan.salesPromotionApproved
-                          ? "อนุมัติแล้ว"
-                          : "รออนุมัติ"}
+                        {plan.salesPromotionApproved ? "อนุมัติ" : "รออนุมัติ"}
                       </Badge>
                     )}
                   </div>
 
-                  {/* Marketing Budget */}
+                  {/* Marketing */}
                   <div
                     className={cn(
-                      "p-4 rounded-xl border flex justify-between items-center",
+                      "p-3 rounded-lg border flex justify-between items-center",
                       marketingVal > 0
-                        ? "bg-purple-50/40 border-purple-100"
-                        : "bg-slate-50/40 border-slate-100",
+                        ? "bg-purple-50/30 border-purple-100"
+                        : "bg-slate-50/30 border-slate-100",
                     )}
                   >
                     <div>
-                      <span className="text-xs text-slate-500 font-semibold block">
-                        งบการตลาด (Marketing)
+                      <span className="text-[11px] text-slate-500 font-medium block">
+                        Marketing
                       </span>
-                      <span className="text-base font-extrabold text-purple-900 mt-1 block">
+                      <span className="text-sm font-extrabold text-purple-900 block">
                         {marketingVal.toLocaleString()} ฿
                       </span>
                     </div>
@@ -870,60 +975,138 @@ export default function ActivityPlanDetailView({ id }: Props) {
                       <Badge
                         variant="outline"
                         className={cn(
-                          "text-xs font-semibold",
+                          "text-[10px] font-semibold",
                           plan.marketingApproved
                             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                             : "bg-amber-50 text-amber-700 border-amber-200",
                         )}
                       >
-                        {plan.marketingApproved ? "อนุมัติแล้ว" : "รออนุมัติ"}
+                        {plan.marketingApproved ? "อนุมัติ" : "รออนุมัติ"}
                       </Badge>
                     )}
                   </div>
 
-                  {/* Overall Budget Status */}
+                  {/* Budget overall status */}
                   {plan.status === "PENDING_BUDGET_APPROVAL" && (
-                    <div className="sm:col-span-2 bg-blue-50/60 p-3 rounded-lg border border-blue-100 flex items-center gap-2 text-xs text-blue-800">
-                      <ShieldCheck className="h-4 w-4 shrink-0 text-blue-600" />
+                    <div className="sm:col-span-2 bg-blue-50/60 p-2.5 rounded-lg border border-blue-100 flex items-center gap-2 text-xs text-blue-800">
+                      <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-blue-600" />
                       <span>
-                        สถานะภาพรวมงบประมาณ:{" "}
-                        <strong>
-                          {plan.salesManagerApproved
-                            ? "ผ่านการอนุมัติงบภาพรวมจากฝ่ายขายแล้ว"
-                            : "รอผู้จัดการฝ่ายขายอนุมัติงบประมาณภาพรวมทั้งหมด"}
-                        </strong>
+                        {plan.salesManagerApproved
+                          ? "ผ่านการอนุมัติงบภาพรวมจากฝ่ายขายแล้ว"
+                          : "รอผู้จัดการฝ่ายขายอนุมัติงบประมาณภาพรวม"}
                       </span>
                     </div>
                   )}
                 </div>
 
-                {/* Sales Promotion Items List Breakdown */}
+                {/* Sales Promotion Items */}
                 {salesPromotions.length > 0 && (
-                  <div className="space-y-2 pt-1">
-                    <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
-                      <Gift className="h-3.5 w-3.5 text-blue-600" />
-                      รายการงบประมาณส่งเสริมการขาย ({
-                        salesPromotions.length
-                      }{" "}
-                      รายการ)
-                    </h4>
-                    <div className="divide-y border rounded-lg overflow-hidden bg-slate-50/20 text-xs">
+                  <details className="group">
+                    <summary className="cursor-pointer text-xs font-bold text-slate-600 flex items-center gap-1.5 py-1 hover:text-slate-900">
+                      <Gift className="h-3 w-3 text-blue-500" />
+                      รายการงบ SP ({salesPromotions.length} รายการ)
+                      <ChevronRight className="h-3 w-3 text-slate-400 group-open:rotate-90 transition-transform" />
+                    </summary>
+                    <div className="divide-y border rounded-lg overflow-hidden mt-2 text-xs">
                       {salesPromotions.map((sp, idx) => (
                         <div
                           key={idx}
-                          className="p-3 flex items-center justify-between gap-2"
+                          className="p-2.5 flex items-center justify-between gap-2"
                         >
-                          <div className="space-y-0.5">
-                            <span className="font-bold text-slate-900 block">
+                          <div className="space-y-0.5 min-w-0">
+                            <span className="font-semibold text-slate-800 block truncate">
                               {idx + 1}. {sp.detail}
                             </span>
-                            <span className="text-slate-500">
-                              ประเภทงบ: {sp.budgetType}
+                            <span className="text-slate-400 text-[10px]">
+                              {sp.budgetType}
                             </span>
                           </div>
                           {sp.amount > 0 && (
-                            <span className="font-extrabold text-blue-700 text-sm shrink-0">
+                            <span className="font-bold text-blue-700 shrink-0">
                               ฿{sp.amount.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ──── 7. PROMOTIONAL MATERIALS & REQUISITIONS (Collapsible) ──── */}
+          {(marketingProducts.length > 0 || requisitions.length > 0) && (
+            <details className="bg-white rounded-xl border border-slate-200/80 overflow-hidden group">
+              <summary className="px-4 py-3 cursor-pointer flex items-center justify-between hover:bg-slate-50/50 transition-colors">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Package className="h-3.5 w-3.5 text-teal-500" />
+                  สื่อส่งเสริมการขาย / ขอเบิกสินค้า
+                </h3>
+                <ChevronRight className="h-4 w-4 text-slate-400 group-open:rotate-90 transition-transform" />
+              </summary>
+              <div className="border-t border-slate-100 p-4 space-y-4">
+                {/* Marketing Products */}
+                {marketingProducts.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-[11px] font-bold text-slate-600 flex items-center gap-1.5 uppercase tracking-wider">
+                      <Tag className="h-3 w-3 text-teal-500" />
+                      สื่อส่งเสริมการขาย ({marketingProducts.length} รายการ)
+                    </h4>
+                    <div className="divide-y border rounded-lg overflow-hidden text-xs">
+                      {marketingProducts.map((m, idx) => (
+                        <div
+                          key={idx}
+                          className="p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                        >
+                          <div className="space-y-0.5 min-w-0">
+                            <div className="font-semibold text-slate-800 flex items-center gap-1.5">
+                              <span>
+                                {idx + 1}. {m.productName}
+                              </span>
+                              <Badge
+                                variant="outline"
+                                className="text-[9px] bg-teal-50 text-teal-700 border-teal-200"
+                              >
+                                {m.category}
+                              </Badge>
+                            </div>
+                            <div className="text-slate-500 pl-4">
+                              {m.quantity} {m.unit}
+                              {m.pricePerUnit > 0 &&
+                                ` @ ฿${m.pricePerUnit.toLocaleString()}/${m.unit}`}
+                            </div>
+                          </div>
+                          {m.totalAmount > 0 && (
+                            <div className="text-sm font-bold text-teal-700 sm:text-right shrink-0">
+                              ฿{m.totalAmount.toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Requisitions */}
+                {requisitions.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-[11px] font-bold text-slate-600 flex items-center gap-1.5 uppercase tracking-wider">
+                      <Boxes className="h-3 w-3 text-blue-500" />
+                      ขอเบิกสินค้า/อุปกรณ์ ({requisitions.length} รายการ)
+                    </h4>
+                    <div className="divide-y border rounded-lg overflow-hidden text-xs">
+                      {requisitions.map((r, idx) => (
+                        <div
+                          key={idx}
+                          className="p-2.5 flex items-center justify-between"
+                        >
+                          <span className="font-medium text-slate-800">
+                            {idx + 1}. {r.productName}
+                          </span>
+                          {r.quantity > 0 && (
+                            <span className="text-slate-500">
+                              {r.quantity} {r.unit}
                             </span>
                           )}
                         </div>
@@ -932,45 +1115,45 @@ export default function ActivityPlanDetailView({ id }: Props) {
                   </div>
                 )}
               </div>
-            )}
-          </div>
+            </details>
+          )}
 
-          {/* 5. Helpers List Card */}
-          <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Users className="h-4 w-4 text-purple-600" />
-                พนักงานเข้าร่วมช่วยงาน ({plan.helpers.length} คน)
+          {/* ──── 8. HELPERS LIST ──── */}
+          <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <Users className="h-3.5 w-3.5 text-purple-500" />
+                พนักงานช่วยงาน ({plan.helpers.length} คน)
               </h3>
             </div>
 
             {plan.helpers.length === 0 ? (
-              <p className="text-xs text-slate-400 italic">
-                ไม่มีพนักงานช่วยงานเพิ่มเติมในแผนกิจกรรมนี้
+              <p className="text-xs text-slate-400 italic p-4">
+                ไม่มีพนักงานช่วยงาน
               </p>
             ) : (
-              <div className="divide-y border rounded-xl overflow-hidden bg-slate-50/30">
+              <div className="divide-y">
                 {plan.helpers.map((helper, idx) => (
                   <div
                     key={helper.id}
-                    className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                    className="px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
                   >
-                    <div>
-                      <span className="font-bold text-slate-900 block text-sm">
+                    <div className="min-w-0">
+                      <span className="font-bold text-slate-900 block">
                         {idx + 1}. {helper.employee.name}
                       </span>
-                      <span className="text-slate-500 mt-0.5 block">
-                        ตำแหน่ง: {helper.employee.positionTitle || "-"} | แผนก:{" "}
+                      <span className="text-slate-500">
+                        {helper.employee.positionTitle || "-"} •{" "}
                         {helper.employee.departmentName ||
                           helper.departmentName ||
                           "-"}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       <Badge
                         variant="outline"
                         className={cn(
-                          "text-xs font-semibold",
+                          "text-[10px] font-semibold",
                           helper.status === "APPROVED" &&
                             "bg-emerald-50 text-emerald-700 border-emerald-200",
                           helper.status === "PENDING" &&
@@ -981,14 +1164,14 @@ export default function ActivityPlanDetailView({ id }: Props) {
                       >
                         {helper.status === "APPROVED" && "อนุมัติแล้ว"}
                         {helper.status === "PENDING" && "รออนุมัติ"}
-                        {helper.status === "REJECTED" && "ปฏิเสธ/ติดขัด"}
+                        {helper.status === "REJECTED" && "ปฏิเสธ"}
                       </Badge>
                       {helper.rejectionReason && (
                         <span
-                          className="text-red-500 font-medium max-w-[160px] truncate"
+                          className="text-red-500 font-medium max-w-[140px] truncate text-[10px]"
                           title={helper.rejectionReason}
                         >
-                          เหตุผล: {helper.rejectionReason}
+                          {helper.rejectionReason}
                         </span>
                       )}
                     </div>
@@ -999,24 +1182,24 @@ export default function ActivityPlanDetailView({ id }: Props) {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: APPROVAL WORKFLOW & ACTIONS (Col Span 1) */}
-        <div className="space-y-6">
-          {/* Approval Action Panel */}
+        {/* ──── RIGHT COLUMN (1/3): Approval & Meta ──── */}
+        <div className="space-y-5">
+          {/* ──── APPROVAL ACTION PANEL ──── */}
           {canApproveThisStep && (
-            <div className="bg-gradient-to-br from-indigo-50/40 via-white to-blue-50/30 rounded-xl p-5 border-2 border-blue-200/80 shadow-md space-y-4">
+            <div className="bg-gradient-to-br from-indigo-50/40 via-white to-blue-50/30 rounded-xl p-4 border-2 border-blue-200/80 shadow-md space-y-3">
               <div className="flex items-center gap-2 text-blue-800 font-bold text-sm">
-                <ShieldCheck className="h-5 w-5 text-blue-600" />
-                <span>แผงควบคุมการพิจารณาอนุมัติ</span>
+                <ShieldCheck className="h-4 w-4 text-blue-600" />
+                <span>แผงควบคุมการอนุมัติ</span>
               </div>
-              <p className="text-xs text-blue-900 bg-blue-50 p-2.5 rounded-lg border border-blue-100 leading-relaxed font-medium">
+              <p className="text-xs text-blue-900 bg-blue-50 p-2 rounded-lg border border-blue-100 leading-relaxed font-medium">
                 {approvalPrompt}
               </p>
               <textarea
-                placeholder="ระบุข้อเสนอแนะ, เหตุผลการอนุมัติ หรือสิ่งที่ต้องการให้แก้ไข..."
+                placeholder="ระบุข้อเสนอแนะ, เหตุผล หรือสิ่งที่ต้องแก้ไข..."
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={3}
-                className="w-full text-xs rounded-lg border border-slate-200 bg-white p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full text-xs rounded-lg border border-slate-200 bg-white p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 disabled={submitting}
               />
               <div className="grid gap-2 grid-cols-2">
@@ -1026,7 +1209,7 @@ export default function ActivityPlanDetailView({ id }: Props) {
                   className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold col-span-2 flex items-center justify-center gap-1.5 text-xs shadow-sm h-9"
                 >
                   <CheckCircle className="h-4 w-4" />
-                  อนุมัติผ่านแผนงาน (Approve)
+                  อนุมัติผ่าน (Approve)
                 </Button>
                 <Button
                   variant="outline"
@@ -1034,7 +1217,9 @@ export default function ActivityPlanDetailView({ id }: Props) {
                   disabled={submitting || !comment.trim()}
                   className="text-amber-700 border-amber-300 hover:bg-amber-50 font-bold text-xs flex items-center justify-center gap-1 h-8"
                   title={
-                    !comment.trim() ? "กรุณากรอกเหตุผลเพื่อส่งกลับแก้ไข" : ""
+                    !comment.trim()
+                      ? "กรุณากรอกเหตุผลเพื่อส่งกลับแก้ไข"
+                      : ""
                   }
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
@@ -1053,30 +1238,32 @@ export default function ActivityPlanDetailView({ id }: Props) {
             </div>
           )}
 
-          {/* Cancellation Option for Creator */}
+          {/* ──── CANCEL OPTION ──── */}
           {plan.createdById === session?.user?.id &&
             plan.status !== "APPROVED" &&
             plan.status !== "REJECTED" &&
             plan.status !== "CANCELLED" && (
-              <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs">
+              <div className="bg-white rounded-xl p-3 border border-slate-200/80">
                 <Button
                   variant="outline"
                   onClick={handleCancelPlan}
                   disabled={submitting}
-                  className="w-full text-red-600 border-red-200 hover:bg-red-50 text-xs font-semibold"
+                  className="w-full text-red-600 border-red-200 hover:bg-red-50 text-xs font-semibold h-8"
                 >
                   ยกเลิกแผนกิจกรรมนี้
                 </Button>
               </div>
             )}
 
-          {/* Plan Meta Info Card */}
-          <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs space-y-2">
-            <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
-              <Tag className="h-3.5 w-3.5 text-indigo-500" />
-              ข้อมูลแผนงาน
-            </h4>
-            <div className="space-y-2 text-xs">
+          {/* ──── PLAN META INFO ──── */}
+          <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100">
+              <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <Tag className="h-3 w-3 text-indigo-500" />
+                ข้อมูลแผนงาน
+              </h4>
+            </div>
+            <div className="p-4 space-y-2 text-xs">
               {(plan.activityType as any)?.name && (
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-slate-500 shrink-0">ประเภทงาน</span>
@@ -1095,7 +1282,9 @@ export default function ActivityPlanDetailView({ id }: Props) {
               )}
               {(plan as any).fiscalMonth && (
                 <div className="flex items-start justify-between gap-2">
-                  <span className="text-slate-500 shrink-0">เดือนงบประมาณ</span>
+                  <span className="text-slate-500 shrink-0">
+                    เดือนงบประมาณ
+                  </span>
                   <span className="font-semibold text-slate-800">
                     {(plan as any).fiscalMonth}
                   </span>
@@ -1104,7 +1293,9 @@ export default function ActivityPlanDetailView({ id }: Props) {
               <div className="flex items-start justify-between gap-2">
                 <span className="text-slate-500 shrink-0">วันที่จัดทำ</span>
                 <span className="font-semibold text-slate-800">
-                  {format(new Date((plan as any).createdAt), "dd MMM yyyy", { locale: th })}
+                  {format(new Date((plan as any).createdAt), "dd MMM yyyy", {
+                    locale: th,
+                  })}
                 </span>
               </div>
               {plan.durationDays > 1 && (
@@ -1118,77 +1309,94 @@ export default function ActivityPlanDetailView({ id }: Props) {
             </div>
           </div>
 
-          {/* Workflow Progress Timeline */}
-          <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs space-y-4">
-            <h3 className="text-sm font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
-              <Clock className="h-4 w-4 text-slate-500" />
-              บันทึกประวัติการอนุมัติ (Approval Logs)
-            </h3>
+          {/* ──── 10. APPROVAL HISTORY TIMELINE ──── */}
+          <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100">
+              <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" />
+                ประวัติการอนุมัติ
+              </h3>
+            </div>
 
-            <div className="relative pl-5 border-l-2 border-slate-100 space-y-5">
-              {plan.approvalLogs.length === 0 ? (
-                <p className="text-xs text-slate-400 italic">
-                  ไม่มีข้อมูลประวัติ
-                </p>
-              ) : (
-                plan.approvalLogs.map((log) => {
-                  let badgeColor = "bg-slate-400";
-                  if (log.action === "APPROVE") badgeColor = "bg-emerald-500";
-                  if (log.action === "REJECT") badgeColor = "bg-red-500";
-                  if (log.action === "REQUEST_CORRECTION")
-                    badgeColor = "bg-amber-500";
-                  if (log.action === "SUBMIT") badgeColor = "bg-blue-500";
+            <div className="p-4">
+              <div className="relative pl-5 border-l-2 border-slate-100 space-y-4">
+                {plan.approvalLogs.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic">
+                    ไม่มีข้อมูลประวัติ
+                  </p>
+                ) : (
+                  <>
+                    {visibleLogs.map((log) => {
+                      let badgeColor = "bg-slate-400";
+                      if (log.action === "APPROVE")
+                        badgeColor = "bg-emerald-500";
+                      if (log.action === "REJECT") badgeColor = "bg-red-500";
+                      if (log.action === "REQUEST_CORRECTION")
+                        badgeColor = "bg-amber-500";
+                      if (log.action === "SUBMIT") badgeColor = "bg-blue-500";
 
-                  let actionText = log.action as string;
-                  if (log.action === "SUBMIT") actionText = "ยื่นคำขออนุมัติ";
-                  if (log.action === "APPROVE") actionText = "อนุมัติแล้ว";
-                  if (log.action === "REJECT") actionText = "ปฏิเสธแผน";
-                  if (log.action === "REQUEST_CORRECTION")
-                    actionText = "ส่งกลับให้แก้ไข";
-                  if (log.action === "CANCEL") actionText = "ยกเลิกคำขอ";
+                      let actionText = log.action as string;
+                      if (log.action === "SUBMIT")
+                        actionText = "ยื่นคำขออนุมัติ";
+                      if (log.action === "APPROVE") actionText = "อนุมัติแล้ว";
+                      if (log.action === "REJECT") actionText = "ปฏิเสธแผน";
+                      if (log.action === "REQUEST_CORRECTION")
+                        actionText = "ส่งกลับให้แก้ไข";
+                      if (log.action === "CANCEL") actionText = "ยกเลิกคำขอ";
 
-                  let stepText = log.step as string;
-                  if (log.step === "LINE_APPROVAL") stepText = "ตรวจสอบสายงาน";
-                  if (log.step === "BUDGET_APPROVAL")
-                    stepText = "อนุมัติงบประมาณ";
-                  if (log.step === "HELPER_APPROVAL")
-                    stepText = "อนุมัติคนช่วยงาน";
+                      let stepText = log.step as string;
+                      if (log.step === "LINE_APPROVAL") stepText = "สายงาน";
+                      if (log.step === "BUDGET_APPROVAL")
+                        stepText = "งบประมาณ";
+                      if (log.step === "HELPER_APPROVAL")
+                        stepText = "คนช่วยงาน";
 
-                  return (
-                    <div key={log.id} className="relative text-xs">
-                      {/* Timeline Dot */}
-                      <span
-                        className={cn(
-                          "absolute -left-[27px] top-1 h-3 w-3 rounded-full border-2 border-white ring-2 ring-slate-100",
-                          badgeColor,
-                        )}
-                      />
-
-                      <div className="flex justify-between items-center gap-2">
-                        <span className="font-bold text-slate-900">
-                          {actionText}
-                        </span>
-                        <span className="text-[10px] text-slate-400">
-                          {format(new Date(log.createdAt), "dd MMM HH:mm", {
-                            locale: th,
-                          })}
-                        </span>
-                      </div>
-
-                      <div className="text-slate-500 mt-0.5">
-                        {stepText ? `ขั้นตอน: ${stepText} | ` : ""}โดย:{" "}
-                        {log.user.name}
-                      </div>
-
-                      {log.comment && (
-                        <div className="mt-1.5 p-2 bg-slate-50 rounded text-slate-700 border border-slate-100 font-medium">
-                          "{log.comment}"
+                      return (
+                        <div key={log.id} className="relative text-xs">
+                          <span
+                            className={cn(
+                              "absolute -left-[27px] top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white ring-2 ring-slate-100",
+                              badgeColor,
+                            )}
+                          />
+                          <div className="flex justify-between items-center gap-2">
+                            <span className="font-bold text-slate-800">
+                              {actionText}
+                            </span>
+                            <span className="text-[10px] text-slate-400 shrink-0">
+                              {format(
+                                new Date(log.createdAt),
+                                "dd MMM HH:mm",
+                                {
+                                  locale: th,
+                                },
+                              )}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 mt-0.5">
+                            {stepText ? `${stepText} • ` : ""}โดย{" "}
+                            {log.user.name}
+                          </div>
+                          {log.comment && (
+                            <div className="mt-1 p-2 bg-slate-50 rounded text-slate-700 border border-slate-100 text-[11px] font-medium">
+                              &ldquo;{log.comment}&rdquo;
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
+                      );
+                    })}
+                    {sortedLogs.length > 3 && !showAllLogs && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllLogs(true)}
+                        className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold"
+                      >
+                        ดูเพิ่มเติม ({sortedLogs.length - 3} รายการ)
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
