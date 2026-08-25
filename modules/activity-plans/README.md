@@ -27,11 +27,23 @@ modules/activity-plans/
 │   │   ├── activity-plan-form.tsx   # คอมโพเนนต์ฟอร์มหลัก (State Machine & Logic)
 │   │   └── components/              # คอมโพเนนต์ย่อยแยกส่วนการทำงาน
 │   │       ├── work-types/          # UI ฟอร์มจุดประสงค์งาน 11 รูปแบบ (เช่น Type1Visit: เข้าพบร้านค้า / Key Farmer)
-│   │       ├── budget-section.tsx   # ส่วนการคำนวณงบประมาณ
-│   │       ├── requisition-section.tsx # ส่วนระบุรายการขอเบิกสินค้า
-│   │       └── location-team-section.tsx # ส่วนระบุสถานที่และค้นหาทีมงาน
 │   ├── detail-view/                 # หน้ารายละเอียดกิจกรรม Timeline และปุ่มอนุมัติ
-│   └── approve-view/                # ศูนย์ตรวจสอบและอนุมัติ Trip Plan (Approval Hub & Queue)
+│   │   ├── activity-plan-detail-view.tsx # Container & Orchestrator หลัก
+│   │   ├── types.ts                 # UI Parsed types สำหรับ detail view
+│   │   ├── utils.ts                 # UI Data Extractors สำหรับแปลง Plan/Items
+│   │   └── components/              # คอมโพเนนต์ย่อยแยกส่วนการทำงาน
+│   │       ├── detail-header.tsx    # Header, breadcrumb, status, action buttons
+│   │       ├── detail-overview.tsx  # Highlight summary metric cards
+│   │       ├── plan-summary.tsx     # วัตถุประสงค์และหมายเหตุ
+│   │       ├── plan-vs-actual.tsx   # ตารางเปรียบเทียบ Plan vs Actual
+│   │       ├── work-type-list.tsx   # Accordion Coordinator สำหรับ 11 ประเภทงาน
+│   │       ├── work-type-section.tsx # รายละเอียดกิจกรรมรายประเภทงาน
+│   │       ├── budget-summary.tsx   # สรุปงบประมาณและรายการส่งเสริมการขาย
+│   │       ├── materials-section.tsx # สื่อส่งเสริมการขายและขอเบิกสินค้า
+│   │       ├── helpers-section.tsx  # รายชื่อพนักงานช่วยงาน
+│   │       ├── plan-meta-info.tsx   # ข้อมูล Meta (ปี/เดือนงบประมาณ วันจัดทำ)
+│   │       ├── approval-action-panel.tsx # แผงควบคุมการอนุมัติ / ส่งกลับแก้ไข / ปฏิเสธ / ยกเลิก
+│   │       └── approval-history.tsx # ประวัติการอนุมัติ (Approval Logs Timeline)
 │       ├── activity-plan-approval-list-view.tsx # หน้าจอหลักแดชบอร์ดคิวงานอนุมัติ
 │       └── components/
 │           ├── approval-action-dialog.tsx       # Dialog ยืนยันการอนุมัติ / ตีกลับแก้ไข / ปฏิเสธ
