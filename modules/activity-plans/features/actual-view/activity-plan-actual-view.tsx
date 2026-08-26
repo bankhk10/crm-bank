@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, AlertTriangle, Check } from "lucide-react";
 import {
@@ -209,6 +209,7 @@ export default function ActivityPlanActualView({
   const [t5PromotionDetail, setT5PromotionDetail] = useState("");
   const [t5PriceTagImages, setT5PriceTagImages] = useState<ImageFile[]>([]);
   const [t5SurveyDetails, setT5SurveyDetails] = useState<Type5SurveyRecord[]>([]);
+  const initialT5SurveyDetailsRef = useRef<Type5SurveyRecord[]>([]);
 
   // Work Type 6 States
   const [t6ProblemDetail, setT6ProblemDetail] = useState("");
@@ -501,6 +502,9 @@ export default function ActivityPlanActualView({
               },
             );
             setT5SurveyDetails(hydratedT5);
+            initialT5SurveyDetailsRef.current = JSON.parse(
+              JSON.stringify(hydratedT5),
+            );
 
             // Type 6
             if (parsed.t6ProblemDetail) {
@@ -710,168 +714,202 @@ export default function ActivityPlanActualView({
     return true;
   };
 
+  const deleteActivityPlanImages = async (
+    planId: string,
+    publicPaths: string[],
+  ): Promise<void> => {
+    if (!publicPaths || publicPaths.length === 0) return;
+    const validPaths = publicPaths.filter(
+      (p) => typeof p === "string" && p.startsWith("/uploads/activity-plans/"),
+    );
+    if (validPaths.length === 0) return;
+
+    try {
+      await fetch(`/api/activity-plans/${planId}/images`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publicPaths: validPaths }),
+      });
+    } catch (err) {
+      console.warn("Failed to delete activity plan images:", err);
+    }
+  };
+
   const uploadType5SurveyImages = async (
     planId: string,
     surveyDetails: Type5SurveyRecord[],
-  ): Promise<Type5SurveyRecord[]> => {
+  ): Promise<{
+    updatedRecords: Type5SurveyRecord[];
+    newlyUploadedUrls: string[];
+  }> => {
     const updatedRecords: Type5SurveyRecord[] = [];
+    const newlyUploadedUrls: string[] = [];
 
-    for (let i = 0; i < surveyDetails.length; i++) {
-      const record = { ...surveyDetails[i] };
-      const surveyItemId = record.id || `item-${i + 1}`;
+    try {
+      for (let i = 0; i < surveyDetails.length; i++) {
+        const record = { ...surveyDetails[i] };
+        const surveyItemId = record.id || `item-${i + 1}`;
 
-      // 1. Process Price Tag Images
-      if (record.priceTagImages && record.priceTagImages.length > 0) {
-        const processedPriceTag: ImageFile[] = [];
-        const newFilesToUpload: { file: File; tempId: string }[] = [];
+        // 1. Process Price Tag Images
+        if (record.priceTagImages && record.priceTagImages.length > 0) {
+          const processedPriceTag: ImageFile[] = [];
+          const newFilesToUpload: { file: File; tempId: string }[] = [];
 
-        for (const img of record.priceTagImages) {
-          if (img.rawFile instanceof File) {
-            newFilesToUpload.push({ file: img.rawFile, tempId: img.id });
-          } else if (img.url && img.url.startsWith("blob:")) {
-            try {
-              const res = await fetch(img.url);
-              const blob = await res.blob();
-              const file = new File([blob], img.name || "price-tag.jpg", {
-                type: blob.type || "image/jpeg",
-              });
-              newFilesToUpload.push({ file, tempId: img.id });
-            } catch {
-              throw new Error(
-                `ไม่สามารถเข้าถึงไฟล์รูปภาพป้ายราคาของ ${record.store || "ร้านค้า"} ได้ กรุณาเลือกไฟล์ใหม่อีกครั้ง`,
-              );
-            }
-          } else {
-            // Already permanent URL
-            processedPriceTag.push({
-              id: img.id,
-              url: img.url,
-              name: img.name,
-            });
-          }
-        }
-
-        if (newFilesToUpload.length > 0) {
-          const form = new FormData();
-          newFilesToUpload.forEach(({ file }) => form.append("images", file));
-
-          const res = await fetch(
-            `/api/activity-plans/${planId}/images?surveyItemId=${encodeURIComponent(surveyItemId)}&category=price-tag`,
-            {
-              method: "POST",
-              body: form,
-            },
-          );
-
-          if (!res.ok) {
-            const errData = await res.json().catch(() => ({}));
-            throw new Error(
-              errData.error ||
-                `อัปโหลดรูปภาพป้ายราคาของ ${record.store || "ร้านค้า"} ล้มเหลว`,
-            );
-          }
-
-          const data = await res.json();
-          if (data.created && Array.isArray(data.created)) {
-            data.created.forEach((uploaded: any, uIdx: number) => {
-              const original = newFilesToUpload[uIdx];
+          for (const img of record.priceTagImages) {
+            if (img.rawFile instanceof File) {
+              newFilesToUpload.push({ file: img.rawFile, tempId: img.id });
+            } else if (img.url && img.url.startsWith("blob:")) {
+              try {
+                const res = await fetch(img.url);
+                const blob = await res.blob();
+                const file = new File([blob], img.name || "price-tag.jpg", {
+                  type: blob.type || "image/jpeg",
+                });
+                newFilesToUpload.push({ file, tempId: img.id });
+              } catch {
+                throw new Error(
+                  `ไม่สามารถเข้าถึงไฟล์รูปภาพป้ายราคาของ ${record.store || "ร้านค้า"} ได้ กรุณาเลือกไฟล์ใหม่อีกครั้ง`,
+                );
+              }
+            } else {
+              // Already permanent URL
               processedPriceTag.push({
-                id: uploaded.id,
-                url: uploaded.url,
-                name: uploaded.filename || original.file.name,
+                id: img.id,
+                url: img.url,
+                name: img.name,
               });
-            });
+            }
           }
-        }
 
-        record.priceTagImages = processedPriceTag;
-      }
+          if (newFilesToUpload.length > 0) {
+            const form = new FormData();
+            newFilesToUpload.forEach(({ file }) => form.append("images", file));
 
-      // 2. Process Shelf Images
-      if (record.shelfImages && record.shelfImages.length > 0) {
-        const processedShelf: ImageFile[] = [];
-        const newFilesToUpload: { file: File; tempId: string }[] = [];
+            const res = await fetch(
+              `/api/activity-plans/${planId}/images?surveyItemId=${encodeURIComponent(surveyItemId)}&category=price-tag`,
+              {
+                method: "POST",
+                body: form,
+              },
+            );
 
-        for (const img of record.shelfImages) {
-          if (img.rawFile instanceof File) {
-            newFilesToUpload.push({ file: img.rawFile, tempId: img.id });
-          } else if (img.url && img.url.startsWith("blob:")) {
-            try {
-              const res = await fetch(img.url);
-              const blob = await res.blob();
-              const file = new File([blob], img.name || "shelf.jpg", {
-                type: blob.type || "image/jpeg",
-              });
-              newFilesToUpload.push({ file, tempId: img.id });
-            } catch {
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
               throw new Error(
-                `ไม่สามารถเข้าถึงไฟล์รูปภาพชั้นวางสินค้าของ ${record.store || "ร้านค้า"} ได้ กรุณาเลือกไฟล์ใหม่อีกครั้ง`,
+                errData.error ||
+                  `อัปโหลดรูปภาพป้ายราคาของ ${record.store || "ร้านค้า"} ล้มเหลว`,
               );
             }
-          } else {
-            // Already permanent URL
-            processedShelf.push({
-              id: img.id,
-              url: img.url,
-              name: img.name,
-            });
-          }
-        }
 
-        if (newFilesToUpload.length > 0) {
-          const form = new FormData();
-          newFilesToUpload.forEach(({ file }) => form.append("images", file));
-
-          const res = await fetch(
-            `/api/activity-plans/${planId}/images?surveyItemId=${encodeURIComponent(surveyItemId)}&category=shelf`,
-            {
-              method: "POST",
-              body: form,
-            },
-          );
-
-          if (!res.ok) {
-            const errData = await res.json().catch(() => ({}));
-            throw new Error(
-              errData.error ||
-                `อัปโหลดรูปภาพชั้นวางสินค้าของ ${record.store || "ร้านค้า"} ล้มเหลว`,
-            );
-          }
-
-          const data = await res.json();
-          if (data.created && Array.isArray(data.created)) {
-            data.created.forEach((uploaded: any, uIdx: number) => {
-              const original = newFilesToUpload[uIdx];
-              processedShelf.push({
-                id: uploaded.id,
-                url: uploaded.url,
-                name: uploaded.filename || original.file.name,
+            const data = await res.json();
+            if (data.created && Array.isArray(data.created)) {
+              data.created.forEach((uploaded: any, uIdx: number) => {
+                const original = newFilesToUpload[uIdx];
+                processedPriceTag.push({
+                  id: uploaded.id,
+                  url: uploaded.url,
+                  name: uploaded.filename || original.file.name,
+                });
+                newlyUploadedUrls.push(uploaded.url);
               });
-            });
+            }
           }
+
+          record.priceTagImages = processedPriceTag;
         }
 
-        record.shelfImages = processedShelf;
+        // 2. Process Shelf Images
+        if (record.shelfImages && record.shelfImages.length > 0) {
+          const processedShelf: ImageFile[] = [];
+          const newFilesToUpload: { file: File; tempId: string }[] = [];
+
+          for (const img of record.shelfImages) {
+            if (img.rawFile instanceof File) {
+              newFilesToUpload.push({ file: img.rawFile, tempId: img.id });
+            } else if (img.url && img.url.startsWith("blob:")) {
+              try {
+                const res = await fetch(img.url);
+                const blob = await res.blob();
+                const file = new File([blob], img.name || "shelf.jpg", {
+                  type: blob.type || "image/jpeg",
+                });
+                newFilesToUpload.push({ file, tempId: img.id });
+              } catch {
+                throw new Error(
+                  `ไม่สามารถเข้าถึงไฟล์รูปภาพชั้นวางสินค้าของ ${record.store || "ร้านค้า"} ได้ กรุณาเลือกไฟล์ใหม่อีกครั้ง`,
+                );
+              }
+            } else {
+              // Already permanent URL
+              processedShelf.push({
+                id: img.id,
+                url: img.url,
+                name: img.name,
+              });
+            }
+          }
+
+          if (newFilesToUpload.length > 0) {
+            const form = new FormData();
+            newFilesToUpload.forEach(({ file }) => form.append("images", file));
+
+            const res = await fetch(
+              `/api/activity-plans/${planId}/images?surveyItemId=${encodeURIComponent(surveyItemId)}&category=shelf`,
+              {
+                method: "POST",
+                body: form,
+              },
+            );
+
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(
+                errData.error ||
+                  `อัปโหลดรูปภาพชั้นวางสินค้าของ ${record.store || "ร้านค้า"} ล้มเหลว`,
+              );
+            }
+
+            const data = await res.json();
+            if (data.created && Array.isArray(data.created)) {
+              data.created.forEach((uploaded: any, uIdx: number) => {
+                const original = newFilesToUpload[uIdx];
+                processedShelf.push({
+                  id: uploaded.id,
+                  url: uploaded.url,
+                  name: uploaded.filename || original.file.name,
+                });
+                newlyUploadedUrls.push(uploaded.url);
+              });
+            }
+          }
+
+          record.shelfImages = processedShelf;
+        }
+
+        updatedRecords.push(record);
       }
 
-      updatedRecords.push(record);
+      // Safety check: ensure NO blob URL remains
+      for (const rec of updatedRecords) {
+        if (rec.priceTagImages?.some((img) => img.url.startsWith("blob:"))) {
+          throw new Error(
+            "พบรูปภาพป้ายราคาที่ยังไม่ได้อัปโหลดสมบูรณ์ กรุณาลองใหม่อีกครั้ง",
+          );
+        }
+        if (rec.shelfImages?.some((img) => img.url.startsWith("blob:"))) {
+          throw new Error(
+            "พบรูปภาพชั้นวางสินค้าที่ยังไม่ได้อัปโหลดสมบูรณ์ กรุณาลองใหม่อีกครั้ง",
+          );
+        }
+      }
+
+      return { updatedRecords, newlyUploadedUrls };
+    } catch (error) {
+      if (newlyUploadedUrls.length > 0) {
+        await deleteActivityPlanImages(planId, newlyUploadedUrls);
+      }
+      throw error;
     }
-
-    // Safety check: ensure NO blob URL remains
-    for (const rec of updatedRecords) {
-      if (rec.priceTagImages?.some((img) => img.url.startsWith("blob:"))) {
-        throw new Error(
-          "พบรูปภาพป้ายราคาที่ยังไม่ได้อัปโหลดสมบูรณ์ กรุณาลองใหม่อีกครั้ง",
-        );
-      }
-      if (rec.shelfImages?.some((img) => img.url.startsWith("blob:"))) {
-        throw new Error(
-          "พบรูปภาพชั้นวางสินค้าที่ยังไม่ได้อัปโหลดสมบูรณ์ กรุณาลองใหม่อีกครั้ง",
-        );
-      }
-    }
-
-    return updatedRecords;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -879,20 +917,61 @@ export default function ActivityPlanActualView({
     setFormError(null);
     setIsSubmitting(true);
 
+    let cleanT5SurveyDetails = t5SurveyDetails;
+    let newlyUploadedT5Urls: string[] = [];
+    let oldUrlsToDelete: string[] = [];
+
     try {
       if (id) {
-        // Upload any new Type 5 survey images before saving result
-        let cleanT5SurveyDetails = t5SurveyDetails;
         if (
           isTypeVisible("สำรวจตลาดของคู่แข่ง") &&
           t5SurveyDetails &&
           t5SurveyDetails.length > 0
         ) {
-          cleanT5SurveyDetails = await uploadType5SurveyImages(
+          // 1. Calculate initial permanent URLs
+          const initialPermanentUrls: string[] = [];
+          (initialT5SurveyDetailsRef.current || []).forEach(
+            (rec: Type5SurveyRecord) => {
+              rec.priceTagImages?.forEach((img: ImageFile) => {
+                if (img.url && img.url.startsWith("/uploads/activity-plans/")) {
+                  initialPermanentUrls.push(img.url);
+                }
+              });
+              rec.shelfImages?.forEach((img: ImageFile) => {
+                if (img.url && img.url.startsWith("/uploads/activity-plans/")) {
+                  initialPermanentUrls.push(img.url);
+                }
+              });
+            },
+          );
+
+          // 2. Upload new files
+          const uploadRes = await uploadType5SurveyImages(
             id,
             t5SurveyDetails,
           );
+          cleanT5SurveyDetails = uploadRes.updatedRecords;
+          newlyUploadedT5Urls = uploadRes.newlyUploadedUrls;
           setT5SurveyDetails(cleanT5SurveyDetails);
+
+          // 3. Find old URLs removed by the user
+          const currentPermanentUrls = new Set<string>();
+          cleanT5SurveyDetails.forEach((rec: Type5SurveyRecord) => {
+            rec.priceTagImages?.forEach((img: ImageFile) => {
+              if (img.url && img.url.startsWith("/uploads/activity-plans/")) {
+                currentPermanentUrls.add(img.url);
+              }
+            });
+            rec.shelfImages?.forEach((img: ImageFile) => {
+              if (img.url && img.url.startsWith("/uploads/activity-plans/")) {
+                currentPermanentUrls.add(img.url);
+              }
+            });
+          });
+
+          oldUrlsToDelete = initialPermanentUrls.filter(
+            (url) => !currentPermanentUrls.has(url),
+          );
         }
 
         const buildResult = buildResultSummary({
@@ -969,6 +1048,10 @@ export default function ActivityPlanActualView({
         });
 
         if (buildResult.validationError) {
+          // Cleanup newly uploaded files if validation fails
+          if (newlyUploadedT5Urls.length > 0) {
+            await deleteActivityPlanImages(id, newlyUploadedT5Urls);
+          }
           setFormError(buildResult.validationError);
           setIsSubmitting(false);
           return;
@@ -976,10 +1059,24 @@ export default function ActivityPlanActualView({
 
         const res = await recordActivityResultAction(id, buildResult.payload);
         if (!res.success) {
+          // Cleanup newly uploaded files if DB save fails
+          if (newlyUploadedT5Urls.length > 0) {
+            await deleteActivityPlanImages(id, newlyUploadedT5Urls);
+          }
           setFormError(res.error || "เกิดข้อผิดพลาดในการบันทึกผลกิจกรรม");
           setIsSubmitting(false);
           return;
         }
+
+        // 4. Save succeeded! Delete removed old files from physical storage
+        if (oldUrlsToDelete.length > 0) {
+          await deleteActivityPlanImages(id, oldUrlsToDelete);
+        }
+
+        // Update initial reference to current saved state
+        initialT5SurveyDetailsRef.current = JSON.parse(
+          JSON.stringify(cleanT5SurveyDetails),
+        );
 
         if (
           isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง") &&
@@ -1034,6 +1131,9 @@ export default function ActivityPlanActualView({
         }
       }, 1000);
     } catch (err: any) {
+      if (id && newlyUploadedT5Urls.length > 0) {
+        await deleteActivityPlanImages(id, newlyUploadedT5Urls);
+      }
       setFormError(err.message || "เกิดข้อผิดพลาดในการบันทึกผลกิจกรรม");
       setIsSubmitting(false);
     }

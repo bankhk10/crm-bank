@@ -107,7 +107,9 @@ export async function DELETE(request: Request) {
       for (const filePath of publicPaths) {
         if (
           typeof filePath === "string" &&
-          filePath.startsWith("/uploads/activity-plans/")
+          filePath.startsWith("/uploads/activity-plans/") &&
+          !filePath.includes("..") &&
+          !filePath.includes("://")
         ) {
           await deleteFile(filePath);
         }
