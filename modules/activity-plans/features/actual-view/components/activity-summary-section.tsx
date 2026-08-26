@@ -8,7 +8,18 @@ interface ActivitySummarySectionProps {
   summary: PlanSummaryData;
 }
 
-export function ActivitySummarySection({ summary }: ActivitySummarySectionProps) {
+export function ActivitySummarySection({
+  summary,
+}: ActivitySummarySectionProps) {
+  // ฟังก์ชันแปลงปี ค.ศ. เป็น พ.ศ.
+  const formatThaiYear = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    // ค้นหาปี ค.ศ. 4 หลัก (1900 - 2099) แล้วแปลงเป็น พ.ศ. (+543)
+    return dateStr.replace(/\b(19\d\d|20\d\d)\b/g, (match) =>
+      String(parseInt(match, 10) + 543),
+    );
+  };
+
   // Extract or format start / end times
   const rawStartTime =
     summary.startTimeStr ||
@@ -30,7 +41,12 @@ export function ActivitySummarySection({ summary }: ActivitySummarySectionProps)
 
   const startTimeDisplay = formatTime(rawStartTime);
   const endTimeDisplay = formatTime(rawEndTime);
-  const endDateDisplay = (summary as any).endDateStr ?? summary.startDateStr;
+
+  // แปลงเป็นปี พ.ศ.
+  const startDateDisplay = formatThaiYear(summary.startDateStr);
+  const endDateDisplay = formatThaiYear(
+    (summary as any).endDateStr ?? summary.startDateStr,
+  );
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
@@ -59,9 +75,13 @@ export function ActivitySummarySection({ summary }: ActivitySummarySectionProps)
             วันที่เริ่ม - สิ้นสุด
           </p>
           <p className="text-xs sm:text-sm font-bold text-slate-800 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <span>{summary.startDateStr} {startTimeDisplay}</span>
+            <span>
+              {startDateDisplay} {startTimeDisplay}
+            </span>
             <span className="text-slate-400 font-normal">—</span>
-            <span>{endDateDisplay} {endTimeDisplay}</span>
+            <span>
+              {endDateDisplay} {endTimeDisplay}
+            </span>
           </p>
         </div>
       </div>
