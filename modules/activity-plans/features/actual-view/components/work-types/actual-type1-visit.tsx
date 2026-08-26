@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
 import { DEMO_PRODUCTS } from "../../../../constants";
+import DatePicker from "@/components/custom/DatePicker";
 
 export interface ProductOption {
   id: string;
@@ -50,8 +51,6 @@ export function ActualType1Visit({
   target,
   productAdvice,
   setProductAdvice,
-  detail,
-  setDetail,
   discussionResult,
   setDiscussionResult,
   salesOpportunity,
@@ -63,6 +62,8 @@ export function ActualType1Visit({
   products = [],
 }: ActualType1VisitProps) {
   if (!isVisible) return null;
+
+  const isAdviceTopic = target?.topic?.trim() === "ให้คำแนะนำการใช้สินค้า";
 
   const productOptions =
     products && products.length > 0
@@ -117,93 +118,98 @@ export function ActualType1Visit({
       />
 
       <div className="space-y-4 pt-1">
-        {/* สินค้าที่ให้คำแนะนำ */}
-        <div className="space-y-1.5">
-          <label className="text-xs sm:text-sm font-semibold text-slate-800 flex items-center justify-between">
-            <span>สินค้าที่ให้คำแนะนำ (เลือกได้มากกว่า 1 รายการ)</span>
-            {selectedProducts.length > 0 && (
-              <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                เลือกแล้ว {selectedProducts.length} รายการ
-              </span>
-            )}
-          </label>
-
-          {/* Selected Product Badges */}
-          {selectedProducts.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 p-2.5 bg-emerald-50/40 border border-emerald-200/60 rounded-xl mb-1.5">
-              {selectedProducts.map((prod) => (
-                <span
-                  key={prod}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-emerald-900 border border-emerald-200 shadow-2xs"
-                >
-                  {prod}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveProduct(prod)}
-                    className="hover:bg-emerald-100 rounded-md p-0.5 transition-colors text-emerald-600 hover:text-red-600 cursor-pointer"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Select dropdown */}
-          <Select
-            value=""
-            onValueChange={(val) => {
-              if (val && !selectedProducts.includes(val)) {
-                handleAddProduct(val);
-              }
-            }}
-          >
-            <SelectTrigger className="w-full bg-white border-slate-200 text-xs sm:text-sm h-10 rounded-xl">
-              <SelectValue placeholder="เลือกสินค้าที่ให้คำแนะนำเพิ่มเติม (คลิกเลือกหลายรายการได้)" />
-            </SelectTrigger>
-            <SelectContent>
-              {displayProducts.map((prod) => {
-                const isSelected = selectedProducts.includes(prod);
-                return (
-                  <SelectItem
-                    key={prod}
-                    value={prod}
-                    disabled={isSelected}
-                    className={cn(isSelected && "opacity-50")}
-                  >
-                    {prod} {isSelected ? "(เลือกแล้ว)" : ""}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* ประเมินโอกาสการขาย */}
-        <div className="space-y-1.5">
-          <label className="text-xs sm:text-sm font-semibold text-slate-800">
-            ประเมินโอกาสการขาย <span className="text-rose-500">*</span>
-          </label>
-          <div className="grid grid-cols-2 gap-3 max-w-sm">
-            {(["สูง", "ต่ำ"] as const).map((opt) => (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => setSalesOpportunity(opt)}
-                className={cn(
-                  "py-2.5 px-4 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all flex items-center justify-center",
-                  salesOpportunity === opt
-                    ? opt === "สูง"
-                      ? "bg-emerald-50/90 border-emerald-500 text-emerald-950 ring-1 ring-emerald-500/50 shadow-2xs"
-                      : "bg-rose-50/90 border-rose-400 text-rose-950 ring-1 ring-rose-400/50 shadow-2xs"
-                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
+        {/* Conditional rendering for advice products & sales opportunity */}
+        {isAdviceTopic && (
+          <>
+            {/* สินค้าที่ให้คำแนะนำ */}
+            <div className="space-y-1.5">
+              <label className="text-xs sm:text-sm font-semibold text-slate-800 flex items-center justify-between">
+                <span>สินค้าที่ให้คำแนะนำ (เลือกได้มากกว่า 1 รายการ)</span>
+                {selectedProducts.length > 0 && (
+                  <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                    เลือกแล้ว {selectedProducts.length} รายการ
+                  </span>
                 )}
+              </label>
+
+              {/* Selected Product Badges */}
+              {selectedProducts.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 p-2.5 bg-emerald-50/40 border border-emerald-200/60 rounded-xl mb-1.5">
+                  {selectedProducts.map((prod) => (
+                    <span
+                      key={prod}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-emerald-900 border border-emerald-200 shadow-2xs"
+                    >
+                      {prod}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveProduct(prod)}
+                        className="hover:bg-emerald-100 rounded-md p-0.5 transition-colors text-emerald-600 hover:text-red-600 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Select dropdown */}
+              <Select
+                value=""
+                onValueChange={(val) => {
+                  if (val && !selectedProducts.includes(val)) {
+                    handleAddProduct(val);
+                  }
+                }}
               >
-                {opt}
-              </button>
-            ))}
-          </div>
-        </div>
+                <SelectTrigger className="w-full bg-white border-slate-200 text-xs sm:text-sm h-10 rounded-xl">
+                  <SelectValue placeholder="เลือกสินค้าที่ให้คำแนะนำเพิ่มเติม (คลิกเลือกหลายรายการได้)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {displayProducts.map((prod) => {
+                    const isSelected = selectedProducts.includes(prod);
+                    return (
+                      <SelectItem
+                        key={prod}
+                        value={prod}
+                        disabled={isSelected}
+                        className={cn(isSelected && "opacity-50")}
+                      >
+                        {prod} {isSelected ? "(เลือกแล้ว)" : ""}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* ประเมินโอกาสการขาย */}
+            <div className="space-y-1.5">
+              <label className="text-xs sm:text-sm font-semibold text-slate-800">
+                ประเมินโอกาสการขาย <span className="text-rose-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-3 max-w-sm">
+                {(["สูง", "ต่ำ"] as const).map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => setSalesOpportunity(opt)}
+                    className={cn(
+                      "py-2.5 px-4 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all flex items-center justify-center",
+                      salesOpportunity === opt
+                        ? opt === "สูง"
+                          ? "bg-emerald-50/90 border-emerald-500 text-emerald-950 ring-1 ring-emerald-500/50 shadow-2xs"
+                          : "bg-rose-50/90 border-rose-400 text-rose-950 ring-1 ring-rose-400/50 shadow-2xs"
+                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
+                    )}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
         {/* ผลการพูดคุย */}
         <div className="space-y-1.5">
@@ -237,10 +243,10 @@ export function ActualType1Visit({
             <label className="text-xs sm:text-sm font-semibold text-slate-800">
               วันที่นัดหมายครั้งถัดไป
             </label>
-            <Input
-              type="date"
+            <DatePicker
               value={nextMeetingDate}
-              onChange={(e) => setNextMeetingDate(e.target.value)}
+              onChange={(v) => setNextMeetingDate(v || "")}
+              placeholder="เลือกวันที่นัดหมาย"
               className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
             />
           </div>
