@@ -2,74 +2,229 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { ArrowLeft, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations } from "../../types";
 import {
   getActivityPlanAction,
-  approveActivityPlanAction,
-  rejectActivityPlanAction,
-  requestCorrectionPlanAction,
-  cancelActivityPlanAction,
+  getDemoPlotHistoryAction,
 } from "../../server/actions";
+import type {
+  PlanSummaryData,
+  ActualTargetsState,
+} from "../actual-view/types";
 import {
-  extractWorkTypeSections,
-  extractMarketingProducts,
-  extractSalesPromotions,
-  extractRequisitions,
-} from "./utils";
-import { DetailHeader } from "./components/detail-header";
-import { DetailOverview } from "./components/detail-overview";
-import { PlanSummary } from "./components/plan-summary";
-import { PlanVsActual } from "./components/plan-vs-actual";
-import { WorkTypeList } from "./components/work-type-list";
-import { BudgetSummary } from "./components/budget-summary";
-import { MaterialsSection } from "./components/materials-section";
-import { HelpersSection } from "./components/helpers-section";
-import { PlanMetaInfo } from "./components/plan-meta-info";
-import { ApprovalActionPanel } from "./components/approval-action-panel";
-import { ApprovalHistory } from "./components/approval-history";
+  extractPlanData,
+  parseResultSummary,
+} from "../actual-view/utils";
+import type { ParsedSummaryValues } from "../actual-view/utils/summary-parser";
+import { ActualPlanSummary } from "../actual-view/components/actual-plan-summary";
+import {
+  DetailViewHeader,
+  DetailActivityResultSection,
+  DetailActivityStatusSection,
+  DetailViewActions,
+} from "./components";
 
-interface Props {
+interface ActivityPlanDetailViewProps {
   id: string;
+  onBack?: () => void;
 }
 
-export default function ActivityPlanDetailView({ id }: Props) {
+const initialTargets: ActualTargetsState = {
+  t1: {
+    customer: "",
+    topic: "",
+    detail: "",
+    opportunity: "",
+    nextDate: "",
+  },
+  t2: {
+    product: "",
+    customer: "",
+    detail: "",
+    expectedResult: "",
+    items: [],
+  },
+  t3: {
+    product: "",
+    customer: "",
+    targetQty: "",
+    targetSales: "",
+    items: [],
+  },
+  t4: {
+    customer: "",
+    orderNo: "",
+    targetCollect: "",
+    items: [],
+  },
+  t5: {
+    store: "",
+    product: "",
+    detail: "",
+    items: [],
+  },
+  t6: {
+    customer: "",
+    issueType: "",
+    detail: "",
+    targetStatus: "",
+    items: [],
+  },
+  t7: {
+    owner: "",
+    product: "",
+    crop: "",
+    plots: "",
+    demoProductQuantity: "",
+    objective: "",
+    experimentDetail: "",
+    detail: "",
+    targetCondition: "",
+    items: [],
+  },
+  t8: {
+    topic: "",
+    products: "",
+    targetAttendees: "",
+  },
+  t9: {
+    store: "",
+    isSubDealer: false,
+    subDealerStore: "",
+    product: "",
+    targetSales: "",
+    targetAttendees: "",
+    items: [],
+  },
+  t10: {
+    plot: "",
+    location: "",
+    showcase: "",
+    targetAttendees: "",
+    targetSales: "",
+  },
+  t11: {
+    store: "",
+    detail: "",
+    targetOpportunity: "",
+  },
+};
+
+const initialPlanSummary: PlanSummaryData = {
+  planNo: "",
+  title: "",
+  startDateStr: "",
+  endDateStr: "",
+  startTimeStr: "",
+  endTimeStr: "",
+  timeStr: "",
+  locationStr: "",
+  marketingBudget: undefined,
+  salesPromotionBudget: undefined,
+  extraExpenseAmount: undefined,
+  extraExpenseDetail: "",
+  targetSales: undefined,
+  isPromotionalMediaSelected: false,
+  marketingProductItems: [],
+  isSalesPromotionSelected: false,
+  salesPromotionItems: [],
+  requisitionItems: [],
+  objective: undefined,
+  notes: undefined,
+  helperEmployeeNames: undefined,
+};
+
+export default function ActivityPlanDetailView({
+  id,
+  onBack,
+}: ActivityPlanDetailViewProps) {
   const router = useRouter();
-  const { data: session } = useSession();
   const [plan, setPlan] = useState<ActivityPlanWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [comment, setComment] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
-  // Load details
-  async function loadData() {
-    setLoading(true);
-    try {
-      const res = await getActivityPlanAction(id);
-      if (res.success && res.plan) {
-        setPlan(res.plan);
-      } else {
-        setError(res.error || "ไม่สามารถดึงข้อมูลรายละเอียด Trip Plan ได้");
-      }
-    } catch {
-      setError("เกิดข้อผิดพลาดในการโหลดรายละเอียด Trip Plan");
-    } finally {
-      setLoading(false);
-    }
-  }
+  // Extracted Plan Summary & Targets
+  const [planSummary, setPlanSummary] = useState<PlanSummaryData>(initialPlanSummary);
+  const [planWorkTypes, setPlanWorkTypes] = useState<string[]>([]);
+  const [targets, setTargets] = useState<ActualTargetsState>(initialTargets);
+  const [parsedResults, setParsedResults] = useState<ParsedSummaryValues>({});
+
+  // Type 7 Demo Plot state
+  const [t7DemoPlotData, setT7DemoPlotData] = useState<any>(null);
+  const [t7VisitHistory, setT7VisitHistory] = useState<any[]>([]);
 
   useEffect(() => {
+    if (!id) return;
+
+    async function loadData() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getActivityPlanAction(id);
+        if (res.success && res.plan) {
+          const p = res.plan;
+          setPlan(p);
+
+          // Extract data
+          const extracted = extractPlanData(p, initialTargets);
+          setPlanSummary(extracted.planSummary);
+          setPlanWorkTypes(extracted.resolvedWorkTypes);
+          setTargets(extracted.targets);
+
+          // Parse result summary if plan result exists
+          if ((p as any).result) {
+            const parsed = parseResultSummary((p as any).result);
+            setParsedResults(parsed);
+          }
+
+          // Fetch demo plot history if applicable
+          if (extracted.t7PlotIdentifier) {
+            getDemoPlotHistoryAction(extracted.t7PlotIdentifier)
+              .then((histRes) => {
+                if (histRes.success && histRes.plot) {
+                  setT7DemoPlotData(histRes.plot);
+                  setT7VisitHistory(histRes.plot.visits || []);
+                }
+              })
+              .catch((e) => {
+                console.error("Failed to load demo plot history:", e);
+              });
+          }
+        } else {
+          setError(res.error || "ไม่สามารถดึงข้อมูลรายละเอียด Trip Plan ได้");
+        }
+      } catch (err: any) {
+        setError(err.message || "เกิดข้อผิดพลาดในการโหลดรายละเอียด Trip Plan");
+      } finally {
+        setLoading(false);
+      }
+    }
+
     loadData();
   }, [id]);
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.push("/activity-plans");
+    }
+  };
+
+  const isTypeVisible = (typeTitle: string) => {
+    if (planWorkTypes.length > 0) {
+      return planWorkTypes.includes(typeTitle);
+    }
+    return true;
+  };
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-500 gap-3">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
         <p className="text-sm font-medium">กำลังโหลดข้อมูล Trip Plan...</p>
       </div>
     );
@@ -84,202 +239,47 @@ export default function ActivityPlanDetailView({ id }: Props) {
             {error || "ไม่พบข้อมูล Trip Plan"}
           </AlertDescription>
         </Alert>
-        <Button
-          variant="outline"
-          onClick={() => router.push("/activity-plans")}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" /> กลับหน้ารายการแผนงาน
+        <Button variant="outline" onClick={handleBack}>
+          กลับหน้ารายการแผนงาน
         </Button>
       </div>
     );
   }
 
-  // ────────────────────────────────────────────────────────
-  // Check if current user is an approver at the current state
-  // ────────────────────────────────────────────────────────
-  const userEmployeeId = session?.user?.employeeId;
-  const roles = (session?.user as any)?.roles ?? [];
-  const isAdmin =
-    roles.includes("administrator") ||
-    roles.includes("admin") ||
-    roles.includes("ceo") ||
-    (session?.user as any)?.role === "administrator" ||
-    (session?.user as any)?.role === "ADMIN";
-
-  let canApproveThisStep = false;
-  let approvalPrompt = "";
-
-  const isPending =
-    plan.status === "PENDING_LINE_APPROVAL" ||
-    plan.status === "PENDING_BUDGET_APPROVAL" ||
-    plan.status === "PENDING_HELPER_APPROVAL";
-
-  if (isAdmin && isPending) {
-    canApproveThisStep = true;
-    approvalPrompt =
-      "คุณมีสิทธิ์ Administrator ในการอนุมัติ/จัดการ Trip Plan นี้";
-  } else if (plan.status === "PENDING_LINE_APPROVAL") {
-    canApproveThisStep = userEmployeeId === plan.currentApproverEmployeeId;
-    approvalPrompt = "คุณคือหัวหน้างานในสายการอนุมัติ Trip Plan นี้";
-  } else if (plan.status === "PENDING_BUDGET_APPROVAL") {
-    const canApproveBudget =
-      session?.user?.permissionKeys?.includes("activity.approve") ||
-      session?.user?.permissionKeys?.includes("activity.manage");
-    if (canApproveBudget) {
-      canApproveThisStep = true;
-      approvalPrompt = "คุณมีสิทธิ์อนุมัติงบประมาณ Trip Plan";
-    }
-  } else if (plan.status === "PENDING_HELPER_APPROVAL") {
-    const isHelperManager = plan.helpers.some(
-      (h) =>
-        h.employeeId === userEmployeeId || h.approvedById === userEmployeeId,
-    );
-    if (
-      isHelperManager ||
-      session?.user?.permissionKeys?.includes("activity.manage")
-    ) {
-      canApproveThisStep = true;
-      approvalPrompt = "คุณคือผู้จัดการแผนกของพนักงานช่วยงาน";
-    }
-  }
-
-  const handleApprove = async () => {
-    setSubmitting(true);
-    setError(null);
-    try {
-      const res = await approveActivityPlanAction(plan.id, comment);
-      if (res.success) {
-        setComment("");
-        loadData();
-      } else {
-        setError(res.error || "เกิดข้อผิดพลาดในการอนุมัติ");
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleReject = async () => {
-    if (!comment.trim()) {
-      setError("กรุณาระบุความเห็นกรณีปฏิเสธแผน");
-      return;
-    }
-    setSubmitting(true);
-    setError(null);
-    try {
-      const res = await rejectActivityPlanAction(plan.id, comment);
-      if (res.success) {
-        setComment("");
-        loadData();
-      } else {
-        setError(res.error || "เกิดข้อผิดพลาดในการปฏิเสธ");
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleRequestCorrection = async () => {
-    if (!comment.trim()) {
-      setError("กรุณาระบุสิ่งที่ต้องแก้ไขในความเห็น");
-      return;
-    }
-    setSubmitting(true);
-    setError(null);
-    try {
-      const res = await requestCorrectionPlanAction(plan.id, comment);
-      if (res.success) {
-        setComment("");
-        loadData();
-      } else {
-        setError(res.error || "เกิดข้อผิดพลาดในการตีกลับแก้ไข");
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleCancelPlan = async () => {
-    if (!window.confirm("ยืนยันการยกเลิก Trip Plan นี้ใช่หรือไม่?")) return;
-    setSubmitting(true);
-    setError(null);
-    try {
-      const res = await cancelActivityPlanAction(plan.id);
-      if (res.success) {
-        loadData();
-      } else {
-        setError(res.error || "เกิดข้อผิดพลาดในการยกเลิก");
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Conditions
-  const canEdit =
-    (plan.status === "DRAFT" || plan.status === "WAITING_FOR_CORRECTION") &&
-    (plan.createdById === session?.user?.id || isAdmin);
-
-  const canCancel =
-    plan.createdById === session?.user?.id &&
-    plan.status !== "APPROVED" &&
-    plan.status !== "REJECTED" &&
-    plan.status !== "CANCELLED";
-
-  // Data Extraction
-  const workTypeSections = extractWorkTypeSections(plan);
-  const marketingProducts = extractMarketingProducts(plan);
-  const salesPromotions = extractSalesPromotions(plan);
-  const requisitions = extractRequisitions(plan);
-
   return (
-    <section className="space-y-5 p-4 md:p-6 pb-28 md:pb-12 mx-auto bg-white rounded-lg">
-      {/* 1. Header (Code, Title, Status, Actions) */}
-      <DetailHeader plan={plan} canEdit={canEdit} />
+    <section className="space-y-6 container mx-auto px-0 sm:px-0">
+      <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
+        {/* 1. TOP HEADER (READ-ONLY) */}
+        <DetailViewHeader
+          planNo={planSummary.planNo}
+          status={plan.status}
+          onBack={handleBack}
+        />
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+        {/* 2. PLAN SUMMARY (ข้อมูลแผนงาน, งบประมาณและค่าใช้จ่าย, สื่อส่งเสริมการขาย, รายการส่งเสริมการขาย, ข้อมูลเพิ่มเติม) */}
+        <ActualPlanSummary summary={planSummary} />
 
-      {/* 2. Overview Summary Cards */}
-      <DetailOverview plan={plan} />
+        {/* 3. SECTION: ผลการปฏิบัติงานตามประเภทงาน (WORK TYPES 1 - 11) (READ-ONLY) */}
+        <DetailActivityResultSection
+          isTypeVisible={isTypeVisible}
+          targets={targets}
+          parsedResults={parsedResults}
+          demoPlotData={t7DemoPlotData}
+          visitHistory={t7VisitHistory}
+        />
 
-      {/* 3. Plan vs Actual (when result recorded) */}
-      <PlanVsActual plan={plan} />
+        {/* 4. SECTION: สถานะผลการทำกิจกรรม (READ-ONLY) */}
+        <DetailActivityStatusSection
+          activityResultStatus={parsedResults.activityResultStatus}
+          cancelReason={parsedResults.cancelReason}
+          postponedDate={parsedResults.postponedDate}
+          postponedTime={parsedResults.postponedTime}
+          postponedReason={parsedResults.postponedReason}
+          postponedNotes={parsedResults.postponedNotes}
+        />
 
-      {/* 4. Main 2-Column Layout */}
-      <div className="grid gap-5 lg:grid-cols-1 items-start">
-        {/* Left Column (2/3) */}
-        <div className="lg:col-span-2 space-y-5">
-          {/* Plan Summary (Objective & Notes) */}
-          <PlanSummary objective={plan.objective} notes={(plan as any).notes} />
-
-          {/* Activity / Work Types Accordion */}
-          <WorkTypeList sections={workTypeSections} />
-
-          {/* Budget Summary & Breakdown */}
-          <BudgetSummary plan={plan} salesPromotions={salesPromotions} />
-
-          {/* Materials & Requisitions */}
-          <MaterialsSection
-            marketingProducts={marketingProducts}
-            requisitions={requisitions}
-          />
-
-          {/* Helper Employees */}
-          <HelpersSection helpers={plan.helpers} />
-        </div>
+        {/* 5. BOTTOM ACTIONS (BACK ONLY) */}
+        <DetailViewActions onBack={handleBack} />
       </div>
     </section>
   );

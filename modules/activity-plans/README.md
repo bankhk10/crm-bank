@@ -61,23 +61,27 @@ modules/activity-plans/
 │   │           ├── actual-type10-field-day.tsx   # Type 10: จัดงาน Field Day
 │   │           ├── actual-type11-stock.tsx       # Type 11: ตรวจเช็กสต็อกหน้าร้าน
 │   │           └── demo-plot-history-modal.tsx   # Modal ประวัติแปลงสาธิต
-│   ├── detail-view/                 # หน้ารายละเอียดกิจกรรม Timeline และปุ่มอนุมัติ
-│   │   ├── activity-plan-detail-view.tsx # Container & Orchestrator หลัก
-│   │   ├── types.ts                 # UI Parsed types สำหรับ detail view
-│   │   ├── utils.ts                 # UI Data Extractors สำหรับแปลง Plan/Items
-│   │   └── components/              # คอมโพเนนต์ย่อยแยกส่วนการทำงาน
-│   │       ├── detail-header.tsx    # Header, breadcrumb, status, action buttons
-│   │       ├── detail-overview.tsx  # Highlight summary metric cards
-│   │       ├── plan-summary.tsx     # วัตถุประสงค์และหมายเหตุ
-│   │       ├── plan-vs-actual.tsx   # ตารางเปรียบเทียบ Plan vs Actual
-│   │       ├── work-type-list.tsx   # Accordion Coordinator สำหรับ 11 ประเภทงาน
-│   │       ├── work-type-section.tsx # รายละเอียดกิจกรรมรายประเภทงาน
-│   │       ├── budget-summary.tsx   # สรุปงบประมาณและรายการส่งเสริมการขาย
-│   │       ├── materials-section.tsx # สื่อส่งเสริมการขายและขอเบิกสินค้า
-│   │       ├── helpers-section.tsx  # รายชื่อพนักงานช่วยงาน
-│   │       ├── plan-meta-info.tsx   # ข้อมูล Meta (ปี/เดือนงบประมาณ วันจัดทำ)
-│   │       ├── approval-action-panel.tsx # แผงควบคุมการอนุมัติ / ส่งกลับแก้ไข / ปฏิเสธ / ยกเลิก
-│   │       └── approval-history.tsx # ประวัติการอนุมัติ (Approval Logs Timeline)
+│   ├── detail-view/                 # หน้ารายละเอียดแผนงาน (Read-only Detail View)
+│   │   ├── activity-plan-detail-view.tsx # Container & Orchestrator หลัก (Read-only)
+│   │   ├── types.ts                 # Types สำหรับ detail view
+│   │   ├── utils.ts                 # UI Data Extractors
+│   │   └── components/              # คอมโพเนนต์ย่อยแยกส่วนการแสดงผล (Read-only)
+│   │       ├── detail-view-header.tsx        # Header หน้ารายละเอียด พร้อม Plan No และ Status
+│   │       ├── detail-activity-result-section.tsx # ส่วนผลการปฏิบัติงานตาม 11 ประเภทงาน (Read-only)
+│   │       ├── detail-activity-status-section.tsx # ส่วนแสดงสถานะผลกิจกรรม (Read-only)
+│   │       ├── detail-view-actions.tsx       # ปุ่ม Action ด้านล่าง (กลับหน้ารายการ)
+│   │       └── work-types/                   # คอมโพเนนต์แสดงผลแยกตามประเภทงาน 1-11 (Read-only)
+│   │           ├── detail-type1-visit.tsx        # Type 1: เข้าพบร้านค้า / Key Farmer
+│   │           ├── detail-type2-followup.tsx     # Type 2: ติดตามผลการใช้สินค้า
+│   │           ├── detail-type3-sales.tsx        # Type 3: เสนอขายสินค้า
+│   │           ├── detail-type4-collect.tsx      # Type 4: วางบิล / เก็บเงิน
+│   │           ├── detail-type5-survey.tsx       # Type 5: สำรวจตลาดของคู่แข่ง
+│   │           ├── detail-type6-issue.tsx        # Type 6: แก้ปัญหา / รับเรื่องร้องเรียน
+│   │           ├── detail-type7-demo.tsx         # Type 7: ติดตามแปลงสาธิต / ทำแปลง
+│   │           ├── detail-type8-meeting.tsx      # Type 8: จัดประชุมการเกษตร
+│   │           ├── detail-type9-store.tsx        # Type 9: จัดกิจกรรมหน้าร้าน
+│   │           ├── detail-type10-field-day.tsx   # Type 10: จัดงาน Field Day
+│   │           └── detail-type11-stock.tsx       # Type 11: ตรวจเช็กสต็อกหน้าร้าน
 │       ├── activity-plan-approval-list-view.tsx # หน้าจอหลักแดชบอร์ดคิวงานอนุมัติ
 │       └── components/
 │           ├── approval-action-dialog.tsx       # Dialog ยืนยันการอนุมัติ / ตีกลับแก้ไข / ปฏิเสธ
@@ -486,6 +490,35 @@ modules/activity-plans/
   3. **Container View (`activity-plan-actual-view.tsx`):**
      - ทำหน้าที่เป็น Orchestrating Container จัดการ State, Data Fetching (`loadData`), Image Upload Handlers, Form Submission (`handleSubmit`), และประกอบ Business Section Components ทั้งหมด
 - **ผลลัพธ์:** โค้ดอ่านง่าย เป็นระเบียบ ดูแลและต่อยอดได้ง่าย ไม่กระทบ Business Logic, Database Schema, Data Flow หรือ Form Validation เดิม 100%
+
+### 2026-08-26: ปรับปรุง Activity Plan Detail View ให้สอดคล้องกับ Actual View (Read-Only Presentation)
+- **ขอบเขต:** ปรับโครงสร้างและการแสดงผลของ `modules/activity-plans/features/detail-view/` ให้มีลำดับข้อมูลและเงื่อนไขทางธุรกิจสอดคล้องกับ `modules/activity-plans/features/actual-view/` 100% ในรูปแบบ **Read-only Presentation** (ดูข้อมูลอย่างเดียว ไม่สามารถแก้ไขข้อมูลได้)
+- **ลำดับโครงสร้างการแสดงผล:**
+  1. **Header (`DetailViewHeader`):** แสดงชื่อหน้า, ปุ่มย้อนกลับ, รหัสแผนงาน (`planNo`), และสถานะแผนงาน (`ActivityStatusBadge`)
+  2. **ข้อมูลแผนงาน (`ActivitySummarySection`):** การ์ดชื่อแผน/กิจกรรม และช่วงวันเวลาจัดกิจกรรมในรูปแบบปี พ.ศ.
+  3. **งบประมาณและค่าใช้จ่าย (`BudgetSection`):** แสดงงบรวมทั้งสิ้น, Stat Card งบขาย (รวม), และ Stat Card งบการตลาด (รวม) พร้อมรายละเอียดสื่อฯ และรายการส่งเสริมฯ
+  4. **สื่อส่งเสริมการขาย (`PromotionalMaterialsSection`):** ตารางแสดงรายการสื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถม)
+  5. **รายการส่งเสริมการขาย (`MarketingExpenseSection`):** ตารางแสดงรายการส่งเสริมการขาย พร้อมประเภทการใช้งบ (งบการตลาด / งบขาย)
+  6. **ข้อมูลเพิ่มเติม (`AdditionalInfoSection`):** แสดงหมายเหตุเพิ่มเติม และรายชื่อพนักงานช่วยงาน/หน่วยงานผู้เพิ่มเติม
+  7. **ผลการปฏิบัติงานตามประเภทงาน (`DetailActivityResultSection`):** นำเสนอข้อมูลเป้าหมายที่ตั้งไว้ล่วงหน้า (Planned Target) ควบคู่กับผลการปฏิบัติงานจริงสำหรับแต่ละประเภทงาน 1–11 ในรูปแบบ Read-only (Badges, Label/Value, Tables, Text):
+     - `DetailType1Visit`: เข้าพบร้านค้า / Key Farmer (รองรับเงื่อนไขสินค้าที่ให้คำแนะนำ และโอกาสการขาย)
+     - `DetailType2Followup`: ติดตามผลการใช้สินค้า (รองรับทั้ง Single และ Multi-products)
+     - `DetailType3Sales`: เสนอขายสินค้า (ตารางสรุปเป้าหมาย vs ยอดขายจริงรายสินค้า)
+     - `DetailType4Collect`: วางบิล / เก็บเงิน (รองรับการแสดงผลแยกตามบริษัท/ร้านค้า และรูปถ่ายหลักฐาน)
+     - `DetailType5Survey`: สำรวจตลาดของคู่แข่ง (แบรนด์, สินค้า, ราคา, โปรโมชั่น, รูปถ่ายป้ายราคา)
+     - `DetailType6Issue`: แก้ปัญหา / รับเรื่องร้องเรียน (รายละเอียดปัญหา, แนวทางแก้ไข, Badge สถานะ)
+     - `DetailType7Demo`: ติดตามแปลงสาธิต / ทำแปลง (ข้อมูลแปลง, สภาพพืช, ผลผลิต, ความพึงพอใจ, Modal ประวัติแปลง)
+     - `DetailType8Meeting`: จัดประชุมการเกษตร (ผู้เข้าร่วมจริง, ยอดขายรายสินค้า, Q&A)
+     - `DetailType9Store`: จัดกิจกรรมหน้าร้าน (ยอดขายจริงรวม, ผู้เข้าร่วม, ยอดขายรายสินค้า)
+     - `DetailType10FieldDay`: จัดงาน Field Day (ผู้เข้าร่วมจริง, ยอดขาย/จอง, กลุ่มเกษตรกร, ผลตอบรับ)
+     - `DetailType11Stock`: ตรวจเช็กสต็อกหน้าร้าน (ตารางตรวจสต็อกสินค้า, สถานะสต็อก, โอกาสสั่งซื้อซ้ำ)
+  8. **สถานะผลการทำกิจกรรม (`DetailActivityStatusSection`):** Badge และการ์ดแสดงสถานะผลสำเร็จ / สำเร็จบางส่วน / เลื่อนกิจกรรม (พร้อมวันที่เลื่อนและสาเหตุ) / ยกเลิกกิจกรรม (พร้อมเหตุผล)
+  9. **Bottom Action (`DetailViewActions`):** ปุ่ม "กลับ" หน้ารายการแผนงาน
+- **ความปลอดภัยและความถูกต้อง (Read-only Compliance):**
+  - ไม่มี Form Inputs, Checkbox, Radio, DatePicker, Combobox ที่แก้ไขได้
+  - ไม่มีปุ่ม Save / Submit หรือ Action แก้ไขข้อมูล
+  - ไม่กระทบ API Contract, Database Schema, หรือการทำงานของหน้า Actual View เดิม 100%
+
 
 
 
