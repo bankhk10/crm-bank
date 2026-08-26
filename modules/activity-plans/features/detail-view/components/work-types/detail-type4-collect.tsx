@@ -37,7 +37,8 @@ export function DetailType4Collect({
 
   const totalReceived = hasMultipleCompanies
     ? target.items!.reduce(
-        (sum, item) => sum + (Number(item.receivedAmount?.replace(/,/g, "")) || 0),
+        (sum, item) =>
+          sum + (Number(item.receivedAmount?.replace(/,/g, "")) || 0),
         0,
       )
     : Number(receivedAmount?.replace(/,/g, "")) || 0;
@@ -66,7 +67,8 @@ export function DetailType4Collect({
         <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5">
           <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
             <span className="text-xs font-bold text-slate-800">
-              เป้าหมายการวางบิล/เก็บเงิน ({target.items!.length} บริษัท/ร้านค้า):
+              เป้าหมายการวางบิล/เก็บเงิน ({target.items!.length}{" "}
+              บริษัท/ร้านค้า):
             </span>
             <span className="text-xs font-extrabold text-indigo-800 bg-indigo-100 px-2.5 py-0.5 rounded-md">
               เป้ายอดเก็บเงินรวม {target.targetCollect || "-"}
@@ -110,7 +112,7 @@ export function DetailType4Collect({
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-3 pt-1 border-t border-slate-100">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-700 mt-4">
           <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
           <span>ผลการปฏิบัติงานจริง</span>
         </div>
@@ -158,15 +160,6 @@ export function DetailType4Collect({
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
-              <span className="text-xs text-slate-500 font-medium block">
-                เลขที่เอกสาร/ใบสั่งซื้อ
-              </span>
-              <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-                {orderNo || target.orderNo || "-"}
-              </span>
-            </div>
-
             <div className="bg-indigo-50/60 border border-indigo-200 rounded-xl p-3.5 space-y-1">
               <span className="text-xs text-indigo-600 font-medium block">
                 จำนวนเงินที่รับชำระจริง
