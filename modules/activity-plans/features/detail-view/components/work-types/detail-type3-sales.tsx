@@ -358,7 +358,7 @@ export function DetailType3Sales({
               </span>
               <span className="text-sm font-bold text-slate-900 block">
                 {totalTargetQtySum > 0
-                  ? `${totalTargetQtySum.toLocaleString()} รายการ/ชิ้น`
+                  ? `${totalTargetQtySum.toLocaleString()} รายการ`
                   : "-"}
               </span>
             </div>
@@ -369,7 +369,7 @@ export function DetailType3Sales({
               </span>
               <span className="text-sm font-extrabold text-slate-900 block">
                 {totalTargetSalesSum > 0
-                  ? `฿${totalTargetSalesSum.toLocaleString()}`
+                  ? `฿${totalTargetSalesSum.toLocaleString()} บาท`
                   : "-"}
               </span>
             </div>
@@ -380,7 +380,7 @@ export function DetailType3Sales({
               </span>
               <span className="text-sm font-bold text-blue-800 block">
                 {hasActualRecord
-                  ? `${totalActualQtySum.toLocaleString()} ชิ้น`
+                  ? `${totalActualQtySum.toLocaleString()} รายการ`
                   : "-"}
               </span>
             </div>
@@ -391,7 +391,7 @@ export function DetailType3Sales({
               </span>
               <span className="text-sm sm:text-base font-black text-blue-900 block">
                 {hasActualRecord
-                  ? `฿${totalActualSalesSum.toLocaleString()}`
+                  ? `฿${totalActualSalesSum.toLocaleString()} บาท`
                   : "-"}
               </span>
             </div>
