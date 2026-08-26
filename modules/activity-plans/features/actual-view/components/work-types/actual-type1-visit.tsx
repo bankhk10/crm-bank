@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X } from "lucide-react";
+import { X, Store } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -95,32 +95,34 @@ export function ActualType1Visit({
   };
 
   return (
-    <div className="border-2 border-teal-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
-      <div className="flex items-center justify-between border-b border-teal-100 pb-3">
-        <div className="flex items-center gap-2.5">
-          <h2 className="font-bold text-teal-900 text-base md:text-lg">
-            เข้าพบร้านค้า / Key Farmer
-          </h2>
+    <div className="border border-emerald-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-4 shadow-xs">
+      <div className="flex items-center gap-2 pb-1">
+        <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+          <Store className="w-4 h-4" />
         </div>
+        <h2 className="font-bold text-emerald-800 text-base md:text-lg">
+          เข้าพบร้านค้า / Key Farmer
+        </h2>
       </div>
 
       <ActualTargetCard
-        iconColorClass="text-teal-600"
-        badgeColorClass="bg-teal-100 text-teal-800"
+        iconColorClass="text-emerald-600"
+        badgeColorClass="bg-emerald-50 text-emerald-700 border border-emerald-200"
         gridColsClass="grid-cols-1 sm:grid-cols-3"
         items={[
-          { label: "ลูกค้า/ร้านค้า:", value: target.customer || "-" },
-          { label: "หัวข้อเป้าหมาย:", value: target.topic || "-" },
+          { label: "ลูกค้าร้านค้าเป้า:", value: target.customer || "-" },
+          { label: "ตัวแทนจำหน่าย:", value: target.topic || "-" },
           { label: "รายละเอียดเพิ่มเติม:", value: target.detail || "-" },
         ]}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-        <div className="space-y-1.5 md:col-span-2">
-          <label className="text-sm font-semibold text-slate-800 flex items-center justify-between">
+      <div className="space-y-4 pt-1">
+        {/* สินค้าที่ให้คำแนะนำ */}
+        <div className="space-y-1.5">
+          <label className="text-xs sm:text-sm font-semibold text-slate-800 flex items-center justify-between">
             <span>สินค้าที่ให้คำแนะนำ (เลือกได้มากกว่า 1 รายการ)</span>
             {selectedProducts.length > 0 && (
-              <span className="text-xs font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
+              <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                 เลือกแล้ว {selectedProducts.length} รายการ
               </span>
             )}
@@ -128,17 +130,17 @@ export function ActualType1Visit({
 
           {/* Selected Product Badges */}
           {selectedProducts.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 p-2.5 bg-teal-50/50 border border-teal-200/80 rounded-xl mb-1.5">
+            <div className="flex flex-wrap gap-1.5 p-2.5 bg-emerald-50/40 border border-emerald-200/60 rounded-xl mb-1.5">
               {selectedProducts.map((prod) => (
                 <span
                   key={prod}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-teal-900 border border-teal-300 shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-emerald-900 border border-emerald-200 shadow-2xs"
                 >
                   {prod}
                   <button
                     type="button"
                     onClick={() => handleRemoveProduct(prod)}
-                    className="hover:bg-teal-100 rounded-md p-0.5 transition-colors text-teal-600 hover:text-red-600 cursor-pointer"
+                    className="hover:bg-emerald-100 rounded-md p-0.5 transition-colors text-emerald-600 hover:text-red-600 cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -147,7 +149,7 @@ export function ActualType1Visit({
             </div>
           )}
 
-          {/* Select dropdown to add product */}
+          {/* Select dropdown */}
           <Select
             value=""
             onValueChange={(val) => {
@@ -156,8 +158,8 @@ export function ActualType1Visit({
               }
             }}
           >
-            <SelectTrigger className="w-full bg-white border-slate-300">
-              <SelectValue placeholder="+ เลือกสินค้าที่ให้คำแนะนำเพิ่ม (คลิกเลือกหลายรายการได้)" />
+            <SelectTrigger className="w-full bg-white border-slate-200 text-xs sm:text-sm h-10 rounded-xl">
+              <SelectValue placeholder="เลือกสินค้าที่ให้คำแนะนำเพิ่มเติม (คลิกเลือกหลายรายการได้)" />
             </SelectTrigger>
             <SelectContent>
               {displayProducts.map((prod) => {
@@ -177,22 +179,23 @@ export function ActualType1Visit({
           </Select>
         </div>
 
+        {/* ประเมินโอกาสการขาย */}
         <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-slate-800">
+          <label className="text-xs sm:text-sm font-semibold text-slate-800">
             ประเมินโอกาสการขาย <span className="text-rose-500">*</span>
           </label>
-          <div className="grid grid-cols-2 gap-2 mt-1">
+          <div className="grid grid-cols-2 gap-3 max-w-sm">
             {(["สูง", "ต่ำ"] as const).map((opt) => (
               <button
                 key={opt}
                 type="button"
                 onClick={() => setSalesOpportunity(opt)}
                 className={cn(
-                  "py-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all",
+                  "py-2.5 px-4 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all flex items-center justify-center",
                   salesOpportunity === opt
                     ? opt === "สูง"
-                      ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
-                      : "bg-red-100 border-red-400 text-red-800 ring-2 ring-red-400/20"
+                      ? "bg-emerald-50/90 border-emerald-500 text-emerald-950 ring-1 ring-emerald-500/50 shadow-2xs"
+                      : "bg-rose-50/90 border-rose-400 text-rose-950 ring-1 ring-rose-400/50 shadow-2xs"
                     : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
                 )}
               >
@@ -201,44 +204,46 @@ export function ActualType1Visit({
             ))}
           </div>
         </div>
-      </div>
-      <div className="space-y-1.5">
-        <label className="text-sm font-semibold text-slate-800">
-          ผลการพูดคุย <span className="text-rose-500">*</span>
-        </label>
-        <Textarea
-          rows={2}
-          value={discussionResult}
-          onChange={(e) => setDiscussionResult(e.target.value)}
-          placeholder="สรุปประเด็นสำคัญจากการพูดคุยกับลูกค้า"
-          className="bg-white border-slate-300"
-        />
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* ผลการพูดคุย */}
         <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-slate-800">
-            สิ่งที่ต้องดำเนินการต่อ
+          <label className="text-xs sm:text-sm font-semibold text-slate-800">
+            ผลการพูดคุย <span className="text-rose-500">*</span>
           </label>
           <Textarea
             rows={2}
-            value={nextAction}
-            onChange={(e) => setNextAction(e.target.value)}
-            placeholder="เช่น ส่งใบเสนอราคา, นำตัวอย่างสินค้ามาให้ลอง"
-            className="bg-white border-slate-300"
+            value={discussionResult}
+            onChange={(e) => setDiscussionResult(e.target.value)}
+            placeholder="สรุปประเด็นสำคัญจากการพูดคุยกับลูกค้า"
+            className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm"
           />
         </div>
 
-        <div className="space-y-1.5 ">
-          <label className="text-sm font-semibold text-slate-800">
-            วันที่นัดหมายครั้งถัดไป
-          </label>
-          <Input
-            type="date"
-            value={nextMeetingDate}
-            onChange={(e) => setNextMeetingDate(e.target.value)}
-            className="bg-white border-slate-300 mt-2"
-          />
+        {/* สิ่งที่ต้องดำเนินการต่อ & วันที่นัดหมายครั้งถัดไป */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs sm:text-sm font-semibold text-slate-800">
+              สิ่งที่ต้องดำเนินการต่อ
+            </label>
+            <Input
+              value={nextAction}
+              onChange={(e) => setNextAction(e.target.value)}
+              placeholder="เช่น ส่งใบเสนอราคา, นัดไดอะไซด์ปฐมนิเทศต่อ"
+              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs sm:text-sm font-semibold text-slate-800">
+              วันที่นัดหมายครั้งถัดไป
+            </label>
+            <Input
+              type="date"
+              value={nextMeetingDate}
+              onChange={(e) => setNextMeetingDate(e.target.value)}
+              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
+            />
+          </div>
         </div>
       </div>
     </div>

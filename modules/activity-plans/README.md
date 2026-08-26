@@ -410,8 +410,20 @@ modules/activity-plans/
   - `modules/layout/constants.tsx` (เพิ่มเมนูใน Sidebar: "สื่อส่งเสริมการขาย" ภายใต้เมนูทดสอบกิจกรรม)
   - `modules/activity-plans/features/form/components/budget-section.tsx` (ดึงรายการสื่อส่งเสริมการขายแบบไดนามิกจาก Database Grouped By Category)
   - `modules/activity-plans/features/form/activity-plan-form.tsx`, `activity-plan-create-view.tsx`, `activity-plan-edit-view.tsx` (โหลดและส่งต่อข้อมูลสินค้าสื่อส่งเสริมการขาย)
-- **คุณสมบัติเด่น:**
-  1. **Full CRUD:** รองรับการเพิ่ม, แก้ไข, ลบ (Soft Delete ปลอดภัย), แสดงรายการ แบ่งหน้า ค้นหาตามชื่อ/SKU และกรองตามหมวดหมู่/สถานะ
-  2. **Idempotent Seeding:** คำสั่ง `pnpm seed:activity` และ `pnpm seed:core` นำเข้าข้อมูลสินค้าตั้งต้น 197 รายการแบบ `upsert` โดยไม่สร้างข้อมูลซ้ำ
-  3. **Safe Historical Data:** การลบใช้ `deletedAt` Soft Delete ข้อมูลใน Activity Plan เดิมที่บันทึกไว้จะไม่ได้รับผลกระทบ
-  4. **Dynamic Dropdowns:** ในหน้าสร้าง/แก้ไข Trip Plan เมื่อมีการเพิ่มรายการสื่อส่งเสริมการขายใหม่ในระบบ รายการจะปรากฏใน Dropdown ของงบประมาณทันทีพร้อมราคาและหน่วยนับอัตโนมัติ
+### 2026-08-26: ปรับปรุง UI/UX และ Layout หน้าบันทึกผลการปฏิบัติงาน (Trip Plan Actual View) ตาม Reference Design
+- **ขอบเขต:** ปรับแต่งโครงสร้างหน้าตา, การจัดวาง Section, สี, Border, Spacing, Icon, Badge, และตารางในหน้า `activity-plan-actual-view.tsx` ให้ตรงตามภาพ Mockup Reference 100% โดยคง Business Logic และข้อมูลจริงทั้งหมด
+- **คอมโพเนนต์ที่ปรับปรุง:**
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+  - `modules/activity-plans/features/actual-view/components/actual-plan-summary.tsx`
+  - `modules/activity-plans/features/actual-view/components/actual-target-card.tsx`
+  - `modules/activity-plans/features/actual-view/components/work-types/` (Type 1 ถึง Type 11)
+- **การเปลี่ยนแปลงที่สำคัญ:**
+  1. **Header & Meta:** จัดวาง Header ด้านซ้ายพร้อมไอคอนเอกสารสีฟ้า, ชื่อหน้า และคำอธิบายย่อย ด้านขวาแสดง Badge เลขที่แผน (`TP...`) สีฟ้าพรีเมียม
+  2. **ข้อมูลแผนงาน:** แยก 2 การ์ด (ชื่อแผน/กิจกรรม & วันที่เริ่ม - สิ้นสุด) พร้อมไอคอนกำกับ
+  3. **งบประมาณและค่าใช้จ่าย:** หัวข้อสีเขียวพร้อม Badge สรุปงบรวม และ 2 การ์ดสถิติ (งบขายรวมพร้อมกราฟ Pie Chart และงบการตลาดรวมพร้อม Breakdown สื่อส่งเสริม/รายการส่งเสริม และไอคอนแฟ้มงาน)
+  4. **สื่อส่งเสริมการขาย & รายการส่งเสริมการขาย:** ตารางสไตล์พรีเมียมพร้อม Header สีธีม, ป้ายกำกับการใช้งบ, และแถบยอดรวมท้ายตาราง
+  5. **ข้อมูลเพิ่มเติม:** การ์ดหมายเหตุและหน่วยงานผู้ช่วยงาน 2 คอลัมน์
+  6. **ผลการปฏิบัติงานตามประเภทงาน:** แถบ Banner สีฟ้าอ่อน และการ์ด Work Type พร้อม Planned Target Box `จากแผนฉบับเดิม`
+  7. **สถานะผลการทำกิจกรรม:** ปุ่มเลือกสถานะ 4 ตัวเลือก (สำเร็จบางส่วน (ดำเนินต่อ), สำเร็จ, เลื่อน, ยกเลิก) สไตล์ไอคอนและการไฮไลต์ตรงตามภาพ
+  8. **ปุ่มบันทึกและยกเลิก:** ปุ่มยกเลิกสีขาวกรอบเทา และปุ่มบันทึกสีเขียวมรกต (`#007a5e`) อยู่ตรงกลางด้านล่าง
+

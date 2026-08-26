@@ -93,7 +93,7 @@ export function ActualType5Survey({
   const hasMultipleItems = target.items && target.items.length > 1;
 
   return (
-    <div className="border-2 border-amber-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
+    <div className="border border-amber-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-4 shadow-xs">
       <div className="flex items-center justify-between border-b border-amber-100 pb-3">
         <div className="flex items-center gap-2.5">
           <h2 className="font-bold text-amber-900 text-base md:text-lg">

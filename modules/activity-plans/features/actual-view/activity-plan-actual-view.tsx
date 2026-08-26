@@ -14,6 +14,11 @@ import {
   Sparkles,
   Layers,
   ClipboardCheck,
+  BarChart3,
+  FileText,
+  CheckSquare,
+  Info,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -2500,56 +2505,62 @@ export default function ActivityPlanActualView({
   }
 
   return (
-    <section className="space-y-4 md:space-y-6 container mx-auto px-0 sm:px-0">
-      <Card>
-        <div className="p-3 sm:p-4 md:p-6">
-          <div className="text-center">
-            <h5 className="font-semibold text-lg sm:text-2xl md:text-3xl border-b pb-4 md:pb-6 leading-snug">
-              <span className="hidden sm:inline">
+    <section className="space-y-6 container mx-auto px-0 sm:px-0">
+      <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
+        {/* TOP HEADER */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 shadow-2xs">
+              <FileText className="w-6 h-6 stroke-[2.2]" />
+            </div>
+            <div>
+              <h1 className="font-bold text-xl sm:text-2xl text-slate-800 tracking-tight">
                 บันทึกผลการปฏิบัติงาน ( Trip Plan Actual )
-              </span>
-              <span className="inline sm:hidden">
-                บันทึกผลการปฏิบัติงาน
-                <br />( Trip Plan Actual )
-              </span>
-            </h5>
+              </h1>
+              <p className="text-xs text-slate-500 font-normal mt-0.5">
+                บันทึกรายละเอียดการปฏิบัติงานตามแผนงาน
+              </p>
+            </div>
           </div>
 
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4 md:space-y-6 pt-4 md:pt-6"
-            noValidate
-          >
-            {formError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-500" />
-                <span>{formError}</span>
-              </div>
-            )}
+          {planSummary.planNo && (
+            <div className="self-start sm:self-auto inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs">
+              <Info className="w-3.5 h-3.5 shrink-0" />
+              <span>เลขที่แผน: {planSummary.planNo}</span>
+            </div>
+          )}
+        </div>
 
-            {submitSuccess && (
-              <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
-                <Check className="h-4 w-4 flex-shrink-0 text-emerald-600 stroke-[3]" />
-                <span>บันทึกผลการปฏิบัติงานเรียบร้อยแล้ว!</span>
-              </div>
-            )}
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6"
+          noValidate
+        >
+          {formError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-500" />
+              <span>{formError}</span>
+            </div>
+          )}
 
-            {/* SECTION 1: ข้อมูลสรุปแผนงาน */}
-            <SectionHeader
-              title="ข้อมูลสรุปแผนงาน"
-              className="rounded-xl"
-              accentColor="#808080"
-            />
+          {submitSuccess && (
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+              <Check className="h-4 w-4 flex-shrink-0 text-emerald-600 stroke-[3]" />
+              <span>บันทึกผลการปฏิบัติงานเรียบร้อยแล้ว!</span>
+            </div>
+          )}
 
-            {/* PLAN SUMMARY CARD */}
-            <ActualPlanSummary summary={planSummary} />
+          {/* PLAN SUMMARY COMPONENT (ข้อมูลแผนงาน, งบประมาณและค่าใช้จ่าย, สื่อส่งเสริมการขาย, รายการส่งเสริมการขาย, ข้อมูลเพิ่มเติม) */}
+          <ActualPlanSummary summary={planSummary} />
 
-            {/* SECTION 2: ผลการปฏิบัติงานตามประเภทงาน */}
-            <SectionHeader
-              title="ผลการปฏิบัติงานตามประเภทงาน"
-              className="rounded-xl"
-              accentColor="#808080"
-            />
+          {/* SECTION: ผลการปฏิบัติงานตามประเภทงาน */}
+          <div className="space-y-4 pt-2">
+            <div className="bg-[#eff6ff] border border-blue-100 rounded-xl px-4 py-3 flex items-center gap-2.5 shadow-2xs">
+              <BarChart3 className="w-4 h-4 text-blue-600 shrink-0" />
+              <h2 className="text-sm font-bold text-blue-900">
+                ผลการปฏิบัติงานตามประเภทงาน
+              </h2>
+            </div>
 
             <div className="space-y-4 md:space-y-6">
               {/* WORK TYPE 1 */}
@@ -2775,22 +2786,25 @@ export default function ActivityPlanActualView({
                 setNextAction={setT11NextAction}
               />
             </div>
+          </div>
 
-            {/* SECTION 3: สถานะผลการทำกิจกรรม */}
-            <SectionHeader
-              title="สถานะผลการทำกิจกรรม"
-              className="rounded-xl"
-              accentColor="#808080"
-            />
+          {/* SECTION: สถานะผลการทำกิจกรรม */}
+          <div className="space-y-4 pt-2">
+            <div className="bg-[#eff6ff] border border-blue-100 rounded-xl px-4 py-3 flex items-center gap-2.5 shadow-2xs">
+              <BarChart3 className="w-4 h-4 text-blue-600 shrink-0" />
+              <h2 className="text-sm font-bold text-blue-900">
+                สถานะผลการทำกิจกรรม
+              </h2>
+            </div>
 
             <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                    <ClipboardCheck className="w-4 h-4 text-emerald-600" />
-                    เลือกผลการทำกิจกรรม <span className="text-rose-500">*</span>
+                    <CheckSquare className="w-4 h-4 text-emerald-600" />
+                    <span>เลือกผลการทำกิจกรรม <span className="text-rose-500">*</span></span>
                   </label>
-                  <span className="text-xs text-slate-400 font-medium">
+                  <span className="text-xs text-slate-400 font-normal">
                     (กำหนดสถานะการดำเนินงานของกิจกรรมนี้)
                   </span>
                 </div>
@@ -2800,31 +2814,36 @@ export default function ActivityPlanActualView({
                   {[
                     {
                       id: "PARTIAL" as const,
-                      label: "สำเร็จบางส่วน (ค่าเริ่มต้น)",
-                      icon: "⏳",
+                      label: (
+                        <div className="text-center leading-tight">
+                          <div>สำเร็จบางส่วน</div>
+                          <div className="text-[11px] font-normal opacity-90">(ดำเนินต่อ)</div>
+                        </div>
+                      ),
+                      icon: <span className="text-base">🏆</span>,
                       activeClass:
-                        "bg-amber-50/90 border-amber-500 text-amber-950 ring-2 ring-amber-500/20 shadow-xs",
+                        "bg-amber-50/90 border-amber-400 text-amber-950 ring-1 ring-amber-400/50 shadow-2xs",
                     },
                     {
                       id: "COMPLETED" as const,
-                      label: "สำเร็จ",
-                      icon: "✅",
+                      label: <span>สำเร็จ</span>,
+                      icon: <CheckSquare className="w-4 h-4 text-emerald-600" />,
                       activeClass:
-                        "bg-emerald-50/90 border-emerald-500 text-emerald-950 ring-2 ring-emerald-500/20 shadow-xs",
+                        "bg-emerald-50/90 border-emerald-500 text-emerald-950 ring-1 ring-emerald-500/50 shadow-2xs",
                     },
                     {
                       id: "POSTPONED" as const,
-                      label: "เลื่อน",
-                      icon: "🗓️",
+                      label: <span>เลื่อน</span>,
+                      icon: <Calendar className="w-4 h-4 text-sky-600" />,
                       activeClass:
-                        "bg-sky-50/90 border-sky-500 text-sky-950 ring-2 ring-sky-500/20 shadow-xs",
+                        "bg-sky-50/90 border-sky-500 text-sky-950 ring-1 ring-sky-500/50 shadow-2xs",
                     },
                     {
                       id: "CANCELLED" as const,
-                      label: "ยกเลิก",
-                      icon: "❌",
+                      label: <span>ยกเลิก</span>,
+                      icon: <X className="w-4 h-4 text-rose-600" />,
                       activeClass:
-                        "bg-rose-50/90 border-rose-500 text-rose-950 ring-2 ring-rose-500/20 shadow-xs",
+                        "bg-rose-50/90 border-rose-500 text-rose-950 ring-1 ring-rose-500/50 shadow-2xs",
                     },
                   ].map((st) => (
                     <button
@@ -2838,8 +2857,8 @@ export default function ActivityPlanActualView({
                           : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300",
                       )}
                     >
-                      <span className="text-base">{st.icon}</span>
-                      <span>{st.label}</span>
+                      {st.icon}
+                      {st.label}
                     </button>
                   ))}
                 </div>
@@ -2926,35 +2945,35 @@ export default function ActivityPlanActualView({
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Bottom Action Footer */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-4 border-t border-slate-100">
-              <Button
-                type="button"
-                onClick={handleBack}
-                disabled={isSubmitting}
-                className="w-full sm:w-32 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl h-11 shadow-sm flex items-center justify-center gap-1.5"
-              >
-                <X className="h-4 w-4" />
-                <span>ยกเลิก</span>
-              </Button>
+          {/* Bottom Action Footer */}
+          <div className="flex items-center justify-center gap-4 pt-4 border-t border-slate-100">
+            <Button
+              type="button"
+              onClick={handleBack}
+              disabled={isSubmitting}
+              className="w-36 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold rounded-xl h-11 shadow-2xs flex items-center justify-center gap-2 cursor-pointer transition-all"
+            >
+              <X className="h-4 w-4 text-slate-500" />
+              <span>ยกเลิก</span>
+            </Button>
 
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full sm:w-32 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl h-11 shadow-md flex items-center justify-center gap-1.5"
-              >
-                {isSubmitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Check className="h-4 w-4 stroke-[3]" />
-                )}
-                <span>{isSubmitting ? "กำลังบันทึก..." : "บันทึก"}</span>
-              </Button>
-            </div>
-          </form>
-        </div>
-      </Card>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-36 bg-[#007a5e] hover:bg-[#00664e] text-white font-semibold rounded-xl h-11 shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all"
+            >
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Check className="h-4 w-4 stroke-[3]" />
+              )}
+              <span>{isSubmitting ? "กำลังบันทึก..." : "บันทึก"}</span>
+            </Button>
+          </div>
+        </form>
+      </div>
     </section>
   );
 }

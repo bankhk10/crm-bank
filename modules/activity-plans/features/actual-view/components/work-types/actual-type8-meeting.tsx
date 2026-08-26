@@ -114,7 +114,7 @@ export function ActualType8Meeting({
   );
 
   return (
-    <div className="border-2 border-violet-500 rounded-2xl p-4 md:p-6 bg-white space-y-4 shadow-xs">
+    <div className="border border-violet-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-4 shadow-xs">
       <div className="flex items-center justify-between border-b border-violet-100 pb-3">
         <div className="flex items-center gap-2.5">
           <h2 className="font-bold text-violet-900 text-base md:text-lg">
