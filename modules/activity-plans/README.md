@@ -20,7 +20,8 @@ modules/activity-plans/
 ├── server/                          # ชั้น Server-Side Actions และสิทธิ์ RBAC
 │   └── actions.ts                   # Next.js Server Actions รองรับความปลอดภัยฝั่ง UI
 ├── ui/                              # Shared UI Components ย่อย
-│   └── activity-status-badge.tsx    # ป้ายสีแสดงสถานะกิจกรรมระดับพรีเมียม
+│   ├── activity-status-badge.tsx    # ป้ายสีแสดงสถานะกิจกรรมระดับพรีเมียม
+│   └── form-action-buttons.tsx      # ปุ่มย้อนกลับและบันทึกมาตรฐาน (Action Footer)
 ├── features/                        # หน้าจอการทำงานหลัก (React Views)
 │   ├── list-view/                   # หน้ารายการแผนงานและตารางข้อมูลของเซลส์
 │   ├── form/                        # หน้าจอฟอร์ม บันทึก/แก้ไขข้อมูลหลัก

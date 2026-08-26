@@ -7,6 +7,10 @@ export { default as ActivityPlanApprovalListView } from "./features/approve-view
 export { default as ActivityPlanActualView } from "./features/actual-view/activity-plan-actual-view";
 export { default as PromotionalMaterialsView } from "./features/promotional-materials/promotional-materials-view";
 
+// Export UI components
+export { ActivityStatusBadge } from "./ui/activity-status-badge";
+export { FormActionButtons } from "./ui/form-action-buttons";
+
 // Export types & constants
 export type { ActivityPlanWithRelations } from "./types";
 export * from "./constants";

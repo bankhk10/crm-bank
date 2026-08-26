@@ -19,6 +19,7 @@ import {
   CheckSquare,
   Info,
   Calendar,
+  Leaf,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,7 @@ import {
 import { ImageFile, PlanSummaryData } from "./types";
 import { ActualPlanSummary } from "./components/actual-plan-summary";
 import { DateTimePicker } from "../form/components/date-time-picker";
+import { FormActionButtons } from "../../ui/form-action-buttons";
 
 // Work Type Components
 import { ActualType1Visit } from "./components/work-types/actual-type1-visit";
@@ -62,6 +64,7 @@ import {
   ActualType11Stock,
   StockCheckItem,
 } from "./components/work-types/actual-type11-stock";
+import { ArrowRight, User2 } from "lucide-react";
 
 interface ActivityPlanActualViewProps {
   id?: string;
@@ -2531,11 +2534,7 @@ export default function ActivityPlanActualView({
           )}
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6"
-          noValidate
-        >
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           {formError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-500" />
@@ -2802,7 +2801,10 @@ export default function ActivityPlanActualView({
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
                     <CheckSquare className="w-4 h-4 text-emerald-600" />
-                    <span>เลือกผลการทำกิจกรรม <span className="text-rose-500">*</span></span>
+                    <span>
+                      เลือกผลการทำกิจกรรม{" "}
+                      <span className="text-rose-500">*</span>
+                    </span>
                   </label>
                   <span className="text-xs text-slate-400 font-normal">
                     (กำหนดสถานะการดำเนินงานของกิจกรรมนี้)
@@ -2817,7 +2819,9 @@ export default function ActivityPlanActualView({
                       label: (
                         <div className="text-center leading-tight">
                           <div>สำเร็จบางส่วน</div>
-                          <div className="text-[11px] font-normal opacity-90">(ดำเนินต่อ)</div>
+                          <div className="text-[11px] font-normal opacity-90">
+                            (ดำเนินต่อ)
+                          </div>
                         </div>
                       ),
                       icon: <span className="text-base">🏆</span>,
@@ -2827,7 +2831,9 @@ export default function ActivityPlanActualView({
                     {
                       id: "COMPLETED" as const,
                       label: <span>สำเร็จ</span>,
-                      icon: <CheckSquare className="w-4 h-4 text-emerald-600" />,
+                      icon: (
+                        <CheckSquare className="w-4 h-4 text-emerald-600" />
+                      ),
                       activeClass:
                         "bg-emerald-50/90 border-emerald-500 text-emerald-950 ring-1 ring-emerald-500/50 shadow-2xs",
                     },
@@ -2948,30 +2954,11 @@ export default function ActivityPlanActualView({
           </div>
 
           {/* Bottom Action Footer */}
-          <div className="flex items-center justify-center gap-4 pt-4 border-t border-slate-100">
-            <Button
-              type="button"
-              onClick={handleBack}
-              disabled={isSubmitting}
-              className="w-36 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold rounded-xl h-11 shadow-2xs flex items-center justify-center gap-2 cursor-pointer transition-all"
-            >
-              <X className="h-4 w-4 text-slate-500" />
-              <span>ยกเลิก</span>
-            </Button>
-
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-36 bg-[#007a5e] hover:bg-[#00664e] text-white font-semibold rounded-xl h-11 shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all"
-            >
-              {isSubmitting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Check className="h-4 w-4 stroke-[3]" />
-              )}
-              <span>{isSubmitting ? "กำลังบันทึก..." : "บันทึก"}</span>
-            </Button>
-          </div>
+          <FormActionButtons
+            onBack={handleBack}
+            loading={isSubmitting}
+            submitLabel="บันทึก"
+          />
         </form>
       </div>
     </section>

@@ -10,14 +10,13 @@ import {
   X,
   ChevronDown,
   AlertCircle,
-  ArrowLeft,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/custom/section-header";
 import { cn } from "@/lib/utils";
 import type { ActivityPlanFormValues } from "../../application/validations";
 import { DateTimePicker } from "./components/date-time-picker";
+import { FormActionButtons } from "../../ui/form-action-buttons";
 
 type SubmitResult = {
   success: boolean;
@@ -2681,30 +2680,12 @@ export function ActivityPlanForm({
             </div>
 
             {/* Bottom Action Footer */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-4 border-t border-slate-100">
-              {onCancel && (
-                <Button
-                  type="button"
-                  onClick={onCancel}
-                  disabled={loading}
-                  className="w-full sm:w-32 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl h-11 shadow-sm flex items-center justify-center gap-1.5"
-                >
-                  <X className="h-4 w-4" />
-                  <span>ยกเลิก</span>
-                </Button>
-              )}
-
-              {!readonly && (
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full sm:w-32 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl h-11 shadow-md flex items-center justify-center gap-1.5"
-                >
-                  <Check className="h-4 w-4 stroke-[3]" />
-                  <span>{loading ? "กำลังบันทึก..." : submitLabel}</span>
-                </Button>
-              )}
-            </div>
+            <FormActionButtons
+              onCancel={onCancel}
+              loading={loading}
+              readonly={readonly}
+              submitLabel={submitLabel}
+            />
           </form>
         </div>
       </Card>
