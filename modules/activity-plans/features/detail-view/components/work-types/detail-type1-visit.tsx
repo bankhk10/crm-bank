@@ -33,7 +33,9 @@ export function DetailType1Visit({
   if (!isVisible) return null;
 
   const isAdviceTopic =
-    target?.topic?.trim() === "ให้คำแนะนำการใช้สินค้า" || !!productAdvice || !!salesOpportunity;
+    target?.topic?.trim() === "ให้คำแนะนำการใช้สินค้า" ||
+    !!productAdvice ||
+    !!salesOpportunity;
 
   const selectedProducts = productAdvice
     ? productAdvice
@@ -74,7 +76,7 @@ export function DetailType1Visit({
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-4 pt-1 border-t border-slate-100">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-700 mt-4">
           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span>ผลการปฏิบัติงานจริง</span>
         </div>
