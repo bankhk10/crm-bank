@@ -519,6 +519,14 @@ modules/activity-plans/
   - ไม่มีปุ่ม Save / Submit หรือ Action แก้ไขข้อมูล
   - ไม่กระทบ API Contract, Database Schema, หรือการทำงานของหน้า Actual View เดิม 100%
 
+### 2026-08-26: ปรับปรุงการแสดงสถานะในหน้ารายการ Trip Plan (List View) ตามผลการบันทึกแผนจริง
+- **ขอบเขต:** ปรับปรุงหน้า `activity-plan-list-view.tsx`, `activity-plan-table.tsx`, `activity-status-badge.tsx`, และ API route ให้แสดงสถานะผลการปฏิบัติงานจริงควบคู่กับสถานะของแผนงาน
+- **การเปลี่ยนแปลง:**
+  1. **แสดงผลสถานะจริง (`ActivityStatusBadge`):** รองรับทั้งสถานะของแผนงานและสถานะผลกิจกรรมที่บันทึกจริง (`COMPLETED` = "สำเร็จ", `PARTIAL` = "สำเร็จบางส่วน", `POSTPONED` = "เลื่อน", `CANCELLED` = "ยกเลิก")
+  2. **ตัวเลือก Filter สถานะ (`STATUS_OPTIONS`):** เพิ่มตัวเลือกกรองตามผลกิจกรรมจริง (ผลกิจกรรม: สำเร็จ, ผลกิจกรรม: สำเร็จบางส่วน, ผลกิจกรรม: เลื่อน)
+  3. **Backend & API Query (`GET /api/activity-plans` & Repository):** Include `result` object ในรายการข้อมูล และรองรับการ Filter ตาม `resultStatus` อัตโนมัติ
+
+
 
 
 

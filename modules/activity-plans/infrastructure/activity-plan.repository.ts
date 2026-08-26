@@ -156,7 +156,16 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
   const where: Prisma.ActivityPlanWhereInput = { deletedAt: null };
 
   if (status) {
-    where.status = status;
+    if (["COMPLETED", "PARTIAL", "POSTPONED"].includes(status)) {
+      where.result = { resultStatus: status as any };
+    } else if (status === "CANCELLED") {
+      where.OR = [
+        { status: "CANCELLED" },
+        { result: { resultStatus: "CANCELLED" } },
+      ];
+    } else {
+      where.status = status;
+    }
   }
 
   if (employeeId) {

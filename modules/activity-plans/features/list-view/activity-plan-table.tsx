@@ -14,7 +14,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { ActivityPlanWithRelations, ActivityStatus } from "../../types";
+import type { ActivityPlanWithRelations } from "../../types";
 import { ActivityStatusBadge } from "../../ui/activity-status-badge";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
@@ -49,8 +49,11 @@ const STATUS_OPTIONS = [
   { value: "PENDING_BUDGET_APPROVAL", label: "รออนุมัติงบประมาณ" },
   { value: "PENDING_HELPER_APPROVAL", label: "รออนุมัติคนช่วยงาน" },
   { value: "APPROVED", label: "อนุมัติสำเร็จ" },
-  { value: "REJECTED", label: "ปฏิเสธ" },
+  { value: "COMPLETED", label: "ผลกิจกรรม: สำเร็จ" },
+  { value: "PARTIAL", label: "ผลกิจกรรม: สำเร็จบางส่วน" },
+  { value: "POSTPONED", label: "ผลกิจกรรม: เลื่อน" },
   { value: "WAITING_FOR_CORRECTION", label: "รอแก้ไข/ข้อมูลเพิ่ม" },
+  { value: "REJECTED", label: "ปฏิเสธ" },
   { value: "CANCELLED", label: "ยกเลิก" },
 ];
 
@@ -171,11 +174,18 @@ export function ActivityPlanTable({
       {
         accessorKey: "status",
         header: "สถานะ",
-        cell: (info) => (
-          <div className="whitespace-nowrap">
-            <ActivityStatusBadge status={info.getValue() as ActivityStatus} />
-          </div>
-        ),
+        cell: ({ row }) => {
+          const item = row.original;
+          const resultStatus = (item as any).result?.resultStatus;
+          return (
+            <div className="whitespace-nowrap">
+              <ActivityStatusBadge
+                status={item.status}
+                resultStatus={resultStatus}
+              />
+            </div>
+          );
+        },
       },
       {
         id: "actions",

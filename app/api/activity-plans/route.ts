@@ -28,17 +28,33 @@ export async function GET(request: Request) {
 
   const where: Prisma.ActivityPlanWhereInput = { deletedAt: null };
 
-  if (statusFilter && Object.values(ActivityStatus).includes(statusFilter as any)) {
-    where.status = statusFilter as ActivityStatus;
+  if (statusFilter) {
+    if (["COMPLETED", "PARTIAL", "POSTPONED"].includes(statusFilter)) {
+      where.result = { resultStatus: statusFilter as any };
+    } else if (statusFilter === "CANCELLED") {
+      where.OR = [
+        { status: "CANCELLED" },
+        { result: { resultStatus: "CANCELLED" } },
+      ];
+    } else if (Object.values(ActivityStatus).includes(statusFilter as any)) {
+      where.status = statusFilter as ActivityStatus;
+    }
   }
 
   if (q) {
-    where.OR = [
-      { title: { contains: q, mode: "insensitive" } },
-      { location: { contains: q, mode: "insensitive" } },
-      { objective: { contains: q, mode: "insensitive" } },
-      { employee: { name: { contains: q, mode: "insensitive" } } },
-    ];
+    const searchFilter: Prisma.ActivityPlanWhereInput = {
+      OR: [
+        { title: { contains: q, mode: "insensitive" } },
+        { location: { contains: q, mode: "insensitive" } },
+        { objective: { contains: q, mode: "insensitive" } },
+        { employee: { name: { contains: q, mode: "insensitive" } } },
+      ],
+    };
+    if (where.OR) {
+      where.AND = [searchFilter];
+    } else {
+      where.OR = searchFilter.OR;
+    }
   }
 
   // Apply permission-based data scopes
@@ -50,6 +66,7 @@ export async function GET(request: Request) {
       where,
       include: {
         activityType: true,
+        result: true,
         employee: {
           select: { id: true, name: true, positionTitle: true, departmentName: true },
         },

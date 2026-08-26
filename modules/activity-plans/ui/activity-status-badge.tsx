@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import type { ActivityStatus } from "../types";
 
 const STATUS_STYLES: Record<
-  ActivityStatus,
+  string,
   { label: string; className: string; dot: string }
 > = {
   DRAFT: {
@@ -43,23 +43,52 @@ const STATUS_STYLES: Record<
   },
   CANCELLED: {
     label: "ยกเลิก",
-    className: "bg-slate-100 text-slate-500 border-slate-200",
-    dot: "bg-slate-400",
+    className: "bg-rose-50 text-rose-700 border-rose-200",
+    dot: "bg-rose-500",
+  },
+  // Actual Result statuses
+  COMPLETED: {
+    label: "สำเร็จ",
+    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    dot: "bg-emerald-500",
+  },
+  PARTIAL: {
+    label: "สำเร็จบางส่วน",
+    className: "bg-amber-50 text-amber-700 border-amber-200",
+    dot: "bg-amber-500",
+  },
+  POSTPONED: {
+    label: "เลื่อน",
+    className: "bg-sky-50 text-sky-700 border-sky-200",
+    dot: "bg-sky-500",
+  },
+  FAILED: {
+    label: "ไม่สำเร็จ",
+    className: "bg-red-50 text-red-700 border-red-200",
+    dot: "bg-red-500",
   },
 };
 
 export function ActivityStatusBadge({
   status,
+  resultStatus,
   className,
 }: {
-  status?: ActivityStatus;
+  status?: ActivityStatus | string;
+  resultStatus?: string;
   className?: string;
 }) {
-  const info = status ? STATUS_STYLES[status] : null;
+  const effectiveKey = (resultStatus || status) as string | undefined;
+  const info = effectiveKey ? STATUS_STYLES[effectiveKey] : null;
 
   if (!info) {
     return (
-      <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium bg-slate-100 text-slate-700", className)}>
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium bg-slate-100 text-slate-700",
+          className
+        )}
+      >
         <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
         ไม่ระบุ
       </span>
@@ -69,7 +98,7 @@ export function ActivityStatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium shadow-sm transition-colors",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium shadow-2xs transition-colors",
         info.className,
         className
       )}
@@ -79,3 +108,4 @@ export function ActivityStatusBadge({
     </span>
   );
 }
+
