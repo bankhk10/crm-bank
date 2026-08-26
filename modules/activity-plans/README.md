@@ -548,6 +548,17 @@ modules/activity-plans/
   4. **Architecture Integration:** นำระบบ Approval Queue ที่มีอยู่เดิม (`ActivityPlanApprovalListView`) มาใช้งานอย่างสมบูรณ์แบบ ไม่สร้างระบบซ้ำซ้อน มีการตรวจสอบ Server-side Authorization และ Revalidate ข้อมูลอย่างถูกต้อง
 - **ผลลัพธ์:** ผู้จัดการหรือผู้มีอำนาจอนุมัติสามารถเข้าสู่หน้าตรวจสอบและอนุมัติแผนงานได้อย่างสะดวก รวดเร็ว และผ่านการตรวจสอบ TypeScript และ ESLint 100%
 
+### 2026-08-26: ปรับปรุง Work Type 5 (สำรวจตลาดของคู่แข่ง) ให้รองรับหลายร้านค้า หลายสินค้า และแยกรูปภาพรายรายการ
+- **ปัญหาเดิม:** เมื่อ Trip Plan มีการเลือกเป้าหมายสำรวจตลาดหลายร้านค้าและหลายสินค้า หน้า Actual View และ Detail View แสดงข้อมูลและฟอร์มสำหรับกรอกผลสำรวจเพียงชุดเดียว และรูปภาพถูกรวมกันเป็นชุดเดียว ไม่แยกตามร้านค้า/สินค้า
+- **การเปลี่ยนแปลง:**
+  1. **Plan Extractor ([plan-extractor.ts](file:///d:/code/crm-bank/modules/activity-plans/features/actual-view/utils/plan-extractor.ts)):** เพิ่ม `id` ให้กับรายการ `t5ItemsFromDb` เพื่อให้สามารถผูกโยงข้อมูลผลลัพธ์กับรายการในแผนงานได้อย่างแม่นยำ
+  2. **Type Definition ([types.ts](file:///d:/code/crm-bank/modules/activity-plans/features/actual-view/types.ts)):** เพิ่ม `Type5SurveyRecord` รองรับ `id`, `store`, `product`, `detail`, `competitorBrand`, `competitorProduct`, `competitorPrice`, `competitorUnit`, `promotionDetail`, `priceTagImages`, `shelfImages`
+  3. **Data Serialization & Parser ([summary-builder.ts](file:///d:/code/crm-bank/modules/activity-plans/features/actual-view/utils/summary-builder.ts), [summary-parser.ts](file:///d:/code/crm-bank/modules/activity-plans/features/actual-view/utils/summary-parser.ts)):** จัดเก็บและ Parse `รายการสำรวจตลาดคู่แข่ง: [...]` ใน `resultSummary`
+  4. **Actual Form Component ([actual-type5-survey.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/actual-view/components/work-types/actual-type5-survey.tsx)):** ออกแบบ UI จัดกลุ่มตามร้านค้า (Group by Store) และแสดงรายการสินค้าเปรียบเทียบในแต่ละร้าน พร้อมกล่องกรอกข้อมูลคู่แข่ง และกล่องอัปโหลดรูปภาพป้ายราคา / รูปภาพชั้นวางสินค้าแยกอิสระในแต่ละรายการ
+  5. **Detail View Component ([detail-type5-survey.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/detail-view/components/work-types/detail-type5-survey.tsx)):** ปรับให้แสดงผลผลลัพธ์การสำรวจตลาดครบถ้วนทุกร้านและทุกสินค้า พร้อมแกลเลอรีรูปภาพป้ายราคาและรูปภาพชั้นวางสินค้าของแต่ละรายการ
+  6. **State Management ([activity-plan-actual-view.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx), [activity-result-section.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/actual-view/components/activity-result-section.tsx)):** ผูก State `t5SurveyDetails` ทั้งตอนเริ่มต้นจากแผน ตอนโหลดข้อมูลเดิมกลับมา และตอนบันทึกผล
+- **ผลลัพธ์:** สามารถบันทึกและแสดงผลการสำรวจตลาดคู่แข่งได้ครบทุกร้านค้าและทุกสินค้าตามที่วางแผนไว้ โดยข้อมูลและรูปภาพของแต่ละรายการแยกจากกันอย่างเด็ดขาด 100% ผ่านการทดสอบ TypeScript และ ESLint
+
 
 
 

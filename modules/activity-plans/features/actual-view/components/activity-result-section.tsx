@@ -2,7 +2,7 @@
 
 import React from "react";
 import { BarChart3 } from "lucide-react";
-import type { ActualTargetsState, ImageFile } from "../types";
+import type { ActualTargetsState, ImageFile, Type5SurveyRecord } from "../types";
 import {
   ActualType1Visit,
   ActualType2Followup,
@@ -77,6 +77,11 @@ interface ActivityResultSectionProps {
   setT4PaymentImages: React.Dispatch<React.SetStateAction<ImageFile[]>>;
 
   // Type 5
+  t5SurveyDetails?: Type5SurveyRecord[];
+  onUpdateT5SurveyItem?: (
+    index: number,
+    updated: Partial<Type5SurveyRecord>,
+  ) => void;
   t5CompetitorBrand: string;
   setT5CompetitorBrand: (v: string) => void;
   t5CompetitorProduct: string;
@@ -246,6 +251,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     setT4ReceivedAmount,
     t4PaymentImages,
     setT4PaymentImages,
+    t5SurveyDetails,
+    onUpdateT5SurveyItem,
     t5CompetitorBrand,
     setT5CompetitorBrand,
     t5CompetitorProduct,
@@ -434,6 +441,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         <ActualType5Survey
           isVisible={isTypeVisible("สำรวจตลาดของคู่แข่ง")}
           target={targets.t5}
+          surveyDetails={t5SurveyDetails}
+          onUpdateSurveyItem={onUpdateT5SurveyItem}
           competitorBrand={t5CompetitorBrand}
           setCompetitorBrand={setT5CompetitorBrand}
           competitorProduct={t5CompetitorProduct}

@@ -156,3 +156,17 @@ export interface ActualTargetsState {
   };
 }
 
+export interface Type5SurveyRecord {
+  id?: string;
+  store: string;
+  product: string;
+  detail?: string;
+  competitorBrand: string;
+  competitorProduct: string;
+  competitorPrice: string;
+  competitorUnit?: string;
+  promotionDetail: string;
+  priceTagImages?: ImageFile[];
+  shelfImages?: ImageFile[];
+}
+

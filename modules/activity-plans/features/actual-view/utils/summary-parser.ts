@@ -1,4 +1,4 @@
-import type { ActivityResultStatusType } from "../types";
+import type { ActivityResultStatusType, Type5SurveyRecord } from "../types";
 
 export interface ParsedSummaryValues {
   // Activity Result Status & Postponed / Cancelled
@@ -44,6 +44,7 @@ export interface ParsedSummaryValues {
   t5CompetitorPrice?: string;
   t5CompetitorUnit?: string;
   t5PromotionDetail?: string;
+  t5SurveyDetails?: Type5SurveyRecord[];
 
   // Type 6
   t6ProblemDetail?: string;
@@ -235,6 +236,32 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     const promoMatch = summaryText.match(/โปรโมชันคู่แข่ง:\s*(.+)/);
     if (promoMatch && promoMatch[1]) {
       result.t5PromotionDetail = promoMatch[1].split("\n")[0].trim();
+    }
+    const t5SurveyMatch = summaryText.match(/รายการสำรวจตลาดคู่แข่ง:\s*(\[.+\])/);
+    if (t5SurveyMatch && t5SurveyMatch[1]) {
+      try {
+        result.t5SurveyDetails = JSON.parse(t5SurveyMatch[1]);
+        if (result.t5SurveyDetails && result.t5SurveyDetails.length > 0) {
+          const first = result.t5SurveyDetails[0];
+          if (!result.t5CompetitorBrand && first.competitorBrand) {
+            result.t5CompetitorBrand = first.competitorBrand;
+          }
+          if (!result.t5CompetitorProduct && first.competitorProduct) {
+            result.t5CompetitorProduct = first.competitorProduct;
+          }
+          if (!result.t5CompetitorPrice && first.competitorPrice) {
+            result.t5CompetitorPrice = first.competitorPrice;
+          }
+          if (!result.t5CompetitorUnit && first.competitorUnit) {
+            result.t5CompetitorUnit = first.competitorUnit;
+          }
+          if (!result.t5PromotionDetail && first.promotionDetail) {
+            result.t5PromotionDetail = first.promotionDetail;
+          }
+        }
+      } catch (e) {
+        console.error("Failed to parse t5SurveyDetails JSON:", e);
+      }
     }
 
     // Type 6

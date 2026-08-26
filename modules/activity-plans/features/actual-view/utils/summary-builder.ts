@@ -1,4 +1,8 @@
-import type { ActivityResultStatusType, PlanSummaryData } from "../types";
+import type {
+  ActivityResultStatusType,
+  PlanSummaryData,
+  Type5SurveyRecord,
+} from "../types";
 
 export interface BuildSummaryInput {
   activityResultStatus: ActivityResultStatusType;
@@ -42,6 +46,7 @@ export interface BuildSummaryInput {
   t5CompetitorPrice: string;
   t5CompetitorUnit: string;
   t5PromotionDetail: string;
+  t5SurveyDetails?: Type5SurveyRecord[];
 
   // Type 6
   t6ProblemDetail: string;
@@ -133,6 +138,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t5CompetitorPrice,
     t5CompetitorUnit,
     t5PromotionDetail,
+    t5SurveyDetails,
     t6ProblemDetail,
     t6InitialSolution,
     t6Status,
@@ -270,6 +276,19 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t5CompetitorPrice ? `ราคาคู่แข่ง: ${t5CompetitorPrice}` : null,
     t5CompetitorUnit ? `หน่วยนับคู่แข่ง: ${t5CompetitorUnit}` : null,
     t5PromotionDetail ? `โปรโมชันคู่แข่ง: ${t5PromotionDetail}` : null,
+    t5SurveyDetails &&
+    t5SurveyDetails.length > 0 &&
+    t5SurveyDetails.some(
+      (s) =>
+        s.competitorBrand ||
+        s.competitorProduct ||
+        s.competitorPrice ||
+        s.promotionDetail ||
+        (s.priceTagImages && s.priceTagImages.length > 0) ||
+        (s.shelfImages && s.shelfImages.length > 0),
+    )
+      ? `รายการสำรวจตลาดคู่แข่ง: ${JSON.stringify(t5SurveyDetails)}`
+      : null,
 
     // Type 6
     t6ProblemDetail ? `ปัญหาลูกค้าร้องเรียน: ${t6ProblemDetail}` : null,

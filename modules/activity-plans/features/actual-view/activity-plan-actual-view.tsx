@@ -15,6 +15,7 @@ import type {
   ImageFile,
   ActualTargetsState,
   ActivityResultStatusType,
+  Type5SurveyRecord,
 } from "./types";
 import {
   extractPlanData,
@@ -207,6 +208,7 @@ export default function ActivityPlanActualView({
   const [t5CompetitorUnit, setT5CompetitorUnit] = useState("");
   const [t5PromotionDetail, setT5PromotionDetail] = useState("");
   const [t5PriceTagImages, setT5PriceTagImages] = useState<ImageFile[]>([]);
+  const [t5SurveyDetails, setT5SurveyDetails] = useState<Type5SurveyRecord[]>([]);
 
   // Work Type 6 States
   const [t6ProblemDetail, setT6ProblemDetail] = useState("");
@@ -429,6 +431,77 @@ export default function ActivityPlanActualView({
               setT5PromotionDetail(parsed.t5PromotionDetail);
             }
 
+            const plannedT5Items = extracted.targets.t5.items || [];
+            const defaultT5Records: Type5SurveyRecord[] = (
+              plannedT5Items.length > 0
+                ? plannedT5Items
+                : [
+                    {
+                      store: extracted.targets.t5.store || "",
+                      product: extracted.targets.t5.product || "",
+                      detail: extracted.targets.t5.detail || "",
+                    },
+                  ]
+            ).map((item) => ({
+              id: item.id,
+              store: item.store || "",
+              product: item.product || "",
+              detail: item.detail || "",
+              competitorBrand: "",
+              competitorProduct: "",
+              competitorPrice: "",
+              competitorUnit: "ขวด",
+              promotionDetail: "",
+              priceTagImages: [],
+              shelfImages: [],
+            }));
+
+            const savedT5List = parsed.t5SurveyDetails || [];
+            const hydratedT5: Type5SurveyRecord[] = defaultT5Records.map(
+              (plannedItem, idx) => {
+                const matched =
+                  savedT5List.find(
+                    (s) =>
+                      (s.id && plannedItem.id && s.id === plannedItem.id) ||
+                      (s.store === plannedItem.store &&
+                        s.product === plannedItem.product),
+                  ) || savedT5List[idx];
+
+                if (matched) {
+                  return {
+                    id: plannedItem.id || matched.id,
+                    store: plannedItem.store || matched.store || "",
+                    product: plannedItem.product || matched.product || "",
+                    detail: plannedItem.detail || matched.detail || "",
+                    competitorBrand: matched.competitorBrand || "",
+                    competitorProduct: matched.competitorProduct || "",
+                    competitorPrice: matched.competitorPrice || "",
+                    competitorUnit: matched.competitorUnit || "ขวด",
+                    promotionDetail: matched.promotionDetail || "",
+                    priceTagImages: matched.priceTagImages || [],
+                    shelfImages: matched.shelfImages || [],
+                  };
+                }
+
+                return {
+                  ...plannedItem,
+                  competitorBrand:
+                    idx === 0 ? parsed.t5CompetitorBrand || "" : "",
+                  competitorProduct:
+                    idx === 0 ? parsed.t5CompetitorProduct || "" : "",
+                  competitorPrice:
+                    idx === 0 ? parsed.t5CompetitorPrice || "" : "",
+                  competitorUnit:
+                    idx === 0 ? parsed.t5CompetitorUnit || "ขวด" : "ขวด",
+                  promotionDetail:
+                    idx === 0 ? parsed.t5PromotionDetail || "" : "",
+                  priceTagImages: [],
+                  shelfImages: [],
+                };
+              },
+            );
+            setT5SurveyDetails(hydratedT5);
+
             // Type 6
             if (parsed.t6ProblemDetail) {
               setT6ProblemDetail(parsed.t6ProblemDetail);
@@ -537,6 +610,32 @@ export default function ActivityPlanActualView({
             } else if (parsed.nextAction) {
               setT11NextAction(parsed.nextAction);
             }
+          } else {
+            const plannedT5Items = extracted.targets.t5.items || [];
+            const defaultT5Records: Type5SurveyRecord[] = (
+              plannedT5Items.length > 0
+                ? plannedT5Items
+                : [
+                    {
+                      store: extracted.targets.t5.store || "",
+                      product: extracted.targets.t5.product || "",
+                      detail: extracted.targets.t5.detail || "",
+                    },
+                  ]
+            ).map((item) => ({
+              id: item.id,
+              store: item.store || "",
+              product: item.product || "",
+              detail: item.detail || "",
+              competitorBrand: "",
+              competitorProduct: "",
+              competitorPrice: "",
+              competitorUnit: "ขวด",
+              promotionDetail: "",
+              priceTagImages: [],
+              shelfImages: [],
+            }));
+            setT5SurveyDetails(defaultT5Records);
           }
         }
       } catch (e) {
@@ -562,6 +661,31 @@ export default function ActivityPlanActualView({
       }));
       setter((prev) => [...prev, ...newItems]);
     };
+  };
+
+  const handleUpdateT5SurveyItem = (
+    index: number,
+    updated: Partial<Type5SurveyRecord>,
+  ) => {
+    setT5SurveyDetails((prev) => {
+      const next = [...prev];
+      if (next[index]) {
+        next[index] = { ...next[index], ...updated };
+      }
+      return next;
+    });
+    if (index === 0) {
+      if (updated.competitorBrand !== undefined)
+        setT5CompetitorBrand(updated.competitorBrand);
+      if (updated.competitorProduct !== undefined)
+        setT5CompetitorProduct(updated.competitorProduct);
+      if (updated.competitorPrice !== undefined)
+        setT5CompetitorPrice(updated.competitorPrice);
+      if (updated.competitorUnit !== undefined)
+        setT5CompetitorUnit(updated.competitorUnit);
+      if (updated.promotionDetail !== undefined)
+        setT5PromotionDetail(updated.promotionDetail);
+    }
   };
 
   const removeImage = (
@@ -624,6 +748,7 @@ export default function ActivityPlanActualView({
           t5CompetitorPrice,
           t5CompetitorUnit,
           t5PromotionDetail,
+          t5SurveyDetails,
           t6ProblemDetail,
           t6InitialSolution,
           t6Status,
@@ -819,6 +944,8 @@ export default function ActivityPlanActualView({
             t4PaymentImages={t4PaymentImages}
             setT4PaymentImages={setT4PaymentImages}
             // Type 5
+            t5SurveyDetails={t5SurveyDetails}
+            onUpdateT5SurveyItem={handleUpdateT5SurveyItem}
             t5CompetitorBrand={t5CompetitorBrand}
             setT5CompetitorBrand={setT5CompetitorBrand}
             t5CompetitorProduct={t5CompetitorProduct}

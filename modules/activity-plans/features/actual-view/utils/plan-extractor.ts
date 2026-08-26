@@ -570,6 +570,7 @@ export function extractPlanData(
     const t5ItemsFromDb =
       type5DbItems.length > 0
         ? type5DbItems.map((item) => ({
+            id: item.id,
             store:
               item.surveyStoreName || item.customerName || p.location || "",
             product: item.surveyCompetitorProduct || "",

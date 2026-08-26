@@ -88,6 +88,7 @@ export function DetailActivityResultSection({
         <DetailType5Survey
           isVisible={isTypeVisible("สำรวจตลาดของคู่แข่ง")}
           target={targets.t5}
+          surveyDetails={parsedResults.t5SurveyDetails}
           competitorBrand={parsedResults.t5CompetitorBrand}
           competitorProduct={parsedResults.t5CompetitorProduct}
           competitorPrice={parsedResults.t5CompetitorPrice}
