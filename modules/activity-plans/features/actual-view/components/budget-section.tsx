@@ -94,14 +94,8 @@ export function BudgetSection({ summary }: BudgetSectionProps) {
           <div className="w-14 h-14 relative shrink-0 flex items-center justify-center opacity-85">
             <svg className="w-14 h-14 -rotate-90" viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="16" fill="#dbeafe" />
-              <path
-                d="M18 18 L18 2 A16 16 0 0 1 34 18 Z"
-                fill="#93c5fd"
-              />
-              <path
-                d="M18 18 L34 18 A16 16 0 0 1 18 34 Z"
-                fill="#bfdbfe"
-              />
+              <path d="M18 18 L18 2 A16 16 0 0 1 34 18 Z" fill="#93c5fd" />
+              <path d="M18 18 L34 18 A16 16 0 0 1 18 34 Z" fill="#bfdbfe" />
             </svg>
           </div>
         </div>
@@ -117,21 +111,25 @@ export function BudgetSection({ summary }: BudgetSectionProps) {
                 {effectiveMarketingBudget.toLocaleString()} บาท
               </span>
             </div>
-            <div className="space-y-1 text-xs pt-1 border-t border-emerald-100/60 max-w-[280px]">
-              <div className="flex items-center justify-between gap-4 text-slate-600">
-                <span>• สื่อส่งเสริมการขาย</span>
+
+            {/* ปรับเป็นบรรทัดเดียวกัน */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs pt-1 border-t border-emerald-100/60">
+              <div className="flex items-center gap-1.5 text-slate-600">
+                <span>• สื่อส่งเสริมการขาย:</span>
                 <span className="font-bold text-emerald-800">
                   {marketingMediaBudget.toLocaleString()} บาท
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-4 text-slate-600">
-                <span>• รายการส่งเสริมการขาย</span>
+
+              <div className="flex items-center gap-1.5 text-slate-600">
+                <span>• รายการส่งเสริมการขาย:</span>
                 <span className="font-bold text-emerald-800">
                   {salesPromoMarketingTotal.toLocaleString()} บาท
                 </span>
               </div>
             </div>
           </div>
+
           <div className="w-12 h-12 rounded-2xl bg-emerald-100/80 text-emerald-500 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
             <FolderKanban className="w-6 h-6 stroke-[1.8]" />
           </div>
