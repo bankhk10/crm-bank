@@ -87,6 +87,13 @@ export const useFileUpload = (
 
   const inputRef = useRef<HTMLInputElement>(null);
   const isInitialMount = useRef(true);
+  const onFilesChangeRef = useRef(onFilesChange);
+  const onErrorRef = useRef(onError);
+
+  useEffect(() => {
+    onFilesChangeRef.current = onFilesChange;
+    onErrorRef.current = onError;
+  });
 
   // Notify parent of file changes after state updates (skip initial mount)
   useEffect(() => {
@@ -94,8 +101,8 @@ export const useFileUpload = (
       isInitialMount.current = false;
       return;
     }
-    onFilesChange?.(state.files);
-  }, [state.files, onFilesChange]);
+    onFilesChangeRef.current?.(state.files);
+  }, [state.files]);
 
   const validateFile = useCallback(
     (file: File | FileMetadata): string | null => {

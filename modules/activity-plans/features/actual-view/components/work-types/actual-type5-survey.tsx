@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { Camera, X, BarChart2, Store, Package } from "lucide-react";
+import { Camera, BarChart2, Store, Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import GalleryUpload from "@/components/custom/gallery-upload";
+import type { FileMetadata, FileWithPreview } from "@/hooks/use-file-upload";
 import { ImageFile, Type5SurveyRecord } from "../../types";
 import {
   Select,
@@ -80,9 +82,18 @@ export function ActualType5Survey({
   promotionDetail = "",
   setPromotionDetail,
   priceTagImages = [],
-  onUploadImages,
-  onRemoveImage,
 }: ActualType5SurveyProps) {
+  // Convert ImageFile[] to FileMetadata[] for GalleryUpload
+  const convertToFileMetadata = (images: ImageFile[] = []): FileMetadata[] => {
+    return images.map((img) => ({
+      id: img.id,
+      name: img.name || `image-${img.id}`,
+      size: (img as any).size || 0,
+      type: (img as any).type || "image/jpeg",
+      url: img.url,
+    }));
+  };
+
   // Normalized records to render: prefer surveyDetails if available, otherwise construct from target or fallback
   const recordsToRender: { record: Type5SurveyRecord; index: number }[] =
     useMemo(() => {
@@ -179,61 +190,66 @@ export function ActualType5Survey({
     }
   };
 
-  const handleUploadPriceTagImages = (
+  const handlePriceTagFilesChange = (
     index: number,
-    e: React.ChangeEvent<HTMLInputElement>,
+    files: FileWithPreview[],
   ) => {
-    if (!e.target.files?.length) return;
-    const files = Array.from(e.target.files);
-    const newImgs: ImageFile[] = files.map((file, idx) => ({
-      id: `price-img-${Date.now()}-${idx}-${index}`,
-      url: URL.createObjectURL(file),
-      name: file.name,
-    }));
+    const converted: ImageFile[] = files.map((item) => {
+      if (item.file instanceof File) {
+        return {
+          id: item.id,
+          url:
+            item.preview ||
+            (typeof window !== "undefined"
+              ? URL.createObjectURL(item.file)
+              : ""),
+          name: item.file.name,
+        };
+      }
+      return {
+        id: item.file.id,
+        url: item.file.url,
+        name: item.file.name,
+      };
+    });
 
-    if (onUpdateSurveyItem) {
-      const existing = recordsToRender[index]?.record.priceTagImages || [];
-      onUpdateSurveyItem(index, { priceTagImages: [...existing, ...newImgs] });
-    } else if (index === 0 && onUploadImages) {
-      onUploadImages(e);
+    const current = recordsToRender[index]?.record.priceTagImages || [];
+    const isSame =
+      current.length === converted.length &&
+      current.every((c, i) => c.id === converted[i]?.id && c.url === converted[i]?.url);
+
+    if (!isSame && onUpdateSurveyItem) {
+      onUpdateSurveyItem(index, { priceTagImages: converted });
     }
   };
 
-  const handleRemovePriceTagImage = (index: number, imgId: string) => {
-    if (onUpdateSurveyItem) {
-      const existing = recordsToRender[index]?.record.priceTagImages || [];
-      onUpdateSurveyItem(index, {
-        priceTagImages: existing.filter((img) => img.id !== imgId),
-      });
-    } else if (index === 0 && onRemoveImage) {
-      onRemoveImage(imgId);
-    }
-  };
+  const handleShelfFilesChange = (index: number, files: FileWithPreview[]) => {
+    const converted: ImageFile[] = files.map((item) => {
+      if (item.file instanceof File) {
+        return {
+          id: item.id,
+          url:
+            item.preview ||
+            (typeof window !== "undefined"
+              ? URL.createObjectURL(item.file)
+              : ""),
+          name: item.file.name,
+        };
+      }
+      return {
+        id: item.file.id,
+        url: item.file.url,
+        name: item.file.name,
+      };
+    });
 
-  const handleUploadShelfImages = (
-    index: number,
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    if (!e.target.files?.length) return;
-    const files = Array.from(e.target.files);
-    const newImgs: ImageFile[] = files.map((file, idx) => ({
-      id: `shelf-img-${Date.now()}-${idx}-${index}`,
-      url: URL.createObjectURL(file),
-      name: file.name,
-    }));
+    const current = recordsToRender[index]?.record.shelfImages || [];
+    const isSame =
+      current.length === converted.length &&
+      current.every((c, i) => c.id === converted[i]?.id && c.url === converted[i]?.url);
 
-    if (onUpdateSurveyItem) {
-      const existing = recordsToRender[index]?.record.shelfImages || [];
-      onUpdateSurveyItem(index, { shelfImages: [...existing, ...newImgs] });
-    }
-  };
-
-  const handleRemoveShelfImage = (index: number, imgId: string) => {
-    if (onUpdateSurveyItem) {
-      const existing = recordsToRender[index]?.record.shelfImages || [];
-      onUpdateSurveyItem(index, {
-        shelfImages: existing.filter((img) => img.id !== imgId),
-      });
+    if (!isSame && onUpdateSurveyItem) {
+      onUpdateSurveyItem(index, { shelfImages: converted });
     }
   };
 
@@ -266,7 +282,7 @@ export function ActualType5Survey({
         {groupedByStore.map((storeGroup, sIdx) => (
           <div
             key={storeGroup.storeName || sIdx}
-            className="border border-slate-200 rounded-2xl p-4 sm:p-5 bg-slate-50/40 space-y-4 shadow-xs"
+            className="border border-slate-200 rounded-2xl p-4 sm:p-5 bg-slate-50/40 space-y-5 shadow-xs"
           >
             {/* Store Header */}
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
@@ -289,14 +305,17 @@ export function ActualType5Survey({
             </div>
 
             {/* List of Products under this Store */}
-            <div className="space-y-4">
+            <div className="space-y-5">
               {storeGroup.items.map(({ record, index }, pIdx) => (
                 <div
-                  key={record.id || `${storeGroup.storeName}-${record.product}-${index}`}
-                  className="bg-white rounded-xl border border-slate-200 p-4 sm:p-4.5 shadow-2xs space-y-4 transition-all hover:border-amber-300"
+                  key={
+                    record.id ||
+                    `${storeGroup.storeName}-${record.product}-${index}`
+                  }
+                  className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs space-y-4 transition-all hover:border-amber-300"
                 >
                   {/* Product Header & Target Info */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
                     <div className="flex items-center gap-2">
                       <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-bold">
                         {pIdx + 1}
@@ -427,122 +446,67 @@ export function ActualType5Survey({
                     />
                   </div>
 
-                  {/* Separate Image Upload Sections */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                  {/* 2 Separate Upload Sections using GalleryUpload from product-form.tsx */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
                     {/* Price Tag Images */}
-                    <div className="bg-amber-50/30 border border-amber-200/70 rounded-xl p-3 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                          <Camera className="w-3.5 h-3.5 text-amber-600" />
-                          รูปภาพป้ายราคา (
-                          {record.priceTagImages?.length || 0})
-                        </label>
-                      </div>
-
-                      <div className="border-2 border-dashed border-amber-200 hover:border-amber-400 bg-white hover:bg-amber-50/50 rounded-xl p-3 text-center transition-colors cursor-pointer relative group">
-                        <input
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          onChange={(e) => handleUploadPriceTagImages(index, e)}
-                          className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                        />
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
-                            <Camera className="w-3 h-3" />
-                          </div>
-                          <p className="text-xs font-semibold text-amber-900">
-                            คลิกเพื่ออัปโหลด รูปป้ายราคา
+                    <div className="bg-amber-50/20 border border-amber-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
+                      <div className="flex items-center gap-2 border-b border-amber-100 pb-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center border border-amber-200">
+                          <Camera className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs sm:text-sm font-bold text-amber-950">
+                            รูปภาพป้ายราคาคู่แข่ง
+                          </h4>
+                          <p className="text-[11px] text-amber-700/80">
+                            รูปภาพป้ายราคาสำหรับ {record.product || "สินค้านี้"}
                           </p>
                         </div>
                       </div>
-
-                      {record.priceTagImages &&
-                        record.priceTagImages.length > 0 && (
-                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
-                            {record.priceTagImages.map((img) => (
-                              <div
-                                key={img.id}
-                                className="relative aspect-square rounded-lg overflow-hidden border border-slate-200 shadow-2xs group"
-                              >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={img.url}
-                                  alt={img.name}
-                                  className="w-full h-full object-cover"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleRemovePriceTagImage(index, img.id)
-                                  }
-                                  className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 transition-colors"
-                                  title="ลบรูปภาพ"
-                                >
-                                  <X className="w-2.5 h-2.5" />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
+                      <GalleryUpload
+                        key={`price-tag-${record.id || `${storeGroup.storeName}-${record.product}-${index}`}`}
+                        maxFiles={10}
+                        maxSize={20 * 1024 * 1024}
+                        accept="image/*"
+                        multiple={true}
+                        initialFiles={convertToFileMetadata(
+                          record.priceTagImages || [],
                         )}
+                        onFilesChange={(files) =>
+                          handlePriceTagFilesChange(index, files)
+                        }
+                      />
                     </div>
 
                     {/* Shelf Images */}
-                    <div className="bg-indigo-50/30 border border-indigo-200/70 rounded-xl p-3 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
-                          <Camera className="w-3.5 h-3.5 text-indigo-600" />
-                          รูปภาพชั้นวางสินค้า (
-                          {record.shelfImages?.length || 0})
-                        </label>
-                      </div>
-
-                      <div className="border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-white hover:bg-indigo-50/50 rounded-xl p-3 text-center transition-colors cursor-pointer relative group">
-                        <input
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          onChange={(e) => handleUploadShelfImages(index, e)}
-                          className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                        />
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
-                            <Camera className="w-3 h-3" />
-                          </div>
-                          <p className="text-xs font-semibold text-indigo-900">
-                            คลิกเพื่ออัปโหลด รูปชั้นวางสินค้า
+                    <div className="bg-indigo-50/20 border border-indigo-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
+                      <div className="flex items-center gap-2 border-b border-indigo-100 pb-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center border border-indigo-200">
+                          <Camera className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs sm:text-sm font-bold text-indigo-950">
+                            รูปภาพชั้นวางสินค้า
+                          </h4>
+                          <p className="text-[11px] text-indigo-700/80">
+                            รูปภาพชั้นวางสินค้าสำหรับ{" "}
+                            {record.product || "สินค้านี้"}
                           </p>
                         </div>
                       </div>
-
-                      {record.shelfImages &&
-                        record.shelfImages.length > 0 && (
-                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
-                            {record.shelfImages.map((img) => (
-                              <div
-                                key={img.id}
-                                className="relative aspect-square rounded-lg overflow-hidden border border-slate-200 shadow-2xs group"
-                              >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={img.url}
-                                  alt={img.name}
-                                  className="w-full h-full object-cover"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleRemoveShelfImage(index, img.id)
-                                  }
-                                  className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 transition-colors"
-                                  title="ลบรูปภาพ"
-                                >
-                                  <X className="w-2.5 h-2.5" />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
+                      <GalleryUpload
+                        key={`shelf-${record.id || `${storeGroup.storeName}-${record.product}-${index}`}`}
+                        maxFiles={10}
+                        maxSize={20 * 1024 * 1024}
+                        accept="image/*"
+                        multiple={true}
+                        initialFiles={convertToFileMetadata(
+                          record.shelfImages || [],
                         )}
+                        onFilesChange={(files) =>
+                          handleShelfFilesChange(index, files)
+                        }
+                      />
                     </div>
                   </div>
                 </div>
