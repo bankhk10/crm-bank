@@ -1,7 +1,14 @@
 "use client";
 
 import React from "react";
-import { BarChart3, CheckSquare, Calendar, X, Clock, AlertCircle } from "lucide-react";
+import {
+  BarChart3,
+  CheckSquare,
+  Calendar,
+  X,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
 import type { ActivityResultStatusType } from "../../actual-view/types";
 
 interface DetailActivityStatusSectionProps {
@@ -41,7 +48,7 @@ export function DetailActivityStatusSection({
                 สถานะผลการทำกิจกรรม
               </span>
               <span className="text-sm font-extrabold text-emerald-950 block">
-                สำเร็จ (Completed)
+                สำเร็จ
               </span>
             </div>
           </div>
@@ -73,7 +80,7 @@ export function DetailActivityStatusSection({
                 สถานะผลการทำกิจกรรม
               </span>
               <span className="text-sm font-extrabold text-sky-950 block">
-                เลื่อนกิจกรรม (Postponed)
+                เลื่อนกิจกรรม
               </span>
             </div>
           </div>
@@ -89,7 +96,7 @@ export function DetailActivityStatusSection({
                 สถานะผลการทำกิจกรรม
               </span>
               <span className="text-sm font-extrabold text-rose-950 block">
-                ยกเลิกกิจกรรม (Cancelled)
+                ยกเลิกกิจกรรม
               </span>
             </div>
           </div>
@@ -117,9 +124,7 @@ export function DetailActivityStatusSection({
     <div className="space-y-4 pt-2">
       <div className="bg-[#eff6ff] border border-blue-100 rounded-xl px-4 py-3 flex items-center gap-2.5 shadow-2xs">
         <BarChart3 className="w-4 h-4 text-blue-600 shrink-0" />
-        <h2 className="text-sm font-bold text-blue-900">
-          สถานะผลการทำกิจกรรม
-        </h2>
+        <h2 className="text-sm font-bold text-blue-900">สถานะผลการทำกิจกรรม</h2>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
@@ -143,14 +148,19 @@ export function DetailActivityStatusSection({
           <div className="bg-sky-50/50 border border-sky-200 rounded-xl p-3.5 space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="bg-white p-2.5 rounded-lg border border-sky-100">
-                <span className="text-slate-500 block mb-0.5">เลื่อนเป็นวันที่</span>
+                <span className="text-slate-500 block mb-0.5">
+                  เลื่อนเป็นวันที่
+                </span>
                 <span className="text-sm font-bold text-sky-900">
-                  {formatThaiDate(postponedDate)} {postponedTime ? `เวลา ${postponedTime} น.` : ""}
+                  {formatThaiDate(postponedDate)}{" "}
+                  {postponedTime ? `เวลา ${postponedTime} น.` : ""}
                 </span>
               </div>
 
               <div className="bg-white p-2.5 rounded-lg border border-sky-100">
-                <span className="text-slate-500 block mb-0.5">สาเหตุการเลื่อน</span>
+                <span className="text-slate-500 block mb-0.5">
+                  สาเหตุการเลื่อน
+                </span>
                 <span className="text-sm font-semibold text-slate-800">
                   {postponedReason || "-"}
                 </span>
@@ -159,7 +169,9 @@ export function DetailActivityStatusSection({
 
             {postponedNotes && (
               <div className="bg-white p-2.5 rounded-lg border border-sky-100 text-xs">
-                <span className="text-slate-500 block mb-0.5">หมายเหตุเพิ่มเติม</span>
+                <span className="text-slate-500 block mb-0.5">
+                  หมายเหตุเพิ่มเติม
+                </span>
                 <p className="text-slate-800 whitespace-pre-wrap font-medium">
                   {postponedNotes}
                 </p>
