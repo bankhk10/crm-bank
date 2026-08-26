@@ -423,5 +423,9 @@ modules/activity-plans/
      - นำ Component `@/components/custom/DatePicker` ที่มีอยู่เดิมในโปรเจกต์มา Reuse
      - ให้ผู้ใช้เลือกเฉพาะ "วันที่" จากปฏิทิน (Calendar) แสดงผลในรูปแบบ วัน/เดือน/ปี (`dd/MM/yyyy`) อย่างเหมาะสม
      - เชื่อมต่อกับ State และบันทึกข้อมูล `YYYY-MM-DD` เข้า `resultSummary` ตามปกติโดยไม่กระทบ API Contract หรือ Schema ฐานข้อมูล
+  3. **เปลี่ยนช่องเลือกสินค้าที่ให้คำแนะนำเป็น Searchable FormCombobox:**
+     - นำ Component `@/components/custom/form-components` (`FormCombobox`) มาใช้งานในลักษณะเดียวกับ `sale-item-row.tsx`
+     - รองรับการค้นหาสินค้าตามชื่อและรหัสสินค้า (Product Code) ได้อย่างรวดเร็ว พร้อมแสดงผล Badges สินค้าที่เลือกและปุ่มลบ (X) ตามเดิม
+
 
 

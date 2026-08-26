@@ -1,16 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { X, Store } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
 import { DEMO_PRODUCTS } from "../../../../constants";
@@ -33,8 +27,8 @@ interface ActualType1VisitProps {
   };
   productAdvice: string;
   setProductAdvice: (v: string) => void;
-  detail: string;
-  setDetail: (v: string) => void;
+  detail?: string;
+  setDetail?: (v: string) => void;
   discussionResult: string;
   setDiscussionResult: (v: string) => void;
   salesOpportunity: "สูง" | "ต่ำ" | "";
@@ -61,28 +55,49 @@ export function ActualType1Visit({
   setNextMeetingDate,
   products = [],
 }: ActualType1VisitProps) {
-  if (!isVisible) return null;
-
   const isAdviceTopic = target?.topic?.trim() === "ให้คำแนะนำการใช้สินค้า";
 
-  const productOptions =
-    products && products.length > 0
-      ? products.map((p) => p.name)
-      : DEMO_PRODUCTS;
+  const selectedProducts = useMemo(
+    () =>
+      productAdvice
+        ? productAdvice
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [],
+    [productAdvice],
+  );
 
-  const displayProducts = Array.from(
-    new Set([
-      ...productOptions,
-      ...(productAdvice ? productAdvice.split(",").map((s) => s.trim()) : []),
-    ]),
-  ).filter(Boolean);
+  const comboboxOptions = useMemo(() => {
+    const list =
+      products && products.length > 0
+        ? products.map((p) => ({
+            value: p.name,
+            label: p.name,
+            subLabel: p.productCode || undefined,
+          }))
+        : DEMO_PRODUCTS.map((name) => ({
+            value: name,
+            label: name,
+            subLabel: undefined,
+          }));
 
-  const selectedProducts = productAdvice
-    ? productAdvice
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-    : [];
+    const existingNames = new Set(list.map((o) => o.value));
+    selectedProducts.forEach((prod) => {
+      if (!existingNames.has(prod)) {
+        list.push({
+          value: prod,
+          label: prod,
+          subLabel: undefined,
+        });
+        existingNames.add(prod);
+      }
+    });
+
+    return list;
+  }, [products, selectedProducts]);
+
+  if (!isVisible) return null;
 
   const handleAddProduct = (prod: string) => {
     if (!prod || selectedProducts.includes(prod)) return;
@@ -153,34 +168,23 @@ export function ActualType1Visit({
                 </div>
               )}
 
-              {/* Select dropdown */}
-              <Select
+              {/* FormCombobox with Search */}
+              <FormCombobox
+                id="product-advice-combobox"
+                label=""
+                labelClassName="hidden"
                 value=""
-                onValueChange={(val) => {
-                  if (val && !selectedProducts.includes(val)) {
+                onChange={(val) => {
+                  if (val) {
                     handleAddProduct(val);
                   }
                 }}
-              >
-                <SelectTrigger className="w-full bg-white border-slate-200 text-xs sm:text-sm h-10 rounded-xl">
-                  <SelectValue placeholder="เลือกสินค้าที่ให้คำแนะนำเพิ่มเติม (คลิกเลือกหลายรายการได้)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {displayProducts.map((prod) => {
-                    const isSelected = selectedProducts.includes(prod);
-                    return (
-                      <SelectItem
-                        key={prod}
-                        value={prod}
-                        disabled={isSelected}
-                        className={cn(isSelected && "opacity-50")}
-                      >
-                        {prod} {isSelected ? "(เลือกแล้ว)" : ""}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+                options={comboboxOptions}
+                placeholder="เลือกสินค้าที่ให้คำแนะนำเพิ่มเติม (คลิกเลือกหลายรายการได้)"
+                searchPlaceholder="ค้นหาสินค้า..."
+                emptyText="ไม่พบสินค้า"
+                triggerClassName="w-full bg-white border-slate-200 text-xs sm:text-sm h-10 min-h-[40px] rounded-xl mt-0 font-normal hover:bg-slate-50 focus:ring-2 focus:ring-emerald-500"
+              />
             </div>
 
             {/* ประเมินโอกาสการขาย */}
