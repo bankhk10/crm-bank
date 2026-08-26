@@ -12,6 +12,8 @@ import {
   Send,
   PlusCircle,
   ClipboardList,
+  CheckCircle2,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations } from "../../types";
@@ -38,6 +40,7 @@ interface ActivityPlanTableProps {
   canCreate: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  canApprove?: boolean;
   onDelete: (item: ActivityPlanWithRelations) => void;
   onSubmitApproval: (item: ActivityPlanWithRelations) => void;
   submitLoadingId: string | null;
@@ -69,6 +72,7 @@ export function ActivityPlanTable({
   canCreate,
   canEdit,
   canDelete,
+  canApprove = false,
   onDelete,
   onSubmitApproval,
   submitLoadingId,
@@ -197,6 +201,11 @@ export function ActivityPlanTable({
           const editable = isDraft || isCorrection;
           const deletable = editable || item.status === "CANCELLED";
 
+          const isPending =
+            item.status === "PENDING_LINE_APPROVAL" ||
+            item.status === "PENDING_BUDGET_APPROVAL" ||
+            item.status === "PENDING_HELPER_APPROVAL";
+
           return (
             <div className="flex items-center justify-center gap-2">
               <ActionButton
@@ -212,6 +221,15 @@ export function ActivityPlanTable({
                 label="บันทึกผล"
                 colorClass="text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-md"
               />
+
+              {canApprove && isPending && (
+                <ActionButton
+                  href="/activity-plans/approvals"
+                  icon={ShieldCheck}
+                  label="อนุมัติแผนงาน"
+                  colorClass="text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-md"
+                />
+              )}
 
               {editable &&
                 (submitLoadingId === item.id ? (
@@ -249,7 +267,7 @@ export function ActivityPlanTable({
         },
       },
     ];
-  }, [canEdit, canDelete, onSubmitApproval, onDelete, submitLoadingId]);
+  }, [canEdit, canDelete, canApprove, onSubmitApproval, onDelete, submitLoadingId]);
 
   const toolbar = (
     <div className="space-y-4 mb-6">
@@ -276,28 +294,10 @@ export function ActivityPlanTable({
         }
       />
       <div className="flex flex-wrap items-center justify-end gap-3">
-        {/* <Link href="/activity-plans/approvals" className="w-full sm:w-auto">
-          <Button
-            variant="outline"
-            className="w-full lg:w-auto border-amber-500 text-amber-800 hover:bg-amber-50 flex items-center gap-2 font-semibold"
-          >
-            <ShieldCheck className="h-4 w-4 text-amber-600" />
-            คิวงานอนุมัติ
-          </Button>
-        </Link> */}
-        {/* <Link href="/activity-plans/actual" className="w-full sm:w-auto">
-          <Button
-            variant="outline"
-            className="w-full lg:w-auto border-emerald-600 text-emerald-700 hover:bg-emerald-50 flex items-center gap-2 font-semibold"
-          >
-            <ClipboardList className="h-4 w-4 text-emerald-600" />
-            บันทึกผลปฏิบัติงาน (Actual)
-          </Button>
-        </Link> */}
         {canCreate ? (
           <Link href="/activity-plans/new" className="w-full sm:w-auto">
-            <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 font-semibold">
-              <PlusCircle className="h-5 w-5" />
+            <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 font-semibold shadow-xs">
+              <PlusCircle className="h-4 w-4" />
               สร้างแผนงานใหม่
             </Button>
           </Link>
@@ -307,9 +307,20 @@ export function ActivityPlanTable({
             variant="outline"
             disabled
           >
-            <PlusCircle className="h-5 w-5" />
+            <PlusCircle className="h-4 w-4" />
             สร้างแผนงานใหม่
           </Button>
+        )}
+        {canApprove && (
+          <Link href="/activity-plans/approvals" className="w-full sm:w-auto">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto border-emerald-600 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 flex items-center gap-2 font-semibold shadow-xs"
+            >
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              อนุมัติแผนงาน
+            </Button>
+          </Link>
         )}
       </div>
     </div>

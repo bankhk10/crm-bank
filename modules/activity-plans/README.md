@@ -540,6 +540,15 @@ modules/activity-plans/
   5. **Detail View Component (`detail-type3-sales.tsx` & `detail-activity-result-section.tsx`):** ปรับให้รับ `productSalesDetails` และแสดงผลยอดขายจริง ปริมาณขายจริง และเหตุผลที่ไม่สามารถปิดการขายแยกรายสินค้าลงในตาราง Read-only ได้ครบถ้วน
 - **ผลลัพธ์:** ข้อมูลผลการเสนอขายจริงแยกตามสินค้าแต่ละตัวแสดงผลถูกต้อง 100% ทั้งตอนกลับมาเปิดหน้าบันทึกผลและหน้าดูรายละเอียด ไม่กระทบ Work Type อื่นๆ และผ่านการตรวจสอบ TypeScript / ESLint 100%
 
+### 2026-08-26: เพิ่มปุ่ม "อนุมัติแผนงาน (Trip Plan)" ในหน้ารายการ Activity Plans
+- **การเปลี่ยนแปลง:**
+  1. **Permission Check ([activity-plan-list-view.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/list-view/activity-plan-list-view.tsx)):** ดึง `session` และตรวจสอบสิทธิ์การอนุมัติ `canApprove` (`isAdmin || hasPermission("activity.approve") || hasPermission("activity.manage")`)
+  2. **Top Actions Toolbar ([activity-plan-table.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/list-view/activity-plan-table.tsx)):** เพิ่มปุ่ม `[ ✓ อนุมัติแผนงาน ]` อยู่ถัดจาก `[ + สร้างแผนงานใหม่ ]` ลิงก์ตรงไปยัง Approval Queue Route `/activity-plans/approvals` สำหรับผู้ใช้ที่มีสิทธิ์
+  3. **Row-level Action ([activity-plan-table.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/list-view/activity-plan-table.tsx)):** เพิ่มปุ่ม ActionButton ไอคอน `ShieldCheck` ในแต่ละแถวของแผนงานที่มีสถานะรออนุมัติ (`PENDING_LINE_APPROVAL`, `PENDING_BUDGET_APPROVAL`, `PENDING_HELPER_APPROVAL`)
+  4. **Architecture Integration:** นำระบบ Approval Queue ที่มีอยู่เดิม (`ActivityPlanApprovalListView`) มาใช้งานอย่างสมบูรณ์แบบ ไม่สร้างระบบซ้ำซ้อน มีการตรวจสอบ Server-side Authorization และ Revalidate ข้อมูลอย่างถูกต้อง
+- **ผลลัพธ์:** ผู้จัดการหรือผู้มีอำนาจอนุมัติสามารถเข้าสู่หน้าตรวจสอบและอนุมัติแผนงานได้อย่างสะดวก รวดเร็ว และผ่านการตรวจสอบ TypeScript และ ESLint 100%
+
+
 
 
 

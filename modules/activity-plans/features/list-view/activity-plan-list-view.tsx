@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ActivityPlanTable } from "./activity-plan-table";
@@ -13,18 +14,38 @@ import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
 
 export default function ActivityPlanListView() {
+  const { data: session } = useSession();
   const { hasPermission, allowed, isLoading } = usePermission(
     "menu.activity_plans",
   );
 
-  // Custom fallback permission check if menu permission is not seeded yet
+  const roles = (session?.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session?.user as any)?.role === "administrator" ||
+    (session?.user as any)?.role === "ADMIN";
+
+  // Custom fallback permission check
   const canCreate =
-    hasPermission("activity.create") || hasPermission("activity.manage");
+    isAdmin ||
+    hasPermission("activity.create") ||
+    hasPermission("activity.manage");
   const canEdit =
-    hasPermission("activity.edit") || hasPermission("activity.manage");
+    isAdmin ||
+    hasPermission("activity.edit") ||
+    hasPermission("activity.manage");
   const canDelete =
-    hasPermission("activity.delete") || hasPermission("activity.manage");
+    isAdmin ||
+    hasPermission("activity.delete") ||
+    hasPermission("activity.manage");
+  const canApprove =
+    isAdmin ||
+    hasPermission("activity.approve") ||
+    hasPermission("activity.manage");
   const canView =
+    isAdmin ||
     allowed ||
     hasPermission("activity.view") ||
     hasPermission("activity.manage") ||
@@ -59,36 +80,39 @@ export default function ActivityPlanListView() {
   }, [searchDraft]);
 
   // Fetch data
-  const fetchData = async (signal?: AbortSignal) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams();
-      params.set("page", String(page));
-      params.set("perPage", String(perPage));
-      if (appliedSearch.trim()) params.set("q", appliedSearch.trim());
-      if (statusFilter) params.set("status", statusFilter);
+  const fetchData = React.useCallback(
+    async (signal?: AbortSignal) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams();
+        params.set("page", String(page));
+        params.set("perPage", String(perPage));
+        if (appliedSearch.trim()) params.set("q", appliedSearch.trim());
+        if (statusFilter) params.set("status", statusFilter);
 
-      const res = await fetch(`/api/activity-plans?${params.toString()}`, {
-        signal,
-      });
-      if (!res.ok) throw new Error("ดึงข้อมูล Trip Plan ไม่สำเร็จ");
-      const json = await res.json();
-      setActivityPlans(json.activityPlans ?? []);
-      setTotal(json.total ?? 0);
-    } catch (err: any) {
-      if (err.name === "AbortError") return;
-      setError(err.message || String(err));
-    } finally {
-      setLoading(false);
-    }
-  };
+        const res = await fetch(`/api/activity-plans?${params.toString()}`, {
+          signal,
+        });
+        if (!res.ok) throw new Error("ดึงข้อมูล Trip Plan ไม่สำเร็จ");
+        const json = await res.json();
+        setActivityPlans(json.activityPlans ?? []);
+        setTotal(json.total ?? 0);
+      } catch (err: any) {
+        if (err.name === "AbortError") return;
+        setError(err.message || String(err));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, perPage, appliedSearch, statusFilter],
+  );
 
   useEffect(() => {
     const controller = new AbortController();
     fetchData(controller.signal);
     return () => controller.abort();
-  }, [page, perPage, appliedSearch, statusFilter]);
+  }, [fetchData]);
 
   const handleDeleteRequest = (item: ActivityPlanWithRelations) => {
     setDeleteCandidate(item);
@@ -216,6 +240,7 @@ export default function ActivityPlanListView() {
         canCreate={canCreate}
         canEdit={canEdit}
         canDelete={canDelete}
+        canApprove={canApprove}
         onDelete={handleDeleteRequest}
         onSubmitApproval={handleSubmitApproval}
         submitLoadingId={submitLoadingId}
