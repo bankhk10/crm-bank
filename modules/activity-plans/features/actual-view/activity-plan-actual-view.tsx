@@ -333,7 +333,12 @@ export default function ActivityPlanActualView({
   const [t9Formats, setT9Formats] = useState<string[]>([]);
   const [t9ActualSales, setT9ActualSales] = useState("");
   const [t9ProductSalesDetails, setT9ProductSalesDetails] = useState<
-    { id?: string; productName: string; actualQuantityCases?: string; actualSales?: string }[]
+    {
+      id?: string;
+      productName: string;
+      actualQuantityCases?: string;
+      actualSales?: string;
+    }[]
   >([]);
   const [t9ActualAttendees, setT9ActualAttendees] = useState("");
   const [t9Images, setT9Images] = useState<ImageFile[]>([]);
@@ -651,7 +656,8 @@ export default function ActivityPlanActualView({
                 (item.itemType === "TYPE_8" ||
                   item.meetingTopic ||
                   item.meetingTargetProducts ||
-                  (item.meetingAttendeesCount != null && !item.storeProductName))
+                  (item.meetingAttendeesCount != null &&
+                    !item.storeProductName))
               ) {
                 detectedWorkTypes.add(WORK_TYPES[7]);
               }
@@ -714,7 +720,8 @@ export default function ActivityPlanActualView({
                       i.visitTopic !== "FOLLOWUP" &&
                       i.visitTopic !== "MARKETING_PRODUCT" &&
                       i.visitTopic !== "SALES_PROMOTION")),
-              ) || (detectedWorkTypes.has(WORK_TYPES[0]) ? allItems[0] : undefined);
+              ) ||
+              (detectedWorkTypes.has(WORK_TYPES[0]) ? allItems[0] : undefined);
 
             const type2DbItems = allItems.filter(
               (i) =>
@@ -756,7 +763,9 @@ export default function ActivityPlanActualView({
               type3DbItems.length > 0
                 ? type3DbItems.map((item) => {
                     const productName =
-                      item.saleProductName || item.productName || "สินค้าเสนอขาย";
+                      item.saleProductName ||
+                      item.productName ||
+                      "สินค้าเสนอขาย";
                     const qtyVal =
                       item.saleQuantity != null
                         ? String(item.saleQuantity)
@@ -768,7 +777,8 @@ export default function ActivityPlanActualView({
                     const totalPriceVal =
                       item.saleTotalPrice != null
                         ? `${Number(item.saleTotalPrice).toLocaleString()} บาท`
-                        : item.saleQuantity != null && item.saleUnitPrice != null
+                        : item.saleQuantity != null &&
+                            item.saleUnitPrice != null
                           ? `${(Number(item.saleQuantity) * Number(item.saleUnitPrice)).toLocaleString()} บาท`
                           : "";
 
@@ -1423,7 +1433,9 @@ export default function ActivityPlanActualView({
                     const match = t10Item.detail.match(/เป้ายอดจอง:\s*([^|]+)/);
                     if (match) return match[1].trim();
                   }
-                  const objMatch = objectiveText.match(/เป้ายอดจอง:\s*([^|,\n]+)/);
+                  const objMatch = objectiveText.match(
+                    /เป้ายอดจอง:\s*([^|,\n]+)/,
+                  );
                   if (objMatch) return objMatch[1].trim();
                   return prev.t10.targetSales || "";
                 })(),
@@ -1449,8 +1461,10 @@ export default function ActivityPlanActualView({
               getDemoPlotHistoryAction(t7PlotIdentifier).then((histRes) => {
                 if (histRes.success && histRes.plot) {
                   setT7DemoPlotData(histRes.plot);
-                  if (histRes.plot.visits) setT7VisitHistory(histRes.plot.visits);
-                  if (histRes.plot.status) setT7PlotStatus(histRes.plot.status as any);
+                  if (histRes.plot.visits)
+                    setT7VisitHistory(histRes.plot.visits);
+                  if (histRes.plot.status)
+                    setT7PlotStatus(histRes.plot.status as any);
                   if (histRes.plot.plantingDate) {
                     setT7PlantingDate(
                       new Date(histRes.plot.plantingDate)
@@ -1474,7 +1488,9 @@ export default function ActivityPlanActualView({
                   }
                   if (histRes.plot.startDate) {
                     setT7StartDate(
-                      new Date(histRes.plot.startDate).toISOString().split("T")[0],
+                      new Date(histRes.plot.startDate)
+                        .toISOString()
+                        .split("T")[0],
                     );
                   }
                   if (histRes.plot.demoYieldKg)
@@ -1730,7 +1746,9 @@ export default function ActivityPlanActualView({
               if (plantingDateMatch && plantingDateMatch[1]) {
                 setT7PlantingDate(plantingDateMatch[1].split("\n")[0].trim());
               }
-              const areaCondMatch = summaryText.match(/สภาพพื้นที่ปลูก:\s*(.+)/);
+              const areaCondMatch = summaryText.match(
+                /สภาพพื้นที่ปลูก:\s*(.+)/,
+              );
               if (areaCondMatch && areaCondMatch[1]) {
                 setT7PlantingAreaCondition(
                   areaCondMatch[1].split("\n")[0].trim(),
@@ -1757,7 +1775,9 @@ export default function ActivityPlanActualView({
               if (yieldMatch && yieldMatch[1]) {
                 setT7FinalYieldKg(yieldMatch[1].replace(/[^0-9.]/g, ""));
               }
-              const controlMatch = summaryText.match(/ผลผลิตแปลงควบคุม:\s*(.+)/);
+              const controlMatch = summaryText.match(
+                /ผลผลิตแปลงควบคุม:\s*(.+)/,
+              );
               if (controlMatch && controlMatch[1]) {
                 setT7ControlYieldKg(controlMatch[1].replace(/[^0-9.]/g, ""));
               }
@@ -1777,7 +1797,9 @@ export default function ActivityPlanActualView({
                 /สรุปผลสัมฤทธิ์แปลง:\s*(.+)/,
               );
               if (finalNotesMatch && finalNotesMatch[1]) {
-                setT7FinalSummaryNotes(finalNotesMatch[1].split("\n")[0].trim());
+                setT7FinalSummaryNotes(
+                  finalNotesMatch[1].split("\n")[0].trim(),
+                );
               }
 
               // Type 8
@@ -2267,9 +2289,7 @@ export default function ActivityPlanActualView({
           t7CropProblemDescription
             ? `ปัญหาของสภาพพืช: ${t7CropProblemDescription}`
             : null,
-          t7ProductResponse
-            ? `ผลการใช้ผลิตภัณฑ์: ${t7ProductResponse}`
-            : null,
+          t7ProductResponse ? `ผลการใช้ผลิตภัณฑ์: ${t7ProductResponse}` : null,
           t7ProblemDescription
             ? `รายละเอียดปัญหาการใช้ผลิตภัณฑ์: ${t7ProblemDescription}`
             : null,
@@ -2277,9 +2297,7 @@ export default function ActivityPlanActualView({
           t7NextFollowUpDate
             ? `กำหนดการติดตามครั้งถัดไป: ${t7NextFollowUpDate}`
             : null,
-          t7FinalYieldKg
-            ? `ผลผลิตแปลงสาธิต: ${t7FinalYieldKg} กก./ไร่`
-            : null,
+          t7FinalYieldKg ? `ผลผลิตแปลงสาธิต: ${t7FinalYieldKg} กก./ไร่` : null,
           t7ControlYieldKg
             ? `ผลผลิตแปลงควบคุม: ${t7ControlYieldKg} กก./ไร่`
             : null,
@@ -2311,7 +2329,9 @@ export default function ActivityPlanActualView({
           t9ActualSales ? `ยอดขายหน้าร้านจริง: ${t9ActualSales}` : null,
           t9ProductSalesDetails &&
           t9ProductSalesDetails.length > 0 &&
-          t9ProductSalesDetails.some((d) => d.actualQuantityCases || d.actualSales)
+          t9ProductSalesDetails.some(
+            (d) => d.actualQuantityCases || d.actualSales,
+          )
             ? `ยอดขายแยกสินค้าหน้าร้าน: ${JSON.stringify(t9ProductSalesDetails)}`
             : null,
           t9ActualAttendees
@@ -2333,7 +2353,9 @@ export default function ActivityPlanActualView({
           // Type 11
           t11StockItems &&
           t11StockItems.length > 0 &&
-          t11StockItems.some((i) => i.productName || i.remainingQty || i.remarks)
+          t11StockItems.some(
+            (i) => i.productName || i.remainingQty || i.remarks,
+          )
             ? `รายการตรวจเช็กสต็อก: ${JSON.stringify(t11StockItems)}`
             : null,
           t11ProductList ? `รายการสินค้าตรวจเช็ก: ${t11ProductList}` : null,
@@ -2513,13 +2535,21 @@ export default function ActivityPlanActualView({
             )}
 
             {/* SECTION 1: ข้อมูลสรุปแผนงาน */}
-            <SectionHeader title="ข้อมูลสรุปแผนงาน" color="gray" />
+            <SectionHeader
+              title="ข้อมูลสรุปแผนงาน"
+              className="rounded-xl"
+              accentColor="#808080"
+            />
 
             {/* PLAN SUMMARY CARD */}
             <ActualPlanSummary summary={planSummary} />
 
             {/* SECTION 2: ผลการปฏิบัติงานตามประเภทงาน */}
-            <SectionHeader title="ผลการปฏิบัติงานตามประเภทงาน" color="gray" />
+            <SectionHeader
+              title="ผลการปฏิบัติงานตามประเภทงาน"
+              className="rounded-xl"
+              accentColor="#808080"
+            />
 
             <div className="space-y-4 md:space-y-6">
               {/* WORK TYPE 1 */}
@@ -2747,7 +2777,11 @@ export default function ActivityPlanActualView({
             </div>
 
             {/* SECTION 3: สถานะผลการทำกิจกรรม */}
-            <SectionHeader title="สถานะผลการทำกิจกรรม" color="gray" />
+            <SectionHeader
+              title="สถานะผลการทำกิจกรรม"
+              className="rounded-xl"
+              accentColor="#808080"
+            />
 
             <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
               <div className="space-y-2.5">
