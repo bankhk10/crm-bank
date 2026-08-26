@@ -63,3 +63,94 @@ export interface ActualTargetItem {
   highlight?: boolean;
   colSpan?: string;
 }
+
+export type ActivityResultStatusType =
+  | "PARTIAL"
+  | "COMPLETED"
+  | "POSTPONED"
+  | "CANCELLED";
+
+export interface ActualTargetsState {
+  t1: {
+    customer: string;
+    topic: string;
+    detail: string;
+    opportunity: string;
+    nextDate: string;
+  };
+  t2: {
+    product: string;
+    customer: string;
+    detail: string;
+    expectedResult: string;
+    items: any[];
+  };
+  t3: {
+    product: string;
+    customer: string;
+    targetQty: string;
+    unitPrice?: string;
+    targetSales: string;
+    detail?: string;
+    items: any[];
+  };
+  t4: {
+    customer: string;
+    orderNo: string;
+    targetCollect: string;
+    items: any[];
+  };
+  t5: {
+    store: string;
+    product: string;
+    detail: string;
+    items: any[];
+  };
+  t6: {
+    customer: string;
+    issueType: string;
+    detail: string;
+    targetStatus: string;
+    items: any[];
+  };
+  t7: {
+    activityType?: string;
+    owner: string;
+    product: string;
+    crop: string;
+    plots: string;
+    demoProductQuantity: string;
+    objective: string;
+    experimentDetail: string;
+    detail: string;
+    targetCondition: string;
+    items: any[];
+  };
+  t8: {
+    topic: string;
+    products: string;
+    targetAttendees: string;
+  };
+  t9: {
+    store: string;
+    isSubDealer: boolean;
+    subDealerStore: string;
+    product: string;
+    targetSales: string;
+    targetAttendees: string;
+    items: any[];
+  };
+  t10: {
+    plot: string;
+    location: string;
+    showcase: string;
+    targetAttendees: string;
+    targetSales: string;
+  };
+  t11: {
+    store: string;
+    detail: string;
+    targetOpportunity: string;
+  };
+}
+

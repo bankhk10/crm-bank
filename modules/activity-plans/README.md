@@ -28,6 +28,39 @@ modules/activity-plans/
 │   │   ├── activity-plan-form.tsx   # คอมโพเนนต์ฟอร์มหลัก (State Machine & Logic)
 │   │   └── components/              # คอมโพเนนต์ย่อยแยกส่วนการทำงาน
 │   │       ├── work-types/          # UI ฟอร์มจุดประสงค์งาน 11 รูปแบบ (เช่น Type1Visit: เข้าพบร้านค้า / Key Farmer)
+│   ├── actual-view/                 # หน้าบันทึกผลการปฏิบัติงาน (Trip Plan Actual)
+│   │   ├── activity-plan-actual-view.tsx # Container & Orchestrator หลัก
+│   │   ├── types.ts                 # Type definitions สำหรับ Actual View
+│   │   ├── utils/                   # Data Extractors, Parsers และ Summary Builders
+│   │   │   ├── plan-extractor.ts    # แปลงข้อมูลแผนและ Target Cards จาก ActivityPlan
+│   │   │   ├── summary-parser.ts    # แปลง resultSummary และ JSON กลับเป็น Form States
+│   │   │   ├── summary-builder.ts   # ประกอบข้อความสรุปและ Payload บันทึกลงฐานข้อมูล
+│   │   │   └── index.ts
+│   │   └── components/              # แยกตาม Business Section
+│   │       ├── actual-view-header.tsx       # ส่วนหัวและรหัสแผนงาน
+│   │       ├── activity-summary-section.tsx # ส่วนที่ 1: ข้อมูลแผนงาน
+│   │       ├── budget-section.tsx           # ส่วนที่ 2: งบประมาณและค่าใช้จ่าย
+│   │       ├── promotional-materials-section.tsx # ส่วนที่ 3: สื่อส่งเสริมการขาย
+│   │       ├── marketing-expense-section.tsx     # ส่วนที่ 4: รายการส่งเสริมการขาย
+│   │       ├── additional-info-section.tsx       # ส่วนที่ 5: ข้อมูลเพิ่มเติม
+│   │       ├── actual-plan-summary.tsx           # Coordinator สรุปข้อมูลแผนงาน (ส่วนที่ 1-5)
+│   │       ├── activity-result-section.tsx       # ผลการปฏิบัติงานตาม 11 ประเภทงาน
+│   │       ├── activity-status-section.tsx       # สถานะผลการทำกิจกรรมและเงื่อนไข เลื่อน/ยกเลิก
+│   │       ├── actual-view-actions.tsx           # ปุ่มดำเนินการย้อนกลับและบันทึก
+│   │       ├── actual-target-card.tsx            # การ์ดเป้าหมายของแต่ละประเภทงาน
+│   │       └── work-types/                       # ผลการปฏิบัติงานแยก 11 ประเภทงาน
+│   │           ├── actual-type1-visit.tsx        # Type 1: เข้าพบร้านค้า / Key Farmer
+│   │           ├── actual-type2-followup.tsx     # Type 2: ติดตามผลการใช้สินค้า
+│   │           ├── actual-type3-sales.tsx        # Type 3: เสนอขายสินค้า
+│   │           ├── actual-type4-collect.tsx      # Type 4: วางบิล / เก็บเงิน
+│   │           ├── actual-type5-survey.tsx       # Type 5: สำรวจตลาดคู่แข่ง
+│   │           ├── actual-type6-issue.tsx        # Type 6: แก้ปัญหา / รับเรื่องร้องเรียน
+│   │           ├── actual-type7-demo.tsx         # Type 7: ติดตามแปลงสาธิต / ทำแปลง
+│   │           ├── actual-type8-meeting.tsx      # Type 8: จัดประชุมการเกษตร
+│   │           ├── actual-type9-store.tsx        # Type 9: จัดกิจกรรมหน้าร้าน
+│   │           ├── actual-type10-field-day.tsx   # Type 10: จัดงาน Field Day
+│   │           ├── actual-type11-stock.tsx       # Type 11: ตรวจเช็กสต็อกหน้าร้าน
+│   │           └── demo-plot-history-modal.tsx   # Modal ประวัติแปลงสาธิต
 │   ├── detail-view/                 # หน้ารายละเอียดกิจกรรม Timeline และปุ่มอนุมัติ
 │   │   ├── activity-plan-detail-view.tsx # Container & Orchestrator หลัก
 │   │   ├── types.ts                 # UI Parsed types สำหรับ detail view
@@ -249,7 +282,7 @@ modules/activity-plans/
   4. **Data Integrity:** ปรับ ternary condition ใน Repository (`activity-plan.repository.ts`) ให้ตรวจ `!= null` ป้องกันการบันทึกค่า `0` เป็น `null` สำหรับ `Decimal` fields
 - **ผลลัพธ์:** ข้อมูลสินค้า จำนวน ราคา และยอดรวมในหน้า Trip Plan Actual ดึงมาจากข้อมูลที่บันทึกไว้ใน Trip Plan Create จริง 100% โดยตรง ไม่มีการ recalculate หรือ fallback ปลอม
 
-### 2026-08-14: ยกระดับสิทธิ์ Roles Administrator ให้สามารถอนุมัติได้ทุกสายงานและทุกขั้นตอน
+### 2026-08-15: ยกระดับสิทธิ์ Roles Administrator ให้สามารถอนุมัติได้ทุกสายงานและทุกขั้นตอน
 - **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `activity-plan-approval-list-view.tsx`, `activity-plan-detail-view.tsx`, `activity-plan-flow.ts`, `server/actions.ts`
 - **ฟีเจอร์เด่น:**
   - **Superuser Approval Authority:** บัญชีที่มี Role `administrator`, `admin` หรือ `ceo` สามารถ:
@@ -430,6 +463,29 @@ modules/activity-plans/
      - ปรับ `actual-plan-summary.tsx` ให้แสดงหัวข้อ Section 5 "ข้อมูลเพิ่มเติม" เฉพาะเมื่อมีข้อมูล (หมายเหตุเพิ่มเติม `notes` หรือหน่วยงานผู้เพิ่มเติม/พนักงานช่วยงาน `helperEmployeeNames`) หากไม่มีข้อมูลจะไม่แสดงหัวข้อนี้
   5. **ล้าง Mock Data / ค่าทดสอบเริ่มต้นใน State targets:**
      - ใน `activity-plan-actual-view.tsx` ปรับค่าเริ่มต้นของ State `targets` (t1 ถึง t11) และ `planSummary` ให้เริ่มต้นด้วยค่าว่าง (`""`) / Array ว่าง (`[]`) / `undefined` ทั้งหมด เพื่อรองรับการดึงข้อมูลจริงจาก Database เพียงอย่างเดียว 100%
+
+### 2026-08-26: ปรับโครงสร้างหน้า Activity Plan Actual View สู่ Modular Business Section Components & Utils
+- **ขอบเขต:** ปรับโครงสร้างไฟล์ `modules/activity-plans/features/actual-view/` ให้เป็นไปตาม Layered Architecture และ Clean Code Standards
+- **โครงสร้างไฟล์ใหม่:**
+  1. **Utilities (`features/actual-view/utils/`):**
+     - `plan-extractor.ts`: สกัดข้อมูลสรุปแผน (`planSummary`), ประเภทงานที่พบ (`resolvedWorkTypes`), และเป้าหมายของแต่ละประเภทงาน (`targets`) จาก `ActivityPlanWithRelations`
+     - `summary-parser.ts`: แปลง `resultSummary` (ทั้ง Regex Matches และ JSON Payload) กลับมาเป็น Form States สำหรับกรณีเปิดดู/แก้ไขผลกิจกรรมเดิม
+     - `summary-builder.ts`: ตรวจสอบความถูกต้อง (Validation) และประกอบ `resultSummary` พร้อมสร้าง Payload บันทึกลงตาราง `activity_results`
+     - `index.ts`: Re-export ทุก utility functions
+  2. **Section Components (`features/actual-view/components/`):**
+     - `actual-view-header.tsx`: ส่วนหัว Title + Plan No Badge
+     - `activity-summary-section.tsx`: สรุปข้อมูลแผนงานและวันเวลา (ส่วนที่ 1)
+     - `budget-section.tsx`: สรุปภาพรวมงบประมาณและ Stat Cards (ส่วนที่ 2)
+     - `promotional-materials-section.tsx`: ตารางสื่อส่งเสริมการขาย (ส่วนที่ 3)
+     - `marketing-expense-section.tsx`: ตารางรายการส่งเสริมการขาย (ส่วนที่ 4)
+     - `additional-info-section.tsx`: ข้อมูลเพิ่มเติมและรายชื่อพนักงานช่วยงาน (ส่วนที่ 5)
+     - `actual-plan-summary.tsx`: Composed Summary Component รวบรวมส่วนที่ 1 ถึง 5
+     - `activity-result-section.tsx`: ส่วนบันทึกผลการปฏิบัติงานตาม 11 ประเภทงาน (Work Types 1 - 11)
+     - `activity-status-section.tsx`: ส่วนเลือกสถานะผลกิจกรรม (สำเร็จบางส่วน, สำเร็จ, เลื่อน, ยกเลิก) พร้อม Sub-fields
+     - `actual-view-actions.tsx`: ปุ่มดำเนินการ Footer Action Buttons (ย้อนกลับ / บันทึก)
+  3. **Container View (`activity-plan-actual-view.tsx`):**
+     - ทำหน้าที่เป็น Orchestrating Container จัดการ State, Data Fetching (`loadData`), Image Upload Handlers, Form Submission (`handleSubmit`), และประกอบ Business Section Components ทั้งหมด
+- **ผลลัพธ์:** โค้ดอ่านง่าย เป็นระเบียบ ดูแลและต่อยอดได้ง่าย ไม่กระทบ Business Logic, Database Schema, Data Flow หรือ Form Validation เดิม 100%
 
 
 

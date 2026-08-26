@@ -2,218 +2,174 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
-import { th } from "date-fns/locale";
-import {
-  ArrowLeft,
-  X,
-  Check,
-  AlertTriangle,
-  Save,
-  Loader2,
-  Sparkles,
-  Layers,
-  ClipboardCheck,
-  BarChart3,
-  FileText,
-  CheckSquare,
-  Info,
-  Calendar,
-  Leaf,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
-import { SectionHeader } from "@/components/custom/section-header";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { cn } from "@/lib/utils";
+import { Loader2, AlertTriangle, Check } from "lucide-react";
 import {
   getActivityPlanAction,
   recordActivityResultAction,
-  getDemoPlotHistoryAction,
   recordDemoPlotVisitAction,
+  getDemoPlotHistoryAction,
 } from "../../server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";
+import type {
+  PlanSummaryData,
+  ImageFile,
+  ActualTargetsState,
+  ActivityResultStatusType,
+} from "./types";
 import {
-  WORK_TYPES,
-  DEMO_OWNERS,
-  DEMO_PRODUCTS,
-  DEMO_PRODUCT_PRICES,
-  STORES_LIST,
-  USER_DEMO_PLOTS,
-  isFieldDayItem,
-} from "../../constants";
-import { ImageFile, PlanSummaryData } from "./types";
-import { ActualPlanSummary } from "./components/actual-plan-summary";
-import { DateTimePicker } from "../form/components/date-time-picker";
-import { FormActionButtons } from "../../ui/form-action-buttons";
-
-// Work Type Components
-import { ActualType1Visit } from "./components/work-types/actual-type1-visit";
-import { ActualType2Followup } from "./components/work-types/actual-type2-followup";
-import { ActualType3Sales } from "./components/work-types/actual-type3-sales";
-import { ActualType4Collect } from "./components/work-types/actual-type4-collect";
-import { ActualType5Survey } from "./components/work-types/actual-type5-survey";
-import { ActualType6Issue } from "./components/work-types/actual-type6-issue";
-import { ActualType7Demo } from "./components/work-types/actual-type7-demo";
-import { ActualType8Meeting } from "./components/work-types/actual-type8-meeting";
-import { ActualType9Store } from "./components/work-types/actual-type9-store";
-import { ActualType10FieldDay } from "./components/work-types/actual-type10-field-day";
+  extractPlanData,
+  parseResultSummary,
+  buildResultSummary,
+} from "./utils";
 import {
-  ActualType11Stock,
-  StockCheckItem,
-} from "./components/work-types/actual-type11-stock";
-import { ArrowRight, User2 } from "lucide-react";
+  ActualViewHeader,
+  ActualPlanSummary,
+  ActivityResultSection,
+  ActivityStatusSection,
+  ActualViewActions,
+} from "./components";
 
 interface ActivityPlanActualViewProps {
   id?: string;
-  onSuccess?: () => void;
   onCancel?: () => void;
+  onSuccess?: () => void;
 }
+
+const initialTargets: ActualTargetsState = {
+  t1: {
+    customer: "",
+    topic: "",
+    detail: "",
+    opportunity: "",
+    nextDate: "",
+  },
+  t2: {
+    product: "",
+    customer: "",
+    detail: "",
+    expectedResult: "",
+    items: [],
+  },
+  t3: {
+    product: "",
+    customer: "",
+    targetQty: "",
+    targetSales: "",
+    items: [],
+  },
+  t4: {
+    customer: "",
+    orderNo: "",
+    targetCollect: "",
+    items: [],
+  },
+  t5: {
+    store: "",
+    product: "",
+    detail: "",
+    items: [],
+  },
+  t6: {
+    customer: "",
+    issueType: "",
+    detail: "",
+    targetStatus: "",
+    items: [],
+  },
+  t7: {
+    owner: "",
+    product: "",
+    crop: "",
+    plots: "",
+    demoProductQuantity: "",
+    objective: "",
+    experimentDetail: "",
+    detail: "",
+    targetCondition: "",
+    items: [],
+  },
+  t8: {
+    topic: "",
+    products: "",
+    targetAttendees: "",
+  },
+  t9: {
+    store: "",
+    isSubDealer: false,
+    subDealerStore: "",
+    product: "",
+    targetSales: "",
+    targetAttendees: "",
+    items: [],
+  },
+  t10: {
+    plot: "",
+    location: "",
+    showcase: "",
+    targetAttendees: "",
+    targetSales: "",
+  },
+  t11: {
+    store: "",
+    detail: "",
+    targetOpportunity: "",
+  },
+};
+
+const initialPlanSummary: PlanSummaryData = {
+  planNo: "",
+  title: "",
+  startDateStr: "",
+  endDateStr: "",
+  startTimeStr: "",
+  endTimeStr: "",
+  timeStr: "",
+  locationStr: "",
+  marketingBudget: undefined,
+  salesPromotionBudget: undefined,
+  extraExpenseAmount: undefined,
+  extraExpenseDetail: "",
+  targetSales: undefined,
+  isPromotionalMediaSelected: false,
+  marketingProductItems: [],
+  isSalesPromotionSelected: false,
+  salesPromotionItems: [],
+  requisitionItems: [],
+  objective: undefined,
+  notes: undefined,
+  helperEmployeeNames: undefined,
+};
 
 export default function ActivityPlanActualView({
   id,
-  onSuccess,
   onCancel,
+  onSuccess,
 }: ActivityPlanActualViewProps) {
   const router = useRouter();
 
-  // Loading & Plan Summary State
+  // Loading & Feedback State
   const [loadingPlan, setLoadingPlan] = useState(!!id);
-  const [planSummary, setPlanSummary] = useState<PlanSummaryData>({
-    planNo: "",
-    title: "",
-    startDateStr: "",
-    endDateStr: "",
-    startTimeStr: "",
-    endTimeStr: "",
-    timeStr: "",
-    locationStr: "",
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
-    // งบประมาณและค่าใช้จ่าย (Budget & Expenses) (ถ้ามี)
-    marketingBudget: undefined,
-    salesPromotionBudget: undefined,
-    extraExpenseAmount: undefined,
-    extraExpenseDetail: "",
-    targetSales: undefined,
-    isPromotionalMediaSelected: false,
-    marketingProductItems: [],
-    isSalesPromotionSelected: false,
-    salesPromotionItems: [],
-
-    // รายการขอเบิกสินค้าจัดกิจกรรม (Material Requisition) (ถ้ามี)
-    requisitionItems: [],
-
-    // ข้อมูลเพิ่มเติม (Additional Info) (ถ้ามี)
-    objective: undefined,
-    notes: undefined,
-    helperEmployeeNames: undefined,
-  });
-
-  // Active Work Type Selection Mode: "ALL" or specific type name
-  const [activeTypeTab, setActiveTypeTab] = useState<string>("ALL");
+  // Plan Summary & Work Types
+  const [planSummary, setPlanSummary] =
+    useState<PlanSummaryData>(initialPlanSummary);
   const [planWorkTypes, setPlanWorkTypes] = useState<string[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [targets, setTargets] = useState<ActualTargetsState>(initialTargets);
 
-  // Targets derived from Create Plan Form Constants or DB
-  const [targets, setTargets] = useState({
-    t1: {
-      customer: "",
-      topic: "",
-      detail: "",
-      opportunity: "",
-      nextDate: "",
-    },
-    t2: {
-      product: "",
-      customer: "",
-      detail: "",
-      expectedResult: "",
-      items: [] as any[],
-    },
-    t3: {
-      product: "",
-      customer: "",
-      targetQty: "",
-      targetSales: "",
-      items: [] as any[],
-    },
-    t4: {
-      customer: "",
-      orderNo: "",
-      targetCollect: "",
-      items: [] as any[],
-    },
-    t5: {
-      store: "",
-      product: "",
-      detail: "",
-      items: [] as any[],
-    },
-    t6: {
-      customer: "",
-      issueType: "",
-      detail: "",
-      targetStatus: "",
-      items: [] as any[],
-    },
-    t7: {
-      owner: "",
-      product: "",
-      crop: "",
-      plots: "",
-      demoProductQuantity: "",
-      objective: "",
-      experimentDetail: "",
-      detail: "",
-      targetCondition: "",
-      items: [] as any[],
-    },
-    t8: {
-      topic: "",
-      products: "",
-      targetAttendees: "",
-    },
-    t9: {
-      store: "",
-      isSubDealer: false,
-      subDealerStore: "",
-      product: "",
-      targetSales: "",
-      targetAttendees: "",
-      items: [] as any[],
-    },
-    t10: {
-      plot: "",
-      location: "",
-      showcase: "",
-      targetAttendees: "",
-      targetSales: "",
-    },
-    t11: {
-      store: "",
-      detail: "",
-      targetOpportunity: "",
-    },
-  });
-
-  // ────────────────────────────────────────────────────────
-  // ACTIVITY RESULT STATUS (สถานะผลการทำกิจกรรม)
-  // ────────────────────────────────────────────────────────
-  const [activityResultStatus, setActivityResultStatus] = useState<
-    "PARTIAL" | "COMPLETED" | "POSTPONED" | "CANCELLED"
-  >("PARTIAL");
+  // Activity Result Status
+  const [activityResultStatus, setActivityResultStatus] =
+    useState<ActivityResultStatusType>("PARTIAL");
   const [cancelReason, setCancelReason] = useState("");
   const [postponedDate, setPostponedDate] = useState("");
   const [postponedTime, setPostponedTime] = useState("");
   const [postponedReason, setPostponedReason] = useState("");
   const [postponedNotes, setPostponedNotes] = useState("");
 
-  // ────────────────────────────────────────────────────────
-  // FORM STATES (11 WORK TYPES)
-  // ────────────────────────────────────────────────────────
-  // Type 1
+  // Work Type 1 States
   const [t1ProductAdvice, setT1ProductAdvice] = useState("");
   const [t1Detail, setT1Detail] = useState("");
   const [t1DiscussionResult, setT1DiscussionResult] = useState("");
@@ -223,7 +179,7 @@ export default function ActivityPlanActualView({
   const [t1NextAction, setT1NextAction] = useState("");
   const [t1NextMeetingDate, setT1NextMeetingDate] = useState("");
 
-  // Type 2
+  // Work Type 2 States
   const [t2CustomerName, setT2CustomerName] = useState("");
   const [t2FollowupDetail, setT2FollowupDetail] = useState("");
   const [t2Detail, setT2Detail] = useState("");
@@ -232,37 +188,39 @@ export default function ActivityPlanActualView({
   >("");
   const [t2ProblemDetail, setT2ProblemDetail] = useState("");
 
-  // Type 3
+  // Work Type 3 States
   const [t3SoldProducts, setT3SoldProducts] = useState("");
   const [t3ActualSales, setT3ActualSales] = useState("");
   const [t3ActualQuantity, setT3ActualQuantity] = useState("");
   const [t3UnclosedReason, setT3UnclosedReason] = useState("");
 
-  // Type 4
+  // Work Type 4 States
   const [t4OrderNo, setT4OrderNo] = useState("");
   const [t4ReceivedAmount, setT4ReceivedAmount] = useState("");
   const [t4PaymentImages, setT4PaymentImages] = useState<ImageFile[]>([]);
 
-  // Type 5
+  // Work Type 5 States
   const [t5CompetitorBrand, setT5CompetitorBrand] = useState("");
   const [t5CompetitorProduct, setT5CompetitorProduct] = useState("");
   const [t5CompetitorPrice, setT5CompetitorPrice] = useState("");
-  const [t5CompetitorUnit, setT5CompetitorUnit] = useState("ขวด");
+  const [t5CompetitorUnit, setT5CompetitorUnit] = useState("");
   const [t5PromotionDetail, setT5PromotionDetail] = useState("");
   const [t5PriceTagImages, setT5PriceTagImages] = useState<ImageFile[]>([]);
 
-  // Type 6
+  // Work Type 6 States
   const [t6ProblemDetail, setT6ProblemDetail] = useState("");
   const [t6InitialSolution, setT6InitialSolution] = useState("");
-  const [t6Status, setT6Status] = useState<"เสร็จสิ้น" | "รอติดตาม" | "">("");
+  const [t6Status, setT6Status] = useState<"เสร็จสิ้น" | "รอติดตาม" | "">("เสร็จสิ้น");
   const [t6Images, setT6Images] = useState<ImageFile[]>([]);
 
-  // Type 7
+  // Work Type 7 States
+  const [t7StartDate, setT7StartDate] = useState("");
+  const [t7ProductPrice] = useState(500);
   const [t7PlotName, setT7PlotName] = useState("");
+  const [t7UsageMethod, setT7UsageMethod] = useState("");
   const [t7PlantingDate, setT7PlantingDate] = useState("");
   const [t7PlantingAreaCondition, setT7PlantingAreaCondition] = useState("");
   const [t7CropImages, setT7CropImages] = useState<ImageFile[]>([]);
-  const [t7UsageMethod, setT7UsageMethod] = useState("");
   const [t7CropAgeValue, setT7CropAgeValue] = useState("");
   const [t7CropAgeUnit, setT7CropAgeUnit] = useState("วัน");
   const [t7GrowthStage, setT7GrowthStage] = useState("");
@@ -275,9 +233,8 @@ export default function ActivityPlanActualView({
   >("");
   const [t7ProblemDescription, setT7ProblemDescription] = useState("");
   const [t7PlotImages, setT7PlotImages] = useState<ImageFile[]>([]);
-  const [t7PlotStatus, setT7PlotStatus] = useState<
-    "IN_PROGRESS" | "COMPLETED" | "FAILED"
-  >("IN_PROGRESS");
+  const [t7PlotStatus, setT7PlotStatus] =
+    useState<"IN_PROGRESS" | "COMPLETED" | "FAILED">("IN_PROGRESS");
   const [t7NextFollowUpDate, setT7NextFollowUpDate] = useState("");
   const [t7FinalYieldKg, setT7FinalYieldKg] = useState("");
   const [t7ControlYieldKg, setT7ControlYieldKg] = useState("");
@@ -285,35 +242,24 @@ export default function ActivityPlanActualView({
   const [t7FarmerSatisfaction, setT7FarmerSatisfaction] = useState(5);
   const [t7CommercialPotential, setT7CommercialPotential] = useState("");
   const [t7FinalSummaryNotes, setT7FinalSummaryNotes] = useState("");
+  const [t7DemoPlotId, setT7DemoPlotId] = useState<string | null>(null);
   const [t7VisitHistory, setT7VisitHistory] = useState<any[]>([]);
-  const [t7StartDate, setT7StartDate] = useState("");
-  const [t7ProductPrice, setT7ProductPrice] = useState(500);
-  const [t7DemoPlotId, setT7DemoPlotId] = useState("");
   const [t7DemoPlotData, setT7DemoPlotData] = useState<any>(null);
 
-  // Type 8
+  // Work Type 8 States
   const [t8ActualAttendees, setT8ActualAttendees] = useState("");
   const [t8FeedbackQnA, setT8FeedbackQnA] = useState("");
-  const [t8ProductSalesDetails, setT8ProductSalesDetails] = useState<
-    { productName: string; actualQty: string; actualSales: string }[]
-  >([]);
+  const [t8ProductSalesDetails, setT8ProductSalesDetails] = useState<any[]>([]);
   const [t8Images, setT8Images] = useState<ImageFile[]>([]);
 
-  // Type 9
+  // Work Type 9 States
   const [t9Formats, setT9Formats] = useState<string[]>([]);
   const [t9ActualSales, setT9ActualSales] = useState("");
-  const [t9ProductSalesDetails, setT9ProductSalesDetails] = useState<
-    {
-      id?: string;
-      productName: string;
-      actualQuantityCases?: string;
-      actualSales?: string;
-    }[]
-  >([]);
+  const [t9ProductSalesDetails, setT9ProductSalesDetails] = useState<any[]>([]);
   const [t9ActualAttendees, setT9ActualAttendees] = useState("");
   const [t9Images, setT9Images] = useState<ImageFile[]>([]);
 
-  // Type 10
+  // Work Type 10 States
   const [t10ActualAttendees, setT10ActualAttendees] = useState("");
   const [t10ActualSalesOrBooking, setT10ActualSalesOrBooking] = useState("");
   const [t10TargetFarmersList, setT10TargetFarmersList] = useState("");
@@ -322,8 +268,8 @@ export default function ActivityPlanActualView({
   >("");
   const [t10Images, setT10Images] = useState<ImageFile[]>([]);
 
-  // Type 11
-  const [t11StockItems, setT11StockItems] = useState<StockCheckItem[]>([]);
+  // Work Type 11 States
+  const [t11StockItems, setT11StockItems] = useState<any[]>([]);
   const [t11ProductList, setT11ProductList] = useState("");
   const [t11RemainingQty, setT11RemainingQty] = useState("");
   const [t11Remarks, setT11Remarks] = useState("");
@@ -331,20 +277,17 @@ export default function ActivityPlanActualView({
     "ใกล้หมด" | "ขาดสต็อก" | ""
   >("");
   const [t11ReorderOpportunity, setT11ReorderOpportunity] = useState<
-    "สูง" | "ยังไม่แน่ใจ" | "ต่ำ" | ""
+    "สูง" | "ต่ำ" | "ยังไม่แน่ใจ" | ""
   >("");
   const [t11NextAction, setT11NextAction] = useState("");
 
-  // Submitting & notifications
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-
-  // Fetch active products lookup
+  // Load products list once
   useEffect(() => {
     listProductsAction({ status: "ACTIVE", perPage: 1000 })
-      .then((res) => {
-        if (res && res.products) {
+      .then((res: any) => {
+        if (res?.success && res?.data) {
+          setProducts(res.data);
+        } else if (res?.products) {
           setProducts(res.products);
         }
       })
@@ -360,1626 +303,235 @@ export default function ActivityPlanActualView({
         const res = await getActivityPlanAction(id!);
         if (res.success && res.plan) {
           const p = res.plan;
-          const start = p.startDate ? new Date(p.startDate) : new Date();
-          const end = p.endDate ? new Date(p.endDate) : new Date();
 
-          const mktProductItemsFromItems = p.items
-            ? (p.items as any[])
-                .filter(
-                  (item) =>
-                    item.visitTopic === "MARKETING_PRODUCT" ||
-                    item.itemType === "MARKETING_PRODUCT",
-                )
-                .map((item) => ({
-                  id: item.id,
-                  productName:
-                    item.storeProductName ||
-                    item.productName ||
-                    "สื่อส่งเสริมการขาย",
-                  quantityCases: item.storeQuantityCases || 1,
-                  pricePerCase: item.storePricePerCase
-                    ? Number(item.storePricePerCase)
-                    : 0,
-                }))
-            : [];
+          const extracted = extractPlanData(p, initialTargets);
+          setPlanSummary(extracted.planSummary);
+          setPlanWorkTypes(extracted.resolvedWorkTypes);
+          setTargets(extracted.targets);
 
-          const salesPromoItemsFromItems = p.items
-            ? (p.items as any[])
-                .filter(
-                  (item) =>
-                    item.visitTopic === "SALES_PROMOTION" ||
-                    item.itemType === "SALES_PROMOTION",
-                )
-                .map((item) => ({
-                  id: item.id,
-                  detail: item.detail || "รายการส่งเสริมการขาย",
-                  amount: item.collectAmount ? Number(item.collectAmount) : 0,
-                  budgetType: item.plotCropCategory || "งบการตลาด",
-                }))
-            : [];
-
-          setPlanSummary({
-            planNo: p.code || p.id || "-",
-            title: p.title || "แปลงสาธิตของบ้านนา",
-            startDateStr: format(start, "d MMM yyyy", { locale: th }),
-            endDateStr: format(end, "d MMM yyyy", { locale: th }),
-            timeStr: `${format(start, "HH:mm")} - ${format(end, "HH:mm")} น.`,
-            locationStr: p.location || `${DEMO_OWNERS[0]} อ.เมือง จ.จันทบุรี`,
-            marketingBudget: (p as any).marketingBudgetRequested
-              ? Number((p as any).marketingBudgetRequested)
-              : undefined,
-            salesPromotionBudget: (p as any).salesPromotionBudgetRequested
-              ? Number((p as any).salesPromotionBudgetRequested)
-              : undefined,
-            isPromotionalMediaSelected:
-              mktProductItemsFromItems.length > 0 ||
-              ((p as any).marketingBudgetRequested
-                ? Number((p as any).marketingBudgetRequested) > 0
-                : false),
-            marketingProductItems: mktProductItemsFromItems,
-            isSalesPromotionSelected:
-              salesPromoItemsFromItems.length > 0 ||
-              ((p as any).salesPromotionBudgetRequested
-                ? Number((p as any).salesPromotionBudgetRequested) > 0
-                : false),
-            salesPromotionItems: salesPromoItemsFromItems,
-            notes: p.notes || undefined,
-            objective: p.objective || undefined,
-            helperEmployeeNames:
-              p.helpers && Array.isArray(p.helpers)
-                ? p.helpers
-                    .map((h: any) => {
-                      const emp = h.employee;
-                      if (!emp) return h.name || h.employeeName || "";
-                      const fullName = `${emp.firstName || ""} ${emp.lastName || ""}`.trim();
-                      const dept = emp.department?.name || h.departmentName;
-                      return dept ? `${fullName} (${dept})` : fullName;
-                    })
-                    .filter(Boolean)
-                : undefined,
-          });
-
-          // ────────────────────────────────────────────────────────
-          // 1. Detect ALL selected work types from the Trip Plan
-          // ────────────────────────────────────────────────────────
-          const detectedWorkTypes = new Set<string>();
-
-          // (A) From activityType / activityTypeId (primary type)
-          if (p.activityType) {
-            if (typeof p.activityType === "object" && p.activityType.name) {
-              if (WORK_TYPES.includes(p.activityType.name)) {
-                detectedWorkTypes.add(p.activityType.name);
-              }
-            } else if (
-              typeof p.activityType === "object" &&
-              p.activityType.code
-            ) {
-              const idx =
-                parseInt(p.activityType.code.replace("TYPE_", ""), 10) - 1;
-              if (idx >= 0 && idx < WORK_TYPES.length) {
-                detectedWorkTypes.add(WORK_TYPES[idx]);
-              }
-            } else if (typeof p.activityType === "string") {
-              if (WORK_TYPES.includes(p.activityType)) {
-                detectedWorkTypes.add(p.activityType);
-              }
-            }
-          }
-          if (p.activityTypeId) {
-            const idx =
-              parseInt(String(p.activityTypeId).replace("TYPE_", ""), 10) - 1;
-            if (idx >= 0 && idx < WORK_TYPES.length) {
-              detectedWorkTypes.add(WORK_TYPES[idx]);
-            }
+          if (extracted.t7StartDate) {
+            setT7StartDate(extracted.t7StartDate);
           }
 
-          // (B) From objective / title (section headers / markers)
-          const objectiveText = [p.objective, p.title]
-            .filter(Boolean)
-            .join("\n");
-
-          if (objectiveText) {
-            if (
-              objectiveText.includes("[เข้าพบร้านค้า") ||
-              objectiveText.includes("เข้าพบร้านค้า") ||
-              objectiveText.includes("Key Farmer")
-            ) {
-              detectedWorkTypes.add(WORK_TYPES[0]);
-            }
-            if (
-              objectiveText.includes("[ติดตามผลการใช้สินค้า]") ||
-              objectiveText.includes("ติดตามผลการใช้สินค้า")
-            ) {
-              detectedWorkTypes.add(WORK_TYPES[1]);
-            }
-            if (
-              objectiveText.includes("[เสนอขายสินค้า]") ||
-              objectiveText.includes("เสนอขายสินค้า")
-            ) {
-              detectedWorkTypes.add(WORK_TYPES[2]);
-            }
-            if (
-              objectiveText.includes("[วางบิล") ||
-              objectiveText.includes("วางบิล / เก็บเงิน") ||
-              objectiveText.includes("วางบิล/เก็บเงิน") ||
-              objectiveText.includes("เป้ายอดเก็บเงิน")
-            ) {
-              detectedWorkTypes.add(WORK_TYPES[3]);
-            }
-            if (
-              objectiveText.includes("[สำรวจตลาด") ||
-              objectiveText.includes("สำรวจตลาดของคู่แข่ง") ||
-              objectiveText.includes("สำรวจตลาดคู่แข่ง")
-            ) {
-              detectedWorkTypes.add(WORK_TYPES[4]);
-            }
-            if (
-              objectiveText.includes("[แก้ปัญหา") ||
-              objectiveText.includes("แก้ปัญหา / รับเรื่องร้องเรียน") ||
-              objectiveText.includes("แก้ปัญหา/ร้องเรียน") ||
-              objectiveText.includes("รับเรื่องร้องเรียน")
-            ) {
-              detectedWorkTypes.add(WORK_TYPES[5]);
-            }
-            if (
-              objectiveText.includes("[ติดตามแปลงสาธิต") ||
-              objectiveText.includes("ติดตามแปลงสาธิต / ทำแปลง") ||
-              objectiveText.includes("ทำแปลงสาธิต") ||
-              (objectiveText.includes("แปลงสาธิต") &&
-                !objectiveText.includes("Field Day") &&
-                !objectiveText.includes("[Field Day]"))
-            ) {
-              detectedWorkTypes.add(WORK_TYPES[6]);
-            }
-            if (
-              objectiveText.includes("[จัดประชุม") ||
-              objectiveText.includes("จัดประชุมการเกษตร") ||
-              objectiveText.includes("ประชุมการเกษตร")
-            ) {
-              detectedWorkTypes.add(WORK_TYPES[7]);
-            }
-            if (
-              objectiveText.includes("[กิจกรรมหน้าร้าน]") ||
-              objectiveText.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")
-            ) {
-              detectedWorkTypes.add(WORK_TYPES[8]);
-            }
-            if (
-              objectiveText.includes("[Field Day]") ||
-              objectiveText.includes("Field Day") ||
-              objectiveText.includes("จัดงาน Field Day")
-            ) {
-              detectedWorkTypes.add(WORK_TYPES[9]);
-            }
-            if (
-              objectiveText.includes("[ตรวจเช็กสต็อก") ||
-              objectiveText.includes("ตรวจเช็กสต็อกหน้าร้าน") ||
-              objectiveText.includes("เช็กสต็อกหน้าร้าน") ||
-              objectiveText.includes("สต็อกหน้าร้าน")
-            ) {
-              detectedWorkTypes.add(WORK_TYPES[10]);
-            }
-          }
-
-          // (C) From DB items (excluding marketing & sales promo items)
-          if (Array.isArray(p.items)) {
-            const actualItems = (p.items as any[]).filter(
-              (item) =>
-                item.itemType !== "MARKETING_PRODUCT" &&
-                item.itemType !== "SALES_PROMOTION" &&
-                item.visitTopic !== "MARKETING_PRODUCT" &&
-                item.visitTopic !== "SALES_PROMOTION",
-            );
-
-            for (const item of actualItems) {
-              const isFD = isFieldDayItem(item);
-
-              if (
-                item.itemType === "TYPE_1" ||
-                (item.visitTopic &&
-                  item.visitTopic !== "FOLLOWUP" &&
-                  item.visitTopic !== "MARKETING_PRODUCT" &&
-                  item.visitTopic !== "SALES_PROMOTION")
-              ) {
-                detectedWorkTypes.add(WORK_TYPES[0]);
-              }
-              if (
-                item.itemType === "TYPE_2" ||
-                item.visitTopic === "FOLLOWUP" ||
-                item.followupProductName
-              ) {
-                detectedWorkTypes.add(WORK_TYPES[1]);
-              }
-              if (
-                !isFD &&
-                (item.itemType === "TYPE_3" ||
-                  item.saleProductName ||
-                  (item.saleQuantity != null && item.saleUnitPrice != null) ||
-                  (item.saleTotalPrice != null &&
-                    !item.storeTotalAmount &&
-                    !item.collectAmount &&
-                    item.meetingAttendeesCount == null))
-              ) {
-                detectedWorkTypes.add(WORK_TYPES[2]);
-              }
-              if (
-                !isFD &&
-                (item.itemType === "TYPE_4" ||
-                  (item.collectAmount != null &&
-                    item.visitTopic !== "SALES_PROMOTION"))
-              ) {
-                detectedWorkTypes.add(WORK_TYPES[3]);
-              }
-              if (
-                item.itemType === "TYPE_5" ||
-                item.surveyCompetitorProduct ||
-                (item.surveyStoreName && item.itemType !== "TYPE_9")
-              ) {
-                detectedWorkTypes.add(WORK_TYPES[4]);
-              }
-              if (item.itemType === "TYPE_6" || item.issueType) {
-                detectedWorkTypes.add(WORK_TYPES[5]);
-              }
-              if (
-                !isFD &&
-                (item.itemType === "TYPE_7" ||
-                  item.plotActivityType ||
-                  item.existingPlotId ||
-                  ((item.plotCropName ||
-                    item.plotOwnerName ||
-                    item.plotAreaRai != null ||
-                    item.plotTreeCount != null) &&
-                    !item.storePricePerCase))
-              ) {
-                detectedWorkTypes.add(WORK_TYPES[6]);
-              }
-              if (
-                !isFD &&
-                (item.itemType === "TYPE_8" ||
-                  item.meetingTopic ||
-                  item.meetingTargetProducts ||
-                  (item.meetingAttendeesCount != null &&
-                    !item.storeProductName))
-              ) {
-                detectedWorkTypes.add(WORK_TYPES[7]);
-              }
-              if (
-                !isFD &&
-                (item.itemType === "TYPE_9" ||
-                  (item.storeProductName &&
-                    item.visitTopic !== "MARKETING_PRODUCT") ||
-                  (item.storeQuantityCases != null &&
-                    item.visitTopic !== "MARKETING_PRODUCT") ||
-                  (item.storePricePerCase != null &&
-                    item.visitTopic !== "MARKETING_PRODUCT") ||
-                  (item.storeTotalAmount != null &&
-                    item.visitTopic !== "MARKETING_PRODUCT"))
-              ) {
-                detectedWorkTypes.add(WORK_TYPES[8]);
-              }
-              if (isFD || item.itemType === "TYPE_10") {
-                detectedWorkTypes.add(WORK_TYPES[9]);
-              }
-              if (
-                item.itemType === "TYPE_11" ||
-                item.targetOpportunity ||
-                (item.detail && item.detail.includes("ตรวจเช็กสต็อกหน้าร้าน"))
-              ) {
-                detectedWorkTypes.add(WORK_TYPES[10]);
-              }
-            }
-          }
-
-          const resolvedWorkTypes = WORK_TYPES.filter((t) =>
-            detectedWorkTypes.has(t),
-          );
-
-          if (resolvedWorkTypes.length > 0) {
-            setPlanWorkTypes(resolvedWorkTypes);
-            setActiveTypeTab("ALL");
-          } else {
-            setPlanWorkTypes([]);
-            setActiveTypeTab("ALL");
-          }
-
-          // ────────────────────────────────────────────────────────
-          // 2. Populate target cards from real DB items
-          // ────────────────────────────────────────────────────────
-          if (p.items && p.items.length > 0) {
-            const allItems = p.items as any[];
-            const allCustomers = Array.from(
-              new Set(allItems.map((i: any) => i.customerName).filter(Boolean)),
-            ).join(", ");
-
-            const t1Item =
-              allItems.find(
-                (i) =>
-                  !isFieldDayItem(i) &&
-                  i.itemType !== "MARKETING_PRODUCT" &&
-                  i.itemType !== "SALES_PROMOTION" &&
-                  (i.itemType === "TYPE_1" ||
-                    (i.visitTopic &&
-                      i.visitTopic !== "FOLLOWUP" &&
-                      i.visitTopic !== "MARKETING_PRODUCT" &&
-                      i.visitTopic !== "SALES_PROMOTION")),
-              ) ||
-              (detectedWorkTypes.has(WORK_TYPES[0]) ? allItems[0] : undefined);
-
-            const type2DbItems = allItems.filter(
-              (i) =>
-                !isFieldDayItem(i) &&
-                i.itemType !== "MARKETING_PRODUCT" &&
-                i.itemType !== "SALES_PROMOTION" &&
-                (i.itemType === "TYPE_2" ||
-                  i.visitTopic === "FOLLOWUP" ||
-                  i.followupProductName),
-            );
-            const t2ItemsFromDb =
-              type2DbItems.length > 0
-                ? type2DbItems.map((item) => ({
-                    productName:
-                      item.followupProductName || item.productName || "สินค้า",
-                    customer: item.customerName || p.location || "",
-                    detail: item.detail || "",
-                    expectedResult: item.expectedResult || "พืชตอบสนองดี",
-                  }))
-                : undefined;
-
-            const type3DbItems = allItems.filter(
-              (i) =>
-                !isFieldDayItem(i) &&
-                i.itemType !== "MARKETING_PRODUCT" &&
-                i.itemType !== "SALES_PROMOTION" &&
-                i.visitTopic !== "MARKETING_PRODUCT" &&
-                i.visitTopic !== "SALES_PROMOTION" &&
-                (i.itemType === "TYPE_3" ||
-                  i.saleProductName ||
-                  (i.saleQuantity != null && i.saleUnitPrice != null) ||
-                  (i.saleTotalPrice != null &&
-                    !i.storeTotalAmount &&
-                    !i.collectAmount &&
-                    i.meetingAttendeesCount == null)),
-            );
-
-            const t3ItemsFromDb =
-              type3DbItems.length > 0
-                ? type3DbItems.map((item) => {
-                    const productName =
-                      item.saleProductName ||
-                      item.productName ||
-                      "สินค้าเสนอขาย";
-                    const qtyVal =
-                      item.saleQuantity != null
-                        ? String(item.saleQuantity)
-                        : "";
-                    const uPriceVal =
-                      item.saleUnitPrice != null
-                        ? `${Number(item.saleUnitPrice).toLocaleString()} บาท`
-                        : "";
-                    const totalPriceVal =
-                      item.saleTotalPrice != null
-                        ? `${Number(item.saleTotalPrice).toLocaleString()} บาท`
-                        : item.saleQuantity != null &&
-                            item.saleUnitPrice != null
-                          ? `${(Number(item.saleQuantity) * Number(item.saleUnitPrice)).toLocaleString()} บาท`
-                          : "";
-
-                    return {
-                      productName,
-                      customer: item.customerName || p.location || "",
-                      qty: qtyVal,
-                      unitPrice: uPriceVal,
-                      price: totalPriceVal,
-                      detail: item.detail || "",
-                    };
-                  })
-                : undefined;
-
-            const t3Item = type3DbItems[0];
-            const t3TotalSales = type3DbItems.reduce(
-              (sum, item) =>
-                sum +
-                (item.saleTotalPrice != null
-                  ? Number(item.saleTotalPrice)
-                  : (Number(item.saleQuantity) || 0) *
-                    (Number(item.saleUnitPrice) || 0)),
-              0,
-            );
-            const t3ProdNames = Array.from(
-              new Set(
-                type3DbItems
-                  .map((i) => i.saleProductName || i.productName)
-                  .filter(Boolean),
-              ),
-            ).join(", ");
-            const t3TotalQty = type3DbItems.reduce(
-              (sum, item) => sum + (Number(item.saleQuantity) || 0),
-              0,
-            );
-            const t3SingleQty =
-              t3Item?.saleQuantity != null
-                ? String(t3Item.saleQuantity)
-                : t3TotalQty > 0
-                  ? String(t3TotalQty)
-                  : "";
-            const t3SingleUnitPrice =
-              t3Item?.saleUnitPrice != null
-                ? `${Number(t3Item.saleUnitPrice).toLocaleString()} บาท`
-                : "";
-
-            const t4Item = allItems.find(
-              (i) =>
-                !isFieldDayItem(i) &&
-                i.itemType !== "MARKETING_PRODUCT" &&
-                i.itemType !== "SALES_PROMOTION" &&
-                (i.itemType === "TYPE_4" ||
-                  (i.collectAmount != null &&
-                    i.visitTopic !== "SALES_PROMOTION")),
-            );
-
-            const type5DbItems = allItems.filter(
-              (i) =>
-                !isFieldDayItem(i) &&
-                i.itemType !== "MARKETING_PRODUCT" &&
-                i.itemType !== "SALES_PROMOTION" &&
-                i.visitTopic !== "MARKETING_PRODUCT" &&
-                i.visitTopic !== "SALES_PROMOTION" &&
-                (i.itemType === "TYPE_5" ||
-                  i.surveyCompetitorProduct ||
-                  (i.surveyStoreName && i.itemType !== "TYPE_9")),
-            );
-
-            const t5ItemsFromDb =
-              type5DbItems.length > 0
-                ? type5DbItems.map((item) => ({
-                    store:
-                      item.surveyStoreName ||
-                      item.customerName ||
-                      p.location ||
-                      "",
-                    product: item.surveyCompetitorProduct || "",
-                    detail: item.detail || "",
-                  }))
-                : undefined;
-
-            const t5Item =
-              type5DbItems[0] ||
-              allItems.find(
-                (i) =>
-                  !isFieldDayItem(i) &&
-                  (i.itemType === "TYPE_5" ||
-                    i.surveyCompetitorProduct ||
-                    i.surveyStoreName),
-              );
-
-            const type6DbItems = allItems.filter(
-              (i) =>
-                !isFieldDayItem(i) &&
-                i.itemType !== "MARKETING_PRODUCT" &&
-                i.itemType !== "SALES_PROMOTION" &&
-                i.visitTopic !== "MARKETING_PRODUCT" &&
-                i.visitTopic !== "SALES_PROMOTION" &&
-                (i.itemType === "TYPE_6" || i.issueType),
-            );
-
-            const t6ItemsFromDb =
-              type6DbItems.length > 0
-                ? type6DbItems.map((item) => ({
-                    customer: item.customerName || p.location || "",
-                    issueType: item.issueType || "เคลมของ",
-                    detail: item.detail || "",
-                  }))
-                : undefined;
-
-            const t6Item =
-              type6DbItems[0] ||
-              allItems.find(
-                (i) =>
-                  !isFieldDayItem(i) &&
-                  (i.itemType === "TYPE_6" || i.issueType),
-              );
-
-            const type7DbItems = allItems.filter(
-              (i) =>
-                !isFieldDayItem(i) &&
-                i.itemType !== "MARKETING_PRODUCT" &&
-                i.itemType !== "SALES_PROMOTION" &&
-                i.visitTopic !== "MARKETING_PRODUCT" &&
-                i.visitTopic !== "SALES_PROMOTION" &&
-                (i.itemType === "TYPE_7" ||
-                  i.plotActivityType ||
-                  i.existingPlotId ||
-                  ((i.plotCropName ||
-                    i.plotOwnerName ||
-                    i.plotAreaRai != null ||
-                    i.plotTreeCount != null) &&
-                    !i.storePricePerCase)),
-            );
-
-            const t7ItemsFromDb =
-              type7DbItems.length > 0
-                ? type7DbItems.map((item) => {
-                    let plotAreaStr = "";
-                    if (
-                      item.plotAreaRai != null &&
-                      Number(item.plotAreaRai) > 0
-                    ) {
-                      plotAreaStr = `${item.plotAreaRai} ไร่`;
-                    } else if (
-                      item.plotTreeCount != null &&
-                      item.plotTreeCount > 0
-                    ) {
-                      plotAreaStr = `${item.plotTreeCount} ต้น`;
-                    }
-
-                    const rawDetail = item.detail || "";
-                    const objMatch = rawDetail.match(
-                      /(?:วัตถุประสงค์ของแปลง|วัตถุประสงค์):\s*([^|]+)/,
-                    );
-                    const expMatch = rawDetail.match(
-                      /(?:รายละเอียด \/ วิธีการทดลอง|วิธีการทดลอง|รายละเอียดการทดลอง):\s*([^|]+)/,
-                    );
-
-                    const parsedObjective = objMatch
-                      ? objMatch[1].trim()
-                      : item.objective || "";
-                    let parsedExperiment = expMatch
-                      ? expMatch[1].trim()
-                      : item.experimentDetail || "";
-
-                    if (!objMatch && !expMatch && rawDetail) {
-                      if (item.plotActivityType === "CREATE") {
-                        parsedExperiment = rawDetail;
-                      }
-                    }
-
-                    return {
-                      activityType: item.plotActivityType || "CREATE",
-                      owner:
-                        item.plotOwnerName ||
-                        item.customerName ||
-                        p.location ||
-                        "",
-                      product: item.plotProductName || "",
-                      crop: item.plotCropName || "",
-                      plots: plotAreaStr,
-                      demoProductQuantity:
-                        item.plotCount != null && item.plotCount !== ""
-                          ? String(item.plotCount)
-                          : item.plotsCount != null && item.plotsCount !== ""
-                            ? String(item.plotsCount)
-                            : "-",
-                      objective: parsedObjective,
-                      experimentDetail: parsedExperiment,
-                      detail: rawDetail,
-                    };
-                  })
-                : undefined;
-
-            const t7Item =
-              type7DbItems[0] ||
-              allItems.find(
-                (i) =>
-                  !isFieldDayItem(i) &&
-                  (i.itemType === "TYPE_7" ||
-                    i.plotActivityType ||
-                    i.plotCropName ||
-                    i.plotOwnerName ||
-                    i.plotAreaRai != null ||
-                    i.plotCount != null),
-              );
-
-            const type8DbItems = allItems.filter(
-              (i) =>
-                !isFieldDayItem(i) &&
-                i.itemType !== "MARKETING_PRODUCT" &&
-                i.itemType !== "SALES_PROMOTION" &&
-                i.visitTopic !== "MARKETING_PRODUCT" &&
-                i.visitTopic !== "SALES_PROMOTION" &&
-                (i.itemType === "TYPE_8" ||
-                  i.meetingTopic ||
-                  i.meetingTargetProducts ||
-                  (i.meetingAttendeesCount != null && !i.storeProductName)),
-            );
-
-            const t8Item =
-              type8DbItems[0] ||
-              allItems.find(
-                (i) =>
-                  !isFieldDayItem(i) &&
-                  (i.itemType === "TYPE_8" ||
-                    i.meetingTopic ||
-                    i.meetingAttendeesCount != null),
-              );
-
-            const type9DbItems = allItems.filter(
-              (i) =>
-                !isFieldDayItem(i) &&
-                i.itemType !== "MARKETING_PRODUCT" &&
-                i.itemType !== "SALES_PROMOTION" &&
-                i.visitTopic !== "MARKETING_PRODUCT" &&
-                i.visitTopic !== "SALES_PROMOTION" &&
-                (i.itemType === "TYPE_9" ||
-                  (i.storeProductName && !i.plotCropCategory) ||
-                  (i.storeTotalAmount != null && !i.plotCropCategory)),
-            );
-
-            const t9Item =
-              type9DbItems[0] ||
-              allItems.find(
-                (i) =>
-                  !isFieldDayItem(i) &&
-                  (i.itemType === "TYPE_9" ||
-                    i.storeProductName ||
-                    i.storeTotalAmount != null),
-              );
-
-            const t9ItemsFromDb =
-              type9DbItems.length > 0
-                ? type9DbItems
-                    .filter((i) => i.storeProductName)
-                    .map((item, idx) => ({
-                      id: item.id || String(idx + 1),
-                      productName: item.storeProductName || "",
-                      quantityCases: item.storeQuantityCases
-                        ? Number(item.storeQuantityCases)
-                        : 0,
-                      pricePerCase: item.storePricePerCase
-                        ? Number(item.storePricePerCase)
-                        : 0,
-                      totalAmount: item.storeTotalAmount
-                        ? Number(item.storeTotalAmount)
-                        : (Number(item.storeQuantityCases) || 0) *
-                          (Number(item.storePricePerCase) || 0),
-                    }))
-                : [];
-
-            const rawCustomerName =
-              type9DbItems.find((i) => i.customerName)?.customerName ||
-              t9Item?.customerName ||
-              "";
-
-            let t9MainStore = rawCustomerName;
-            let t9IsSubDealer = false;
-            let t9SubDealerStore = "";
-
-            const subDealerMatch = rawCustomerName.match(
-              /^(.*?)\s*\((?:ร้าน\s*)?Sub Dealer:\s*(.*?)\)$/i,
-            );
-            if (subDealerMatch) {
-              t9MainStore = subDealerMatch[1].trim();
-              t9IsSubDealer = true;
-              t9SubDealerStore = subDealerMatch[2].trim();
-            } else if (p.objective) {
-              const objMatch = p.objective.match(
-                /\[กิจกรรมหน้าร้าน\].*?ร้านค้า:\s*([^|\n]+)/i,
-              );
-              if (objMatch) {
-                const rawObjStore = objMatch[1].trim();
-                const match = rawObjStore.match(
-                  /^(.*?)\s*\((?:ร้าน\s*)?Sub Dealer:\s*(.*?)\)$/i,
-                );
-                if (match) {
-                  if (!t9MainStore) t9MainStore = match[1].trim();
-                  t9IsSubDealer = true;
-                  t9SubDealerStore = match[2].trim();
-                }
-              }
-            }
-
-            const t9TotalSales = type9DbItems.reduce(
-              (sum, item) =>
-                sum +
-                (item.storeTotalAmount != null
-                  ? Number(item.storeTotalAmount)
-                  : (Number(item.storeQuantityCases) || 0) *
-                    (Number(item.storePricePerCase) || 0)),
-              0,
-            );
-
-            const t9ProductSummary = t9ItemsFromDb
-              .map((prod) => `${prod.productName} (${prod.quantityCases} ลัง)`)
-              .join(", ");
-
-            const type10DbItems = allItems.filter(isFieldDayItem);
-            const t10Item =
-              type10DbItems[0] ||
-              allItems.find((i) => i.itemType === "TYPE_10");
-
-            const type11DbItems = allItems.filter(
-              (i) =>
-                !isFieldDayItem(i) &&
-                (i.itemType === "TYPE_11" ||
-                  i.targetOpportunity ||
-                  (i.detail && i.detail.includes("ตรวจเช็กสต็อกหน้าร้าน"))),
-            );
-            const t11Item = type11DbItems[0];
-
-            setTargets((prev) => ({
-              ...prev,
-              t1: {
-                ...prev.t1,
-                customer:
-                  t1Item?.customerName || allCustomers || p.location || "",
-                topic: t1Item?.visitTopic || prev.t1.topic,
-                detail: t1Item?.detail || "",
-              },
-              t2: {
-                ...prev.t2,
-                customer:
-                  (t2ItemsFromDb &&
-                    Array.from(
-                      new Set(
-                        t2ItemsFromDb.map((i) => i.customer).filter(Boolean),
-                      ),
-                    ).join(", ")) ||
-                  allCustomers ||
-                  "",
-                product:
-                  (t2ItemsFromDb &&
-                    t2ItemsFromDb.map((i) => i.productName).join(", ")) ||
-                  "",
-                detail:
-                  (t2ItemsFromDb &&
-                    t2ItemsFromDb
-                      .map((i) => i.detail)
-                      .filter(Boolean)
-                      .join(" | ")) ||
-                  "",
-                items: t2ItemsFromDb || [],
-              },
-              t3: {
-                ...prev.t3,
-                customer:
-                  (t3ItemsFromDb &&
-                    Array.from(
-                      new Set(
-                        t3ItemsFromDb.map((i) => i.customer).filter(Boolean),
-                      ),
-                    ).join(", ")) ||
-                  t3Item?.customerName ||
-                  allCustomers ||
-                  "",
-                product: t3ProdNames || t3Item?.saleProductName || "",
-                targetQty: t3SingleQty,
-                unitPrice: t3SingleUnitPrice,
-                detail:
-                  (t3ItemsFromDb &&
-                    t3ItemsFromDb
-                      .map((i) => i.detail)
-                      .filter(Boolean)
-                      .join(" | ")) ||
-                  t3Item?.detail ||
-                  "",
-                targetSales:
-                  t3TotalSales > 0
-                    ? `${t3TotalSales.toLocaleString()} บาท`
-                    : t3Item?.saleTotalPrice
-                      ? `${Number(t3Item.saleTotalPrice).toLocaleString()} บาท`
-                      : "",
-                items: t3ItemsFromDb || [],
-              },
-              t4: {
-                ...prev.t4,
-                customer: t4Item?.customerName || allCustomers || "",
-                targetCollect: t4Item?.collectAmount
-                  ? `${Number(t4Item.collectAmount).toLocaleString()} บาท`
-                  : "",
-              },
-              t5: {
-                ...prev.t5,
-                store:
-                  (t5ItemsFromDb &&
-                    Array.from(
-                      new Set(
-                        t5ItemsFromDb.map((i) => i.store).filter(Boolean),
-                      ),
-                    ).join(", ")) ||
-                  t5Item?.surveyStoreName ||
-                  allCustomers ||
-                  "",
-                product:
-                  (t5ItemsFromDb &&
-                    t5ItemsFromDb
-                      .map((i) => i.product)
-                      .filter(Boolean)
-                      .join(", ")) ||
-                  t5Item?.surveyCompetitorProduct ||
-                  "",
-                detail:
-                  (t5ItemsFromDb &&
-                    t5ItemsFromDb
-                      .map((i) => i.detail)
-                      .filter(Boolean)
-                      .join(" | ")) ||
-                  t5Item?.detail ||
-                  "",
-                items: t5ItemsFromDb || [],
-              },
-              t6: {
-                ...prev.t6,
-                customer:
-                  (t6ItemsFromDb &&
-                    Array.from(
-                      new Set(
-                        t6ItemsFromDb.map((i) => i.customer).filter(Boolean),
-                      ),
-                    ).join(", ")) ||
-                  t6Item?.customerName ||
-                  allCustomers ||
-                  "",
-                issueType:
-                  (t6ItemsFromDb &&
-                    t6ItemsFromDb
-                      .map((i) => i.issueType)
-                      .filter(Boolean)
-                      .join(", ")) ||
-                  t6Item?.issueType ||
-                  prev.t6.issueType,
-                detail:
-                  (t6ItemsFromDb &&
-                    t6ItemsFromDb
-                      .map((i) => i.detail)
-                      .filter(Boolean)
-                      .join(" | ")) ||
-                  t6Item?.detail ||
-                  "",
-                items: t6ItemsFromDb || [],
-              },
-              t7: {
-                ...prev.t7,
-                activityType:
-                  t7Item?.plotActivityType ||
-                  (t7ItemsFromDb && t7ItemsFromDb[0]?.activityType) ||
-                  "CREATE",
-                owner:
-                  (t7ItemsFromDb &&
-                    Array.from(
-                      new Set(
-                        t7ItemsFromDb.map((i) => i.owner).filter(Boolean),
-                      ),
-                    ).join(", ")) ||
-                  t7Item?.plotOwnerName ||
-                  allCustomers ||
-                  "",
-                product:
-                  (t7ItemsFromDb &&
-                    Array.from(
-                      new Set(
-                        t7ItemsFromDb.map((i) => i.product).filter(Boolean),
-                      ),
-                    ).join(", ")) ||
-                  t7Item?.plotProductName ||
-                  "",
-                crop:
-                  (t7ItemsFromDb &&
-                    Array.from(
-                      new Set(t7ItemsFromDb.map((i) => i.crop).filter(Boolean)),
-                    ).join(", ")) ||
-                  t7Item?.plotCropName ||
-                  "",
-                plots:
-                  (t7ItemsFromDb &&
-                    t7ItemsFromDb
-                      .map((i) => i.plots)
-                      .filter(Boolean)
-                      .join(", ")) ||
-                  (t7Item?.plotAreaRai != null && Number(t7Item.plotAreaRai) > 0
-                    ? `${t7Item.plotAreaRai} ไร่`
-                    : t7Item?.plotTreeCount != null && t7Item.plotTreeCount > 0
-                      ? `${t7Item.plotTreeCount} ต้น`
-                      : ""),
-                demoProductQuantity:
-                  (t7ItemsFromDb &&
-                    t7ItemsFromDb
-                      .map((i) => i.demoProductQuantity)
-                      .filter((v) => v && v !== "-")
-                      .join(", ")) ||
-                  (t7Item?.plotCount != null && t7Item?.plotCount !== ""
-                    ? String(t7Item.plotCount)
-                    : t7Item?.plotsCount != null && t7Item?.plotsCount !== ""
-                      ? String(t7Item.plotsCount)
-                      : "-"),
-                objective:
-                  (t7ItemsFromDb &&
-                    t7ItemsFromDb
-                      .map((i) => i.objective)
-                      .filter(Boolean)
-                      .join(" | ")) ||
-                  "",
-                experimentDetail:
-                  (t7ItemsFromDb &&
-                    t7ItemsFromDb
-                      .map((i) => i.experimentDetail)
-                      .filter(Boolean)
-                      .join(" | ")) ||
-                  "",
-                detail:
-                  (t7ItemsFromDb &&
-                    t7ItemsFromDb
-                      .map((i) => i.detail)
-                      .filter(Boolean)
-                      .join(" | ")) ||
-                  t7Item?.detail ||
-                  "",
-                items: t7ItemsFromDb || [],
-              },
-              t8: {
-                ...prev.t8,
-                topic:
-                  type8DbItems
-                    .map((i) => i.meetingTopic)
-                    .filter(Boolean)
-                    .join(", ") ||
-                  t8Item?.meetingTopic ||
-                  "",
-                products:
-                  type8DbItems
-                    .map((i) => i.meetingTargetProducts)
-                    .filter(Boolean)
-                    .join(", ") ||
-                  t8Item?.meetingTargetProducts ||
-                  "",
-                targetAttendees:
-                  type8DbItems
-                    .map((i) =>
-                      i.meetingAttendeesCount
-                        ? `${i.meetingAttendeesCount} คน`
-                        : "",
-                    )
-                    .filter(Boolean)
-                    .join(", ") ||
-                  (t8Item?.meetingAttendeesCount
-                    ? `${t8Item.meetingAttendeesCount} คน`
-                    : ""),
-              },
-              t9: {
-                ...prev.t9,
-                store:
-                  t9MainStore ||
-                  rawCustomerName ||
-                  t9Item?.surveyStoreName ||
-                  allCustomers ||
-                  "",
-                isSubDealer: t9IsSubDealer,
-                subDealerStore: t9SubDealerStore,
-                product: t9ProductSummary || t9Item?.storeProductName || "",
-                targetSales:
-                  t9TotalSales > 0
-                    ? `${t9TotalSales.toLocaleString()} บาท`
-                    : t9Item?.storeTotalAmount
-                      ? `${Number(t9Item.storeTotalAmount).toLocaleString()} บาท`
-                      : "",
-                items: t9ItemsFromDb,
-              },
-              t10: {
-                ...prev.t10,
-                plot:
-                  t10Item?.customerName ||
-                  t10Item?.plotOwnerName ||
-                  (detectedWorkTypes.has(WORK_TYPES[9]) && allCustomers
-                    ? allCustomers
-                    : ""),
-                location: (() => {
-                  if (t10Item?.detail) {
-                    const match = t10Item.detail.match(/สถานที่:\s*([^|]+)/);
-                    if (match) return match[1].trim();
-                  }
-                  return p.location || prev.t10.location || "";
-                })(),
-                showcase: (() => {
-                  if (t10Item?.plotProductName) return t10Item.plotProductName;
-                  if (t10Item?.detail) {
-                    const match = t10Item.detail.match(/สินค้าโชว์:\s*([^|]+)/);
-                    if (match) return match[1].trim();
-                  }
-                  return "";
-                })(),
-                targetAttendees: (() => {
-                  if (
-                    t10Item?.meetingAttendeesCount != null &&
-                    Number(t10Item.meetingAttendeesCount) > 0
-                  ) {
-                    return `${t10Item.meetingAttendeesCount} คน`;
-                  }
-                  if (
-                    t10Item?.targetAttendees != null &&
-                    Number(t10Item.targetAttendees) > 0
-                  ) {
-                    return `${t10Item.targetAttendees} คน`;
-                  }
-                  if (t10Item?.detail) {
-                    const match = t10Item.detail.match(/ผู้ร่วมงาน:\s*([^|]+)/);
-                    if (match) return match[1].trim();
-                  }
-                  const objMatch =
-                    objectiveText.match(/เป้าผู้ร่วมงาน:\s*([^|,\n]+)/) ||
-                    objectiveText.match(/ผู้ร่วมงาน:\s*([^|,\n]+)/);
-                  if (objMatch) return objMatch[1].trim();
-                  return prev.t10.targetAttendees || "";
-                })(),
-                targetSales: (() => {
-                  if (
-                    t10Item?.saleTotalPrice != null &&
-                    Number(t10Item.saleTotalPrice) > 0
-                  ) {
-                    return `฿${Number(t10Item.saleTotalPrice).toLocaleString()}`;
-                  }
-                  if (
-                    t10Item?.targetSales != null &&
-                    Number(t10Item.targetSales) > 0
-                  ) {
-                    return `฿${Number(t10Item.targetSales).toLocaleString()}`;
-                  }
-                  if (t10Item?.detail) {
-                    const match = t10Item.detail.match(/เป้ายอดจอง:\s*([^|]+)/);
-                    if (match) return match[1].trim();
-                  }
-                  const objMatch = objectiveText.match(
-                    /เป้ายอดจอง:\s*([^|,\n]+)/,
-                  );
-                  if (objMatch) return objMatch[1].trim();
-                  return prev.t10.targetSales || "";
-                })(),
-              },
-              t11: {
-                ...prev.t11,
-                store: t11Item?.customerName || allCustomers || "",
-                detail: t11Item?.detail || "",
-              },
-            }));
-
-            if (p.startDate) {
-              setT7StartDate(new Date(p.startDate).toISOString().split("T")[0]);
-            }
-
-            const t7PlotIdentifier =
-              t7Item?.existingPlotId ||
-              t7Item?.plotOwnerName ||
-              t7Item?.plotCropName ||
-              "";
-            if (t7PlotIdentifier) {
-              setT7DemoPlotId(t7PlotIdentifier);
-              getDemoPlotHistoryAction(t7PlotIdentifier).then((histRes) => {
+          if (extracted.t7PlotIdentifier) {
+            getDemoPlotHistoryAction(extracted.t7PlotIdentifier).then(
+              (histRes) => {
                 if (histRes.success && histRes.plot) {
+                  setT7DemoPlotId(histRes.plot.id);
                   setT7DemoPlotData(histRes.plot);
-                  if (histRes.plot.visits)
-                    setT7VisitHistory(histRes.plot.visits);
-                  if (histRes.plot.status)
-                    setT7PlotStatus(histRes.plot.status as any);
+                  setT7VisitHistory(histRes.plot.visits || []);
+                  if (histRes.plot.plotName) {
+                    setT7PlotName(histRes.plot.plotName);
+                  }
                   if (histRes.plot.plantingDate) {
                     setT7PlantingDate(
                       new Date(histRes.plot.plantingDate)
                         .toISOString()
                         .split("T")[0],
                     );
-                  } else if (histRes.plot.startDate) {
-                    setT7PlantingDate(
-                      new Date(histRes.plot.startDate)
-                        .toISOString()
-                        .split("T")[0],
-                    );
                   }
-                  if (histRes.plot.plantingAreaCondition) {
-                    setT7PlantingAreaCondition(
-                      histRes.plot.plantingAreaCondition,
-                    );
-                  }
-                  if (histRes.plot.usageMethod && !t7UsageMethod) {
-                    setT7UsageMethod(histRes.plot.usageMethod);
-                  }
-                  if (histRes.plot.startDate) {
-                    setT7StartDate(
-                      new Date(histRes.plot.startDate)
-                        .toISOString()
-                        .split("T")[0],
-                    );
-                  }
-                  if (histRes.plot.demoYieldKg)
+                  if (histRes.plot.demoYieldKg) {
                     setT7FinalYieldKg(String(histRes.plot.demoYieldKg));
-                  if (histRes.plot.controlYieldKg)
+                  }
+                  if (histRes.plot.controlYieldKg) {
                     setT7ControlYieldKg(String(histRes.plot.controlYieldKg));
-                  if (histRes.plot.yieldIncreasePercent)
+                  }
+                  if (histRes.plot.yieldIncreasePercent) {
                     setT7YieldIncreasePercent(
                       String(histRes.plot.yieldIncreasePercent),
                     );
-                  if (histRes.plot.farmerSatisfaction)
+                  }
+                  if (histRes.plot.farmerSatisfaction) {
                     setT7FarmerSatisfaction(histRes.plot.farmerSatisfaction);
-                  if (histRes.plot.commercialPotential)
+                  }
+                  if (histRes.plot.commercialPotential) {
                     setT7CommercialPotential(histRes.plot.commercialPotential);
-                  if (histRes.plot.finalSummaryNotes)
+                  }
+                  if (histRes.plot.finalSummaryNotes) {
                     setT7FinalSummaryNotes(histRes.plot.finalSummaryNotes);
+                  }
                 }
-              });
-            }
+              },
+            );
           }
 
           // Restore saved post-activity outcome (p.result) if exists
           if ((p as any).result) {
-            const resData = (p as any).result;
-            if (resData.resultSummary) {
-              const summaryText = resData.resultSummary;
-
-              // Type 1
-              const adviceMatch = summaryText.match(/สินค้าที่แนะนำ:\s*(.+)/);
-              if (adviceMatch && adviceMatch[1]) {
-                setT1ProductAdvice(adviceMatch[1].split("\n")[0].trim());
-              }
-
-              const opportunityMatch = summaryText.match(/โอกาสการขาย:\s*(.+)/);
-              if (opportunityMatch && opportunityMatch[1]) {
-                const oppVal = opportunityMatch[1].split("\n")[0].trim();
-                if (oppVal === "สูง" || oppVal === "ต่ำ") {
-                  setT1SalesOpportunity(oppVal);
-                }
-              }
-
-              const discussionMatch = summaryText.match(/ผลการพูดคุย:\s*(.+)/);
-              if (discussionMatch && discussionMatch[1]) {
-                setT1DiscussionResult(discussionMatch[1].split("\n")[0].trim());
-              }
-
-              const detailMatch = summaryText.match(/รายละเอียดเข้าพบ:\s*(.+)/);
-              if (detailMatch && detailMatch[1]) {
-                setT1Detail(detailMatch[1].split("\n")[0].trim());
-              }
-
-              const nextActionMatch = summaryText.match(
-                /สิ่งที่ต้องดำเนินการต่อ:\s*(.+)/,
-              );
-              if (nextActionMatch && nextActionMatch[1]) {
-                setT1NextAction(nextActionMatch[1].split("\n")[0].trim());
-              } else if (resData.nextAction) {
-                setT1NextAction(resData.nextAction);
-              }
-
-              const nextMeetingMatch = summaryText.match(
-                /วันที่นัดหมายครั้งถัดไป:\s*(.+)/,
-              );
-              if (nextMeetingMatch && nextMeetingMatch[1]) {
-                let val = nextMeetingMatch[1].split("\n")[0].trim();
-                if (val.includes("T")) {
-                  val = val.split("T")[0];
-                }
-                setT1NextMeetingDate(val);
-              }
-
-              // Type 2 (Followup)
-              const customerMatch = summaryText.match(/ลูกค้าติดตาม:\s*(.+)/);
-              if (customerMatch && customerMatch[1]) {
-                setT2CustomerName(customerMatch[1].split("\n")[0].trim());
-              }
-
-              const followupMatch = summaryText.match(/ติดตามผล:\s*(.+)/);
-              if (followupMatch && followupMatch[1]) {
-                const val = followupMatch[1].split("\n")[0].trim();
-                setT2FollowupDetail(val);
-                setT2Detail(val);
-              }
-
-              const usageResultMatch = summaryText.match(
-                /ผลลัพธ์การใช้:\s*(.+)/,
-              );
-              if (usageResultMatch && usageResultMatch[1]) {
-                const resVal = usageResultMatch[1].split("\n")[0].trim();
-                setT2UsageResult(resVal as any);
-                if (resVal === "พืชตอบสนองดี") {
-                  setT2ProblemDetail("");
-                }
-              }
-
-              const problemMatch = summaryText.match(
-                /ปัญหาการใช้สินค้า:\s*(.+)/,
-              );
-              if (problemMatch && problemMatch[1]) {
-                setT2ProblemDetail(problemMatch[1].split("\n")[0].trim());
-              }
-
-              // Type 3
-              const soldMatch = summaryText.match(/รายการขาย:\s*(.+)/);
-              if (soldMatch && soldMatch[1]) {
-                setT3SoldProducts(soldMatch[1].split("\n")[0].trim());
-              }
-              const actualSalesMatch = summaryText.match(/ยอดขายจริง:\s*(.+)/);
-              if (actualSalesMatch && actualSalesMatch[1]) {
-                setT3ActualSales(actualSalesMatch[1].split("\n")[0].trim());
-              } else if (resData.salesResultAmount) {
-                setT3ActualSales(String(resData.salesResultAmount));
-              }
-              const actualQtyMatch = summaryText.match(
-                /จำนวนที่ขายจริง:\s*(.+)/,
-              );
-              if (actualQtyMatch && actualQtyMatch[1]) {
-                setT3ActualQuantity(actualQtyMatch[1].split("\n")[0].trim());
-              }
-              const unclosedMatch = summaryText.match(
-                /เหตุผลที่ปิดการขายไม่ได้:\s*(.+)/,
-              );
-              if (unclosedMatch && unclosedMatch[1]) {
-                setT3UnclosedReason(unclosedMatch[1].split("\n")[0].trim());
-              }
-
-              // Type 4
-              const orderNoMatch = summaryText.match(
-                /เลขที่บิล\/ใบแจ้งหนี้:\s*(.+)/,
-              );
-              if (orderNoMatch && orderNoMatch[1]) {
-                setT4OrderNo(orderNoMatch[1].split("\n")[0].trim());
-              }
-              const receivedMatch = summaryText.match(
-                /ยอดเงินที่เก็บได้จริง:\s*(.+)/,
-              );
-              if (receivedMatch && receivedMatch[1]) {
-                setT4ReceivedAmount(receivedMatch[1].split("\n")[0].trim());
-              } else if (resData.collectResultAmount) {
-                setT4ReceivedAmount(String(resData.collectResultAmount));
-              }
-
-              // Type 5
-              const compBrandMatch = summaryText.match(/แบรนด์คู่แข่ง:\s*(.+)/);
-              if (compBrandMatch && compBrandMatch[1]) {
-                setT5CompetitorBrand(compBrandMatch[1].split("\n")[0].trim());
-              }
-              const compProdMatch = summaryText.match(/สินค้าคู่แข่ง:\s*(.+)/);
-              if (compProdMatch && compProdMatch[1]) {
-                setT5CompetitorProduct(compProdMatch[1].split("\n")[0].trim());
-              }
-              const compPriceMatch = summaryText.match(/ราคาคู่แข่ง:\s*(.+)/);
-              if (compPriceMatch && compPriceMatch[1]) {
-                setT5CompetitorPrice(compPriceMatch[1].split("\n")[0].trim());
-              }
-              const compUnitMatch = summaryText.match(
-                /(?:หน่วยนับคู่แข่ง|หน่วยนับ):\s*(.+)/,
-              );
-              if (compUnitMatch && compUnitMatch[1]) {
-                setT5CompetitorUnit(compUnitMatch[1].split("\n")[0].trim());
-              }
-              const promoMatch = summaryText.match(/โปรโมชันคู่แข่ง:\s*(.+)/);
-              if (promoMatch && promoMatch[1]) {
-                setT5PromotionDetail(promoMatch[1].split("\n")[0].trim());
-              }
-
-              // Type 6
-              const t6ProbMatch = summaryText.match(
-                /ปัญหาลูกค้าร้องเรียน:\s*(.+)/,
-              );
-              if (t6ProbMatch && t6ProbMatch[1]) {
-                setT6ProblemDetail(t6ProbMatch[1].split("\n")[0].trim());
-              }
-              const t6SolMatch = summaryText.match(
-                /แนวทางแก้ไขเบื้องต้น:\s*(.+)/,
-              );
-              if (t6SolMatch && t6SolMatch[1]) {
-                setT6InitialSolution(t6SolMatch[1].split("\n")[0].trim());
-              }
-              const t6StatusMatch = summaryText.match(
-                /สถานะการแก้ปัญหา:\s*(.+)/,
-              );
-              if (t6StatusMatch && t6StatusMatch[1]) {
-                const sVal = t6StatusMatch[1].split("\n")[0].trim();
-                if (sVal === "เสร็จสิ้น" || sVal === "รอติดตาม")
-                  setT6Status(sVal);
-              }
-
-              // Type 7
-              const t7PlotMatch = summaryText.match(/ชื่อแปลงทดสอบ:\s*(.+)/);
-              if (t7PlotMatch && t7PlotMatch[1]) {
-                setT7PlotName(t7PlotMatch[1].split("\n")[0].trim());
-              }
-              const t7MethodMatch = summaryText.match(
-                /วิธีใช้\/อัตราการใช้:\s*(.+)/,
-              );
-              if (t7MethodMatch && t7MethodMatch[1]) {
-                setT7UsageMethod(t7MethodMatch[1].split("\n")[0].trim());
-              }
-              const t7AgeMatch = summaryText.match(
-                /อายุพืช:\s*(\d+)\s*(วัน|สัปดาห์|เดือน|ปี)?/,
-              );
-              if (t7AgeMatch && t7AgeMatch[1]) {
-                setT7CropAgeValue(t7AgeMatch[1].trim());
-                if (t7AgeMatch[2]) {
-                  setT7CropAgeUnit(t7AgeMatch[2].trim());
-                }
-              }
-              const t7GrowthMatch = summaryText.match(
-                /ระยะการเจริญเติบโต:\s*(.+)/,
-              );
-              if (t7GrowthMatch && t7GrowthMatch[1]) {
-                setT7GrowthStage(t7GrowthMatch[1].split("\n")[0].trim());
-              }
-              const t7CondMatch = summaryText.match(/สภาพแปลง:\s*(.+)/);
-              if (t7CondMatch && t7CondMatch[1]) {
-                const cVal = t7CondMatch[1].split("\n")[0].trim();
-                if (
-                  cVal === "สมบูรณ์" ||
-                  cVal === "มีปัญหา" ||
-                  cVal === "ปานกลาง" ||
-                  cVal === "ทรุดโทรม"
-                ) {
-                  setT7CropCondition(cVal as any);
-                }
-              }
-              const t7DescMatch = summaryText.match(
-                /(?:ปัญหาของสภาพพืช|รายละเอียดแปลง):\s*(.+)/,
-              );
-              if (t7DescMatch && t7DescMatch[1]) {
-                setT7CropProblemDescription(
-                  t7DescMatch[1].split("\n")[0].trim(),
-                );
-              }
-              const t7ResponseMatch = summaryText.match(
-                /ผลการใช้ผลิตภัณฑ์:\s*(.+)/,
-              );
-              if (t7ResponseMatch && t7ResponseMatch[1]) {
-                const resp = t7ResponseMatch[1].split("\n")[0].trim();
-                if (resp === "พืชตอบสนองดี" || resp === "พบปัญหา") {
-                  setT7ProductResponse(resp);
-                }
-              }
-              const t7ProblemMatch = summaryText.match(
-                /รายละเอียดปัญหาการใช้ผลิตภัณฑ์:\s*(.+)/,
-              );
-              if (t7ProblemMatch && t7ProblemMatch[1]) {
-                setT7ProblemDescription(
-                  t7ProblemMatch[1].split("\n")[0].trim(),
-                );
-              }
-              const plantingDateMatch = summaryText.match(/วันที่ปลูก:\s*(.+)/);
-              if (plantingDateMatch && plantingDateMatch[1]) {
-                setT7PlantingDate(plantingDateMatch[1].split("\n")[0].trim());
-              }
-              const areaCondMatch = summaryText.match(
-                /สภาพพื้นที่ปลูก:\s*(.+)/,
-              );
-              if (areaCondMatch && areaCondMatch[1]) {
-                setT7PlantingAreaCondition(
-                  areaCondMatch[1].split("\n")[0].trim(),
-                );
-              }
-              const statusMatch = summaryText.match(/สถานะแปลง:\s*(.+)/);
-              if (statusMatch && statusMatch[1]) {
-                const s = statusMatch[1].split("\n")[0].trim();
-                if (
-                  s === "IN_PROGRESS" ||
-                  s === "COMPLETED" ||
-                  s === "FAILED"
-                ) {
-                  setT7PlotStatus(s as any);
-                }
-              }
-              const nextVisitMatch = summaryText.match(
-                /กำหนดการติดตามครั้งถัดไป:\s*(.+)/,
-              );
-              if (nextVisitMatch && nextVisitMatch[1]) {
-                setT7NextFollowUpDate(nextVisitMatch[1].split("\n")[0].trim());
-              }
-              const yieldMatch = summaryText.match(/ผลผลิตแปลงสาธิต:\s*(.+)/);
-              if (yieldMatch && yieldMatch[1]) {
-                setT7FinalYieldKg(yieldMatch[1].replace(/[^0-9.]/g, ""));
-              }
-              const controlMatch = summaryText.match(
-                /ผลผลิตแปลงควบคุม:\s*(.+)/,
-              );
-              if (controlMatch && controlMatch[1]) {
-                setT7ControlYieldKg(controlMatch[1].replace(/[^0-9.]/g, ""));
-              }
-              const incMatch = summaryText.match(/%\s*ผลผลิตเพิ่มขึ้น:\s*(.+)/);
-              if (incMatch && incMatch[1]) {
-                setT7YieldIncreasePercent(incMatch[1].replace(/[^0-9.]/g, ""));
-              }
-              const satMatch = summaryText.match(/ความพึงพอใจเกษตรกร:\s*(\d)/);
-              if (satMatch && satMatch[1]) {
-                setT7FarmerSatisfaction(parseInt(satMatch[1]) || 5);
-              }
-              const comMatch = summaryText.match(/โอกาสสั่งซื้อจริง:\s*(.+)/);
-              if (comMatch && comMatch[1]) {
-                setT7CommercialPotential(comMatch[1].split("\n")[0].trim());
-              }
-              const finalNotesMatch = summaryText.match(
-                /สรุปผลสัมฤทธิ์แปลง:\s*(.+)/,
-              );
-              if (finalNotesMatch && finalNotesMatch[1]) {
-                setT7FinalSummaryNotes(
-                  finalNotesMatch[1].split("\n")[0].trim(),
-                );
-              }
-
-              // Type 8
-              const t8AttendeesMatch = summaryText.match(
-                /จำนวนผู้เข้าร่วมประชุมจริง:\s*(.+)/,
-              );
-              if (t8AttendeesMatch && t8AttendeesMatch[1]) {
-                setT8ActualAttendees(t8AttendeesMatch[1].split("\n")[0].trim());
-              }
-              const qnaMatch = summaryText.match(/Q&A:\s*(.+)/);
-              if (qnaMatch && qnaMatch[1]) {
-                setT8FeedbackQnA(qnaMatch[1].split("\n")[0].trim());
-              }
-              const t8SalesMatch = summaryText.match(
-                /ยอดขายแยกสินค้าประชุม:\s*(.+)/,
-              );
-              if (t8SalesMatch && t8SalesMatch[1]) {
-                try {
-                  const parsed = JSON.parse(t8SalesMatch[1].trim());
-                  if (Array.isArray(parsed)) {
-                    setT8ProductSalesDetails(parsed);
-                  }
-                } catch (e) {
-                  console.error("Failed to parse t8ProductSalesDetails", e);
-                }
-              }
-
-              // Type 9
-              const t9SalesMatch = summaryText.match(
-                /ยอดขายหน้าร้านจริง:\s*(.+)/,
-              );
-              if (t9SalesMatch && t9SalesMatch[1]) {
-                setT9ActualSales(t9SalesMatch[1].split("\n")[0].trim());
-              }
-              const t9ProductsMatch = summaryText.match(
-                /ยอดขายแยกสินค้าหน้าร้าน:\s*(.+)/,
-              );
-              if (t9ProductsMatch && t9ProductsMatch[1]) {
-                try {
-                  const parsed = JSON.parse(t9ProductsMatch[1].trim());
-                  if (Array.isArray(parsed)) {
-                    setT9ProductSalesDetails(parsed);
-                  }
-                } catch (e) {
-                  console.error("Failed to parse t9ProductSalesDetails", e);
-                }
-              }
-              const t9AttendeesMatch = summaryText.match(
-                /จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน:\s*(.+)/,
-              );
-              if (t9AttendeesMatch && t9AttendeesMatch[1]) {
-                setT9ActualAttendees(t9AttendeesMatch[1].split("\n")[0].trim());
-              }
-
-              // Type 10
-              const t10AttendeesMatch = summaryText.match(
-                /จำนวนผู้เข้าร่วม Field Day จริง:\s*(.+)/,
-              );
-              if (t10AttendeesMatch && t10AttendeesMatch[1]) {
-                setT10ActualAttendees(
-                  t10AttendeesMatch[1].split("\n")[0].trim(),
-                );
-              } else if (
-                resData.actualAttendeesCount != null &&
-                Number(resData.actualAttendeesCount) > 0
-              ) {
-                setT10ActualAttendees(String(resData.actualAttendeesCount));
-              }
-
-              const t10SalesMatch = summaryText.match(
-                /ยอดขายหรือยอดจอง Field Day จริง:\s*(.+)/,
-              );
-              if (t10SalesMatch && t10SalesMatch[1]) {
-                setT10ActualSalesOrBooking(
-                  t10SalesMatch[1].split("\n")[0].trim(),
-                );
-              } else if (
-                resData.salesResultAmount != null &&
-                Number(resData.salesResultAmount) > 0
-              ) {
-                setT10ActualSalesOrBooking(
-                  String(Number(resData.salesResultAmount)),
-                );
-              }
-
-              const t10FeedbackMatch = summaryText.match(
-                /ความสนใจเกษตรกร:\s*(.+)/,
-              );
-              if (t10FeedbackMatch && t10FeedbackMatch[1]) {
-                setT10FarmerFeedback(
-                  t10FeedbackMatch[1].split("\n")[0].trim() as any,
-                );
-              }
-              const t10FarmersMatch = summaryText.match(
-                /รายชื่อเกษตรกรเป้าหมาย:\s*(.+)/,
-              );
-              if (t10FarmersMatch && t10FarmersMatch[1]) {
-                setT10TargetFarmersList(
-                  t10FarmersMatch[1].split("\n")[0].trim(),
-                );
-              }
-
-              // Type 11
-              const t11StockItemsMatch = summaryText.match(
-                /รายการตรวจเช็กสต็อก:\s*(.+)/,
-              );
-              if (t11StockItemsMatch && t11StockItemsMatch[1]) {
-                try {
-                  const parsed = JSON.parse(t11StockItemsMatch[1].trim());
-                  if (Array.isArray(parsed) && parsed.length > 0) {
-                    setT11StockItems(parsed);
-                  }
-                } catch (e) {
-                  console.error("Failed to parse t11StockItems", e);
-                }
-              }
-              const t11ProductMatch = summaryText.match(
-                /รายการสินค้าตรวจเช็ก:\s*(.+)/,
-              );
-              if (t11ProductMatch && t11ProductMatch[1]) {
-                setT11ProductList(t11ProductMatch[1].split("\n")[0].trim());
-              }
-              const t11QtyMatch = summaryText.match(
-                /จำนวนคงเหลือสต็อก:\s*(.+)/,
-              );
-              if (t11QtyMatch && t11QtyMatch[1]) {
-                setT11RemainingQty(t11QtyMatch[1].split("\n")[0].trim());
-              }
-              const t11RemarksMatch = summaryText.match(
-                /ข้อสังเกตสต็อก:\s*(.+)/,
-              );
-              if (t11RemarksMatch && t11RemarksMatch[1]) {
-                setT11Remarks(t11RemarksMatch[1].split("\n")[0].trim());
-              }
-              const t11StatusMatch = summaryText.match(/สถานะสต็อก:\s*(.+)/);
-              if (t11StatusMatch && t11StatusMatch[1]) {
-                setT11StockStatus(
-                  t11StatusMatch[1].split("\n")[0].trim() as any,
-                );
-              }
-              const t11ReorderMatch = summaryText.match(
-                /โอกาสสั่งซื้อซ้ำ:\s*(.+)/,
-              );
-              if (t11ReorderMatch && t11ReorderMatch[1]) {
-                setT11ReorderOpportunity(
-                  t11ReorderMatch[1].split("\n")[0].trim() as any,
-                );
-              }
-              const t11NextActionMatch = summaryText.match(
-                /แผนการติดตามสต็อก:\s*(.+)/,
-              );
-              if (t11NextActionMatch && t11NextActionMatch[1]) {
-                setT11NextAction(t11NextActionMatch[1].split("\n")[0].trim());
-              }
-            }
+            const parsed = parseResultSummary((p as any).result);
 
             // Activity Result Status & Postponed / Cancelled fields
-            if (resData.resultStatus) {
-              setActivityResultStatus(resData.resultStatus as any);
+            if (parsed.activityResultStatus) {
+              setActivityResultStatus(parsed.activityResultStatus);
             }
-            if (resData.cancelReason) {
-              setCancelReason(resData.cancelReason);
+            if (parsed.cancelReason) setCancelReason(parsed.cancelReason);
+            if (parsed.postponedDate) setPostponedDate(parsed.postponedDate);
+            if (parsed.postponedTime) setPostponedTime(parsed.postponedTime);
+            if (parsed.postponedReason) setPostponedReason(parsed.postponedReason);
+            if (parsed.postponedNotes) setPostponedNotes(parsed.postponedNotes);
+
+            // Type 1
+            if (parsed.t1ProductAdvice) setT1ProductAdvice(parsed.t1ProductAdvice);
+            if (parsed.t1SalesOpportunity) {
+              setT1SalesOpportunity(parsed.t1SalesOpportunity);
             }
-            if (resData.postponedDate) {
-              const d = new Date(resData.postponedDate);
-              setPostponedDate(
-                !isNaN(d.getTime()) ? d.toISOString().split("T")[0] : "",
-              );
+            if (parsed.t1DiscussionResult) {
+              setT1DiscussionResult(parsed.t1DiscussionResult);
             }
-            if (resData.postponedTime) {
-              setPostponedTime(resData.postponedTime);
-            }
-            if (resData.postponedReason) {
-              setPostponedReason(resData.postponedReason);
-            }
-            if (resData.postponedNotes) {
-              setPostponedNotes(resData.postponedNotes);
+            if (parsed.t1Detail) setT1Detail(parsed.t1Detail);
+            if (parsed.t1NextAction) setT1NextAction(parsed.t1NextAction);
+            if (parsed.t1NextMeetingDate) {
+              setT1NextMeetingDate(parsed.t1NextMeetingDate);
             }
 
-            // Numeric and common fields from result
-            if (resData.salesResultAmount) {
-              setT3ActualSales(String(Number(resData.salesResultAmount)));
-              setT9ActualSales(String(Number(resData.salesResultAmount)));
+            // Type 2
+            if (parsed.t2CustomerName) setT2CustomerName(parsed.t2CustomerName);
+            if (parsed.t2FollowupDetail) {
+              setT2FollowupDetail(parsed.t2FollowupDetail);
+              setT2Detail(parsed.t2FollowupDetail);
             }
-            if (resData.collectResultAmount) {
-              setT4ReceivedAmount(String(Number(resData.collectResultAmount)));
+            if (parsed.t2UsageResult) setT2UsageResult(parsed.t2UsageResult);
+            if (parsed.t2ProblemDetail) setT2ProblemDetail(parsed.t2ProblemDetail);
+
+            // Type 3
+            if (parsed.t3SoldProducts) setT3SoldProducts(parsed.t3SoldProducts);
+            if (parsed.t3ActualSales) setT3ActualSales(parsed.t3ActualSales);
+            if (parsed.t3ActualQuantity) {
+              setT3ActualQuantity(parsed.t3ActualQuantity);
             }
-            if (resData.actualAttendeesCount) {
-              setT8ActualAttendees(String(resData.actualAttendeesCount));
-              setT9ActualAttendees(String(resData.actualAttendeesCount));
-              setT10ActualAttendees(String(resData.actualAttendeesCount));
+            if (parsed.t3UnclosedReason) {
+              setT3UnclosedReason(parsed.t3UnclosedReason);
             }
-            if (resData.problemFound) {
-              setT6ProblemDetail((prev) => prev || resData.problemFound || "");
+
+            // Type 4
+            if (parsed.t4OrderNo) setT4OrderNo(parsed.t4OrderNo);
+            if (parsed.t4ReceivedAmount) {
+              setT4ReceivedAmount(parsed.t4ReceivedAmount);
             }
-            if (resData.nextAction) {
-              setT1NextAction(resData.nextAction);
-              setT11NextAction(resData.nextAction);
+
+            // Type 5
+            if (parsed.t5CompetitorBrand) {
+              setT5CompetitorBrand(parsed.t5CompetitorBrand);
+            }
+            if (parsed.t5CompetitorProduct) {
+              setT5CompetitorProduct(parsed.t5CompetitorProduct);
+            }
+            if (parsed.t5CompetitorPrice) {
+              setT5CompetitorPrice(parsed.t5CompetitorPrice);
+            }
+            if (parsed.t5CompetitorUnit) {
+              setT5CompetitorUnit(parsed.t5CompetitorUnit);
+            }
+            if (parsed.t5PromotionDetail) {
+              setT5PromotionDetail(parsed.t5PromotionDetail);
+            }
+
+            // Type 6
+            if (parsed.t6ProblemDetail) {
+              setT6ProblemDetail(parsed.t6ProblemDetail);
+            } else if (parsed.problemFound) {
+              setT6ProblemDetail((prev) => prev || parsed.problemFound || "");
+            }
+            if (parsed.t6InitialSolution) {
+              setT6InitialSolution(parsed.t6InitialSolution);
+            }
+            if (parsed.t6Status) setT6Status(parsed.t6Status);
+
+            // Type 7
+            if (parsed.t7PlotName) setT7PlotName(parsed.t7PlotName);
+            if (parsed.t7UsageMethod) setT7UsageMethod(parsed.t7UsageMethod);
+            if (parsed.t7CropAgeValue) setT7CropAgeValue(parsed.t7CropAgeValue);
+            if (parsed.t7CropAgeUnit) setT7CropAgeUnit(parsed.t7CropAgeUnit);
+            if (parsed.t7GrowthStage) setT7GrowthStage(parsed.t7GrowthStage);
+            if (parsed.t7CropCondition) setT7CropCondition(parsed.t7CropCondition);
+            if (parsed.t7CropProblemDescription) {
+              setT7CropProblemDescription(parsed.t7CropProblemDescription);
+            }
+            if (parsed.t7ProductResponse) {
+              setT7ProductResponse(parsed.t7ProductResponse);
+            }
+            if (parsed.t7ProblemDescription) {
+              setT7ProblemDescription(parsed.t7ProblemDescription);
+            }
+            if (parsed.t7PlantingDate) setT7PlantingDate(parsed.t7PlantingDate);
+            if (parsed.t7PlantingAreaCondition) {
+              setT7PlantingAreaCondition(parsed.t7PlantingAreaCondition);
+            }
+            if (parsed.t7PlotStatus) setT7PlotStatus(parsed.t7PlotStatus);
+            if (parsed.t7NextFollowUpDate) {
+              setT7NextFollowUpDate(parsed.t7NextFollowUpDate);
+            }
+            if (parsed.t7FinalYieldKg) setT7FinalYieldKg(parsed.t7FinalYieldKg);
+            if (parsed.t7ControlYieldKg) {
+              setT7ControlYieldKg(parsed.t7ControlYieldKg);
+            }
+            if (parsed.t7YieldIncreasePercent) {
+              setT7YieldIncreasePercent(parsed.t7YieldIncreasePercent);
+            }
+            if (parsed.t7FarmerSatisfaction) {
+              setT7FarmerSatisfaction(parsed.t7FarmerSatisfaction);
+            }
+            if (parsed.t7CommercialPotential) {
+              setT7CommercialPotential(parsed.t7CommercialPotential);
+            }
+            if (parsed.t7FinalSummaryNotes) {
+              setT7FinalSummaryNotes(parsed.t7FinalSummaryNotes);
+            }
+
+            // Type 8
+            if (parsed.t8ActualAttendees) {
+              setT8ActualAttendees(parsed.t8ActualAttendees);
+            }
+            if (parsed.t8FeedbackQnA) setT8FeedbackQnA(parsed.t8FeedbackQnA);
+            if (parsed.t8ProductSalesDetails) {
+              setT8ProductSalesDetails(parsed.t8ProductSalesDetails);
+            }
+
+            // Type 9
+            if (parsed.t9ActualSales) setT9ActualSales(parsed.t9ActualSales);
+            if (parsed.t9ProductSalesDetails) {
+              setT9ProductSalesDetails(parsed.t9ProductSalesDetails);
+            }
+            if (parsed.t9ActualAttendees) {
+              setT9ActualAttendees(parsed.t9ActualAttendees);
+            }
+
+            // Type 10
+            if (parsed.t10ActualAttendees) {
+              setT10ActualAttendees(parsed.t10ActualAttendees);
+            }
+            if (parsed.t10ActualSalesOrBooking) {
+              setT10ActualSalesOrBooking(parsed.t10ActualSalesOrBooking);
+            }
+            if (parsed.t10FarmerFeedback) {
+              const fb = parsed.t10FarmerFeedback;
+              if (fb === "สูง" || fb === "น้อย") {
+                setT10FarmerFeedback(fb === "น้อย" ? "ต่ำ" : fb);
+              } else if (fb === "ปานกลาง") {
+                setT10FarmerFeedback("กลาง");
+              }
+            }
+            if (parsed.t10TargetFarmersList) {
+              setT10TargetFarmersList(parsed.t10TargetFarmersList);
+            }
+
+            // Type 11
+            if (parsed.t11StockItems) setT11StockItems(parsed.t11StockItems);
+            if (parsed.t11ProductList) setT11ProductList(parsed.t11ProductList);
+            if (parsed.t11RemainingQty) setT11RemainingQty(parsed.t11RemainingQty);
+            if (parsed.t11Remarks) setT11Remarks(parsed.t11Remarks);
+            if (parsed.t11StockStatus) {
+              const st = parsed.t11StockStatus;
+              if (st === "ใกล้หมด") setT11StockStatus("ใกล้หมด");
+              else if (st === "สินค้าขาดสต็อก") setT11StockStatus("ขาดสต็อก");
+            }
+            if (parsed.t11ReorderOpportunity) {
+              const ro = parsed.t11ReorderOpportunity;
+              if (ro === "สูง" || ro === "ต่ำ") setT11ReorderOpportunity(ro);
+            }
+            if (parsed.t11NextAction) {
+              setT11NextAction(parsed.t11NextAction);
+            } else if (parsed.nextAction) {
+              setT11NextAction(parsed.nextAction);
             }
           }
         }
@@ -1992,136 +544,7 @@ export default function ActivityPlanActualView({
     loadData();
   }, [id]);
 
-  // Pre-fill sample data
-  const fillAllSampleData = () => {
-    // Type 1
-    setT1ProductAdvice(
-      `${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[3] || "ปุ๋ยเคมีสูตรพิเศษ"}`,
-    );
-    setT1Detail(
-      `เข้าพบเจ้าของ ${DEMO_OWNERS[0]} เพื่อแนะนำเทคนิคการดูแลพืชสวนช่วงทำใบ`,
-    );
-    setT1DiscussionResult(
-      `ลูกค้าสนใจสั่งซื้อ ${DEMO_PRODUCTS[0]} ไปทดลองวางหน้าร้าน 50 ชุด และขอป้ายส่งเสริมการขาย`,
-    );
-    setT1SalesOpportunity("สูง");
-    setT1NextAction(
-      "นำส่งใบเสนอราคาพร้อมส่วนลดพิเศษ 5% และนำตัวอย่างสินค้ามาให้หน้าร้านลอง",
-    );
-    setT1NextMeetingDate("2026-08-05");
-
-    // Type 2
-    setT2CustomerName(
-      `${DEMO_OWNERS[0]} / ${DEMO_OWNERS[3] || "ร้านสหายพานิช"}`,
-    );
-    setT2FollowupDetail(
-      "พืชตอบสนองดี ใบเขียวเข้มขึ้นอย่างเห็นได้ชัด แตกยอดสม่ำเสมอ เกษตรกรพึงพอใจมาก",
-    );
-    setT2Detail(
-      "พืชตอบสนองดี ใบเขียวเข้มขึ้นอย่างเห็นได้ชัด แตกยอดสม่ำเสมอ เกษตรกรพึงพอใจมาก",
-    );
-    setT2UsageResult("พืชตอบสนองดี");
-    setT2ProblemDetail("");
-
-    // Type 3
-    setT3SoldProducts(
-      `${DEMO_PRODUCTS[0]} (20 ลัง), ${DEMO_PRODUCTS[1]} (10 ลัง)`,
-    );
-    setT3ActualSales("17500");
-    setT3ActualQuantity("30 ลัง (A: 20 ลัง, B: 10 ลัง)");
-    setT3UnclosedReason("ปิดการขายได้สำเร็จตามเป้าหมายทั้ง 2 สินค้า");
-
-    // Type 4
-    setT4OrderNo("INV-2026-0789");
-    setT4ReceivedAmount("25500");
-
-    // Type 5
-    setT5CompetitorBrand("ตราเกษตรทองคำ, เสือคู่พรีเมียม");
-    setT5CompetitorProduct(`เทียบกับ ${DEMO_PRODUCTS[0]} (ปุ๋ยทางใบ 1 ลิตร)`);
-    setT5CompetitorPrice("850");
-    setT5CompetitorUnit("ขวด");
-    setT5PromotionDetail(
-      "จัดโปรโมชัน ซื้อ 10 แถม 1 พร้อมแจกเสื้อยืดพนักงานหน้าร้าน",
-    );
-
-    // Type 6
-    setT6ProblemDetail(
-      `ลูกค้าร้องเรียนเรื่องสินค้า ${DEMO_PRODUCTS[0]} ตกตะกอนเมื่อผสมน้ำในถัง 200 ลิตร`,
-    );
-    setT6InitialSolution(
-      "แนะนำการผสมน้ำอุ่นกวนให้ละลายก่อนเทลงถังใหญ่ พร้อมเปลี่ยนสินค้าล็อตใหม่ให้ลูกค้าทันที",
-    );
-    setT6Status("เสร็จสิ้น");
-
-    // Type 7
-    setT7PlotName("แปลงทดสอบบ้านนา");
-    setT7UsageMethod(
-      `ฉีดพ่น ${DEMO_PRODUCTS[0]} อัตรา 50cc/น้ำ 20L ทุกๆ 7 วัน`,
-    );
-    setT7CropAgeValue("45");
-    setT7CropAgeUnit("วัน");
-    setT7GrowthStage("ระยะเจริญเติบโตทางลำต้น/ใบ");
-    setT7CropCondition("สมบูรณ์");
-    setT7ProductResponse("พบปัญหา");
-    setT7ProblemDescription(
-      "พบคราบใบไหม้เล็กน้อยบริเวณขอบใบ เนื่องจากสภาพอากาศแดดจัดจัดในวันที่ฉีดพ่น",
-    );
-
-    // Type 8
-    setT8ActualAttendees("35");
-    setT8FeedbackQnA(
-      `เกษตรกรสอบถามเรื่องการใช้ ${DEMO_PRODUCTS[0]} ร่วมกับชีวภัณฑ์ป้องกันรากเน่า และต้องการแผ่นพับตารางการใส่ปุ๋ยรายเดือน`,
-    );
-    setT8ProductSalesDetails([
-      {
-        productName: DEMO_PRODUCTS[0],
-        actualQty: "15 ลัง",
-        actualSales: "7500",
-      },
-      {
-        productName: DEMO_PRODUCTS[1],
-        actualQty: "10 ลัง",
-        actualSales: "7500",
-      },
-    ]);
-
-    // Type 9
-    setT9Formats(["การสะสมคะแนน", "กิจกรรมลูกค้าสัมพันธ์"]);
-    setT9ActualSales("18500");
-    setT9ActualAttendees("28");
-
-    // Type 10
-    setT10ActualAttendees("120");
-    setT10ActualSalesOrBooking("150000");
-    setT10TargetFarmersList(
-      "นายประเสริฐ (100 ไร่), นายวิชัย (50 ไร่), สวนผู้ใหญ่สมศักดิ์",
-    );
-    setT10FarmerFeedback("สูง");
-
-    // Type 11
-    setT11StockItems([
-      {
-        productName: DEMO_PRODUCTS[0],
-        remainingQty: "50 กระสอบ",
-        remarks: "สินค้าใกล้งวดสต็อก ให้รีบเติมด่วน",
-      },
-      {
-        productName: DEMO_PRODUCTS[1],
-        remainingQty: "20 ขวด",
-        remarks: "สต็อกวางหน้าร้านเริ่มพร่อง",
-      },
-    ]);
-    setT11ProductList(`${DEMO_PRODUCTS[0]}, ${DEMO_PRODUCTS[1]}`);
-    setT11RemainingQty("50 กระสอบ, 20 ขวด");
-    setT11Remarks("สินค้าใกล้งวดสต็อก ให้รีบเติมด่วน");
-    setT11StockStatus("ใกล้หมด");
-    setT11ReorderOpportunity("สูง");
-    setT11NextAction(
-      "แจ้งฝ่ายขายออกใบสั่งซื้อสินค้าเติมสต็อกหน้าร้านภายในวันจันทร์นี้",
-    );
-  };
-
-  // Helper for image upload
+  // Image helpers
   const createUploadHandler = (
     setter: React.Dispatch<React.SetStateAction<ImageFile[]>>,
   ) => {
@@ -2152,6 +575,13 @@ export default function ActivityPlanActualView({
     }
   };
 
+  const isTypeVisible = (typeTitle: string) => {
+    if (planWorkTypes.length > 0) {
+      return planWorkTypes.includes(typeTitle);
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -2159,248 +589,84 @@ export default function ActivityPlanActualView({
 
     try {
       if (id) {
-        // Validate Cancel / Postponed fields
-        if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
-          setFormError("กรุณาระบุสาเหตุที่ยกเลิกกิจกรรม");
+        const buildResult = buildResultSummary({
+          activityResultStatus,
+          cancelReason,
+          postponedDate,
+          postponedTime,
+          postponedReason,
+          postponedNotes,
+          planSummary,
+          t1ProductAdvice,
+          t1SalesOpportunity,
+          t1DiscussionResult,
+          t1Detail,
+          t1NextAction,
+          t1NextMeetingDate,
+          t2CustomerName,
+          t2FollowupDetail,
+          t2Detail,
+          t2UsageResult,
+          t2ProblemDetail,
+          t3SoldProducts,
+          t3ActualSales,
+          t3ActualQuantity,
+          t3UnclosedReason,
+          t4OrderNo,
+          t4ReceivedAmount,
+          t5CompetitorBrand,
+          t5CompetitorProduct,
+          t5CompetitorPrice,
+          t5CompetitorUnit,
+          t5PromotionDetail,
+          t6ProblemDetail,
+          t6InitialSolution,
+          t6Status,
+          t7PlotName,
+          t7PlantingDate,
+          t7PlantingAreaCondition,
+          t7UsageMethod,
+          t7CropAgeValue,
+          t7CropAgeUnit,
+          t7GrowthStage,
+          t7CropCondition,
+          t7CropProblemDescription,
+          t7ProductResponse,
+          t7ProblemDescription,
+          t7PlotStatus,
+          t7NextFollowUpDate,
+          t7FinalYieldKg,
+          t7ControlYieldKg,
+          t7YieldIncreasePercent,
+          t7FarmerSatisfaction,
+          t7CommercialPotential,
+          t7FinalSummaryNotes,
+          t8ActualAttendees,
+          t8FeedbackQnA,
+          t8ProductSalesDetails,
+          t9ActualSales,
+          t9ProductSalesDetails,
+          t9ActualAttendees,
+          t10ActualAttendees,
+          t10ActualSalesOrBooking,
+          t10FarmerFeedback,
+          t10TargetFarmersList,
+          t11StockItems,
+          t11ProductList,
+          t11RemainingQty,
+          t11Remarks,
+          t11StockStatus,
+          t11ReorderOpportunity,
+          t11NextAction,
+        });
+
+        if (buildResult.validationError) {
+          setFormError(buildResult.validationError);
           setIsSubmitting(false);
           return;
         }
 
-        if (activityResultStatus === "POSTPONED") {
-          if (!postponedDate) {
-            setFormError("กรุณาระบุวันที่ใหม่สำหรับการเลื่อนกิจกรรม");
-            setIsSubmitting(false);
-            return;
-          }
-          if (!postponedReason) {
-            setFormError("กรุณาเลือกเหตุผลที่เลื่อนกิจกรรม");
-            setIsSubmitting(false);
-            return;
-          }
-        }
-
-        const statusLabel =
-          activityResultStatus === "COMPLETED"
-            ? "สำเร็จ"
-            : activityResultStatus === "POSTPONED"
-              ? "เลื่อน"
-              : activityResultStatus === "CANCELLED"
-                ? "ยกเลิก"
-                : "สำเร็จบางส่วน";
-
-        const summaryParts = [
-          `สถานะผลกิจกรรม: ${statusLabel}`,
-          activityResultStatus === "CANCELLED" && cancelReason
-            ? `สาเหตุที่ยกเลิก: ${cancelReason}`
-            : null,
-          activityResultStatus === "POSTPONED" && postponedDate
-            ? `วันที่ใหม่: ${postponedDate}`
-            : null,
-          activityResultStatus === "POSTPONED" && postponedTime
-            ? `เวลาใหม่: ${postponedTime}`
-            : null,
-          activityResultStatus === "POSTPONED" && postponedReason
-            ? `เหตุผลที่เลื่อน: ${postponedReason}`
-            : null,
-          activityResultStatus === "POSTPONED" && postponedNotes
-            ? `หมายเหตุการเลื่อน: ${postponedNotes}`
-            : null,
-          // Type 1
-          t1ProductAdvice ? `สินค้าที่แนะนำ: ${t1ProductAdvice}` : null,
-          t1SalesOpportunity ? `โอกาสการขาย: ${t1SalesOpportunity}` : null,
-          t1DiscussionResult ? `ผลการพูดคุย: ${t1DiscussionResult}` : null,
-          t1Detail ? `รายละเอียดเข้าพบ: ${t1Detail}` : null,
-          t1NextAction ? `สิ่งที่ต้องดำเนินการต่อ: ${t1NextAction}` : null,
-          t1NextMeetingDate
-            ? `วันที่นัดหมายครั้งถัดไป: ${t1NextMeetingDate}`
-            : null,
-
-          // Type 2
-          t2CustomerName ? `ลูกค้าติดตาม: ${t2CustomerName}` : null,
-          t2FollowupDetail || t2Detail
-            ? `ติดตามผล: ${t2FollowupDetail || t2Detail}`
-            : null,
-          t2UsageResult ? `ผลลัพธ์การใช้: ${t2UsageResult}` : null,
-          (t2UsageResult === "พบปัญหา" ||
-            (typeof t2UsageResult === "string" &&
-              t2UsageResult.includes("พบปัญหา"))) &&
-          t2ProblemDetail
-            ? `ปัญหาการใช้สินค้า: ${t2ProblemDetail}`
-            : null,
-
-          // Type 3
-          t3SoldProducts ? `รายการขาย: ${t3SoldProducts}` : null,
-          t3ActualSales ? `ยอดขายจริง: ${t3ActualSales}` : null,
-          t3ActualQuantity ? `จำนวนที่ขายจริง: ${t3ActualQuantity}` : null,
-          t3UnclosedReason
-            ? `เหตุผลที่ปิดการขายไม่ได้: ${t3UnclosedReason}`
-            : null,
-
-          // Type 4
-          t4OrderNo ? `เลขที่บิล/ใบแจ้งหนี้: ${t4OrderNo}` : null,
-          t4ReceivedAmount
-            ? `ยอดเงินที่เก็บได้จริง: ${t4ReceivedAmount}`
-            : null,
-
-          // Type 5
-          t5CompetitorBrand ? `แบรนด์คู่แข่ง: ${t5CompetitorBrand}` : null,
-          t5CompetitorProduct ? `สินค้าคู่แข่ง: ${t5CompetitorProduct}` : null,
-          t5CompetitorPrice ? `ราคาคู่แข่ง: ${t5CompetitorPrice}` : null,
-          t5CompetitorUnit ? `หน่วยนับคู่แข่ง: ${t5CompetitorUnit}` : null,
-          t5PromotionDetail ? `โปรโมชันคู่แข่ง: ${t5PromotionDetail}` : null,
-
-          // Type 6
-          t6ProblemDetail ? `ปัญหาลูกค้าร้องเรียน: ${t6ProblemDetail}` : null,
-          t6InitialSolution
-            ? `แนวทางแก้ไขเบื้องต้น: ${t6InitialSolution}`
-            : null,
-          t6Status ? `สถานะการแก้ปัญหา: ${t6Status}` : null,
-
-          // Type 7
-          t7PlotName ? `ชื่อแปลงทดสอบ: ${t7PlotName}` : null,
-          t7PlantingDate ? `วันที่ปลูก: ${t7PlantingDate}` : null,
-          t7PlantingAreaCondition
-            ? `สภาพพื้นที่ปลูก: ${t7PlantingAreaCondition}`
-            : null,
-          t7UsageMethod ? `วิธีใช้/อัตราการใช้: ${t7UsageMethod}` : null,
-          t7CropAgeValue
-            ? `อายุพืช: ${t7CropAgeValue} ${t7CropAgeUnit || "วัน"}`
-            : null,
-          t7GrowthStage ? `ระยะการเจริญเติบโต: ${t7GrowthStage}` : null,
-          t7CropCondition ? `สภาพแปลง: ${t7CropCondition}` : null,
-          t7CropProblemDescription
-            ? `ปัญหาของสภาพพืช: ${t7CropProblemDescription}`
-            : null,
-          t7ProductResponse ? `ผลการใช้ผลิตภัณฑ์: ${t7ProductResponse}` : null,
-          t7ProblemDescription
-            ? `รายละเอียดปัญหาการใช้ผลิตภัณฑ์: ${t7ProblemDescription}`
-            : null,
-          t7PlotStatus ? `สถานะแปลง: ${t7PlotStatus}` : null,
-          t7NextFollowUpDate
-            ? `กำหนดการติดตามครั้งถัดไป: ${t7NextFollowUpDate}`
-            : null,
-          t7FinalYieldKg ? `ผลผลิตแปลงสาธิต: ${t7FinalYieldKg} กก./ไร่` : null,
-          t7ControlYieldKg
-            ? `ผลผลิตแปลงควบคุม: ${t7ControlYieldKg} กก./ไร่`
-            : null,
-          t7YieldIncreasePercent
-            ? `% ผลผลิตเพิ่มขึ้น: ${t7YieldIncreasePercent}%`
-            : null,
-          t7FarmerSatisfaction
-            ? `ความพึงพอใจเกษตรกร: ${t7FarmerSatisfaction}/5`
-            : null,
-          t7CommercialPotential
-            ? `โอกาสสั่งซื้อจริง: ${t7CommercialPotential}`
-            : null,
-          t7FinalSummaryNotes
-            ? `สรุปผลสัมฤทธิ์แปลง: ${t7FinalSummaryNotes}`
-            : null,
-
-          // Type 8
-          t8ActualAttendees
-            ? `จำนวนผู้เข้าร่วมประชุมจริง: ${t8ActualAttendees}`
-            : null,
-          t8FeedbackQnA ? `Q&A: ${t8FeedbackQnA}` : null,
-          t8ProductSalesDetails &&
-          t8ProductSalesDetails.length > 0 &&
-          t8ProductSalesDetails.some((d) => d.actualQty || d.actualSales)
-            ? `ยอดขายแยกสินค้าประชุม: ${JSON.stringify(t8ProductSalesDetails)}`
-            : null,
-
-          // Type 9
-          t9ActualSales ? `ยอดขายหน้าร้านจริง: ${t9ActualSales}` : null,
-          t9ProductSalesDetails &&
-          t9ProductSalesDetails.length > 0 &&
-          t9ProductSalesDetails.some(
-            (d) => d.actualQuantityCases || d.actualSales,
-          )
-            ? `ยอดขายแยกสินค้าหน้าร้าน: ${JSON.stringify(t9ProductSalesDetails)}`
-            : null,
-          t9ActualAttendees
-            ? `จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน: ${t9ActualAttendees}`
-            : null,
-
-          // Type 10
-          t10ActualAttendees
-            ? `จำนวนผู้เข้าร่วม Field Day จริง: ${t10ActualAttendees}`
-            : null,
-          t10ActualSalesOrBooking
-            ? `ยอดขายหรือยอดจอง Field Day จริง: ${t10ActualSalesOrBooking}`
-            : null,
-          t10FarmerFeedback ? `ความสนใจเกษตรกร: ${t10FarmerFeedback}` : null,
-          t10TargetFarmersList
-            ? `รายชื่อเกษตรกรเป้าหมาย: ${t10TargetFarmersList}`
-            : null,
-
-          // Type 11
-          t11StockItems &&
-          t11StockItems.length > 0 &&
-          t11StockItems.some(
-            (i) => i.productName || i.remainingQty || i.remarks,
-          )
-            ? `รายการตรวจเช็กสต็อก: ${JSON.stringify(t11StockItems)}`
-            : null,
-          t11ProductList ? `รายการสินค้าตรวจเช็ก: ${t11ProductList}` : null,
-          t11RemainingQty ? `จำนวนคงเหลือสต็อก: ${t11RemainingQty}` : null,
-          t11Remarks ? `ข้อสังเกตสต็อก: ${t11Remarks}` : null,
-          t11StockStatus ? `สถานะสต็อก: ${t11StockStatus}` : null,
-          t11ReorderOpportunity
-            ? `โอกาสสั่งซื้อซ้ำ: ${t11ReorderOpportunity}`
-            : null,
-          t11NextAction ? `แผนการติดตามสต็อก: ${t11NextAction}` : null,
-        ].filter(Boolean);
-
-        const t2HasProblem =
-          t2UsageResult === "พบปัญหา" ||
-          (typeof t2UsageResult === "string" &&
-            t2UsageResult.includes("พบปัญหา"));
-
-        const payload = {
-          actualStartDate: new Date(),
-          actualEndDate: new Date(),
-          actualAttendeesCount: Number(
-            t8ActualAttendees || t9ActualAttendees || t10ActualAttendees || 0,
-          ),
-          resultStatus: activityResultStatus,
-          resultSummary:
-            summaryParts.length > 0
-              ? summaryParts.join("\n")
-              : `สถานะผลกิจกรรม: ${statusLabel}`,
-          problemFound:
-            (t2HasProblem ? t2ProblemDetail : null) ||
-            t6ProblemDetail ||
-            t7ProblemDescription ||
-            t7CropProblemDescription ||
-            null,
-          nextAction: t1NextAction || t11NextAction || null,
-          cancelReason:
-            activityResultStatus === "CANCELLED" ? cancelReason : null,
-          postponedDate:
-            activityResultStatus === "POSTPONED" && postponedDate
-              ? new Date(postponedDate)
-              : null,
-          postponedTime:
-            activityResultStatus === "POSTPONED" ? postponedTime || null : null,
-          postponedReason:
-            activityResultStatus === "POSTPONED"
-              ? postponedReason || null
-              : null,
-          postponedNotes:
-            activityResultStatus === "POSTPONED"
-              ? postponedNotes || null
-              : null,
-          actualSalesPromotionSpent: Number(
-            planSummary.salesPromotionBudget || 0,
-          ),
-          actualMarketingSpent: Number(planSummary.marketingBudget || 0),
-          salesResultAmount: Number(
-            t3ActualSales || t9ActualSales || t10ActualSalesOrBooking || 0,
-          ),
-          collectResultAmount: Number(t4ReceivedAmount || 0),
-          demoPlotsCreated: t7PlotName ? 1 : 0,
-        };
-
-        const res = await recordActivityResultAction(id, payload);
+        const res = await recordActivityResultAction(id, buildResult.payload);
         if (!res.success) {
           setFormError(res.error || "เกิดข้อผิดพลาดในการบันทึกผลกิจกรรม");
           setIsSubmitting(false);
@@ -2465,13 +731,6 @@ export default function ActivityPlanActualView({
     }
   };
 
-  const isTypeVisible = (typeTitle: string) => {
-    if (planWorkTypes.length > 0) {
-      return planWorkTypes.includes(typeTitle);
-    }
-    return true;
-  };
-
   if (loadingPlan) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-500 gap-3">
@@ -2485,26 +744,8 @@ export default function ActivityPlanActualView({
     <section className="space-y-6 container mx-auto px-0 sm:px-0">
       <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
         {/* TOP HEADER */}
-        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6 border-b border-slate-100">
-          {/* Center: Icon + Title */}
-          <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 shadow-2xs">
-              <FileText className="w-6 h-6 stroke-[2.2]" />
-            </div>
+        <ActualViewHeader planNo={planSummary.planNo} />
 
-            <h1 className="font-bold text-xl sm:text-2xl text-slate-800 tracking-tight whitespace-nowrap">
-              บันทึกผลการปฏิบัติงาน ( Trip Plan Actual )
-            </h1>
-          </div>
-
-          {/* Right */}
-          {planSummary.planNo && (
-            <div className="ml-auto self-start sm:self-auto inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs">
-              <Info className="w-3.5 h-3.5 shrink-0" />
-              <span>เลขที่แผน: {planSummary.planNo}</span>
-            </div>
-          )}
-        </div>
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           {formError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
@@ -2523,406 +764,188 @@ export default function ActivityPlanActualView({
           {/* PLAN SUMMARY COMPONENT (ข้อมูลแผนงาน, งบประมาณและค่าใช้จ่าย, สื่อส่งเสริมการขาย, รายการส่งเสริมการขาย, ข้อมูลเพิ่มเติม) */}
           <ActualPlanSummary summary={planSummary} />
 
-          {/* SECTION: ผลการปฏิบัติงานตามประเภทงาน */}
-          <div className="space-y-4 pt-2">
-            <div className="bg-[#eff6ff] border border-blue-100 rounded-xl px-4 py-3 flex items-center gap-2.5 shadow-2xs">
-              <BarChart3 className="w-4 h-4 text-blue-600 shrink-0" />
-              <h2 className="text-sm font-bold text-blue-900">
-                ผลการปฏิบัติงานตามประเภทงาน
-              </h2>
-            </div>
-
-            <div className="space-y-4 md:space-y-6">
-              {/* WORK TYPE 1 */}
-              <ActualType1Visit
-                isVisible={isTypeVisible("เข้าพบร้านค้า / Key Farmer")}
-                target={targets.t1}
-                productAdvice={t1ProductAdvice}
-                setProductAdvice={setT1ProductAdvice}
-                detail={t1Detail}
-                setDetail={setT1Detail}
-                discussionResult={t1DiscussionResult}
-                setDiscussionResult={setT1DiscussionResult}
-                salesOpportunity={t1SalesOpportunity}
-                setSalesOpportunity={setT1SalesOpportunity}
-                nextAction={t1NextAction}
-                setNextAction={setT1NextAction}
-                nextMeetingDate={t1NextMeetingDate}
-                setNextMeetingDate={setT1NextMeetingDate}
-                products={products}
-              />
-
-              {/* WORK TYPE 2 */}
-              <ActualType2Followup
-                isVisible={isTypeVisible("ติดตามผลการใช้สินค้า")}
-                target={targets.t2}
-                customerName={t2CustomerName}
-                setCustomerName={setT2CustomerName}
-                followupDetail={t2FollowupDetail}
-                setFollowupDetail={setT2FollowupDetail}
-                detail={t2Detail}
-                setDetail={setT2Detail}
-                usageResult={t2UsageResult}
-                setUsageResult={setT2UsageResult}
-                problemDetail={t2ProblemDetail}
-                setProblemDetail={setT2ProblemDetail}
-              />
-
-              {/* WORK TYPE 3 */}
-              <ActualType3Sales
-                isVisible={isTypeVisible("เสนอขายสินค้า")}
-                target={targets.t3}
-                soldProducts={t3SoldProducts}
-                setSoldProducts={setT3SoldProducts}
-                actualSales={t3ActualSales}
-                setActualSales={setT3ActualSales}
-                actualQuantity={t3ActualQuantity}
-                setActualQuantity={setT3ActualQuantity}
-                unclosedReason={t3UnclosedReason}
-                setUnclosedReason={setT3UnclosedReason}
-              />
-
-              {/* WORK TYPE 4 */}
-              <ActualType4Collect
-                isVisible={isTypeVisible("วางบิล / เก็บเงิน")}
-                target={targets.t4}
-                orderNo={t4OrderNo}
-                setOrderNo={setT4OrderNo}
-                receivedAmount={t4ReceivedAmount}
-                setReceivedAmount={setT4ReceivedAmount}
-                paymentImages={t4PaymentImages}
-                onUploadImages={createUploadHandler(setT4PaymentImages)}
-                onRemoveImage={(id) => removeImage(setT4PaymentImages, id)}
-              />
-
-              {/* WORK TYPE 5 */}
-              <ActualType5Survey
-                isVisible={isTypeVisible("สำรวจตลาดของคู่แข่ง")}
-                target={targets.t5}
-                competitorBrand={t5CompetitorBrand}
-                setCompetitorBrand={setT5CompetitorBrand}
-                competitorProduct={t5CompetitorProduct}
-                setCompetitorProduct={setT5CompetitorProduct}
-                competitorPrice={t5CompetitorPrice}
-                setCompetitorPrice={setT5CompetitorPrice}
-                competitorUnit={t5CompetitorUnit}
-                setCompetitorUnit={setT5CompetitorUnit}
-                promotionDetail={t5PromotionDetail}
-                setPromotionDetail={setT5PromotionDetail}
-                priceTagImages={t5PriceTagImages}
-                onUploadImages={createUploadHandler(setT5PriceTagImages)}
-                onRemoveImage={(id) => removeImage(setT5PriceTagImages, id)}
-              />
-
-              {/* WORK TYPE 6 */}
-              <ActualType6Issue
-                isVisible={isTypeVisible("แก้ปัญหา / รับเรื่องร้องเรียน")}
-                target={targets.t6}
-                problemDetail={t6ProblemDetail}
-                setProblemDetail={setT6ProblemDetail}
-                initialSolution={t6InitialSolution}
-                setInitialSolution={setT6InitialSolution}
-                status={t6Status}
-                setStatus={setT6Status}
-                images={t6Images}
-                onUploadImages={createUploadHandler(setT6Images)}
-                onRemoveImage={(id) => removeImage(setT6Images, id)}
-              />
-
-              {/* WORK TYPE 7 */}
-              <ActualType7Demo
-                isVisible={isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")}
-                target={targets.t7}
-                startDate={t7StartDate}
-                actualDate={new Date().toISOString().split("T")[0]}
-                productPrice={t7ProductPrice}
-                plotName={t7PlotName}
-                setPlotName={setT7PlotName}
-                usageMethod={t7UsageMethod}
-                setUsageMethod={setT7UsageMethod}
-                plantingDate={t7PlantingDate}
-                setPlantingDate={setT7PlantingDate}
-                plantingAreaCondition={t7PlantingAreaCondition}
-                setPlantingAreaCondition={setT7PlantingAreaCondition}
-                cropImages={t7CropImages}
-                onUploadCropImages={createUploadHandler(setT7CropImages)}
-                onRemoveCropImage={(id) => removeImage(setT7CropImages, id)}
-                cropAgeValue={t7CropAgeValue}
-                setCropAgeValue={setT7CropAgeValue}
-                cropAgeUnit={t7CropAgeUnit}
-                setCropAgeUnit={setT7CropAgeUnit}
-                growthStage={t7GrowthStage}
-                setGrowthStage={setT7GrowthStage}
-                cropCondition={t7CropCondition}
-                setCropCondition={setT7CropCondition}
-                cropProblemDescription={t7CropProblemDescription}
-                setCropProblemDescription={setT7CropProblemDescription}
-                productResponse={t7ProductResponse}
-                setProductResponse={setT7ProductResponse}
-                problemDescription={t7ProblemDescription}
-                setProblemDescription={setT7ProblemDescription}
-                plotImages={t7PlotImages}
-                onUploadImages={createUploadHandler(setT7PlotImages)}
-                onRemoveImage={(id) => removeImage(setT7PlotImages, id)}
-                plotStatus={t7PlotStatus}
-                setPlotStatus={setT7PlotStatus}
-                nextFollowUpDate={t7NextFollowUpDate}
-                setNextFollowUpDate={setT7NextFollowUpDate}
-                finalYieldKg={t7FinalYieldKg}
-                setFinalYieldKg={setT7FinalYieldKg}
-                controlYieldKg={t7ControlYieldKg}
-                setControlYieldKg={setT7ControlYieldKg}
-                yieldIncreasePercent={t7YieldIncreasePercent}
-                setYieldIncreasePercent={setT7YieldIncreasePercent}
-                farmerSatisfaction={t7FarmerSatisfaction}
-                setFarmerSatisfaction={setT7FarmerSatisfaction}
-                commercialPotential={t7CommercialPotential}
-                setCommercialPotential={setT7CommercialPotential}
-                finalSummaryNotes={t7FinalSummaryNotes}
-                setFinalSummaryNotes={setT7FinalSummaryNotes}
-                visitHistory={t7VisitHistory}
-                demoPlotData={t7DemoPlotData}
-              />
-
-              {/* WORK TYPE 8 */}
-              <ActualType8Meeting
-                isVisible={isTypeVisible(
-                  "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
-                )}
-                target={targets.t8}
-                actualAttendees={t8ActualAttendees}
-                setActualAttendees={setT8ActualAttendees}
-                feedbackQnA={t8FeedbackQnA}
-                setFeedbackQnA={setT8FeedbackQnA}
-                productSalesDetails={t8ProductSalesDetails}
-                setProductSalesDetails={setT8ProductSalesDetails}
-                images={t8Images}
-                onUploadImages={createUploadHandler(setT8Images)}
-                onRemoveImage={(id) => removeImage(setT8Images, id)}
-              />
-
-              {/* WORK TYPE 9 */}
-              <ActualType9Store
-                isVisible={isTypeVisible("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")}
-                target={targets.t9}
-                formats={t9Formats}
-                setFormats={setT9Formats}
-                actualSales={t9ActualSales}
-                setActualSales={setT9ActualSales}
-                productSalesDetails={t9ProductSalesDetails}
-                setProductSalesDetails={setT9ProductSalesDetails}
-                actualAttendees={t9ActualAttendees}
-                setActualAttendees={setT9ActualAttendees}
-                images={t9Images}
-                onUploadImages={createUploadHandler(setT9Images)}
-                onRemoveImage={(id) => removeImage(setT9Images, id)}
-              />
-
-              {/* WORK TYPE 10 */}
-              <ActualType10FieldDay
-                isVisible={isTypeVisible("จัดงาน Field Day")}
-                target={targets.t10}
-                actualAttendees={t10ActualAttendees}
-                setActualAttendees={setT10ActualAttendees}
-                actualSalesOrBooking={t10ActualSalesOrBooking}
-                setActualSalesOrBooking={setT10ActualSalesOrBooking}
-                targetFarmersList={t10TargetFarmersList}
-                setTargetFarmersList={setT10TargetFarmersList}
-                farmerFeedback={t10FarmerFeedback}
-                setFarmerFeedback={setT10FarmerFeedback}
-                images={t10Images}
-                onUploadImages={createUploadHandler(setT10Images)}
-                onRemoveImage={(id) => removeImage(setT10Images, id)}
-              />
-
-              {/* WORK TYPE 11 */}
-              <ActualType11Stock
-                isVisible={isTypeVisible("ตรวจเช็กสต็อกหน้าร้าน")}
-                target={targets.t11}
-                products={products}
-                stockItems={t11StockItems}
-                setStockItems={setT11StockItems}
-                productList={t11ProductList}
-                setProductList={setT11ProductList}
-                remainingQty={t11RemainingQty}
-                setRemainingQty={setT11RemainingQty}
-                remarks={t11Remarks}
-                setRemarks={setT11Remarks}
-                stockStatus={t11StockStatus}
-                setStockStatus={setT11StockStatus}
-                reorderOpportunity={t11ReorderOpportunity}
-                setReorderOpportunity={setT11ReorderOpportunity}
-                nextAction={t11NextAction}
-                setNextAction={setT11NextAction}
-              />
-            </div>
-          </div>
+          {/* SECTION: ผลการปฏิบัติงานตามประเภทงาน (WORK TYPES 1 - 11) */}
+          <ActivityResultSection
+            isTypeVisible={isTypeVisible}
+            targets={targets}
+            products={products}
+            createUploadHandler={createUploadHandler}
+            removeImage={removeImage}
+            // Type 1
+            t1ProductAdvice={t1ProductAdvice}
+            setT1ProductAdvice={setT1ProductAdvice}
+            t1Detail={t1Detail}
+            setT1Detail={setT1Detail}
+            t1DiscussionResult={t1DiscussionResult}
+            setT1DiscussionResult={setT1DiscussionResult}
+            t1SalesOpportunity={t1SalesOpportunity}
+            setT1SalesOpportunity={setT1SalesOpportunity}
+            t1NextAction={t1NextAction}
+            setT1NextAction={setT1NextAction}
+            t1NextMeetingDate={t1NextMeetingDate}
+            setT1NextMeetingDate={setT1NextMeetingDate}
+            // Type 2
+            t2CustomerName={t2CustomerName}
+            setT2CustomerName={setT2CustomerName}
+            t2FollowupDetail={t2FollowupDetail}
+            setT2FollowupDetail={setT2FollowupDetail}
+            t2Detail={t2Detail}
+            setT2Detail={setT2Detail}
+            t2UsageResult={t2UsageResult}
+            setT2UsageResult={setT2UsageResult}
+            t2ProblemDetail={t2ProblemDetail}
+            setT2ProblemDetail={setT2ProblemDetail}
+            // Type 3
+            t3SoldProducts={t3SoldProducts}
+            setT3SoldProducts={setT3SoldProducts}
+            t3ActualSales={t3ActualSales}
+            setT3ActualSales={setT3ActualSales}
+            t3ActualQuantity={t3ActualQuantity}
+            setT3ActualQuantity={setT3ActualQuantity}
+            t3UnclosedReason={t3UnclosedReason}
+            setT3UnclosedReason={setT3UnclosedReason}
+            // Type 4
+            t4OrderNo={t4OrderNo}
+            setT4OrderNo={setT4OrderNo}
+            t4ReceivedAmount={t4ReceivedAmount}
+            setT4ReceivedAmount={setT4ReceivedAmount}
+            t4PaymentImages={t4PaymentImages}
+            setT4PaymentImages={setT4PaymentImages}
+            // Type 5
+            t5CompetitorBrand={t5CompetitorBrand}
+            setT5CompetitorBrand={setT5CompetitorBrand}
+            t5CompetitorProduct={t5CompetitorProduct}
+            setT5CompetitorProduct={setT5CompetitorProduct}
+            t5CompetitorPrice={t5CompetitorPrice}
+            setT5CompetitorPrice={setT5CompetitorPrice}
+            t5CompetitorUnit={t5CompetitorUnit}
+            setT5CompetitorUnit={setT5CompetitorUnit}
+            t5PromotionDetail={t5PromotionDetail}
+            setT5PromotionDetail={setT5PromotionDetail}
+            t5PriceTagImages={t5PriceTagImages}
+            setT5PriceTagImages={setT5PriceTagImages}
+            // Type 6
+            t6ProblemDetail={t6ProblemDetail}
+            setT6ProblemDetail={setT6ProblemDetail}
+            t6InitialSolution={t6InitialSolution}
+            setT6InitialSolution={setT6InitialSolution}
+            t6Status={t6Status}
+            setT6Status={setT6Status}
+            t6Images={t6Images}
+            setT6Images={setT6Images}
+            // Type 7
+            t7StartDate={t7StartDate}
+            t7ProductPrice={t7ProductPrice}
+            t7PlotName={t7PlotName}
+            setT7PlotName={setT7PlotName}
+            t7UsageMethod={t7UsageMethod}
+            setT7UsageMethod={setT7UsageMethod}
+            t7PlantingDate={t7PlantingDate}
+            setT7PlantingDate={setT7PlantingDate}
+            t7PlantingAreaCondition={t7PlantingAreaCondition}
+            setT7PlantingAreaCondition={setT7PlantingAreaCondition}
+            t7CropImages={t7CropImages}
+            setT7CropImages={setT7CropImages}
+            t7CropAgeValue={t7CropAgeValue}
+            setT7CropAgeValue={setT7CropAgeValue}
+            t7CropAgeUnit={t7CropAgeUnit}
+            setT7CropAgeUnit={setT7CropAgeUnit}
+            t7GrowthStage={t7GrowthStage}
+            setT7GrowthStage={setT7GrowthStage}
+            t7CropCondition={t7CropCondition}
+            setT7CropCondition={setT7CropCondition}
+            t7CropProblemDescription={t7CropProblemDescription}
+            setT7CropProblemDescription={setT7CropProblemDescription}
+            t7ProductResponse={t7ProductResponse}
+            setT7ProductResponse={setT7ProductResponse}
+            t7ProblemDescription={t7ProblemDescription}
+            setT7ProblemDescription={setT7ProblemDescription}
+            t7PlotImages={t7PlotImages}
+            setT7PlotImages={setT7PlotImages}
+            t7PlotStatus={t7PlotStatus}
+            setT7PlotStatus={setT7PlotStatus}
+            t7NextFollowUpDate={t7NextFollowUpDate}
+            setT7NextFollowUpDate={setT7NextFollowUpDate}
+            t7FinalYieldKg={t7FinalYieldKg}
+            setT7FinalYieldKg={setT7FinalYieldKg}
+            t7ControlYieldKg={t7ControlYieldKg}
+            setT7ControlYieldKg={setT7ControlYieldKg}
+            t7YieldIncreasePercent={t7YieldIncreasePercent}
+            setT7YieldIncreasePercent={setT7YieldIncreasePercent}
+            t7FarmerSatisfaction={t7FarmerSatisfaction}
+            setT7FarmerSatisfaction={setT7FarmerSatisfaction}
+            t7CommercialPotential={t7CommercialPotential}
+            setT7CommercialPotential={setT7CommercialPotential}
+            t7FinalSummaryNotes={t7FinalSummaryNotes}
+            setT7FinalSummaryNotes={setT7FinalSummaryNotes}
+            t7VisitHistory={t7VisitHistory}
+            t7DemoPlotData={t7DemoPlotData}
+            // Type 8
+            t8ActualAttendees={t8ActualAttendees}
+            setT8ActualAttendees={setT8ActualAttendees}
+            t8FeedbackQnA={t8FeedbackQnA}
+            setT8FeedbackQnA={setT8FeedbackQnA}
+            t8ProductSalesDetails={t8ProductSalesDetails}
+            setT8ProductSalesDetails={setT8ProductSalesDetails}
+            t8Images={t8Images}
+            setT8Images={setT8Images}
+            // Type 9
+            t9Formats={t9Formats}
+            setT9Formats={setT9Formats}
+            t9ActualSales={t9ActualSales}
+            setT9ActualSales={setT9ActualSales}
+            t9ProductSalesDetails={t9ProductSalesDetails}
+            setT9ProductSalesDetails={setT9ProductSalesDetails}
+            t9ActualAttendees={t9ActualAttendees}
+            setT9ActualAttendees={setT9ActualAttendees}
+            t9Images={t9Images}
+            setT9Images={setT9Images}
+            // Type 10
+            t10ActualAttendees={t10ActualAttendees}
+            setT10ActualAttendees={setT10ActualAttendees}
+            t10ActualSalesOrBooking={t10ActualSalesOrBooking}
+            setT10ActualSalesOrBooking={setT10ActualSalesOrBooking}
+            t10TargetFarmersList={t10TargetFarmersList}
+            setT10TargetFarmersList={setT10TargetFarmersList}
+            t10FarmerFeedback={t10FarmerFeedback}
+            setT10FarmerFeedback={setT10FarmerFeedback}
+            t10Images={t10Images}
+            setT10Images={setT10Images}
+            // Type 11
+            t11StockItems={t11StockItems}
+            setT11StockItems={setT11StockItems}
+            t11ProductList={t11ProductList}
+            setT11ProductList={setT11ProductList}
+            t11RemainingQty={t11RemainingQty}
+            setT11RemainingQty={setT11RemainingQty}
+            t11Remarks={t11Remarks}
+            setT11Remarks={setT11Remarks}
+            t11StockStatus={t11StockStatus}
+            setT11StockStatus={setT11StockStatus}
+            t11ReorderOpportunity={t11ReorderOpportunity}
+            setT11ReorderOpportunity={setT11ReorderOpportunity}
+            t11NextAction={t11NextAction}
+            setT11NextAction={setT11NextAction}
+          />
 
           {/* SECTION: สถานะผลการทำกิจกรรม */}
-          <div className="space-y-4 pt-2">
-            <div className="bg-[#eff6ff] border border-blue-100 rounded-xl px-4 py-3 flex items-center gap-2.5 shadow-2xs">
-              <BarChart3 className="w-4 h-4 text-blue-600 shrink-0" />
-              <h2 className="text-sm font-bold text-blue-900">
-                สถานะผลการทำกิจกรรม
-              </h2>
-            </div>
+          <ActivityStatusSection
+            activityResultStatus={activityResultStatus}
+            setActivityResultStatus={setActivityResultStatus}
+            cancelReason={cancelReason}
+            setCancelReason={setCancelReason}
+            postponedDate={postponedDate}
+            setPostponedDate={setPostponedDate}
+            postponedTime={postponedTime}
+            setPostponedTime={setPostponedTime}
+            postponedReason={postponedReason}
+            setPostponedReason={setPostponedReason}
+            postponedNotes={postponedNotes}
+            setPostponedNotes={setPostponedNotes}
+          />
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                    <CheckSquare className="w-4 h-4 text-emerald-600" />
-                    <span>
-                      เลือกผลการทำกิจกรรม{" "}
-                      <span className="text-rose-500">*</span>
-                    </span>
-                  </label>
-                  <span className="text-xs text-slate-400 font-normal">
-                    (กำหนดสถานะการดำเนินงานของกิจกรรมนี้)
-                  </span>
-                </div>
-
-                {/* Status Radio / Selectable Buttons */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {[
-                    {
-                      id: "PARTIAL" as const,
-                      label: (
-                        <div className="text-center leading-tight">
-                          <div>สำเร็จบางส่วน</div>
-                        </div>
-                      ),
-                      icon: <span className="text-base">🏆</span>,
-                      activeClass:
-                        "bg-amber-50/90 border-amber-400 text-amber-950 ring-1 ring-amber-400/50 shadow-2xs",
-                    },
-                    {
-                      id: "COMPLETED" as const,
-                      label: <span>สำเร็จ</span>,
-                      icon: (
-                        <CheckSquare className="w-4 h-4 text-emerald-600" />
-                      ),
-                      activeClass:
-                        "bg-emerald-50/90 border-emerald-500 text-emerald-950 ring-1 ring-emerald-500/50 shadow-2xs",
-                    },
-                    {
-                      id: "POSTPONED" as const,
-                      label: <span>เลื่อน</span>,
-                      icon: <Calendar className="w-4 h-4 text-sky-600" />,
-                      activeClass:
-                        "bg-sky-50/90 border-sky-500 text-sky-950 ring-1 ring-sky-500/50 shadow-2xs",
-                    },
-                    {
-                      id: "CANCELLED" as const,
-                      label: <span>ยกเลิก</span>,
-                      icon: <X className="w-4 h-4 text-rose-600" />,
-                      activeClass:
-                        "bg-rose-50/90 border-rose-500 text-rose-950 ring-1 ring-rose-500/50 shadow-2xs",
-                    },
-                  ].map((st) => (
-                    <button
-                      key={st.id}
-                      type="button"
-                      onClick={() => setActivityResultStatus(st.id)}
-                      className={cn(
-                        "py-3 px-3 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all flex items-center justify-center gap-2",
-                        activityResultStatus === st.id
-                          ? st.activeClass
-                          : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300",
-                      )}
-                    >
-                      {st.icon}
-                      {st.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* กรณีเลือก ยกเลิก (CANCELLED) */}
-              {activityResultStatus === "CANCELLED" && (
-                <div className="bg-rose-50/70 border border-rose-200 rounded-xl p-3.5 sm:p-4 space-y-2 animate-in fade-in-50">
-                  <label className="text-xs font-bold text-rose-800 flex items-center gap-1.5">
-                    <span>⚠️</span> สาเหตุที่ยกเลิก{" "}
-                    <span className="text-rose-500">*</span>
-                  </label>
-                  <Textarea
-                    rows={2}
-                    value={cancelReason}
-                    onChange={(e) => setCancelReason(e.target.value)}
-                    placeholder="ระบุสาเหตุที่ต้องยกเลิกกิจกรรม..."
-                    className="bg-white border-rose-200 text-xs sm:text-sm"
-                  />
-                </div>
-              )}
-
-              {/* กรณีเลือก เลื่อน (POSTPONED) */}
-              {activityResultStatus === "POSTPONED" && (
-                <div className="bg-sky-50/70 border border-sky-200 rounded-xl p-3.5 sm:p-4 space-y-3.5 animate-in fade-in-50">
-                  <div>
-                    <DateTimePicker
-                      label="วันที่ใหม่"
-                      required
-                      dateValue={postponedDate}
-                      timeValue={postponedTime || "10:00"}
-                      onDateChange={setPostponedDate}
-                      onTimeChange={setPostponedTime}
-                      accentColor="blue"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-sky-900 flex items-center gap-1">
-                      <span>📌</span> เหตุผลที่เลื่อน{" "}
-                      <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {[
-                        "ลูกค้าขอเลื่อน",
-                        "ผู้ปฏิบัติงานขอเลื่อน",
-                        "ลูกค้าไม่สะดวก",
-                        "สภาพอากาศ",
-                        "เหตุสุดวิสัย",
-                        "อื่น ๆ",
-                      ].map((reason) => (
-                        <button
-                          key={reason}
-                          type="button"
-                          onClick={() => setPostponedReason(reason)}
-                          className={cn(
-                            "py-2 px-2.5 rounded-lg border text-xs font-medium cursor-pointer transition-all text-left flex items-center justify-between",
-                            postponedReason === reason
-                              ? "bg-sky-600 text-white border-sky-600 shadow-2xs font-semibold"
-                              : "bg-white border-sky-200/80 text-sky-950 hover:bg-sky-100/60",
-                          )}
-                        >
-                          <span>{reason}</span>
-                          {postponedReason === reason && (
-                            <Check className="w-3.5 h-3.5 flex-shrink-0" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-sky-900 flex items-center gap-1">
-                      <span>📝</span> ช่องกรอกหมายเหตุ
-                    </label>
-                    <Textarea
-                      rows={2}
-                      value={postponedNotes}
-                      onChange={(e) => setPostponedNotes(e.target.value)}
-                      placeholder="ระบุหมายเหตุเพิ่มเติมกรณีเลื่อนกิจกรรม (ถ้ามี)..."
-                      className="bg-white border-sky-200 text-xs sm:text-sm"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Bottom Action Footer */}
-          <FormActionButtons
+          {/* BOTTOM ACTIONS */}
+          <ActualViewActions
             onBack={handleBack}
             loading={isSubmitting}
             submitLabel="บันทึก"

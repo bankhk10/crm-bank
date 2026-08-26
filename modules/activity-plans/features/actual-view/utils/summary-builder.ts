@@ -1,0 +1,408 @@
+import type { ActivityResultStatusType, PlanSummaryData } from "../types";
+
+export interface BuildSummaryInput {
+  activityResultStatus: ActivityResultStatusType;
+  cancelReason: string;
+  postponedDate: string;
+  postponedTime: string;
+  postponedReason: string;
+  postponedNotes: string;
+
+  planSummary: PlanSummaryData;
+
+  // Type 1
+  t1ProductAdvice: string;
+  t1SalesOpportunity: "สูง" | "ต่ำ" | "";
+  t1DiscussionResult: string;
+  t1Detail: string;
+  t1NextAction: string;
+  t1NextMeetingDate: string;
+
+  // Type 2
+  t2CustomerName: string;
+  t2FollowupDetail: string;
+  t2Detail: string;
+  t2UsageResult: "พืชตอบสนองดี" | "พบปัญหา" | "";
+  t2ProblemDetail: string;
+
+  // Type 3
+  t3SoldProducts: string;
+  t3ActualSales: string;
+  t3ActualQuantity: string;
+  t3UnclosedReason: string;
+
+  // Type 4
+  t4OrderNo: string;
+  t4ReceivedAmount: string;
+
+  // Type 5
+  t5CompetitorBrand: string;
+  t5CompetitorProduct: string;
+  t5CompetitorPrice: string;
+  t5CompetitorUnit: string;
+  t5PromotionDetail: string;
+
+  // Type 6
+  t6ProblemDetail: string;
+  t6InitialSolution: string;
+  t6Status: "เสร็จสิ้น" | "รอติดตาม" | "";
+
+  // Type 7
+  t7PlotName: string;
+  t7PlantingDate: string;
+  t7PlantingAreaCondition: string;
+  t7UsageMethod: string;
+  t7CropAgeValue: string;
+  t7CropAgeUnit: string;
+  t7GrowthStage: string;
+  t7CropCondition: "สมบูรณ์" | "มีปัญหา" | "ปานกลาง" | "ทรุดโทรม" | "";
+  t7CropProblemDescription: string;
+  t7ProductResponse: "พืชตอบสนองดี" | "พบปัญหา" | "";
+  t7ProblemDescription: string;
+  t7PlotStatus: "IN_PROGRESS" | "COMPLETED" | "FAILED";
+  t7NextFollowUpDate: string;
+  t7FinalYieldKg: string;
+  t7ControlYieldKg: string;
+  t7YieldIncreasePercent: string;
+  t7FarmerSatisfaction: number;
+  t7CommercialPotential: string;
+  t7FinalSummaryNotes: string;
+
+  // Type 8
+  t8ActualAttendees: string;
+  t8FeedbackQnA: string;
+  t8ProductSalesDetails: any[];
+
+  // Type 9
+  t9ActualSales: string;
+  t9ProductSalesDetails: any[];
+  t9ActualAttendees: string;
+
+  // Type 10
+  t10ActualAttendees: string;
+  t10ActualSalesOrBooking: string;
+  t10FarmerFeedback: "สูง" | "กลาง" | "ต่ำ" | "";
+  t10TargetFarmersList: string;
+
+  // Type 11
+  t11StockItems: any[];
+  t11ProductList: string;
+  t11RemainingQty: string;
+  t11Remarks: string;
+  t11StockStatus: "ใกล้หมด" | "ขาดสต็อก" | "";
+  t11ReorderOpportunity: "สูง" | "ต่ำ" | "ยังไม่แน่ใจ" | "";
+  t11NextAction: string;
+}
+
+export interface BuildSummaryResult {
+  validationError?: string;
+  summaryParts: string[];
+  payload: any;
+}
+
+export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult {
+  const {
+    activityResultStatus,
+    cancelReason,
+    postponedDate,
+    postponedTime,
+    postponedReason,
+    postponedNotes,
+    planSummary,
+    t1ProductAdvice,
+    t1SalesOpportunity,
+    t1DiscussionResult,
+    t1Detail,
+    t1NextAction,
+    t1NextMeetingDate,
+    t2CustomerName,
+    t2FollowupDetail,
+    t2Detail,
+    t2UsageResult,
+    t2ProblemDetail,
+    t3SoldProducts,
+    t3ActualSales,
+    t3ActualQuantity,
+    t3UnclosedReason,
+    t4OrderNo,
+    t4ReceivedAmount,
+    t5CompetitorBrand,
+    t5CompetitorProduct,
+    t5CompetitorPrice,
+    t5CompetitorUnit,
+    t5PromotionDetail,
+    t6ProblemDetail,
+    t6InitialSolution,
+    t6Status,
+    t7PlotName,
+    t7PlantingDate,
+    t7PlantingAreaCondition,
+    t7UsageMethod,
+    t7CropAgeValue,
+    t7CropAgeUnit,
+    t7GrowthStage,
+    t7CropCondition,
+    t7CropProblemDescription,
+    t7ProductResponse,
+    t7ProblemDescription,
+    t7PlotStatus,
+    t7NextFollowUpDate,
+    t7FinalYieldKg,
+    t7ControlYieldKg,
+    t7YieldIncreasePercent,
+    t7FarmerSatisfaction,
+    t7CommercialPotential,
+    t7FinalSummaryNotes,
+    t8ActualAttendees,
+    t8FeedbackQnA,
+    t8ProductSalesDetails,
+    t9ActualSales,
+    t9ProductSalesDetails,
+    t9ActualAttendees,
+    t10ActualAttendees,
+    t10ActualSalesOrBooking,
+    t10FarmerFeedback,
+    t10TargetFarmersList,
+    t11StockItems,
+    t11ProductList,
+    t11RemainingQty,
+    t11Remarks,
+    t11StockStatus,
+    t11ReorderOpportunity,
+    t11NextAction,
+  } = input;
+
+  // Validate Cancel / Postponed fields
+  if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
+    return {
+      validationError: "กรุณาระบุสาเหตุที่ยกเลิกกิจกรรม",
+      summaryParts: [],
+      payload: null,
+    };
+  }
+
+  if (activityResultStatus === "POSTPONED") {
+    if (!postponedDate) {
+      return {
+        validationError: "กรุณาระบุวันที่ใหม่สำหรับการเลื่อนกิจกรรม",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+    if (!postponedReason) {
+      return {
+        validationError: "กรุณาเลือกเหตุผลที่เลื่อนกิจกรรม",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+  }
+
+  const statusLabel =
+    activityResultStatus === "COMPLETED"
+      ? "สำเร็จ"
+      : activityResultStatus === "POSTPONED"
+        ? "เลื่อน"
+        : activityResultStatus === "CANCELLED"
+          ? "ยกเลิก"
+          : "สำเร็จบางส่วน";
+
+  const summaryParts = [
+    `สถานะผลกิจกรรม: ${statusLabel}`,
+    activityResultStatus === "CANCELLED" && cancelReason
+      ? `สาเหตุที่ยกเลิก: ${cancelReason}`
+      : null,
+    activityResultStatus === "POSTPONED" && postponedDate
+      ? `วันที่ใหม่: ${postponedDate}`
+      : null,
+    activityResultStatus === "POSTPONED" && postponedTime
+      ? `เวลาใหม่: ${postponedTime}`
+      : null,
+    activityResultStatus === "POSTPONED" && postponedReason
+      ? `เหตุผลที่เลื่อน: ${postponedReason}`
+      : null,
+    activityResultStatus === "POSTPONED" && postponedNotes
+      ? `หมายเหตุการเลื่อน: ${postponedNotes}`
+      : null,
+
+    // Type 1
+    t1ProductAdvice ? `สินค้าที่แนะนำ: ${t1ProductAdvice}` : null,
+    t1SalesOpportunity ? `โอกาสการขาย: ${t1SalesOpportunity}` : null,
+    t1DiscussionResult ? `ผลการพูดคุย: ${t1DiscussionResult}` : null,
+    t1Detail ? `รายละเอียดเข้าพบ: ${t1Detail}` : null,
+    t1NextAction ? `สิ่งที่ต้องดำเนินการต่อ: ${t1NextAction}` : null,
+    t1NextMeetingDate ? `วันที่นัดหมายครั้งถัดไป: ${t1NextMeetingDate}` : null,
+
+    // Type 2
+    t2CustomerName ? `ลูกค้าติดตาม: ${t2CustomerName}` : null,
+    t2FollowupDetail || t2Detail
+      ? `ติดตามผล: ${t2FollowupDetail || t2Detail}`
+      : null,
+    t2UsageResult ? `ผลลัพธ์การใช้: ${t2UsageResult}` : null,
+    (t2UsageResult === "พบปัญหา" ||
+      (typeof t2UsageResult === "string" && t2UsageResult.includes("พบปัญหา"))) &&
+    t2ProblemDetail
+      ? `ปัญหาการใช้สินค้า: ${t2ProblemDetail}`
+      : null,
+
+    // Type 3
+    t3SoldProducts ? `รายการขาย: ${t3SoldProducts}` : null,
+    t3ActualSales ? `ยอดขายจริง: ${t3ActualSales}` : null,
+    t3ActualQuantity ? `จำนวนที่ขายจริง: ${t3ActualQuantity}` : null,
+    t3UnclosedReason ? `เหตุผลที่ปิดการขายไม่ได้: ${t3UnclosedReason}` : null,
+
+    // Type 4
+    t4OrderNo ? `เลขที่บิล/ใบแจ้งหนี้: ${t4OrderNo}` : null,
+    t4ReceivedAmount ? `ยอดเงินที่เก็บได้จริง: ${t4ReceivedAmount}` : null,
+
+    // Type 5
+    t5CompetitorBrand ? `แบรนด์คู่แข่ง: ${t5CompetitorBrand}` : null,
+    t5CompetitorProduct ? `สินค้าคู่แข่ง: ${t5CompetitorProduct}` : null,
+    t5CompetitorPrice ? `ราคาคู่แข่ง: ${t5CompetitorPrice}` : null,
+    t5CompetitorUnit ? `หน่วยนับคู่แข่ง: ${t5CompetitorUnit}` : null,
+    t5PromotionDetail ? `โปรโมชันคู่แข่ง: ${t5PromotionDetail}` : null,
+
+    // Type 6
+    t6ProblemDetail ? `ปัญหาลูกค้าร้องเรียน: ${t6ProblemDetail}` : null,
+    t6InitialSolution
+      ? `แนวทางแก้ไขเบื้องต้น: ${t6InitialSolution}`
+      : null,
+    t6Status ? `สถานะการแก้ปัญหา: ${t6Status}` : null,
+
+    // Type 7
+    t7PlotName ? `ชื่อแปลงทดสอบ: ${t7PlotName}` : null,
+    t7PlantingDate ? `วันที่ปลูก: ${t7PlantingDate}` : null,
+    t7PlantingAreaCondition
+      ? `สภาพพื้นที่ปลูก: ${t7PlantingAreaCondition}`
+      : null,
+    t7UsageMethod ? `วิธีใช้/อัตราการใช้: ${t7UsageMethod}` : null,
+    t7CropAgeValue
+      ? `อายุพืช: ${t7CropAgeValue} ${t7CropAgeUnit || "วัน"}`
+      : null,
+    t7GrowthStage ? `ระยะการเจริญเติบโต: ${t7GrowthStage}` : null,
+    t7CropCondition ? `สภาพแปลง: ${t7CropCondition}` : null,
+    t7CropProblemDescription
+      ? `ปัญหาของสภาพพืช: ${t7CropProblemDescription}`
+      : null,
+    t7ProductResponse ? `ผลการใช้ผลิตภัณฑ์: ${t7ProductResponse}` : null,
+    t7ProblemDescription
+      ? `รายละเอียดปัญหาการใช้ผลิตภัณฑ์: ${t7ProblemDescription}`
+      : null,
+    t7PlotStatus ? `สถานะแปลง: ${t7PlotStatus}` : null,
+    t7NextFollowUpDate
+      ? `กำหนดการติดตามครั้งถัดไป: ${t7NextFollowUpDate}`
+      : null,
+    t7FinalYieldKg ? `ผลผลิตแปลงสาธิต: ${t7FinalYieldKg} กก./ไร่` : null,
+    t7ControlYieldKg
+      ? `ผลผลิตแปลงควบคุม: ${t7ControlYieldKg} กก./ไร่`
+      : null,
+    t7YieldIncreasePercent
+      ? `% ผลผลิตเพิ่มขึ้น: ${t7YieldIncreasePercent}%`
+      : null,
+    t7FarmerSatisfaction
+      ? `ความพึงพอใจเกษตรกร: ${t7FarmerSatisfaction}/5`
+      : null,
+    t7CommercialPotential
+      ? `โอกาสสั่งซื้อจริง: ${t7CommercialPotential}`
+      : null,
+    t7FinalSummaryNotes
+      ? `สรุปผลสัมฤทธิ์แปลง: ${t7FinalSummaryNotes}`
+      : null,
+
+    // Type 8
+    t8ActualAttendees
+      ? `จำนวนผู้เข้าร่วมประชุมจริง: ${t8ActualAttendees}`
+      : null,
+    t8FeedbackQnA ? `Q&A: ${t8FeedbackQnA}` : null,
+    t8ProductSalesDetails &&
+    t8ProductSalesDetails.length > 0 &&
+    t8ProductSalesDetails.some((d) => d.actualQty || d.actualSales)
+      ? `ยอดขายแยกสินค้าประชุม: ${JSON.stringify(t8ProductSalesDetails)}`
+      : null,
+
+    // Type 9
+    t9ActualSales ? `ยอดขายหน้าร้านจริง: ${t9ActualSales}` : null,
+    t9ProductSalesDetails &&
+    t9ProductSalesDetails.length > 0 &&
+    t9ProductSalesDetails.some((d) => d.actualQuantityCases || d.actualSales)
+      ? `ยอดขายแยกสินค้าหน้าร้าน: ${JSON.stringify(t9ProductSalesDetails)}`
+      : null,
+    t9ActualAttendees
+      ? `จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน: ${t9ActualAttendees}`
+      : null,
+
+    // Type 10
+    t10ActualAttendees
+      ? `จำนวนผู้เข้าร่วม Field Day จริง: ${t10ActualAttendees}`
+      : null,
+    t10ActualSalesOrBooking
+      ? `ยอดขายหรือยอดจอง Field Day จริง: ${t10ActualSalesOrBooking}`
+      : null,
+    t10FarmerFeedback ? `ความสนใจเกษตรกร: ${t10FarmerFeedback}` : null,
+    t10TargetFarmersList
+      ? `รายชื่อเกษตรกรเป้าหมาย: ${t10TargetFarmersList}`
+      : null,
+
+    // Type 11
+    t11StockItems &&
+    t11StockItems.length > 0 &&
+    t11StockItems.some((i) => i.productName || i.remainingQty || i.remarks)
+      ? `รายการตรวจเช็กสต็อก: ${JSON.stringify(t11StockItems)}`
+      : null,
+    t11ProductList ? `รายการสินค้าตรวจเช็ก: ${t11ProductList}` : null,
+    t11RemainingQty ? `จำนวนคงเหลือสต็อก: ${t11RemainingQty}` : null,
+    t11Remarks ? `ข้อสังเกตสต็อก: ${t11Remarks}` : null,
+    t11StockStatus ? `สถานะสต็อก: ${t11StockStatus}` : null,
+    t11ReorderOpportunity
+      ? `โอกาสสั่งซื้อซ้ำ: ${t11ReorderOpportunity}`
+      : null,
+    t11NextAction ? `แผนการติดตามสต็อก: ${t11NextAction}` : null,
+  ].filter(Boolean) as string[];
+
+  const t2HasProblem =
+    t2UsageResult === "พบปัญหา" ||
+    (typeof t2UsageResult === "string" && t2UsageResult.includes("พบปัญหา"));
+
+  const payload = {
+    actualStartDate: new Date(),
+    actualEndDate: new Date(),
+    actualAttendeesCount: Number(
+      t8ActualAttendees || t9ActualAttendees || t10ActualAttendees || 0,
+    ),
+    resultStatus: activityResultStatus,
+    resultSummary:
+      summaryParts.length > 0
+        ? summaryParts.join("\n")
+        : `สถานะผลกิจกรรม: ${statusLabel}`,
+    problemFound:
+      (t2HasProblem ? t2ProblemDetail : null) ||
+      t6ProblemDetail ||
+      t7ProblemDescription ||
+      t7CropProblemDescription ||
+      null,
+    nextAction: t1NextAction || t11NextAction || null,
+    cancelReason: activityResultStatus === "CANCELLED" ? cancelReason : null,
+    postponedDate:
+      activityResultStatus === "POSTPONED" && postponedDate
+        ? new Date(postponedDate)
+        : null,
+    postponedTime:
+      activityResultStatus === "POSTPONED" ? postponedTime || null : null,
+    postponedReason:
+      activityResultStatus === "POSTPONED" ? postponedReason || null : null,
+    postponedNotes:
+      activityResultStatus === "POSTPONED" ? postponedNotes || null : null,
+    actualSalesPromotionSpent: Number(planSummary.salesPromotionBudget || 0),
+    actualMarketingSpent: Number(planSummary.marketingBudget || 0),
+    salesResultAmount: Number(
+      t3ActualSales || t9ActualSales || t10ActualSalesOrBooking || 0,
+    ),
+    collectResultAmount: Number(t4ReceivedAmount || 0),
+    demoPlotsCreated: t7PlotName ? 1 : 0,
+  };
+
+  return {
+    summaryParts,
+    payload,
+  };
+}
