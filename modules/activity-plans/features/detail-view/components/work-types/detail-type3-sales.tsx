@@ -98,14 +98,56 @@ export function DetailType3Sales({
 }: DetailType3SalesProps) {
   if (!isVisible) return null;
 
-  const hasMultipleProducts = target.items && target.items.length > 0;
+  const hasMultipleProducts = Boolean(target.items && target.items.length > 0);
 
-  const totalTargetSalesSum = hasMultipleProducts
+  const totalTargetQtySum = hasMultipleProducts
     ? target.items!.reduce(
-        (sum, i) => sum + (Number(i.targetSales?.replace(/,/g, "")) || 0),
+        (sum, i) =>
+          sum +
+          (Number(String(i.qty || "").replace(/[^0-9.-]+/g, "")) || 0),
         0,
       )
-    : Number(target.targetSales?.replace(/,/g, "")) || 0;
+    : Number(String(target.targetQty || "").replace(/[^0-9.-]+/g, "")) || 0;
+
+  const totalTargetSalesSum = hasMultipleProducts
+    ? target.items!.reduce((sum, i) => {
+        const val = i.targetSales || i.price;
+        const num =
+          Number(String(val || "").replace(/[^0-9.-]+/g, "")) || 0;
+        return sum + num;
+      }, 0) ||
+      Number(String(target.targetSales || "").replace(/[^0-9.-]+/g, "")) ||
+      0
+    : Number(String(target.targetSales || "").replace(/[^0-9.-]+/g, "")) || 0;
+
+  const hasActualRecord = Boolean(
+    (productSalesDetails && productSalesDetails.length > 0) ||
+      actualSales ||
+      actualQuantity ||
+      unclosedReason,
+  );
+
+  const totalActualQtySum = hasMultipleProducts
+    ? target.items!.reduce((sum, item, idx) => {
+        const saved =
+          productSalesDetails?.find(
+            (d) =>
+              (item.id && d.id === item.id) ||
+              d.productName === item.productName,
+          ) || productSalesDetails?.[idx];
+
+        const fallbackQty = parseProductQty(actualQuantity, item.productName);
+        const val =
+          saved?.actualQty ?? (fallbackQty !== "" ? fallbackQty : item.actualQty);
+        const num =
+          val !== undefined && val !== ""
+            ? Number(String(val).replace(/[^0-9.-]+/g, ""))
+            : 0;
+        return sum + (isNaN(num) ? 0 : num);
+      }, 0)
+    : actualQuantity
+      ? Number(String(actualQuantity).replace(/[^0-9.-]+/g, "")) || 0
+      : 0;
 
   const totalActualSalesSum = hasMultipleProducts
     ? target.items!.reduce((sum, item, idx) => {
@@ -118,10 +160,19 @@ export function DetailType3Sales({
         const val =
           saved?.actualSales ??
           item.actualSales ??
-          (target.items!.length === 1 ? actualSales : 0);
-        return sum + (Number(String(val).replace(/,/g, "")) || 0);
-      }, 0) || Number(actualSales?.replace(/,/g, "")) || 0
-    : Number(actualSales?.replace(/,/g, "")) || 0;
+          (target.items!.length === 1 ? actualSales : undefined);
+        const num =
+          val !== undefined && val !== ""
+            ? Number(String(val).replace(/[^0-9.-]+/g, ""))
+            : 0;
+        return sum + (isNaN(num) ? 0 : num);
+      }, 0) ||
+      (actualSales
+        ? Number(String(actualSales).replace(/[^0-9.-]+/g, "")) || 0
+        : 0)
+    : actualSales
+      ? Number(String(actualSales).replace(/[^0-9.-]+/g, "")) || 0
+      : 0;
 
   return (
     <div className="border border-blue-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-4 shadow-xs">
@@ -150,10 +201,15 @@ export function DetailType3Sales({
           items={[
             { label: "สินค้าเป้าหมาย:", value: target.product || "-" },
             { label: "ลูกค้าเป้าหมาย:", value: target.customer || "-" },
-            { label: "เป้าหมายจำนวน:", value: target.targetQty || "-" },
+            { label: "เป้าจำนวน:", value: target.targetQty || "-" },
             {
               label: "เป้ายอดขาย:",
-              value: target.targetSales ? `฿${target.targetSales}` : "-",
+              value: target.targetSales
+                ? target.targetSales.includes("฿") ||
+                  target.targetSales.includes("บาท")
+                  ? target.targetSales
+                  : `฿${target.targetSales}`
+                : "-",
               highlight: true,
             },
           ]}
@@ -199,19 +255,45 @@ export function DetailType3Sales({
                     item.productName,
                   );
 
+                  // Planned target values
+                  const targetQtyVal =
+                    item.qty !== "" && item.qty != null ? item.qty : "-";
+                  const targetSalesRaw =
+                    item.targetSales ||
+                    (item.price ? item.price.replace(/บาท/g, "").trim() : "");
+                  const targetSalesFormatted =
+                    targetSalesRaw !== "" && targetSalesRaw != null
+                      ? `฿${Number(String(targetSalesRaw).replace(/[^0-9.-]+/g, "")).toLocaleString()}`
+                      : "-";
+
+                  // Actual result values
+                  const rawActualQty =
+                    saved?.actualQty ??
+                    (fallbackQty !== "" ? fallbackQty : item.actualQty);
                   const displayActualQty =
-                    saved?.actualQty ?? (fallbackQty || item.actualQty || "-");
-                  const displayActualSales =
+                    rawActualQty !== undefined && rawActualQty !== ""
+                      ? rawActualQty
+                      : "-";
+
+                  const rawActualSales =
                     saved?.actualSales ??
                     (target.items!.length === 1 && actualSales
                       ? actualSales
-                      : item.actualSales || "");
+                      : item.actualSales);
+                  const displayActualSales =
+                    rawActualSales !== undefined && rawActualSales !== ""
+                      ? `฿${Number(String(rawActualSales).replace(/[^0-9.-]+/g, "")).toLocaleString()}`
+                      : "-";
+
                   const displayReason =
                     saved?.unclosedReason ??
                     (fallbackReason || item.unclosedReason || "-");
 
                   return (
-                    <tr key={idx} className="hover:bg-slate-50/40">
+                    <tr
+                      key={item.id || idx}
+                      className="hover:bg-slate-50/40"
+                    >
                       <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
                         {idx + 1}
                       </td>
@@ -221,19 +303,17 @@ export function DetailType3Sales({
                       <td className="py-2.5 px-3 text-slate-600">
                         {item.customer || target.customer || "-"}
                       </td>
-                      <td className="py-2.5 px-3 text-center text-slate-700 font-medium">
-                        {item.qty || "-"}
+                      <td className="py-2.5 px-3 text-center font-medium text-slate-800">
+                        {targetQtyVal}
                       </td>
                       <td className="py-2.5 px-3 text-right font-bold text-slate-900">
-                        {item.targetSales ? `฿${item.targetSales}` : "-"}
+                        {targetSalesFormatted}
                       </td>
                       <td className="py-2.5 px-3 text-center font-bold text-blue-700 bg-blue-50/30">
                         {displayActualQty}
                       </td>
                       <td className="py-2.5 px-3 text-right font-extrabold text-blue-800 bg-blue-50/30">
-                        {displayActualSales
-                          ? `฿${Number(displayActualSales).toLocaleString()}`
-                          : "-"}
+                        {displayActualSales}
                       </td>
                       <td className="py-2.5 px-3 text-slate-500 italic">
                         {displayReason}
@@ -242,25 +322,85 @@ export function DetailType3Sales({
                   );
                 })}
               </tbody>
-              <tfoot className="bg-slate-50/80 border-t border-slate-200 text-xs font-bold">
+              <tfoot className="bg-slate-50/90 border-t border-slate-200 text-xs font-bold">
                 <tr>
                   <td
-                    colSpan={4}
-                    className="py-2.5 px-3 text-right text-slate-600"
+                    colSpan={3}
+                    className="py-2.5 px-3 text-right text-slate-700 font-bold"
                   >
                     รวมทั้งสิ้น:
                   </td>
-                  <td className="py-2.5 px-3 text-right text-slate-900 font-bold">
-                    ฿{totalTargetSalesSum.toLocaleString()}
+                  <td className="py-2.5 px-3 text-center text-slate-900 font-bold">
+                    {totalTargetQtySum > 0
+                      ? totalTargetQtySum.toLocaleString()
+                      : "-"}
                   </td>
-                  <td></td>
-                  <td className="py-2.5 px-3 text-right text-blue-800 font-black">
-                    ฿{totalActualSalesSum.toLocaleString()}
+                  <td className="py-2.5 px-3 text-right text-slate-900 font-extrabold">
+                    {totalTargetSalesSum > 0
+                      ? `฿${totalTargetSalesSum.toLocaleString()}`
+                      : "-"}
+                  </td>
+                  <td className="py-2.5 px-3 text-center text-blue-800 font-bold bg-blue-50/40">
+                    {hasActualRecord
+                      ? totalActualQtySum.toLocaleString()
+                      : "-"}
+                  </td>
+                  <td className="py-2.5 px-3 text-right text-blue-900 font-black bg-blue-50/40">
+                    {hasActualRecord
+                      ? `฿${totalActualSalesSum.toLocaleString()}`
+                      : "-"}
                   </td>
                   <td></td>
                 </tr>
               </tfoot>
             </table>
+          </div>
+
+          {/* SUMMARY CARDS */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1">
+              <span className="text-[11px] text-slate-500 font-semibold block">
+                เป้าจำนวนรวม
+              </span>
+              <span className="text-sm font-bold text-slate-900 block">
+                {totalTargetQtySum > 0
+                  ? `${totalTargetQtySum.toLocaleString()} รายการ/ชิ้น`
+                  : "-"}
+              </span>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1">
+              <span className="text-[11px] text-slate-500 font-semibold block">
+                เป้ายอดขายรวม
+              </span>
+              <span className="text-sm font-extrabold text-slate-900 block">
+                {totalTargetSalesSum > 0
+                  ? `฿${totalTargetSalesSum.toLocaleString()}`
+                  : "-"}
+              </span>
+            </div>
+
+            <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-3 space-y-1">
+              <span className="text-[11px] text-blue-600 font-semibold block">
+                ขายได้จริงรวม (จำนวน)
+              </span>
+              <span className="text-sm font-bold text-blue-800 block">
+                {hasActualRecord
+                  ? `${totalActualQtySum.toLocaleString()} ชิ้น`
+                  : "-"}
+              </span>
+            </div>
+
+            <div className="bg-blue-50/80 border border-blue-300 rounded-xl p-3 space-y-1">
+              <span className="text-[11px] text-blue-700 font-bold block">
+                รวมทั้งสิ้น (ยอดขายจริงรวม)
+              </span>
+              <span className="text-sm sm:text-base font-black text-blue-900 block">
+                {hasActualRecord
+                  ? `฿${totalActualSalesSum.toLocaleString()}`
+                  : "-"}
+              </span>
+            </div>
           </div>
         </div>
       ) : (
@@ -291,10 +431,12 @@ export function DetailType3Sales({
 
             <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-3.5 space-y-1">
               <span className="text-xs text-blue-600 font-medium block">
-                ยอดขายที่ทำได้จริง (บาท)
+                ยอดขายที่ทำได้จริง / รวมทั้งสิ้น
               </span>
               <span className="text-sm sm:text-base font-extrabold text-blue-900 block">
-                {actualSales ? `฿${Number(actualSales).toLocaleString()}` : "-"}
+                {actualSales
+                  ? `฿${Number(String(actualSales).replace(/[^0-9.-]+/g, "")).toLocaleString()}`
+                  : "-"}
               </span>
             </div>
 

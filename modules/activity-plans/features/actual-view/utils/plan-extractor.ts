@@ -485,12 +485,21 @@ export function extractPlanData(
               item.saleUnitPrice != null
                 ? `${Number(item.saleUnitPrice).toLocaleString()} บาท`
                 : "";
-            const totalPriceVal =
+            const rawTotalPrice =
               item.saleTotalPrice != null
-                ? `${Number(item.saleTotalPrice).toLocaleString()} บาท`
+                ? Number(item.saleTotalPrice)
                 : item.saleQuantity != null && item.saleUnitPrice != null
-                  ? `${(Number(item.saleQuantity) * Number(item.saleUnitPrice)).toLocaleString()} บาท`
-                  : "";
+                  ? Number(item.saleQuantity) * Number(item.saleUnitPrice)
+                  : null;
+
+            const targetSalesVal =
+              rawTotalPrice != null
+                ? Number(rawTotalPrice).toLocaleString()
+                : "";
+            const totalPriceVal =
+              rawTotalPrice != null
+                ? `${Number(rawTotalPrice).toLocaleString()} บาท`
+                : "";
 
             return {
               id: item.id,
@@ -499,6 +508,7 @@ export function extractPlanData(
               qty: qtyVal,
               unitPrice: uPriceVal,
               price: totalPriceVal,
+              targetSales: targetSalesVal,
               detail: item.detail || "",
             };
           })
