@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useMemo } from "react";
-import { BarChart2, ImageIcon, Store, Package } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { BarChart2, ImageIcon, Store, Package, Camera, Eye } from "lucide-react";
 import { ImageFile, Type5SurveyRecord } from "@/modules/activity-plans/features/actual-view/types";
+import {
+  ImageLightboxModal,
+  LightboxImage,
+} from "@/components/custom/image-lightbox-modal";
 
 export interface TargetSurveyItem {
   id?: string;
@@ -39,6 +43,41 @@ export function DetailType5Survey({
   promotionDetail,
   priceTagImages = [],
 }: DetailType5SurveyProps) {
+  // Lightbox Modal State
+  const [lightboxState, setLightboxState] = useState<{
+    isOpen: boolean;
+    title: string;
+    images: LightboxImage[];
+    initialIndex: number;
+  }>({
+    isOpen: false,
+    title: "",
+    images: [],
+    initialIndex: 0,
+  });
+
+  const openLightbox = (
+    title: string,
+    images: ImageFile[] = [],
+    initialIndex: number = 0,
+  ) => {
+    if (!images || images.length === 0) return;
+    setLightboxState({
+      isOpen: true,
+      title,
+      images: images.map((img) => ({
+        id: img.id,
+        url: img.url,
+        name: img.name,
+      })),
+      initialIndex,
+    });
+  };
+
+  const closeLightbox = () => {
+    setLightboxState((prev) => ({ ...prev, isOpen: false }));
+  };
+
   // Normalized records to display: prefer surveyDetails if available, otherwise construct from target or fallback
   const recordsToRender: { record: Type5SurveyRecord; index: number }[] =
     useMemo(() => {
@@ -167,7 +206,10 @@ export function DetailType5Survey({
             <div className="space-y-4">
               {storeGroup.items.map(({ record }, pIdx) => (
                 <div
-                  key={record.id || `${storeGroup.storeName}-${record.product}-${pIdx}`}
+                  key={
+                    record.id ||
+                    `${storeGroup.storeName}-${record.product}-${pIdx}`
+                  }
                   className="bg-white rounded-xl border border-slate-200 p-4 sm:p-4.5 shadow-2xs space-y-3.5"
                 >
                   {/* Product Header & Target Info */}
@@ -236,57 +278,115 @@ export function DetailType5Survey({
                     </div>
                   </div>
 
-                  {/* Images Display */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                  {/* Images Display with Lightbox Zoom/Pan Support */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                     {/* Price Tag Images */}
-                    {record.priceTagImages && record.priceTagImages.length > 0 && (
-                      <div className="bg-amber-50/30 border border-amber-200/70 rounded-xl p-3 space-y-2">
-                        <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                          <ImageIcon className="w-3.5 h-3.5 text-amber-600" />
-                          รูปถ่ายป้ายราคาคู่แข่ง ({record.priceTagImages.length})
+                    <div className="bg-amber-50/20 border border-amber-200/70 rounded-2xl p-4 sm:p-4.5 space-y-3">
+                      <div className="flex items-center justify-between border-b border-amber-100/80 pb-2">
+                        <span className="text-xs sm:text-sm font-bold text-amber-950 flex items-center gap-1.5">
+                          <Camera className="w-4 h-4 text-amber-600" />
+                          รูปถ่ายป้ายราคาคู่แข่ง
                         </span>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                          {record.priceTagImages.map((img) => (
-                            <div
-                              key={img.id}
-                              className="group relative rounded-lg border border-slate-200 overflow-hidden bg-slate-50 aspect-video flex items-center justify-center shadow-2xs"
+                        {record.priceTagImages &&
+                        record.priceTagImages.length > 0 ? (
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                            {record.priceTagImages.length} รูป
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {record.priceTagImages &&
+                      record.priceTagImages.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                          {record.priceTagImages.map((img, imgIdx) => (
+                            <button
+                              key={img.id || imgIdx}
+                              type="button"
+                              onClick={() =>
+                                openLightbox(
+                                  `รูปถ่ายป้ายราคาคู่แข่ง - ${record.product || record.store}`,
+                                  record.priceTagImages,
+                                  imgIdx,
+                                )
+                              }
+                              className="group relative rounded-xl border border-amber-200/80 overflow-hidden bg-slate-100 aspect-video flex items-center justify-center shadow-2xs hover:shadow-md hover:border-amber-400 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+                              aria-label={`คลิกเพื่อดูรูปถ่ายป้ายราคาที่ ${imgIdx + 1} ขนาดใหญ่`}
                             >
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={img.url}
-                                alt={img.name || "Price Tag Image"}
-                                className="w-full h-full object-cover"
+                                alt={img.name || `ป้ายราคา ${imgIdx + 1}`}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                               />
-                            </div>
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors flex items-center justify-center">
+                                <span className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full bg-black/60 text-white backdrop-blur-xs shadow-md">
+                                  <Eye className="w-4 h-4" />
+                                </span>
+                              </div>
+                            </button>
                           ))}
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="flex items-center gap-2 p-3.5 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-slate-400 text-xs font-medium">
+                          <ImageIcon className="w-4 h-4 opacity-50 text-slate-400" />
+                          <span>ไม่มีรูปถ่ายป้ายราคา</span>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Shelf Images */}
-                    {record.shelfImages && record.shelfImages.length > 0 && (
-                      <div className="bg-indigo-50/30 border border-indigo-200/70 rounded-xl p-3 space-y-2">
-                        <span className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
-                          <ImageIcon className="w-3.5 h-3.5 text-indigo-600" />
-                          รูปถ่ายชั้นวางสินค้า ({record.shelfImages.length})
+                    <div className="bg-indigo-50/20 border border-indigo-200/70 rounded-2xl p-4 sm:p-4.5 space-y-3">
+                      <div className="flex items-center justify-between border-b border-indigo-100/80 pb-2">
+                        <span className="text-xs sm:text-sm font-bold text-indigo-950 flex items-center gap-1.5">
+                          <Camera className="w-4 h-4 text-indigo-600" />
+                          รูปถ่ายชั้นวางสินค้า
                         </span>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                          {record.shelfImages.map((img) => (
-                            <div
-                              key={img.id}
-                              className="group relative rounded-lg border border-slate-200 overflow-hidden bg-slate-50 aspect-video flex items-center justify-center shadow-2xs"
+                        {record.shelfImages &&
+                        record.shelfImages.length > 0 ? (
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">
+                            {record.shelfImages.length} รูป
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {record.shelfImages &&
+                      record.shelfImages.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                          {record.shelfImages.map((img, imgIdx) => (
+                            <button
+                              key={img.id || imgIdx}
+                              type="button"
+                              onClick={() =>
+                                openLightbox(
+                                  `รูปถ่ายชั้นวางสินค้า - ${record.product || record.store}`,
+                                  record.shelfImages,
+                                  imgIdx,
+                                )
+                              }
+                              className="group relative rounded-xl border border-indigo-200/80 overflow-hidden bg-slate-100 aspect-video flex items-center justify-center shadow-2xs hover:shadow-md hover:border-indigo-400 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                              aria-label={`คลิกเพื่อดูรูปถ่ายชั้นวางสินค้าที่ ${imgIdx + 1} ขนาดใหญ่`}
                             >
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={img.url}
-                                alt={img.name || "Shelf Image"}
-                                className="w-full h-full object-cover"
+                                alt={img.name || `ชั้นวางสินค้า ${imgIdx + 1}`}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                               />
-                            </div>
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors flex items-center justify-center">
+                                <span className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full bg-black/60 text-white backdrop-blur-xs shadow-md">
+                                  <Eye className="w-4 h-4" />
+                                </span>
+                              </div>
+                            </button>
                           ))}
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="flex items-center gap-2 p-3.5 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-slate-400 text-xs font-medium">
+                          <ImageIcon className="w-4 h-4 opacity-50 text-slate-400" />
+                          <span>ไม่มีรูปถ่ายชั้นวางสินค้า</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -294,6 +394,15 @@ export function DetailType5Survey({
           </div>
         ))}
       </div>
+
+      {/* Image Lightbox Viewer Modal */}
+      <ImageLightboxModal
+        isOpen={lightboxState.isOpen}
+        onClose={closeLightbox}
+        title={lightboxState.title}
+        images={lightboxState.images}
+        initialIndex={lightboxState.initialIndex}
+      />
     </div>
   );
 }
