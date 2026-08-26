@@ -140,13 +140,9 @@ export default function ActivityPlanActualView({
     ],
 
     // ข้อมูลเพิ่มเติม (Additional Info) (ถ้ามี)
-    objective:
-      "เข้าพบเจ้าของร้านเพื่อเสนอขายและจัดกิจกรรมกระตุ้นยอดขายหน้าร้าน",
-    notes: "โปรดเตรียมป้ายและของแถมพรีเมียมไปแจกลูกค้าหน้าร้าน",
-    helperEmployeeNames: [
-      "คุณวิชัย (ผู้ช่วยเขต)",
-      "คุณสมชาย (เจ้าหน้าที่เทคนิค)",
-    ],
+    objective: undefined,
+    notes: undefined,
+    helperEmployeeNames: undefined,
   });
 
   // Active Work Type Selection Mode: "ALL" or specific type name
@@ -463,6 +459,18 @@ export default function ActivityPlanActualView({
             salesPromotionItems: salesPromoItemsFromItems,
             notes: p.notes || undefined,
             objective: p.objective || undefined,
+            helperEmployeeNames:
+              p.helpers && Array.isArray(p.helpers)
+                ? p.helpers
+                    .map((h: any) => {
+                      const emp = h.employee;
+                      if (!emp) return h.name || h.employeeName || "";
+                      const fullName = `${emp.firstName || ""} ${emp.lastName || ""}`.trim();
+                      const dept = emp.department?.name || h.departmentName;
+                      return dept ? `${fullName} (${dept})` : fullName;
+                    })
+                    .filter(Boolean)
+                : undefined,
           });
 
           // ────────────────────────────────────────────────────────

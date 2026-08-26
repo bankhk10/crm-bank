@@ -426,6 +426,9 @@ modules/activity-plans/
   3. **เปลี่ยนช่องเลือกสินค้าที่ให้คำแนะนำเป็น Searchable FormCombobox:**
      - นำ Component `@/components/custom/form-components` (`FormCombobox`) มาใช้งานในลักษณะเดียวกับ `sale-item-row.tsx`
      - รองรับการค้นหาสินค้าตามชื่อและรหัสสินค้า (Product Code) ได้อย่างรวดเร็ว พร้อมแสดงผล Badges สินค้าที่เลือกและปุ่มลบ (X) ตามเดิม
+  4. **เงื่อนไขการแสดงผล Section "ข้อมูลเพิ่มเติม":**
+     - ปรับ `actual-plan-summary.tsx` ให้แสดงหัวข้อ Section 5 "ข้อมูลเพิ่มเติม" เฉพาะเมื่อมีข้อมูล (หมายเหตุเพิ่มเติม `notes` หรือหน่วยงานผู้เพิ่มเติม/พนักงานช่วยงาน `helperEmployeeNames`) หากไม่มีข้อมูลจะไม่แสดงหัวข้อนี้
+
 
 
 
