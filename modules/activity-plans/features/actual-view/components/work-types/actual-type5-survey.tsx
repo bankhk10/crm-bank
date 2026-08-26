@@ -389,7 +389,7 @@ export function ActualType5Survey({
                           handleFieldChange(index, "competitorUnit", val)
                         }
                       >
-                        <SelectTrigger className="bg-white border-slate-300 h-9 text-xs w-full">
+                        <SelectTrigger className="bg-white border-slate-300 !h-9 data-[size=default]:h-9 text-xs w-full">
                           <SelectValue placeholder="เลือกหน่วยนับ" />
                         </SelectTrigger>
                         <SelectContent>
