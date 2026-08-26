@@ -20,6 +20,8 @@ interface DetailType2FollowupProps {
   target: {
     product: string;
     customer: string;
+    storeName?: string;
+    keyFarmer?: string;
     detail: string;
     expectedResult: string;
     items?: FollowupProductItem[];
@@ -63,40 +65,45 @@ export function DetailType2Followup({
 
       {/* PLANNED TARGET CARD */}
       {hasMultipleProducts ? (
-        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5">
+        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
           <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-            <span className="text-xs font-bold text-slate-800">
-              เป้าหมายที่ตั้งไว้ล่วงหน้าของแผน (Planned Target)
-            </span>
-            <span className="text-xs font-extrabold text-sky-800 bg-sky-100 px-2.5 py-0.5 rounded-md">
-              {target.items!.length} รายการ
+            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <Layers className="w-4 h-4 text-sky-600" />
+              เป้าหมายที่ตั้งไว้ล่วงหน้าของแผน ({target.items!.length} รายการ)
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
             {target.items!.map((item, idx) => (
               <div
                 key={idx}
-                className="bg-white p-3 rounded-lg border border-slate-200/80 shadow-2xs space-y-1"
+                className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2.5"
               >
-                <div className="flex items-center justify-between font-bold text-slate-900">
-                  <span className="text-sky-700">
-                    {idx + 1}. {item.productName}
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-2 font-bold text-sky-950 text-xs sm:text-sm">
+                  <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-800 flex items-center justify-center text-[10px] font-extrabold shrink-0">
+                    {idx + 1}
                   </span>
-                  <span className="text-slate-500 font-normal">
-                    {item.customer || "-"}
-                  </span>
+                  <span>{item.productName}</span>
                 </div>
-                {item.expectedResult && (
-                  <p className="text-[11px] text-slate-500">
-                    ผลที่คาดว่าจะได้รับ: {item.expectedResult}
-                  </p>
-                )}
-                {item.detail && (
-                  <p className="text-[11px] text-slate-400 italic">
-                    {item.detail}
-                  </p>
-                )}
+
+                <div className="grid grid-cols-1 gap-2 text-xs">
+                  <div className="space-y-0.5">
+                    <span className="text-[11px] font-semibold text-slate-500 block">
+                      ชื่อร้านค้า:
+                    </span>
+                    <p className="font-bold text-slate-900">
+                      {item.customer || target.customer || "-"}
+                    </p>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-[11px] font-semibold text-slate-500 block">
+                      รายละเอียดเพิ่มเติม:
+                    </span>
+                    <p className="font-medium text-slate-800">
+                      {item.detail || "-"}
+                    </p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -105,14 +112,10 @@ export function DetailType2Followup({
         <ActualTargetCard
           iconColorClass="text-sky-600"
           badgeColorClass="bg-sky-50 text-sky-700 border border-sky-200"
-          gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
+          gridColsClass="grid-cols-1 sm:grid-cols-3"
           items={[
             { label: "สินค้าที่ติดตาม:", value: target.product || "-" },
-            { label: "ลูกค้า:", value: target.customer || "-" },
-            {
-              label: "ผลที่คาดว่าจะได้รับ:",
-              value: target.expectedResult || "-",
-            },
+            { label: "ชื่อร้านค้า:", value: target.customer || "-" },
             {
               label: "รายละเอียดเพิ่มเติม:",
               value: target.detail || "-",

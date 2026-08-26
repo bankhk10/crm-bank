@@ -81,6 +81,8 @@ export interface ActualTargetsState {
   t2: {
     product: string;
     customer: string;
+    storeName?: string;
+    keyFarmer?: string;
     detail: string;
     expectedResult: string;
     items: any[];

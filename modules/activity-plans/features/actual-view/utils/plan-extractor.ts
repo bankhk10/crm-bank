@@ -20,6 +20,78 @@ export interface ExtractedPlanData {
   t7PlotIdentifier?: string;
 }
 
+export function extractType2Customers(
+  items: Array<{ customer?: string; customerName?: string }>,
+  location?: string,
+): { storeName: string; keyFarmer: string } {
+  const customerNames = Array.from(
+    new Set(
+      items
+        .map((i) => (i.customer || (i as any).customerName || "").trim())
+        .filter(Boolean),
+    ),
+  );
+
+  const stores: string[] = [];
+  const farmers: string[] = [];
+
+  for (const name of customerNames) {
+    const isStore =
+      name.startsWith("ร้าน") ||
+      name.startsWith("บจก.") ||
+      name.startsWith("บริษัท") ||
+      name.startsWith("สหกรณ์") ||
+      name.startsWith("วิสาหกิจ") ||
+      name.includes("การค้า") ||
+      name.includes("พาณิชย์");
+
+    const isFarmer =
+      name.startsWith("หจก.") ||
+      name.startsWith("ห้างหุ้นส่วน") ||
+      name.startsWith("นาย") ||
+      name.startsWith("นาง") ||
+      name.startsWith("น.ส.") ||
+      name.startsWith("คุณ") ||
+      name.includes("สวน") ||
+      name.includes("ไร่") ||
+      name.includes("แปลง") ||
+      name.includes("เกษตรกร");
+
+    if (isStore && !isFarmer) {
+      stores.push(name);
+    } else if (isFarmer && !isStore) {
+      farmers.push(name);
+    } else if (isStore) {
+      stores.push(name);
+    } else if (isFarmer) {
+      farmers.push(name);
+    } else {
+      if (stores.length === 0) {
+        stores.push(name);
+      } else {
+        farmers.push(name);
+      }
+    }
+  }
+
+  // If no store was found among items, but location is provided and has a store name
+  if (stores.length === 0 && location && location.trim()) {
+    const loc = location.trim();
+    if (
+      loc.startsWith("ร้าน") ||
+      loc.startsWith("บจก.") ||
+      loc.startsWith("บริษัท")
+    ) {
+      stores.push(loc);
+    }
+  }
+
+  return {
+    storeName: stores.join(", "),
+    keyFarmer: farmers.join(", "),
+  };
+}
+
 export function extractPlanData(
   p: ActivityPlanWithRelations,
   prevTargets: ActualTargetsState,
@@ -748,6 +820,8 @@ export function extractPlanData(
       detail: t1Item?.detail || "",
     };
 
+    const t2CustInfo = extractType2Customers(t2ItemsFromDb || [], p.location);
+
     targets.t2 = {
       ...prevTargets.t2,
       customer:
@@ -757,6 +831,8 @@ export function extractPlanData(
           ).join(", ")) ||
         allCustomers ||
         "",
+      storeName: t2CustInfo.storeName,
+      keyFarmer: t2CustInfo.keyFarmer,
       product:
         (t2ItemsFromDb &&
           t2ItemsFromDb.map((i) => i.productName).join(", ")) ||

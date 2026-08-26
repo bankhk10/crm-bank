@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
+import React, { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Target, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -22,20 +21,20 @@ interface ActualType2FollowupProps {
   target: {
     product: string;
     customer: string;
+    storeName?: string;
+    keyFarmer?: string;
     detail: string; // รายละเอียดเพิ่มเติมจากแผนงาน
     expectedResult: string;
     items?: FollowupProductItem[];
   };
-  customerName: string;
-  setCustomerName: (v: string) => void;
+  customerName?: string;
+  setCustomerName?: (v: string) => void;
   detail: string;
   setDetail: (v: string) => void;
   followupDetail?: string;
   setFollowupDetail?: (v: string) => void;
   usageResult: "พืชตอบสนองดี" | "พบปัญหา" | "";
-  setUsageResult: (
-    v: "พืชตอบสนองดี" | "พบปัญหา" | ""
-  ) => void;
+  setUsageResult: (v: "พืชตอบสนองดี" | "พบปัญหา" | "") => void;
   problemDetail: string;
   setProblemDetail: (v: string) => void;
 }
@@ -43,27 +42,20 @@ interface ActualType2FollowupProps {
 export function ActualType2Followup({
   isVisible,
   target,
-  customerName,
-  setCustomerName,
   detail,
   setDetail,
-  followupDetail,
   setFollowupDetail,
-  usageResult,
   setUsageResult,
   problemDetail,
+  usageResult,
+  followupDetail,
   setProblemDetail,
 }: ActualType2FollowupProps) {
-  // Local state for multi-product follow up
-  const [productItems, setProductItems] = useState<FollowupProductItem[]>(
-    target.items || []
-  );
-
   // Helper to parse product-specific followup detail from combined string e.g. "Prod1: detail1 | Prod2: detail2"
   const getParsedFollowupDetail = (
     text: string | undefined,
     productName: string,
-    fallbackItemVal?: string
+    fallbackItemVal?: string,
   ): string => {
     if (fallbackItemVal) return fallbackItemVal;
     if (!text) return "";
@@ -82,7 +74,7 @@ export function ActualType2Followup({
   const getParsedProblemDetail = (
     text: string | undefined,
     productName: string,
-    fallbackItemVal?: string
+    fallbackItemVal?: string,
   ): string => {
     if (fallbackItemVal) return fallbackItemVal;
     if (!text) return "";
@@ -101,10 +93,9 @@ export function ActualType2Followup({
   const getParsedUsageResult = (
     text: string | undefined,
     productName: string,
-    fallback?: "พืชตอบสนองดี" | "พบปัญหา" | ""
+    fallback?: "พืชตอบสนองดี" | "พบปัญหา" | "",
   ): "พืชตอบสนองดี" | "พบปัญหา" | "" => {
     if (!text) return fallback || "";
-    // Check if combined format "Prod1: พืชตอบสนองดี | Prod2: พบปัญหา"
     const escaped = productName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(`(?:^|\\|\\s*)${escaped}:\\s*([^|]+)`, "i");
     const match = text.match(regex);
@@ -112,69 +103,57 @@ export function ActualType2Followup({
       const val = match[1].trim();
       if (val === "พืชตอบสนองดี" || val === "พบปัญหา") return val;
     }
-    // If single value "พืชตอบสนองดี" or "พบปัญหา"
     if (text === "พืชตอบสนองดี" || text === "พบปัญหา") {
       return text;
     }
     return fallback || "";
   };
 
-  useEffect(() => {
-    if (target.items && target.items.length > 0) {
-      setProductItems((prev) =>
-        target.items!.map((item, idx) => {
-          const prevItem =
-            prev && prev[idx]?.productName === item.productName
-              ? prev[idx]
-              : null;
+  // Local state for multi-product follow up
+  const [productItems, setProductItems] = useState<FollowupProductItem[]>(
+    () => {
+      if (!target.items || target.items.length === 0) return [];
+      return target.items.map((item) => {
+        const parsedUsage = getParsedUsageResult(
+          usageResult,
+          item.productName,
+          item.usageResult,
+        );
 
-          const parsedUsage = getParsedUsageResult(
-            usageResult,
+        const activeUsage: "พืชตอบสนองดี" | "พบปัญหา" =
+          parsedUsage === "พืชตอบสนองดี" || parsedUsage === "พบปัญหา"
+            ? parsedUsage
+            : item.usageResult ||
+              (item.expectedResult === "พบปัญหา" ? "พบปัญหา" : "พืชตอบสนองดี");
+
+        const parsedProblem =
+          activeUsage === "พบปัญหา"
+            ? item.problemDetail ||
+              getParsedProblemDetail(
+                problemDetail,
+                item.productName,
+                item.problemDetail,
+              )
+            : "";
+
+        const activeFollowup =
+          item.followupDetail ||
+          getParsedFollowupDetail(
+            followupDetail,
             item.productName,
-            prevItem?.usageResult || item.usageResult
+            item.followupDetail,
           );
 
-          const activeUsage: "พืชตอบสนองดี" | "พบปัญหา" =
-            parsedUsage === "พืชตอบสนองดี" || parsedUsage === "พบปัญหา"
-              ? parsedUsage
-              : prevItem?.usageResult ||
-                item.usageResult ||
-                (item.expectedResult === "พบปัญหา"
-                  ? "พบปัญหา"
-                  : "พืชตอบสนองดี");
-
-          // Only parse problem if usage is "พบปัญหา"
-          const parsedProblem =
-            activeUsage === "พบปัญหา"
-              ? prevItem?.problemDetail ||
-                item.problemDetail ||
-                getParsedProblemDetail(
-                  problemDetail,
-                  item.productName,
-                  item.problemDetail
-                )
-              : "";
-
-          const activeFollowup =
-            prevItem?.followupDetail ||
-            item.followupDetail ||
-            getParsedFollowupDetail(
-              followupDetail,
-              item.productName,
-              item.followupDetail
-            );
-
-          return {
-            ...item,
-            usageResult: activeUsage,
-            problemDetail: parsedProblem,
-            detail: item.detail || "", // รายละเอียดเพิ่มเติมจากแผนเดิม
-            followupDetail: activeFollowup, // รายละเอียดการติดตามผลจริง
-          };
-        })
-      );
-    }
-  }, [target.items, usageResult, problemDetail, followupDetail]);
+        return {
+          ...item,
+          usageResult: activeUsage,
+          problemDetail: parsedProblem,
+          detail: item.detail || "",
+          followupDetail: activeFollowup,
+        };
+      });
+    },
+  );
 
   if (!isVisible) return null;
 
@@ -183,7 +162,7 @@ export function ActualType2Followup({
   const handleProductChange = (
     index: number,
     field: "usageResult" | "problemDetail" | "followupDetail",
-    value: string
+    value: string,
   ) => {
     const updated = [...productItems];
     if (field === "usageResult") {
@@ -208,7 +187,7 @@ export function ActualType2Followup({
               .map((item) =>
                 item.usageResult
                   ? `${item.productName}: ${item.usageResult}`
-                  : ""
+                  : "",
               )
               .filter(Boolean)
               .join(" | ");
@@ -219,7 +198,7 @@ export function ActualType2Followup({
         .map((item) =>
           item.usageResult === "พบปัญหา" && item.problemDetail
             ? `${item.productName}: ${item.problemDetail}`
-            : ""
+            : "",
         )
         .filter(Boolean)
         .join(" | ");
@@ -228,7 +207,9 @@ export function ActualType2Followup({
 
       const combinedFollowup = updated
         .map((item) =>
-          item.followupDetail ? `${item.productName}: ${item.followupDetail}` : ""
+          item.followupDetail
+            ? `${item.productName}: ${item.followupDetail}`
+            : "",
         )
         .filter(Boolean)
         .join(" | ");
@@ -259,42 +240,47 @@ export function ActualType2Followup({
 
       {/* TARGET CARD DISPLAY */}
       {hasMultipleProducts ? (
-        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs border-b border-slate-200/60 pb-2">
-            <div className="space-y-0.5">
-              <span className="text-[11px] font-semibold text-slate-500">
-                ชื่อร้านค้า / Key Farmer:
-              </span>
-              <p className="font-bold text-slate-900">{target.customer}</p>
-            </div>
-            <div className="space-y-0.5">
-              <span className="text-[11px] font-semibold text-slate-500">
-                รายละเอียดเพิ่มเติม:
-              </span>
-              <p className="font-medium text-slate-800">
-                {target.detail || "-"}
-              </p>
-            </div>
+        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <Target className="w-4 h-4 text-cyan-600" />
+              เป้าหมายที่ตั้งไว้ล่วงหน้าของแผน ({productItems.length} รายการ)
+            </span>
           </div>
 
-          <div className="space-y-1.5">
-            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <Target className="w-4 h-4 text-cyan-600" />
-              สินค้าที่ต้องการติดตามผล ({productItems.length} รายการ):
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              {productItems.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-2xs flex items-center gap-2 font-bold text-slate-900"
-                >
-                  <span className="w-4 h-4 rounded-full bg-cyan-100 text-cyan-800 flex items-center justify-center text-[10px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            {productItems.map((item, idx) => (
+              <div
+                key={idx}
+                className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2.5"
+              >
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-2 font-bold text-cyan-950 text-xs sm:text-sm">
+                  <span className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-800 flex items-center justify-center text-[10px] font-extrabold shrink-0">
                     {idx + 1}
                   </span>
                   <span>{item.productName}</span>
                 </div>
-              ))}
-            </div>
+
+                <div className="grid grid-cols-1 gap-2 text-xs">
+                  <div className="space-y-0.5">
+                    <span className="text-[11px] font-semibold text-slate-500 block">
+                      ชื่อร้านค้า:
+                    </span>
+                    <p className="font-bold text-slate-900">
+                      {item.customer || target.customer || "-"}
+                    </p>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-[11px] font-semibold text-slate-500 block">
+                      รายละเอียดเพิ่มเติม:
+                    </span>
+                    <p className="font-medium text-slate-800">
+                      {item.detail || "-"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       ) : (
@@ -303,8 +289,11 @@ export function ActualType2Followup({
           badgeColorClass="bg-cyan-100 text-cyan-800"
           gridColsClass="grid-cols-1 sm:grid-cols-3"
           items={[
-            { label: "สินค้าที่ต้องการติดตามผล:", value: target.product },
-            { label: "ชื่อร้านค้า / Key Farmer:", value: target.customer },
+            {
+              label: "สินค้าที่ต้องการติดตามผล:",
+              value: target.product || "-",
+            },
+            { label: "ชื่อร้านค้า:", value: target.customer || "-" },
             { label: "รายละเอียดเพิ่มเติม:", value: target.detail || "-" },
           ]}
         />
@@ -330,14 +319,28 @@ export function ActualType2Followup({
                 className="bg-cyan-50/30 border border-cyan-200/80 rounded-2xl p-4 space-y-3 shadow-2xs"
               >
                 {/* Header Badge */}
-                <div className="flex items-center justify-between border-b border-cyan-100/80 pb-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyan-100/80 pb-2.5">
                   <div className="flex items-center gap-2 font-bold text-sm text-cyan-950">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-600 text-white text-xs">
                       {idx + 1}
                     </span>
-                    <span>สินค้าที่ต้องการติดตามผล: {prod.productName}</span>
+                    <span>สินค้า: {prod.productName}</span>
                   </div>
+                  {prod.customer && (
+                    <span className="text-xs font-semibold text-cyan-800 bg-cyan-100/80 px-2.5 py-0.5 rounded-full">
+                      ชื่อร้านค้า: {prod.customer}
+                    </span>
+                  )}
                 </div>
+
+                {prod.detail && (
+                  <div className="bg-white/80 p-2.5 rounded-lg border border-cyan-100/80 text-xs text-slate-700">
+                    <span className="font-semibold text-slate-500 mr-1">
+                      รายละเอียดจากแผน:
+                    </span>
+                    <span>{prod.detail}</span>
+                  </div>
+                )}
 
                 {/* 1. ผลลัพธ์จากการใช้งาน */}
                 <div className="space-y-1.5">
@@ -359,7 +362,7 @@ export function ActualType2Followup({
                             ? resOpt === "พืชตอบสนองดี"
                               ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
                               : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
-                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50",
                         )}
                       >
                         <span>{resOpt === "พืชตอบสนองดี" ? "🟢" : "⚠️"}</span>
@@ -383,7 +386,7 @@ export function ActualType2Followup({
                         handleProductChange(
                           idx,
                           "problemDetail",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       placeholder="เช่น ใบเหลือง, เกิดคราบไหม้, อัตราส่วนเข้มข้นเกินไป"
@@ -435,7 +438,7 @@ export function ActualType2Followup({
                       ? resOpt === "พืชตอบสนองดี"
                         ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
                         : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
-                      : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                      : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50",
                   )}
                 >
                   <span>{resOpt === "พืชตอบสนองดี" ? "🟢" : "⚠️"}</span>
@@ -448,7 +451,8 @@ export function ActualType2Followup({
           {usageResult === "พบปัญหา" && (
             <div className="bg-rose-50/60 border border-rose-200 rounded-xl p-3.5 space-y-1.5">
               <label className="text-xs font-bold text-rose-800">
-                ระบุรายละเอียดปัญหาที่พบ <span className="text-rose-500">*</span>
+                ระบุรายละเอียดปัญหาที่พบ{" "}
+                <span className="text-rose-500">*</span>
               </label>
               <Textarea
                 rows={2}
