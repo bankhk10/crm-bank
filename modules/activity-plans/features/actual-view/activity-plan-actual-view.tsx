@@ -2511,29 +2511,26 @@ export default function ActivityPlanActualView({
     <section className="space-y-6 container mx-auto px-0 sm:px-0">
       <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
         {/* TOP HEADER */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
-          <div className="flex items-center gap-3.5">
+        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6 border-b border-slate-100">
+          {/* Center: Icon + Title */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 shadow-2xs">
               <FileText className="w-6 h-6 stroke-[2.2]" />
             </div>
-            <div>
-              <h1 className="font-bold text-xl sm:text-2xl text-slate-800 tracking-tight">
-                บันทึกผลการปฏิบัติงาน ( Trip Plan Actual )
-              </h1>
-              <p className="text-xs text-slate-500 font-normal mt-0.5">
-                บันทึกรายละเอียดการปฏิบัติงานตามแผนงาน
-              </p>
-            </div>
+
+            <h1 className="font-bold text-xl sm:text-2xl text-slate-800 tracking-tight whitespace-nowrap">
+              บันทึกผลการปฏิบัติงาน ( Trip Plan Actual )
+            </h1>
           </div>
 
+          {/* Right */}
           {planSummary.planNo && (
-            <div className="self-start sm:self-auto inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs">
+            <div className="ml-auto self-start sm:self-auto inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs">
               <Info className="w-3.5 h-3.5 shrink-0" />
               <span>เลขที่แผน: {planSummary.planNo}</span>
             </div>
           )}
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           {formError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
