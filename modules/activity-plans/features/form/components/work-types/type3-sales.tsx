@@ -346,10 +346,26 @@ export function Type3Sales({
                             <input
                               type="number"
                               min={0}
-                              value={prodLine.unitPrice}
-                              disabled={true}
+                              step="any"
+                              value={prodLine.unitPrice === 0 ? "" : prodLine.unitPrice}
+                              onChange={(e) =>
+                                updateProductLine(
+                                  item.id,
+                                  prodLine.id,
+                                  "unitPrice",
+                                  e.target.value === ""
+                                    ? ""
+                                    : parseFloat(e.target.value) || 0,
+                                )
+                              }
+                              disabled={readonly}
                               placeholder="0"
-                              className="w-full h-9 pl-6 pr-2 rounded-lg border border-slate-200 bg-slate-100 text-slate-500 text-xs text-right font-medium focus:outline-none cursor-not-allowed"
+                              className={cn(
+                                "w-full h-9 pl-6 pr-2.5 rounded-lg border border-slate-200 text-xs text-right font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500",
+                                readonly
+                                  ? "bg-slate-100 text-slate-500 cursor-not-allowed"
+                                  : "bg-white text-slate-800",
+                              )}
                             />
                           </div>
                         </div>
