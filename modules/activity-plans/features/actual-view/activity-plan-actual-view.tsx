@@ -82,62 +82,28 @@ export default function ActivityPlanActualView({
   // Loading & Plan Summary State
   const [loadingPlan, setLoadingPlan] = useState(!!id);
   const [planSummary, setPlanSummary] = useState<PlanSummaryData>({
-    planNo: "2607-001",
-    title: "แปลงสาธิตของบ้านนา และ กิจกรรมส่งเสริมการขายหน้าร้าน",
-    startDateStr: "25 ก.ค. 2568",
-    endDateStr: "25 ก.ค. 2568",
-    startTimeStr: "09:00",
-    endTimeStr: "15:00",
-    timeStr: "09:00 - 15:00 น.",
-    locationStr: `${DEMO_OWNERS[0]} อ.เมือง จ.จันทบุรี`,
+    planNo: "",
+    title: "",
+    startDateStr: "",
+    endDateStr: "",
+    startTimeStr: "",
+    endTimeStr: "",
+    timeStr: "",
+    locationStr: "",
 
     // งบประมาณและค่าใช้จ่าย (Budget & Expenses) (ถ้ามี)
-    marketingBudget: 10000,
-    salesPromotionBudget: 25000,
-    extraExpenseAmount: 2000,
+    marketingBudget: undefined,
+    salesPromotionBudget: undefined,
+    extraExpenseAmount: undefined,
     extraExpenseDetail: "",
-    targetSales: 200000,
-    isPromotionalMediaSelected: true,
-    marketingProductItems: [
-      {
-        id: "mkt-1",
-        productName: "ป้ายไวนิล (Vinyl Banner)",
-        quantityCases: 5,
-        pricePerCase: 1000,
-      },
-      {
-        id: "mkt-2",
-        productName: "เสื้อยืดตราปืนใหญ่",
-        quantityCases: 10,
-        pricePerCase: 500,
-      },
-    ],
-    isSalesPromotionSelected: true,
-    salesPromotionItems: [
-      {
-        id: "sp-1",
-        detail: "ส่วนลดพิเศษกระตุ้นยอดขายหน้าร้าน",
-        amount: 15000,
-        budgetType: "งบขาย",
-      },
-      {
-        id: "sp-2",
-        detail: "ของแถมพรีเมียมแจกลูกค้าหน้าร้าน",
-        amount: 10000,
-        budgetType: "งบการตลาด",
-      },
-    ],
+    targetSales: undefined,
+    isPromotionalMediaSelected: false,
+    marketingProductItems: [],
+    isSalesPromotionSelected: false,
+    salesPromotionItems: [],
 
     // รายการขอเบิกสินค้าจัดกิจกรรม (Material Requisition) (ถ้ามี)
-    requisitionItems: [
-      { id: "req-1", productName: "สินค้าทดสอบ A", quantity: 10, unit: "ลัง" },
-      {
-        id: "req-2",
-        productName: "ปุ๋ยเคมีสูตรพิเศษ",
-        quantity: 5,
-        unit: "กระสอบ",
-      },
-    ],
+    requisitionItems: [],
 
     // ข้อมูลเพิ่มเติม (Additional Info) (ถ้ามี)
     objective: undefined,
@@ -154,16 +120,16 @@ export default function ActivityPlanActualView({
   const [targets, setTargets] = useState({
     t1: {
       customer: "",
-      topic: "แจ้งข่าวสาร",
+      topic: "",
       detail: "",
-      opportunity: "สูง",
+      opportunity: "",
       nextDate: "",
     },
     t2: {
       product: "",
       customer: "",
       detail: "",
-      expectedResult: "พืชตอบสนองดี",
+      expectedResult: "",
       items: [] as any[],
     },
     t3: {
@@ -187,9 +153,9 @@ export default function ActivityPlanActualView({
     },
     t6: {
       customer: "",
-      issueType: "เคลมของ",
+      issueType: "",
       detail: "",
-      targetStatus: "เสร็จสิ้น",
+      targetStatus: "",
       items: [] as any[],
     },
     t7: {
@@ -201,7 +167,7 @@ export default function ActivityPlanActualView({
       objective: "",
       experimentDetail: "",
       detail: "",
-      targetCondition: "สมบูรณ์",
+      targetCondition: "",
       items: [] as any[],
     },
     t8: {
@@ -228,7 +194,7 @@ export default function ActivityPlanActualView({
     t11: {
       store: "",
       detail: "",
-      targetOpportunity: "สูง",
+      targetOpportunity: "",
     },
   });
 
