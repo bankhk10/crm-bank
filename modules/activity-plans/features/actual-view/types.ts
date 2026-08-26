@@ -2,6 +2,9 @@ export interface ImageFile {
   id: string;
   url: string;
   name: string;
+  size?: number;
+  type?: string;
+  rawFile?: File;
 }
 
 export interface RequisitionItemSummary {

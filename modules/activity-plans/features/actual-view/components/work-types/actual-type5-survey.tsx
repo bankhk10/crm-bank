@@ -204,19 +204,29 @@ export function ActualType5Survey({
               ? URL.createObjectURL(item.file)
               : ""),
           name: item.file.name,
+          size: item.file.size,
+          type: item.file.type,
+          rawFile: item.file,
         };
       }
       return {
         id: item.file.id,
         url: item.file.url,
         name: item.file.name,
+        size: item.file.size,
+        type: item.file.type,
       };
     });
 
     const current = recordsToRender[index]?.record.priceTagImages || [];
     const isSame =
       current.length === converted.length &&
-      current.every((c, i) => c.id === converted[i]?.id && c.url === converted[i]?.url);
+      current.every(
+        (c, i) =>
+          c.id === converted[i]?.id &&
+          c.url === converted[i]?.url &&
+          c.rawFile === converted[i]?.rawFile,
+      );
 
     if (!isSame && onUpdateSurveyItem) {
       onUpdateSurveyItem(index, { priceTagImages: converted });
@@ -234,19 +244,29 @@ export function ActualType5Survey({
               ? URL.createObjectURL(item.file)
               : ""),
           name: item.file.name,
+          size: item.file.size,
+          type: item.file.type,
+          rawFile: item.file,
         };
       }
       return {
         id: item.file.id,
         url: item.file.url,
         name: item.file.name,
+        size: item.file.size,
+        type: item.file.type,
       };
     });
 
     const current = recordsToRender[index]?.record.shelfImages || [];
     const isSame =
       current.length === converted.length &&
-      current.every((c, i) => c.id === converted[i]?.id && c.url === converted[i]?.url);
+      current.every(
+        (c, i) =>
+          c.id === converted[i]?.id &&
+          c.url === converted[i]?.url &&
+          c.rawFile === converted[i]?.rawFile,
+      );
 
     if (!isSame && onUpdateSurveyItem) {
       onUpdateSurveyItem(index, { shelfImages: converted });

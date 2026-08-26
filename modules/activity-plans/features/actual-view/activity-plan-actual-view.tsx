@@ -710,6 +710,170 @@ export default function ActivityPlanActualView({
     return true;
   };
 
+  const uploadType5SurveyImages = async (
+    planId: string,
+    surveyDetails: Type5SurveyRecord[],
+  ): Promise<Type5SurveyRecord[]> => {
+    const updatedRecords: Type5SurveyRecord[] = [];
+
+    for (let i = 0; i < surveyDetails.length; i++) {
+      const record = { ...surveyDetails[i] };
+      const surveyItemId = record.id || `item-${i + 1}`;
+
+      // 1. Process Price Tag Images
+      if (record.priceTagImages && record.priceTagImages.length > 0) {
+        const processedPriceTag: ImageFile[] = [];
+        const newFilesToUpload: { file: File; tempId: string }[] = [];
+
+        for (const img of record.priceTagImages) {
+          if (img.rawFile instanceof File) {
+            newFilesToUpload.push({ file: img.rawFile, tempId: img.id });
+          } else if (img.url && img.url.startsWith("blob:")) {
+            try {
+              const res = await fetch(img.url);
+              const blob = await res.blob();
+              const file = new File([blob], img.name || "price-tag.jpg", {
+                type: blob.type || "image/jpeg",
+              });
+              newFilesToUpload.push({ file, tempId: img.id });
+            } catch {
+              throw new Error(
+                `ไม่สามารถเข้าถึงไฟล์รูปภาพป้ายราคาของ ${record.store || "ร้านค้า"} ได้ กรุณาเลือกไฟล์ใหม่อีกครั้ง`,
+              );
+            }
+          } else {
+            // Already permanent URL
+            processedPriceTag.push({
+              id: img.id,
+              url: img.url,
+              name: img.name,
+            });
+          }
+        }
+
+        if (newFilesToUpload.length > 0) {
+          const form = new FormData();
+          newFilesToUpload.forEach(({ file }) => form.append("images", file));
+
+          const res = await fetch(
+            `/api/activity-plans/${planId}/images?surveyItemId=${encodeURIComponent(surveyItemId)}&category=price-tag`,
+            {
+              method: "POST",
+              body: form,
+            },
+          );
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(
+              errData.error ||
+                `อัปโหลดรูปภาพป้ายราคาของ ${record.store || "ร้านค้า"} ล้มเหลว`,
+            );
+          }
+
+          const data = await res.json();
+          if (data.created && Array.isArray(data.created)) {
+            data.created.forEach((uploaded: any, uIdx: number) => {
+              const original = newFilesToUpload[uIdx];
+              processedPriceTag.push({
+                id: uploaded.id,
+                url: uploaded.url,
+                name: uploaded.filename || original.file.name,
+              });
+            });
+          }
+        }
+
+        record.priceTagImages = processedPriceTag;
+      }
+
+      // 2. Process Shelf Images
+      if (record.shelfImages && record.shelfImages.length > 0) {
+        const processedShelf: ImageFile[] = [];
+        const newFilesToUpload: { file: File; tempId: string }[] = [];
+
+        for (const img of record.shelfImages) {
+          if (img.rawFile instanceof File) {
+            newFilesToUpload.push({ file: img.rawFile, tempId: img.id });
+          } else if (img.url && img.url.startsWith("blob:")) {
+            try {
+              const res = await fetch(img.url);
+              const blob = await res.blob();
+              const file = new File([blob], img.name || "shelf.jpg", {
+                type: blob.type || "image/jpeg",
+              });
+              newFilesToUpload.push({ file, tempId: img.id });
+            } catch {
+              throw new Error(
+                `ไม่สามารถเข้าถึงไฟล์รูปภาพชั้นวางสินค้าของ ${record.store || "ร้านค้า"} ได้ กรุณาเลือกไฟล์ใหม่อีกครั้ง`,
+              );
+            }
+          } else {
+            // Already permanent URL
+            processedShelf.push({
+              id: img.id,
+              url: img.url,
+              name: img.name,
+            });
+          }
+        }
+
+        if (newFilesToUpload.length > 0) {
+          const form = new FormData();
+          newFilesToUpload.forEach(({ file }) => form.append("images", file));
+
+          const res = await fetch(
+            `/api/activity-plans/${planId}/images?surveyItemId=${encodeURIComponent(surveyItemId)}&category=shelf`,
+            {
+              method: "POST",
+              body: form,
+            },
+          );
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(
+              errData.error ||
+                `อัปโหลดรูปภาพชั้นวางสินค้าของ ${record.store || "ร้านค้า"} ล้มเหลว`,
+            );
+          }
+
+          const data = await res.json();
+          if (data.created && Array.isArray(data.created)) {
+            data.created.forEach((uploaded: any, uIdx: number) => {
+              const original = newFilesToUpload[uIdx];
+              processedShelf.push({
+                id: uploaded.id,
+                url: uploaded.url,
+                name: uploaded.filename || original.file.name,
+              });
+            });
+          }
+        }
+
+        record.shelfImages = processedShelf;
+      }
+
+      updatedRecords.push(record);
+    }
+
+    // Safety check: ensure NO blob URL remains
+    for (const rec of updatedRecords) {
+      if (rec.priceTagImages?.some((img) => img.url.startsWith("blob:"))) {
+        throw new Error(
+          "พบรูปภาพป้ายราคาที่ยังไม่ได้อัปโหลดสมบูรณ์ กรุณาลองใหม่อีกครั้ง",
+        );
+      }
+      if (rec.shelfImages?.some((img) => img.url.startsWith("blob:"))) {
+        throw new Error(
+          "พบรูปภาพชั้นวางสินค้าที่ยังไม่ได้อัปโหลดสมบูรณ์ กรุณาลองใหม่อีกครั้ง",
+        );
+      }
+    }
+
+    return updatedRecords;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -717,6 +881,20 @@ export default function ActivityPlanActualView({
 
     try {
       if (id) {
+        // Upload any new Type 5 survey images before saving result
+        let cleanT5SurveyDetails = t5SurveyDetails;
+        if (
+          isTypeVisible("สำรวจตลาดของคู่แข่ง") &&
+          t5SurveyDetails &&
+          t5SurveyDetails.length > 0
+        ) {
+          cleanT5SurveyDetails = await uploadType5SurveyImages(
+            id,
+            t5SurveyDetails,
+          );
+          setT5SurveyDetails(cleanT5SurveyDetails);
+        }
+
         const buildResult = buildResultSummary({
           activityResultStatus,
           cancelReason,
@@ -748,7 +926,7 @@ export default function ActivityPlanActualView({
           t5CompetitorPrice,
           t5CompetitorUnit,
           t5PromotionDetail,
-          t5SurveyDetails,
+          t5SurveyDetails: cleanT5SurveyDetails,
           t6ProblemDetail,
           t6InitialSolution,
           t6Status,
