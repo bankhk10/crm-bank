@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Target, ShoppingBag, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ActualTargetCard } from "../actual-target-card";
 
 export interface TargetProductItem {
+  id?: string;
   productName: string;
   customer?: string;
   qty: string;
@@ -19,10 +20,60 @@ export interface TargetProductItem {
   unclosedReason?: string;
 }
 
+export interface Type3ProductSaleDetail {
+  id?: string;
+  productName: string;
+  customer?: string;
+  qty?: string;
+  unitPrice?: string;
+  price?: string;
+  actualQty?: string;
+  actualSales?: string;
+  unclosedReason?: string;
+}
+
 function extractUnit(qtyStr?: string): string {
   if (!qtyStr) return "ชิ้น";
   const match = qtyStr.match(/([^\d\s]+)$/);
   return match ? match[1] : "ชิ้น";
+}
+
+function parseProductQty(
+  actualQuantityText: string | undefined,
+  productName: string,
+): string {
+  if (!actualQuantityText) return "";
+  const escaped = productName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(
+    `(?:^|,\\s*)${escaped}:\\s*(\\d+(?:\\.\\d+)?)[^,]*`,
+    "i",
+  );
+  const match = actualQuantityText.match(regex);
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  if (!actualQuantityText.includes(":") && !actualQuantityText.includes(",")) {
+    const numMatch = actualQuantityText.match(/\d+(?:\.\d+)?/);
+    return numMatch ? numMatch[0] : "";
+  }
+  return "";
+}
+
+function parseProductReason(
+  unclosedReasonText: string | undefined,
+  productName: string,
+): string {
+  if (!unclosedReasonText) return "";
+  const escaped = productName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`(?:^|\\|\\s*)${escaped}:\\s*([^|]+)`, "i");
+  const match = unclosedReasonText.match(regex);
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  if (!unclosedReasonText.includes(":") && !unclosedReasonText.includes("|")) {
+    return unclosedReasonText.trim();
+  }
+  return "";
 }
 
 interface ActualType3SalesProps {
@@ -44,12 +95,13 @@ interface ActualType3SalesProps {
   setActualQuantity: (v: string) => void;
   unclosedReason: string;
   setUnclosedReason: (v: string) => void;
+  productSalesDetails?: Type3ProductSaleDetail[];
+  setProductSalesDetails?: (v: Type3ProductSaleDetail[]) => void;
 }
 
 export function ActualType3Sales({
   isVisible,
   target,
-  soldProducts,
   setSoldProducts,
   actualSales,
   setActualSales,
@@ -57,30 +109,41 @@ export function ActualType3Sales({
   setActualQuantity,
   unclosedReason,
   setUnclosedReason,
+  productSalesDetails,
+  setProductSalesDetails,
 }: ActualType3SalesProps) {
   // Local state per product item for multi-product support
-  const [productItems, setProductItems] = useState<TargetProductItem[]>(
-    target.items || [],
-  );
+  const [productItems, setProductItems] = useState<TargetProductItem[]>(() => {
+    if (!target.items || target.items.length === 0) return [];
+    return target.items.map((item, idx) => {
+      const saved =
+        productSalesDetails?.find(
+          (d) =>
+            (item.id && d.id === item.id) ||
+            d.productName === item.productName,
+        ) || productSalesDetails?.[idx];
 
-  // Initialize per-product values when target.items changes
-  useEffect(() => {
-    if (target.items && target.items.length > 0) {
-      setProductItems((prev) =>
-        target.items!.map((item, idx) => {
-          const existing = prev[idx];
-          return {
-            ...item,
-            actualQty: existing?.actualQty ?? item.actualQty ?? "",
-            actualSales: existing?.actualSales ?? item.actualSales ?? "",
-            unclosedReason: existing?.unclosedReason ?? item.unclosedReason ?? "",
-          };
-        }),
+      const fallbackQty = parseProductQty(actualQuantity, item.productName);
+      const fallbackReason = parseProductReason(
+        unclosedReason,
+        item.productName,
       );
-    } else {
-      setProductItems([]);
-    }
-  }, [target.items]);
+
+      return {
+        ...item,
+        actualQty:
+          saved?.actualQty ?? (fallbackQty || item.actualQty || ""),
+        actualSales:
+          saved?.actualSales ??
+          (target.items!.length === 1 && actualSales
+            ? actualSales
+            : item.actualSales || ""),
+        unclosedReason:
+          saved?.unclosedReason ??
+          (fallbackReason || item.unclosedReason || ""),
+      };
+    });
+  });
 
   if (!isVisible) return null;
 
@@ -94,6 +157,22 @@ export function ActualType3Sales({
     const updated = [...productItems];
     updated[index] = { ...updated[index], [field]: value };
     setProductItems(updated);
+
+    if (setProductSalesDetails) {
+      setProductSalesDetails(
+        updated.map((item) => ({
+          id: item.id,
+          productName: item.productName,
+          customer: item.customer,
+          qty: item.qty,
+          unitPrice: item.unitPrice,
+          price: item.price,
+          actualQty: item.actualQty,
+          actualSales: item.actualSales,
+          unclosedReason: item.unclosedReason,
+        })),
+      );
+    }
 
     // Sync total sum of actual sales to parent
     const totalSalesSum = updated.reduce(
@@ -126,10 +205,15 @@ export function ActualType3Sales({
 
     // Sync sold products
     const soldList = updated
-      .filter((item) => Number(item.actualQty) > 0 || Number(item.actualSales) > 0)
+      .filter(
+        (item) =>
+          Number(item.actualQty) > 0 || Number(item.actualSales) > 0,
+      )
       .map(
         (item) =>
-          `${item.productName} (${item.actualQty || "0"} ${item.unit || extractUnit(item.qty)})`,
+          `${item.productName} (${item.actualQty || "0"} ${
+            item.unit || extractUnit(item.qty)
+          })`,
       )
       .join(", ");
     setSoldProducts(soldList);

@@ -32,6 +32,7 @@ export interface ParsedSummaryValues {
   t3ActualSales?: string;
   t3ActualQuantity?: string;
   t3UnclosedReason?: string;
+  t3ProductSalesDetails?: any[];
 
   // Type 4
   t4OrderNo?: string;
@@ -187,6 +188,19 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     const unclosedMatch = summaryText.match(/เหตุผลที่ปิดการขายไม่ได้:\s*(.+)/);
     if (unclosedMatch && unclosedMatch[1]) {
       result.t3UnclosedReason = unclosedMatch[1].split("\n")[0].trim();
+    }
+
+    const t3DetailsMatch = summaryText.match(/ยอดขายแยกสินค้าเสนอขาย:\s*(.+)/);
+    if (t3DetailsMatch && t3DetailsMatch[1]) {
+      try {
+        const rawJson = t3DetailsMatch[1].split("\n")[0].trim();
+        const parsed = JSON.parse(rawJson);
+        if (Array.isArray(parsed)) {
+          result.t3ProductSalesDetails = parsed;
+        }
+      } catch (e) {
+        console.error("Failed to parse t3ProductSalesDetails", e);
+      }
     }
 
     // Type 4

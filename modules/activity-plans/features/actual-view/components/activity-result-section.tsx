@@ -65,6 +65,8 @@ interface ActivityResultSectionProps {
   setT3ActualQuantity: (v: string) => void;
   t3UnclosedReason: string;
   setT3UnclosedReason: (v: string) => void;
+  t3ProductSalesDetails?: any[];
+  setT3ProductSalesDetails?: (v: any[]) => void;
 
   // Type 4
   t4OrderNo: string;
@@ -236,6 +238,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     setT3ActualQuantity,
     t3UnclosedReason,
     setT3UnclosedReason,
+    t3ProductSalesDetails,
+    setT3ProductSalesDetails,
     t4OrderNo,
     setT4OrderNo,
     t4ReceivedAmount,
@@ -409,6 +413,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setActualQuantity={setT3ActualQuantity}
           unclosedReason={t3UnclosedReason}
           setUnclosedReason={setT3UnclosedReason}
+          productSalesDetails={t3ProductSalesDetails}
+          setProductSalesDetails={setT3ProductSalesDetails}
         />
 
         {/* WORK TYPE 4 */}

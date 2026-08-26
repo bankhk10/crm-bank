@@ -530,6 +530,17 @@ modules/activity-plans/
   4. **Detail View:** ปรับ `detail-type2-followup.tsx` ให้แสดงผลโครงสร้างและข้อความ "ชื่อร้านค้า" / "รายละเอียดเพิ่มเติม" สอดคล้องกัน 100%
 - **ผลลัพธ์:** ข้อมูลแสดงผลแยกแต่ละร้านค้าอย่างชัดเจน ถูกต้องตาม Form Data Structure เดิม ไม่กระทบ Database Schema, ไม่กระทบ API Contract, และผ่านการตรวจสอบ TypeScript และ ESLint 100%
 
+### 2026-08-26: แก้ไขการบันทึกและกู้คืนข้อมูลผลการเสนอขายจริงแยกตามสินค้า (Work Type 3: เสนอขายสินค้า)
+- **ปัญหาเดิม:** เมื่อกรอกข้อมูลผลการเสนอขายจริงแยกตามสินค้าแต่ละตัวในหน้า Actual View แล้วกดบันทึก ข้อมูลใน Database บันทึกเฉพาะยอดรวมและสตริงเชื่อมข้อความ แต่หน้า Actual View และ Detail View ไม่ได้ Hydrate/Map ข้อมูลกลับเข้าสู่ State รายสินค้า (`TargetProductItem`) ทำให้เมื่อเปิดหน้าเดิมอีกครั้ง ข้อมูลของแต่ละสินค้าไม่แสดง
+- **การเปลี่ยนแปลง:**
+  1. **Data Serialization (`summary-builder.ts`):** เพิ่มการจัดเก็บ `t3ProductSalesDetails` (JSON สรุปผลแยกรายสินค้า เช่น `id`, `productName`, `actualQty`, `actualSales`, `unclosedReason`) ในฟิลด์ `ยอดขายแยกสินค้าเสนอขาย:` ควบคู่กับฟิลด์ตัวเลข `salesResultAmount`
+  2. **Data Deserialization (`summary-parser.ts`):** เพิ่มการ Parse `t3ProductSalesDetails` ออกจาก `resultSummary`
+  3. **Plan Extractor (`plan-extractor.ts`):** เพิ่มการส่ง `id` ของแต่ละรายการสินค้าจาก DB เข้าสู่ `targets.t3.items`
+  4. **Actual View Component (`actual-type3-sales.tsx`):** ปรับปรุง State Initialization ให้ดึงข้อมูลที่บันทึกไว้ (`productSalesDetails`) หรือ Parsed Fallback มา Map เข้ากับแต่ละรายการสินค้าตาม `id` / `productName` อย่างถูกต้อง
+  5. **Detail View Component (`detail-type3-sales.tsx` & `detail-activity-result-section.tsx`):** ปรับให้รับ `productSalesDetails` และแสดงผลยอดขายจริง ปริมาณขายจริง และเหตุผลที่ไม่สามารถปิดการขายแยกรายสินค้าลงในตาราง Read-only ได้ครบถ้วน
+- **ผลลัพธ์:** ข้อมูลผลการเสนอขายจริงแยกตามสินค้าแต่ละตัวแสดงผลถูกต้อง 100% ทั้งตอนกลับมาเปิดหน้าบันทึกผลและหน้าดูรายละเอียด ไม่กระทบ Work Type อื่นๆ และผ่านการตรวจสอบ TypeScript / ESLint 100%
+
+
 
 
 

@@ -5,6 +5,7 @@ import { ShoppingBag, AlertTriangle } from "lucide-react";
 import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
 
 export interface TargetProductItem {
+  id?: string;
   productName: string;
   customer?: string;
   qty: string;
@@ -16,6 +17,56 @@ export interface TargetProductItem {
   actualQty?: string;
   actualSales?: string;
   unclosedReason?: string;
+}
+
+export interface Type3ProductSaleDetail {
+  id?: string;
+  productName: string;
+  customer?: string;
+  qty?: string;
+  unitPrice?: string;
+  price?: string;
+  actualQty?: string;
+  actualSales?: string;
+  unclosedReason?: string;
+}
+
+function parseProductQty(
+  actualQuantityText: string | undefined,
+  productName: string,
+): string {
+  if (!actualQuantityText) return "";
+  const escaped = productName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(
+    `(?:^|,\\s*)${escaped}:\\s*(\\d+(?:\\.\\d+)?)[^,]*`,
+    "i",
+  );
+  const match = actualQuantityText.match(regex);
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  if (!actualQuantityText.includes(":") && !actualQuantityText.includes(",")) {
+    const numMatch = actualQuantityText.match(/\d+(?:\.\d+)?/);
+    return numMatch ? numMatch[0] : "";
+  }
+  return "";
+}
+
+function parseProductReason(
+  unclosedReasonText: string | undefined,
+  productName: string,
+): string {
+  if (!unclosedReasonText) return "";
+  const escaped = productName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`(?:^|\\|\\s*)${escaped}:\\s*([^|]+)`, "i");
+  const match = unclosedReasonText.match(regex);
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  if (!unclosedReasonText.includes(":") && !unclosedReasonText.includes("|")) {
+    return unclosedReasonText.trim();
+  }
+  return "";
 }
 
 interface DetailType3SalesProps {
@@ -33,6 +84,7 @@ interface DetailType3SalesProps {
   actualSales?: string;
   actualQuantity?: string;
   unclosedReason?: string;
+  productSalesDetails?: Type3ProductSaleDetail[];
 }
 
 export function DetailType3Sales({
@@ -42,17 +94,33 @@ export function DetailType3Sales({
   actualSales,
   actualQuantity,
   unclosedReason,
+  productSalesDetails,
 }: DetailType3SalesProps) {
   if (!isVisible) return null;
 
   const hasMultipleProducts = target.items && target.items.length > 0;
 
   const totalTargetSalesSum = hasMultipleProducts
-    ? target.items!.reduce((sum, i) => sum + (Number(i.targetSales?.replace(/,/g, "")) || 0), 0)
+    ? target.items!.reduce(
+        (sum, i) => sum + (Number(i.targetSales?.replace(/,/g, "")) || 0),
+        0,
+      )
     : Number(target.targetSales?.replace(/,/g, "")) || 0;
 
   const totalActualSalesSum = hasMultipleProducts
-    ? target.items!.reduce((sum, i) => sum + (Number(i.actualSales?.replace(/,/g, "")) || 0), 0)
+    ? target.items!.reduce((sum, item, idx) => {
+        const saved =
+          productSalesDetails?.find(
+            (d) =>
+              (item.id && d.id === item.id) ||
+              d.productName === item.productName,
+          ) || productSalesDetails?.[idx];
+        const val =
+          saved?.actualSales ??
+          item.actualSales ??
+          (target.items!.length === 1 ? actualSales : 0);
+        return sum + (Number(String(val).replace(/,/g, "")) || 0);
+      }, 0) || Number(actualSales?.replace(/,/g, "")) || 0
     : Number(actualSales?.replace(/,/g, "")) || 0;
 
   return (
@@ -104,46 +172,82 @@ export function DetailType3Sales({
                   <th className="py-2.5 px-3">ลูกค้าเป้าหมาย</th>
                   <th className="py-2.5 px-3 text-center">เป้าจำนวน</th>
                   <th className="py-2.5 px-3 text-right">เป้ายอดขาย</th>
-                  <th className="py-2.5 px-3 text-center bg-blue-50/50">ขายได้จริง (จำนวน)</th>
-                  <th className="py-2.5 px-3 text-right bg-blue-50/50">ยอดขายจริง (บาท)</th>
+                  <th className="py-2.5 px-3 text-center bg-blue-50/50">
+                    ขายได้จริง (จำนวน)
+                  </th>
+                  <th className="py-2.5 px-3 text-right bg-blue-50/50">
+                    ยอดขายจริง (บาท)
+                  </th>
                   <th className="py-2.5 px-3">เหตุผลที่ไม่สามารถปิดการขาย</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {target.items!.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/40">
-                    <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
-                      {idx + 1}
-                    </td>
-                    <td className="py-2.5 px-3 font-semibold text-slate-800">
-                      {item.productName}
-                    </td>
-                    <td className="py-2.5 px-3 text-slate-600">
-                      {item.customer || target.customer || "-"}
-                    </td>
-                    <td className="py-2.5 px-3 text-center text-slate-700 font-medium">
-                      {item.qty || "-"}
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-bold text-slate-900">
-                      {item.targetSales ? `฿${item.targetSales}` : "-"}
-                    </td>
-                    <td className="py-2.5 px-3 text-center font-bold text-blue-700 bg-blue-50/30">
-                      {item.actualQty || "-"}
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-extrabold text-blue-800 bg-blue-50/30">
-                      {item.actualSales
-                        ? `฿${Number(item.actualSales).toLocaleString()}`
-                        : "-"}
-                    </td>
-                    <td className="py-2.5 px-3 text-slate-500 italic">
-                      {item.unclosedReason || "-"}
-                    </td>
-                  </tr>
-                ))}
+                {target.items!.map((item, idx) => {
+                  const saved =
+                    productSalesDetails?.find(
+                      (d) =>
+                        (item.id && d.id === item.id) ||
+                        d.productName === item.productName,
+                    ) || productSalesDetails?.[idx];
+
+                  const fallbackQty = parseProductQty(
+                    actualQuantity,
+                    item.productName,
+                  );
+                  const fallbackReason = parseProductReason(
+                    unclosedReason,
+                    item.productName,
+                  );
+
+                  const displayActualQty =
+                    saved?.actualQty ?? (fallbackQty || item.actualQty || "-");
+                  const displayActualSales =
+                    saved?.actualSales ??
+                    (target.items!.length === 1 && actualSales
+                      ? actualSales
+                      : item.actualSales || "");
+                  const displayReason =
+                    saved?.unclosedReason ??
+                    (fallbackReason || item.unclosedReason || "-");
+
+                  return (
+                    <tr key={idx} className="hover:bg-slate-50/40">
+                      <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
+                        {idx + 1}
+                      </td>
+                      <td className="py-2.5 px-3 font-semibold text-slate-800">
+                        {item.productName}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-600">
+                        {item.customer || target.customer || "-"}
+                      </td>
+                      <td className="py-2.5 px-3 text-center text-slate-700 font-medium">
+                        {item.qty || "-"}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-bold text-slate-900">
+                        {item.targetSales ? `฿${item.targetSales}` : "-"}
+                      </td>
+                      <td className="py-2.5 px-3 text-center font-bold text-blue-700 bg-blue-50/30">
+                        {displayActualQty}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-extrabold text-blue-800 bg-blue-50/30">
+                        {displayActualSales
+                          ? `฿${Number(displayActualSales).toLocaleString()}`
+                          : "-"}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-500 italic">
+                        {displayReason}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
               <tfoot className="bg-slate-50/80 border-t border-slate-200 text-xs font-bold">
                 <tr>
-                  <td colSpan={4} className="py-2.5 px-3 text-right text-slate-600">
+                  <td
+                    colSpan={4}
+                    className="py-2.5 px-3 text-right text-slate-600"
+                  >
                     รวมทั้งสิ้น:
                   </td>
                   <td className="py-2.5 px-3 text-right text-slate-900 font-bold">

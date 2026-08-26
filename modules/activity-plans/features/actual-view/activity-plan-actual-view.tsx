@@ -193,6 +193,7 @@ export default function ActivityPlanActualView({
   const [t3ActualSales, setT3ActualSales] = useState("");
   const [t3ActualQuantity, setT3ActualQuantity] = useState("");
   const [t3UnclosedReason, setT3UnclosedReason] = useState("");
+  const [t3ProductSalesDetails, setT3ProductSalesDetails] = useState<any[]>([]);
 
   // Work Type 4 States
   const [t4OrderNo, setT4OrderNo] = useState("");
@@ -400,6 +401,9 @@ export default function ActivityPlanActualView({
             }
             if (parsed.t3UnclosedReason) {
               setT3UnclosedReason(parsed.t3UnclosedReason);
+            }
+            if (parsed.t3ProductSalesDetails) {
+              setT3ProductSalesDetails(parsed.t3ProductSalesDetails);
             }
 
             // Type 4
@@ -612,6 +616,7 @@ export default function ActivityPlanActualView({
           t3ActualSales,
           t3ActualQuantity,
           t3UnclosedReason,
+          t3ProductSalesDetails,
           t4OrderNo,
           t4ReceivedAmount,
           t5CompetitorBrand,
@@ -804,6 +809,8 @@ export default function ActivityPlanActualView({
             setT3ActualQuantity={setT3ActualQuantity}
             t3UnclosedReason={t3UnclosedReason}
             setT3UnclosedReason={setT3UnclosedReason}
+            t3ProductSalesDetails={t3ProductSalesDetails}
+            setT3ProductSalesDetails={setT3ProductSalesDetails}
             // Type 4
             t4OrderNo={t4OrderNo}
             setT4OrderNo={setT4OrderNo}

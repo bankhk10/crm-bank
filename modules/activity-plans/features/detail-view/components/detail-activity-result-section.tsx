@@ -73,6 +73,7 @@ export function DetailActivityResultSection({
           actualSales={parsedResults.t3ActualSales}
           actualQuantity={parsedResults.t3ActualQuantity}
           unclosedReason={parsedResults.t3UnclosedReason}
+          productSalesDetails={parsedResults.t3ProductSalesDetails}
         />
 
         {/* WORK TYPE 4 */}

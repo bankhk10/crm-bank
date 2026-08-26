@@ -30,6 +30,7 @@ export interface BuildSummaryInput {
   t3ActualSales: string;
   t3ActualQuantity: string;
   t3UnclosedReason: string;
+  t3ProductSalesDetails?: any[];
 
   // Type 4
   t4OrderNo: string;
@@ -124,6 +125,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t3ActualSales,
     t3ActualQuantity,
     t3UnclosedReason,
+    t3ProductSalesDetails,
     t4OrderNo,
     t4ReceivedAmount,
     t5CompetitorBrand,
@@ -250,6 +252,13 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t3ActualSales ? `ยอดขายจริง: ${t3ActualSales}` : null,
     t3ActualQuantity ? `จำนวนที่ขายจริง: ${t3ActualQuantity}` : null,
     t3UnclosedReason ? `เหตุผลที่ปิดการขายไม่ได้: ${t3UnclosedReason}` : null,
+    t3ProductSalesDetails &&
+    t3ProductSalesDetails.length > 0 &&
+    t3ProductSalesDetails.some(
+      (d) => d.actualQty || d.actualSales || d.unclosedReason,
+    )
+      ? `ยอดขายแยกสินค้าเสนอขาย: ${JSON.stringify(t3ProductSalesDetails)}`
+      : null,
 
     // Type 4
     t4OrderNo ? `เลขที่บิล/ใบแจ้งหนี้: ${t4OrderNo}` : null,

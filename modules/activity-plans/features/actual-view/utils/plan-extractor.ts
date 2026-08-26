@@ -493,6 +493,7 @@ export function extractPlanData(
                   : "";
 
             return {
+              id: item.id,
               productName,
               customer: item.customerName || p.location || "",
               qty: qtyVal,
