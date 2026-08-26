@@ -131,10 +131,7 @@ export function ActualPlanSummary({ summary }: ActualPlanSummaryProps) {
       {/* ─── SECTION 1: ข้อมูลหลักของกิจกรรม ─── */}
       <div className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-widest">
-            {/* <FileText className="w-3.5 h-3.5 text-blue-500" />
-            ข้อมูลหลักของกิจกรรม (Main Activity Details) */}
-          </p>
+          <p className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-widest"></p>
           {summary.planNo && (
             <span className="text-xs bg-blue-50 border border-blue-200/80 text-blue-700 px-2.5 py-0.5 rounded-md font-semibold flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" />
