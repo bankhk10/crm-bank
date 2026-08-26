@@ -103,8 +103,7 @@ export function DetailType3Sales({
   const totalTargetQtySum = hasMultipleProducts
     ? target.items!.reduce(
         (sum, i) =>
-          sum +
-          (Number(String(i.qty || "").replace(/[^0-9.-]+/g, "")) || 0),
+          sum + (Number(String(i.qty || "").replace(/[^0-9.-]+/g, "")) || 0),
         0,
       )
     : Number(String(target.targetQty || "").replace(/[^0-9.-]+/g, "")) || 0;
@@ -112,8 +111,7 @@ export function DetailType3Sales({
   const totalTargetSalesSum = hasMultipleProducts
     ? target.items!.reduce((sum, i) => {
         const val = i.targetSales || i.price;
-        const num =
-          Number(String(val || "").replace(/[^0-9.-]+/g, "")) || 0;
+        const num = Number(String(val || "").replace(/[^0-9.-]+/g, "")) || 0;
         return sum + num;
       }, 0) ||
       Number(String(target.targetSales || "").replace(/[^0-9.-]+/g, "")) ||
@@ -122,9 +120,9 @@ export function DetailType3Sales({
 
   const hasActualRecord = Boolean(
     (productSalesDetails && productSalesDetails.length > 0) ||
-      actualSales ||
-      actualQuantity ||
-      unclosedReason,
+    actualSales ||
+    actualQuantity ||
+    unclosedReason,
   );
 
   const totalActualQtySum = hasMultipleProducts
@@ -138,7 +136,8 @@ export function DetailType3Sales({
 
         const fallbackQty = parseProductQty(actualQuantity, item.productName);
         const val =
-          saved?.actualQty ?? (fallbackQty !== "" ? fallbackQty : item.actualQty);
+          saved?.actualQty ??
+          (fallbackQty !== "" ? fallbackQty : item.actualQty);
         const num =
           val !== undefined && val !== ""
             ? Number(String(val).replace(/[^0-9.-]+/g, ""))
@@ -225,16 +224,16 @@ export function DetailType3Sales({
                 <tr>
                   <th className="py-2.5 px-3 text-center w-10">ลำดับ</th>
                   <th className="py-2.5 px-3">สินค้า</th>
-                  <th className="py-2.5 px-3">ลูกค้าเป้าหมาย</th>
+                  <th className="py-2.5 px-3">ร้านค้า</th>
                   <th className="py-2.5 px-3 text-center">เป้าจำนวน</th>
                   <th className="py-2.5 px-3 text-right">เป้ายอดขาย</th>
                   <th className="py-2.5 px-3 text-center bg-blue-50/50">
                     ขายได้จริง (จำนวน)
                   </th>
-                  <th className="py-2.5 px-3 text-right bg-blue-50/50">
+                  <th className="py-2.5 px-3 text-center bg-blue-50/50">
                     ยอดขายจริง (บาท)
                   </th>
-                  <th className="py-2.5 px-3">เหตุผลที่ไม่สามารถปิดการขาย</th>
+                  <th className="py-2.5 px-3">รายละเอียด</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -290,10 +289,7 @@ export function DetailType3Sales({
                     (fallbackReason || item.unclosedReason || "-");
 
                   return (
-                    <tr
-                      key={item.id || idx}
-                      className="hover:bg-slate-50/40"
-                    >
+                    <tr key={item.id || idx} className="hover:bg-slate-50/40">
                       <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
                         {idx + 1}
                       </td>
@@ -309,13 +305,13 @@ export function DetailType3Sales({
                       <td className="py-2.5 px-3 text-right font-bold text-slate-900">
                         {targetSalesFormatted}
                       </td>
-                      <td className="py-2.5 px-3 text-center font-bold text-blue-700 bg-blue-50/30">
+                      <td className="py-2.5 px-3 text-center font-bold text-slate-900">
                         {displayActualQty}
                       </td>
-                      <td className="py-2.5 px-3 text-right font-extrabold text-blue-800 bg-blue-50/30">
+                      <td className="py-2.5 px-3 text-center font-bold text-slate-900">
                         {displayActualSales}
                       </td>
-                      <td className="py-2.5 px-3 text-slate-500 italic">
+                      <td className="py-2.5 px-3 text-slate-500">
                         {displayReason}
                       </td>
                     </tr>
@@ -340,12 +336,10 @@ export function DetailType3Sales({
                       ? `฿${totalTargetSalesSum.toLocaleString()}`
                       : "-"}
                   </td>
-                  <td className="py-2.5 px-3 text-center text-blue-800 font-bold bg-blue-50/40">
-                    {hasActualRecord
-                      ? totalActualQtySum.toLocaleString()
-                      : "-"}
+                  <td className="py-2.5 px-3 text-center text-slate-900 font-bold bg-blue-50/40">
+                    {hasActualRecord ? totalActualQtySum.toLocaleString() : "-"}
                   </td>
-                  <td className="py-2.5 px-3 text-right text-blue-900 font-black bg-blue-50/40">
+                  <td className="py-2.5 px-3 text-center text-slate-900 font-black bg-blue-50/40">
                     {hasActualRecord
                       ? `฿${totalActualSalesSum.toLocaleString()}`
                       : "-"}
