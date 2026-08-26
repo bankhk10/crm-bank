@@ -64,7 +64,7 @@ export function DetailActivityStatusSection({
                 สถานะผลการทำกิจกรรม
               </span>
               <span className="text-sm font-extrabold text-amber-950 block">
-                สำเร็จบางส่วน (Partial)
+                สำเร็จบางส่วน
               </span>
             </div>
           </div>

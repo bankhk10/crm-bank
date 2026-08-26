@@ -126,7 +126,7 @@ export function DetailType2Followup({
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-3 pt-1 border-t border-slate-100">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-700 mt-4">
           <span className="w-2 h-2 rounded-full bg-sky-500"></span>
           <span>ผลการปฏิบัติงานจริง</span>
         </div>
