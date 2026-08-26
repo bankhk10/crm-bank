@@ -322,7 +322,7 @@ export function DetailType3Sales({
                 <tr>
                   <td
                     colSpan={3}
-                    className="py-2.5 px-3 text-right text-slate-700 font-bold"
+                    className="py-2.5 px-3 text-left text-slate-700 font-bold"
                   >
                     รวมทั้งสิ้น:
                   </td>
