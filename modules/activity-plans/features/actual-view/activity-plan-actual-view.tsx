@@ -2819,9 +2819,6 @@ export default function ActivityPlanActualView({
                       label: (
                         <div className="text-center leading-tight">
                           <div>สำเร็จบางส่วน</div>
-                          <div className="text-[11px] font-normal opacity-90">
-                            (ดำเนินต่อ)
-                          </div>
                         </div>
                       ),
                       icon: <span className="text-base">🏆</span>,
