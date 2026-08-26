@@ -111,7 +111,7 @@ export function ActualType1Visit({
         gridColsClass="grid-cols-1 sm:grid-cols-3"
         items={[
           { label: "ลูกค้าร้านค้าเป้า:", value: target.customer || "-" },
-          { label: "ตัวแทนจำหน่าย:", value: target.topic || "-" },
+          { label: "ประเด็นหลัก:", value: target.topic || "-" },
           { label: "รายละเอียดเพิ่มเติม:", value: target.detail || "-" },
         ]}
       />
