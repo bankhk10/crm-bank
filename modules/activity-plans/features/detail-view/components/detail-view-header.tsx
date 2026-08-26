@@ -51,17 +51,12 @@ export function DetailViewHeader({
             <h1 className="font-bold text-lg sm:text-xl text-slate-900 tracking-tight">
               รายละเอียดแผนงาน ( Trip Plan Detail )
             </h1>
-            <p className="text-xs text-slate-500 font-medium">
-              ดูรายละเอียดแผนงาน งบประมาณ และผลการปฏิบัติงาน
-            </p>
           </div>
         </div>
       </div>
 
       {/* Right / Status & Plan No */}
       <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
-        {status && <ActivityStatusBadge status={status} />}
-
         {planNo && (
           <div className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs">
             <Info className="w-3.5 h-3.5 shrink-0" />
