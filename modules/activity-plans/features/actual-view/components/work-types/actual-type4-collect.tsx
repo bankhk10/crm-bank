@@ -37,20 +37,17 @@ export function ActualType4Collect({
 }: ActualType4CollectProps) {
   // Local state per company for multi-company collect support
   const [companyItems, setCompanyItems] = useState<TargetCollectCompanyItem[]>(
-    target.items || [],
-  );
-
-  useEffect(() => {
-    if (target.items && target.items.length > 0) {
-      setCompanyItems(
-        target.items.map((item, idx) => ({
+    () => {
+      if (target.items && target.items.length > 0) {
+        return target.items.map((item, idx) => ({
           ...item,
           receivedAmount:
             item.receivedAmount || (idx === 0 ? "15500" : "10000"),
-        })),
-      );
-    }
-  }, [target.items]);
+        }));
+      }
+      return [];
+    },
+  );
 
   if (!isVisible) return null;
 

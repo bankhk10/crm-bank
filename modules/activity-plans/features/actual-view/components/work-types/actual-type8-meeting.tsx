@@ -1,11 +1,18 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Users, ShoppingBag, X } from "lucide-react";
+import { Users, ShoppingBag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ActualTargetCard } from "../actual-target-card";
 import { ImageFile } from "../../types";
+import GalleryUpload from "@/components/custom/gallery-upload";
+import type { FileWithPreview } from "@/hooks/use-file-upload";
+import {
+  convertToFileMetadata,
+  filesWithPreviewToImageFiles,
+  isImageFilesEqual,
+} from "../../utils";
 
 export interface ProductSaleDetail {
   productName: string;
@@ -28,8 +35,9 @@ interface ActualType8MeetingProps {
   productSalesDetails?: ProductSaleDetail[];
   setProductSalesDetails?: (v: ProductSaleDetail[]) => void;
   images: ImageFile[];
-  onUploadImages: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemoveImage: (id: string) => void;
+  setImages: (v: ImageFile[]) => void;
+  onUploadImages?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveImage?: (id: string) => void;
 }
 
 export function ActualType8Meeting({
@@ -41,9 +49,8 @@ export function ActualType8Meeting({
   setFeedbackQnA,
   productSalesDetails,
   setProductSalesDetails,
-  images,
-  onUploadImages,
-  onRemoveImage,
+  images = [],
+  setImages,
 }: ActualType8MeetingProps) {
   const productList = useMemo(() => {
     if (target.items && target.items.length > 0) {
@@ -60,9 +67,7 @@ export function ActualType8Meeting({
 
   const [localProductSales, setLocalProductSales] = useState<
     ProductSaleDetail[]
-  >([]);
-
-  useEffect(() => {
+  >(() => {
     if (productSalesDetails && productSalesDetails.length > 0) {
       const merged = [...productSalesDetails];
       productList.forEach((pName) => {
@@ -70,17 +75,14 @@ export function ActualType8Meeting({
           merged.push({ productName: pName, actualQty: "", actualSales: "" });
         }
       });
-      setLocalProductSales(merged);
-    } else if (productList.length > 0) {
-      setLocalProductSales(
-        productList.map((pName) => ({
-          productName: pName,
-          actualQty: "",
-          actualSales: "",
-        })),
-      );
+      return merged;
     }
-  }, [productList, productSalesDetails]);
+    return productList.map((pName) => ({
+      productName: pName,
+      actualQty: "",
+      actualSales: "",
+    }));
+  });
 
   if (!isVisible) return null;
 
@@ -98,104 +100,113 @@ export function ActualType8Meeting({
   const handleProductSaleChange = (
     index: number,
     field: "actualQty" | "actualSales",
-    value: string,
+    val: string,
   ) => {
     const updated = [...currentSalesList];
-    updated[index] = { ...updated[index], [field]: value };
+    updated[index] = {
+      ...updated[index],
+      [field]: val,
+    };
     setLocalProductSales(updated);
     if (setProductSalesDetails) {
       setProductSalesDetails(updated);
     }
   };
 
-  const totalSalesSum = currentSalesList.reduce(
-    (sum, item) => sum + (Number(item.actualSales) || 0),
-    0,
-  );
+  const handleFilesChange = (files: FileWithPreview[]) => {
+    const converted = filesWithPreviewToImageFiles(files);
+    if (!isImageFilesEqual(images, converted) && setImages) {
+      setImages(converted);
+    }
+  };
 
   return (
-    <div className="border border-violet-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-4 shadow-xs">
-      <div className="flex items-center justify-between border-b border-violet-100 pb-3">
+    <div className="border border-purple-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-4 shadow-xs">
+      <div className="flex items-center justify-between border-b border-purple-100 pb-3">
         <div className="flex items-center gap-2.5">
-          <h2 className="font-bold text-violet-900 text-base md:text-lg">
+          <h2 className="font-bold text-purple-900 text-base md:text-lg">
             จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์
           </h2>
         </div>
       </div>
 
       <ActualTargetCard
-        iconColorClass="text-violet-600"
-        badgeColorClass="bg-violet-100 text-violet-800"
+        iconColorClass="text-purple-600"
+        badgeColorClass="bg-purple-100 text-purple-800"
         gridColsClass="grid-cols-1 sm:grid-cols-3"
         items={[
-          { label: "หัวข้อประชุม:", value: target.topic },
-          { label: "สินค้าเป้าหมาย:", value: target.products },
+          { label: "หัวข้อการประชุม:", value: target.topic || "-" },
+          { label: "สินค้าแนะนำ:", value: target.products || "-" },
           {
             label: "เป้าหมายผู้เข้าร่วม:",
-            value: target.targetAttendees,
-            highlight: true,
+            value: target.targetAttendees ? `${target.targetAttendees} คน` : "-",
           },
         ]}
       />
 
-      {/* Target Products Sales Detail Section */}
-      {productList.length > 0 && (
-        <div className="space-y-3 bg-violet-50/50 border border-violet-100 rounded-2xl p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <label className="text-sm font-bold text-violet-900 flex items-center gap-1.5">
-              <ShoppingBag className="w-4 h-4 text-violet-600" />
-              จำนวนและยอดขายที่ทำได้จริง (แยกตามสินค้าเป้าหมาย)
-            </label>
-            {totalSalesSum > 0 && (
-              <span className="text-xs font-extrabold text-violet-700 bg-violet-100 px-2.5 py-0.5 rounded-full">
-                ยอดขายรวม {totalSalesSum.toLocaleString()} บาท
-              </span>
-            )}
+      <div className="space-y-1.5 pt-1">
+        <label className="text-sm font-semibold text-slate-800">
+          จำนวนผู้เข้าร่วมประชุมจริง (คน) <span className="text-rose-500">*</span>
+        </label>
+        <Input
+          type="number"
+          min="0"
+          value={actualAttendees}
+          onChange={(e) => setActualAttendees(e.target.value)}
+          placeholder="ระบุจำนวนผู้เข้าร่วมจริง เช่น 25"
+          className="bg-white border-slate-300 max-w-xs"
+        />
+      </div>
+
+      {/* Product Sales Details Breakdown Table */}
+      {currentSalesList.length > 0 && (
+        <div className="space-y-2 pt-2 border-t border-purple-100/60">
+          <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
+            <ShoppingBag className="w-4 h-4 text-purple-600" />
+            <span>ยอดขายสินค้าที่เกิดขึ้นในการประชุม (ถ้ามี)</span>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {currentSalesList.map((item, idx) => (
-              <div
-                key={idx}
-                className="bg-white p-3.5 rounded-xl border border-violet-200/80 shadow-2xs space-y-2.5"
-              >
-                <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
-                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-[10px]">
+          <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-2xs">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                <tr>
+                  <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
+                  <th className="py-2.5 px-3">ชื่อสินค้า</th>
+                  <th className="py-2.5 px-3 text-center w-36">
+                    จำนวนที่ขายได้ (ชิ้น/ขวด)
+                  </th>
+                  <th className="py-2.5 px-3 text-center w-40">
+                    ยอดขายจริง (บาท)
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 bg-white">
+                {currentSalesList.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50/50">
+                    <td className="py-2 px-3 text-center text-slate-500 font-medium">
                       {idx + 1}
-                    </span>
-                    {item.productName}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-600">
-                      จำนวนที่ขายได้ / จอง
-                    </label>
-                    <Input
-                      type="text"
-                      value={item.actualQty}
-                      onChange={(e) =>
-                        handleProductSaleChange(
-                          idx,
-                          "actualQty",
-                          e.target.value,
-                        )
-                      }
-                      placeholder="เช่น 10 ลัง"
-                      className="bg-white border-slate-300 text-xs h-9"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-600">
-                      ยอดขายรวม (บาท)
-                    </label>
-                    <div className="relative flex items-center">
+                    </td>
+                    <td className="py-2 px-3 font-semibold text-slate-800">
+                      {item.productName}
+                    </td>
+                    <td className="py-2 px-3 text-center">
                       <Input
                         type="number"
                         min="0"
+                        value={item.actualQty}
+                        onChange={(e) =>
+                          handleProductSaleChange(
+                            idx,
+                            "actualQty",
+                            e.target.value,
+                          )
+                        }
+                        placeholder="0"
+                        className="h-8 text-center bg-slate-50/50 border-slate-200 text-xs w-28 mx-auto"
+                      />
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <Input
+                        type="text"
                         value={item.actualSales}
                         onChange={(e) =>
                           handleProductSaleChange(
@@ -204,44 +215,21 @@ export function ActualType8Meeting({
                             e.target.value,
                           )
                         }
-                        placeholder="ระบุยอดขาย"
-                        className="bg-white border-slate-300 text-xs h-9 pr-8"
+                        placeholder="0.00"
+                        className="h-8 text-right bg-slate-50/50 border-slate-200 text-xs w-32 mx-auto font-bold text-purple-950"
                       />
-                      <span className="absolute right-2.5 text-[10px] font-medium text-slate-400">
-                        บาท
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
-      <div className="space-y-1.5 max-w-xs pt-1">
-        <label className="text-sm font-semibold text-slate-800">
-          จำนวนผู้เข้าร่วมจริง (คน) <span className="text-rose-500">*</span>
-        </label>
-        <div className="relative flex items-center">
-          <Input
-            type="number"
-            min="0"
-            value={actualAttendees}
-            onChange={(e) => setActualAttendees(e.target.value)}
-            placeholder="ระบุจำนวน"
-            className="bg-white border-slate-300 pr-12"
-          />
-          <span className="absolute right-3 text-xs font-semibold text-slate-500">
-            คน
-          </span>
-        </div>
-      </div>
-
       <div className="space-y-1.5">
         <label className="text-sm font-semibold text-slate-800">
-          ประเด็นคำถามหรือข้อเสนอแนะที่ได้รับ{" "}
-          <span className="text-rose-500">*</span>
+          ข้อเสนอแนะ / ประเด็นคำถาม-คำตอบ (Q&A)
         </label>
         <Textarea
           rows={3}
@@ -252,51 +240,29 @@ export function ActualType8Meeting({
         />
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-semibold text-slate-800">
-          รูปภาพบรรยากาศการประชุม <span className="text-rose-500">*</span>
-        </label>
-        <div className="border-2 border-dashed border-violet-200 hover:border-violet-400 bg-violet-50/20 hover:bg-violet-50/40 rounded-2xl p-5 text-center transition-colors cursor-pointer relative group">
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={onUploadImages}
-            className="absolute inset-0 opacity-0 cursor-pointer z-10"
-          />
-          <div className="flex flex-col items-center justify-center gap-1.5">
-            <div className="w-10 h-10 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center">
-              <Users className="w-5 h-5" />
-            </div>
-            <p className="text-xs font-bold text-violet-900">
-              คลิกเพื่ออัปโหลด รูปบรรยากาศการจัดประชุม
+      {/* GalleryUpload Standard */}
+      <div className="bg-purple-50/20 border border-purple-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
+        <div className="flex items-center gap-2 border-b border-purple-100 pb-2.5">
+          <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center border border-purple-200">
+            <Users className="w-4 h-4" />
+          </div>
+          <div>
+            <h4 className="text-xs sm:text-sm font-bold text-purple-950">
+              รูปภาพบรรยากาศการประชุม
+            </h4>
+            <p className="text-[11px] text-purple-700/80">
+              อัปโหลดรูปภาพบรรยากาศการจัดประชุม หรือกิจกรรมที่เกิดขึ้น (สูงสุด 10 รูป)
             </p>
           </div>
         </div>
-        {images.length > 0 && (
-          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
-            {images.map((img) => (
-              <div
-                key={img.id}
-                className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={img.url}
-                  alt={img.name}
-                  className="w-full h-full object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => onRemoveImage(img.id)}
-                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+        <GalleryUpload
+          maxFiles={10}
+          maxSize={20 * 1024 * 1024}
+          accept="image/*"
+          multiple={true}
+          initialFiles={convertToFileMetadata(images || [])}
+          onFilesChange={handleFilesChange}
+        />
       </div>
     </div>
   );

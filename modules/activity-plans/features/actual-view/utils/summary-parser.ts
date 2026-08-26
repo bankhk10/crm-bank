@@ -1,4 +1,8 @@
-import type { ActivityResultStatusType, Type5SurveyRecord } from "../types";
+import type {
+  ActivityResultStatusType,
+  Type5SurveyRecord,
+  ImageFile,
+} from "../types";
 
 export interface ParsedSummaryValues {
   // Activity Result Status & Postponed / Cancelled
@@ -50,6 +54,7 @@ export interface ParsedSummaryValues {
   t6ProblemDetail?: string;
   t6InitialSolution?: string;
   t6Status?: "เสร็จสิ้น" | "รอติดตาม";
+  t6Images?: ImageFile[];
 
   // Type 7
   t7PlotName?: string;
@@ -71,22 +76,27 @@ export interface ParsedSummaryValues {
   t7FarmerSatisfaction?: number;
   t7CommercialPotential?: string;
   t7FinalSummaryNotes?: string;
+  t7CropImages?: ImageFile[];
+  t7PlotImages?: ImageFile[];
 
   // Type 8
   t8ActualAttendees?: string;
   t8FeedbackQnA?: string;
   t8ProductSalesDetails?: any[];
+  t8Images?: ImageFile[];
 
   // Type 9
   t9ActualSales?: string;
   t9ProductSalesDetails?: any[];
   t9ActualAttendees?: string;
+  t9Images?: ImageFile[];
 
   // Type 10
   t10ActualAttendees?: string;
   t10ActualSalesOrBooking?: string;
   t10FarmerFeedback?: "สูง" | "ปานกลาง" | "น้อย";
   t10TargetFarmersList?: string;
+  t10Images?: ImageFile[];
 
   // Type 11
   t11StockItems?: any[];
@@ -278,6 +288,17 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       const sVal = t6StatusMatch[1].split("\n")[0].trim();
       if (sVal === "เสร็จสิ้น" || sVal === "รอติดตาม") result.t6Status = sVal;
     }
+    const t6ImagesMatch = summaryText.match(
+      /(?:รูปภาพปัญหา(?:\/การแก้ไข)?|ภาพถ่ายปัญหา|t6Images):\s*(\[.+\])/,
+    );
+    if (t6ImagesMatch && t6ImagesMatch[1]) {
+      try {
+        const parsed = JSON.parse(t6ImagesMatch[1]);
+        if (Array.isArray(parsed)) result.t6Images = parsed;
+      } catch (e) {
+        console.error("Failed to parse t6Images JSON:", e);
+      }
+    }
 
     // Type 7
     const t7PlotMatch = summaryText.match(/ชื่อแปลงทดสอบ:\s*(.+)/);
@@ -369,6 +390,28 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (finalNotesMatch && finalNotesMatch[1]) {
       result.t7FinalSummaryNotes = finalNotesMatch[1].split("\n")[0].trim();
     }
+    const t7CropImagesMatch = summaryText.match(
+      /(?:รูปภาพสภาพพืช|ภาพถ่ายสภาพพืช|รูปสภาพพืช|t7CropImages):\s*(\[.+\])/,
+    );
+    if (t7CropImagesMatch && t7CropImagesMatch[1]) {
+      try {
+        const parsed = JSON.parse(t7CropImagesMatch[1]);
+        if (Array.isArray(parsed)) result.t7CropImages = parsed;
+      } catch (e) {
+        console.error("Failed to parse t7CropImages JSON:", e);
+      }
+    }
+    const t7PlotImagesMatch = summaryText.match(
+      /(?:รูปภาพสภาพแปลง|ภาพถ่ายสภาพแปลง|รูปสภาพแปลง|t7PlotImages):\s*(\[.+\])/,
+    );
+    if (t7PlotImagesMatch && t7PlotImagesMatch[1]) {
+      try {
+        const parsed = JSON.parse(t7PlotImagesMatch[1]);
+        if (Array.isArray(parsed)) result.t7PlotImages = parsed;
+      } catch (e) {
+        console.error("Failed to parse t7PlotImages JSON:", e);
+      }
+    }
 
     // Type 8
     const t8AttendeesMatch = summaryText.match(/จำนวนผู้เข้าร่วมประชุมจริง:\s*(.+)/);
@@ -388,6 +431,17 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         }
       } catch (e) {
         console.error("Failed to parse t8ProductSalesDetails", e);
+      }
+    }
+    const t8ImagesMatch = summaryText.match(
+      /(?:รูปภาพบรรยากาศการประชุม|ภาพถ่ายบรรยากาศการประชุม|รูปภาพการประชุม|t8Images):\s*(\[.+\])/,
+    );
+    if (t8ImagesMatch && t8ImagesMatch[1]) {
+      try {
+        const parsed = JSON.parse(t8ImagesMatch[1]);
+        if (Array.isArray(parsed)) result.t8Images = parsed;
+      } catch (e) {
+        console.error("Failed to parse t8Images JSON:", e);
       }
     }
 
@@ -410,6 +464,17 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     const t9AttendeesMatch = summaryText.match(/จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน:\s*(.+)/);
     if (t9AttendeesMatch && t9AttendeesMatch[1]) {
       result.t9ActualAttendees = t9AttendeesMatch[1].split("\n")[0].trim();
+    }
+    const t9ImagesMatch = summaryText.match(
+      /(?:รูปภาพกิจกรรมส่งเสริมการขายหน้าร้าน|ภาพถ่ายกิจกรรมส่งเสริมการขายหน้าร้าน|รูปภาพหน้าร้าน|t9Images):\s*(\[.+\])/,
+    );
+    if (t9ImagesMatch && t9ImagesMatch[1]) {
+      try {
+        const parsed = JSON.parse(t9ImagesMatch[1]);
+        if (Array.isArray(parsed)) result.t9Images = parsed;
+      } catch (e) {
+        console.error("Failed to parse t9Images JSON:", e);
+      }
     }
 
     // Type 10
@@ -440,6 +505,17 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     const t10FarmersMatch = summaryText.match(/รายชื่อเกษตรกรเป้าหมาย:\s*(.+)/);
     if (t10FarmersMatch && t10FarmersMatch[1]) {
       result.t10TargetFarmersList = t10FarmersMatch[1].split("\n")[0].trim();
+    }
+    const t10ImagesMatch = summaryText.match(
+      /(?:รูปภาพบรรยากาศงาน Field Day|ภาพถ่ายบรรยากาศงาน Field Day|รูปภาพ Field Day|t10Images):\s*(\[.+\])/,
+    );
+    if (t10ImagesMatch && t10ImagesMatch[1]) {
+      try {
+        const parsed = JSON.parse(t10ImagesMatch[1]);
+        if (Array.isArray(parsed)) result.t10Images = parsed;
+      } catch (e) {
+        console.error("Failed to parse t10Images JSON:", e);
+      }
     }
 
     // Type 11

@@ -21,6 +21,9 @@ import {
   extractPlanData,
   parseResultSummary,
   buildResultSummary,
+  uploadActivityPlanImageGroup,
+  collectPermanentUrls,
+  deleteActivityPlanImagePaths,
 } from "./utils";
 import {
   ActualViewHeader,
@@ -216,6 +219,7 @@ export default function ActivityPlanActualView({
   const [t6InitialSolution, setT6InitialSolution] = useState("");
   const [t6Status, setT6Status] = useState<"เสร็จสิ้น" | "รอติดตาม" | "">("เสร็จสิ้น");
   const [t6Images, setT6Images] = useState<ImageFile[]>([]);
+  const initialT6ImagesRef = useRef<ImageFile[]>([]);
 
   // Work Type 7 States
   const [t7StartDate, setT7StartDate] = useState("");
@@ -225,6 +229,7 @@ export default function ActivityPlanActualView({
   const [t7PlantingDate, setT7PlantingDate] = useState("");
   const [t7PlantingAreaCondition, setT7PlantingAreaCondition] = useState("");
   const [t7CropImages, setT7CropImages] = useState<ImageFile[]>([]);
+  const initialT7CropImagesRef = useRef<ImageFile[]>([]);
   const [t7CropAgeValue, setT7CropAgeValue] = useState("");
   const [t7CropAgeUnit, setT7CropAgeUnit] = useState("วัน");
   const [t7GrowthStage, setT7GrowthStage] = useState("");
@@ -237,6 +242,7 @@ export default function ActivityPlanActualView({
   >("");
   const [t7ProblemDescription, setT7ProblemDescription] = useState("");
   const [t7PlotImages, setT7PlotImages] = useState<ImageFile[]>([]);
+  const initialT7PlotImagesRef = useRef<ImageFile[]>([]);
   const [t7PlotStatus, setT7PlotStatus] =
     useState<"IN_PROGRESS" | "COMPLETED" | "FAILED">("IN_PROGRESS");
   const [t7NextFollowUpDate, setT7NextFollowUpDate] = useState("");
@@ -255,6 +261,7 @@ export default function ActivityPlanActualView({
   const [t8FeedbackQnA, setT8FeedbackQnA] = useState("");
   const [t8ProductSalesDetails, setT8ProductSalesDetails] = useState<any[]>([]);
   const [t8Images, setT8Images] = useState<ImageFile[]>([]);
+  const initialT8ImagesRef = useRef<ImageFile[]>([]);
 
   // Work Type 9 States
   const [t9Formats, setT9Formats] = useState<string[]>([]);
@@ -262,6 +269,7 @@ export default function ActivityPlanActualView({
   const [t9ProductSalesDetails, setT9ProductSalesDetails] = useState<any[]>([]);
   const [t9ActualAttendees, setT9ActualAttendees] = useState("");
   const [t9Images, setT9Images] = useState<ImageFile[]>([]);
+  const initialT9ImagesRef = useRef<ImageFile[]>([]);
 
   // Work Type 10 States
   const [t10ActualAttendees, setT10ActualAttendees] = useState("");
@@ -271,6 +279,7 @@ export default function ActivityPlanActualView({
     "สูง" | "กลาง" | "ต่ำ" | ""
   >("");
   const [t10Images, setT10Images] = useState<ImageFile[]>([]);
+  const initialT10ImagesRef = useRef<ImageFile[]>([]);
 
   // Work Type 11 States
   const [t11StockItems, setT11StockItems] = useState<any[]>([]);
@@ -516,6 +525,12 @@ export default function ActivityPlanActualView({
               setT6InitialSolution(parsed.t6InitialSolution);
             }
             if (parsed.t6Status) setT6Status(parsed.t6Status);
+            if (parsed.t6Images && parsed.t6Images.length > 0) {
+              setT6Images(parsed.t6Images);
+              initialT6ImagesRef.current = JSON.parse(
+                JSON.stringify(parsed.t6Images),
+              );
+            }
 
             // Type 7
             if (parsed.t7PlotName) setT7PlotName(parsed.t7PlotName);
@@ -557,6 +572,18 @@ export default function ActivityPlanActualView({
             if (parsed.t7FinalSummaryNotes) {
               setT7FinalSummaryNotes(parsed.t7FinalSummaryNotes);
             }
+            if (parsed.t7CropImages && parsed.t7CropImages.length > 0) {
+              setT7CropImages(parsed.t7CropImages);
+              initialT7CropImagesRef.current = JSON.parse(
+                JSON.stringify(parsed.t7CropImages),
+              );
+            }
+            if (parsed.t7PlotImages && parsed.t7PlotImages.length > 0) {
+              setT7PlotImages(parsed.t7PlotImages);
+              initialT7PlotImagesRef.current = JSON.parse(
+                JSON.stringify(parsed.t7PlotImages),
+              );
+            }
 
             // Type 8
             if (parsed.t8ActualAttendees) {
@@ -566,6 +593,12 @@ export default function ActivityPlanActualView({
             if (parsed.t8ProductSalesDetails) {
               setT8ProductSalesDetails(parsed.t8ProductSalesDetails);
             }
+            if (parsed.t8Images && parsed.t8Images.length > 0) {
+              setT8Images(parsed.t8Images);
+              initialT8ImagesRef.current = JSON.parse(
+                JSON.stringify(parsed.t8Images),
+              );
+            }
 
             // Type 9
             if (parsed.t9ActualSales) setT9ActualSales(parsed.t9ActualSales);
@@ -574,6 +607,12 @@ export default function ActivityPlanActualView({
             }
             if (parsed.t9ActualAttendees) {
               setT9ActualAttendees(parsed.t9ActualAttendees);
+            }
+            if (parsed.t9Images && parsed.t9Images.length > 0) {
+              setT9Images(parsed.t9Images);
+              initialT9ImagesRef.current = JSON.parse(
+                JSON.stringify(parsed.t9Images),
+              );
             }
 
             // Type 10
@@ -593,6 +632,12 @@ export default function ActivityPlanActualView({
             }
             if (parsed.t10TargetFarmersList) {
               setT10TargetFarmersList(parsed.t10TargetFarmersList);
+            }
+            if (parsed.t10Images && parsed.t10Images.length > 0) {
+              setT10Images(parsed.t10Images);
+              initialT10ImagesRef.current = JSON.parse(
+                JSON.stringify(parsed.t10Images),
+              );
             }
 
             // Type 11
@@ -714,266 +759,229 @@ export default function ActivityPlanActualView({
     return true;
   };
 
-  const deleteActivityPlanImages = async (
-    planId: string,
-    publicPaths: string[],
-  ): Promise<void> => {
-    if (!publicPaths || publicPaths.length === 0) return;
-    const validPaths = publicPaths.filter(
-      (p) => typeof p === "string" && p.startsWith("/uploads/activity-plans/"),
-    );
-    if (validPaths.length === 0) return;
-
-    try {
-      await fetch(`/api/activity-plans/${planId}/images`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ publicPaths: validPaths }),
-      });
-    } catch (err) {
-      console.warn("Failed to delete activity plan images:", err);
-    }
-  };
-
-  const uploadType5SurveyImages = async (
-    planId: string,
-    surveyDetails: Type5SurveyRecord[],
-  ): Promise<{
-    updatedRecords: Type5SurveyRecord[];
-    newlyUploadedUrls: string[];
-  }> => {
-    const updatedRecords: Type5SurveyRecord[] = [];
-    const newlyUploadedUrls: string[] = [];
-
-    try {
-      for (let i = 0; i < surveyDetails.length; i++) {
-        const record = { ...surveyDetails[i] };
-        const surveyItemId = record.id || `item-${i + 1}`;
-
-        // 1. Process Price Tag Images
-        if (record.priceTagImages && record.priceTagImages.length > 0) {
-          const processedPriceTag: ImageFile[] = [];
-          const newFilesToUpload: { file: File; tempId: string }[] = [];
-
-          for (const img of record.priceTagImages) {
-            if (img.rawFile instanceof File) {
-              newFilesToUpload.push({ file: img.rawFile, tempId: img.id });
-            } else if (img.url && img.url.startsWith("blob:")) {
-              try {
-                const res = await fetch(img.url);
-                const blob = await res.blob();
-                const file = new File([blob], img.name || "price-tag.jpg", {
-                  type: blob.type || "image/jpeg",
-                });
-                newFilesToUpload.push({ file, tempId: img.id });
-              } catch {
-                throw new Error(
-                  `ไม่สามารถเข้าถึงไฟล์รูปภาพป้ายราคาของ ${record.store || "ร้านค้า"} ได้ กรุณาเลือกไฟล์ใหม่อีกครั้ง`,
-                );
-              }
-            } else {
-              // Already permanent URL
-              processedPriceTag.push({
-                id: img.id,
-                url: img.url,
-                name: img.name,
-              });
-            }
-          }
-
-          if (newFilesToUpload.length > 0) {
-            const form = new FormData();
-            newFilesToUpload.forEach(({ file }) => form.append("images", file));
-
-            const res = await fetch(
-              `/api/activity-plans/${planId}/images?surveyItemId=${encodeURIComponent(surveyItemId)}&category=price-tag`,
-              {
-                method: "POST",
-                body: form,
-              },
-            );
-
-            if (!res.ok) {
-              const errData = await res.json().catch(() => ({}));
-              throw new Error(
-                errData.error ||
-                  `อัปโหลดรูปภาพป้ายราคาของ ${record.store || "ร้านค้า"} ล้มเหลว`,
-              );
-            }
-
-            const data = await res.json();
-            if (data.created && Array.isArray(data.created)) {
-              data.created.forEach((uploaded: any, uIdx: number) => {
-                const original = newFilesToUpload[uIdx];
-                processedPriceTag.push({
-                  id: uploaded.id,
-                  url: uploaded.url,
-                  name: uploaded.filename || original.file.name,
-                });
-                newlyUploadedUrls.push(uploaded.url);
-              });
-            }
-          }
-
-          record.priceTagImages = processedPriceTag;
-        }
-
-        // 2. Process Shelf Images
-        if (record.shelfImages && record.shelfImages.length > 0) {
-          const processedShelf: ImageFile[] = [];
-          const newFilesToUpload: { file: File; tempId: string }[] = [];
-
-          for (const img of record.shelfImages) {
-            if (img.rawFile instanceof File) {
-              newFilesToUpload.push({ file: img.rawFile, tempId: img.id });
-            } else if (img.url && img.url.startsWith("blob:")) {
-              try {
-                const res = await fetch(img.url);
-                const blob = await res.blob();
-                const file = new File([blob], img.name || "shelf.jpg", {
-                  type: blob.type || "image/jpeg",
-                });
-                newFilesToUpload.push({ file, tempId: img.id });
-              } catch {
-                throw new Error(
-                  `ไม่สามารถเข้าถึงไฟล์รูปภาพชั้นวางสินค้าของ ${record.store || "ร้านค้า"} ได้ กรุณาเลือกไฟล์ใหม่อีกครั้ง`,
-                );
-              }
-            } else {
-              // Already permanent URL
-              processedShelf.push({
-                id: img.id,
-                url: img.url,
-                name: img.name,
-              });
-            }
-          }
-
-          if (newFilesToUpload.length > 0) {
-            const form = new FormData();
-            newFilesToUpload.forEach(({ file }) => form.append("images", file));
-
-            const res = await fetch(
-              `/api/activity-plans/${planId}/images?surveyItemId=${encodeURIComponent(surveyItemId)}&category=shelf`,
-              {
-                method: "POST",
-                body: form,
-              },
-            );
-
-            if (!res.ok) {
-              const errData = await res.json().catch(() => ({}));
-              throw new Error(
-                errData.error ||
-                  `อัปโหลดรูปภาพชั้นวางสินค้าของ ${record.store || "ร้านค้า"} ล้มเหลว`,
-              );
-            }
-
-            const data = await res.json();
-            if (data.created && Array.isArray(data.created)) {
-              data.created.forEach((uploaded: any, uIdx: number) => {
-                const original = newFilesToUpload[uIdx];
-                processedShelf.push({
-                  id: uploaded.id,
-                  url: uploaded.url,
-                  name: uploaded.filename || original.file.name,
-                });
-                newlyUploadedUrls.push(uploaded.url);
-              });
-            }
-          }
-
-          record.shelfImages = processedShelf;
-        }
-
-        updatedRecords.push(record);
-      }
-
-      // Safety check: ensure NO blob URL remains
-      for (const rec of updatedRecords) {
-        if (rec.priceTagImages?.some((img) => img.url.startsWith("blob:"))) {
-          throw new Error(
-            "พบรูปภาพป้ายราคาที่ยังไม่ได้อัปโหลดสมบูรณ์ กรุณาลองใหม่อีกครั้ง",
-          );
-        }
-        if (rec.shelfImages?.some((img) => img.url.startsWith("blob:"))) {
-          throw new Error(
-            "พบรูปภาพชั้นวางสินค้าที่ยังไม่ได้อัปโหลดสมบูรณ์ กรุณาลองใหม่อีกครั้ง",
-          );
-        }
-      }
-
-      return { updatedRecords, newlyUploadedUrls };
-    } catch (error) {
-      if (newlyUploadedUrls.length > 0) {
-        await deleteActivityPlanImages(planId, newlyUploadedUrls);
-      }
-      throw error;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
     setIsSubmitting(true);
 
-    let cleanT5SurveyDetails = t5SurveyDetails;
-    let newlyUploadedT5Urls: string[] = [];
-    let oldUrlsToDelete: string[] = [];
+    const allNewlyUploadedUrls: string[] = [];
 
     try {
       if (id) {
+        // --- 1. UPLOAD NEW IMAGES ACROSS ALL WORK TYPES ---
+        // Work Type 5
+        let cleanT5SurveyDetails = t5SurveyDetails;
         if (
           isTypeVisible("สำรวจตลาดของคู่แข่ง") &&
           t5SurveyDetails &&
           t5SurveyDetails.length > 0
         ) {
-          // 1. Calculate initial permanent URLs
-          const initialPermanentUrls: string[] = [];
-          (initialT5SurveyDetailsRef.current || []).forEach(
-            (rec: Type5SurveyRecord) => {
-              rec.priceTagImages?.forEach((img: ImageFile) => {
-                if (img.url && img.url.startsWith("/uploads/activity-plans/")) {
-                  initialPermanentUrls.push(img.url);
-                }
-              });
-              rec.shelfImages?.forEach((img: ImageFile) => {
-                if (img.url && img.url.startsWith("/uploads/activity-plans/")) {
-                  initialPermanentUrls.push(img.url);
-                }
-              });
-            },
-          );
+          const updatedT5: Type5SurveyRecord[] = [];
+          for (let i = 0; i < t5SurveyDetails.length; i++) {
+            const rec = { ...t5SurveyDetails[i] };
+            const surveyItemId = rec.id || `item-${i + 1}`;
 
-          // 2. Upload new files
-          const uploadRes = await uploadType5SurveyImages(
-            id,
-            t5SurveyDetails,
-          );
-          cleanT5SurveyDetails = uploadRes.updatedRecords;
-          newlyUploadedT5Urls = uploadRes.newlyUploadedUrls;
+            if (rec.priceTagImages && rec.priceTagImages.length > 0) {
+              const res = await uploadActivityPlanImageGroup(
+                id,
+                rec.priceTagImages,
+                "price-tag",
+                surveyItemId,
+              );
+              rec.priceTagImages = res.updatedImages;
+              allNewlyUploadedUrls.push(...res.newlyUploadedUrls);
+            }
+
+            if (rec.shelfImages && rec.shelfImages.length > 0) {
+              const res = await uploadActivityPlanImageGroup(
+                id,
+                rec.shelfImages,
+                "shelf",
+                surveyItemId,
+              );
+              rec.shelfImages = res.updatedImages;
+              allNewlyUploadedUrls.push(...res.newlyUploadedUrls);
+            }
+
+            updatedT5.push(rec);
+          }
+          cleanT5SurveyDetails = updatedT5;
           setT5SurveyDetails(cleanT5SurveyDetails);
-
-          // 3. Find old URLs removed by the user
-          const currentPermanentUrls = new Set<string>();
-          cleanT5SurveyDetails.forEach((rec: Type5SurveyRecord) => {
-            rec.priceTagImages?.forEach((img: ImageFile) => {
-              if (img.url && img.url.startsWith("/uploads/activity-plans/")) {
-                currentPermanentUrls.add(img.url);
-              }
-            });
-            rec.shelfImages?.forEach((img: ImageFile) => {
-              if (img.url && img.url.startsWith("/uploads/activity-plans/")) {
-                currentPermanentUrls.add(img.url);
-              }
-            });
-          });
-
-          oldUrlsToDelete = initialPermanentUrls.filter(
-            (url) => !currentPermanentUrls.has(url),
-          );
         }
 
+        // Work Type 6
+        let cleanT6Images = t6Images;
+        if (
+          isTypeVisible("แก้ปัญหา / รับเรื่องร้องเรียน") &&
+          t6Images &&
+          t6Images.length > 0
+        ) {
+          const res = await uploadActivityPlanImageGroup(
+            id,
+            t6Images,
+            "issue",
+            "general",
+          );
+          cleanT6Images = res.updatedImages;
+          allNewlyUploadedUrls.push(...res.newlyUploadedUrls);
+          setT6Images(cleanT6Images);
+        }
+
+        // Work Type 7
+        let cleanT7CropImages = t7CropImages;
+        let cleanT7PlotImages = t7PlotImages;
+        if (isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")) {
+          const plotItemId = t7DemoPlotId || targets.t7.owner || "demo-plot";
+          if (t7CropImages && t7CropImages.length > 0) {
+            const res = await uploadActivityPlanImageGroup(
+              id,
+              t7CropImages,
+              "crop",
+              plotItemId,
+            );
+            cleanT7CropImages = res.updatedImages;
+            allNewlyUploadedUrls.push(...res.newlyUploadedUrls);
+            setT7CropImages(cleanT7CropImages);
+          }
+          if (t7PlotImages && t7PlotImages.length > 0) {
+            const res = await uploadActivityPlanImageGroup(
+              id,
+              t7PlotImages,
+              "plot",
+              plotItemId,
+            );
+            cleanT7PlotImages = res.updatedImages;
+            allNewlyUploadedUrls.push(...res.newlyUploadedUrls);
+            setT7PlotImages(cleanT7PlotImages);
+          }
+        }
+
+        // Work Type 8
+        let cleanT8Images = t8Images;
+        if (
+          isTypeVisible("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์") &&
+          t8Images &&
+          t8Images.length > 0
+        ) {
+          const res = await uploadActivityPlanImageGroup(
+            id,
+            t8Images,
+            "meeting",
+            "general",
+          );
+          cleanT8Images = res.updatedImages;
+          allNewlyUploadedUrls.push(...res.newlyUploadedUrls);
+          setT8Images(cleanT8Images);
+        }
+
+        // Work Type 9
+        let cleanT9Images = t9Images;
+        if (
+          isTypeVisible("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") &&
+          t9Images &&
+          t9Images.length > 0
+        ) {
+          const res = await uploadActivityPlanImageGroup(
+            id,
+            t9Images,
+            "store",
+            "general",
+          );
+          cleanT9Images = res.updatedImages;
+          allNewlyUploadedUrls.push(...res.newlyUploadedUrls);
+          setT9Images(cleanT9Images);
+        }
+
+        // Work Type 10
+        let cleanT10Images = t10Images;
+        if (
+          isTypeVisible("จัดงาน Field Day") &&
+          t10Images &&
+          t10Images.length > 0
+        ) {
+          const res = await uploadActivityPlanImageGroup(
+            id,
+            t10Images,
+            "field-day",
+            "general",
+          );
+          cleanT10Images = res.updatedImages;
+          allNewlyUploadedUrls.push(...res.newlyUploadedUrls);
+          setT10Images(cleanT10Images);
+        }
+
+        // --- 2. CALCULATE OLD REMOVED URLS ACROSS ALL WORK TYPES ---
+        // Type 5
+        const initialT5Urls = (initialT5SurveyDetailsRef.current || []).flatMap(
+          (rec) => [
+            ...collectPermanentUrls(rec.priceTagImages),
+            ...collectPermanentUrls(rec.shelfImages),
+          ],
+        );
+        const currentT5Urls = new Set(
+          cleanT5SurveyDetails.flatMap((rec) => [
+            ...collectPermanentUrls(rec.priceTagImages),
+            ...collectPermanentUrls(rec.shelfImages),
+          ]),
+        );
+        const oldT5ToDelete = initialT5Urls.filter((u) => !currentT5Urls.has(u));
+
+        // Type 6
+        const initialT6Urls = collectPermanentUrls(initialT6ImagesRef.current);
+        const currentT6Urls = new Set(collectPermanentUrls(cleanT6Images));
+        const oldT6ToDelete = initialT6Urls.filter((u) => !currentT6Urls.has(u));
+
+        // Type 7
+        const initialT7CropUrls = collectPermanentUrls(
+          initialT7CropImagesRef.current,
+        );
+        const currentT7CropUrls = new Set(
+          collectPermanentUrls(cleanT7CropImages),
+        );
+        const oldT7CropToDelete = initialT7CropUrls.filter(
+          (u) => !currentT7CropUrls.has(u),
+        );
+
+        const initialT7PlotUrls = collectPermanentUrls(
+          initialT7PlotImagesRef.current,
+        );
+        const currentT7PlotUrls = new Set(
+          collectPermanentUrls(cleanT7PlotImages),
+        );
+        const oldT7PlotToDelete = initialT7PlotUrls.filter(
+          (u) => !currentT7PlotUrls.has(u),
+        );
+
+        // Type 8
+        const initialT8Urls = collectPermanentUrls(initialT8ImagesRef.current);
+        const currentT8Urls = new Set(collectPermanentUrls(cleanT8Images));
+        const oldT8ToDelete = initialT8Urls.filter((u) => !currentT8Urls.has(u));
+
+        // Type 9
+        const initialT9Urls = collectPermanentUrls(initialT9ImagesRef.current);
+        const currentT9Urls = new Set(collectPermanentUrls(cleanT9Images));
+        const oldT9ToDelete = initialT9Urls.filter((u) => !currentT9Urls.has(u));
+
+        // Type 10
+        const initialT10Urls = collectPermanentUrls(
+          initialT10ImagesRef.current,
+        );
+        const currentT10Urls = new Set(collectPermanentUrls(cleanT10Images));
+        const oldT10ToDelete = initialT10Urls.filter(
+          (u) => !currentT10Urls.has(u),
+        );
+
+        const allOldUrlsToDelete = [
+          ...oldT5ToDelete,
+          ...oldT6ToDelete,
+          ...oldT7CropToDelete,
+          ...oldT7PlotToDelete,
+          ...oldT8ToDelete,
+          ...oldT9ToDelete,
+          ...oldT10ToDelete,
+        ];
+
+        // --- 3. BUILD RESULT PAYLOAD & VALIDATE ---
         const buildResult = buildResultSummary({
           activityResultStatus,
           cancelReason,
@@ -1009,6 +1017,7 @@ export default function ActivityPlanActualView({
           t6ProblemDetail,
           t6InitialSolution,
           t6Status,
+          t6Images: cleanT6Images,
           t7PlotName,
           t7PlantingDate,
           t7PlantingAreaCondition,
@@ -1028,16 +1037,21 @@ export default function ActivityPlanActualView({
           t7FarmerSatisfaction,
           t7CommercialPotential,
           t7FinalSummaryNotes,
+          t7CropImages: cleanT7CropImages,
+          t7PlotImages: cleanT7PlotImages,
           t8ActualAttendees,
           t8FeedbackQnA,
           t8ProductSalesDetails,
+          t8Images: cleanT8Images,
           t9ActualSales,
           t9ProductSalesDetails,
           t9ActualAttendees,
+          t9Images: cleanT9Images,
           t10ActualAttendees,
           t10ActualSalesOrBooking,
           t10FarmerFeedback,
           t10TargetFarmersList,
+          t10Images: cleanT10Images,
           t11StockItems,
           t11ProductList,
           t11RemainingQty,
@@ -1049,33 +1063,52 @@ export default function ActivityPlanActualView({
 
         if (buildResult.validationError) {
           // Cleanup newly uploaded files if validation fails
-          if (newlyUploadedT5Urls.length > 0) {
-            await deleteActivityPlanImages(id, newlyUploadedT5Urls);
+          if (allNewlyUploadedUrls.length > 0) {
+            await deleteActivityPlanImagePaths(id, allNewlyUploadedUrls);
           }
           setFormError(buildResult.validationError);
           setIsSubmitting(false);
           return;
         }
 
+        // --- 4. RECORD TO DATABASE ---
         const res = await recordActivityResultAction(id, buildResult.payload);
         if (!res.success) {
           // Cleanup newly uploaded files if DB save fails
-          if (newlyUploadedT5Urls.length > 0) {
-            await deleteActivityPlanImages(id, newlyUploadedT5Urls);
+          if (allNewlyUploadedUrls.length > 0) {
+            await deleteActivityPlanImagePaths(id, allNewlyUploadedUrls);
           }
           setFormError(res.error || "เกิดข้อผิดพลาดในการบันทึกผลกิจกรรม");
           setIsSubmitting(false);
           return;
         }
 
-        // 4. Save succeeded! Delete removed old files from physical storage
-        if (oldUrlsToDelete.length > 0) {
-          await deleteActivityPlanImages(id, oldUrlsToDelete);
+        // --- 5. DB SAVE SUCCEEDED: DELETE OLD REMOVED PHYSICAL FILES ---
+        if (allOldUrlsToDelete.length > 0) {
+          await deleteActivityPlanImagePaths(id, allOldUrlsToDelete);
         }
 
-        // Update initial reference to current saved state
+        // Update initial references to current saved state
         initialT5SurveyDetailsRef.current = JSON.parse(
           JSON.stringify(cleanT5SurveyDetails),
+        );
+        initialT6ImagesRef.current = JSON.parse(
+          JSON.stringify(cleanT6Images),
+        );
+        initialT7CropImagesRef.current = JSON.parse(
+          JSON.stringify(cleanT7CropImages),
+        );
+        initialT7PlotImagesRef.current = JSON.parse(
+          JSON.stringify(cleanT7PlotImages),
+        );
+        initialT8ImagesRef.current = JSON.parse(
+          JSON.stringify(cleanT8Images),
+        );
+        initialT9ImagesRef.current = JSON.parse(
+          JSON.stringify(cleanT9Images),
+        );
+        initialT10ImagesRef.current = JSON.parse(
+          JSON.stringify(cleanT10Images),
         );
 
         if (
@@ -1103,9 +1136,9 @@ export default function ActivityPlanActualView({
             plantingAreaCondition: t7PlantingAreaCondition,
             productUsedQty: qty,
             productUnitPrice: t7ProductPrice || 500,
-            cropImageUrls: t7CropImages.map((img) => img.url),
-            plotImageUrls: t7PlotImages.map((img) => img.url),
-            imageUrls: t7PlotImages.map((img) => img.url),
+            cropImageUrls: collectPermanentUrls(cleanT7CropImages),
+            plotImageUrls: collectPermanentUrls(cleanT7PlotImages),
+            imageUrls: collectPermanentUrls(cleanT7PlotImages),
             plotStatus: t7PlotStatus,
             finalYieldKg: t7FinalYieldKg ? Number(t7FinalYieldKg) : null,
             controlYieldKg: t7ControlYieldKg ? Number(t7ControlYieldKg) : null,
@@ -1131,8 +1164,8 @@ export default function ActivityPlanActualView({
         }
       }, 1000);
     } catch (err: any) {
-      if (id && newlyUploadedT5Urls.length > 0) {
-        await deleteActivityPlanImages(id, newlyUploadedT5Urls);
+      if (id && allNewlyUploadedUrls.length > 0) {
+        await deleteActivityPlanImagePaths(id, allNewlyUploadedUrls);
       }
       setFormError(err.message || "เกิดข้อผิดพลาดในการบันทึกผลกิจกรรม");
       setIsSubmitting(false);

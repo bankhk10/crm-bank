@@ -14,20 +14,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  convertToFileMetadata,
+  filesWithPreviewToImageFiles,
+  isImageFilesEqual,
+} from "../../utils";
 
 export const COMPETITOR_PRODUCT_UNITS = [
   "ขวด",
   "แกลลอน",
   "ถัง",
-  "กระสอบ",
-  "ลัง",
-  "กล่อง",
-  "ถุง",
   "ซอง",
-  "ลิตร",
-  "กิโลกรัม",
+  "ถุง",
+  "กล่อง",
+  "กระสอบ",
   "ชุด",
-  "ชิ้น",
+  "ลิตร",
+  "มิลลิลิตร",
+  "กิโลกรัม",
+  "กรัม",
 ];
 
 export interface TargetSurveyItem {
@@ -43,7 +48,12 @@ interface ActualType5SurveyProps {
     store: string;
     product: string;
     detail: string;
-    items?: TargetSurveyItem[];
+    items?: Array<{
+      id?: string;
+      store?: string;
+      product?: string;
+      detail?: string;
+    }>;
   };
   surveyDetails?: Type5SurveyRecord[];
   onUpdateSurveyItem?: (
@@ -83,17 +93,6 @@ export function ActualType5Survey({
   setPromotionDetail,
   priceTagImages = [],
 }: ActualType5SurveyProps) {
-  // Convert ImageFile[] to FileMetadata[] for GalleryUpload
-  const convertToFileMetadata = (images: ImageFile[] = []): FileMetadata[] => {
-    return images.map((img) => ({
-      id: img.id,
-      name: img.name || `image-${img.id}`,
-      size: (img as any).size || 0,
-      type: (img as any).type || "image/jpeg",
-      url: img.url,
-    }));
-  };
-
   // Normalized records to render: prefer surveyDetails if available, otherwise construct from target or fallback
   const recordsToRender: { record: Type5SurveyRecord; index: number }[] =
     useMemo(() => {
@@ -194,81 +193,19 @@ export function ActualType5Survey({
     index: number,
     files: FileWithPreview[],
   ) => {
-    const converted: ImageFile[] = files.map((item) => {
-      if (item.file instanceof File) {
-        return {
-          id: item.id,
-          url:
-            item.preview ||
-            (typeof window !== "undefined"
-              ? URL.createObjectURL(item.file)
-              : ""),
-          name: item.file.name,
-          size: item.file.size,
-          type: item.file.type,
-          rawFile: item.file,
-        };
-      }
-      return {
-        id: item.file.id,
-        url: item.file.url,
-        name: item.file.name,
-        size: item.file.size,
-        type: item.file.type,
-      };
-    });
-
+    const converted = filesWithPreviewToImageFiles(files);
     const current = recordsToRender[index]?.record.priceTagImages || [];
-    const isSame =
-      current.length === converted.length &&
-      current.every(
-        (c, i) =>
-          c.id === converted[i]?.id &&
-          c.url === converted[i]?.url &&
-          c.rawFile === converted[i]?.rawFile,
-      );
 
-    if (!isSame && onUpdateSurveyItem) {
+    if (!isImageFilesEqual(current, converted) && onUpdateSurveyItem) {
       onUpdateSurveyItem(index, { priceTagImages: converted });
     }
   };
 
   const handleShelfFilesChange = (index: number, files: FileWithPreview[]) => {
-    const converted: ImageFile[] = files.map((item) => {
-      if (item.file instanceof File) {
-        return {
-          id: item.id,
-          url:
-            item.preview ||
-            (typeof window !== "undefined"
-              ? URL.createObjectURL(item.file)
-              : ""),
-          name: item.file.name,
-          size: item.file.size,
-          type: item.file.type,
-          rawFile: item.file,
-        };
-      }
-      return {
-        id: item.file.id,
-        url: item.file.url,
-        name: item.file.name,
-        size: item.file.size,
-        type: item.file.type,
-      };
-    });
-
+    const converted = filesWithPreviewToImageFiles(files);
     const current = recordsToRender[index]?.record.shelfImages || [];
-    const isSame =
-      current.length === converted.length &&
-      current.every(
-        (c, i) =>
-          c.id === converted[i]?.id &&
-          c.url === converted[i]?.url &&
-          c.rawFile === converted[i]?.rawFile,
-      );
 
-    if (!isSame && onUpdateSurveyItem) {
+    if (!isImageFilesEqual(current, converted) && onUpdateSurveyItem) {
       onUpdateSurveyItem(index, { shelfImages: converted });
     }
   };

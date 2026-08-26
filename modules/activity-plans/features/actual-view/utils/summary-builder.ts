@@ -2,6 +2,7 @@ import type {
   ActivityResultStatusType,
   PlanSummaryData,
   Type5SurveyRecord,
+  ImageFile,
 } from "../types";
 
 export interface BuildSummaryInput {
@@ -52,6 +53,7 @@ export interface BuildSummaryInput {
   t6ProblemDetail: string;
   t6InitialSolution: string;
   t6Status: "เสร็จสิ้น" | "รอติดตาม" | "";
+  t6Images?: ImageFile[];
 
   // Type 7
   t7PlotName: string;
@@ -73,22 +75,27 @@ export interface BuildSummaryInput {
   t7FarmerSatisfaction: number;
   t7CommercialPotential: string;
   t7FinalSummaryNotes: string;
+  t7CropImages?: ImageFile[];
+  t7PlotImages?: ImageFile[];
 
   // Type 8
   t8ActualAttendees: string;
   t8FeedbackQnA: string;
   t8ProductSalesDetails: any[];
+  t8Images?: ImageFile[];
 
   // Type 9
   t9ActualSales: string;
   t9ProductSalesDetails: any[];
   t9ActualAttendees: string;
+  t9Images?: ImageFile[];
 
   // Type 10
   t10ActualAttendees: string;
   t10ActualSalesOrBooking: string;
   t10FarmerFeedback: "สูง" | "กลาง" | "ต่ำ" | "";
   t10TargetFarmersList: string;
+  t10Images?: ImageFile[];
 
   // Type 11
   t11StockItems: any[];
@@ -142,6 +149,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t6ProblemDetail,
     t6InitialSolution,
     t6Status,
+    t6Images,
     t7PlotName,
     t7PlantingDate,
     t7PlantingAreaCondition,
@@ -161,16 +169,21 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t7FarmerSatisfaction,
     t7CommercialPotential,
     t7FinalSummaryNotes,
+    t7CropImages,
+    t7PlotImages,
     t8ActualAttendees,
     t8FeedbackQnA,
     t8ProductSalesDetails,
+    t8Images,
     t9ActualSales,
     t9ProductSalesDetails,
     t9ActualAttendees,
+    t9Images,
     t10ActualAttendees,
     t10ActualSalesOrBooking,
     t10FarmerFeedback,
     t10TargetFarmersList,
+    t10Images,
     t11StockItems,
     t11ProductList,
     t11RemainingQty,
@@ -296,6 +309,9 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       ? `แนวทางแก้ไขเบื้องต้น: ${t6InitialSolution}`
       : null,
     t6Status ? `สถานะการแก้ปัญหา: ${t6Status}` : null,
+    t6Images && t6Images.length > 0
+      ? `รูปภาพปัญหา/การแก้ไข: ${JSON.stringify(t6Images)}`
+      : null,
 
     // Type 7
     t7PlotName ? `ชื่อแปลงทดสอบ: ${t7PlotName}` : null,
@@ -336,6 +352,12 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t7FinalSummaryNotes
       ? `สรุปผลสัมฤทธิ์แปลง: ${t7FinalSummaryNotes}`
       : null,
+    t7CropImages && t7CropImages.length > 0
+      ? `รูปภาพสภาพพืช: ${JSON.stringify(t7CropImages)}`
+      : null,
+    t7PlotImages && t7PlotImages.length > 0
+      ? `รูปภาพสภาพแปลง: ${JSON.stringify(t7PlotImages)}`
+      : null,
 
     // Type 8
     t8ActualAttendees
@@ -346,6 +368,9 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t8ProductSalesDetails.length > 0 &&
     t8ProductSalesDetails.some((d) => d.actualQty || d.actualSales)
       ? `ยอดขายแยกสินค้าประชุม: ${JSON.stringify(t8ProductSalesDetails)}`
+      : null,
+    t8Images && t8Images.length > 0
+      ? `รูปภาพบรรยากาศการประชุม: ${JSON.stringify(t8Images)}`
       : null,
 
     // Type 9
@@ -358,6 +383,9 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t9ActualAttendees
       ? `จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน: ${t9ActualAttendees}`
       : null,
+    t9Images && t9Images.length > 0
+      ? `รูปภาพกิจกรรมส่งเสริมการขายหน้าร้าน: ${JSON.stringify(t9Images)}`
+      : null,
 
     // Type 10
     t10ActualAttendees
@@ -369,6 +397,9 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t10FarmerFeedback ? `ความสนใจเกษตรกร: ${t10FarmerFeedback}` : null,
     t10TargetFarmersList
       ? `รายชื่อเกษตรกรเป้าหมาย: ${t10TargetFarmersList}`
+      : null,
+    t10Images && t10Images.length > 0
+      ? `รูปภาพบรรยากาศงาน Field Day: ${JSON.stringify(t10Images)}`
       : null,
 
     // Type 11

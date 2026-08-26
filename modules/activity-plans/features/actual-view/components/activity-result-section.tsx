@@ -469,8 +469,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           status={t6Status}
           setStatus={setT6Status}
           images={t6Images}
-          onUploadImages={createUploadHandler(setT6Images)}
-          onRemoveImage={(id) => removeImage(setT6Images, id)}
+          setImages={setT6Images}
         />
 
         {/* WORK TYPE 7 */}
@@ -489,8 +488,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           plantingAreaCondition={t7PlantingAreaCondition}
           setPlantingAreaCondition={setT7PlantingAreaCondition}
           cropImages={t7CropImages}
-          onUploadCropImages={createUploadHandler(setT7CropImages)}
-          onRemoveCropImage={(id) => removeImage(setT7CropImages, id)}
+          setCropImages={setT7CropImages}
           cropAgeValue={t7CropAgeValue}
           setCropAgeValue={setT7CropAgeValue}
           cropAgeUnit={t7CropAgeUnit}
@@ -506,8 +504,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           problemDescription={t7ProblemDescription}
           setProblemDescription={setT7ProblemDescription}
           plotImages={t7PlotImages}
-          onUploadImages={createUploadHandler(setT7PlotImages)}
-          onRemoveImage={(id) => removeImage(setT7PlotImages, id)}
+          setPlotImages={setT7PlotImages}
           plotStatus={t7PlotStatus}
           setPlotStatus={setT7PlotStatus}
           nextFollowUpDate={t7NextFollowUpDate}
@@ -541,8 +538,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           productSalesDetails={t8ProductSalesDetails}
           setProductSalesDetails={setT8ProductSalesDetails}
           images={t8Images}
-          onUploadImages={createUploadHandler(setT8Images)}
-          onRemoveImage={(id) => removeImage(setT8Images, id)}
+          setImages={setT8Images}
         />
 
         {/* WORK TYPE 9 */}
@@ -558,8 +554,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           actualAttendees={t9ActualAttendees}
           setActualAttendees={setT9ActualAttendees}
           images={t9Images}
-          onUploadImages={createUploadHandler(setT9Images)}
-          onRemoveImage={(id) => removeImage(setT9Images, id)}
+          setImages={setT9Images}
         />
 
         {/* WORK TYPE 10 */}
@@ -575,8 +570,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           farmerFeedback={t10FarmerFeedback}
           setFarmerFeedback={setT10FarmerFeedback}
           images={t10Images}
-          onUploadImages={createUploadHandler(setT10Images)}
-          onRemoveImage={(id) => removeImage(setT10Images, id)}
+          setImages={setT10Images}
         />
 
         {/* WORK TYPE 11 */}

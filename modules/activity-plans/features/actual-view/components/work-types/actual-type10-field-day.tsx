@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Camera, X } from "lucide-react";
+import { Camera } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -15,6 +15,13 @@ import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
 import { ImageFile } from "../../types";
 import { getFarmerCustomersAction } from "@/modules/activity-plans/server/actions";
+import GalleryUpload from "@/components/custom/gallery-upload";
+import type { FileWithPreview } from "@/hooks/use-file-upload";
+import {
+  convertToFileMetadata,
+  filesWithPreviewToImageFiles,
+  isImageFilesEqual,
+} from "../../utils";
 
 const OTHER_OPTION = "ไม่พบข้อมูล / ระบุเพิ่มเติม";
 
@@ -36,8 +43,9 @@ interface ActualType10FieldDayProps {
   farmerFeedback: "สูง" | "กลาง" | "ต่ำ" | "";
   setFarmerFeedback: (v: "สูง" | "กลาง" | "ต่ำ" | "") => void;
   images: ImageFile[];
-  onUploadImages: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemoveImage: (id: string) => void;
+  setImages: (v: ImageFile[]) => void;
+  onUploadImages?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveImage?: (id: string) => void;
 }
 
 export function ActualType10FieldDay({
@@ -51,9 +59,8 @@ export function ActualType10FieldDay({
   setTargetFarmersList,
   farmerFeedback,
   setFarmerFeedback,
-  images,
-  onUploadImages,
-  onRemoveImage,
+  images = [],
+  setImages,
 }: ActualType10FieldDayProps) {
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [farmerOptions, setFarmerOptions] = useState<string[]>([]);
@@ -96,6 +103,13 @@ export function ActualType10FieldDay({
   }, [targetFarmersList, farmerOptions]);
 
   if (!isVisible) return null;
+
+  const handleFilesChange = (files: FileWithPreview[]) => {
+    const converted = filesWithPreviewToImageFiles(files);
+    if (!isImageFilesEqual(images, converted) && setImages) {
+      setImages(converted);
+    }
+  };
 
   return (
     <div className="border border-orange-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-4 shadow-xs">
@@ -181,88 +195,93 @@ export function ActualType10FieldDay({
             }
           }}
         >
-          <SelectTrigger className="w-full bg-white border-slate-300">
+          <SelectTrigger className="bg-white border-slate-300">
             <SelectValue
               placeholder={
                 loadingFarmers
                   ? "กำลังโหลดรายชื่อเกษตรกร..."
-                  : "เลือกรายชื่อเกษตรกรเป้าหมายที่สนใจ"
+                  : "เลือกรายชื่อเกษตรกรเป้าหมาย"
               }
             />
           </SelectTrigger>
-          <SelectContent className="max-h-72">
+          <SelectContent>
             {farmerOptions.map((farmer) => (
               <SelectItem key={farmer} value={farmer}>
                 {farmer}
               </SelectItem>
             ))}
-            <SelectItem value={OTHER_OPTION}>{OTHER_OPTION}</SelectItem>
+            <SelectItem
+              value={OTHER_OPTION}
+              className="font-semibold text-amber-700"
+            >
+              ➕ {OTHER_OPTION}
+            </SelectItem>
           </SelectContent>
         </Select>
 
         {selectedOption === OTHER_OPTION && (
-          <div className="space-y-1.5 pt-1 animate-in fade-in-50 duration-200">
-            <label className="text-xs font-semibold text-slate-700">
-              ระบุรายชื่อเกษตรกรเพิ่มเติม{" "}
-              <span className="text-rose-500">*</span>
-            </label>
+          <div className="pt-2">
             <Textarea
               rows={2}
               value={targetFarmersList}
               onChange={(e) => setTargetFarmersList(e.target.value)}
-              placeholder="ระบุรายชื่อเกษตรกร เช่น นายประเสริฐ (100 ไร่), นายวิชัย (50 ไร่)"
-              className="bg-white border-slate-300"
+              placeholder="พิมพ์รายชื่อกลุ่มเกษตรกรเป้าหมาย เช่น นายสมชาย, นายสมหมาย..."
+              className="bg-white border-slate-300 text-xs"
             />
           </div>
         )}
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <label className="text-sm font-semibold text-slate-800">
-          รูปภาพบรรยากาศการจัดงานจัดเต็ม{" "}
-          <span className="text-rose-500">*</span>
+          ผลตอบรับของเกษตรกร (ภาพรวม) <span className="text-rose-500">*</span>
         </label>
-        <div className="border-2 border-dashed border-orange-200 hover:border-orange-400 bg-orange-50/20 hover:bg-orange-50/40 rounded-2xl p-5 text-center transition-colors cursor-pointer relative group">
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={onUploadImages}
-            className="absolute inset-0 opacity-0 cursor-pointer z-10"
-          />
-          <div className="flex flex-col items-center justify-center gap-1.5">
-            <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
-              <Camera className="w-5 h-5" />
-            </div>
-            <p className="text-xs font-bold text-orange-900">
-              คลิกเพื่ออัปโหลด รูปบรรยากาศงาน Field Day
+        <div className="grid grid-cols-3 gap-3 max-w-sm">
+          {(["สูง", "กลาง", "ต่ำ"] as const).map((fb) => (
+            <button
+              key={fb}
+              type="button"
+              onClick={() => setFarmerFeedback(fb)}
+              className={cn(
+                "py-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all",
+                farmerFeedback === fb
+                  ? fb === "สูง"
+                    ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
+                    : fb === "กลาง"
+                      ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
+                      : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
+                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
+              )}
+            >
+              {fb === "สูง" ? "🌟 สูงมาก" : fb === "กลาง" ? "👍 ปานกลาง" : "⚠️ ต่ำ"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* GalleryUpload Standard */}
+      <div className="bg-orange-50/20 border border-orange-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
+        <div className="flex items-center gap-2 border-b border-orange-100 pb-2.5">
+          <div className="w-7 h-7 rounded-lg bg-orange-100 text-orange-700 flex items-center justify-center border border-orange-200">
+            <Camera className="w-4 h-4" />
+          </div>
+          <div>
+            <h4 className="text-xs sm:text-sm font-bold text-orange-950">
+              รูปภาพบรรยากาศงาน Field Day
+            </h4>
+            <p className="text-[11px] text-orange-700/80">
+              อัปโหลดรูปภาพบรรยากาศการจัดงานแปลงสาธิตและเกษตรกรเข้าร่วม (สูงสุด 10 รูป)
             </p>
           </div>
         </div>
-        {images.length > 0 && (
-          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
-            {images.map((img) => (
-              <div
-                key={img.id}
-                className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={img.url}
-                  alt={img.name}
-                  className="w-full h-full object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => onRemoveImage(img.id)}
-                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+        <GalleryUpload
+          maxFiles={10}
+          maxSize={20 * 1024 * 1024}
+          accept="image/*"
+          multiple={true}
+          initialFiles={convertToFileMetadata(images || [])}
+          onFilesChange={handleFilesChange}
+        />
       </div>
     </div>
   );

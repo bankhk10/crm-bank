@@ -10,12 +10,19 @@ import {
   ImageIcon,
   Star,
   TrendingUp,
+  Camera,
+  Eye,
+  MapPin,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
 import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
 import { DemoPlotHistoryModal } from "@/modules/activity-plans/features/actual-view/components/work-types/demo-plot-history-modal";
+import {
+  ImageLightboxModal,
+  LightboxImage,
+} from "@/components/custom/image-lightbox-modal";
 
 interface DetailType7DemoProps {
   isVisible: boolean;
@@ -86,129 +93,150 @@ export function DetailType7Demo({
   demoPlotData,
 }: DetailType7DemoProps) {
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [lightboxState, setLightboxState] = useState<{
+    isOpen: boolean;
+    title: string;
+    images: LightboxImage[];
+    initialIndex: number;
+  }>({
+    isOpen: false,
+    title: "",
+    images: [],
+    initialIndex: 0,
+  });
+
+  const openLightbox = (
+    title: string,
+    imgs: ImageFile[] = [],
+    initialIndex: number = 0,
+  ) => {
+    if (!imgs || imgs.length === 0) return;
+    setLightboxState({
+      isOpen: true,
+      title,
+      images: imgs.map((img) => ({
+        id: img.id,
+        url: img.url,
+        name: img.name,
+      })),
+      initialIndex,
+    });
+  };
+
+  const closeLightbox = () => {
+    setLightboxState((prev) => ({ ...prev, isOpen: false }));
+  };
 
   if (!isVisible) return null;
 
-  const formatThaiDate = (dateStr?: string) => {
-    if (!dateStr) return "-";
-    return dateStr.replace(/\b(19\d\d|20\d\d)\b/g, (match) =>
-      String(parseInt(match, 10) + 543),
-    );
-  };
+  const isFollowUp =
+    target.activityType === "FOLLOW_UP" ||
+    (target.owner && target.owner.startsWith("plot-"));
 
-  const allImages = [...cropImages, ...plotImages];
+  const formatThaiDate = (d?: string | Date | null) => {
+    if (!d) return "-";
+    try {
+      const dt = new Date(d);
+      if (isNaN(dt.getTime())) return String(d);
+      return dt.toLocaleDateString("th-TH", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return String(d);
+    }
+  };
 
   return (
     <div className="border border-emerald-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-4 shadow-xs">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-100 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+          <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
             <Sprout className="w-4 h-4" />
           </div>
-          <h2 className="font-bold text-emerald-900 text-base md:text-lg">
-            ติดตามแปลงสาธิต / ทำแปลง
-          </h2>
+          <div>
+            <h2 className="font-bold text-emerald-950 text-base md:text-lg">
+              ติดตามแปลงสาธิต / ทำแปลง
+            </h2>
+            <span className="text-xs text-emerald-700 font-medium">
+              {isFollowUp ? "บันทึกผลการติดตามแปลงสาธิต" : "บันทึกผลการจัดทำแปลงสาธิตใหม่"}
+            </span>
+          </div>
         </div>
 
-        {demoPlotData && (
+        {demoPlotData && visitHistory.length > 0 && (
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => setHistoryOpen(true)}
-            className="text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200 gap-1.5 h-8"
+            className="h-8 gap-1.5 text-xs font-semibold text-emerald-800 border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100 rounded-xl"
           >
             <History className="w-3.5 h-3.5" />
-            ประวัติการลงแปลง ({visitHistory.length} ครั้ง)
+            <span>ดูประวัติการติดตาม ({visitHistory.length} ครั้ง)</span>
           </Button>
         )}
       </div>
 
       {/* PLANNED TARGET CARD */}
       <ActualTargetCard
-        iconColorClass="text-emerald-600"
+        iconColorClass="text-emerald-700"
         badgeColorClass="bg-emerald-50 text-emerald-800 border border-emerald-200"
         gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
         items={[
-          { label: "เจ้าของแปลง:", value: target.owner || "-" },
-          { label: "สินค้าที่ใช้ทดสอบ:", value: target.product || "-" },
-          { label: "พืช / พันธุ์:", value: target.crop || "-" },
-          { label: "จำนวนแปลง / พื้นที่:", value: target.plots || "-" },
           {
-            label: "จำนวนยาที่ใช้:",
-            value: target.demoProductQuantity ? String(target.demoProductQuantity) : "-",
+            label: "ประเภทงาน:",
+            value: isFollowUp ? "ติดตามแปลงเดิม" : "ทำแปลงสาธิตใหม่",
           },
-          { label: "วัตถุประสงค์:", value: target.objective || "-" },
+          { label: "เกษตรกร/แปลง:", value: target.owner || "-" },
+          { label: "พืชที่ทดสอบ:", value: target.crop || "-" },
+          { label: "สินค้าที่ใช้:", value: target.product || "-" },
+          { label: "จำนวนแปลง/พื้นที่:", value: target.plots || "-" },
+          {
+            label: "จำนวนสินค้าที่ใช้:",
+            value: target.demoProductQuantity
+              ? `${target.demoProductQuantity} ชิ้น/ขวด`
+              : "-",
+          },
+          {
+            label: "สภาพแปลงเป้าหมาย:",
+            value: target.targetCondition || target.objective || "-",
+          },
           {
             label: "รายละเอียดการทดลอง:",
             value: target.experimentDetail || target.detail || "-",
-            colSpan: "sm:col-span-2",
           },
         ]}
       />
 
       {/* READ-ONLY RESULT DISPLAY */}
-      <div className="space-y-4 pt-1 border-t border-slate-100">
-        <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>ผลการติดตามแปลงสาธิตจริง</span>
-          </div>
-
-          <Badge
-            variant="outline"
-            className={
-              plotStatus === "COMPLETED"
-                ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
-                : plotStatus === "FAILED"
-                  ? "bg-rose-50 text-rose-800 border-rose-300 font-bold"
-                  : "bg-blue-50 text-blue-800 border-blue-300 font-bold"
-            }
-          >
-            {plotStatus === "COMPLETED"
-              ? "จบการทดลองแล้ว"
-              : plotStatus === "FAILED"
-                ? "การทดลองล้มเหลว"
-                : "กำลังดำเนินการ (In Progress)"}
-          </Badge>
+      <div className="space-y-3 pt-1 border-t border-slate-100">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+          <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+          <span>ผลการปฏิบัติงานจริงในแปลงสาธิต</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
           <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
             <span className="text-xs text-slate-500 font-medium block">
-              ชื่อแปลงสาธิต
+              ชื่อแปลงสาธิต / รหัสแปลง
             </span>
-            <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-              {plotName || "-"}
+            <span className="text-xs sm:text-sm font-bold text-slate-800 block">
+              {plotName || target.owner || "-"}
             </span>
           </div>
 
           <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
             <span className="text-xs text-slate-500 font-medium block">
-              วันที่ปลูก
+              วันที่เริ่มปลูก / อายุพืช
             </span>
             <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-              {formatThaiDate(plantingDate)}
-            </span>
-          </div>
-
-          {plantingAreaCondition && (
-            <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
-              <span className="text-xs text-slate-500 font-medium block">
-                สภาพพื้นที่แปลง
-              </span>
-              <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-                {plantingAreaCondition}
-              </span>
-            </div>
-          )}
-
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
-            <span className="text-xs text-slate-500 font-medium block">
-              อายุพืช
-            </span>
-            <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-              {cropAgeValue ? `${cropAgeValue} ${cropAgeUnit}` : "-"}
+              {cropAgeValue
+                ? `${cropAgeValue} ${cropAgeUnit}`
+                : plantingDate
+                  ? formatThaiDate(plantingDate)
+                  : "-"}
             </span>
           </div>
 
@@ -218,6 +246,15 @@ export function DetailType7Demo({
             </span>
             <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
               {growthStage || "-"}
+            </span>
+          </div>
+
+          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+            <span className="text-xs text-slate-500 font-medium block">
+              สภาพแปลง / พื้นที่ปลูก
+            </span>
+            <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
+              {plantingAreaCondition || "-"}
             </span>
           </div>
 
@@ -236,6 +273,11 @@ export function DetailType7Demo({
                       : "bg-amber-50 text-amber-800 border-amber-300 font-bold"
                 }
               >
+                {cropCondition === "สมบูรณ์" ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600" />
+                ) : (
+                  <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-600" />
+                )}
                 {cropCondition}
               </Badge>
             ) : (
@@ -313,7 +355,10 @@ export function DetailType7Demo({
         </div>
 
         {/* FINAL HARVEST & SATISFACTION METRICS (IF COMPLETED) */}
-        {(finalYieldKg || yieldIncreasePercent || commercialPotential || finalSummaryNotes) && (
+        {(finalYieldKg ||
+          yieldIncreasePercent ||
+          commercialPotential ||
+          finalSummaryNotes) && (
           <div className="bg-emerald-50/50 border border-emerald-200 rounded-xl p-4 space-y-3">
             <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
               <TrendingUp className="w-4 h-4 text-emerald-700" />
@@ -324,14 +369,18 @@ export function DetailType7Demo({
               <div className="bg-white p-3 rounded-lg border border-emerald-100 shadow-2xs">
                 <span className="text-slate-500 block mb-0.5">ผลผลิตแปลงสาธิต</span>
                 <span className="text-sm font-extrabold text-emerald-900">
-                  {finalYieldKg ? `${Number(finalYieldKg).toLocaleString()} กก.` : "-"}
+                  {finalYieldKg
+                    ? `${Number(finalYieldKg).toLocaleString()} กก.`
+                    : "-"}
                 </span>
               </div>
 
               <div className="bg-white p-3 rounded-lg border border-emerald-100 shadow-2xs">
                 <span className="text-slate-500 block mb-0.5">ผลผลิตแปลงควบคุม</span>
                 <span className="text-sm font-extrabold text-slate-800">
-                  {controlYieldKg ? `${Number(controlYieldKg).toLocaleString()} กก.` : "-"}
+                  {controlYieldKg
+                    ? `${Number(controlYieldKg).toLocaleString()} กก.`
+                    : "-"}
                 </span>
               </div>
 
@@ -353,43 +402,130 @@ export function DetailType7Demo({
               {commercialPotential && (
                 <div className="bg-white p-3 rounded-lg border border-emerald-100 shadow-2xs sm:col-span-2 md:col-span-4">
                   <span className="text-slate-500 block mb-0.5">ศักยภาพทางการค้า</span>
-                  <span className="font-semibold text-slate-800">{commercialPotential}</span>
+                  <span className="font-semibold text-slate-800">
+                    {commercialPotential}
+                  </span>
                 </div>
               )}
 
               {finalSummaryNotes && (
                 <div className="bg-white p-3 rounded-lg border border-emerald-100 shadow-2xs sm:col-span-2 md:col-span-4">
                   <span className="text-slate-500 block mb-0.5">สรุปผลการทดลอง</span>
-                  <p className="font-semibold text-slate-800 whitespace-pre-wrap">{finalSummaryNotes}</p>
+                  <p className="font-semibold text-slate-800 whitespace-pre-wrap">
+                    {finalSummaryNotes}
+                  </p>
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* IMAGES (READ-ONLY) */}
-        {allImages.length > 0 && (
-          <div className="space-y-2 pt-2">
-            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <ImageIcon className="w-3.5 h-3.5 text-emerald-600" />
-              ภาพถ่ายแปลงสาธิต / พืช
-            </span>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-              {allImages.map((img) => (
-                <div
-                  key={img.id}
-                  className="group relative rounded-xl border border-slate-200 overflow-hidden bg-slate-50 aspect-video flex items-center justify-center shadow-2xs"
-                >
-                  <img
-                    src={img.url}
-                    alt={img.name || "Plot Image"}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
+        {/* IMAGES DISPLAY (READ-ONLY LIGHTBOX) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+          {/* 1. Crop Images */}
+          <div className="bg-emerald-50/20 border border-emerald-200/70 rounded-2xl p-4 sm:p-4.5 space-y-3">
+            <div className="flex items-center justify-between border-b border-emerald-100/80 pb-2">
+              <span className="text-xs sm:text-sm font-bold text-emerald-950 flex items-center gap-1.5">
+                <Camera className="w-4 h-4 text-emerald-600" />
+                ภาพถ่ายสภาพพืช
+              </span>
+              {cropImages && cropImages.length > 0 ? (
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  {cropImages.length} รูป
+                </span>
+              ) : null}
             </div>
+
+            {cropImages && cropImages.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {cropImages.map((img, imgIdx) => (
+                  <button
+                    key={img.id || imgIdx}
+                    type="button"
+                    onClick={() =>
+                      openLightbox(
+                        `ภาพถ่ายสภาพพืช - ${plotName || target.owner || "แปลงสาธิต"}`,
+                        cropImages,
+                        imgIdx,
+                      )
+                    }
+                    className="group relative rounded-xl border border-emerald-200/80 overflow-hidden bg-slate-100 aspect-video flex items-center justify-center shadow-2xs hover:shadow-md hover:border-emerald-400 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+                    aria-label={`คลิกเพื่อดูภาพถ่ายสภาพพืชที่ ${imgIdx + 1} ขนาดใหญ่`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={img.url}
+                      alt={img.name || `ภาพถ่ายพืช ${imgIdx + 1}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors flex items-center justify-center">
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full bg-black/60 text-white backdrop-blur-xs shadow-md">
+                        <Eye className="w-4 h-4" />
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 p-3.5 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-slate-400 text-xs font-medium">
+                <ImageIcon className="w-4 h-4 opacity-50 text-slate-400" />
+                <span>ไม่มีภาพถ่ายสภาพพืช</span>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* 2. Plot Images */}
+          <div className="bg-teal-50/20 border border-teal-200/70 rounded-2xl p-4 sm:p-4.5 space-y-3">
+            <div className="flex items-center justify-between border-b border-teal-100/80 pb-2">
+              <span className="text-xs sm:text-sm font-bold text-teal-950 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-teal-600" />
+                ภาพถ่ายสภาพแปลง
+              </span>
+              {plotImages && plotImages.length > 0 ? (
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 border border-teal-200">
+                  {plotImages.length} รูป
+                </span>
+              ) : null}
+            </div>
+
+            {plotImages && plotImages.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {plotImages.map((img, imgIdx) => (
+                  <button
+                    key={img.id || imgIdx}
+                    type="button"
+                    onClick={() =>
+                      openLightbox(
+                        `ภาพถ่ายสภาพแปลง - ${plotName || target.owner || "แปลงสาธิต"}`,
+                        plotImages,
+                        imgIdx,
+                      )
+                    }
+                    className="group relative rounded-xl border border-teal-200/80 overflow-hidden bg-slate-100 aspect-video flex items-center justify-center shadow-2xs hover:shadow-md hover:border-teal-400 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                    aria-label={`คลิกเพื่อดูภาพถ่ายสภาพแปลงที่ ${imgIdx + 1} ขนาดใหญ่`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={img.url}
+                      alt={img.name || `ภาพถ่ายแปลง ${imgIdx + 1}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors flex items-center justify-center">
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full bg-black/60 text-white backdrop-blur-xs shadow-md">
+                        <Eye className="w-4 h-4" />
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 p-3.5 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-slate-400 text-xs font-medium">
+                <ImageIcon className="w-4 h-4 opacity-50 text-slate-400" />
+                <span>ไม่มีภาพถ่ายสภาพแปลง</span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* DEMO PLOT HISTORY MODAL (READ-ONLY) */}
@@ -400,6 +536,15 @@ export function DetailType7Demo({
           plot={{ ...demoPlotData, visits: visitHistory }}
         />
       )}
+
+      {/* Lightbox Viewer */}
+      <ImageLightboxModal
+        isOpen={lightboxState.isOpen}
+        onClose={closeLightbox}
+        title={lightboxState.title}
+        images={lightboxState.images}
+        initialIndex={lightboxState.initialIndex}
+      />
     </div>
   );
 }

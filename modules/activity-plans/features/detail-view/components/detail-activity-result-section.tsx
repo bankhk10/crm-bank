@@ -103,6 +103,7 @@ export function DetailActivityResultSection({
           problemDetail={parsedResults.t6ProblemDetail || parsedResults.problemFound}
           initialSolution={parsedResults.t6InitialSolution}
           status={parsedResults.t6Status}
+          images={parsedResults.t6Images}
         />
 
         {/* WORK TYPE 7 */}
@@ -128,6 +129,8 @@ export function DetailActivityResultSection({
           farmerSatisfaction={parsedResults.t7FarmerSatisfaction}
           commercialPotential={parsedResults.t7CommercialPotential}
           finalSummaryNotes={parsedResults.t7FinalSummaryNotes}
+          cropImages={parsedResults.t7CropImages}
+          plotImages={parsedResults.t7PlotImages}
           demoPlotData={demoPlotData}
           visitHistory={visitHistory}
         />
@@ -141,6 +144,7 @@ export function DetailActivityResultSection({
           actualAttendees={parsedResults.t8ActualAttendees}
           feedbackQnA={parsedResults.t8FeedbackQnA}
           productSalesDetails={parsedResults.t8ProductSalesDetails}
+          images={parsedResults.t8Images}
         />
 
         {/* WORK TYPE 9 */}
@@ -150,6 +154,7 @@ export function DetailActivityResultSection({
           actualSales={parsedResults.t9ActualSales}
           productSalesDetails={parsedResults.t9ProductSalesDetails}
           actualAttendees={parsedResults.t9ActualAttendees}
+          images={parsedResults.t9Images}
         />
 
         {/* WORK TYPE 10 */}
@@ -166,6 +171,7 @@ export function DetailActivityResultSection({
                 ? "กลาง"
                 : parsedResults.t10FarmerFeedback
           }
+          images={parsedResults.t10Images}
         />
 
         {/* WORK TYPE 11 */}

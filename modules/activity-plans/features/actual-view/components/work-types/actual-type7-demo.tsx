@@ -36,6 +36,13 @@ import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
 import { ImageFile } from "../../types";
 import { DemoPlotHistoryModal } from "./demo-plot-history-modal";
+import GalleryUpload from "@/components/custom/gallery-upload";
+import type { FileWithPreview } from "@/hooks/use-file-upload";
+import {
+  convertToFileMetadata,
+  filesWithPreviewToImageFiles,
+  isImageFilesEqual,
+} from "../../utils";
 
 export interface TargetDemoItem {
   activityType?: "CREATE" | "FOLLOW_UP" | string;
@@ -101,6 +108,7 @@ interface ActualType7DemoProps {
   plantingAreaCondition?: string;
   setPlantingAreaCondition?: (v: string) => void;
   cropImages?: ImageFile[];
+  setCropImages?: (imgs: ImageFile[]) => void;
   onUploadCropImages?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveCropImage?: (id: string) => void;
   cropAgeValue?: string;
@@ -120,8 +128,9 @@ interface ActualType7DemoProps {
   problemDescription?: string;
   setProblemDescription?: (v: string) => void;
   plotImages: ImageFile[];
-  onUploadImages: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemoveImage: (id: string) => void;
+  setPlotImages?: (imgs: ImageFile[]) => void;
+  onUploadImages?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveImage?: (id: string) => void;
   // Lifecycle & Evaluation Props
   plotStatus?: "IN_PROGRESS" | "COMPLETED" | "FAILED";
   setPlotStatus?: (v: "IN_PROGRESS" | "COMPLETED" | "FAILED") => void;
@@ -160,6 +169,7 @@ export function ActualType7Demo({
   plantingAreaCondition = "",
   setPlantingAreaCondition,
   cropImages = [],
+  setCropImages,
   onUploadCropImages,
   onRemoveCropImage,
   cropAgeValue = "",
@@ -177,6 +187,7 @@ export function ActualType7Demo({
   problemDescription = "",
   setProblemDescription,
   plotImages = [],
+  setPlotImages,
   onUploadImages,
   onRemoveImage,
   plotStatus = "IN_PROGRESS",
@@ -242,6 +253,22 @@ export function ActualType7Demo({
     if (!isNaN(f) && !isNaN(c) && c > 0) {
       const inc = (((f - c) / c) * 100).toFixed(1);
       setYieldIncreasePercent?.(inc);
+    }
+  };
+
+  const handleCropFilesChange = (files: FileWithPreview[]) => {
+    if (!setCropImages) return;
+    const newImageFiles = filesWithPreviewToImageFiles(files);
+    if (!isImageFilesEqual(cropImages, newImageFiles)) {
+      setCropImages(newImageFiles);
+    }
+  };
+
+  const handlePlotFilesChange = (files: FileWithPreview[]) => {
+    if (!setPlotImages) return;
+    const newImageFiles = filesWithPreviewToImageFiles(files);
+    if (!isImageFilesEqual(plotImages, newImageFiles)) {
+      setPlotImages(newImageFiles);
     }
   };
 
@@ -521,49 +548,14 @@ export function ActualType7Demo({
                     (ต้นกล้า/ก่อน-หลังใช้)
                   </span>
                 </label>
-                <div className="border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-white hover:bg-emerald-50/30 rounded-xl p-4 text-center transition-colors cursor-pointer relative group">
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={onUploadCropImages || onUploadImages}
-                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                  />
-                  <div className="flex flex-col items-center justify-center gap-1">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                      <Camera className="w-4 h-4" />
-                    </div>
-                    <p className="text-xs font-bold text-emerald-800">
-                      คลิกเพื่ออัปโหลด รูปสภาพพืช
-                    </p>
-                  </div>
-                </div>
-                {cropImages && cropImages.length > 0 && (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
-                    {cropImages.map((img) => (
-                      <div
-                        key={img.id}
-                        className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={img.url}
-                          alt={img.name}
-                          className="w-full h-full object-cover"
-                        />
-                        {onRemoveCropImage && (
-                          <button
-                            type="button"
-                            onClick={() => onRemoveCropImage(img.id)}
-                            className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <GalleryUpload
+                  maxFiles={10}
+                  maxSize={20 * 1024 * 1024}
+                  accept="image/*"
+                  multiple={true}
+                  initialFiles={convertToFileMetadata(cropImages)}
+                  onFilesChange={handleCropFilesChange}
+                />
               </div>
 
               {/* 2. รูปภาพสภาพแปลง */}
@@ -577,47 +569,14 @@ export function ActualType7Demo({
                     (ภาพรวมพื้นที่ปลูก)
                   </span>
                 </label>
-                <div className="border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-white hover:bg-emerald-50/30 rounded-xl p-4 text-center transition-colors cursor-pointer relative group">
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={onUploadImages}
-                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                  />
-                  <div className="flex flex-col items-center justify-center gap-1">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                      <Camera className="w-4 h-4" />
-                    </div>
-                    <p className="text-xs font-bold text-emerald-800">
-                      คลิกเพื่ออัปโหลด รูปภาพสภาพแปลง
-                    </p>
-                  </div>
-                </div>
-                {plotImages && plotImages.length > 0 && (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
-                    {plotImages.map((img) => (
-                      <div
-                        key={img.id}
-                        className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={img.url}
-                          alt={img.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => onRemoveImage(img.id)}
-                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <GalleryUpload
+                  maxFiles={10}
+                  maxSize={20 * 1024 * 1024}
+                  accept="image/*"
+                  multiple={true}
+                  initialFiles={convertToFileMetadata(plotImages)}
+                  onFilesChange={handlePlotFilesChange}
+                />
               </div>
             </div>
           </div>
@@ -930,49 +889,14 @@ export function ActualType7Demo({
                     (ถ่ายต้นพืช/ใบ/ดอก)
                   </span>
                 </label>
-                <div className="border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-white hover:bg-emerald-50/30 rounded-xl p-4 text-center transition-colors cursor-pointer relative group">
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={onUploadCropImages || onUploadImages}
-                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                  />
-                  <div className="flex flex-col items-center justify-center gap-1">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                      <Camera className="w-4 h-4" />
-                    </div>
-                    <p className="text-xs font-bold text-emerald-800">
-                      คลิกเพื่ออัปโหลด รูปสภาพพืชรอบนี้
-                    </p>
-                  </div>
-                </div>
-                {cropImages && cropImages.length > 0 && (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
-                    {cropImages.map((img) => (
-                      <div
-                        key={img.id}
-                        className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={img.url}
-                          alt={img.name}
-                          className="w-full h-full object-cover"
-                        />
-                        {onRemoveCropImage && (
-                          <button
-                            type="button"
-                            onClick={() => onRemoveCropImage(img.id)}
-                            className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <GalleryUpload
+                  maxFiles={10}
+                  maxSize={20 * 1024 * 1024}
+                  accept="image/*"
+                  multiple={true}
+                  initialFiles={convertToFileMetadata(cropImages)}
+                  onFilesChange={handleCropFilesChange}
+                />
               </div>
 
               {/* 2. รูปภาพสภาพแปลงรอบนี้ */}
@@ -986,47 +910,14 @@ export function ActualType7Demo({
                     (ภาพรวมพื้นที่แปลง)
                   </span>
                 </label>
-                <div className="border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-white hover:bg-emerald-50/30 rounded-xl p-4 text-center transition-colors cursor-pointer relative group">
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={onUploadImages}
-                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                  />
-                  <div className="flex flex-col items-center justify-center gap-1">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                      <Camera className="w-4 h-4" />
-                    </div>
-                    <p className="text-xs font-bold text-emerald-800">
-                      คลิกเพื่ออัปโหลด รูปภาพสภาพแปลงรอบนี้
-                    </p>
-                  </div>
-                </div>
-                {plotImages && plotImages.length > 0 && (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
-                    {plotImages.map((img) => (
-                      <div
-                        key={img.id}
-                        className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={img.url}
-                          alt={img.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => onRemoveImage(img.id)}
-                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <GalleryUpload
+                  maxFiles={10}
+                  maxSize={20 * 1024 * 1024}
+                  accept="image/*"
+                  multiple={true}
+                  initialFiles={convertToFileMetadata(plotImages)}
+                  onFilesChange={handlePlotFilesChange}
+                />
               </div>
             </div>
           </div>

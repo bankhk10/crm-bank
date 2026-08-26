@@ -1,10 +1,22 @@
 "use client";
 
-import React from "react";
-import { Flag, Users, ShoppingBag, ImageIcon, MessageSquare } from "lucide-react";
+import React, { useState } from "react";
+import {
+  Flag,
+  Users,
+  ShoppingBag,
+  ImageIcon,
+  MessageSquare,
+  Camera,
+  Eye,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
 import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
+import {
+  ImageLightboxModal,
+  LightboxImage,
+} from "@/components/custom/image-lightbox-modal";
 
 interface DetailType10FieldDayProps {
   isVisible: boolean;
@@ -31,6 +43,40 @@ export function DetailType10FieldDay({
   farmerFeedback,
   images = [],
 }: DetailType10FieldDayProps) {
+  const [lightboxState, setLightboxState] = useState<{
+    isOpen: boolean;
+    title: string;
+    images: LightboxImage[];
+    initialIndex: number;
+  }>({
+    isOpen: false,
+    title: "",
+    images: [],
+    initialIndex: 0,
+  });
+
+  const openLightbox = (
+    title: string,
+    imgs: ImageFile[] = [],
+    initialIndex: number = 0,
+  ) => {
+    if (!imgs || imgs.length === 0) return;
+    setLightboxState({
+      isOpen: true,
+      title,
+      images: imgs.map((img) => ({
+        id: img.id,
+        url: img.url,
+        name: img.name,
+      })),
+      initialIndex,
+    });
+  };
+
+  const closeLightbox = () => {
+    setLightboxState((prev) => ({ ...prev, isOpen: false }));
+  };
+
   if (!isVisible) return null;
 
   return (
@@ -133,30 +179,67 @@ export function DetailType10FieldDay({
           )}
         </div>
 
-        {/* FIELD DAY IMAGES (READ-ONLY) */}
-        {images.length > 0 && (
-          <div className="space-y-2 pt-2">
-            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <ImageIcon className="w-3.5 h-3.5 text-orange-600" />
+        {/* FIELD DAY IMAGES (READ-ONLY LIGHTBOX) */}
+        <div className="bg-orange-50/20 border border-orange-200/70 rounded-2xl p-4 sm:p-4.5 space-y-3 pt-2">
+          <div className="flex items-center justify-between border-b border-orange-100/80 pb-2">
+            <span className="text-xs sm:text-sm font-bold text-orange-950 flex items-center gap-1.5">
+              <Camera className="w-4 h-4 text-orange-600" />
               ภาพถ่ายบรรยากาศงาน Field Day
             </span>
+            {images && images.length > 0 ? (
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 border border-orange-200">
+                {images.length} รูป
+              </span>
+            ) : null}
+          </div>
+
+          {images && images.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-              {images.map((img) => (
-                <div
-                  key={img.id}
-                  className="group relative rounded-xl border border-slate-200 overflow-hidden bg-slate-50 aspect-video flex items-center justify-center shadow-2xs"
+              {images.map((img, imgIdx) => (
+                <button
+                  key={img.id || imgIdx}
+                  type="button"
+                  onClick={() =>
+                    openLightbox(
+                      `ภาพถ่ายบรรยากาศงาน Field Day - ${target.plot || "แปลงสาธิต"}`,
+                      images,
+                      imgIdx,
+                    )
+                  }
+                  className="group relative rounded-xl border border-orange-200/80 overflow-hidden bg-slate-100 aspect-video flex items-center justify-center shadow-2xs hover:shadow-md hover:border-orange-400 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-orange-500"
+                  aria-label={`คลิกเพื่อดูภาพถ่ายงาน Field Day ที่ ${imgIdx + 1} ขนาดใหญ่`}
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={img.url}
-                    alt={img.name || "Field Day Image"}
-                    className="w-full h-full object-cover"
+                    alt={img.name || `ภาพถ่ายงาน Field Day ${imgIdx + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   />
-                </div>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full bg-black/60 text-white backdrop-blur-xs shadow-md">
+                      <Eye className="w-4 h-4" />
+                    </span>
+                  </div>
+                </button>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex items-center gap-2 p-3.5 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-slate-400 text-xs font-medium">
+              <ImageIcon className="w-4 h-4 opacity-50 text-slate-400" />
+              <span>ไม่มีภาพถ่ายบรรยากาศงาน Field Day</span>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Lightbox Viewer */}
+      <ImageLightboxModal
+        isOpen={lightboxState.isOpen}
+        onClose={closeLightbox}
+        title={lightboxState.title}
+        images={lightboxState.images}
+        initialIndex={lightboxState.initialIndex}
+      />
     </div>
   );
 }

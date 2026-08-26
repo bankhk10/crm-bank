@@ -26,8 +26,15 @@ export async function POST(request: Request, context: RouteContext) {
 
   const { id: activityPlanId } = await context.params;
   const urlObj = new URL(request.url);
-  const surveyItemId = urlObj.searchParams.get("surveyItemId") || "general";
-  const category = urlObj.searchParams.get("category") || "images"; // "price-tag" | "shelf"
+  const rawItemId =
+    urlObj.searchParams.get("surveyItemId") ||
+    urlObj.searchParams.get("itemId") ||
+    "general";
+  const rawCategory = urlObj.searchParams.get("category") || "images";
+
+  // Sanitize path segments to prevent directory traversal
+  const surveyItemId = rawItemId.replace(/[^a-zA-Z0-9_-]/g, "") || "general";
+  const category = rawCategory.replace(/[^a-zA-Z0-9_-]/g, "") || "images";
 
   try {
     const formData = await request.formData();

@@ -1,9 +1,13 @@
 "use client";
 
-import React from "react";
-import { Store, ShoppingBag, ImageIcon } from "lucide-react";
+import React, { useState } from "react";
+import { Store, ShoppingBag, ImageIcon, Camera, Eye } from "lucide-react";
 import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
 import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
+import {
+  ImageLightboxModal,
+  LightboxImage,
+} from "@/components/custom/image-lightbox-modal";
 
 export interface Type9TargetProductItem {
   id?: string;
@@ -47,6 +51,40 @@ export function DetailType9Store({
   productSalesDetails = [],
   images = [],
 }: DetailType9StoreProps) {
+  const [lightboxState, setLightboxState] = useState<{
+    isOpen: boolean;
+    title: string;
+    images: LightboxImage[];
+    initialIndex: number;
+  }>({
+    isOpen: false,
+    title: "",
+    images: [],
+    initialIndex: 0,
+  });
+
+  const openLightbox = (
+    title: string,
+    imgs: ImageFile[] = [],
+    initialIndex: number = 0,
+  ) => {
+    if (!imgs || imgs.length === 0) return;
+    setLightboxState({
+      isOpen: true,
+      title,
+      images: imgs.map((img) => ({
+        id: img.id,
+        url: img.url,
+        name: img.name,
+      })),
+      initialIndex,
+    });
+  };
+
+  const closeLightbox = () => {
+    setLightboxState((prev) => ({ ...prev, isOpen: false }));
+  };
+
   if (!isVisible) return null;
 
   const hasMultipleProducts = target.items && target.items.length > 0;
@@ -54,14 +92,22 @@ export function DetailType9Store({
   const effectiveSalesList =
     hasMultipleProducts
       ? target.items!.map((item, idx) => {
-          const saved = productSalesDetails?.find(
-            (d) => (item.id && d.id === item.id) || d.productName === item.productName,
-          ) || productSalesDetails?.[idx];
+          const saved =
+            productSalesDetails?.find(
+              (d) =>
+                (item.id && d.id === item.id) ||
+                d.productName === item.productName,
+            ) || productSalesDetails?.[idx];
           return {
             productName: item.productName,
-            targetQty: item.quantityCases ? `${item.quantityCases} ลัง` : "-",
-            targetSales: item.totalAmount ? `฿${item.totalAmount.toLocaleString()}` : "-",
-            actualQty: saved?.actualQuantityCases ?? item.actualQuantityCases ?? "-",
+            targetQty: item.quantityCases
+              ? `${item.quantityCases} ลัง`
+              : "-",
+            targetSales: item.totalAmount
+              ? `฿${item.totalAmount.toLocaleString()}`
+              : "-",
+            actualQty:
+              saved?.actualQuantityCases ?? item.actualQuantityCases ?? "-",
             actualSales: saved?.actualSales ?? item.actualSales ?? "-",
           };
         })
@@ -97,7 +143,12 @@ export function DetailType9Store({
             highlight: true,
           },
           ...(target.targetAttendees
-            ? [{ label: "เป้าหมายผู้เข้าร่วม:", value: `${target.targetAttendees} คน` }]
+            ? [
+                {
+                  label: "เป้าหมายผู้เข้าร่วม:",
+                  value: `${target.targetAttendees} คน`,
+                },
+              ]
             : []),
         ]}
       />
@@ -106,34 +157,36 @@ export function DetailType9Store({
       <div className="space-y-3 pt-1 border-t border-slate-100">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
           <span className="w-2 h-2 rounded-full bg-teal-500"></span>
-          <span>ผลการจัดกิจกรรมหน้าร้านจริง</span>
+          <span>ผลการจัดกิจกรรมส่งเสริมการขายหน้าร้านจริง</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div className="bg-teal-50/60 border border-teal-200 rounded-xl p-3.5 space-y-1">
             <span className="text-xs text-teal-700 font-medium block">
-              ยอดขายที่ทำได้จริง
+              ยอดขายจริงรวมทั้งหมด
             </span>
             <span className="text-sm sm:text-base font-extrabold text-teal-950 block">
-              {actualSales ? `฿${Number(actualSales.replace(/,/g, "")).toLocaleString()} บาท` : "-"}
+              {actualSales ? `฿${actualSales} บาท` : "-"}
             </span>
           </div>
 
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
-            <span className="text-xs text-slate-500 font-medium block">
-              จำนวนผู้เข้าร่วมกิจกรรมจริง
-            </span>
-            <span className="text-sm sm:text-base font-extrabold text-slate-800 block">
-              {actualAttendees ? `${actualAttendees} คน` : "-"}
-            </span>
-          </div>
+          {actualAttendees && (
+            <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+              <span className="text-xs text-slate-500 font-medium block">
+                จำนวนผู้เข้าร่วมจริง
+              </span>
+              <span className="text-sm sm:text-base font-extrabold text-slate-800 block">
+                {actualAttendees} คน
+              </span>
+            </div>
+          )}
 
-          {/* MULTI PRODUCTS BREAKDOWN TABLE */}
-          {hasMultipleProducts && (
+          {/* MULTI-PRODUCT SALES DETAILS TABLE (IF ANY) */}
+          {effectiveSalesList.length > 0 && (
             <div className="sm:col-span-2 space-y-2">
               <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                 <ShoppingBag className="w-3.5 h-3.5 text-teal-600" />
-                รายละเอียดการขายสินค้าตามเป้าหมาย
+                รายละเอียดการขายรายสินค้า
               </span>
               <div className="overflow-x-auto border border-slate-200 rounded-xl">
                 <table className="w-full text-left text-xs">
@@ -141,10 +194,16 @@ export function DetailType9Store({
                     <tr>
                       <th className="py-2.5 px-3 text-center w-10">ลำดับ</th>
                       <th className="py-2.5 px-3">ชื่อสินค้า</th>
-                      <th className="py-2.5 px-3 text-center">เป้าจำนวน</th>
-                      <th className="py-2.5 px-3 text-right">เป้ายอดขาย</th>
-                      <th className="py-2.5 px-3 text-center bg-teal-50/50">ขายจริง (ลัง)</th>
-                      <th className="py-2.5 px-3 text-right bg-teal-50/50">ยอดขายจริง (บาท)</th>
+                      <th className="py-2.5 px-3 text-center w-24">
+                        เป้าจำนวน
+                      </th>
+                      <th className="py-2.5 px-3 text-right w-28">เป้ายอดขาย</th>
+                      <th className="py-2.5 px-3 text-center w-24 bg-teal-50/30">
+                        ขายได้จริง
+                      </th>
+                      <th className="py-2.5 px-3 text-right w-32 bg-teal-50/30">
+                        ยอดขายจริง (บาท)
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -159,14 +218,14 @@ export function DetailType9Store({
                         <td className="py-2.5 px-3 text-center text-slate-600">
                           {item.targetQty}
                         </td>
-                        <td className="py-2.5 px-3 text-right font-bold text-slate-800">
+                        <td className="py-2.5 px-3 text-right text-slate-600 font-medium">
                           {item.targetSales}
                         </td>
-                        <td className="py-2.5 px-3 text-center font-bold text-teal-800 bg-teal-50/30">
-                          {item.actualQty || "-"}
+                        <td className="py-2.5 px-3 text-center font-bold text-teal-900 bg-teal-50/20">
+                          {item.actualQty !== "-" ? `${item.actualQty} ลัง` : "-"}
                         </td>
-                        <td className="py-2.5 px-3 text-right font-extrabold text-teal-900 bg-teal-50/30">
-                          {item.actualSales && item.actualSales !== "-"
+                        <td className="py-2.5 px-3 text-right font-extrabold text-teal-950 bg-teal-50/20">
+                          {item.actualSales !== "-"
                             ? `฿${Number(String(item.actualSales).replace(/,/g, "")).toLocaleString()}`
                             : "-"}
                         </td>
@@ -179,30 +238,67 @@ export function DetailType9Store({
           )}
         </div>
 
-        {/* STORE IMAGES (READ-ONLY) */}
-        {images.length > 0 && (
-          <div className="space-y-2 pt-2">
-            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <ImageIcon className="w-3.5 h-3.5 text-teal-600" />
+        {/* STORE IMAGES (READ-ONLY LIGHTBOX) */}
+        <div className="bg-teal-50/20 border border-teal-200/70 rounded-2xl p-4 sm:p-4.5 space-y-3 pt-2">
+          <div className="flex items-center justify-between border-b border-teal-100/80 pb-2">
+            <span className="text-xs sm:text-sm font-bold text-teal-950 flex items-center gap-1.5">
+              <Camera className="w-4 h-4 text-teal-600" />
               ภาพถ่ายกิจกรรมส่งเสริมการขายหน้าร้าน
             </span>
+            {images && images.length > 0 ? (
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 border border-teal-200">
+                {images.length} รูป
+              </span>
+            ) : null}
+          </div>
+
+          {images && images.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-              {images.map((img) => (
-                <div
-                  key={img.id}
-                  className="group relative rounded-xl border border-slate-200 overflow-hidden bg-slate-50 aspect-video flex items-center justify-center shadow-2xs"
+              {images.map((img, imgIdx) => (
+                <button
+                  key={img.id || imgIdx}
+                  type="button"
+                  onClick={() =>
+                    openLightbox(
+                      `ภาพถ่ายกิจกรรมส่งเสริมการขายหน้าร้าน - ${target.store || "ร้านค้า"}`,
+                      images,
+                      imgIdx,
+                    )
+                  }
+                  className="group relative rounded-xl border border-teal-200/80 overflow-hidden bg-slate-100 aspect-video flex items-center justify-center shadow-2xs hover:shadow-md hover:border-teal-400 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                  aria-label={`คลิกเพื่อดูภาพถ่ายกิจกรรมที่ ${imgIdx + 1} ขนาดใหญ่`}
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={img.url}
-                    alt={img.name || "Store Activity Image"}
-                    className="w-full h-full object-cover"
+                    alt={img.name || `ภาพถ่ายกิจกรรม ${imgIdx + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   />
-                </div>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full bg-black/60 text-white backdrop-blur-xs shadow-md">
+                      <Eye className="w-4 h-4" />
+                    </span>
+                  </div>
+                </button>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex items-center gap-2 p-3.5 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-slate-400 text-xs font-medium">
+              <ImageIcon className="w-4 h-4 opacity-50 text-slate-400" />
+              <span>ไม่มีภาพถ่ายกิจกรรมส่งเสริมการขายหน้าร้าน</span>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Lightbox Viewer */}
+      <ImageLightboxModal
+        isOpen={lightboxState.isOpen}
+        onClose={closeLightbox}
+        title={lightboxState.title}
+        images={lightboxState.images}
+        initialIndex={lightboxState.initialIndex}
+      />
     </div>
   );
 }

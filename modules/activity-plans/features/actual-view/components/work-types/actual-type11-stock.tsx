@@ -140,13 +140,6 @@ export function ActualType11Stock({
     ];
   });
 
-  // Sync from props if stockItems changes
-  useEffect(() => {
-    if (stockItems && stockItems.length > 0) {
-      setItems(stockItems);
-    }
-  }, [stockItems]);
-
   // Sync internal items back to parent props
   const updateItems = (newItems: StockCheckItem[]) => {
     setItems(newItems);
