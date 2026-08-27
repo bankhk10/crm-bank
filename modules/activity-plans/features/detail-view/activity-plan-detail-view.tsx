@@ -25,6 +25,7 @@ import {
   DetailActivityResultSection,
   DetailActivityStatusSection,
   DetailViewActions,
+  DetailType12Tour,
 } from "./components";
 
 interface ActivityPlanDetailViewProps {
@@ -250,6 +251,29 @@ export default function ActivityPlanDetailView({
     );
   }
 
+  // Tour (TYPE_12) resolution directly from Normalized Source of Truth
+  const isTourPlan = Boolean(
+    plan.tour ||
+    plan.activityType?.code === "TYPE_12" ||
+    plan.activityType?.name === "ทัวร์" ||
+    plan.workTypes?.some(
+      (wt) => wt.activityType?.code === "TYPE_12" || wt.activityType?.name === "ทัวร์"
+    ) ||
+    planWorkTypes.includes("ทัวร์")
+  );
+
+  const tourData = plan.tour;
+  const item0 = (plan.items?.[0] || {}) as Record<string, any>;
+  const tourType = tourData?.tourType ?? (item0.visitTopic === "ทัวร์ร้านค้า" ? "STORE" : "CENTRAL");
+  const tourSize = tourData?.tourSize ?? item0.tourSize ?? null;
+  const tourCountry = tourData?.country ?? item0.country ?? item0.detail ?? null;
+  const tourStoreName = tourData?.store?.name ?? item0.customerName ?? item0.store ?? null;
+  const tourDestination = tourData?.destination ?? item0.destination ?? item0.location ?? item0.detail ?? null;
+
+  // Check if plan contains any actual work types (Types 1 - 11)
+  const hasActualWorkTypes = planWorkTypes.some((wt) => wt !== "ทัวร์");
+  const isTourOnly = isTourPlan && !hasActualWorkTypes;
+
   return (
     <section className="space-y-6 container mx-auto px-0 sm:px-0">
       <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
@@ -263,26 +287,42 @@ export default function ActivityPlanDetailView({
         {/* 2. PLAN SUMMARY (ข้อมูลแผนงาน, งบประมาณและค่าใช้จ่าย, สื่อส่งเสริมการขาย, รายการส่งเสริมการขาย, ข้อมูลเพิ่มเติม) */}
         <ActualPlanSummary summary={planSummary} />
 
-        {/* 3. SECTION: ผลการปฏิบัติงานตามประเภทงาน (WORK TYPES 1 - 11) (READ-ONLY) */}
-        <DetailActivityResultSection
-          isTypeVisible={isTypeVisible}
-          targets={targets}
-          parsedResults={parsedResults}
-          demoPlotData={t7DemoPlotData}
-          visitHistory={t7VisitHistory}
-        />
+        {/* 3. TOUR DETAIL (TYPE_12: ทัวร์) - Normalized Relational Source of Truth */}
+        {isTourPlan && (
+          <DetailType12Tour
+            isVisible={true}
+            tourType={tourType}
+            tourSize={tourSize}
+            country={tourCountry}
+            storeName={tourStoreName}
+            destination={tourDestination}
+          />
+        )}
 
-        {/* 4. SECTION: สถานะผลการทำกิจกรรม (READ-ONLY) */}
-        <DetailActivityStatusSection
-          activityResultStatus={parsedResults.activityResultStatus}
-          cancelReason={parsedResults.cancelReason}
-          postponedDate={parsedResults.postponedDate}
-          postponedTime={parsedResults.postponedTime}
-          postponedReason={parsedResults.postponedReason}
-          postponedNotes={parsedResults.postponedNotes}
-        />
+        {/* 4. SECTION: ผลการปฏิบัติงานตามประเภทงาน (WORK TYPES 1 - 11) (READ-ONLY) */}
+        {!isTourOnly && (
+          <DetailActivityResultSection
+            isTypeVisible={isTypeVisible}
+            targets={targets}
+            parsedResults={parsedResults}
+            demoPlotData={t7DemoPlotData}
+            visitHistory={t7VisitHistory}
+          />
+        )}
 
-        {/* 5. BOTTOM ACTIONS (BACK ONLY) */}
+        {/* 5. SECTION: สถานะผลการทำกิจกรรม (READ-ONLY) - Not displayed for Tour-only plans */}
+        {!isTourOnly && parsedResults.activityResultStatus && (
+          <DetailActivityStatusSection
+            activityResultStatus={parsedResults.activityResultStatus}
+            cancelReason={parsedResults.cancelReason}
+            postponedDate={parsedResults.postponedDate}
+            postponedTime={parsedResults.postponedTime}
+            postponedReason={parsedResults.postponedReason}
+            postponedNotes={parsedResults.postponedNotes}
+          />
+        )}
+
+        {/* 6. BOTTOM ACTIONS (BACK ONLY) */}
         <DetailViewActions onBack={handleBack} />
       </div>
     </section>
