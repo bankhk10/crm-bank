@@ -45,11 +45,11 @@ export function AdditionalInfoSection({ summary }: AdditionalInfoSectionProps) {
           </div>
         )}
 
-        {/* หน่วยงานผู้เพิ่มเติม / ผู้ช่วยงาน */}
+        {/* ผู้ช่วยงาน */}
         {hasHelpers && (
           <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-2xs">
             <span className="text-xs text-slate-400 font-medium mb-1 block">
-              หน่วยงานผู้เพิ่มเติม
+              ผู้ช่วยงาน
             </span>
             <span className="text-sm font-semibold text-slate-700 leading-relaxed block">
               {summary.helperEmployeeNames!.join(", ")}
