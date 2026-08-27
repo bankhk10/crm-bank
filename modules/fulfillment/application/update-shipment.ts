@@ -37,7 +37,7 @@ export async function updateShipmentUseCase(
   // Validate transitions
   if (newStatus && newStatus !== prevStatus) {
     const validTransitions: Record<string, string[]> = {
-      PENDING: ["IN_TRANSIT", "COMPLETED", "CANCELLED"],
+      PENDING: ["IN_TRANSIT", "DELIVERED", "COMPLETED", "CANCELLED"],
       IN_TRANSIT: ["DELIVERED", "COMPLETED", "CANCELLED"],
       DELIVERED: ["COMPLETED", "CANCELLED"],
       COMPLETED: ["CANCELLED"],
@@ -165,14 +165,19 @@ export async function updateShipmentUseCase(
         }
       }
 
-      if (newSaleDeliveryStatus !== sale.status) {
+      if (newSaleDeliveryStatus !== sale.status || isFullyDelivered !== sale.isStockDeducted) {
         await tx.sale.update({
           where: { id: sale.id },
           data: {
             status: newSaleDeliveryStatus as any,
-            // ตั้ง deliveryDate ของ Sale เมื่อส่งครบ
             ...(isFullyDelivered && {
-              deliveryDate: updatePayload.actualDate ?? updatePayload.scheduledDate ?? shipment.actualDate ?? shipment.scheduledDate ?? new Date(),
+              isStockDeducted: true,
+              deliveryDate:
+                updatePayload.actualDate ??
+                updatePayload.scheduledDate ??
+                shipment.actualDate ??
+                shipment.scheduledDate ??
+                new Date(),
             }),
           },
         });
@@ -212,6 +217,7 @@ export async function updateShipmentUseCase(
         where: { id: sale.id },
         data: {
           status: newSaleStatus as any,
+          isStockDeducted: isStillFullyDelivered,
           ...(newSaleStatus === "AWAITING_DELIVERY" && !sale.firstAwaitingDeliveryAt
             ? { firstAwaitingDeliveryAt: new Date() }
             : {}),

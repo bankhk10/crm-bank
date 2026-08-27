@@ -103,16 +103,24 @@ export async function releaseStockUseCase(
   const sale = await db.sale.findUnique({
     where: { id: saleId },
     include: {
-      items: true,
+      items: {
+        include: {
+          shipmentItems: {
+            include: {
+              shipment: true,
+            },
+          },
+        },
+      },
+      shipments: {
+        where: { status: { not: "CANCELLED" } },
+      },
     },
   });
 
   if (!sale) {
     throw new Error("Sale not found");
   }
-
-  // We check isStockDeducted to know exactly if physical stock was deducted.
-  const didDeductPhysical = sale.isStockDeducted;
 
   const release = async (client: Prisma.TransactionClient) => {
     // Delete any allocated sale item lots
@@ -122,10 +130,30 @@ export async function releaseStockUseCase(
       console.warn("Could not delete lots during releaseStockUseCase", e);
     }
 
-    // Only un-reserve stock if it was currently reserved (i.e. not yet deducted/fulfilled)
-    if (!sale.isStockDeducted) {
-      for (const item of sale.items) {
-        const releaseQty = item.quantity;
+    const isSplitShipmentSale =
+      sale.hasPartialDelivery || sale.shipments.length > 0;
+
+    for (const item of sale.items) {
+      let releaseQty = 0;
+
+      if (isSplitShipmentSale) {
+        // For split shipment: calculate remaining reserved portion (ordered - delivered/in-transit)
+        const shippedItems = item.shipmentItems.filter(
+          (si) =>
+            si.shipment.status === "IN_TRANSIT" ||
+            si.shipment.status === "DELIVERED" ||
+            si.shipment.status === "COMPLETED",
+        );
+        const shippedQty = shippedItems.reduce((sum, si) => sum + si.quantity, 0);
+        releaseQty = Math.max(0, item.quantity - shippedQty);
+      } else {
+        // For single delivery: only release if not yet deducted/fulfilled
+        if (!sale.isStockDeducted) {
+          releaseQty = item.quantity;
+        }
+      }
+
+      if (releaseQty > 0) {
         try {
           await StockRepository.updateProductStock(
             item.productId,
@@ -135,8 +163,9 @@ export async function releaseStockUseCase(
             },
             client,
           );
-        } catch {
-          console.warn(`Could not update product stock for ${item.productId}`);
+        } catch (e) {
+          console.warn(`Could not update product stock for ${item.productId}:`, e);
+          throw e;
         }
       }
     }
@@ -163,10 +192,22 @@ export async function confirmStockDeductionUseCase(
   const db = tx || prisma;
   const sale = await db.sale.findUnique({
     where: { id: saleId },
-    include: { items: true },
+    include: {
+      items: true,
+      shipments: { where: { status: { not: "CANCELLED" } } },
+    },
   });
 
   if (!sale) throw new Error("Sale not found");
+
+  // Idempotency & Split Shipment Guard:
+  // If sale was already deducted or has split shipments, do not perform sale-level deduction.
+  if (sale.isStockDeducted) {
+    return;
+  }
+  if (sale.hasPartialDelivery || sale.shipments.length > 0) {
+    return;
+  }
 
   const confirm = async (client: Prisma.TransactionClient) => {
     for (const item of sale.items) {
@@ -259,15 +300,12 @@ export async function revertStockDeductionUseCase(
 
   const revert = async (client: Prisma.TransactionClient) => {
     // Delete any allocated sale item lots
-    try {
-      await StockRepository.deleteSaleItemLots(saleId, client);
-    } catch (e) {
-      console.warn("Could not delete lots during revertStockDeductionUseCase", e);
-    }
+    await StockRepository.deleteSaleItemLots(saleId, client);
 
     for (const item of sale.items) {
       const returnQty = item.quantity;
 
+      // Re-reserve stock (Physical is NOT modified)
       await StockRepository.updateProductStock(
         item.productId,
         {
@@ -300,10 +338,21 @@ export async function confirmStockDeductionWithLotsUseCase(
 
   const sale = await db.sale.findUnique({
     where: { id: saleId },
-    include: { items: true },
+    include: {
+      items: true,
+      shipments: { where: { status: { not: "CANCELLED" } } },
+    },
   });
 
   if (!sale) throw new Error("Sale not found");
+
+  // Idempotency & Split Shipment Guard:
+  if (sale.isStockDeducted) {
+    return;
+  }
+  if (sale.hasPartialDelivery || sale.shipments.length > 0) {
+    return;
+  }
 
   const confirm = async (client: Prisma.TransactionClient) => {
     const allocationsByItem = new Map<string, LotAllocation[]>();

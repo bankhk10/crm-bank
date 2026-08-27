@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { ShipmentRepository } from "../infrastructure/shipment.repository";
 import { createShipmentSchema } from "./shipment-validations";
+import { revertStockDeductionFromLotsUseCase } from "@/modules/products/application";
 
 /**
  * Use Case: Create a new Shipment for a Sale (Split / Partial Delivery).
@@ -117,6 +118,13 @@ export async function createShipmentUseCase(
     );
 
     // 6. อัพเดท Sale flags
+    // If the sale was previously marked isStockDeducted (single delivery flow),
+    // revert the whole-order stock deduction back to reserved status so shipments
+    // can deduct stock progressively without double-deduction.
+    if (sale.isStockDeducted) {
+      await revertStockDeductionFromLotsUseCase(saleId, tx);
+    }
+
     const newSaleStatus =
       sale.status === "PARTIALLY_DELIVERED" ? "PARTIALLY_DELIVERED" : sale.status;
 
@@ -124,6 +132,7 @@ export async function createShipmentUseCase(
       where: { id: saleId },
       data: {
         hasPartialDelivery: true,
+        isStockDeducted: false,
         // ยังไม่เปลี่ยน status ณ ตอนสร้าง — จะเปลี่ยนเมื่อยืนยัน IN_TRANSIT
         status: newSaleStatus,
       },

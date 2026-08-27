@@ -162,40 +162,52 @@ export async function updateFulfillmentUseCase(
     }
 
     if (!shouldReleaseResources) {
-      const targetStatus = status || sale.status;
-      const newDate =
-        deliveryDate !== undefined
-          ? deliveryDate
-            ? new Date(deliveryDate)
-            : null
-          : sale.deliveryDate;
+      // Check if this sale is managed by Split Shipments (has active shipments or hasPartialDelivery)
+      const existingShipmentsCount = await tx.shipment.count({
+        where: { saleId: id, status: { not: "CANCELLED" } },
+      });
+      const isSplitShipmentSale =
+        sale.hasPartialDelivery || existingShipmentsCount > 0;
 
-      const isDeductingState = (st: string, date: Date | null) =>
-        ["PAID", "DELIVERY_COMPLETED", "COMPLETED"].includes(st) ||
-        (st === "AWAITING_DELIVERY" && !!date);
+      // Only perform whole-sale deduction/reversion for Single Delivery sales!
+      // Split Shipments manage their own deductions strictly per shipment.
+      if (!isSplitShipmentSale) {
+        const targetStatus = status || sale.status;
+        const newDate =
+          deliveryDate !== undefined
+            ? deliveryDate
+              ? new Date(deliveryDate)
+              : null
+            : sale.deliveryDate;
 
-      const oldWasDeducted = sale.isStockDeducted;
-      const newShouldBeDeducted =
-        isDeductingState(targetStatus as string, newDate) && targetStatus !== "CANCELLED";
+        const isDeductingState = (st: string, date: Date | null) =>
+          ["PAID", "DELIVERY_COMPLETED", "COMPLETED"].includes(st) ||
+          (st === "AWAITING_DELIVERY" && !!date);
 
-      if (!oldWasDeducted && newShouldBeDeducted) {
-        if (lotAllocations && lotAllocations.length > 0) {
+        const oldWasDeducted = sale.isStockDeducted;
+        const newShouldBeDeducted =
+          isDeductingState(targetStatus as string, newDate) &&
+          targetStatus !== "CANCELLED";
+
+        if (!oldWasDeducted && newShouldBeDeducted) {
+          if (lotAllocations && lotAllocations.length > 0) {
+            await confirmStockDeductionWithLots(id, lotAllocations, tx);
+          } else {
+            await confirmStockDeduction(id, tx);
+          }
+          updateData.isStockDeducted = true;
+        } else if (oldWasDeducted && !newShouldBeDeducted) {
+          await revertStockDeductionFromLots(id, tx);
+          updateData.isStockDeducted = false;
+        } else if (
+          oldWasDeducted &&
+          newShouldBeDeducted &&
+          lotAllocations &&
+          lotAllocations.length > 0
+        ) {
+          await revertStockDeductionFromLots(id, tx);
           await confirmStockDeductionWithLots(id, lotAllocations, tx);
-        } else {
-          await confirmStockDeduction(id, tx);
         }
-        updateData.isStockDeducted = true;
-      } else if (oldWasDeducted && !newShouldBeDeducted) {
-        await revertStockDeductionFromLots(id, tx);
-        updateData.isStockDeducted = false;
-      } else if (
-        oldWasDeducted &&
-        newShouldBeDeducted &&
-        lotAllocations &&
-        lotAllocations.length > 0
-      ) {
-        await revertStockDeductionFromLots(id, tx);
-        await confirmStockDeductionWithLots(id, lotAllocations, tx);
       }
     }
 

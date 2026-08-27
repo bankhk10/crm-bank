@@ -165,6 +165,7 @@ export const ShipmentRepository = {
             saleNumber: true,
             customerId: true,
             status: true,
+            isStockDeducted: true,
             paymentTerm: true,
             firstAwaitingDeliveryAt: true,
             saleAddress: true,

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { db } from "@/lib/db";
 import { upsertProductStock } from "@/modules/products/infrastructure/stock.repository";
 
@@ -22,16 +23,21 @@ export async function syncProductStocks(options: SyncOptions = { dryRun: false }
       saleItems: {
         where: {
           sale: {
-            status: "APPROVED",
-            isStockDeducted: false,
             deletedAt: null,
+            status: { in: ["APPROVED", "AWAITING_DELIVERY", "PARTIALLY_DELIVERED"] },
           },
         },
-        select: {
-          quantity: true,
+        include: {
           sale: {
-            select: {
-              saleNumber: true,
+            include: {
+              shipments: {
+                where: { status: { not: "CANCELLED" } },
+              },
+            },
+          },
+          shipmentItems: {
+            include: {
+              shipment: true,
             },
           },
         },
@@ -50,10 +56,31 @@ export async function syncProductStocks(options: SyncOptions = { dryRun: false }
       0,
     );
 
-    const reservedQuantity = product.saleItems.reduce(
-      (sum, item) => sum + Number(item.quantity),
-      0,
-    );
+    let reservedQuantity = 0;
+
+    for (const item of product.saleItems) {
+      const sale = item.sale;
+      const isSplitShipment =
+        sale.hasPartialDelivery || sale.shipments.length > 0;
+
+      if (isSplitShipment) {
+        // Split shipment: only count remaining un-shipped quantity
+        const shippedItems = item.shipmentItems.filter((si) =>
+          ["IN_TRANSIT", "DELIVERED", "COMPLETED"].includes(si.shipment.status),
+        );
+        const shippedQty = shippedItems.reduce(
+          (sum, si) => sum + si.quantity,
+          0,
+        );
+        const remainingReserved = Math.max(0, item.quantity - shippedQty);
+        reservedQuantity += remainingReserved;
+      } else {
+        // Single delivery: count full quantity if not yet deducted
+        if (!sale.isStockDeducted) {
+          reservedQuantity += item.quantity;
+        }
+      }
+    }
 
     const availableQuantity = physicalBalance - reservedQuantity;
 

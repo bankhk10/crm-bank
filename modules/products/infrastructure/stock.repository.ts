@@ -96,6 +96,19 @@ export async function updateLotQuantity(
   });
 }
 
+export class InsufficientReservedStockError extends Error {
+  constructor(
+    productId: string,
+    currentReserved: number,
+    requestedChange: number,
+  ) {
+    super(
+      `Insufficient reserved stock for product ${productId}: current reserved is ${currentReserved}, cannot reduce by ${Math.abs(requestedChange)} (reserved quantity cannot be negative).`,
+    );
+    this.name = "InsufficientReservedStockError";
+  }
+}
+
 /**
  * Upsert product stock summary
  */
@@ -113,34 +126,56 @@ export async function upsertProductStock(
 ) {
   const db = tx || prisma;
 
-  const updateData: Prisma.ProductStockUpdateInput = {};
-  const createData: Prisma.ProductStockCreateInput = {
-    product: { connect: { id: productId } },
-    physicalBalance:
-      (data.physicalBalance ?? 0) + (data.physicalBalanceIncrement ?? 0),
-    availableQuantity:
-      (data.availableQuantity ?? 0) + (data.availableQuantityIncrement ?? 0),
-    reservedQuantity:
-      (data.reservedQuantity ?? 0) + (data.reservedQuantityIncrement ?? 0),
-  };
+  // Fetch current stock to perform strict invariant check within transaction
+  const existing = await db.productStock.findUnique({
+    where: { productId },
+  });
 
-  // Handle increments in update
-  if (data.physicalBalanceIncrement !== undefined) {
-    updateData.physicalBalance = { increment: data.physicalBalanceIncrement };
+  const currentPhysical = existing?.physicalBalance ?? 0;
+  const currentReserved = existing?.reservedQuantity ?? 0;
+
+  // Calculate new physical and reserved
+  const nextPhysical =
+    data.physicalBalance !== undefined
+      ? data.physicalBalance
+      : currentPhysical + (data.physicalBalanceIncrement ?? 0);
+
+  const nextReserved =
+    data.reservedQuantity !== undefined
+      ? data.reservedQuantity
+      : currentReserved + (data.reservedQuantityIncrement ?? 0);
+
+  // Invariant Guard: Reserved cannot be negative
+  if (nextReserved < 0) {
+    throw new InsufficientReservedStockError(
+      productId,
+      currentReserved,
+      data.reservedQuantityIncrement ??
+        (data.reservedQuantity !== undefined
+          ? data.reservedQuantity - currentReserved
+          : 0),
+    );
   }
-  if (data.availableQuantityIncrement !== undefined) {
-    updateData.availableQuantity = {
-      increment: data.availableQuantityIncrement,
-    };
-  }
-  if (data.reservedQuantityIncrement !== undefined) {
-    updateData.reservedQuantity = { increment: data.reservedQuantityIncrement };
-  }
+
+  // Calculate available quantity: Invariant Available = Physical - Reserved
+  const nextAvailable =
+    data.availableQuantity !== undefined
+      ? data.availableQuantity
+      : nextPhysical - nextReserved;
 
   return db.productStock.upsert({
     where: { productId },
-    create: createData,
-    update: updateData,
+    create: {
+      product: { connect: { id: productId } },
+      physicalBalance: nextPhysical,
+      reservedQuantity: nextReserved,
+      availableQuantity: nextAvailable,
+    },
+    update: {
+      physicalBalance: nextPhysical,
+      reservedQuantity: nextReserved,
+      availableQuantity: nextAvailable,
+    },
   });
 }
 
