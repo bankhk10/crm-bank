@@ -139,24 +139,12 @@ export function ActualType8Meeting({
           { label: "สินค้าแนะนำ:", value: target.products || "-" },
           {
             label: "เป้าหมายผู้เข้าร่วม:",
-            value: target.targetAttendees ? `${target.targetAttendees} คน` : "-",
+            value: target.targetAttendees
+              ? `${target.targetAttendees} คน`
+              : "-",
           },
         ]}
       />
-
-      <div className="space-y-1.5 pt-1">
-        <label className="text-sm font-semibold text-slate-800">
-          จำนวนผู้เข้าร่วมประชุมจริง (คน) <span className="text-rose-500">*</span>
-        </label>
-        <Input
-          type="number"
-          min="0"
-          value={actualAttendees}
-          onChange={(e) => setActualAttendees(e.target.value)}
-          placeholder="ระบุจำนวนผู้เข้าร่วมจริง เช่น 25"
-          className="bg-white border-slate-300 max-w-xs"
-        />
-      </div>
 
       {/* Product Sales Details Breakdown Table */}
       {currentSalesList.length > 0 && (
@@ -172,7 +160,7 @@ export function ActualType8Meeting({
                   <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
                   <th className="py-2.5 px-3">ชื่อสินค้า</th>
                   <th className="py-2.5 px-3 text-center w-36">
-                    จำนวนที่ขายได้ (ชิ้น/ขวด)
+                    จำนวนที่ขายได้ (ขวด)
                   </th>
                   <th className="py-2.5 px-3 text-center w-40">
                     ยอดขายจริง (บาท)
@@ -227,6 +215,21 @@ export function ActualType8Meeting({
         </div>
       )}
 
+      <div className="space-y-1.5 pt-1">
+        <label className="text-sm font-semibold text-slate-800 mr-4">
+          จำนวนผู้เข้าร่วมประชุมจริง (คน){" "}
+          <span className="text-rose-500">*</span>
+        </label>
+        <Input
+          type="number"
+          min="0"
+          value={actualAttendees}
+          onChange={(e) => setActualAttendees(e.target.value)}
+          placeholder="ระบุจำนวนผู้เข้าร่วมจริง เช่น 25"
+          className="bg-white border-slate-300 max-w-xs h-full"
+        />
+      </div>
+
       <div className="space-y-1.5">
         <label className="text-sm font-semibold text-slate-800">
           ข้อเสนอแนะ / ประเด็นคำถาม-คำตอบ (Q&A)
@@ -251,7 +254,8 @@ export function ActualType8Meeting({
               รูปภาพบรรยากาศการประชุม
             </h4>
             <p className="text-[11px] text-purple-700/80">
-              อัปโหลดรูปภาพบรรยากาศการจัดประชุม หรือกิจกรรมที่เกิดขึ้น (สูงสุด 10 รูป)
+              อัปโหลดรูปภาพบรรยากาศการจัดประชุม หรือกิจกรรมที่เกิดขึ้น (สูงสุด
+              10 รูป)
             </p>
           </div>
         </div>
