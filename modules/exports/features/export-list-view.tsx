@@ -396,6 +396,15 @@ function SalesAdminExportCard({
                 </SelectContent>
               </Select>
             </div>
+
+            {status === "INVOICE" && (
+              <div className="sm:col-span-2 rounded-lg bg-blue-500/10 border border-blue-500/20 p-2.5 flex items-start gap-2 text-xs text-blue-700 dark:text-blue-300">
+                <Info className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>
+                  การกรองตามช่วงเวลาของสถานะ <strong>Invoice</strong> จะยึดจาก <strong>&quot;วันที่ Invoice (Inv)&quot;</strong> ของเอกสาร
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

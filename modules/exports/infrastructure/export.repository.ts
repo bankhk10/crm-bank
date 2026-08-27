@@ -1,4 +1,5 @@
 import { db, type SaleStatus } from "@/lib/db";
+import { format } from "date-fns";
 
 export interface ExportFilterParams {
   startDate?: string;
@@ -17,6 +18,52 @@ function buildStatusWhereClause(status?: string) {
     return { in: ["DELIVERY_COMPLETED", "PAID", "COMPLETED"] };
   }
   return status;
+}
+
+export function parseStartAndEndDates(startDateStr?: string, endDateStr?: string) {
+  let start: Date | null = null;
+  let end: Date | null = null;
+
+  if (startDateStr) {
+    const parts = startDateStr.split("-").map(Number);
+    if (parts.length === 3 && !parts.some(isNaN)) {
+      start = new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0);
+    } else {
+      start = new Date(startDateStr);
+      start.setHours(0, 0, 0, 0);
+    }
+  }
+
+  if (endDateStr) {
+    const parts = endDateStr.split("-").map(Number);
+    if (parts.length === 3 && !parts.some(isNaN)) {
+      end = new Date(parts[0], parts[1] - 1, parts[2], 23, 59, 59, 999);
+    } else {
+      end = new Date(endDateStr);
+      end.setHours(23, 59, 59, 999);
+    }
+  }
+
+  return { start, end };
+}
+
+/**
+ * Single Source of Truth for extracting the Invoice / Inv Date from a Sale record.
+ * This exact function is used for search filters, repository queries, and Excel column "Inv".
+ */
+export function getInvoiceDate(sale: any): Date | null {
+  if (!sale) return null;
+  const deliveryDateRaw =
+    sale.actualDeliveryDate ||
+    sale.deliveryDate ||
+    (sale.shipments && sale.shipments.length > 0
+      ? sale.shipments.find((s: any) => s.actualDate || s.scheduledDate)?.actualDate ||
+        sale.shipments.find((s: any) => s.actualDate || s.scheduledDate)?.scheduledDate
+      : null);
+
+  if (!deliveryDateRaw) return null;
+  const d = deliveryDateRaw instanceof Date ? deliveryDateRaw : new Date(deliveryDateRaw);
+  return !isNaN(d.getTime()) ? d : null;
 }
 
 function getYearMonthPairs(startDateStr?: string, endDateStr?: string) {
@@ -190,7 +237,8 @@ const salesTargetInclude = {
  * Fetch sales and sales targets data formatted for Sales Admin (Fulfillment & Documents focus)
  */
 export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
-  const fetchSales = !filters.status || filters.status === "ALL" || filters.status === "SALES_NOTE" || filters.status === "INVOICE";
+  const isInvoiceStatus = filters.status === "INVOICE";
+  const fetchSales = !filters.status || filters.status === "ALL" || filters.status === "SALES_NOTE" || isInvoiceStatus;
   const fetchTargets = !filters.status || filters.status === "ALL" || filters.status === "FORECAST";
 
   let sales: any[] = [];
@@ -201,14 +249,14 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
       deletedAt: null,
     };
 
-    if (filters.startDate || filters.endDate) {
+    // For non-Invoice statuses, keep the legacy date filtering on saleDate
+    if (!isInvoiceStatus && (filters.startDate || filters.endDate)) {
+      const { start, end } = parseStartAndEndDates(filters.startDate, filters.endDate);
       where.saleDate = {};
-      if (filters.startDate) {
-        where.saleDate.gte = new Date(filters.startDate);
+      if (start) {
+        where.saleDate.gte = start;
       }
-      if (filters.endDate) {
-        const end = new Date(filters.endDate);
-        end.setHours(23, 59, 59, 999);
+      if (end) {
         where.saleDate.lte = end;
       }
     }
@@ -264,6 +312,27 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
         },
       },
     });
+
+    // When status === "INVOICE", filter strictly by Invoice Date (the date in Excel column "Inv")
+    if (isInvoiceStatus) {
+      if (filters.startDate || filters.endDate) {
+        sales = sales.filter((sale) => {
+          const invDate = getInvoiceDate(sale);
+          if (!invDate) return false;
+          const invDateStr = format(invDate, "yyyy-MM-dd");
+          if (filters.startDate && invDateStr < filters.startDate) return false;
+          if (filters.endDate && invDateStr > filters.endDate) return false;
+          return true;
+        });
+      }
+
+      // Sort by Invoice Date descending (fallback to saleDate)
+      sales.sort((a, b) => {
+        const dateA = getInvoiceDate(a)?.getTime() ?? (a.saleDate ? new Date(a.saleDate).getTime() : 0);
+        const dateB = getInvoiceDate(b)?.getTime() ?? (b.saleDate ? new Date(b.saleDate).getTime() : 0);
+        return dateB - dateA;
+      });
+    }
   }
 
   if (fetchTargets) {

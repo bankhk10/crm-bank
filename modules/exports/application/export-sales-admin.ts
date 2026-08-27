@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import { format } from "date-fns";
 import { getRegionFromProvince } from "@/modules/reports/application/utils";
+import { getInvoiceDate } from "../infrastructure/export.repository";
 
 const SALE_STATUS_MAP: Record<string, string> = {
   PENDING_APPROVAL: "รออนุมัติ",
@@ -223,16 +224,7 @@ export async function buildSalesAdminExportWorkbook(
       ? format(paymentDateObj, "dd/MM/yyyy")
       : "";
 
-    const deliveryDateRaw =
-      sale.actualDeliveryDate ||
-      sale.deliveryDate ||
-      (sale.shipments && sale.shipments.length > 0
-        ? sale.shipments.find((s: any) => s.actualDate || s.scheduledDate)
-            ?.actualDate ||
-          sale.shipments.find((s: any) => s.actualDate || s.scheduledDate)
-            ?.scheduledDate
-        : null);
-    const deliveryDateObj = parseValidDate(deliveryDateRaw);
+    const deliveryDateObj = getInvoiceDate(sale);
     const deliveryDateStr = deliveryDateObj
       ? format(deliveryDateObj, "dd/MM/yyyy")
       : "";
