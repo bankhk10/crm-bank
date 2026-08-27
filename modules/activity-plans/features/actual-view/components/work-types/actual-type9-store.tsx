@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Store, Package, ShoppingBag } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
 import { ImageFile } from "../../types";
 import GalleryUpload from "@/components/custom/gallery-upload";
@@ -103,9 +102,12 @@ export function ActualType9Store({
 
     // Auto-calculate actualSales when actualQuantityCases changes and pricePerCase exists
     if (field === "actualQuantityCases") {
-      const qtyNum = parseFloat(value) || 0;
+      const sanitized = value.replace(/,/g, "").trim();
+      const qtyNum = parseFloat(sanitized);
       const price = currentItem.pricePerCase || 0;
-      if (price > 0 && !isNaN(qtyNum)) {
+      if (value === "") {
+        currentItem.actualSales = "";
+      } else if (price > 0 && !isNaN(qtyNum)) {
         currentItem.actualSales = (qtyNum * price).toLocaleString();
       }
     }
@@ -119,23 +121,28 @@ export function ActualType9Store({
         updated.map((item) => ({
           id: item.id,
           productName: item.productName,
-          actualQuantityCases: String(item.actualQuantityCases || ""),
-          actualSales: String(item.actualSales || ""),
+          actualQuantityCases: String(item.actualQuantityCases ?? ""),
+          actualSales: String(item.actualSales ?? ""),
         })),
       );
     }
 
     // Auto-sum total actual sales across all products
+    let hasAnySales = false;
     const totalActual = updated.reduce((sum, item) => {
-      const val =
-        typeof item.actualSales === "number"
-          ? item.actualSales
-          : parseFloat(String(item.actualSales).replace(/,/g, "")) || 0;
-      return sum + val;
+      const valStr = String(item.actualSales ?? "").trim();
+      if (valStr !== "") {
+        hasAnySales = true;
+        const val = parseFloat(valStr.replace(/,/g, "")) || 0;
+        return sum + val;
+      }
+      return sum;
     }, 0);
 
-    if (totalActual > 0) {
-      setActualSales(totalActual.toLocaleString());
+    if (hasAnySales) {
+      setActualSales(totalActual > 0 ? totalActual.toLocaleString() : "0");
+    } else {
+      setActualSales("");
     }
   };
 

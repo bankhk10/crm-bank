@@ -113,6 +113,22 @@ export interface BuildSummaryResult {
   payload: any;
 }
 
+/**
+ * Safely parse a numeric string or number into a clean number or null
+ * Preserves 0, strips commas and non-numeric chars, never returns NaN
+ */
+export function parseCleanNumber(val: unknown): number | null {
+  if (val === null || val === undefined) return null;
+  if (typeof val === "number") return isNaN(val) ? null : val;
+  if (typeof val !== "string") return null;
+  const trimmed = val.trim();
+  if (trimmed === "") return null;
+  const sanitized = trimmed.replace(/,/g, "").replace(/[^\d.-]/g, "");
+  if (sanitized === "" || sanitized === "-" || sanitized === ".") return null;
+  const num = parseFloat(sanitized);
+  return isNaN(num) ? null : num;
+}
+
 export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult {
   const {
     activityResultStatus,
@@ -422,12 +438,28 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t2UsageResult === "พบปัญหา" ||
     (typeof t2UsageResult === "string" && t2UsageResult.includes("พบปัญหา"));
 
+  const actualSalesPromotionSpent = parseCleanNumber(
+    planSummary.salesPromotionBudget,
+  );
+  const actualMarketingSpent = parseCleanNumber(planSummary.marketingBudget);
+  const totalSpent =
+    actualSalesPromotionSpent != null || actualMarketingSpent != null
+      ? (actualSalesPromotionSpent ?? 0) + (actualMarketingSpent ?? 0)
+      : null;
+
+  const salesResult = parseCleanNumber(
+    t3ActualSales || t9ActualSales || t10ActualSalesOrBooking,
+  );
+  const collectResult = parseCleanNumber(t4ReceivedAmount);
+  const attendeesCount = parseCleanNumber(
+    t8ActualAttendees || t9ActualAttendees || t10ActualAttendees,
+  );
+
   const payload = {
     actualStartDate: new Date(),
     actualEndDate: new Date(),
-    actualAttendeesCount: Number(
-      t8ActualAttendees || t9ActualAttendees || t10ActualAttendees || 0,
-    ),
+    actualAttendeesCount:
+      attendeesCount != null ? Math.round(attendeesCount) : null,
     resultStatus: activityResultStatus,
     resultSummary:
       summaryParts.length > 0
@@ -451,12 +483,11 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       activityResultStatus === "POSTPONED" ? postponedReason || null : null,
     postponedNotes:
       activityResultStatus === "POSTPONED" ? postponedNotes || null : null,
-    actualSalesPromotionSpent: Number(planSummary.salesPromotionBudget || 0),
-    actualMarketingSpent: Number(planSummary.marketingBudget || 0),
-    salesResultAmount: Number(
-      t3ActualSales || t9ActualSales || t10ActualSalesOrBooking || 0,
-    ),
-    collectResultAmount: Number(t4ReceivedAmount || 0),
+    actualSalesPromotionSpent,
+    actualMarketingSpent,
+    actualTotalSpent: totalSpent,
+    salesResultAmount: salesResult,
+    collectResultAmount: collectResult,
     demoPlotsCreated: t7PlotName ? 1 : 0,
   };
 

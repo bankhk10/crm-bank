@@ -578,17 +578,26 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   }
 
   // Numeric and common fields from result
-  if (resData.salesResultAmount) {
-    result.t3ActualSales = String(Number(resData.salesResultAmount));
-    result.t9ActualSales = String(Number(resData.salesResultAmount));
+  if (resData.salesResultAmount != null) {
+    const num = Number(resData.salesResultAmount);
+    if (!isNaN(num)) {
+      result.t3ActualSales = String(num);
+      result.t9ActualSales = String(num);
+    }
   }
-  if (resData.collectResultAmount) {
-    result.t4ReceivedAmount = String(Number(resData.collectResultAmount));
+  if (resData.collectResultAmount != null) {
+    const num = Number(resData.collectResultAmount);
+    if (!isNaN(num)) {
+      result.t4ReceivedAmount = String(num);
+    }
   }
-  if (resData.actualAttendeesCount) {
-    result.t8ActualAttendees = String(resData.actualAttendeesCount);
-    result.t9ActualAttendees = String(resData.actualAttendeesCount);
-    result.t10ActualAttendees = String(resData.actualAttendeesCount);
+  if (resData.actualAttendeesCount != null) {
+    const num = Number(resData.actualAttendeesCount);
+    if (!isNaN(num)) {
+      result.t8ActualAttendees = String(num);
+      result.t9ActualAttendees = String(num);
+      result.t10ActualAttendees = String(num);
+    }
   }
   if (resData.problemFound) {
     result.problemFound = resData.problemFound;

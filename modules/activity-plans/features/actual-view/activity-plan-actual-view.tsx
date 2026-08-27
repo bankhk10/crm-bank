@@ -21,6 +21,7 @@ import {
   extractPlanData,
   parseResultSummary,
   buildResultSummary,
+  parseCleanNumber,
   uploadActivityPlanImageGroup,
   collectPermanentUrls,
   deleteActivityPlanImagePaths,
@@ -1119,16 +1120,12 @@ export default function ActivityPlanActualView({
           isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง") &&
           (t7DemoPlotId || targets.t7.owner || targets.t7.product)
         ) {
-          const qty =
-            targets.t7.demoProductQuantity != null &&
-            targets.t7.demoProductQuantity !== ""
-              ? Number(targets.t7.demoProductQuantity)
-              : 0;
+          const qty = parseCleanNumber(targets.t7.demoProductQuantity) ?? 0;
           await recordDemoPlotVisitAction({
             demoPlotId: t7DemoPlotId || targets.t7.owner || "plot-default",
             activityPlanId: id,
             visitDate: new Date(),
-            cropAgeValue: t7CropAgeValue ? Number(t7CropAgeValue) : null,
+            cropAgeValue: parseCleanNumber(t7CropAgeValue),
             cropAgeUnit: t7CropAgeUnit,
             growthStage: t7GrowthStage,
             cropCondition: t7CropCondition,
@@ -1139,16 +1136,14 @@ export default function ActivityPlanActualView({
             plantingDate: t7PlantingDate,
             plantingAreaCondition: t7PlantingAreaCondition,
             productUsedQty: qty,
-            productUnitPrice: t7ProductPrice || 500,
+            productUnitPrice: parseCleanNumber(t7ProductPrice) ?? 500,
             cropImageUrls: collectPermanentUrls(cleanT7CropImages),
             plotImageUrls: collectPermanentUrls(cleanT7PlotImages),
             imageUrls: collectPermanentUrls(cleanT7PlotImages),
             plotStatus: t7PlotStatus,
-            finalYieldKg: t7FinalYieldKg ? Number(t7FinalYieldKg) : null,
-            controlYieldKg: t7ControlYieldKg ? Number(t7ControlYieldKg) : null,
-            yieldIncreasePercent: t7YieldIncreasePercent
-              ? Number(t7YieldIncreasePercent)
-              : null,
+            finalYieldKg: parseCleanNumber(t7FinalYieldKg),
+            controlYieldKg: parseCleanNumber(t7ControlYieldKg),
+            yieldIncreasePercent: parseCleanNumber(t7YieldIncreasePercent),
             farmerSatisfaction: t7FarmerSatisfaction,
             commercialPotential: t7CommercialPotential,
             finalSummaryNotes: t7FinalSummaryNotes,
