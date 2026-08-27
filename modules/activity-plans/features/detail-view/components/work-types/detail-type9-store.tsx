@@ -89,29 +89,26 @@ export function DetailType9Store({
 
   const hasMultipleProducts = target.items && target.items.length > 0;
 
-  const effectiveSalesList =
-    hasMultipleProducts
-      ? target.items!.map((item, idx) => {
-          const saved =
-            productSalesDetails?.find(
-              (d) =>
-                (item.id && d.id === item.id) ||
-                d.productName === item.productName,
-            ) || productSalesDetails?.[idx];
-          return {
-            productName: item.productName,
-            targetQty: item.quantityCases
-              ? `${item.quantityCases} ลัง`
-              : "-",
-            targetSales: item.totalAmount
-              ? `฿${item.totalAmount.toLocaleString()}`
-              : "-",
-            actualQty:
-              saved?.actualQuantityCases ?? item.actualQuantityCases ?? "-",
-            actualSales: saved?.actualSales ?? item.actualSales ?? "-",
-          };
-        })
-      : [];
+  const effectiveSalesList = hasMultipleProducts
+    ? target.items!.map((item, idx) => {
+        const saved =
+          productSalesDetails?.find(
+            (d) =>
+              (item.id && d.id === item.id) ||
+              d.productName === item.productName,
+          ) || productSalesDetails?.[idx];
+        return {
+          productName: item.productName,
+          targetQty: item.quantityCases ? `${item.quantityCases} ลัง` : "-",
+          targetSales: item.totalAmount
+            ? `฿${item.totalAmount.toLocaleString()}`
+            : "-",
+          actualQty:
+            saved?.actualQuantityCases ?? item.actualQuantityCases ?? "-",
+          actualSales: saved?.actualSales ?? item.actualSales ?? "-",
+        };
+      })
+    : [];
 
   return (
     <div className="border border-teal-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-4 shadow-xs">
@@ -155,7 +152,7 @@ export function DetailType9Store({
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-3 pt-1 border-t border-slate-100">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-700 mt-4">
           <span className="w-2 h-2 rounded-full bg-teal-500"></span>
           <span>ผลการจัดกิจกรรมส่งเสริมการขายหน้าร้านจริง</span>
         </div>
@@ -197,7 +194,9 @@ export function DetailType9Store({
                       <th className="py-2.5 px-3 text-center w-24">
                         เป้าจำนวน
                       </th>
-                      <th className="py-2.5 px-3 text-right w-28">เป้ายอดขาย</th>
+                      <th className="py-2.5 px-3 text-right w-28">
+                        เป้ายอดขาย
+                      </th>
                       <th className="py-2.5 px-3 text-center w-24 bg-teal-50/30">
                         ขายได้จริง
                       </th>
@@ -222,7 +221,9 @@ export function DetailType9Store({
                           {item.targetSales}
                         </td>
                         <td className="py-2.5 px-3 text-center font-bold text-teal-900 bg-teal-50/20">
-                          {item.actualQty !== "-" ? `${item.actualQty} ลัง` : "-"}
+                          {item.actualQty !== "-"
+                            ? `${item.actualQty} ลัง`
+                            : "-"}
                         </td>
                         <td className="py-2.5 px-3 text-right font-extrabold text-teal-950 bg-teal-50/20">
                           {item.actualSales !== "-"
