@@ -145,7 +145,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        if (user.employeeProfile && user.employeeProfile.status !== "ACTIVE") {
+        if (
+          user.isActive === false ||
+          user.deletedAt !== null ||
+          user.employeeProfile?.status === "INACTIVE" ||
+          user.employeeProfile?.status === "SUSPENDED"
+        ) {
           throw new InactiveAccountError();
         }
 

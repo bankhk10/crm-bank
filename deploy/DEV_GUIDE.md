@@ -17,6 +17,8 @@
 8. [เปรียบเทียบคำสั่ง Prisma](#8-เปรียบเทียบคำสั่ง-prisma)
 9. [Troubleshooting](#9-troubleshooting)
 10. [Workflow: การนำ Database จาก Production มาลง Local (เพื่อป้องกันปัญหาตอน Deploy)](#10-workflow-การนำ-database-จาก-production-มาลง-local)
+11. [การสลับจาก Production กลับมาพัฒนา Local (Data-Safe Workflow)](#11-การสลับจาก-production-กลับมาพัฒนา-local-data-safe-workflow)
+12. [Checklist การสลับ Production Data สู่ Local](#12-checklist-การสลับ-production-data-สู่-local)
 
 ---
 
@@ -383,7 +385,125 @@ _คำสั่งนี้จะไปอ่านประวัติแล�
 
 - **ห้าม** รัน `npx prisma db push` เด็ดขาด เพราะมันจะไม่บันทึกประวัติ SQL ลงในโฟลเดอร์ migrations พอขึ้น Prod ไป Prod จะพังเพราะไม่มีการอัพเดท
 - **ห้าม** กลับไปแก้ไขไฟล์ `.sql` เก่าๆ ที่ส่งขึ้น Production หรือ Commit ลง Git ไปแล้ว หากทำผิด ให้ทำตามขั้นตอนที่ 1 และ 2 ใหม่อีกครั้งเพื่อสร้างไฟล์แก้ทับไปเรื่อยๆ
-- **ระวังการ Import ทับกัน** หากวันก่อนคุณดึง Prod มา แล้วสร้าง migration เพิ่มแล้วในเครื่อง Local ทว่าวันนี้คุณกลับดึงฐานข้อมูล Prod มาทับอีกครั้ง ฐานข้อมูลที่ Local คุณจะขาดการรับรู้ถึง migration ล่าสุดของคุณ... วิธีแก้คือให้สั่งรัน `npx prisma migrate dev` แบบเปล่าๆ อีกรอบ หรือ `npx prisma migrate reset` เพื่อให้มันรันโครงสร้างขึ้นมาให้ใหม่ทั้งหมดก่อนรันแอปครับ
-  1. npx prisma generate
-  2. npx prisma migrate dev
-  3. pnpm seed
+- **ระวังการ Import ข้อมูลทับกัน**: หากดึงข้อมูล Production มาลง Local ให้ปฏิบัติตาม **Section 11 (Data-Safe Workflow)** ด้านล่างอย่างเคร่งครัด **ห้ามใช้ `npx prisma migrate reset` โดยอัตโนมัติ** เพราะจะทำให้ข้อมูล Production ที่ดึงมา (โดยเฉพาะ Product, Customer, Sales) สูญหายทั้งหมด
+
+---
+
+## 11. การสลับจาก Production กลับมาพัฒนา Local (Data-Safe Workflow)
+
+> 🛡️ **เป้าหมายสำคัญ:** ห้ามทำข้อมูล Production ที่ Import เข้า Local สูญหายโดยไม่จำเป็น โดยเฉพาะข้อมูล Product และข้อมูลการขายที่ต้องใช้พัฒนาต่อ
+
+---
+
+### ⚡ Quick Commands / Quick Workflow (ใช้เป็นประจำ)
+
+ลำดับคำสั่งที่ต้องรันจริงเมื่อสลับกลับมาพัฒนา Local:
+
+```bash
+# 1. ล้าง Local DB เดิม และ Import ข้อมูลจาก Production
+# (กรณีไฟล์ .dump แบบ Custom Format - แนะนำ)
+pg_restore -h localhost -p 5432 -U admin -d crm -W -1 -x -O -c prod_backup.dump
+
+# หรือ (กรณีไฟล์ .sql แบบ Plain-text)
+# psql -h localhost -p 5432 -U admin -d crm -W -f prod_backup.sql
+
+# 2. ตรวจสอบข้อมูลสำคัญเบื้องต้น (Product, Customer, Sale)
+npx prisma studio
+
+# 3. Generate Prisma Client
+npx prisma generate
+
+# 4. ตรวจสอบสถานะ Migration
+npx prisma migrate status
+
+# 5. ถ้ามี Pending Migrations และไม่มี Drift → Apply ได้ทันที
+npx prisma migrate deploy
+
+# 6. Seed ข้อมูล Master, RBAC, Admin user
+pnpm seed
+
+# 7. ถ้าพัฒนา Feature Activity ให้ Seed ข้อมูล Activity เพิ่มเติม
+pnpm seed:activity
+
+# 8. ตรวจสอบ Type Safety
+npx tsc --noEmit
+
+# 9. Start Dev Server
+pnpm dev
+```
+
+---
+
+### ⚠️ Quick Decision: การรับมือกรณีสถานะ Migration
+
+```text
+npx prisma migrate status
+          │
+          ├─ "Database schema is up to date!"
+          │         ↓
+          │       pnpm seed → pnpm dev
+          │
+          ├─ "Following migrations have not yet been applied:" (Pending)
+          │         ↓
+          │       npx prisma migrate deploy
+          │         ↓
+          │       pnpm seed → pnpm dev
+          │
+          └─ "Drift detected: Your database schema is not in sync..."
+                    ↓
+              ❌ ห้าม npx prisma migrate reset เด็ดขาด!
+              ❌ ห้าม npx prisma db push เด็ดขาด!
+                    ↓
+              🛑 หยุดก่อน และทำตามขั้นตอน Detailed Drift Handling ด้านล่าง
+```
+
+---
+
+### 🔧 Detailed Drift Handling & Reference (สำหรับกรณีเกิดปัญหา)
+
+#### ⚠️ กฎเหล็กและคำสั่งต้องห้าม
+1. **ห้ามรัน `npx prisma migrate reset`** ทันทีเมื่อเจอ Drift เพราะคำสั่งนี้จะ Drop Schema และลบข้อมูล Production (Product, Customer, Sales) ทั้งหมดทิ้ง
+2. **ห้ามรัน `npx prisma db push`** เพราะอาจทำให้ Schema ในเครื่องเพี้ยนและไม่มี Migration File สำหรับ Deploy
+3. **ตรวจสอบจำนวนแถวของข้อมูลสำคัญ (Product, Customer, Sale)** ก่อนและหลังการทำ Migration เสมอ
+
+#### ขั้นตอนแก้ไข Drift อย่างปลอดภัยทีละขั้นตอน:
+1. **หาสาเหตุของ Drift**:
+   - ดูว่า Prisma แจ้งว่ามีอะไรเกินมา เช่น `[+] Added enums` หรือ `[+] Added tables`
+   - ตรวจสอบว่า Object นั้นมีข้อมูลจริงใช้งานอยู่หรือไม่
+2. **หากเป็น Orphaned Objects (เช่น Enum หรือ Table ทดสอบที่ไม่มีข้อมูลใช้งาน)**:
+   - สั่ง Drop เฉพาะ Object ที่ลอยอยู่ เพื่อให้ DB Clean ตรงกับประวัติ Migration ล่าสุด:
+     ```sql
+     DROP TYPE IF EXISTS "ActivityApprovalAction", "ActivityApprovalStep", "ActivityHelperStatus", "ActivityResultStatus", "ActivityStatus", "PromotionalMaterialStatus" CASCADE;
+     ```
+   - จากนั้นรัน `npx prisma migrate deploy` เพื่อให้ Prisma apply migration ตามลำดับที่ถูกต้อง
+3. **หาก Database มีโครงสร้างใหม่ที่ถูกต้องอยู่แล้วแต่ขาดประวัติใน `_prisma_migrations`**:
+   - ใช้ `npx prisma migrate resolve --applied <migration_name>` เฉพาะ Migration ที่แน่ใจว่าได้ apply ลง DB ไปแล้วจริงๆ **(ห้ามใช้ resolve แบบเดาสุ่ม)**
+4. **หากมีการแก้ `prisma/schema.prisma` เพิ่มเติมที่ยังไม่มี Migration File**:
+   - รัน `npx prisma migrate dev --name <migration_name>` เพื่อสร้าง migration ใหม่
+
+#### ℹ️ ข้อมูลการทำงานของ Seed Scripts:
+Seed Scripts ทั้งหมดใน `prisma/seed/` ถูกออกแบบให้เป็น **Idempotent (Add-Only / Upsert / skipDuplicates)**:
+- `pnpm seed`: Seed Master Data, Promotional Materials, RBAC Permissions Sync, Default Users
+- `pnpm seed:activity`: Seed Activity Types (11 ประเภทงาน) และโครงสร้างแผนก/ตำแหน่งสำหรับ Activity
+- ไม่มีการลบหรือเขียนทับข้อมูลในตาราง `Product`, `Customer`, `Sale` เดิม
+
+---
+
+## 12. Quick Checklist การสลับ Production Data สู่ Local
+
+```text
+[ ] 1. ล้าง Local DB เดิม
+[ ] 2. Import Production Data
+[ ] 3. ตรวจสอบ Product / Customer / Sale
+[ ] 4. npx prisma generate
+[ ] 5. npx prisma migrate status
+[ ] 6. ไม่มี Drift (⚠️ หากพบ Drift ห้าม migrate reset เด็ดขาด!)
+[ ] 7. npx prisma migrate deploy (ถ้ามี Pending Migrations)
+[ ] 8. pnpm seed
+[ ] 9. pnpm seed:activity (ถ้าจำเป็นต้องใช้ Activity)
+[ ] 10. ตรวจสอบข้อมูลอีกครั้ง
+[ ] 11. npx tsc --noEmit
+[ ] 12. pnpm dev
+```
+
+
