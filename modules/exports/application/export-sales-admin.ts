@@ -2,8 +2,9 @@ import ExcelJS from "exceljs";
 import { format } from "date-fns";
 import { getRegionFromProvince } from "@/modules/reports/application/utils";
 import {
-  resolveDocumentType,
-  resolveInvoiceDate,
+  allocateNetItemAmounts,
+  resolveShipmentReportingDate,
+  resolveLegacyInvoiceReportingDate,
 } from "@/modules/reports/application/sales-reporting-logic";
 
 const SALE_STATUS_MAP: Record<string, string> = {
@@ -29,7 +30,7 @@ function getSalesOrderNumber(sale: any): string {
       return shipmentWithRef.salesOrderNumber.trim();
     }
   }
-  return sale.saleOrderRef?.trim() || "";
+  return sale.saleOrderRef?.trim() || sale.saleNumber?.trim() || "";
 }
 
 function formatCustomerName(name?: string | null): string {
@@ -69,56 +70,53 @@ export function calculateLitersOrKg(item: {
     totalPackageSizePerBox?: number | string | null;
     unit?: string | null;
   } | null;
-}): { litersOrKgPerUnit: number | string; totalLitersOrKg: number | string } {
-  const pkgSize = Number(item.packageSize ?? item.product?.packageSize);
-  const perBox = Number(
-    item.packageSizePerBox ?? item.product?.packageSizePerBox ?? 1,
-  );
-
-  let baseTotalPerBox = Number(
-    item.totalPackageSizePerBox ?? item.product?.totalPackageSizePerBox,
-  );
-
-  if (!baseTotalPerBox || isNaN(baseTotalPerBox)) {
-    if (!isNaN(pkgSize) && pkgSize > 0) {
-      baseTotalPerBox = pkgSize * (!isNaN(perBox) && perBox > 0 ? perBox : 1);
-    } else {
-      baseTotalPerBox = 0;
-    }
-  }
-
+}): {
+  litersOrKgPerUnit: number;
+  totalLitersOrKg: number;
+} {
+  const rawSize =
+    item.packageSize ?? item.product?.packageSize ?? 0;
   const rawUnit = (
     item.packageSizeUnit ??
     item.product?.packageSizeUnit ??
-    item.unit ??
-    item.product?.unit ??
     ""
   )
     .trim()
     .toUpperCase();
+  const rawPerBox =
+    item.packageSizePerBox ??
+    item.product?.packageSizePerBox ??
+    1;
+  const rawTotalPerBox =
+    item.totalPackageSizePerBox ??
+    item.product?.totalPackageSizePerBox;
 
-  if (baseTotalPerBox === 0 && (isNaN(pkgSize) || pkgSize === 0)) {
-    return {
-      litersOrKgPerUnit: "-",
-      totalLitersOrKg: "-",
-    };
+  const size = Number(rawSize) || 0;
+  const perBox = Number(rawPerBox) || 1;
+
+  function rawTotalTotalSafe(val: any) {
+    return val;
   }
 
-  let convertedPerUnit = baseTotalPerBox;
+  let baseTotalPerBox = 0;
+  if (rawTotalPerBox != null && !isNaN(Number(rawTotalTotalSafe(rawTotalPerBox)))) {
+    baseTotalPerBox = Number(rawTotalPerBox);
+  } else {
+    baseTotalPerBox = size * perBox;
+  }
 
+  let convertedPerUnit = 0;
   if (
     [
-      "ML",
       "CC",
+      "ซีซี",
+      "ML",
+      "มล.",
+      "มิลลิลิตร",
       "G",
+      "กรัม",
       "GM",
       "GR",
-      "มล.",
-      "มล",
-      "ซีซี",
-      "กรัม",
-      "ML.",
-      "G.",
     ].includes(rawUnit)
   ) {
     convertedPerUnit = baseTotalPerBox / 1000;
@@ -145,7 +143,7 @@ export function calculateLitersOrKg(item: {
   }
 
   const roundedPerUnit = roundNumber(convertedPerUnit, 4);
-  const quantity = item.quantity || 0;
+  const quantity = Number(item.quantity) || 0;
   const totalLitersOrKg = roundNumber(quantity * roundedPerUnit, 4);
 
   return {
@@ -154,13 +152,43 @@ export function calculateLitersOrKg(item: {
   };
 }
 
+const MONTH_NAMES_EN = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+function getUtcMonthStr(d: Date): string {
+  return MONTH_NAMES_EN[d.getUTCMonth()] || "";
+}
+
+function getUtcYearStr(d: Date): string {
+  return d.getUTCFullYear().toString();
+}
+
+function getUtcFormattedDate(d: Date): string {
+  const day = d.getUTCDate().toString().padStart(2, "0");
+  const month = (d.getUTCMonth() + 1).toString().padStart(2, "0");
+  const year = d.getUTCFullYear().toString();
+  return `${day}/${month}/${year}`;
+}
+
 function createSaleEventRows(
   sale: any,
   eventType: "Sales Note" | "Invoice",
   eventDate: Date,
 ): any[] {
   const saleDateObj = parseValidDate(sale.saleDate);
-  const formattedDate = saleDateObj ? format(saleDateObj, "dd/MM/yyyy") : "";
+  const formattedDate = saleDateObj ? getUtcFormattedDate(saleDateObj) : "";
 
   const paymentDateRaw =
     sale.paymentDate ||
@@ -169,22 +197,18 @@ function createSaleEventRows(
       : null);
   const paymentDateObj = parseValidDate(paymentDateRaw);
   const paymentDateStr = paymentDateObj
-    ? format(paymentDateObj, "dd/MM/yyyy")
+    ? getUtcFormattedDate(paymentDateObj)
     : "";
 
   const statusThai = SALE_STATUS_MAP[sale.status] || sale.status;
   const isInvoice = eventType === "Invoice";
 
-  // IMPORTANT BUSINESS RULE: Column "Inv"
-  // - Invoice -> formatted Invoice Date
-  // - Sales Note -> "" (always empty)
-  const deliveryDateStr = isInvoice ? format(eventDate, "dd/MM/yyyy") : "";
+  // Column "Inv"
+  const deliveryDateStr = isInvoice ? getUtcFormattedDate(eventDate) : "";
 
-  // IMPORTANT BUSINESS RULE: Column "เดือน" and "ปี"
-  // - Invoice -> Month & Year of Invoice Date
-  // - Sales Note -> Month & Year of saleDate
-  const saleMonth = format(eventDate, "MMM");
-  const saleYear = format(eventDate, "yyyy");
+  // Column "เดือน" and "ปี"
+  const saleMonth = getUtcMonthStr(eventDate);
+  const saleYear = getUtcYearStr(eventDate);
   const regionStr =
     sale.region ||
     (sale.customer?.province
@@ -194,53 +218,61 @@ function createSaleEventRows(
   const salesOrderNo = getSalesOrderNumber(sale);
   const customerName = formatCustomerName(sale.customer?.name);
 
+  const saleTotal = Number(sale.totalAmount || 0);
+  const items = sale.items || [];
+  const netAmounts = allocateNetItemAmounts(items, saleTotal);
+
   const rows: any[] = [];
 
-  if (sale.items && sale.items.length > 0) {
-    for (const item of sale.items) {
+  if (items.length > 0) {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const product = item.product || {};
+
       const abcGroup =
         item.productABCTypeName ||
-        item.product?.productABCType?.name ||
-        item.product?.productABCType?.code ||
+        product.productABCType?.name ||
+        product.productABCType?.code ||
         "";
 
       const categoryRaw =
         item.categoryName ||
-        item.product?.category?.description ||
-        item.product?.category?.code ||
+        product.category?.description ||
+        product.category?.code ||
         "";
       const productGroupStr = categoryRaw
         ? categoryRaw.split(":")[0].trim()
         : "";
 
-      const commonNameStr = item.commonName || item.product?.commonName || "";
+      const commonNameStr = item.commonName || product.commonName || "";
       const tradeNameStr =
         item.tradeNameGroupName ||
-        item.product?.tradeNameGroup?.description ||
+        product.tradeNameGroup?.description ||
         item.name ||
         "";
 
-      const pkgSizeRaw = item.packageSize ?? item.product?.packageSize;
+      const pkgSizeRaw = item.packageSize ?? product.packageSize;
       const pkgUnitRaw =
-        item.packageSizeUnit ?? item.product?.packageSizeUnit ?? "";
+        item.packageSizeUnit ?? product.packageSizeUnit ?? "";
       const packageSizeStr =
         pkgSizeRaw != null
           ? `${Number(pkgSizeRaw)} ${pkgUnitRaw}`.trim()
           : "";
 
       const { litersOrKgPerUnit, totalLitersOrKg } = calculateLitersOrKg(item);
-      const quantityNum = item.quantity || 0;
+      const quantityNum = Number(item.quantity) || 0;
+      const netItemPrice = netAmounts[i] ?? 0;
 
       rows.push({
         year: saleYear,
         dataTypeLabel: eventType,
         month: saleMonth,
-        abcGroup: abcGroup,
-        productGroupStr: productGroupStr,
-        commonNameStr: commonNameStr,
-        productCode: item.productCode || "",
-        tradeNameStr: tradeNameStr,
-        packageSizeStr: packageSizeStr,
+        abcGroup: abcGroup || "-",
+        productGroupStr: productGroupStr || "-",
+        commonNameStr: commonNameStr || "-",
+        productCode: item.productCode || product.productCode || "-",
+        tradeNameStr: tradeNameStr || "-",
+        packageSizeStr: packageSizeStr || "-",
         totalPerBox: litersOrKgPerUnit,
 
         employeeNickname: sale.employee?.nickname || "",
@@ -249,7 +281,7 @@ function createSaleEventRows(
         province: sale.customer?.province || "",
         quantityNum: quantityNum,
         totalBoxSold: totalLitersOrKg,
-        totalItemPrice: Number(item.totalPrice) || 0,
+        totalItemPrice: netItemPrice,
         paymentDateStr: paymentDateStr,
         salesOrderNo: salesOrderNo,
         deliveryDateStr: deliveryDateStr,
@@ -258,12 +290,12 @@ function createSaleEventRows(
         formattedDate: formattedDate,
         unitPrice: Number(item.unitPrice) || 0,
         statusThai: statusThai,
-        itemName: item.name || "",
-        unit: item.unit || item.product?.unit || "",
+        itemName: item.name || product.name || "-",
+        unit: item.unit || product.unit || "-",
         subtotalAmount: Number(sale.subtotalAmount) || 0,
         shippingCost: Number(sale.shippingCost) || 0,
         otherCosts: Number(sale.otherCosts) || 0,
-        totalAmount: Number(sale.totalAmount) || 0,
+        totalAmount: saleTotal,
         managerNotes: sale.managerNotes || "",
         employeeName: sale.employee?.name || "",
         _sortDate: eventDate.getTime(),
@@ -288,7 +320,7 @@ function createSaleEventRows(
       province: sale.customer?.province || "",
       quantityNum: 0,
       totalBoxSold: "-",
-      totalItemPrice: 0,
+      totalItemPrice: saleTotal,
       paymentDateStr: paymentDateStr,
       salesOrderNo: salesOrderNo,
       deliveryDateStr: deliveryDateStr,
@@ -302,7 +334,169 @@ function createSaleEventRows(
       subtotalAmount: Number(sale.subtotalAmount) || 0,
       shippingCost: Number(sale.shippingCost) || 0,
       otherCosts: Number(sale.otherCosts) || 0,
-      totalAmount: Number(sale.totalAmount) || 0,
+      totalAmount: saleTotal,
+      managerNotes: sale.managerNotes || "",
+      employeeName: sale.employee?.name || "",
+      _sortDate: eventDate.getTime(),
+    });
+  }
+
+  return rows;
+}
+
+function createShipmentEventRows(
+  shipment: any,
+  eventDate: Date,
+): any[] {
+  const sale = shipment.sale || {};
+  const saleDateObj = parseValidDate(sale.saleDate);
+  const formattedDate = saleDateObj ? getUtcFormattedDate(saleDateObj) : "";
+
+  const paymentDateRaw = shipment.paymentDate || sale.paymentDate;
+  const paymentDateObj = parseValidDate(paymentDateRaw);
+  const paymentDateStr = paymentDateObj
+    ? getUtcFormattedDate(paymentDateObj)
+    : "";
+
+  const statusThai = SALE_STATUS_MAP[sale.status] || sale.status || "จัดส่งแล้ว";
+  const deliveryDateStr = getUtcFormattedDate(eventDate);
+
+  const saleMonth = getUtcMonthStr(eventDate);
+  const saleYear = getUtcYearStr(eventDate);
+  const regionStr =
+    sale.region ||
+    (sale.customer?.province
+      ? getRegionFromProvince(sale.customer.province)
+      : "") ||
+    "";
+  const salesOrderNo =
+    shipment.salesOrderNumber?.trim() ||
+    sale.saleOrderRef?.trim() ||
+    sale.saleNumber?.trim() ||
+    "";
+  const customerName = formatCustomerName(sale.customer?.name);
+
+  const shipmentTotal = Number(shipment.totalAmount || 0);
+  const items = shipment.items || [];
+  const netAmounts = allocateNetItemAmounts(items, shipmentTotal);
+
+  const rows: any[] = [];
+
+  if (items.length > 0) {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const saleItem = item.saleItem || {};
+      const product = saleItem.product || {};
+
+      const abcGroup =
+        saleItem.productABCTypeName ||
+        product.productABCType?.name ||
+        product.productABCType?.code ||
+        "";
+
+      const categoryRaw =
+        saleItem.categoryName ||
+        product.category?.description ||
+        product.category?.code ||
+        "";
+      const productGroupStr = categoryRaw
+        ? categoryRaw.split(":")[0].trim()
+        : "";
+
+      const commonNameStr = saleItem.commonName || product.commonName || "";
+      const tradeNameStr =
+        saleItem.tradeNameGroupName ||
+        product.tradeNameGroup?.description ||
+        saleItem.name ||
+        "";
+
+      const pkgSizeRaw = saleItem.packageSize ?? product.packageSize;
+      const pkgUnitRaw =
+        saleItem.packageSizeUnit ?? product.packageSizeUnit ?? "";
+      const packageSizeStr =
+        pkgSizeRaw != null
+          ? `${Number(pkgSizeRaw)} ${pkgUnitRaw}`.trim()
+          : "";
+
+      const quantityNum = Number(item.quantity) || 0;
+      const { litersOrKgPerUnit } = calculateLitersOrKg(saleItem);
+      const totalBoxSold = roundNumber(quantityNum * litersOrKgPerUnit, 4);
+
+      const netItemPrice = netAmounts[i] ?? 0;
+      const unitPrice = Number(item.unitPrice || saleItem.unitPrice) || 0;
+
+      rows.push({
+        year: saleYear,
+        dataTypeLabel: "Invoice",
+        month: saleMonth,
+        abcGroup: abcGroup || "-",
+        productGroupStr: productGroupStr || "-",
+        commonNameStr: commonNameStr || "-",
+        productCode: saleItem.productCode || product.productCode || "-",
+        tradeNameStr: tradeNameStr || "-",
+        packageSizeStr: packageSizeStr || "-",
+        totalPerBox: litersOrKgPerUnit,
+
+        employeeNickname: sale.employee?.nickname || "",
+        regionStr: regionStr,
+        customerName: customerName,
+        province: sale.customer?.province || "",
+        quantityNum: quantityNum,
+        totalBoxSold: totalBoxSold,
+        totalItemPrice: netItemPrice,
+        paymentDateStr: paymentDateStr,
+        salesOrderNo: salesOrderNo,
+        deliveryDateStr: deliveryDateStr,
+        notes: shipment.notes || sale.notes || "",
+
+        formattedDate: formattedDate,
+        unitPrice: unitPrice,
+        statusThai: statusThai,
+        itemName: saleItem.name || product.name || "-",
+        unit: saleItem.unit || product.unit || "-",
+        subtotalAmount: shipmentTotal,
+        shippingCost: 0,
+        otherCosts: Number(shipment.billDiscount) || 0,
+        totalAmount: shipmentTotal,
+        managerNotes: sale.managerNotes || "",
+        employeeName: sale.employee?.name || "",
+        _sortDate: eventDate.getTime(),
+      });
+    }
+  } else {
+    rows.push({
+      year: saleYear,
+      dataTypeLabel: "Invoice",
+      month: saleMonth,
+      abcGroup: "-",
+      productGroupStr: "-",
+      commonNameStr: "-",
+      productCode: "-",
+      tradeNameStr: "-",
+      packageSizeStr: "-",
+      totalPerBox: "-",
+
+      employeeNickname: sale.employee?.nickname || "",
+      regionStr: regionStr,
+      customerName: customerName,
+      province: sale.customer?.province || "",
+      quantityNum: 0,
+      totalBoxSold: "-",
+      totalItemPrice: shipmentTotal,
+      paymentDateStr: paymentDateStr,
+      salesOrderNo: salesOrderNo,
+      deliveryDateStr: deliveryDateStr,
+      notes: shipment.notes || sale.notes || "",
+
+      formattedDate: formattedDate,
+      unitPrice: 0,
+      statusThai: statusThai,
+      itemName: "-",
+      unit: "-",
+      subtotalAmount: shipmentTotal,
+      shippingCost: 0,
+      otherCosts: Number(shipment.billDiscount) || 0,
+      totalAmount: shipmentTotal,
       managerNotes: sale.managerNotes || "",
       employeeName: sale.employee?.name || "",
       _sortDate: eventDate.getTime(),
@@ -315,6 +509,7 @@ function createSaleEventRows(
 export async function buildSalesAdminExportWorkbook(
   exportData: any[] | {
     sales?: any[];
+    shipments?: any[];
     targets?: any[];
     filterStatus?: string;
     startDate?: string;
@@ -322,6 +517,7 @@ export async function buildSalesAdminExportWorkbook(
   },
 ): Promise<string> {
   const sales = Array.isArray(exportData) ? exportData : exportData.sales || [];
+  const shipments = Array.isArray(exportData) ? [] : exportData.shipments || [];
   const targets = Array.isArray(exportData) ? [] : exportData.targets || [];
   const filterStatus = Array.isArray(exportData) ? undefined : exportData.filterStatus;
   const startDate = Array.isArray(exportData) ? undefined : exportData.startDate;
@@ -329,47 +525,68 @@ export async function buildSalesAdminExportWorkbook(
 
   const allRows: any[] = [];
 
-  // 1. Process actual Sales records into Event-Driven Rows
-  for (const sale of sales) {
-    const saleDateObj = parseValidDate(sale.saleDate);
-    const saleDateStr = saleDateObj ? format(saleDateObj, "yyyy-MM-dd") : null;
-    const isSalesNoteInRange =
-      saleDateObj !== null &&
-      saleDateStr !== null &&
-      (!startDate || saleDateStr >= startDate) &&
-      (!endDate || saleDateStr <= endDate);
+  const includeSalesNotes = !filterStatus || filterStatus === "ALL" || filterStatus === "SALES_NOTE";
+  const includeInvoices = !filterStatus || filterStatus === "ALL" || filterStatus === "INVOICE";
 
-    const isInvoiceDoc = resolveDocumentType(sale) === "Invoice";
-    const invDateObj = isInvoiceDoc ? resolveInvoiceDate(sale) : null;
-    const invDateStr = invDateObj ? format(invDateObj, "yyyy-MM-dd") : null;
-    const isInvoiceInRange =
-      invDateObj !== null &&
-      invDateStr !== null &&
-      (!startDate || invDateStr >= startDate) &&
-      (!endDate || invDateStr <= endDate);
+  // 1. Process Sales Note Events (Creation of order)
+  if (includeSalesNotes) {
+    for (const sale of sales) {
+      if (sale.status === "CANCELLED" || sale.deletedAt) continue;
+      const saleDateObj = parseValidDate(sale.saleDate);
+      if (!saleDateObj) continue;
 
-    // Case 1: Explicit SALES_NOTE filter
-    if (filterStatus === "SALES_NOTE") {
-      if (isSalesNoteInRange && saleDateObj) {
-        allRows.push(...createSaleEventRows(sale, "Sales Note", saleDateObj));
-      }
+      // Extract UTC date string matching Postgres EXTRACT
+      const sDay = saleDateObj.getUTCDate().toString().padStart(2, "0");
+      const sMonth = (saleDateObj.getUTCMonth() + 1).toString().padStart(2, "0");
+      const sYear = saleDateObj.getUTCFullYear().toString();
+      const saleDateStr = `${sYear}-${sMonth}-${sDay}`;
+
+      if (startDate && saleDateStr < startDate) continue;
+      if (endDate && saleDateStr > endDate) continue;
+
+      allRows.push(...createSaleEventRows(sale, "Sales Note", saleDateObj));
     }
-    // Case 2: Explicit INVOICE filter
-    else if (filterStatus === "INVOICE") {
-      if (isInvoiceInRange && invDateObj) {
-        allRows.push(...createSaleEventRows(sale, "Invoice", invDateObj));
-      }
+  }
+
+  // 2. Process Invoice Events (Realization of delivery)
+  if (includeInvoices) {
+    // 2.1 Process Shipments with delivered / in-transit / completed status
+    for (const sh of shipments) {
+      if (sh.status === "CANCELLED" || sh.status === "PENDING") continue;
+      const invDateObj = resolveShipmentReportingDate(sh, sh.sale);
+      if (!invDateObj) continue;
+
+      const iDay = invDateObj.getUTCDate().toString().padStart(2, "0");
+      const iMonth = (invDateObj.getUTCMonth() + 1).toString().padStart(2, "0");
+      const iYear = invDateObj.getUTCFullYear().toString();
+      const invDateStr = `${iYear}-${iMonth}-${iDay}`;
+
+      if (startDate && invDateStr < startDate) continue;
+      if (endDate && invDateStr > endDate) continue;
+
+      allRows.push(...createShipmentEventRows(sh, invDateObj));
     }
-    // Case 3: ALL filter (or unspecified) -> Event-Driven: emit both events if within range
-    else {
-      // Event 1: Sales Note (Creation Event)
-      if (isSalesNoteInRange && saleDateObj) {
-        allRows.push(...createSaleEventRows(sale, "Sales Note", saleDateObj));
-      }
-      // Event 2: Invoice (Delivery / Invoicing Event)
-      if (isInvoiceInRange && invDateObj) {
-        allRows.push(...createSaleEventRows(sale, "Invoice", invDateObj));
-      }
+
+    // 2.2 Process Legacy Sales with No Shipment
+    const legacySales = sales.filter((s) => {
+      const hasNoShipments = !s.shipments || s.shipments.length === 0;
+      const isInvoiceStatus = ["PAID", "DELIVERY_COMPLETED", "COMPLETED"].includes(s.status);
+      return hasNoShipments && isInvoiceStatus && !s.deletedAt;
+    });
+
+    for (const sale of legacySales) {
+      const invDateObj = resolveLegacyInvoiceReportingDate(sale);
+      if (!invDateObj) continue;
+
+      const iDay = invDateObj.getUTCDate().toString().padStart(2, "0");
+      const iMonth = (invDateObj.getUTCMonth() + 1).toString().padStart(2, "0");
+      const iYear = invDateObj.getUTCFullYear().toString();
+      const invDateStr = `${iYear}-${iMonth}-${iDay}`;
+
+      if (startDate && invDateStr < startDate) continue;
+      if (endDate && invDateStr > endDate) continue;
+
+      allRows.push(...createSaleEventRows(sale, "Invoice", invDateObj));
     }
   }
 

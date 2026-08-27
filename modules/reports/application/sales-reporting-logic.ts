@@ -107,3 +107,66 @@ export function resolveSalesYearFormatted(sale: any): string {
   const effectiveDate = resolveSalesReportingDate(sale);
   return effectiveDate ? format(effectiveDate, "yyyy") : "";
 }
+
+/**
+ * Pro-rates the target total amount across items based on their individual totalPrice,
+ * guaranteeing that SUM(result) === targetTotal to 0 tolerance.
+ */
+export function allocateNetItemAmounts(
+  items: Array<{ totalPrice?: number | string | null }>,
+  targetTotal: number,
+): number[] {
+  if (items.length === 0) return [];
+  if (items.length === 1) return [targetTotal];
+
+  const numericPrices = items.map((it) => Number(it.totalPrice || 0));
+  const subtotal = numericPrices.reduce((s, p) => s + p, 0);
+
+  if (subtotal === 0) {
+    const equalShare = Math.round((targetTotal / items.length) * 100) / 100;
+    return items.map((_, i) =>
+      i === items.length - 1
+        ? Math.round((targetTotal - equalShare * (items.length - 1)) * 100) / 100
+        : equalShare,
+    );
+  }
+
+  let allocatedSum = 0;
+  const result: number[] = [];
+  for (let i = 0; i < items.length; i++) {
+    if (i === items.length - 1) {
+      // Last item gets exact remainder to guarantee exact sum
+      const lastAmount = Math.round((targetTotal - allocatedSum) * 100) / 100;
+      result.push(lastAmount);
+    } else {
+      const share = Math.round((numericPrices[i] / subtotal) * targetTotal * 100) / 100;
+      allocatedSum += share;
+      result.push(share);
+    }
+  }
+  return result;
+}
+
+/**
+ * Extract reporting date for a Shipment matching Report findMonthlyInvoiceSalesByYear
+ */
+export function resolveShipmentReportingDate(shipment: any, sale?: any): Date | null {
+  const raw =
+    shipment?.scheduledDate ||
+    shipment?.actualDate ||
+    sale?.requestedDeliveryDate ||
+    shipment?.sale?.requestedDeliveryDate;
+  if (!raw) return null;
+  const d = raw instanceof Date ? raw : new Date(raw);
+  return !isNaN(d.getTime()) ? d : null;
+}
+
+/**
+ * Extract reporting date for a Legacy Sale (no shipment) matching Report findMonthlyInvoiceSalesByYear
+ */
+export function resolveLegacyInvoiceReportingDate(sale: any): Date | null {
+  const raw = sale?.deliveryDate || sale?.requestedDeliveryDate || sale?.saleDate;
+  if (!raw) return null;
+  const d = raw instanceof Date ? raw : new Date(raw);
+  return !isNaN(d.getTime()) ? d : null;
+}
