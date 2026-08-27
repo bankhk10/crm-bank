@@ -38,7 +38,11 @@ export function DetailType12Tour({
     tourSizeLabel = "ทัวร์ใหญ่";
   } else if (tourSize === "SMALL" || tourSize === "ทัวร์เล็ก") {
     tourSizeLabel = "ทัวร์เล็ก";
-  } else if (tourSize && typeof tourSize === "string" && tourSize.trim() !== "") {
+  } else if (
+    tourSize &&
+    typeof tourSize === "string" &&
+    tourSize.trim() !== ""
+  ) {
     tourSizeLabel = tourSize.trim();
   }
 
@@ -60,12 +64,6 @@ export function DetailType12Tour({
               <h2 className="font-bold text-slate-900 text-base sm:text-lg">
                 รายละเอียดทัวร์
               </h2>
-              <Badge
-                variant="outline"
-                className="bg-sky-50 text-sky-700 border-sky-200 text-2xs px-2 py-0.5 font-semibold rounded-md"
-              >
-                TYPE 12
-              </Badge>
             </div>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
               รายละเอียดแผนงานทัวร์ที่กำหนดไว้ใน Trip Plan
@@ -79,7 +77,7 @@ export function DetailType12Tour({
             "self-start sm:self-auto text-xs px-3 py-1 font-semibold rounded-full flex items-center gap-1.5",
             isStoreTour
               ? "bg-amber-50 text-amber-800 border-amber-200"
-              : "bg-sky-50 text-sky-800 border-sky-200"
+              : "bg-sky-50 text-sky-800 border-sky-200",
           )}
         >
           {isStoreTour ? (
