@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { Wrench, CheckCircle2, Clock, ImageIcon, Camera, Eye } from "lucide-react";
+import {
+  Wrench,
+  CheckCircle2,
+  Clock,
+  ImageIcon,
+  Camera,
+  Eye,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
 import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
@@ -86,12 +93,11 @@ export function DetailType6Issue({
       <ActualTargetCard
         iconColorClass="text-rose-600"
         badgeColorClass="bg-rose-50 text-rose-800 border border-rose-200"
-        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
+        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
         items={[
           { label: "ลูกค้า:", value: target.customer || "-" },
           { label: "ประเภทปัญหา:", value: target.issueType || "-" },
           { label: "รายละเอียดปัญหา:", value: target.detail || "-" },
-          { label: "เป้าหมายการแก้ปัญหา:", value: target.targetStatus || "-" },
         ]}
       />
 
