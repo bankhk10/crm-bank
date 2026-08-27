@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import type { ActivityPlanWithRelations } from "../../../types";
-import { WORK_TYPES, isFieldDayItem, DEMO_OWNERS } from "../../../constants";
+import { WORK_TYPES, isFieldDayItem } from "../../../constants";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -134,26 +134,56 @@ export function extractPlanData(
         }))
     : [];
 
-  const helperNames =
+  const extractedHelpers =
     p.helpers && Array.isArray(p.helpers)
       ? p.helpers
           .map((h: any) => {
             const emp = h.employee;
-            if (!emp) return h.name || h.employeeName || "";
-            const fullName = `${emp.firstName || ""} ${emp.lastName || ""}`.trim();
-            const dept = emp.department?.name || h.departmentName;
-            return dept ? `${fullName} (${dept})` : fullName;
+            const id = h.employeeId || emp?.id || h.id || "";
+            const rawFullName =
+              emp?.name?.trim() ||
+              `${emp?.firstName || ""} ${emp?.lastName || ""}`.trim() ||
+              h.name ||
+              h.employeeName ||
+              "";
+            const dept =
+              emp?.department?.name ||
+              emp?.departmentName ||
+              h.departmentName ||
+              undefined;
+            const position =
+              emp?.position?.name ||
+              emp?.positionTitle ||
+              undefined;
+            const displayName = dept
+              ? `${rawFullName} (${dept})`
+              : rawFullName;
+
+            return {
+              id,
+              name: displayName || rawFullName || "ผู้ช่วยงาน",
+              positionTitle: position,
+              departmentName: dept,
+            };
           })
-          .filter(Boolean)
+          .filter((h: any) => Boolean(h.name && h.name !== "ผู้ช่วยงาน") || Boolean(h.id))
+      : [];
+
+  const helperNames =
+    extractedHelpers.length > 0
+      ? extractedHelpers.map((h) => h.name)
       : undefined;
 
   const planSummary: PlanSummaryData = {
     planNo: p.code || p.id || "-",
-    title: p.title || "แปลงสาธิตของบ้านนา",
+    title: p.title || "-",
     startDateStr: format(start, "d MMM yyyy", { locale: th }),
     endDateStr: format(end, "d MMM yyyy", { locale: th }),
     timeStr: `${format(start, "HH:mm")} - ${format(end, "HH:mm")} น.`,
-    locationStr: p.location || `${DEMO_OWNERS[0]} อ.เมือง จ.จันทบุรี`,
+    locationStr: p.location || "",
+    location: p.location || undefined,
+    province: p.province || undefined,
+    district: p.district || undefined,
     marketingBudget: (p as any).marketingBudgetRequested
       ? Number((p as any).marketingBudgetRequested)
       : undefined,
@@ -174,8 +204,8 @@ export function extractPlanData(
     salesPromotionItems: salesPromoItemsFromItems,
     notes: p.notes || undefined,
     objective: p.objective || undefined,
-    helperEmployeeNames:
-      helperNames && helperNames.length > 0 ? helperNames : undefined,
+    helpers: extractedHelpers.length > 0 ? extractedHelpers : undefined,
+    helperEmployeeNames: helperNames,
   };
 
   // 1. Detect ALL selected work types from the Trip Plan

@@ -57,7 +57,16 @@ export interface PlanSummaryData {
   // ข้อมูลเพิ่มเติม (Additional Info) (ถ้ามี)
   notes?: string;
   objective?: string;
+  location?: string;
+  province?: string;
+  district?: string;
   helperEmployeeNames?: string[];
+  helpers?: {
+    id: string;
+    name: string;
+    positionTitle?: string;
+    departmentName?: string;
+  }[];
 }
 
 export interface ActualTargetItem {

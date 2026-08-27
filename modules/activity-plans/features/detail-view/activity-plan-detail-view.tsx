@@ -122,6 +122,9 @@ const initialPlanSummary: PlanSummaryData = {
   endTimeStr: "",
   timeStr: "",
   locationStr: "",
+  location: undefined,
+  province: undefined,
+  district: undefined,
   marketingBudget: undefined,
   salesPromotionBudget: undefined,
   extraExpenseAmount: undefined,
@@ -134,6 +137,7 @@ const initialPlanSummary: PlanSummaryData = {
   requisitionItems: [],
   objective: undefined,
   notes: undefined,
+  helpers: undefined,
   helperEmployeeNames: undefined,
 };
 
