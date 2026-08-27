@@ -1,27 +1,22 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Plus, Trash2, Package } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Trash2, Package, Store } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
 import { DEMO_PRODUCTS } from "../../../../constants";
 import { listProductsAction } from "@/modules/products/server/actions";
 
-const OTHER_OPTION = "ไม่พบข้อมูล / ระบุเพิ่มเติม";
-
 export interface StockCheckItem {
   id?: string;
+  storeName: string;
+  productId?: string;
   productName: string;
+  productCode?: string;
   remainingQty: string;
   remarks: string;
   isCustom?: boolean;
@@ -34,7 +29,7 @@ interface ActualType11StockProps {
     detail: string;
     targetOpportunity: string;
   };
-  products?: Array<{ id: string; name: string } | string>;
+  products?: Array<{ id: string; name: string; productCode?: string | null } | string>;
   productList?: string;
   setProductList?: (v: string) => void;
   remainingQty?: string;
@@ -70,19 +65,21 @@ export function ActualType11Stock({
   nextAction,
   setNextAction,
 }: ActualType11StockProps) {
-  const [dbProducts, setDbProducts] = useState<string[]>([]);
+  const [dbProducts, setDbProducts] = useState<
+    Array<{ id: string; name: string; productCode?: string | null }>
+  >([]);
 
   // Fetch active products from DB if not provided
   useEffect(() => {
     let isMounted = true;
     async function loadProducts() {
       try {
-        const res = await listProductsAction({ status: "ACTIVE", perPage: 1000 });
+        const res = await listProductsAction({
+          status: "ACTIVE",
+          perPage: 1000,
+        });
         if (isMounted && res?.products && res.products.length > 0) {
-          const names = res.products
-            .map((p: any) => (typeof p === "string" ? p : p.name))
-            .filter(Boolean);
-          setDbProducts(names);
+          setDbProducts(res.products);
         }
       } catch (err) {
         console.error("Failed to load products in ActualType11Stock:", err);
@@ -96,48 +93,86 @@ export function ActualType11Stock({
     };
   }, [products]);
 
-  const availableProducts = useMemo(() => {
-    let list: string[] = [];
+  // Parse list of planned stores
+  const storesList = useMemo(() => {
+    if (!target.store || !target.store.trim()) return ["ร้านค้า"];
+    const parsed = target.store
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    return parsed.length > 0 ? parsed : [target.store.trim()];
+  }, [target.store]);
+
+  // Options for FormCombobox
+  const productOptions: Array<{
+    value: string;
+    label: string;
+    subLabel?: string;
+  }> = useMemo(() => {
     if (products && products.length > 0) {
-      list = products
-        .map((p) => (typeof p === "string" ? p : p.name))
-        .filter(Boolean);
-    } else if (dbProducts.length > 0) {
-      list = dbProducts;
-    } else {
-      list = DEMO_PRODUCTS;
+      return products.map((p) => {
+        if (typeof p === "string") {
+          return { value: p, label: p };
+        }
+        return {
+          value: p.name,
+          label: p.name,
+          subLabel: p.productCode || undefined,
+        };
+      });
     }
-    // Deduplicate product names to ensure unique React keys and Select values
-    return Array.from(new Set(list));
+    if (dbProducts.length > 0) {
+      return dbProducts.map((p) => ({
+        value: p.name,
+        label: p.name,
+        subLabel: p.productCode || undefined,
+      }));
+    }
+    return DEMO_PRODUCTS.map((p) => ({ value: p, label: p }));
   }, [products, dbProducts]);
 
   // Local state for stock items
   const [items, setItems] = useState<StockCheckItem[]>(() => {
-    if (stockItems && stockItems.length > 0) return stockItems;
+    const primaryStore = target.store
+      ? target.store.split(",")[0]?.trim() || "ร้านค้า"
+      : "ร้านค้า";
+
+    if (stockItems && stockItems.length > 0) {
+      return stockItems.map((item) => ({
+        ...item,
+        id: item.id || crypto.randomUUID(),
+        storeName: item.storeName || primaryStore,
+        remainingQty: item.remainingQty || "",
+        remarks: item.remarks || "",
+      }));
+    }
+
     if (productList || remainingQty || remarks) {
-      const pList = productList ? productList.split(",").map((s) => s.trim()) : [""];
-      const qList = remainingQty ? remainingQty.split(",").map((s) => s.trim()) : [""];
-      const rList = remarks ? remarks.split(",").map((s) => s.trim()) : [""];
+      const pList = productList
+        ? productList.split(",").map((s) => s.trim())
+        : [];
+      const qList = remainingQty
+        ? remainingQty.split(",").map((s) => s.trim())
+        : [];
+      const rList = remarks ? remarks.split(",").map((s) => s.trim()) : [];
       const maxLen = Math.max(pList.length, qList.length, rList.length);
       const initial: StockCheckItem[] = [];
       for (let i = 0; i < maxLen; i++) {
-        initial.push({
-          productName: pList[i] || "",
-          remainingQty: qList[i] || "",
-          remarks: rList[i] || "",
-          isCustom: false,
-        });
+        if (pList[i] || qList[i] || rList[i]) {
+          initial.push({
+            id: crypto.randomUUID(),
+            storeName: primaryStore,
+            productName: pList[i] || "",
+            remainingQty: qList[i] || "",
+            remarks: rList[i] || "",
+            isCustom: false,
+          });
+        }
       }
-      return initial;
+      if (initial.length > 0) return initial;
     }
-    return [
-      {
-        productName: "",
-        remainingQty: "",
-        remarks: "",
-        isCustom: false,
-      },
-    ];
+
+    return [];
   });
 
   // Sync internal items back to parent props
@@ -172,27 +207,50 @@ export function ActualType11Stock({
     }
   };
 
-  const handleAddItem = () => {
-    const newItems = [
-      ...items,
-      { productName: "", remainingQty: "", remarks: "", isCustom: false },
-    ];
+  const handleAddProductToStore = (
+    storeName: string,
+    productName: string,
+  ) => {
+    if (!productName.trim()) return;
+
+    // Prevent duplicate product in the same store
+    const isDuplicate = items.some(
+      (i) =>
+        i.storeName === storeName &&
+        i.productName.toLowerCase() === productName.trim().toLowerCase(),
+    );
+    if (isDuplicate) return;
+
+    const matchedOpt = productOptions.find(
+      (p) => p.value === productName || p.label === productName,
+    );
+
+    const newItem: StockCheckItem = {
+      id: crypto.randomUUID(),
+      storeName,
+      productName: matchedOpt ? matchedOpt.label : productName.trim(),
+      productCode: matchedOpt?.subLabel || undefined,
+      remainingQty: "",
+      remarks: "",
+      isCustom: false,
+    };
+
+    const newItems = [...items, newItem];
     updateItems(newItems);
   };
 
-  const handleRemoveItem = (index: number) => {
-    if (items.length <= 1) return;
-    const newItems = items.filter((_, idx) => idx !== index);
+  const handleRemoveItem = (id: string) => {
+    const newItems = items.filter((item) => item.id !== id);
     updateItems(newItems);
   };
 
   const handleItemChange = (
-    index: number,
-    field: keyof StockCheckItem,
-    value: any,
+    id: string,
+    field: "remainingQty" | "remarks" | "productName",
+    value: string,
   ) => {
-    const newItems = items.map((item, idx) => {
-      if (idx === index) {
+    const newItems = items.map((item) => {
+      if (item.id === id) {
         return { ...item, [field]: value };
       }
       return item;
@@ -203,180 +261,202 @@ export function ActualType11Stock({
   if (!isVisible) return null;
 
   return (
-    <div className="border border-slate-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-4 shadow-xs">
+    <div className="border border-slate-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-5 shadow-xs">
       <div className="flex items-center justify-between border-b border-slate-200 pb-3">
         <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-800 border border-slate-200">
+            <Package className="h-4 w-4 text-slate-700" />
+          </div>
           <h2 className="font-bold text-slate-900 text-base md:text-lg">
             ตรวจเช็กสต็อกหน้าร้าน
           </h2>
         </div>
       </div>
 
+      {/* PLANNED TARGET CARD */}
       <ActualTargetCard
         iconColorClass="text-slate-600"
         badgeColorClass="bg-slate-200 text-slate-800"
-        gridColsClass="grid-cols-1 sm:grid-cols-2"
+        gridColsClass="grid-cols-1"
         items={[
-          { label: "ร้านค้าตรวจเช็ก:", value: target.store || "-" },
-          { label: "รายละเอียดเพิ่มเติม:", value: target.detail || "-" },
+          { label: "ร้านค้าที่ตรวจเช็กสต็อก:", value: target.store || "-" },
         ]}
       />
 
-      {/* ITEMS LIST SECTION */}
-      <div className="space-y-3 pt-1">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
-            <Package className="w-4 h-4 text-slate-600" />
-            รายการสินค้าที่ตรวจเช็ก ({items.length} รายการ){" "}
-            <span className="text-rose-500">*</span>
-          </label>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleAddItem}
-            className="text-xs font-semibold text-slate-700 hover:text-slate-900 border-slate-300 hover:bg-slate-100 flex items-center gap-1 rounded-xl h-8 px-3 transition-all cursor-pointer shadow-2xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>เพิ่มสินค้า</span>
-          </Button>
-        </div>
+      {/* PER-STORE STOCK CHECK SECTIONS */}
+      <div className="space-y-5 pt-1">
+        {storesList.map((storeName, storeIdx) => {
+          const storeItems = items.filter((i) => i.storeName === storeName);
+          const availableOptionsForStore = productOptions.filter(
+            (opt) => !storeItems.some((i) => i.productName === opt.value),
+          );
 
-        <div className="space-y-3">
-          {items.map((item, idx) => {
-            const selectValue = availableProducts.includes(item.productName)
-              ? item.productName
-              : item.isCustom ||
-                  (item.productName !== "" &&
-                    !availableProducts.includes(item.productName))
-                ? OTHER_OPTION
-                : "";
-
-            return (
-              <div
-                key={idx}
-                className="p-3.5 md:p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3 relative group transition-all hover:border-slate-300"
-              >
-                <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                  <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-700 text-white font-bold text-[10px]">
-                      {idx + 1}
-                    </span>
-                    สินค้าที่ {idx + 1}
-                  </span>
-                  {items.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveItem(idx)}
-                      className="text-slate-400 hover:text-rose-600 transition-colors p-1 rounded-lg hover:bg-rose-50 cursor-pointer"
-                      title="ลบรายการนี้"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {/* Select Product */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-700">
-                      รายการสินค้า <span className="text-rose-500">*</span>
-                    </label>
-                    <Select
-                      value={selectValue}
-                      onValueChange={(val) => {
-                        if (val === OTHER_OPTION) {
-                          handleItemChange(idx, "isCustom", true);
-                          if (availableProducts.includes(item.productName)) {
-                            handleItemChange(idx, "productName", "");
-                          }
-                        } else {
-                          handleItemChange(idx, "isCustom", false);
-                          handleItemChange(idx, "productName", val);
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="w-full bg-white border-slate-300 text-xs h-9">
-                        <SelectValue placeholder="เลือกรายการสินค้า" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-72">
-                        {availableProducts.map((prod, pIdx) => (
-                          <SelectItem
-                            key={`${prod}-${pIdx}`}
-                            value={prod}
-                            className="text-xs"
-                          >
-                            {prod}
-                          </SelectItem>
-                        ))}
-                        <SelectItem
-                          value={OTHER_OPTION}
-                          className="text-xs font-medium text-slate-700"
-                        >
-                          {OTHER_OPTION}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    {(item.isCustom || selectValue === OTHER_OPTION) && (
-                      <div className="pt-1 animate-in fade-in-50 duration-200">
-                        <Input
-                          value={item.productName}
-                          onChange={(e) =>
-                            handleItemChange(idx, "productName", e.target.value)
-                          }
-                          placeholder="ระบุชื่อสินค้า เช่น ปุ๋ยสูตร 15-15-15"
-                          className="bg-white border-slate-300 text-xs h-9"
-                        />
-                      </div>
-                    )}
+          return (
+            <div
+              key={`${storeName}-${storeIdx}`}
+              className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 md:p-5 space-y-4 shadow-2xs transition-all hover:border-slate-300"
+            >
+              {/* Store Header */}
+              <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-800 text-white font-bold text-xs shadow-xs">
+                    <Store className="h-4 w-4" />
                   </div>
-
-                  {/* Quantity */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-700">
-                      จำนวนคงเหลือ
-                    </label>
-
-                    <div className="relative">
-                      <Input
-                        value={item.remainingQty}
-                        onChange={(e) =>
-                          handleItemChange(idx, "remainingQty", e.target.value)
-                        }
-                        placeholder="ระบุจำนวนคงเหลือ"
-                        className="bg-white border-slate-300 text-xs h-9 pr-12"
-                      />
-
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">
-                        ลัง
-                      </span>
-                    </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <span>{storeName}</span>
+                      <Badge
+                        variant="outline"
+                        className="text-[11px] font-semibold bg-white text-slate-700 border-slate-200"
+                      >
+                        {storeItems.length} รายการ
+                      </Badge>
+                    </h3>
                   </div>
-                </div>
-
-                {/* Remarks */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">
-                    หมายเหตุ
-                  </label>
-                  <Input
-                    value={item.remarks}
-                    onChange={(e) =>
-                      handleItemChange(idx, "remarks", e.target.value)
-                    }
-                    placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
-                    className="bg-white border-slate-300 text-xs h-9"
-                  />
                 </div>
               </div>
-            );
-          })}
-        </div>
+
+              {/* Searchable Product Combobox for THIS store */}
+              <div className="space-y-1.5">
+                <FormCombobox
+                  id={`combobox-store-${storeIdx}`}
+                  label="ค้นหาและเลือกสินค้าที่ต้องการตรวจเช็กสต็อก"
+                  labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
+                  triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-slate-500 shadow-2xs"
+                  value=""
+                  onChange={(val) => {
+                    if (val) {
+                      handleAddProductToStore(storeName, val);
+                    }
+                  }}
+                  options={availableOptionsForStore}
+                  placeholder="+ ค้นหาด้วยชื่อสินค้า หรือรหัสสินค้า (เช่น 91CHR)..."
+                  searchPlaceholder="ค้นหาด้วยรหัสสินค้า หรือชื่อสินค้า..."
+                  emptyText="ไม่พบสินค้า"
+                />
+              </div>
+
+              {/* Items List for THIS store */}
+              {storeItems.length === 0 ? (
+                <div className="py-6 text-center text-slate-400 bg-white rounded-xl border border-dashed border-slate-200 text-xs">
+                  ยังไม่มีรายการสินค้าที่ตรวจเช็กสำหรับร้านนี้ (ค้นหาและเลือกสินค้าจากช่องด้านบน)
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {storeItems.map((item, itemIdx) => (
+                    <div
+                      key={item.id || `${item.productName}-${itemIdx}`}
+                      className="p-3.5 md:p-4 rounded-xl border border-slate-200 bg-white space-y-3 shadow-2xs relative group transition-all hover:border-slate-300"
+                    >
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-700 font-bold text-[10px] border border-slate-200">
+                            {itemIdx + 1}
+                          </span>
+                          <span className="text-xs font-bold text-slate-800">
+                            {item.productName}
+                          </span>
+                          {item.productCode && (
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0"
+                            >
+                              {item.productCode}
+                            </Badge>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveItem(item.id!)}
+                          className="text-slate-400 hover:text-rose-600 transition-colors p-1 rounded-lg hover:bg-rose-50 cursor-pointer"
+                          title="ลบรายการนี้"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {/* Remaining Qty */}
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-slate-700">
+                            จำนวนคงเหลือ <span className="text-rose-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <Input
+                              value={item.remainingQty}
+                              onChange={(e) =>
+                                handleItemChange(
+                                  item.id!,
+                                  "remainingQty",
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="ระบุจำนวนคงเหลือ"
+                              className="bg-white border-slate-300 text-xs h-9 pr-12"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">
+                              ลัง
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Remarks */}
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-slate-700">
+                            หมายเหตุ
+                          </label>
+                          <Input
+                            value={item.remarks}
+                            onChange={(e) =>
+                              handleItemChange(
+                                item.id!,
+                                "remarks",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
+                            className="bg-white border-slate-300 text-xs h-9"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Stock Status & Reorder Opportunity */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+        <div className="space-y-1.5">
+          <label className="text-sm font-semibold text-slate-800">
+            สถานะสต็อกภาพรวม
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {(["ใกล้หมด", "ขาดสต็อก"] as const).map((status) => (
+              <button
+                key={status}
+                type="button"
+                onClick={() =>
+                  setStockStatus(stockStatus === status ? "" : status)
+                }
+                className={cn(
+                  "py-2.5 px-1 rounded-xl border text-xs font-semibold cursor-pointer transition-all",
+                  stockStatus === status
+                    ? status === "ใกล้หมด"
+                      ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
+                      : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
+                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
+                )}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-800">
             โอกาสการสั่งซื้อรอบใหม่ <span className="text-rose-500">*</span>

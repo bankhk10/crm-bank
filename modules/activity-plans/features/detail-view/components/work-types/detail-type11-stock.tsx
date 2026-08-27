@@ -7,7 +7,9 @@ import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/
 
 export interface StockCheckItem {
   id?: string;
+  storeName?: string;
   productName: string;
+  productCode?: string;
   remainingQty: string;
   remarks: string;
   isCustom?: boolean;
@@ -40,9 +42,18 @@ export function DetailType11Stock({
   reorderOpportunity,
   nextAction,
 }: DetailType11StockProps) {
-  if (!isVisible) return null;
+  const groupedByStore = React.useMemo(() => {
+    if (!stockItems || stockItems.length === 0) return null;
+    const groups: Record<string, StockCheckItem[]> = {};
+    stockItems.forEach((item) => {
+      const sName = item.storeName || "ร้านค้า";
+      if (!groups[sName]) groups[sName] = [];
+      groups[sName].push(item);
+    });
+    return groups;
+  }, [stockItems]);
 
-  const hasMultipleItems = stockItems && stockItems.length > 0;
+  if (!isVisible) return null;
 
   return (
     <div className="border border-slate-300 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-4 shadow-xs">
@@ -61,14 +72,9 @@ export function DetailType11Stock({
       <ActualTargetCard
         iconColorClass="text-slate-600"
         badgeColorClass="bg-slate-100 text-slate-800 border border-slate-200"
-        gridColsClass="grid-cols-1 sm:grid-cols-3"
+        gridColsClass="grid-cols-1"
         items={[
-          { label: "ร้านค้า:", value: target.store || "-" },
-          { label: "รายละเอียดเป้าหมาย:", value: target.detail || "-" },
-          {
-            label: "โอกาสการสั่งซื้อเป้าหมาย:",
-            value: target.targetOpportunity || "-",
-          },
+          { label: "ร้านค้าที่ตรวจเช็กสต็อก:", value: target.store || "-" },
         ]}
       />
 
@@ -80,41 +86,58 @@ export function DetailType11Stock({
         </div>
 
         {/* STOCK TABLE OR FALLBACK */}
-        {hasMultipleItems ? (
-          <div className="space-y-2">
-            <span className="text-xs font-bold text-slate-700">
-              รายการสินค้าที่ตรวจสต็อก ({stockItems.length} รายการ)
-            </span>
-            <div className="overflow-x-auto border border-slate-200 rounded-xl">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
-                  <tr>
-                    <th className="py-2.5 px-3 text-center w-10">ลำดับ</th>
-                    <th className="py-2.5 px-3">ชื่อสินค้า</th>
-                    <th className="py-2.5 px-3 text-center w-36">จำนวนคงเหลือ</th>
-                    <th className="py-2.5 px-3">หมายเหตุ</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {stockItems.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/40">
-                      <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
-                        {idx + 1}
-                      </td>
-                      <td className="py-2.5 px-3 font-semibold text-slate-800">
-                        {item.productName}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-bold text-slate-800">
-                        {item.remainingQty || "-"}
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-600">
-                        {item.remarks || "-"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        {groupedByStore ? (
+          <div className="space-y-4">
+            {Object.entries(groupedByStore).map(([storeName, items], gIdx) => (
+              <div
+                key={`${storeName}-${gIdx}`}
+                className="space-y-2 rounded-xl border border-slate-200 p-3.5 bg-slate-50/50"
+              >
+                <div className="flex items-center justify-between pb-1">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                    ร้าน: {storeName} ({items.length} รายการ)
+                  </span>
+                </div>
+                <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                      <tr>
+                        <th className="py-2.5 px-3 text-center w-10">ลำดับ</th>
+                        <th className="py-2.5 px-3">ชื่อสินค้า</th>
+                        <th className="py-2.5 px-3 text-center w-36">
+                          จำนวนคงเหลือ
+                        </th>
+                        <th className="py-2.5 px-3">หมายเหตุ</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {items.map((item, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50/40">
+                          <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
+                            {idx + 1}
+                          </td>
+                          <td className="py-2.5 px-3 font-semibold text-slate-800">
+                            {item.productName}
+                            {item.productCode && (
+                              <span className="ml-2 text-[10px] text-slate-500 font-normal">
+                                ({item.productCode})
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 text-center font-bold text-slate-800">
+                            {item.remainingQty ? `${item.remainingQty} ลัง` : "-"}
+                          </td>
+                          <td className="py-2.5 px-3 text-slate-600">
+                            {item.remarks || "-"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
           </div>
         ) : productList ? (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">

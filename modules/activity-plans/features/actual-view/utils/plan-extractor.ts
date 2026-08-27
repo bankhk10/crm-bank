@@ -1175,9 +1175,23 @@ export function extractPlanData(
       })(),
     };
 
+    const t11StoresFromDb =
+      Array.from(
+        new Set(
+          type11DbItems
+            .map((i) => i.customerName)
+            .filter((c): c is string => Boolean(c))
+            .flatMap((s: string) =>
+              s.split(",").map((str: string) => str.trim()).filter(Boolean),
+            ),
+        ),
+      ).join(", ") ||
+      allCustomers ||
+      "";
+
     targets.t11 = {
       ...prevTargets.t11,
-      store: t11Item?.customerName || allCustomers || "",
+      store: t11StoresFromDb || t11Item?.customerName || allCustomers || "",
       detail: t11Item?.detail || "",
     };
 
