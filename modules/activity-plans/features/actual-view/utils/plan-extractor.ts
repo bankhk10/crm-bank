@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import type { ActivityPlanWithRelations } from "../../../types";
-import { WORK_TYPES, isFieldDayItem } from "../../../constants";
+import { WORK_TYPES, WORK_TYPE_CONFIG, getWorkTypeName, isFieldDayItem } from "../../../constants";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -150,37 +150,42 @@ export function extractPlanData(
               emp?.department?.name ||
               emp?.departmentName ||
               h.departmentName ||
-              undefined;
-            const position =
-              emp?.position?.name ||
+              h.department ||
+              "";
+            const pos =
+              emp?.position?.title ||
               emp?.positionTitle ||
-              undefined;
-            const displayName = dept
-              ? `${rawFullName} (${dept})`
-              : rawFullName;
+              h.positionTitle ||
+              h.position ||
+              "";
 
             return {
               id,
-              name: displayName || rawFullName || "ผู้ช่วยงาน",
-              positionTitle: position,
+              employeeId: id,
+              name: rawFullName || "-",
+              employeeName: rawFullName || "-",
               departmentName: dept,
+              positionTitle: pos,
+              status: h.status || "PENDING",
             };
           })
-          .filter((h: any) => Boolean(h.name && h.name !== "ผู้ช่วยงาน") || Boolean(h.id))
+          .filter((h: any) => Boolean(h.name && h.name !== "-"))
       : [];
 
   const helperNames =
     extractedHelpers.length > 0
-      ? extractedHelpers.map((h) => h.name)
+      ? extractedHelpers.map((h: any) => h.name)
       : undefined;
 
   const planSummary: PlanSummaryData = {
-    planNo: p.code || p.id || "-",
-    title: p.title || "-",
-    startDateStr: format(start, "d MMM yyyy", { locale: th }),
-    endDateStr: format(end, "d MMM yyyy", { locale: th }),
+    planNo: p.code || "TP-DRAFT",
+    title: p.title || "แผนงานกิจกรรม",
+    startDateStr: format(start, "d MMMM yyyy", { locale: th }),
+    endDateStr: format(end, "d MMMM yyyy", { locale: th }),
+    startTimeStr: format(start, "HH:mm"),
+    endTimeStr: format(end, "HH:mm"),
     timeStr: `${format(start, "HH:mm")} - ${format(end, "HH:mm")} น.`,
-    locationStr: p.location || "",
+    locationStr: p.location || "ไม่ระบุสถานที่",
     location: p.location || undefined,
     province: p.province || undefined,
     district: p.district || undefined,
@@ -190,11 +195,10 @@ export function extractPlanData(
     salesPromotionBudget: (p as any).salesPromotionBudgetRequested
       ? Number((p as any).salesPromotionBudgetRequested)
       : undefined,
-    isPromotionalMediaSelected:
-      mktProductItemsFromItems.length > 0 ||
-      ((p as any).marketingBudgetRequested
-        ? Number((p as any).marketingBudgetRequested) > 0
-        : false),
+    targetSales: (p as any).targetSales
+      ? Number((p as any).targetSales)
+      : undefined,
+    isPromotionalMediaSelected: mktProductItemsFromItems.length > 0,
     marketingProductItems: mktProductItemsFromItems,
     isSalesPromotionSelected:
       salesPromoItemsFromItems.length > 0 ||
@@ -211,7 +215,21 @@ export function extractPlanData(
   // 1. Detect ALL selected work types from the Trip Plan
   const detectedWorkTypes = new Set<string>();
 
-  // (A) From activityType / activityTypeId (primary type)
+  // (A) Priority 1: From normalized relations
+  if ((p as any).workTypes && Array.isArray((p as any).workTypes) && (p as any).workTypes.length > 0) {
+    for (const wt of (p as any).workTypes) {
+      const typeName = wt.activityType?.name || getWorkTypeName(wt.activityTypeId || wt.workTypeCode);
+      if (typeName && WORK_TYPES.includes(typeName)) {
+        detectedWorkTypes.add(typeName);
+      }
+    }
+  }
+
+  if ((p as any).tour) {
+    detectedWorkTypes.add("ทัวร์");
+  }
+
+  // (B) From activityType / activityTypeId (primary type)
   if (p.activityType) {
     if (typeof p.activityType === "object" && (p.activityType as any).name) {
       if (WORK_TYPES.includes((p.activityType as any).name)) {
@@ -238,7 +256,7 @@ export function extractPlanData(
     }
   }
 
-  // (B) From objective / title (section headers / markers)
+  // (C) From objective / title (section headers / markers)
   const objectiveText = [p.objective, p.title].filter(Boolean).join("\n");
 
   if (objectiveText) {
@@ -322,6 +340,16 @@ export function extractPlanData(
     ) {
       detectedWorkTypes.add(WORK_TYPES[10]);
     }
+    if (
+      objectiveText.includes("[ทัวร์]") ||
+      objectiveText.includes("[ทัวร์กลาง]") ||
+      objectiveText.includes("[ทัวร์ร้านค้า]") ||
+      objectiveText.includes("ทัวร์กลาง") ||
+      objectiveText.includes("ทัวร์ร้านค้า") ||
+      objectiveText.includes("ทัวร์")
+    ) {
+      detectedWorkTypes.add(WORK_TYPES[11]);
+    }
   }
 
   // (C) From DB items (excluding marketing & sales promo items)
@@ -342,7 +370,10 @@ export function extractPlanData(
         (item.visitTopic &&
           item.visitTopic !== "FOLLOWUP" &&
           item.visitTopic !== "MARKETING_PRODUCT" &&
-          item.visitTopic !== "SALES_PROMOTION")
+          item.visitTopic !== "SALES_PROMOTION" &&
+          item.visitTopic !== "ทัวร์กลาง" &&
+          item.visitTopic !== "ทัวร์ร้านค้า" &&
+          item.itemType !== "TYPE_12")
       ) {
         detectedWorkTypes.add(WORK_TYPES[0]);
       }
@@ -429,6 +460,15 @@ export function extractPlanData(
       ) {
         detectedWorkTypes.add(WORK_TYPES[10]);
       }
+      if (
+        item.itemType === "TYPE_12" ||
+        (item.detail && item.detail.includes("[ทัวร์")) ||
+        (item.visitTopic &&
+          (item.visitTopic === "ทัวร์กลาง" ||
+            item.visitTopic === "ทัวร์ร้านค้า"))
+      ) {
+        detectedWorkTypes.add(WORK_TYPES[11]);
+      }
     }
   }
 
@@ -461,11 +501,16 @@ export function extractPlanData(
           !isFieldDayItem(i) &&
           i.itemType !== "MARKETING_PRODUCT" &&
           i.itemType !== "SALES_PROMOTION" &&
+          i.itemType !== "TYPE_12" &&
+          i.visitTopic !== "ทัวร์กลาง" &&
+          i.visitTopic !== "ทัวร์ร้านค้า" &&
           (i.itemType === "TYPE_1" ||
             (i.visitTopic &&
               i.visitTopic !== "FOLLOWUP" &&
               i.visitTopic !== "MARKETING_PRODUCT" &&
-              i.visitTopic !== "SALES_PROMOTION")),
+              i.visitTopic !== "SALES_PROMOTION" &&
+              i.visitTopic !== "ทัวร์กลาง" &&
+              i.visitTopic !== "ทัวร์ร้านค้า")),
       ) || (detectedWorkTypes.has(WORK_TYPES[0]) ? allItems[0] : undefined);
 
     const type2DbItems = allItems.filter(

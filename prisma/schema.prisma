@@ -389,6 +389,13 @@ model Customer {
   addresses             CustomerAddress[]
   contacts              CustomerContact[]
   promotionalBudgets    PromotionalBudget[]
+  activityPlanStores        ActivityPlanStore[]
+  activityPlanProducts      ActivityPlanProduct[]
+  activityPlanTours         ActivityPlanTour[]
+  activityResultSaleItems   ActivityResultSaleItem[]
+  activityResultStockItems  ActivityResultStockItem[]
+  activityResultSurveyItems ActivityResultSurveyItem[]
+  activityAttachments       ActivityAttachment[]
 }
 
 model CustomerAddress {
@@ -674,6 +681,11 @@ model Product {
   stock                ProductStock?
   detailedSalesTargets SalesTargetItem[]
   pointHistories       EmployeePointHistory[]
+  activityPlanProducts       ActivityPlanProduct[]       @relation("ActivityPlanProductRef")
+  activityResultSaleItems    ActivityResultSaleItem[]    @relation("ActivityResultSaleProductRef")
+  activityResultStockItems   ActivityResultStockItem[]   @relation("ActivityResultStockProductRef")
+  activityResultSurveyItems  ActivityResultSurveyItem[]  @relation("ActivityResultSurveyProductRef")
+  activityAttachments        ActivityAttachment[]        @relation("ActivityAttachmentProductRef")
 
   parentId String?
   parent   Product?  @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
@@ -1529,6 +1541,26 @@ enum ActivityResultStatus {
   FAILED                      // ไม่สำเร็จ
 }
 
+enum TourType {
+  CENTRAL // ทัวร์กลาง
+  STORE   // ทัวร์ร้านค้า
+}
+
+enum TourSize {
+  SMALL // ทัวร์เล็ก
+  LARGE // ทัวร์ใหญ่
+}
+
+enum AttachmentCategory {
+  PRICE_TAG   // ป้ายราคาคู่แข่ง
+  SHELF       // ชั้นวางสินค้า
+  CROP        // ต้นพืช/ผลผลิต
+  PLOT        // ภาพรวมแปลง
+  ATMOSPHERE  // บรรยากาศงานประชุม/หน้าร้าน
+  ISSUE       // รูปปัญหา/ข้อร้องเรียน
+  GENERAL     // อื่นๆ
+}
+
 // ==========================================
 // ACTIVITY FEATURE MODELS
 // ==========================================
@@ -1536,15 +1568,21 @@ enum ActivityResultStatus {
 // ─── GROUP 1: Master / Lookup ─────────────────────────────────────────────────
 
 model ActivityType {
-  id          String  @id @default(cuid())
-  code        String  @unique // "TYPE_1" ... "TYPE_11"
-  name        String          // "เข้าพบร้านค้า / Key Farmer"
-  shortName   String?         @map("short_name") // "Visit", "Sales", ...
-  description String?
-  sortOrder   Int     @default(0) @map("sort_order")
-  isActive    Boolean @default(true) @map("is_active")
+  id               String   @id @default(cuid())
+  code             String   @unique // "TYPE_1" ... "TYPE_12"
+  name             String          // "เข้าพบร้านค้า / Key Farmer", "ทัวร์", ...
+  shortName        String?  @map("short_name") // "Visit", "Sales", "Tour", ...
+  description      String?
+  sortOrder        Int      @default(0) @map("sort_order")
+  hasActual        Boolean  @default(true) @map("has_actual")
+  requiresApproval Boolean  @default(true) @map("requires_approval")
+  isActive         Boolean  @default(true) @map("is_active")
 
-  activityPlans ActivityPlan[]
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  activityPlans    ActivityPlan[]
+  planWorkTypes    ActivityPlanWorkType[]
 
   @@map("activity_types")
 }
@@ -1560,7 +1598,7 @@ model ActivityPlan {
   createdById    String         @map("created_by_id")          // บัญชีผู้ใช้งานที่สร้างแผน
 
   // ──── WHAT ─────────────────────────────────────────────
-  activityTypeId String         @map("activity_type_id")       // FK → ActivityType
+  activityTypeId String?        @map("activity_type_id")       // Primary Type FK (Optional for backward compatibility)
   title          String
   objective      String
   description    String?
@@ -1610,16 +1648,22 @@ model ActivityPlan {
   deletedAt    DateTime? @map("deleted_at")
 
   // Relations
-  employee         Employee      @relation("EmployeeActivityPlans", fields: [employeeId], references: [id], onDelete: Restrict)
-  createdBy        User          @relation("UserActivityPlans", fields: [createdById], references: [id], onDelete: Restrict)
-  currentApprover  Employee?     @relation("EmployeeActivityApprovals", fields: [currentApproverEmployeeId], references: [id], onDelete: SetNull)
-  activityType     ActivityType  @relation(fields: [activityTypeId], references: [id])
+  employee         Employee       @relation("EmployeeActivityPlans", fields: [employeeId], references: [id], onDelete: Restrict)
+  createdBy        User           @relation("UserActivityPlans", fields: [createdById], references: [id], onDelete: Restrict)
+  currentApprover  Employee?      @relation("EmployeeActivityApprovals", fields: [currentApproverEmployeeId], references: [id], onDelete: SetNull)
+  activityType     ActivityType?  @relation(fields: [activityTypeId], references: [id], onDelete: SetNull)
 
-  items        ActivityPlanItem[]
-  helpers      ActivityHelper[]
-  approvalLogs ActivityApprovalLog[]
-  result       ActivityResult?         // 1:1 บันทึกผลหลังกิจกรรม
-  demoPlotVisits DemoPlotVisit[]
+  // Sub-relations (Normalized)
+  workTypes        ActivityPlanWorkType[]
+  stores           ActivityPlanStore[]
+  products         ActivityPlanProduct[]
+  tour             ActivityPlanTour?
+  items            ActivityPlanItem[]
+  helpers          ActivityHelper[]
+  approvalLogs     ActivityApprovalLog[]
+  result           ActivityResult?         // 1:1 บันทึกผลหลังกิจกรรม
+  demoPlotVisits   DemoPlotVisit[]
+  attachments      ActivityAttachment[]
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -1632,10 +1676,82 @@ model ActivityPlan {
   @@map("activity_plans")
 }
 
+model ActivityPlanWorkType {
+  id             String       @id @default(cuid())
+  activityPlanId String       @map("activity_plan_id")
+  activityTypeId String       @map("activity_type_id")
+
+  activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  activityType   ActivityType @relation(fields: [activityTypeId], references: [id], onDelete: Restrict)
+
+  @@unique([activityPlanId, activityTypeId])
+  @@index([activityPlanId])
+  @@index([activityTypeId])
+  @@map("activity_plan_work_types")
+}
+
+model ActivityPlanStore {
+  id             String       @id @default(cuid())
+  activityPlanId String       @map("activity_plan_id")
+  workTypeCode   String       @map("work_type_code") // e.g. "TYPE_1", "TYPE_11"
+  storeId        String       @map("store_id")
+  storeName      String?      @map("store_name")
+  remarks        String?
+
+  activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store          Customer     @relation(fields: [storeId], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+  @@index([storeId])
+  @@index([workTypeCode])
+  @@map("activity_plan_stores")
+}
+
+model ActivityPlanProduct {
+  id             String       @id @default(cuid())
+  activityPlanId String       @map("activity_plan_id")
+  workTypeCode   String       @map("work_type_code") // e.g. "TYPE_3", "TYPE_9", "TYPE_11"
+  storeId        String?      @map("store_id")
+  productId      String       @map("product_id")
+  productName    String?      @map("product_name")
+  targetQuantity Int?         @map("target_quantity")
+  unitPrice      Decimal?     @db.Decimal(15, 2) @map("unit_price")
+  targetAmount   Decimal?     @db.Decimal(15, 2) @map("target_amount")
+
+  activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store          Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  product        Product      @relation("ActivityPlanProductRef", fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+  @@index([productId])
+  @@index([storeId])
+  @@index([workTypeCode])
+  @@map("activity_plan_products")
+}
+
+model ActivityPlanTour {
+  id             String       @id @default(cuid())
+  activityPlanId String       @unique @map("activity_plan_id")
+  tourType       TourType     @map("tour_type")
+  tourSize       TourSize?    @map("tour_size")
+  country        String?      @map("country")
+  storeId        String?      @map("store_id")
+  destination    String?      @map("destination")
+
+  activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store          Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+
+  @@index([tourType])
+  @@index([country])
+  @@index([storeId])
+  @@map("activity_plan_tours")
+}
+
 model ActivityPlanItem {
   id             String  @id @default(cuid())
   activityPlanId String  @map("activity_plan_id")
   itemOrder      Int     @default(0) @map("item_order")   // ลำดับรายการ
+  workTypeCode   String? @map("work_type_code")
 
   // ──── SHARED (ใช้กับหลาย Type) ────────────────────────
   customerName   String? @map("customer_name")             // ร้านค้า/เกษตรกร (Type 1,2,3,4,6,9,11)
@@ -1686,9 +1802,6 @@ model ActivityPlanItem {
   storeQuantityCases Int?     @map("store_quantity_cases")
   storePricePerCase  Decimal? @db.Decimal(15, 2) @map("store_price_per_case")
   storeTotalAmount   Decimal? @db.Decimal(15, 2) @map("store_total_amount")
-
-  // TYPE 10 (Field Day): ใช้ existingPlotId + customerName ร่วมกับ Type 7
-  // TYPE 11 (Stock): ใช้ customerName (shared)
 
   // Relations
   activityPlan  ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
@@ -1777,6 +1890,12 @@ model ActivityResult {
   problemFound  String?              @map("problem_found")    // ปัญหาที่พบระหว่างทำ
   nextAction    String?              @map("next_action")       // แผนการต่อยอด / ติดตาม
 
+  // Qualitative Feedback
+  discussionResult String?           @map("discussion_result")
+  productAdvice    String?           @map("product_advice")
+  salesOpportunity String?           @map("sales_opportunity")
+  nextMeetingDate  DateTime?         @map("next_meeting_date")
+
   // ──── กรณีเลื่อน หรือ ยกเลิก ────────────────────────
   cancelReason        String?   @map("cancel_reason")          // สาเหตุที่ยกเลิก
   postponedDate       DateTime? @map("postponed_date")         // วันที่ใหม่ (กรณีเลื่อน)
@@ -1790,33 +1909,144 @@ model ActivityResult {
   actualTotalSpent          Decimal? @db.Decimal(15, 2) @map("actual_total_spent")
 
   // ──── ผลลัพธ์เชิงตัวเลขตามประเภทงาน ──────────────────
-  // TYPE 3: ยอดขาย
-  salesResultAmount  Decimal? @db.Decimal(15, 2) @map("sales_result_amount")  // ยอดสั่งซื้อที่ได้จริง
-  salesOrdersCount   Int?     @map("sales_orders_count")                       // จำนวนใบสั่งซื้อ
-
-  // TYPE 4: ยอดเก็บเงิน
-  collectResultAmount Decimal? @db.Decimal(15, 2) @map("collect_result_amount") // เก็บได้จริง
-
-  // TYPE 7/10: ผลแปลงสาธิต
-  demoPlotsCreated    Int? @map("demo_plots_created")     // จำนวนแปลงที่สร้างจริง
+  salesResultAmount  Decimal? @db.Decimal(15, 2) @map("sales_result_amount")
+  salesOrdersCount   Int?     @map("sales_orders_count")
+  collectResultAmount Decimal? @db.Decimal(15, 2) @map("collect_result_amount")
+  demoPlotsCreated    Int? @map("demo_plots_created")
   demoPlotsFollowedUp Int? @map("demo_plots_followed_up")
-
-  // TYPE 8/9/10: ผู้เข้าร่วม
-  distributorsCount Int? @map("distributors_count") // จำนวนดีลเลอร์
-  farmersCount      Int? @map("farmers_count")       // จำนวนเกษตรกร
+  distributorsCount Int? @map("distributors_count")
+  farmersCount      Int? @map("farmers_count")
 
   // ──── METADATA ─────────────────────────────────────────
-  recordedById String   @map("recorded_by_id")  // พนักงานที่บันทึกผล
+  recordedById String?  @map("recorded_by_id")
   recordedAt   DateTime @default(now()) @map("recorded_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   activityPlan ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  recordedBy   User         @relation("UserActivityResults", fields: [recordedById], references: [id], onDelete: Restrict)
+  recordedBy   User?        @relation("UserActivityResults", fields: [recordedById], references: [id], onDelete: SetNull)
+
+  saleResults   ActivityResultSaleItem[]
+  stockResults  ActivityResultStockItem[]
+  surveyResults ActivityResultSurveyItem[]
+  demoResults   ActivityResultDemoItem[]
+  attachments   ActivityAttachment[]
 
   @@index([activityPlanId])
   @@index([resultStatus])
   @@index([actualStartDate])
   @@map("activity_results")
+}
+
+model ActivityResultSaleItem {
+  id               String         @id @default(cuid())
+  activityResultId String         @map("activity_result_id")
+  workTypeCode     String         @map("work_type_code") // "TYPE_3", "TYPE_9", "TYPE_10"
+  storeId          String?        @map("store_id")
+  productId        String         @map("product_id")
+  productName      String?        @map("product_name")
+  actualQuantity   Int            @map("actual_quantity")
+  actualUnitPrice  Decimal        @db.Decimal(15, 2) @map("actual_unit_price")
+  actualTotal      Decimal        @db.Decimal(15, 2) @map("actual_total")
+  unclosedReason   String?        @map("unclosed_reason")
+
+  activityResult   ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
+  store            Customer?      @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  product          Product        @relation("ActivityResultSaleProductRef", fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityResultId])
+  @@index([productId])
+  @@index([storeId])
+  @@index([workTypeCode])
+  @@map("activity_result_sale_items")
+}
+
+model ActivityResultStockItem {
+  id                  String         @id @default(cuid())
+  activityResultId    String         @map("activity_result_id")
+  storeId             String         @map("store_id")
+  productId           String         @map("product_id")
+  remainingQuantity   Int            @default(0) @map("remaining_quantity")
+  stockStatus         String?        @map("stock_status") // "ปกติ", "ใกล้หมด", "ของขาด"
+  reorderOpportunity  String?        @map("reorder_opportunity") // "สูง", "ต่ำ"
+  remarks             String?
+
+  activityResult      ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
+  store               Customer       @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  product             Product        @relation("ActivityResultStockProductRef", fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityResultId])
+  @@index([storeId])
+  @@index([productId])
+  @@map("activity_result_stock_items")
+}
+
+model ActivityResultSurveyItem {
+  id                String         @id @default(cuid())
+  activityResultId  String         @map("activity_result_id")
+  storeId           String         @map("store_id")
+  productId         String?        @map("product_id")
+  competitorBrand   String         @map("competitor_brand")
+  competitorProduct String         @map("competitor_product")
+  competitorPrice   Decimal?       @db.Decimal(15, 2) @map("competitor_price")
+  competitorUnit    String?        @map("competitor_unit")
+  promotionDetail   String?        @map("promotion_detail")
+
+  activityResult    ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
+  store             Customer       @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  product           Product?       @relation("ActivityResultSurveyProductRef", fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([activityResultId])
+  @@index([storeId])
+  @@index([competitorBrand])
+  @@map("activity_result_survey_items")
+}
+
+model ActivityResultDemoItem {
+  id                 String         @id @default(cuid())
+  activityResultId   String         @map("activity_result_id")
+  demoPlotId         String?        @map("demo_plot_id")
+  cropAgeValue       String?        @map("crop_age_value")
+  cropAgeUnit        String?        @map("crop_age_unit")
+  growthStage        String?        @map("growth_stage")
+  cropCondition      String?        @map("crop_condition")
+  productResponse    String?        @map("product_response")
+  problemDescription String?        @map("problem_description")
+  finalYieldKg       Decimal?       @db.Decimal(10, 2) @map("final_yield_kg")
+  controlYieldKg     Decimal?       @db.Decimal(10, 2) @map("control_yield_kg")
+  satisfactionScore  Int?           @map("satisfaction_score")
+
+  activityResult     ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
+
+  @@index([activityResultId])
+  @@index([demoPlotId])
+  @@map("activity_result_demo_items")
+}
+
+model ActivityAttachment {
+  id               String              @id @default(cuid())
+  activityPlanId   String              @map("activity_plan_id")
+  activityResultId String?             @map("activity_result_id")
+  workTypeCode     String?             @map("work_type_code")
+  storeId          String?             @map("store_id")
+  productId        String?             @map("product_id")
+  category         AttachmentCategory  @default(GENERAL)
+  fileUrl          String              @map("file_url")
+  fileName         String              @map("file_name")
+  fileSize         Int?                @map("file_size")
+  mimeType         String?             @map("mime_type")
+  createdAt        DateTime            @default(now()) @map("created_at")
+
+  activityPlan     ActivityPlan        @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  activityResult   ActivityResult?     @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
+  store            Customer?           @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  product          Product?            @relation("ActivityAttachmentProductRef", fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([activityPlanId])
+  @@index([activityResultId])
+  @@index([category])
+  @@index([storeId])
+  @@index([productId])
+  @@map("activity_attachments")
 }
 
 // ==========================================

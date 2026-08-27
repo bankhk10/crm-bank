@@ -4,6 +4,7 @@ import React from "react";
 import { BarChart3 } from "lucide-react";
 import type { ActualTargetsState } from "../../actual-view/types";
 import type { ParsedSummaryValues } from "../../actual-view/utils/summary-parser";
+import { WORK_TYPES } from "@/modules/activity-plans/constants";
 import {
   DetailType1Visit,
   DetailType2Followup,
@@ -33,6 +34,11 @@ export function DetailActivityResultSection({
   demoPlotData,
   visitHistory = [],
 }: DetailActivityResultSectionProps) {
+  const hasAnyActualWorkType = WORK_TYPES.slice(0, 11).some((wt) =>
+    isTypeVisible(wt),
+  );
+  if (!hasAnyActualWorkType) return null;
+
   return (
     <div className="space-y-4 pt-2">
       <div className="bg-[#eff6ff] border border-blue-100 rounded-xl px-4 py-3 flex items-center gap-2.5 shadow-2xs">

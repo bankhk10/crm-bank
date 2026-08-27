@@ -7,7 +7,11 @@ import {
   ActivityApprovalStep,
   ActivityResultStatus,
   DemoPlotStatus,
+  TourType,
+  TourSize,
+  AttachmentCategory,
 } from "@prisma/client";
+import { WORK_TYPE_CONFIG, getWorkTypeCode } from "../constants";
 
 export type ListActivityPlansParams = {
   page?: number;
@@ -45,7 +49,7 @@ export async function findActivityTypeByCode(code: string) {
 }
 
 /**
- * Resolve activity type ID (accepts either cuid ID or code like "TYPE_1")
+ * Resolve activity type ID (accepts either cuid ID, code like "TYPE_1", or Thai name like "ทัวร์")
  */
 export async function resolveActivityTypeId(
   idOrCode: string,
@@ -59,19 +63,51 @@ export async function resolveActivityTypeId(
     return first?.id ?? "";
   }
 
-  // 1. Check by code (e.g. TYPE_1)
-  const byCode = await tx.activityType.findUnique({
-    where: { code: idOrCode },
-  });
-  if (byCode) return byCode.id;
-
-  // 2. Check by id
+  // 1. Direct ID check
   const byId = await tx.activityType.findUnique({
     where: { id: idOrCode },
   });
   if (byId) return byId.id;
 
-  // 3. Fallback to first active activity type
+  // 2. Resolve code via WORK_TYPE_CONFIG or raw string
+  const resolvedCode = getWorkTypeCode(idOrCode);
+  const byCode = await tx.activityType.findUnique({
+    where: { code: resolvedCode },
+  });
+  if (byCode) return byCode.id;
+
+  // 3. Check by name
+  const byName = await tx.activityType.findFirst({
+    where: { name: idOrCode },
+  });
+  if (byName) return byName.id;
+
+  // 4. Auto-create if known in WORK_TYPE_CONFIG
+  const config = WORK_TYPE_CONFIG[resolvedCode];
+  if (config) {
+    const created = await tx.activityType.upsert({
+      where: { code: config.code },
+      update: {
+        name: config.name,
+        shortName: config.shortName,
+        sortOrder: config.sortOrder,
+        hasActual: config.hasActual,
+        requiresApproval: config.requiresApproval,
+        isActive: true,
+      },
+      create: {
+        code: config.code,
+        name: config.name,
+        shortName: config.shortName,
+        sortOrder: config.sortOrder,
+        hasActual: config.hasActual,
+        requiresApproval: config.requiresApproval,
+        isActive: true,
+      },
+    });
+    return created.id;
+  }
+
   const first = await tx.activityType.findFirst({
     where: { isActive: true },
     orderBy: { sortOrder: "asc" },
@@ -87,6 +123,35 @@ export async function findActivityPlanById(id: string) {
     where: { id, deletedAt: null },
     include: {
       activityType: true,
+      workTypes: {
+        include: {
+          activityType: true,
+        },
+      },
+      stores: {
+        include: {
+          store: {
+            select: { id: true, name: true, customerCode: true, province: true, district: true },
+          },
+        },
+      },
+      products: {
+        include: {
+          product: {
+            select: { id: true, name: true, productCode: true, price: true },
+          },
+          store: {
+            select: { id: true, name: true, customerCode: true },
+          },
+        },
+      },
+      tour: {
+        include: {
+          store: {
+            select: { id: true, name: true, customerCode: true, province: true },
+          },
+        },
+      },
       items: {
         orderBy: { itemOrder: "asc" },
       },
@@ -130,8 +195,41 @@ export async function findActivityPlanById(id: string) {
           recordedBy: {
             select: { id: true, name: true, email: true },
           },
+          saleResults: {
+            include: {
+              product: {
+                select: { id: true, name: true, productCode: true },
+              },
+              store: {
+                select: { id: true, name: true, customerCode: true },
+              },
+            },
+          },
+          stockResults: {
+            include: {
+              product: {
+                select: { id: true, name: true, productCode: true },
+              },
+              store: {
+                select: { id: true, name: true, customerCode: true },
+              },
+            },
+          },
+          surveyResults: {
+            include: {
+              product: {
+                select: { id: true, name: true, productCode: true },
+              },
+              store: {
+                select: { id: true, name: true, customerCode: true },
+              },
+            },
+          },
+          demoResults: true,
+          attachments: true,
         },
       },
+      attachments: true,
     },
   });
 }
@@ -266,7 +364,8 @@ export type CreateActivityPlanInput = {
   title: string;
   startDate: Date;
   endDate: Date;
-  activityTypeId: string;
+  activityTypeId?: string;
+  workTypeCodes?: string[];
   location: string;
   province?: string | null;
   district?: string | null;
@@ -281,6 +380,28 @@ export type CreateActivityPlanInput = {
   currentApproverEmployeeId?: string | null;
   items?: Record<string, any>[];
   helperEmployeeIds?: string[];
+  tourData?: {
+    tourType: "CENTRAL" | "STORE";
+    tourSize?: "SMALL" | "LARGE" | null;
+    country?: string | null;
+    storeId?: string | null;
+    destination?: string | null;
+  } | null;
+  planStores?: Array<{
+    workTypeCode: string;
+    storeId: string;
+    storeName?: string | null;
+    remarks?: string | null;
+  }>;
+  planProducts?: Array<{
+    workTypeCode: string;
+    storeId?: string | null;
+    productId: string;
+    productName?: string | null;
+    targetQuantity?: number | null;
+    unitPrice?: number | null;
+    targetAmount?: number | null;
+  }>;
 };
 
 /**
@@ -295,7 +416,13 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
     const mktRequested = input.marketingBudgetRequested ?? 0;
     const totalRequested = spRequested + mktRequested;
 
-    const resolvedActivityTypeId = await resolveActivityTypeId(input.activityTypeId, tx);
+    let primaryCode = "TYPE_1";
+    if (input.workTypeCodes && input.workTypeCodes.length > 0) {
+      primaryCode = getWorkTypeCode(input.workTypeCodes[0]);
+    } else if (input.activityTypeId) {
+      primaryCode = getWorkTypeCode(input.activityTypeId);
+    }
+    const resolvedPrimaryTypeId = await resolveActivityTypeId(primaryCode, tx);
 
     // 1. Create main ActivityPlan
     const plan = await tx.activityPlan.create({
@@ -308,7 +435,7 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
         fiscalYear: fiscal.fiscalYear,
         fiscalMonth: fiscal.fiscalMonth,
         fiscalQuarter: fiscal.fiscalQuarter,
-        activityTypeId: resolvedActivityTypeId,
+        activityTypeId: resolvedPrimaryTypeId,
         location: input.location,
         province: input.province ?? null,
         district: input.district ?? null,
@@ -325,12 +452,91 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
       },
     });
 
-    // 2. Create Items (Wide Table)
+    // 1.1 Create Work Types (Join Table)
+    const workTypeCodes = input.workTypeCodes && input.workTypeCodes.length > 0
+      ? input.workTypeCodes.map(getWorkTypeCode)
+      : [primaryCode];
+
+    for (const wtCode of Array.from(new Set(workTypeCodes))) {
+      const typeId = await resolveActivityTypeId(wtCode, tx);
+      await tx.activityPlanWorkType.create({
+        data: {
+          activityPlanId: plan.id,
+          activityTypeId: typeId,
+        },
+      });
+    }
+
+    // 1.2 Create Tour if present
+    if (input.tourData || primaryCode === "TYPE_12" || workTypeCodes.includes("TYPE_12")) {
+      const tourInput = input.tourData;
+      let tourType: TourType = tourInput?.tourType === "STORE" ? TourType.STORE : TourType.CENTRAL;
+      let tourSize: TourSize | null = tourInput?.tourSize === "LARGE" ? TourSize.LARGE : (tourInput?.tourSize === "SMALL" ? TourSize.SMALL : null);
+      let country: string | null = tourInput?.country ?? null;
+      let storeId: string | null = tourInput?.storeId ?? null;
+      let destination: string | null = tourInput?.destination ?? null;
+
+      if (!input.tourData && input.items && input.items.length > 0) {
+        const item0 = input.items[0];
+        if (item0.visitTopic === "ทัวร์ร้านค้า" || item0.tourType === "STORE") {
+          tourType = TourType.STORE;
+          storeId = item0.storeId ?? null;
+          destination = item0.destination ?? item0.detail ?? null;
+        } else {
+          tourType = TourType.CENTRAL;
+          tourSize = item0.tourSize === "LARGE" ? TourSize.LARGE : TourSize.SMALL;
+          country = item0.country ?? item0.detail ?? null;
+        }
+      }
+
+      await tx.activityPlanTour.create({
+        data: {
+          activityPlanId: plan.id,
+          tourType,
+          tourSize,
+          country,
+          storeId,
+          destination,
+        },
+      });
+    }
+
+    // 1.3 Create Stores if present
+    if (input.planStores && input.planStores.length > 0) {
+      await tx.activityPlanStore.createMany({
+        data: input.planStores.map((s) => ({
+          activityPlanId: plan.id,
+          workTypeCode: getWorkTypeCode(s.workTypeCode),
+          storeId: s.storeId,
+          storeName: s.storeName ?? null,
+          remarks: s.remarks ?? null,
+        })),
+      });
+    }
+
+    // 1.4 Create Products if present
+    if (input.planProducts && input.planProducts.length > 0) {
+      await tx.activityPlanProduct.createMany({
+        data: input.planProducts.map((p) => ({
+          activityPlanId: plan.id,
+          workTypeCode: getWorkTypeCode(p.workTypeCode),
+          storeId: p.storeId ?? null,
+          productId: p.productId,
+          productName: p.productName ?? null,
+          targetQuantity: p.targetQuantity ?? null,
+          unitPrice: p.unitPrice != null ? new Prisma.Decimal(p.unitPrice) : null,
+          targetAmount: p.targetAmount != null ? new Prisma.Decimal(p.targetAmount) : null,
+        })),
+      });
+    }
+
+    // 2. Create Items (Compatibility Table)
     if (input.items && input.items.length > 0) {
       await tx.activityPlanItem.createMany({
         data: input.items.map((item, idx) => ({
           activityPlanId: plan.id,
           itemOrder: idx + 1,
+          workTypeCode: item.workTypeCode ? getWorkTypeCode(item.workTypeCode) : null,
           customerName: item.customerName ?? item.ownerName ?? item.storeName ?? null,
           detail: item.detail ?? null,
           visitTopic: item.visitTopic ?? item.topic ?? null,
@@ -426,11 +632,15 @@ export async function updateActivityPlan(
   }
 ) {
   return db.$transaction(async (tx) => {
-    const { helperEmployeeIds, items } = planData;
+    const { helperEmployeeIds, items, workTypeCodes, tourData, planStores, planProducts } = planData;
     const updateFields: any = { ...planData };
     delete updateFields.updatedUserId;
     delete updateFields.helperEmployeeIds;
     delete updateFields.items;
+    delete updateFields.workTypeCodes;
+    delete updateFields.tourData;
+    delete updateFields.planStores;
+    delete updateFields.planProducts;
 
     // Build update dataset
     const dataToUpdate: Prisma.ActivityPlanUncheckedUpdateInput = {};
@@ -481,6 +691,73 @@ export async function updateActivityPlan(
       data: dataToUpdate,
     });
 
+    // 1.1 Sync Work Types
+    if (workTypeCodes !== undefined) {
+      await tx.activityPlanWorkType.deleteMany({ where: { activityPlanId: id } });
+      const codes = workTypeCodes.map(getWorkTypeCode);
+      for (const wtCode of Array.from(new Set(codes))) {
+        const typeId = await resolveActivityTypeId(wtCode, tx);
+        await tx.activityPlanWorkType.create({
+          data: {
+            activityPlanId: id,
+            activityTypeId: typeId,
+          },
+        });
+      }
+    }
+
+    // 1.2 Sync Tour
+    if (tourData !== undefined) {
+      await tx.activityPlanTour.deleteMany({ where: { activityPlanId: id } });
+      if (tourData) {
+        await tx.activityPlanTour.create({
+          data: {
+            activityPlanId: id,
+            tourType: tourData.tourType === "STORE" ? TourType.STORE : TourType.CENTRAL,
+            tourSize: tourData.tourSize === "LARGE" ? TourSize.LARGE : (tourData.tourSize === "SMALL" ? TourSize.SMALL : null),
+            country: tourData.country ?? null,
+            storeId: tourData.storeId ?? null,
+            destination: tourData.destination ?? null,
+          },
+        });
+      }
+    }
+
+    // 1.3 Sync Stores
+    if (planStores !== undefined) {
+      await tx.activityPlanStore.deleteMany({ where: { activityPlanId: id } });
+      if (planStores.length > 0) {
+        await tx.activityPlanStore.createMany({
+          data: planStores.map((s) => ({
+            activityPlanId: id,
+            workTypeCode: getWorkTypeCode(s.workTypeCode),
+            storeId: s.storeId,
+            storeName: s.storeName ?? null,
+            remarks: s.remarks ?? null,
+          })),
+        });
+      }
+    }
+
+    // 1.4 Sync Products
+    if (planProducts !== undefined) {
+      await tx.activityPlanProduct.deleteMany({ where: { activityPlanId: id } });
+      if (planProducts.length > 0) {
+        await tx.activityPlanProduct.createMany({
+          data: planProducts.map((p) => ({
+            activityPlanId: id,
+            workTypeCode: getWorkTypeCode(p.workTypeCode),
+            storeId: p.storeId ?? null,
+            productId: p.productId,
+            productName: p.productName ?? null,
+            targetQuantity: p.targetQuantity ?? null,
+            unitPrice: p.unitPrice != null ? new Prisma.Decimal(p.unitPrice) : null,
+            targetAmount: p.targetAmount != null ? new Prisma.Decimal(p.targetAmount) : null,
+          })),
+        });
+      }
+    }
+
     // 2. Sync Items if provided
     if (items !== undefined) {
       await tx.activityPlanItem.deleteMany({ where: { activityPlanId: id } });
@@ -490,6 +767,7 @@ export async function updateActivityPlan(
           data: items.map((item, idx) => ({
             activityPlanId: id,
             itemOrder: idx + 1,
+            workTypeCode: item.workTypeCode ? getWorkTypeCode(item.workTypeCode) : null,
             customerName: item.customerName ?? item.ownerName ?? item.storeName ?? null,
             detail: item.detail ?? null,
             visitTopic: item.visitTopic ?? item.topic ?? null,
@@ -774,8 +1052,12 @@ export type CreateActivityResultInput = {
   actualAttendeesCount?: number | null;
   resultStatus?: ActivityResultStatus;
   resultSummary?: string | null;
+  discussionResult?: string | null;
+  productAdvice?: string | null;
+  salesOpportunity?: string | null;
   problemFound?: string | null;
   nextAction?: string | null;
+  nextMeetingDate?: Date | null;
   cancelReason?: string | null;
   postponedDate?: Date | null;
   postponedTime?: string | null;
@@ -790,70 +1072,231 @@ export type CreateActivityResultInput = {
   demoPlotsFollowedUp?: number | null;
   distributorsCount?: number | null;
   farmersCount?: number | null;
-  recordedById: string;
+  recordedById?: string | null;
+  saleResults?: Array<{
+    workTypeCode: string;
+    storeId?: string | null;
+    productId: string;
+    productName?: string | null;
+    actualQuantity: number;
+    actualUnitPrice: number;
+    actualTotal: number;
+    unclosedReason?: string | null;
+  }>;
+  stockResults?: Array<{
+    storeId: string;
+    productId: string;
+    remainingQuantity: number;
+    stockStatus?: string | null;
+    reorderOpportunity?: string | null;
+    remarks?: string | null;
+  }>;
+  surveyResults?: Array<{
+    storeId: string;
+    productId?: string | null;
+    competitorBrand: string;
+    competitorProduct: string;
+    competitorPrice?: number | null;
+    competitorUnit?: string | null;
+    promotionDetail?: string | null;
+  }>;
+  demoResults?: Array<{
+    demoPlotId?: string | null;
+    cropAgeValue?: string | null;
+    cropAgeUnit?: string | null;
+    growthStage?: string | null;
+    cropCondition?: string | null;
+    productResponse?: string | null;
+    problemDescription?: string | null;
+    finalYieldKg?: number | null;
+    controlYieldKg?: number | null;
+    satisfactionScore?: number | null;
+  }>;
+  attachments?: Array<{
+    workTypeCode?: string | null;
+    storeId?: string | null;
+    productId?: string | null;
+    category?: AttachmentCategory;
+    fileUrl: string;
+    fileName: string;
+    fileSize?: number | null;
+    mimeType?: string | null;
+  }>;
 };
 
 /**
  * Create or update ActivityResult (Post-activity outcome recording)
  */
 export async function upsertActivityResult(input: CreateActivityResultInput) {
-  const spSpent = input.actualSalesPromotionSpent ?? 0;
-  const mktSpent = input.actualMarketingSpent ?? 0;
-  const actualTotalSpent = spSpent + mktSpent;
+  return db.$transaction(async (tx) => {
+    const spSpent = input.actualSalesPromotionSpent ?? 0;
+    const mktSpent = input.actualMarketingSpent ?? 0;
+    const actualTotalSpent = spSpent + mktSpent;
 
-  return db.activityResult.upsert({
-    where: { activityPlanId: input.activityPlanId },
-    create: {
-      activityPlanId: input.activityPlanId,
-      actualStartDate: input.actualStartDate,
-      actualEndDate: input.actualEndDate,
-      actualAttendeesCount: input.actualAttendeesCount ?? null,
-      resultStatus: input.resultStatus ?? ActivityResultStatus.PARTIAL,
-      resultSummary: input.resultSummary ?? null,
-      problemFound: input.problemFound ?? null,
-      nextAction: input.nextAction ?? null,
-      cancelReason: input.cancelReason ?? null,
-      postponedDate: input.postponedDate ?? null,
-      postponedTime: input.postponedTime ?? null,
-      postponedReason: input.postponedReason ?? null,
-      postponedNotes: input.postponedNotes ?? null,
-      actualSalesPromotionSpent: input.actualSalesPromotionSpent ? new Prisma.Decimal(input.actualSalesPromotionSpent) : null,
-      actualMarketingSpent: input.actualMarketingSpent ? new Prisma.Decimal(input.actualMarketingSpent) : null,
-      actualTotalSpent: new Prisma.Decimal(actualTotalSpent),
-      salesResultAmount: input.salesResultAmount ? new Prisma.Decimal(input.salesResultAmount) : null,
-      salesOrdersCount: input.salesOrdersCount ?? null,
-      collectResultAmount: input.collectResultAmount ? new Prisma.Decimal(input.collectResultAmount) : null,
-      demoPlotsCreated: input.demoPlotsCreated ?? null,
-      demoPlotsFollowedUp: input.demoPlotsFollowedUp ?? null,
-      distributorsCount: input.distributorsCount ?? null,
-      farmersCount: input.farmersCount ?? null,
-      recordedById: input.recordedById,
-    },
-    update: {
-      actualStartDate: input.actualStartDate,
-      actualEndDate: input.actualEndDate,
-      actualAttendeesCount: input.actualAttendeesCount ?? null,
-      resultStatus: input.resultStatus ?? ActivityResultStatus.PARTIAL,
-      resultSummary: input.resultSummary ?? null,
-      problemFound: input.problemFound ?? null,
-      nextAction: input.nextAction ?? null,
-      cancelReason: input.cancelReason ?? null,
-      postponedDate: input.postponedDate ?? null,
-      postponedTime: input.postponedTime ?? null,
-      postponedReason: input.postponedReason ?? null,
-      postponedNotes: input.postponedNotes ?? null,
-      actualSalesPromotionSpent: input.actualSalesPromotionSpent ? new Prisma.Decimal(input.actualSalesPromotionSpent) : null,
-      actualMarketingSpent: input.actualMarketingSpent ? new Prisma.Decimal(input.actualMarketingSpent) : null,
-      actualTotalSpent: new Prisma.Decimal(actualTotalSpent),
-      salesResultAmount: input.salesResultAmount ? new Prisma.Decimal(input.salesResultAmount) : null,
-      salesOrdersCount: input.salesOrdersCount ?? null,
-      collectResultAmount: input.collectResultAmount ? new Prisma.Decimal(input.collectResultAmount) : null,
-      demoPlotsCreated: input.demoPlotsCreated ?? null,
-      demoPlotsFollowedUp: input.demoPlotsFollowedUp ?? null,
-      distributorsCount: input.distributorsCount ?? null,
-      farmersCount: input.farmersCount ?? null,
-      recordedById: input.recordedById,
-    },
+    const result = await tx.activityResult.upsert({
+      where: { activityPlanId: input.activityPlanId },
+      create: {
+        activityPlanId: input.activityPlanId,
+        actualStartDate: input.actualStartDate,
+        actualEndDate: input.actualEndDate,
+        actualAttendeesCount: input.actualAttendeesCount ?? null,
+        resultStatus: input.resultStatus ?? ActivityResultStatus.COMPLETED,
+        resultSummary: input.resultSummary ?? null,
+        discussionResult: input.discussionResult ?? null,
+        productAdvice: input.productAdvice ?? null,
+        salesOpportunity: input.salesOpportunity ?? null,
+        problemFound: input.problemFound ?? null,
+        nextAction: input.nextAction ?? null,
+        nextMeetingDate: input.nextMeetingDate ?? null,
+        cancelReason: input.cancelReason ?? null,
+        postponedDate: input.postponedDate ?? null,
+        postponedTime: input.postponedTime ?? null,
+        postponedReason: input.postponedReason ?? null,
+        postponedNotes: input.postponedNotes ?? null,
+        actualSalesPromotionSpent: input.actualSalesPromotionSpent ? new Prisma.Decimal(input.actualSalesPromotionSpent) : null,
+        actualMarketingSpent: input.actualMarketingSpent ? new Prisma.Decimal(input.actualMarketingSpent) : null,
+        actualTotalSpent: new Prisma.Decimal(actualTotalSpent),
+        salesResultAmount: input.salesResultAmount ? new Prisma.Decimal(input.salesResultAmount) : null,
+        salesOrdersCount: input.salesOrdersCount ?? null,
+        collectResultAmount: input.collectResultAmount ? new Prisma.Decimal(input.collectResultAmount) : null,
+        demoPlotsCreated: input.demoPlotsCreated ?? null,
+        demoPlotsFollowedUp: input.demoPlotsFollowedUp ?? null,
+        distributorsCount: input.distributorsCount ?? null,
+        farmersCount: input.farmersCount ?? null,
+        recordedById: input.recordedById ?? null,
+      },
+      update: {
+        actualStartDate: input.actualStartDate,
+        actualEndDate: input.actualEndDate,
+        actualAttendeesCount: input.actualAttendeesCount ?? null,
+        resultStatus: input.resultStatus ?? ActivityResultStatus.COMPLETED,
+        resultSummary: input.resultSummary ?? null,
+        discussionResult: input.discussionResult ?? null,
+        productAdvice: input.productAdvice ?? null,
+        salesOpportunity: input.salesOpportunity ?? null,
+        problemFound: input.problemFound ?? null,
+        nextAction: input.nextAction ?? null,
+        nextMeetingDate: input.nextMeetingDate ?? null,
+        cancelReason: input.cancelReason ?? null,
+        postponedDate: input.postponedDate ?? null,
+        postponedTime: input.postponedTime ?? null,
+        postponedReason: input.postponedReason ?? null,
+        postponedNotes: input.postponedNotes ?? null,
+        actualSalesPromotionSpent: input.actualSalesPromotionSpent ? new Prisma.Decimal(input.actualSalesPromotionSpent) : null,
+        actualMarketingSpent: input.actualMarketingSpent ? new Prisma.Decimal(input.actualMarketingSpent) : null,
+        actualTotalSpent: new Prisma.Decimal(actualTotalSpent),
+        salesResultAmount: input.salesResultAmount ? new Prisma.Decimal(input.salesResultAmount) : null,
+        salesOrdersCount: input.salesOrdersCount ?? null,
+        collectResultAmount: input.collectResultAmount ? new Prisma.Decimal(input.collectResultAmount) : null,
+        demoPlotsCreated: input.demoPlotsCreated ?? null,
+        demoPlotsFollowedUp: input.demoPlotsFollowedUp ?? null,
+        distributorsCount: input.distributorsCount ?? null,
+        farmersCount: input.farmersCount ?? null,
+        recordedById: input.recordedById ?? null,
+      },
+    });
+
+    // 1. Sync Sale Results
+    if (input.saleResults !== undefined) {
+      await tx.activityResultSaleItem.deleteMany({ where: { activityResultId: result.id } });
+      if (input.saleResults.length > 0) {
+        await tx.activityResultSaleItem.createMany({
+          data: input.saleResults.map((item) => ({
+            activityResultId: result.id,
+            workTypeCode: getWorkTypeCode(item.workTypeCode),
+            storeId: item.storeId ?? null,
+            productId: item.productId,
+            productName: item.productName ?? null,
+            actualQuantity: item.actualQuantity,
+            actualUnitPrice: new Prisma.Decimal(item.actualUnitPrice),
+            actualTotal: new Prisma.Decimal(item.actualTotal),
+            unclosedReason: item.unclosedReason ?? null,
+          })),
+        });
+      }
+    }
+
+    // 2. Sync Stock Results
+    if (input.stockResults !== undefined) {
+      await tx.activityResultStockItem.deleteMany({ where: { activityResultId: result.id } });
+      if (input.stockResults.length > 0) {
+        await tx.activityResultStockItem.createMany({
+          data: input.stockResults.map((item) => ({
+            activityResultId: result.id,
+            storeId: item.storeId,
+            productId: item.productId,
+            remainingQuantity: item.remainingQuantity,
+            stockStatus: item.stockStatus ?? null,
+            reorderOpportunity: item.reorderOpportunity ?? null,
+            remarks: item.remarks ?? null,
+          })),
+        });
+      }
+    }
+
+    // 3. Sync Survey Results
+    if (input.surveyResults !== undefined) {
+      await tx.activityResultSurveyItem.deleteMany({ where: { activityResultId: result.id } });
+      if (input.surveyResults.length > 0) {
+        await tx.activityResultSurveyItem.createMany({
+          data: input.surveyResults.map((item) => ({
+            activityResultId: result.id,
+            storeId: item.storeId,
+            productId: item.productId ?? null,
+            competitorBrand: item.competitorBrand,
+            competitorProduct: item.competitorProduct,
+            competitorPrice: item.competitorPrice != null ? new Prisma.Decimal(item.competitorPrice) : null,
+            competitorUnit: item.competitorUnit ?? null,
+            promotionDetail: item.promotionDetail ?? null,
+          })),
+        });
+      }
+    }
+
+    // 4. Sync Demo Results
+    if (input.demoResults !== undefined) {
+      await tx.activityResultDemoItem.deleteMany({ where: { activityResultId: result.id } });
+      if (input.demoResults.length > 0) {
+        await tx.activityResultDemoItem.createMany({
+          data: input.demoResults.map((item) => ({
+            activityResultId: result.id,
+            demoPlotId: item.demoPlotId ?? null,
+            cropAgeValue: item.cropAgeValue ?? null,
+            cropAgeUnit: item.cropAgeUnit ?? null,
+            growthStage: item.growthStage ?? null,
+            cropCondition: item.cropCondition ?? null,
+            productResponse: item.productResponse ?? null,
+            problemDescription: item.problemDescription ?? null,
+            finalYieldKg: item.finalYieldKg != null ? new Prisma.Decimal(item.finalYieldKg) : null,
+            controlYieldKg: item.controlYieldKg != null ? new Prisma.Decimal(item.controlYieldKg) : null,
+            satisfactionScore: item.satisfactionScore ?? null,
+          })),
+        });
+      }
+    }
+
+    // 5. Sync Attachments
+    if (input.attachments !== undefined) {
+      await tx.activityAttachment.deleteMany({ where: { activityResultId: result.id } });
+      if (input.attachments.length > 0) {
+        await tx.activityAttachment.createMany({
+          data: input.attachments.map((att) => ({
+            activityPlanId: input.activityPlanId,
+            activityResultId: result.id,
+            workTypeCode: att.workTypeCode ? getWorkTypeCode(att.workTypeCode) : null,
+            storeId: att.storeId ?? null,
+            productId: att.productId ?? null,
+            category: att.category ?? AttachmentCategory.GENERAL,
+            fileUrl: att.fileUrl,
+            fileName: att.fileName,
+            fileSize: att.fileSize ?? null,
+            mimeType: att.mimeType ?? null,
+          })),
+        });
+      }
+    }
+
+    return result;
   });
 }
 

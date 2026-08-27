@@ -2,6 +2,7 @@
 
 import React from "react";
 import { BarChart3 } from "lucide-react";
+import { WORK_TYPES } from "@/modules/activity-plans/constants";
 import type { ActualTargetsState, ImageFile, Type5SurveyRecord } from "../types";
 import {
   ActualType1Visit,
@@ -362,6 +363,11 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     t11NextAction,
     setT11NextAction,
   } = props;
+
+  const hasAnyActualWorkType = WORK_TYPES.slice(0, 11).some((wt) =>
+    isTypeVisible(wt),
+  );
+  if (!hasAnyActualWorkType) return null;
 
   return (
     <div className="space-y-4 pt-2">

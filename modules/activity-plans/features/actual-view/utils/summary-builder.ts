@@ -465,6 +465,9 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       summaryParts.length > 0
         ? summaryParts.join("\n")
         : `สถานะผลกิจกรรม: ${statusLabel}`,
+    discussionResult: t1DiscussionResult || null,
+    productAdvice: t1ProductAdvice || null,
+    salesOpportunity: t1SalesOpportunity || null,
     problemFound:
       (t2HasProblem ? t2ProblemDetail : null) ||
       t6ProblemDetail ||
@@ -472,6 +475,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       t7CropProblemDescription ||
       null,
     nextAction: t1NextAction || t11NextAction || null,
+    nextMeetingDate: t1NextMeetingDate ? new Date(t1NextMeetingDate) : null,
     cancelReason: activityResultStatus === "CANCELLED" ? cancelReason : null,
     postponedDate:
       activityResultStatus === "POSTPONED" && postponedDate

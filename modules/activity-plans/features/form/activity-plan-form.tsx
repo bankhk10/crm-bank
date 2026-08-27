@@ -62,6 +62,9 @@ interface Props {
 
 import {
   WORK_TYPES,
+  WORK_TYPE_CONFIG,
+  getWorkTypeCode,
+  getWorkTypeName,
   DEMO_OWNERS,
   DEMO_PRODUCTS,
   DEMO_PRODUCT_PRICES,
@@ -98,6 +101,7 @@ import { Type8Meeting } from "./components/work-types/type8-meeting";
 import { Type9Store } from "./components/work-types/type9-store";
 import { Type10FieldDay } from "./components/work-types/type10-field-day";
 import { Type11Stock } from "./components/work-types/type11-stock";
+import { Type12Tour } from "./components/work-types/type12-tour";
 import { getDemoPlotsAction } from "../../server/actions";
 
 export function ActivityPlanForm({
@@ -255,6 +259,20 @@ export function ActivityPlanForm({
   // Work types selection state
   const initialTypes = useMemo(() => {
     const detectedTypes = new Set<string>();
+
+    // 1. Direct check from normalized relation
+    if ((initial as any)?.workTypes && Array.isArray((initial as any).workTypes) && (initial as any).workTypes.length > 0) {
+      const typesFromRelation = (initial as any).workTypes
+        .map((wt: any) => wt.activityType?.name || getWorkTypeName(wt.activityTypeId || wt.workTypeCode))
+        .filter(Boolean);
+      if (typesFromRelation.length > 0) {
+        return WORK_TYPES.filter((t) => typesFromRelation.includes(t));
+      }
+    }
+    if ((initial as any)?.tour) {
+      detectedTypes.add("ทัวร์");
+    }
+
     const initialTypesRaw =
       (initial as any)?.activityType || (initial as any)?.activityTypeId || "";
     if (typeof initialTypesRaw === "string") {
@@ -359,6 +377,16 @@ export function ActivityPlanForm({
         objectiveText.includes("สต็อกหน้าร้าน")
       ) {
         detectedTypes.add(WORK_TYPES[10]);
+      }
+      if (
+        objectiveText.includes("[ทัวร์]") ||
+        objectiveText.includes("[ทัวร์กลาง]") ||
+        objectiveText.includes("[ทัวร์ร้านค้า]") ||
+        objectiveText.includes("ทัวร์กลาง") ||
+        objectiveText.includes("ทัวร์ร้านค้า") ||
+        objectiveText.includes("ทัวร์")
+      ) {
+        detectedTypes.add(WORK_TYPES[11]);
       }
     }
 
@@ -466,6 +494,15 @@ export function ActivityPlanForm({
           (item.detail && item.detail.includes("ตรวจเช็กสต็อกหน้าร้าน"))
         ) {
           detectedTypes.add(WORK_TYPES[10]);
+        }
+        if (
+          item.itemType === "TYPE_12" ||
+          (item.detail && item.detail.includes("[ทัวร์")) ||
+          (item.visitTopic &&
+            (item.visitTopic === "ทัวร์กลาง" ||
+              item.visitTopic === "ทัวร์ร้านค้า"))
+        ) {
+          detectedTypes.add(WORK_TYPES[11]);
         }
       }
     }
@@ -1355,6 +1392,102 @@ export function ActivityPlanForm({
     return "";
   });
 
+  // Work Type 12: ทัวร์
+  const [type12TourType, setType12TourType] = useState<string>(() => {
+    if ((initial as any)?.tour) {
+      return (initial as any).tour.tourType === "STORE" ? "ทัวร์ร้านค้า" : "ทัวร์กลาง";
+    }
+    if (initDetails?.type12TourType) return initDetails.type12TourType;
+    if (Array.isArray(initDetails)) {
+      const item = initDetails.find(
+        (i: any) =>
+          i.itemType === "TYPE_12" ||
+          (i.detail && i.detail.includes("[ทัวร์")) ||
+          (i.visitTopic &&
+            (i.visitTopic === "ทัวร์กลาง" || i.visitTopic === "ทัวร์ร้านค้า")),
+      );
+      if (item?.visitTopic) return item.visitTopic;
+      if (item?.detail) {
+        if (item.detail.includes("ทัวร์กลาง")) return "ทัวร์กลาง";
+        if (item.detail.includes("ทัวร์ร้านค้า")) return "ทัวร์ร้านค้า";
+      }
+    }
+    return "ทัวร์กลาง";
+  });
+
+  const [type12TourSize, setType12TourSize] = useState<string>(() => {
+    if ((initial as any)?.tour) {
+      return (initial as any).tour.tourSize === "LARGE" ? "ทัวร์ใหญ่" : "ทัวร์เล็ก";
+    }
+    if (initDetails?.type12TourSize) return initDetails.type12TourSize;
+    if (Array.isArray(initDetails)) {
+      const item = initDetails.find(
+        (i: any) =>
+          i.itemType === "TYPE_12" || (i.detail && i.detail.includes("[ทัวร์")),
+      );
+      if (item?.detail) {
+        const m = item.detail.match(/ขนาดทัวร์:\s*([^|]+)/);
+        if (m) return m[1].trim();
+      }
+    }
+    return "ทัวร์เล็ก";
+  });
+
+  const [type12Country, setType12Country] = useState<string>(() => {
+    if ((initial as any)?.tour) {
+      return (initial as any).tour.country || "";
+    }
+    if (initDetails?.type12Country) return initDetails.type12Country;
+    if (Array.isArray(initDetails)) {
+      const item = initDetails.find(
+        (i: any) =>
+          i.itemType === "TYPE_12" || (i.detail && i.detail.includes("[ทัวร์")),
+      );
+      if (item?.detail) {
+        const m = item.detail.match(/ประเทศ:\s*([^|]+)/);
+        if (m) return m[1].trim();
+      }
+    }
+    return "";
+  });
+
+  const [type12Store, setType12Store] = useState<string>(() => {
+    if ((initial as any)?.tour) {
+      return (initial as any).tour.store?.name || "";
+    }
+    if (initDetails?.type12Store) return initDetails.type12Store;
+    if (Array.isArray(initDetails)) {
+      const item = initDetails.find(
+        (i: any) =>
+          i.itemType === "TYPE_12" || (i.detail && i.detail.includes("[ทัวร์")),
+      );
+      if (item?.customerName) return item.customerName;
+      if (item?.detail) {
+        const m = item.detail.match(/ร้านค้า:\s*([^|]+)/);
+        if (m) return m[1].trim();
+      }
+    }
+    return "";
+  });
+
+  const [type12Destination, setType12Destination] = useState<string>(() => {
+    if ((initial as any)?.tour) {
+      return (initial as any).tour.destination || "";
+    }
+    if (initDetails?.type12Destination) return initDetails.type12Destination;
+    if (Array.isArray(initDetails)) {
+      const item = initDetails.find(
+        (i: any) =>
+          i.itemType === "TYPE_12" || (i.detail && i.detail.includes("[ทัวร์")),
+      );
+      if (item?.detail) {
+        const m = item.detail.match(/สถานที่จะไป:\s*([^|]+)/);
+        if (m) return m[1].trim();
+      }
+    }
+    return "";
+  });
+
   // Section 4: Location & Team State
   const [locationText, setLocationText] = useState(initial.location ?? "");
   const [helperEmployeeIds, setHelperEmployeeIds] = useState<string[]>(
@@ -1863,7 +1996,53 @@ export function ActivityPlanForm({
     if (selectedWorkTypes.includes("ตรวจเช็กสต็อกหน้าร้าน")) {
       summaryParts.push(`[ตรวจเช็กสต็อก] ร้านค้า: ${type11Stores}`);
     }
+
+    if (selectedWorkTypes.includes("ทัวร์")) {
+      if (type12TourType === "ทัวร์กลาง") {
+        summaryParts.push(
+          `[ทัวร์กลาง] ขนาดทัวร์: ${type12TourSize} | ประเทศ: ${type12Country}`,
+        );
+      } else if (type12TourType === "ทัวร์ร้านค้า") {
+        summaryParts.push(
+          `[ทัวร์ร้านค้า] ร้านค้า: ${type12Store} | สถานที่จะไป: ${type12Destination}`,
+        );
+      } else {
+        summaryParts.push(`[ทัวร์]`);
+      }
+    }
     const compiledObjective = summaryParts.join("\n") || title;
+
+    // Validation for Work Type 12: ทัวร์
+    if (selectedWorkTypes.includes("ทัวร์")) {
+      if (!type12TourType) {
+        setError("กรุณาเลือกประเภททัวร์");
+        setLoading(false);
+        return;
+      }
+      if (type12TourType === "ทัวร์กลาง") {
+        if (!type12TourSize) {
+          setError("กรุณาเลือกขนาดทัวร์");
+          setLoading(false);
+          return;
+        }
+        if (!type12Country.trim()) {
+          setError("กรุณากรอกชื่อประเทศ");
+          setLoading(false);
+          return;
+        }
+      } else if (type12TourType === "ทัวร์ร้านค้า") {
+        if (!type12Store.trim()) {
+          setError("กรุณาเลือกร้านค้า");
+          setLoading(false);
+          return;
+        }
+        if (!type12Destination.trim()) {
+          setError("กรุณากรอกสถานที่จะไป");
+          setLoading(false);
+          return;
+        }
+      }
+    }
 
     // Serialize materials & sales promotions into description
     const marketingProductSummary = marketingProductItems
@@ -2127,6 +2306,21 @@ export function ActivityPlanForm({
               detail: `ตรวจเช็กสต็อกหน้าร้าน: ${type11Stores}`,
             });
           }
+        } else if (workType === "ทัวร์") {
+          if (type12TourType === "ทัวร์กลาง") {
+            allItemsToSend.push({
+              itemType: "TYPE_12",
+              visitTopic: "ทัวร์กลาง",
+              detail: `[ทัวร์กลาง] ขนาดทัวร์: ${type12TourSize} | ประเทศ: ${type12Country}`,
+            });
+          } else if (type12TourType === "ทัวร์ร้านค้า") {
+            allItemsToSend.push({
+              itemType: "TYPE_12",
+              visitTopic: "ทัวร์ร้านค้า",
+              customerName: type12Store,
+              detail: `[ทัวร์ร้านค้า] ร้านค้า: ${type12Store} | สถานที่จะไป: ${type12Destination}`,
+            });
+          }
         }
       });
 
@@ -2158,11 +2352,59 @@ export function ActivityPlanForm({
         });
       }
 
+      const tourData = selectedWorkTypes.includes("ทัวร์")
+        ? {
+            tourType: type12TourType === "ทัวร์ร้านค้า" ? ("STORE" as const) : ("CENTRAL" as const),
+            tourSize: type12TourSize === "ทัวร์ใหญ่" ? ("LARGE" as const) : ("SMALL" as const),
+            country: type12Country.trim() || null,
+            storeId: customersList.find((c) => c.name === type12Store)?.id || null,
+            destination: type12Destination.trim() || null,
+          }
+        : null;
+
+      const planStores: Array<{ workTypeCode: string; storeId: string; storeName?: string | null; remarks?: string | null }> = [];
+      const planProducts: Array<{ workTypeCode: string; storeId?: string | null; productId: string; productName?: string | null; targetQuantity?: number | null; unitPrice?: number | null; targetAmount?: number | null }> = [];
+
+      // Extract stores & products
+      if (selectedWorkTypes.includes("เข้าพบร้านค้า / Key Farmer")) {
+        type1Items.forEach((item) => {
+          const storeMatch = customersList.find((c) => c.name === item.customerName);
+          if (storeMatch) {
+            planStores.push({ workTypeCode: "TYPE_1", storeId: storeMatch.id, storeName: storeMatch.name, remarks: item.topic });
+          }
+        });
+      }
+
+      if (selectedWorkTypes.includes("เสนอขายสินค้า")) {
+        type3Items.forEach((item) => {
+          const storeMatch = customersList.find((c) => c.name === item.customerName);
+          const pList = item.products && item.products.length > 0 ? item.products : [{ productName: item.productName || "", quantity: item.quantity || 1, unitPrice: item.unitPrice || 0 }];
+          pList.forEach((p) => {
+            const pMatch = productsList.find((prod) => prod.name === p.productName);
+            if (pMatch) {
+              planProducts.push({
+                workTypeCode: "TYPE_3",
+                storeId: storeMatch?.id || null,
+                productId: pMatch.id,
+                productName: pMatch.name,
+                targetQuantity: p.quantity,
+                unitPrice: p.unitPrice,
+                targetAmount: (p.quantity || 0) * (p.unitPrice || 0),
+              });
+            }
+          });
+        });
+      }
+
       const res = await onSubmit({
         title,
         startDate: startDateTime,
         endDate: endDateTime,
         activityTypeId,
+        workTypeCodes: selectedWorkTypes.map(getWorkTypeCode),
+        tourData,
+        planStores,
+        planProducts,
         province: (initial as any)?.province ?? null,
         district: (initial as any)?.district ?? null,
         location: hasLocationRequirement
@@ -2586,6 +2828,24 @@ export function ActivityPlanForm({
                       readonly={readonly}
                       type11Stores={type11Stores}
                       setType11Stores={setType11Stores}
+                      customers={customersList}
+                    />
+                  )}
+
+                  {/* Work Type 12: ทัวร์ */}
+                  {selectedWorkTypes.includes("ทัวร์") && (
+                    <Type12Tour
+                      readonly={readonly}
+                      type12TourType={type12TourType}
+                      setType12TourType={setType12TourType}
+                      type12TourSize={type12TourSize}
+                      setType12TourSize={setType12TourSize}
+                      type12Country={type12Country}
+                      setType12Country={setType12Country}
+                      type12Store={type12Store}
+                      setType12Store={setType12Store}
+                      type12Destination={type12Destination}
+                      setType12Destination={setType12Destination}
                       customers={customersList}
                     />
                   )}

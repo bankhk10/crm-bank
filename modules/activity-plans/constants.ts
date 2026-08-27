@@ -1,17 +1,128 @@
-// Master 11 work types list
-export const WORK_TYPES = [
-  "เข้าพบร้านค้า / Key Farmer",
-  "ติดตามผลการใช้สินค้า",
-  "เสนอขายสินค้า",
-  "วางบิล / เก็บเงิน",
-  "สำรวจตลาดของคู่แข่ง",
-  "แก้ปัญหา / รับเรื่องร้องเรียน",
-  "ติดตามแปลงสาธิต / ทำแปลง",
-  "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
-  "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
-  "จัดงาน Field Day",
-  "ตรวจเช็กสต็อกหน้าร้าน",
-];
+export interface WorkTypeConfig {
+  code: string;
+  name: string;
+  shortName: string;
+  sortOrder: number;
+  hasActual: boolean;
+  requiresApproval: boolean;
+}
+
+export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
+  TYPE_1: {
+    code: "TYPE_1",
+    name: "เข้าพบร้านค้า / Key Farmer",
+    shortName: "Visit",
+    sortOrder: 1,
+    hasActual: true,
+    requiresApproval: true,
+  },
+  TYPE_2: {
+    code: "TYPE_2",
+    name: "ติดตามผลการใช้สินค้า",
+    shortName: "Followup",
+    sortOrder: 2,
+    hasActual: true,
+    requiresApproval: true,
+  },
+  TYPE_3: {
+    code: "TYPE_3",
+    name: "เสนอขายสินค้า",
+    shortName: "Sales",
+    sortOrder: 3,
+    hasActual: true,
+    requiresApproval: true,
+  },
+  TYPE_4: {
+    code: "TYPE_4",
+    name: "วางบิล / เก็บเงิน",
+    shortName: "Collect",
+    sortOrder: 4,
+    hasActual: true,
+    requiresApproval: true,
+  },
+  TYPE_5: {
+    code: "TYPE_5",
+    name: "สำรวจตลาดของคู่แข่ง",
+    shortName: "Survey",
+    sortOrder: 5,
+    hasActual: true,
+    requiresApproval: true,
+  },
+  TYPE_6: {
+    code: "TYPE_6",
+    name: "แก้ปัญหา / รับเรื่องร้องเรียน",
+    shortName: "Issue",
+    sortOrder: 6,
+    hasActual: true,
+    requiresApproval: true,
+  },
+  TYPE_7: {
+    code: "TYPE_7",
+    name: "ติดตามแปลงสาธิต / ทำแปลง",
+    shortName: "Demo",
+    sortOrder: 7,
+    hasActual: true,
+    requiresApproval: true,
+  },
+  TYPE_8: {
+    code: "TYPE_8",
+    name: "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+    shortName: "Meeting",
+    sortOrder: 8,
+    hasActual: true,
+    requiresApproval: true,
+  },
+  TYPE_9: {
+    code: "TYPE_9",
+    name: "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+    shortName: "Store",
+    sortOrder: 9,
+    hasActual: true,
+    requiresApproval: true,
+  },
+  TYPE_10: {
+    code: "TYPE_10",
+    name: "จัดงาน Field Day",
+    shortName: "FieldDay",
+    sortOrder: 10,
+    hasActual: true,
+    requiresApproval: true,
+  },
+  TYPE_11: {
+    code: "TYPE_11",
+    name: "ตรวจเช็กสต็อกหน้าร้าน",
+    shortName: "Stock",
+    sortOrder: 11,
+    hasActual: true,
+    requiresApproval: true,
+  },
+  TYPE_12: {
+    code: "TYPE_12",
+    name: "ทัวร์",
+    shortName: "Tour",
+    sortOrder: 12,
+    hasActual: false,
+    requiresApproval: true,
+  },
+};
+
+// Master 12 work types list
+export const WORK_TYPES = Object.values(WORK_TYPE_CONFIG).map((c) => c.name);
+
+// Helper function to resolve code from name or code
+export function getWorkTypeCode(nameOrCode: string): string {
+  if (WORK_TYPE_CONFIG[nameOrCode]) return nameOrCode;
+  const entry = Object.values(WORK_TYPE_CONFIG).find(
+    (c) => c.name === nameOrCode || c.shortName === nameOrCode,
+  );
+  return entry ? entry.code : "TYPE_1";
+}
+
+// Helper function to resolve name from code
+export function getWorkTypeName(codeOrName: string): string {
+  if (WORK_TYPE_CONFIG[codeOrName]) return WORK_TYPE_CONFIG[codeOrName].name;
+  return codeOrName;
+}
 
 // Sample lists for dropdowns
 export const DEMO_OWNERS = [

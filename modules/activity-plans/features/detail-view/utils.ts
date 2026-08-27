@@ -634,6 +634,77 @@ export function extractWorkTypeSections(
     });
   }
 
+  // ── 12. ทัวร์ ───────────────────────────────────────────
+  const type12DbItems = items.filter(
+    (i) =>
+      i.itemType === "TYPE_12" ||
+      (i.detail && i.detail.includes("[ทัวร์")) ||
+      (i.visitTopic &&
+        (i.visitTopic === "ทัวร์กลาง" || i.visitTopic === "ทัวร์ร้านค้า")),
+  );
+  const t12Line = objectiveLines.find(
+    (l) =>
+      l.includes("[ทัวร์]") ||
+      l.includes("[ทัวร์กลาง]") ||
+      l.includes("[ทัวร์ร้านค้า]") ||
+      l.includes("ทัวร์กลาง") ||
+      l.includes("ทัวร์ร้านค้า"),
+  );
+  if (type12DbItems.length > 0 || t12Line) {
+    const list =
+      type12DbItems.length > 0
+        ? type12DbItems.map((i) => {
+            const extraFields: Array<{ label: string; value: string }> = [];
+            const isStoreTour =
+              i.visitTopic === "ทัวร์ร้านค้า" ||
+              (i.detail && i.detail.includes("ทัวร์ร้านค้า"));
+            const tourTypeLabel = isStoreTour ? "ทัวร์ร้านค้า" : "ทัวร์กลาง";
+
+            extraFields.push({ label: "ประเภททัวร์", value: tourTypeLabel });
+
+            if (i.detail) {
+              const sizeMatch = i.detail.match(/ขนาดทัวร์:\s*([^|]+)/);
+              if (sizeMatch) {
+                extraFields.push({
+                  label: "ขนาดทัวร์",
+                  value: sizeMatch[1].trim(),
+                });
+              }
+              const countryMatch = i.detail.match(/ประเทศ:\s*([^|]+)/);
+              if (countryMatch) {
+                extraFields.push({
+                  label: "ประเทศ",
+                  value: countryMatch[1].trim(),
+                });
+              }
+              const destMatch = i.detail.match(/สถานที่จะไป:\s*([^|]+)/);
+              if (destMatch) {
+                extraFields.push({
+                  label: "สถานที่จะไป",
+                  value: destMatch[1].trim(),
+                });
+              }
+            }
+
+            return {
+              title:
+                isStoreTour
+                  ? i.customerName || "ทัวร์ร้านค้า"
+                  : `ทัวร์กลาง`,
+              details: i.detail ? i.detail.replace(/^\[.*?\]\s*/, "") : undefined,
+              extraFields: extraFields.length > 0 ? extraFields : undefined,
+            };
+          })
+        : [];
+    sections.push({
+      typeIndex: 12,
+      title: WORK_TYPES[11] || "ทัวร์",
+      badge: "ทัวร์",
+      items: list,
+      rawSummary: t12Line ? t12Line.replace(/^\[.*?\]\s*/, "") : undefined,
+    });
+  }
+
   return sections;
 }
 

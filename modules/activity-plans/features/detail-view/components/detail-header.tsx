@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ActivityStatusBadge } from "../../../ui/activity-status-badge";
+import { WORK_TYPES } from "../../../constants";
 import type { ActivityPlanWithRelations } from "../../../types";
 
 interface DetailHeaderProps {
@@ -26,6 +27,25 @@ export function DetailHeader({ plan, canEdit }: DetailHeaderProps) {
   const router = useRouter();
   const start = new Date(plan.startDate);
   const end = new Date(plan.endDate);
+
+  const isTourOnly =
+    (plan.activityType as any)?.name === "ทัวร์" ||
+    (plan.activityType as any)?.code === "TYPE_12" ||
+    (Boolean(plan.objective?.includes("[ทัวร์")) &&
+      !WORK_TYPES.slice(0, 11).some((wt) =>
+        plan.objective?.includes(`[${wt}`),
+      )) ||
+    (plan.items &&
+      plan.items.length > 0 &&
+      plan.items.every(
+        (i: any) =>
+          i.visitTopic?.includes("ทัวร์") ||
+          (i.detail && i.detail.includes("[ทัวร์")),
+      ));
+
+  const displayActivityTypeName = isTourOnly
+    ? "ทัวร์"
+    : (plan.activityType as any)?.name;
 
   return (
     <div className="space-y-3">
@@ -54,12 +74,12 @@ export function DetailHeader({ plan, canEdit }: DetailHeaderProps) {
             {plan.title}
           </h1>
           <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
-            {(plan.activityType as any)?.name && (
+            {displayActivityTypeName && (
               <Badge
                 variant="outline"
                 className="text-[11px] bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold"
               >
-                {(plan.activityType as any).name}
+                {displayActivityTypeName}
               </Badge>
             )}
             <span className="inline-flex items-center gap-1">
@@ -98,16 +118,18 @@ export function DetailHeader({ plan, canEdit }: DetailHeaderProps) {
             </Button>
           )}
 
-          <Button
-            size="sm"
-            onClick={() => router.push(`/activity-plans/${plan.id}/actual`)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 text-xs font-bold shadow-sm"
-          >
-            <ClipboardList className="h-4 w-4" />
-            {plan.result
-              ? "ดู / แก้ไขผลปฏิบัติงาน (Actual)"
-              : "บันทึกผลปฏิบัติงาน (Actual)"}
-          </Button>
+          {!isTourOnly && (
+            <Button
+              size="sm"
+              onClick={() => router.push(`/activity-plans/${plan.id}/actual`)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 text-xs font-bold shadow-sm"
+            >
+              <ClipboardList className="h-4 w-4" />
+              {plan.result
+                ? "ดู / แก้ไขผลปฏิบัติงาน (Actual)"
+                : "บันทึกผลปฏิบัติงาน (Actual)"}
+            </Button>
+          )}
         </div>
       </div>
     </div>

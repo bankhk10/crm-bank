@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations } from "../../types";
 import { ActivityStatusBadge } from "../../ui/activity-status-badge";
+import { WORK_TYPES, WORK_TYPE_CONFIG, getWorkTypeName } from "../../constants";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { ActionButton } from "@/components/custom/action-button";
@@ -116,13 +117,36 @@ export function ActivityPlanTable({
       {
         accessorKey: "activityType",
         header: "ประเภทงาน",
-        cell: (info) => {
-          const raw = info.getValue();
-          const val =
-            typeof raw === "object" && raw !== null
-              ? (raw as any).name || (raw as any).code || "-"
-              : (raw as string) || "-";
-          console.log(info);
+        cell: ({ row }) => {
+          const item = row.original;
+          if ((item as any).workTypes && (item as any).workTypes.length > 0) {
+            const names = (item as any).workTypes
+              .map((wt: any) => wt.activityType?.name || getWorkTypeName(wt.activityTypeId || wt.workTypeCode))
+              .filter(Boolean);
+            if (names.length > 0) {
+              const str = names.join(", ");
+              return (
+                <div className="truncate text-sm text-slate-700 max-w-[250px]" title={str}>
+                  {str}
+                </div>
+              );
+            }
+          }
+          if ((item as any).tour) {
+            return (
+              <div className="truncate text-sm text-slate-700 max-w-[250px]" title="ทัวร์">
+                ทัวร์
+              </div>
+            );
+          }
+          const raw: any = item.activityType;
+          let val = "-";
+          if (raw && typeof raw === "object") {
+            val = raw.name || raw.code || "-";
+          } else if (typeof raw === "string") {
+            val = raw;
+          }
+
           return (
             <div
               className="truncate text-sm text-slate-700 max-w-[250px]"
@@ -206,6 +230,16 @@ export function ActivityPlanTable({
             item.status === "PENDING_BUDGET_APPROVAL" ||
             item.status === "PENDING_HELPER_APPROVAL";
 
+          const hasActualWorkType =
+            (item as any).workTypes && (item as any).workTypes.length > 0
+              ? (item as any).workTypes.some((wt: any) => {
+                  const code = wt.workTypeCode || wt.activityType?.code;
+                  return code ? WORK_TYPE_CONFIG[code as keyof typeof WORK_TYPE_CONFIG]?.hasActual : true;
+                })
+              : (item as any).tour
+              ? false
+              : item.activityType?.code !== "TYPE_12" && item.activityType?.name !== "ทัวร์";
+
           return (
             <div className="flex items-center justify-center gap-2">
               <ActionButton
@@ -215,12 +249,14 @@ export function ActivityPlanTable({
                 colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
               />
 
-              <ActionButton
-                href={`/activity-plans/${item.id}/actual`}
-                icon={ClipboardList}
-                label="บันทึกผล"
-                colorClass="text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-md"
-              />
+              {hasActualWorkType && (
+                <ActionButton
+                  href={`/activity-plans/${item.id}/actual`}
+                  icon={ClipboardList}
+                  label="บันทึกผล"
+                  colorClass="text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-md"
+                />
+              )}
 
               {canApprove && isPending && (
                 <ActionButton

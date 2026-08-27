@@ -9,3 +9,4 @@ export * from "./detail-type8-meeting";
 export * from "./detail-type9-store";
 export * from "./detail-type10-field-day";
 export * from "./detail-type11-stock";
+export * from "./detail-type12-tour";
