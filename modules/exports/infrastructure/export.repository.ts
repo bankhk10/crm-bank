@@ -9,10 +9,11 @@ export interface ExportFilterParams {
 
 function buildStatusWhereClause(status?: string) {
   if (!status || status === "ALL" || status === "FORECAST") {
-    return undefined;
+    return { notIn: ["CANCELLED"] };
   }
   if (status === "SALES_NOTE") {
-    return { in: ["APPROVED", "AWAITING_DELIVERY", "PARTIALLY_DELIVERED", "PENDING_APPROVAL", "WAITING_FOR_CORRECTION"] };
+    // Sales Note event: all sales created in system (not cancelled)
+    return { notIn: ["CANCELLED"] };
   }
   if (status === "INVOICE") {
     return { in: ["DELIVERY_COMPLETED", "PAID", "COMPLETED"] };
@@ -47,23 +48,38 @@ export function parseStartAndEndDates(startDateStr?: string, endDateStr?: string
   return { start, end };
 }
 
-/**
- * Single Source of Truth for extracting the Invoice / Inv Date from a Sale record.
- * This exact function is used for search filters, repository queries, and Excel column "Inv".
- */
-export function getInvoiceDate(sale: any): Date | null {
-  if (!sale) return null;
-  const deliveryDateRaw =
-    sale.actualDeliveryDate ||
-    sale.deliveryDate ||
-    (sale.shipments && sale.shipments.length > 0
-      ? sale.shipments.find((s: any) => s.actualDate || s.scheduledDate)?.actualDate ||
-        sale.shipments.find((s: any) => s.actualDate || s.scheduledDate)?.scheduledDate
-      : null);
+import {
+  resolveDocumentType,
+  resolveInvoiceDate,
+  resolveSalesNoteDate,
+  resolveSalesReportingDate,
+  type SalesDocumentType,
+} from "@/modules/reports/application/sales-reporting-logic";
 
-  if (!deliveryDateRaw) return null;
-  const d = deliveryDateRaw instanceof Date ? deliveryDateRaw : new Date(deliveryDateRaw);
-  return !isNaN(d.getTime()) ? d : null;
+export {
+  resolveDocumentType,
+  resolveInvoiceDate,
+  resolveSalesNoteDate,
+  resolveSalesReportingDate,
+  type SalesDocumentType,
+};
+
+/**
+ * Legacy aliases for backwards compatibility
+ */
+export function getDataTypeLabel(saleOrStatus: any): "Invoice" | "Sales Note" {
+  if (typeof saleOrStatus === "string") {
+    return resolveDocumentType({ status: saleOrStatus });
+  }
+  return resolveDocumentType(saleOrStatus);
+}
+
+export function getInvoiceDate(sale: any): Date | null {
+  return resolveInvoiceDate(sale);
+}
+
+export function getEffectiveDate(sale: any): Date | null {
+  return resolveSalesReportingDate(sale);
 }
 
 function getYearMonthPairs(startDateStr?: string, endDateStr?: string) {
@@ -238,8 +254,11 @@ const salesTargetInclude = {
  */
 export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
   const isInvoiceStatus = filters.status === "INVOICE";
-  const fetchSales = !filters.status || filters.status === "ALL" || filters.status === "SALES_NOTE" || isInvoiceStatus;
-  const fetchTargets = !filters.status || filters.status === "ALL" || filters.status === "FORECAST";
+  const isSalesNoteStatus = filters.status === "SALES_NOTE";
+  const isAllStatus = !filters.status || filters.status === "ALL";
+
+  const fetchSales = isAllStatus || isSalesNoteStatus || isInvoiceStatus;
+  const fetchTargets = isAllStatus || filters.status === "FORECAST";
 
   let sales: any[] = [];
   let targets: any[] = [];
@@ -249,8 +268,8 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
       deletedAt: null,
     };
 
-    // For non-Invoice statuses, keep the legacy date filtering on saleDate
-    if (!isInvoiceStatus && (filters.startDate || filters.endDate)) {
+    // For SALES_NOTE status, filter saleDate in database query directly
+    if (isSalesNoteStatus && (filters.startDate || filters.endDate)) {
       const { start, end } = parseStartAndEndDates(filters.startDate, filters.endDate);
       where.saleDate = {};
       if (start) {
@@ -313,7 +332,7 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
       },
     });
 
-    // When status === "INVOICE", filter strictly by Invoice Date (the date in Excel column "Inv")
+    // 1. When status === "INVOICE": Filter strictly by Invoice Date (column "Inv")
     if (isInvoiceStatus) {
       if (filters.startDate || filters.endDate) {
         sales = sales.filter((sale) => {
@@ -333,6 +352,37 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
         return dateB - dateA;
       });
     }
+
+    // 2. When status === "ALL": Retain any sale having a Sales Note event OR an Invoice event in range
+    if (isAllStatus) {
+      if (filters.startDate || filters.endDate) {
+        sales = sales.filter((sale) => {
+          const saleDate = sale.saleDate instanceof Date ? sale.saleDate : (sale.saleDate ? new Date(sale.saleDate) : null);
+          const saleDateStr = saleDate ? format(saleDate, "yyyy-MM-dd") : null;
+          const hasSalesNoteEvent =
+            saleDateStr !== null &&
+            (!filters.startDate || saleDateStr >= filters.startDate) &&
+            (!filters.endDate || saleDateStr <= filters.endDate);
+
+          const isInvoice = resolveDocumentType(sale) === "Invoice";
+          const invDate = isInvoice ? resolveInvoiceDate(sale) : null;
+          const invDateStr = invDate ? format(invDate, "yyyy-MM-dd") : null;
+          const hasInvoiceEvent =
+            invDateStr !== null &&
+            (!filters.startDate || invDateStr >= filters.startDate) &&
+            (!filters.endDate || invDateStr <= filters.endDate);
+
+          return hasSalesNoteEvent || hasInvoiceEvent;
+        });
+      }
+
+      // Sort by saleDate descending (or invoiceDate if newer)
+      sales.sort((a, b) => {
+        const dateA = a.saleDate ? new Date(a.saleDate).getTime() : 0;
+        const dateB = b.saleDate ? new Date(b.saleDate).getTime() : 0;
+        return dateB - dateA;
+      });
+    }
   }
 
   if (fetchTargets) {
@@ -348,7 +398,13 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
     });
   }
 
-  return { sales, targets };
+  return {
+    sales,
+    targets,
+    filterStatus: filters.status,
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+  };
 }
 
 export async function getProductStockExportRecords() {

@@ -397,11 +397,29 @@ function SalesAdminExportCard({
               </Select>
             </div>
 
+            {status === "SALES_NOTE" && (
+              <div className="sm:col-span-2 rounded-lg bg-orange-500/10 border border-orange-500/20 p-2.5 flex items-start gap-2 text-xs text-orange-700 dark:text-orange-300">
+                <Info className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>
+                  การกรองตามช่วงเวลาของสถานะ <strong>Sales Note</strong> จะยึดจาก <strong>&quot;วันที่ทำรายการ / เปิดบิล (saleDate)&quot;</strong> ของเอกสารทั้งหมดที่สร้างเข้ามาในระบบ
+                </span>
+              </div>
+            )}
+
             {status === "INVOICE" && (
               <div className="sm:col-span-2 rounded-lg bg-blue-500/10 border border-blue-500/20 p-2.5 flex items-start gap-2 text-xs text-blue-700 dark:text-blue-300">
                 <Info className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>
                   การกรองตามช่วงเวลาของสถานะ <strong>Invoice</strong> จะยึดจาก <strong>&quot;วันที่ Invoice (Inv)&quot;</strong> ของเอกสาร
+                </span>
+              </div>
+            )}
+
+            {status === "ALL" && (
+              <div className="sm:col-span-2 rounded-lg bg-blue-500/10 border border-blue-500/20 p-2.5 flex items-start gap-2 text-xs text-blue-700 dark:text-blue-300">
+                <Info className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>
+                  การกรองตามช่วงเวลาของสถานะ <strong>ทั้งหมด</strong> จะยึดจาก <strong>วันที่ Invoice (Inv)</strong> สำหรับรายการ Invoice และยึดจาก <strong>วันที่ทำรายการ (Sales Note)</strong> สำหรับรายการ Sales Note
                 </span>
               </div>
             )}

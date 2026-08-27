@@ -1,7 +1,10 @@
 import ExcelJS from "exceljs";
 import { format } from "date-fns";
 import { getRegionFromProvince } from "@/modules/reports/application/utils";
-import { getInvoiceDate } from "../infrastructure/export.repository";
+import {
+  resolveDocumentType,
+  resolveInvoiceDate,
+} from "@/modules/reports/application/sales-reporting-logic";
 
 const SALE_STATUS_MAP: Record<string, string> = {
   PENDING_APPROVAL: "รออนุมัติ",
@@ -16,17 +19,6 @@ const SALE_STATUS_MAP: Record<string, string> = {
   CANCELLED: "ยกเลิก",
   COMPLETED: "เสร็จสิ้น",
 };
-
-function getDataTypeLabel(status: string): string {
-  if (
-    status === "DELIVERY_COMPLETED" ||
-    status === "PAID" ||
-    status === "COMPLETED"
-  ) {
-    return "Invoice";
-  }
-  return "Sales Note";
-}
 
 function getSalesOrderNumber(sale: any): string {
   if (sale.shipments && sale.shipments.length > 0) {
@@ -162,11 +154,227 @@ export function calculateLitersOrKg(item: {
   };
 }
 
+function createSaleEventRows(
+  sale: any,
+  eventType: "Sales Note" | "Invoice",
+  eventDate: Date,
+): any[] {
+  const saleDateObj = parseValidDate(sale.saleDate);
+  const formattedDate = saleDateObj ? format(saleDateObj, "dd/MM/yyyy") : "";
+
+  const paymentDateRaw =
+    sale.paymentDate ||
+    (sale.shipments && sale.shipments.length > 0
+      ? sale.shipments.find((s: any) => s.paymentDate)?.paymentDate
+      : null);
+  const paymentDateObj = parseValidDate(paymentDateRaw);
+  const paymentDateStr = paymentDateObj
+    ? format(paymentDateObj, "dd/MM/yyyy")
+    : "";
+
+  const statusThai = SALE_STATUS_MAP[sale.status] || sale.status;
+  const isInvoice = eventType === "Invoice";
+
+  // IMPORTANT BUSINESS RULE: Column "Inv"
+  // - Invoice -> formatted Invoice Date
+  // - Sales Note -> "" (always empty)
+  const deliveryDateStr = isInvoice ? format(eventDate, "dd/MM/yyyy") : "";
+
+  // IMPORTANT BUSINESS RULE: Column "เดือน" and "ปี"
+  // - Invoice -> Month & Year of Invoice Date
+  // - Sales Note -> Month & Year of saleDate
+  const saleMonth = format(eventDate, "MMM");
+  const saleYear = format(eventDate, "yyyy");
+  const regionStr =
+    sale.region ||
+    (sale.customer?.province
+      ? getRegionFromProvince(sale.customer.province)
+      : "") ||
+    "";
+  const salesOrderNo = getSalesOrderNumber(sale);
+  const customerName = formatCustomerName(sale.customer?.name);
+
+  const rows: any[] = [];
+
+  if (sale.items && sale.items.length > 0) {
+    for (const item of sale.items) {
+      const abcGroup =
+        item.productABCTypeName ||
+        item.product?.productABCType?.name ||
+        item.product?.productABCType?.code ||
+        "";
+
+      const categoryRaw =
+        item.categoryName ||
+        item.product?.category?.description ||
+        item.product?.category?.code ||
+        "";
+      const productGroupStr = categoryRaw
+        ? categoryRaw.split(":")[0].trim()
+        : "";
+
+      const commonNameStr = item.commonName || item.product?.commonName || "";
+      const tradeNameStr =
+        item.tradeNameGroupName ||
+        item.product?.tradeNameGroup?.description ||
+        item.name ||
+        "";
+
+      const pkgSizeRaw = item.packageSize ?? item.product?.packageSize;
+      const pkgUnitRaw =
+        item.packageSizeUnit ?? item.product?.packageSizeUnit ?? "";
+      const packageSizeStr =
+        pkgSizeRaw != null
+          ? `${Number(pkgSizeRaw)} ${pkgUnitRaw}`.trim()
+          : "";
+
+      const { litersOrKgPerUnit, totalLitersOrKg } = calculateLitersOrKg(item);
+      const quantityNum = item.quantity || 0;
+
+      rows.push({
+        year: saleYear,
+        dataTypeLabel: eventType,
+        month: saleMonth,
+        abcGroup: abcGroup,
+        productGroupStr: productGroupStr,
+        commonNameStr: commonNameStr,
+        productCode: item.productCode || "",
+        tradeNameStr: tradeNameStr,
+        packageSizeStr: packageSizeStr,
+        totalPerBox: litersOrKgPerUnit,
+
+        employeeNickname: sale.employee?.nickname || "",
+        regionStr: regionStr,
+        customerName: customerName,
+        province: sale.customer?.province || "",
+        quantityNum: quantityNum,
+        totalBoxSold: totalLitersOrKg,
+        totalItemPrice: Number(item.totalPrice) || 0,
+        paymentDateStr: paymentDateStr,
+        salesOrderNo: salesOrderNo,
+        deliveryDateStr: deliveryDateStr,
+        notes: sale.notes || "",
+
+        formattedDate: formattedDate,
+        unitPrice: Number(item.unitPrice) || 0,
+        statusThai: statusThai,
+        itemName: item.name || "",
+        unit: item.unit || item.product?.unit || "",
+        subtotalAmount: Number(sale.subtotalAmount) || 0,
+        shippingCost: Number(sale.shippingCost) || 0,
+        otherCosts: Number(sale.otherCosts) || 0,
+        totalAmount: Number(sale.totalAmount) || 0,
+        managerNotes: sale.managerNotes || "",
+        employeeName: sale.employee?.name || "",
+        _sortDate: eventDate.getTime(),
+      });
+    }
+  } else {
+    rows.push({
+      year: saleYear,
+      dataTypeLabel: eventType,
+      month: saleMonth,
+      abcGroup: "-",
+      productGroupStr: "-",
+      commonNameStr: "-",
+      productCode: "-",
+      tradeNameStr: "-",
+      packageSizeStr: "-",
+      totalPerBox: "-",
+
+      employeeNickname: sale.employee?.nickname || "",
+      regionStr: regionStr,
+      customerName: customerName,
+      province: sale.customer?.province || "",
+      quantityNum: 0,
+      totalBoxSold: "-",
+      totalItemPrice: 0,
+      paymentDateStr: paymentDateStr,
+      salesOrderNo: salesOrderNo,
+      deliveryDateStr: deliveryDateStr,
+      notes: sale.notes || "",
+
+      formattedDate: formattedDate,
+      unitPrice: 0,
+      statusThai: statusThai,
+      itemName: "-",
+      unit: "-",
+      subtotalAmount: Number(sale.subtotalAmount) || 0,
+      shippingCost: Number(sale.shippingCost) || 0,
+      otherCosts: Number(sale.otherCosts) || 0,
+      totalAmount: Number(sale.totalAmount) || 0,
+      managerNotes: sale.managerNotes || "",
+      employeeName: sale.employee?.name || "",
+      _sortDate: eventDate.getTime(),
+    });
+  }
+
+  return rows;
+}
+
 export async function buildSalesAdminExportWorkbook(
-  exportData: any[] | { sales?: any[]; targets?: any[] },
+  exportData: any[] | {
+    sales?: any[];
+    targets?: any[];
+    filterStatus?: string;
+    startDate?: string;
+    endDate?: string;
+  },
 ): Promise<string> {
   const sales = Array.isArray(exportData) ? exportData : exportData.sales || [];
   const targets = Array.isArray(exportData) ? [] : exportData.targets || [];
+  const filterStatus = Array.isArray(exportData) ? undefined : exportData.filterStatus;
+  const startDate = Array.isArray(exportData) ? undefined : exportData.startDate;
+  const endDate = Array.isArray(exportData) ? undefined : exportData.endDate;
+
+  const allRows: any[] = [];
+
+  // 1. Process actual Sales records into Event-Driven Rows
+  for (const sale of sales) {
+    const saleDateObj = parseValidDate(sale.saleDate);
+    const saleDateStr = saleDateObj ? format(saleDateObj, "yyyy-MM-dd") : null;
+    const isSalesNoteInRange =
+      saleDateObj !== null &&
+      saleDateStr !== null &&
+      (!startDate || saleDateStr >= startDate) &&
+      (!endDate || saleDateStr <= endDate);
+
+    const isInvoiceDoc = resolveDocumentType(sale) === "Invoice";
+    const invDateObj = isInvoiceDoc ? resolveInvoiceDate(sale) : null;
+    const invDateStr = invDateObj ? format(invDateObj, "yyyy-MM-dd") : null;
+    const isInvoiceInRange =
+      invDateObj !== null &&
+      invDateStr !== null &&
+      (!startDate || invDateStr >= startDate) &&
+      (!endDate || invDateStr <= endDate);
+
+    // Case 1: Explicit SALES_NOTE filter
+    if (filterStatus === "SALES_NOTE") {
+      if (isSalesNoteInRange && saleDateObj) {
+        allRows.push(...createSaleEventRows(sale, "Sales Note", saleDateObj));
+      }
+    }
+    // Case 2: Explicit INVOICE filter
+    else if (filterStatus === "INVOICE") {
+      if (isInvoiceInRange && invDateObj) {
+        allRows.push(...createSaleEventRows(sale, "Invoice", invDateObj));
+      }
+    }
+    // Case 3: ALL filter (or unspecified) -> Event-Driven: emit both events if within range
+    else {
+      // Event 1: Sales Note (Creation Event)
+      if (isSalesNoteInRange && saleDateObj) {
+        allRows.push(...createSaleEventRows(sale, "Sales Note", saleDateObj));
+      }
+      // Event 2: Invoice (Delivery / Invoicing Event)
+      if (isInvoiceInRange && invDateObj) {
+        allRows.push(...createSaleEventRows(sale, "Invoice", invDateObj));
+      }
+    }
+  }
+
+  // Sort rows by event date descending
+  allRows.sort((a, b) => (b._sortDate || 0) - (a._sortDate || 0));
 
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Sales Admin Data");
@@ -208,157 +416,8 @@ export async function buildSalesAdminExportWorkbook(
     { header: "ชื่อ-สกุล พนักงานขาย", key: "employeeName", width: 20 },
   ];
 
-  // 1. Process actual Sales records
-  for (const sale of sales) {
-    const saleDateObj = parseValidDate(sale.saleDate);
-    const saleYear = saleDateObj ? format(saleDateObj, "yyyy") : "";
-    const formattedDate = saleDateObj ? format(saleDateObj, "dd/MM/yyyy") : "";
-
-    const paymentDateRaw =
-      sale.paymentDate ||
-      (sale.shipments && sale.shipments.length > 0
-        ? sale.shipments.find((s: any) => s.paymentDate)?.paymentDate
-        : null);
-    const paymentDateObj = parseValidDate(paymentDateRaw);
-    const paymentDateStr = paymentDateObj
-      ? format(paymentDateObj, "dd/MM/yyyy")
-      : "";
-
-    const deliveryDateObj = getInvoiceDate(sale);
-    const deliveryDateStr = deliveryDateObj
-      ? format(deliveryDateObj, "dd/MM/yyyy")
-      : "";
-
-    const statusThai = SALE_STATUS_MAP[sale.status] || sale.status;
-    const dataTypeLabel = getDataTypeLabel(sale.status);
-    const isInvoice = dataTypeLabel === "Invoice";
-
-    // หากเป็น Invoice และมีวันที่ Inv ให้คอลัมน์ "เดือน" ยึดจาก Inv
-    // หากไม่ใช่ Invoice หรือยังไม่มี Inv ให้คง Logic เดิม (ยึดจาก saleDate)
-    let monthDateObj = saleDateObj;
-    if (isInvoice && deliveryDateObj) {
-      monthDateObj = deliveryDateObj;
-    }
-    const saleMonth = monthDateObj ? format(monthDateObj, "MMM") : "";
-    const regionStr =
-      sale.region ||
-      (sale.customer?.province
-        ? getRegionFromProvince(sale.customer.province)
-        : "") ||
-      "";
-    const salesOrderNo = getSalesOrderNumber(sale);
-    const customerName = formatCustomerName(sale.customer?.name);
-
-    if (sale.items && sale.items.length > 0) {
-      for (const item of sale.items) {
-        const abcGroup =
-          item.productABCTypeName ||
-          item.product?.productABCType?.name ||
-          item.product?.productABCType?.code ||
-          "";
-
-        const categoryRaw =
-          item.categoryName ||
-          item.product?.category?.description ||
-          item.product?.category?.code ||
-          "";
-        const productGroupStr = categoryRaw
-          ? categoryRaw.split(":")[0].trim()
-          : "";
-
-        const commonNameStr = item.commonName || item.product?.commonName || "";
-        const tradeNameStr =
-          item.tradeNameGroupName ||
-          item.product?.tradeNameGroup?.description ||
-          item.name ||
-          "";
-
-        const pkgSizeRaw = item.packageSize ?? item.product?.packageSize;
-        const pkgUnitRaw =
-          item.packageSizeUnit ?? item.product?.packageSizeUnit ?? "";
-        const packageSizeStr =
-          pkgSizeRaw != null
-            ? `${Number(pkgSizeRaw)} ${pkgUnitRaw}`.trim()
-            : "";
-
-        const { litersOrKgPerUnit, totalLitersOrKg } = calculateLitersOrKg(item);
-        const quantityNum = item.quantity || 0;
-
-        worksheet.addRow({
-          year: saleYear,
-          dataTypeLabel: dataTypeLabel,
-          month: saleMonth,
-          abcGroup: abcGroup,
-          productGroupStr: productGroupStr,
-          commonNameStr: commonNameStr,
-          productCode: item.productCode || "",
-          tradeNameStr: tradeNameStr,
-          packageSizeStr: packageSizeStr,
-          totalPerBox: litersOrKgPerUnit,
-
-          employeeNickname: sale.employee?.nickname || "",
-          regionStr: regionStr,
-          customerName: customerName,
-          province: sale.customer?.province || "",
-          quantityNum: quantityNum,
-          totalBoxSold: totalLitersOrKg,
-          totalItemPrice: Number(item.totalPrice) || 0,
-          paymentDateStr: paymentDateStr,
-          salesOrderNo: salesOrderNo,
-          deliveryDateStr: deliveryDateStr,
-          notes: sale.notes || "",
-
-          formattedDate: formattedDate,
-          unitPrice: Number(item.unitPrice) || 0,
-          statusThai: statusThai,
-          itemName: item.name || "",
-          unit: item.unit || item.product?.unit || "",
-          subtotalAmount: Number(sale.subtotalAmount) || 0,
-          shippingCost: Number(sale.shippingCost) || 0,
-          otherCosts: Number(sale.otherCosts) || 0,
-          totalAmount: Number(sale.totalAmount) || 0,
-          managerNotes: sale.managerNotes || "",
-          employeeName: sale.employee?.name || "",
-        });
-      }
-    } else {
-      worksheet.addRow({
-        year: saleYear,
-        dataTypeLabel: dataTypeLabel,
-        month: saleMonth,
-        abcGroup: "-",
-        productGroupStr: "-",
-        commonNameStr: "-",
-        productCode: "-",
-        tradeNameStr: "-",
-        packageSizeStr: "-",
-        totalPerBox: "-",
-
-        employeeNickname: sale.employee?.nickname || "",
-        regionStr: regionStr,
-        customerName: customerName,
-        province: sale.customer?.province || "",
-        quantityNum: 0,
-        totalBoxSold: "-",
-        totalItemPrice: 0,
-        paymentDateStr: paymentDateStr,
-        salesOrderNo: salesOrderNo,
-        deliveryDateStr: deliveryDateStr,
-        notes: sale.notes || "",
-
-        formattedDate: formattedDate,
-        unitPrice: 0,
-        statusThai: statusThai,
-        itemName: "-",
-        unit: "-",
-        subtotalAmount: Number(sale.subtotalAmount) || 0,
-        shippingCost: Number(sale.shippingCost) || 0,
-        otherCosts: Number(sale.otherCosts) || 0,
-        totalAmount: Number(sale.totalAmount) || 0,
-        managerNotes: sale.managerNotes || "",
-        employeeName: sale.employee?.name || "",
-      });
-    }
+  for (const row of allRows) {
+    worksheet.addRow(row);
   }
 
   // 2. Process SalesTarget (Forecast) records
