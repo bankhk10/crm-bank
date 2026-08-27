@@ -48,6 +48,12 @@ function formatCustomerName(name?: string | null): string {
 }
 
 
+function parseValidDate(value: any): Date | null {
+  if (!value) return null;
+  const d = value instanceof Date ? value : new Date(value);
+  return !isNaN(d.getTime()) ? d : null;
+}
+
 function roundNumber(num: number, decimals: number = 4): number {
   const factor = Math.pow(10, decimals);
   return Math.round((num + Number.EPSILON) * factor) / factor;
@@ -203,9 +209,8 @@ export async function buildSalesAdminExportWorkbook(
 
   // 1. Process actual Sales records
   for (const sale of sales) {
-    const saleDateObj = sale.saleDate ? new Date(sale.saleDate) : null;
+    const saleDateObj = parseValidDate(sale.saleDate);
     const saleYear = saleDateObj ? format(saleDateObj, "yyyy") : "";
-    const saleMonth = saleDateObj ? format(saleDateObj, "MMM") : "";
     const formattedDate = saleDateObj ? format(saleDateObj, "dd/MM/yyyy") : "";
 
     const paymentDateRaw =
@@ -213,7 +218,7 @@ export async function buildSalesAdminExportWorkbook(
       (sale.shipments && sale.shipments.length > 0
         ? sale.shipments.find((s: any) => s.paymentDate)?.paymentDate
         : null);
-    const paymentDateObj = paymentDateRaw ? new Date(paymentDateRaw) : null;
+    const paymentDateObj = parseValidDate(paymentDateRaw);
     const paymentDateStr = paymentDateObj
       ? format(paymentDateObj, "dd/MM/yyyy")
       : "";
@@ -227,13 +232,22 @@ export async function buildSalesAdminExportWorkbook(
           sale.shipments.find((s: any) => s.actualDate || s.scheduledDate)
             ?.scheduledDate
         : null);
-    const deliveryDateObj = deliveryDateRaw ? new Date(deliveryDateRaw) : null;
+    const deliveryDateObj = parseValidDate(deliveryDateRaw);
     const deliveryDateStr = deliveryDateObj
       ? format(deliveryDateObj, "dd/MM/yyyy")
       : "";
 
     const statusThai = SALE_STATUS_MAP[sale.status] || sale.status;
     const dataTypeLabel = getDataTypeLabel(sale.status);
+    const isInvoice = dataTypeLabel === "Invoice";
+
+    // หากเป็น Invoice และมีวันที่ Inv ให้คอลัมน์ "เดือน" ยึดจาก Inv
+    // หากไม่ใช่ Invoice หรือยังไม่มี Inv ให้คง Logic เดิม (ยึดจาก saleDate)
+    let monthDateObj = saleDateObj;
+    if (isInvoice && deliveryDateObj) {
+      monthDateObj = deliveryDateObj;
+    }
+    const saleMonth = monthDateObj ? format(monthDateObj, "MMM") : "";
     const regionStr =
       sale.region ||
       (sale.customer?.province
