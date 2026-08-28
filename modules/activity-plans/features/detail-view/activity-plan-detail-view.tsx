@@ -643,6 +643,31 @@ export default function ActivityPlanDetailView({
           </div>
         )}
 
+        {/* ─── 6. SECTION: ผลการปฏิบัติงานตามประเภทงาน (WORK TYPES 1 - 11) (READ-ONLY) - Only displayed when Actual Result exists in DB ─── */}
+        {hasActualResult && !isTourOnly && (
+          <DetailActivityResultSection
+            isTypeVisible={isTypeVisible}
+            targets={targets}
+            parsedResults={parsedResults}
+            demoPlotData={t7DemoPlotData}
+            visitHistory={t7VisitHistory}
+          />
+        )}
+
+        {/* ─── 7. SECTION: สถานะผลการทำกิจกรรม (READ-ONLY) - Only displayed when Actual Result exists in DB ─── */}
+        {hasActualResult &&
+          !isTourOnly &&
+          parsedResults.activityResultStatus && (
+            <DetailActivityStatusSection
+              activityResultStatus={parsedResults.activityResultStatus}
+              cancelReason={parsedResults.cancelReason}
+              postponedDate={parsedResults.postponedDate}
+              postponedTime={parsedResults.postponedTime}
+              postponedReason={parsedResults.postponedReason}
+              postponedNotes={parsedResults.postponedNotes}
+            />
+          )}
+
         {/* ─── 5. APPROVAL AUDIT LOGS ─── */}
         {plan.approvalLogs && plan.approvalLogs.length > 0 && (
           <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xs">
@@ -690,31 +715,6 @@ export default function ActivityPlanDetailView({
             </div>
           </div>
         )}
-
-        {/* ─── 6. SECTION: ผลการปฏิบัติงานตามประเภทงาน (WORK TYPES 1 - 11) (READ-ONLY) - Only displayed when Actual Result exists in DB ─── */}
-        {hasActualResult && !isTourOnly && (
-          <DetailActivityResultSection
-            isTypeVisible={isTypeVisible}
-            targets={targets}
-            parsedResults={parsedResults}
-            demoPlotData={t7DemoPlotData}
-            visitHistory={t7VisitHistory}
-          />
-        )}
-
-        {/* ─── 7. SECTION: สถานะผลการทำกิจกรรม (READ-ONLY) - Only displayed when Actual Result exists in DB ─── */}
-        {hasActualResult &&
-          !isTourOnly &&
-          parsedResults.activityResultStatus && (
-            <DetailActivityStatusSection
-              activityResultStatus={parsedResults.activityResultStatus}
-              cancelReason={parsedResults.cancelReason}
-              postponedDate={parsedResults.postponedDate}
-              postponedTime={parsedResults.postponedTime}
-              postponedReason={parsedResults.postponedReason}
-              postponedNotes={parsedResults.postponedNotes}
-            />
-          )}
 
         {/* ─── 8. BOTTOM ACTIONS (READ-ONLY DETAIL VIEW) ─── */}
         <DetailViewActions
