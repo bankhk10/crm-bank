@@ -19,14 +19,8 @@ import {
   getActivityPlanAction,
   getDemoPlotHistoryAction,
 } from "../../server/actions";
-import type {
-  PlanSummaryData,
-  ActualTargetsState,
-} from "../actual-view/types";
-import {
-  extractPlanData,
-  parseResultSummary,
-} from "../actual-view/utils";
+import type { PlanSummaryData, ActualTargetsState } from "../actual-view/types";
+import { extractPlanData, parseResultSummary } from "../actual-view/utils";
 import type { ParsedSummaryValues } from "../actual-view/utils/summary-parser";
 import { ActualPlanSummary } from "../actual-view/components/actual-plan-summary";
 import {
@@ -186,7 +180,8 @@ export default function ActivityPlanDetailView({
   const [error, setError] = useState<string | null>(null);
 
   // Extracted Plan Summary & Targets
-  const [planSummary, setPlanSummary] = useState<PlanSummaryData>(initialPlanSummary);
+  const [planSummary, setPlanSummary] =
+    useState<PlanSummaryData>(initialPlanSummary);
   const [planWorkTypes, setPlanWorkTypes] = useState<string[]>([]);
   const [targets, setTargets] = useState<ActualTargetsState>(initialTargets);
   const [parsedResults, setParsedResults] = useState<ParsedSummaryValues>({});
@@ -314,18 +309,29 @@ export default function ActivityPlanDetailView({
     plan.activityType?.code === "TYPE_12" ||
     plan.activityType?.name === "ทัวร์" ||
     plan.workTypes?.some(
-      (wt) => wt.activityType?.code === "TYPE_12" || wt.activityType?.name === "ทัวร์",
+      (wt) =>
+        wt.activityType?.code === "TYPE_12" ||
+        wt.activityType?.name === "ทัวร์",
     ) ||
     planWorkTypes.includes("ทัวร์"),
   );
 
   const tourData = plan.tour;
   const item0 = (plan.items?.[0] || {}) as Record<string, any>;
-  const tourType = tourData?.tourType ?? (item0.visitTopic === "ทัวร์ร้านค้า" ? "STORE" : "CENTRAL");
+  const tourType =
+    tourData?.tourType ??
+    (item0.visitTopic === "ทัวร์ร้านค้า" ? "STORE" : "CENTRAL");
   const tourSize = tourData?.tourSize ?? item0.tourSize ?? null;
-  const tourCountry = tourData?.country ?? item0.country ?? item0.detail ?? null;
-  const tourStoreName = tourData?.store?.name ?? item0.customerName ?? item0.store ?? null;
-  const tourDestination = tourData?.destination ?? item0.destination ?? item0.location ?? item0.detail ?? null;
+  const tourCountry =
+    tourData?.country ?? item0.country ?? item0.detail ?? null;
+  const tourStoreName =
+    tourData?.store?.name ?? item0.customerName ?? item0.store ?? null;
+  const tourDestination =
+    tourData?.destination ??
+    item0.destination ??
+    item0.location ??
+    item0.detail ??
+    null;
 
   // Check if plan contains any actual work types (Types 1 - 11)
   const hasActualWorkTypes = planWorkTypes.some((wt) => wt !== "ทัวร์");
@@ -339,7 +345,9 @@ export default function ActivityPlanDetailView({
           planNo={planSummary.planNo}
           status={plan.status}
           onBack={handleBack}
-          backButtonLabel={fromApprovals ? "กลับหน้ารายการอนุมัติ" : "กลับหน้ารายการแผนงาน"}
+          backButtonLabel={
+            fromApprovals ? "กลับหน้ารายการอนุมัติ" : "กลับหน้ารายการแผนงาน"
+          }
         />
 
         {/* 2. APPROVAL CONTEXT BANNER (SHOWS WHEN IN APPROVAL STAGE AND USER HAS PERMISSION) */}
@@ -358,8 +366,8 @@ export default function ActivityPlanDetailView({
                     {isDirectLineApprover
                       ? "⚡ แผนงานนี้อยู่ในคิวการพิจารณาตามสายงานของคุณ"
                       : isAdmin
-                      ? "👑 คุณมีสิทธิ์ Administrator ในการพิจารณาอนุมัติแผนงานนี้"
-                      : "ตรวจสอบรายละเอียดความถูกต้องก่อนดำเนินการตัดสินใจ"}
+                        ? "👑 คุณมีสิทธิ์ Administrator ในการพิจารณาอนุมัติแผนงานนี้"
+                        : "ตรวจสอบรายละเอียดความถูกต้องก่อนดำเนินการตัดสินใจ"}
                   </p>
                 </div>
               </div>

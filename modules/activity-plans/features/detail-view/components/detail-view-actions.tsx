@@ -10,7 +10,7 @@ interface DetailViewActionsProps {
 
 export function DetailViewActions({ onBack }: DetailViewActionsProps) {
   return (
-    <div className="pt-4 border-t border-slate-100 flex items-center justify-center">
+    <div className="pt-4 border-slate-100 flex items-center justify-center">
       <Button
         type="button"
         variant="outline"
