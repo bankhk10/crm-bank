@@ -12,26 +12,16 @@ import {
   CheckCircle2,
   XCircle,
   RotateCcw,
-  Store as StoreIcon,
-  Tag,
   Users,
-  DollarSign,
   History,
   Clock,
   Target,
   Layers,
   Calendar,
-  MapPin,
   User,
   FileText,
-  Gift,
-  Boxes,
   ShieldCheck,
-  ArrowLeft,
   Info,
-  Search,
-  AlertTriangle,
-  Sprout,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -40,13 +30,25 @@ import { cn } from "@/lib/utils";
 import type { ActivityPlanWithRelations } from "../../types";
 import { getActivityPlanAction } from "../../server/actions";
 import { getWorkTypeCode } from "../../constants";
-import { ActivityStatusBadge } from "../../ui/activity-status-badge";
-import { DetailType12Tour } from "../detail-view/components/work-types/detail-type12-tour";
 import { DetailViewActions } from "../detail-view/components/detail-view-actions";
 import {
   ApprovalActionDialog,
   type ApprovalActionType,
 } from "./components/approval-action-dialog";
+import {
+  ApprovalType1Visit,
+  ApprovalType2Followup,
+  ApprovalType3Sales,
+  ApprovalType4Collect,
+  ApprovalType5Survey,
+  ApprovalType6Issue,
+  ApprovalType7Demo,
+  ApprovalType8Meeting,
+  ApprovalType9Store,
+  ApprovalType10FieldDay,
+  ApprovalType11Stock,
+  ApprovalType12Tour,
+} from "./components/work-types";
 import {
   BudgetSection,
   PromotionalMaterialsSection,
@@ -488,740 +490,80 @@ export default function ActivityPlanApprovalDetailView({
           </div>
 
           {/* TYPE_1: เข้าพบร้านค้า / Key Farmer */}
-          {isTypeActive("TYPE_1", "เข้าพบร้านค้า / Key Farmer") && (
-            <div className="border border-emerald-200/80 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-emerald-100 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200">
-                    <StoreIcon className="w-4 h-4" />
-                  </div>
-                  <h4 className="font-bold text-emerald-900 text-sm sm:text-base">
-                    เข้าพบร้านค้า / Key Farmer
-                  </h4>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="text-[11px] font-bold bg-emerald-50 text-emerald-800 border-emerald-200"
-                >
-                  TYPE_1
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="bg-emerald-50/40 p-3 rounded-xl border border-emerald-100/80 sm:col-span-1">
-                  <span className="text-emerald-700 block text-[11px] font-bold mb-1">
-                    วัตถุประสงค์ของประเภทงาน (ประเด็นหลัก)
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t1.topic || "เข้าพบประจำเดือน"}
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    ลูกค้าร้านค้าเป้าหมาย
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t1.customer || "-"}
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    รายละเอียดเพิ่มเติม
-                  </span>
-                  <span className="text-slate-700 block text-xs whitespace-pre-line">
-                    {targets.t1.detail || "-"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
+          <ApprovalType1Visit
+            isVisible={isTypeActive("TYPE_1", "เข้าพบร้านค้า / Key Farmer")}
+            target={targets.t1}
+          />
 
           {/* TYPE_2: ติดตามผลการใช้สินค้า */}
-          {isTypeActive("TYPE_2", "ติดตามผลการใช้สินค้า") && (
-            <div className="border border-teal-200/80 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-teal-100 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0 border border-teal-200">
-                    <CheckCircle2 className="w-4 h-4" />
-                  </div>
-                  <h4 className="font-bold text-teal-900 text-sm sm:text-base">
-                    ติดตามผลการใช้สินค้า
-                  </h4>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="text-[11px] font-bold bg-teal-50 text-teal-800 border-teal-200"
-                >
-                  TYPE_2
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="bg-teal-50/40 p-3 rounded-xl border border-teal-100/80 sm:col-span-1">
-                  <span className="text-teal-700 block text-[11px] font-bold mb-1">
-                    วัตถุประสงค์ของประเภทงาน
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    ติดตามผลการใช้สินค้าและประสิทธิภาพ
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    สินค้าที่ติดตามผล
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t2.product || "-"}
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    ร้านค้า / เกษตรกร
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t2.customer || "-"}
-                  </span>
-                </div>
-
-                {targets.t2.detail && (
-                  <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-3">
-                    <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                      รายละเอียดการติดตามผล
-                    </span>
-                    <span className="text-slate-700 block text-xs whitespace-pre-line">
-                      {targets.t2.detail}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <ApprovalType2Followup
+            isVisible={isTypeActive("TYPE_2", "ติดตามผลการใช้สินค้า")}
+            target={targets.t2}
+          />
 
           {/* TYPE_3: เสนอขายสินค้า */}
-          {isTypeActive("TYPE_3", "เสนอขายสินค้า") && (
-            <div className="border border-blue-200/80 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-blue-100 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200">
-                    <Tag className="w-4 h-4" />
-                  </div>
-                  <h4 className="font-bold text-blue-900 text-sm sm:text-base">
-                    เสนอขายสินค้า
-                  </h4>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="text-[11px] font-bold bg-blue-50 text-blue-800 border-blue-200"
-                >
-                  TYPE_3
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs mb-3">
-                <div className="bg-blue-50/40 p-3 rounded-xl border border-blue-100/80 sm:col-span-1">
-                  <span className="text-blue-700 block text-[11px] font-bold mb-1">
-                    วัตถุประสงค์ของประเภทงาน
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    เสนอขายสินค้าและเพิ่มยอดขาย
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    ร้านค้าเป้าหมาย
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t3.customer || "-"}
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    เป้ายอดขายรวม
-                  </span>
-                  <span className="font-bold text-blue-700 block text-xs sm:text-sm">
-                    {targets.t3.targetSales
-                      ? `${targets.t3.targetSales} ฿`
-                      : "-"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Table of proposed products if available */}
-              {targets.t3.items && targets.t3.items.length > 0 ? (
-                <div className="overflow-x-auto rounded-xl border border-slate-100">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
-                      <tr>
-                        <th className="p-2.5">รายการสินค้า</th>
-                        <th className="p-2.5 text-right">จำนวน</th>
-                        <th className="p-2.5 text-right">ราคา/หน่วย</th>
-                        <th className="p-2.5 text-right">ยอดเงินรวม</th>
-                        <th className="p-2.5">รายละเอียด</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {targets.t3.items.map((item, idx) => (
-                        <tr key={idx}>
-                          <td className="p-2.5 font-semibold text-slate-800">
-                            {item.productName}
-                          </td>
-                          <td className="p-2.5 text-right font-medium">
-                            {item.qty ? `${item.qty}` : "-"}
-                          </td>
-                          <td className="p-2.5 text-right text-slate-600">
-                            {item.unitPrice || "-"}
-                          </td>
-                          <td className="p-2.5 text-right font-bold text-blue-700">
-                            {item.price || "-"}
-                          </td>
-                          <td className="p-2.5 text-slate-600">
-                            {item.detail || "-"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                targets.t3.product && (
-                  <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-700">
-                    สินค้าเป้าหมาย:{" "}
-                    <span className="font-bold">{targets.t3.product}</span>
-                    {targets.t3.targetQty && ` (จำนวน ${targets.t3.targetQty})`}
-                  </div>
-                )
-              )}
-            </div>
-          )}
+          <ApprovalType3Sales
+            isVisible={isTypeActive("TYPE_3", "เสนอขายสินค้า")}
+            target={targets.t3}
+          />
 
           {/* TYPE_4: วางบิล / เก็บเงิน */}
-          {isTypeActive("TYPE_4", "วางบิล / เก็บเงิน") && (
-            <div className="border border-amber-200/80 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-amber-100 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
-                    <DollarSign className="w-4 h-4" />
-                  </div>
-                  <h4 className="font-bold text-amber-900 text-sm sm:text-base">
-                    วางบิล / เก็บเงิน
-                  </h4>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="text-[11px] font-bold bg-amber-50 text-amber-800 border-amber-200"
-                >
-                  TYPE_4
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="bg-amber-50/40 p-3 rounded-xl border border-amber-100/80 sm:col-span-1">
-                  <span className="text-amber-700 block text-[11px] font-bold mb-1">
-                    วัตถุประสงค์ของประเภทงาน
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    วางบิลและติดตามยอดเก็บเงิน
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    ลูกค้า / ร้านค้า
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t4.customer || "-"}
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    เป้ายอดเก็บเงิน
-                  </span>
-                  <span className="font-bold text-amber-700 block text-xs sm:text-sm">
-                    {targets.t4.targetCollect
-                      ? `${Number(targets.t4.targetCollect).toLocaleString()} ฿`
-                      : "-"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
+          <ApprovalType4Collect
+            isVisible={isTypeActive("TYPE_4", "วางบิล / เก็บเงิน")}
+            target={targets.t4}
+          />
 
           {/* TYPE_5: สำรวจตลาดของคู่แข่ง */}
-          {isTypeActive("TYPE_5", "สำรวจตลาดของคู่แข่ง") && (
-            <div className="border border-purple-200/80 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-purple-100 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-200">
-                    <Search className="w-4 h-4" />
-                  </div>
-                  <h4 className="font-bold text-purple-900 text-sm sm:text-base">
-                    สำรวจตลาดของคู่แข่ง
-                  </h4>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="text-[11px] font-bold bg-purple-50 text-purple-800 border-purple-200"
-                >
-                  TYPE_5
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="bg-purple-50/40 p-3 rounded-xl border border-purple-100/80 sm:col-span-1">
-                  <span className="text-purple-700 block text-[11px] font-bold mb-1">
-                    วัตถุประสงค์ของประเภทงาน
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    สำรวจตลาดและเปรียบเทียบราคาสินค้าคู่แข่ง
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    ร้านค้าที่สำรวจ
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t5.store || "-"}
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    สินค้าคู่แข่งที่เปรียบเทียบ
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t5.product || "-"}
-                  </span>
-                </div>
-
-                {targets.t5.detail && (
-                  <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-3">
-                    <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                      รายละเอียดการสำรวจ
-                    </span>
-                    <span className="text-slate-700 block text-xs whitespace-pre-line">
-                      {targets.t5.detail}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <ApprovalType5Survey
+            isVisible={isTypeActive("TYPE_5", "สำรวจตลาดของคู่แข่ง")}
+            target={targets.t5}
+          />
 
           {/* TYPE_6: แก้ปัญหา / รับเรื่องร้องเรียน */}
-          {isTypeActive("TYPE_6", "แก้ปัญหา / รับเรื่องร้องเรียน") && (
-            <div className="border border-red-200/80 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-red-100 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-200">
-                    <AlertTriangle className="w-4 h-4" />
-                  </div>
-                  <h4 className="font-bold text-red-900 text-sm sm:text-base">
-                    แก้ปัญหา / รับเรื่องร้องเรียน
-                  </h4>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="text-[11px] font-bold bg-red-50 text-red-800 border-red-200"
-                >
-                  TYPE_6
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="bg-red-50/40 p-3 rounded-xl border border-red-100/80 sm:col-span-1">
-                  <span className="text-red-700 block text-[11px] font-bold mb-1">
-                    วัตถุประสงค์ของประเภทงาน
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    แก้ปัญหาและรับเรื่องร้องเรียนจากลูกค้า
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    ลูกค้า / ผู้ร้องเรียน
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t6.customer || "-"}
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    ประเภทเรื่องร้องเรียน
-                  </span>
-                  <span className="font-bold text-red-700 block text-xs sm:text-sm">
-                    {targets.t6.issueType || "เคลมของ"}
-                  </span>
-                </div>
-
-                {targets.t6.detail && (
-                  <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-3">
-                    <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                      รายละเอียดปัญหา
-                    </span>
-                    <span className="text-slate-700 block text-xs whitespace-pre-line">
-                      {targets.t6.detail}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <ApprovalType6Issue
+            isVisible={isTypeActive("TYPE_6", "แก้ปัญหา / รับเรื่องร้องเรียน")}
+            target={targets.t6}
+          />
 
           {/* TYPE_7: ทำ / ติดตามแปลงสาธิต */}
-          {isTypeActive("TYPE_7", "ทำ / ติดตามแปลงสาธิต") && (
-            <div className="border border-green-200/80 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-green-100 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-green-50 text-green-600 flex items-center justify-center shrink-0 border border-green-200">
-                    <Sprout className="w-4 h-4" />
-                  </div>
-                  <h4 className="font-bold text-green-900 text-sm sm:text-base">
-                    ทำ / ติดตามแปลงสาธิต
-                  </h4>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="text-[11px] font-bold bg-green-50 text-green-800 border-green-200"
-                >
-                  TYPE_7
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="bg-green-50/40 p-3 rounded-xl border border-green-100/80 sm:col-span-1">
-                  <span className="text-green-700 block text-[11px] font-bold mb-1">
-                    วัตถุประสงค์ของแปลง
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t7.objective ||
-                      "ทดสอบและสาธิตประสิทธิภาพผลิตภัณฑ์ในแปลงจริง"}
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    เจ้าของแปลง
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t7.owner || "-"}
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    พืชปลูก & ผลิตภัณฑ์
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {[targets.t7.crop, targets.t7.product]
-                      .filter(Boolean)
-                      .join(" • ") || "-"}
-                  </span>
-                </div>
-
-                {targets.t7.plots && (
-                  <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                    <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                      ขนาดพื้นที่ / จำนวน
-                    </span>
-                    <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                      {targets.t7.plots}
-                    </span>
-                  </div>
-                )}
-
-                {(targets.t7.experimentDetail || targets.t7.detail) && (
-                  <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-2">
-                    <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                      รายละเอียด / วิธีการทดลอง
-                    </span>
-                    <span className="text-slate-700 block text-xs whitespace-pre-line">
-                      {targets.t7.experimentDetail || targets.t7.detail}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <ApprovalType7Demo
+            isVisible={isTypeActive("TYPE_7", "ทำ / ติดตามแปลงสาธิต")}
+            target={targets.t7}
+          />
 
           {/* TYPE_8: จัดประชุมการเกษตร */}
-          {isTypeActive("TYPE_8", "จัดประชุมการเกษตร") && (
-            <div className="border border-indigo-200/80 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-indigo-100 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-200">
-                    <Users className="w-4 h-4" />
-                  </div>
-                  <h4 className="font-bold text-indigo-900 text-sm sm:text-base">
-                    จัดประชุมการเกษตร
-                  </h4>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="text-[11px] font-bold bg-indigo-50 text-indigo-800 border-indigo-200"
-                >
-                  TYPE_8
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="bg-indigo-50/40 p-3 rounded-xl border border-indigo-100/80 sm:col-span-1">
-                  <span className="text-indigo-700 block text-[11px] font-bold mb-1">
-                    วัตถุประสงค์ / หัวข้อประชุม
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t8.topic || "-"}
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    เป้าหมายผู้เข้าร่วม
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t8.targetAttendees
-                      ? `${targets.t8.targetAttendees} คน`
-                      : "-"}
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    สินค้าเป้าหมาย
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t8.products || "-"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
+          <ApprovalType8Meeting
+            isVisible={isTypeActive("TYPE_8", "จัดประชุมการเกษตร")}
+            target={targets.t8}
+          />
 
           {/* TYPE_9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน */}
-          {isTypeActive("TYPE_9", "จัดกิจกรรมส่งเสริมการขายหน้าร้าน") && (
-            <div className="border border-orange-200/80 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-orange-100 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center shrink-0 border border-orange-200">
-                    <StoreIcon className="w-4 h-4" />
-                  </div>
-                  <h4 className="font-bold text-orange-900 text-sm sm:text-base">
-                    จัดกิจกรรมส่งเสริมการขายหน้าร้าน
-                  </h4>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="text-[11px] font-bold bg-orange-50 text-orange-800 border-orange-200"
-                >
-                  TYPE_9
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs mb-3">
-                <div className="bg-orange-50/40 p-3 rounded-xl border border-orange-100/80 sm:col-span-1">
-                  <span className="text-orange-700 block text-[11px] font-bold mb-1">
-                    วัตถุประสงค์ของประเภทงาน
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    จัดกิจกรรมส่งเสริมการขายหน้าร้านและกระตุ้นยอดซื้อ
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    ร้านค้าที่จัดกิจกรรม
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t9.store || "-"}
-                  </span>
-                  {targets.t9.isSubDealer && targets.t9.subDealerStore && (
-                    <span className="text-[11px] text-slate-500 block">
-                      (ร้านค้าย่อย: {targets.t9.subDealerStore})
-                    </span>
-                  )}
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    เป้าหมายผู้เข้าร่วม
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t9.targetAttendees
-                      ? `${targets.t9.targetAttendees} คน`
-                      : "-"}
-                  </span>
-                </div>
-              </div>
-
-              {targets.t9.items && targets.t9.items.length > 0 && (
-                <div className="overflow-x-auto rounded-xl border border-slate-100">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
-                      <tr>
-                        <th className="p-2.5">รายการสินค้า</th>
-                        <th className="p-2.5 text-right">จำนวน (ลัง)</th>
-                        <th className="p-2.5 text-right">ราคา/ลัง</th>
-                        <th className="p-2.5 text-right">ยอดรวม</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {targets.t9.items.map((item, idx) => (
-                        <tr key={idx}>
-                          <td className="p-2.5 font-semibold text-slate-800">
-                            {item.productName}
-                          </td>
-                          <td className="p-2.5 text-right font-medium">
-                            {item.quantityCases || "-"}
-                          </td>
-                          <td className="p-2.5 text-right text-slate-600">
-                            {item.pricePerCase
-                              ? `${Number(item.pricePerCase).toLocaleString()} ฿`
-                              : "-"}
-                          </td>
-                          <td className="p-2.5 text-right font-bold text-orange-700">
-                            {item.totalAmount
-                              ? `${Number(item.totalAmount).toLocaleString()} ฿`
-                              : "-"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
+          <ApprovalType9Store
+            isVisible={isTypeActive("TYPE_9", "จัดกิจกรรมส่งเสริมการขายหน้าร้าน")}
+            target={targets.t9}
+          />
 
           {/* TYPE_10: จัดงาน Field Day */}
-          {isTypeActive("TYPE_10", "จัดงาน Field Day") && (
-            <div className="border border-cyan-200/80 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-cyan-100 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center shrink-0 border border-cyan-200">
-                    <Layers className="w-4 h-4" />
-                  </div>
-                  <h4 className="font-bold text-cyan-900 text-sm sm:text-base">
-                    จัดงาน Field Day
-                  </h4>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="text-[11px] font-bold bg-cyan-50 text-cyan-800 border-cyan-200"
-                >
-                  TYPE_10
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="bg-cyan-50/40 p-3 rounded-xl border border-cyan-100/80 sm:col-span-1">
-                  <span className="text-cyan-700 block text-[11px] font-bold mb-1">
-                    วัตถุประสงค์ของประเภทงาน
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    จัดงานวันถ่ายทอดเทคโนโลยีการเกษตร (Field Day)
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    แปลงสาธิต / สถานที่
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t10.plot || targets.t10.location || "-"}
-                  </span>
-                </div>
-
-                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    สินค้าที่จัดแสดง & เป้าหมาย
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {[
-                      targets.t10.showcase,
-                      targets.t10.targetAttendees
-                        ? `ผู้เข้าร่วม ${targets.t10.targetAttendees} คน`
-                        : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" • ") || "-"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
+          <ApprovalType10FieldDay
+            isVisible={isTypeActive("TYPE_10", "จัดงาน Field Day")}
+            target={targets.t10}
+          />
 
           {/* TYPE_11: ตรวจเช็กสต็อกหน้าร้าน */}
-          {isTypeActive("TYPE_11", "ตรวจเช็กสต็อกหน้าร้าน") && (
-            <div className="border border-slate-300 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 border border-slate-200">
-                    <Boxes className="w-4 h-4" />
-                  </div>
-                  <h4 className="font-bold text-slate-900 text-sm sm:text-base">
-                    ตรวจเช็กสต็อกหน้าร้าน
-                  </h4>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="text-[11px] font-bold bg-slate-50 text-slate-700 border-slate-300"
-                >
-                  TYPE_11
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-700 block text-[11px] font-bold mb-1">
-                    วัตถุประสงค์ของประเภทงาน
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    ตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน
-                  </span>
-                </div>
-
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-                  <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    รายชื่อร้านค้าที่ตรวจเช็กสต็อก
-                  </span>
-                  <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t11.store || "-"}
-                  </span>
-                </div>
-
-                {targets.t11.detail && (
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 sm:col-span-2">
-                    <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                      รายละเอียดเพิ่มเติม
-                    </span>
-                    <span className="text-slate-700 block text-xs whitespace-pre-line">
-                      {targets.t11.detail}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <ApprovalType11Stock
+            isVisible={isTypeActive("TYPE_11", "ตรวจเช็กสต็อกหน้าร้าน")}
+            target={targets.t11}
+          />
 
           {/* TYPE_12: TOUR SECTION (IF APPLICABLE) */}
-          {isTourPlan && (
-            <DetailType12Tour
-              isVisible={true}
-              tourType={tourType}
-              tourSize={tourSize}
-              country={tourCountry}
-              storeName={tourStoreName}
-              destination={tourDestination}
-            />
-          )}
+          <ApprovalType12Tour
+            isVisible={isTourPlan}
+            tourType={tourType}
+            tourSize={tourSize}
+            country={tourCountry}
+            storeName={tourStoreName}
+            destination={tourDestination}
+          />
         </div>
 
         {/* Card 5: ประเภทงานที่เลือก */}
