@@ -314,7 +314,9 @@ export default function ActivityPlanDetailView({
       id: plan.tour.store.id,
       name: plan.tour.store.name,
       code: plan.tour.store.customerCode || null,
-      location: plan.tour.store.province ? `จ.${plan.tour.store.province}` : null,
+      location: plan.tour.store.province
+        ? `จ.${plan.tour.store.province}`
+        : null,
       workTypeName: "ทัวร์ร้านค้า",
       remarks: null,
     });
@@ -468,15 +470,6 @@ export default function ActivityPlanDetailView({
               <span className="text-sm font-bold text-slate-900 block">
                 {plan.employee.name}
               </span>
-              <span className="text-xs text-slate-500 block truncate">
-                {plan.employee.positionTitle ||
-                  plan.employee.position?.name ||
-                  "-"}{" "}
-                •{" "}
-                {plan.employee.departmentName ||
-                  plan.employee.department?.name ||
-                  "-"}
-              </span>
             </div>
 
             {/* ประเภทงาน (Normalized Relation) */}
@@ -514,9 +507,11 @@ export default function ActivityPlanDetailView({
                 ช่วงวันเวลาจัดงาน ({plan.durationDays} วัน)
               </span>
               <span className="text-xs sm:text-sm font-bold text-slate-800 block">
-                {format(start, "dd MMM yyyy", { locale: th })} {format(start, "HH:mm")} น.
+                {format(start, "dd MMM yyyy", { locale: th })}{" "}
+                {format(start, "HH:mm")} น.
                 {" — "}
-                {format(end, "dd MMM yyyy", { locale: th })} {format(end, "HH:mm")} น.
+                {format(end, "dd MMM yyyy", { locale: th })}{" "}
+                {format(end, "HH:mm")} น.
               </span>
             </div>
 
@@ -531,14 +526,6 @@ export default function ActivityPlanDetailView({
                 title={plan.location}
               >
                 {plan.location}
-              </span>
-              <span className="text-xs text-slate-500 block truncate">
-                {[
-                  plan.district ? `อ.${plan.district}` : "",
-                  plan.province ? `จ.${plan.province}` : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ") || "-"}
               </span>
             </div>
           </div>
@@ -591,7 +578,8 @@ export default function ActivityPlanDetailView({
                 </div>
                 <div>
                   <h4 className="font-bold text-sm sm:text-base text-slate-900">
-                    ร้านค้า / ลูกค้าที่เกี่ยวข้อง ({combinedStores.length} รายการ)
+                    ร้านค้า / ลูกค้าที่เกี่ยวข้อง ({combinedStores.length}{" "}
+                    รายการ)
                   </h4>
                   <p className="text-xs text-slate-500 font-medium">
                     รายชื่อร้านค้าหรือลูกค้าเป้าหมายสำหรับแผนงานนี้
@@ -699,7 +687,9 @@ export default function ActivityPlanDetailView({
                           </span>
                         )}
                       </td>
-                      <td className="p-3 text-slate-600">{p.storeName || "-"}</td>
+                      <td className="p-3 text-slate-600">
+                        {p.storeName || "-"}
+                      </td>
                       <td className="p-3 text-center">
                         <Badge
                           variant="outline"
@@ -812,7 +802,8 @@ export default function ActivityPlanDetailView({
                   <div className="space-y-2">
                     <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                       <Boxes className="w-3.5 h-3.5 text-blue-600" />
-                      สื่อส่งเสริมการขาย ({planSummary.marketingProductItems.length} รายการ)
+                      สื่อส่งเสริมการขาย (
+                      {planSummary.marketingProductItems.length} รายการ)
                     </span>
                     <div className="overflow-x-auto rounded-xl border border-slate-100">
                       <table className="w-full text-xs text-left">
@@ -825,28 +816,30 @@ export default function ActivityPlanDetailView({
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                          {planSummary.marketingProductItems.map((mItem, idx) => (
-                            <tr key={idx}>
-                              <td className="p-2.5 font-semibold text-slate-900">
-                                {mItem.productName}
-                              </td>
-                              <td className="p-2.5 text-right">
-                                {mItem.quantityCases} ชิ้น
-                              </td>
-                              <td className="p-2.5 text-right text-slate-600">
-                                {mItem.pricePerCase
-                                  ? `${mItem.pricePerCase.toLocaleString()} ฿`
-                                  : "-"}
-                              </td>
-                              <td className="p-2.5 text-right font-bold text-blue-700">
-                                {(
-                                  (mItem.quantityCases || 0) *
-                                  (mItem.pricePerCase || 0)
-                                ).toLocaleString()}{" "}
-                                ฿
-                              </td>
-                            </tr>
-                          ))}
+                          {planSummary.marketingProductItems.map(
+                            (mItem, idx) => (
+                              <tr key={idx}>
+                                <td className="p-2.5 font-semibold text-slate-900">
+                                  {mItem.productName}
+                                </td>
+                                <td className="p-2.5 text-right">
+                                  {mItem.quantityCases} ชิ้น
+                                </td>
+                                <td className="p-2.5 text-right text-slate-600">
+                                  {mItem.pricePerCase
+                                    ? `${mItem.pricePerCase.toLocaleString()} ฿`
+                                    : "-"}
+                                </td>
+                                <td className="p-2.5 text-right font-bold text-blue-700">
+                                  {(
+                                    (mItem.quantityCases || 0) *
+                                    (mItem.pricePerCase || 0)
+                                  ).toLocaleString()}{" "}
+                                  ฿
+                                </td>
+                              </tr>
+                            ),
+                          )}
                         </tbody>
                       </table>
                     </div>
@@ -858,7 +851,8 @@ export default function ActivityPlanDetailView({
                   <div className="space-y-2 pt-2">
                     <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                       <Gift className="w-3.5 h-3.5 text-emerald-600" />
-                      รายการส่งเสริมการขาย ({planSummary.salesPromotionItems.length} รายการ)
+                      รายการส่งเสริมการขาย (
+                      {planSummary.salesPromotionItems.length} รายการ)
                     </span>
                     <div className="overflow-x-auto rounded-xl border border-slate-100">
                       <table className="w-full text-xs text-left">
@@ -870,21 +864,23 @@ export default function ActivityPlanDetailView({
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                          {planSummary.salesPromotionItems.map((spItem, idx) => (
-                            <tr key={idx}>
-                              <td className="p-2.5 font-medium text-slate-600">
-                                {spItem.budgetType}
-                              </td>
-                              <td className="p-2.5 text-slate-800">
-                                {spItem.detail || "-"}
-                              </td>
-                              <td className="p-2.5 text-right font-bold text-emerald-700">
-                                {spItem.amount != null
-                                  ? `${spItem.amount.toLocaleString()} ฿`
-                                  : "-"}
-                              </td>
-                            </tr>
-                          ))}
+                          {planSummary.salesPromotionItems.map(
+                            (spItem, idx) => (
+                              <tr key={idx}>
+                                <td className="p-2.5 font-medium text-slate-600">
+                                  {spItem.budgetType}
+                                </td>
+                                <td className="p-2.5 text-slate-800">
+                                  {spItem.detail || "-"}
+                                </td>
+                                <td className="p-2.5 text-right font-bold text-emerald-700">
+                                  {spItem.amount != null
+                                    ? `${spItem.amount.toLocaleString()} ฿`
+                                    : "-"}
+                                </td>
+                              </tr>
+                            ),
+                          )}
                         </tbody>
                       </table>
                     </div>
@@ -990,7 +986,10 @@ export default function ActivityPlanDetailView({
                       <span className="font-bold text-slate-900">
                         {log.user?.name || "ผู้ใช้งาน"}
                       </span>
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] px-1.5 py-0"
+                      >
                         {log.action}
                       </Badge>
                     </div>
@@ -1026,16 +1025,18 @@ export default function ActivityPlanDetailView({
         )}
 
         {/* 11. SECTION: สถานะผลการทำกิจกรรม (READ-ONLY) - Only displayed when Actual Result exists in DB */}
-        {hasActualResult && !isTourOnly && parsedResults.activityResultStatus && (
-          <DetailActivityStatusSection
-            activityResultStatus={parsedResults.activityResultStatus}
-            cancelReason={parsedResults.cancelReason}
-            postponedDate={parsedResults.postponedDate}
-            postponedTime={parsedResults.postponedTime}
-            postponedReason={parsedResults.postponedReason}
-            postponedNotes={parsedResults.postponedNotes}
-          />
-        )}
+        {hasActualResult &&
+          !isTourOnly &&
+          parsedResults.activityResultStatus && (
+            <DetailActivityStatusSection
+              activityResultStatus={parsedResults.activityResultStatus}
+              cancelReason={parsedResults.cancelReason}
+              postponedDate={parsedResults.postponedDate}
+              postponedTime={parsedResults.postponedTime}
+              postponedReason={parsedResults.postponedReason}
+              postponedNotes={parsedResults.postponedNotes}
+            />
+          )}
 
         {/* 12. BOTTOM ACTIONS (READ-ONLY DETAIL VIEW) */}
         <DetailViewActions
