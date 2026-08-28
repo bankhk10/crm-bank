@@ -9,9 +9,11 @@ import type { ActivityPlanWithRelations } from "../../types";
 import {
   deleteActivityPlanAction,
   submitActivityPlanAction,
+  duplicateActivityPlanAction,
 } from "../../server/actions";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Copy } from "lucide-react";
+import { toast } from "sonner";
 
 export default function ActivityPlanListView() {
   const { data: session } = useSession();
@@ -66,7 +68,10 @@ export default function ActivityPlanListView() {
 
   const [deleteCandidate, setDeleteCandidate] =
     useState<ActivityPlanWithRelations | null>(null);
+  const [duplicateCandidate, setDuplicateCandidate] =
+    useState<ActivityPlanWithRelations | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [duplicateLoading, setDuplicateLoading] = useState(false);
   const [submitLoadingId, setSubmitLoadingId] = useState<string | null>(null);
 
   // Debounce search input
@@ -127,12 +132,38 @@ export default function ActivityPlanListView() {
       if (!res.success) {
         throw new Error(res.error || "เกิดข้อผิดพลาดในการลบ");
       }
+      toast.success("ลบ Trip Plan เรียบร้อยแล้ว");
       setDeleteCandidate(null);
       fetchData(); // Reload
     } catch (err: any) {
       setError(err.message || "ลบ Trip Plan ล้มเหลว");
+      toast.error(err.message || "ลบ Trip Plan ล้มเหลว");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleDuplicateRequest = (item: ActivityPlanWithRelations) => {
+    setDuplicateCandidate(item);
+  };
+
+  const handleDuplicateConfirm = async () => {
+    if (!duplicateCandidate) return;
+    setDuplicateLoading(true);
+    setError(null);
+    try {
+      const res = await duplicateActivityPlanAction(duplicateCandidate.id);
+      if (!res.success) {
+        throw new Error(res.error || "เกิดข้อผิดพลาดในการทำสำเนาแผนงาน");
+      }
+      toast.success("ทำสำเนาแผนงานเรียบร้อยแล้ว (สถานะแบบร่าง)");
+      setDuplicateCandidate(null);
+      fetchData(); // Reload
+    } catch (err: any) {
+      setError(err.message || "ทำสำเนา Trip Plan ล้มเหลว");
+      toast.error(err.message || "ทำสำเนา Trip Plan ล้มเหลว");
+    } finally {
+      setDuplicateLoading(false);
     }
   };
 
@@ -144,9 +175,11 @@ export default function ActivityPlanListView() {
       if (!res.success) {
         throw new Error(res.error || "ส่งแผนขออนุมัติล้มเหลว");
       }
+      toast.success("ส่งแผนงานขออนุมัติเรียบร้อยแล้ว");
       fetchData(); // Reload
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || "ส่งแผนขออนุมัติล้มเหลว");
     } finally {
       setSubmitLoadingId(null);
     }
@@ -187,12 +220,12 @@ export default function ActivityPlanListView() {
         </Alert>
       )}
 
-      {/* Confim deletion modal */}
+      {/* Confirm deletion modal */}
       {deleteCandidate && (
-        <div className="fixed inset-0 min-h-screen z-50 flex items-center justify-center">
+        <div className="fixed inset-0 min-h-screen z-50 flex items-center justify-center p-4">
           <div
             className="bg-black/55 absolute inset-0"
-            onClick={() => setDeleteCandidate(null)}
+            onClick={() => !actionLoading && setDeleteCandidate(null)}
           />
           <div className="relative z-10 w-full max-w-md bg-white rounded-xl p-6 shadow-2xl border border-slate-100">
             <h3 className="text-lg font-bold text-slate-900">
@@ -222,6 +255,69 @@ export default function ActivityPlanListView() {
         </div>
       )}
 
+      {/* Confirm duplicate modal */}
+      {duplicateCandidate && (
+        <div className="fixed inset-0 min-h-screen z-50 flex items-center justify-center p-4">
+          <div
+            className="bg-black/55 absolute inset-0"
+            onClick={() => !duplicateLoading && setDuplicateCandidate(null)}
+          />
+          <div className="relative z-10 w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
+                <Copy className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                  ทำสำเนาแผนงาน (Duplicate Plan)
+                </h3>
+                <p className="text-xs text-slate-500">
+                  สร้างแผนงานใหม่จากข้อมูลของแผนงานเดิม
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1.5 text-xs text-slate-600">
+              <div className="flex justify-between">
+                <span className="text-slate-500">เลขที่แผนเดิม:</span>
+                <span className="font-mono font-bold text-blue-600">
+                  {(duplicateCandidate as any).code || duplicateCandidate.id.slice(0, 8)}
+                </span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span className="text-slate-500 shrink-0">ชื่อกิจกรรม:</span>
+                <span className="font-semibold text-slate-800 truncate" title={duplicateCandidate.title}>
+                  {duplicateCandidate.title}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-500 leading-relaxed">
+              ระบบจะสร้างแผนงานใหม่ในสถานะ <strong>แบบร่าง (Draft)</strong> โดยคัดลอกข้อมูลทั้งหมดจากแผนงานนี้ (ยกเว้นผลการปฏิบัติงานและประวัติการอนุมัติ)
+            </p>
+
+            <div className="pt-2 flex justify-end gap-2.5">
+              <Button
+                variant="outline"
+                onClick={() => setDuplicateCandidate(null)}
+                disabled={duplicateLoading}
+                className="rounded-xl text-xs h-9"
+              >
+                ยกเลิก
+              </Button>
+              <Button
+                onClick={handleDuplicateConfirm}
+                disabled={duplicateLoading}
+                className="rounded-xl text-xs h-9 bg-amber-600 hover:bg-amber-700 text-white font-bold gap-1.5"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                {duplicateLoading ? "กำลังทำสำเนา..." : "ยืนยันทำสำเนา"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ActivityPlanTable
         data={activityPlans}
         loading={loading}
@@ -242,6 +338,7 @@ export default function ActivityPlanListView() {
         canDelete={canDelete}
         canApprove={canApprove}
         onDelete={handleDeleteRequest}
+        onDuplicate={handleDuplicateRequest}
         onSubmitApproval={handleSubmitApproval}
         submitLoadingId={submitLoadingId}
       />

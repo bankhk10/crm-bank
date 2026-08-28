@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
 import {
   createActivityPlanUseCase,
+  duplicateActivityPlanUseCase,
   updateActivityPlanUseCase,
   deleteActivityPlanUseCase,
   getActivityPlanDetailUseCase,
@@ -53,6 +54,49 @@ export async function createActivityPlanAction(rawData: unknown) {
 
   try {
     const result = await createActivityPlanUseCase(session.user.id, rawData, {
+      name: session.user.name ?? undefined,
+      email: session.user.email ?? undefined,
+    });
+    if (result.success) {
+      revalidatePath("/activity-plans");
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
+}
+
+/**
+ * Action: Duplicate an Activity Plan
+ */
+export async function duplicateActivityPlanAction(id: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const permissions = session.user.permissionKeys ?? [];
+  const roles = (session.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session.user as any)?.role === "administrator" ||
+    (session.user as any)?.role === "ADMIN";
+
+  if (
+    !isAdmin &&
+    !permissions.includes("activity.create") &&
+    !permissions.includes("activity.manage")
+  ) {
+    return {
+      success: false,
+      error: "Forbidden: คุณไม่มีสิทธิ์ทำสำเนา Trip Plan",
+    };
+  }
+
+  try {
+    const result = await duplicateActivityPlanUseCase(id, session.user.id, {
       name: session.user.name ?? undefined,
       email: session.user.email ?? undefined,
     });

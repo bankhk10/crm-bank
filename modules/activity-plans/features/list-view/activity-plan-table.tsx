@@ -14,11 +14,12 @@ import {
   ClipboardList,
   CheckCircle2,
   ShieldCheck,
+  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations } from "../../types";
 import { ActivityStatusBadge } from "../../ui/activity-status-badge";
-import { WORK_TYPES, WORK_TYPE_CONFIG, getWorkTypeName } from "../../constants";
+import { getWorkTypeName } from "../../constants";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { ActionButton } from "@/components/custom/action-button";
@@ -44,6 +45,7 @@ interface ActivityPlanTableProps {
   canApprove?: boolean;
   onDelete: (item: ActivityPlanWithRelations) => void;
   onSubmitApproval: (item: ActivityPlanWithRelations) => void;
+  onDuplicate?: (item: ActivityPlanWithRelations) => void;
   submitLoadingId: string | null;
 }
 
@@ -76,6 +78,7 @@ export function ActivityPlanTable({
   canApprove = false,
   onDelete,
   onSubmitApproval,
+  onDuplicate,
   submitLoadingId,
 }: ActivityPlanTableProps) {
   const columns = React.useMemo<ColumnDef<ActivityPlanWithRelations>[]>(() => {
@@ -290,6 +293,15 @@ export function ActivityPlanTable({
                 />
               )}
 
+              {canCreate && onDuplicate && (
+                <ActionButton
+                  icon={Copy}
+                  label="ทำสำเนา"
+                  colorClass="text-amber-600 border-amber-100 hover:bg-amber-50 rounded-md"
+                  onClick={() => onDuplicate(item)}
+                />
+              )}
+
               {canDelete && deletable && (
                 <ActionButton
                   icon={Trash2}
@@ -303,7 +315,7 @@ export function ActivityPlanTable({
         },
       },
     ];
-  }, [canEdit, canDelete, canApprove, onSubmitApproval, onDelete, submitLoadingId]);
+  }, [canCreate, canEdit, canDelete, canApprove, onSubmitApproval, onDuplicate, onDelete, submitLoadingId]);
 
   const toolbar = (
     <div className="space-y-4 mb-6">

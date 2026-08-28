@@ -82,6 +82,137 @@ export async function createActivityPlanUseCase(
 }
 
 /**
+ * Duplicate an existing ActivityPlan to a new Draft Plan
+ */
+export async function duplicateActivityPlanUseCase(
+  originalPlanId: string,
+  userId: string,
+  userDetails?: { name?: string; email?: string }
+) {
+  const originalPlan = await findActivityPlanById(originalPlanId);
+  if (!originalPlan) {
+    return { success: false as const, error: "ไม่พบ Trip Plan ต้นฉบับที่ต้องการทำสำเนา" };
+  }
+
+  const employee = await findOrCreateEmployeeForUser(userId, userDetails?.name, userDetails?.email);
+  if (!employee) {
+    return { success: false as const, error: "ไม่สามารถสร้างหรือค้นหาโปรไฟล์พนักงานได้" };
+  }
+
+  // Work type codes
+  const workTypeCodes =
+    originalPlan.workTypes && originalPlan.workTypes.length > 0
+      ? (originalPlan.workTypes.map((wt) => wt.activityType?.code).filter(Boolean) as string[])
+      : originalPlan.activityType?.code
+      ? [originalPlan.activityType.code]
+      : ["TYPE_1"];
+
+  // Stores
+  const planStores = (originalPlan.stores || []).map((s) => ({
+    workTypeCode: s.workTypeCode,
+    storeId: s.storeId,
+    storeName: s.storeName,
+    remarks: s.remarks,
+  }));
+
+  // Products
+  const planProducts = (originalPlan.products || []).map((p) => ({
+    workTypeCode: p.workTypeCode,
+    storeId: p.storeId,
+    productId: p.productId,
+    productName: p.productName,
+    targetQuantity: p.targetQuantity,
+    unitPrice: p.unitPrice ? Number(p.unitPrice) : null,
+    targetAmount: p.targetAmount ? Number(p.targetAmount) : null,
+  }));
+
+  // Tour
+  const tourData = originalPlan.tour
+    ? {
+        tourType: originalPlan.tour.tourType as "CENTRAL" | "STORE",
+        tourSize: originalPlan.tour.tourSize as "SMALL" | "LARGE" | null,
+        country: originalPlan.tour.country,
+        storeId: originalPlan.tour.storeId,
+        destination: originalPlan.tour.destination,
+      }
+    : null;
+
+  // Helpers
+  const helperEmployeeIds = (originalPlan.helpers || []).map((h) => h.employeeId);
+
+  // Items
+  const items = (originalPlan.items || []).map((item) => ({
+    workTypeCode: item.workTypeCode,
+    customerName: item.customerName,
+    detail: item.detail,
+    visitTopic: item.visitTopic,
+    followupProductName: item.followupProductName,
+    saleProductName: item.saleProductName,
+    saleQuantity: item.saleQuantity,
+    saleUnitPrice: item.saleUnitPrice ? Number(item.saleUnitPrice) : null,
+    saleTotalPrice: item.saleTotalPrice ? Number(item.saleTotalPrice) : null,
+    collectAmount: item.collectAmount ? Number(item.collectAmount) : null,
+    surveyCompetitorProduct: item.surveyCompetitorProduct,
+    surveyStoreName: item.surveyStoreName,
+    issueType: item.issueType,
+    plotActivityType: item.plotActivityType,
+    plotOwnerName: item.plotOwnerName,
+    plotProductName: item.plotProductName,
+    plotCropCategory: item.plotCropCategory,
+    plotCropName: item.plotCropName,
+    plotAreaRai: item.plotAreaRai ? Number(item.plotAreaRai) : null,
+    plotTreeCount: item.plotTreeCount,
+    plotCount: item.plotCount,
+    existingPlotId: item.existingPlotId,
+    plotGrowthStage: item.plotGrowthStage,
+    plotStatus: item.plotStatus,
+    meetingTopic: item.meetingTopic,
+    meetingAttendeesCount: item.meetingAttendeesCount,
+    meetingTargetProducts: item.meetingTargetProducts,
+    storeProductName: item.storeProductName,
+    storeQuantityCases: item.storeQuantityCases,
+    storePricePerCase: item.storePricePerCase ? Number(item.storePricePerCase) : null,
+    storeTotalAmount: item.storeTotalAmount ? Number(item.storeTotalAmount) : null,
+  }));
+
+  const titlePrefix = "(สำเนา) ";
+  const newTitle = originalPlan.title.startsWith(titlePrefix)
+    ? originalPlan.title
+    : `${titlePrefix}${originalPlan.title}`;
+
+  const data = {
+    title: newTitle,
+    startDate: new Date(originalPlan.startDate),
+    endDate: new Date(originalPlan.endDate),
+    location: originalPlan.location,
+    province: originalPlan.province ?? null,
+    district: originalPlan.district ?? null,
+    objective: originalPlan.objective,
+    description: originalPlan.description ?? null,
+    notes: originalPlan.notes ?? null,
+    salesPromotionBudgetRequested: originalPlan.salesPromotionBudgetRequested
+      ? Number(originalPlan.salesPromotionBudgetRequested)
+      : null,
+    marketingBudgetRequested: originalPlan.marketingBudgetRequested
+      ? Number(originalPlan.marketingBudgetRequested)
+      : null,
+    status: ActivityStatus.DRAFT,
+    employeeId: employee.id,
+    createdById: userId,
+    currentApproverEmployeeId: employee.managerId ?? null,
+    workTypeCodes,
+    tourData,
+    planStores,
+    planProducts,
+    helperEmployeeIds,
+    items,
+  };
+
+  const plan = await createActivityPlan(data);
+  return { success: true as const, plan };
+}
+
+/**
  * Update an existing ActivityPlan
  */
 export async function updateActivityPlanUseCase(id: string, userId: string, rawData: unknown) {
