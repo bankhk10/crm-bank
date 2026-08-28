@@ -1312,6 +1312,35 @@ export async function findApprovalQueueData() {
 
   const fullPlanInclude = {
     activityType: true,
+    workTypes: {
+      include: {
+        activityType: true,
+      },
+    },
+    stores: {
+      include: {
+        store: {
+          select: { id: true, name: true, customerCode: true, province: true, district: true },
+        },
+      },
+    },
+    products: {
+      include: {
+        product: {
+          select: { id: true, name: true, productCode: true, price: true },
+        },
+        store: {
+          select: { id: true, name: true, customerCode: true },
+        },
+      },
+    },
+    tour: {
+      include: {
+        store: {
+          select: { id: true, name: true, customerCode: true, province: true },
+        },
+      },
+    },
     items: {
       orderBy: { itemOrder: "asc" as const },
     },

@@ -8,15 +8,27 @@ import { ActivityStatusBadge } from "../../../ui/activity-status-badge";
 import type { ActivityStatus } from "../../../types";
 
 interface DetailViewHeaderProps {
+  title?: string;
+  subtitle?: string;
   planNo?: string;
   status?: ActivityStatus;
   onBack?: () => void;
+  showBackButton?: boolean;
+  backButtonLabel?: string;
+  customIcon?: React.ReactNode;
+  rightExtra?: React.ReactNode;
 }
 
 export function DetailViewHeader({
+  title = "รายละเอียดแผนงาน ( Trip Plan Detail )",
+  subtitle,
   planNo,
   status,
   onBack,
+  showBackButton = true,
+  backButtonLabel = "กลับหน้ารายการแผนงาน",
+  customIcon,
+  rightExtra,
 }: DetailViewHeaderProps) {
   const router = useRouter();
 
@@ -32,25 +44,32 @@ export function DetailViewHeader({
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
       {/* Left / Title area */}
       <div className="flex items-center gap-3.5">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleBack}
-          className="h-10 w-10 p-0 rounded-xl shrink-0 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-          title="กลับหน้ารายการแผนงาน"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
+        {showBackButton && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleBack}
+            className="h-10 w-10 p-0 rounded-xl shrink-0 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+            title={backButtonLabel}
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        )}
 
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 shadow-2xs">
-            <FileText className="w-5 h-5 stroke-[2.2]" />
+            {customIcon || <FileText className="w-5 h-5 stroke-[2.2]" />}
           </div>
 
           <div>
             <h1 className="font-bold text-lg sm:text-xl text-slate-900 tracking-tight">
-              รายละเอียดแผนงาน ( Trip Plan Detail )
+              {title}
             </h1>
+            {subtitle && (
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                {subtitle}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -63,6 +82,10 @@ export function DetailViewHeader({
             <span>เลขที่แผน: {planNo}</span>
           </div>
         )}
+
+        {status && <ActivityStatusBadge status={status} />}
+
+        {rightExtra}
       </div>
     </div>
   );

@@ -1,8 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Loader2, AlertCircle } from "lucide-react";
+import React, { useEffect, useState, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { usePermission } from "@/hooks/use-permission";
+import {
+  Loader2,
+  AlertCircle,
+  ShieldCheck,
+  CheckCircle2,
+  XCircle,
+  RotateCcw,
+} from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations } from "../../types";
@@ -27,6 +36,10 @@ import {
   DetailViewActions,
   DetailType12Tour,
 } from "./components";
+import {
+  ApprovalActionDialog,
+  type ApprovalActionType,
+} from "../approve-view/components/approval-action-dialog";
 
 interface ActivityPlanDetailViewProps {
   id: string;
@@ -147,6 +160,27 @@ export default function ActivityPlanDetailView({
   onBack,
 }: ActivityPlanDetailViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromApprovals = searchParams.get("from") === "approvals";
+
+  const { data: session } = useSession();
+  const { hasPermission } = usePermission("menu.activity_plans");
+
+  const roles = (session?.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session?.user as any)?.role === "administrator" ||
+    (session?.user as any)?.role === "ADMIN";
+
+  const canManageOrApprove =
+    isAdmin ||
+    hasPermission("activity.approve") ||
+    hasPermission("activity.manage");
+
+  const userEmployeeId = session?.user?.employeeId;
+
   const [plan, setPlan] = useState<ActivityPlanWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -161,62 +195,72 @@ export default function ActivityPlanDetailView({
   const [t7DemoPlotData, setT7DemoPlotData] = useState<any>(null);
   const [t7VisitHistory, setT7VisitHistory] = useState<any[]>([]);
 
-  useEffect(() => {
+  // Approval Dialog states
+  const [actionDialogOpen, setActionDialogOpen] = useState(false);
+  const [actionType, setActionType] = useState<ApprovalActionType>("APPROVE");
+
+  const loadData = useCallback(async () => {
     if (!id) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getActivityPlanAction(id);
+      if (res.success && res.plan) {
+        const p = res.plan as ActivityPlanWithRelations;
+        setPlan(p);
 
-    async function loadData() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await getActivityPlanAction(id);
-        if (res.success && res.plan) {
-          const p = res.plan;
-          setPlan(p);
+        // Extract data
+        const extracted = extractPlanData(p, initialTargets);
+        setPlanSummary(extracted.planSummary);
+        setPlanWorkTypes(extracted.resolvedWorkTypes);
+        setTargets(extracted.targets);
 
-          // Extract data
-          const extracted = extractPlanData(p, initialTargets);
-          setPlanSummary(extracted.planSummary);
-          setPlanWorkTypes(extracted.resolvedWorkTypes);
-          setTargets(extracted.targets);
-
-          // Parse result summary if plan result exists
-          if ((p as any).result) {
-            const parsed = parseResultSummary((p as any).result);
-            setParsedResults(parsed);
-          }
-
-          // Fetch demo plot history if applicable
-          if (extracted.t7PlotIdentifier) {
-            getDemoPlotHistoryAction(extracted.t7PlotIdentifier)
-              .then((histRes) => {
-                if (histRes.success && histRes.plot) {
-                  setT7DemoPlotData(histRes.plot);
-                  setT7VisitHistory(histRes.plot.visits || []);
-                }
-              })
-              .catch((e) => {
-                console.error("Failed to load demo plot history:", e);
-              });
-          }
-        } else {
-          setError(res.error || "ไม่สามารถดึงข้อมูลรายละเอียด Trip Plan ได้");
+        // Parse result summary if plan result exists
+        if ((p as any).result) {
+          const parsed = parseResultSummary((p as any).result);
+          setParsedResults(parsed);
         }
-      } catch (err: any) {
-        setError(err.message || "เกิดข้อผิดพลาดในการโหลดรายละเอียด Trip Plan");
-      } finally {
-        setLoading(false);
-      }
-    }
 
-    loadData();
+        // Fetch demo plot history if applicable
+        if (extracted.t7PlotIdentifier) {
+          getDemoPlotHistoryAction(extracted.t7PlotIdentifier)
+            .then((histRes) => {
+              if (histRes.success && histRes.plot) {
+                setT7DemoPlotData(histRes.plot);
+                setT7VisitHistory(histRes.plot.visits || []);
+              }
+            })
+            .catch((e) => {
+              console.error("Failed to load demo plot history:", e);
+            });
+        }
+      } else {
+        setError(res.error || "ไม่สามารถดึงข้อมูลรายละเอียด Trip Plan ได้");
+      }
+    } catch (err: any) {
+      setError(err.message || "เกิดข้อผิดพลาดในการโหลดรายละเอียด Trip Plan");
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleBack = () => {
     if (onBack) {
       onBack();
+    } else if (fromApprovals) {
+      router.push("/activity-plans/approvals");
     } else {
       router.push("/activity-plans");
     }
+  };
+
+  const handleOpenActionDialog = (type: ApprovalActionType) => {
+    setActionType(type);
+    setActionDialogOpen(true);
   };
 
   const isTypeVisible = (typeTitle: string) => {
@@ -245,11 +289,24 @@ export default function ActivityPlanDetailView({
           </AlertDescription>
         </Alert>
         <Button variant="outline" onClick={handleBack}>
-          กลับหน้ารายการแผนงาน
+          {fromApprovals ? "กลับหน้ารายการอนุมัติ" : "กลับหน้ารายการแผนงาน"}
         </Button>
       </div>
     );
   }
+
+  // Approval Eligibility Check
+  const isPendingStatus =
+    plan.status === "PENDING_LINE_APPROVAL" ||
+    plan.status === "PENDING_BUDGET_APPROVAL" ||
+    plan.status === "PENDING_HELPER_APPROVAL";
+
+  const isDirectLineApprover =
+    plan.status === "PENDING_LINE_APPROVAL" &&
+    plan.currentApproverEmployeeId === userEmployeeId;
+
+  const canPerformApproval =
+    isPendingStatus && (isAdmin || canManageOrApprove || isDirectLineApprover);
 
   // Tour (TYPE_12) resolution directly from Normalized Source of Truth
   const isTourPlan = Boolean(
@@ -257,9 +314,9 @@ export default function ActivityPlanDetailView({
     plan.activityType?.code === "TYPE_12" ||
     plan.activityType?.name === "ทัวร์" ||
     plan.workTypes?.some(
-      (wt) => wt.activityType?.code === "TYPE_12" || wt.activityType?.name === "ทัวร์"
+      (wt) => wt.activityType?.code === "TYPE_12" || wt.activityType?.name === "ทัวร์",
     ) ||
-    planWorkTypes.includes("ทัวร์")
+    planWorkTypes.includes("ทัวร์"),
   );
 
   const tourData = plan.tour;
@@ -282,12 +339,68 @@ export default function ActivityPlanDetailView({
           planNo={planSummary.planNo}
           status={plan.status}
           onBack={handleBack}
+          backButtonLabel={fromApprovals ? "กลับหน้ารายการอนุมัติ" : "กลับหน้ารายการแผนงาน"}
         />
 
-        {/* 2. PLAN SUMMARY (ข้อมูลแผนงาน, งบประมาณและค่าใช้จ่าย, สื่อส่งเสริมการขาย, รายการส่งเสริมการขาย, ข้อมูลเพิ่มเติม) */}
+        {/* 2. APPROVAL CONTEXT BANNER (SHOWS WHEN IN APPROVAL STAGE AND USER HAS PERMISSION) */}
+        {canPerformApproval && (
+          <div className="bg-gradient-to-r from-blue-50 via-indigo-50/60 to-blue-50 border border-blue-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold shrink-0 shadow-xs">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm sm:text-base text-blue-950">
+                    กำลังตรวจสอบแผนงานนี้เพื่อดำเนินการอนุมัติ
+                  </h3>
+                  <p className="text-xs text-blue-800/80 mt-0.5">
+                    {isDirectLineApprover
+                      ? "⚡ แผนงานนี้อยู่ในคิวการพิจารณาตามสายงานของคุณ"
+                      : isAdmin
+                      ? "👑 คุณมีสิทธิ์ Administrator ในการพิจารณาอนุมัติแผนงานนี้"
+                      : "ตรวจสอบรายละเอียดความถูกต้องก่อนดำเนินการตัดสินใจ"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Quick Action Buttons on Top Banner */}
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenActionDialog("REJECT")}
+                  className="text-xs text-red-600 border-red-200 hover:bg-red-50 rounded-xl h-9 font-semibold"
+                >
+                  <XCircle className="h-3.5 w-3.5 mr-1" />
+                  ปฏิเสธ
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenActionDialog("REQUEST_CORRECTION")}
+                  className="text-xs text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl h-9 font-semibold"
+                >
+                  <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                  ส่งกลับแก้ไข
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => handleOpenActionDialog("APPROVE")}
+                  className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-xs rounded-xl h-9 px-4"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  อนุมัติแผนงาน
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 3. PLAN SUMMARY (ข้อมูลแผนงาน, งบประมาณและค่าใช้จ่าย, สื่อส่งเสริมการขาย, รายการส่งเสริมการขาย, ข้อมูลเพิ่มเติม) */}
         <ActualPlanSummary summary={planSummary} />
 
-        {/* 3. TOUR DETAIL (TYPE_12: ทัวร์) - Normalized Relational Source of Truth */}
+        {/* 4. TOUR DETAIL (TYPE_12: ทัวร์) - Normalized Relational Source of Truth (No Actual) */}
         {isTourPlan && (
           <DetailType12Tour
             isVisible={true}
@@ -299,7 +412,7 @@ export default function ActivityPlanDetailView({
           />
         )}
 
-        {/* 4. SECTION: ผลการปฏิบัติงานตามประเภทงาน (WORK TYPES 1 - 11) (READ-ONLY) */}
+        {/* 5. SECTION: ผลการปฏิบัติงานตามประเภทงาน (WORK TYPES 1 - 11) (READ-ONLY) */}
         {!isTourOnly && (
           <DetailActivityResultSection
             isTypeVisible={isTypeVisible}
@@ -310,7 +423,7 @@ export default function ActivityPlanDetailView({
           />
         )}
 
-        {/* 5. SECTION: สถานะผลการทำกิจกรรม (READ-ONLY) - Not displayed for Tour-only plans */}
+        {/* 6. SECTION: สถานะผลการทำกิจกรรม (READ-ONLY) - Not displayed for Tour-only plans */}
         {!isTourOnly && parsedResults.activityResultStatus && (
           <DetailActivityStatusSection
             activityResultStatus={parsedResults.activityResultStatus}
@@ -322,9 +435,58 @@ export default function ActivityPlanDetailView({
           />
         )}
 
-        {/* 6. BOTTOM ACTIONS (BACK ONLY) */}
-        <DetailViewActions onBack={handleBack} />
+        {/* 7. BOTTOM ACTIONS & APPROVAL ACTION BAR */}
+        <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <DetailViewActions onBack={handleBack} />
+
+          {/* Bottom Approver Actions */}
+          {canPerformApproval && (
+            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleOpenActionDialog("REJECT")}
+                className="flex-1 sm:flex-none text-xs text-red-600 border-red-200 hover:bg-red-50 rounded-xl h-10 px-4 font-semibold"
+              >
+                <XCircle className="h-4 w-4 mr-1.5" />
+                ปฏิเสธ
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleOpenActionDialog("REQUEST_CORRECTION")}
+                className="flex-1 sm:flex-none text-xs text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl h-10 px-4 font-semibold"
+              >
+                <RotateCcw className="h-4 w-4 mr-1.5" />
+                ส่งกลับแก้ไข
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => handleOpenActionDialog("APPROVE")}
+                className="flex-[1.5] sm:flex-none text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1.5 shadow-xs rounded-xl h-10 px-6"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                อนุมัติแผนงาน
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Approval Confirmation Dialog */}
+      <ApprovalActionDialog
+        open={actionDialogOpen}
+        onOpenChange={setActionDialogOpen}
+        plan={plan}
+        actionType={actionType}
+        onSuccess={() => {
+          if (fromApprovals) {
+            router.push("/activity-plans/approvals");
+          } else {
+            loadData();
+          }
+        }}
+      />
     </section>
   );
 }
