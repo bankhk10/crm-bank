@@ -555,16 +555,18 @@ export default function ActivityPlanDetailView({
         </div>
 
         {/* Card 5: สถานที่จัดงาน */}
-        <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
-              <Layers className="w-4 h-4" />
+        {plan.location && plan.location !== "-" && (
+          <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
+                <Layers className="w-4 h-4" />
+              </div>
+              <span className="text-xs font-bold text-slate-700">
+                สถานที่จัดงาน : {plan.location || "-"}
+              </span>
             </div>
-            <span className="text-xs font-bold text-slate-700">
-              สถานที่จัดงาน : {plan.location || "-"}
-            </span>
           </div>
-        </div>
+        )}
 
         {/* ─── 4. HELPERS SECTION (NORMALIZED) ─── */}
         {plan.helpers && plan.helpers.length > 0 && (
