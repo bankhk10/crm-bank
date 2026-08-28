@@ -444,17 +444,17 @@ export default function ActivityPlanDetailView({
         )}
 
         {/* 7. BOTTOM ACTIONS & APPROVAL ACTION BAR */}
-        <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <DetailViewActions onBack={handleBack} />
-
-          {/* Bottom Approver Actions */}
+        <DetailViewActions
+          onBack={handleBack}
+          backLabel={fromApprovals ? "กลับหน้ารายการอนุมัติ" : "ย้อนกลับ"}
+        >
           {canPerformApproval && (
-            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+            <>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleOpenActionDialog("REJECT")}
-                className="flex-1 sm:flex-none text-xs text-red-600 border-red-200 hover:bg-red-50 rounded-xl h-10 px-4 font-semibold"
+                className="text-xs text-red-600 border-red-200 hover:bg-red-50 rounded-xl h-10 px-4 font-semibold shadow-2xs cursor-pointer"
               >
                 <XCircle className="h-4 w-4 mr-1.5" />
                 ปฏิเสธ
@@ -463,7 +463,7 @@ export default function ActivityPlanDetailView({
                 variant="outline"
                 size="sm"
                 onClick={() => handleOpenActionDialog("REQUEST_CORRECTION")}
-                className="flex-1 sm:flex-none text-xs text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl h-10 px-4 font-semibold"
+                className="text-xs text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl h-10 px-4 font-semibold shadow-2xs cursor-pointer"
               >
                 <RotateCcw className="h-4 w-4 mr-1.5" />
                 ส่งกลับแก้ไข
@@ -471,14 +471,14 @@ export default function ActivityPlanDetailView({
               <Button
                 size="sm"
                 onClick={() => handleOpenActionDialog("APPROVE")}
-                className="flex-[1.5] sm:flex-none text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1.5 shadow-xs rounded-xl h-10 px-6"
+                className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1.5 shadow-xs rounded-xl h-10 px-6 cursor-pointer"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 อนุมัติแผนงาน
               </Button>
-            </div>
+            </>
           )}
-        </div>
+        </DetailViewActions>
       </div>
 
       {/* Approval Confirmation Dialog */}
