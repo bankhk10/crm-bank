@@ -294,11 +294,10 @@ pages: app/(main)/
 
 ---
 
-## 8. Module Index
-
-| Module                  | Path                               | Description                 |
-| ----------------------- | ---------------------------------- | --------------------------- |
-| employee                | `modules/employee/`                | ⭐ Reference implementation |
+| Module | Path | Description |
+|---|---|---|
+| activity-plans | `modules/activity-plans/` | แผนงานและผลการทำกิจกรรม (Trip Plan) |
+| employee | `modules/employee/` | ⭐ Reference implementation |
 | customers               | `modules/customers/`               | ลูกค้าและผู้ดูแล            |
 | companies               | `modules/companies/`               | บริษัทและองค์กร             |
 | products                | `modules/products/`                | สินค้า กลุ่มสินค้า และราคา  |

@@ -7,15 +7,25 @@
 
 ## 📚 Document Index
 
-| Document                                     | Description                             | Read First |
-| -------------------------------------------- | --------------------------------------- | ---------- |
-| [AI_CONTEXT.md](./AI_CONTEXT.md)             | ภาพรวมระบบ, เป้าหมาย, กฎการทำงาน AI     | ⭐ YES     |
-| [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md)   | คำศัพท์, Entity, Status, Business Rules | ⭐ YES     |
-| [ARCHITECTURE.md](./ARCHITECTURE.md)         | สถาปัตยกรรม, Module Layers, Flows       |            |
-| [DATA_MODEL.md](./DATA_MODEL.md)             | ERD, Tables, Relationships              |            |
-| [RBAC_POLICY.md](./RBAC_POLICY.md)           | Roles, Permissions, Access Levels       |            |
-| [CODING_STANDARDS.md](./CODING_STANDARDS.md) | Coding Style, Patterns                  |            |
-| [DECISIONS.md](./DECISIONS.md)               | Architecture Decision Records           |            |
+### Global Documentation (System-Wide)
+
+| Document | Description | Read First |
+|---|---|:---:|
+| [AI_CONTEXT.md](./AI_CONTEXT.md) | ภาพรวมระบบ, เป้าหมาย, กฎการทำงาน AI | ⭐ YES |
+| [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md) | คำศัพท์, Entity, Status, Business Rules | ⭐ YES |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | สถาปัตยกรรม, Module Layers, Flows | |
+| [DATA_MODEL.md](./DATA_MODEL.md) | ERD, Tables, Relationships | |
+| [RBAC_POLICY.md](./RBAC_POLICY.md) | Roles, Permissions, Access Levels | |
+| [CODING_STANDARDS.md](./CODING_STANDARDS.md) | Coding Style, Patterns | |
+| [DECISIONS.md](./DECISIONS.md) | Architecture Decision Records (ADRs) | |
+| [local-database-development.md](./local-database-development.md) | คู่มือการพัฒนาและจัดการฐานข้อมูลจำลองในเครื่อง (Local DB) | |
+
+### Module Documentation (Domain & Specific Architecture)
+
+| Module | Documentation Path | Key Topics |
+|---|---|---|
+| **Activity Plans** | [`modules/activity-plans/docs/`](../modules/activity-plans/docs/README.md) | [Architecture](../modules/activity-plans/docs/architecture.md), [Data Flow Audit](../modules/activity-plans/docs/audit/data-flow-audit.md), [Post-Impl Audit](../modules/activity-plans/docs/audit/post-implementation-audit.md) |
+| **Products & Stock** | [`modules/products/docs/`](../modules/products/docs/README.md) | [Stock Reservation Business Rules](../modules/products/docs/stock-reservation-business-rules.md), [Stock Invariant Audits](../modules/products/docs/audit/stock-reserved-negative-global-audit.md) |
 
 ---
 
@@ -169,11 +179,10 @@ modules/[MODULE_NAME]/
 └── README.md
 ```
 
-### Module List
-
-| Module                      | Path                               | Description                 | Status |
-| --------------------------- | ---------------------------------- | --------------------------- | ------ |
-| **employee**                | `modules/employee/`                | ⭐ Reference implementation | ✅     |
+| Module | Path | Description | Status |
+|---|---|---|:---:|
+| **activity-plans** | `modules/activity-plans/` | แผนงานและผลการทำกิจกรรม (Trip Plan) | ✅ |
+| **employee** | `modules/employee/` | ⭐ Reference implementation | ✅ |
 | **customers**               | `modules/customers/`               | ลูกค้าและผู้ดูแล            | ✅     |
 | **companies**               | `modules/companies/`               | บริษัทและองค์กร             | ✅     |
 | **products**                | `modules/products/`                | สินค้า กลุ่มสินค้า และราคา  | ✅     |
