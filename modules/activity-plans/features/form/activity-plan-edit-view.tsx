@@ -93,6 +93,9 @@ export default function ActivityPlanEditView({ id }: Props) {
             : [];
 
           setInitialData({
+            id: plan.id,
+            status: plan.status,
+            approvalLogs: plan.approvalLogs || [],
             title: plan.title,
             activityTypeId: plan.activityTypeId || (typeof plan.activityType === "object" ? plan.activityType?.id : ""),
             activityType: typeof plan.activityType === "object" ? plan.activityType?.name : plan.activityType,

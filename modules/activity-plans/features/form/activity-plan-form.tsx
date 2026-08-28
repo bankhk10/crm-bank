@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { format } from "date-fns";
+import { th } from "date-fns/locale";
 import {
   Calendar as CalendarIcon,
   User,
@@ -10,6 +11,9 @@ import {
   X,
   ChevronDown,
   AlertCircle,
+  RotateCcw,
+  XCircle,
+  Clock,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/custom/section-header";
@@ -25,8 +29,22 @@ type SubmitResult = {
 
 interface Props {
   initial?: Partial<ActivityPlanFormValues> & {
+    id?: string;
+    status?: string;
     employeeName?: string;
     planCode?: string;
+    approvalLogs?: Array<{
+      id: string;
+      action: string;
+      step?: string;
+      comment?: string | null;
+      createdAt: string | Date;
+      user?: {
+        id?: string;
+        name?: string | null;
+        email?: string | null;
+      } | null;
+    }>;
     details?: any;
   };
   employees?: Array<{
@@ -268,6 +286,18 @@ export function ActivityPlanForm({
   const [startTime, setStartTime] = useState(initStart.timeStr);
   const [endDate, setEndDate] = useState(initEnd.dateStr);
   const [endTime, setEndTime] = useState(initEnd.timeStr);
+
+  // Find the latest correction or rejection log for read-only alert display
+  const latestCorrectionLog = useMemo(() => {
+    if (!initial.approvalLogs || initial.approvalLogs.length === 0) return null;
+    return (
+      initial.approvalLogs.find(
+        (log) =>
+          log.action === "REQUEST_CORRECTION" ||
+          log.action === "REJECT",
+      ) || null
+    );
+  }, [initial.approvalLogs]);
 
   // Work types selection state
   const initialTypes = useMemo(() => {
@@ -2285,6 +2315,60 @@ export function ActivityPlanForm({
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-500" />
                 <span>{error}</span>
+              </div>
+            )}
+
+            {/* ALERT: เหตุผลที่ส่งกลับแก้ไข / ปฏิเสธ (Read-only) */}
+            {latestCorrectionLog && (
+              <div
+                className={cn(
+                  "rounded-2xl p-4 sm:p-5 space-y-3 shadow-2xs border",
+                  latestCorrectionLog.action === "REQUEST_CORRECTION"
+                    ? "bg-amber-50/90 border-amber-200 text-amber-900"
+                    : "bg-red-50/90 border-red-200 text-red-900",
+                )}
+              >
+                <div className="flex items-center gap-2 font-bold text-sm sm:text-base border-b pb-2.5 border-amber-200/60">
+                  {latestCorrectionLog.action === "REQUEST_CORRECTION" ? (
+                    <>
+                      <RotateCcw className="w-4.5 h-4.5 text-amber-600 shrink-0" />
+                      <span className="text-amber-950 font-bold">
+                        เหตุผลที่ส่งกลับแก้ไข
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-4.5 h-4.5 text-red-600 shrink-0" />
+                      <span className="text-red-950 font-bold">
+                        เหตุผลที่ปฏิเสธ
+                      </span>
+                    </>
+                  )}
+                </div>
+                <div className="bg-white/95 rounded-xl p-3.5 sm:p-4 border border-amber-100/80 space-y-3 shadow-2xs">
+                  <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line font-medium">
+                    {latestCorrectionLog.comment || "-"}
+                  </p>
+                  <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+                    <span className="flex items-center gap-1.5 font-medium text-slate-600">
+                      <User className="w-3.5 h-3.5 text-slate-400" />
+                      ผู้ตรวจสอบ:{" "}
+                      <span className="font-semibold text-slate-800">
+                        {latestCorrectionLog.user?.name || "ผู้อนุมัติ"}
+                      </span>
+                    </span>
+                    <span className="flex items-center gap-1.5 text-slate-400">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      วันที่:{" "}
+                      {format(
+                        new Date(latestCorrectionLog.createdAt),
+                        "dd/MM/yyyy HH:mm",
+                        { locale: th },
+                      )}{" "}
+                      น.
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
 
