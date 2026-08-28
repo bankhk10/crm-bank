@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations } from "../../types";
 import { ActivityStatusBadge } from "../../ui/activity-status-badge";
-import { getWorkTypeName } from "../../constants";
+import { WORK_TYPE_CONFIG, getWorkTypeName } from "../../constants";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { ActionButton } from "@/components/custom/action-button";
