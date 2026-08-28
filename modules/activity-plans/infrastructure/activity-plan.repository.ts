@@ -383,7 +383,7 @@ export type CreateActivityPlanInput = {
   endDate: Date;
   activityTypeId?: string;
   workTypeCodes?: string[];
-  location: string;
+  location?: string | null;
   province?: string | null;
   district?: string | null;
   objective: string;
@@ -460,7 +460,7 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
         fiscalMonth: fiscal.fiscalMonth,
         fiscalQuarter: fiscal.fiscalQuarter,
         activityTypeId: resolvedPrimaryTypeId,
-        location: input.location,
+        location: input.location ? input.location.trim() || null : null,
         province: input.province ?? null,
         district: input.district ?? null,
         objective: input.objective,
@@ -684,7 +684,9 @@ export async function updateActivityPlan(
     if (updateFields.activityTypeId !== undefined) {
       dataToUpdate.activityTypeId = await resolveActivityTypeId(updateFields.activityTypeId, tx);
     }
-    if (updateFields.location !== undefined) dataToUpdate.location = updateFields.location;
+    if (updateFields.location !== undefined) {
+      dataToUpdate.location = updateFields.location ? updateFields.location.trim() || null : null;
+    }
     if (updateFields.province !== undefined) dataToUpdate.province = updateFields.province;
     if (updateFields.district !== undefined) dataToUpdate.district = updateFields.district;
     if (updateFields.objective !== undefined) dataToUpdate.objective = updateFields.objective;

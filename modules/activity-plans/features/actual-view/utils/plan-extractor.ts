@@ -22,7 +22,7 @@ export interface ExtractedPlanData {
 
 export function extractType2Customers(
   items: Array<{ customer?: string; customerName?: string }>,
-  location?: string,
+  location?: string | null,
 ): { storeName: string; keyFarmer: string } {
   const customerNames = Array.from(
     new Set(

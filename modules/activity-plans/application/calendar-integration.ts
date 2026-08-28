@@ -5,7 +5,7 @@ import { LogSeverity } from "@prisma/client";
  * and logs the synchronization event in the system's Audit/Application logs.
  */
 export async function syncActivityPlanToCalendarUseCase(
-  plan: { id: string; title: string; startDate: Date; endDate: Date; location: string; employee: { name: string } },
+  plan: { id: string; title: string; startDate: Date; endDate: Date; location?: string | null; employee: { name: string } },
   tx: any
 ) {
   // 1. Generate a mock Google Calendar Meet/Event link

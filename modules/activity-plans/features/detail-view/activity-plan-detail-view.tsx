@@ -523,9 +523,9 @@ export default function ActivityPlanDetailView({
               </span>
               <span
                 className="text-xs sm:text-sm font-bold text-slate-800 block truncate"
-                title={plan.location}
+                title={plan.location || undefined}
               >
-                {plan.location}
+                {plan.location || "-"}
               </span>
             </div>
           </div>

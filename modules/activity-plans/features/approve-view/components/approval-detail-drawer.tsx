@@ -363,8 +363,8 @@ export function ApprovalDetailDrawer({
                     <MapPin className="w-3.5 h-3.5 text-rose-500" />
                     สถานที่จัดงาน
                   </span>
-                  <span className="text-xs sm:text-sm font-bold text-slate-800 block truncate" title={plan.location}>
-                    {plan.location}
+                  <span className="text-xs sm:text-sm font-bold text-slate-800 block truncate" title={plan.location || undefined}>
+                    {plan.location || "-"}
                   </span>
                   <span className="text-xs text-slate-500 block truncate">
                     {[plan.district ? `อ.${plan.district}` : "", plan.province ? `จ.${plan.province}` : ""].filter(Boolean).join(" ") || "-"}

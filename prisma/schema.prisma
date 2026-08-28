@@ -1615,7 +1615,7 @@ model ActivityPlan {
   // ──── WHERE ────────────────────────────────────────────
   province       String?        // จังหวัด (จาก dropdown)
   district       String?        // อำเภอ (จาก dropdown)
-  location       String         // รายละเอียดสถานที่เต็ม
+  location       String?        // รายละเอียดสถานที่เต็ม (Nullable)
 
   // ──── BUDGET REQUESTED (ณ วันสร้างแผน) ────────────────
   salesPromotionBudgetRequested  Decimal? @db.Decimal(15, 2) @map("sales_promotion_budget_requested")

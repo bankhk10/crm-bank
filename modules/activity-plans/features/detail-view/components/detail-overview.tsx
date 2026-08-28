@@ -73,9 +73,9 @@ export function DetailOverview({ plan }: DetailOverviewProps) {
           </p>
           <p
             className="text-sm font-bold text-slate-900 truncate"
-            title={plan.location}
+            title={plan.location || undefined}
           >
-            {plan.location}
+            {plan.location || "-"}
           </p>
           <p className="text-[11px] text-slate-500 truncate">
             {[

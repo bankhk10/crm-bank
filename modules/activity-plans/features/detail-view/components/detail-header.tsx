@@ -96,10 +96,10 @@ export function DetailHeader({ plan, canEdit }: DetailHeaderProps) {
             <span>•</span>
             <span
               className="inline-flex items-center gap-1 truncate max-w-[200px]"
-              title={plan.location}
+              title={plan.location || undefined}
             >
               <MapPin className="h-3 w-3 shrink-0" />
-              {plan.province || plan.location}
+              {plan.province || plan.location || "-"}
             </span>
           </div>
         </div>

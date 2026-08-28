@@ -155,7 +155,7 @@ export default function ActivityPlanApprovalListView() {
           (p.code && p.code.toLowerCase().includes(q)) ||
           p.title.toLowerCase().includes(q) ||
           p.employee?.name.toLowerCase().includes(q) ||
-          p.location.toLowerCase().includes(q) ||
+          (p.location && p.location.toLowerCase().includes(q)) ||
           (p.province && p.province.toLowerCase().includes(q)) ||
           (p.stores &&
             p.stores.some((s) =>
@@ -998,8 +998,8 @@ function PlanCard({
               <MapPin className="w-3.5 h-3.5 text-slate-400" />
               สถานที่:
             </span>
-            <span className="text-slate-700 truncate" title={plan.location}>
-              {plan.location} {plan.province ? `(${plan.province})` : ""}
+            <span className="text-slate-700 truncate" title={plan.location || undefined}>
+              {plan.location || "-"} {plan.province ? `(${plan.province})` : ""}
             </span>
           </div>
 

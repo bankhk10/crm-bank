@@ -14,7 +14,12 @@ export const activityPlanSchema = z
     }),
     activityTypeId: z.string().min(1, "กรุณาเลือกประเภทกิจกรรม"),
     workTypeCodes: z.array(z.string()).optional(),
-    location: z.string().min(1, "กรุณากรอกรายละเอียดพื้นที่จัดกิจกรรม"),
+    location: z
+      .string()
+      .trim()
+      .nullable()
+      .optional()
+      .transform((val) => (val && val.trim() ? val.trim() : null)),
     province: z.string().optional().nullable(),
     district: z.string().optional().nullable(),
     objective: z.string().optional().default(""),

@@ -2238,9 +2238,7 @@ export function ActivityPlanForm({
         planProducts,
         province: (initial as any)?.province ?? null,
         district: (initial as any)?.district ?? null,
-        location: hasLocationRequirement
-          ? locationText
-          : locationText.trim() || "ไม่ระบุสถานที่",
+        location: locationText.trim() || null,
         objective: cleanObjective,
         description: cleanDescription,
         salesPromotionBudgetRequested: salesPromotionBudget,
