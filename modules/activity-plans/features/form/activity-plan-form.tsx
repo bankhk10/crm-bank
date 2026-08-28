@@ -1880,8 +1880,8 @@ export function ActivityPlanForm({
       }
     }
 
-    const cleanObjective = title.trim();
-    const cleanDescription = notes.trim() || null;
+    const cleanObjective = (initial as any)?.objective ?? "";
+    const cleanDescription = (initial as any)?.description ?? null;
 
     // Budgets mapping
     let salesPromotionBudget: number | null = null;

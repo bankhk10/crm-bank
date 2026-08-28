@@ -17,7 +17,7 @@ export const activityPlanSchema = z
     location: z.string().min(1, "กรุณากรอกรายละเอียดพื้นที่จัดกิจกรรม"),
     province: z.string().optional().nullable(),
     district: z.string().optional().nullable(),
-    objective: z.string().min(1, "กรุณากรอกเป้าหมายกิจกรรม"),
+    objective: z.string().optional().default(""),
     description: z.string().optional().nullable(),
     notes: z.string().optional().nullable(),
     // งบประมาณ (ที่ขอ)
