@@ -200,7 +200,9 @@ export default function ActivityPlanApprovalDetailView({
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-500 gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <p className="text-sm font-medium">กำลังโหลดข้อมูลแผนงานสำหรับการอนุมัติ...</p>
+        <p className="text-sm font-medium">
+          กำลังโหลดข้อมูลแผนงานสำหรับการอนุมัติ...
+        </p>
       </div>
     );
   }
@@ -314,7 +316,9 @@ export default function ActivityPlanApprovalDetailView({
       id: plan.tour.store.id,
       name: plan.tour.store.name,
       code: plan.tour.store.customerCode || null,
-      location: plan.tour.store.province ? `จ.${plan.tour.store.province}` : null,
+      location: plan.tour.store.province
+        ? `จ.${plan.tour.store.province}`
+        : null,
       workTypeName: "ทัวร์ร้านค้า",
       remarks: null,
     });
@@ -429,62 +433,10 @@ export default function ActivityPlanApprovalDetailView({
           status={plan.status}
           onBack={handleBack}
           backButtonLabel="กลับหน้ารายการอนุมัติ"
-          customIcon={<ShieldCheck className="w-5 h-5 text-indigo-600 stroke-[2.2]" />}
+          customIcon={
+            <ShieldCheck className="w-5 h-5 text-indigo-600 stroke-[2.2]" />
+          }
         />
-
-        {/* 2. APPROVAL CONTEXT BANNER */}
-        <div className="bg-gradient-to-r from-indigo-50/80 via-blue-50/60 to-purple-50/50 border border-indigo-100 rounded-2xl p-4 sm:p-5 shadow-2xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shrink-0 shadow-2xs">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="font-bold text-sm sm:text-base text-indigo-950">
-                  {canPerformApproval
-                    ? "คุณมีสิทธิ์ดำเนินการอนุมัติแผนงานนี้"
-                    : "แผนงานนี้อยู่ระหว่างรอการอนุมัติ"}
-                </h3>
-                <p className="text-xs text-indigo-800 font-medium">
-                  {isPendingStatus
-                    ? "กรุณาตรวจสอบข้อมูลแผนงาน วัตถุประสงค์ ร้านค้า สินค้า งบประมาณ และผู้ช่วยงานด้านล่างก่อนตัดสินใจ"
-                    : `สถานะปัจจุบัน: ${plan.status}`}
-                </p>
-              </div>
-            </div>
-
-            <div className="self-start sm:self-center">
-              <ActivityStatusBadge status={plan.status} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-3 border-t border-indigo-100/80">
-            <div>
-              <span className="text-slate-500 block text-[11px]">เลขที่แผนงาน</span>
-              <span className="font-mono font-bold text-indigo-700">
-                {plan.code || planSummary.planNo || "-"}
-              </span>
-            </div>
-            <div>
-              <span className="text-slate-500 block text-[11px]">ผู้จัดทำแผน</span>
-              <span className="font-bold text-slate-900 truncate block">
-                {plan.employee.name}
-              </span>
-            </div>
-            <div>
-              <span className="text-slate-500 block text-[11px]">ช่วงวันเวลาจัดงาน</span>
-              <span className="font-medium text-slate-800 block truncate">
-                {format(start, "dd MMM yyyy", { locale: th })} ({plan.durationDays} วัน)
-              </span>
-            </div>
-            <div>
-              <span className="text-slate-500 block text-[11px]">ยอดของบประมาณ</span>
-              <span className="font-bold text-emerald-700 block">
-                {budgetTotal > 0 ? `${budgetTotal.toLocaleString()} ฿` : "ไม่มีงบประมาณ"}
-              </span>
-            </div>
-          </div>
-        </div>
 
         {/* 3. GENERAL PLAN INFORMATION */}
         <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
@@ -569,9 +521,11 @@ export default function ActivityPlanApprovalDetailView({
                 ช่วงวันเวลาจัดงาน ({plan.durationDays} วัน)
               </span>
               <span className="text-xs sm:text-sm font-bold text-slate-800 block">
-                {format(start, "dd MMM yyyy", { locale: th })} {format(start, "HH:mm")} น.
+                {format(start, "dd MMM yyyy", { locale: th })}{" "}
+                {format(start, "HH:mm")} น.
                 {" — "}
-                {format(end, "dd MMM yyyy", { locale: th })} {format(end, "HH:mm")} น.
+                {format(end, "dd MMM yyyy", { locale: th })}{" "}
+                {format(end, "HH:mm")} น.
               </span>
             </div>
 
@@ -634,7 +588,8 @@ export default function ActivityPlanApprovalDetailView({
                 </div>
                 <div>
                   <h4 className="font-bold text-sm sm:text-base text-slate-900">
-                    ร้านค้า / ลูกค้าที่เกี่ยวข้อง ({combinedStores.length} รายการ)
+                    ร้านค้า / ลูกค้าที่เกี่ยวข้อง ({combinedStores.length}{" "}
+                    รายการ)
                   </h4>
                   <p className="text-xs text-slate-500 font-medium">
                     รายชื่อร้านค้าหรือลูกค้าเป้าหมายสำหรับแผนงานนี้
@@ -742,7 +697,9 @@ export default function ActivityPlanApprovalDetailView({
                           </span>
                         )}
                       </td>
-                      <td className="p-3 text-slate-600">{p.storeName || "-"}</td>
+                      <td className="p-3 text-slate-600">
+                        {p.storeName || "-"}
+                      </td>
                       <td className="p-3 text-center">
                         <Badge
                           variant="outline"
@@ -855,7 +812,8 @@ export default function ActivityPlanApprovalDetailView({
                   <div className="space-y-2">
                     <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                       <Boxes className="w-3.5 h-3.5 text-blue-600" />
-                      สื่อส่งเสริมการขาย ({planSummary.marketingProductItems.length} รายการ)
+                      สื่อส่งเสริมการขาย (
+                      {planSummary.marketingProductItems.length} รายการ)
                     </span>
                     <div className="overflow-x-auto rounded-xl border border-slate-100">
                       <table className="w-full text-xs text-left">
@@ -868,28 +826,30 @@ export default function ActivityPlanApprovalDetailView({
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                          {planSummary.marketingProductItems.map((mItem, idx) => (
-                            <tr key={idx}>
-                              <td className="p-2.5 font-semibold text-slate-900">
-                                {mItem.productName}
-                              </td>
-                              <td className="p-2.5 text-right">
-                                {mItem.quantityCases} ชิ้น
-                              </td>
-                              <td className="p-2.5 text-right text-slate-600">
-                                {mItem.pricePerCase
-                                  ? `${mItem.pricePerCase.toLocaleString()} ฿`
-                                  : "-"}
-                              </td>
-                              <td className="p-2.5 text-right font-bold text-blue-700">
-                                {(
-                                  (mItem.quantityCases || 0) *
-                                  (mItem.pricePerCase || 0)
-                                ).toLocaleString()}{" "}
-                                ฿
-                              </td>
-                            </tr>
-                          ))}
+                          {planSummary.marketingProductItems.map(
+                            (mItem, idx) => (
+                              <tr key={idx}>
+                                <td className="p-2.5 font-semibold text-slate-900">
+                                  {mItem.productName}
+                                </td>
+                                <td className="p-2.5 text-right">
+                                  {mItem.quantityCases} ชิ้น
+                                </td>
+                                <td className="p-2.5 text-right text-slate-600">
+                                  {mItem.pricePerCase
+                                    ? `${mItem.pricePerCase.toLocaleString()} ฿`
+                                    : "-"}
+                                </td>
+                                <td className="p-2.5 text-right font-bold text-blue-700">
+                                  {(
+                                    (mItem.quantityCases || 0) *
+                                    (mItem.pricePerCase || 0)
+                                  ).toLocaleString()}{" "}
+                                  ฿
+                                </td>
+                              </tr>
+                            ),
+                          )}
                         </tbody>
                       </table>
                     </div>
@@ -901,7 +861,8 @@ export default function ActivityPlanApprovalDetailView({
                   <div className="space-y-2 pt-2">
                     <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                       <Gift className="w-3.5 h-3.5 text-emerald-600" />
-                      รายการส่งเสริมการขาย ({planSummary.salesPromotionItems.length} รายการ)
+                      รายการส่งเสริมการขาย (
+                      {planSummary.salesPromotionItems.length} รายการ)
                     </span>
                     <div className="overflow-x-auto rounded-xl border border-slate-100">
                       <table className="w-full text-xs text-left">
@@ -913,21 +874,23 @@ export default function ActivityPlanApprovalDetailView({
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                          {planSummary.salesPromotionItems.map((spItem, idx) => (
-                            <tr key={idx}>
-                              <td className="p-2.5 font-medium text-slate-600">
-                                {spItem.budgetType}
-                              </td>
-                              <td className="p-2.5 text-slate-800">
-                                {spItem.detail || "-"}
-                              </td>
-                              <td className="p-2.5 text-right font-bold text-emerald-700">
-                                {spItem.amount != null
-                                  ? `${spItem.amount.toLocaleString()} ฿`
-                                  : "-"}
-                              </td>
-                            </tr>
-                          ))}
+                          {planSummary.salesPromotionItems.map(
+                            (spItem, idx) => (
+                              <tr key={idx}>
+                                <td className="p-2.5 font-medium text-slate-600">
+                                  {spItem.budgetType}
+                                </td>
+                                <td className="p-2.5 text-slate-800">
+                                  {spItem.detail || "-"}
+                                </td>
+                                <td className="p-2.5 text-right font-bold text-emerald-700">
+                                  {spItem.amount != null
+                                    ? `${spItem.amount.toLocaleString()} ฿`
+                                    : "-"}
+                                </td>
+                              </tr>
+                            ),
+                          )}
                         </tbody>
                       </table>
                     </div>
@@ -1033,7 +996,10 @@ export default function ActivityPlanApprovalDetailView({
                       <span className="font-bold text-slate-900">
                         {log.user?.name || "ผู้ใช้งาน"}
                       </span>
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] px-1.5 py-0"
+                      >
                         {log.action}
                       </Badge>
                     </div>
