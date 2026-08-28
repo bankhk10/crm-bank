@@ -30,9 +30,6 @@ export async function seedType12(prisma: PrismaClient, ctx: SeedContext) {
       country: "ญี่ปุ่น",
       destination: "โตเกียว - ฮอกไกโด",
     },
-    items: [
-      { workTypeCode: "TYPE_12", detail: "ดูงานแปลงสตรอว์เบอร์รีไร้ดิน และโรงงานผลิตปุ๋ยชีวภาพ ประเทศญี่ปุ่น" },
-    ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, comment: "เสนอขออนุมัติโครงการทัวร์ใหญ่ญี่ปุ่น", createdAt: new Date("2026-08-01T09:00:00.000Z") },
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.APPROVE, step: ActivityApprovalStep.BUDGET_APPROVAL, fromStatus: ActivityStatus.PENDING_LINE_APPROVAL, toStatus: ActivityStatus.APPROVED, comment: "อนุมัติตามงบประมาณและรายชื่อตัวแทนยอดเยี่ยม", createdAt: new Date("2026-08-05T14:00:00.000Z") },
@@ -63,9 +60,6 @@ export async function seedType12(prisma: PrismaClient, ctx: SeedContext) {
       country: "เวียดนาม",
       destination: "ดานัง - ฮอยอัน",
     },
-    items: [
-      { workTypeCode: "TYPE_12", detail: "เยี่ยมชมศูนย์กระจายสินค้าเกษตรภาคกลางเวียดนาม" },
-    ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-18T10:00:00.000Z") },
     ],
@@ -99,9 +93,6 @@ export async function seedType12(prisma: PrismaClient, ctx: SeedContext) {
       storeId: store0.id,
       destination: "เชียงใหม่ - เชียงราย",
     },
-    items: [
-      { workTypeCode: "TYPE_12", customerName: store0.name, detail: "ศึกษาดูงานแปลงพืชเมืองหนาว สถานีเกษตรหลวงอ่างขาง" },
-    ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-07T09:00:00.000Z") },
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.APPROVE, step: ActivityApprovalStep.BUDGET_APPROVAL, fromStatus: ActivityStatus.PENDING_LINE_APPROVAL, toStatus: ActivityStatus.APPROVED, createdAt: new Date("2026-08-09T14:00:00.000Z") },

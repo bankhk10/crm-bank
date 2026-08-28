@@ -2102,21 +2102,6 @@ export function ActivityPlanForm({
               detail: "ตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน",
             });
           }
-        } else if (workType === "ทัวร์") {
-          if (type12TourType === "ทัวร์กลาง") {
-            allItemsToSend.push({
-              itemType: "TYPE_12",
-              visitTopic: "ทัวร์กลาง",
-              detail: "ทัศนศึกษาดูงานต่างประเทศ",
-            });
-          } else if (type12TourType === "ทัวร์ร้านค้า") {
-            allItemsToSend.push({
-              itemType: "TYPE_12",
-              visitTopic: "ทัวร์ร้านค้า",
-              customerName: type12Store,
-              detail: "ทัศนศึกษาดูงานสำหรับร้านค้าตัวแทน",
-            });
-          }
         }
       });
 
@@ -2155,13 +2140,23 @@ export function ActivityPlanForm({
                 ? ("STORE" as const)
                 : ("CENTRAL" as const),
             tourSize:
-              type12TourSize === "ทัวร์ใหญ่"
-                ? ("LARGE" as const)
-                : ("SMALL" as const),
-            country: type12Country.trim() || null,
+              type12TourType === "ทัวร์ร้านค้า"
+                ? null
+                : type12TourSize === "ทัวร์ใหญ่"
+                  ? ("LARGE" as const)
+                  : ("SMALL" as const),
+            country:
+              type12TourType === "ทัวร์กลาง"
+                ? type12Country.trim() || null
+                : null,
             storeId:
-              customersList.find((c) => c.name === type12Store)?.id || null,
-            destination: type12Destination.trim() || null,
+              type12TourType === "ทัวร์ร้านค้า"
+                ? customersList.find((c) => c.name === type12Store)?.id || null
+                : null,
+            destination:
+              type12TourType === "ทัวร์ร้านค้า"
+                ? type12Destination.trim() || null
+                : null,
           }
         : null;
 
