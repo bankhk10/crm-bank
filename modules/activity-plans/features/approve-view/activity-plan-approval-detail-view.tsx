@@ -2,11 +2,16 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { usePermission } from "@/hooks/use-permission";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import {
   Loader2,
   AlertCircle,
+  CheckCircle2,
+  XCircle,
+  RotateCcw,
   Building2,
   Store as StoreIcon,
   Package,
@@ -23,29 +28,27 @@ import {
   FileText,
   Gift,
   Boxes,
+  ShieldCheck,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ActivityPlanWithRelations } from "../../types";
-import {
-  getActivityPlanAction,
-  getDemoPlotHistoryAction,
-} from "../../server/actions";
+import { getActivityPlanAction } from "../../server/actions";
 import { getWorkTypeName, getWorkTypeCode } from "../../constants";
-import type { PlanSummaryData, ActualTargetsState } from "../actual-view/types";
-import { extractPlanData, parseResultSummary } from "../actual-view/utils";
-import type { ParsedSummaryValues } from "../actual-view/utils/summary-parser";
+import { ActivityStatusBadge } from "../../ui/activity-status-badge";
+import { DetailViewHeader } from "../detail-view/components/detail-view-header";
+import { DetailType12Tour } from "../detail-view/components/work-types/detail-type12-tour";
+import { DetailViewActions } from "../detail-view/components/detail-view-actions";
 import {
-  DetailViewHeader,
-  DetailActivityResultSection,
-  DetailActivityStatusSection,
-  DetailViewActions,
-  DetailType12Tour,
-} from "./components";
+  ApprovalActionDialog,
+  type ApprovalActionType,
+} from "./components/approval-action-dialog";
+import { extractPlanData } from "../actual-view/utils";
+import type { PlanSummaryData, ActualTargetsState } from "../actual-view/types";
 
-interface ActivityPlanDetailViewProps {
+interface ActivityPlanApprovalDetailViewProps {
   id: string;
   onBack?: () => void;
 }
@@ -117,26 +120,40 @@ const initialPlanSummary: PlanSummaryData = {
   helperEmployeeNames: undefined,
 };
 
-export default function ActivityPlanDetailView({
+export default function ActivityPlanApprovalDetailView({
   id,
   onBack,
-}: ActivityPlanDetailViewProps) {
+}: ActivityPlanApprovalDetailViewProps) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const { hasPermission } = usePermission("menu.activity_plans");
+
+  const roles = (session?.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session?.user as any)?.role === "administrator" ||
+    (session?.user as any)?.role === "ADMIN";
+
+  const canManageOrApprove =
+    isAdmin ||
+    hasPermission("activity.approve") ||
+    hasPermission("activity.manage");
+
+  const userEmployeeId = session?.user?.employeeId;
 
   const [plan, setPlan] = useState<ActivityPlanWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Extracted Plan Summary & Targets
   const [planSummary, setPlanSummary] =
     useState<PlanSummaryData>(initialPlanSummary);
   const [planWorkTypes, setPlanWorkTypes] = useState<string[]>([]);
-  const [targets, setTargets] = useState<ActualTargetsState>(initialTargets);
-  const [parsedResults, setParsedResults] = useState<ParsedSummaryValues>({});
 
-  // Type 7 Demo Plot state
-  const [t7DemoPlotData, setT7DemoPlotData] = useState<any>(null);
-  const [t7VisitHistory, setT7VisitHistory] = useState<any[]>([]);
+  // Approval Dialog states
+  const [actionDialogOpen, setActionDialogOpen] = useState(false);
+  const [actionType, setActionType] = useState<ApprovalActionType>("APPROVE");
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -148,31 +165,10 @@ export default function ActivityPlanDetailView({
         const p = res.plan as ActivityPlanWithRelations;
         setPlan(p);
 
-        // Extract data
+        // Extract plan summary & work types
         const extracted = extractPlanData(p, initialTargets);
         setPlanSummary(extracted.planSummary);
         setPlanWorkTypes(extracted.resolvedWorkTypes);
-        setTargets(extracted.targets);
-
-        // Parse result summary if plan result exists in DB
-        if ((p as any).result) {
-          const parsed = parseResultSummary((p as any).result);
-          setParsedResults(parsed);
-        }
-
-        // Fetch demo plot history if applicable
-        if (extracted.t7PlotIdentifier) {
-          getDemoPlotHistoryAction(extracted.t7PlotIdentifier)
-            .then((histRes) => {
-              if (histRes.success && histRes.plot) {
-                setT7DemoPlotData(histRes.plot);
-                setT7VisitHistory(histRes.plot.visits || []);
-              }
-            })
-            .catch((e) => {
-              console.error("Failed to load demo plot history:", e);
-            });
-        }
       } else {
         setError(res.error || "ไม่สามารถดึงข้อมูลรายละเอียด Trip Plan ได้");
       }
@@ -191,22 +187,20 @@ export default function ActivityPlanDetailView({
     if (onBack) {
       onBack();
     } else {
-      router.push("/activity-plans");
+      router.push("/activity-plans/approvals");
     }
   };
 
-  const isTypeVisible = (typeTitle: string) => {
-    if (planWorkTypes.length > 0) {
-      return planWorkTypes.includes(typeTitle);
-    }
-    return true;
+  const handleOpenActionDialog = (type: ApprovalActionType) => {
+    setActionType(type);
+    setActionDialogOpen(true);
   };
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-500 gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <p className="text-sm font-medium">กำลังโหลดข้อมูล Trip Plan...</p>
+        <p className="text-sm font-medium">กำลังโหลดข้อมูลแผนงานสำหรับการอนุมัติ...</p>
       </div>
     );
   }
@@ -217,17 +211,30 @@ export default function ActivityPlanDetailView({
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            {error || "ไม่พบข้อมูล Trip Plan"}
+            {error || "ไม่พบข้อมูล Trip Plan สำหรับการอนุมัติ"}
           </AlertDescription>
         </Alert>
         <Button variant="outline" onClick={handleBack}>
-          กลับหน้ารายการแผนงาน
+          กลับหน้ารายการอนุมัติ
         </Button>
       </div>
     );
   }
 
-  // Tour (TYPE_12) resolution directly from Normalized Source of Truth
+  // Approval Eligibility Check
+  const isPendingStatus =
+    plan.status === "PENDING_LINE_APPROVAL" ||
+    plan.status === "PENDING_BUDGET_APPROVAL" ||
+    plan.status === "PENDING_HELPER_APPROVAL";
+
+  const isDirectLineApprover =
+    plan.status === "PENDING_LINE_APPROVAL" &&
+    plan.currentApproverEmployeeId === userEmployeeId;
+
+  const canPerformApproval =
+    isPendingStatus && (isAdmin || canManageOrApprove || isDirectLineApprover);
+
+  // Tour (TYPE_12) resolution from Normalized Relational Source of Truth
   const isTourPlan = Boolean(
     plan.tour ||
     plan.activityType?.code === "TYPE_12" ||
@@ -256,13 +263,6 @@ export default function ActivityPlanDetailView({
     item0.location ??
     item0.detail ??
     null;
-
-  // Check if plan contains any actual work types (Types 1 - 11)
-  const hasActualWorkTypes = planWorkTypes.some((wt) => wt !== "ทัวร์");
-  const isTourOnly = isTourPlan && !hasActualWorkTypes;
-
-  // Check if plan has recorded actual result in database (Normalized Relation)
-  const hasActualResult = Boolean((plan as any)?.result != null);
 
   // 1. Resolve Work Types from Normalized Relation
   const resolvedWorkTypes =
@@ -421,17 +421,72 @@ export default function ActivityPlanDetailView({
   return (
     <section className="space-y-6 container mx-auto px-0 sm:px-0">
       <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
-        {/* 1. TOP HEADER (READ-ONLY) */}
+        {/* 1. TOP HEADER (APPROVAL DETAIL) */}
         <DetailViewHeader
-          title="รายละเอียดแผนงาน ( Trip Plan Detail )"
-          subtitle="ข้อมูลแผนงานและรายละเอียดกิจกรรม"
+          title="รายละเอียดแผนงานสำหรับการอนุมัติ ( Trip Plan Approval Detail )"
+          subtitle="ตรวจสอบรายละเอียดข้อมูลแผนงานทั้งหมดก่อนดำเนินการอนุมัติ"
           planNo={plan.code || planSummary.planNo}
           status={plan.status}
           onBack={handleBack}
-          backButtonLabel="กลับหน้ารายการแผนงาน"
+          backButtonLabel="กลับหน้ารายการอนุมัติ"
+          customIcon={<ShieldCheck className="w-5 h-5 text-indigo-600 stroke-[2.2]" />}
         />
 
-        {/* 2. GENERAL PLAN INFORMATION (READ-ONLY) */}
+        {/* 2. APPROVAL CONTEXT BANNER */}
+        <div className="bg-gradient-to-r from-indigo-50/80 via-blue-50/60 to-purple-50/50 border border-indigo-100 rounded-2xl p-4 sm:p-5 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shrink-0 shadow-2xs">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm sm:text-base text-indigo-950">
+                  {canPerformApproval
+                    ? "คุณมีสิทธิ์ดำเนินการอนุมัติแผนงานนี้"
+                    : "แผนงานนี้อยู่ระหว่างรอการอนุมัติ"}
+                </h3>
+                <p className="text-xs text-indigo-800 font-medium">
+                  {isPendingStatus
+                    ? "กรุณาตรวจสอบข้อมูลแผนงาน วัตถุประสงค์ ร้านค้า สินค้า งบประมาณ และผู้ช่วยงานด้านล่างก่อนตัดสินใจ"
+                    : `สถานะปัจจุบัน: ${plan.status}`}
+                </p>
+              </div>
+            </div>
+
+            <div className="self-start sm:self-center">
+              <ActivityStatusBadge status={plan.status} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-3 border-t border-indigo-100/80">
+            <div>
+              <span className="text-slate-500 block text-[11px]">เลขที่แผนงาน</span>
+              <span className="font-mono font-bold text-indigo-700">
+                {plan.code || planSummary.planNo || "-"}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-500 block text-[11px]">ผู้จัดทำแผน</span>
+              <span className="font-bold text-slate-900 truncate block">
+                {plan.employee.name}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-500 block text-[11px]">ช่วงวันเวลาจัดงาน</span>
+              <span className="font-medium text-slate-800 block truncate">
+                {format(start, "dd MMM yyyy", { locale: th })} ({plan.durationDays} วัน)
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-500 block text-[11px]">ยอดของบประมาณ</span>
+              <span className="font-bold text-emerald-700 block">
+                {budgetTotal > 0 ? `${budgetTotal.toLocaleString()} ฿` : "ไม่มีงบประมาณ"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. GENERAL PLAN INFORMATION */}
         <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
             <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
@@ -569,7 +624,7 @@ export default function ActivityPlanDetailView({
           </div>
         </div>
 
-        {/* 3. TYPE_12: TOUR SECTION (IF APPLICABLE) */}
+        {/* 4. TYPE_12: TOUR SECTION (NORMALIZED) */}
         {isTourPlan && (
           <DetailType12Tour
             isVisible={true}
@@ -581,7 +636,7 @@ export default function ActivityPlanDetailView({
           />
         )}
 
-        {/* 4. RELATED STORES SECTION (NORMALIZED) */}
+        {/* 5. RELATED STORES SECTION (NORMALIZED) */}
         {combinedStores.length > 0 && (
           <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -648,7 +703,7 @@ export default function ActivityPlanDetailView({
           </div>
         )}
 
-        {/* 5. RELATED PRODUCTS SECTION (NORMALIZED) */}
+        {/* 6. RELATED PRODUCTS SECTION (NORMALIZED) */}
         {combinedProducts.length > 0 && (
           <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -731,7 +786,7 @@ export default function ActivityPlanDetailView({
           </div>
         )}
 
-        {/* 6. BUDGET & EXPENSES SECTION */}
+        {/* 7. BUDGET & EXPENSES SECTION */}
         <div className="bg-gradient-to-br from-blue-50/60 to-indigo-50/60 rounded-2xl border border-blue-100 p-4 sm:p-5 space-y-3.5 shadow-2xs">
           <div className="flex items-center justify-between border-b border-blue-200/60 pb-3">
             <div className="flex items-center gap-2">
@@ -786,7 +841,7 @@ export default function ActivityPlanDetailView({
           </div>
         </div>
 
-        {/* 7. PROMOTIONAL MATERIALS & SALES PROMOTIONS SECTION */}
+        {/* 8. PROMOTIONAL MATERIALS & SALES PROMOTIONS SECTION */}
         {(planSummary.isPromotionalMediaSelected ||
           planSummary.isSalesPromotionSelected ||
           (planSummary.requisitionItems &&
@@ -894,7 +949,7 @@ export default function ActivityPlanDetailView({
           </div>
         )}
 
-        {/* 8. HELPERS SECTION (NORMALIZED) */}
+        {/* 9. HELPERS SECTION (NORMALIZED) */}
         {plan.helpers && plan.helpers.length > 0 && (
           <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -969,7 +1024,7 @@ export default function ActivityPlanDetailView({
           </div>
         )}
 
-        {/* 9. APPROVAL AUDIT LOGS */}
+        {/* 10. APPROVAL AUDIT LOGS */}
         {plan.approvalLogs && plan.approvalLogs.length > 0 && (
           <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xs">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-2.5">
@@ -1014,35 +1069,54 @@ export default function ActivityPlanDetailView({
           </div>
         )}
 
-        {/* 10. SECTION: ผลการปฏิบัติงานตามประเภทงาน (WORK TYPES 1 - 11) (READ-ONLY) - Only displayed when Actual Result exists in DB */}
-        {hasActualResult && !isTourOnly && (
-          <DetailActivityResultSection
-            isTypeVisible={isTypeVisible}
-            targets={targets}
-            parsedResults={parsedResults}
-            demoPlotData={t7DemoPlotData}
-            visitHistory={t7VisitHistory}
-          />
-        )}
-
-        {/* 11. SECTION: สถานะผลการทำกิจกรรม (READ-ONLY) - Only displayed when Actual Result exists in DB */}
-        {hasActualResult && !isTourOnly && parsedResults.activityResultStatus && (
-          <DetailActivityStatusSection
-            activityResultStatus={parsedResults.activityResultStatus}
-            cancelReason={parsedResults.cancelReason}
-            postponedDate={parsedResults.postponedDate}
-            postponedTime={parsedResults.postponedTime}
-            postponedReason={parsedResults.postponedReason}
-            postponedNotes={parsedResults.postponedNotes}
-          />
-        )}
-
-        {/* 12. BOTTOM ACTIONS (READ-ONLY DETAIL VIEW) */}
+        {/* 11. BOTTOM ACTIONS & APPROVAL ACTION BAR */}
         <DetailViewActions
           onBack={handleBack}
-          backLabel="กลับหน้ารายการแผนงาน"
-        />
+          backLabel="กลับหน้ารายการอนุมัติ"
+        >
+          {canPerformApproval && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleOpenActionDialog("REJECT")}
+                className="text-xs text-red-600 border-red-200 hover:bg-red-50 rounded-xl h-10 px-4 font-semibold shadow-2xs cursor-pointer"
+              >
+                <XCircle className="h-4 w-4 mr-1.5" />
+                ปฏิเสธ
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleOpenActionDialog("REQUEST_CORRECTION")}
+                className="text-xs text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl h-10 px-4 font-semibold shadow-2xs cursor-pointer"
+              >
+                <RotateCcw className="h-4 w-4 mr-1.5" />
+                ส่งกลับแก้ไข
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => handleOpenActionDialog("APPROVE")}
+                className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1.5 shadow-xs rounded-xl h-10 px-6 cursor-pointer"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                อนุมัติแผนงาน
+              </Button>
+            </>
+          )}
+        </DetailViewActions>
       </div>
+
+      {/* Approval Confirmation Dialog */}
+      <ApprovalActionDialog
+        open={actionDialogOpen}
+        onOpenChange={setActionDialogOpen}
+        plan={plan}
+        actionType={actionType}
+        onSuccess={() => {
+          router.push("/activity-plans/approvals");
+        }}
+      />
     </section>
   );
 }

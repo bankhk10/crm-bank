@@ -82,6 +82,7 @@ export function DetailViewHeader({
             <span>เลขที่แผน: {planNo}</span>
           </div>
         )}
+        {status && <ActivityStatusBadge status={status} />}
         {rightExtra}
       </div>
     </div>

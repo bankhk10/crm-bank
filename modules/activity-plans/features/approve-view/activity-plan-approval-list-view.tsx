@@ -720,7 +720,7 @@ export default function ActivityPlanApprovalListView() {
                     >
                       <td className="p-3.5 font-mono font-bold text-blue-700">
                         <Link
-                          href={`/activity-plans/${plan.id}?from=approvals`}
+                          href={`/activity-plans/approvals/${plan.id}`}
                           className="hover:underline"
                         >
                           {plan.code || plan.id.slice(0, 8)}
@@ -728,7 +728,7 @@ export default function ActivityPlanApprovalListView() {
                       </td>
                       <td className="p-3.5 font-semibold text-slate-900 max-w-[180px] truncate" title={plan.title}>
                         <Link
-                          href={`/activity-plans/${plan.id}?from=approvals`}
+                          href={`/activity-plans/approvals/${plan.id}`}
                           className="hover:text-blue-600 transition-colors"
                         >
                           {plan.title}
@@ -782,12 +782,12 @@ export default function ActivityPlanApprovalListView() {
                       </td>
                       <td className="p-3.5 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
-                          <Link href={`/activity-plans/${plan.id}?from=approvals`}>
+                          <Link href={`/activity-plans/approvals/${plan.id}`}>
                             <Button
                               variant="outline"
                               size="sm"
                               className="h-8 px-2.5 text-xs font-semibold text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100 gap-1 rounded-lg cursor-pointer"
-                              title="ดูรายละเอียดแผนงานเต็มหน้า"
+                              title="ดูรายละเอียดแผนงานสำหรับการอนุมัติ"
                             >
                               <Eye className="h-3.5 w-3.5" />
                               ดูข้อมูล
@@ -938,7 +938,7 @@ function PlanCard({
 
         {/* Title */}
         <div>
-          <Link href={`/activity-plans/${plan.id}?from=approvals`}>
+          <Link href={`/activity-plans/approvals/${plan.id}`}>
             <h4
               className="font-bold text-slate-900 line-clamp-2 text-sm sm:text-base leading-snug hover:text-blue-600 cursor-pointer transition-colors"
               title={plan.title}
@@ -1044,14 +1044,14 @@ function PlanCard({
       {/* Action Buttons */}
       <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
         {/* Prominent Full Page Detail Link */}
-        <Link href={`/activity-plans/${plan.id}?from=approvals`} className="w-full">
+        <Link href={`/activity-plans/approvals/${plan.id}`} className="w-full">
           <Button
             variant="outline"
             size="sm"
             className="w-full text-xs font-bold text-blue-700 bg-blue-50/70 border-blue-200 hover:bg-blue-100 flex items-center justify-center gap-1.5 rounded-xl h-9 shadow-2xs cursor-pointer"
           >
             <Eye className="h-4 w-4 text-blue-600" />
-            ดูรายละเอียดแผนงาน
+            ดูรายละเอียดแผนงานสำหรับการอนุมัติ
           </Button>
         </Link>
 

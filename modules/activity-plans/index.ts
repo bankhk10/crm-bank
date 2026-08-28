@@ -4,6 +4,7 @@ export { default as ActivityPlanCreateView } from "./features/form/activity-plan
 export { default as ActivityPlanEditView } from "./features/form/activity-plan-edit-view";
 export { default as ActivityPlanDetailView } from "./features/detail-view/activity-plan-detail-view";
 export { default as ActivityPlanApprovalListView } from "./features/approve-view/activity-plan-approval-list-view";
+export { default as ActivityPlanApprovalDetailView } from "./features/approve-view/activity-plan-approval-detail-view";
 export { default as ActivityPlanActualView } from "./features/actual-view/activity-plan-actual-view";
 export { default as PromotionalMaterialsView } from "./features/promotional-materials/promotional-materials-view";
 
