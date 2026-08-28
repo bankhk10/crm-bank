@@ -1848,195 +1848,6 @@ export function ActivityPlanForm({
     const startDateTime = new Date(`${startDate}T${startTime}:00`);
     const endDateTime = new Date(`${endDate}T${endTime}:00`);
 
-    // Compile dynamic objectives for all selected types
-    const summaryParts: string[] = [];
-
-    if (selectedWorkTypes.includes("เข้าพบร้านค้า / Key Farmer")) {
-      const visitSummary = type1Items
-        .map(
-          (item, i) =>
-            `${i + 1}. ลูกค้า/ร้านค้า: ${item.customerName} | ประเด็น: ${item.topic}${item.detail ? ` (${item.detail})` : ""}`,
-        )
-        .join(", ");
-      summaryParts.push(
-        `[เข้าพบร้านค้า/Key Farmer] รายการเข้าพบ (${type1Items.length} รายการ): ${visitSummary || "ไม่มีรายการ"}`,
-      );
-    }
-
-    if (selectedWorkTypes.includes("ติดตามผลการใช้สินค้า")) {
-      const followupSummary = type2Items
-        .map(
-          (item, i) =>
-            `${i + 1}. สินค้า: ${item.productName} | ลูกค้า/ร้านค้า: ${item.customerName}${item.detail ? ` (${item.detail})` : ""}`,
-        )
-        .join(", ");
-      summaryParts.push(
-        `[ติดตามผลการใช้สินค้า] รายการติดตาม (${type2Items.length} รายการ): ${followupSummary || "ไม่มีรายการ"}`,
-      );
-    }
-
-    if (selectedWorkTypes.includes("เสนอขายสินค้า")) {
-      const salesSummary = type3Items
-        .map((item, i) => {
-          const prodItems =
-            item.products && item.products.length > 0
-              ? item.products
-              : [
-                  {
-                    productName: item.productName || "",
-                    quantity: item.quantity || 1,
-                    unitPrice: item.unitPrice || 0,
-                  },
-                ];
-          const prodList = prodItems
-            .map(
-              (p) =>
-                `${p.productName} (${p.quantity} x ฿${(p.unitPrice || 0).toLocaleString()} = ฿${((p.quantity || 0) * (p.unitPrice || 0)).toLocaleString()})`,
-            )
-            .join(", ");
-          const itemTotal = prodItems.reduce(
-            (s, p) => s + (p.quantity || 0) * (p.unitPrice || 0),
-            0,
-          );
-          return `${i + 1}. ลูกค้า/ร้านค้า: ${item.customerName} | สินค้า: ${prodList} | รวม: ฿${itemTotal.toLocaleString()}${item.detail ? ` (${item.detail})` : ""}`;
-        })
-        .join("; ");
-      summaryParts.push(
-        `[เสนอขายสินค้า] รายการเสนอขาย (${type3Items.length} รายการ): ${salesSummary || "ไม่มีรายการ"}`,
-      );
-    }
-
-    if (selectedWorkTypes.includes("วางบิล / เก็บเงิน")) {
-      const collectSummary = type4Items
-        .map(
-          (item, i) =>
-            `${i + 1}. ลูกค้า: ${item.customerName} | เป้ายอดเก็บเงิน: ฿${(item.collectAmount || 0).toLocaleString()}${item.detail ? ` (${item.detail})` : ""}`,
-        )
-        .join(", ");
-      summaryParts.push(
-        `[วางบิล/เก็บเงิน] รายการวางบิล (${type4Items.length} รายการ): ${collectSummary || "ไม่มีรายการ"}`,
-      );
-    }
-
-    if (selectedWorkTypes.includes("สำรวจตลาดของคู่แข่ง")) {
-      const surveySummary = type5Items
-        .map(
-          (item, i) =>
-            `${i + 1}. ร้านค้า: ${item.storeName || "ไม่ระบุ"} | สินค้าเทียบ: ${item.comparedProduct}${item.detail ? ` (${item.detail})` : ""}`,
-        )
-        .join(", ");
-      summaryParts.push(
-        `[สำรวจตลาดคู่แข่ง] รายการสำรวจ (${type5Items.length} รายการ): ${surveySummary || "ไม่มีรายการ"}`,
-      );
-    }
-
-    if (selectedWorkTypes.includes("แก้ปัญหา / รับเรื่องร้องเรียน")) {
-      const issueSummary = type6Items
-        .map(
-          (item, i) =>
-            `${i + 1}. ลูกค้า: ${item.customerName} | ประเภทปัญหา: ${item.issueType}${item.detail ? ` (${item.detail})` : ""}`,
-        )
-        .join(", ");
-      summaryParts.push(
-        `[แก้ปัญหา/ร้องเรียน] รายการร้องเรียน (${type6Items.length} รายการ): ${issueSummary || "ไม่มีรายการ"}`,
-      );
-    }
-
-    if (selectedWorkTypes.includes("ติดตามแปลงสาธิต / ทำแปลง")) {
-      const demoSummary = type7Items
-        .map((item, i) => {
-          const modeLabel =
-            item.plotActivityType === "FOLLOW_UP" ? "ติดตามแปลง" : "ทำแปลงใหม่";
-          if (item.plotActivityType === "FOLLOW_UP") {
-            const plotName =
-              item.existingPlotName || item.ownerName || "แปลงเดิม";
-            return `${i + 1}. [${modeLabel}] แปลง: ${plotName} | วันที่ติดตาม: ${item.followUpDate || "ไม่ระบุ"}${item.detail ? ` | รายละเอียดเพิ่มเติม: ${item.detail}` : ""}`;
-          }
-          const cropDisplay =
-            item.customCropName &&
-            ["ผักและพืชล้มลุกอื่นๆ", "พืชไร่อื่นๆ", "พืชสวนอื่นๆ"].includes(
-              item.cropName,
-            )
-              ? `${item.cropName}: ${item.customCropName}`
-              : item.cropName;
-          const isRaiUnit = ["พืชไร่", "ผักและพืชล้มลุก"].includes(
-            item.cropCategory,
-          );
-          const sizeText = isRaiUnit
-            ? `${item.areaRai || item.plotsCount || 1} ไร่`
-            : `${item.treeCount || item.plotsCount || 1} ต้น`;
-          return `${i + 1}. [${modeLabel}] เจ้าของ: ${item.ownerName} | สินค้า: ${item.productName} | หมวดพืช: ${item.cropCategory} (${cropDisplay}) | ขนาด: ${sizeText}${item.experimentDetail ? ` | วิธีทดลอง: ${item.experimentDetail}` : ""}`;
-        })
-        .join(", ");
-      summaryParts.push(
-        `[ติดตามแปลงสาธิต] รายการแปลงสาธิต (${type7Items.length} รายการ): ${demoSummary || "ไม่มีรายการ"}`,
-      );
-    }
-
-    if (
-      selectedWorkTypes.includes("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")
-    ) {
-      const meetingSummary = type8Items
-        .map((item, i) => {
-          const prodsText =
-            item.targetProducts && item.targetProducts.length > 0
-              ? ` | สินค้าเป้าหมาย: ${item.targetProducts.join(", ")}`
-              : "";
-          return `${i + 1}. หัวข้อ: ${item.topic}${prodsText} | ผู้เข้าร่วม: ${item.attendeesCount} คน${item.detail ? ` (${item.detail})` : ""}`;
-        })
-        .join(", ");
-      summaryParts.push(
-        `[จัดประชุม] รายการประชุม (${type8Items.length} รายการ): ${meetingSummary || "ไม่มีรายการ"}`,
-      );
-    }
-
-    if (selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")) {
-      const itemsText = type9ProductItems
-        .map(
-          (item, i) =>
-            `${i + 1}. ${item.productName} (${item.quantityCases} ลัง @ ฿${item.pricePerCase.toLocaleString()}/ลัง = ฿${(item.quantityCases * item.pricePerCase).toLocaleString()})`,
-        )
-        .join(", ");
-      const calculatedSales = type9ProductItems.reduce(
-        (sum, item) =>
-          sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
-        0,
-      );
-      const finalSales = calculatedSales > 0 ? calculatedSales : type9Sales;
-      const storeText =
-        type9IsSubDealer && type9SubDealerStore
-          ? `${type9Store} (ร้าน Sub Dealer: ${type9SubDealerStore})`
-          : type9Store;
-      summaryParts.push(
-        `[กิจกรรมหน้าร้าน] ร้านค้า: ${storeText} | เป้ายอดขายรวม: ${finalSales.toLocaleString()} บาท | สินค้า: ${itemsText || type9Products || "ไม่ระบุ"}`,
-      );
-    }
-
-    if (selectedWorkTypes.includes("จัดงาน Field Day")) {
-      summaryParts.push(
-        `[Field Day] แปลงสาธิต: ${type10DemoPlot} | สถานที่: ${type10Location} | พืชเป้าหมาย: ${type10TargetCrop} | สินค้าโชว์: ${type10Showcase} | เป้าผู้ร่วมงาน: ${type10Attendees} คน | เป้ายอดจอง: ${type10BookingSales.toLocaleString()} บาท`,
-      );
-    }
-
-    if (selectedWorkTypes.includes("ตรวจเช็กสต็อกหน้าร้าน")) {
-      summaryParts.push(`[ตรวจเช็กสต็อก] ร้านค้า: ${type11Stores}`);
-    }
-
-    if (selectedWorkTypes.includes("ทัวร์")) {
-      if (type12TourType === "ทัวร์กลาง") {
-        summaryParts.push(
-          `[ทัวร์กลาง] ขนาดทัวร์: ${type12TourSize} | ประเทศ: ${type12Country}`,
-        );
-      } else if (type12TourType === "ทัวร์ร้านค้า") {
-        summaryParts.push(
-          `[ทัวร์ร้านค้า] ร้านค้า: ${type12Store} | สถานที่จะไป: ${type12Destination}`,
-        );
-      } else {
-        summaryParts.push(`[ทัวร์]`);
-      }
-    }
-    const compiledObjective = summaryParts.join("\n") || title;
-
     // Validation for Work Type 12: ทัวร์
     if (selectedWorkTypes.includes("ทัวร์")) {
       if (!type12TourType) {
@@ -2069,29 +1880,8 @@ export function ActivityPlanForm({
       }
     }
 
-    // Serialize materials & sales promotions into description
-    const marketingProductSummary = marketingProductItems
-      .map(
-        (item, i) =>
-          `${i + 1}. [${item.category || "สื่อส่งเสริมการขาย"}] ${item.productName} (${item.quantityCases} ${item.unit || "ชิ้น"} @ ฿${(item.pricePerCase || 0).toLocaleString()}/หน่วย = ฿${((item.quantityCases || 0) * (item.pricePerCase || 0)).toLocaleString()})`,
-      )
-      .join("\n");
-
-    const salesPromotionSummary = salesPromotionItems
-      .map(
-        (item, i) =>
-          `${i + 1}. [${item.budgetType || "งบการตลาด"}] ${item.detail} - ฿${(item.amount || 0).toLocaleString()}`,
-      )
-      .join("\n");
-
-    const materialSummary = requisitionItems
-      .map(
-        (item, i) =>
-          `${i + 1}. ${item.productName} (${item.quantity} ${item.unit}) - ${item.detail}`,
-      )
-      .join("\n");
-
-    const compiledDescription = `[วัตถุประสงค์งาน]\n${compiledObjective}${isPromotionalMediaSelected && marketingProductSummary ? `\n\n[สื่อส่งเสริมการขาย]\n${marketingProductSummary}` : ""}${isSalesPromotionSelected && salesPromotionSummary ? `\n\n[รายการส่งเสริมการขาย]\n${salesPromotionSummary}` : ""}${materialSummary ? `\n\n[รายการขอเบิกสินค้า]\n${materialSummary}` : ""}`;
+    const cleanObjective = title.trim();
+    const cleanDescription = notes.trim() || null;
 
     // Budgets mapping
     let salesPromotionBudget: number | null = null;
@@ -2300,35 +2090,16 @@ export function ActivityPlanForm({
             });
           }
         } else if (workType === "จัดงาน Field Day") {
-          if (type10DemoPlot) {
-            allItemsToSend.push({
-              itemType: "TYPE_10",
-              customerName: type10DemoPlot,
-              plotOwnerName: type10DemoPlot,
-              plotCropName: type10TargetCrop || null,
-              plotProductName: type10Showcase || null,
-              meetingAttendeesCount: type10Attendees
-                ? Number(type10Attendees)
-                : null,
-              saleTotalPrice: type10BookingSales
-                ? Number(type10BookingSales)
-                : null,
-              targetAttendees: type10Attendees ? Number(type10Attendees) : null,
-              bookingSales: type10BookingSales
-                ? Number(type10BookingSales)
-                : null,
-              targetSales: type10BookingSales
-                ? Number(type10BookingSales)
-                : null,
-              detail: `[Field Day] แปลงสาธิต: ${type10DemoPlot} | สถานที่: ${type10Location} | พืชเป้าหมาย: ${type10TargetCrop} | สินค้าโชว์: ${type10Showcase} | เป้าผู้ร่วมงาน: ${type10Attendees} คน | เป้ายอดจอง: ฿${Number(type10BookingSales || 0).toLocaleString()}`,
-            });
-          }
+          allItemsToSend.push({
+            itemType: "TYPE_10",
+            detail: "จัดงานวันถ่ายทอดเทคโนโลยีการเกษตร (Field Day)",
+          });
         } else if (workType === "ตรวจเช็กสต็อกหน้าร้าน") {
           if (type11Stores) {
             allItemsToSend.push({
               itemType: "TYPE_11",
               customerName: type11Stores,
-              detail: `ตรวจเช็กสต็อกหน้าร้าน: ${type11Stores}`,
+              detail: "ตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน",
             });
           }
         } else if (workType === "ทัวร์") {
@@ -2336,14 +2107,14 @@ export function ActivityPlanForm({
             allItemsToSend.push({
               itemType: "TYPE_12",
               visitTopic: "ทัวร์กลาง",
-              detail: `[ทัวร์กลาง] ขนาดทัวร์: ${type12TourSize} | ประเทศ: ${type12Country}`,
+              detail: "ทัศนศึกษาดูงานต่างประเทศ",
             });
           } else if (type12TourType === "ทัวร์ร้านค้า") {
             allItemsToSend.push({
               itemType: "TYPE_12",
               visitTopic: "ทัวร์ร้านค้า",
               customerName: type12Store,
-              detail: `[ทัวร์ร้านค้า] ร้านค้า: ${type12Store} | สถานที่จะไป: ${type12Destination}`,
+              detail: "ทัศนศึกษาดูงานสำหรับร้านค้าตัวแทน",
             });
           }
         }
@@ -2475,8 +2246,8 @@ export function ActivityPlanForm({
         location: hasLocationRequirement
           ? locationText
           : locationText.trim() || "ไม่ระบุสถานที่",
-        objective: compiledObjective,
-        description: compiledDescription,
+        objective: cleanObjective,
+        description: cleanDescription,
         salesPromotionBudgetRequested: salesPromotionBudget,
         marketingBudgetRequested: marketingBudget,
         notes: extraNotes,

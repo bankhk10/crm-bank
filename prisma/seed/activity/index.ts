@@ -89,7 +89,6 @@ if (process.argv[1]?.includes("activity")) {
     throw new Error("DATABASE_URL environment variable is not set");
   }
 
-  // @ts-expect-error adapter type mismatch
   const adapter = new PrismaPg({ connectionString });
   const prisma = new PrismaClient({ adapter });
 

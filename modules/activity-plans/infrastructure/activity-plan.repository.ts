@@ -330,6 +330,7 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
 
 /**
  * Helper to generate Activity Plan Code (format: TPYYMMXXXX)
+ * Uses strict regex parsing, transaction advisory lock, and collision protection.
  */
 export async function generateActivityPlanCode(
   tx: Prisma.TransactionClient | typeof db,
@@ -339,23 +340,39 @@ export async function generateActivityPlanCode(
   const monthStr = String(date.getMonth() + 1).padStart(2, "0");
   const prefix = `TP${yearStr}${monthStr}`;
 
-  const lastPlan = await tx.activityPlan.findFirst({
+  // 1. Transaction-level advisory lock to serialize concurrent code generation for the same monthly prefix
+  try {
+    await (tx as any).$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${prefix}))`;
+  } catch {
+    // If not supported or outside transaction, proceed with regex-based scan
+  }
+
+  // 2. Fetch all existing plans matching the prefix
+  const existingPlans = await tx.activityPlan.findMany({
     where: {
       code: { startsWith: prefix },
     },
-    orderBy: { code: "desc" },
     select: { code: true },
   });
 
-  let seq = 1;
-  if (lastPlan?.code && lastPlan.code.length >= prefix.length + 4) {
-    const lastSeq = parseInt(lastPlan.code.slice(-4), 10);
-    if (!isNaN(lastSeq)) {
-      seq = lastSeq + 1;
+  // 3. Extract max numeric sequence strictly matching TPYYMM\d{4}
+  let maxSeq = 0;
+  const codeRegex = new RegExp(`^${prefix}(\\d{4})$`);
+
+  for (const p of existingPlans) {
+    if (p.code) {
+      const match = p.code.match(codeRegex);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (!isNaN(num) && num > maxSeq) {
+          maxSeq = num;
+        }
+      }
     }
   }
 
-  const seqStr = String(seq).padStart(4, "0");
+  const nextSeq = maxSeq + 1;
+  const seqStr = String(nextSeq).padStart(4, "0");
   return `${prefix}${seqStr}`;
 }
 
@@ -405,27 +422,34 @@ export type CreateActivityPlanInput = {
 };
 
 /**
- * Create a new ActivityPlan inside a transaction
+ * Create a new ActivityPlan inside a transaction with automatic retry on collision
  */
 export async function createActivityPlan(input: CreateActivityPlanInput) {
-  return db.$transaction(async (tx) => {
-    const code = input.code || (await generateActivityPlanCode(tx, input.startDate));
-    const fiscal = computeFiscalFields(input.startDate, input.endDate);
+  const maxRetries = 5;
+  let attempt = 0;
+  let lastError: any = null;
 
-    const spRequested = input.salesPromotionBudgetRequested ?? 0;
-    const mktRequested = input.marketingBudgetRequested ?? 0;
-    const totalRequested = spRequested + mktRequested;
+  while (attempt < maxRetries) {
+    attempt++;
+    try {
+      return await db.$transaction(async (tx) => {
+        const code = input.code || (await generateActivityPlanCode(tx, input.startDate));
+        const fiscal = computeFiscalFields(input.startDate, input.endDate);
 
-    let primaryCode = "TYPE_1";
-    if (input.workTypeCodes && input.workTypeCodes.length > 0) {
-      primaryCode = getWorkTypeCode(input.workTypeCodes[0]);
-    } else if (input.activityTypeId) {
-      primaryCode = getWorkTypeCode(input.activityTypeId);
-    }
-    const resolvedPrimaryTypeId = await resolveActivityTypeId(primaryCode, tx);
+        const spRequested = input.salesPromotionBudgetRequested ?? 0;
+        const mktRequested = input.marketingBudgetRequested ?? 0;
+        const totalRequested = spRequested + mktRequested;
 
-    // 1. Create main ActivityPlan
-    const plan = await tx.activityPlan.create({
+        let primaryCode = "TYPE_1";
+        if (input.workTypeCodes && input.workTypeCodes.length > 0) {
+          primaryCode = getWorkTypeCode(input.workTypeCodes[0]);
+        } else if (input.activityTypeId) {
+          primaryCode = getWorkTypeCode(input.activityTypeId);
+        }
+        const resolvedPrimaryTypeId = await resolveActivityTypeId(primaryCode, tx);
+
+        // 1. Create main ActivityPlan
+        const plan = await tx.activityPlan.create({
       data: {
         code,
         title: input.title,
@@ -618,7 +642,18 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
     });
 
     return plan;
-  });
+      });
+    } catch (err: any) {
+      lastError = err;
+      if (err?.code === "P2002" && !input.code && attempt < maxRetries) {
+        // Collision detected on code; retry after a tiny jitter
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * 50 + 20));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastError;
 }
 
 /**
