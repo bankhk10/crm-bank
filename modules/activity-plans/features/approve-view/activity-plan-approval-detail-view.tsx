@@ -339,30 +339,15 @@ export default function ActivityPlanApprovalDetailView({
       <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
         {/* ─── 1. TOP HEADER (APPROVAL DETAIL) - Patterned after ActualViewHeader ─── */}
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
-          {/* Back button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="text-xs text-slate-500 hover:text-slate-800 self-start sm:self-auto gap-1.5 rounded-xl -ml-2 cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>กลับหน้ารายการอนุมัติ</span>
-          </Button>
-
           {/* Center: Icon + Title */}
           <div className="sm:absolute sm:left-1/2 sm:-translate-x-1/2 flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100 shadow-2xs">
               <ShieldCheck className="w-6 h-6 stroke-[2.2]" />
             </div>
-
             <div>
               <h1 className="font-bold text-lg sm:text-2xl text-slate-800 tracking-tight whitespace-nowrap">
                 รายละเอียดแผนงานสำหรับการอนุมัติ
               </h1>
-              <p className="text-xs text-slate-500 font-medium">
-                ( Trip Plan Approval Detail )
-              </p>
             </div>
           </div>
 
@@ -374,7 +359,6 @@ export default function ActivityPlanApprovalDetailView({
                 <span>เลขที่แผน: {plan.code || planSummary.planNo}</span>
               </div>
             )}
-            <ActivityStatusBadge status={plan.status} />
           </div>
         </div>
 
@@ -421,11 +405,6 @@ export default function ActivityPlanApprovalDetailView({
             </div>
           </div>
 
-          {/* ─── BUDGETS & MARKETING MATERIALS SECTIONS (MATCHING ACTUAL VIEW) ─── */}
-          <BudgetSection summary={planSummary} />
-          <PromotionalMaterialsSection summary={planSummary} />
-          <MarketingExpenseSection summary={planSummary} />
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {/* Card 3: ผู้จัดทำแผน */}
             <div className="bg-[#f8fafc] border border-slate-200/80 rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs">
@@ -439,72 +418,44 @@ export default function ActivityPlanApprovalDetailView({
                 <p className="text-sm font-bold text-slate-900 truncate">
                   {plan.employee?.name || "-"}
                 </p>
-                <p className="text-xs text-slate-500 truncate">
-                  {plan.employee?.positionTitle ||
-                    plan.employee?.position?.name ||
-                    "-"}{" "}
-                  •{" "}
-                  {plan.employee?.departmentName ||
-                    plan.employee?.department?.name ||
-                    "-"}
-                </p>
               </div>
             </div>
 
             {/* Card 4: สถานที่จัดงาน */}
             <div className="bg-[#f8fafc] border border-slate-200/80 rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs">
               <div className="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
-                <MapPin className="w-5 h-5" />
+                <Layers className="w-4 h-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-slate-500 font-medium mb-0.5">
-                  สถานที่จัดงาน
-                </p>
-                <p
-                  className="text-sm font-bold text-slate-800 truncate"
-                  title={plan.location}
-                >
-                  {plan.location || "-"}
-                </p>
-                <p className="text-xs text-slate-500 truncate">
-                  {[
-                    plan.district ? `อ.${plan.district}` : "",
-                    plan.province ? `จ.${plan.province}` : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ") || "-"}
-                </p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-slate-500 font-medium mb-0.5">
+                    ประเภทงานที่ระบุในแผน ({resolvedWorkTypes.length} ประเภท):
+                  </p>
+                  <p className="text-sm font-bold text-slate-900 truncate">
+                    {resolvedWorkTypes.map((wt, idx) => (
+                      <Badge
+                        key={idx}
+                        variant="outline"
+                        className={cn(
+                          "text-xs px-2.5 py-1 font-semibold rounded-lg border shadow-2xs",
+                          wt.code === "TYPE_12"
+                            ? "bg-sky-50 text-sky-800 border-sky-200"
+                            : "bg-indigo-50 text-indigo-800 border-indigo-200",
+                        )}
+                      >
+                        {wt.name}
+                      </Badge>
+                    ))}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Card 5: ประเภทงานที่เลือก */}
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
-                <Layers className="w-4 h-4" />
-              </div>
-              <span className="text-xs font-bold text-slate-700">
-                ประเภทงานที่ระบุในแผน ({resolvedWorkTypes.length} ประเภท):
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {resolvedWorkTypes.map((wt, idx) => (
-                <Badge
-                  key={idx}
-                  variant="outline"
-                  className={cn(
-                    "text-xs px-2.5 py-1 font-semibold rounded-lg border shadow-2xs",
-                    wt.code === "TYPE_12"
-                      ? "bg-sky-50 text-sky-800 border-sky-200"
-                      : "bg-indigo-50 text-indigo-800 border-indigo-200",
-                  )}
-                >
-                  {wt.name}
-                </Badge>
-              ))}
-            </div>
-          </div>
+          {/* ─── BUDGETS & MARKETING MATERIALS SECTIONS (MATCHING ACTUAL VIEW) ─── */}
+          <BudgetSection summary={planSummary} />
+          <PromotionalMaterialsSection summary={planSummary} />
+          <MarketingExpenseSection summary={planSummary} />
 
           {/* Card 6: หมายเหตุเพิ่มเติม (ถ้ามี) */}
           {plan.notes && (
@@ -693,7 +644,9 @@ export default function ActivityPlanApprovalDetailView({
                     เป้ายอดขายรวม
                   </span>
                   <span className="font-bold text-blue-700 block text-xs sm:text-sm">
-                    {targets.t3.targetSales ? `${targets.t3.targetSales} ฿` : "-"}
+                    {targets.t3.targetSales
+                      ? `${targets.t3.targetSales} ฿`
+                      : "-"}
                   </span>
                 </div>
               </div>
@@ -737,7 +690,8 @@ export default function ActivityPlanApprovalDetailView({
               ) : (
                 targets.t3.product && (
                   <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-700">
-                    สินค้าเป้าหมาย: <span className="font-bold">{targets.t3.product}</span>
+                    สินค้าเป้าหมาย:{" "}
+                    <span className="font-bold">{targets.t3.product}</span>
                     {targets.t3.targetQty && ` (จำนวน ${targets.t3.targetQty})`}
                   </div>
                 )
@@ -948,7 +902,8 @@ export default function ActivityPlanApprovalDetailView({
                     วัตถุประสงค์ของแปลง
                   </span>
                   <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t7.objective || "ทดสอบและสาธิตประสิทธิภาพผลิตภัณฑ์ในแปลงจริง"}
+                    {targets.t7.objective ||
+                      "ทดสอบและสาธิตประสิทธิภาพผลิตภัณฑ์ในแปลงจริง"}
                   </span>
                 </div>
 
@@ -966,7 +921,9 @@ export default function ActivityPlanApprovalDetailView({
                     พืชปลูก & ผลิตภัณฑ์
                   </span>
                   <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {[targets.t7.crop, targets.t7.product].filter(Boolean).join(" • ") || "-"}
+                    {[targets.t7.crop, targets.t7.product]
+                      .filter(Boolean)
+                      .join(" • ") || "-"}
                   </span>
                 </div>
 
@@ -1030,7 +987,9 @@ export default function ActivityPlanApprovalDetailView({
                     เป้าหมายผู้เข้าร่วม
                   </span>
                   <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t8.targetAttendees ? `${targets.t8.targetAttendees} คน` : "-"}
+                    {targets.t8.targetAttendees
+                      ? `${targets.t8.targetAttendees} คน`
+                      : "-"}
                   </span>
                 </div>
 
@@ -1095,7 +1054,9 @@ export default function ActivityPlanApprovalDetailView({
                     เป้าหมายผู้เข้าร่วม
                   </span>
                   <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-                    {targets.t9.targetAttendees ? `${targets.t9.targetAttendees} คน` : "-"}
+                    {targets.t9.targetAttendees
+                      ? `${targets.t9.targetAttendees} คน`
+                      : "-"}
                   </span>
                 </div>
               </div>
@@ -1185,7 +1146,9 @@ export default function ActivityPlanApprovalDetailView({
                   <span className="font-bold text-slate-800 block text-xs sm:text-sm">
                     {[
                       targets.t10.showcase,
-                      targets.t10.targetAttendees ? `ผู้เข้าร่วม ${targets.t10.targetAttendees} คน` : "",
+                      targets.t10.targetAttendees
+                        ? `ผู้เข้าร่วม ${targets.t10.targetAttendees} คน`
+                        : "",
                     ]
                       .filter(Boolean)
                       .join(" • ") || "-"}
@@ -1259,6 +1222,18 @@ export default function ActivityPlanApprovalDetailView({
               destination={tourDestination}
             />
           )}
+        </div>
+
+        {/* Card 5: ประเภทงานที่เลือก */}
+        <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
+              <Layers className="w-4 h-4" />
+            </div>
+            <span className="text-xs font-bold text-slate-700">
+              สถานที่จัดงาน : {plan.location || "-"}
+            </span>
+          </div>
         </div>
 
         {/* ─── 5. HELPERS SECTION (NORMALIZED) ─── */}
