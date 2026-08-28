@@ -484,9 +484,6 @@ export default function ActivityPlanApprovalDetailView({
                 รายละเอียดตามประเภทงาน (Work Type Details)
               </h3>
             </div>
-            <span className="text-xs text-slate-400 font-medium">
-              แสดงข้อมูลวัตถุประสงค์และเป้าหมายตามประเภทงานจริง
-            </span>
           </div>
 
           {/* TYPE_1: เข้าพบร้านค้า / Key Farmer */}
@@ -539,7 +536,10 @@ export default function ActivityPlanApprovalDetailView({
 
           {/* TYPE_9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน */}
           <ApprovalType9Store
-            isVisible={isTypeActive("TYPE_9", "จัดกิจกรรมส่งเสริมการขายหน้าร้าน")}
+            isVisible={isTypeActive(
+              "TYPE_9",
+              "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+            )}
             target={targets.t9}
           />
 
