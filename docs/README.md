@@ -1,243 +1,636 @@
 # CRM System Documentation
 
-> **Single Source of Truth** สำหรับ AI Agents และทีมพัฒนา  
-> **Version**: 2.0.0 | **Updated**: 2026-02-24
+> **Purpose**: Central documentation index and entry point for AI Agents and the development team  
+> **Version**: 3.0.0  
+> **Updated**: 2026-08-28
 
 ---
 
 ## 📚 Document Index
 
-### Global Documentation (System-Wide)
+### Global Documentation
 
-| Document | Description | Read First |
-|---|---|:---:|
-| [AI_CONTEXT.md](./AI_CONTEXT.md) | ภาพรวมระบบ, เป้าหมาย, กฎการทำงาน AI | ⭐ YES |
-| [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md) | คำศัพท์, Entity, Status, Business Rules | ⭐ YES |
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | สถาปัตยกรรม, Module Layers, Flows | |
-| [DATA_MODEL.md](./DATA_MODEL.md) | ERD, Tables, Relationships | |
-| [RBAC_POLICY.md](./RBAC_POLICY.md) | Roles, Permissions, Access Levels | |
-| [CODING_STANDARDS.md](./CODING_STANDARDS.md) | Coding Style, Patterns | |
-| [DECISIONS.md](./DECISIONS.md) | Architecture Decision Records (ADRs) | |
-| [local-database-development.md](./local-database-development.md) | คู่มือการพัฒนาและจัดการฐานข้อมูลจำลองในเครื่อง (Local DB) | |
-
-### Module Documentation (Domain & Specific Architecture)
-
-| Module | Documentation Path | Key Topics |
-|---|---|---|
-| **Activity Plans** | [`modules/activity-plans/docs/`](../modules/activity-plans/docs/README.md) | [Architecture](../modules/activity-plans/docs/architecture.md), [Data Flow Audit](../modules/activity-plans/docs/audit/data-flow-audit.md), [Post-Impl Audit](../modules/activity-plans/docs/audit/post-implementation-audit.md) |
-| **Products & Stock** | [`modules/products/docs/`](../modules/products/docs/README.md) | [Stock Reservation Business Rules](../modules/products/docs/stock-reservation-business-rules.md), [Stock Invariant Audits](../modules/products/docs/audit/stock-reserved-negative-global-audit.md) |
+| Document                                                         | Description                                 | Read First |
+| ---------------------------------------------------------------- | ------------------------------------------- | :--------: |
+| [AI_CONTEXT.md](./AI_CONTEXT.md)                                 | ภาพรวมระบบ, เป้าหมาย, AI working rules      |   ⭐ YES   |
+| [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md)                       | คำศัพท์, Entity, Status, Business Rules     |   ⭐ YES   |
+| [ARCHITECTURE.md](./ARCHITECTURE.md)                             | สถาปัตยกรรมระบบและ Technical Boundaries     |   ⭐ YES   |
+| [MODULE_ARCHITECTURE.md](./MODULE_ARCHITECTURE.md)               | มาตรฐานโครงสร้างและ Layer ของทุก Module     |   ⭐ YES   |
+| [CODING_STANDARDS.md](./CODING_STANDARDS.md)                     | Coding Style, Naming, Implementation Rules  |   ⭐ YES   |
+| [DATA_MODEL.md](./DATA_MODEL.md)                                 | Database Entities, Relations และ Data Rules |            |
+| [RBAC_POLICY.md](./RBAC_POLICY.md)                               | Roles, Permissions และ Access Levels        |            |
+| [DECISIONS.md](./DECISIONS.md)                                   | Architecture Decision Records (ADRs)        |            |
+| [local-database-development.md](./local-database-development.md) | คู่มือ Local Database                       |            |
 
 ---
 
-## 🎯 Quick Start for AI Agents
+## 📦 Module Documentation
 
-### Step 1: Understand Context
+Module-specific documentation belongs with the relevant module:
 
-```
-1. Read AI_CONTEXT.md first
-2. Review DOMAIN_GLOSSARY.md for terminology
-3. Check ARCHITECTURE.md for module structure
-4. Check relevant sections as needed
-```
-
-### Step 2: Trust Hierarchy
-
-```
-LEVEL 1 (Highest): prisma/schema.prisma
-LEVEL 2 (High):    modules/*/server/actions.ts, modules/*/application/**/*.ts
-LEVEL 3 (Medium):  modules/*/types/**/*.ts, types/**/*.ts
-LEVEL 4 (Ref):     docs/**/*.md
+```text
+modules/<module-name>/
+├── README.md
+└── docs/
 ```
 
-### Step 3: Key Files
+Typical detailed documentation may include:
 
+```text
+docs/
+├── architecture.md
+├── data-flow.md
+├── business-rules.md
+├── database.md
+└── audit/
 ```
-Schema:             prisma/schema.prisma
-DB Client:          lib/db.ts
-Auth:               lib/auth.ts
-RBAC:               lib/rbac.ts
-Modules:            modules/           ← ⭐ Primary module location
-Reference Module:   modules/employee/  ← Reference implementation
-Shared Components:  components/custom/ ← TruncatedCell, ActionButton, DetailItem
-Pages:              app/(main)/
+
+Only create documentation that is actually needed.
+
+### Current Module Documentation
+
+| Module               | Documentation Path                                                | Key Topics                                     |
+| -------------------- | ----------------------------------------------------------------- | ---------------------------------------------- |
+| **Activity Plans**   | [`modules/activity-plans/docs/`](../modules/activity-plans/docs/) | Architecture, Data Flow, Business Rules, Audit |
+| **Products & Stock** | [`modules/products/docs/`](../modules/products/docs/)             | Stock Rules, Data Flow, Audits                 |
+
+More modules should be added here when module-specific documentation is created.
+
+---
+
+# 🤖 Quick Start for AI Agents
+
+Before creating, modifying, refactoring, or reviewing code:
+
+## Step 1: Read the Rules
+
+Read:
+
+```text
+.agents/skills/crm-coding-standards/SKILL.md
+```
+
+This contains the mandatory executable rules for coding tasks.
+
+---
+
+## Step 2: Read Project Context
+
+Read the relevant documents:
+
+```text
+docs/AI_CONTEXT.md
+docs/ARCHITECTURE.md
+docs/MODULE_ARCHITECTURE.md
+docs/CODING_STANDARDS.md
+```
+
+Then read only the additional documentation relevant to the task.
+
+---
+
+## Step 3: Inspect the Existing Implementation
+
+Before creating something new:
+
+1. Inspect the target module.
+2. Search for similar features.
+3. Search for existing shared components.
+4. Search for existing application logic.
+5. Search for existing repositories.
+6. Search for existing Server Action patterns.
+7. Reuse an existing project pattern whenever possible.
+
+> **No existing module is the permanent architecture authority.**
+
+The project architecture is defined by the documentation and Module Architecture Contract.
+
+---
+
+## Step 4: Check the Database When Relevant
+
+For database-related work:
+
+```text
+prisma/schema.prisma
+```
+
+is the primary source of truth for:
+
+- Models
+- Fields
+- Relations
+- Enums
+- Constraints
+- Indexes
+
+---
+
+## Step 5: Follow the Standard Data Flow
+
+Typical read:
+
+```text
+UI
+ ↓
+Server / Application
+ ↓
+Infrastructure / Repository
+ ↓
+Database
+```
+
+Typical write:
+
+```text
+UI
+ ↓
+Server Action
+ ↓
+Authentication
+ ↓
+Permission
+ ↓
+Application
+ ↓
+Validation / Business Rules
+ ↓
+Infrastructure / Repository
+ ↓
+Database
+ ↓
+Revalidation
 ```
 
 ---
 
-## 🤖 AI Reading Commands (เพื่ออัปเดตฟีเจอร์ในอนาคต)
+# 🏗️ System Overview
 
-> ใช้คำสั่งด้านล่างเพื่อเก็บ context ล่าสุดก่อนเพิ่มฟีเจอร์ใหม่
-
-```bash
-# 1) ตรวจ schema และ enum ล่าสุด (source of truth)
-sed -n '1,200p' prisma/schema.prisma
-
-# 2) ดูโครงสร้าง modules ทั้งหมด
-find modules -maxdepth 2 -type d
-
-# 3) ดู reference module (employee)
-find modules/employee -type f
-
-# 4) ดู Server Actions ทุก module
-find modules -name 'actions.ts' -path '*/server/*'
-
-# 5) ดู API routes ที่ยังใช้อยู่
-find app/api -maxdepth 3 -type f -name 'route.ts'
-
-# 6) ตรวจ RBAC seed เพื่อดู permission ล่าสุด
-sed -n '1,200p' prisma/seed/rbac.ts
+```text
+┌────────────────────┐
+│       Client       │
+│ Next.js + React UI │
+└─────────┬──────────┘
+          │
+          ▼
+┌─────────────────────────────┐
+│          Modules            │
+│                             │
+│ features                    │
+│    ↓                        │
+│ server                      │
+│    ↓                        │
+│ application                 │
+│    ↓                        │
+│ infrastructure              │
+└────────────┬────────────────┘
+             │
+             ▼
+┌─────────────────────────────┐
+│ Prisma + PostgreSQL         │
+└─────────────────────────────┘
 ```
 
 ---
 
-## 🏗️ System Overview
+# 📋 Core Business Flows
 
+## Sale Flow
+
+```text
+Create
+  ↓
+Submit
+  ↓
+Approve
+  ↓
+Pay (when applicable)
+  ↓
+Deliver
+  ↓
+Complete
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│    Customer     │────▶│      Sale       │◀────│    Employee     │
-│  (DEALER etc.)  │     │  (Order Flow)   │     │  (Sales Team)   │
-└────────┬────────┘     └────────┬────────┘     └────────┬────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  Credit Limit   │     │    SaleItem     │     │     Points      │
-│  (วงเงิน)        │     │   + Product     │     │  (คะแนนสะสม)     │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
+
+Alternative paths include rejection, correction, cancellation, partial delivery, and overdue handling according to the domain rules.
+
+See:
+
+- [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md)
+- [DATA_MODEL.md](./DATA_MODEL.md)
+
+---
+
+## Credit Flow
+
+```text
+Customer
+   │
+   ├── CreditLimit
+   │
+   └── TemporaryCreditLimit
+          ↓
+       Request
+          ↓
+       Approve
+          ↓
+        Use
+          ↓
+       Expire / Revert
 ```
 
 ---
 
-## 📋 Core Business Flows
+## Points Flow
 
-### Sale Flow
-
-```
-Create → Submit → Approve → Pay → Deliver → Complete
-                    ↓
-               Reject/Cancel
-```
-
-### Credit Flow
-
-```
-Customer → CreditLimit (permanent)
-        → TemporaryCreditLimit (request → approve → use → expire)
-```
-
-### Points Flow
-
-```
-Sale COMPLETED → Calculate per SaleItem → EmployeePointHistory → Summary
+```text
+Sale COMPLETED
+      ↓
+Calculate per SaleItem
+      ↓
+EmployeePointHistory
+      ↓
+Point Summary
 ```
 
 ---
 
-## 🔐 RBAC Summary
+# 🔐 RBAC Summary
 
-| Role    | View | Edit | Approve |
-| ------- | ---- | ---- | ------- |
-| Admin   | ALL  | ALL  | ALL     |
-| Manager | DEPT | DEPT | YES     |
-| Sales   | OWN  | OWN  | NO      |
-| Viewer  | ALL  | NONE | NO      |
+RBAC is enforced primarily at the server boundary.
 
----
+Typical flow:
 
-## 🛠️ Tech Stack
-
-| Layer     | Technology                                   |
-| --------- | -------------------------------------------- |
-| Frontend  | Next.js 16.1.5, React 19.2.0, Tailwind CSS 4 |
-| Backend   | Next.js Server Actions + API Routes          |
-| ORM       | Prisma 7.x                                   |
-| Database  | PostgreSQL 15+                               |
-| Auth      | NextAuth.js 5.0.0-beta.30                    |
-| Container | Docker                                       |
-
----
-
-## 📦 Enterprise Modules
-
-> **Pattern**: `modules/[MODULE_NAME]/` with layered architecture  
-> **Reference**: `modules/employee/` — ดูตัวอย่างเต็ม
-
-### Module Architecture
-
+```text
+Authentication
+      ↓
+Permission
+      ↓
+Data Access Scope
+      ↓
+Application Logic
 ```
-modules/[MODULE_NAME]/
-├── infrastructure/              ← Database access (repository)
-├── application/                 ← Business logic (use cases)
-├── server/                      ← Transport (server actions)
-├── features/                    ← UI screens
-│   ├── list-view/
-│   ├── form/
-│   └── detail-view/
-├── ui/                          ← Module-specific UI components
-├── types/                       ← Type definitions
+
+The detailed and current RBAC policy is documented in:
+
+```text
+docs/RBAC_POLICY.md
+```
+
+The RBAC source of truth is:
+
+```text
+prisma/seed/rbac.ts
+```
+
+---
+
+# 🛠️ Tech Stack
+
+| Layer          | Technology                                   |
+| -------------- | -------------------------------------------- |
+| Frontend       | Next.js 16.1.5, React 19.2.0, Tailwind CSS 4 |
+| UI Components  | shadcn/ui, Radix UI, Lucide Icons            |
+| Backend        | Next.js Server Actions + legacy API Routes   |
+| ORM            | Prisma 7.x                                   |
+| Database       | PostgreSQL 15+                               |
+| Authentication | NextAuth.js v5                               |
+| Authorization  | Custom RBAC                                  |
+| Container      | Docker + Docker Compose                      |
+
+---
+
+# 📁 Project Structure
+
+```text
+crm-bank/
+├── .agents/
+│   ├── skills/
+│   │   ├── crm-coding-standards/
+│   │   │   └── SKILL.md
+│   │   └── vercel-react-best-practices/
+│   │       ├── SKILL.md
+│   │       ├── AGENTS.md
+│   │       └── rules/
+│   └── workflows/
+│       ├── create-feature-ui-first.md
+│       └── refactor-module-structure.md
+│
+├── app/
+├── modules/
+├── components/
+├── lib/
+├── prisma/
+├── types/
+└── docs/
+```
+
+---
+
+# 📦 Module Standard
+
+Every business module under:
+
+```text
+modules/
+```
+
+follows the Module Architecture Contract.
+
+Standard structure:
+
+```text
+modules/<module-name>/
+├── application/
+├── features/
+├── infrastructure/
+├── server/
+├── types/
+├── ui/
 ├── constants.ts
-├── index.ts                     ← Barrel exports
+├── index.ts
 └── README.md
 ```
 
-| Module | Path | Description | Status |
-|---|---|---|:---:|
-| **activity-plans** | `modules/activity-plans/` | แผนงานและผลการทำกิจกรรม (Trip Plan) | ✅ |
-| **employee** | `modules/employee/` | ⭐ Reference implementation | ✅ |
-| **customers**               | `modules/customers/`               | ลูกค้าและผู้ดูแล            | ✅     |
-| **companies**               | `modules/companies/`               | บริษัทและองค์กร             | ✅     |
-| **products**                | `modules/products/`                | สินค้า กลุ่มสินค้า และราคา  | ✅     |
-| **sales**                   | `modules/sales/`                   | ใบขายและ approval flow      | ✅     |
-| **fulfillment**             | `modules/fulfillment/`             | การจัดส่งสินค้า             | ✅     |
-| **credit-limits**           | `modules/credit-limits/`           | วงเงินเครดิตถาวร            | ✅     |
-| **temporary-credit-limits** | `modules/temporary-credit-limits/` | วงเงินเครดิตชั่วคราว        | ✅     |
-| **sales-targets**           | `modules/sales-targets/`           | เป้าหมายยอดขาย              | ✅     |
-| **shipping-companies**      | `modules/shipping-companies/`      | บริษัทขนส่ง                 | ✅     |
-| **rbac**                    | `modules/rbac/`                    | การจัดการสิทธิ์             | ✅     |
-| **notifications**           | `modules/notifications/`           | ระบบแจ้งเตือน               | ✅     |
-| **layout**                  | `modules/layout/`                  | Components สำหรับ Layout    | ✅     |
+Not every module must contain every folder/file.
 
-### Usage Example
+Create only the folders and files required by the module.
 
-```tsx
-// Import from module
-import { EmployeeTable, EmployeeForm } from "@/modules/employee";
-import { CompaniesTable, CompanyForm } from "@/modules/companies";
+The standard dependency direction is:
+
+```text
+features/
+    ↓
+server/
+    ↓
+application/
+    ↓
+infrastructure/
+    ↓
+database
+```
+
+Detailed rules:
+
+[MODULE_ARCHITECTURE.md](./MODULE_ARCHITECTURE.md)
+
+---
+
+# 🧠 AI Agent Architecture
+
+AI development configuration is maintained under:
+
+```text
+.agents/
+```
+
+## Skills
+
+```text
+.agents/skills/
+```
+
+Skills define rules and standards that the Agent follows.
+
+Primary project Skill:
+
+```text
+.agents/skills/crm-coding-standards/SKILL.md
+```
+
+React/Next.js performance Skill:
+
+```text
+.agents/skills/vercel-react-best-practices/SKILL.md
 ```
 
 ---
 
-## ⚠️ Important Rules
+## Workflows
+
+```text
+.agents/workflows/
+```
+
+Current workflows:
+
+```text
+create-feature-ui-first.md
+refactor-module-structure.md
+```
+
+Workflows define development procedures.
+
+They must remain consistent with:
+
+```text
+docs/MODULE_ARCHITECTURE.md
+docs/CODING_STANDARDS.md
+.agents/skills/crm-coding-standards/SKILL.md
+```
+
+---
+
+# 🧭 Documentation Authority
+
+Use each document according to its responsibility.
+
+```text
+Project Architecture
+    → docs/ARCHITECTURE.md
+
+Module Architecture
+    → docs/MODULE_ARCHITECTURE.md
+
+Coding Standards
+    → docs/CODING_STANDARDS.md
+
+AI Executable Rules
+    → .agents/skills/crm-coding-standards/SKILL.md
+
+Domain Terminology / Business Context
+    → docs/DOMAIN_GLOSSARY.md
+
+Database Structure
+    → prisma/schema.prisma
+
+RBAC Definitions
+    → prisma/seed/rbac.ts
+
+Actual Runtime Behavior
+    → Current source code
+```
+
+Do not assume that one document is the authority for every type of information.
+
+---
+
+# ✅ Before Creating a New Module
+
+Use this sequence:
+
+```text
+Requirement
+    ↓
+Read AI Skill
+    ↓
+Read Module Architecture Contract
+    ↓
+Inspect Similar Modules
+    ↓
+Inspect Shared Components
+    ↓
+Define Required Features
+    ↓
+Create Only Required Structure
+    ↓
+Implement
+    ↓
+Validate
+    ↓
+Document
+```
+
+Do not use an existing module as the permanent architecture authority.
+
+Existing modules are implementation references only.
+
+---
+
+# 🔄 Before Refactoring a Module
+
+Use this sequence:
+
+```text
+Current Module
+    ↓
+Audit Current Structure
+    ↓
+Read Module Architecture Contract
+    ↓
+Map Responsibilities
+    ↓
+Move to Correct Layers
+    ↓
+Update Imports / Exports
+    ↓
+Cleanup
+    ↓
+Validate
+    ↓
+Update Documentation
+```
+
+Preserve existing behavior unless behavior change is explicitly required.
+
+---
+
+# ⚠️ Important Rules
 
 ### DO
 
-- ✅ Use `lib/db.ts` for Prisma client
-- ✅ Include `where: { deletedAt: null }` in queries
-- ✅ Check permissions in server actions
-- ✅ Use transactions for multi-step operations
-- ✅ Follow the 4-layer module architecture
-- ✅ Use shared components from `@/components/custom/`
+- ✅ Follow `docs/MODULE_ARCHITECTURE.md`
+- ✅ Follow `docs/CODING_STANDARDS.md`
+- ✅ Follow `.agents/skills/crm-coding-standards/SKILL.md`
+- ✅ Reuse existing project patterns
+- ✅ Use `lib/db.ts` for the shared Prisma client
+- ✅ Check permissions in protected Server Actions
+- ✅ Use soft delete where applicable
+- ✅ Use transactions when required
+- ✅ Keep database access in `infrastructure/`
+- ✅ Keep business logic in `application/`
+- ✅ Keep Server Actions thin
+- ✅ Keep UI separate from direct database access
+- ✅ Update documentation when meaningful changes are made
 
 ### DON'T
 
-- ❌ Create new Prisma client instances
-- ❌ Hard delete records
-- ❌ Skip permission checks in server actions
-- ❌ Use `any` types
+- ❌ Use an existing module as the permanent architecture authority
+- ❌ Invent new architectural layers without justification
+- ❌ Bypass established layers
+- ❌ Create duplicate shared components without reason
+- ❌ Create a new database client inside a module
+- ❌ Hard-delete soft-deletable records
+- ❌ Skip server-side permission checks
 - ❌ Put business logic in `server/actions.ts`
-- ❌ Put database queries in `application/` layer
+- ❌ Put database queries directly in UI
+- ❌ Modify unrelated modules
+- ❌ Mark work complete without validation
 
 ---
 
-## 📝 Changelog
+# 🔍 Validation Before Completion
 
-| Date       | Changes                                                         |
-| ---------- | --------------------------------------------------------------- |
-| 2026-02-24 | Major update: modules/ architecture, removed old features/ refs |
-| 2026-02-09 | Updated AI reading commands + feature module list (v1.2.0)      |
-| 2026-02-04 | Added feature modules structure (v1.1.0)                        |
-| 2026-01-28 | Initial documentation created (v1.0.0)                          |
+Before an AI Agent considers a coding task complete:
+
+```text
+Architecture
+✓ Correct Module
+✓ Correct Layer
+✓ Correct Dependency Direction
+✓ No Layer Bypass
+✓ No Circular Dependency
+
+Database
+✓ Correct Repository
+✓ Soft Delete handled when applicable
+✓ Transaction used when required
+
+Server
+✓ Authentication
+✓ Permission
+✓ Application
+✓ Revalidation
+
+UI
+✓ Mobile-First
+✓ Shared Components checked
+✓ No direct Database Access
+
+Quality
+✓ Type Check
+✓ Lint
+✓ Relevant Tests
+✓ No Broken Imports
+
+Documentation
+✓ Module README updated when required
+✓ Relevant Documentation updated
+```
+
+The complete validation rules are defined in:
+
+```text
+docs/CODING_STANDARDS.md
+```
 
 ---
 
-**Maintained by**: Development Team  
-**For questions**: See AI_CONTEXT.md for decision framework
+# 📖 Related Documents
+
+- [AI_CONTEXT.md](./AI_CONTEXT.md)
+- [ARCHITECTURE.md](./ARCHITECTURE.md)
+- [MODULE_ARCHITECTURE.md](./MODULE_ARCHITECTURE.md)
+- [CODING_STANDARDS.md](./CODING_STANDARDS.md)
+- [DATA_MODEL.md](./DATA_MODEL.md)
+- [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md)
+- [RBAC_POLICY.md](./RBAC_POLICY.md)
+- [DECISIONS.md](./DECISIONS.md)
+
+---
+
+# 📝 Documentation Maintenance
+
+When changing project architecture:
+
+1. Update the appropriate Source of Truth.
+2. Update dependent documentation.
+3. Update AI Skill rules when Agent behavior must change.
+4. Update Workflows when development procedures change.
+5. Update affected Module documentation.
+6. Validate links and references.
+
+Do not allow multiple documents to define conflicting versions of the same architectural rule.
+
+---
+
+**Maintained by**: Development Team
