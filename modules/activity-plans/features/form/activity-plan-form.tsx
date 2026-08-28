@@ -234,20 +234,33 @@ export function ActivityPlanForm({
     };
   }, [initialDemoPlots]);
   // Format initial dates
-  const parseInitialDate = (date?: Date | string) => {
+  // กำหนด defaultTime ให้เป็น "08:00" ถ้าไม่ได้ส่งเข้ามา
+  const parseInitialDate = (
+    date?: Date | string,
+    defaultTime: string = "08:00",
+  ) => {
     if (!date)
-      return { dateStr: format(new Date(), "yyyy-MM-dd"), timeStr: "08:00" };
+      return {
+        dateStr: format(new Date(), "yyyy-MM-dd"),
+        timeStr: defaultTime,
+      };
+
     const d = typeof date === "string" ? new Date(date) : date;
     if (isNaN(d.getTime()))
-      return { dateStr: format(new Date(), "yyyy-MM-dd"), timeStr: "08:00" };
+      return {
+        dateStr: format(new Date(), "yyyy-MM-dd"),
+        timeStr: defaultTime,
+      };
+
     return {
       dateStr: format(d, "yyyy-MM-dd"),
       timeStr: format(d, "HH:mm"),
     };
   };
 
+  // เรียกใช้งาน: startDate ใช้ 08:00 ส่วน endDate ส่ง "09:00" เข้าไป
   const initStart = parseInitialDate(initial.startDate);
-  const initEnd = parseInitialDate(initial.endDate);
+  const initEnd = parseInitialDate(initial.endDate, "09:00");
 
   // Form Basic State
   const [title, setTitle] = useState(initial.title ?? "");
@@ -261,9 +274,17 @@ export function ActivityPlanForm({
     const detectedTypes = new Set<string>();
 
     // 1. Direct check from normalized relation
-    if ((initial as any)?.workTypes && Array.isArray((initial as any).workTypes) && (initial as any).workTypes.length > 0) {
+    if (
+      (initial as any)?.workTypes &&
+      Array.isArray((initial as any).workTypes) &&
+      (initial as any).workTypes.length > 0
+    ) {
       const typesFromRelation = (initial as any).workTypes
-        .map((wt: any) => wt.activityType?.name || getWorkTypeName(wt.activityTypeId || wt.workTypeCode))
+        .map(
+          (wt: any) =>
+            wt.activityType?.name ||
+            getWorkTypeName(wt.activityTypeId || wt.workTypeCode),
+        )
         .filter(Boolean);
       if (typesFromRelation.length > 0) {
         return WORK_TYPES.filter((t) => typesFromRelation.includes(t));
@@ -1395,7 +1416,9 @@ export function ActivityPlanForm({
   // Work Type 12: ทัวร์
   const [type12TourType, setType12TourType] = useState<string>(() => {
     if ((initial as any)?.tour) {
-      return (initial as any).tour.tourType === "STORE" ? "ทัวร์ร้านค้า" : "ทัวร์กลาง";
+      return (initial as any).tour.tourType === "STORE"
+        ? "ทัวร์ร้านค้า"
+        : "ทัวร์กลาง";
     }
     if (initDetails?.type12TourType) return initDetails.type12TourType;
     if (Array.isArray(initDetails)) {
@@ -1417,7 +1440,9 @@ export function ActivityPlanForm({
 
   const [type12TourSize, setType12TourSize] = useState<string>(() => {
     if ((initial as any)?.tour) {
-      return (initial as any).tour.tourSize === "LARGE" ? "ทัวร์ใหญ่" : "ทัวร์เล็ก";
+      return (initial as any).tour.tourSize === "LARGE"
+        ? "ทัวร์ใหญ่"
+        : "ทัวร์เล็ก";
     }
     if (initDetails?.type12TourSize) return initDetails.type12TourSize;
     if (Array.isArray(initDetails)) {
@@ -2354,33 +2379,73 @@ export function ActivityPlanForm({
 
       const tourData = selectedWorkTypes.includes("ทัวร์")
         ? {
-            tourType: type12TourType === "ทัวร์ร้านค้า" ? ("STORE" as const) : ("CENTRAL" as const),
-            tourSize: type12TourSize === "ทัวร์ใหญ่" ? ("LARGE" as const) : ("SMALL" as const),
+            tourType:
+              type12TourType === "ทัวร์ร้านค้า"
+                ? ("STORE" as const)
+                : ("CENTRAL" as const),
+            tourSize:
+              type12TourSize === "ทัวร์ใหญ่"
+                ? ("LARGE" as const)
+                : ("SMALL" as const),
             country: type12Country.trim() || null,
-            storeId: customersList.find((c) => c.name === type12Store)?.id || null,
+            storeId:
+              customersList.find((c) => c.name === type12Store)?.id || null,
             destination: type12Destination.trim() || null,
           }
         : null;
 
-      const planStores: Array<{ workTypeCode: string; storeId: string; storeName?: string | null; remarks?: string | null }> = [];
-      const planProducts: Array<{ workTypeCode: string; storeId?: string | null; productId: string; productName?: string | null; targetQuantity?: number | null; unitPrice?: number | null; targetAmount?: number | null }> = [];
+      const planStores: Array<{
+        workTypeCode: string;
+        storeId: string;
+        storeName?: string | null;
+        remarks?: string | null;
+      }> = [];
+      const planProducts: Array<{
+        workTypeCode: string;
+        storeId?: string | null;
+        productId: string;
+        productName?: string | null;
+        targetQuantity?: number | null;
+        unitPrice?: number | null;
+        targetAmount?: number | null;
+      }> = [];
 
       // Extract stores & products
       if (selectedWorkTypes.includes("เข้าพบร้านค้า / Key Farmer")) {
         type1Items.forEach((item) => {
-          const storeMatch = customersList.find((c) => c.name === item.customerName);
+          const storeMatch = customersList.find(
+            (c) => c.name === item.customerName,
+          );
           if (storeMatch) {
-            planStores.push({ workTypeCode: "TYPE_1", storeId: storeMatch.id, storeName: storeMatch.name, remarks: item.topic });
+            planStores.push({
+              workTypeCode: "TYPE_1",
+              storeId: storeMatch.id,
+              storeName: storeMatch.name,
+              remarks: item.topic,
+            });
           }
         });
       }
 
       if (selectedWorkTypes.includes("เสนอขายสินค้า")) {
         type3Items.forEach((item) => {
-          const storeMatch = customersList.find((c) => c.name === item.customerName);
-          const pList = item.products && item.products.length > 0 ? item.products : [{ productName: item.productName || "", quantity: item.quantity || 1, unitPrice: item.unitPrice || 0 }];
+          const storeMatch = customersList.find(
+            (c) => c.name === item.customerName,
+          );
+          const pList =
+            item.products && item.products.length > 0
+              ? item.products
+              : [
+                  {
+                    productName: item.productName || "",
+                    quantity: item.quantity || 1,
+                    unitPrice: item.unitPrice || 0,
+                  },
+                ];
           pList.forEach((p) => {
-            const pMatch = productsList.find((prod) => prod.name === p.productName);
+            const pMatch = productsList.find(
+              (prod) => prod.name === p.productName,
+            );
             if (pMatch) {
               planProducts.push({
                 workTypeCode: "TYPE_3",
