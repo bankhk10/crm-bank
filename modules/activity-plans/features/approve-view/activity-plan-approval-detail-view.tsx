@@ -47,6 +47,11 @@ import {
   ApprovalActionDialog,
   type ApprovalActionType,
 } from "./components/approval-action-dialog";
+import {
+  BudgetSection,
+  PromotionalMaterialsSection,
+  MarketingExpenseSection,
+} from "../actual-view/components";
 import { extractPlanData } from "../actual-view/utils";
 import type { PlanSummaryData, ActualTargetsState } from "../actual-view/types";
 
@@ -414,7 +419,14 @@ export default function ActivityPlanApprovalDetailView({
                 </p>
               </div>
             </div>
+          </div>
 
+          {/* ─── BUDGETS & MARKETING MATERIALS SECTIONS (MATCHING ACTUAL VIEW) ─── */}
+          <BudgetSection summary={planSummary} />
+          <PromotionalMaterialsSection summary={planSummary} />
+          <MarketingExpenseSection summary={planSummary} />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {/* Card 3: ผู้จัดทำแผน */}
             <div className="bg-[#f8fafc] border border-slate-200/80 rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs">
               <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100">
@@ -1248,143 +1260,6 @@ export default function ActivityPlanApprovalDetailView({
             />
           )}
         </div>
-
-        {/* ─── 4. BUDGETS & MARKETING MATERIALS SECTION ─── */}
-        {(budgetTotal > 0 ||
-          (planSummary.marketingProductItems?.length ?? 0) > 0 ||
-          (planSummary.salesPromotionItems?.length ?? 0) > 0) && (
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-                  <DollarSign className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm sm:text-base text-slate-900">
-                    งบประมาณและสื่อส่งเสริมการขาย (Budgets & Marketing Materials)
-                  </h4>
-                  <p className="text-xs text-slate-500 font-medium">
-                    งบประมาณและสื่อที่ขออนุมัติใช้งานในแผนงานนี้
-                  </p>
-                </div>
-              </div>
-              <span className="text-sm sm:text-base font-extrabold text-emerald-700">
-                {budgetTotal > 0
-                  ? `ยอดของบรวม ${budgetTotal.toLocaleString()} ฿`
-                  : "ไม่มีงบประมาณ"}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-100">
-                <span className="text-slate-500 block text-[11px]">
-                  งบส่งเสริมการขายที่ขอ
-                </span>
-                <span className="text-sm font-bold text-slate-900">
-                  {salesPromo > 0
-                    ? `${salesPromo.toLocaleString()} ฿`
-                    : "ไม่ได้ระบุ"}
-                </span>
-              </div>
-              <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-100">
-                <span className="text-slate-500 block text-[11px]">
-                  งบการตลาดที่ขอ
-                </span>
-                <span className="text-sm font-bold text-slate-900">
-                  {marketing > 0
-                    ? `${marketing.toLocaleString()} ฿`
-                    : "ไม่ได้ระบุ"}
-                </span>
-              </div>
-            </div>
-
-            {/* สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถม) */}
-            {planSummary.marketingProductItems &&
-              planSummary.marketingProductItems.length > 0 && (
-                <div className="space-y-2 pt-2">
-                  <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <Boxes className="w-3.5 h-3.5 text-blue-600" />
-                    สื่อส่งเสริมการขาย ({planSummary.marketingProductItems.length} รายการ)
-                  </span>
-                  <div className="overflow-x-auto rounded-xl border border-slate-100">
-                    <table className="w-full text-xs text-left">
-                      <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
-                        <tr>
-                          <th className="p-2.5">รายการสื่อ</th>
-                          <th className="p-2.5 text-right">จำนวน</th>
-                          <th className="p-2.5 text-right">ราคาต่อหน่วย</th>
-                          <th className="p-2.5 text-right">ยอดรวม</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {planSummary.marketingProductItems.map((mItem, idx) => (
-                          <tr key={idx}>
-                            <td className="p-2.5 font-semibold text-slate-900">
-                              {mItem.productName}
-                            </td>
-                            <td className="p-2.5 text-right">
-                              {mItem.quantityCases} ชิ้น
-                            </td>
-                            <td className="p-2.5 text-right text-slate-600">
-                              {mItem.pricePerCase
-                                ? `${mItem.pricePerCase.toLocaleString()} ฿`
-                                : "-"}
-                            </td>
-                            <td className="p-2.5 text-right font-bold text-blue-700">
-                              {(
-                                (mItem.quantityCases || 0) *
-                                (mItem.pricePerCase || 0)
-                              ).toLocaleString()}{" "}
-                              ฿
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-            {/* รายการส่งเสริมการขาย */}
-            {planSummary.salesPromotionItems &&
-              planSummary.salesPromotionItems.length > 0 && (
-                <div className="space-y-2 pt-2">
-                  <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <Gift className="w-3.5 h-3.5 text-emerald-600" />
-                    รายการส่งเสริมการขาย ({planSummary.salesPromotionItems.length} รายการ)
-                  </span>
-                  <div className="overflow-x-auto rounded-xl border border-slate-100">
-                    <table className="w-full text-xs text-left">
-                      <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
-                        <tr>
-                          <th className="p-2.5">ประเภทงบ</th>
-                          <th className="p-2.5">รายละเอียด</th>
-                          <th className="p-2.5 text-right">จำนวนเงิน</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {planSummary.salesPromotionItems.map((spItem, idx) => (
-                          <tr key={idx}>
-                            <td className="p-2.5 font-medium text-slate-600">
-                              {spItem.budgetType}
-                            </td>
-                            <td className="p-2.5 text-slate-800">
-                              {spItem.detail || "-"}
-                            </td>
-                            <td className="p-2.5 text-right font-bold text-emerald-700">
-                              {spItem.amount != null
-                                ? `${spItem.amount.toLocaleString()} ฿`
-                                : "-"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-          </div>
-        )}
 
         {/* ─── 5. HELPERS SECTION (NORMALIZED) ─── */}
         {plan.helpers && plan.helpers.length > 0 && (
