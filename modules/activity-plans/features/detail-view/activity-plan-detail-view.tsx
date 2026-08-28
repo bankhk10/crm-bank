@@ -350,65 +350,10 @@ export default function ActivityPlanDetailView({
           }
         />
 
-        {/* 2. APPROVAL CONTEXT BANNER (SHOWS WHEN IN APPROVAL STAGE AND USER HAS PERMISSION) */}
-        {canPerformApproval && (
-          <div className="bg-gradient-to-r from-blue-50 via-indigo-50/60 to-blue-50 border border-blue-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold shrink-0 shadow-xs">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-sm sm:text-base text-blue-950">
-                    กำลังตรวจสอบแผนงานนี้เพื่อดำเนินการอนุมัติ
-                  </h3>
-                  <p className="text-xs text-blue-800/80 mt-0.5">
-                    {isDirectLineApprover
-                      ? "⚡ แผนงานนี้อยู่ในคิวการพิจารณาตามสายงานของคุณ"
-                      : isAdmin
-                        ? "👑 คุณมีสิทธิ์ Administrator ในการพิจารณาอนุมัติแผนงานนี้"
-                        : "ตรวจสอบรายละเอียดความถูกต้องก่อนดำเนินการตัดสินใจ"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Quick Action Buttons on Top Banner */}
-              <div className="flex items-center gap-2 self-end sm:self-auto">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleOpenActionDialog("REJECT")}
-                  className="text-xs text-red-600 border-red-200 hover:bg-red-50 rounded-xl h-9 font-semibold"
-                >
-                  <XCircle className="h-3.5 w-3.5 mr-1" />
-                  ปฏิเสธ
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleOpenActionDialog("REQUEST_CORRECTION")}
-                  className="text-xs text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl h-9 font-semibold"
-                >
-                  <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                  ส่งกลับแก้ไข
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => handleOpenActionDialog("APPROVE")}
-                  className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-xs rounded-xl h-9 px-4"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  อนุมัติแผนงาน
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 3. PLAN SUMMARY (ข้อมูลแผนงาน, งบประมาณและค่าใช้จ่าย, สื่อส่งเสริมการขาย, รายการส่งเสริมการขาย, ข้อมูลเพิ่มเติม) */}
+        {/* 2. PLAN SUMMARY (ข้อมูลแผนงาน, งบประมาณและค่าใช้จ่าย, สื่อส่งเสริมการขาย, รายการส่งเสริมการขาย, ข้อมูลเพิ่มเติม) */}
         <ActualPlanSummary summary={planSummary} />
 
-        {/* 4. TOUR DETAIL (TYPE_12: ทัวร์) - Normalized Relational Source of Truth (No Actual) */}
+        {/* 3. TOUR DETAIL (TYPE_12: ทัวร์) - Normalized Relational Source of Truth (No Actual) */}
         {isTourPlan && (
           <DetailType12Tour
             isVisible={true}
@@ -420,7 +365,7 @@ export default function ActivityPlanDetailView({
           />
         )}
 
-        {/* 5. SECTION: ผลการปฏิบัติงานตามประเภทงาน (WORK TYPES 1 - 11) (READ-ONLY) */}
+        {/* 4. SECTION: ผลการปฏิบัติงานตามประเภทงาน (WORK TYPES 1 - 11) (READ-ONLY) */}
         {!isTourOnly && (
           <DetailActivityResultSection
             isTypeVisible={isTypeVisible}
@@ -431,7 +376,7 @@ export default function ActivityPlanDetailView({
           />
         )}
 
-        {/* 6. SECTION: สถานะผลการทำกิจกรรม (READ-ONLY) - Not displayed for Tour-only plans */}
+        {/* 5. SECTION: สถานะผลการทำกิจกรรม (READ-ONLY) - Not displayed for Tour-only plans */}
         {!isTourOnly && parsedResults.activityResultStatus && (
           <DetailActivityStatusSection
             activityResultStatus={parsedResults.activityResultStatus}
@@ -443,7 +388,7 @@ export default function ActivityPlanDetailView({
           />
         )}
 
-        {/* 7. BOTTOM ACTIONS & APPROVAL ACTION BAR */}
+        {/* 6. BOTTOM ACTIONS & APPROVAL ACTION BAR */}
         <DetailViewActions
           onBack={handleBack}
           backLabel={fromApprovals ? "กลับหน้ารายการอนุมัติ" : "ย้อนกลับ"}
