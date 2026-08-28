@@ -529,19 +529,6 @@ export default function ActivityPlanDetailView({
               </span>
             </div>
           </div>
-
-          {/* หมายเหตุเพิ่มเติม */}
-          {plan.notes && (
-            <div className="pt-2 border-t border-slate-100">
-              <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                <FileText className="h-3.5 w-3.5 text-slate-600" />
-                หมายเหตุเพิ่มเติม
-              </h5>
-              <p className="text-xs sm:text-sm text-slate-600 bg-slate-50/60 p-3 rounded-xl border border-slate-100 leading-relaxed whitespace-pre-line">
-                {plan.notes}
-              </p>
-            </div>
-          )}
         </div>
 
         {/* 3. TYPE_12: TOUR SECTION (IF APPLICABLE) */}
@@ -950,6 +937,19 @@ export default function ActivityPlanDetailView({
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* หมายเหตุเพิ่มเติม */}
+        {plan.notes && (
+          <div className="pt-2 border-t border-slate-100">
+            <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+              <FileText className="h-3.5 w-3.5 text-slate-600" />
+              หมายเหตุเพิ่มเติม
+            </h5>
+            <p className="text-xs sm:text-sm text-slate-600 bg-slate-50/60 p-3 rounded-xl border border-slate-100 leading-relaxed whitespace-pre-line">
+              {plan.notes}
+            </p>
           </div>
         )}
 
