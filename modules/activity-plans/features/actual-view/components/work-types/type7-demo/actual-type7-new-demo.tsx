@@ -465,7 +465,7 @@ export function ActualType7NewDemo({
                 <FormCombobox
                   id="actual-product-combobox"
                   label="เลือกสินค้าที่ใช้จริง *"
-                  labelClassName="block text-xs font-bold text-slate-700 "
+                  labelClassName="block text-xs font-bold text-slate-700"
                   triggerClassName="h-10 text-xs sm:text-sm bg-white border-amber-300 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-amber-500"
                   value={actualProductId || effectivePlannedProductId || ""}
                   onChange={handleSelectProduct}
