@@ -113,7 +113,9 @@ export function ActualType7NewDemo({
   demoPlots: externalDemoPlots = [],
 }: ActualType7NewDemoProps) {
   const [isChangingProduct, setIsChangingProduct] = useState(false);
-  const [internalDemoPlots, setInternalDemoPlots] = useState<UserDemoPlotOption[]>([]);
+  const [internalDemoPlots, setInternalDemoPlots] = useState<
+    UserDemoPlotOption[]
+  >([]);
   const [selectedFarmPlotId, setSelectedFarmPlotId] = useState<string>("");
 
   // Load demo plots / farm plots list once on mount
@@ -132,9 +134,7 @@ export function ActualType7NewDemo({
   }, []);
 
   const demoPlotList =
-    externalDemoPlots.length > 0
-      ? externalDemoPlots
-      : internalDemoPlots;
+    externalDemoPlots.length > 0 ? externalDemoPlots : internalDemoPlots;
 
   // Filter plots belonging strictly to the selected farmer/owner
   const ownerNameClean = (target.owner || "").trim().toLowerCase();
@@ -154,7 +154,11 @@ export function ActualType7NewDemo({
     const found = farmerPlots.find((p) => p.id === plotId);
     if (found && setPlotName) {
       setPlotName(found.name || `แปลงสาธิต ${found.ownerName}`);
-      if (found.location && !plantingAreaCondition && setPlantingAreaCondition) {
+      if (
+        found.location &&
+        !plantingAreaCondition &&
+        setPlantingAreaCondition
+      ) {
         setPlantingAreaCondition(found.location);
       }
     }
@@ -180,8 +184,8 @@ export function ActualType7NewDemo({
 
   const isProductChanged = Boolean(
     actualProductId &&
-      effectivePlannedProductId &&
-      actualProductId !== effectivePlannedProductId,
+    effectivePlannedProductId &&
+    actualProductId !== effectivePlannedProductId,
   );
 
   const handleSelectProduct = (newProdId: string) => {
@@ -269,7 +273,8 @@ export function ActualType7NewDemo({
               ทำแปลงสาธิต (เริ่มทำแปลงใหม่)
             </h2>
             <p className="text-xs text-slate-500">
-              บันทึกข้อมูลการเริ่มต้นทำแปลงสาธิตใหม่ สินค้าที่ใช้จริง และภาพถ่ายสภาพแปลงเริ่มต้น
+              บันทึกข้อมูลการเริ่มต้นทำแปลงสาธิตใหม่ สินค้าที่ใช้จริง
+              และภาพถ่ายสภาพแปลงเริ่มต้น
             </p>
           </div>
         </div>
@@ -322,7 +327,8 @@ export function ActualType7NewDemo({
                 <SelectContent>
                   {farmerPlots.map((plot) => (
                     <SelectItem key={plot.id} value={plot.id}>
-                      {plot.name || `แปลง ${plot.targetCrop || plot.cropName || ""}`}
+                      {plot.name ||
+                        `แปลง ${plot.targetCrop || plot.cropName || ""}`}
                       {plot.areaRai ? ` (${plot.areaRai} ไร่)` : ""}
                     </SelectItem>
                   ))}
@@ -473,7 +479,8 @@ export function ActualType7NewDemo({
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  เหตุผลที่เปลี่ยนหน้างาน <span className="text-red-500">*</span>
+                  เหตุผลที่เปลี่ยนหน้างาน{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <Input
                   value={changeReason}
@@ -536,7 +543,8 @@ export function ActualType7NewDemo({
 
           <div className="space-y-1.5 md:col-span-2">
             <label className="text-xs sm:text-sm font-semibold text-slate-800">
-              วิธีการใช้สาร / สูตรยาตอนเริ่มต้น <span className="text-red-500">*</span>
+              วิธีการใช้สาร / สูตรยาตอนเริ่มต้น{" "}
+              <span className="text-red-500">*</span>
             </label>
             <Textarea
               rows={3}
