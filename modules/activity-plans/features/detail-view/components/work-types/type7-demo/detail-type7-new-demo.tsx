@@ -173,7 +173,7 @@ export function DetailType7NewDemo({
           {
             label: "จำนวนสินค้าที่ใช้:",
             value: target.demoProductQuantity
-              ? `${target.demoProductQuantity} ชิ้น/ขวด`
+              ? `${target.demoProductQuantity}`
               : "-",
           },
           {

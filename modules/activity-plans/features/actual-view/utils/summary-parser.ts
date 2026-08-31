@@ -62,6 +62,7 @@ export interface ParsedSummaryValues {
   t7ActualProductId?: string;
   t7PlannedProductName?: string;
   t7ActualProductName?: string;
+  t7DemoProductQuantity?: string | number;
   t7ChangeReason?: string;
   t7DemoResults?: Array<{
     id?: string;

@@ -61,6 +61,7 @@ export interface BuildSummaryInput {
   t7ActualProductId?: string | null;
   t7PlannedProductName?: string | null;
   t7ActualProductName?: string | null;
+  t7DemoProductQuantity?: string | number | null;
   t7ChangeReason?: string;
   t7DemoPlotId?: string | null;
   t7PlantingDate: string;

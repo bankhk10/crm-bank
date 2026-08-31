@@ -36,6 +36,8 @@ export interface ActualType7DemoProps {
   setPlannedProductId?: (id: string | null) => void;
   actualProductId?: string | null;
   setActualProductId?: (id: string | null) => void;
+  actualQuantity?: string | number;
+  setActualQuantity?: (qty: string) => void;
   changeReason?: string;
   setChangeReason?: (reason: string) => void;
   startDate?: string;
@@ -165,6 +167,8 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
       plannedProductId={props.plannedProductId}
       actualProductId={props.actualProductId}
       setActualProductId={props.setActualProductId}
+      actualQuantity={props.actualQuantity}
+      setActualQuantity={props.setActualQuantity}
       changeReason={props.changeReason}
       setChangeReason={props.setChangeReason}
       plotName={props.plotName}

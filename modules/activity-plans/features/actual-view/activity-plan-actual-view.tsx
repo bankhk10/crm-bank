@@ -236,6 +236,7 @@ export default function ActivityPlanActualView({
   const [t7ActualProductId, setT7ActualProductId] = useState<string | null>(
     null,
   );
+  const [t7ActualQuantity, setT7ActualQuantity] = useState("");
   const [t7ChangeReason, setT7ChangeReason] = useState("");
   const [t7UsageMethod, setT7UsageMethod] = useState("");
   const [t7PlantingDate, setT7PlantingDate] = useState("");
@@ -341,6 +342,11 @@ export default function ActivityPlanActualView({
             setT7PlannedProductId(extracted.targets.t7.plannedProductId);
           } else if (extracted.targets.t7?.productId) {
             setT7PlannedProductId(extracted.targets.t7.productId);
+          }
+          if (extracted.targets.t7?.demoProductQuantity) {
+            setT7ActualQuantity(
+              String(extracted.targets.t7.demoProductQuantity),
+            );
           }
 
           if (extracted.t7PlotIdentifier) {
@@ -556,6 +562,9 @@ export default function ActivityPlanActualView({
             }
             if (parsed.t7ActualProductId) {
               setT7ActualProductId(parsed.t7ActualProductId);
+            }
+            if (parsed.t7DemoProductQuantity) {
+              setT7ActualQuantity(String(parsed.t7DemoProductQuantity));
             }
             if (parsed.t7ChangeReason) {
               setT7ChangeReason(parsed.t7ChangeReason);
@@ -1077,6 +1086,8 @@ export default function ActivityPlanActualView({
             )?.name ||
             targets.t7?.product ||
             null,
+          t7DemoProductQuantity:
+            t7ActualQuantity || targets.t7?.demoProductQuantity || null,
           t7ChangeReason,
           t7DemoPlotId,
           t7PlantingDate,
@@ -1175,7 +1186,10 @@ export default function ActivityPlanActualView({
           isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง") &&
           (t7DemoPlotId || targets.t7.owner || targets.t7.product)
         ) {
-          const qty = parseCleanNumber(targets.t7.demoProductQuantity) ?? 0;
+          const qty =
+            parseCleanNumber(
+              t7ActualQuantity || targets.t7.demoProductQuantity,
+            ) ?? 0;
           await recordDemoPlotVisitAction({
             demoPlotId: t7DemoPlotId || targets.t7.owner || "plot-default",
             activityPlanId: id,
@@ -1341,6 +1355,8 @@ export default function ActivityPlanActualView({
             setT7PlannedProductId={setT7PlannedProductId}
             t7ActualProductId={t7ActualProductId}
             setT7ActualProductId={setT7ActualProductId}
+            t7ActualQuantity={t7ActualQuantity}
+            setT7ActualQuantity={setT7ActualQuantity}
             t7ChangeReason={t7ChangeReason}
             setT7ChangeReason={setT7ChangeReason}
             t7UsageMethod={t7UsageMethod}
