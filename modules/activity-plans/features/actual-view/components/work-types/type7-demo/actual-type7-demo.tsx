@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { DemoPlotStatus } from "@prisma/client";
+import type { DemoPlotStatus } from "@prisma/client";
 import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
 import {
   ActualType7NewDemo,

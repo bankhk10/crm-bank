@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DemoPlotStatus } from "@prisma/client";
+import type { DemoPlotStatus } from "@prisma/client";
 import { cn } from "@/lib/utils";
 import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
 import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
@@ -140,7 +140,7 @@ export function ActualType7FollowUp({
   setProductResponse,
   problemDescription = "",
   setProblemDescription,
-  plotStatus = DemoPlotStatus.IN_PROGRESS,
+  plotStatus = "IN_PROGRESS" as DemoPlotStatus,
   setPlotStatus,
   nextFollowUpDate = "",
   setNextFollowUpDate,
@@ -508,20 +508,20 @@ export function ActualType7FollowUp({
                 <SelectValue placeholder="เลือกสถานะแปลง" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={DemoPlotStatus.IN_PROGRESS}>
+                <SelectItem value="IN_PROGRESS">
                   🔄 อยู่ระหว่างการทดลอง (ต้องติดตามต่อ)
                 </SelectItem>
-                <SelectItem value={DemoPlotStatus.COMPLETED}>
+                <SelectItem value="COMPLETED">
                   ✅ เก็บเกี่ยว / สิ้นสุดการทดลอง (ปิดแปลง)
                 </SelectItem>
-                <SelectItem value={DemoPlotStatus.FAILED}>
+                <SelectItem value="FAILED">
                   ❌ ยุติการทดลอง (แปลงเสียหาย / ล้มเหลว)
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {plotStatus === DemoPlotStatus.IN_PROGRESS && (
+          {plotStatus === "IN_PROGRESS" && (
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-700">
                 กำหนดการติดตามครั้งถัดไป (Next Follow-up)
@@ -537,7 +537,7 @@ export function ActualType7FollowUp({
         </div>
 
         {/* Final Harvest Evaluation (เมื่อเลือก ปิดแปลง COMPLETED) */}
-        {plotStatus === DemoPlotStatus.COMPLETED && (
+        {plotStatus === "COMPLETED" && (
           <div className="pt-3 border-t border-emerald-200/80 space-y-4 bg-emerald-50/40 p-4 rounded-xl border border-emerald-200">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-emerald-600" />
