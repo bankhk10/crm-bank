@@ -16,9 +16,13 @@ import {
   Star,
   TrendingUp,
   Sparkles,
+  Package,
+  RotateCcw,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { FormCombobox } from "@/components/custom/form-components";
 import {
   Select,
   SelectContent,
@@ -68,17 +72,19 @@ export interface DemoPlotVisitHistoryItem {
   plotImageUrls?: string[];
   imageUrls?: string[];
   activityPlan?: {
-    code?: string | null;
-    title?: string | null;
-  } | null;
+    code?: string;
+    title?: string;
+  };
 }
 
 interface ActualType7DemoProps {
   isVisible: boolean;
   target: {
-    activityType?: "CREATE" | "FOLLOW_UP" | string;
+    activityType?: string;
     owner: string;
     product: string;
+    productId?: string;
+    plannedProductId?: string;
     crop: string;
     plots: string;
     targetCondition?: string;
@@ -88,6 +94,13 @@ interface ActualType7DemoProps {
     detail?: string;
     items?: TargetDemoItem[];
   };
+  products?: Array<{ id: string; name: string; productCode?: string | null }>;
+  plannedProductId?: string | null;
+  setPlannedProductId?: (id: string | null) => void;
+  actualProductId?: string | null;
+  setActualProductId?: (id: string | null) => void;
+  changeReason?: string;
+  setChangeReason?: (reason: string) => void;
   startDate?: string;
   actualDate?: string;
   productPrice?: number;
@@ -150,11 +163,14 @@ interface ActualType7DemoProps {
 export function ActualType7Demo({
   isVisible,
   target,
+  products = [],
+  plannedProductId,
+  actualProductId,
+  setActualProductId,
+  changeReason = "",
+  setChangeReason,
   startDate = "",
-  actualDate = "",
-  productPrice = 500,
   plotName,
-  setPlotName,
   usageMethod,
   setUsageMethod,
   plantingDate = "",
@@ -163,8 +179,6 @@ export function ActualType7Demo({
   setPlantingAreaCondition,
   cropImages = [],
   setCropImages,
-  onUploadCropImages,
-  onRemoveCropImage,
   cropAgeValue = "",
   setCropAgeValue,
   cropAgeUnit = "วัน",
@@ -181,8 +195,6 @@ export function ActualType7Demo({
   setProblemDescription,
   plotImages = [],
   setPlotImages,
-  onUploadImages,
-  onRemoveImage,
   plotStatus = "IN_PROGRESS",
   setPlotStatus,
   nextFollowUpDate = "",
@@ -201,9 +213,9 @@ export function ActualType7Demo({
   setFinalSummaryNotes,
   demoPlotData,
   visitHistory = [],
-  isHistoryLoading = false,
 }: ActualType7DemoProps) {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isChangingProduct, setIsChangingProduct] = useState(false);
 
   if (!isVisible) return null;
 
@@ -236,6 +248,43 @@ export function ActualType7Demo({
   };
 
   const totalVisitsCount = visitHistory.length;
+
+  const productOptions = (products || []).map((p) => ({
+    value: p.id,
+    label: p.productCode ? `${p.name} (${p.productCode})` : p.name,
+  }));
+
+  const plannedProd = (products || []).find(
+    (p) => p.id === plannedProductId || p.name === target.product,
+  );
+  const effectivePlannedProductId = plannedProductId || plannedProd?.id || null;
+  const plannedProductName = plannedProd?.name || target.product || "";
+
+  const actualProd = (products || []).find(
+    (p) => p.id === (actualProductId || effectivePlannedProductId),
+  );
+  const currentActualProductName =
+    actualProd?.name ||
+    (actualProductId === effectivePlannedProductId ? plannedProductName : "");
+
+  const isProductChanged = Boolean(
+    actualProductId &&
+      effectivePlannedProductId &&
+      actualProductId !== effectivePlannedProductId,
+  );
+
+  const handleSelectProduct = (newProdId: string) => {
+    setActualProductId?.(newProdId);
+    if (newProdId === effectivePlannedProductId) {
+      setChangeReason?.("");
+    }
+  };
+
+  const handleRevertToPlanned = () => {
+    setActualProductId?.(effectivePlannedProductId);
+    setChangeReason?.("");
+    setIsChangingProduct(false);
+  };
 
   // Handle Yield calculation
   const handleYieldChange = (finalVal: string, controlVal: string) => {
@@ -456,12 +505,27 @@ export function ActualType7Demo({
                 </span>
               </div>
               <div className="bg-white p-2.5 rounded-lg border border-slate-100/90 shadow-2xs">
-                <span className="text-slate-400 block text-[10px] mb-0.5 font-medium">
-                  สินค้าที่จะสาธิต
-                </span>
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-slate-400 block text-[10px] font-medium">
+                    สินค้าที่จะสาธิต
+                  </span>
+                  {isProductChanged && (
+                    <Badge
+                      variant="outline"
+                      className="bg-amber-50 text-amber-800 border-amber-300 text-[9px] font-bold px-1.5 py-0"
+                    >
+                      ⚠️ เปลี่ยนหน้างาน
+                    </Badge>
+                  )}
+                </div>
                 <span className="font-bold block break-words text-emerald-800 text-xs">
                   {target.product || "-"}
                 </span>
+                {isProductChanged && (
+                  <span className="text-[11px] font-bold text-amber-800 block mt-0.5">
+                    ใช้จริง: {currentActualProductName}
+                  </span>
+                )}
               </div>
               <div className="bg-white p-2.5 rounded-lg border border-slate-100/90 shadow-2xs">
                 <span className="text-slate-400 block text-[10px] mb-0.5 font-medium">
@@ -545,6 +609,159 @@ export function ActualType7Demo({
                   className="bg-white border-slate-300 text-xs"
                 />
               </div>
+            </div>
+
+            {/* สินค้าที่ใช้สาธิตจริง (Product Selection & Change Tracking) */}
+            <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 space-y-3 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                  <Package className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>สินค้าที่ใช้สาธิตจริง (Actual Product)</span>
+                </label>
+                {isProductChanged && (
+                  <Badge
+                    variant="outline"
+                    className="bg-amber-50 text-amber-800 border-amber-300 text-[11px] font-bold gap-1"
+                  >
+                    <AlertTriangle className="w-3 h-3 text-amber-600" />
+                    ⚠️ เปลี่ยนหน้างาน
+                  </Badge>
+                )}
+              </div>
+
+              {!isChangingProduct ? (
+                <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200/70">
+                  <div className="space-y-0.5">
+                    <div className="text-[11px] text-slate-400 font-medium">
+                      {isProductChanged
+                        ? "สินค้าที่ใช้จริงหน้างาน"
+                        : "สินค้าตามแผน"}
+                    </div>
+                    <div className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <span
+                        className={
+                          isProductChanged
+                            ? "text-amber-900"
+                            : "text-emerald-900"
+                        }
+                      >
+                        {currentActualProductName ||
+                          plannedProductName ||
+                          target.product ||
+                          "ไม่ได้ระบุสินค้า"}
+                      </span>
+                      {isProductChanged && plannedProductName && (
+                        <span className="text-[11px] font-normal text-slate-400 line-through">
+                          (เดิม: {plannedProductName})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsChangingProduct(true)}
+                      className="px-3 py-1.5 rounded-lg border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                    >
+                      <RotateCcw className="w-3 h-3 text-slate-500" />
+                      <span>
+                        {isProductChanged
+                          ? "แก้ไขสินค้า/เหตุผล"
+                          : "เปลี่ยนสินค้า"}
+                      </span>
+                    </button>
+
+                    {isProductChanged && (
+                      <button
+                        type="button"
+                        onClick={handleRevertToPlanned}
+                        className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                      >
+                        ใช้สินค้าตามแผน
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3.5 bg-amber-50/40 rounded-xl border border-amber-200/80 space-y-3">
+                  <div className="flex items-center justify-between border-b border-amber-200/60 pb-2">
+                    <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                      เปลี่ยนสินค้าสาธิตหน้างาน
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      สินค้าตามแผน:{" "}
+                      <span className="font-semibold text-slate-800">
+                        {plannedProductName || target.product}
+                      </span>
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                        <span>เลือกสินค้าใหม่ที่ใช้จริง</span>
+                        <span className="text-rose-500">*</span>
+                      </label>
+                      <FormCombobox
+                        id="t7-actual-product-select"
+                        label=""
+                        labelClassName="hidden"
+                        value={actualProductId || ""}
+                        options={productOptions}
+                        onChange={(val) => {
+                          if (val) handleSelectProduct(val);
+                        }}
+                        placeholder="-- ค้นหาหรือเลือกสินค้าใหม่ --"
+                        searchPlaceholder="พิมพ์ค้นหาชื่อสินค้า..."
+                        emptyText="ไม่พบรายการสินค้า"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                        <span>เหตุผลที่เปลี่ยนหน้างาน</span>
+                        <span className="text-rose-500">*</span>
+                      </label>
+                      <Input
+                        type="text"
+                        value={changeReason}
+                        onChange={(e) => setChangeReason?.(e.target.value)}
+                        placeholder="เช่น แมลงลงหนัก เกษตรกรขอเทสยาฆ่าแมลงก่อน"
+                        className="bg-white border-slate-300 text-xs"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setIsChangingProduct(false)}
+                        className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 text-xs font-medium hover:bg-slate-50 cursor-pointer"
+                      >
+                        ปิดฟอร์ม
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsChangingProduct(false)}
+                        className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs cursor-pointer"
+                      >
+                        ยืนยันสินค้า
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Display Reason preview if product is changed and changing form is closed */}
+              {isProductChanged && !isChangingProduct && changeReason && (
+                <div className="text-xs bg-amber-50/70 border border-amber-200/60 rounded-lg px-3 py-2 text-amber-900">
+                  <span className="font-semibold text-amber-800">
+                    เหตุผลที่เปลี่ยน:{" "}
+                  </span>
+                  <span>{changeReason}</span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">

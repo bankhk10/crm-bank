@@ -1030,6 +1030,15 @@ export function extractPlanData(
       items: t6ItemsFromDb || [],
     };
 
+    const t7PlanProduct =
+      p.products?.find(
+        (prod: any) =>
+          prod.workTypeCode === "TYPE_7" ||
+          (t7Item?.plotProductName &&
+            prod.productName === t7Item.plotProductName),
+      );
+    const resolvedT7ProductId = t7PlanProduct?.productId || undefined;
+
     targets.t7 = {
       ...prevTargets.t7,
       activityType:
@@ -1051,6 +1060,8 @@ export function extractPlanData(
           ).join(", ")) ||
         t7Item?.plotProductName ||
         "",
+      productId: resolvedT7ProductId,
+      plannedProductId: resolvedT7ProductId,
       crop:
         (t7ItemsFromDb &&
           Array.from(

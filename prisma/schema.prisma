@@ -685,6 +685,8 @@ model Product {
   activityResultSaleItems    ActivityResultSaleItem[]    @relation("ActivityResultSaleProductRef")
   activityResultStockItems   ActivityResultStockItem[]   @relation("ActivityResultStockProductRef")
   activityResultSurveyItems  ActivityResultSurveyItem[]  @relation("ActivityResultSurveyProductRef")
+  activityResultDemoPlannedItems ActivityResultDemoItem[] @relation("ActivityResultDemoPlannedProductRef")
+  activityResultDemoActualItems  ActivityResultDemoItem[] @relation("ActivityResultDemoActualProductRef")
   activityAttachments        ActivityAttachment[]        @relation("ActivityAttachmentProductRef")
 
   parentId String?
@@ -2005,6 +2007,9 @@ model ActivityResultDemoItem {
   id                 String         @id @default(cuid())
   activityResultId   String         @map("activity_result_id")
   demoPlotId         String?        @map("demo_plot_id")
+  plannedProductId   String?        @map("planned_product_id")
+  actualProductId    String?        @map("actual_product_id")
+  changeReason       String?        @map("change_reason")
   cropAgeValue       String?        @map("crop_age_value")
   cropAgeUnit        String?        @map("crop_age_unit")
   growthStage        String?        @map("growth_stage")
@@ -2016,9 +2021,13 @@ model ActivityResultDemoItem {
   satisfactionScore  Int?           @map("satisfaction_score")
 
   activityResult     ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
+  plannedProduct     Product?       @relation("ActivityResultDemoPlannedProductRef", fields: [plannedProductId], references: [id], onDelete: SetNull)
+  actualProduct      Product?       @relation("ActivityResultDemoActualProductRef", fields: [actualProductId], references: [id], onDelete: SetNull)
 
   @@index([activityResultId])
   @@index([demoPlotId])
+  @@index([plannedProductId])
+  @@index([actualProductId])
   @@map("activity_result_demo_items")
 }
 

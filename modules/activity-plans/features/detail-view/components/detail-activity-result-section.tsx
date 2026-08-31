@@ -116,6 +116,11 @@ export function DetailActivityResultSection({
         <DetailType7Demo
           isVisible={isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")}
           target={targets.t7}
+          plannedProductId={parsedResults.t7PlannedProductId}
+          actualProductId={parsedResults.t7ActualProductId}
+          plannedProductName={parsedResults.t7PlannedProductName}
+          actualProductName={parsedResults.t7ActualProductName}
+          changeReason={parsedResults.t7ChangeReason}
           plotName={parsedResults.t7PlotName}
           usageMethod={parsedResults.t7UsageMethod}
           plantingDate={parsedResults.t7PlantingDate}

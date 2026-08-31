@@ -131,6 +131,8 @@ export interface ActualTargetsState {
     activityType?: string;
     owner: string;
     product: string;
+    productId?: string;
+    plannedProductId?: string;
     crop: string;
     plots: string;
     demoProductQuantity: string;

@@ -39,6 +39,11 @@ interface DetailType7DemoProps {
     detail?: string;
     items?: any[];
   };
+  plannedProductId?: string | null;
+  actualProductId?: string | null;
+  plannedProductName?: string | null;
+  actualProductName?: string | null;
+  changeReason?: string | null;
   startDate?: string;
   plotName?: string;
   usageMethod?: string;
@@ -68,6 +73,11 @@ interface DetailType7DemoProps {
 export function DetailType7Demo({
   isVisible,
   target,
+  plannedProductId,
+  actualProductId,
+  plannedProductName,
+  actualProductName,
+  changeReason,
   plotName,
   usageMethod,
   plantingDate,
@@ -311,6 +321,63 @@ export function DetailType7Demo({
           </div>
 
           <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2 md:col-span-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-500 font-medium block">
+                สินค้าที่ใช้สาธิตจริง (Actual Product)
+              </span>
+              {(Boolean(
+                (actualProductId &&
+                  plannedProductId &&
+                  actualProductId !== plannedProductId) ||
+                  (actualProductName &&
+                    plannedProductName &&
+                    actualProductName !== plannedProductName) ||
+                  (changeReason && changeReason.trim().length > 0),
+              )) && (
+                <Badge
+                  variant="outline"
+                  className="bg-amber-50 text-amber-800 border-amber-300 font-bold gap-1 text-[11px]"
+                >
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                  ⚠️ เปลี่ยนหน้างาน
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 pt-0.5">
+              <span className="text-xs sm:text-sm font-bold text-slate-900">
+                {actualProductName || target.product || "-"}
+              </span>
+              {Boolean(
+                (actualProductId &&
+                  plannedProductId &&
+                  actualProductId !== plannedProductId) ||
+                  (actualProductName &&
+                    plannedProductName &&
+                    actualProductName !== plannedProductName) ||
+                  (changeReason && changeReason.trim().length > 0),
+              ) && (
+                <span className="text-xs text-slate-400">
+                  (สินค้าตามแผน:{" "}
+                  <span className="line-through">
+                    {plannedProductName || target.product}
+                  </span>
+                  )
+                </span>
+              )}
+            </div>
+
+            {changeReason && (
+              <div className="mt-2 text-xs bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-amber-900">
+                <span className="font-semibold text-amber-800">
+                  เหตุผลที่เปลี่ยนหน้างาน:{" "}
+                </span>
+                <span>{changeReason}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2 md:col-span-3">
             <span className="text-xs text-slate-500 font-medium block">
               วิธีการใช้สาร / สูตรยา
             </span>
@@ -533,7 +600,7 @@ export function DetailType7Demo({
         <DemoPlotHistoryModal
           isOpen={historyOpen}
           onClose={() => setHistoryOpen(false)}
-          plot={{ ...demoPlotData, visits: visitHistory }}
+          plot={{ ...demoPlotData, visits: visitHistory, status: plotStatus || demoPlotData?.status }}
         />
       )}
 

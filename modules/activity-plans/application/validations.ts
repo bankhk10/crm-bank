@@ -207,18 +207,41 @@ export const activityResultSchema = z
       .optional(),
     demoResults: z
       .array(
-        z.object({
-          demoPlotId: z.string().optional().nullable(),
-          cropAgeValue: z.string().optional().nullable(),
-          cropAgeUnit: z.string().optional().nullable(),
-          growthStage: z.string().optional().nullable(),
-          cropCondition: z.string().optional().nullable(),
-          productResponse: z.string().optional().nullable(),
-          problemDescription: z.string().optional().nullable(),
-          finalYieldKg: z.coerce.number().optional().nullable(),
-          controlYieldKg: z.coerce.number().optional().nullable(),
-          satisfactionScore: z.coerce.number().int().optional().nullable(),
-        })
+        z
+          .object({
+            demoPlotId: z.string().optional().nullable(),
+            plannedProductId: z.string().optional().nullable(),
+            actualProductId: z.string().optional().nullable(),
+            changeReason: z.string().optional().nullable(),
+            cropAgeValue: z.string().optional().nullable(),
+            cropAgeUnit: z.string().optional().nullable(),
+            growthStage: z.string().optional().nullable(),
+            cropCondition: z.string().optional().nullable(),
+            productResponse: z.string().optional().nullable(),
+            problemDescription: z.string().optional().nullable(),
+            finalYieldKg: z.coerce.number().optional().nullable(),
+            controlYieldKg: z.coerce.number().optional().nullable(),
+            satisfactionScore: z.coerce.number().int().optional().nullable(),
+          })
+          .refine(
+            (data) => {
+              if (
+                data.plannedProductId &&
+                data.actualProductId &&
+                data.plannedProductId !== data.actualProductId
+              ) {
+                return (
+                  typeof data.changeReason === "string" &&
+                  data.changeReason.trim().length > 0
+                );
+              }
+              return true;
+            },
+            {
+              message: "กรุณาระบุเหตุผลการเปลี่ยนสินค้าหน้างาน",
+              path: ["changeReason"],
+            },
+          ),
       )
       .optional(),
     attachments: z

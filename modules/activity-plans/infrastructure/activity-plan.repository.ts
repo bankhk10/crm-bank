@@ -225,7 +225,16 @@ export async function findActivityPlanById(id: string) {
               },
             },
           },
-          demoResults: true,
+          demoResults: {
+            include: {
+              plannedProduct: {
+                select: { id: true, name: true, productCode: true },
+              },
+              actualProduct: {
+                select: { id: true, name: true, productCode: true },
+              },
+            },
+          },
           attachments: true,
         },
       },
@@ -1139,6 +1148,9 @@ export type CreateActivityResultInput = {
   }>;
   demoResults?: Array<{
     demoPlotId?: string | null;
+    plannedProductId?: string | null;
+    actualProductId?: string | null;
+    changeReason?: string | null;
     cropAgeValue?: string | null;
     cropAgeUnit?: string | null;
     growthStage?: string | null;
@@ -1298,6 +1310,9 @@ export async function upsertActivityResult(input: CreateActivityResultInput) {
           data: input.demoResults.map((item) => ({
             activityResultId: result.id,
             demoPlotId: item.demoPlotId ?? null,
+            plannedProductId: item.plannedProductId ?? null,
+            actualProductId: item.actualProductId ?? null,
+            changeReason: item.changeReason ?? null,
             cropAgeValue: item.cropAgeValue ?? null,
             cropAgeUnit: item.cropAgeUnit ?? null,
             growthStage: item.growthStage ?? null,

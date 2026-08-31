@@ -111,6 +111,12 @@ interface ActivityResultSectionProps {
   t7ProductPrice: number;
   t7PlotName: string;
   setT7PlotName: (v: string) => void;
+  t7PlannedProductId?: string | null;
+  setT7PlannedProductId?: (v: string | null) => void;
+  t7ActualProductId?: string | null;
+  setT7ActualProductId?: (v: string | null) => void;
+  t7ChangeReason?: string;
+  setT7ChangeReason?: (v: string) => void;
   t7UsageMethod: string;
   setT7UsageMethod: (v: string) => void;
   t7PlantingDate: string;
@@ -278,6 +284,12 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     t7ProductPrice,
     t7PlotName,
     setT7PlotName,
+    t7PlannedProductId,
+    setT7PlannedProductId,
+    t7ActualProductId,
+    setT7ActualProductId,
+    t7ChangeReason,
+    setT7ChangeReason,
     t7UsageMethod,
     setT7UsageMethod,
     t7PlantingDate,
@@ -482,6 +494,13 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         <ActualType7Demo
           isVisible={isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")}
           target={targets.t7}
+          products={products}
+          plannedProductId={t7PlannedProductId}
+          setPlannedProductId={setT7PlannedProductId}
+          actualProductId={t7ActualProductId}
+          setActualProductId={setT7ActualProductId}
+          changeReason={t7ChangeReason}
+          setChangeReason={setT7ChangeReason}
           startDate={t7StartDate}
           actualDate={new Date().toISOString().split("T")[0]}
           productPrice={t7ProductPrice}

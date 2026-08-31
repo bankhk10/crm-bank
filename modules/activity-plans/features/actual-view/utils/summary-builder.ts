@@ -57,6 +57,12 @@ export interface BuildSummaryInput {
 
   // Type 7
   t7PlotName: string;
+  t7PlannedProductId?: string | null;
+  t7ActualProductId?: string | null;
+  t7PlannedProductName?: string | null;
+  t7ActualProductName?: string | null;
+  t7ChangeReason?: string;
+  t7DemoPlotId?: string | null;
   t7PlantingDate: string;
   t7PlantingAreaCondition: string;
   t7UsageMethod: string;
@@ -235,6 +241,23 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     }
   }
 
+  // Validate Type 7 Product Change
+  const isT7ProductChanged =
+    Boolean(input.t7ActualProductId) &&
+    Boolean(input.t7PlannedProductId) &&
+    input.t7ActualProductId !== input.t7PlannedProductId;
+
+  if (
+    isT7ProductChanged &&
+    (!input.t7ChangeReason || !input.t7ChangeReason.trim())
+  ) {
+    return {
+      validationError: "กรุณาระบุเหตุผลการเปลี่ยนสินค้าหน้างาน (Work Type 7)",
+      summaryParts: [],
+      payload: null,
+    };
+  }
+
   const statusLabel =
     activityResultStatus === "COMPLETED"
       ? "สำเร็จ"
@@ -330,6 +353,9 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       : null,
 
     // Type 7
+    isT7ProductChanged
+      ? `⚠️ เปลี่ยนสินค้าหน้างาน: ${input.t7ActualProductName || "สินค้าใหม่"} (สินค้าตามแผน: ${input.t7PlannedProductName || "สินค้าเดิม"}) เหตุผล: ${input.t7ChangeReason?.trim()}`
+      : null,
     t7PlotName ? `ชื่อแปลงทดสอบ: ${t7PlotName}` : null,
     t7PlantingDate ? `วันที่ปลูก: ${t7PlantingDate}` : null,
     t7PlantingAreaCondition
@@ -455,6 +481,41 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t8ActualAttendees || t9ActualAttendees || t10ActualAttendees,
   );
 
+  const hasType7Data =
+    Boolean(t7PlotName) ||
+    Boolean(t7PlantingDate) ||
+    Boolean(t7UsageMethod) ||
+    Boolean(t7CropAgeValue) ||
+    Boolean(t7GrowthStage) ||
+    Boolean(t7CropCondition) ||
+    Boolean(t7ProductResponse) ||
+    Boolean(input.t7ActualProductId) ||
+    Boolean(input.t7PlannedProductId) ||
+    Boolean(input.t7DemoPlotId);
+
+  const demoResults = hasType7Data
+    ? [
+        {
+          demoPlotId: input.t7DemoPlotId || null,
+          plannedProductId: input.t7PlannedProductId || null,
+          actualProductId:
+            input.t7ActualProductId || input.t7PlannedProductId || null,
+          changeReason: isT7ProductChanged
+            ? input.t7ChangeReason?.trim() || null
+            : null,
+          cropAgeValue: t7CropAgeValue || null,
+          cropAgeUnit: t7CropAgeUnit || null,
+          growthStage: t7GrowthStage || null,
+          cropCondition: t7CropCondition || null,
+          productResponse: t7ProductResponse || null,
+          problemDescription: t7ProblemDescription || null,
+          finalYieldKg: parseCleanNumber(t7FinalYieldKg),
+          controlYieldKg: parseCleanNumber(t7ControlYieldKg),
+          satisfactionScore: t7FarmerSatisfaction ?? null,
+        },
+      ]
+    : undefined;
+
   const payload = {
     actualStartDate: new Date(),
     actualEndDate: new Date(),
@@ -493,6 +554,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     salesResultAmount: salesResult,
     collectResultAmount: collectResult,
     demoPlotsCreated: t7PlotName ? 1 : 0,
+    demoResults,
   };
 
   return {

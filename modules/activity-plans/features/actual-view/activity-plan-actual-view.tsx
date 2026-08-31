@@ -230,6 +230,13 @@ export default function ActivityPlanActualView({
   const [t7StartDate, setT7StartDate] = useState("");
   const [t7ProductPrice] = useState(500);
   const [t7PlotName, setT7PlotName] = useState("");
+  const [t7PlannedProductId, setT7PlannedProductId] = useState<string | null>(
+    null,
+  );
+  const [t7ActualProductId, setT7ActualProductId] = useState<string | null>(
+    null,
+  );
+  const [t7ChangeReason, setT7ChangeReason] = useState("");
   const [t7UsageMethod, setT7UsageMethod] = useState("");
   const [t7PlantingDate, setT7PlantingDate] = useState("");
   const [t7PlantingAreaCondition, setT7PlantingAreaCondition] = useState("");
@@ -329,6 +336,11 @@ export default function ActivityPlanActualView({
 
           if (extracted.t7StartDate) {
             setT7StartDate(extracted.t7StartDate);
+          }
+          if (extracted.targets.t7?.plannedProductId) {
+            setT7PlannedProductId(extracted.targets.t7.plannedProductId);
+          } else if (extracted.targets.t7?.productId) {
+            setT7PlannedProductId(extracted.targets.t7.productId);
           }
 
           if (extracted.t7PlotIdentifier) {
@@ -539,6 +551,15 @@ export default function ActivityPlanActualView({
 
             // Type 7
             if (parsed.t7PlotName) setT7PlotName(parsed.t7PlotName);
+            if (parsed.t7PlannedProductId) {
+              setT7PlannedProductId(parsed.t7PlannedProductId);
+            }
+            if (parsed.t7ActualProductId) {
+              setT7ActualProductId(parsed.t7ActualProductId);
+            }
+            if (parsed.t7ChangeReason) {
+              setT7ChangeReason(parsed.t7ChangeReason);
+            }
             if (parsed.t7UsageMethod) setT7UsageMethod(parsed.t7UsageMethod);
             if (parsed.t7CropAgeValue) setT7CropAgeValue(parsed.t7CropAgeValue);
             if (parsed.t7CropAgeUnit) setT7CropAgeUnit(parsed.t7CropAgeUnit);
@@ -1024,6 +1045,40 @@ export default function ActivityPlanActualView({
           t6Status,
           t6Images: cleanT6Images,
           t7PlotName,
+          t7PlannedProductId:
+            t7PlannedProductId ||
+            targets.t7?.plannedProductId ||
+            targets.t7?.productId ||
+            null,
+          t7ActualProductId:
+            t7ActualProductId ||
+            t7PlannedProductId ||
+            targets.t7?.plannedProductId ||
+            targets.t7?.productId ||
+            null,
+          t7PlannedProductName:
+            products.find(
+              (p) =>
+                p.id ===
+                (t7PlannedProductId ||
+                  targets.t7?.plannedProductId ||
+                  targets.t7?.productId),
+            )?.name ||
+            targets.t7?.product ||
+            null,
+          t7ActualProductName:
+            products.find(
+              (p) =>
+                p.id ===
+                (t7ActualProductId ||
+                  t7PlannedProductId ||
+                  targets.t7?.plannedProductId ||
+                  targets.t7?.productId),
+            )?.name ||
+            targets.t7?.product ||
+            null,
+          t7ChangeReason,
+          t7DemoPlotId,
           t7PlantingDate,
           t7PlantingAreaCondition,
           t7UsageMethod,
@@ -1282,6 +1337,12 @@ export default function ActivityPlanActualView({
             t7ProductPrice={t7ProductPrice}
             t7PlotName={t7PlotName}
             setT7PlotName={setT7PlotName}
+            t7PlannedProductId={t7PlannedProductId}
+            setT7PlannedProductId={setT7PlannedProductId}
+            t7ActualProductId={t7ActualProductId}
+            setT7ActualProductId={setT7ActualProductId}
+            t7ChangeReason={t7ChangeReason}
+            setT7ChangeReason={setT7ChangeReason}
             t7UsageMethod={t7UsageMethod}
             setT7UsageMethod={setT7UsageMethod}
             t7PlantingDate={t7PlantingDate}

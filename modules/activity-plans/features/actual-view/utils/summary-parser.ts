@@ -58,6 +58,11 @@ export interface ParsedSummaryValues {
 
   // Type 7
   t7PlotName?: string;
+  t7PlannedProductId?: string;
+  t7ActualProductId?: string;
+  t7PlannedProductName?: string;
+  t7ActualProductName?: string;
+  t7ChangeReason?: string;
   t7UsageMethod?: string;
   t7CropAgeValue?: string;
   t7CropAgeUnit?: string;
@@ -604,6 +609,25 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   }
   if (resData.nextAction) {
     result.nextAction = resData.nextAction;
+  }
+
+  // Structured Type 7 Demo Results from DB
+  if (resData.demoResults && Array.isArray(resData.demoResults) && resData.demoResults.length > 0) {
+    const demo = resData.demoResults[0];
+    if (demo.plannedProductId) result.t7PlannedProductId = demo.plannedProductId;
+    if (demo.actualProductId) result.t7ActualProductId = demo.actualProductId;
+    if (demo.changeReason) result.t7ChangeReason = demo.changeReason;
+    if (demo.plannedProduct?.name) result.t7PlannedProductName = demo.plannedProduct.name;
+    if (demo.actualProduct?.name) result.t7ActualProductName = demo.actualProduct.name;
+    if (demo.cropAgeValue) result.t7CropAgeValue = String(demo.cropAgeValue);
+    if (demo.cropAgeUnit) result.t7CropAgeUnit = demo.cropAgeUnit;
+    if (demo.growthStage) result.t7GrowthStage = demo.growthStage;
+    if (demo.cropCondition) result.t7CropCondition = demo.cropCondition as any;
+    if (demo.productResponse) result.t7ProductResponse = demo.productResponse as any;
+    if (demo.problemDescription) result.t7ProblemDescription = demo.problemDescription;
+    if (demo.finalYieldKg != null) result.t7FinalYieldKg = String(demo.finalYieldKg);
+    if (demo.controlYieldKg != null) result.t7ControlYieldKg = String(demo.controlYieldKg);
+    if (demo.satisfactionScore != null) result.t7FarmerSatisfaction = demo.satisfactionScore;
   }
 
   return result;
