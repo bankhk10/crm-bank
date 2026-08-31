@@ -165,13 +165,16 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
       setActualProductId={props.setActualProductId}
       changeReason={props.changeReason}
       setChangeReason={props.setChangeReason}
-      startDate={props.startDate}
+      plotName={props.plotName}
+      setPlotName={props.setPlotName}
       usageMethod={props.usageMethod}
       setUsageMethod={props.setUsageMethod}
       plantingDate={props.plantingDate}
       setPlantingDate={props.setPlantingDate}
       plantingAreaCondition={props.plantingAreaCondition}
       setPlantingAreaCondition={props.setPlantingAreaCondition}
+      nextFollowUpDate={props.nextFollowUpDate}
+      setNextFollowUpDate={props.setNextFollowUpDate}
       cropImages={props.cropImages}
       setCropImages={props.setCropImages}
       plotImages={props.plotImages}

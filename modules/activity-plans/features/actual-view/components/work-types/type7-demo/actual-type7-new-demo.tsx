@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Sprout,
   Calendar,
@@ -9,14 +9,26 @@ import {
   Package,
   RotateCcw,
   ImageIcon,
+  Info,
+  MapPin,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { FormCombobox } from "@/components/custom/form-components";
+import DatePicker from "@/components/custom/DatePicker";
 import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
 import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
+import { getDemoPlotsAction } from "@/modules/activity-plans/server/actions";
+import type { UserDemoPlotOption } from "@/modules/activity-plans/constants";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
 import {
@@ -59,17 +71,21 @@ export interface ActualType7NewDemoProps {
   setActualProductId?: (id: string | null) => void;
   changeReason?: string;
   setChangeReason?: (reason: string) => void;
-  startDate?: string;
+  plotName?: string;
+  setPlotName?: (v: string) => void;
   usageMethod: string;
   setUsageMethod: (v: string) => void;
   plantingDate?: string;
   setPlantingDate?: (v: string) => void;
   plantingAreaCondition?: string;
   setPlantingAreaCondition?: (v: string) => void;
+  nextFollowUpDate?: string;
+  setNextFollowUpDate?: (v: string) => void;
   cropImages?: ImageFile[];
   setCropImages?: (imgs: ImageFile[]) => void;
   plotImages?: ImageFile[];
   setPlotImages?: (imgs: ImageFile[]) => void;
+  demoPlots?: UserDemoPlotOption[];
 }
 
 export function ActualType7NewDemo({
@@ -80,19 +96,69 @@ export function ActualType7NewDemo({
   setActualProductId,
   changeReason = "",
   setChangeReason,
-  startDate = "",
+  plotName = "",
+  setPlotName,
   usageMethod,
   setUsageMethod,
   plantingDate = "",
   setPlantingDate,
   plantingAreaCondition = "",
   setPlantingAreaCondition,
+  nextFollowUpDate = "",
+  setNextFollowUpDate,
   cropImages = [],
   setCropImages,
   plotImages = [],
   setPlotImages,
+  demoPlots: externalDemoPlots = [],
 }: ActualType7NewDemoProps) {
   const [isChangingProduct, setIsChangingProduct] = useState(false);
+  const [internalDemoPlots, setInternalDemoPlots] = useState<UserDemoPlotOption[]>([]);
+  const [selectedFarmPlotId, setSelectedFarmPlotId] = useState<string>("");
+
+  // Load demo plots / farm plots list once on mount
+  useEffect(() => {
+    let isMounted = true;
+    getDemoPlotsAction()
+      .then((res: any) => {
+        if (isMounted && res?.success && res.demoPlots) {
+          setInternalDemoPlots(res.demoPlots);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const demoPlotList =
+    externalDemoPlots.length > 0
+      ? externalDemoPlots
+      : internalDemoPlots;
+
+  // Filter plots belonging strictly to the selected farmer/owner
+  const ownerNameClean = (target.owner || "").trim().toLowerCase();
+  const farmerPlots = (demoPlotList || []).filter((p) => {
+    if (p.status === "CANCELLED") return false;
+    if (!ownerNameClean) return false;
+    const pOwner = (p.ownerName || "").trim().toLowerCase();
+    return (
+      pOwner === ownerNameClean ||
+      pOwner.includes(ownerNameClean) ||
+      ownerNameClean.includes(pOwner)
+    );
+  });
+
+  const handleSelectFarmPlot = (plotId: string) => {
+    setSelectedFarmPlotId(plotId);
+    const found = farmerPlots.find((p) => p.id === plotId);
+    if (found && setPlotName) {
+      setPlotName(found.name || `แปลงสาธิต ${found.ownerName}`);
+      if (found.location && !plantingAreaCondition && setPlantingAreaCondition) {
+        setPlantingAreaCondition(found.location);
+      }
+    }
+  };
 
   const productOptions = (products || []).map((p) => ({
     value: p.id,
@@ -147,6 +213,49 @@ export function ActualType7NewDemo({
     }
   };
 
+  // Construct target items strictly adhering to Business Rules:
+  // "ห้ามแสดง Field สภาพแปลงเป้าหมาย ในส่วนเป้าหมายที่ตั้งไว้ล่วงหน้าของแผน (Planned Target)"
+  const plannedTargetItems = [
+    { label: "ประเภทงาน:", value: "ทำแปลงสาธิต (เริ่มทำแปลงใหม่)" },
+    { label: "เกษตรกร / เจ้าของแปลง:", value: target.owner || "-" },
+    { label: "พืชที่ทดสอบ:", value: target.crop || "-" },
+    {
+      label: "สินค้าที่วางแผน:",
+      value: isProductChanged ? (
+        <span className="flex items-center gap-1.5 flex-wrap">
+          <span className="font-bold text-emerald-950">
+            {currentActualProductName || target.product}
+          </span>
+          <Badge
+            variant="outline"
+            className="bg-amber-50 text-amber-800 border-amber-300 text-[10px] font-bold"
+          >
+            ⚠️ เปลี่ยนหน้างาน
+          </Badge>
+        </span>
+      ) : (
+        target.product || "-"
+      ),
+    },
+    { label: "จำนวนแปลง / พื้นที่:", value: target.plots || "-" },
+    ...(target.demoProductQuantity
+      ? [
+          {
+            label: "จำนวนสินค้าที่ใช้:",
+            value: `${target.demoProductQuantity} ชิ้น/ขวด`,
+          },
+        ]
+      : []),
+    ...(target.experimentDetail || target.detail
+      ? [
+          {
+            label: "รายละเอียดการทดลอง:",
+            value: target.experimentDetail || target.detail,
+          },
+        ]
+      : []),
+  ];
+
   return (
     <div className="border border-emerald-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-5 shadow-xs">
       {/* Header */}
@@ -171,52 +280,77 @@ export function ActualType7NewDemo({
         </span>
       </div>
 
-      {/* SECTION 1: PLANNED TARGET CARD */}
+      {/* SECTION 1: PLANNED TARGET CARD (No Target Condition field) */}
       <ActualTargetCard
         iconColorClass="text-emerald-700"
         badgeColorClass="bg-emerald-50 text-emerald-800 border border-emerald-200"
         gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
-        items={[
-          { label: "ประเภทงาน:", value: "ทำแปลงสาธิต (เริ่มทำแปลงใหม่)" },
-          { label: "เกษตรกร/เจ้าของแปลง:", value: target.owner || "-" },
-          { label: "พืชที่ทดสอบ:", value: target.crop || "-" },
-          {
-            label: "สินค้าที่วางแผน:",
-            value: isProductChanged ? (
-              <span className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-bold text-emerald-950">
-                  {currentActualProductName || target.product}
-                </span>
-                <Badge
-                  variant="outline"
-                  className="bg-amber-50 text-amber-800 border-amber-300 text-[10px] font-bold"
-                >
-                  ⚠️ เปลี่ยนหน้างาน
-                </Badge>
-              </span>
-            ) : (
-              target.product || "-"
-            ),
-          },
-          { label: "จำนวนแปลง/พื้นที่:", value: target.plots || "-" },
-          {
-            label: "จำนวนสินค้าที่ใช้:",
-            value: target.demoProductQuantity
-              ? `${target.demoProductQuantity} ชิ้น/ขวด`
-              : "-",
-          },
-          {
-            label: "สภาพแปลงเป้าหมาย:",
-            value: target.targetCondition || target.objective || "-",
-          },
-          {
-            label: "รายละเอียดการทดลอง:",
-            value: target.experimentDetail || target.detail || "-",
-          },
-        ]}
+        items={plannedTargetItems}
       />
 
-      {/* SECTION 2: PRODUCT & CHANGE MANAGEMENT */}
+      {/* SECTION 2: FARM PLOT SELECTION & LINKING */}
+      <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
+        <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2">
+          <MapPin className="w-4 h-4 text-emerald-700" />
+          <h3 className="text-sm font-bold text-slate-800">
+            ข้อมูลแปลงเกษตรและชื่อแปลงสาธิต
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs sm:text-sm font-semibold text-slate-800">
+              เกษตรกร / เจ้าของแปลง
+            </label>
+            <div className="h-10 px-3.5 rounded-xl border border-slate-200 bg-slate-100/90 flex items-center font-bold text-slate-800 text-xs sm:text-sm">
+              {target.owner || "ไม่ระบุเกษตรกร"}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs sm:text-sm font-semibold text-slate-800">
+              แปลงเกษตรของเกษตรกร (ถ้ามีในระบบ)
+            </label>
+            {farmerPlots.length > 0 ? (
+              <Select
+                value={selectedFarmPlotId}
+                onValueChange={handleSelectFarmPlot}
+              >
+                <SelectTrigger className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10">
+                  <SelectValue placeholder="เลือกแปลงเกษตรของเกษตรกร..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {farmerPlots.map((plot) => (
+                    <SelectItem key={plot.id} value={plot.id}>
+                      {plot.name || `แปลง ${plot.targetCrop || plot.cropName || ""}`}
+                      {plot.areaRai ? ` (${plot.areaRai} ไร่)` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 flex items-center text-xs text-slate-500 gap-1.5">
+                <Info className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>ยังไม่มีข้อมูลแปลงเกษตร</span>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-1.5 sm:col-span-2">
+            <label className="text-xs sm:text-sm font-semibold text-slate-800">
+              ชื่อแปลงสาธิต <span className="text-red-500">*</span>
+            </label>
+            <Input
+              value={plotName}
+              onChange={(e) => setPlotName?.(e.target.value)}
+              placeholder="ระบุชื่อแปลงสาธิต เช่น แปลงสาธิตทุเรียนหมอนทอง นายสมชาย"
+              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 3: PRODUCT & CHANGE MANAGEMENT */}
       <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
         <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
           <div className="flex items-center gap-2">
@@ -238,7 +372,7 @@ export function ActualType7NewDemo({
 
         {/* Normal Mode vs Edit Mode for Product */}
         {!isChangingProduct && !isProductChanged ? (
-          <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white rounded-xl border border-slate-200/80">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-white rounded-xl border border-slate-200/80">
             <div className="space-y-0.5">
               <span className="text-xs text-slate-500 font-medium block">
                 สินค้าที่ใช้ตามแผน
@@ -252,7 +386,7 @@ export function ActualType7NewDemo({
               variant="outline"
               size="sm"
               onClick={() => setIsChangingProduct(true)}
-              className="h-8 text-xs text-emerald-800 border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100"
+              className="h-8 text-xs text-emerald-800 border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100 rounded-xl"
             >
               เปลี่ยนสินค้าหน้างาน
             </Button>
@@ -280,7 +414,7 @@ export function ActualType7NewDemo({
                   variant="outline"
                   size="sm"
                   onClick={() => setIsChangingProduct(true)}
-                  className="h-7 text-xs text-slate-700 border-slate-300 hover:bg-white"
+                  className="h-8 text-xs text-slate-700 border-slate-300 hover:bg-white rounded-xl"
                 >
                   แก้ไข
                 </Button>
@@ -289,7 +423,7 @@ export function ActualType7NewDemo({
                   variant="outline"
                   size="sm"
                   onClick={handleRevertToPlanned}
-                  className="h-7 text-xs text-amber-800 border-amber-300 bg-amber-50 hover:bg-amber-100 gap-1"
+                  className="h-8 text-xs text-amber-800 border-amber-300 bg-amber-50 hover:bg-amber-100 gap-1 rounded-xl"
                 >
                   <RotateCcw className="w-3 h-3" />
                   ใช้สินค้าตามแผน
@@ -326,7 +460,7 @@ export function ActualType7NewDemo({
                   id="actual-product-combobox"
                   label="เลือกสินค้าที่ใช้จริง *"
                   labelClassName="block text-xs font-bold text-slate-700 mb-1"
-                  triggerClassName="h-9 text-xs bg-white border-amber-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-amber-500"
+                  triggerClassName="h-10 text-xs sm:text-sm bg-white border-amber-300 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-amber-500"
                   value={actualProductId || effectivePlannedProductId || ""}
                   onChange={handleSelectProduct}
                   options={productOptions}
@@ -345,7 +479,7 @@ export function ActualType7NewDemo({
                   value={changeReason}
                   onChange={(e) => setChangeReason?.(e.target.value)}
                   placeholder="เช่น แมลงลงหนัก เกษตรกรขอทดสอบสินค้าตัวนี้ก่อน..."
-                  className="h-9 text-xs bg-white border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500"
+                  className="h-10 text-xs sm:text-sm bg-white border-amber-300 rounded-xl focus:ring-2 focus:ring-amber-500"
                 />
               </div>
             </div>
@@ -353,7 +487,7 @@ export function ActualType7NewDemo({
         )}
       </div>
 
-      {/* SECTION 3: INITIAL PLANTING & FIELD CONDITION */}
+      {/* SECTION 4: INITIAL PLANTING & FIELD CONDITION */}
       <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
         <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2">
           <Calendar className="w-4 h-4 text-emerald-700" />
@@ -362,47 +496,60 @@ export function ActualType7NewDemo({
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">
+            <label className="text-xs sm:text-sm font-semibold text-slate-800 flex items-center gap-1">
               วันที่เริ่มปลูกจริง <span className="text-red-500">*</span>
             </label>
-            <Input
-              type="date"
-              value={plantingDate || startDate}
-              onChange={(e) => setPlantingDate?.(e.target.value)}
-              className="h-9 text-xs bg-white border-slate-200 rounded-lg font-medium"
+            <DatePicker
+              value={plantingDate}
+              onChange={(v) => setPlantingDate?.(v || "")}
+              placeholder="เลือกวันที่เริ่มปลูกจริง"
+              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
+              required
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">
+            <label className="text-xs sm:text-sm font-semibold text-slate-800">
+              วันที่นัดหมายครั้งถัดไป
+            </label>
+            <DatePicker
+              value={nextFollowUpDate}
+              onChange={(v) => setNextFollowUpDate?.(v || "")}
+              placeholder="เลือกวันที่นัดหมายครั้งถัดไป"
+              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
+            />
+          </div>
+
+          <div className="space-y-1.5 md:col-span-2">
+            <label className="text-xs sm:text-sm font-semibold text-slate-800">
               สภาพพื้นที่ปลูกตอนเริ่มต้น
             </label>
             <Input
               value={plantingAreaCondition}
               onChange={(e) => setPlantingAreaCondition?.(e.target.value)}
               placeholder="เช่น ดินร่วนปนทราย มีระบบน้ำหยด แดดส่องถึงทั้งวัน..."
-              className="h-9 text-xs bg-white border-slate-200 rounded-lg"
+              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
+            />
+          </div>
+
+          <div className="space-y-1.5 md:col-span-2">
+            <label className="text-xs sm:text-sm font-semibold text-slate-800">
+              วิธีการใช้สาร / สูตรยาตอนเริ่มต้น <span className="text-red-500">*</span>
+            </label>
+            <Textarea
+              rows={3}
+              value={usageMethod}
+              onChange={(e) => setUsageMethod(e.target.value)}
+              placeholder="ระบุอัตราการใช้ วิธีการผสม และเวลาที่พ่น..."
+              className="text-xs sm:text-sm bg-white border-slate-200 rounded-xl"
             />
           </div>
         </div>
-
-        <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-slate-700">
-            วิธีการใช้สาร / สูตรยาตอนเริ่มต้น <span className="text-red-500">*</span>
-          </label>
-          <Textarea
-            rows={2}
-            value={usageMethod}
-            onChange={(e) => setUsageMethod(e.target.value)}
-            placeholder="ระบุอัตราการใช้ วิธีการผสม และเวลาที่พ่น..."
-            className="text-xs bg-white border-slate-200 rounded-lg"
-          />
-        </div>
       </div>
 
-      {/* SECTION 4: INITIAL PHOTOS */}
+      {/* SECTION 5: INITIAL PHOTOS */}
       <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
         <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2">
           <ImageIcon className="w-4 h-4 text-emerald-700" />
