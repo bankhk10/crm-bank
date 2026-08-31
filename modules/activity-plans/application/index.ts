@@ -12,6 +12,7 @@ import {
   type CreateActivityResultInput,
 } from "../infrastructure/activity-plan.repository";
 import { ActivityStatus } from "@prisma/client";
+import { isActivityPlanTestMode } from "../config";
 
 // Facade Use Cases
 
@@ -255,7 +256,7 @@ export async function updateActivityPlanUseCase(id: string, userId: string, rawD
 }
 
 /**
- * Record post-activity result (only when plan status is APPROVED)
+ * Record post-activity result (only when plan status is APPROVED, or when ACTIVITY_PLAN_TEST_MODE is enabled)
  */
 export async function recordActivityResultUseCase(
   planId: string,
@@ -265,7 +266,8 @@ export async function recordActivityResultUseCase(
   const plan = await findActivityPlanById(planId);
   if (!plan) return { success: false as const, error: "ไม่พบ Trip Plan" };
 
-  if (plan.status !== ActivityStatus.APPROVED) {
+  const isTestMode = isActivityPlanTestMode();
+  if (plan.status !== ActivityStatus.APPROVED && !isTestMode) {
     return { success: false as const, error: "สามารถบันทึกผลได้เฉพาะแผนกิจกรรมที่ได้รับการอนุมัติเรียบร้อยแล้วเท่านั้น" };
   }
 
