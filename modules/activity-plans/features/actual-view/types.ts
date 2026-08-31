@@ -71,7 +71,7 @@ export interface PlanSummaryData {
 
 export interface ActualTargetItem {
   label: string;
-  value: string;
+  value: string | React.ReactNode;
   highlight?: boolean;
   colSpan?: string;
 }
