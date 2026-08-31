@@ -465,7 +465,7 @@ export function ActualType7NewDemo({
                 <FormCombobox
                   id="actual-product-combobox"
                   label="เลือกสินค้าที่ใช้จริง *"
-                  labelClassName="block text-xs font-bold text-slate-700 mb-1"
+                  labelClassName="block text-xs font-bold text-slate-700 "
                   triggerClassName="h-10 text-xs sm:text-sm bg-white border-amber-300 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-amber-500"
                   value={actualProductId || effectivePlannedProductId || ""}
                   onChange={handleSelectProduct}
@@ -486,7 +486,7 @@ export function ActualType7NewDemo({
                   value={changeReason}
                   onChange={(e) => setChangeReason?.(e.target.value)}
                   placeholder="เช่น แมลงลงหนัก เกษตรกรขอทดสอบสินค้าตัวนี้ก่อน..."
-                  className="h-10 text-xs sm:text-sm bg-white border-amber-300 rounded-xl focus:ring-2 focus:ring-amber-500"
+                  className="h-11 text-xs sm:text-sm bg-white border-amber-300 rounded-xl focus:ring-2 focus:ring-amber-500"
                 />
               </div>
             </div>
