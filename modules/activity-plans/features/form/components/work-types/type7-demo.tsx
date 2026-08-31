@@ -51,7 +51,9 @@ export function Type7Demo({
   products = [],
   demoPlots = [],
 }: Props) {
-  const plotList = demoPlots || [];
+  const plotList = (demoPlots || []).filter(
+    (plot) => plot.status !== "CANCELLED",
+  );
 
   const customerOptions = (customers || []).map((c) => ({
     value: c.name,

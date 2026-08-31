@@ -1828,11 +1828,14 @@ export async function findFarmerCustomersForPlots() {
 }
 
 /**
- * Fetch all master demo plots with visits
+ * Fetch all master demo plots with visits (excluding CANCELLED and deleted plots)
  */
 export async function findMasterDemoPlots() {
   return db.demoPlot.findMany({
-    where: { deletedAt: null },
+    where: {
+      deletedAt: null,
+      status: { not: DemoPlotStatus.CANCELLED },
+    },
     include: {
       visits: {
         orderBy: { visitDate: "asc" },
@@ -1843,7 +1846,7 @@ export async function findMasterDemoPlots() {
 }
 
 /**
- * Fetch legacy demo plot items from ActivityPlanItem
+ * Fetch legacy demo plot items from ActivityPlanItem (excluding CANCELLED items)
  */
 export async function findLegacyDemoPlotItems() {
   return db.activityPlanItem.findMany({
@@ -1851,6 +1854,9 @@ export async function findLegacyDemoPlotItems() {
       activityPlan: { deletedAt: null },
       plotActivityType: "CREATE",
       plotOwnerName: { not: null },
+      NOT: {
+        plotStatus: "CANCELLED",
+      },
     },
     include: {
       activityPlan: {
