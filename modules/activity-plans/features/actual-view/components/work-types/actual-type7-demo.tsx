@@ -2,14 +2,10 @@
 
 import React, { useState } from "react";
 import {
-  Camera,
-  X,
   Sprout,
   Calendar,
   Clock,
-  Coins,
   History,
-  CheckCircle2,
   AlertTriangle,
   PlusCircle,
   Search,
@@ -17,8 +13,6 @@ import {
   FileText,
   ImageIcon,
   Info,
-  Package,
-  User,
   Star,
   TrendingUp,
   Sparkles,
@@ -33,7 +27,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { ActualTargetCard } from "../actual-target-card";
 import { ImageFile } from "../../types";
 import { DemoPlotHistoryModal } from "./demo-plot-history-modal";
 import GalleryUpload from "@/components/custom/gallery-upload";
@@ -353,7 +346,7 @@ export function ActualType7Demo({
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                 <Sprout className="w-4 h-4 text-emerald-600" />
-                รายการเป้าหมายแปลงสาธิต ({target.items?.length} รายการ):
+                รายการแปลงสาธิตจากแผนงาน ({target.items?.length} รายการ):
               </span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
                 จากฟอร์มสร้างแผน
@@ -393,8 +386,9 @@ export function ActualType7Demo({
                       </span>
                       <span className="font-bold text-emerald-800">
                         {item.demoProductQuantity != null &&
-                        item.demoProductQuantity !== ""
-                          ? `${item.demoProductQuantity} หน่วย`
+                        item.demoProductQuantity !== "" &&
+                        item.demoProductQuantity !== "-"
+                          ? `${item.demoProductQuantity}`
                           : "-"}
                       </span>
                     </div>
@@ -413,16 +407,9 @@ export function ActualType7Demo({
                       </span>
                     </div>
                   </div>
-                  {(item.objective || item.experimentDetail || item.detail) && (
+                  {(item.experimentDetail ||
+                    (item.detail && item.detail !== item.experimentDetail)) && (
                     <div className="pt-1 border-t border-slate-100 text-[11px] space-y-0.5">
-                      {item.objective && (
-                        <div>
-                          <span className="font-semibold text-slate-400">
-                            วัตถุประสงค์:{" "}
-                          </span>
-                          <span className="text-slate-700">{item.objective}</span>
-                        </div>
-                      )}
                       {item.experimentDetail && (
                         <div>
                           <span className="font-semibold text-slate-400">
@@ -434,7 +421,6 @@ export function ActualType7Demo({
                         </div>
                       )}
                       {item.detail &&
-                        item.detail !== item.objective &&
                         item.detail !== item.experimentDetail && (
                           <div>
                             <span className="font-semibold text-slate-400">
@@ -450,27 +436,73 @@ export function ActualType7Demo({
             </div>
           </div>
         ) : (
-          <ActualTargetCard
-            items={[
-              { label: "เจ้าของแปลง", value: target.owner },
-              { label: "สินค้าที่จะสาธิต", value: target.product },
-              {
-                label: "จำนวนสินค้าที่จะสาธิต",
-                value:
-                  target.demoProductQuantity != null &&
-                  target.demoProductQuantity !== ""
-                    ? `${target.demoProductQuantity}`
-                    : "-",
-              },
-              { label: "พืช", value: target.crop },
-              { label: "พื้นที่ / จำนวน", value: target.plots },
-              { label: "วัตถุประสงค์", value: target.objective || "-" },
-              {
-                label: "รายละเอียด / วิธีการทดลอง",
-                value: target.experimentDetail || target.detail || "-",
-              },
-            ]}
-          />
+          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <Sprout className="w-3.5 h-3.5 text-emerald-600" />
+                ข้อมูลแปลงสาธิตจากแผนงาน
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                จากฟอร์มสร้างแผน
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs">
+              <div className="bg-white p-2.5 rounded-lg border border-slate-100/90 shadow-2xs">
+                <span className="text-slate-400 block text-[10px] mb-0.5 font-medium">
+                  เจ้าของแปลง
+                </span>
+                <span className="font-bold block break-words text-slate-800 text-xs">
+                  {target.owner || "-"}
+                </span>
+              </div>
+              <div className="bg-white p-2.5 rounded-lg border border-slate-100/90 shadow-2xs">
+                <span className="text-slate-400 block text-[10px] mb-0.5 font-medium">
+                  สินค้าที่จะสาธิต
+                </span>
+                <span className="font-bold block break-words text-emerald-800 text-xs">
+                  {target.product || "-"}
+                </span>
+              </div>
+              <div className="bg-white p-2.5 rounded-lg border border-slate-100/90 shadow-2xs">
+                <span className="text-slate-400 block text-[10px] mb-0.5 font-medium">
+                  จำนวนสินค้าที่จะสาธิต
+                </span>
+                <span className="font-bold block break-words text-emerald-800 text-xs">
+                  {target.demoProductQuantity != null &&
+                  target.demoProductQuantity !== "" &&
+                  target.demoProductQuantity !== "-"
+                    ? String(target.demoProductQuantity)
+                    : "-"}
+                </span>
+              </div>
+              <div className="bg-white p-2.5 rounded-lg border border-slate-100/90 shadow-2xs">
+                <span className="text-slate-400 block text-[10px] mb-0.5 font-medium">
+                  พืช
+                </span>
+                <span className="font-bold block break-words text-slate-800 text-xs">
+                  {target.crop || "-"}
+                </span>
+              </div>
+              <div className="bg-white p-2.5 rounded-lg border border-slate-100/90 shadow-2xs">
+                <span className="text-slate-400 block text-[10px] mb-0.5 font-medium">
+                  พื้นที่ / จำนวนต้น
+                </span>
+                <span className="font-bold block break-words text-slate-800 text-xs">
+                  {target.plots || "-"}
+                </span>
+              </div>
+              {(target.experimentDetail || target.detail) && (
+                <div className="bg-white p-2.5 rounded-lg border border-slate-100/90 shadow-2xs sm:col-span-2 md:col-span-3">
+                  <span className="text-slate-400 block text-[10px] mb-0.5 font-medium">
+                    รายละเอียด / วิธีการทดลอง
+                  </span>
+                  <span className="font-medium block break-words whitespace-pre-wrap text-slate-700 text-xs">
+                    {target.experimentDetail || target.detail}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
         ))}
 
       {/* ========================================================================= */}
