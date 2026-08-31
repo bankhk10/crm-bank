@@ -104,7 +104,9 @@ export function Type7FollowUp({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-slate-700">
             <div>
-              <span className="font-semibold text-slate-500">เจ้าของแปลง: </span>
+              <span className="font-semibold text-slate-500">
+                เจ้าของแปลง:{" "}
+              </span>
               <span className="font-bold text-slate-800">
                 {selectedPlot.ownerName || "-"}
               </span>
@@ -116,7 +118,9 @@ export function Type7FollowUp({
               </span>
             </div>
             <div>
-              <span className="font-semibold text-slate-500">สินค้าสาธิต: </span>
+              <span className="font-semibold text-slate-500">
+                สินค้าสาธิต:{" "}
+              </span>
               <span className="font-bold text-emerald-800">
                 {selectedPlot.showcase || selectedPlot.productName || "-"}
               </span>
