@@ -14,6 +14,7 @@ import {
   Eye,
   MapPin,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
@@ -23,6 +24,24 @@ import {
   ImageLightboxModal,
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
+
+export interface DemoResultItemData {
+  id?: string;
+  plannedProductId?: string | null;
+  actualProductId?: string | null;
+  changeReason?: string | null;
+  plannedProduct?: { id: string; name: string; productCode?: string | null } | null;
+  actualProduct?: { id: string; name: string; productCode?: string | null } | null;
+  cropAgeValue?: string | null;
+  cropAgeUnit?: string | null;
+  growthStage?: string | null;
+  cropCondition?: string | null;
+  productResponse?: string | null;
+  problemDescription?: string | null;
+  finalYieldKg?: number | null;
+  controlYieldKg?: number | null;
+  satisfactionScore?: number | null;
+}
 
 interface DetailType7DemoProps {
   isVisible: boolean;
@@ -39,6 +58,7 @@ interface DetailType7DemoProps {
     detail?: string;
     items?: any[];
   };
+  demoResults?: DemoResultItemData[];
   plannedProductId?: string | null;
   actualProductId?: string | null;
   plannedProductName?: string | null;
@@ -73,6 +93,7 @@ interface DetailType7DemoProps {
 export function DetailType7Demo({
   isVisible,
   target,
+  demoResults = [],
   plannedProductId,
   actualProductId,
   plannedProductName,
@@ -190,35 +211,95 @@ export function DetailType7Demo({
       </div>
 
       {/* PLANNED TARGET CARD */}
-      <ActualTargetCard
-        iconColorClass="text-emerald-700"
-        badgeColorClass="bg-emerald-50 text-emerald-800 border border-emerald-200"
-        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
-        items={[
-          {
-            label: "ประเภทงาน:",
-            value: isFollowUp ? "ติดตามแปลงเดิม" : "ทำแปลงสาธิตใหม่",
-          },
-          { label: "เกษตรกร/แปลง:", value: target.owner || "-" },
-          { label: "พืชที่ทดสอบ:", value: target.crop || "-" },
-          { label: "สินค้าที่ใช้:", value: target.product || "-" },
-          { label: "จำนวนแปลง/พื้นที่:", value: target.plots || "-" },
-          {
-            label: "จำนวนสินค้าที่ใช้:",
-            value: target.demoProductQuantity
-              ? `${target.demoProductQuantity} ชิ้น/ขวด`
-              : "-",
-          },
-          {
-            label: "สภาพแปลงเป้าหมาย:",
-            value: target.targetCondition || target.objective || "-",
-          },
-          {
-            label: "รายละเอียดการทดลอง:",
-            value: target.experimentDetail || target.detail || "-",
-          },
-        ]}
-      />
+      {target.items && target.items.length > 1 ? (
+        <div className="bg-emerald-50/40 border border-emerald-200/70 rounded-xl p-3.5 space-y-3">
+          <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+            <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+              <Sprout className="w-4 h-4 text-emerald-600" />
+              สินค้า/แปลงที่วางแผน ({target.items.length} รายการ)
+            </span>
+            <Badge
+              variant="outline"
+              className="bg-emerald-100 text-emerald-800 border-emerald-200 text-[10px] font-bold"
+            >
+              จากแผนงาน
+            </Badge>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {target.items.map((item, idx) => (
+              <div
+                key={idx}
+                className="bg-white p-3 rounded-lg border border-slate-200/80 shadow-2xs space-y-1.5 text-xs"
+              >
+                <div className="flex items-center justify-between font-bold text-slate-800 border-b border-slate-100 pb-1">
+                  <span>
+                    รายการที่ {idx + 1}: {item.owner || target.owner || "-"}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {item.crop || target.crop || "-"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-1 text-[11px] text-slate-600">
+                  <div>
+                    <span className="text-slate-400">สินค้าที่วางแผน: </span>
+                    <span className="font-bold text-emerald-900">
+                      {item.product || "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400">จำนวน: </span>
+                    <span className="font-bold text-slate-800">
+                      {item.demoProductQuantity || "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400">พื้นที่/ต้น: </span>
+                    <span className="font-bold text-slate-800">
+                      {item.plots || "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400">สภาพเป้าหมาย: </span>
+                    <span className="font-bold text-slate-800">
+                      {item.targetCondition || item.objective || "-"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <ActualTargetCard
+          iconColorClass="text-emerald-700"
+          badgeColorClass="bg-emerald-50 text-emerald-800 border border-emerald-200"
+          gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
+          items={[
+            {
+              label: "ประเภทงาน:",
+              value: isFollowUp ? "ติดตามแปลงเดิม" : "ทำแปลงสาธิตใหม่",
+            },
+            { label: "เกษตรกร/แปลง:", value: target.owner || "-" },
+            { label: "พืชที่ทดสอบ:", value: target.crop || "-" },
+            { label: "สินค้าที่วางแผน:", value: target.product || "-" },
+            { label: "จำนวนแปลง/พื้นที่:", value: target.plots || "-" },
+            {
+              label: "จำนวนสินค้าที่ใช้:",
+              value: target.demoProductQuantity
+                ? `${target.demoProductQuantity} ชิ้น/ขวด`
+                : "-",
+            },
+            {
+              label: "สภาพแปลงเป้าหมาย:",
+              value: target.targetCondition || target.objective || "-",
+            },
+            {
+              label: "รายละเอียดการทดลอง:",
+              value: target.experimentDetail || target.detail || "-",
+            },
+          ]}
+        />
+      )}
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-3 pt-1 border-t border-slate-100">
@@ -320,61 +401,99 @@ export function DetailType7Demo({
             )}
           </div>
 
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2 md:col-span-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500 font-medium block">
-                สินค้าที่ใช้สาธิตจริง (Actual Product)
-              </span>
-              {(Boolean(
-                (actualProductId &&
-                  plannedProductId &&
-                  actualProductId !== plannedProductId) ||
-                  (actualProductName &&
-                    plannedProductName &&
-                    actualProductName !== plannedProductName) ||
-                  (changeReason && changeReason.trim().length > 0),
-              )) && (
-                <Badge
-                  variant="outline"
-                  className="bg-amber-50 text-amber-800 border-amber-300 font-bold gap-1 text-[11px]"
-                >
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                  ⚠️ เปลี่ยนหน้างาน
-                </Badge>
-              )}
-            </div>
+          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5 sm:col-span-2 md:col-span-3">
+            <span className="text-xs text-slate-500 font-medium block">
+              สินค้าที่ใช้สาธิตจริง (Actual Product)
+            </span>
 
-            <div className="flex flex-wrap items-center gap-3 pt-0.5">
-              <span className="text-xs sm:text-sm font-bold text-slate-900">
-                {actualProductName || target.product || "-"}
-              </span>
-              {Boolean(
-                (actualProductId &&
-                  plannedProductId &&
-                  actualProductId !== plannedProductId) ||
-                  (actualProductName &&
-                    plannedProductName &&
-                    actualProductName !== plannedProductName) ||
-                  (changeReason && changeReason.trim().length > 0),
-              ) && (
-                <span className="text-xs text-slate-400">
-                  (สินค้าตามแผน:{" "}
-                  <span className="line-through">
-                    {plannedProductName || target.product}
-                  </span>
-                  )
-                </span>
-              )}
-            </div>
+            <div className="space-y-2">
+              {(demoResults && demoResults.length > 0
+                ? demoResults
+                : [
+                    {
+                      plannedProductId: plannedProductId || null,
+                      actualProductId: actualProductId || null,
+                      changeReason: changeReason || null,
+                      plannedProduct: plannedProductName
+                        ? { id: plannedProductId || "", name: plannedProductName }
+                        : null,
+                      actualProduct: actualProductName
+                        ? { id: actualProductId || "", name: actualProductName }
+                        : null,
+                    },
+                  ]
+              ).map((resItem, idx) => {
+                const itemPlannedId = resItem.plannedProductId;
+                const itemActualId = resItem.actualProductId;
+                // Change detection rule: STRICTLY based on product ID (plannedProductId !== actualProductId)
+                const isItemChanged = Boolean(
+                  itemPlannedId &&
+                    itemActualId &&
+                    itemPlannedId !== itemActualId,
+                );
+                const itemActualName =
+                  resItem.actualProduct?.name ||
+                  actualProductName ||
+                  target.product ||
+                  "-";
+                const itemPlannedName =
+                  resItem.plannedProduct?.name ||
+                  plannedProductName ||
+                  target.product ||
+                  "-";
+                const itemReason =
+                  resItem.changeReason || (isItemChanged ? changeReason : null);
 
-            {changeReason && (
-              <div className="mt-2 text-xs bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-amber-900">
-                <span className="font-semibold text-amber-800">
-                  เหตุผลที่เปลี่ยนหน้างาน:{" "}
-                </span>
-                <span>{changeReason}</span>
-              </div>
-            )}
+                return (
+                  <div
+                    key={resItem.id || idx}
+                    className={cn(
+                      "p-3 rounded-lg border transition-all space-y-1.5",
+                      isItemChanged
+                        ? "bg-amber-50/60 border-amber-200/90 shadow-2xs"
+                        : "bg-white border-slate-200/70 shadow-2xs",
+                    )}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <span className="text-xs sm:text-sm font-bold text-slate-900">
+                          {itemActualName}
+                        </span>
+                        {isItemChanged && (
+                          <Badge
+                            variant="outline"
+                            className="bg-amber-100 text-amber-900 border-amber-300 font-bold gap-1 text-[11px]"
+                          >
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                            ⚠️ เปลี่ยนสินค้าหน้างาน
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {isItemChanged && (
+                      <div className="text-xs text-slate-500">
+                        สินค้าตามแผน:{" "}
+                        <span className="font-semibold text-slate-700">
+                          {itemPlannedName}
+                        </span>
+                      </div>
+                    )}
+
+                    {isItemChanged && itemReason && (
+                      <div className="mt-1.5 text-xs bg-amber-100/70 border border-amber-200/80 rounded-md p-2 text-amber-950 space-y-0.5">
+                        <span className="font-bold text-amber-900 block">
+                          เหตุผลที่เปลี่ยนหน้างาน:
+                        </span>
+                        <p className="text-amber-900 leading-relaxed font-medium">
+                          {itemReason}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2 md:col-span-3">

@@ -116,6 +116,7 @@ export function DetailActivityResultSection({
         <DetailType7Demo
           isVisible={isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")}
           target={targets.t7}
+          demoResults={parsedResults.t7DemoResults}
           plannedProductId={parsedResults.t7PlannedProductId}
           actualProductId={parsedResults.t7ActualProductId}
           plannedProductName={parsedResults.t7PlannedProductName}

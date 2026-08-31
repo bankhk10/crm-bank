@@ -63,6 +63,23 @@ export interface ParsedSummaryValues {
   t7PlannedProductName?: string;
   t7ActualProductName?: string;
   t7ChangeReason?: string;
+  t7DemoResults?: Array<{
+    id?: string;
+    plannedProductId?: string | null;
+    actualProductId?: string | null;
+    changeReason?: string | null;
+    plannedProduct?: { id: string; name: string; productCode?: string | null } | null;
+    actualProduct?: { id: string; name: string; productCode?: string | null } | null;
+    cropAgeValue?: string | null;
+    cropAgeUnit?: string | null;
+    growthStage?: string | null;
+    cropCondition?: string | null;
+    productResponse?: string | null;
+    problemDescription?: string | null;
+    finalYieldKg?: number | null;
+    controlYieldKg?: number | null;
+    satisfactionScore?: number | null;
+  }>;
   t7UsageMethod?: string;
   t7CropAgeValue?: string;
   t7CropAgeUnit?: string;
@@ -613,6 +630,24 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
   // Structured Type 7 Demo Results from DB
   if (resData.demoResults && Array.isArray(resData.demoResults) && resData.demoResults.length > 0) {
+    result.t7DemoResults = resData.demoResults.map((demo: any) => ({
+      id: demo.id,
+      plannedProductId: demo.plannedProductId ?? null,
+      actualProductId: demo.actualProductId ?? null,
+      changeReason: demo.changeReason ?? null,
+      plannedProduct: demo.plannedProduct ?? null,
+      actualProduct: demo.actualProduct ?? null,
+      cropAgeValue: demo.cropAgeValue ? String(demo.cropAgeValue) : null,
+      cropAgeUnit: demo.cropAgeUnit ?? null,
+      growthStage: demo.growthStage ?? null,
+      cropCondition: demo.cropCondition ?? null,
+      productResponse: demo.productResponse ?? null,
+      problemDescription: demo.problemDescription ?? null,
+      finalYieldKg: demo.finalYieldKg != null ? Number(demo.finalYieldKg) : null,
+      controlYieldKg: demo.controlYieldKg != null ? Number(demo.controlYieldKg) : null,
+      satisfactionScore: demo.satisfactionScore ?? null,
+    }));
+
     const demo = resData.demoResults[0];
     if (demo.plannedProductId) result.t7PlannedProductId = demo.plannedProductId;
     if (demo.actualProductId) result.t7ActualProductId = demo.actualProductId;
