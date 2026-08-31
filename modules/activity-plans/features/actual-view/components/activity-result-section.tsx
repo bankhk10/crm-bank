@@ -161,6 +161,8 @@ interface ActivityResultSectionProps {
   setT7FinalSummaryNotes: (v: string) => void;
   t7VisitHistory: any[];
   t7DemoPlotData: any;
+  t7DemoPlotId?: string | null;
+  setT7DemoPlotId?: (id: string | null) => void;
 
   // Type 8
   t8ActualAttendees: string;
@@ -332,6 +334,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     setT7FinalSummaryNotes,
     t7VisitHistory,
     t7DemoPlotData,
+    t7DemoPlotId,
+    setT7DemoPlotId,
     t8ActualAttendees,
     setT8ActualAttendees,
     t8FeedbackQnA,
@@ -548,6 +552,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setFinalSummaryNotes={setT7FinalSummaryNotes}
           visitHistory={t7VisitHistory}
           demoPlotData={t7DemoPlotData}
+          demoPlotId={t7DemoPlotId}
+          setDemoPlotId={setT7DemoPlotId}
         />
 
         {/* WORK TYPE 8 */}

@@ -112,7 +112,49 @@ export async function getDemoPlotsUseCase() {
     };
   });
 
-  // 3. Fetch from ActivityPlanItem (legacy fallback for backward compatibility)
+  // 3. Map farmer agricultural farm plots from Customer.farmPlots (for NEW_DEMO and linking)
+  farmerCustomers.forEach((farmer) => {
+    if (farmer.farmPlots && Array.isArray(farmer.farmPlots)) {
+      (farmer.farmPlots as any[]).forEach((fp, idx) => {
+        const cropDisplay = fp.cropType || "พืชเกษตร";
+        const varietyDisplay = fp.variety ? ` (${fp.variety})` : "";
+        const plotLabel = `แปลงที่ ${idx + 1}: ${cropDisplay}${varietyDisplay}`;
+
+        // Location details
+        const locParts: string[] = [];
+        if (fp.soilType) locParts.push(`ดิน: ${fp.soilType}`);
+        if (fp.waterSource) locParts.push(`แหล่งน้ำ: ${fp.waterSource}`);
+        const locationStr =
+          locParts.length > 0
+            ? locParts.join(", ")
+            : farmer.name
+              ? `แปลงเกษตรของ ${farmer.name}`
+              : "";
+
+        const farmPlotOption: UserDemoPlotOption = {
+          id: `farmplot-${farmer.id}-${idx}`,
+          code: `FP-${farmer.id.slice(-4)}-${idx + 1}`,
+          name: plotLabel,
+          location: locationStr,
+          targetCrop: `${cropDisplay}${varietyDisplay}`,
+          showcase: "",
+          ownerName: farmer.name,
+          cropCategory: cropDisplay,
+          cropName: cropDisplay,
+          customCropName: fp.variety || undefined,
+          areaRai: fp.areaRai ? Number(fp.areaRai) : 0,
+          treeCount: 0,
+          status: "IN_PROGRESS",
+          latitude: fp.latitude || farmer.latitude || undefined,
+          longitude: fp.longitude || farmer.longitude || undefined,
+        };
+
+        realPlots.push(farmPlotOption);
+      });
+    }
+  });
+
+  // 4. Fetch from ActivityPlanItem (legacy fallback for backward compatibility)
   const items = await findLegacyDemoPlotItems();
 
   for (const item of items) {

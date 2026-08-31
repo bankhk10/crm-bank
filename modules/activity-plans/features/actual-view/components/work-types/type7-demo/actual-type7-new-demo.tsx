@@ -11,6 +11,7 @@ import {
   ImageIcon,
   Info,
   MapPin,
+  Loader2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -86,6 +87,8 @@ export interface ActualType7NewDemoProps {
   plotImages?: ImageFile[];
   setPlotImages?: (imgs: ImageFile[]) => void;
   demoPlots?: UserDemoPlotOption[];
+  demoPlotId?: string | null;
+  setDemoPlotId?: (id: string | null) => void;
 }
 
 export function ActualType7NewDemo({
@@ -111,12 +114,17 @@ export function ActualType7NewDemo({
   plotImages = [],
   setPlotImages,
   demoPlots: externalDemoPlots = [],
+  demoPlotId,
+  setDemoPlotId,
 }: ActualType7NewDemoProps) {
   const [isChangingProduct, setIsChangingProduct] = useState(false);
   const [internalDemoPlots, setInternalDemoPlots] = useState<
     UserDemoPlotOption[]
   >([]);
-  const [selectedFarmPlotId, setSelectedFarmPlotId] = useState<string>("");
+  const [loadingPlots, setLoadingPlots] = useState(true);
+  const [internalSelectedFarmPlotId, setInternalSelectedFarmPlotId] =
+    useState<string>("");
+  const selectedFarmPlotId = demoPlotId || internalSelectedFarmPlotId;
 
   // Load demo plots / farm plots list once on mount
   useEffect(() => {
@@ -127,7 +135,10 @@ export function ActualType7NewDemo({
           setInternalDemoPlots(res.demoPlots);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (isMounted) setLoadingPlots(false);
+      });
     return () => {
       isMounted = false;
     };
@@ -150,10 +161,18 @@ export function ActualType7NewDemo({
   });
 
   const handleSelectFarmPlot = (plotId: string) => {
-    setSelectedFarmPlotId(plotId);
+    setInternalSelectedFarmPlotId(plotId);
+    setDemoPlotId?.(plotId);
     const found = farmerPlots.find((p) => p.id === plotId);
-    if (found && setPlotName) {
-      setPlotName(found.name || `แปลงสาธิต ${found.ownerName}`);
+    if (found) {
+      if (setPlotName) {
+        const cropDisplay = found.targetCrop || found.cropName || target.crop || "";
+        const ownerDisplay = target.owner || found.ownerName || "";
+        const suggestedName = cropDisplay
+          ? `แปลงสาธิต${cropDisplay} ${ownerDisplay}`.trim()
+          : `แปลงสาธิต ${found.name || ownerDisplay}`.trim();
+        setPlotName(suggestedName);
+      }
       if (
         found.location &&
         !plantingAreaCondition &&
@@ -316,7 +335,17 @@ export function ActualType7NewDemo({
             <label className="text-xs sm:text-sm font-semibold text-slate-800">
               แปลงเกษตรของเกษตรกร (ถ้ามีในระบบ)
             </label>
-            {farmerPlots.length > 0 ? (
+            {loadingPlots ? (
+              <div className="h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 flex items-center text-xs text-slate-500 gap-1.5">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600 shrink-0" />
+                <span>กำลังโหลดข้อมูลแปลง...</span>
+              </div>
+            ) : !ownerNameClean ? (
+              <div className="h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 flex items-center text-xs text-slate-500 gap-1.5">
+                <Info className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>กรุณาระบุเจ้าของแปลงในแผนงาน</span>
+              </div>
+            ) : farmerPlots.length > 0 ? (
               <Select
                 value={selectedFarmPlotId}
                 onValueChange={handleSelectFarmPlot}
@@ -325,10 +354,10 @@ export function ActualType7NewDemo({
                   <SelectValue placeholder="เลือกแปลงเกษตรของเกษตรกร..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {farmerPlots.map((plot) => (
+                  {farmerPlots.map((plot, idx) => (
                     <SelectItem key={plot.id} value={plot.id}>
                       {plot.name ||
-                        `แปลง ${plot.targetCrop || plot.cropName || ""}`}
+                        `แปลงที่ ${idx + 1} - ${plot.targetCrop || plot.cropName || "แปลงเกษตร"}`}
                       {plot.areaRai ? ` (${plot.areaRai} ไร่)` : ""}
                     </SelectItem>
                   ))}
@@ -337,7 +366,7 @@ export function ActualType7NewDemo({
             ) : (
               <div className="h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 flex items-center text-xs text-slate-500 gap-1.5">
                 <Info className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span>ยังไม่มีข้อมูลแปลงเกษตร</span>
+                <span>ไม่พบข้อมูลแปลงเกษตร</span>
               </div>
             )}
           </div>

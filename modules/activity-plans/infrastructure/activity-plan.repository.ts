@@ -1828,7 +1828,10 @@ export async function findFarmerCustomersForPlots() {
   return db.customer.findMany({
     where: {
       deletedAt: null,
-      customerType: "FARMER",
+      OR: [
+        { customerType: "FARMER" },
+        { farmPlots: { not: Prisma.DbNull } },
+      ],
     },
     select: {
       id: true,

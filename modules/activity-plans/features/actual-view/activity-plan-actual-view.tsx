@@ -1385,6 +1385,8 @@ export default function ActivityPlanActualView({
             setT7FinalSummaryNotes={setT7FinalSummaryNotes}
             t7VisitHistory={t7VisitHistory}
             t7DemoPlotData={t7DemoPlotData}
+            t7DemoPlotId={t7DemoPlotId}
+            setT7DemoPlotId={setT7DemoPlotId}
             // Type 8
             t8ActualAttendees={t8ActualAttendees}
             setT8ActualAttendees={setT8ActualAttendees}

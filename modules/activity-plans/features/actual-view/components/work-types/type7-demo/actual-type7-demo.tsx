@@ -94,6 +94,8 @@ export interface ActualType7DemoProps {
   setFinalSummaryNotes?: (v: string) => void;
   demoPlotData?: any;
   visitHistory?: DemoPlotVisitHistoryItem[];
+  demoPlotId?: string | null;
+  setDemoPlotId?: (id: string | null) => void;
 }
 
 export function ActualType7Demo(props: ActualType7DemoProps) {
@@ -179,6 +181,8 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
       setCropImages={props.setCropImages}
       plotImages={props.plotImages}
       setPlotImages={props.setPlotImages}
+      demoPlotId={props.demoPlotId}
+      setDemoPlotId={props.setDemoPlotId}
     />
   );
 }
