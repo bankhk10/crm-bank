@@ -243,7 +243,7 @@ export function Type7Demo({
 
                       <div className="md:col-span-3">
                         <label className="block text-xs font-medium text-slate-700 mb-1">
-                          จำนวนสินค้าที่จะสาธิต
+                          จำนวนสินค้าที่จะสาธิต (ขวด/ซอง)
                         </label>
                         <div className="relative flex items-center">
                           <input
@@ -258,7 +258,11 @@ export function Type7Demo({
                             onChange={(e) => {
                               const raw = e.target.value;
                               if (raw === "") {
-                                updateType7Row(item.id, "plotsCount", "" as any);
+                                updateType7Row(
+                                  item.id,
+                                  "plotsCount",
+                                  "" as any,
+                                );
                               } else {
                                 const num = Math.max(0, parseInt(raw) || 0);
                                 updateType7Row(item.id, "plotsCount", num);
@@ -384,7 +388,10 @@ export function Type7Demo({
                                 : (item.treeCount ?? "")
                             }
                             onChange={(e) => {
-                              const val = Math.max(0, parseInt(e.target.value) || 0);
+                              const val = Math.max(
+                                0,
+                                parseInt(e.target.value) || 0,
+                              );
                               if (isRaiUnit) {
                                 updateType7Row(item.id, "areaRai", val);
                               } else {
@@ -403,41 +410,6 @@ export function Type7Demo({
                                 : "ต้น"}
                           </span>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Row 3: วันที่เริ่มทำแปลง + วัตถุประสงค์ของแปลง */}
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                      <div className="md:col-span-4">
-                        <label className="block text-xs font-medium text-slate-700 mb-1">
-                          วันที่เริ่มทำแปลง{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="date"
-                          value={item.startDate || ""}
-                          onChange={(e) =>
-                            updateType7Row(item.id, "startDate", e.target.value)
-                          }
-                          disabled={readonly}
-                          className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
-                        />
-                      </div>
-
-                      <div className="md:col-span-8">
-                        <label className="block text-xs font-medium text-slate-700 mb-1">
-                          วัตถุประสงค์ของแปลง
-                        </label>
-                        <input
-                          type="text"
-                          value={item.objective || ""}
-                          onChange={(e) =>
-                            updateType7Row(item.id, "objective", e.target.value)
-                          }
-                          disabled={readonly}
-                          placeholder="ระบุวัตถุประสงค์ของแปลง..."
-                          className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                        />
                       </div>
                     </div>
 
@@ -517,11 +489,7 @@ export function Type7Demo({
                                 match.targetCrop || match.cropName,
                               );
                             if (match.areaRai !== undefined)
-                              updateType7Row(
-                                item.id,
-                                "areaRai",
-                                match.areaRai,
-                              );
+                              updateType7Row(item.id, "areaRai", match.areaRai);
                             if (match.treeCount !== undefined)
                               updateType7Row(
                                 item.id,
