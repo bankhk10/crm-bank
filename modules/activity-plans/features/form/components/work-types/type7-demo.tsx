@@ -22,6 +22,7 @@ export interface ProductOption {
   name: string;
   productCode?: string | null;
   price?: number | null;
+  unit?: string | null;
 }
 
 interface Props {
@@ -123,6 +124,14 @@ export function Type7Demo({
               "พืชไร่อื่นๆ",
               "พืชสวนอื่นๆ",
             ].includes(item.cropName);
+
+            // Find selected product info for unit display
+            const selectedProduct = products.find(
+              (p) => p.name === item.productName,
+            );
+            const productUnitLabel = selectedProduct?.unit
+              ? `(${selectedProduct.unit})`
+              : "";
 
             // Find selected existing plot info for FOLLOW_UP read-only card
             const selectedPlot = plotList.find(
@@ -243,7 +252,7 @@ export function Type7Demo({
 
                       <div className="md:col-span-3">
                         <label className="block text-xs font-medium text-slate-700 mb-1">
-                          จำนวนสินค้าที่จะสาธิต (ขวด/ซอง)
+                          จำนวนสินค้าที่จะสาธิต {productUnitLabel}
                         </label>
                         <div className="relative flex items-center">
                           <input

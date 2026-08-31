@@ -76,6 +76,7 @@ export interface Type7DemoPlotItem {
   // Fields for CREATE (ทำแปลงสาธิต) & shared
   ownerName: string;
   productName: string;
+  productUnit?: string;
   cropCategory: string;
   cropName: string;
   customCropName?: string;
