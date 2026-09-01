@@ -23,6 +23,7 @@ services:
       AUTH_TRUST_HOST: "true"
       NEXTAUTH_URL: ${NEXTAUTH_URL:-https://test-csone.cropsciences.co.th}
       NEXT_PUBLIC_SHOW_RANDOM_FILL: "true"
+      ACTIVITY_PLAN_TEST_MODE: ${ACTIVITY_PLAN_TEST_MODE:-true}
     networks:
       - crm-network
     user: root
