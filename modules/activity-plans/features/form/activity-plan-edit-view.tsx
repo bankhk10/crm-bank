@@ -11,6 +11,7 @@ import {
   updateActivityPlanAction,
   getDemoPlotsAction,
   getActivePromotionalMaterialsGroupedAction,
+  getActivityTypesAction,
 } from "../../server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
@@ -37,6 +38,7 @@ export default function ActivityPlanEditView({ id }: Props) {
   const [employees, setEmployees] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [activityTypes, setActivityTypes] = useState<any[]>([]);
   const [demoPlots, setDemoPlots] = useState<any[]>([]);
   const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] = useState<
     Record<string, any[]> | undefined
@@ -49,7 +51,7 @@ export default function ActivityPlanEditView({ id }: Props) {
     async function loadData() {
       setPageLoading(true);
       try {
-        const [empRes, planRes, custRes, prodRes, plotRes, mktRes] = await Promise.all([
+        const [empRes, planRes, custRes, prodRes, plotRes, mktRes, actTypeRes] = await Promise.all([
           getAllEmployeesAction(),
           getActivityPlanAction(id),
           getCustomersAction({ perPage: 1000 }).catch(() => ({
@@ -60,7 +62,12 @@ export default function ActivityPlanEditView({ id }: Props) {
           })),
           getDemoPlotsAction().catch(() => ({ demoPlots: [] })),
           getActivePromotionalMaterialsGroupedAction().catch(() => ({ success: false, grouped: {} })),
+          getActivityTypesAction().catch(() => ({ success: false, types: [] })),
         ]);
+
+        if (actTypeRes && actTypeRes.success && actTypeRes.types) {
+          setActivityTypes(actTypeRes.types);
+        }
 
         if (empRes.success && empRes.employees) {
           setEmployees(empRes.employees);
@@ -166,6 +173,7 @@ export default function ActivityPlanEditView({ id }: Props) {
           employees={employees}
           customers={customers}
           products={products}
+          activityTypes={activityTypes}
           demoPlots={demoPlots}
           promotionalMaterialsByCategory={promotionalMaterialsByCategory}
           onSubmit={handleSubmit}

@@ -66,6 +66,16 @@ interface Props {
     unit?: string | null;
     price?: number | null;
   }>;
+  activityTypes?: Array<{
+    id: string;
+    code: string;
+    name: string;
+    shortName?: string | null;
+    sortOrder: number;
+    hasActual: boolean;
+    requiresApproval: boolean;
+    isActive: boolean;
+  }>;
   demoPlots?: Array<UserDemoPlotOption>;
   promotionalMaterialsByCategory?: Record<
     string,
@@ -127,6 +137,7 @@ export function ActivityPlanForm({
   employees = [],
   customers: initialCustomers = [],
   products: initialProducts = [],
+  activityTypes: initialActivityTypes = [],
   demoPlots: initialDemoPlots = [],
   promotionalMaterialsByCategory,
   onSubmit,
@@ -137,6 +148,7 @@ export function ActivityPlanForm({
 }: Props) {
   const [fetchedCustomers, setFetchedCustomers] = useState<any[]>([]);
   const [fetchedProducts, setFetchedProducts] = useState<any[]>([]);
+  const [fetchedActivityTypes, setFetchedActivityTypes] = useState<any[]>([]);
   const [fetchedDemoPlots, setFetchedDemoPlots] = useState<
     UserDemoPlotOption[]
   >([]);
@@ -251,6 +263,43 @@ export function ActivityPlanForm({
       isMounted = false;
     };
   }, [initialDemoPlots]);
+
+  useEffect(() => {
+    if (initialActivityTypes && initialActivityTypes.length > 0) return;
+
+    let isMounted = true;
+    async function loadActivityTypes() {
+      try {
+        const { getActivityTypesAction } = await import("../../server/actions");
+        const res = await getActivityTypesAction();
+        if (isMounted && res && res.success && res.types) {
+          setFetchedActivityTypes(res.types);
+        }
+      } catch (err) {
+        console.error("Failed to load activity types for Trip Plan:", err);
+      }
+    }
+    loadActivityTypes();
+    return () => {
+      isMounted = false;
+    };
+  }, [initialActivityTypes]);
+
+  const activeWorkTypeOptions = useMemo(() => {
+    const source =
+      initialActivityTypes && initialActivityTypes.length > 0
+        ? initialActivityTypes
+        : fetchedActivityTypes;
+
+    if (source && source.length > 0) {
+      return [...source]
+        .filter((t) => t.isActive !== false)
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    }
+
+    return [];
+  }, [initialActivityTypes, fetchedActivityTypes]);
+
   // Format initial dates
   // กำหนด defaultTime ให้เป็น "08:00" ถ้าไม่ได้ส่งเข้ามา
   const parseInitialDate = (
@@ -2496,36 +2545,43 @@ export function ActivityPlanForm({
                 {isWorkTypesDropdownOpen && (
                   <div className="absolute left-0 sm:right-0 top-full mt-1.5 w-full sm:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-3 space-y-2 animate-in fade-in-0 zoom-in-95">
                     <div className="max-h-80 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                      {WORK_TYPES.map((typeStr) => {
-                        const isChecked =
-                          tempSelectedWorkTypes.includes(typeStr);
-                        return (
-                          <label
-                            key={typeStr}
-                            onClick={() => toggleWorkType(typeStr)}
-                            className={cn(
-                              "flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer transition-colors select-none",
-                              isChecked
-                                ? "bg-blue-50 text-blue-800 font-medium"
-                                : "hover:bg-slate-50 text-slate-700",
-                            )}
-                          >
-                            <div
+                      {activeWorkTypeOptions.length === 0 ? (
+                        <div className="p-3 text-center text-xs text-slate-400">
+                          กำลังโหลดประเภทงาน...
+                        </div>
+                      ) : (
+                        activeWorkTypeOptions.map((typeItem) => {
+                          const isChecked =
+                            tempSelectedWorkTypes.includes(typeItem.name) ||
+                            tempSelectedWorkTypes.includes(typeItem.code);
+                          return (
+                            <label
+                              key={typeItem.code}
+                              onClick={() => toggleWorkType(typeItem.name)}
                               className={cn(
-                                "w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0",
+                                "flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer transition-colors select-none",
                                 isChecked
-                                  ? "bg-blue-600 border-blue-600 text-white"
-                                  : "border-slate-300 bg-white",
+                                  ? "bg-blue-50 text-blue-800 font-medium"
+                                  : "hover:bg-slate-50 text-slate-700",
                               )}
                             >
-                              {isChecked && (
-                                <Check className="h-3 w-3 stroke-[3]" />
-                              )}
-                            </div>
-                            <span>{typeStr}</span>
-                          </label>
-                        );
-                      })}
+                              <div
+                                className={cn(
+                                  "w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0",
+                                  isChecked
+                                    ? "bg-blue-600 border-blue-600 text-white"
+                                    : "border-slate-300 bg-white",
+                                )}
+                              >
+                                {isChecked && (
+                                  <Check className="h-3 w-3 stroke-[3]" />
+                                )}
+                              </div>
+                              <span>{typeItem.name}</span>
+                            </label>
+                          );
+                        })
+                      )}
                     </div>
 
                     <div className="pt-2.5 border-t border-slate-100 flex items-center justify-center gap-3">
