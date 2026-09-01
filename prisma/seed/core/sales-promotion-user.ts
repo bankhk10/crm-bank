@@ -29,11 +29,12 @@ const regularSalesPromotionPermissions: PermissionConfigItem[] = [
   { key: "activity.view" },
   { key: "activity.create" },
   { key: "activity.edit" },
+  { key: "activity.delete" },
   {
     key: "data.activity_plans",
     dataAccess: DataAccessLevel.VIEW_OWN,
     editAccess: EditAccessLevel.EDIT_OWN,
-    deleteAccess: DeleteAccessLevel.DELETE_NONE,
+    deleteAccess: DeleteAccessLevel.DELETE_OWN,
   },
 
   // 🏷️ 2. Promotional Materials (ให้สิทธิ์ดูข้อมูลสำหรับเลือกในแบบฟอร์ม โดยไม่เปิดเมนู sidebar)
@@ -85,11 +86,12 @@ const supervisorSalesPromotionPermissions: PermissionConfigItem[] = [
   { key: "activity.view" },
   { key: "activity.create" },
   { key: "activity.edit" },
+  { key: "activity.delete" },
   {
     key: "data.activity_plans",
     dataAccess: DataAccessLevel.VIEW_ALL, // ✨ มองเห็นของพนักงานทุกคน
     editAccess: EditAccessLevel.EDIT_OWN, // 🔒 แก้ไขได้เฉพาะของตนเอง
-    deleteAccess: DeleteAccessLevel.DELETE_NONE, // 🔒 ไม่มีสิทธิ์ลบ
+    deleteAccess: DeleteAccessLevel.DELETE_OWN, // 🔒 ลบได้เฉพาะของตนเอง
   },
 
   // 🏷️ 2. Promotional Materials
