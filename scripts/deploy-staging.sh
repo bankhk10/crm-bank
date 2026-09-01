@@ -235,7 +235,7 @@ if [[ -z "${PROD_HTTPS_BLOCK}" ]]; then
     exit 1
 fi
 
-PROD_UPSTREAM="$(echo "${PROD_HTTPS_BLOCK}" | grep -E "proxy_pass" | head -1 | awk '{print $2}' | tr -d ';' || echo "unknown")"
+PROD_UPSTREAM="$(echo "${PROD_HTTPS_BLOCK}" | awk '/proxy_pass/ { gsub(/[;\r]/, "", $2); print $2; exit }' || echo "unknown")"
 info "Detected Production Upstream: ${PROD_UPSTREAM}"
 
 if echo "${PROD_HTTPS_BLOCK}" | grep -qE "crm-app-staging|staging_upstream"; then
@@ -255,7 +255,10 @@ if [[ -z "${STAGING_HTTPS_BLOCK}" ]]; then
     exit 1
 fi
 
-STAGING_UPSTREAM="$(echo "${STAGING_HTTPS_BLOCK}" | grep -E "set \$staging_upstream" | head -1 | awk '{print $NF}' | tr -d ';' || echo "unknown")"
+STAGING_UPSTREAM="$(echo "${STAGING_HTTPS_BLOCK}" | awk '/set[[:space:]]+\$staging_upstream/ { gsub(/[;\r]/, "", $NF); print $NF; exit }' || echo "unknown")"
+if [[ -z "${STAGING_UPSTREAM}" || "${STAGING_UPSTREAM}" == "unknown" ]]; then
+    STAGING_UPSTREAM="$(echo "${STAGING_HTTPS_BLOCK}" | awk '/proxy_pass/ && /crm-app-staging/ { gsub(/[;\r]/, "", $NF); print $NF; exit }' || echo "unknown")"
+fi
 info "Detected Staging Upstream: ${STAGING_UPSTREAM}"
 
 if ! echo "${STAGING_HTTPS_BLOCK}" | grep -qE "staging_upstream|crm-app-staging:3000"; then
@@ -290,7 +293,8 @@ if [[ -n "${PROD_UPLOADS_BLOCK}" ]] && echo "${PROD_UPLOADS_BLOCK}" | grep -qE "
     exit 1
 fi
 
-if echo "${STAGING_HTTPS_BLOCK}" | grep -qE "csone\.cropsciences\.co\.th|nextjs_app"; then
+# Must match standalone Production domain csone.cropsciences.co.th (not test-csone.cropsciences.co.th)
+if echo "${STAGING_HTTPS_BLOCK}" | grep -qE "nextjs_app|((^|[^a-zA-Z0-9_-])csone\.cropsciences\.co\.th)"; then
     rollback_staging_config "CRITICAL SAFETY VIOLATION: Staging server block contains references to Production domain or upstream!"
     exit 1
 fi
