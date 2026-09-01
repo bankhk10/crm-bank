@@ -24,22 +24,10 @@ BOLD='\033[1m'
 NC='\033[0m' # No Color
 
 # --- Helper Functions ---
-info() {
-    echo -e "${CYAN}[INFO]${NC} $1"
-}
-
-success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-error() {
-    echo -e "${RED}[ERROR]${NC} $1" >&2
-}
-
+info() { echo -e "${CYAN}[INFO]${NC} $1"; }
+success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
 step() {
     echo -e "\n${BOLD}${BLUE}==================================================================${NC}"
     echo -e "${BOLD}${BLUE}▶ $1${NC}"
@@ -157,63 +145,127 @@ step "6. Comprehensive Routing & Safety Checks"
 
 NGINX_FULL_CONFIG="$(docker exec crm-nginx nginx -T 2>/dev/null || true)"
 
-# Helper function to extract a server block by server_name
+# Robust parser to extract exact server blocks with nested brace tracking and exact domain token matching
 extract_server_block() {
     local domain="$1"
-    echo "${NGINX_FULL_CONFIG}" | awk -v domain="${domain}" '
-        $0 ~ "server_name.*" domain { in_server=1; depth=1; print; next }
-        in_server {
-            if ($0 ~ /{/) depth++
-            if ($0 ~ /}/) depth--
-            print
-            if (depth == 0) in_server=0
+    local type="${2:-https}" # https, http, all
+    
+    echo "${NGINX_FULL_CONFIG}" | awk -v target_domain="${domain}" -v target_type="${type}" '
+    BEGIN {
+        in_server = 0
+        depth = 0
+        server_buf = ""
+    }
+    {
+        line = $0
+        clean_line = line
+        sub(/#.*/, "", clean_line)
+    }
+    # Match start of server block, ignoring upstream server directives
+    !in_server && clean_line ~ /^[[:space:]]*server([[:space:]]*\{|[[:space:]]*$)/ && clean_line !~ /;/ {
+        in_server = 1
+        depth = 0
+        server_buf = ""
+    }
+    in_server {
+        server_buf = server_buf line "\n"
+        
+        temp_open = clean_line; n_open = gsub(/\{/, "", temp_open)
+        temp_close = clean_line; n_close = gsub(/\}/, "", temp_close)
+        depth += (n_open - n_close)
+        
+        if (depth <= 0 && server_buf ~ /\{/) {
+            in_server = 0
+            depth = 0
+            
+            # Match exact domain token in server_name (must not match substrings like test-csone matching csone)
+            domain_pattern = "server_name[[:space:]]+([^;]*[[:space:]]+)?" target_domain "([[:space:]]+|;)"
+            
+            if (server_buf ~ domain_pattern) {
+                is_https = (server_buf ~ /listen[[:space:]]+.*443/ || server_buf ~ /listen[[:space:]]+.*ssl/ || server_buf ~ /ssl_certificate/)
+                is_http = (server_buf ~ /listen[[:space:]]+.*80/ && !is_https)
+                
+                if (target_type == "https" && is_https) {
+                    print server_buf
+                } else if (target_type == "http" && is_http) {
+                    print server_buf
+                } else if (target_type == "all") {
+                    print server_buf
+                }
+            }
+            server_buf = ""
         }
+    }
     '
 }
 
-PROD_BLOCK="$(extract_server_block "csone.cropsciences.co.th")"
-STAGING_BLOCK="$(extract_server_block "test-csone.cropsciences.co.th")"
+# Robust parser to extract exact location blocks within a server block using nested brace tracking
+extract_location_block() {
+    local block="$1"
+    local loc_path="$2"
+    
+    echo "${block}" | awk -v target_loc="${loc_path}" '
+    BEGIN { in_loc=0; depth=0; buf="" }
+    {
+        line = $0; clean = line; sub(/#.*/, "", clean)
+    }
+    !in_loc && clean ~ ("location[[:space:]]+" target_loc) {
+        in_loc=1; depth=0; buf=""
+    }
+    in_loc {
+        buf = buf line "\n"
+        t_o = clean; n_o = gsub(/\{/, "", t_o)
+        t_c = clean; n_c = gsub(/\}/, "", t_c)
+        depth += (n_o - n_c)
+        if (depth <= 0 && buf ~ /\{/) {
+            print buf
+            in_loc=0
+            exit
+        }
+    }
+    '
+}
+
+PROD_HTTPS_BLOCK="$(extract_server_block "csone.cropsciences.co.th" "https")"
+STAGING_HTTPS_BLOCK="$(extract_server_block "test-csone.cropsciences.co.th" "https")"
 
 # 6.1 Check Production Domain Routing
-if [[ -z "${PROD_BLOCK}" ]]; then
-    rollback_staging_config "Production server block for 'csone.cropsciences.co.th' is missing from active Nginx config!"
+if [[ -z "${PROD_HTTPS_BLOCK}" ]]; then
+    rollback_staging_config "Production HTTPS server block for 'csone.cropsciences.co.th' was not found in active Nginx config!"
     exit 1
 fi
 
-PROD_UPSTREAM="$(echo "${PROD_BLOCK}" | grep -E "proxy_pass" | head -1 | awk '{print $2}' | tr -d ';' || echo "unknown")"
+PROD_UPSTREAM="$(echo "${PROD_HTTPS_BLOCK}" | grep -E "proxy_pass" | head -1 | awk '{print $2}' | tr -d ';' || echo "unknown")"
 info "Detected Production Upstream: ${PROD_UPSTREAM}"
 
-if echo "${PROD_BLOCK}" | grep -qE "crm-app-staging|staging_upstream"; then
+if echo "${PROD_HTTPS_BLOCK}" | grep -qE "crm-app-staging|staging_upstream"; then
     rollback_staging_config "CRITICAL SAFETY VIOLATION: Production server block contains staging routing targets!"
     exit 1
 fi
-success "Safety Check 1/4: Production server routing verified (Upstream: ${PROD_UPSTREAM}, No staging contamination)."
+
+if [[ -z "${PROD_UPSTREAM}" || "${PROD_UPSTREAM}" == "unknown" ]]; then
+    rollback_staging_config "Production server block is missing a valid proxy_pass upstream target!"
+    exit 1
+fi
+success "Safety Check 1/4: Production HTTPS routing verified (Upstream: ${PROD_UPSTREAM}, No staging targets)."
 
 # 6.2 Check Staging Domain Routing
-if [[ -z "${STAGING_BLOCK}" ]]; then
-    rollback_staging_config "Staging server block for 'test-csone.cropsciences.co.th' is missing from active Nginx config!"
+if [[ -z "${STAGING_HTTPS_BLOCK}" ]]; then
+    rollback_staging_config "Staging HTTPS server block for 'test-csone.cropsciences.co.th' was not found in active Nginx config!"
     exit 1
 fi
 
-STAGING_UPSTREAM="$(echo "${STAGING_BLOCK}" | grep -E "set \$staging_upstream|proxy_pass" | head -1 | awk '{print $NF}' | tr -d ';' || echo "unknown")"
+STAGING_UPSTREAM="$(echo "${STAGING_HTTPS_BLOCK}" | grep -E "set \$staging_upstream" | head -1 | awk '{print $NF}' | tr -d ';' || echo "unknown")"
 info "Detected Staging Upstream: ${STAGING_UPSTREAM}"
 
-if ! echo "${STAGING_BLOCK}" | grep -qE "staging_upstream|crm-app-staging:3000"; then
+if ! echo "${STAGING_HTTPS_BLOCK}" | grep -qE "staging_upstream|crm-app-staging:3000"; then
     rollback_staging_config "Staging server block does not route to \$staging_upstream or crm-app-staging:3000!"
     exit 1
 fi
-success "Safety Check 2/4: Staging server routing verified (Upstream: ${STAGING_UPSTREAM})."
+success "Safety Check 2/4: Staging HTTPS routing verified (Upstream: ${STAGING_UPSTREAM})."
 
 # 6.3 Check Staging Uploads Location (Isolated Proxy Pass)
-STAGING_UPLOADS_BLOCK="$(echo "${STAGING_BLOCK}" | awk '
-    $0 ~ "location /uploads/" { in_loc=1; depth=1; print; next }
-    in_loc {
-        if ($0 ~ /{/) depth++
-        if ($0 ~ /}/) depth--
-        print
-        if (depth == 0) in_loc=0
-    }
-')"
+STAGING_UPLOADS_BLOCK="$(extract_location_block "${STAGING_HTTPS_BLOCK}" "/uploads/")"
 
 if [[ -z "${STAGING_UPLOADS_BLOCK}" ]]; then
     rollback_staging_config "Staging server block is missing 'location /uploads/' definition!"
@@ -231,12 +283,18 @@ if echo "${STAGING_UPLOADS_BLOCK}" | grep -q "alias /usr/share/nginx/uploads"; t
 fi
 success "Safety Check 3/4: Staging /uploads/ isolation verified (Proxied to Staging App, No alias dependency)."
 
-# 6.4 Production Upload Protection
-if echo "${PROD_BLOCK}" | grep -A 10 "location /uploads/" | grep -qE "staging_upstream|crm-app-staging"; then
+# 6.4 Strict Cross-Routing & Production Upload Protection
+PROD_UPLOADS_BLOCK="$(extract_location_block "${PROD_HTTPS_BLOCK}" "/uploads/")"
+if [[ -n "${PROD_UPLOADS_BLOCK}" ]] && echo "${PROD_UPLOADS_BLOCK}" | grep -qE "staging_upstream|crm-app-staging"; then
     rollback_staging_config "CRITICAL SAFETY VIOLATION: Production upload location contains staging references!"
     exit 1
 fi
-success "Safety Check 4/4: Production upload configuration verified untouched."
+
+if echo "${STAGING_HTTPS_BLOCK}" | grep -qE "csone\.cropsciences\.co\.th|nextjs_app"; then
+    rollback_staging_config "CRITICAL SAFETY VIOLATION: Staging server block contains references to Production domain or upstream!"
+    exit 1
+fi
+success "Safety Check 4/4: Strict cross-routing isolation verified between Production and Staging."
 
 step "7. Safe Nginx Reload (Zero Downtime)"
 
@@ -246,7 +304,6 @@ success "Shared Nginx reloaded successfully (0 Downtime)."
 
 step "8. Post-Deployment Verification & Health Check"
 
-# Test Application Health Endpoint
 info "Testing Staging API Health Endpoint (https://test-csone.cropsciences.co.th/api/health)..."
 HTTP_HEALTH="$(curl -s -o /dev/null -w "%{http_code}" https://test-csone.cropsciences.co.th/api/health 2>/dev/null || echo "000")"
 
