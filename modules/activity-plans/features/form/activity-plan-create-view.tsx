@@ -121,7 +121,7 @@ export default function ActivityPlanCreateView() {
         promotionalMaterialsByCategory={promotionalMaterialsByCategory}
         onSubmit={handleSubmit}
         onCancel={() => router.push("/activity-plans")}
-        submitLabel="บันทึก"
+        submitLabel="บันทึกแผนงาน"
       />
     </section>
   );

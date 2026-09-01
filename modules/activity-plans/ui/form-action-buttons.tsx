@@ -79,7 +79,7 @@ export function FormActionButtons({
           onClick={handleBack}
           disabled={isButtonDisabled}
           className={cn(
-            "w-full sm:w-32 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl h-11 shadow-sm flex items-center justify-center gap-1.5 cursor-pointer transition-all",
+            "w-full sm:w-auto sm:min-w-[128px] px-5 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl h-11 shadow-sm flex items-center justify-center gap-1.5 cursor-pointer transition-all",
             backButtonClassName
           )}
         >
@@ -94,7 +94,7 @@ export function FormActionButtons({
           onClick={submitType === "button" ? onSubmit : undefined}
           disabled={isButtonDisabled}
           className={cn(
-            "w-full sm:w-32 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl h-11 shadow-md flex items-center justify-center gap-1.5 cursor-pointer transition-all",
+            "w-full sm:w-auto sm:min-w-[128px] px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl h-11 shadow-md flex items-center justify-center gap-1.5 cursor-pointer transition-all",
             submitButtonClassName
           )}
         >

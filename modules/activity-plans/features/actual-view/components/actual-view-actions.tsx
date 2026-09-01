@@ -12,7 +12,7 @@ interface ActualViewActionsProps {
 export function ActualViewActions({
   onBack,
   loading,
-  submitLabel = "บันทึก",
+  submitLabel = "บันทึกผล",
 }: ActualViewActionsProps) {
   return (
     <FormActionButtons

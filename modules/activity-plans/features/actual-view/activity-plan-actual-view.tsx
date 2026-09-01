@@ -1488,7 +1488,7 @@ export default function ActivityPlanActualView({
           <ActualViewActions
             onBack={handleBack}
             loading={isSubmitting}
-            submitLabel="บันทึก"
+            submitLabel="บันทึกผล"
           />
         </form>
       </div>
