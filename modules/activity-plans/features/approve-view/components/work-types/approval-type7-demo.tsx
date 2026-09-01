@@ -79,7 +79,7 @@ export function ApprovalType7Demo({
             <span className="text-slate-500 block text-[11px] font-medium mb-1">
               รายละเอียด / วิธีการทดลอง
             </span>
-            <span className="text-slate-700 block text-xs whitespace-pre-line">
+            <span className="font-bold text-slate-800 block text-xs sm:text-sm">
               {target.experimentDetail || target.detail}
             </span>
           </div>

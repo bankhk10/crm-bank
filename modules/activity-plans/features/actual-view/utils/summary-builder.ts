@@ -63,6 +63,7 @@ export interface BuildSummaryInput {
   t7ActualProductName?: string | null;
   t7DemoProductQuantity?: string | number | null;
   t7ChangeReason?: string;
+  t7PlotObjective?: string;
   t7DemoPlotId?: string | null;
   t7PlantingDate: string;
   t7PlantingAreaCondition: string;
@@ -174,6 +175,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t6Status,
     t6Images,
     t7PlotName,
+    t7PlotObjective,
     t7PlantingDate,
     t7PlantingAreaCondition,
     t7UsageMethod,
@@ -358,6 +360,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       ? `⚠️ เปลี่ยนสินค้าหน้างาน: ${input.t7ActualProductName || "สินค้าใหม่"} (สินค้าตามแผน: ${input.t7PlannedProductName || "สินค้าเดิม"}) เหตุผล: ${input.t7ChangeReason?.trim()}`
       : null,
     t7PlotName ? `ชื่อแปลงทดสอบ: ${t7PlotName}` : null,
+    t7PlotObjective ? `วัตถุประสงค์ของแปลง: ${t7PlotObjective}` : null,
     t7PlantingDate ? `วันที่ปลูก: ${t7PlantingDate}` : null,
     t7PlantingAreaCondition
       ? `สภาพพื้นที่ปลูก: ${t7PlantingAreaCondition}`
@@ -484,6 +487,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
 
   const hasType7Data =
     Boolean(t7PlotName) ||
+    Boolean(t7PlotObjective) ||
     Boolean(t7PlantingDate) ||
     Boolean(t7UsageMethod) ||
     Boolean(t7CropAgeValue) ||
@@ -504,6 +508,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
           changeReason: isT7ProductChanged
             ? input.t7ChangeReason?.trim() || null
             : null,
+          plotObjective: t7PlotObjective?.trim() || null,
           cropAgeValue: t7CropAgeValue || null,
           cropAgeUnit: t7CropAgeUnit || null,
           growthStage: t7GrowthStage || null,

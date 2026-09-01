@@ -24,6 +24,7 @@ export interface DemoResultItemData {
   plannedProductId?: string | null;
   actualProductId?: string | null;
   changeReason?: string | null;
+  plotObjective?: string | null;
   plannedProduct?: {
     id: string;
     name: string;
@@ -61,6 +62,7 @@ export interface DetailType7NewDemoProps {
   plannedProductName?: string | null;
   actualProductName?: string | null;
   changeReason?: string | null;
+  plotObjective?: string;
   plotName?: string;
   usageMethod?: string;
   plantingDate?: string;
@@ -79,6 +81,7 @@ export function DetailType7NewDemo({
   plannedProductName,
   actualProductName,
   changeReason,
+  plotObjective,
   plotName,
   usageMethod,
   plantingDate,
@@ -144,6 +147,7 @@ export function DetailType7NewDemo({
             plannedProductId: plannedProductId || null,
             actualProductId: actualProductId || null,
             changeReason: changeReason || null,
+            plotObjective: plotObjective || null,
             plannedProduct: plannedProductName
               ? { id: plannedProductId || "", name: plannedProductName }
               : null,
@@ -312,6 +316,17 @@ export function DetailType7NewDemo({
               {plantingAreaCondition || "-"}
             </span>
           </div>
+
+          {(firstResult?.plotObjective || plotObjective) && (
+            <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2 md:col-span-3">
+              <span className="text-xs text-slate-500 font-medium block">
+                วัตถุประสงค์ของแปลง
+              </span>
+              <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
+                {firstResult?.plotObjective || plotObjective}
+              </span>
+            </div>
+          )}
 
           {/* Actual Demonstration Product with Change Tracking */}
           <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5 sm:col-span-2 md:col-span-3">

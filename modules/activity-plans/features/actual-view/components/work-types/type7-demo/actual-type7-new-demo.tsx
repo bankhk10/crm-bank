@@ -79,6 +79,8 @@ export interface ActualType7NewDemoProps {
   setActualQuantity?: (qty: string) => void;
   changeReason?: string;
   setChangeReason?: (reason: string) => void;
+  plotObjective?: string;
+  setPlotObjective?: (v: string) => void;
   plotName?: string;
   setPlotName?: (v: string) => void;
   usageMethod: string;
@@ -108,6 +110,8 @@ export function ActualType7NewDemo({
   setActualQuantity,
   changeReason = "",
   setChangeReason,
+  plotObjective = "",
+  setPlotObjective,
   plotName = "",
   setPlotName,
   usageMethod,
@@ -442,6 +446,19 @@ export function ActualType7NewDemo({
                 <span>ไม่พบข้อมูลแปลงเกษตร</span>
               </div>
             )}
+          </div>
+
+          <div className="space-y-1.5 sm:col-span-2">
+            <label className="text-xs sm:text-sm font-semibold text-slate-800">
+              วัตถุประสงค์ของแปลง
+            </label>
+            <Textarea
+              rows={3}
+              value={plotObjective}
+              onChange={(e) => setPlotObjective?.(e.target.value)}
+              placeholder="ระบุวัตถุประสงค์ของการทำแปลงสาธิต..."
+              className="text-xs sm:text-sm bg-white border-slate-200 rounded-xl"
+            />
           </div>
 
           <div className="space-y-1.5 sm:col-span-2">

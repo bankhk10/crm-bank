@@ -2010,6 +2010,7 @@ model ActivityResultDemoItem {
   plannedProductId   String?        @map("planned_product_id")
   actualProductId    String?        @map("actual_product_id")
   changeReason       String?        @map("change_reason")
+  plotObjective      String?        @map("plot_objective") // วัตถุประสงค์ของแปลงสาธิตจริง
   cropAgeValue       String?        @map("crop_age_value")
   cropAgeUnit        String?        @map("crop_age_unit")
   growthStage        String?        @map("growth_stage")

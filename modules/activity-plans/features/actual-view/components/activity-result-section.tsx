@@ -119,6 +119,8 @@ interface ActivityResultSectionProps {
   setT7ActualQuantity?: (v: string) => void;
   t7ChangeReason?: string;
   setT7ChangeReason?: (v: string) => void;
+  t7PlotObjective: string;
+  setT7PlotObjective: (v: string) => void;
   t7UsageMethod: string;
   setT7UsageMethod: (v: string) => void;
   t7PlantingDate: string;
@@ -296,6 +298,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     setT7ActualQuantity,
     t7ChangeReason,
     setT7ChangeReason,
+    t7PlotObjective,
+    setT7PlotObjective,
     t7UsageMethod,
     setT7UsageMethod,
     t7PlantingDate,
@@ -511,6 +515,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setActualQuantity={setT7ActualQuantity}
           changeReason={t7ChangeReason}
           setChangeReason={setT7ChangeReason}
+          plotObjective={t7PlotObjective}
+          setPlotObjective={setT7PlotObjective}
           startDate={t7StartDate}
           actualDate={new Date().toISOString().split("T")[0]}
           productPrice={t7ProductPrice}

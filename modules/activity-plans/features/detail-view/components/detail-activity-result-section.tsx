@@ -123,6 +123,7 @@ export function DetailActivityResultSection({
           plannedProductName={parsedResults.t7PlannedProductName}
           actualProductName={parsedResults.t7ActualProductName}
           changeReason={parsedResults.t7ChangeReason}
+          plotObjective={parsedResults.t7PlotObjective}
           plotName={parsedResults.t7PlotName}
           usageMethod={parsedResults.t7UsageMethod}
           plantingDate={parsedResults.t7PlantingDate}

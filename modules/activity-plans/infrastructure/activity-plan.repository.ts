@@ -1151,6 +1151,7 @@ export type CreateActivityResultInput = {
     plannedProductId?: string | null;
     actualProductId?: string | null;
     changeReason?: string | null;
+    plotObjective?: string | null;
     cropAgeValue?: string | null;
     cropAgeUnit?: string | null;
     growthStage?: string | null;
@@ -1313,6 +1314,7 @@ export async function upsertActivityResult(input: CreateActivityResultInput) {
             plannedProductId: item.plannedProductId ?? null,
             actualProductId: item.actualProductId ?? null,
             changeReason: item.changeReason ?? null,
+            plotObjective: item.plotObjective ?? null,
             cropAgeValue: item.cropAgeValue ?? null,
             cropAgeUnit: item.cropAgeUnit ?? null,
             growthStage: item.growthStage ?? null,

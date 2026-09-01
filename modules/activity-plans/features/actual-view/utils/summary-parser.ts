@@ -64,11 +64,13 @@ export interface ParsedSummaryValues {
   t7ActualProductName?: string;
   t7DemoProductQuantity?: string | number;
   t7ChangeReason?: string;
+  t7PlotObjective?: string;
   t7DemoResults?: Array<{
     id?: string;
     plannedProductId?: string | null;
     actualProductId?: string | null;
     changeReason?: string | null;
+    plotObjective?: string | null;
     plannedProduct?: { id: string; name: string; productCode?: string | null; unit?: string | null; packageSizeUnit?: string | null } | null;
     actualProduct?: { id: string; name: string; productCode?: string | null; unit?: string | null; packageSizeUnit?: string | null } | null;
     cropAgeValue?: string | null;
@@ -636,6 +638,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       plannedProductId: demo.plannedProductId ?? null,
       actualProductId: demo.actualProductId ?? null,
       changeReason: demo.changeReason ?? null,
+      plotObjective: demo.plotObjective ?? null,
       plannedProduct: demo.plannedProduct ?? null,
       actualProduct: demo.actualProduct ?? null,
       cropAgeValue: demo.cropAgeValue ? String(demo.cropAgeValue) : null,
@@ -653,6 +656,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (demo.plannedProductId) result.t7PlannedProductId = demo.plannedProductId;
     if (demo.actualProductId) result.t7ActualProductId = demo.actualProductId;
     if (demo.changeReason) result.t7ChangeReason = demo.changeReason;
+    if (demo.plotObjective) result.t7PlotObjective = demo.plotObjective;
     if (demo.plannedProduct?.name) result.t7PlannedProductName = demo.plannedProduct.name;
     if (demo.actualProduct?.name) result.t7ActualProductName = demo.actualProduct.name;
     if (demo.cropAgeValue) result.t7CropAgeValue = String(demo.cropAgeValue);

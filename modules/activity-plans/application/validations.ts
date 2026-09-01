@@ -213,6 +213,7 @@ export const activityResultSchema = z
             plannedProductId: z.string().optional().nullable(),
             actualProductId: z.string().optional().nullable(),
             changeReason: z.string().optional().nullable(),
+            plotObjective: z.string().optional().nullable(),
             cropAgeValue: z.string().optional().nullable(),
             cropAgeUnit: z.string().optional().nullable(),
             growthStage: z.string().optional().nullable(),
