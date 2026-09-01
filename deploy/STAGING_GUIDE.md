@@ -36,14 +36,15 @@
 ```
 
 ### สรุปหลักการของ Architecture:
+
 1. **Shared Edge Reverse Proxy (`crm-nginx`):**  
    ใช้ Nginx Container เดียวรับทราฟฟิกพอร์ต 80/443 และ SSL Certificates ของทั้งสองโดเมน โดยแยกการส่งต่อ (Routing) ตาม Domain Name
    - `csone.cropsciences.co.th` $\rightarrow$ `http://nextjs_app` (Container: `crm-app`)
    - `test-csone.cropsciences.co.th` $\rightarrow$ `http://crm-app-staging:3000` via `$staging_upstream` (Container: `crm-app-staging`)
-2. **Decoupled Upload Storage (การจัดการรูปภาพ):**  
+2. **Decoupled Upload Storage (การจัดการรูปภาพ):**
    - **Production:** จัดการผ่าน Storage ของ Production (`/home/bank/crm-data/uploads`)
    - **Staging:** ส่งคำขอ `/uploads/*` ตรงไปยัง `$staging_upstream` (`crm-app-staging`) ซึ่ง Mount โฟลเดอร์ `/home/bank/crm-data-staging/uploads` $\rightarrow$ `/app/public/uploads` ไว้อยู่แล้ว **โดย `crm-nginx` ไม่ต้อง Mount Storage ของ Staging เข้าไป**
-3. **Source of Truth ของ Nginx Configuration:**  
+3. **Source of Truth ของ Nginx Configuration:**
    - **Staging Source of Truth ใน Git:** `/opt/crm-bank-staging/nginx/conf.d/staging.conf`
    - **Active Runtime File ที่ `crm-nginx` ใช้งานจริง:** `/opt/crm-bank/nginx/conf.d/staging.conf`
 
@@ -86,7 +87,7 @@ bash scripts/deploy-staging.sh
    คัดลอกไฟล์ `nginx/conf.d/staging.conf` จาก Staging repository ไปยัง `/opt/crm-bank/nginx/conf.d/staging.conf`
 5. **Nginx Syntax Validation (`nginx -t`):**  
    รัน `docker exec crm-nginx nginx -t` หากมีข้อผิดพลาดจะทำ Auto-Rollback ทันที
-6. **Pre-flight Safety Checks (4 ด่านตรวจความปลอดภัย):**  
+6. **Pre-flight Safety Checks (4 ด่านตรวจความปลอดภัย):**
    - **Safety Check 1:** ตรวจสอบว่า Production HTTPS (`csone`) ชี้ไปยัง Production upstream (`http://nextjs_app`) และไม่มี Staging targets ปะปน
    - **Safety Check 2:** ตรวจสอบว่า Staging HTTPS (`test-csone`) ชี้ไปยัง `$staging_upstream` (`http://crm-app-staging:3000`)
    - **Safety Check 3:** ตรวจสอบว่า Staging `/uploads/` ใช้ `proxy_pass $staging_upstream;` และไม่มี `alias`
@@ -128,12 +129,12 @@ bash scripts/deploy-staging.sh
                       └─────────────────────────────────┘
 ```
 
-| รายการ | Production | Staging |
-| :--- | :--- | :--- |
-| **Host Directory** | `/home/bank/crm-data/uploads` | `/home/bank/crm-data-staging/uploads` |
-| **App Mount** | `/app/public/uploads` (`crm-app`) | `/app/public/uploads` (`crm-app-staging`) |
-| **Nginx Mount** | `/usr/share/nginx/uploads:ro` | **ไม่มี Mount (Decoupled)** |
-| **Nginx Route** | `alias /usr/share/nginx/uploads/;` | `proxy_pass $staging_upstream;` |
+| รายการ             | Production                         | Staging                                   |
+| :----------------- | :--------------------------------- | :---------------------------------------- |
+| **Host Directory** | `/home/bank/crm-data/uploads`      | `/home/bank/crm-data-staging/uploads`     |
+| **App Mount**      | `/app/public/uploads` (`crm-app`)  | `/app/public/uploads` (`crm-app-staging`) |
+| **Nginx Mount**    | `/usr/share/nginx/uploads:ro`      | **ไม่มี Mount (Decoupled)**               |
+| **Nginx Route**    | `alias /usr/share/nginx/uploads/;` | `proxy_pass $staging_upstream;`           |
 
 ---
 
@@ -142,18 +143,21 @@ bash scripts/deploy-staging.sh
 หลัง Deploy สำเร็จ ให้ตรวจสอบว่าระบบ Upload และแสดงผลรูปภาพทำงานได้ถูกต้องสมบูรณ์:
 
 ### 1. ตรวจสอบไฟล์รูปภาพที่มีอยู่จริงใน Storage ของ Staging:
+
 ```bash
 find /home/bank/crm-data-staging/uploads/activity-plans \
   -type f -printf '%TY-%Tm-%Td %TH:%TM:%TS %p\n' | sort -r | head -10
 ```
 
 ### 2. นำ Path รูปภาพที่มีอยู่จริงไปทดสอบ HTTP Status:
+
 ```bash
 # ตัวอย่าง: ทดสอบรูปภาพที่เพิ่ง Upload
 curl -I https://test-csone.cropsciences.co.th/uploads/activity-plans/<planId>/<itemId>/<category>/<filename>.jpg
 ```
 
 **ผลลัพธ์ที่ถูกต้อง (Expected Result):**
+
 ```text
 HTTP/2 200
 content-type: image/jpeg (หรือ image/png)
@@ -176,6 +180,7 @@ docker exec crm-nginx nginx -T 2>&1 | grep -n -E \
 ```
 
 **ผลลัพธ์ที่ถูกต้อง (Expected Output):**
+
 ```text
 # Production:
 server_name csone.cropsciences.co.th www.csone.cropsciences.co.th;
@@ -290,16 +295,23 @@ docker compose -f docker-compose.staging.yml restart app-staging
 
 ## 11. การเชื่อมต่อ Database Staging ผ่าน Navicat / DBeaver (SSH Tunnel)
 
-* **แท็บ General:**
-  * **Host:** `127.0.0.1`
-  * **Port:** `5433` *(Staging ใช้ Port 5433 เพื่อไม่ให้ชนกับ 5432 ของ Production)*
-  * **Initial Database:** `crm_staging`
-  * **User Name:** `crm_staging_admin`
-  * **Password:** *(รหัสผ่านใน `.env.staging`)*
+- **แท็บ General:**
+  - **Host:** `127.0.0.1`
+  - **Port:** `5433` _(Staging ใช้ Port 5433 เพื่อไม่ให้ชนกับ 5432 ของ Production)_
+  - **Initial Database:** `crm_staging`
+  - **User Name:** `crm_staging_admin`
+  - **Password:** _(รหัสผ่านใน `.env.staging`)_
 
-* **แท็บ SSH:**
-  * ☑️ **Use SSH Tunnel**
-  * **Host:** `IP_VPS_ของคุณ`
-  * **Port:** `22`
-  * **User Name:** `bank` *(หรือ user ที่ใช้ SSH)*
-  * **Authentication Method:** `Password` หรือ `Private Key`
+- **แท็บ SSH:**
+  - ☑️ **Use SSH Tunnel**
+  - **Host:** `IP_VPS_ของคุณ`
+  - **Port:** `22`
+  - **User Name:** `bank` _(หรือ user ที่ใช้ SSH)_
+  - **Authentication Method:** `Password` หรือ `Private Key`
+
+## 12. สรุป คำสั่ง
+
+cd /opt/crm-bank-staging
+git status
+git pull origin Test
+bash scripts/deploy-staging.sh
