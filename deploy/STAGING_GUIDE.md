@@ -31,7 +31,7 @@
 │               │crm-postgres (5432)│     │ │crm-postgres-staging  │ (Port 5433)         │
 │               └───────────────────┘     │ └──────────────────────┘                     │
 │               Volume: crm_data          │ Volume: crm_staging_data                     │
-│               Uploads: /uploads         │ Uploads: /uploads-staging                    │
+│               Uploads: /uploads (Nginx) │ Uploads: /uploads (Proxy to App-Staging)     │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -76,16 +76,10 @@ docker compose -f docker-compose.app.yml --env-file ../.env.production start ngi
 ### Step 2: เปิดใช้งาน Nginx Config สำหรับ Staging
 
 ```bash
-# 1. เข้าโฟลเดอร์ Production
-cd /opt/crm-bank
+# 1. นำไฟล์ staging.conf จาก Staging repository ไปไว้ที่ conf.d
+cp /opt/crm-bank-staging/nginx/conf.d/staging.conf /opt/crm-bank/nginx/conf.d/staging.conf
 
-# 2. ดึงโค้ดล่าสุดเพื่อเอาไฟล์ nginx staging template
-git pull origin Production
-
-# 3. Copy ไฟล์ config ไปที่ conf.d
-cp nginx/conf.d/staging.conf.example nginx/conf.d/staging.conf
-
-# 4. ทดสอบความถูกต้องของ Nginx config และ reload
+# 2. ทดสอบความถูกต้องของ Nginx config และ reload
 docker exec crm-nginx nginx -t
 docker exec crm-nginx nginx -s reload
 ```
@@ -190,43 +184,82 @@ docker logs crm-app-staging -f
 
 ---
 
-## 4. ขั้นตอนการอัปเดตระบบทดสอบ (Update Workflow)
+## 4. ขั้นตอนการ Deploy และอัปเดตระบบทดสอบ (Standard Deployment Workflow)
 
-เมื่อทีมพัฒนาต้องการ Deploy โค้ดใหม่มาทดสอบที่เครื่อง Staging:
+เมื่อทีมพัฒนาต้องการ Deploy โค้ดใหม่มาทดสอบที่เครื่อง Staging ให้ใช้คำสั่งมาตรฐานนี้เป็นหลัก:
 
 ```bash
-# SSH เข้า VPS
+# 1. SSH เข้า VPS และเข้าโฟลเดอร์ Staging
 ssh user@your-vps-ip
-
-# เข้าโฟลเดอร์ Staging
 cd /opt/crm-bank-staging
 
-# 1. ดึงโค้ดล่าสุดจาก Branch ทดสอบ (Test)
+# 2. ดึงโค้ดล่าสุดจาก Branch ทดสอบ (Test)
 git reset --hard
 git pull origin Test
 
-# ============================================================
-# กรณี A: อัปเดตเฉพาะ Code (ไม่มีการเปลี่ยน DB Schema)
-# ============================================================
-cd deploy/app
-docker compose -f docker-compose.staging.yml --env-file ../.env.staging up -d --build app-staging
+# 3. รัน Deployment Script (จัดการ Build App, Sync Nginx Config, Safety Checks และ 0-Downtime Reload)
+bash scripts/deploy-staging.sh
+```
 
-# ============================================================
-# กรณี B: มีการเปลี่ยน Database Schema (Migration)
-# ============================================================
-cd deploy/app
+> **สิ่งที่ `scripts/deploy-staging.sh` จัดการให้อัตโนมัติและปลอดภัย:**
+> 1. Build และ Start **เฉพาะ** service `app-staging` (ไม่แตะ Database หรือ Service อื่น)
+> 2. สำรองข้อมูล (Backup) Active Staging Nginx Config พร้อม Timestamp
+> 3. Sync `staging.conf` จาก Staging repository ไปยัง Shared Edge
+> 4. รัน `nginx -t` ตรวจสอบ Syntax
+> 5. ทำ **Pre-flight Safety Check 4 จุด** ยืนยันว่า Routing ของ Production และ Staging ถูกต้อง 100%
+> 6. ส่งสัญญาณ `nginx -s reload` (0-Downtime Reload โดยไม่ Restart Container)
+> 7. ทดสอบการเชื่อมต่อ HTTP และสรุปผล
 
-# 1. สั่งรัน migrate
-docker compose -f docker-compose.staging.yml --env-file ../.env.staging \
-  --profile migrate up migrate
+---
 
-# 2. Rebuild app
-docker compose -f docker-compose.staging.yml --env-file ../.env.staging up -d --build app-staging
+## 5. การจัดการกรณีฉุกเฉินและกู้คืนระบบ (Emergency, Manual Sync & Rollback)
+
+### 5.1 การกู้คืน Nginx Config เดิมทันที (Emergency Rollback)
+
+หากเกิดปัญหาหลังการแก้ไข สามารถกู้คืน Nginx Config กลับสู่สถานะล่าสุดที่ทำงานได้ทันที:
+
+```bash
+# 1. คัดลอกไฟล์ Backup ล่าสุดกลับมา
+LATEST_BACKUP=$(ls -t /opt/crm-bank/nginx/conf.d/.backup/staging.conf.* | head -1)
+cp "$LATEST_BACKUP" /opt/crm-bank/nginx/conf.d/staging.conf
+
+# 2. ตรวจสอบ syntax และ reload
+docker exec crm-nginx nginx -t
+docker exec crm-nginx nginx -s reload
+```
+
+### 5.2 การ Sync และตรวจสอบด้วยตนเองทีละขั้นตอน (Manual Step-by-Step for Debugging)
+
+ใช้เฉพาะกรณีต้องการดีบักหรือทดสอบทีละบรรทัดด้วยตนเอง:
+
+```bash
+cd /opt/crm-bank-staging
+
+# 1. Build เฉพาะ app-staging
+docker compose \
+  -f deploy/app/docker-compose.staging.yml \
+  --env-file deploy/.env.staging \
+  up -d --build app-staging
+
+# 2. Backup config เดิม
+mkdir -p /opt/crm-bank/nginx/conf.d/.backup
+cp /opt/crm-bank/nginx/conf.d/staging.conf /opt/crm-bank/nginx/conf.d/.backup/staging.conf.$(date +"%Y%m%d_%H%M%S") 2>/dev/null || true
+
+# 3. คัดลอก config ใหม่
+cp /opt/crm-bank-staging/nginx/conf.d/staging.conf /opt/crm-bank/nginx/conf.d/staging.conf
+
+# 4. ตรวจสอบ syntax และ safety
+docker exec crm-nginx nginx -t
+docker exec crm-nginx nginx -T | grep -A 25 "server_name csone.cropsciences.co.th" | grep "nextjs_app"
+docker exec crm-nginx nginx -T | grep -A 25 "server_name test-csone.cropsciences.co.th" | grep "staging_upstream"
+
+# 5. Reload
+docker exec crm-nginx nginx -s reload
 ```
 
 ---
 
-## 5. คำสั่งการจัดการและตรวจสอบ (Useful Commands)
+## 6. คำสั่งการจัดการและตรวจสอบ (Useful Commands)
 
 ### ดูสถานะ Logs
 ```bash
