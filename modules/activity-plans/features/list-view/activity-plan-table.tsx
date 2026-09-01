@@ -124,12 +124,19 @@ export function ActivityPlanTable({
           const item = row.original;
           if ((item as any).workTypes && (item as any).workTypes.length > 0) {
             const names = (item as any).workTypes
-              .map((wt: any) => wt.activityType?.name || getWorkTypeName(wt.activityTypeId || wt.workTypeCode))
+              .map(
+                (wt: any) =>
+                  wt.activityType?.name ||
+                  getWorkTypeName(wt.activityTypeId || wt.workTypeCode),
+              )
               .filter(Boolean);
             if (names.length > 0) {
               const str = names.join(", ");
               return (
-                <div className="truncate text-sm text-slate-700 max-w-[250px]" title={str}>
+                <div
+                  className="truncate text-sm text-slate-700 max-w-[250px]"
+                  title={str}
+                >
                   {str}
                 </div>
               );
@@ -137,7 +144,10 @@ export function ActivityPlanTable({
           }
           if ((item as any).tour) {
             return (
-              <div className="truncate text-sm text-slate-700 max-w-[250px]" title="ทัวร์">
+              <div
+                className="truncate text-sm text-slate-700 max-w-[250px]"
+                title="ทัวร์"
+              >
                 ทัวร์
               </div>
             );
@@ -237,11 +247,15 @@ export function ActivityPlanTable({
             (item as any).workTypes && (item as any).workTypes.length > 0
               ? (item as any).workTypes.some((wt: any) => {
                   const code = wt.workTypeCode || wt.activityType?.code;
-                  return code ? WORK_TYPE_CONFIG[code as keyof typeof WORK_TYPE_CONFIG]?.hasActual : true;
+                  return code
+                    ? WORK_TYPE_CONFIG[code as keyof typeof WORK_TYPE_CONFIG]
+                        ?.hasActual
+                    : true;
                 })
               : (item as any).tour
-              ? false
-              : item.activityType?.code !== "TYPE_12" && item.activityType?.name !== "ทัวร์";
+                ? false
+                : item.activityType?.code !== "TYPE_12" &&
+                  item.activityType?.name !== "ทัวร์";
 
           return (
             <div className="flex items-center justify-center gap-2">
@@ -270,7 +284,7 @@ export function ActivityPlanTable({
                 />
               )}
 
-              {editable &&
+              {/* {editable &&
                 (submitLoadingId === item.id ? (
                   <span className="text-xs text-slate-400 animate-pulse font-medium px-2 py-1 select-none">
                     กำลังส่ง...
@@ -282,7 +296,7 @@ export function ActivityPlanTable({
                     colorClass="text-teal-600 border-teal-100 hover:bg-teal-50 rounded-md"
                     onClick={() => onSubmitApproval(item)}
                   />
-                ))}
+                ))} */}
 
               {canEdit && editable && (
                 <ActionButton
@@ -315,7 +329,16 @@ export function ActivityPlanTable({
         },
       },
     ];
-  }, [canCreate, canEdit, canDelete, canApprove, onSubmitApproval, onDuplicate, onDelete, submitLoadingId]);
+  }, [
+    canCreate,
+    canEdit,
+    canDelete,
+    canApprove,
+    onSubmitApproval,
+    onDuplicate,
+    onDelete,
+    submitLoadingId,
+  ]);
 
   const toolbar = (
     <div className="space-y-4 mb-6">
