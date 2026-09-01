@@ -12,10 +12,6 @@ export function ActualViewHeader({ planNo }: ActualViewHeaderProps) {
     <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6 border-b border-slate-100">
       {/* Center: Icon + Title */}
       <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3.5">
-        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 shadow-2xs">
-          <FileText className="w-6 h-6 stroke-[2.2]" />
-        </div>
-
         <h1 className="font-bold text-xl sm:text-2xl text-slate-800 tracking-tight whitespace-nowrap">
           บันทึกผลการปฏิบัติงาน ( Trip Plan Actual )
         </h1>
