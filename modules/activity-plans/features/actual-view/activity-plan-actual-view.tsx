@@ -216,13 +216,17 @@ export default function ActivityPlanActualView({
   const [t5CompetitorUnit, setT5CompetitorUnit] = useState("");
   const [t5PromotionDetail, setT5PromotionDetail] = useState("");
   const [t5PriceTagImages, setT5PriceTagImages] = useState<ImageFile[]>([]);
-  const [t5SurveyDetails, setT5SurveyDetails] = useState<Type5SurveyRecord[]>([]);
+  const [t5SurveyDetails, setT5SurveyDetails] = useState<Type5SurveyRecord[]>(
+    [],
+  );
   const initialT5SurveyDetailsRef = useRef<Type5SurveyRecord[]>([]);
 
   // Work Type 6 States
   const [t6ProblemDetail, setT6ProblemDetail] = useState("");
   const [t6InitialSolution, setT6InitialSolution] = useState("");
-  const [t6Status, setT6Status] = useState<"เสร็จสิ้น" | "รอติดตาม" | "">("เสร็จสิ้น");
+  const [t6Status, setT6Status] = useState<"เสร็จสิ้น" | "รอติดตาม" | "">(
+    "เสร็จสิ้น",
+  );
   const [t6Images, setT6Images] = useState<ImageFile[]>([]);
   const initialT6ImagesRef = useRef<ImageFile[]>([]);
 
@@ -258,8 +262,9 @@ export default function ActivityPlanActualView({
   const [t7ProblemDescription, setT7ProblemDescription] = useState("");
   const [t7PlotImages, setT7PlotImages] = useState<ImageFile[]>([]);
   const initialT7PlotImagesRef = useRef<ImageFile[]>([]);
-  const [t7PlotStatus, setT7PlotStatus] =
-    useState<"IN_PROGRESS" | "COMPLETED" | "FAILED">("IN_PROGRESS");
+  const [t7PlotStatus, setT7PlotStatus] = useState<
+    "IN_PROGRESS" | "COMPLETED" | "FAILED"
+  >("IN_PROGRESS");
   const [t7NextFollowUpDate, setT7NextFollowUpDate] = useState("");
   const [t7FinalYieldKg, setT7FinalYieldKg] = useState("");
   const [t7ControlYieldKg, setT7ControlYieldKg] = useState("");
@@ -404,11 +409,13 @@ export default function ActivityPlanActualView({
             if (parsed.cancelReason) setCancelReason(parsed.cancelReason);
             if (parsed.postponedDate) setPostponedDate(parsed.postponedDate);
             if (parsed.postponedTime) setPostponedTime(parsed.postponedTime);
-            if (parsed.postponedReason) setPostponedReason(parsed.postponedReason);
+            if (parsed.postponedReason)
+              setPostponedReason(parsed.postponedReason);
             if (parsed.postponedNotes) setPostponedNotes(parsed.postponedNotes);
 
             // Type 1
-            if (parsed.t1ProductAdvice) setT1ProductAdvice(parsed.t1ProductAdvice);
+            if (parsed.t1ProductAdvice)
+              setT1ProductAdvice(parsed.t1ProductAdvice);
             if (parsed.t1SalesOpportunity) {
               setT1SalesOpportunity(parsed.t1SalesOpportunity);
             }
@@ -428,7 +435,8 @@ export default function ActivityPlanActualView({
               setT2Detail(parsed.t2FollowupDetail);
             }
             if (parsed.t2UsageResult) setT2UsageResult(parsed.t2UsageResult);
-            if (parsed.t2ProblemDetail) setT2ProblemDetail(parsed.t2ProblemDetail);
+            if (parsed.t2ProblemDetail)
+              setT2ProblemDetail(parsed.t2ProblemDetail);
 
             // Type 3
             if (parsed.t3SoldProducts) setT3SoldProducts(parsed.t3SoldProducts);
@@ -584,7 +592,8 @@ export default function ActivityPlanActualView({
             if (parsed.t7CropAgeValue) setT7CropAgeValue(parsed.t7CropAgeValue);
             if (parsed.t7CropAgeUnit) setT7CropAgeUnit(parsed.t7CropAgeUnit);
             if (parsed.t7GrowthStage) setT7GrowthStage(parsed.t7GrowthStage);
-            if (parsed.t7CropCondition) setT7CropCondition(parsed.t7CropCondition);
+            if (parsed.t7CropCondition)
+              setT7CropCondition(parsed.t7CropCondition);
             if (parsed.t7CropProblemDescription) {
               setT7CropProblemDescription(parsed.t7CropProblemDescription);
             }
@@ -689,7 +698,8 @@ export default function ActivityPlanActualView({
             // Type 11
             if (parsed.t11StockItems) setT11StockItems(parsed.t11StockItems);
             if (parsed.t11ProductList) setT11ProductList(parsed.t11ProductList);
-            if (parsed.t11RemainingQty) setT11RemainingQty(parsed.t11RemainingQty);
+            if (parsed.t11RemainingQty)
+              setT11RemainingQty(parsed.t11RemainingQty);
             if (parsed.t11Remarks) setT11Remarks(parsed.t11Remarks);
             if (parsed.t11StockStatus) {
               const st = parsed.t11StockStatus;
@@ -970,12 +980,16 @@ export default function ActivityPlanActualView({
             ...collectPermanentUrls(rec.shelfImages),
           ]),
         );
-        const oldT5ToDelete = initialT5Urls.filter((u) => !currentT5Urls.has(u));
+        const oldT5ToDelete = initialT5Urls.filter(
+          (u) => !currentT5Urls.has(u),
+        );
 
         // Type 6
         const initialT6Urls = collectPermanentUrls(initialT6ImagesRef.current);
         const currentT6Urls = new Set(collectPermanentUrls(cleanT6Images));
-        const oldT6ToDelete = initialT6Urls.filter((u) => !currentT6Urls.has(u));
+        const oldT6ToDelete = initialT6Urls.filter(
+          (u) => !currentT6Urls.has(u),
+        );
 
         // Type 7
         const initialT7CropUrls = collectPermanentUrls(
@@ -1001,12 +1015,16 @@ export default function ActivityPlanActualView({
         // Type 8
         const initialT8Urls = collectPermanentUrls(initialT8ImagesRef.current);
         const currentT8Urls = new Set(collectPermanentUrls(cleanT8Images));
-        const oldT8ToDelete = initialT8Urls.filter((u) => !currentT8Urls.has(u));
+        const oldT8ToDelete = initialT8Urls.filter(
+          (u) => !currentT8Urls.has(u),
+        );
 
         // Type 9
         const initialT9Urls = collectPermanentUrls(initialT9ImagesRef.current);
         const currentT9Urls = new Set(collectPermanentUrls(cleanT9Images));
-        const oldT9ToDelete = initialT9Urls.filter((u) => !currentT9Urls.has(u));
+        const oldT9ToDelete = initialT9Urls.filter(
+          (u) => !currentT9Urls.has(u),
+        );
 
         // Type 10
         const initialT10Urls = collectPermanentUrls(
@@ -1176,21 +1194,15 @@ export default function ActivityPlanActualView({
         initialT5SurveyDetailsRef.current = JSON.parse(
           JSON.stringify(cleanT5SurveyDetails),
         );
-        initialT6ImagesRef.current = JSON.parse(
-          JSON.stringify(cleanT6Images),
-        );
+        initialT6ImagesRef.current = JSON.parse(JSON.stringify(cleanT6Images));
         initialT7CropImagesRef.current = JSON.parse(
           JSON.stringify(cleanT7CropImages),
         );
         initialT7PlotImagesRef.current = JSON.parse(
           JSON.stringify(cleanT7PlotImages),
         );
-        initialT8ImagesRef.current = JSON.parse(
-          JSON.stringify(cleanT8Images),
-        );
-        initialT9ImagesRef.current = JSON.parse(
-          JSON.stringify(cleanT9Images),
-        );
+        initialT8ImagesRef.current = JSON.parse(JSON.stringify(cleanT8Images));
+        initialT9ImagesRef.current = JSON.parse(JSON.stringify(cleanT9Images));
         initialT10ImagesRef.current = JSON.parse(
           JSON.stringify(cleanT10Images),
         );
@@ -1263,7 +1275,7 @@ export default function ActivityPlanActualView({
   }
 
   return (
-    <section className="space-y-6 container mx-auto px-0 sm:px-0">
+    <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
       <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
         {/* TOP HEADER */}
         <ActualViewHeader planNo={planSummary.planNo} />
