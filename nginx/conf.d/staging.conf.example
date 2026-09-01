@@ -129,9 +129,9 @@ server {
         internal;
     }
 
-    # Staging Uploads
+    # Staging Uploads (Proxied to Staging App container)
     location /uploads/ {
-        alias /usr/share/nginx/uploads-staging/;
+        proxy_pass $staging_upstream;
         expires 30d;
         add_header Cache-Control "public, no-transform";
         access_log off;
