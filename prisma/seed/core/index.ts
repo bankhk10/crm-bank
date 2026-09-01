@@ -5,6 +5,7 @@ import { seedMaster } from "./master";
 import { seedProductMaster } from "./product-master";
 import { seedRBAC } from "./rbac";
 import { seedUsers } from "./users";
+import { seedSalesPromotionUser } from "./sales-promotion-user";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -31,6 +32,9 @@ export async function seedCore() {
 
     // 4. Users (requires Dept, Roles)
     await seedUsers(prisma);
+
+    // 5. Sales Promotion Test User & Permissions
+    await seedSalesPromotionUser(prisma);
 
     console.log("✅ Core Database Seeding completed successfully!");
   } catch (error) {

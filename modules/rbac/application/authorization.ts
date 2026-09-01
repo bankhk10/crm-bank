@@ -231,6 +231,9 @@ export function getDefaultRouteForRoles(roles: string[]): string {
   if (isManager(roles)) {
     return "/dashboard/manager";
   }
+  if (roles.some((role) => role === "sales_promotion")) {
+    return "/activity-plans";
+  }
   return DEFAULT_AUTH_REDIRECT;
 }
 

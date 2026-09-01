@@ -127,6 +127,17 @@ export default function Sidebar({
         const dashboardLabel = isDashboard ? "แดชบอร์ด" : "หน้าแรก";
         const DashboardIcon = isDashboard ? LayoutDashboard : Home;
 
+        // Only include main dashboard item if user has explicit dashboard or show_product menu permission
+        const hasDashboardPermission =
+            permissionKeys.includes("menu.dashboard.admin") ||
+            permissionKeys.includes("menu.dashboard.manager") ||
+            permissionKeys.includes("menu.dashboard.sales") ||
+            permissionKeys.includes("menu.show_product");
+
+        if (!hasDashboardPermission || roles.includes("sales_promotion")) {
+            return navs.filter((nav) => nav.href !== dashboardHref);
+        }
+
         const mainDashboardItem: SidebarNavItem = {
             href: dashboardHref,
             label: dashboardLabel,

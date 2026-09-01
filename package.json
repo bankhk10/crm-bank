@@ -13,6 +13,7 @@
     "lint": "eslint",
     "seed": "tsx prisma/seed/index.ts",
     "seed:core": "tsx prisma/seed/core/index.ts",
+    "seed:sales-promotion": "tsx prisma/seed/core/sales-promotion-user.ts",
     "seed:activity": "tsx prisma/seed/activity/index.ts",
     "db:migrate": "prisma migrate deploy"
   },
