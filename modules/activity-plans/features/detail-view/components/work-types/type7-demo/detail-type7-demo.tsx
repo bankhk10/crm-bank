@@ -28,6 +28,7 @@ export interface DetailType7DemoProps {
   demoResults?: DemoResultItemData[];
   plannedProductId?: string | null;
   actualProductId?: string | null;
+  actualQuantity?: string | number | null;
   plannedProductName?: string | null;
   actualProductName?: string | null;
   changeReason?: string | null;
@@ -99,6 +100,7 @@ export function DetailType7Demo(props: DetailType7DemoProps) {
       demoResults={props.demoResults}
       plannedProductId={props.plannedProductId}
       actualProductId={props.actualProductId}
+      actualQuantity={props.actualQuantity}
       plannedProductName={props.plannedProductName}
       actualProductName={props.actualProductName}
       changeReason={props.changeReason}
@@ -108,6 +110,7 @@ export function DetailType7Demo(props: DetailType7DemoProps) {
       plantingAreaCondition={props.plantingAreaCondition}
       cropImages={props.cropImages}
       plotImages={props.plotImages}
+      demoPlotData={props.demoPlotData}
     />
   );
 }

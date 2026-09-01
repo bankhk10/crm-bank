@@ -228,10 +228,10 @@ export async function findActivityPlanById(id: string) {
           demoResults: {
             include: {
               plannedProduct: {
-                select: { id: true, name: true, productCode: true },
+                select: { id: true, name: true, productCode: true, unit: true, packageSizeUnit: true },
               },
               actualProduct: {
-                select: { id: true, name: true, productCode: true },
+                select: { id: true, name: true, productCode: true, unit: true, packageSizeUnit: true },
               },
             },
           },

@@ -119,6 +119,7 @@ export function DetailActivityResultSection({
           demoResults={parsedResults.t7DemoResults}
           plannedProductId={parsedResults.t7PlannedProductId}
           actualProductId={parsedResults.t7ActualProductId}
+          actualQuantity={parsedResults.t7DemoProductQuantity}
           plannedProductName={parsedResults.t7PlannedProductName}
           actualProductName={parsedResults.t7ActualProductName}
           changeReason={parsedResults.t7ChangeReason}

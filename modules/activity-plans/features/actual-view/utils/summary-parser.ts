@@ -69,8 +69,8 @@ export interface ParsedSummaryValues {
     plannedProductId?: string | null;
     actualProductId?: string | null;
     changeReason?: string | null;
-    plannedProduct?: { id: string; name: string; productCode?: string | null } | null;
-    actualProduct?: { id: string; name: string; productCode?: string | null } | null;
+    plannedProduct?: { id: string; name: string; productCode?: string | null; unit?: string | null; packageSizeUnit?: string | null } | null;
+    actualProduct?: { id: string; name: string; productCode?: string | null; unit?: string | null; packageSizeUnit?: string | null } | null;
     cropAgeValue?: string | null;
     cropAgeUnit?: string | null;
     growthStage?: string | null;
