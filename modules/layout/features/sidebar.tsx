@@ -134,7 +134,11 @@ export default function Sidebar({
             permissionKeys.includes("menu.dashboard.sales") ||
             permissionKeys.includes("menu.show_product");
 
-        if (!hasDashboardPermission || roles.includes("sales_promotion")) {
+        if (
+            !hasDashboardPermission ||
+            roles.includes("sales_promotion") ||
+            roles.includes("sales_promotion_supervisor")
+        ) {
             return navs.filter((nav) => nav.href !== dashboardHref);
         }
 
