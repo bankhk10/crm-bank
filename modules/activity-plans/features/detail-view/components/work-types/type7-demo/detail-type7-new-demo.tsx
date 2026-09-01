@@ -39,6 +39,7 @@ export interface DemoResultItemData {
     unit?: string | null;
     packageSizeUnit?: string | null;
   } | null;
+  demoPlotId?: string | null;
 }
 
 export interface DetailType7NewDemoProps {
@@ -63,6 +64,8 @@ export interface DetailType7NewDemoProps {
   actualProductName?: string | null;
   changeReason?: string | null;
   plotObjective?: string;
+  customPlotDetail?: string | null;
+  demoPlotId?: string | null;
   plotName?: string;
   usageMethod?: string;
   plantingDate?: string;
@@ -82,6 +85,8 @@ export function DetailType7NewDemo({
   actualProductName,
   changeReason,
   plotObjective,
+  customPlotDetail,
+  demoPlotId,
   plotName,
   usageMethod,
   plantingDate,
@@ -282,21 +287,49 @@ export function DetailType7NewDemo({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
-          {/* ข้อมูลแปลงและการเริ่มปลูก */}
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
-            <span className="text-xs text-slate-500 font-medium block flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-slate-400" />
-              ชื่อแปลงสาธิต / รหัสแปลง
-            </span>
-            <span className="text-xs sm:text-sm font-bold text-slate-800 block">
-              {plotName || demoPlotData?.name || target.owner || "-"}
-            </span>
-            {demoPlotData?.code && (
-              <span className="text-[11px] text-slate-500 font-mono block">
-                รหัสแปลง: {demoPlotData.code}
-              </span>
-            )}
-          </div>
+          {/* แปลงเกษตรของเกษตรกร */}
+          {(() => {
+            const resolvedDemoPlotId = demoPlotId || firstResult?.demoPlotId;
+            const isOtherPlot =
+              resolvedDemoPlotId === "OTHER" ||
+              resolvedDemoPlotId?.startsWith("OTHER:") ||
+              Boolean(customPlotDetail);
+            const resolvedCustomDetail =
+              customPlotDetail ||
+              (resolvedDemoPlotId?.startsWith("OTHER:")
+                ? resolvedDemoPlotId.replace("OTHER:", "")
+                : "");
+
+            return (
+              <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1.5">
+                <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                  แปลงเกษตรของเกษตรกร
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-slate-800 block">
+                  {isOtherPlot
+                    ? "แปลงอื่นๆ"
+                    : demoPlotData?.name ||
+                      (resolvedDemoPlotId && resolvedDemoPlotId !== "OTHER"
+                        ? `แปลงรหัส ${resolvedDemoPlotId}`
+                        : "-")}
+                </span>
+                {isOtherPlot && resolvedCustomDetail && (
+                  <div className="text-xs text-slate-600 bg-white p-2 rounded-lg border border-slate-200 mt-1">
+                    <span className="font-semibold text-slate-700 block mb-0.5">
+                      รายละเอียดแปลง:
+                    </span>
+                    <span className="whitespace-pre-wrap">{resolvedCustomDetail}</span>
+                  </div>
+                )}
+                {!isOtherPlot && demoPlotData?.code && (
+                  <span className="text-[11px] text-slate-500 font-mono block">
+                    รหัสแปลง: {demoPlotData.code}
+                  </span>
+                )}
+              </div>
+            );
+          })()}
 
           <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
             <span className="text-xs text-slate-500 font-medium block flex items-center gap-1">

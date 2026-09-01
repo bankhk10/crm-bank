@@ -81,6 +81,8 @@ export interface ActualType7NewDemoProps {
   setChangeReason?: (reason: string) => void;
   plotObjective?: string;
   setPlotObjective?: (v: string) => void;
+  customPlotDetail?: string;
+  setCustomPlotDetail?: (v: string) => void;
   plotName?: string;
   setPlotName?: (v: string) => void;
   usageMethod: string;
@@ -112,6 +114,8 @@ export function ActualType7NewDemo({
   setChangeReason,
   plotObjective = "",
   setPlotObjective,
+  customPlotDetail = "",
+  setCustomPlotDetail,
   plotName = "",
   setPlotName,
   usageMethod,
@@ -180,27 +184,9 @@ export function ActualType7NewDemo({
   });
 
   const handleSelectFarmPlot = (plotId: string) => {
-    setInternalSelectedFarmPlotId(plotId);
-    setDemoPlotId?.(plotId);
-    const found = farmerPlots.find((p) => p.id === plotId);
-    if (found) {
-      if (setPlotName) {
-        const cropDisplay =
-          found.targetCrop || found.cropName || target.crop || "";
-        const ownerDisplay = target.owner || found.ownerName || "";
-        const suggestedName = cropDisplay
-          ? `แปลงสาธิต${cropDisplay} ${ownerDisplay}`.trim()
-          : `แปลงสาธิต ${found.name || ownerDisplay}`.trim();
-        setPlotName(suggestedName);
-      }
-      if (
-        found.location &&
-        !plantingAreaCondition &&
-        setPlantingAreaCondition
-      ) {
-        setPlantingAreaCondition(found.location);
-      }
-    }
+    const cleanId = plotId === "__NONE__" ? "" : plotId;
+    setInternalSelectedFarmPlotId(cleanId);
+    setDemoPlotId?.(cleanId || null);
   };
 
   const productOptions = (products || []).map((p) => ({
@@ -391,7 +377,7 @@ export function ActualType7NewDemo({
         <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2">
           <MapPin className="w-4 h-4 text-emerald-700" />
           <h3 className="text-sm font-bold text-slate-800">
-            ข้อมูลแปลงเกษตรและชื่อแปลงสาธิต
+            ข้อมูลแปลงเกษตร
           </h3>
         </div>
 
@@ -419,15 +405,21 @@ export function ActualType7NewDemo({
                 <Info className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 <span>กรุณาระบุเจ้าของแปลงในแผนงาน</span>
               </div>
-            ) : farmerPlots.length > 0 ? (
+            ) : (
               <Select
-                value={selectedFarmPlotId}
+                value={selectedFarmPlotId || "__NONE__"}
                 onValueChange={handleSelectFarmPlot}
               >
                 <SelectTrigger className="w-full h-10 min-h-[40px] px-3.5 bg-white border-slate-200 rounded-xl text-xs sm:text-sm font-medium focus:ring-2 focus:ring-emerald-500">
                   <SelectValue placeholder="เลือกแปลงเกษตรของเกษตรกร..." />
                 </SelectTrigger>
                 <SelectContent className="max-w-[calc(100vw-2rem)] sm:max-w-md">
+                  <SelectItem
+                    value="__NONE__"
+                    className="text-xs sm:text-sm text-slate-500"
+                  >
+                    -- ยังไม่ได้เลือก --
+                  </SelectItem>
                   {farmerPlots.map((plot, idx) => (
                     <SelectItem
                       key={plot.id}
@@ -439,15 +431,31 @@ export function ActualType7NewDemo({
                       {plot.areaRai ? ` (${plot.areaRai} ไร่)` : ""}
                     </SelectItem>
                   ))}
+                  <SelectItem
+                    value="OTHER"
+                    className="text-xs sm:text-sm font-semibold text-emerald-800"
+                  >
+                    ➕ แปลงอื่นๆ (ระบุเอง)
+                  </SelectItem>
                 </SelectContent>
               </Select>
-            ) : (
-              <div className="w-full h-10 min-h-[40px] px-3.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center text-xs text-slate-500 gap-1.5">
-                <Info className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span>ไม่พบข้อมูลแปลงเกษตร</span>
-              </div>
             )}
           </div>
+
+          {selectedFarmPlotId === "OTHER" && (
+            <div className="space-y-1.5 sm:col-span-2">
+              <label className="text-xs sm:text-sm font-semibold text-slate-800">
+                รายละเอียดแปลง
+              </label>
+              <Textarea
+                rows={3}
+                value={customPlotDetail}
+                onChange={(e) => setCustomPlotDetail?.(e.target.value)}
+                placeholder="ระบุรายละเอียดของแปลง เช่น ขนาด พื้นที่ ตำแหน่ง ฯลฯ"
+                className="text-xs sm:text-sm bg-white border-slate-200 rounded-xl"
+              />
+            </div>
+          )}
 
           <div className="space-y-1.5 sm:col-span-2">
             <label className="text-xs sm:text-sm font-semibold text-slate-800">
@@ -459,18 +467,6 @@ export function ActualType7NewDemo({
               onChange={(e) => setPlotObjective?.(e.target.value)}
               placeholder="ระบุวัตถุประสงค์ของการทำแปลงสาธิต..."
               className="text-xs sm:text-sm bg-white border-slate-200 rounded-xl"
-            />
-          </div>
-
-          <div className="space-y-1.5 sm:col-span-2">
-            <label className="text-xs sm:text-sm font-semibold text-slate-800">
-              ชื่อแปลงสาธิต <span className="text-red-500">*</span>
-            </label>
-            <Input
-              value={plotName}
-              onChange={(e) => setPlotName?.(e.target.value)}
-              placeholder="ระบุชื่อแปลงสาธิต เช่น แปลงสาธิตทุเรียนหมอนทอง นายสมชาย"
-              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
             />
           </div>
         </div>
@@ -656,8 +652,7 @@ export function ActualType7NewDemo({
               {/* 3. เหตุผลที่เปลี่ยนหน้างาน */}
               <div className="md:col-span-12">
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  เหตุผลที่เปลี่ยนหน้างาน{" "}
-                  <span className="text-red-500">*</span>
+                  เหตุผลที่เปลี่ยนหน้างาน <span className="text-red-500">*</span>
                 </label>
                 <Input
                   value={draftChangeReason}

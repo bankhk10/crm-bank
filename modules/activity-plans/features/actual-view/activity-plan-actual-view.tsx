@@ -239,6 +239,7 @@ export default function ActivityPlanActualView({
   const [t7ActualQuantity, setT7ActualQuantity] = useState("");
   const [t7ChangeReason, setT7ChangeReason] = useState("");
   const [t7PlotObjective, setT7PlotObjective] = useState("");
+  const [t7CustomPlotDetail, setT7CustomPlotDetail] = useState("");
   const [t7UsageMethod, setT7UsageMethod] = useState("");
   const [t7PlantingDate, setT7PlantingDate] = useState("");
   const [t7PlantingAreaCondition, setT7PlantingAreaCondition] = useState("");
@@ -572,6 +573,12 @@ export default function ActivityPlanActualView({
             }
             if (parsed.t7PlotObjective) {
               setT7PlotObjective(parsed.t7PlotObjective);
+            }
+            if (parsed.t7CustomPlotDetail) {
+              setT7CustomPlotDetail(parsed.t7CustomPlotDetail);
+            }
+            if (parsed.t7DemoPlotId) {
+              setT7DemoPlotId(parsed.t7DemoPlotId);
             }
             if (parsed.t7UsageMethod) setT7UsageMethod(parsed.t7UsageMethod);
             if (parsed.t7CropAgeValue) setT7CropAgeValue(parsed.t7CropAgeValue);
@@ -1094,6 +1101,7 @@ export default function ActivityPlanActualView({
             t7ActualQuantity || targets.t7?.demoProductQuantity || null,
           t7ChangeReason,
           t7PlotObjective,
+          t7CustomPlotDetail,
           t7DemoPlotId,
           t7PlantingDate,
           t7PlantingAreaCondition,
@@ -1366,6 +1374,8 @@ export default function ActivityPlanActualView({
             setT7ChangeReason={setT7ChangeReason}
             t7PlotObjective={t7PlotObjective}
             setT7PlotObjective={setT7PlotObjective}
+            t7CustomPlotDetail={t7CustomPlotDetail}
+            setT7CustomPlotDetail={setT7CustomPlotDetail}
             t7UsageMethod={t7UsageMethod}
             setT7UsageMethod={setT7UsageMethod}
             t7PlantingDate={t7PlantingDate}

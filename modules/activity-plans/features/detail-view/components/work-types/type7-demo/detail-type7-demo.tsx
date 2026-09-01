@@ -33,6 +33,8 @@ export interface DetailType7DemoProps {
   actualProductName?: string | null;
   changeReason?: string | null;
   plotObjective?: string;
+  customPlotDetail?: string | null;
+  demoPlotId?: string | null;
   startDate?: string;
   plotName?: string;
   usageMethod?: string;
@@ -106,6 +108,8 @@ export function DetailType7Demo(props: DetailType7DemoProps) {
       actualProductName={props.actualProductName}
       changeReason={props.changeReason}
       plotObjective={props.plotObjective}
+      customPlotDetail={props.customPlotDetail}
+      demoPlotId={props.demoPlotId}
       plotName={props.plotName}
       usageMethod={props.usageMethod}
       plantingDate={props.plantingDate}

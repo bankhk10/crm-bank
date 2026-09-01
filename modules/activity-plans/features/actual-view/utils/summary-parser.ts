@@ -65,6 +65,8 @@ export interface ParsedSummaryValues {
   t7DemoProductQuantity?: string | number;
   t7ChangeReason?: string;
   t7PlotObjective?: string;
+  t7CustomPlotDetail?: string;
+  t7DemoPlotId?: string | null;
   t7DemoResults?: Array<{
     id?: string;
     plannedProductId?: string | null;
@@ -372,6 +374,14 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (t7ProblemMatch && t7ProblemMatch[1]) {
       result.t7ProblemDescription = t7ProblemMatch[1].split("\n")[0].trim();
     }
+    const customPlotMatch = summaryText.match(/รายละเอียดแปลง:\s*(.+)/);
+    if (customPlotMatch && customPlotMatch[1]) {
+      result.t7CustomPlotDetail = customPlotMatch[1].split("\n")[0].trim();
+      if (!result.t7DemoPlotId) result.t7DemoPlotId = "OTHER";
+    }
+    if (summaryText.includes("แปลงเกษตร: แปลงอื่นๆ") && !result.t7DemoPlotId) {
+      result.t7DemoPlotId = "OTHER";
+    }
     const plantingDateMatch = summaryText.match(/วันที่ปลูก:\s*(.+)/);
     if (plantingDateMatch && plantingDateMatch[1]) {
       result.t7PlantingDate = plantingDateMatch[1].split("\n")[0].trim();
@@ -653,6 +663,16 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }));
 
     const demo = resData.demoResults[0];
+    if (demo.demoPlotId) {
+      if (demo.demoPlotId.startsWith("OTHER:")) {
+        result.t7DemoPlotId = "OTHER";
+        result.t7CustomPlotDetail = demo.demoPlotId.substring(6);
+      } else if (demo.demoPlotId === "OTHER") {
+        result.t7DemoPlotId = "OTHER";
+      } else {
+        result.t7DemoPlotId = demo.demoPlotId;
+      }
+    }
     if (demo.plannedProductId) result.t7PlannedProductId = demo.plannedProductId;
     if (demo.actualProductId) result.t7ActualProductId = demo.actualProductId;
     if (demo.changeReason) result.t7ChangeReason = demo.changeReason;

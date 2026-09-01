@@ -124,6 +124,8 @@ export function DetailActivityResultSection({
           actualProductName={parsedResults.t7ActualProductName}
           changeReason={parsedResults.t7ChangeReason}
           plotObjective={parsedResults.t7PlotObjective}
+          customPlotDetail={parsedResults.t7CustomPlotDetail}
+          demoPlotId={parsedResults.t7DemoPlotId}
           plotName={parsedResults.t7PlotName}
           usageMethod={parsedResults.t7UsageMethod}
           plantingDate={parsedResults.t7PlantingDate}
