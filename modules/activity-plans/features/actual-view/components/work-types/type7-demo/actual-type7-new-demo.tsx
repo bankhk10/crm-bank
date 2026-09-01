@@ -185,7 +185,8 @@ export function ActualType7NewDemo({
     const found = farmerPlots.find((p) => p.id === plotId);
     if (found) {
       if (setPlotName) {
-        const cropDisplay = found.targetCrop || found.cropName || target.crop || "";
+        const cropDisplay =
+          found.targetCrop || found.cropName || target.crop || "";
         const ownerDisplay = target.owner || found.ownerName || "";
         const suggestedName = cropDisplay
           ? `แปลงสาธิต${cropDisplay} ${ownerDisplay}`.trim()
@@ -655,7 +656,8 @@ export function ActualType7NewDemo({
               {/* 3. เหตุผลที่เปลี่ยนหน้างาน */}
               <div className="md:col-span-12">
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  เหตุผลที่เปลี่ยนหน้างาน <span className="text-red-500">*</span>
+                  เหตุผลที่เปลี่ยนหน้างาน{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <Input
                   value={draftChangeReason}
