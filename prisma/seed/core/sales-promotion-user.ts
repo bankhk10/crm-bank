@@ -135,7 +135,7 @@ const supervisorSalesPromotionPermissions: PermissionConfigItem[] = [
 ];
 
 // ============================================================================
-// Test Employees List
+// Test Employees List (All normalized to lowercase email)
 // ============================================================================
 
 interface TestEmployeeInput {
@@ -152,7 +152,7 @@ interface TestEmployeeInput {
 const testEmployees: TestEmployeeInput[] = [
   // พนักงานส่งเสริมการขายทั่วไป (VIEW_OWN)
   {
-    email: "Warapornboonaoi1@gmail.com",
+    email: "warapornboonaoi1@gmail.com",
     name: "วราภรณ์ บุญอ้อย",
     nickname: "นุ๊ก",
     prefix: "นางสาว",
@@ -182,7 +182,7 @@ const testEmployees: TestEmployeeInput[] = [
     roleSlug: "sales_promotion",
   },
   {
-    email: "Marchmellow2541@gmail.com",
+    email: "marchmellow2541@gmail.com",
     name: "ธีระวัฒน์ วงค์ใหญ่",
     nickname: "มาร์ท",
     prefix: "นาย",
@@ -396,37 +396,50 @@ export async function seedSalesPromotionUser(prisma: PrismaClient) {
     where: { status: "ACTIVE" },
   });
 
-  // 4. Seed / Sync All Test Employees
-  console.log(`  👤 Seeding & Linking ${testEmployees.length} Test Users...`);
+  // 4. Seed / Sync All Test Employees (Normalized to Lowercase)
+  console.log(`  👤 Seeding & Linking ${testEmployees.length} Test Users (All Lowercase Email)...`);
 
   for (let i = 0; i < testEmployees.length; i++) {
     const emp = testEmployees[i];
+    const normalizedEmail = emp.email.trim().toLowerCase();
     const targetRoleId =
       emp.roleSlug === "sales_promotion_supervisor"
         ? supervisorRole.id
         : regularRole.id;
-    const hashedPassword = await hash(emp.email, 12);
+    const hashedPassword = await hash(normalizedEmail, 12);
 
-    // 4.1 User (Authentication)
-    const user = await prisma.user.upsert({
-      where: { email: emp.email },
-      update: {
-        name: emp.name,
-        password: hashedPassword,
-        departmentId: salesDept?.id ?? null,
-        positionId: position.id,
-        isActive: true,
-        deletedAt: null,
-      },
-      create: {
-        name: emp.name,
-        email: emp.email,
-        password: hashedPassword,
-        departmentId: salesDept?.id ?? null,
-        positionId: position.id,
-        isActive: true,
+    // 4.1 Check for existing mixed-case User record and migrate to normalized lowercase
+    let user = await prisma.user.findFirst({
+      where: {
+        email: { equals: normalizedEmail, mode: "insensitive" },
       },
     });
+
+    if (user) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          email: normalizedEmail,
+          name: emp.name,
+          password: hashedPassword,
+          departmentId: salesDept?.id ?? null,
+          positionId: position.id,
+          isActive: true,
+          deletedAt: null,
+        },
+      });
+    } else {
+      user = await prisma.user.create({
+        data: {
+          name: emp.name,
+          email: normalizedEmail,
+          password: hashedPassword,
+          departmentId: salesDept?.id ?? null,
+          positionId: position.id,
+          isActive: true,
+        },
+      });
+    }
 
     // 4.2 UserRole: Link User -> Target Role (Preserves existing roles)
     await prisma.userRole.upsert({
@@ -445,50 +458,65 @@ export async function seedSalesPromotionUser(prisma: PrismaClient) {
       },
     });
 
-    // 4.3 Employee Profile: Link Employee -> User
-    const employee = await prisma.employee.upsert({
-      where: { email: emp.email },
-      update: {
-        name: emp.name,
-        firstName: emp.firstName ?? null,
-        lastName: emp.lastName ?? null,
-        prefix: emp.prefix ?? null,
-        nickname: emp.nickname ?? null,
-        userId: user.id,
-        companyId: company?.id ?? null,
-        departmentId: salesDept?.id ?? null,
-        positionId: position.id,
-        status: "ACTIVE",
-        roleTitle: "พนักงานส่งเสริมการขาย",
-        departmentName: salesDept?.name ?? "แผนกบริหารงานขาย",
-        positionTitle: position.name,
-        deletedAt: null,
-      },
-      create: {
-        name: emp.name,
-        email: emp.email,
-        employeeCode: emp.employeeCode ?? `SP-TEST-00${i + 1}`,
-        firstName: emp.firstName ?? null,
-        lastName: emp.lastName ?? null,
-        prefix: emp.prefix ?? null,
-        nickname: emp.nickname ?? null,
-        userId: user.id,
-        companyId: company?.id ?? null,
-        departmentId: salesDept?.id ?? null,
-        positionId: position.id,
-        status: "ACTIVE",
-        roleTitle: "พนักงานส่งเสริมการขาย",
-        departmentName: salesDept?.name ?? "แผนกบริหารงานขาย",
-        positionTitle: position.name,
+    // 4.3 Check for existing mixed-case Employee record and migrate to normalized lowercase
+    let employee = await prisma.employee.findFirst({
+      where: {
+        OR: [
+          { userId: user.id },
+          { email: { equals: normalizedEmail, mode: "insensitive" } },
+        ],
       },
     });
 
+    if (employee) {
+      employee = await prisma.employee.update({
+        where: { id: employee.id },
+        data: {
+          name: emp.name,
+          email: normalizedEmail,
+          firstName: emp.firstName ?? null,
+          lastName: emp.lastName ?? null,
+          prefix: emp.prefix ?? null,
+          nickname: emp.nickname ?? null,
+          userId: user.id,
+          companyId: company?.id ?? null,
+          departmentId: salesDept?.id ?? null,
+          positionId: position.id,
+          status: "ACTIVE",
+          roleTitle: "พนักงานส่งเสริมการขาย",
+          departmentName: salesDept?.name ?? "แผนกบริหารงานขาย",
+          positionTitle: position.name,
+          deletedAt: null,
+        },
+      });
+    } else {
+      employee = await prisma.employee.create({
+        data: {
+          name: emp.name,
+          email: normalizedEmail,
+          employeeCode: emp.employeeCode ?? `SP-TEST-00${i + 1}`,
+          firstName: emp.firstName ?? null,
+          lastName: emp.lastName ?? null,
+          prefix: emp.prefix ?? null,
+          nickname: emp.nickname ?? null,
+          userId: user.id,
+          companyId: company?.id ?? null,
+          departmentId: salesDept?.id ?? null,
+          positionId: position.id,
+          status: "ACTIVE",
+          roleTitle: "พนักงานส่งเสริมการขาย",
+          departmentName: salesDept?.name ?? "แผนกบริหารงานขาย",
+          positionTitle: position.name,
+        },
+      });
+    }
+
     console.log(
-      `    [${i + 1}/${testEmployees.length}] ✅ User & Employee: "${emp.name}" (${emp.nickname}) <${emp.email}> -> Role: ${emp.roleSlug}`
+      `    [${i + 1}/${testEmployees.length}] ✅ User & Employee: "${emp.name}" (${emp.nickname}) <${normalizedEmail}> -> Role: ${emp.roleSlug}`
     );
   }
 
-  console.log("✅ Sales Promotion Roles & Users seeded successfully!");
+  console.log("✅ Sales Promotion Roles & Users seeded successfully with Normalized Emails!");
 }
 
 // Standalone execution entrypoint
