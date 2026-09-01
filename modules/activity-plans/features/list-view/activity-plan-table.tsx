@@ -23,6 +23,13 @@ import { WORK_TYPE_CONFIG, getWorkTypeName } from "../../constants";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { ActionButton } from "@/components/custom/action-button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ActivityPlanTableProps {
   data: ActivityPlanWithRelations[];
@@ -348,19 +355,28 @@ export function ActivityPlanTable({
         onSearchChange={onSearchChange}
         onSearchSubmit={onSearchSubmit}
         filters={
-          <div className="flex items-center gap-2 min-w-[200px]">
-            <select
-              value={statusFilter}
-              onChange={(e) => onStatusFilterChange(e.target.value)}
-              className="h-11 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          <div className="space-y-1">
+            <label className="mx-1 text-base font-medium block">
+              สถานะ
+            </label>
+            <Select
+              value={statusFilter || "ALL"}
+              onValueChange={(value) =>
+                onStatusFilterChange?.(value === "ALL" ? "" : value)
+              }
             >
-              <option value="">ทุกสถานะ</option>
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full bg-white h-10 text-sm">
+                <SelectValue placeholder="ทุกสถานะ" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">ทุกสถานะ</SelectItem>
+                {STATUS_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         }
       />
