@@ -69,8 +69,12 @@ export default function ActivityPlanApprovalListView() {
   const [error, setError] = useState<string | null>(null);
 
   // Data states
-  const [pendingPlans, setPendingPlans] = useState<ActivityPlanWithRelations[]>([]);
-  const [historyPlans, setHistoryPlans] = useState<ActivityPlanWithRelations[]>([]);
+  const [pendingPlans, setPendingPlans] = useState<ActivityPlanWithRelations[]>(
+    [],
+  );
+  const [historyPlans, setHistoryPlans] = useState<ActivityPlanWithRelations[]>(
+    [],
+  );
   const [activityTypes, setActivityTypes] = useState<any[]>([]);
   const [counts, setCounts] = useState({
     totalPending: 0,
@@ -104,14 +108,21 @@ export default function ActivityPlanApprovalListView() {
     try {
       const res = await getApprovalQueueDataAction();
       if (res.success) {
-        setPendingPlans((res.pendingPlans as ActivityPlanWithRelations[]) || []);
-        setHistoryPlans((res.historyPlans as ActivityPlanWithRelations[]) || []);
+        setPendingPlans(
+          (res.pendingPlans as ActivityPlanWithRelations[]) || [],
+        );
+        setHistoryPlans(
+          (res.historyPlans as ActivityPlanWithRelations[]) || [],
+        );
         setActivityTypes(res.activityTypes || []);
         if (res.counts) {
           setCounts(res.counts);
           // If no items in my_line, switch active tab to 'all' if has other pending
           setActiveTab((prev) =>
-            res.counts && res.counts.myLinePending === 0 && res.counts.totalPending > 0 && prev === "my_line"
+            res.counts &&
+            res.counts.myLinePending === 0 &&
+            res.counts.totalPending > 0 &&
+            prev === "my_line"
               ? "all"
               : prev,
           );
@@ -226,7 +237,9 @@ export default function ActivityPlanApprovalListView() {
   if (!canApprove) {
     return (
       <Alert variant="destructive" className="m-6">
-        <AlertDescription>คุณไม่มีสิทธิ์เข้าถึงหน้าอนุมัติ Trip Plan</AlertDescription>
+        <AlertDescription>
+          คุณไม่มีสิทธิ์เข้าถึงหน้าอนุมัติ Trip Plan
+        </AlertDescription>
       </Alert>
     );
   }
@@ -262,7 +275,8 @@ export default function ActivityPlanApprovalListView() {
               <div className="flex items-center gap-2 mt-1">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-2xs">
                   <ShieldCheck className="h-3.5 w-3.5 text-indigo-600" />
-                  สิทธิ์ Administrator: สามารถอนุมัติ, ส่งกลับแก้ไข หรือปฏิเสธได้ทุกแผนงาน
+                  สิทธิ์ Administrator: สามารถอนุมัติ, ส่งกลับแก้ไข
+                  หรือปฏิเสธได้ทุกแผนงาน
                 </span>
               </div>
             )}
@@ -277,11 +291,17 @@ export default function ActivityPlanApprovalListView() {
             disabled={loading}
             className="text-xs font-semibold gap-1.5 rounded-xl h-9"
           >
-            <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
+            <RefreshCw
+              className={cn("h-3.5 w-3.5", loading && "animate-spin")}
+            />
             รีเฟรชคิวงาน
           </Button>
           <Link href="/activity-plans">
-            <Button variant="outline" size="sm" className="text-xs rounded-xl h-9">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs rounded-xl h-9"
+            >
               หน้ารายการแผนงาน
             </Button>
           </Link>
@@ -297,41 +317,6 @@ export default function ActivityPlanApprovalListView() {
 
       {/* 2. KPI STATS SUMMARY CARDS */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-        {/* Card 1: My Line Queue */}
-        <Card
-          onClick={() => setActiveTab("my_line")}
-          className={cn(
-            "cursor-pointer transition-all duration-200 hover:shadow-md border rounded-2xl",
-            activeTab === "my_line"
-              ? "ring-2 ring-amber-500 bg-amber-50/50 border-amber-200"
-              : counts.myLinePending > 0
-              ? "bg-amber-50/20 border-amber-200/80"
-              : "bg-white border-slate-200/80",
-          )}
-        >
-          <CardContent className="p-3.5 sm:p-4 flex items-center justify-between">
-            <div className="space-y-1 min-w-0">
-              <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1.5 truncate">
-                <ShieldCheck className="h-3.5 w-3.5 text-amber-600 shrink-0" />
-                คิวสายงานคุณ
-              </span>
-              <div className="text-xl sm:text-2xl font-black text-amber-950">
-                {counts.myLinePending}
-                <span className="text-xs font-medium text-slate-500 ml-1">รายการ</span>
-              </div>
-              <p className="text-[10px] sm:text-[11px] text-amber-700 font-medium truncate">
-                {counts.myLinePending > 0 ? "⚡ รอคุณตัดสินใจ" : "ไม่มีคิวค้าง"}
-              </p>
-            </div>
-            {counts.myLinePending > 0 && (
-              <span className="flex h-2.5 w-2.5 relative shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-              </span>
-            )}
-          </CardContent>
-        </Card>
-
         {/* Card 2: All Pending */}
         <Card
           onClick={() => setActiveTab("all")}
@@ -350,12 +335,50 @@ export default function ActivityPlanApprovalListView() {
               </span>
               <div className="text-xl sm:text-2xl font-black text-slate-900">
                 {counts.totalPending}
-                <span className="text-xs font-medium text-slate-500 ml-1">รายการ</span>
+                <span className="text-xs font-medium text-slate-500 ml-1">
+                  รายการ
+                </span>
               </div>
               <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate">
                 ทุกสายงานรวมกัน
               </p>
             </div>
+          </CardContent>
+        </Card>
+        {/* Card 1: My Line Queue */}
+        <Card
+          onClick={() => setActiveTab("my_line")}
+          className={cn(
+            "cursor-pointer transition-all duration-200 hover:shadow-md border rounded-2xl",
+            activeTab === "my_line"
+              ? "ring-2 ring-amber-500 bg-amber-50/50 border-amber-200"
+              : counts.myLinePending > 0
+                ? "bg-amber-50/20 border-amber-200/80"
+                : "bg-white border-slate-200/80",
+          )}
+        >
+          <CardContent className="p-3.5 sm:p-4 flex items-center justify-between">
+            <div className="space-y-1 min-w-0">
+              <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1.5 truncate">
+                <ShieldCheck className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                คิวสายงานคุณ
+              </span>
+              <div className="text-xl sm:text-2xl font-black text-amber-950">
+                {counts.myLinePending}
+                <span className="text-xs font-medium text-slate-500 ml-1">
+                  รายการ
+                </span>
+              </div>
+              <p className="text-[10px] sm:text-[11px] text-amber-700 font-medium truncate">
+                {counts.myLinePending > 0 ? "⚡ รอคุณตัดสินใจ" : "ไม่มีคิวค้าง"}
+              </p>
+            </div>
+            {counts.myLinePending > 0 && (
+              <span className="flex h-2.5 w-2.5 relative shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+              </span>
+            )}
           </CardContent>
         </Card>
 
@@ -377,9 +400,14 @@ export default function ActivityPlanApprovalListView() {
               </span>
               <div className="text-xl sm:text-2xl font-black text-blue-950">
                 {counts.budgetPending}
-                <span className="text-xs font-medium text-slate-500 ml-1">รายการ</span>
+                <span className="text-xs font-medium text-slate-500 ml-1">
+                  รายการ
+                </span>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-blue-700 font-medium truncate" title={`ขอใช้รวม ${counts.totalBudgetRequested.toLocaleString()} ฿`}>
+              <p
+                className="text-[10px] sm:text-[11px] text-blue-700 font-medium truncate"
+                title={`ขอใช้รวม ${counts.totalBudgetRequested.toLocaleString()} ฿`}
+              >
                 รวม {counts.totalBudgetRequested.toLocaleString()} ฿
               </p>
             </div>
@@ -404,7 +432,9 @@ export default function ActivityPlanApprovalListView() {
               </span>
               <div className="text-xl sm:text-2xl font-black text-purple-950">
                 {counts.helperPending}
-                <span className="text-xs font-medium text-slate-500 ml-1">รายการ</span>
+                <span className="text-xs font-medium text-slate-500 ml-1">
+                  รายการ
+                </span>
               </div>
               <p className="text-[10px] sm:text-[11px] text-purple-700 font-medium truncate">
                 พิจารณาตามแผนก
@@ -431,7 +461,9 @@ export default function ActivityPlanApprovalListView() {
               </span>
               <div className="text-xl sm:text-2xl font-black text-emerald-950">
                 {counts.historyCount}
-                <span className="text-xs font-medium text-slate-500 ml-1">รายการ</span>
+                <span className="text-xs font-medium text-slate-500 ml-1">
+                  รายการ
+                </span>
               </div>
               <p className="text-[10px] sm:text-[11px] text-emerald-700 font-medium truncate">
                 อนุมัติ/ตีกลับ/ปฏิเสธ
@@ -444,6 +476,28 @@ export default function ActivityPlanApprovalListView() {
       {/* 3. MAIN TABS & VIEW MODE TOGGLE */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={cn(
+              "px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer",
+              activeTab === "all"
+                ? "bg-slate-900 text-white shadow-sm"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+            )}
+          >
+            คิวงานทั้งหมดที่รออนุมัติ
+            <Badge
+              variant="secondary"
+              className={cn(
+                "ml-1 text-[10px] px-1.5 py-0 rounded-full",
+                activeTab === "all"
+                  ? "bg-slate-700 text-white"
+                  : "bg-slate-200 text-slate-700",
+              )}
+            >
+              {counts.totalPending}
+            </Badge>
+          </button>
           <button
             onClick={() => setActiveTab("my_line")}
             className={cn(
@@ -467,30 +521,6 @@ export default function ActivityPlanApprovalListView() {
               {counts.myLinePending}
             </Badge>
           </button>
-
-          <button
-            onClick={() => setActiveTab("all")}
-            className={cn(
-              "px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer",
-              activeTab === "all"
-                ? "bg-slate-900 text-white shadow-sm"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200",
-            )}
-          >
-            คิวงานทั้งหมดที่รออนุมัติ
-            <Badge
-              variant="secondary"
-              className={cn(
-                "ml-1 text-[10px] px-1.5 py-0 rounded-full",
-                activeTab === "all"
-                  ? "bg-slate-700 text-white"
-                  : "bg-slate-200 text-slate-700",
-              )}
-            >
-              {counts.totalPending}
-            </Badge>
-          </button>
-
           <button
             onClick={() => setActiveTab("budget")}
             className={cn(
@@ -636,10 +666,10 @@ export default function ActivityPlanApprovalListView() {
             {activeTab === "my_line"
               ? "ไม่มี Trip Plan ที่รอการอนุมัติตามสายงานของคุณในขณะนี้"
               : activeTab === "budget"
-              ? "ไม่มี Trip Plan ที่รออนุมัติงบประมาณ"
-              : activeTab === "helper"
-              ? "ไม่มี Trip Plan ที่รออนุมัติพนักงานช่วยงาน"
-              : "ไม่พบรายการแผนงานตามเงื่อนไขที่ค้นหา"}
+                ? "ไม่มี Trip Plan ที่รออนุมัติงบประมาณ"
+                : activeTab === "helper"
+                  ? "ไม่มี Trip Plan ที่รออนุมัติพนักงานช่วยงาน"
+                  : "ไม่พบรายการแผนงานตามเงื่อนไขที่ค้นหา"}
           </h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
             รายการคำขออนุมัติจะปรากฏที่นี่โดยอัตโนมัติเมื่อพนักงานยื่นส่งแผนงาน
@@ -708,7 +738,8 @@ export default function ActivityPlanApprovalListView() {
                   }
 
                   // Store count
-                  const storeCount = (plan.stores?.length || 0) + (plan.tour?.store ? 1 : 0);
+                  const storeCount =
+                    (plan.stores?.length || 0) + (plan.tour?.store ? 1 : 0);
 
                   return (
                     <tr
@@ -726,7 +757,10 @@ export default function ActivityPlanApprovalListView() {
                           {plan.code || plan.id.slice(0, 8)}
                         </Link>
                       </td>
-                      <td className="p-3.5 font-semibold text-slate-900 max-w-[180px] truncate" title={plan.title}>
+                      <td
+                        className="p-3.5 font-semibold text-slate-900 max-w-[180px] truncate"
+                        title={plan.title}
+                      >
                         <Link
                           href={`/activity-plans/approvals/${plan.id}`}
                           className="hover:text-blue-600 transition-colors"
@@ -772,7 +806,9 @@ export default function ActivityPlanApprovalListView() {
                         )}
                       </td>
                       <td className="p-3.5 text-slate-600 whitespace-nowrap">
-                        {format(new Date(plan.startDate), "dd MMM yy", { locale: th })}
+                        {format(new Date(plan.startDate), "dd MMM yy", {
+                          locale: th,
+                        })}
                       </td>
                       <td className="p-3.5 font-semibold text-slate-800 whitespace-nowrap">
                         {total > 0 ? `${total.toLocaleString()} ฿` : "-"}
@@ -798,7 +834,12 @@ export default function ActivityPlanApprovalListView() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleOpenActionDialog(plan, "REQUEST_CORRECTION")}
+                                onClick={() =>
+                                  handleOpenActionDialog(
+                                    plan,
+                                    "REQUEST_CORRECTION",
+                                  )
+                                }
                                 className="h-8 px-2 text-amber-600 hover:bg-amber-50 rounded-lg cursor-pointer"
                                 title="ส่งกลับแก้ไข"
                               >
@@ -807,7 +848,9 @@ export default function ActivityPlanApprovalListView() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleOpenActionDialog(plan, "REJECT")}
+                                onClick={() =>
+                                  handleOpenActionDialog(plan, "REJECT")
+                                }
                                 className="h-8 px-2 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
                                 title="ปฏิเสธ"
                               >
@@ -815,7 +858,9 @@ export default function ActivityPlanApprovalListView() {
                               </Button>
                               <Button
                                 size="sm"
-                                onClick={() => handleOpenActionDialog(plan, "APPROVE")}
+                                onClick={() =>
+                                  handleOpenActionDialog(plan, "APPROVE")
+                                }
                                 className="h-8 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white gap-1 text-xs rounded-lg font-bold cursor-pointer"
                               >
                                 <CheckCircle2 className="h-3.5 w-3.5" />
@@ -912,8 +957,8 @@ function PlanCard({
         isDirectApprover
           ? "border-amber-300 ring-1 ring-amber-400/30 bg-gradient-to-b from-amber-50/20 to-white"
           : isAdmin && isPending
-          ? "border-indigo-200 ring-1 ring-indigo-300/20 bg-gradient-to-b from-indigo-50/15 to-white"
-          : "border-slate-200/80",
+            ? "border-indigo-200 ring-1 ring-indigo-300/20 bg-gradient-to-b from-indigo-50/15 to-white"
+            : "border-slate-200/80",
       )}
     >
       <div className="space-y-3">
@@ -977,7 +1022,10 @@ function PlanCard({
               <Users className="w-3.5 h-3.5 text-slate-400" />
               ผู้จัดทำ:
             </span>
-            <span className="font-semibold text-slate-800 truncate" title={plan.employee.name}>
+            <span
+              className="font-semibold text-slate-800 truncate"
+              title={plan.employee.name}
+            >
               {plan.employee.name}
             </span>
           </div>
@@ -989,7 +1037,8 @@ function PlanCard({
             </span>
             <span className="text-slate-700 font-medium">
               {format(start, "dd MMM yy", { locale: th })}
-              {plan.durationDays > 1 && ` — ${format(end, "dd MMM yy", { locale: th })}`}
+              {plan.durationDays > 1 &&
+                ` — ${format(end, "dd MMM yy", { locale: th })}`}
             </span>
           </div>
 
@@ -998,7 +1047,10 @@ function PlanCard({
               <MapPin className="w-3.5 h-3.5 text-slate-400" />
               สถานที่:
             </span>
-            <span className="text-slate-700 truncate" title={plan.location || undefined}>
+            <span
+              className="text-slate-700 truncate"
+              title={plan.location || undefined}
+            >
               {plan.location || "-"} {plan.province ? `(${plan.province})` : ""}
             </span>
           </div>
