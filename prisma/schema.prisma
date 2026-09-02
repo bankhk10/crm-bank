@@ -118,6 +118,7 @@ model User {
   activityApprovalLogs           ActivityApprovalLog[]    @relation("UserActivityApprovalLogs")
   activityResults                ActivityResult[]         @relation("UserActivityResults")
   approvedProducts               Product[]                @relation("ProductApprovedByUser")
+  createdCalendarEvents          ActivityCalendarEvent[]  @relation("UserCreatedCalendarEvents")
 }
 
 model Company {
@@ -186,10 +187,12 @@ model Employee {
   salesTargets         SalesTarget[]
   pointSummary         EmployeePointSummary?
   pointHistories       EmployeePointHistory[]
-  activityPlans        ActivityPlan[]         @relation("EmployeeActivityPlans")
-  activityApprovals    ActivityPlan[]         @relation("EmployeeActivityApprovals")
-  helperActivities     ActivityHelper[]       @relation("EmployeeActivityHelpers")
-  approvedHelpers      ActivityHelper[]       @relation("EmployeeApprovedHelpers")
+  activityPlans        ActivityPlan[]             @relation("EmployeeActivityPlans")
+  activityApprovals    ActivityPlan[]             @relation("EmployeeActivityApprovals")
+  helperActivities     ActivityHelper[]           @relation("EmployeeActivityHelpers")
+  approvedHelpers      ActivityHelper[]           @relation("EmployeeApprovedHelpers")
+  createdCalendarEvents ActivityCalendarEvent[]   @relation("EmployeeCreatedCalendarEvents")
+  calendarAttendees    ActivityCalendarAttendee[] @relation("EmployeeCalendarAttendees")
 }
 
 model Department {
@@ -1543,6 +1546,23 @@ enum ActivityResultStatus {
   FAILED                      // ไม่สำเร็จ
 }
 
+enum CalendarEventStatus {
+  SCHEDULED                   // มีนัดหมายตามกำหนด
+  CANCELLED                   // ยกเลิกนัดหมาย
+  COMPLETED                   // ดำเนินการเสร็จสิ้น
+}
+
+enum CalendarAttendeeRole {
+  CREATOR                     // ผู้สร้างแผนงาน
+  HELPER                      // พนักงานที่มาช่วยกิจกรรม
+}
+
+enum CalendarAttendeeStatus {
+  INVITED                     // ได้รับมอบหมาย
+  ACCEPTED                    // รับทราบ/ตอบรับ
+  DECLINED                    // ปฏิเสธ
+}
+
 enum TourType {
   CENTRAL // ทัวร์กลาง
   STORE   // ทัวร์ร้านค้า
@@ -1666,6 +1686,7 @@ model ActivityPlan {
   result           ActivityResult?         // 1:1 บันทึกผลหลังกิจกรรม
   demoPlotVisits   DemoPlotVisit[]
   attachments      ActivityAttachment[]
+  calendarEvent    ActivityCalendarEvent?  // 1:1 ปฏิทินนัดหมายกิจกรรม
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -1874,6 +1895,56 @@ model ActivityApprovalLog {
   @@index([step])
   @@index([createdAt])
   @@map("activity_approval_logs")
+}
+
+model ActivityCalendarEvent {
+  id             String              @id @default(cuid())
+  activityPlanId String              @unique @map("activity_plan_id")
+  title          String
+  description    String?
+  location       String?
+  province       String?
+  district       String?
+  startDate      DateTime            @map("start_date")
+  endDate        DateTime            @map("end_date")
+  status         CalendarEventStatus @default(SCHEDULED)
+
+  createdById    String              @map("created_by_id")
+  employeeId     String              @map("employee_id")
+
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+  deletedAt      DateTime?           @map("deleted_at")
+
+  activityPlan   ActivityPlan        @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  createdBy      User                @relation("UserCreatedCalendarEvents", fields: [createdById], references: [id], onDelete: Restrict)
+  employee       Employee            @relation("EmployeeCreatedCalendarEvents", fields: [employeeId], references: [id], onDelete: Restrict)
+  attendees      ActivityCalendarAttendee[]
+
+  @@index([employeeId])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([status])
+  @@map("activity_calendar_events")
+}
+
+model ActivityCalendarAttendee {
+  id              String                 @id @default(cuid())
+  calendarEventId String                 @map("calendar_event_id")
+  employeeId      String                 @map("employee_id")
+  role            CalendarAttendeeRole   @default(HELPER)
+  status          CalendarAttendeeStatus @default(INVITED)
+
+  createdAt       DateTime               @default(now()) @map("created_at")
+  updatedAt       DateTime               @updatedAt @map("updated_at")
+
+  calendarEvent   ActivityCalendarEvent  @relation(fields: [calendarEventId], references: [id], onDelete: Cascade)
+  employee        Employee               @relation("EmployeeCalendarAttendees", fields: [employeeId], references: [id], onDelete: Restrict)
+
+  @@unique([calendarEventId, employeeId])
+  @@index([employeeId])
+  @@index([status])
+  @@map("activity_calendar_attendees")
 }
 
 // ─── GROUP 4: Post-Activity Result ───────────────────────────────────────────

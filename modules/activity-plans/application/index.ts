@@ -347,7 +347,15 @@ export {
   rejectActivityPlanUseCase,
   requestCorrectionPlanUseCase,
   cancelActivityPlanUseCase,
+  reviewSingleActivityHelperUseCase,
 } from "./activity-plan-flow";
+
+export {
+  syncActivityPlanToCalendarUseCase,
+  cancelActivityPlanCalendarUseCase,
+  listActivityCalendarEventsUseCase,
+  type ListCalendarEventsParams,
+} from "./calendar-integration";
 
 export {
   getDemoPlotsUseCase,

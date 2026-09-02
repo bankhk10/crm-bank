@@ -7,6 +7,7 @@ export { default as ActivityPlanApprovalListView } from "./features/approve-view
 export { default as ActivityPlanApprovalDetailView } from "./features/approve-view/activity-plan-approval-detail-view";
 export { default as ActivityPlanActualView } from "./features/actual-view/activity-plan-actual-view";
 export { default as PromotionalMaterialsView } from "./features/promotional-materials/promotional-materials-view";
+export { ActivityCalendarView } from "./features/calendar-view/activity-calendar-view";
 
 // Export UI components
 export { ActivityStatusBadge } from "./ui/activity-status-badge";

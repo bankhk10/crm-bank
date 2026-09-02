@@ -28,7 +28,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ActivityPlanWithRelations } from "../../types";
-import { getActivityPlanAction } from "../../server/actions";
+import {
+  getActivityPlanAction,
+  reviewSingleActivityHelperAction,
+} from "../../server/actions";
 import { getWorkTypeCode } from "../../constants";
 import { DetailViewActions } from "../detail-view/components/detail-view-actions";
 import {
@@ -164,6 +167,12 @@ export default function ActivityPlanApprovalDetailView({
   // Approval Dialog states
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<ApprovalActionType>("APPROVE");
+
+  // Helper review state
+  const [reviewingHelperId, setReviewingHelperId] = useState<string | null>(null);
+  const [rejectHelperDialogOpen, setRejectHelperDialogOpen] = useState(false);
+  const [helperRejectReason, setHelperRejectReason] = useState("");
+  const [isProcessingHelper, setIsProcessingHelper] = useState(false);
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -600,49 +609,147 @@ export default function ActivityPlanApprovalDetailView({
               {plan.helpers.map((h, idx) => (
                 <div
                   key={h.id || idx}
-                  className="bg-slate-50/80 border border-slate-100 rounded-xl p-3.5 flex items-center justify-between gap-3"
+                  className="bg-slate-50/80 border border-slate-100 rounded-xl p-3.5 flex flex-col justify-between gap-3"
                 >
-                  <div className="min-w-0">
-                    <div className="font-bold text-xs sm:text-sm text-slate-900 truncate">
-                      {idx + 1}. {h.employee?.name || "พนักงาน"}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="font-bold text-xs sm:text-sm text-slate-900 truncate">
+                        {idx + 1}. {h.employee?.name || "พนักงาน"}
+                      </div>
+                      <div className="text-[11px] text-slate-500 truncate">
+                        {h.employee?.positionTitle ||
+                          h.employee?.position?.name ||
+                          "-"}{" "}
+                        •{" "}
+                        {h.departmentName ||
+                          h.employee?.departmentName ||
+                          h.employee?.department?.name ||
+                          "ไม่ระบุแผนก"}
+                      </div>
+                      {h.rejectionReason && (
+                        <div className="text-[10px] text-red-600 mt-1 italic">
+                          เหตุผลปฏิเสธ: {h.rejectionReason}
+                        </div>
+                      )}
                     </div>
-                    <div className="text-[11px] text-slate-500 truncate">
-                      {h.employee?.positionTitle ||
-                        h.employee?.position?.name ||
-                        "-"}{" "}
-                      •{" "}
-                      {h.departmentName ||
-                        h.employee?.departmentName ||
-                        h.employee?.department?.name ||
-                        "ไม่ระบุแผนก"}
-                    </div>
-                    {h.rejectionReason && (
-                      <div className="text-[10px] text-red-600 mt-1 italic">
-                        เหตุผลปฏิเสธ: {h.rejectionReason}
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-[10px] font-semibold px-2 py-0.5 shrink-0 rounded-full",
+                        h.status === "APPROVED" &&
+                          "border-emerald-200 text-emerald-700 bg-emerald-50",
+                        h.status === "REJECTED" &&
+                          "border-red-200 text-red-700 bg-red-50",
+                        h.status === "PENDING" &&
+                          "border-amber-200 text-amber-700 bg-amber-50",
+                      )}
+                    >
+                      {h.status === "APPROVED"
+                        ? "อนุมัติแล้ว"
+                        : h.status === "REJECTED"
+                          ? "ปฏิเสธ"
+                          : "รออนุมัติ"}
+                    </Badge>
+                  </div>
+
+                  {/* Individual Helper Review Actions for Managers */}
+                  {plan.status === "PENDING_HELPER_APPROVAL" &&
+                    canManageOrApprove &&
+                    h.status === "PENDING" && (
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200/60">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={isProcessingHelper}
+                          onClick={() => {
+                            setReviewingHelperId(h.employeeId);
+                            setHelperRejectReason("");
+                            setRejectHelperDialogOpen(true);
+                          }}
+                          className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 rounded-lg"
+                        >
+                          ไม่อนุมัติ
+                        </Button>
+                        <Button
+                          size="sm"
+                          disabled={isProcessingHelper}
+                          onClick={async () => {
+                            setIsProcessingHelper(true);
+                            const res = await reviewSingleActivityHelperAction(
+                              id,
+                              h.employeeId,
+                              "APPROVE",
+                            );
+                            setIsProcessingHelper(false);
+                            if (res.success) {
+                              loadData();
+                            } else {
+                              alert(res.error || "ไม่สามารถอนุมัติได้");
+                            }
+                          }}
+                          className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 rounded-lg"
+                        >
+                          อนุมัติคนช่วย
+                        </Button>
                       </div>
                     )}
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-[10px] font-semibold px-2 py-0.5 shrink-0 rounded-full",
-                      h.status === "APPROVED" &&
-                        "border-emerald-200 text-emerald-700 bg-emerald-50",
-                      h.status === "REJECTED" &&
-                        "border-red-200 text-red-700 bg-red-50",
-                      h.status === "PENDING" &&
-                        "border-amber-200 text-amber-700 bg-amber-50",
-                    )}
-                  >
-                    {h.status === "APPROVED"
-                      ? "อนุมัติแล้ว"
-                      : h.status === "REJECTED"
-                        ? "ปฏิเสธ"
-                        : "รออนุมัติ"}
-                  </Badge>
                 </div>
               ))}
             </div>
+
+            {/* Modal for rejecting individual helper */}
+            {rejectHelperDialogOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className="bg-white rounded-2xl p-5 max-w-md w-full shadow-2xl space-y-4">
+                  <h3 className="text-base font-bold text-slate-900">
+                    ระบุเหตุผลที่ไม่อนุมัติพนักงานช่วยงาน
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    ระบบจะส่งแผนงานนี้กลับไปยังผู้สร้างเพื่อให้แก้ไขรายชื่อผู้ช่วยงานใหม่
+                  </p>
+                  <textarea
+                    rows={3}
+                    value={helperRejectReason}
+                    onChange={(e) => setHelperRejectReason(e.target.value)}
+                    placeholder="ระบุเหตุผล เช่น ติดภารกิจอื่น, ไม่อนุญาต ฯลฯ"
+                    className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                  />
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      disabled={isProcessingHelper}
+                      onClick={() => setRejectHelperDialogOpen(false)}
+                      className="rounded-xl"
+                    >
+                      ยกเลิก
+                    </Button>
+                    <Button
+                      disabled={isProcessingHelper || !helperRejectReason.trim()}
+                      onClick={async () => {
+                        if (!reviewingHelperId) return;
+                        setIsProcessingHelper(true);
+                        const res = await reviewSingleActivityHelperAction(
+                          id,
+                          reviewingHelperId,
+                          "REJECT",
+                          helperRejectReason.trim(),
+                        );
+                        setIsProcessingHelper(false);
+                        setRejectHelperDialogOpen(false);
+                        if (res.success) {
+                          loadData();
+                        } else {
+                          alert(res.error || "ไม่สามารถดำเนินการได้");
+                        }
+                      }}
+                      className="bg-red-600 hover:bg-red-700 text-white rounded-xl"
+                    >
+                      ยืนยันปฏิเสธ
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

@@ -1,6 +1,7 @@
-import React from "react";
-import { Search, X, Users, MapPin, UserCircle2 } from "lucide-react";
+import React, { useEffect, useState, useMemo } from "react";
+import { Search, X, Users, MapPin, UserCircle2, Building2 } from "lucide-react";
 import { SectionHeader } from "@/components/custom/section-header";
+import { FormCombobox } from "@/components/custom/FormCombobox";
 
 export interface Employee {
   id: string;
@@ -31,7 +32,6 @@ interface Props {
 }
 
 export function LocationTeamSection({
-  selectedWorkTypes,
   readonly = false,
   helperSearch,
   setHelperSearch,
@@ -44,18 +44,56 @@ export function LocationTeamSection({
   removeHelper,
   locationText,
   setLocationText,
+  province = "",
+  setProvince,
+  district = "",
+  setDistrict,
 }: Props) {
-  if (
-    !selectedWorkTypes.some((t) =>
-      [
-        "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
-        "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
-        "จัดงาน Field Day",
-      ].includes(t),
-    )
-  ) {
-    return null;
-  }
+  const [provincesData, setProvincesData] = useState<any[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadAddresses() {
+      try {
+        const res = await fetch("/api/thai-addresses");
+        if (!res.ok) return;
+        const json = await res.json();
+        if (isMounted && Array.isArray(json)) {
+          const normalized = json.map((p: any) => ({
+            id: p.id,
+            name: p.name_th,
+            districts: (p.districts || []).map((d: any) => ({
+              id: d.id,
+              name: d.name_th,
+            })),
+          }));
+          setProvincesData(normalized);
+        }
+      } catch (err) {
+        console.error("Failed to load thai addresses:", err);
+      }
+    }
+    loadAddresses();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const provinceOptions = useMemo(() => {
+    return provincesData.map((p) => ({
+      value: p.name,
+      label: p.name,
+    }));
+  }, [provincesData]);
+
+  const districtOptions = useMemo(() => {
+    const matched = provincesData.find((p) => p.name === province);
+    if (!matched) return [];
+    return matched.districts.map((d: any) => ({
+      value: d.name,
+      label: d.name,
+    }));
+  }, [province, provincesData]);
 
   const charCount = locationText.length;
   const charPercent = Math.round((charCount / 500) * 100);
@@ -72,12 +110,40 @@ export function LocationTeamSection({
         {/* รายละเอียดพื้นที่จัดกิจกรรม & จังหวัด / อำเภอ */}
         <div className="lg:col-span-8 space-y-3">
           {/* Province & District dropdowns */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FormCombobox
+              label="จังหวัด"
+              value={province}
+              onChange={(val) => {
+                if (setProvince) setProvince(val);
+                if (setDistrict) setDistrict("");
+              }}
+              options={provinceOptions}
+              placeholder="เลือกจังหวัด"
+              searchPlaceholder="ค้นหาจังหวัด..."
+              emptyText="ไม่พบจังหวัด"
+              disabled={readonly}
+              containerClassName="w-full"
+            />
+            <FormCombobox
+              label="อำเภอ / เขต"
+              value={district}
+              onChange={(val) => {
+                if (setDistrict) setDistrict(val);
+              }}
+              options={districtOptions}
+              placeholder={province ? "เลือกอำเภอ / เขต" : "กรุณาเลือกจังหวัดก่อน"}
+              searchPlaceholder="ค้นหาอำเภอ..."
+              emptyText="ไม่พบอำเภอ"
+              disabled={readonly || !province}
+              containerClassName="w-full"
+            />
+          </div>
 
           <div>
             <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1">
               <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
-              รายละเอียดพื้นที่จัดกิจกรรม
-              <span className="text-red-500 ml-0.5">*</span>
+              รายละเอียดพื้นที่จัดกิจกรรม / จุดสังเกต
             </label>
 
             <div className="relative">

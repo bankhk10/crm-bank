@@ -1593,10 +1593,20 @@ export function ActivityPlanForm({
   });
 
   // Section 4: Location & Team State
+  const [province, setProvince] = useState((initial as any)?.province ?? "");
+  const [district, setDistrict] = useState((initial as any)?.district ?? "");
   const [locationText, setLocationText] = useState(initial.location ?? "");
-  const [helperEmployeeIds, setHelperEmployeeIds] = useState<string[]>(
-    initial.helperEmployeeIds ?? [],
-  );
+  const [helperEmployeeIds, setHelperEmployeeIds] = useState<string[]>(() => {
+    if (initial.helperEmployeeIds && Array.isArray(initial.helperEmployeeIds)) {
+      return initial.helperEmployeeIds;
+    }
+    if ((initial as any)?.helpers && Array.isArray((initial as any).helpers)) {
+      return (initial as any).helpers
+        .map((h: any) => h.employeeId || h.id)
+        .filter(Boolean);
+    }
+    return [];
+  });
   const [helperSearch, setHelperSearch] = useState("");
   const [showHelperDropdown, setShowHelperDropdown] = useState(false);
 
@@ -2315,8 +2325,8 @@ export function ActivityPlanForm({
         tourData,
         planStores,
         planProducts,
-        province: (initial as any)?.province ?? null,
-        district: (initial as any)?.district ?? null,
+        province: province.trim() || null,
+        district: district.trim() || null,
         location: locationText.trim() || null,
         objective: cleanObjective,
         description: cleanDescription,
@@ -2837,6 +2847,10 @@ export function ActivityPlanForm({
               removeHelper={removeHelper}
               locationText={locationText}
               setLocationText={setLocationText}
+              province={province}
+              setProvince={setProvince}
+              district={district}
+              setDistrict={setDistrict}
             />
 
             {/* SECTION 5: งบประมาณและค่าใช้จ่าย (Budget & Expenses) */}

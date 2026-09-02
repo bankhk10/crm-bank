@@ -14,6 +14,8 @@ import {
   rejectActivityPlanUseCase,
   requestCorrectionPlanUseCase,
   cancelActivityPlanUseCase,
+  reviewSingleActivityHelperUseCase,
+  listActivityCalendarEventsUseCase,
   findOrCreateEmployeeForUser,
   getApprovalQueueDataUseCase,
   getActivityTypesUseCase,
@@ -22,6 +24,7 @@ import {
   getDemoPlotHistoryUseCase,
   recordDemoPlotVisitUseCase,
   type ListActivityPlansParams,
+  type ListCalendarEventsParams,
 } from "../application";
 
 /**
@@ -777,6 +780,84 @@ export async function deletePromotionalMaterialAction(id: string) {
     return serialize({
       success: false,
       error: err.message || "ไม่สามารถลบข้อมูลสื่อส่งเสริมการขายได้",
+    });
+  }
+}
+
+/**
+ * Action: Review an individual Helper employee (Approve or Reject with reason)
+ */
+export async function reviewSingleActivityHelperAction(
+  activityPlanId: string,
+  helperEmployeeId: string,
+  decision: "APPROVE" | "REJECT",
+  rejectionReason?: string,
+) {
+  const session = await auth();
+  if (!session?.user) {
+    return serialize({ success: false, error: "Unauthorized" });
+  }
+
+  try {
+    const result = await reviewSingleActivityHelperUseCase(
+      activityPlanId,
+      helperEmployeeId,
+      session.user.id,
+      decision,
+      rejectionReason,
+    );
+
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${activityPlanId}`);
+      revalidatePath("/activity-plans/calendar");
+    }
+
+    return serialize(result);
+  } catch (err: any) {
+    return serialize({
+      success: false,
+      error: err.message || "เกิดข้อผิดพลาดในการพิจารณาผู้ช่วยงาน",
+    });
+  }
+}
+
+/**
+ * Action: Get Activity Calendar Events
+ */
+export async function getActivityCalendarEventsAction(
+  params: {
+    startDate?: string;
+    endDate?: string;
+    viewAll?: boolean;
+  } = {},
+) {
+  const session = await auth();
+  if (!session?.user) {
+    return serialize({ success: false, error: "Unauthorized", events: [] });
+  }
+
+  try {
+    const employee = await findOrCreateEmployeeForUser(
+      session.user.id,
+      session.user.name ?? undefined,
+      session.user.email ?? undefined,
+    );
+
+    const result = await listActivityCalendarEventsUseCase({
+      employeeId: employee?.id,
+      startDate: params.startDate ? new Date(params.startDate) : undefined,
+      endDate: params.endDate ? new Date(params.endDate) : undefined,
+      viewAll: params.viewAll ?? false,
+    });
+
+    return serialize(result);
+  } catch (err: any) {
+    return serialize({
+      success: false,
+      error: err.message || "ไม่สามารถโหลดข้อมูลปฏิทินได้",
+      events: [],
     });
   }
 }

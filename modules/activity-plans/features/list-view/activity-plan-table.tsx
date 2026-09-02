@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   ShieldCheck,
   Copy,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations } from "../../types";
@@ -398,6 +399,15 @@ export function ActivityPlanTable({
             สร้างแผนงานใหม่
           </Button>
         )}
+        <Link href="/activity-plans/calendar" className="w-full sm:w-auto">
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto border-blue-600 text-blue-700 hover:bg-blue-50 flex items-center gap-2 font-semibold shadow-xs"
+          >
+            <CalendarIcon className="h-4 w-4 text-blue-600" />
+            ปฏิทินกิจกรรม
+          </Button>
+        </Link>
         {canApprove && (
           <Link href="/activity-plans/approvals" className="w-full sm:w-auto">
             <Button
