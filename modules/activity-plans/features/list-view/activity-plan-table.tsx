@@ -292,7 +292,7 @@ export function ActivityPlanTable({
                 />
               )}
 
-              {/* {editable &&
+              {editable &&
                 (submitLoadingId === item.id ? (
                   <span className="text-xs text-slate-400 animate-pulse font-medium px-2 py-1 select-none">
                     กำลังส่ง...
@@ -304,7 +304,7 @@ export function ActivityPlanTable({
                     colorClass="text-teal-600 border-teal-100 hover:bg-teal-50 rounded-md"
                     onClick={() => onSubmitApproval(item)}
                   />
-                ))} */}
+                ))}
 
               {canEdit && editable && (
                 <ActionButton
@@ -357,9 +357,7 @@ export function ActivityPlanTable({
         onSearchSubmit={onSearchSubmit}
         filters={
           <div className="space-y-1">
-            <label className="mx-1 text-base font-medium block">
-              สถานะ
-            </label>
+            <label className="mx-1 text-base font-medium block">สถานะ</label>
             <Select
               value={statusFilter || "ALL"}
               onValueChange={(value) =>
