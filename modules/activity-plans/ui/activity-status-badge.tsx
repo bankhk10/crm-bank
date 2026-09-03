@@ -123,7 +123,7 @@ export function formatApproverRole(positionTitleOrRole?: string | null): string 
 
   if (
     title.includes("ผู้จัดการฝ่ายขาย") ||
-    title === "sales_director" ||
+    title.includes("ผจก.ฝ่ายขาย") ||
     title === "Sales Director"
   ) {
     return "Sales Director";
@@ -432,47 +432,38 @@ export function isUserAdmin(user?: ApproverUserContext | null): boolean {
 
 export function isUserSalesAdminManager(user?: ApproverUserContext | null): boolean {
   if (!user) return false;
-  const email = (user.email || "").toLowerCase();
   const pos = (user.positionTitle || "").toLowerCase();
-  const name = (user.name || "").toLowerCase();
+  const dept = (user.departmentCode || "").toUpperCase();
 
   return (
-    email === "test.salesadmin@crm.local" ||
-    email.includes("salesadmin") ||
     pos.includes("ผู้จัดการแผนกบริหารงานขาย") ||
-    pos.includes("บริหารงานขาย") ||
-    name.includes("sa")
+    pos.includes("ผจก.แผนกบริหารงานขาย") ||
+    (dept === "SA" && (pos.includes("บริหารงานขาย") || pos.includes("sales admin manager")))
   );
 }
 
 export function isUserMarketingManager(user?: ApproverUserContext | null): boolean {
   if (!user) return false;
-  const email = (user.email || "").toLowerCase();
   const pos = (user.positionTitle || "").toLowerCase();
+  const dept = (user.departmentCode || "").toUpperCase();
   const roles = user.roles || (user.role ? [user.role] : []);
 
   return (
-    email === "test.mktmgr@crm.local" ||
-    email.includes("mktmgr") ||
     roles.includes("marketing_manager") ||
     pos.includes("ผู้จัดการแผนกการตลาด") ||
-    pos.includes("ฝ่ายการตลาด") ||
-    pos.includes("mkt")
+    pos.includes("ผจก.แผนกการตลาด") ||
+    (dept === "MKT" && (pos.includes("แผนกการตลาด") || pos.includes("marketing manager")))
   );
 }
 
 export function isUserSalesDirector(user?: ApproverUserContext | null): boolean {
   if (!user) return false;
-  const email = (user.email || "").toLowerCase();
   const pos = (user.positionTitle || "").toLowerCase();
-  const roles = user.roles || (user.role ? [user.role] : []);
 
   return (
-    email === "test.salesdir@crm.local" ||
-    email.includes("salesdir") ||
-    roles.includes("sales_director") ||
     pos.includes("ผู้จัดการฝ่ายขาย") ||
-    pos.includes("ผจก.ฝ่ายขาย")
+    pos.includes("ผจก.ฝ่ายขาย") ||
+    pos.includes("sales director")
   );
 }
 

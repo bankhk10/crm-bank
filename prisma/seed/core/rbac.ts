@@ -805,6 +805,102 @@ const permissionGroups: Record<string, PermissionGroup> = {
   },
 
   // ─────────────────────────────────────────────
+  // 📋 Activity Plans (แผนงานกิจกรรม / Trip Plan)
+  // ─────────────────────────────────────────────
+  activityPlans: {
+    menu: {
+      key: "menu.activity_plans",
+      name: "เมนูแผนงาน (Trip Plan)",
+      resource: "activity_plan",
+      menuPath: "/activity-plans",
+    },
+    actions: [
+      {
+        key: "activity.view",
+        name: "ดูรายละเอียดแผนงาน",
+        resource: "activity_plan",
+        action: "view",
+      },
+      {
+        key: "activity.create",
+        name: "สร้างแผนงาน",
+        resource: "activity_plan",
+        action: "create",
+      },
+      {
+        key: "activity.edit",
+        name: "แก้ไขแผนงาน",
+        resource: "activity_plan",
+        action: "edit",
+      },
+      {
+        key: "activity.delete",
+        name: "ลบแผนงาน",
+        resource: "activity_plan",
+        action: "delete",
+      },
+      {
+        key: "activity.approve",
+        name: "อนุมัติแผนงาน",
+        resource: "activity_plan",
+        action: "approve",
+      },
+      {
+        key: "activity.manage",
+        name: "จัดการแผนงานทั้งหมด (ผู้ดูแล)",
+        resource: "activity_plan",
+        action: "manage",
+      },
+    ],
+    data: {
+      key: "data.activity_plans",
+      name: "ขอบเขตข้อมูลแผนงาน",
+      resource: "activity_plan",
+      defaultDataAccess: DataAccessLevel.VIEW_OWN,
+      defaultEditAccess: EditAccessLevel.EDIT_OWN,
+      defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
+    },
+  },
+
+  // ─────────────────────────────────────────────
+  // 🎁 Promotional Materials (สื่อส่งเสริมการขาย)
+  // ─────────────────────────────────────────────
+  promotionalMaterials: {
+    menu: {
+      key: "menu.promotional_materials",
+      name: "เมนูสื่อส่งเสริมการขาย",
+      resource: "promotional_material",
+      menuPath: "/activity-plans/promotional-materials",
+    },
+    actions: [
+      {
+        key: "promotional_material.view",
+        name: "ดูสื่อส่งเสริมการขาย",
+        resource: "promotional_material",
+        action: "view",
+      },
+      {
+        key: "promotional_material.create",
+        name: "สร้างสื่อส่งเสริมการขาย",
+        resource: "promotional_material",
+        action: "create",
+      },
+      {
+        key: "promotional_material.edit",
+        name: "แก้ไขสื่อส่งเสริมการขาย",
+        resource: "promotional_material",
+        action: "edit",
+      },
+      {
+        key: "promotional_material.delete",
+        name: "ลบสื่อส่งเสริมการขาย",
+        resource: "promotional_material",
+        action: "delete",
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────
   // 🧪 Test Activity (เมนูทดสอบกิจกรรม)
   // ─────────────────────────────────────────────
   testActivity: {
@@ -1427,6 +1523,43 @@ const salesManagerConfig: RolePermItem[] = [
   { key: "temporary_creditlimit.view" },
 ];
 
+// 9. Activity Plan User (ผู้ใช้งานแผนงาน) - 7 permissions
+const activityPlanUserConfig: RolePermItem[] = [
+  { key: "activity.create" },
+  { key: "activity.delete" },
+  { key: "activity.edit" },
+  { key: "activity.view" },
+  { key: "data.activity_plans", dataAccess: DataAccessLevel.VIEW_OWN },
+  { key: "menu.activity_plans" },
+  { key: "promotional_material.view" },
+];
+
+// 10. Activity Plan Approver (ผู้อนุมัติแผนงาน) - 5 permissions
+const activityPlanApproverConfig: RolePermItem[] = [
+  { key: "activity.approve" },
+  { key: "activity.view" },
+  { key: "data.activity_plans", dataAccess: DataAccessLevel.VIEW_TEAM },
+  { key: "menu.activity_plans" },
+  { key: "promotional_material.view" },
+];
+
+// 11. Activity Plan Admin (ผู้ดูแลแผนงานและสื่อส่งเสริมการขาย) - 13 permissions
+const activityPlanAdminConfig: RolePermItem[] = [
+  { key: "activity.approve" },
+  { key: "activity.create" },
+  { key: "activity.delete" },
+  { key: "activity.edit" },
+  { key: "activity.manage" },
+  { key: "activity.view" },
+  { key: "data.activity_plans", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.activity_plans" },
+  { key: "menu.promotional_materials" },
+  { key: "promotional_material.create" },
+  { key: "promotional_material.delete" },
+  { key: "promotional_material.edit" },
+  { key: "promotional_material.view" },
+];
+
 // Role Definitions Metadata (ตรงกับ Production Database 100%)
 const roleDefinitions = [
   {
@@ -1492,6 +1625,30 @@ const roleDefinitions = [
     isSystem: false,
     isActive: true,
     config: salesManagerConfig,
+  },
+  {
+    name: "ผู้ใช้งานแผนงาน",
+    slug: "activity_plan_user",
+    description: "ผู้ใช้งานแผนงาน (Trip Plan User) - สร้าง แก้ไข ลบ และส่งแผนงานของตนเอง",
+    isSystem: false,
+    isActive: true,
+    config: activityPlanUserConfig,
+  },
+  {
+    name: "ผู้อนุมัติแผนงาน",
+    slug: "activity_plan_approver",
+    description: "ผู้อนุมัติแผนงาน (Trip Plan Approver) - ตรวจสอบและอนุมัติตามสายงานและงบประมาณ",
+    isSystem: false,
+    isActive: true,
+    config: activityPlanApproverConfig,
+  },
+  {
+    name: "ผู้ดูแลแผนงานและสื่อส่งเสริมการขาย",
+    slug: "activity_plan_admin",
+    description: "ผู้ดูแลแผนงานและสื่อส่งเสริมการขาย (Activity Plan Admin) - จัดการแผนงานทั้งหมดและสื่อส่งเสริมการขาย",
+    isSystem: false,
+    isActive: true,
+    config: activityPlanAdminConfig,
   },
 ];
 

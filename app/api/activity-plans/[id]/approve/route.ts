@@ -18,6 +18,24 @@ export async function POST(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const permissions = session.user.permissionKeys ?? [];
+  const roles = session.user.roles ?? [];
+  const isSuper =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo");
+
+  if (
+    !isSuper &&
+    !permissions.includes("activity.approve") &&
+    !permissions.includes("activity.manage")
+  ) {
+    return NextResponse.json(
+      { error: "Forbidden: คุณไม่มีสิทธิ์อนุมัติแผนงาน (activity.approve)" },
+      { status: 403 },
+    );
+  }
+
   const { id } = await context.params;
 
   try {
