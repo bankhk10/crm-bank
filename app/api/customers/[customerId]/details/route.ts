@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { isAuthorized } from "@/lib/rbac";
 
 import { startOfDay, endOfDay, parseISO } from "date-fns";
+import { calculateLitersOrKg, roundNumber } from "@/lib/volume-utils";
 
 const resourcePath = "/api/customers";
 
@@ -246,9 +247,8 @@ export async function GET(
 
   const purchaseFrequency = (purchaseFrequencyData[0]?._count || 0) / 12;
 
-  // Get product purchase history grouped by product
-  const productPurchaseHistory = await db.saleItem.groupBy({
-    by: ["productId"],
+  // Get product purchase history grouped by product with volume calculation
+  const saleItems = await db.saleItem.findMany({
     where: {
       sale: {
         customerId: params.customerId,
@@ -265,48 +265,106 @@ export async function GET(
         ...dateFilter,
       },
     },
-    _sum: { quantity: true, totalPrice: true },
-    _count: true,
-    orderBy: { _sum: { totalPrice: "desc" } },
+    select: {
+      productId: true,
+      quantity: true,
+      totalPrice: true,
+      packageSize: true,
+      packageSizeUnit: true,
+      packageSizePerBox: true,
+      totalPackageSizePerBox: true,
+      unit: true,
+      product: {
+        select: {
+          id: true,
+          name: true,
+          productCode: true,
+          packageSize: true,
+          packageSizeUnit: true,
+          packageSizePerBox: true,
+          totalPackageSizePerBox: true,
+          unit: true,
+        },
+      },
+    },
   });
 
-  // Get product details for product purchase history
-  const productIds = productPurchaseHistory.map((p) => p.productId);
-  const products = await db.product.findMany({
-    where: { id: { in: productIds } },
-    select: { id: true, name: true, productCode: true, packageSize: true, packageSizeUnit: true },
-  });
+  const productAggMap = new Map<
+    string,
+    {
+      product: {
+        id: string;
+        name: string;
+        productCode: string;
+        packageSize?: number | null;
+        packageSizeUnit?: string | null;
+      };
+      totalQuantity: number;
+      totalAmount: number;
+      totalVolumeLiters: number;
+      orderCount: number;
+    }
+  >();
 
-  const productMap = new Map(products.map((p) => [p.id, p]));
+  for (const item of saleItems) {
+    if (!item.productId) continue;
 
-  // Helper for unit conversion to liters
-  const convertToLiters = (value: number, unit?: string | null): number => {
-    if (!unit) return 0;
-    const u = unit.toUpperCase().trim();
-    if (u === "L" || u === "KG") return value;
-    if (u === "ML" || u === "CC" || u === "G") return value / 1000;
-    return 0;
-  };
+    const { totalLitersOrKg } = calculateLitersOrKg({
+      quantity: item.quantity != null ? Number(item.quantity) : null,
+      packageSize: item.packageSize != null ? Number(item.packageSize) : null,
+      packageSizeUnit: item.packageSizeUnit,
+      packageSizePerBox: item.packageSizePerBox != null ? Number(item.packageSizePerBox) : null,
+      totalPackageSizePerBox: item.totalPackageSizePerBox != null ? Number(item.totalPackageSizePerBox) : null,
+      unit: item.unit,
+      product: item.product
+        ? {
+            packageSize: item.product.packageSize != null ? Number(item.product.packageSize) : null,
+            packageSizeUnit: item.product.packageSizeUnit,
+            packageSizePerBox: item.product.packageSizePerBox != null ? Number(item.product.packageSizePerBox) : null,
+            totalPackageSizePerBox: item.product.totalPackageSizePerBox != null ? Number(item.product.totalPackageSizePerBox) : null,
+            unit: item.product.unit,
+          }
+        : null,
+    });
 
-  const topProducts = productPurchaseHistory.map((p) => {
-    const product = productMap.get(p.productId);
-    const totalQuantity = Number(p._sum.quantity || 0);
-    
-    // Calculate volume based on product package size and quantity
-    const packageSize = Number(product?.packageSize || 0);
-    const totalVolumeLiters = convertToLiters(
-      totalQuantity * packageSize,
-      product?.packageSizeUnit
-    );
+    const quantity = Number(item.quantity || 0);
+    const amount = Number(item.totalPrice || 0);
 
-    return {
-      product,
-      totalQuantity,
-      totalAmount: Number(p._sum.totalPrice || 0),
-      totalVolumeLiters,
-      orderCount: p._count,
-    };
-  });
+    const existing = productAggMap.get(item.productId);
+    if (existing) {
+      existing.totalQuantity += quantity;
+      existing.totalAmount += amount;
+      existing.totalVolumeLiters = roundNumber(
+        existing.totalVolumeLiters + totalLitersOrKg,
+        4,
+      );
+      existing.orderCount += 1;
+    } else {
+      productAggMap.set(item.productId, {
+        product: {
+          id: item.product?.id || item.productId,
+          name: item.product?.name || "",
+          productCode: item.product?.productCode || "",
+          packageSize:
+            item.product?.packageSize != null
+              ? Number(item.product.packageSize)
+              : item.packageSize != null
+                ? Number(item.packageSize)
+                : null,
+          packageSizeUnit: item.product?.packageSizeUnit || item.packageSizeUnit || null,
+        },
+        totalQuantity: quantity,
+        totalAmount: amount,
+        totalVolumeLiters: totalLitersOrKg,
+        orderCount: 1,
+      });
+    }
+  }
+
+  const topProducts = Array.from(productAggMap.values()).sort(
+    (a, b) => b.totalAmount - a.totalAmount,
+  );
+
 
   return NextResponse.json({
     customer,

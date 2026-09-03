@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { formatVolumeValue } from "@/lib/volume-utils";
 import { DetailHero } from "@/components/custom/detail-hero";
 import { SectionHeader } from "@/components/custom/section-header";
 import { DetailItem } from "@/components/custom/detail-item";
@@ -97,6 +98,8 @@ interface TopProduct {
     id: string;
     name: string;
     productCode: string;
+    packageSize?: number | null;
+    packageSizeUnit?: string | null;
   };
   totalQuantity: number;
   totalAmount: number;
@@ -252,11 +255,7 @@ const formatTHB = (n: number) =>
 
 const formatNumber = (n: number) => new Intl.NumberFormat("th-TH").format(n);
 
-const formatVolume = (n: number) =>
-  new Intl.NumberFormat("th-TH", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n);
+const formatVolume = (n: number | null | undefined) => formatVolumeValue(n);
 
 // ─── Columns ───────────────────────────────
 
