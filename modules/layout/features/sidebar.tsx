@@ -120,7 +120,7 @@ export default function Sidebar({
     const pathname = usePathname();
 
     const items = useMemo(() => {
-        const navs = filterNavItems(navigationItems, permissionKeys);
+        const navs = filterNavItems(navigationItems, permissionKeys, roles);
 
         const dashboardHref = getDefaultRouteForRoles(roles);
         const isDashboard = isAdministrator(roles) || isManager(roles);

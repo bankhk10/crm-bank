@@ -142,16 +142,11 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <Megaphone className="h-4 w-4" />,
   },
   {
-    href: "/test-activity",
-    label: "ทดสอบกิจกรรม",
-    permissionKey: "menu.test_activity",
+    href: "/activity-plans",
+    label: "แผนงานกิจกรรม",
+    permissionKey: "menu.activity_plans",
     icon: <ClipboardList className="h-4 w-4" />,
     children: [
-      // {
-      //   href: "/test-activity/reports",
-      //   label: "รายงาน",
-      //   permissionKey: "menu.test_activity",
-      // },
       {
         href: "/activity-plans",
         label: "แผนงาน (Trip Plan)",
