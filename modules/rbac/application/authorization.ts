@@ -45,11 +45,32 @@ const routeRules: RoutePermissionRule[] = [
   { pattern: /^\/companies(\/.*)?$/, required: ["menu.companies"] },
   { pattern: /^\/employee\/new$/, required: ["employee.create"] },
   { pattern: /^\/employee(\/.*)?$/, required: ["menu.employees"] },
-  { pattern: /^\/api\/products(\/.*)?$/, required: ["menu.products"] },
   { pattern: /^\/api\/employee(\/.*)?$/, required: ["employee.view"] },
   { pattern: /^\/api\/companies(\/.*)?$/, required: ["menu.companies"] },
   { pattern: /^\/exports(\/.*)?$/, required: ["menu.exports"] },
 ];
+
+/**
+ * Data Access hierarchy rank: higher value = broader scope
+ */
+const DATA_ACCESS_HIERARCHY: Record<DataAccessLevel, number> = {
+  VIEW_OWN: 1,
+  VIEW_TEAM: 2,
+  VIEW_DEPARTMENT: 3,
+  VIEW_ALL: 4,
+};
+
+/**
+ * Merge two DataAccessLevel values for the same resource, selecting the broadest scope
+ */
+export function mergeDataAccess(
+  a?: DataAccessLevel | null,
+  b?: DataAccessLevel | null,
+): DataAccessLevel | null {
+  if (!a) return b ?? null;
+  if (!b) return a ?? null;
+  return DATA_ACCESS_HIERARCHY[a] >= DATA_ACCESS_HIERARCHY[b] ? a : b;
+}
 
 /**
  * Build permission map from role permissions and overrides
@@ -62,6 +83,11 @@ export function buildPermissionMap(
 
   for (const rolePermission of rolePermissions) {
     const current = permissionMap[rolePermission.permission.key];
+    const incomingDataAccess =
+      rolePermission.dataAccess ??
+      rolePermission.permission.defaultDataAccess ??
+      null;
+
     permissionMap[rolePermission.permission.key] = {
       key: rolePermission.permission.key,
       category: rolePermission.permission.category,
@@ -69,11 +95,7 @@ export function buildPermissionMap(
       action: rolePermission.permission.action,
       resource: rolePermission.permission.resource,
       allow: rolePermission.allow || current?.allow || false,
-      dataAccess:
-        rolePermission.dataAccess ??
-        current?.dataAccess ??
-        rolePermission.permission.defaultDataAccess ??
-        null,
+      dataAccess: mergeDataAccess(current?.dataAccess, incomingDataAccess),
       editAccess:
         rolePermission.editAccess ??
         current?.editAccess ??
@@ -231,6 +253,14 @@ export function getDefaultRouteForRoles(roles: string[]): string {
   }
   if (isManager(roles)) {
     return "/dashboard/manager";
+  }
+  if (
+    roles.some(
+      (role) =>
+        role === "sales_promotion" || role === "sales_promotion_supervisor",
+    )
+  ) {
+    return "/activity-plans";
   }
   return DEFAULT_AUTH_REDIRECT;
 }

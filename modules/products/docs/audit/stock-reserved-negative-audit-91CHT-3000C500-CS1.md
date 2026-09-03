@@ -206,4 +206,4 @@
 
 ### 3. Automated Verification
 - ผ่านการทดสอบ Automated Tests ครบ 10 กรณี (10/10 PASS) ใน `scripts/test_stock_reservation.ts`
-- ดูรายละเอียดเพิ่มเติมใน [docs/stock-reservation-business-rules.md](file:///d:/code/crm-bank/docs/stock-reservation-business-rules.md) และ [docs/stock-reserved-negative-global-audit.md](file:///d:/code/crm-bank/docs/stock-reserved-negative-global-audit.md)
+- ดูรายละเอียดเพิ่มเติมใน [stock-reservation-business-rules.md](../stock-reservation-business-rules.md) และ [stock-reserved-negative-global-audit.md](./stock-reserved-negative-global-audit.md)

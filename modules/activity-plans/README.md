@@ -1,0 +1,681 @@
+# คู่มือระบบการทำงานฟีเจอร์กิจกรรม (Trip Plan Feature Guide)
+
+> **Module**: `activity-plans`  
+> **Purpose**: อธิบาย Domain, Architecture, Database, Data Flow, Approval Flow และการเปลี่ยนแปลงสำคัญของ Module `activity-plans`  
+> **Architecture Authority**: [MODULE_ARCHITECTURE.md](../../../docs/MODULE_ARCHITECTURE.md)  
+> **Coding Standards**: [CODING_STANDARDS.md](../../../docs/CODING_STANDARDS.md)  
+> **System Architecture**: [ARCHITECTURE.md](../../../docs/ARCHITECTURE.md)
+
+---
+
+## 📂 Module Architecture
+
+Module นี้อยู่ภายใต้:
+
+```text
+modules/activity-plans/
+```
+
+และต้องปฏิบัติตาม **Module Architecture Contract** ของโปรเจกต์
+
+โครงสร้างมาตรฐานของ Module:
+
+```text
+modules/<module-name>/
+├── application/          # Business logic, validation, use-case orchestration
+├── features/             # User-facing UI features/screens
+├── infrastructure/      # Database / persistence access
+├── server/               # Server Actions, authentication, authorization, revalidation
+├── types/                # Module-specific TypeScript types
+├── ui/                   # Module-specific reusable UI components
+├── constants.ts          # Module-specific constants
+├── index.ts              # Public module exports
+└── README.md             # Module documentation
+```
+
+**หมายเหตุ:** ไม่จำเป็นต้องมีทุก Folder/File หาก Module ไม่ต้องใช้งานส่วนนั้น ให้สร้างเฉพาะสิ่งที่จำเป็นจริง
+
+สำหรับ `activity-plans` โครงสร้างปัจจุบันที่มีอยู่มีลักษณะดังนี้:
+
+```text
+modules/activity-plans/
+├── application/
+│   ├── activity-plan-flow.ts
+│   ├── calendar-integration.ts
+│   ├── index.ts
+│   └── validations.ts
+│
+├── infrastructure/
+│   └── activity-plan.repository.ts
+│
+├── server/
+│   └── actions.ts
+│
+├── features/
+│   ├── list-view/
+│   ├── form/
+│   │   ├── activity-plan-form.tsx
+│   │   └── components/
+│   │       └── work-types/
+│   │
+│   ├── actual-view/
+│   │   ├── activity-plan-actual-view.tsx
+│   │   ├── types.ts
+│   │   ├── utils/
+│   │   └── components/
+│   │       └── work-types/
+│   │
+│   ├── detail-view/
+│   │   ├── activity-plan-detail-view.tsx
+│   │   ├── types.ts
+│   │   ├── utils.ts
+│   │   └── components/
+│   │       └── work-types/
+│   │
+│   └── approval/
+│       ├── activity-plan-approval-list-view.tsx
+│       └── components/
+│
+├── ui/
+│   ├── activity-status-badge.tsx
+│   └── form-action-buttons.tsx
+│
+├── types/
+│   └── index.ts
+│
+├── constants.ts
+├── index.ts
+└── README.md
+```
+
+### Layer Responsibilities
+
+```text
+features/
+    ↓
+server/
+    ↓
+application/
+    ↓
+infrastructure/
+    ↓
+database
+```
+
+ภายใน `activity-plans` ให้ยึดหลัก:
+
+- `features/` รับผิดชอบ UI และ User Interaction
+- `server/` รับผิดชอบ Server Actions, Authentication, Permission และ Revalidation
+- `application/` รับผิดชอบ Business Logic, Validation และ Flow Control
+- `infrastructure/` รับผิดชอบ Database Access / Repository
+- `types/` รับผิดชอบ Module-specific Types
+- `ui/` รับผิดชอบ Reusable UI Components ที่เป็นของ Module นี้
+- `constants.ts` รับผิดชอบ Module-specific Constants
+- `index.ts` เป็น Public API ของ Module
+
+ห้ามให้ UI เข้าถึง Database หรือ Repository โดยตรง และห้ามย้าย Business Logic ไปไว้ใน `server/actions.ts`
+
+---
+
+## 🔄 Data Flow ของ Module
+
+### Create / Update
+
+```text
+Activity Plan Form
+       ↓
+Server Action
+       ↓
+Authentication
+       ↓
+Permission
+       ↓
+Application
+       ↓
+Validation / Business Rules
+       ↓
+Repository
+       ↓
+PostgreSQL
+       ↓
+Revalidate
+       ↓
+UI
+```
+
+### Actual Result
+
+```text
+Activity Plan
+       ↓
+Trip Plan Actual
+       ↓
+Server Action
+       ↓
+Application / Validation
+       ↓
+Repository
+       ↓
+activity_results
+```
+
+### Detail View
+
+```text
+Database
+   ↓
+Repository
+   ↓
+Server / Application
+   ↓
+Detail View
+```
+
+รายละเอียด Data Flow ของแต่ละ Use Case ต้องสอดคล้องกับ Code จริงของ Module
+
+---
+
+## 🗄️ โครงสร้างฐานข้อมูล (Database Schema) — Analytics-Ready
+
+ออกแบบใหม่ทั้งหมด (2026-08-13) เพื่อรองรับ Data Analytics Dashboard โดยตรง แทนที่ schema เดิม 3 ตาราง:
+
+### GROUP 1: Master / Lookup
+
+1. **`activity_types`:** ตาราง Master 11 ประเภทงาน (`TYPE_1`–`TYPE_11`) พร้อม `code`, `name`, `shortName`, `sortOrder` — ใช้ FK จาก `activity_plans.activity_type_id` ทำให้ Filter/Group ใน Dashboard ได้
+
+### GROUP 2: Core Transaction
+
+2. **`activity_plans`:** หัวเรื่องแผนงาน (ปรับปรุงจากเดิม) เพิ่ม:
+   - **Fiscal Dimensions:** `fiscal_year`, `fiscal_month`, `fiscal_quarter`, `duration_days` — คำนวณอัตโนมัติจาก `start_date` ใน application layer
+   - **Geo Fields:** `province`, `district` — เลือกจาก Dropdown แยกต่างหาก
+   - **Budget Split:** `sales_promotion_budget_requested` / `marketing_budget_requested` (ขอ) vs `*_approved` (อนุมัติ) — Variance Analysis
+   - **TAT Timestamps:** `submitted_at`, `approved_at`, `rejected_at`, `cancelled_at`
+3. **`activity_plan_items`:** **Wide Table แทน `details Json?` เดิม** — คอลัมน์ flat สำหรับ 11 ประเภทงาน Query ได้โดยตรง (`SUM`, `GROUP BY`, `AVG`)
+4. **`activity_helpers`:** ตารางพนักงานช่วยงาน เพิ่ม `department_name` (denormalized snapshot) และ `responded_at`
+
+### GROUP 3: Workflow
+
+5. **`activity_approval_logs`:** ประวัติการอนุมัติ เพิ่ม `from_status`, `to_status`, `step_duration_seconds` — TAT per step
+
+### GROUP 4: Post-Activity Result (ใหม่)
+
+6. **`activity_results`:** บันทึกผลหลังกิจกรรม (1:1 กับ `activity_plans`) — เก็บ `actual_start_date`, `actual_attendees_count`, งบที่ใช้จริง, KPI ตามประเภทงาน (ยอดขาย, ยอดเก็บเงิน, จำนวนแปลง, จำนวนผู้เข้าร่วม)
+
+### 🔢 การรันเลขที่แผนกิจกรรม (Plan Code Generation)
+
+- **รูปแบบ:** `TPYYMMXXXX`
+  - `TP` = Trip Plan Prefix
+  - `YY` = ปี พ.ศ./ค.ศ. 2 หลัก (เช่น `26` สำหรับปี 2026)
+  - `MM` = เดือน 2 หลัก (เช่น `08` สำหรับเดือนสิงหาคม)
+  - `XXXX` = ลำดับแผนงานแบบ 4 หลัก (เช่น `0001`, `0002`)
+- **การทำงาน:** สร้างเลขอัตโนมัติภายใน Database Transaction เมื่อมีการสร้าง `ActivityPlan` รายการใหม่
+
+---
+
+## 🔄 ลำดับขั้นตอนการอนุมัติ 5 ขั้นตอน (5-Step Approval Flow)
+
+ระบบใช้ระบบควบคุมสถานะแบบ **State Machine** อัตโนมัติ:
+
+1.  **บันทึกแผนงาน:**
+    - สร้างร่างกิจกรรมเป็น `DRAFT` หรือ `WAITING_FOR_CORRECTION`
+2.  **ตรวจสอบสายงาน (Line Approval):**
+    - เมื่อกดส่ง ระบบจะวิ่งผ่านห่วงโซ่ผู้จัดการ `managerId` ของพนักงานไปทีละระดับเพื่อขออนุมัติ
+    - สิ้นสุดที่พนักงานระดับ `position.level >= 3` หรือมีชื่อตำแหน่งเป็น **"ผู้จัดการแผนกบริหารงานขาย"** (Terminal Line Manager)
+3.  **อนุมัติงบประมาณ (Budget Approval):**
+    - ถ้างบส่งเสริมการขาย (`salesPromotionBudget` > 0) -> ส่งให้ ผจก.บริหารงานขาย อนุมัติ
+    - ถ้างบการตลาด (`marketingBudget` > 0) -> ส่งให้ ผจก.แผนกการตลาด อนุมัติ
+    - ถ้าขอทั้งคู่ -> ระบบจะเปิดช่องให้ผู้จัดการทั้งสองแผนกอนุมัติคู่ขนานพร้อมกัน
+    - เมื่อผ่านการอนุมัติของแต่ละแผนกแล้ว -> ส่งต่อให้ **ผจก. ฝ่ายขาย (Sales Director)** อนุมัติงบประมาณทั้งหมดในภาพรวม
+4.  **อนุมัติคนช่วยงาน (Helper Approval):**
+    - ส่งคำขออนุญาตไปยังผู้จัดการแผนกของพนักงานช่วยงานแต่ละคน:
+      - คนช่วยสังกัดฝ่ายขาย/ส่งเสริม -> ส่งหา ผจก.บริหารงานขาย
+      - คนช่วยสังกัดการตลาด -> ส่งหา ผจก.การตลาด
+5.  **อนุมัติเสร็จสิ้น:**
+    - ระบบเปลี่ยนสถานะเป็น `APPROVED`
+    - สร้างการนัดหมายปฏิทินและ Meet Link บันทึกลงตาราง `ApplicationLog`
+    - ส่งข้อความแจ้งเตือนประเภท `APPROVED` ไปยังพนักงานผู้สร้าง และส่งรายละเอียดหน้าที่งานไปยังพนักงานช่วยงานทุกคน
+
+---
+
+## 🔔 การบูรณาการแจ้งเตือน (Notifications & Integrations)
+
+- **Notification Engine:** มีการส่งข้อความแจ้งเตือนอัตโนมัติลงฐานข้อมูล (ตาราง `Notification`) ครอบคลุมการยื่นแผนงาน การเปลี่ยนผู้อนุมัติตามคิวงาน การส่งกลับแก้ไขชี้เป้าลิงก์ตรง และการปฏิเสธแผน
+- **Calendar Sync Simulation:** เมื่ออนุมัติสำเร็จ จะสร้าง Event ปฏิทินและส่ง Audit Log ด้วยประเภทความรุนแรง `INFO` ลงตาราง `ApplicationLog` เพื่อเก็บข้อมูลประวัตินัดหมายการเดินทาง
+
+---
+
+## 🛠️ การแก้ไขปัญหาตอนรันระบบ (Troubleshooting)
+
+### 1. Build/Dev Error: `Module not found: Can't resolve '@prisma/client-runtime-utils'`
+
+- **สาเหตุ:** เกิดจากการไปอ้างอิง `import { ActivityStatus, ... } from "@prisma/client"` โดยตรงในฝั่ง Client Components (`"use client"`) ทำให้ Next.js/Turbopack พยายามทำการบันเดิล Prisma Client ฝั่งเบราว์เซอร์เข้ามา ซึ่งจะล้มเหลวเนื่องจากไม่มีโมดูล Node.js และ Runtime Utils
+- **การแก้ไข:**
+  - ทางระบบมีการนำเข้าและ Re-export Enums เหล่านี้ผ่านไฟล์ตัวกลาง **`lib/db.ts`**
+  - การนำเข้าประเภท Enums ในฝั่ง UI และ Client Component ทั้งหมดจึงได้รับการแก้ไขให้ดึงมาจาก `@/lib/db` แทน เช่น `import { ActivityStatus } from "@/lib/db";` ซึ่งทำให้บันเดิลได้อย่างปลอดภัย 100%
+
+---
+
+## 📝 บันทึกการอัปเดตฟีเจอร์ (Feature Change Log)
+
+### 2026-08-14: แก้ไข Work Type 8 (Meeting) การบันทึกและโหลดข้อมูลยอดขาย/จำนวนแยกตามสินค้าในหน้า Actual
+
+- **คอมโพเนนต์ที่แก้ไข:**
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type8-meeting.tsx`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+- **การเปลี่ยนแปลงที่ดำเนินการ:**
+  1. **การบันทึก (`handleSubmit`)**: เพิ่ม `t8ProductSalesDetails` (ยอดขายและจำนวนขายแยกตามสินค้า) ลงใน `resultSummary` ของผลกิจกรรม
+  2. **การโหลดข้อมูล (`loadData`)**: เพิ่ม regex JSON parser เพื่อดึงประวัติการกรอกยอดขายและจำนวนขายแต่ละสินค้ากลับมาแสดงผลในฟอร์มเมื่อเปิดดูภายหลังได้อย่างถูกต้อง ไม่สูญหาย
+  3. **State Synchronization**: ปรับปรุง `currentSalesList` ให้ merge ข้อมูลระหว่างสินค้าจากแผน (`productList`) และยอดขายที่บันทึกแล้ว (`productSalesDetails`) อย่างสมบูรณ์
+- **ผลลัพธ์:** ข้อมูลจำนวนที่ขายได้/จอง และยอดขายรวม (บาท) ของแต่ละสินค้าใน Work Type 8 ถูกบันทึกและแสดงผลย้อนหลังได้อย่างถูกต้อง 100%
+
+### 2026-08-14: ปรับปรุง UX/UI และ Data Flow ของ Demo Plot: แยกหน้าที่ Plan vs Actual, โครงสร้าง Master vs Visit และ History Timeline Modal
+
+- **คอมโพเนนต์ที่แก้ไข/เพิ่มใหม่:**
+  - `prisma/schema.prisma` (เพิ่ม `plantingDate`, `plantingAreaCondition`, `usageMethod` ใน `DemoPlot` และ `cropImageUrls`, `plotImageUrls` ใน `DemoPlotVisit`)
+  - `modules/activity-plans/infrastructure/activity-plan.repository.ts` (อัปเดต `createDemoPlotRecord`, `recordDemoPlotVisit`, `getDemoPlotWithHistory`)
+  - `modules/activity-plans/server/actions.ts` (ปรับปรุง `getDemoPlotHistoryAction`, `recordDemoPlotVisitAction`)
+  - `modules/activity-plans/features/form/components/work-types/type7-demo.tsx`
+  - `modules/activity-plans/features/actual-view/components/work-types/demo-plot-history-modal.tsx` (เพิ่มใหม่: Timeline Dialog ย้อนหลังทุกรอบตรวจ)
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type7-demo.tsx`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+- **การเปลี่ยนแปลงที่ดำเนินการ:**
+  1. **หน้าสร้างแผน (`type7-demo.tsx`)**: ในโหมด `FOLLOW_UP` ซ่อนช่องวันที่ติดตาม, จำนวนสินค้าที่จะสาธิต, และแถบสถิติสะสม (วันที่ผ่านมา, จำนวนครั้งที่ตรวจแล้ว, ค่าใช้จ่ายสะสม) โดยคงไว้เฉพาะการเลือกแปลงเดิมและการ์ดแสดงข้อมูลระบุตัวตนแปลงเดิมแบบ Read-only พร้อมช่องกรอกรายละเอียดที่ตั้งใจจะไปทำ
+  2. **หน้าบันทึกผลจริง (`actual-type7-demo.tsx`)**:
+     - กรณี `CREATE`: แสดงฟอร์มทำแปลงใหม่ (วันที่ปลูก \*, สภาพพื้นที่ปลูก, วิธีการใช้เริ่มต้น, รูปสภาพพืช, รูปภาพสภาพแปลง)
+     - กรณี `FOLLOW_UP`: แสดง **"ข้อมูลอ้างอิงของแปลงสาธิต (จากตอนเริ่มทำแปลง)"** (วันที่ปลูก, สภาพพื้นที่ตอนเริ่ม, วิธีใช้เริ่มต้น, เจ้าของ, พืช, พื้นที่, สินค้า) อัตโนมัติโดยผู้ใช้ไม่ต้องกรอกซ้ำ
+     - เพิ่มปุ่มเด่น **"📋 ดูประวัติการติดตามแปลง (X ครั้ง)"** เพื่อเปิด Modal ประวัติการติดตาม
+     - ฟอร์มบันทึกผลการติดตามรอบนี้: อายุพืช _, ระยะการเจริญเติบโต _, สภาพพืช _, ผลการใช้ผลิตภัณฑ์ _, วิธีการใช้รอบนี้, รูปสภาพพืช (รอบนี้), รูปภาพสภาพแปลง (รอบนี้)
+  3. **History Timeline Modal (`demo-plot-history-modal.tsx`)**: แสดงประวัติการติดตามย้อนหลังทุกรอบตามลำดับเวลา (Visit #1, #2, #3...) พร้อมรูปถ่ายและผลการตรวจ โดยรูปภาพของแต่ละรอบจัดเก็บแยกกันอิสระ ไม่เขียนทับของเดิม
+  4. **Graceful Demo Plot Auto-Creation & Legacy Resolution**: ใน `recordDemoPlotVisit` และ `getDemoPlotHistoryAction` หากรับ ID ที่เป็น legacy (`legacy-planId-itemId`) หรือแปลงที่เพิ่งสร้างในขั้นตอน Actual ระบบจะทำการเชื่อมโยงข้อมูลและ Auto-Create `DemoPlot` Master Record ให้โดยอัตโนมัติ ไม่เกิด Error 500
+- **ผลลัพธ์:** การทำงานของ Demo Plot มีความชัดเจนในหน้าที่ ไม่ซ้ำซ้อน ใช้งานง่าย และรองรับการติดตามแปลงเดิมอย่างต่อเนื่องสมบูรณ์แบบ
+
+### 2026-08-14: ปรับปรุง Work Type 7 (Demo Plot) แยกฟอร์ม Actual ตามประเภทงาน ("ทำแปลงสาธิต" vs "ติดตามแปลงสาธิต")
+
+- **คอมโพเนนต์ที่แก้ไข:**
+  - `modules/activity-plans/features/form/components/work-types/type7-demo.tsx`
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type7-demo.tsx`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+- **การเปลี่ยนแปลงที่ดำเนินการ:**
+  1. **Data Mapping จากฟิลด์ประเภทงานจริง:** ตรวจสอบจากค่า `plotActivityType` / `activityType` (`"CREATE"` vs `"FOLLOW_UP"`) ที่บันทึกในฐานข้อมูล ไม่ได้อิงจาก Label หน้าจอ
+  2. **กรณีประเภทงาน = "ทำแปลงสาธิต" (CREATE - เริ่มทำแปลงใหม่):**
+     - **ไม่แสดงช่องสำหรับการติดตาม:** ซ่อน อายุพืช, ระยะการเจริญเติบโต, สภาพพืช, ผลการใช้ผลิตภัณฑ์, และสถานะของแปลงสาธิต (Lifecycle Status)
+     - **เพิ่มช่องสำหรับสร้างแปลงใหม่:**
+       - **ข้อมูลการทำแปลง:** วันที่ปลูก (`plantingDate` \*), สภาพพื้นที่ปลูก (`plantingAreaCondition`), วิธีการใช้ / อัตราการใช้ (`usageMethod`)
+       - **รูปภาพประกอบการทำแปลง:** รูปสภาพพืช (`cropImages`), รูปภาพสภาพแปลง (`plotImages`)
+  3. **กรณีประเภทงาน = "ติดตามแปลงสาธิต" (FOLLOW_UP - ติดตามแปลงเดิม):**
+     - คงฟอร์มการติดตามแปลงสาธิตตามรูปแบบเดิมอย่างครบถ้วน 100% (อายุพืช, ระยะการเจริญเติบโต, สภาพพืช, ผลการใช้ผลิตภัณฑ์, รูปภาพสภาพแปลงล่าสุด, ประวัติการเข้าตรวจ, Lifecycle Status, และฟอร์มสรุปปิดแปลง)
+- **ผลลัพธ์:** หน้า Trip Plan Actual แยกแบบฟอร์มการกรอกผลการปฏิบัติงานระหว่าง "การเริ่มทำแปลงใหม่" และ "การติดตามแปลงเดิม" ได้อย่างถูกต้อง ชัดเจน และสมบูรณ์แบบตาม Business Flow
+
+### 2026-08-14: พัฒนาระบบติดตามแปลงสาธิตต่อเนื่องครบวงจร (Demo Plot Lifecycle, Duration/Cost Calculations & Plot Closing)
+
+- **คอมโพเนนต์ที่แก้ไข/เพิ่มใหม่:**
+  - `prisma/schema.prisma` (เพิ่ม `DemoPlotStatus`, `model DemoPlot`, `model DemoPlotVisit`)
+  - `modules/activity-plans/infrastructure/activity-plan.repository.ts`
+  - `modules/activity-plans/server/actions.ts`
+  - `modules/activity-plans/features/form/constants.ts`
+  - `modules/activity-plans/features/form/components/work-types/type7-demo.tsx`
+  - `modules/activity-plans/features/form/activity-plan-form.tsx`
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type7-demo.tsx`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+- **การเปลี่ยนแปลงที่ดำเนินการ:**
+  1. **Master Entity & Database Schema:** สร้างตาราง `demo_plots` และ `demo_plot_visits` ในฐานข้อมูล เพื่อให้แปลงสาธิตมีตัวตนถาวร (Plot Identity) อยู่ยาวนานข้ามหลาย Trip Plan และรองรับการบันทึกประวัติการเข้าตรวจหลายครั้ง
+  2. **Plan & FOLLOW_UP Linkage:** ปรับปรุง `type7-demo.tsx` และ `activity-plan-form.tsx` ให้โหลดแปลงสาธิตจริงจากฐานข้อมูลในโหมด `FOLLOW_UP` พร้อมแสดงการ์ดสรุปประวัติ: วันเริ่มทำแปลง, จำนวนวันสะสม, จำนวนครั้งที่ตรวจแล้ว, และค่าใช้จ่ายสะสม
+  3. **การคำนวณระยะเวลารวมสะสม (Duration Calculation):** คำนวณ `Days Elapsed` จาก `startDate` ถึงวันตรวจจริงใน `actual-type7-demo.tsx` อย่างแม่นยำ ไม่สับสนกับอายุพืช (`cropAge`)
+  4. **การคำนวณค่าใช้จ่ายสะสม (Cumulative Plot Costs):** คำนวณมูลค่าสินค้าสาธิต (`จำนวนสินค้า × ราคาต่อหน่วย`) และยอดค่าใช้จ่ายสะสมรวมทุกการเข้าตรวจ
+  5. **ประวัติการตรวจแปลงย้อนหลัง (Visit History Timeline):** แสดง Accordion ประวัติการตรวจแปลงรอบก่อนๆ (วันที่, ระยะพืช, สภาพแปลง, ผลตอบสนอง, รูปภาพ)
+  6. **วงจรชีวิตและการปิดแปลง (Plot Lifecycle & Harvest Evaluation):** เพิ่มตัวเลือกสถานะแปลง (`IN_PROGRESS`, `COMPLETED`, `FAILED`) พร้อมฟอร์มบันทึกผลผลิตเปรียบเทียบ (กก./ไร่), % ผลผลิตเพิ่มขึ้น (Auto Calc), ความพึงพอใจเกษตรกร (1-5 ดาว), โอกาสสั่งซื้อจริง, และข้อคิดเห็นสรุปผลสัมฤทธิ์
+- **ผลลัพธ์:** ระบบแปลงสาธิตสามารถติดตามต่อเนื่องตั้งแต่เริ่มสร้างแปลง → ติดตามหลายรอบ → คำนวณวันและเงินสะสม → สรุปผลผลิตและปิดแปลงได้อย่างสมบูรณ์แบบ 100%
+
+### 2026-08-14: เพิ่มช่องกรอก "จำนวนสินค้าที่จะสาธิต" และเชื่อมต่อ Data Flow สำหรับ Work Type 7 (ติดตามแปลงสาธิต / ทำแปลง)
+
+- **คอมโพเนนต์ที่แก้ไข:**
+  - `modules/activity-plans/features/form/components/work-types/type7-demo.tsx`
+  - `modules/activity-plans/features/form/types.ts`
+  - `modules/activity-plans/features/form/activity-plan-form.tsx`
+  - `modules/activity-plans/infrastructure/activity-plan.repository.ts`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type7-demo.tsx`
+- **การเปลี่ยนแปลงที่ดำเนินการ:**
+  1. **หน้า Create (Trip Plan Form):** เพิ่มช่องกรอก "จำนวนสินค้าที่จะสาธิต" (ตัวเลข >= 0) ใน `type7-demo.tsx` ทั้งในโหมดทำแปลงใหม่ (CREATE) และโหมดติดตามแปลงเดิม (FOLLOW_UP) และแยกการเก็บข้อมูลออกจาก `areaRai`/`treeCount`
+  2. **Data Flow & Database Mapping:** ผูกข้อมูลเข้ากับฟิลด์ `plotsCount` ใน State และบันทึกลงคอลัมน์ `plot_count` (`plotCount`) ในตาราง `activity_plan_items` ของฐานข้อมูล รวมถึงรวม `objective` และ `experimentDetail` เข้าในฟิลด์ `detail` เพื่อบันทึกอย่างครบถ้วน
+  3. **หน้า Actual (Trip Plan Actual):**
+     - ดึงข้อมูล `plotCount`, `objective` (วัตถุประสงค์ของแปลง) และ `experimentDetail` (รายละเอียด / วิธีการทดลอง) จาก Database ส่งต่อไปยัง `targets.t7` และนำมาแสดงผลใน `actual-type7-demo.tsx` ทั้งในการ์ดเดี่ยว (`ActualTargetCard`) และการ์ดเป้าหมายแบบหลายแปลง (`target.items`) โดยแสดงเป็น `-` หากไม่ได้กรอก
+     - แก้ไขข้อผิดพลาดเรื่องการบันทึกและโหลดข้อมูล Actual ของ Type 7 ได้แก่ **อายุพืช (`t7CropAgeValue`, `t7CropAgeUnit`)**, **ผลการใช้ผลิตภัณฑ์ (`t7ProductResponse`)**, และ **รายละเอียดปัญหาผลิตภัณฑ์ (`t7ProblemDescription`)** โดยบันทึกลงใน `resultSummary` และสกัดกลับคืนสู่ State อย่างแม่นยำ
+     - แก้ไขบั๊กการดึงข้อมูลผิดช่องระหว่าง "ระบุปัญหาที่พบ (ผลการใช้ผลิตภัณฑ์)" และ "ระบุปัญหาที่พบ (สภาพพืช)" โดยยกเลิก fallback เก่าที่คัดลอก `problemFound` รวมไปใส่ `t7CropProblemDescription` และแยก Regex ดึงข้อมูลของแต่ละช่องออกจากกันอย่างชัดเจน
+- **ผลลัพธ์:** ข้อมูลจำนวนสินค้าที่จะสาธิต, วัตถุประสงค์ของแปลง, รายละเอียดการทดลอง รวมถึงข้อมูลผลการลงพื้นที่จริง (อายุพืช, สภาพพืช, ปัญหาของพืช, ผลการใช้ผลิตภัณฑ์, ปัญหาของผลิตภัณฑ์) บันทึกและแสดงผลแยกช่องกันอย่างถูกต้อง 100% ใน Trip Plan Actual ไม่ปะปนกันและไม่สูญหายเมื่อเปิดกลับเข้ามาดูใหม่อีกครั้ง
+
+### 2026-08-14: ปรับปรุง Data Flow และแก้ไขการแสดงผล Work Type 6 (แก้ปัญหา / รับเรื่องร้องเรียน) ในหน้า Trip Plan Actual
+
+- **คอมโพเนนต์ที่แก้ไข:**
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type6-issue.tsx`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+- **ปัญหาที่แก้ไข:**
+  1. **รายละเอียดเพิ่มเติมไม่แสดงในหน้า Actual:** ในหน้า Create (`type6-issue.tsx`) มีการบันทึกฟิลด์ `detail` ลงฐานข้อมูลตาราง `activity_plan_items` เรียบร้อยแล้ว แต่ในหน้า Actual (`actual-type6-issue.tsx`) คอมโพเนนต์ `ActualTargetCard` แสดงเฉพาะ `ลูกค้า/ร้านค้า` และ `ประเภทปัญหา` โดยไม่ได้นำ `รายละเอียดเพิ่มเติม` (`target.detail`) มาแสดง
+  2. **Multi-Item Issue Target Support:** ปรับปรุง `activity-plan-actual-view.tsx` ให้ map ทุกรายการร้องเรียน (`t6ItemsFromDb`) เข้าสู่ `targets.t6` และใน `actual-type6-issue.tsx` รองรับการแสดงผลทั้งแบบ 1 รายการ (`grid-cols-1 sm:grid-cols-3`) และแบบหลายรายการพร้อมรายละเอียดเพิ่มเติมครบถ้วน
+- **ผลลัพธ์:** ข้อมูล "รายละเอียดเพิ่มเติม" ที่บันทึกไว้ตอนสร้างแผนถูกส่งต่อและนำมาแสดงผลในหน้า Trip Plan Actual อย่างถูกต้อง 100% ตรงกับที่บันทึกไว้ในฐานข้อมูล
+
+### 2026-08-14: ปรับปรุง Data Flow และแก้ไขการแสดงผล Work Type 5 (สำรวจตลาดของคู่แข่ง) ในหน้า Trip Plan Actual
+
+- **คอมโพเนนต์ที่แก้ไข:**
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type5-survey.tsx`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+  - `modules/activity-plans/features/actual-view/components/actual-target-card.tsx`
+- **ปัญหาที่แก้ไข:**
+  1. **รายละเอียดเพิ่มเติมไม่แสดงในหน้า Actual:** ในหน้า Create (`type5-survey.tsx`) มีการบันทึกฟิลด์ `detail` ลงฐานข้อมูลตาราง `activity_plan_items` เรียบร้อยแล้ว แต่ในหน้า Actual (`actual-type5-survey.tsx`) ตัวคอมโพเนนต์ `ActualTargetCard` ส่งเฉพาะ `ร้านค้าที่สำรวจ` และ `สินค้าเปรียบเทียบ` โดยไม่ได้ใส่ `รายละเอียดเพิ่มเติม` เข้าไปในการ์ด
+  2. **Multi-Item Survey Target Support:** ปรับปรุง `activity-plan-actual-view.tsx` ให้ map ทุกรายการสำรวจ (`t5ItemsFromDb`) เข้าสู่ `targets.t5` และใน `actual-type5-survey.tsx` รองรับการแสดงผลทั้งแบบ 1 รายการ (`grid-cols-1 sm:grid-cols-3`) และแบบหลายรายการพร้อมรายละเอียดเพิ่มเติมครบถ้วน
+  3. **หน่วยนับคู่แข่งไม่ถูกบันทึก/โหลดกลับมา:** แก้ไข `activity-plan-actual-view.tsx` ให้บันทึก `t5CompetitorUnit` ลงใน `resultSummary` และดึงค่ากลับมาแสดงผลในช่องเลือกหน่วยนับเมื่อกลับมาเปิดดูหรือแก้ไขผลการปฏิบัติงาน
+  4. **Text Wrapping Safety:** ปรับปรุง `actual-target-card.tsx` ให้มี `block break-words whitespace-pre-wrap` เพื่อรองรับข้อความรายละเอียดขนาดยาวโดยไม่ทำให้ UI Layout พัง
+- **ผลลัพธ์:** ข้อมูล "รายละเอียดเพิ่มเติม" จากแผนเดิม และผลการบันทึกจริงรวมถึง "หน่วยนับ" ถูกจัดเก็บและนำมาแสดงผลในหน้า Trip Plan Actual อย่างถูกต้อง 100% ตรงกับที่บันทึกไว้จริง
+
+### 2026-08-14: ปรับปรุง Data Flow และแก้ไขการแสดงผล Work Type 3 (เสนอขายสินค้า) ระหว่างหน้า Create และ Actual
+
+- **คอมโพเนนต์ที่แก้ไข:**
+  - `modules/activity-plans/features/actual-view/components/work-types/actual-type3-sales.tsx`
+  - `modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx`
+  - `modules/activity-plans/features/form/components/work-types/type3-sales.tsx`
+  - `modules/activity-plans/features/form/activity-plan-form.tsx`
+  - `modules/activity-plans/infrastructure/activity-plan.repository.ts`
+- **ปัญหาที่แก้ไข:**
+  1. **จำนวนไม่แสดง:** ในหน้า Actual เดิมไม่ได้ส่ง `items` และ `targetQty` จาก DB ไปยัง `targets.t3` ส่งผลให้การ์ดแสดงผลไม่มีข้อมูลจำนวน
+  2. **ราคาไม่ถูกต้อง & Fallback Hardcode:** ในหน้า Actual เดิมมีการ fallback เป็นราคาตัวอย่าง เช่น `500 บาท/ลัง`, `750 บาท/ลัง`, `500 บาท/หน่วย` และใส่ dummy data ใน `useEffect` (`actualQty: 20/10`, `actualSales: 10000/7500`)
+  3. **Label:** ปรับ label จาก `"ราคา/หน่วย (บาท)"` เป็น `"ราคา (บาท)"` ให้สอดคล้องกันทุกจุด
+  4. **Data Integrity:** ปรับ ternary condition ใน Repository (`activity-plan.repository.ts`) ให้ตรวจ `!= null` ป้องกันการบันทึกค่า `0` เป็น `null` สำหรับ `Decimal` fields
+- **ผลลัพธ์:** ข้อมูลสินค้า จำนวน ราคา และยอดรวมในหน้า Trip Plan Actual ดึงมาจากข้อมูลที่บันทึกไว้ใน Trip Plan Create จริง 100% โดยตรง ไม่มีการ recalculate หรือ fallback ปลอม
+
+### 2026-08-15: ยกระดับสิทธิ์ Roles Administrator ให้สามารถอนุมัติได้ทุกสายงานและทุกขั้นตอน
+
+- **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `activity-plan-approval-list-view.tsx`, `activity-plan-detail-view.tsx`, `activity-plan-flow.ts`, `server/actions.ts`
+- **ฟีเจอร์เด่น:**
+  - **Superuser Approval Authority:** บัญชีที่มี Role `administrator`, `admin` หรือ `ceo` สามารถ:
+    - อนุมัติ / ปฏิเสธ / ส่งกลับแก้ไข แผนงานได้ทุกรายการในทุกขั้นตอน (Line Approval, Budget Approval, Helper Approval)
+    - อนุมัติงบประมาณทุกประเภท (Sales Promotion, Marketing, Overall) ได้แบบเบ็ดเสร็จทันที
+    - อนุมัติคำขอพนักงานช่วยงาน (Helper Requests) ได้ทั้งหมดในครั้งเดียว
+  - **Full Visibility in Approval Hub:** แสดงรายการคิวงานทั้งหมดให้ Administrator มองเห็นและจัดการได้ทันที พร้อมแถบป้ายสถานะ `👑 สิทธิ์ Administrator`
+
+### 2026-08-15: แก้ไข Console Warning Duplicate Key รายการสินค้าใน Type 11 (ตรวจเช็กสต็อกหน้าร้าน)
+
+- **คอมโพเนนต์ที่แก้ไข:** `actual-type11-stock.tsx`
+- **ปัญหา:** พบ Console Error `Encountered two children with the same key` เนื่องจากในฐานข้อมูลมีรายการสินค้าที่มีชื่อ/ขนาดซ้ำกัน ทำให้เกิด duplicate key และ duplicate value ใน SelectItem
+- **การแก้ไข:** ใช้ `Array.from(new Set(list))` ใน `useMemo` เพื่อ Deduplicate รายชื่อสินค้าทั้งหมด พร้อมทั้งใส่ Indexed key ใน `SelectItem`
+
+### 2026-08-15: ดึงสินค้าจริงจาก Database และแก้ไขการบันทึกจำนวนคงเหลือสต็อก สำหรับ Type 11 (ตรวจเช็กสต็อกหน้าร้าน)
+
+- **คอมโพเนนต์ที่แก้ไข:** `actual-type11-stock.tsx`, `activity-plan-actual-view.tsx`
+- **การเปลี่ยนแปลง:**
+  1. **รายการสินค้า \*:** ดึงรายการสินค้าจริงที่เปิดใช้งาน (`status = ACTIVE`) จากฐานข้อมูลผ่าน `listProductsAction` / `products` prop แทนการใช้ mock data เดิม พร้อมทั้งยังคงตัวเลือก **"ไม่พบข้อมูล / ระบุเพิ่มเติม"** สำหรับระบุชื่อสินค้าเอง
+  2. **ช่อง จำนวนคงเหลือ & รายการสินค้าตรวจเช็ก:**
+     - ใน `handleSubmit` ของ `activity-plan-actual-view.tsx` เพิ่มการ Serialize ข้อมูลรายการสต็อก `t11StockItems` (JSON), `t11ProductList` และ `t11RemainingQty` ลงใน `summaryParts`
+     - ใน `loadData` เพิ่มการ Parse ข้อมูล `รายการตรวจเช็กสต็อก:`, `รายการสินค้าตรวจเช็ก:` และ `จำนวนคงเหลือสต็อก:` กลับมา Restore state `t11StockItems`, `t11ProductList` และ `t11RemainingQty` ทันที ทำให้ข้อมูลจำนวนคงเหลือและสินค้าไม่หายเมื่อเปิดกลับมาดู
+
+### 2026-08-15: ดึงรายชื่อเกษตรกรจริงเข้าสู่ Dropdown "รายชื่อเกษตรกรเป้าหมายที่สนใจ" สำหรับ Type 10 (จัดงาน Field Day)
+
+- **คอมโพเนนต์ที่แก้ไข:** `actual-type10-field-day.tsx`, `actions.ts`
+- **การเปลี่ยนแปลง:**
+  - สร้าง Server Action `getFarmerCustomersAction` ดึงรายชื่อเกษตรกรจริง (`Customer` ประเภท `FARMER`) พร้อมรายละเอียดแปลงเกษตร/พื้นที่เพาะปลูก (`farmPlots`) หรือที่ตั้ง
+  - นำข้อมูลรายชื่อเกษตรกรจริงมาแสดงผลใน Dropdown **"รายชื่อเกษตรกรเป้าหมายที่สนใจ \*"** ของ `actual-type10-field-day.tsx` แทน mock data เดิม
+  - คงตัวเลือก **"ไม่พบข้อมูล / ระบุเพิ่มเติม"** ไว้อย่างสมบูรณ์ พร้อมช่อง Textarea ให้ระบุเพิ่มเติมได้ตามเดิม
+
+### 2026-08-15: แก้ไขการบันทึกและแสดงผลยอดขาย/ยอดจองจริงสำหรับ Type 10 (จัดงาน Field Day)
+
+- **คอมโพเนนต์ที่แก้ไข:** `activity-plan-actual-view.tsx`
+- **ปัญหา:** เมื่อกรอก **"ยอดขายหรือยอดจองที่เกิดขึ้นจริง (บาท) \*"** ในหน้า Actual ของ Type 10 แล้วกดบันทึก เมื่อเปิดกลับมาดูข้อมูลช่องดังกล่าวยังคงว่างเปล่า
+- **สาเหตุ:**
+  1. ในฟังก์ชัน `handleSubmit` ของ `activity-plan-actual-view.tsx` ยังไม่มีการใส่ `t10ActualSalesOrBooking` ลงใน `summaryParts` (`ยอดขายหรือยอดจอง Field Day จริง: ...`) และไม่ได้รวมใน `payload.salesResultAmount`
+  2. ในฟังก์ชัน `loadData` ตอนโหลดข้อมูลบันทึกผลงานจริง ยังไม่มี parser ดึงค่า `ยอดขายหรือยอดจอง Field Day จริง` กลับมาใส่ใน state `t10ActualSalesOrBooking`
+- **การแก้ไข:**
+  - เพิ่ม `t10ActualSalesOrBooking` ลงใน `summaryParts` และ `payload.salesResultAmount` ตอน Submit
+  - เพิ่ม Regex Parser สำหรับ `ยอดขายหรือยอดจอง Field Day จริง` พร้อม Fallback ดึงค่าจาก `resData.salesResultAmount` เมื่อโหลดข้อมูลกลับมาแสดงในหน้า Actual View
+
+### 2026-08-15: แก้ปัญหา Data Flow และการแสดงผลประเภทงานสำหรับ Type 10 (จัดงาน Field Day)
+
+- **คอมโพเนนต์ที่แก้ไข:** `activity-plan-form.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-detail-view.tsx`, `activity-plan.repository.ts`, `actual-type10-field-day.tsx`
+- **สาเหตุของปัญหา:**
+  1. **แสดงประเภทงานผิด (มีส่วนทำแปลงสาธิต Type 7 โผล่ขึ้นมา):** ใน `activity-plan-actual-view.tsx` และ `activity-plan-detail-view.tsx` มี logic ตรวจจับข้อความ `objectiveText.includes("แปลงสาธิต")` แบบกว้างเกินไป ทำให้เมื่องาน Type 10 มีชื่อแปลงสาธิต เช่น "จัดงาน Field Day - แปลงสาธิต..." ระบบตรวจจับว่ามี Type 7 ปนมาด้วย และใน item loop ไม่ได้ยกเว้น `itemType === 'TYPE_10'`
+  2. **ข้อมูล Field Day ไม่แสดงในหน้า Actual:** ใน `activity-plan-form.tsx` เมื่อส่งข้อมูล Type 10 ไม่ได้ส่ง `meetingAttendeesCount` (เป้าหมายผู้เข้าร่วม) และ `saleTotalPrice` (เป้ายอดขาย/จอง) เป็น structured fields แยกชัดเจน รวมทั้งตัวโหลด `targets.t10` ใน Actual View ไม่ได้ fallback ดึงค่าเป้าหมายอย่างครบถ้วน
+- **การแก้ไข:**
+  - ปรับปรุง `activity-plan-form.tsx` ให้ส่งค่า `meetingAttendeesCount`, `saleTotalPrice`, `targetAttendees`, `targetSales`, `bookingSales` ไปยัง backend อย่างครบถ้วน และรองรับการดึงข้อมูลคืนใน Edit mode
+  - ปรับปรุง `activity-plan.repository.ts` ให้ map ข้อมูล `saleTotalPrice` และ `meetingAttendeesCount` สำหรับ Type 10 ทั้งตอน `createActivityPlan` และ `updateActivityPlan`
+  - ปรับปรุง `activity-plan-actual-view.tsx` และ `activity-plan-detail-view.tsx` ให้แยกแยะ Type 10 และ Type 7 อย่างแม่นยำ ไม่ให้คำว่า "แปลงสาธิต" ไป trigger Type 7 โดยไม่ได้ตั้งใจ
+  - ปรับปรุงตัวดึงข้อมูล `targets.t10` ให้ดึงทั้งจากฟิลด์ตัวเลขของ Item และข้อความรายละเอียด (Regex) พร้อม fallback ที่สมบูรณ์
+
+### 2026-08-15: เชื่อมโยงข้อมูลพิกัด (Latitude / Longitude) จากแปลงเกษตรกรเข้าสู่ Type 10 (จัดงาน Field Day)
+
+- **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `type10-field-day.tsx`, `actions.ts`, `constants.ts`, `activity-plan-actual-view.tsx`, `actual-type10-field-day.tsx`
+- **ความต้องการ:**
+  - ในช่อง **สถานที่แปลง** ของ Type 10 ให้ดึงข้อมูล **Latitude / Longitude** จากข้อมูลแปลงเกษตรของเกษตรกร (`farmPlots`) ที่บันทึกไว้ในหน้า `customer-form-farmer.tsx`
+  - หากมี Latitude / Longitude ให้แสดงค่าจริง (เช่น `13.7563, 100.5018`) พร้อมปุ่มเปิด Google Maps
+  - หากไม่มีข้อมูล ให้แสดง `-`
+  - นำข้อมูลที่มีอยู่เดิมมาแสดงโดยไม่สร้างข้อมูลซ้ำ และไม่กระทบ Work Type อื่น
+- **การแก้ไข:**
+  - เพิ่มฟิลด์ `latitude` และ `longitude` ใน `UserDemoPlotOption`
+  - ปรับปรุง `getDemoPlotsAction` ให้ดึงข้อมูลแปลงเกษตรกร (`farmPlots`) ของ Customer ประเภท `FARMER` พร้อมสกัดค่า Latitude / Longitude และนำมารวมในรายการแปลงสาธิต/แปลงเกษตรกรโดยไม่ซ้ำซ้อน
+  - ปรับปรุง `type10-field-day.tsx` ให้แสดงพิกัดจริง `Latitude, Longitude` ในช่องสถานที่แปลง และในป้ายกำกับของตัวเลือกแปลง
+
+### 2026-08-17: ปรับปรุงการแสดงผลหน้าบันทึกผลงานจริง Type 7 (แปลงสาธิต - ติดตามแปลงสาธิต / ทำแปลงใหม่)
+
+- **คอมโพเนนต์ที่ปรับปรุง:** `actual-type7-demo.tsx`
+- **รายละเอียดการปรับปรุง:**
+  1. **กรณีงานเป็น "ติดตามแปลงสาธิต" (Follow-up):**
+     - ปิดการแสดงผลกล่องเป้าหมายที่ตั้งไว้ตอนสร้างแผน (Planned Target: `ActualTargetCard` และ Multi-item Planned Targets) เพื่อไม่ให้แสดงข้อมูลซ้ำซ้อนกับข้อมูลอ้างอิงของแปลงเดิม
+  2. **กล่องข้อมูลอ้างอิงของแปลงสาธิต (จากตอนเริ่มทำแปลง):**
+     - เพิ่มการแสดง **"จำนวนสินค้าที่จะสาธิต"** (`demoProductQuantity`)
+     - เพิ่มการแสดง **"รายละเอียด / วิธีการทดลอง"** (`experimentDetail` / `detail` / `usageMethod`)
+     - ปรับโครงสร้าง Grid Layout และ Mobile-First Breakpoints ให้แสดงผลได้สมบูรณ์และสวยงามทุกขนาดหน้าจอ
+
+### 2026-08-15: ปรับปรุง Data Flow & บันทึกยอดขายจริงรายสินค้าสำหรับ Type 9 (จัดกิจกรรมส่งเสริมการขายหน้าร้าน)
+
+- **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `actual-type9-store.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-form.tsx`
+- **ปัญหา & ข้อกำหนดใหม่:**
+  1. ในหน้าสร้าง/แก้ไขแผน (`type9-store.tsx`) มีการกรอก "ชื่อร้านค้า Sub Dealer" และ "รายการสินค้าที่เสนอขาย / โปรโมชันหน้าร้าน" แต่เมื่อเปิดหน้าบันทึกผลงานจริง (`actual-type9-store.tsx`) ข้อมูลดังกล่าวไม่แสดงผล
+  2. ปรับหน้า Actual View Type 9 ไม่ต้องมีช่องกรอกจำนวนลูกค้าที่เข้าร่วมจริง (คน)
+  3. ปรับยอดขายที่เกิดขึ้นจริง (บาท) ให้รองรับการกรอกยอดขายจริงและจำนวนลังจริงแยกตามรายสินค้าแต่ละตัว พร้อมคำนวณยอดขายรวมจริงอัตโนมัติ
+  4. แก้ไขปัญหาเมื่อกดบันทึกแล้วกลับมาดู ข้อมูลจำนวนลังและยอดขายจริงรายสินค้าของ Type 9 ไม่ปรากฏในช่องกรอก (State & Persistence Sync)
+- **การแก้ไข:**
+  - อัปเดต `actual-type9-store.tsx` ให้ `ActualTargetCard` แสดงทั้งร้านค้าหลัก (Dealer) และร้านค้า Sub Dealer
+  - เพิ่มระบบบันทึกยอดขายจริงแยกรายสินค้าแต่ละตัว (Per-Product Actual Recording) พร้อมผูก `productSalesDetails` และ `setProductSalesDetails` ซิงค์กับ `activity-plan-actual-view.tsx`
+  - บันทึกและดึงข้อมูล `ยอดขายแยกสินค้าหน้าร้าน` (`t9ProductSalesDetails`) ผ่าน `resultSummary` ทำให้เมื่อบันทึกแล้วกลับมาเปิดดูอีกครั้ง ข้อมูลในช่องกรอกของสินค้าแต่ละตัวยังคงอยู่ครบถ้วน
+  - นำช่องกรอก "จำนวนลูกค้าที่เข้าร่วมจริง (คน)" ออกจากหน้า Type 9 ตามที่ผู้ใช้ระบุ
+  - ปรับ `activity-plan-actual-view.tsx` ให้กรองทุกไอเทมของ Type 9 (`type9DbItems`), คำนวณยอดขายเป้าหมายรวม (`t9TotalSales`), แยกชื่อร้านหลัก/Sub Dealer, และส่ง `items` array เข้าสู่ `targets.t9`
+  - ปรับ `activity-plan-form.tsx` ให้ parse `type9Store`, `type9IsSubDealer`, `type9SubDealerStore`, `type9Sales`, `type9ProductItems` กลับมาในช่องกรอกได้อย่างถูกต้องใน Edit Mode
+
+### 2026-08-14: เพิ่มตัวเลือกสถานะผลการทำกิจกรรม (Activity Result Status) & ระบบจัดการผลดำเนินงาน
+
+- **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `activity-plan-actual-view.tsx`, `validations.ts`, `activity-plan.repository.ts`, `application/index.ts`, `prisma/schema.prisma`
+- **ฟีเจอร์เด่น:**
+  - **4 สถานะผลการทำกิจกรรม:**
+    - `PARTIAL` : สำเร็จบางส่วน (ค่าเริ่มต้น)
+    - `COMPLETED` : สำเร็จ
+    - `POSTPONED` : เลื่อน (เปิดช่องกรอก: วันที่และเวลาใหม่ด้วย `DateTimePicker`_, เหตุผลที่เลื่อน_ [ลูกค้าขอเลื่อน, ผู้ปฏิบัติงานขอเลื่อน, ลูกค้าไม่สะดวก, สภาพอากาศ, เหตุสุดวิสัย, อื่น ๆ], ช่องกรอกหมายเหตุ)
+    - `CANCELLED` : ยกเลิก (เปิดช่องกรอก: สาเหตุที่ยกเลิก\*)
+  - **Database Persistence & Edit Support:** รองรับการบันทึกลงฟิลด์เฉพาะในตาราง `activity_results` (`cancel_reason`, `postponed_date`, `postponed_time`, `postponed_reason`, `postponed_notes`) พร้อมดึงกลับมาแสดงผลและแก้ไขได้ทันที
+  - **Validation:** ตรวจสอบความถูกต้องของข้อมูลกรณีเลือกเลื่อนหรือยกเลิกก่อนส่งบันทึก
+
+### 2026-08-14: แก้ไข Bug ตรวจจับประเภทงานผิดพลาด & ป้องกัน Fallback Mock Data ในหน้า Actual View
+
+- **คอมโพเนนต์ที่แก้ไข:** `activity-plan-form.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-detail-view.tsx`, `actual-type2-followup.tsx`
+- **ปัญหาที่พบ:**
+  1. หน้าแก้ไขและหน้ารายละเอียดตรวจจับประเภทงานเพิ่มขึ้นมาเอง (จากรายการสื่อและส่งเสริมการขาย)
+  2. ในหน้าบันทึกผลงานจริง (Actual View Type 2 และประเภทอื่นๆ) หากตอนสร้างแผนไม่ได้กรอก "รายละเอียดเพิ่มเติม" กลับมีข้อความตัวอย่างจำลอง (เช่น _"ติดตามผลหลังเกษตรกรนำสินค้าไปทดลองใช้งานในพื้นที่"_) ปรากฏขึ้นมาเอง
+- **สาเหตุ:**
+  1. รายการสื่อและรายการส่งเสริมการขายใช้ฟิลด์ร่วมใน `activity_plan_items` ทำให้ตัวตรวจจับตีความผิด
+  2. State `targets` ใน `activity-plan-actual-view.tsx` มีการกำหนดข้อความจำลอง (Mock Defaults) ไว้ใน Initial State และเมื่อโหลดข้อมูลจาก DB หากฟิลด์ว่าง (`""`) มีการใช้ `|| prev.tX.detail` ทำให้ค่า Fallback กลับไปเป็นข้อความจำลองแทนที่จะเป็นค่าว่าง
+  3. ใน `actual-type2-followup.tsx` มีการดึง `followupDetail || detail` ทำให้ช่องกรอกผลการติดตามจริงดึงข้อความจากแผนมาใส่แทน
+- **การแก้ไข:**
+  - กรอง `MARKETING_PRODUCT` และ `SALES_PROMOTION` ออกจากการตรวจจับประเภทงาน
+  - ล้าง Mock Defaults ใน `targets` ให้เริ่มต้นเป็นค่าว่าง และกำหนดค่าจาก DB ตรงๆ โดยไม่ Fallback ไปหา Mock String
+  - แยก `followupDetail` (ผลการติดตามจริง) ออกจาก `detail` (รายละเอียดจากแผน) อย่างเด็ดขาดใน `actual-type2-followup.tsx` ไม่ให้คัดลอกค่ามาใส่ในกล่องกรอกข้อมูลจริงอัตโนมัติ
+
+### 2026-08-17: แก้ไขปัญหา Work Type ของ Field Day (Type 10) ซ้ำซ้อนกับ Type 3, Type 7, Type 8
+
+- **คอมโพเนนต์ที่แก้ไข:** `constants.ts`, `activity-plan-actual-view.tsx`, `activity-plan-form.tsx`, `activity-plan-detail-view.tsx`
+- **สาเหตุของปัญหา:**
+  - ตาราง `activity_plan_items` ไม่มีฟิลด์ `itemType` ในฐานข้อมูล ข้อมูล Field Day ถูกบันทึกลง `saleTotalPrice` (ยอดจอง), `plotCropName` (พืชเป้าหมาย), และ `meetingAttendeesCount` (ผู้ร่วมงาน)
+  - ทำให้ฝั่ง Actual View / Form / Detail View ตรวจจับผิดเป็น Type 3 (เสนอขายสินค้า), Type 7 (แปลงสาธิต), และ Type 8 (จัดประชุม)
+- **แนวทางแก้ไข:**
+  - เพิ่มฟังก์ชัน `isFieldDayItem(item)` ใน `constants.ts` เพื่อแยกแยะรายการ Field Day ได้อย่างแม่นยำ รองรับทั้ง Legacy และ New Plans
+  - ปรับปรุงการ Filter ใน `activity-plan-actual-view.tsx`, `activity-plan-form.tsx` และ `activity-plan-detail-view.tsx` โดยใส่ Guard `!isFieldDayItem(item)` ให้กับประเภทงานอื่น
+  - ดึงข้อมูลใส่ Target Cards ของ Field Day (`t10`) อย่างครบถ้วน (แปลง, สถานที่, สินค้าโชว์, เป้าผู้ร่วมงาน, เป้ายอดจอง)
+  - เพิ่ม Prefix `[Field Day]` ในฟิลด์ `detail` ตอนบันทึกเพื่อความชัดเจนของข้อมูล
+
+### 2026-08-14: เพิ่มหน้าจอศูนย์ตรวจสอบและอนุมัติกิจกรรม & ปรับปรุง Actual Form Type 2
+
+- **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:** `actual-type2-followup.tsx`, `activity-plan-actual-view.tsx`, `activity-plan-approval-list-view.tsx`, `approval-action-dialog.tsx`, `approval-detail-drawer.tsx`, `activity-plan.repository.ts`, `server/actions.ts`
+- **การปรับปรุง Actual Form Type 2 (ติดตามผลการใช้สินค้า):**
+  - แยกช่องกรอก **"รายละเอียดการติดตาม"** (`followupDetail`) ออกจาก **"รายละเอียดเพิ่มเติม"** (`detail` จากแผนเดิม) อย่างชัดเจน
+  - แสดง "รายละเอียดเพิ่มเติมจากแผน" เป็น Reference Box ให้อ่านอ้างอิง และให้ผู้ใช้กรอกผลการติดตามจริงในช่องกรอกแยกต่างหาก ไม่ทับซ้อนกัน
+- **Routing & Approval Hub:** `/activity-plans/approvals` และเพิ่มเมนูใน Sidebar + ปุ่มทางลัดใน Toolbar
+- **ฟีเจอร์เด่น Approval Hub:**
+  - **KPI Summary Cards:** แสดงจำนวนคำขออนุมัติตามสายงาน, คิวงบประมาณ, คิวคนช่วยงาน, และประวัติการดำเนินการ
+  - **Tabbed Filter Navigation:** กรองรายการ 5 แท็บ (`my_line`, `all`, `budget`, `helper`, `history`)
+  - **Dual View Mode:** สลับการแสดงผลแบบการ์ด (Card View) และตาราง (Table View)
+  - **Quick Actions & Inspection Drawer:** ยืนยันการอนุมัติ/ตีกลับ/ปฏิเสธ และเปิดดู Timeline ได้ทันที
+
+### 2026-08-13: Redesign Schema ใหม่ — Analytics-Ready
+
+- **ขอบเขต:** ลบ schema เก่าทิ้งทั้งหมด ออกแบบใหม่ 6 ตารางเพื่อรองรับ Data Analytics Dashboard
+- **Migration:** `20260813084645_redesign_activity_plans_analytics`
+- **สิ่งสำคัญที่เปลี่ยน:**
+  - แทน `details Json?` ด้วย `activity_plan_items` (Wide Table, 11 ประเภทงาน คอลัมน์ flat)
+  - เพิ่ม Fiscal Dimensions: `fiscal_year`, `fiscal_month`, `fiscal_quarter`
+  - เพิ่ม Geo Fields: `province`, `district` (dropdown)
+  - เพิ่ม Budget Requested vs Approved columns
+  - เพิ่ม TAT Timestamps: `submitted_at`, `approved_at`
+  - เพิ่มตาราง `activity_types` (Master 11 ประเภท, seed แล้ว)
+  - เพิ่มตาราง `activity_results` (บันทึกผลหลังกิจกรรม)
+  - เพิ่ม Enum `ActivityResultStatus` (COMPLETED / PARTIAL / FAILED)
+  - เพิ่ม utilities: `computeFiscalFields()`, `computeTotalBudget()` ใน `validations.ts`
+  - เพิ่ม `activityResultSchema` validation ใน `validations.ts`
+
+### 2026-08-21: พัฒนาระบบจัดการสื่อส่งเสริมการขายผ่าน Database (Promotional Materials Master Data Management)
+
+- **ขอบเขต:** ปรับระบบ "สื่อส่งเสริมการขาย" (PVC, ไวนิล, ของแถมตราปืนใหญ่ ทุกชนิด) จากข้อมูล static constants ใน `constants.ts` เป็นระบบ Database Master Data จัดการผ่านหน้าเว็บแบบ Full CRUD
+- **คอมโพเนนต์ที่พัฒนา/ปรับปรุง:**
+  - `prisma/seed/activity/promotional-materials.ts` & `prisma/seed/activity/index.ts` (Idempotent seed 197 รายการ)
+  - `prisma/seed/core/rbac.ts` (เพิ่ม Permission Group `promotionalMaterials` และสิทธิ์ `menu.promotional_materials`, `promotional_material.create`, `promotional_material.edit`, `promotional_material.delete`, `promotional_material.view`)
+  - `modules/activity-plans/infrastructure/promotional-material.repository.ts` (Repository Layer จัดการค้นหา, แบ่งหน้า, กรองหมวดหมู่/สถานะ, Soft Delete, และนับประวัติการใช้งาน)
+  - `modules/activity-plans/application/promotional-materials.ts` (Application Layer พร้อม Zod Schemas และ Use Cases)
+  - `modules/activity-plans/server/actions.ts` (Server Actions: `getPromotionalMaterialsAction`, `getActivePromotionalMaterialsGroupedAction`, `createPromotionalMaterialAction`, `updatePromotionalMaterialAction`, `deletePromotionalMaterialAction`)
+  - `modules/activity-plans/features/promotional-materials/` (หน้าจอและไดอะล็อกจัดการ: `promotional-materials-view.tsx`, `promotional-materials-table.tsx`, `promotional-material-form-dialog.tsx`, `delete-material-dialog.tsx`)
+  - `app/(main)/activity-plans/promotional-materials/page.tsx` (Route Page เชื่อมต่อเมนูหลัก)
+  - `modules/layout/constants.tsx` (เพิ่มเมนูใน Sidebar: "สื่อส่งเสริมการขาย" ภายใต้เมนูทดสอบกิจกรรม)
+  - `modules/activity-plans/features/form/components/budget-section.tsx` (ดึงรายการสื่อส่งเสริมการขายแบบไดนามิกจาก Database Grouped By Category)
+  - `modules/activity-plans/features/form/activity-plan-form.tsx`, `activity-plan-create-view.tsx`, `activity-plan-edit-view.tsx` (โหลดและส่งต่อข้อมูลสินค้าสื่อส่งเสริมการขาย)
+
+### 2026-08-26: ปรับปรุงเงื่อนไขการแสดงผลฟิลด์ Type 1 (Actual Visit) และการเลือกวันที่นัดหมายครั้งถัดไป
+
+- **ขอบเขต:** ปรับปรุงหน้าบันทึกผลการปฏิบัติงาน Type 1 (เข้าพบร้านค้า / Key Farmer) ใน `actual-type1-visit.tsx`
+- **คอมโพเนนต์ที่ปรับปรุง:** `modules/activity-plans/features/actual-view/components/work-types/actual-type1-visit.tsx`
+- **การเปลี่ยนแปลงที่สำคัญ:**
+  1. **เงื่อนไขการแสดงผลช่อง "สินค้าที่ให้คำแนะนำ" และ "ประเมินโอกาสการขาย":**
+     - ตรวจสอบค่า "ประเด็นหลัก" (`target.topic`)
+     - หากเป็น "ให้คำแนะนำการใช้สินค้า" (`isAdviceTopic === true`) จะแสดงช่อง "สินค้าที่ให้คำแนะนำ" และ "ประเมินโอกาสการขาย \*"
+     - หากเป็นประเด็นหลักอื่น จะซ่อนทั้ง 2 ช่องนี้ทันที โดยไม่ติด Validation ใด ๆ ในการบันทึกข้อมูล
+  2. **เปลี่ยน UI ช่อง "วันที่นัดหมายครั้งถัดไป" เป็น Date Picker:**
+     - นำ Component `@/components/custom/DatePicker` ที่มีอยู่เดิมในโปรเจกต์มา Reuse
+     - ให้ผู้ใช้เลือกเฉพาะ "วันที่" จากปฏิทิน (Calendar) แสดงผลในรูปแบบ วัน/เดือน/ปี (`dd/MM/yyyy`) อย่างเหมาะสม
+     - เชื่อมต่อกับ State และบันทึกข้อมูล `YYYY-MM-DD` เข้า `resultSummary` ตามปกติโดยไม่กระทบ API Contract หรือ Schema ฐานข้อมูล
+  3. **เปลี่ยนช่องเลือกสินค้าที่ให้คำแนะนำเป็น Searchable FormCombobox:**
+     - นำ Component `@/components/custom/form-components` (`FormCombobox`) มาใช้งานในลักษณะเดียวกับ `sale-item-row.tsx`
+     - รองรับการค้นหาสินค้าตามชื่อและรหัสสินค้า (Product Code) ได้อย่างรวดเร็ว พร้อมแสดงผล Badges สินค้าที่เลือกและปุ่มลบ (X) ตามเดิม
+  4. **เงื่อนไขการแสดงผล Section "ข้อมูลเพิ่มเติม":**
+     - ปรับ `actual-plan-summary.tsx` ให้แสดงหัวข้อ Section 5 "ข้อมูลเพิ่มเติม" เฉพาะเมื่อมีข้อมูล (หมายเหตุเพิ่มเติม `notes` หรือหน่วยงานผู้เพิ่มเติม/พนักงานช่วยงาน `helperEmployeeNames`) หากไม่มีข้อมูลจะไม่แสดงหัวข้อนี้
+  5. **ล้าง Mock Data / ค่าทดสอบเริ่มต้นใน State targets:**
+     - ใน `activity-plan-actual-view.tsx` ปรับค่าเริ่มต้นของ State `targets` (t1 ถึง t11) และ `planSummary` ให้เริ่มต้นด้วยค่าว่าง (`""`) / Array ว่าง (`[]`) / `undefined` ทั้งหมด เพื่อรองรับการดึงข้อมูลจริงจาก Database เพียงอย่างเดียว 100%
+
+### 2026-08-26: ปรับโครงสร้างหน้า Activity Plan Actual View สู่ Modular Business Section Components & Utils
+
+- **ขอบเขต:** ปรับโครงสร้างไฟล์ `modules/activity-plans/features/actual-view/` ให้เป็นไปตาม Layered Architecture และ Clean Code Standards
+- **โครงสร้างไฟล์ใหม่:**
+  1. **Utilities (`features/actual-view/utils/`):**
+     - `plan-extractor.ts`: สกัดข้อมูลสรุปแผน (`planSummary`), ประเภทงานที่พบ (`resolvedWorkTypes`), และเป้าหมายของแต่ละประเภทงาน (`targets`) จาก `ActivityPlanWithRelations`
+     - `summary-parser.ts`: แปลง `resultSummary` (ทั้ง Regex Matches และ JSON Payload) กลับมาเป็น Form States สำหรับกรณีเปิดดู/แก้ไขผลกิจกรรมเดิม
+     - `summary-builder.ts`: ตรวจสอบความถูกต้อง (Validation) และประกอบ `resultSummary` พร้อมสร้าง Payload บันทึกลงตาราง `activity_results`
+     - `index.ts`: Re-export ทุก utility functions
+  2. **Section Components (`features/actual-view/components/`):**
+     - `actual-view-header.tsx`: ส่วนหัว Title + Plan No Badge
+     - `activity-summary-section.tsx`: สรุปข้อมูลแผนงานและวันเวลา (ส่วนที่ 1)
+     - `budget-section.tsx`: สรุปภาพรวมงบประมาณและ Stat Cards (ส่วนที่ 2)
+     - `promotional-materials-section.tsx`: ตารางสื่อส่งเสริมการขาย (ส่วนที่ 3)
+     - `marketing-expense-section.tsx`: ตารางรายการส่งเสริมการขาย (ส่วนที่ 4)
+     - `additional-info-section.tsx`: ข้อมูลเพิ่มเติมและรายชื่อพนักงานช่วยงาน (ส่วนที่ 5)
+     - `actual-plan-summary.tsx`: Composed Summary Component รวบรวมส่วนที่ 1 ถึง 5
+     - `activity-result-section.tsx`: ส่วนบันทึกผลการปฏิบัติงานตาม 11 ประเภทงาน (Work Types 1 - 11)
+     - `activity-status-section.tsx`: ส่วนเลือกสถานะผลกิจกรรม (สำเร็จบางส่วน, สำเร็จ, เลื่อน, ยกเลิก) พร้อม Sub-fields
+     - `actual-view-actions.tsx`: ปุ่มดำเนินการ Footer Action Buttons (ย้อนกลับ / บันทึก)
+  3. **Container View (`activity-plan-actual-view.tsx`):**
+     - ทำหน้าที่เป็น Orchestrating Container จัดการ State, Data Fetching (`loadData`), Image Upload Handlers, Form Submission (`handleSubmit`), และประกอบ Business Section Components ทั้งหมด
+- **ผลลัพธ์:** โค้ดอ่านง่าย เป็นระเบียบ ดูแลและต่อยอดได้ง่าย ไม่กระทบ Business Logic, Database Schema, Data Flow หรือ Form Validation เดิม 100%
+
+### 2026-08-26: ปรับปรุง Activity Plan Detail View ให้สอดคล้องกับ Actual View (Read-Only Presentation)
+
+- **ขอบเขต:** ปรับโครงสร้างและการแสดงผลของ `modules/activity-plans/features/detail-view/` ให้มีลำดับข้อมูลและเงื่อนไขทางธุรกิจสอดคล้องกับ `modules/activity-plans/features/actual-view/` 100% ในรูปแบบ **Read-only Presentation** (ดูข้อมูลอย่างเดียว ไม่สามารถแก้ไขข้อมูลได้)
+- **ลำดับโครงสร้างการแสดงผล:**
+  1. **Header (`DetailViewHeader`):** แสดงชื่อหน้า, ปุ่มย้อนกลับ, รหัสแผนงาน (`planNo`), และสถานะแผนงาน (`ActivityStatusBadge`)
+  2. **ข้อมูลแผนงาน (`ActivitySummarySection`):** การ์ดชื่อแผน/กิจกรรม และช่วงวันเวลาจัดกิจกรรมในรูปแบบปี พ.ศ.
+  3. **งบประมาณและค่าใช้จ่าย (`BudgetSection`):** แสดงงบรวมทั้งสิ้น, Stat Card งบขาย (รวม), และ Stat Card งบการตลาด (รวม) พร้อมรายละเอียดสื่อฯ และรายการส่งเสริมฯ
+  4. **สื่อส่งเสริมการขาย (`PromotionalMaterialsSection`):** ตารางแสดงรายการสื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถม)
+  5. **รายการส่งเสริมการขาย (`MarketingExpenseSection`):** ตารางแสดงรายการส่งเสริมการขาย พร้อมประเภทการใช้งบ (งบการตลาด / งบขาย)
+  6. **ข้อมูลเพิ่มเติม (`AdditionalInfoSection`):** แสดงหมายเหตุเพิ่มเติม และรายชื่อพนักงานช่วยงาน/หน่วยงานผู้เพิ่มเติม
+  7. **ผลการปฏิบัติงานตามประเภทงาน (`DetailActivityResultSection`):** นำเสนอข้อมูลเป้าหมายที่ตั้งไว้ล่วงหน้า (Planned Target) ควบคู่กับผลการปฏิบัติงานจริงสำหรับแต่ละประเภทงาน 1–11 ในรูปแบบ Read-only (Badges, Label/Value, Tables, Text):
+     - `DetailType1Visit`: เข้าพบร้านค้า / Key Farmer (รองรับเงื่อนไขสินค้าที่ให้คำแนะนำ และโอกาสการขาย)
+     - `DetailType2Followup`: ติดตามผลการใช้สินค้า (รองรับทั้ง Single และ Multi-products)
+     - `DetailType3Sales`: เสนอขายสินค้า (ตารางสรุปเป้าหมาย vs ยอดขายจริงรายสินค้า)
+     - `DetailType4Collect`: วางบิล / เก็บเงิน (รองรับการแสดงผลแยกตามบริษัท/ร้านค้า และรูปถ่ายหลักฐาน)
+     - `DetailType5Survey`: สำรวจตลาดของคู่แข่ง (แบรนด์, สินค้า, ราคา, โปรโมชั่น, รูปถ่ายป้ายราคา)
+     - `DetailType6Issue`: แก้ปัญหา / รับเรื่องร้องเรียน (รายละเอียดปัญหา, แนวทางแก้ไข, Badge สถานะ)
+     - `DetailType7Demo`: ติดตามแปลงสาธิต / ทำแปลง (ข้อมูลแปลง, สภาพพืช, ผลผลิต, ความพึงพอใจ, Modal ประวัติแปลง)
+     - `DetailType8Meeting`: จัดประชุมการเกษตร (ผู้เข้าร่วมจริง, ยอดขายรายสินค้า, Q&A)
+     - `DetailType9Store`: จัดกิจกรรมหน้าร้าน (ยอดขายจริงรวม, ผู้เข้าร่วม, ยอดขายรายสินค้า)
+     - `DetailType10FieldDay`: จัดงาน Field Day (ผู้เข้าร่วมจริง, ยอดขาย/จอง, กลุ่มเกษตรกร, ผลตอบรับ)
+     - `DetailType11Stock`: ตรวจเช็กสต็อกหน้าร้าน (ตารางตรวจสต็อกสินค้า, สถานะสต็อก, โอกาสสั่งซื้อซ้ำ)
+  8. **สถานะผลการทำกิจกรรม (`DetailActivityStatusSection`):** Badge และการ์ดแสดงสถานะผลสำเร็จ / สำเร็จบางส่วน / เลื่อนกิจกรรม (พร้อมวันที่เลื่อนและสาเหตุ) / ยกเลิกกิจกรรม (พร้อมเหตุผล)
+  9. **Bottom Action (`DetailViewActions`):** ปุ่ม "กลับ" หน้ารายการแผนงาน
+- **ความปลอดภัยและความถูกต้อง (Read-only Compliance):**
+  - ไม่มี Form Inputs, Checkbox, Radio, DatePicker, Combobox ที่แก้ไขได้
+  - ไม่มีปุ่ม Save / Submit หรือ Action แก้ไขข้อมูล
+  - ไม่กระทบ API Contract, Database Schema, หรือการทำงานของหน้า Actual View เดิม 100%
+
+### 2026-08-26: ปรับปรุงการแสดงผลเป้าหมาย "ติดตามผลการใช้สินค้า" (Work Type 2) แยกรายละเอียดเพิ่มเติมรายร้านค้า
+
+- **การเปลี่ยนแปลง:**
+  1. **การแสดงผลเป้าหมาย (Planned Target Card):** ปรับการ์ดเป้าหมายให้แยกแสดงรายสินค้า/ร้านค้า โดยแต่ละร้านค้ามีกล่องแสดง:
+     - สินค้าที่ต้องการติดตามผล (พร้อมลำดับ)
+     - `ชื่อร้านค้า:` (แสดงชื่อร้านค้าของรายการนั้นโดยเฉพาะ โดยไม่มีคำว่า Key Farmer)
+     - `รายละเอียดเพิ่มเติม:` (แสดงรายละเอียดเพิ่มเติมที่ระบุไว้ของแต่ละร้านค้าโดยเฉพาะ ไม่นำมารวมกันเป็น String เดียว)
+  2. **Responsive Grid:** บนหน้าจอ Desktop แสดงแบบ 2 คอลัมน์ (`grid-cols-1 md:grid-cols-2`) และบนหน้าจอ Mobile แสดงแบบ 1 คอลัมน์
+  3. **Multi-product Recording Form:** ปรับ Badge หัวข้อในแต่ละรายการให้แสดงชื่อร้านค้า (`ชื่อร้านค้า: {customer}`) และรายละเอียดจากแผนเดิมอย่างชัดเจน
+  4. **Detail View:** ปรับ `detail-type2-followup.tsx` ให้แสดงผลโครงสร้างและข้อความ "ชื่อร้านค้า" / "รายละเอียดเพิ่มเติม" สอดคล้องกัน 100%
+- **ผลลัพธ์:** ข้อมูลแสดงผลแยกแต่ละร้านค้าอย่างชัดเจน ถูกต้องตาม Form Data Structure เดิม ไม่กระทบ Database Schema, ไม่กระทบ API Contract, และผ่านการตรวจสอบ TypeScript และ ESLint 100%
+
+### 2026-08-26: แก้ไขการบันทึกและกู้คืนข้อมูลผลการเสนอขายจริงแยกตามสินค้า (Work Type 3: เสนอขายสินค้า)
+
+- **ปัญหาเดิม:** เมื่อกรอกข้อมูลผลการเสนอขายจริงแยกตามสินค้าแต่ละตัวในหน้า Actual View แล้วกดบันทึก ข้อมูลใน Database บันทึกเฉพาะยอดรวมและสตริงเชื่อมข้อความ แต่หน้า Actual View และ Detail View ไม่ได้ Hydrate/Map ข้อมูลกลับเข้าสู่ State รายสินค้า (`TargetProductItem`) ทำให้เมื่อเปิดหน้าเดิมอีกครั้ง ข้อมูลของแต่ละสินค้าไม่แสดง
+- **การเปลี่ยนแปลง:**
+  1. **Data Serialization (`summary-builder.ts`):** เพิ่มการจัดเก็บ `t3ProductSalesDetails` (JSON สรุปผลแยกรายสินค้า เช่น `id`, `productName`, `actualQty`, `actualSales`, `unclosedReason`) ในฟิลด์ `ยอดขายแยกสินค้าเสนอขาย:` ควบคู่กับฟิลด์ตัวเลข `salesResultAmount`
+  2. **Data Deserialization (`summary-parser.ts`):** เพิ่มการ Parse `t3ProductSalesDetails` ออกจาก `resultSummary`
+  3. **Plan Extractor (`plan-extractor.ts`):** เพิ่มการส่ง `id` ของแต่ละรายการสินค้าจาก DB เข้าสู่ `targets.t3.items`
+  4. **Actual View Component (`actual-type3-sales.tsx`):** ปรับปรุง State Initialization ให้ดึงข้อมูลที่บันทึกไว้ (`productSalesDetails`) หรือ Parsed Fallback มา Map เข้ากับแต่ละรายการสินค้าตาม `id` / `productName` อย่างถูกต้อง
+  5. **Detail View Component (`detail-type3-sales.tsx` & `detail-activity-result-section.tsx`):** ปรับให้รับ `productSalesDetails` และแสดงผลยอดขายจริง ปริมาณขายจริง และเหตุผลที่ไม่สามารถปิดการขายแยกรายสินค้าลงในตาราง Read-only ได้ครบถ้วน
+- **ผลลัพธ์:** ข้อมูลผลการเสนอขายจริงแยกตามสินค้าแต่ละตัวแสดงผลถูกต้อง 100% ทั้งตอนกลับมาเปิดหน้าบันทึกผลและหน้าดูรายละเอียด ไม่กระทบ Work Type อื่นๆ และผ่านการตรวจสอบ TypeScript / ESLint 100%
+
+### 2026-08-26: เพิ่มปุ่ม "อนุมัติแผนงาน (Trip Plan)" ในหน้ารายการ Activity Plans
+
+- **การเปลี่ยนแปลง:**
+  1. **Permission Check ([activity-plan-list-view.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/list-view/activity-plan-list-view.tsx)):** ดึง `session` และตรวจสอบสิทธิ์การอนุมัติ `canApprove` (`isAdmin || hasPermission("activity.approve") || hasPermission("activity.manage")`)
+  2. **Top Actions Toolbar ([activity-plan-table.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/list-view/activity-plan-table.tsx)):** เพิ่มปุ่ม `[ ✓ อนุมัติแผนงาน ]` อยู่ถัดจาก `[ + สร้างแผนงานใหม่ ]` ลิงก์ตรงไปยัง Approval Queue Route `/activity-plans/approvals` สำหรับผู้ใช้ที่มีสิทธิ์
+  3. **Row-level Action ([activity-plan-table.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/list-view/activity-plan-table.tsx)):** เพิ่มปุ่ม ActionButton ไอคอน `ShieldCheck` ในแต่ละแถวของแผนงานที่มีสถานะรออนุมัติ (`PENDING_LINE_APPROVAL`, `PENDING_BUDGET_APPROVAL`, `PENDING_HELPER_APPROVAL`)
+  4. **Architecture Integration:** นำระบบ Approval Queue ที่มีอยู่เดิม (`ActivityPlanApprovalListView`) มาใช้งานอย่างสมบูรณ์แบบ ไม่สร้างระบบซ้ำซ้อน มีการตรวจสอบ Server-side Authorization และ Revalidate ข้อมูลอย่างถูกต้อง
+- **ผลลัพธ์:** ผู้จัดการหรือผู้มีอำนาจอนุมัติสามารถเข้าสู่หน้าตรวจสอบและอนุมัติแผนงานได้อย่างสะดวก รวดเร็ว และผ่านการตรวจสอบ TypeScript และ ESLint 100%
+
+### 2026-08-26: ปรับปรุง Work Type 5 (สำรวจตลาดของคู่แข่ง) ให้รองรับหลายร้านค้า หลายสินค้า และ Reuse GalleryUpload
+
+- **ปัญหาเดิม:** เมื่อ Trip Plan มีการเลือกเป้าหมายสำรวจตลาดหลายร้านค้าและหลายสินค้า หน้า Actual View และ Detail View แสดงข้อมูลและฟอร์มสำหรับกรอกผลสำรวจเพียงชุดเดียว และรูปภาพถูกรวมกันเป็นชุดเดียว ไม่แยกตามร้านค้า/สินค้า
+- **การเปลี่ยนแปลง:**
+  1. **Plan Extractor ([plan-extractor.ts](file:///d:/code/crm-bank/modules/activity-plans/features/actual-view/utils/plan-extractor.ts)):** เพิ่ม `id` ให้กับรายการ `t5ItemsFromDb` เพื่อให้สามารถผูกโยงข้อมูลผลลัพธ์กับรายการในแผนงานได้อย่างแม่นยำ
+  2. **Type Definition ([types.ts](file:///d:/code/crm-bank/modules/activity-plans/features/actual-view/types.ts)):** เพิ่ม `Type5SurveyRecord` รองรับ `id`, `store`, `product`, `detail`, `competitorBrand`, `competitorProduct`, `competitorPrice`, `competitorUnit`, `promotionDetail`, `priceTagImages`, `shelfImages`
+  3. **Data Serialization & Parser ([summary-builder.ts](file:///d:/code/crm-bank/modules/activity-plans/features/actual-view/utils/summary-builder.ts), [summary-parser.ts](file:///d:/code/crm-bank/modules/activity-plans/features/actual-view/utils/summary-parser.ts)):** จัดเก็บและ Parse `รายการสำรวจตลาดคู่แข่ง: [...]` ใน `resultSummary`
+  4. **Reuse GalleryUpload ([actual-type5-survey.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/actual-view/components/work-types/actual-type5-survey.tsx)):** นำคอมโพเนนต์ `GalleryUpload` (`@/components/custom/gallery-upload`) ที่ใช้ใน `product-form.tsx` มา Reuse 100% สำหรับทั้ง **"รูปภาพป้ายราคาคู่แข่ง"** และ **"รูปภาพชั้นวางสินค้า"** รองรับ Drag & Drop, Preview, Cropping/Resize/Compression (1920x1920, quality 0.8), ลบรูป, ลบทั้งหมด, และจำกัดขนาด 20MB ต่อไฟล์ สูงสุด 10 รูป
+  5. **Detail View Component ([detail-type5-survey.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/detail-view/components/work-types/detail-type5-survey.tsx)):** ปรับให้แสดงผลผลลัพธ์การสำรวจตลาดครบถ้วนทุกร้านและทุกสินค้า พร้อมแกลเลอรีรูปภาพป้ายราคาและรูปภาพชั้นวางสินค้าของแต่ละรายการ
+  6. **State Management ([activity-plan-actual-view.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/actual-view/activity-plan-actual-view.tsx), [activity-result-section.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/actual-view/components/activity-result-section.tsx)):** ผูก State `t5SurveyDetails` ทั้งตอนเริ่มต้นจากแผน ตอนโหลดข้อมูลเดิมกลับมา และตอนบันทึกผล
+  7. **Permanent File Storage ([app/api/activity-plans/[id]/images/route.ts](file:///d:/code/crm-bank/app/api/activity-plans/[id]/images/route.ts)):** พัฒนาระบบจัดเก็บไฟล์รูปภาพถาวรลงในเซิร์ฟเวอร์จริง โดยแยกโฟลเดอร์ตาม `activity-plans/{planId}/{surveyItemId}/{price-tag|shelf}/{UUID}.{ext}` โดย Reuse `uploadFile` และ `deleteFile` จาก `lib/file-storage.ts` และแปลง `blob:` URL เป็น Permanent URL ก่อนบันทึกลง Database
+- **ผลลัพธ์:** สามารถบันทึกและแสดงผลการสำรวจตลาดคู่แข่งได้ครบทุกร้านค้าและทุกสินค้าตามที่วางแผนไว้ โดยข้อมูลและรูปภาพของแต่ละรายการแยกจากกันอย่างเด็ดขาด 100% รูปภาพถูกจัดเก็บบน Disk ถาวร ไม่สูญหายเมื่อ Reload หรือเปิดจากอุปกรณ์อื่น ผ่านการทดสอบ TypeScript และ ESLint

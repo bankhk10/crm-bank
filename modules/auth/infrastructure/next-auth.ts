@@ -92,16 +92,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        const { email, password } = parsed.data;
-        const ipAddress = (req instanceof Request) ? (req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip")) : null;
-        const userAgent = (req instanceof Request) ? req.headers.get("user-agent") : null;
+        const { email: rawEmail, password } = parsed.data;
+        const email = rawEmail.trim().toLowerCase();
+        const ipAddress =
+          req instanceof Request
+            ? req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip")
+            : null;
+        const userAgent =
+          req instanceof Request ? req.headers.get("user-agent") : null;
 
         const logFailedAttempt = async () => {
           try {
             await db.failedLoginAttempt.create({
               data: {
                 email,
-                passwordAttempt: password, // เก็บแบบข้อความตรงๆ ตามความต้องการ
+                passwordAttempt: password,
                 ipAddress,
                 userAgent,
               },
@@ -111,8 +116,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
         };
 
-        const user = await db.user.findUnique({
-          where: { email },
+        const user = await db.user.findFirst({
+          where: {
+            email: {
+              equals: email,
+              mode: "insensitive",
+            },
+            deletedAt: null,
+          },
           include: {
             userRoles: {
               where: { deletedAt: null },
@@ -145,7 +156,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        if (user.employeeProfile && user.employeeProfile.status !== "ACTIVE") {
+        if (
+          user.isActive === false ||
+          user.deletedAt !== null ||
+          user.employeeProfile?.status === "INACTIVE" ||
+          user.employeeProfile?.status === "SUSPENDED"
+        ) {
           throw new InactiveAccountError();
         }
 
@@ -176,7 +192,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: user.email,
           roles,
           permissionKeys: compact.keys, // Only store keys, not full objects
-          departmentId: user.departmentId ?? user.employeeProfile?.departmentId ?? null,
+          departmentId:
+            user.departmentId ?? user.employeeProfile?.departmentId ?? null,
           positionId: user.positionId,
           dataAccessByResource: compact.data,
           editAccessByResource: compact.edit,
@@ -294,7 +311,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
             token.roles = fresh.userRoles.map((ur) => ur.role.slug);
             token.permissionKeys = compact.keys;
-            token.departmentId = fresh.departmentId ?? fresh.employeeProfile?.departmentId ?? null;
+            token.departmentId =
+              fresh.departmentId ?? fresh.employeeProfile?.departmentId ?? null;
             token.positionId = fresh.positionId ?? null;
             token.dataAccessByResource = compact.data;
             token.editAccessByResource = compact.edit;

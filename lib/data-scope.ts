@@ -164,6 +164,27 @@ export const RESOURCE_CONFIGS: Record<string, ResourceScopeConfig> = {
     teamStrategy: "employeeTeam",
     departmentStrategy: "employeeDepartment",
   },
+  activity_plan: {
+    resource: "activity_plan",
+    ownStrategy: "employeeId",
+    teamStrategy: "employeeTeam",
+    departmentStrategy: "employeeDepartment",
+    fallbackOwnerField: "createdById",
+  },
+  activity: {
+    resource: "activity_plan",
+    ownStrategy: "employeeId",
+    teamStrategy: "employeeTeam",
+    departmentStrategy: "employeeDepartment",
+    fallbackOwnerField: "createdById",
+  },
+  activity_plans: {
+    resource: "activity_plan",
+    ownStrategy: "employeeId",
+    teamStrategy: "employeeTeam",
+    departmentStrategy: "employeeDepartment",
+    fallbackOwnerField: "createdById",
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -172,8 +193,8 @@ export const RESOURCE_CONFIGS: Record<string, ResourceScopeConfig> = {
 
 /**
  * Get all employee IDs in the same team as the current user.
- * "Team" = employees who share the same managerId, plus the manager themselves.
- * If the user IS a manager, the team includes all their direct reports.
+ * "Team" = employees who share the same managerId, plus the manager themselves,
+ * and recursively all direct and indirect subordinates under the user's hierarchy.
  */
 async function getTeamEmployeeIds(session: Session): Promise<string[]> {
   const employeeId = session.user.employeeId;
@@ -181,26 +202,43 @@ async function getTeamEmployeeIds(session: Session): Promise<string[]> {
 
   const managerId = session.user.managerId;
 
-  // Find all employees who share the same manager
-  // Also include the manager themselves in the team
-  const teamMembers = await db.employee.findMany({
+  // 1. Find peers (same manager), manager, and self
+  const peersAndManager = await db.employee.findMany({
     where: {
       deletedAt: null,
       OR: [
-        // Employees with the same manager (same team)
         ...(managerId ? [{ managerId: managerId }] : []),
-        // The manager themselves
         ...(managerId ? [{ id: managerId }] : []),
-        // If user IS a manager, include their direct reports
-        { managerId: employeeId },
-        // Always include the user themselves
         { id: employeeId },
       ],
     },
     select: { id: true },
   });
 
-  return [...new Set(teamMembers.map((m) => m.id))];
+  const teamIds = new Set(peersAndManager.map((m) => m.id));
+
+  // 2. Recursively find all direct and indirect subordinates under the user's employeeId
+  let currentManagerIds = [employeeId];
+  while (currentManagerIds.length > 0) {
+    const subordinates = await db.employee.findMany({
+      where: {
+        deletedAt: null,
+        managerId: { in: currentManagerIds },
+      },
+      select: { id: true },
+    });
+
+    const newSubordinateIds = subordinates
+      .map((s) => s.id)
+      .filter((id) => !teamIds.has(id));
+
+    if (newSubordinateIds.length === 0) break;
+
+    newSubordinateIds.forEach((id) => teamIds.add(id));
+    currentManagerIds = newSubordinateIds;
+  }
+
+  return Array.from(teamIds);
 }
 
 // ---------------------------------------------------------------------------

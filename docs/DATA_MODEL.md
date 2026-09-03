@@ -1,14 +1,28 @@
 # Data Model - CRM System
 
-> **Version**: 1.1.0 | **Updated**: 2026-02-09  
+> **Version**: 2.0.0  
+> **Updated**: 2026-08-28  
 > **Source of Truth**: `prisma/schema.prisma`  
-> **Related**: [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md) | [AI_CONTEXT.md](./AI_CONTEXT.md)
+> **Related**: [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md) | [AI_CONTEXT.md](./AI_CONTEXT.md) | [ARCHITECTURE.md](./ARCHITECTURE.md) | [MODULE_ARCHITECTURE.md](./MODULE_ARCHITECTURE.md)
 
 ---
 
 ## 1. Source of Truth
 
-`prisma/schema.prisma` คือแหล่งข้อมูลหลักของโครงสร้างฐานข้อมูล หากเอกสารนี้ขัดแย้งกับ schema ให้ถือ schema เป็นหลักเสมอ
+`prisma/schema.prisma` คือแหล่งข้อมูลหลักของโครงสร้างฐานข้อมูล
+
+หากเอกสารนี้ขัดแย้งกับ:
+
+- Models
+- Fields
+- Relations
+- Enums
+- Constraints
+- Indexes
+
+ใน `prisma/schema.prisma` ให้ถือ `prisma/schema.prisma` เป็นหลักเสมอ
+
+เอกสารนี้เป็น **Data Model Snapshot / Context Document** เพื่อช่วยให้ Developer และ AI Agent เข้าใจภาพรวมของข้อมูล ไม่ใช่ตัวแทนของ Schema จริง
 
 ---
 
@@ -62,22 +76,25 @@
 
 ## 3. Key Enums (Snapshot)
 
-> ตรวจสอบค่าล่าสุดจาก `prisma/schema.prisma`
+> ⚠️ ค่าด้านล่างเป็น Snapshot เพื่อช่วยในการทำความเข้าใจเท่านั้น  
+> ให้ตรวจสอบค่าล่าสุดจาก `prisma/schema.prisma` ก่อนเขียนหรือแก้ไข Code ที่เกี่ยวข้องกับ Enum เสมอ
 
 ### 3.1 SaleStatus
 
-```
+```text
 Credit sales:
 PENDING_APPROVAL → APPROVED → AWAITING_DELIVERY → DELIVERY_COMPLETED → COMPLETED
 
 Prepaid sales:
-PENDING_APPROVAL → APPROVED → AWAITING_DELIVERY (Wait for payment) → PAID → DELIVERY_COMPLETED → COMPLETED
+PENDING_APPROVAL → APPROVED → AWAITING_DELIVERY (Wait for payment) → PAID
+→ DELIVERY_COMPLETED → COMPLETED
 
-(Note: AWAITING_DELIVERY can also go to PARTIALLY_DELIVERED if split shipment)
+Note:
+AWAITING_DELIVERY can also go to PARTIALLY_DELIVERED if split shipment.
 
 Alternative:
-- PENDING_APPROVAL → REJECTED / WAITING_FOR_CORRECTION
-- APPROVED / AWAITING_DELIVERY → CANCELLED / OVERDUE
+PENDING_APPROVAL → REJECTED / WAITING_FOR_CORRECTION
+APPROVED / AWAITING_DELIVERY → CANCELLED / OVERDUE
 ```
 
 ### 3.2 PaymentTerm
@@ -96,19 +113,21 @@ Alternative:
 - `TemporaryCreditStatus`: PENDING, APPROVED, REJECTED, EXPIRED
 - `PromotionalBudgetType`: SALES_PROMOTION, MARKETING
 
+### 3.4 RBAC Access
+
+- `DataAccessLevel`: VIEW_OWN, VIEW_TEAM, VIEW_DEPARTMENT, VIEW_ALL
+- `EditAccessLevel`: EDIT_NONE, EDIT_OWN, EDIT_TEAM, EDIT_DEPARTMENT, EDIT_ALL
+- `DeleteAccessLevel`: DELETE_NONE, DELETE_OWN, DELETE_TEAM, DELETE_DEPARTMENT, DELETE_ALL
+
 ### 3.5 Fulfillment
 
 - `ShippingCompanyStatus`: ACTIVE, INACTIVE
 
-### 3.4 RBAC Access
-
-- `DataAccessLevel`: VIEW_OWN,VIEW_TEAM, VIEW_DEPARTMENT, VIEW_ALL
-- `EditAccessLevel`: EDIT_NONE, EDIT_OWN, EDIT_TEAM, EDIT_DEPARTMENT, EDIT_ALL
-- `DeleteAccessLevel`: DELETE_NONE, DELETE_OWN, DELETE_TEAM, DELETE_DEPARTMENT, DELETE_ALL
-
 ---
 
 ## 4. Relationship Notes (Essentials)
+
+These are high-level relationship notes only. Always verify the exact relation definitions in `prisma/schema.prisma`.
 
 - **User ↔ Employee**: 1:1 optional (User มี employeeProfile)
 - **Employee hierarchy**: Employee.managerId เป็น self-reference
@@ -120,13 +139,113 @@ Alternative:
 
 ---
 
-## 5. Soft Delete Convention
+## 5. Data Ownership & Module Context
 
-ตารางหลักส่วนใหญ่มี `deletedAt` เพื่อ soft delete
+Database entities are implemented through business modules where applicable.
 
-- Query ต้องกรอง `deletedAt: null`
-- ห้าม hard delete เว้นแต่เป็น master data ที่ไม่ได้ใช้งาน
+The module architecture defines responsibility boundaries:
+
+```text
+features/
+    ↓
+server/
+    ↓
+application/
+    ↓
+infrastructure/
+    ↓
+database
+```
+
+General ownership principle:
+
+- UI does not own database access.
+- `server/` coordinates authenticated server operations.
+- `application/` owns business rules and use-case orchestration.
+- `infrastructure/` owns persistence/database access.
+- `prisma/schema.prisma` owns the database schema definition.
+
+Do not assume that the database model name alone determines which module should own business logic.
+
+Use the module's domain responsibility and existing project conventions.
 
 ---
 
-**See Also**: [AI_CONTEXT.md](./AI_CONTEXT.md) | [ARCHITECTURE.md](./ARCHITECTURE.md)
+## 6. Soft Delete Convention
+
+ตาราง/Entity ที่รองรับการลบควรใช้ `deletedAt` ตาม Project Standard
+
+Typical pattern:
+
+```prisma
+deletedAt DateTime?
+```
+
+Meaning:
+
+```text
+deletedAt = null
+    → Active
+
+deletedAt = date
+    → Deleted
+```
+
+For soft-deletable records:
+
+- Queries should exclude deleted records when appropriate.
+- Use `where: { deletedAt: null }` according to the established repository/query pattern.
+- Do not hard delete records unless the domain and project architecture explicitly require it.
+- Verify the actual schema before assuming that every table supports `deletedAt`.
+
+---
+
+## 7. Data Integrity
+
+When changing the data model, consider:
+
+- Required vs optional fields
+- Unique constraints
+- Foreign keys and relations
+- Referential integrity
+- Indexes
+- Enum values
+- Soft-delete behavior
+- Transaction requirements
+
+Do not add or modify schema elements based only on this document.
+
+Always verify the current Prisma schema first.
+
+---
+
+## 8. AI Rules for Data Model Changes
+
+Before modifying database-related code:
+
+1. Read `prisma/schema.prisma`.
+2. Read the relevant module documentation.
+3. Identify existing relationships and constraints.
+4. Search existing repositories and application logic.
+5. Reuse existing data patterns where possible.
+6. Do not duplicate existing entities or relationships without justification.
+7. Verify Soft Delete behavior when applicable.
+8. Use transactions when multiple related writes require atomicity.
+9. Update relevant documentation when the data model meaningfully changes.
+10. Validate the resulting schema and affected code.
+
+If documentation conflicts with the current Prisma schema:
+
+> **Trust `prisma/schema.prisma`.**
+
+Do not silently rewrite the database model to match outdated documentation.
+
+---
+
+## 9. See Also
+
+- [AI Context](./AI_CONTEXT.md)
+- [Architecture](./ARCHITECTURE.md)
+- [Module Architecture](./MODULE_ARCHITECTURE.md)
+- [Domain Glossary](./DOMAIN_GLOSSARY.md)
+- [Coding Standards](./CODING_STANDARDS.md)

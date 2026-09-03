@@ -835,6 +835,110 @@ const permissionGroups: Record<string, PermissionGroup> = {
       },
     ],
   },
+
+  // ─────────────────────────────────────────────
+  // 📋 Activity Plans (การวางแผนกิจกรรม)
+  // ─────────────────────────────────────────────
+  activityPlans: {
+    menu: {
+      key: "menu.activity_plans",
+      name: "เมนูการวางแผนกิจกรรม",
+      resource: "activity_plan",
+      menuPath: "/activity-plans",
+    },
+    actions: [
+      {
+        key: "activity.create",
+        name: "สร้างแผนกิจกรรม",
+        resource: "activity_plan",
+        action: "create",
+      },
+      {
+        key: "activity.edit",
+        name: "แก้ไขแผนกิจกรรม",
+        resource: "activity_plan",
+        action: "edit",
+      },
+      {
+        key: "activity.delete",
+        name: "ลบแผนกิจกรรม",
+        resource: "activity_plan",
+        action: "delete",
+      },
+      {
+        key: "activity.view",
+        name: "ดูแผนกิจกรรม",
+        resource: "activity_plan",
+        action: "view",
+      },
+      {
+        key: "activity.approve",
+        name: "อนุมัติแผนกิจกรรม",
+        resource: "activity_plan",
+        action: "approve",
+      },
+      {
+        key: "activity.manage",
+        name: "จัดการแผนกิจกรรมทั้งหมด",
+        resource: "activity_plan",
+        action: "manage",
+      },
+    ],
+    data: {
+      key: "data.activity_plans",
+      name: "ขอบเขตข้อมูลแผนกิจกรรม",
+      resource: "activity_plan",
+      defaultDataAccess: DataAccessLevel.VIEW_OWN,
+      defaultEditAccess: EditAccessLevel.EDIT_OWN,
+      defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
+    },
+  },
+
+  // ─────────────────────────────────────────────
+  // 🏷️ Promotional Materials (สื่อส่งเสริมการขาย)
+  // ─────────────────────────────────────────────
+  promotionalMaterials: {
+    menu: {
+      key: "menu.promotional_materials",
+      name: "เมนูสื่อส่งเสริมการขาย",
+      resource: "promotional_material",
+      menuPath: "/activity-plans/promotional-materials",
+    },
+    actions: [
+      {
+        key: "promotional_material.create",
+        name: "สร้างสื่อส่งเสริมการขาย",
+        resource: "promotional_material",
+        action: "create",
+      },
+      {
+        key: "promotional_material.edit",
+        name: "แก้ไขสื่อส่งเสริมการขาย",
+        resource: "promotional_material",
+        action: "edit",
+      },
+      {
+        key: "promotional_material.delete",
+        name: "ลบสื่อส่งเสริมการขาย",
+        resource: "promotional_material",
+        action: "delete",
+      },
+      {
+        key: "promotional_material.view",
+        name: "ดูรายละเอียดสื่อส่งเสริมการขาย",
+        resource: "promotional_material",
+        action: "view",
+      },
+    ],
+    data: {
+      key: "data.promotional_materials",
+      name: "ขอบเขตข้อมูลสื่อส่งเสริมการขาย",
+      resource: "promotional_material",
+      defaultDataAccess: DataAccessLevel.VIEW_ALL,
+      defaultEditAccess: EditAccessLevel.EDIT_ALL,
+      defaultDeleteAccess: DeleteAccessLevel.DELETE_ALL,
+    },
+  },
 };
 
 // ============================================================================
@@ -1208,6 +1312,8 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "menu.test_activity.activity_report" },
     { key: "menu.test_activity.budget_report" },
     { key: "menu.test_activity.customer_report" },
+    { key: "menu.promotional_materials" },
+    { key: "promotional_material.view" },
   ];
 
   await prisma.rolePermission.createMany({
@@ -1298,6 +1404,11 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "menu.test_activity.activity_report" },
     { key: "menu.test_activity.budget_report" },
     { key: "menu.test_activity.customer_report" },
+    { key: "menu.promotional_materials" },
+    { key: "promotional_material.view" },
+    { key: "promotional_material.create" },
+    { key: "promotional_material.edit" },
+    { key: "promotional_material.delete" },
   ];
 
   await prisma.rolePermission.createMany({
@@ -1452,6 +1563,11 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "menu.test_activity.activity_report" },
     { key: "menu.test_activity.budget_report" },
     { key: "menu.test_activity.customer_report" },
+    { key: "menu.promotional_materials" },
+    { key: "promotional_material.view" },
+    { key: "promotional_material.create" },
+    { key: "promotional_material.edit" },
+    { key: "promotional_material.delete" },
     // Note: rbac.manage, menu.rbac, menu.admin, system.settings are excluded to differentiate from Administrator
   ];
 
@@ -1487,6 +1603,8 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "menu.sales_forecast" },
     { key: "menu.sales_targets" },
     { key: "menu.notifications" },
+    { key: "menu.promotional_materials" },
+    { key: "promotional_material.view" },
     // Report permissions - view all reports
     { key: "report.time_sales" },
     { key: "report.product_sales" },

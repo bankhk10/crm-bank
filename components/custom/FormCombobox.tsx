@@ -41,6 +41,7 @@ interface FormComboboxProps {
   triggerClassName?: string;
   labelClassName?: string;
   containerClassName?: string;
+  showSubLabelInTrigger?: boolean;
 }
 
 const defaultLabelClass = "text-base font-medium mx-2";
@@ -62,10 +63,13 @@ export function FormCombobox({
   triggerClassName,
   labelClassName,
   containerClassName,
+  showSubLabelInTrigger = false,
 }: FormComboboxProps) {
   const [open, setOpen] = useState(false);
 
-  const selectedOption = options.find((option) => option.value === value);
+  const selectedOption = options.find(
+    (option) => option.value === value || option.label === value
+  );
 
   return (
     <div className={cn(containerClassName)}>
@@ -92,7 +96,7 @@ export function FormCombobox({
           >
             <span className="text-left flex-1 flex flex-col justify-center min-w-0">
               <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
-              {selectedOption?.subLabel && (
+              {showSubLabelInTrigger && selectedOption?.subLabel && (
                 <span className="text-xs text-gray-500 truncate">{selectedOption.subLabel}</span>
               )}
             </span>
@@ -109,9 +113,9 @@ export function FormCombobox({
             <CommandList className="max-h-[300px]">
               <CommandEmpty>{emptyText}</CommandEmpty>
               <CommandGroup>
-                {options.map((option) => (
+                {options.map((option, index) => (
                   <CommandItem
-                    key={option.value}
+                    key={`${option.value}-${index}`}
                     value={option.value}
                     keywords={[
                       option.label, 
