@@ -22,11 +22,13 @@ import {
   FileText,
   ShieldCheck,
   Info,
+  MapPin,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ActivityStatusBadge } from "@/modules/activity-plans/ui/activity-status-badge";
 import type { ActivityPlanWithRelations } from "../../types";
 import {
   getActivityPlanAction,
@@ -336,48 +338,112 @@ export default function ActivityPlanApprovalDetailView({
   const startTimeDisplay = formatTimeStr(planSummary.startTimeStr, start);
   const endTimeDisplay = formatTimeStr(planSummary.endTimeStr, end);
 
+  const renderAuditActionBadge = (action: string) => {
+    switch (action) {
+      case "APPROVE":
+      case "APPROVED":
+        return (
+          <Badge
+            variant="outline"
+            className="text-[10px] px-2 py-0.5 font-bold bg-emerald-50 text-emerald-700 border-emerald-200"
+          >
+            อนุมัติ
+          </Badge>
+        );
+      case "REJECT":
+      case "REJECTED":
+        return (
+          <Badge
+            variant="outline"
+            className="text-[10px] px-2 py-0.5 font-bold bg-red-50 text-red-700 border-red-200"
+          >
+            ปฏิเสธ
+          </Badge>
+        );
+      case "REQUEST_CORRECTION":
+        return (
+          <Badge
+            variant="outline"
+            className="text-[10px] px-2 py-0.5 font-bold bg-amber-50 text-amber-700 border-amber-200"
+          >
+            ส่งกลับแก้ไข
+          </Badge>
+        );
+      case "SUBMIT":
+      case "SUBMITTED":
+        return (
+          <Badge
+            variant="outline"
+            className="text-[10px] px-2 py-0.5 font-bold bg-blue-50 text-blue-700 border-blue-200"
+          >
+            ยื่นขออนุมัติ
+          </Badge>
+        );
+      default:
+        return (
+          <Badge
+            variant="outline"
+            className="text-[10px] px-2 py-0.5 font-medium bg-slate-50 text-slate-700 border-slate-200"
+          >
+            {action}
+          </Badge>
+        );
+    }
+  };
+
+  const planLocation = plan.location || planSummary.locationStr;
+  const hasLocation =
+    !!planLocation &&
+    planLocation.trim() !== "" &&
+    planLocation.trim() !== "-" &&
+    planLocation.trim() !== "ไม่ระบุสถานที่";
+
   return (
     <section className="space-y-6 container mx-auto px-0 sm:px-0">
       <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
-        {/* ─── 1. TOP HEADER (APPROVAL DETAIL) - Patterned after ActualViewHeader ─── */}
-        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
-          {/* Center: Icon + Title */}
-          <div className="sm:absolute sm:left-1/2 sm:-translate-x-1/2 flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100 shadow-2xs">
+        {/* ─── 1. TOP HEADER (APPROVAL DETAIL BANNER) ─── */}
+        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-slate-50/90 via-indigo-50/30 to-blue-50/40 border border-slate-200/80 shadow-2xs">
+          {/* Left: Icon + Title */}
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-indigo-200">
               <ShieldCheck className="w-6 h-6 stroke-[2.2]" />
             </div>
             <div>
-              <h1 className="font-bold text-lg sm:text-2xl text-slate-800 tracking-tight whitespace-nowrap">
+              <h1 className="font-bold text-lg sm:text-2xl text-slate-900 tracking-tight">
                 รายละเอียดแผนงานสำหรับการอนุมัติ
               </h1>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                ระบบตรวจสอบและพิจารณาอนุมัติแผนงานกิจกรรม (Activity Plan Approval)
+              </p>
             </div>
           </div>
 
           {/* Right: Plan No + Status Badge */}
-          <div className="ml-auto flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
             {(plan.code || planSummary.planNo) && (
-              <div className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs">
-                <Info className="w-3.5 h-3.5 shrink-0" />
+              <div className="inline-flex items-center gap-1.5 bg-white/90 border border-blue-200/80 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs backdrop-blur-xs">
+                <Info className="w-3.5 h-3.5 shrink-0 text-blue-500" />
                 <span>เลขที่แผน: {plan.code || planSummary.planNo}</span>
               </div>
             )}
+            <ActivityStatusBadge status={plan.status} />
           </div>
         </div>
 
         {/* ─── 2. GENERAL PLAN INFORMATION (Activity Plan Overview) ─── */}
-        <div className="space-y-3.5">
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {/* Card 1: ชื่อแผนงาน / กิจกรรม */}
-            <div className="bg-[#f8fafc] border border-slate-200/80 rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs">
-              <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+            <div className="bg-gradient-to-br from-blue-50/80 via-sky-50/30 to-white border border-blue-200/70 rounded-2xl p-4 sm:p-4.5 flex items-center gap-3.5 shadow-2xs hover:shadow-xs transition-shadow">
+              <div className="w-11 h-11 rounded-xl bg-blue-100/80 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/80 shadow-2xs">
                 <FileText className="w-5 h-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-slate-500 font-medium mb-0.5">
+                <p className="text-xs text-blue-700 font-semibold mb-0.5 tracking-wide">
                   ชื่อแผนงาน / กิจกรรม
                 </p>
                 <p
-                  className="text-base font-bold text-slate-800 truncate"
+                  className="text-sm sm:text-base font-bold text-slate-900 truncate"
                   title={plan.title}
                 >
                   {plan.title || "-"}
@@ -386,15 +452,20 @@ export default function ActivityPlanApprovalDetailView({
             </div>
 
             {/* Card 2: วันที่เริ่ม - สิ้นสุด */}
-            <div className="bg-[#f8fafc] border border-slate-200/80 rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs">
-              <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+            <div className="bg-gradient-to-br from-emerald-50/80 via-teal-50/30 to-white border border-emerald-200/70 rounded-2xl p-4 sm:p-4.5 flex items-center gap-3.5 shadow-2xs hover:shadow-xs transition-shadow">
+              <div className="w-11 h-11 rounded-xl bg-emerald-100/80 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200/80 shadow-2xs">
                 <Calendar className="w-5 h-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-slate-500 font-medium mb-0.5">
-                  วันที่เริ่ม - สิ้นสุด ({plan.durationDays} วัน)
-                </p>
-                <p className="text-xs sm:text-sm font-bold text-slate-800 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="text-xs text-emerald-700 font-semibold tracking-wide">
+                    วันที่เริ่ม - สิ้นสุด
+                  </p>
+                  <span className="bg-emerald-100/90 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/80">
+                    {plan.durationDays} วัน
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm font-bold text-slate-900 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span>
                     {startDateDisplay} {startTimeDisplay}
                   </span>
@@ -409,81 +480,135 @@ export default function ActivityPlanApprovalDetailView({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {/* Card 3: ผู้จัดทำแผน */}
-            <div className="bg-[#f8fafc] border border-slate-200/80 rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs">
-              <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100">
+            <div className="bg-gradient-to-br from-violet-50/80 via-purple-50/30 to-white border border-violet-200/70 rounded-2xl p-4 sm:p-4.5 flex items-center gap-3.5 shadow-2xs hover:shadow-xs transition-shadow">
+              <div className="w-11 h-11 rounded-xl bg-violet-100/80 text-violet-600 flex items-center justify-center shrink-0 border border-violet-200/80 shadow-2xs">
                 <User className="w-5 h-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-slate-500 font-medium mb-0.5">
+                <p className="text-xs text-violet-700 font-semibold mb-0.5 tracking-wide">
                   ผู้จัดทำแผน
                 </p>
-                <p className="text-sm font-bold text-slate-900 truncate">
+                <p className="text-sm sm:text-base font-bold text-slate-900 truncate">
                   {plan.employee?.name || "-"}
                 </p>
+                {(plan.employee?.positionTitle ||
+                  plan.employee?.position?.name ||
+                  plan.employee?.departmentName ||
+                  plan.employee?.department?.name) && (
+                  <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                    {plan.employee?.positionTitle ||
+                      plan.employee?.position?.name ||
+                      ""}
+                    {plan.employee?.positionTitle &&
+                      plan.employee?.departmentName &&
+                      " • "}
+                    {plan.employee?.departmentName ||
+                      plan.employee?.department?.name ||
+                      ""}
+                  </p>
+                )}
               </div>
             </div>
 
-            {/* Card 4: สถานที่จัดงาน */}
-            <div className="bg-[#f8fafc] border border-slate-200/80 rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs">
-              <div className="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
-                <Layers className="w-4 h-4" />
+            {/* Card 4: ประเภทงานที่ระบุในแผน */}
+            <div className="bg-gradient-to-br from-amber-50/80 via-orange-50/25 to-white border border-amber-200/70 rounded-2xl p-4 sm:p-4.5 flex items-center gap-3.5 shadow-2xs hover:shadow-xs transition-shadow">
+              <div className="w-11 h-11 rounded-xl bg-amber-100/80 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200/80 shadow-2xs">
+                <Layers className="w-5 h-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs text-slate-500 font-medium mb-0.5">
-                    ประเภทงานที่ระบุในแผน ({resolvedWorkTypes.length} ประเภท):
-                  </p>
-                  <p className="text-sm font-bold text-slate-900 truncate">
-                    {resolvedWorkTypes.map((wt, idx) => (
-                      <Badge
-                        key={idx}
-                        variant="outline"
-                        className={cn(
-                          "text-xs px-2.5 py-1 font-semibold rounded-lg border shadow-2xs",
-                          wt.code === "TYPE_12"
-                            ? "bg-sky-50 text-sky-800 border-sky-200"
-                            : "bg-indigo-50 text-indigo-800 border-indigo-200",
-                        )}
-                      >
-                        {wt.name}
-                      </Badge>
-                    ))}
-                  </p>
+                <p className="text-xs text-amber-800 font-semibold mb-1 tracking-wide">
+                  ประเภทงานที่ระบุในแผน ({resolvedWorkTypes.length} ประเภท):
+                </p>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {resolvedWorkTypes.map((wt, idx) => (
+                    <Badge
+                      key={idx}
+                      variant="outline"
+                      className={cn(
+                        "text-xs px-2.5 py-0.5 font-semibold rounded-lg border shadow-2xs",
+                        wt.code === "TYPE_12"
+                          ? "bg-sky-50 text-sky-800 border-sky-200"
+                          : "bg-white text-slate-800 border-amber-200/90",
+                      )}
+                    >
+                      {wt.name}
+                    </Badge>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Card 5 & Notes: สถานที่จัดงาน และ หมายเหตุเพิ่มเติม */}
+          {(hasLocation || plan.notes) && (
+            <div
+              className={cn(
+                "grid gap-3.5",
+                hasLocation && plan.notes
+                  ? "grid-cols-1 md:grid-cols-2"
+                  : "grid-cols-1",
+              )}
+            >
+              {/* สถานที่จัดงาน */}
+              {hasLocation && (
+                <div className="bg-gradient-to-br from-rose-50/70 via-pink-50/25 to-white border border-rose-200/70 rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs hover:shadow-xs transition-shadow">
+                  <div className="w-11 h-11 rounded-xl bg-rose-100/80 text-rose-600 flex items-center justify-center shrink-0 border border-rose-200/80 shadow-2xs">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-rose-700 font-semibold mb-0.5 tracking-wide">
+                      สถานที่จัดงาน / พื้นที่ปฏิบัติงาน
+                    </p>
+                    <p className="text-sm font-bold text-slate-900 break-words">
+                      {planLocation}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* หมายเหตุเพิ่มเติม */}
+              {plan.notes && (
+                <div className="bg-gradient-to-br from-amber-50/60 via-slate-50/40 to-white border border-amber-200/70 rounded-2xl p-4 space-y-2 shadow-2xs">
+                  <span className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-amber-600" />
+                    หมายเหตุเพิ่มเติม:
+                  </span>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line bg-white/90 p-3 rounded-xl border border-amber-100/80 shadow-2xs">
+                    {plan.notes}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ─── BUDGETS & MARKETING MATERIALS SECTIONS (MATCHING ACTUAL VIEW) ─── */}
           <BudgetSection summary={planSummary} />
           <PromotionalMaterialsSection summary={planSummary} />
           <MarketingExpenseSection summary={planSummary} />
-
-          {/* Card 6: หมายเหตุเพิ่มเติม (ถ้ามี) */}
-          {plan.notes && (
-            <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 space-y-1.5 shadow-2xs">
-              <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-slate-500" />
-                หมายเหตุเพิ่มเติม:
-              </span>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line bg-white p-3 rounded-xl border border-slate-100">
-                {plan.notes}
-              </p>
-            </div>
-          )}
         </div>
 
         {/* ─── 3. รายละเอียดตามประเภทงาน (WORK TYPE SPECIFIC DETAILS) ─── */}
         <div className="space-y-4 pt-2">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 shadow-2xs">
                 <Target className="w-4 h-4" />
               </div>
-              <h3 className="text-sm sm:text-base font-bold text-slate-800">
-                รายละเอียดตามประเภทงาน (Work Type Details)
-              </h3>
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                  รายละเอียดตามประเภทงาน (Work Type Details)
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  เป้าหมายและข้อมูลกิจกรรมของแต่ละประเภทงานที่กำหนดไว้ในแผน
+                </p>
+              </div>
             </div>
+            <Badge
+              variant="outline"
+              className="text-xs font-semibold bg-blue-50 text-blue-800 border-blue-200"
+            >
+              {resolvedWorkTypes.length} ประเภทงาน
+            </Badge>
           </div>
 
           {/* TYPE_1: เข้าพบร้านค้า / Key Farmer */}
@@ -566,27 +691,13 @@ export default function ActivityPlanApprovalDetailView({
           />
         </div>
 
-        {/* Card 5: ประเภทงานที่เลือก */}
-        {plan.location && plan.location !== "-" && (
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
-                <Layers className="w-4 h-4" />
-              </div>
-              <span className="text-xs font-bold text-slate-700">
-                สถานที่จัดงาน : {plan.location}
-              </span>
-            </div>
-          </div>
-        )}
-
         {/* ─── 5. HELPERS SECTION (NORMALIZED) ─── */}
         {plan.helpers && plan.helpers.length > 0 && (
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
-                  <Users className="w-4 h-4" />
+          <div className="bg-gradient-to-br from-indigo-50/40 via-purple-50/20 to-white border border-indigo-200/70 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between border-b border-indigo-100/80 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-indigo-100/80 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-200/80 shadow-2xs">
+                  <Users className="w-4.5 h-4.5" />
                 </div>
                 <div>
                   <h4 className="font-bold text-sm sm:text-base text-slate-900">
@@ -599,7 +710,7 @@ export default function ActivityPlanApprovalDetailView({
               </div>
               <Badge
                 variant="outline"
-                className="text-xs font-semibold bg-purple-50 text-purple-800 border-purple-200"
+                className="text-xs font-bold bg-indigo-100/80 text-indigo-800 border-indigo-200"
               >
                 {plan.helpers.length} คน
               </Badge>
@@ -609,28 +720,33 @@ export default function ActivityPlanApprovalDetailView({
               {plan.helpers.map((h, idx) => (
                 <div
                   key={h.id || idx}
-                  className="bg-slate-50/80 border border-slate-100 rounded-xl p-3.5 flex flex-col justify-between gap-3"
+                  className="bg-white/95 border border-indigo-100/90 hover:border-indigo-200 rounded-xl p-3.5 flex flex-col justify-between gap-3 shadow-2xs hover:shadow-xs transition-all"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="font-bold text-xs sm:text-sm text-slate-900 truncate">
-                        {idx + 1}. {h.employee?.name || "พนักงาน"}
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0 border border-indigo-100">
+                        {idx + 1}
                       </div>
-                      <div className="text-[11px] text-slate-500 truncate">
-                        {h.employee?.positionTitle ||
-                          h.employee?.position?.name ||
-                          "-"}{" "}
-                        •{" "}
-                        {h.departmentName ||
-                          h.employee?.departmentName ||
-                          h.employee?.department?.name ||
-                          "ไม่ระบุแผนก"}
-                      </div>
-                      {h.rejectionReason && (
-                        <div className="text-[10px] text-red-600 mt-1 italic">
-                          เหตุผลปฏิเสธ: {h.rejectionReason}
+                      <div className="min-w-0">
+                        <div className="font-bold text-xs sm:text-sm text-slate-900 truncate">
+                          {h.employee?.name || "พนักงาน"}
                         </div>
-                      )}
+                        <div className="text-[11px] text-slate-500 truncate">
+                          {h.employee?.positionTitle ||
+                            h.employee?.position?.name ||
+                            "-"}{" "}
+                          •{" "}
+                          {h.departmentName ||
+                            h.employee?.departmentName ||
+                            h.employee?.department?.name ||
+                            "ไม่ระบุแผนก"}
+                        </div>
+                        {h.rejectionReason && (
+                          <div className="text-[10px] text-red-600 mt-1 italic">
+                            เหตุผลปฏิเสธ: {h.rejectionReason}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <Badge
                       variant="outline"
@@ -755,42 +871,44 @@ export default function ActivityPlanApprovalDetailView({
 
         {/* ─── 6. APPROVAL AUDIT LOGS ─── */}
         {plan.approvalLogs && plan.approvalLogs.length > 0 && (
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xs">
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-2.5">
-              <History className="h-4 w-4 text-slate-500" />
-              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                ประวัติการดำเนินการ (Approval Audit Logs)
-              </h4>
+          <div className="bg-gradient-to-br from-slate-50/80 via-white to-slate-50/40 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-xs">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
+              <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 border border-slate-200 shadow-2xs">
+                <History className="h-4 w-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  ประวัติการดำเนินการ (Approval Audit Logs)
+                </h4>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  บันทึกประวัติการส่งแผนงาน พิจารณา และอนุมัติตามลำดับขั้นตอน
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {plan.approvalLogs.map((log) => (
                 <div
                   key={log.id}
-                  className="bg-slate-50/70 p-3 rounded-xl border border-slate-100 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-1.5"
+                  className="bg-white p-3.5 rounded-xl border border-slate-200/80 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs hover:border-slate-300 transition-colors"
                 >
-                  <div className="space-y-0.5">
+                  <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-slate-900">
                         {log.user?.name || "ผู้ใช้งาน"}
                       </span>
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] px-1.5 py-0"
-                      >
-                        {log.action}
-                      </Badge>
+                      {renderAuditActionBadge(log.action)}
                     </div>
                     {log.comment && (
-                      <div className="text-slate-600 text-xs italic bg-white p-1.5 rounded border border-slate-100 mt-1">
+                      <div className="text-slate-600 text-xs italic bg-slate-50/80 p-2 rounded-lg border border-slate-100 mt-1">
                         &quot;{log.comment}&quot;
                       </div>
                     )}
                   </div>
-                  <div className="text-slate-400 text-[11px] whitespace-nowrap flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-slate-400" />
+                  <div className="text-slate-400 text-[11px] whitespace-nowrap flex items-center gap-1.5 self-end sm:self-center">
+                    <Clock className="w-3.5 h-3.5 text-slate-400" />
                     <span>
-                      {format(new Date(log.createdAt), "dd/MM/yyyy HH:mm", {
+                      {format(new Date(log.createdAt), "dd/MM/yyyy HH:mm น.", {
                         locale: th,
                       })}
                     </span>
