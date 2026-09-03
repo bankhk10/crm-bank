@@ -44,7 +44,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { formatVolumeValue } from "@/lib/volume-utils";
+import {
+  formatVolumeValue,
+  getVolumeOrWeightUnit,
+  roundNumber,
+} from "@/lib/volume-utils";
 import { DetailHero } from "@/components/custom/detail-hero";
 import { SectionHeader } from "@/components/custom/section-header";
 import { DetailItem } from "@/components/custom/detail-item";
@@ -104,6 +108,7 @@ interface TopProduct {
   totalQuantity: number;
   totalAmount: number;
   totalVolumeLiters: number;
+  volumeUnit?: "L" | "KG";
   orderCount: number;
 }
 
@@ -288,14 +293,20 @@ const topProductsColumns: ColumnDef<any>[] = [
     header: () => (
       <div className="flex items-center justify-end gap-1">
         <Droplets className="h-3.5 w-3.5 text-blue-500" />
-        ปริมาณ (L)
+        ปริมาณรวม
       </div>
     ),
-    cell: (info) => (
-      <span className="inline-flex items-center gap-1 font-semibold text-blue-600">
-        {formatVolume(info.getValue() as number)}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const volume = row.original.totalVolumeLiters;
+      const unit =
+        row.original.volumeUnit ||
+        getVolumeOrWeightUnit(row.original.product?.packageSizeUnit);
+      return (
+        <span className="inline-flex items-center gap-1 font-semibold text-blue-600">
+          {formatVolume(volume)} {unit}
+        </span>
+      );
+    },
     meta: { minWidth: 120, align: "right" },
   },
   {
@@ -921,19 +932,61 @@ export default function CustomerSalesDetailView({
                                 )}
                               </span>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Droplets className="h-3.5 w-3.5 text-blue-500" />
-                              <span className="text-slate-500">ปริมาณรวม:</span>
-                              <span className="font-bold text-blue-600">
-                                {formatVolume(
-                                  topProducts.reduce(
-                                    (acc, item) => acc + item.totalVolumeLiters,
+                            {(() => {
+                              const sumL = roundNumber(
+                                topProducts
+                                  .filter(
+                                    (item) =>
+                                      (item.volumeUnit ||
+                                        getVolumeOrWeightUnit(
+                                          item.product?.packageSizeUnit,
+                                        )) === "L",
+                                  )
+                                  .reduce(
+                                    (acc, item) =>
+                                      acc + (item.totalVolumeLiters || 0),
                                     0,
                                   ),
-                                )}{" "}
-                                L
-                              </span>
-                            </div>
+                                4,
+                              );
+                              const sumKg = roundNumber(
+                                topProducts
+                                  .filter(
+                                    (item) =>
+                                      (item.volumeUnit ||
+                                        getVolumeOrWeightUnit(
+                                          item.product?.packageSizeUnit,
+                                        )) === "KG",
+                                  )
+                                  .reduce(
+                                    (acc, item) =>
+                                      acc + (item.totalVolumeLiters || 0),
+                                    0,
+                                  ),
+                                4,
+                              );
+
+                              let summaryDisplay = "";
+                              if (sumL > 0 && sumKg > 0) {
+                                summaryDisplay = `${formatVolume(sumL)} L · ${formatVolume(sumKg)} KG`;
+                              } else if (sumKg > 0) {
+                                summaryDisplay = `${formatVolume(sumKg)} KG`;
+                              } else {
+                                summaryDisplay = `${formatVolume(sumL)} L`;
+                              }
+
+                              return (
+                                <div className="flex items-center gap-2">
+                                  <Droplets className="h-3.5 w-3.5 text-blue-500" />
+                                  <span className="text-slate-500">
+                                    ปริมาณรวม:
+                                  </span>
+                                  <span className="font-bold text-blue-600">
+                                    {summaryDisplay}
+                                  </span>
+                                </div>
+                              );
+                            })()}
                             <div className="flex items-center gap-2">
                               <span className="text-slate-500">
                                 ออเดอร์รวม:

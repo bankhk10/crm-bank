@@ -24,6 +24,32 @@ export interface VolumeCalculationItem {
 export interface VolumeCalculationResult {
   litersOrKgPerUnit: number;
   totalLitersOrKg: number;
+  unit: "L" | "KG";
+}
+
+/**
+ * Determine standard unit (L or KG) from raw unit string based on Export calculation logic.
+ */
+export function getVolumeOrWeightUnit(rawUnit?: string | null): "L" | "KG" {
+  const u = (rawUnit ?? "").trim().toUpperCase();
+  if (
+    [
+      "KG",
+      "กก.",
+      "กก",
+      "กิโลกรัม",
+      "KG.",
+      "KILO",
+      "KILOGRAM",
+      "G",
+      "กรัม",
+      "GM",
+      "GR",
+    ].includes(u)
+  ) {
+    return "KG";
+  }
+  return "L";
 }
 
 /**
@@ -106,10 +132,12 @@ export function calculateLitersOrKg(item: VolumeCalculationItem): VolumeCalculat
   const roundedPerUnit = roundNumber(convertedPerUnit, 4);
   const quantity = Number(item.quantity) || 0;
   const totalLitersOrKg = roundNumber(quantity * roundedPerUnit, 4);
+  const unit = getVolumeOrWeightUnit(rawUnit);
 
   return {
     litersOrKgPerUnit: roundedPerUnit,
     totalLitersOrKg: totalLitersOrKg,
+    unit: unit,
   };
 }
 

@@ -302,6 +302,7 @@ export async function GET(
       totalQuantity: number;
       totalAmount: number;
       totalVolumeLiters: number;
+      volumeUnit: "L" | "KG";
       orderCount: number;
     }
   >();
@@ -309,7 +310,7 @@ export async function GET(
   for (const item of saleItems) {
     if (!item.productId) continue;
 
-    const { totalLitersOrKg } = calculateLitersOrKg({
+    const { totalLitersOrKg, unit } = calculateLitersOrKg({
       quantity: item.quantity != null ? Number(item.quantity) : null,
       packageSize: item.packageSize != null ? Number(item.packageSize) : null,
       packageSizeUnit: item.packageSizeUnit,
@@ -356,6 +357,7 @@ export async function GET(
         totalQuantity: quantity,
         totalAmount: amount,
         totalVolumeLiters: totalLitersOrKg,
+        volumeUnit: unit,
         orderCount: 1,
       });
     }
