@@ -42,7 +42,11 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { ActivityStatusBadge, ActivityStatusWithOperator } from "../../ui/activity-status-badge";
+import {
+  ActivityStatusBadge,
+  ActivityStatusWithOperator,
+  canUserPerformApproval,
+} from "../../ui/activity-status-badge";
 import { getWorkTypeName } from "../../constants";
 import type { ActivityPlanWithRelations } from "../../types";
 import { getApprovalQueueDataAction } from "../../server/actions";
@@ -638,6 +642,7 @@ export default function ActivityPlanApprovalListView() {
                 key={plan.id}
                 plan={plan}
                 currentUserEmployeeId={userEmployeeId}
+                currentUser={session?.user}
                 isAdmin={isAdmin}
                 onAction={(type) => handleOpenActionDialog(plan, type)}
               />
@@ -785,7 +790,7 @@ export default function ActivityPlanApprovalListView() {
                                 ดูข้อมูล
                               </Button>
                             </Link>
-                            {isPending && (
+                            {canUserPerformApproval(plan, session?.user) && (
                               <>
                                 <Button
                                   variant="ghost"
@@ -842,6 +847,7 @@ export default function ActivityPlanApprovalListView() {
               key={plan.id}
               plan={plan}
               currentUserEmployeeId={userEmployeeId}
+              currentUser={session?.user}
               isAdmin={isAdmin}
               onAction={(type) => handleOpenActionDialog(plan, type)}
             />
@@ -1207,11 +1213,13 @@ function getTabCount(
 function PlanCard({
   plan,
   currentUserEmployeeId,
+  currentUser,
   isAdmin,
   onAction,
 }: {
   plan: ActivityPlanWithRelations;
   currentUserEmployeeId?: string | null;
+  currentUser?: any;
   isAdmin?: boolean;
   onAction: (type: ApprovalActionType) => void;
 }) {
@@ -1229,6 +1237,8 @@ function PlanCard({
   const isDirectApprover =
     plan.status === "PENDING_LINE_APPROVAL" &&
     plan.currentApproverEmployeeId === currentUserEmployeeId;
+
+  const canApprove = canUserPerformApproval(plan, currentUser);
 
   const isPending =
     plan.status === "PENDING_LINE_APPROVAL" ||
@@ -1392,7 +1402,7 @@ function PlanCard({
           </Button>
         </Link>
 
-        {isPending && (
+        {canApprove && (
           <div className="flex items-center gap-1.5">
             <Button
               variant="outline"

@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ActivityStatusBadge } from "../../../ui/activity-status-badge";
+import { ActivityStatusBadge, canUserPerformApproval } from "../../../ui/activity-status-badge";
 import { DetailViewHeader } from "../../detail-view/components/detail-view-header";
 import { DetailType12Tour } from "../../detail-view/components/work-types/detail-type12-tour";
 import { getWorkTypeName } from "../../../constants";
@@ -46,6 +46,7 @@ interface ApprovalDetailDrawerProps {
   onOpenChange: (open: boolean) => void;
   plan: ActivityPlanWithRelations | null;
   canApproveThisPlan?: boolean;
+  currentUser?: any;
   onTriggerAction?: (
     plan: ActivityPlanWithRelations,
     type: "APPROVE" | "REJECT" | "REQUEST_CORRECTION",
@@ -56,7 +57,8 @@ export function ApprovalDetailDrawer({
   open,
   onOpenChange,
   plan,
-  canApproveThisPlan = true,
+  canApproveThisPlan,
+  currentUser,
   onTriggerAction,
 }: ApprovalDetailDrawerProps) {
   if (!plan) return null;
@@ -199,6 +201,11 @@ export function ApprovalDetailDrawer({
   }
 
   const combinedProducts = [...normalizedProducts, ...additionalProducts];
+
+  const isActionEligible =
+    canApproveThisPlan !== undefined
+      ? canApproveThisPlan
+      : canUserPerformApproval(plan, currentUser);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -698,7 +705,7 @@ export function ApprovalDetailDrawer({
             ปิดหน้าต่าง
           </Button>
 
-          {isPending && canApproveThisPlan && onTriggerAction && (
+          {isPending && isActionEligible && onTriggerAction && (
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
               <span className="text-xs text-slate-500 font-medium hidden md:inline mr-2">
                 ตรวจสอบข้อมูลเรียบร้อยแล้ว:

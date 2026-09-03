@@ -29,7 +29,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ActivityStatusBadge, resolveCurrentOperator } from "@/modules/activity-plans/ui/activity-status-badge";
+import {
+  ActivityStatusBadge,
+  resolveCurrentOperator,
+  canUserPerformApproval,
+} from "@/modules/activity-plans/ui/activity-status-badge";
 import type { ActivityPlanWithRelations } from "../../types";
 import {
   getActivityPlanAction,
@@ -247,17 +251,7 @@ export default function ActivityPlanApprovalDetailView({
   }
 
   // Approval Eligibility Check
-  const isPendingStatus =
-    plan.status === "PENDING_LINE_APPROVAL" ||
-    plan.status === "PENDING_BUDGET_APPROVAL" ||
-    plan.status === "PENDING_HELPER_APPROVAL";
-
-  const isDirectLineApprover =
-    plan.status === "PENDING_LINE_APPROVAL" &&
-    plan.currentApproverEmployeeId === userEmployeeId;
-
-  const canPerformApproval =
-    isPendingStatus && (isAdmin || canManageOrApprove || isDirectLineApprover);
+  const canPerformApproval = canUserPerformApproval(plan, session?.user);
 
   // Tour (TYPE_12) resolution from Normalized Relational Source of Truth
   const isTourPlan = Boolean(

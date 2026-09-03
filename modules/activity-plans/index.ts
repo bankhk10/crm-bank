@@ -15,6 +15,7 @@ export {
   ActivityStatusWithOperator,
   resolveCurrentOperator,
   formatApproverRole,
+  canUserPerformApproval,
 } from "./ui/activity-status-badge";
 export { FormActionButtons } from "./ui/form-action-buttons";
 

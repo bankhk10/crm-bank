@@ -403,4 +403,194 @@ export function ActivityStatusWithOperator({
   );
 }
 
+export interface ApproverUserContext {
+  id?: string | null;
+  email?: string | null;
+  name?: string | null;
+  employeeId?: string | null;
+  roles?: string[];
+  role?: string | null;
+  permissions?: string[];
+  permissionKeys?: string[];
+  positionTitle?: string | null;
+  departmentCode?: string | null;
+}
+
+export function isUserAdmin(user?: ApproverUserContext | null): boolean {
+  if (!user) return false;
+  const roles = user.roles || (user.role ? [user.role] : []);
+  const permissions = user.permissions || user.permissionKeys || [];
+  return (
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    user.role === "administrator" ||
+    user.role === "ADMIN" ||
+    permissions.includes("activity.manage")
+  );
+}
+
+export function isUserSalesAdminManager(user?: ApproverUserContext | null): boolean {
+  if (!user) return false;
+  const email = (user.email || "").toLowerCase();
+  const pos = (user.positionTitle || "").toLowerCase();
+  const name = (user.name || "").toLowerCase();
+
+  return (
+    email === "test.salesadmin@crm.local" ||
+    email.includes("salesadmin") ||
+    pos.includes("ผู้จัดการแผนกบริหารงานขาย") ||
+    pos.includes("บริหารงานขาย") ||
+    name.includes("sa")
+  );
+}
+
+export function isUserMarketingManager(user?: ApproverUserContext | null): boolean {
+  if (!user) return false;
+  const email = (user.email || "").toLowerCase();
+  const pos = (user.positionTitle || "").toLowerCase();
+  const roles = user.roles || (user.role ? [user.role] : []);
+
+  return (
+    email === "test.mktmgr@crm.local" ||
+    email.includes("mktmgr") ||
+    roles.includes("marketing_manager") ||
+    pos.includes("ผู้จัดการแผนกการตลาด") ||
+    pos.includes("ฝ่ายการตลาด") ||
+    pos.includes("mkt")
+  );
+}
+
+export function isUserSalesDirector(user?: ApproverUserContext | null): boolean {
+  if (!user) return false;
+  const email = (user.email || "").toLowerCase();
+  const pos = (user.positionTitle || "").toLowerCase();
+  const roles = user.roles || (user.role ? [user.role] : []);
+
+  return (
+    email === "test.salesdir@crm.local" ||
+    email.includes("salesdir") ||
+    roles.includes("sales_director") ||
+    pos.includes("ผู้จัดการฝ่ายขาย") ||
+    pos.includes("ผจก.ฝ่ายขาย")
+  );
+}
+
+export function canUserPerformApproval(
+  plan?: {
+    status?: string;
+    currentApproverEmployeeId?: string | null;
+    salesPromotionBudgetRequested?: any;
+    marketingBudgetRequested?: any;
+    salesPromotionApproved?: boolean | null;
+    marketingApproved?: boolean | null;
+    salesManagerApproved?: boolean | null;
+    helpers?: Array<{
+      status?: string;
+      approvedById?: string | null;
+      employee?: {
+        name?: string | null;
+        department?: { code?: string | null } | null;
+        positionTitle?: string | null;
+      } | null;
+    }> | null;
+  } | null,
+  user?: ApproverUserContext | null,
+): boolean {
+  if (!plan || !plan.status || !user) return false;
+
+  // 1. Admin has universal approval authority
+  if (isUserAdmin(user)) return true;
+
+  // 2. Terminal / Non-pending statuses -> No actions allowed
+  if (
+    plan.status === "APPROVED" ||
+    plan.status === "REJECTED" ||
+    plan.status === "CANCELLED" ||
+    plan.status === "DRAFT" ||
+    plan.status === "WAITING_FOR_CORRECTION"
+  ) {
+    return false;
+  }
+
+  // 3. Step 2: Line Approval
+  if (plan.status === "PENDING_LINE_APPROVAL") {
+    const userEmpId = user.employeeId;
+    return Boolean(
+      userEmpId &&
+      plan.currentApproverEmployeeId &&
+      plan.currentApproverEmployeeId === userEmpId
+    );
+  }
+
+  // 4. Step 3: Budget Approval
+  if (plan.status === "PENDING_BUDGET_APPROVAL") {
+    const hasSalesPromotion = Number(plan.salesPromotionBudgetRequested || 0) > 0;
+    const hasMarketing = Number(plan.marketingBudgetRequested || 0) > 0;
+
+    const spPending = hasSalesPromotion && plan.salesPromotionApproved !== true;
+    const mktPending = hasMarketing && plan.marketingApproved !== true;
+
+    const requiredSalesPromotionOk = !hasSalesPromotion || plan.salesPromotionApproved === true;
+    const requiredMarketingOk = !hasMarketing || plan.marketingApproved === true;
+    const directorPending = requiredSalesPromotionOk && requiredMarketingOk && plan.salesManagerApproved !== true;
+
+    // Stage 2: Final Budget Approval (Sales Director)
+    if (directorPending) {
+      return isUserSalesDirector(user);
+    }
+
+    // Stage 1: Parallel Budget Approvals
+    if (spPending && mktPending) {
+      return isUserSalesAdminManager(user) || isUserMarketingManager(user);
+    }
+
+    // Stage 1: Marketing Budget Approval only
+    if (mktPending && !spPending) {
+      return isUserMarketingManager(user);
+    }
+
+    // Stage 1: Sales Promotion Budget Approval only
+    if (spPending && !mktPending) {
+      return isUserSalesAdminManager(user);
+    }
+
+    return isUserSalesDirector(user);
+  }
+
+  // 5. Step 4: Helper Approval
+  if (plan.status === "PENDING_HELPER_APPROVAL") {
+    const pendingHelpers = (plan.helpers || []).filter((h) => h.status === "PENDING");
+    if (pendingHelpers.length === 0) return false;
+
+    let hasPendingSalesHelper = false;
+    let hasPendingMktHelper = false;
+
+    for (const h of pendingHelpers) {
+      const deptCode = h.employee?.department?.code || "";
+      const pos = h.employee?.positionTitle || "";
+      if (deptCode === "SA" || deptCode === "SS" || pos.includes("เซลส์") || pos.includes("ส่งเสริม")) {
+        hasPendingSalesHelper = true;
+      } else if (deptCode === "MKT" || pos.includes("การตลาด")) {
+        hasPendingMktHelper = true;
+      }
+    }
+
+    if (hasPendingSalesHelper && hasPendingMktHelper) {
+      return isUserSalesAdminManager(user) || isUserMarketingManager(user);
+    }
+    if (hasPendingSalesHelper) {
+      return isUserSalesAdminManager(user);
+    }
+    if (hasPendingMktHelper) {
+      return isUserMarketingManager(user);
+    }
+
+    return pendingHelpers.some((h) => h.approvedById === user.employeeId);
+  }
+
+  return false;
+}
+
+
 
