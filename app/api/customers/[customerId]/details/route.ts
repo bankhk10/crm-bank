@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db } from "@/lib/db";
 import { isAuthorized } from "@/lib/rbac";
+import { applyDataScope } from "@/lib/data-scope";
+import type { Prisma, SaleStatus } from "@/lib/db";
 
 import { startOfDay, endOfDay, parseISO } from "date-fns";
 import { calculateLitersOrKg, roundNumber } from "@/lib/volume-utils";
@@ -24,28 +26,64 @@ export async function GET(
   }
 
   const url = new URL(request.url);
-  const startDateParam = url.searchParams.get("startDate");
-  const endDateParam = url.searchParams.get("endDate");
+  const startDateParam = url.searchParams.get("startDate") || url.searchParams.get("dateFrom");
+  const endDateParam = url.searchParams.get("endDate") || url.searchParams.get("dateTo");
+  const statusParam = url.searchParams.getAll("status");
+  const employeeIdParam = url.searchParams.get("employeeId");
 
-  // Build date filter for sales and promotional budget transactions
-  const dateFilter: { saleDate?: { gte?: Date; lte?: Date } } = {};
+  // Build date filter for promotional budget transactions
   const promoDateFilter: { transactionDate?: { gte?: Date; lte?: Date } } = {};
-
   if (startDateParam) {
-    const start = startOfDay(parseISO(startDateParam));
-    dateFilter.saleDate = { gte: start };
-    promoDateFilter.transactionDate = { gte: start };
+    promoDateFilter.transactionDate = { gte: startOfDay(parseISO(startDateParam)) };
   }
   if (endDateParam) {
-    const end = endOfDay(parseISO(endDateParam));
-    dateFilter.saleDate = {
-      ...dateFilter.saleDate,
-      lte: end,
-    };
     promoDateFilter.transactionDate = {
       ...promoDateFilter.transactionDate,
-      lte: end,
+      lte: endOfDay(parseISO(endDateParam)),
     };
+  }
+
+  // Data Scope / RBAC for sales
+  const saleExtraWhere: Record<string, unknown> = {};
+  await applyDataScope(saleExtraWhere, session, "sale");
+
+  // Date filter matching /sales (findSales in sale.repository.ts)
+  const saleDateWhere: { gte?: Date; lt?: Date } = {};
+  if (startDateParam) {
+    saleDateWhere.gte = new Date(startDateParam);
+  }
+  if (endDateParam) {
+    const d = new Date(endDateParam);
+    d.setDate(d.getDate() + 1);
+    saleDateWhere.lt = d;
+  }
+
+  // Status filter matching /sales
+  const statusList = statusParam
+    .flatMap((s) => s.split(","))
+    .map((s) => s.trim())
+    .filter(Boolean) as SaleStatus[];
+  let statusWhere: Prisma.SaleWhereInput["status"] = undefined;
+  if (statusList.length === 1) {
+    statusWhere = statusList[0];
+  } else if (statusList.length > 1) {
+    statusWhere = { in: statusList };
+  }
+
+  // Unified Base Sale Where matching /sales semantics
+  const baseSaleWhere: Prisma.SaleWhereInput = {
+    customerId: params.customerId,
+    deletedAt: null,
+    ...saleExtraWhere,
+  };
+  if (employeeIdParam) {
+    baseSaleWhere.employeeId = employeeIdParam;
+  }
+  if (statusWhere) {
+    baseSaleWhere.status = statusWhere;
+  }
+  if (startDateParam || endDateParam) {
+    baseSaleWhere.saleDate = saleDateWhere;
   }
 
   // Get customer with all related data
@@ -115,51 +153,34 @@ export async function GET(
 
   // Get sales statistics
   const salesStats = await db.sale.aggregate({
-    where: {
-      customerId: params.customerId,
-      deletedAt: null,
-      status: {
-        in: [
-          "APPROVED",
-          "PAID",
-          "AWAITING_DELIVERY",
-          "DELIVERY_COMPLETED",
-          "COMPLETED",
-        ],
-      },
-      ...dateFilter,
-    },
+    where: baseSaleWhere,
     _sum: { totalAmount: true },
     _count: true,
     _avg: { totalAmount: true },
   });
 
   // Get lifetime value (all time)
+  const lifetimeSaleWhere: Prisma.SaleWhereInput = {
+    customerId: params.customerId,
+    deletedAt: null,
+    ...saleExtraWhere,
+  };
+  if (statusWhere) {
+    lifetimeSaleWhere.status = statusWhere;
+  }
+  if (employeeIdParam) {
+    lifetimeSaleWhere.employeeId = employeeIdParam;
+  }
+
   const lifetimeStats = await db.sale.aggregate({
-    where: {
-      customerId: params.customerId,
-      deletedAt: null,
-      status: {
-        in: [
-          "APPROVED",
-          "PAID",
-          "AWAITING_DELIVERY",
-          "DELIVERY_COMPLETED",
-          "COMPLETED",
-        ],
-      },
-    },
+    where: lifetimeSaleWhere,
     _sum: { totalAmount: true },
     _count: true,
   });
 
   // Get recent transactions (filtered by date range if specified)
   const recentSales = await db.sale.findMany({
-    where: {
-      customerId: params.customerId,
-      deletedAt: null,
-      ...dateFilter,
-    },
+    where: baseSaleWhere,
     orderBy: { saleDate: "desc" },
     ...(startDateParam || endDateParam ? {} : { take: 10 }),
     select: {
@@ -197,19 +218,7 @@ export async function GET(
 
   // Get last purchase date
   const lastPurchase = await db.sale.findFirst({
-    where: {
-      customerId: params.customerId,
-      deletedAt: null,
-      status: {
-        in: [
-          "APPROVED",
-          "PAID",
-          "AWAITING_DELIVERY",
-          "DELIVERY_COMPLETED",
-          "COMPLETED",
-        ],
-      },
-    },
+    where: lifetimeSaleWhere,
     orderBy: { saleDate: "desc" },
     select: { saleDate: true },
   });
@@ -229,18 +238,8 @@ export async function GET(
   const purchaseFrequencyData = await db.sale.groupBy({
     by: ["customerId"],
     where: {
-      customerId: params.customerId,
-      deletedAt: null,
+      ...lifetimeSaleWhere,
       saleDate: { gte: twelveMonthsAgo },
-      status: {
-        in: [
-          "APPROVED",
-          "PAID",
-          "AWAITING_DELIVERY",
-          "DELIVERY_COMPLETED",
-          "COMPLETED",
-        ],
-      },
     },
     _count: true,
   });
@@ -250,22 +249,10 @@ export async function GET(
   // Get product purchase history grouped by product with volume calculation
   const saleItems = await db.saleItem.findMany({
     where: {
-      sale: {
-        customerId: params.customerId,
-        deletedAt: null,
-        status: {
-          in: [
-            "APPROVED",
-            "PAID",
-            "AWAITING_DELIVERY",
-            "DELIVERY_COMPLETED",
-            "COMPLETED",
-          ],
-        },
-        ...dateFilter,
-      },
+      sale: baseSaleWhere,
     },
     select: {
+      saleId: true,
       productId: true,
       quantity: true,
       totalPrice: true,
@@ -303,12 +290,17 @@ export async function GET(
       totalAmount: number;
       totalVolumeLiters: number;
       volumeUnit: "L" | "KG";
-      orderCount: number;
+      saleIds: Set<string>;
     }
   >();
 
+  const allDistinctSaleIds = new Set<string>();
+
   for (const item of saleItems) {
     if (!item.productId) continue;
+    if (item.saleId) {
+      allDistinctSaleIds.add(item.saleId);
+    }
 
     const { totalLitersOrKg, unit } = calculateLitersOrKg({
       quantity: item.quantity != null ? Number(item.quantity) : null,
@@ -339,7 +331,9 @@ export async function GET(
         existing.totalVolumeLiters + totalLitersOrKg,
         4,
       );
-      existing.orderCount += 1;
+      if (item.saleId) {
+        existing.saleIds.add(item.saleId);
+      }
     } else {
       productAggMap.set(item.productId, {
         product: {
@@ -358,21 +352,29 @@ export async function GET(
         totalAmount: amount,
         totalVolumeLiters: totalLitersOrKg,
         volumeUnit: unit,
-        orderCount: 1,
+        saleIds: new Set(item.saleId ? [item.saleId] : []),
       });
     }
   }
 
-  const topProducts = Array.from(productAggMap.values()).sort(
-    (a, b) => b.totalAmount - a.totalAmount,
-  );
+  const topProducts = Array.from(productAggMap.values())
+    .map((p) => ({
+      product: p.product,
+      totalQuantity: p.totalQuantity,
+      totalAmount: p.totalAmount,
+      totalVolumeLiters: p.totalVolumeLiters,
+      volumeUnit: p.volumeUnit,
+      orderCount: p.saleIds.size,
+    }))
+    .sort((a, b) => b.totalAmount - a.totalAmount);
 
+  const distinctOrderCount = allDistinctSaleIds.size;
 
   return NextResponse.json({
     customer,
     kpi: {
       totalSales: Number(salesStats._sum.totalAmount || 0),
-      orderCount: salesStats._count,
+      orderCount: distinctOrderCount,
       averageOrderValue: Number(salesStats._avg.totalAmount || 0),
       lifetimeValue: Number(lifetimeStats._sum.totalAmount || 0),
       lifetimeOrderCount: lifetimeStats._count,
@@ -382,6 +384,7 @@ export async function GET(
     },
     recentSales,
     topProducts,
+    distinctOrderCount,
   });
 }
 

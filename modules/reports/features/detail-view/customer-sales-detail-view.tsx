@@ -483,6 +483,7 @@ export default function CustomerSalesDetailView({
   const searchParams = useSearchParams();
   const startDateParam = searchParams.get("startDate");
   const endDateParam = searchParams.get("endDate");
+  const statusParam = searchParams.get("status");
 
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("store-info");
@@ -491,6 +492,7 @@ export default function CustomerSalesDetailView({
     kpi: CustomerKPI;
     recentSales: RecentSale[];
     topProducts: TopProduct[];
+    distinctOrderCount?: number;
   } | null>(null);
 
   // Pagination for Top Products
@@ -513,6 +515,7 @@ export default function CustomerSalesDetailView({
       const params = new URLSearchParams();
       if (startDateParam) params.set("startDate", startDateParam);
       if (endDateParam) params.set("endDate", endDateParam);
+      if (statusParam) params.set("status", statusParam);
       const queryStr = params.toString();
 
       const response = await fetch(
@@ -527,7 +530,7 @@ export default function CustomerSalesDetailView({
     } finally {
       setLoading(false);
     }
-  }, [customerId, startDateParam, endDateParam]);
+  }, [customerId, startDateParam, endDateParam, statusParam]);
 
   useEffect(() => {
     fetchCustomerDetails();
@@ -993,10 +996,9 @@ export default function CustomerSalesDetailView({
                               </span>
                               <span className="font-bold text-slate-900">
                                 {formatNumber(
-                                  topProducts.reduce(
-                                    (acc, item) => acc + item.orderCount,
+                                  customerData?.distinctOrderCount ??
+                                    customerData?.kpi?.orderCount ??
                                     0,
-                                  ),
                                 )}
                               </span>
                             </div>
