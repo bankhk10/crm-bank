@@ -7,19 +7,19 @@ import {
 
 // ============================================================================
 // Permission Groups - Hierarchical Structure
-// แต่ละโมดูลจะมี menu, actions, data แยกชัดเจน
+// แต่ละโมดูลจะมี menu, actions, data แยกชัดเจน (Sync ตรงกับ Production Database 100%)
 // ============================================================================
 
 type PermissionDef = {
   key: string;
   name: string;
-  resource: string; // Mandatory Grouping Field
+  resource: string;
   category?: "MENU" | "ACTION" | "DATA";
-  menuPath?: string;
-  action?: string;
-  defaultDataAccess?: DataAccessLevel;
-  defaultEditAccess?: EditAccessLevel;
-  defaultDeleteAccess?: DeleteAccessLevel;
+  menuPath?: string | null;
+  action?: string | null;
+  defaultDataAccess?: DataAccessLevel | null;
+  defaultEditAccess?: EditAccessLevel | null;
+  defaultDeleteAccess?: DeleteAccessLevel | null;
 };
 
 type PermissionGroup = {
@@ -35,11 +35,11 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // ─────────────────────────────────────────────
   dashboard: {
     menu: {
-      key: "menu.dashboard.admin",
-      name: "เมนูแดชบอร์ดผู้บริหาร",
-      resource: "dashboard",
-      menuPath: "/dashboard/admin",
-    },
+        key: "menu.dashboard.admin",
+        name: "เมนูแดชบอร์ดผู้บริหาร",
+        resource: "dashboard",
+        menuPath: "/dashboard/admin",
+      },
     subMenus: [
       {
         key: "menu.dashboard.manager",
@@ -59,6 +59,11 @@ const permissionGroups: Record<string, PermissionGroup> = {
         resource: "show_product",
         menuPath: "/show-product",
       },
+      {
+        key: "menu.show_product.edit",
+        name: "จัดการรูปสินค้าหน้าแรก",
+        resource: "",
+      },
     ],
   },
 
@@ -67,19 +72,19 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // ─────────────────────────────────────────────
   reports: {
     menu: {
-      key: "menu.reports",
-      name: "เมนูรายงาน",
-      resource: "report",
-      menuPath: "/reports",
-    },
+        key: "menu.reports",
+        name: "เมนูรายงาน",
+        resource: "report",
+        menuPath: "/reports",
+      },
     data: {
-      key: "data.reports",
-      name: "ขอบเขตข้อมูลรายงาน",
-      resource: "report",
-      defaultDataAccess: DataAccessLevel.VIEW_OWN,
-      defaultEditAccess: EditAccessLevel.EDIT_NONE,
-      defaultDeleteAccess: DeleteAccessLevel.DELETE_NONE,
-    },
+        key: "data.reports",
+        name: "ขอบเขตข้อมูลรายงาน",
+        resource: "report",
+        defaultDataAccess: DataAccessLevel.VIEW_OWN,
+        defaultEditAccess: EditAccessLevel.EDIT_NONE,
+        defaultDeleteAccess: DeleteAccessLevel.DELETE_NONE,
+      },
     subMenus: [
       {
         key: "menu.sales",
@@ -128,6 +133,7 @@ const permissionGroups: Record<string, PermissionGroup> = {
         name: "รายงานภาพรวมผู้บริหาร",
         resource: "report",
         menuPath: "/reports/dashboard",
+        defaultDataAccess: DataAccessLevel.VIEW_ALL,
       },
     ],
     actions: [
@@ -159,35 +165,31 @@ const permissionGroups: Record<string, PermissionGroup> = {
   },
 
   // ─────────────────────────────────────────────
-  // 📥 Exports (การส่งออกข้อมูล)
-  // ─────────────────────────────────────────────
-  exports: {
-    menu: {
-      key: "menu.exports",
-      name: "เมนูส่งออกข้อมูล",
-      resource: "export",
-      menuPath: "/exports",
-    },
-    actions: [
-      {
-        key: "export.sales_admin",
-        name: "ส่งออกข้อมูลการขาย (ธุรการขาย)",
-        resource: "export",
-        action: "export",
-      },
-    ],
-  },
-
-  // ─────────────────────────────────────────────
-  // 🛒 Sales (การขาย)
+  // 💰 Sales & Sales Targets (การขายและเป้าหมาย)
   // ─────────────────────────────────────────────
   sales: {
-    menu: {
-      key: "menu.sales",
-      name: "เมนูการขาย",
-      resource: "sale",
-      menuPath: "/reports/salesReport",
-    },
+    data: {
+        key: "data.sales",
+        name: "ขอบเขตข้อมูลการขาย",
+        resource: "sale",
+        defaultDataAccess: DataAccessLevel.VIEW_OWN,
+        defaultEditAccess: EditAccessLevel.EDIT_OWN,
+        defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
+      },
+    subMenus: [
+      {
+        key: "menu.sales_forecast",
+        name: "เมนูการคาดการณ์ยอดขาย",
+        resource: "sales_forecast",
+        menuPath: "/sales-forecast",
+      },
+      {
+        key: "menu.sales_targets",
+        name: "เมนูตั้งเป้าหมายยอดขาย",
+        resource: "sales_target",
+        menuPath: "/sales-targets",
+      },
+    ],
     actions: [
       {
         key: "sale.create",
@@ -202,16 +204,16 @@ const permissionGroups: Record<string, PermissionGroup> = {
         action: "edit",
       },
       {
-        key: "sale.view",
-        name: "ดูรายละเอียดใบขาย",
-        resource: "sale",
-        action: "view",
-      },
-      {
         key: "sale.delete",
         name: "ลบใบขาย",
         resource: "sale",
         action: "delete",
+      },
+      {
+        key: "sale.view",
+        name: "ดูรายละเอียดใบขาย",
+        resource: "sale",
+        action: "view",
       },
       {
         key: "sale.approve",
@@ -225,39 +227,71 @@ const permissionGroups: Record<string, PermissionGroup> = {
         resource: "sale",
         action: "confirm_payment",
       },
+      {
+        key: "sales_target.create",
+        name: "สร้างเป้าหมายยอดขาย",
+        resource: "sales_target",
+        action: "create",
+      },
+      {
+        key: "sales_target.edit",
+        name: "แก้ไขเป้าหมายยอดขาย",
+        resource: "sales_target",
+        action: "edit",
+      },
+      {
+        key: "sales_target.view",
+        name: "ดูเป้าหมายยอดขาย",
+        resource: "sales_target",
+        action: "view",
+      },
+      {
+        key: "sales_target.delete",
+        name: "ลบเป้าหมายยอดขาย",
+        resource: "sales_target",
+        action: "delete",
+      },
     ],
-    data: {
-      key: "data.sales",
-      name: "ขอบเขตข้อมูลการขาย",
-      resource: "sale",
-      defaultDataAccess: DataAccessLevel.VIEW_OWN,
-      defaultEditAccess: EditAccessLevel.EDIT_OWN,
-      defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
-    },
   },
 
   // ─────────────────────────────────────────────
-  // 🚚 Fulfillment (จัดส่งสินค้า)
+  // 🎯 Sales Target Data Scope
+  // ─────────────────────────────────────────────
+  salesTargetData: {
+    data: {
+        key: "data.sales_targets",
+        name: "ขอบเขตข้อมูลเป้าหมายยอดขาย",
+        resource: "sales_target",
+        defaultDataAccess: DataAccessLevel.VIEW_OWN,
+        defaultEditAccess: EditAccessLevel.EDIT_OWN,
+        defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
+      },
+  },
+
+  // ─────────────────────────────────────────────
+  // 📦 Fulfillment (การจัดส่ง)
   // ─────────────────────────────────────────────
   fulfillment: {
     menu: {
-      key: "menu.fulfillment",
-      name: "เมนูจัดส่งสินค้า",
-      resource: "fulfillment",
-      menuPath: "/fulfillment",
-    },
+        key: "menu.fulfillment",
+        name: "เมนูจัดส่งสินค้า",
+        resource: "fulfillment",
+        menuPath: "/fulfillment",
+      },
+    actions: [
+    ],
   },
 
   // ─────────────────────────────────────────────
-  // 📦 Products (สินค้า)
+  // 🧴 Products & Stock (สินค้าและสต็อก)
   // ─────────────────────────────────────────────
   products: {
     menu: {
-      key: "menu.products",
-      name: "เมนูสินค้า",
-      resource: "product",
-      menuPath: "/products",
-    },
+        key: "menu.products",
+        name: "เมนูสินค้า",
+        resource: "product",
+        menuPath: "/products",
+      },
     actions: [
       {
         key: "product.create",
@@ -284,6 +318,12 @@ const permissionGroups: Record<string, PermissionGroup> = {
         action: "view",
       },
       {
+        key: "product.export",
+        name: "ส่งออกสินค้า",
+        resource: "product",
+        action: "export",
+      },
+      {
         key: "product.manage",
         name: "จัดการสินค้า (ราคา, สต็อก, โปรโมชั่น)",
         resource: "product",
@@ -296,16 +336,22 @@ const permissionGroups: Record<string, PermissionGroup> = {
         action: "stock_view",
       },
       {
-        key: "product.export",
-        name: "ส่งออกสินค้า",
-        resource: "product",
-        action: "export",
-      },
-      {
         key: "product.approve",
         name: "อนุมัติสินค้า",
         resource: "product",
-        action: "approve",
+      },
+      {
+        key: "product.copy",
+        name: "คัดลอกสินค้า",
+        resource: "product",
+        menuPath: "product/copy",
+        defaultDataAccess: DataAccessLevel.VIEW_ALL,
+      },
+      {
+        key: "stock.lot.manage",
+        name: "เพิ่มสต็อก",
+        resource: "product",
+        menuPath: "/products",
       },
     ],
   },
@@ -315,11 +361,19 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // ─────────────────────────────────────────────
   customers: {
     menu: {
-      key: "menu.customers",
-      name: "เมนูลูกค้า",
-      resource: "customer",
-      menuPath: "/customers",
-    },
+        key: "menu.customers",
+        name: "เมนูลูกค้า",
+        resource: "customer",
+        menuPath: "/customers",
+      },
+    data: {
+        key: "data.customers",
+        name: "ขอบเขตข้อมูลลูกค้า",
+        resource: "customer",
+        defaultDataAccess: DataAccessLevel.VIEW_OWN,
+        defaultEditAccess: EditAccessLevel.EDIT_OWN,
+        defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
+      },
     actions: [
       {
         key: "customer.create.dealer",
@@ -424,52 +478,6 @@ const permissionGroups: Record<string, PermissionGroup> = {
         action: "export",
       },
     ],
-    data: {
-      key: "data.customers",
-      name: "ขอบเขตข้อมูลลูกค้า",
-      resource: "customer",
-      defaultDataAccess: DataAccessLevel.VIEW_OWN,
-      defaultEditAccess: EditAccessLevel.EDIT_OWN,
-      defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
-    },
-  },
-
-  // ─────────────────────────────────────────────
-  // 🏢 Companies (บริษัท)
-  // ─────────────────────────────────────────────
-  companies: {
-    menu: {
-      key: "menu.companies",
-      name: "เมนูบริษัท",
-      resource: "company",
-      menuPath: "/companies",
-    },
-    actions: [
-      {
-        key: "company.view",
-        name: "ดูรายละเอียดบริษัท",
-        resource: "company",
-        action: "view",
-      },
-      {
-        key: "company.create",
-        name: "สร้างบริษัท",
-        resource: "company",
-        action: "create",
-      },
-      {
-        key: "company.edit",
-        name: "แก้ไขบริษัท",
-        resource: "company",
-        action: "edit",
-      },
-      {
-        key: "company.delete",
-        name: "ลบบริษัท",
-        resource: "company",
-        action: "delete",
-      },
-    ],
   },
 
   // ─────────────────────────────────────────────
@@ -477,11 +485,19 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // ─────────────────────────────────────────────
   creditLimits: {
     menu: {
-      key: "menu.credit_limits",
-      name: "เมนูวงเงินเครดิต",
-      resource: "creditlimit",
-      menuPath: "/credit-limits",
-    },
+        key: "menu.credit_limits",
+        name: "เมนูวงเงินเครดิต",
+        resource: "creditlimit",
+        menuPath: "/credit-limits",
+      },
+    data: {
+        key: "data.creditlimits",
+        name: "ขอบเขตข้อมูลวงเงินเครดิต",
+        resource: "creditlimit",
+        defaultDataAccess: DataAccessLevel.VIEW_OWN,
+        defaultEditAccess: EditAccessLevel.EDIT_OWN,
+        defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
+      },
     actions: [
       {
         key: "creditlimit.create",
@@ -496,26 +512,26 @@ const permissionGroups: Record<string, PermissionGroup> = {
         action: "edit",
       },
     ],
-    data: {
-      key: "data.creditlimits",
-      name: "ขอบเขตข้อมูลวงเงินเครดิต",
-      resource: "creditlimit",
-      defaultDataAccess: DataAccessLevel.VIEW_OWN,
-      defaultEditAccess: EditAccessLevel.EDIT_OWN,
-      defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
-    },
   },
 
   // ─────────────────────────────────────────────
-  // 💳 Temporary Credit Limits (วงเงินเครดิตชั่วคราว)
+  // ⏱️ Temporary Credit Limits (วงเงินชั่วคราว)
   // ─────────────────────────────────────────────
   temporaryCreditLimits: {
     menu: {
-      key: "menu.temporary_credit_limits",
-      name: "เมนูวงเงินเครดิตชั่วคราว",
-      resource: "temporary_creditlimit",
-      menuPath: "/temporary-credit-limits",
-    },
+        key: "menu.temporary_credit_limits",
+        name: "เมนูวงเงินเครดิตชั่วคราว",
+        resource: "temporary_creditlimit",
+        menuPath: "/temporary-credit-limits",
+      },
+    data: {
+        key: "data.temporary_creditlimits",
+        name: "ขอบเขตข้อมูลวงเงินเครดิตชั่วคราว",
+        resource: "temporary_creditlimit",
+        defaultDataAccess: DataAccessLevel.VIEW_OWN,
+        defaultEditAccess: EditAccessLevel.EDIT_OWN,
+        defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
+      },
     actions: [
       {
         key: "temporary_creditlimit.create",
@@ -548,26 +564,58 @@ const permissionGroups: Record<string, PermissionGroup> = {
         action: "approve",
       },
     ],
-    data: {
-      key: "data.temporary_creditlimits",
-      name: "ขอบเขตข้อมูลวงเงินเครดิตชั่วคราว",
-      resource: "temporary_creditlimit",
-      defaultDataAccess: DataAccessLevel.VIEW_OWN,
-      defaultEditAccess: EditAccessLevel.EDIT_OWN,
-      defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
-    },
   },
 
   // ─────────────────────────────────────────────
-  // 👨‍💼 Employees (พนักงาน)
+  // 🚚 Shipping Companies (บริษัทขนส่ง)
+  // ─────────────────────────────────────────────
+  shippingCompanies: {
+    menu: {
+        key: "menu.shipping-companies",
+        name: "เมนูบริษัทขนส่ง",
+        resource: "shipping-company",
+        menuPath: "/shipping-companies",
+      },
+    actions: [
+      {
+        key: "shipping-company.create",
+        name: "สร้างบริษัทขนส่ง",
+        resource: "shipping-company",
+        action: "create",
+      },
+      {
+        key: "shipping-company.edit",
+        name: "แก้ไขบริษัทขนส่ง",
+        resource: "shipping-company",
+        action: "edit",
+      },
+      {
+        key: "shipping-company.delete",
+        name: "ลบบริษัทขนส่ง",
+        resource: "shipping-company",
+        action: "delete",
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────
+  // 👔 Employees (พนักงาน)
   // ─────────────────────────────────────────────
   employees: {
     menu: {
-      key: "menu.employees",
-      name: "เมนูพนักงาน",
-      resource: "employee",
-      menuPath: "/employee",
-    },
+        key: "menu.employees",
+        name: "เมนูพนักงาน",
+        resource: "employee",
+        menuPath: "/employee",
+      },
+    data: {
+        key: "data.employees",
+        name: "ขอบเขตข้อมูลพนักงาน",
+        resource: "employee",
+        defaultDataAccess: DataAccessLevel.VIEW_OWN,
+        defaultEditAccess: EditAccessLevel.EDIT_OWN,
+        defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
+      },
     actions: [
       {
         key: "employee.create",
@@ -594,14 +642,44 @@ const permissionGroups: Record<string, PermissionGroup> = {
         action: "view",
       },
     ],
-    data: {
-      key: "data.employees",
-      name: "ขอบเขตข้อมูลพนักงาน",
-      resource: "employee",
-      defaultDataAccess: DataAccessLevel.VIEW_OWN,
-      defaultEditAccess: EditAccessLevel.EDIT_OWN,
-      defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
-    },
+  },
+
+  // ─────────────────────────────────────────────
+  // 🏢 Companies (บริษัท)
+  // ─────────────────────────────────────────────
+  companies: {
+    menu: {
+        key: "menu.companies",
+        name: "เมนูบริษัท",
+        resource: "company",
+        menuPath: "/companies",
+      },
+    actions: [
+      {
+        key: "company.create",
+        name: "สร้างบริษัท",
+        resource: "company",
+        action: "create",
+      },
+      {
+        key: "company.edit",
+        name: "แก้ไขบริษัท",
+        resource: "company",
+        action: "edit",
+      },
+      {
+        key: "company.delete",
+        name: "ลบบริษัท",
+        resource: "company",
+        action: "delete",
+      },
+      {
+        key: "company.view",
+        name: "ดูรายละเอียดบริษัท",
+        resource: "company",
+        action: "view",
+      },
+    ],
   },
 
   // ─────────────────────────────────────────────
@@ -609,17 +687,23 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // ─────────────────────────────────────────────
   rbac: {
     menu: {
-      key: "menu.rbac",
-      name: "เมนูจัดการสิทธิ์",
-      resource: "rbac",
-      menuPath: "/rbac",
-    },
+        key: "menu.rbac",
+        name: "เมนูจัดการสิทธิ์",
+        resource: "rbac",
+        menuPath: "/rbac",
+      },
     actions: [
       {
         key: "rbac.manage",
         name: "จัดการสิทธิ์ผู้ใช้",
         resource: "rbac",
         action: "manage",
+      },
+      {
+        key: "rbac.permission.assign",
+        name: "กำหนด Permission ให้ Role",
+        resource: "rbac",
+        action: "permission_assign",
       },
       {
         key: "rbac.role.create",
@@ -640,12 +724,6 @@ const permissionGroups: Record<string, PermissionGroup> = {
         action: "role_delete",
       },
       {
-        key: "rbac.permission.assign",
-        name: "กำหนด Permission ให้ Role",
-        resource: "rbac",
-        action: "permission_assign",
-      },
-      {
         key: "rbac.user.override",
         name: "Override สิทธิ์ผู้ใช้",
         resource: "rbac",
@@ -659,11 +737,11 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // ─────────────────────────────────────────────
   announcements: {
     menu: {
-      key: "menu.announcements",
-      name: "เมนูจัดการ Popup",
-      resource: "announcement",
-      menuPath: "/admin/login-announcements",
-    },
+        key: "menu.announcements",
+        name: "เมนูจัดการ Popup",
+        resource: "announcement",
+        menuPath: "/admin/login-announcements",
+      },
     actions: [
       {
         key: "announcement.manage",
@@ -675,15 +753,15 @@ const permissionGroups: Record<string, PermissionGroup> = {
   },
 
   // ─────────────────────────────────────────────
-  // ⚙️ Admin / System (ตั้งค่าระบบ)
+  // ⚙️ System (ระบบ)
   // ─────────────────────────────────────────────
-  admin: {
+  system: {
     menu: {
-      key: "menu.admin",
-      name: "เมนูตั้งค่าระบบ",
-      resource: "system",
-      menuPath: "/admin",
-    },
+        key: "menu.admin",
+        name: "เมนูตั้งค่าระบบ",
+        resource: "system",
+        menuPath: "/admin",
+      },
     actions: [
       {
         key: "system.audit_log",
@@ -707,108 +785,36 @@ const permissionGroups: Record<string, PermissionGroup> = {
   },
 
   // ─────────────────────────────────────────────
-  // 📊 Sales Forecast (คาดการณ์ยอดขาย)
+  // 📤 Exports (ส่งออกข้อมูล)
   // ─────────────────────────────────────────────
-  salesForecast: {
+  exports: {
     menu: {
-      key: "menu.sales_forecast",
-      name: "เมนูการคาดการณ์ยอดขาย",
-      resource: "sales_forecast",
-      menuPath: "/sales-forecast",
-    },
-  },
-
-  // ─────────────────────────────────────────────
-  // 🎯 Sales Targets (เป้าหมายยอดขาย)
-  // ─────────────────────────────────────────────
-  salesTargets: {
-    menu: {
-      key: "menu.sales_targets",
-      name: "เมนูตั้งเป้าหมายยอดขาย",
-      resource: "sales_target",
-      menuPath: "/sales-targets",
-    },
+        key: "menu.exports",
+        name: "เมนูส่งออกข้อมูล",
+        resource: "export",
+        menuPath: "/exports",
+      },
     actions: [
       {
-        key: "sales_target.view",
-        name: "ดูเป้าหมายยอดขาย",
-        resource: "sales_target",
-        action: "view",
-      },
-      {
-        key: "sales_target.create",
-        name: "สร้างเป้าหมายยอดขาย",
-        resource: "sales_target",
-        action: "create",
-      },
-      {
-        key: "sales_target.edit",
-        name: "แก้ไขเป้าหมายยอดขาย",
-        resource: "sales_target",
-        action: "edit",
-      },
-      {
-        key: "sales_target.delete",
-        name: "ลบเป้าหมายยอดขาย",
-        resource: "sales_target",
-        action: "delete",
-      },
-    ],
-    data: {
-      key: "data.sales_targets",
-      name: "ขอบเขตข้อมูลเป้าหมายยอดขาย",
-      resource: "sales_target",
-      defaultDataAccess: DataAccessLevel.VIEW_OWN,
-      defaultEditAccess: EditAccessLevel.EDIT_OWN,
-      defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
-    },
-  },
-
-  // ─────────────────────────────────────────────
-  // 🚛 Shipping Companies (บริษัทขนส่ง)
-  // ─────────────────────────────────────────────
-  shippingCompanies: {
-    menu: {
-      key: "menu.shipping-companies",
-      name: "เมนูบริษัทขนส่ง",
-      resource: "shipping-company",
-      menuPath: "/shipping-companies",
-    },
-    actions: [
-      {
-        key: "shipping-company.create",
-        name: "สร้างบริษัทขนส่ง",
-        resource: "shipping-company",
-        action: "create",
-      },
-      {
-        key: "shipping-company.edit",
-        name: "แก้ไขบริษัทขนส่ง",
-        resource: "shipping-company",
-        action: "edit",
-      },
-      {
-        key: "shipping-company.delete",
-        name: "ลบบริษัทขนส่ง",
-        resource: "shipping-company",
-        action: "delete",
+        key: "export.sales_admin",
+        name: "ส่งออกข้อมูลการขาย (ธุรการขาย)",
+        resource: "export",
+        action: "export",
       },
     ],
   },
+
+  // ─────────────────────────────────────────────
+  // 🧪 Test Activity (เมนูทดสอบกิจกรรม)
+  // ─────────────────────────────────────────────
   testActivity: {
     menu: {
-      key: "menu.test_activity",
-      name: "เมนูทดสอบกิจกรรม",
-      resource: "test_activity",
-      menuPath: "/test-activity",
-    },
-    subMenus: [
-      {
-        key: "menu.test_activity.reports",
-        name: "รายงานกิจกรรม",
+        key: "menu.test_activity",
+        name: "เมนูทดสอบกิจกรรม",
         resource: "test_activity",
-        menuPath: "/test-activity/reports",
+        menuPath: "/test-activity",
       },
+    subMenus: [
       {
         key: "menu.test_activity.trip_plan",
         name: "รายงานแผนการออกปฏิบัติงาน (Trip Plan)",
@@ -833,137 +839,45 @@ const permissionGroups: Record<string, PermissionGroup> = {
         resource: "test_activity",
         menuPath: "/test-activity/customer-report",
       },
-    ],
-  },
-
-  // ─────────────────────────────────────────────
-  // 📋 Activity Plans (การวางแผนกิจกรรม)
-  // ─────────────────────────────────────────────
-  activityPlans: {
-    menu: {
-      key: "menu.activity_plans",
-      name: "เมนูการวางแผนกิจกรรม",
-      resource: "activity_plan",
-      menuPath: "/activity-plans",
-    },
-    actions: [
       {
-        key: "activity.create",
-        name: "สร้างแผนกิจกรรม",
-        resource: "activity_plan",
-        action: "create",
-      },
-      {
-        key: "activity.edit",
-        name: "แก้ไขแผนกิจกรรม",
-        resource: "activity_plan",
-        action: "edit",
-      },
-      {
-        key: "activity.delete",
-        name: "ลบแผนกิจกรรม",
-        resource: "activity_plan",
-        action: "delete",
-      },
-      {
-        key: "activity.view",
-        name: "ดูแผนกิจกรรม",
-        resource: "activity_plan",
-        action: "view",
-      },
-      {
-        key: "activity.approve",
-        name: "อนุมัติแผนกิจกรรม",
-        resource: "activity_plan",
-        action: "approve",
-      },
-      {
-        key: "activity.manage",
-        name: "จัดการแผนกิจกรรมทั้งหมด",
-        resource: "activity_plan",
-        action: "manage",
+        key: "menu.test_activity.reports",
+        name: "รายงานกิจกรรม",
+        resource: "test_activity",
+        menuPath: "/test-activity/reports",
       },
     ],
-    data: {
-      key: "data.activity_plans",
-      name: "ขอบเขตข้อมูลแผนกิจกรรม",
-      resource: "activity_plan",
-      defaultDataAccess: DataAccessLevel.VIEW_OWN,
-      defaultEditAccess: EditAccessLevel.EDIT_OWN,
-      defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
-    },
-  },
-
-  // ─────────────────────────────────────────────
-  // 🏷️ Promotional Materials (สื่อส่งเสริมการขาย)
-  // ─────────────────────────────────────────────
-  promotionalMaterials: {
-    menu: {
-      key: "menu.promotional_materials",
-      name: "เมนูสื่อส่งเสริมการขาย",
-      resource: "promotional_material",
-      menuPath: "/activity-plans/promotional-materials",
-    },
-    actions: [
-      {
-        key: "promotional_material.create",
-        name: "สร้างสื่อส่งเสริมการขาย",
-        resource: "promotional_material",
-        action: "create",
-      },
-      {
-        key: "promotional_material.edit",
-        name: "แก้ไขสื่อส่งเสริมการขาย",
-        resource: "promotional_material",
-        action: "edit",
-      },
-      {
-        key: "promotional_material.delete",
-        name: "ลบสื่อส่งเสริมการขาย",
-        resource: "promotional_material",
-        action: "delete",
-      },
-      {
-        key: "promotional_material.view",
-        name: "ดูรายละเอียดสื่อส่งเสริมการขาย",
-        resource: "promotional_material",
-        action: "view",
-      },
-    ],
-    data: {
-      key: "data.promotional_materials",
-      name: "ขอบเขตข้อมูลสื่อส่งเสริมการขาย",
-      resource: "promotional_material",
-      defaultDataAccess: DataAccessLevel.VIEW_ALL,
-      defaultEditAccess: EditAccessLevel.EDIT_ALL,
-      defaultDeleteAccess: DeleteAccessLevel.DELETE_ALL,
-    },
   },
 };
 
-// ============================================================================
-// Helper: Flatten permissionGroups → Prisma-compatible permission data
-// ============================================================================
-
-interface PrismaPermissionData {
+// Flatten helper
+function flattenPermissionGroups(
+  groups: Record<string, PermissionGroup>,
+): Array<{
   key: string;
   name: string;
   category: "MENU" | "ACTION" | "DATA";
-  menuPath?: string;
   resource: string;
-  action?: string;
-  defaultDataAccess?: DataAccessLevel;
-  defaultEditAccess?: EditAccessLevel;
-  defaultDeleteAccess?: DeleteAccessLevel;
-}
+  action?: string | null;
+  menuPath?: string | null;
+  defaultDataAccess?: DataAccessLevel | null;
+  defaultEditAccess?: EditAccessLevel | null;
+  defaultDeleteAccess?: DeleteAccessLevel | null;
+}> {
+  const result: Array<{
+    key: string;
+    name: string;
+    category: "MENU" | "ACTION" | "DATA";
+    resource: string;
+    action?: string | null;
+    menuPath?: string | null;
+    defaultDataAccess?: DataAccessLevel | null;
+    defaultEditAccess?: EditAccessLevel | null;
+    defaultDeleteAccess?: DeleteAccessLevel | null;
+  }> = [];
 
-function flattenPermissionGroups(
-  groups: Record<string, PermissionGroup>,
-): PrismaPermissionData[] {
-  const result: PrismaPermissionData[] = [];
   const seen = new Set<string>();
 
-  for (const [, group] of Object.entries(groups)) {
+  for (const group of Object.values(groups)) {
     // Menu permission
     if (group.menu && !seen.has(group.menu.key)) {
       seen.add(group.menu.key);
@@ -972,11 +886,15 @@ function flattenPermissionGroups(
         name: group.menu.name,
         category: "MENU",
         resource: group.menu.resource,
-        menuPath: group.menu.menuPath,
+        menuPath: group.menu.menuPath ?? null,
+        action: group.menu.action ?? null,
+        defaultDataAccess: group.menu.defaultDataAccess ?? null,
+        defaultEditAccess: group.menu.defaultEditAccess ?? null,
+        defaultDeleteAccess: group.menu.defaultDeleteAccess ?? null,
       });
     }
 
-    // Sub-menu permissions (reports sub-pages, etc.)
+    // Sub-menu permissions
     if (group.subMenus) {
       for (const sub of group.subMenus) {
         if (!seen.has(sub.key)) {
@@ -986,7 +904,11 @@ function flattenPermissionGroups(
             name: sub.name,
             category: "MENU",
             resource: sub.resource,
-            menuPath: sub.menuPath,
+            menuPath: sub.menuPath ?? null,
+            action: sub.action ?? null,
+            defaultDataAccess: sub.defaultDataAccess ?? null,
+            defaultEditAccess: sub.defaultEditAccess ?? null,
+            defaultDeleteAccess: sub.defaultDeleteAccess ?? null,
           });
         }
       }
@@ -1002,7 +924,11 @@ function flattenPermissionGroups(
             name: act.name,
             category: "ACTION",
             resource: act.resource,
-            action: act.action,
+            action: act.action ?? null,
+            menuPath: act.menuPath ?? null,
+            defaultDataAccess: act.defaultDataAccess ?? null,
+            defaultEditAccess: act.defaultEditAccess ?? null,
+            defaultDeleteAccess: act.defaultDeleteAccess ?? null,
           });
         }
       }
@@ -1016,9 +942,11 @@ function flattenPermissionGroups(
         name: group.data.name,
         category: "DATA",
         resource: group.data.resource,
-        defaultDataAccess: group.data.defaultDataAccess,
-        defaultEditAccess: group.data.defaultEditAccess,
-        defaultDeleteAccess: group.data.defaultDeleteAccess,
+        menuPath: group.data.menuPath ?? null,
+        action: group.data.action ?? null,
+        defaultDataAccess: group.data.defaultDataAccess ?? null,
+        defaultEditAccess: group.data.defaultEditAccess ?? null,
+        defaultDeleteAccess: group.data.defaultDeleteAccess ?? null,
       });
     }
   }
@@ -1027,764 +955,681 @@ function flattenPermissionGroups(
 }
 
 // ============================================================================
-// Seed Function
+// Role Configs (Mapping ตรงกับ Production Database 100%)
+// ============================================================================
+
+type RolePermItem = {
+  key: string;
+  dataAccess?: DataAccessLevel | null;
+  editAccess?: EditAccessLevel | null;
+  deleteAccess?: DeleteAccessLevel | null;
+};
+
+// 1. Admin (Secondary) Permissions - 85 permissions in DB
+const adminConfig: RolePermItem[] = [
+  { key: "announcement.manage" },
+  { key: "company.create" },
+  { key: "company.delete" },
+  { key: "company.edit" },
+  { key: "company.view" },
+  { key: "creditlimit.edit" },
+  { key: "customer.create.broker" },
+  { key: "customer.create.dealer" },
+  { key: "customer.create.farmer" },
+  { key: "customer.create.subdealer" },
+  { key: "customer.delete.broker" },
+  { key: "customer.delete.dealer" },
+  { key: "customer.delete.farmer" },
+  { key: "customer.delete.subdealer" },
+  { key: "customer.edit.broker" },
+  { key: "customer.edit.dealer" },
+  { key: "customer.edit.farmer" },
+  { key: "customer.edit.subdealer" },
+  { key: "customer.export" },
+  { key: "customer.view.broker" },
+  { key: "customer.view.dealer" },
+  { key: "customer.view.farmer" },
+  { key: "customer.view.subdealer" },
+  { key: "data.creditlimits", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.customers", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.employees", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.reports", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "data.sales", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.sales_targets", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.temporary_creditlimits", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "employee.create" },
+  { key: "employee.delete" },
+  { key: "employee.edit" },
+  { key: "employee.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "export.sales_admin" },
+  { key: "menu.announcements" },
+  { key: "menu.companies" },
+  { key: "menu.credit_limits" },
+  { key: "menu.customers" },
+  { key: "menu.dashboard.admin" },
+  { key: "menu.dashboard.manager" },
+  { key: "menu.employees" },
+  { key: "menu.exports" },
+  { key: "menu.fulfillment" },
+  { key: "menu.products" },
+  { key: "menu.reports" },
+  { key: "menu.sales" },
+  { key: "menu.sales_forecast" },
+  { key: "menu.sales_targets" },
+  { key: "menu.shipping-companies" },
+  { key: "menu.show_product" },
+  { key: "menu.temporary_credit_limits" },
+  { key: "product.create" },
+  { key: "product.delete" },
+  { key: "product.edit" },
+  { key: "product.export" },
+  { key: "product.manage" },
+  { key: "product.view" },
+  { key: "report.customer_sales" },
+  { key: "report.executive_dashboard" },
+  { key: "report.export" },
+  { key: "report.product_group_sales" },
+  { key: "report.product_sales" },
+  { key: "report.salesperson" },
+  { key: "sale.approve" },
+  { key: "sale.confirm-payment" },
+  { key: "sale.create" },
+  { key: "sale.delete" },
+  { key: "sale.edit" },
+  { key: "sales_target.create" },
+  { key: "sales_target.delete" },
+  { key: "sales_target.edit" },
+  { key: "sales_target.view" },
+  { key: "sale.view" },
+  { key: "shipping-company.create" },
+  { key: "shipping-company.delete" },
+  { key: "shipping-company.edit" },
+  { key: "stock.lot.manage" },
+  { key: "system.audit_log" },
+  { key: "system.security_log" },
+  { key: "temporary_creditlimit.approve" },
+  { key: "temporary_creditlimit.create" },
+  { key: "temporary_creditlimit.delete" },
+  { key: "temporary_creditlimit.edit" },
+  { key: "temporary_creditlimit.view" },
+];
+
+// 2. Administrator Permissions - 110 permissions in DB
+const administratorConfig: RolePermItem[] = [
+  { key: "announcement.manage" },
+  { key: "company.create", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "company.delete", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "company.edit", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "company.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "creditlimit.create", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "creditlimit.edit", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.create.broker", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.create.dealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.create.farmer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.create.subdealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.delete.broker", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.delete.dealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.delete.farmer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.delete.subdealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.edit.broker", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.edit.dealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.edit.farmer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.edit.subdealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.export", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.broker", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.dealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.farmer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.subdealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "data.creditlimits", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.customers", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.employees", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.reports", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.sales", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.sales_targets", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.temporary_creditlimits", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "employee.create", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "employee.delete", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "employee.edit", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "employee.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "export.sales_admin", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.admin", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.announcements" },
+  { key: "menu.companies", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.credit_limits", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.customers", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.dashboard.admin", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.dashboard.manager", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.dashboard.sales" },
+  { key: "menu.employees", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.exports", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.fulfillment", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.products", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.rbac", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.reports", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.sales", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.sales_forecast", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.sales_targets", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.shipping-companies", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.show_product", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.show_product.edit" },
+  { key: "menu.temporary_credit_limits", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.test_activity", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.test_activity.activity_report", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.test_activity.budget_report", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.test_activity.customer_report", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.test_activity.reports", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.test_activity.trip_plan", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "product.approve" },
+  { key: "product.copy" },
+  { key: "product.create", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "product.delete", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "product.edit", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "product.export", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "product.manage", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "product.stock.view" },
+  { key: "product.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "rbac.manage", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "rbac.permission.assign", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "rbac.role.create", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "rbac.role.delete", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "rbac.role.edit", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "rbac.user.override", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "report.customer_sales", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "report.executive_dashboard" },
+  { key: "report.export", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "report.kpi.invoice", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "report.kpi.sales_note", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "report.kpi.total_sales", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "report.product_group_sales", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "report.product_sales", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "report.sales_forecast" },
+  { key: "report.salesperson", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "sale.approve", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "sale.confirm-payment", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "sale.create", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "sale.delete", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "sale.edit", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "sales_target.create", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "sales_target.delete", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "sales_target.edit", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "sales_target.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "sale.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "shipping-company.create", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "shipping-company.delete", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "shipping-company.edit", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "stock.lot.manage" },
+  { key: "system.audit_log", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "system.security_log", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "system.settings", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "temporary_creditlimit.approve", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "temporary_creditlimit.create", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "temporary_creditlimit.delete", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "temporary_creditlimit.edit", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "temporary_creditlimit.view", dataAccess: DataAccessLevel.VIEW_ALL },
+];
+
+// 3. CEO (ผู้บริหาร) Permissions - 38 permissions in DB
+const ceoConfig: RolePermItem[] = [
+  { key: "company.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.broker", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.dealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.farmer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.subdealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "data.creditlimits", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_NONE, deleteAccess: DeleteAccessLevel.DELETE_NONE },
+  { key: "data.customers", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_NONE, deleteAccess: DeleteAccessLevel.DELETE_NONE },
+  { key: "data.employees", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_NONE, deleteAccess: DeleteAccessLevel.DELETE_NONE },
+  { key: "data.sales", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_NONE, deleteAccess: DeleteAccessLevel.DELETE_NONE },
+  { key: "data.sales_targets", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_NONE, deleteAccess: DeleteAccessLevel.DELETE_NONE },
+  { key: "data.temporary_creditlimits", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_NONE, deleteAccess: DeleteAccessLevel.DELETE_NONE },
+  { key: "employee.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.companies" },
+  { key: "menu.credit_limits" },
+  { key: "menu.customers" },
+  { key: "menu.dashboard.admin" },
+  { key: "menu.employees" },
+  { key: "menu.fulfillment" },
+  { key: "menu.products" },
+  { key: "menu.reports" },
+  { key: "menu.sales" },
+  { key: "menu.sales_forecast" },
+  { key: "menu.sales_targets" },
+  { key: "menu.temporary_credit_limits" },
+  { key: "product.stock.view" },
+  { key: "product.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "report.customer_sales" },
+  { key: "report.executive_dashboard" },
+  { key: "report.export" },
+  { key: "report.product_group_sales" },
+  { key: "report.product_sales" },
+  { key: "report.sales_forecast" },
+  { key: "report.salesperson" },
+  { key: "sales_target.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "sale.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "system.audit_log" },
+  { key: "system.security_log" },
+  { key: "temporary_creditlimit.view", dataAccess: DataAccessLevel.VIEW_ALL },
+];
+
+// 4. Marketing Employee (พนักงานการตลาด) Permissions - 6 permissions in DB
+const employeeMkConfig: RolePermItem[] = [
+  { key: "menu.products" },
+  { key: "product.create" },
+  { key: "product.delete" },
+  { key: "product.edit" },
+  { key: "product.export" },
+  { key: "product.view" },
+];
+
+// 5. Marketing Manager (ผู้จัดการแผนกการตลาด) Permissions - 39 permissions in DB
+const marketingManagerConfig: RolePermItem[] = [
+  { key: "announcement.manage" },
+  { key: "company.view" },
+  { key: "customer.create.farmer" },
+  { key: "customer.edit.broker" },
+  { key: "customer.edit.farmer" },
+  { key: "customer.edit.subdealer" },
+  { key: "customer.view.broker" },
+  { key: "customer.view.dealer" },
+  { key: "customer.view.farmer" },
+  { key: "customer.view.subdealer" },
+  { key: "data.customers", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "data.reports", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "data.sales", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "data.sales_targets", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "employee.view" },
+  { key: "export.sales_admin" },
+  { key: "menu.announcements" },
+  { key: "menu.companies" },
+  { key: "menu.customers" },
+  { key: "menu.dashboard.manager" },
+  { key: "menu.employees" },
+  { key: "menu.exports" },
+  { key: "menu.products" },
+  { key: "menu.reports" },
+  { key: "menu.sales" },
+  { key: "menu.sales_forecast" },
+  { key: "menu.sales_targets" },
+  { key: "menu.show_product" },
+  { key: "product.edit" },
+  { key: "product.stock.view" },
+  { key: "product.view" },
+  { key: "report.customer_sales" },
+  { key: "report.executive_dashboard" },
+  { key: "report.product_group_sales" },
+  { key: "report.product_sales" },
+  { key: "report.sales_forecast" },
+  { key: "report.salesperson" },
+  { key: "sales_target.view" },
+  { key: "sale.view" },
+];
+
+// 6. Sales Admin (ธุรการขาย) Permissions - 65 permissions in DB
+const salesAdminConfig: RolePermItem[] = [
+  { key: "creditlimit.create" },
+  { key: "creditlimit.edit" },
+  { key: "customer.create.broker" },
+  { key: "customer.create.dealer" },
+  { key: "customer.create.farmer" },
+  { key: "customer.create.subdealer" },
+  { key: "customer.delete.broker" },
+  { key: "customer.delete.dealer" },
+  { key: "customer.delete.farmer" },
+  { key: "customer.delete.subdealer" },
+  { key: "customer.edit.broker" },
+  { key: "customer.edit.dealer" },
+  { key: "customer.edit.farmer" },
+  { key: "customer.edit.subdealer" },
+  { key: "customer.view.broker", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.dealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.farmer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.subdealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "data.creditlimits", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.customers", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.sales", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.sales_targets", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "data.temporary_creditlimits", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "export.sales_admin" },
+  { key: "menu.credit_limits" },
+  { key: "menu.customers" },
+  { key: "menu.exports" },
+  { key: "menu.fulfillment" },
+  { key: "menu.products" },
+  { key: "menu.reports" },
+  { key: "menu.sales" },
+  { key: "menu.shipping-companies" },
+  { key: "menu.temporary_credit_limits" },
+  { key: "product.copy" },
+  { key: "product.create" },
+  { key: "product.delete" },
+  { key: "product.edit" },
+  { key: "product.export" },
+  { key: "product.manage" },
+  { key: "product.stock.view" },
+  { key: "product.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "report.customer_sales" },
+  { key: "report.executive_dashboard" },
+  { key: "report.kpi.invoice" },
+  { key: "report.kpi.sales_note" },
+  { key: "report.kpi.total_sales" },
+  { key: "report.product_group_sales" },
+  { key: "report.product_sales" },
+  { key: "report.sales_forecast" },
+  { key: "report.salesperson" },
+  { key: "sale.create" },
+  { key: "sale.edit" },
+  { key: "sales_target.create" },
+  { key: "sales_target.delete" },
+  { key: "sales_target.edit" },
+  { key: "sales_target.view" },
+  { key: "sale.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "shipping-company.create" },
+  { key: "shipping-company.delete" },
+  { key: "shipping-company.edit" },
+  { key: "stock.lot.manage" },
+  { key: "temporary_creditlimit.create" },
+  { key: "temporary_creditlimit.delete" },
+  { key: "temporary_creditlimit.edit" },
+  { key: "temporary_creditlimit.view" },
+];
+
+// 7. Sales Employee (พนักงานฝ่ายขาย) Permissions - 42 permissions in DB
+const salesEmployeeConfig: RolePermItem[] = [
+  { key: "customer.create.broker" },
+  { key: "customer.create.farmer" },
+  { key: "customer.create.subdealer" },
+  { key: "customer.edit.broker" },
+  { key: "customer.edit.farmer" },
+  { key: "customer.edit.subdealer" },
+  { key: "customer.view.broker", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.dealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.farmer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.subdealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "data.customers", dataAccess: DataAccessLevel.VIEW_OWN, editAccess: EditAccessLevel.EDIT_OWN, deleteAccess: DeleteAccessLevel.DELETE_NONE },
+  { key: "data.reports" },
+  { key: "data.sales", dataAccess: DataAccessLevel.VIEW_OWN, editAccess: EditAccessLevel.EDIT_OWN, deleteAccess: DeleteAccessLevel.DELETE_OWN },
+  { key: "data.sales_targets", dataAccess: DataAccessLevel.VIEW_OWN, editAccess: EditAccessLevel.EDIT_OWN, deleteAccess: DeleteAccessLevel.DELETE_OWN },
+  { key: "data.temporary_creditlimits", dataAccess: DataAccessLevel.VIEW_OWN, editAccess: EditAccessLevel.EDIT_OWN, deleteAccess: DeleteAccessLevel.DELETE_OWN },
+  { key: "employee.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.customers" },
+  { key: "menu.dashboard.sales" },
+  { key: "menu.products" },
+  { key: "menu.reports" },
+  { key: "menu.sales" },
+  { key: "menu.sales_targets" },
+  { key: "menu.temporary_credit_limits" },
+  { key: "product.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "report.customer_sales" },
+  { key: "report.kpi.invoice" },
+  { key: "report.kpi.sales_note" },
+  { key: "report.product_group_sales" },
+  { key: "report.product_sales" },
+  { key: "report.salesperson" },
+  { key: "sale.create" },
+  { key: "sale.delete" },
+  { key: "sale.edit" },
+  { key: "sales_target.create" },
+  { key: "sales_target.delete" },
+  { key: "sales_target.edit" },
+  { key: "sales_target.view" },
+  { key: "sale.view" },
+  { key: "temporary_creditlimit.create" },
+  { key: "temporary_creditlimit.delete" },
+  { key: "temporary_creditlimit.edit" },
+  { key: "temporary_creditlimit.view" },
+];
+
+// 8. Sales Manager (ผู้จัดการแผนกบริหารงานขาย) Permissions - 45 permissions in DB
+const salesManagerConfig: RolePermItem[] = [
+  { key: "creditlimit.edit" },
+  { key: "customer.create.broker" },
+  { key: "customer.create.dealer" },
+  { key: "customer.create.farmer" },
+  { key: "customer.create.subdealer" },
+  { key: "customer.edit.broker" },
+  { key: "customer.edit.dealer" },
+  { key: "customer.edit.farmer" },
+  { key: "customer.edit.subdealer" },
+  { key: "customer.view.broker", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.dealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.farmer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "customer.view.subdealer", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "data.customers", dataAccess: DataAccessLevel.VIEW_DEPARTMENT, editAccess: EditAccessLevel.EDIT_OWN, deleteAccess: DeleteAccessLevel.DELETE_OWN },
+  { key: "data.sales", dataAccess: DataAccessLevel.VIEW_TEAM, editAccess: EditAccessLevel.EDIT_OWN, deleteAccess: DeleteAccessLevel.DELETE_OWN },
+  { key: "data.sales_targets", dataAccess: DataAccessLevel.VIEW_ALL, editAccess: EditAccessLevel.EDIT_ALL, deleteAccess: DeleteAccessLevel.DELETE_ALL },
+  { key: "menu.customers" },
+  { key: "menu.dashboard.manager" },
+  { key: "menu.products" },
+  { key: "menu.reports" },
+  { key: "menu.sales" },
+  { key: "menu.sales_forecast" },
+  { key: "menu.sales_targets" },
+  { key: "menu.temporary_credit_limits" },
+  { key: "product.view", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "report.customer_sales" },
+  { key: "report.executive_dashboard" },
+  { key: "report.product_group_sales" },
+  { key: "report.product_sales" },
+  { key: "report.sales_forecast" },
+  { key: "report.salesperson" },
+  { key: "sale.approve" },
+  { key: "sale.create" },
+  { key: "sale.delete" },
+  { key: "sale.edit" },
+  { key: "sales_target.create" },
+  { key: "sales_target.delete" },
+  { key: "sales_target.edit" },
+  { key: "sales_target.view" },
+  { key: "sale.view" },
+  { key: "temporary_creditlimit.approve" },
+  { key: "temporary_creditlimit.create" },
+  { key: "temporary_creditlimit.delete" },
+  { key: "temporary_creditlimit.edit" },
+  { key: "temporary_creditlimit.view" },
+];
+
+// Role Definitions Metadata (ตรงกับ Production Database 100%)
+const roleDefinitions = [
+  {
+    name: "Administrator",
+    slug: "administrator",
+    description: "Full access to every module",
+    isSystem: true,
+    isActive: true,
+    config: administratorConfig,
+  },
+  {
+    name: "Admin",
+    slug: "admin",
+    description: "High-level access with most permissions except RBAC management",
+    isSystem: true,
+    isActive: true,
+    config: adminConfig,
+  },
+  {
+    name: "ผู้บริหาร",
+    slug: "ceo",
+    description: "ผู้บริหารสูงสุด - สิทธิ์ดูข้อมูลทั้งหมด (Read-only Executive Access)",
+    isSystem: true,
+    isActive: true,
+    config: ceoConfig,
+  },
+  {
+    name: "พนักงานการตลาด",
+    slug: "employee_mk",
+    description: "",
+    isSystem: false,
+    isActive: true,
+    config: employeeMkConfig,
+  },
+  {
+    name: "ผู้จัดการแผนกการตลาด",
+    slug: "marketing_manager",
+    description: "ดูรายละเอียดต่างๆ",
+    isSystem: false,
+    isActive: true,
+    config: marketingManagerConfig,
+  },
+  {
+    name: "ธุรการขาย",
+    slug: "sales_admin",
+    description: "ธุรการขาย - จัดการการจัดส่งสินค้าและงานเอกสารฝ่ายขาย",
+    isSystem: false,
+    isActive: true,
+    config: salesAdminConfig,
+  },
+  {
+    name: "พนักงานฝ่ายขาย",
+    slug: "sales_employee",
+    description: "พนักงานฝ่ายขาย",
+    isSystem: false,
+    isActive: true,
+    config: salesEmployeeConfig,
+  },
+  {
+    name: "ผู้จัดการแผนกบริหารงานขาย",
+    slug: "sales_manager",
+    description: "ผู้จัดการแผนกบริหารงานขาย",
+    isSystem: false,
+    isActive: true,
+    config: salesManagerConfig,
+  },
+];
+
+// ============================================================================
+// Seed Function (Idempotent, Safe & Non-Destructive)
 // ============================================================================
 
 export async function seedRBAC(prisma: PrismaClient) {
   console.log("🔐 Seeding RBAC (Roles, Permissions, RolePermissions)...");
 
-  // Rename deprecated keys
-  const renames = { "product.update": "product.edit" };
-  for (const [oldKey, newKey] of Object.entries(renames)) {
-    try {
-      const oldPerm = await prisma.permission.findUnique({
-        where: { key: oldKey },
-      });
-      if (oldPerm) {
-        const newPerm = await prisma.permission.findUnique({
-          where: { key: newKey },
-        });
-        if (!newPerm) {
-          await prisma.permission.update({
-            where: { key: oldKey },
-            data: { key: newKey },
-          });
-          console.log(`♻️  Renamed permission: ${oldKey} -> ${newKey}`);
-        } else {
-          await prisma.permission.delete({ where: { key: oldKey } });
-        }
-      }
-    } catch {}
-  }
-
   // Flatten all permission groups
   const allPermissionDefs = flattenPermissionGroups(permissionGroups);
 
-  // Check if RBAC has already been seeded
-  const existingAdminRole = await prisma.role.findUnique({
-    where: { slug: "administrator" },
-  });
+  // 1. Sync / Upsert Permissions
+  let createdPermCount = 0;
+  let updatedPermCount = 0;
 
-  if (existingAdminRole) {
-    console.log("🔐 RBAC already seeded, updating permissions...");
+  for (const perm of allPermissionDefs) {
+    const existing = await prisma.permission.findUnique({
+      where: { key: perm.key },
+    });
 
-    let createdCount = 0;
-    let updatedCount = 0;
-
-    for (const perm of allPermissionDefs) {
-      const existing = await prisma.permission.findUnique({
-        where: { key: perm.key },
-      });
-
-      if (!existing) {
-        const created = await prisma.permission.create({ data: perm });
-        // Assign to administrator role with full access
-        await prisma.rolePermission.create({
+    if (!existing) {
+      await prisma.permission.create({ data: perm });
+      createdPermCount++;
+    } else {
+      if (
+        existing.name !== perm.name ||
+        existing.resource !== perm.resource ||
+        existing.action !== (perm.action ?? null) ||
+        existing.menuPath !== (perm.menuPath ?? null) ||
+        existing.defaultDataAccess !== (perm.defaultDataAccess ?? null) ||
+        existing.defaultEditAccess !== (perm.defaultEditAccess ?? null) ||
+        existing.defaultDeleteAccess !== (perm.defaultDeleteAccess ?? null)
+      ) {
+        await prisma.permission.update({
+          where: { key: perm.key },
           data: {
-            roleId: existingAdminRole.id,
-            permissionId: created.id,
-            allow: true,
-            dataAccess: DataAccessLevel.VIEW_ALL,
-            editAccess:
-              perm.category === "DATA" ? EditAccessLevel.EDIT_ALL : null,
-            deleteAccess:
-              perm.category === "DATA" ? DeleteAccessLevel.DELETE_ALL : null,
+            name: perm.name,
+            resource: perm.resource,
+            action: perm.action ?? null,
+            menuPath: perm.menuPath ?? null,
+            defaultDataAccess: perm.defaultDataAccess ?? null,
+            defaultEditAccess: perm.defaultEditAccess ?? null,
+            defaultDeleteAccess: perm.defaultDeleteAccess ?? null,
           },
         });
-        createdCount++;
-        console.log(`  ✅ Created permission: ${perm.key}`);
-      } else {
-        // Update permission details if changed
-        if (
-          existing.resource !== perm.resource ||
-          existing.action !== (perm.action ?? null) ||
-          existing.name !== perm.name ||
-          existing.menuPath !== (perm.menuPath ?? null)
-        ) {
-          const changes: string[] = [];
-          if (existing.name !== perm.name) {
-            changes.push(`name: "${existing.name}" -> "${perm.name}"`);
-          }
-          if (existing.resource !== perm.resource) {
-            changes.push(
-              `resource: "${existing.resource}" -> "${perm.resource}"`,
-            );
-          }
-          if (existing.action !== (perm.action ?? null)) {
-            changes.push(
-              `action: "${existing.action}" -> "${perm.action ?? null}"`,
-            );
-          }
-          if (existing.menuPath !== (perm.menuPath ?? null)) {
-            changes.push(
-              `menuPath: "${existing.menuPath}" -> "${perm.menuPath ?? null}"`,
-            );
-          }
+        updatedPermCount++;
+      }
+    }
+  }
 
-          await prisma.permission.update({
-            where: { id: existing.id },
-            data: {
-              resource: perm.resource,
-              action: perm.action ?? null,
-              name: perm.name,
-              menuPath: perm.menuPath ?? null,
-            },
-          });
-          updatedCount++;
-          console.log(
-            `  ✅ Updated permission: ${perm.key} (${changes.join(", ")})`,
-          );
-        }
+  // 2. Fetch all permissions map
+  const permissions = await prisma.permission.findMany({
+    where: { deletedAt: null },
+  });
+  const permissionMap = new Map(permissions.map((p) => [p.key, p.id]));
+
+  // 3. Sync Roles and RolePermissions
+  for (const roleDef of roleDefinitions) {
+    let role = await prisma.role.findUnique({
+      where: { slug: roleDef.slug },
+    });
+
+    if (!role) {
+      role = await prisma.role.create({
+        data: {
+          name: roleDef.name,
+          slug: roleDef.slug,
+          description: roleDef.description,
+          isSystem: roleDef.isSystem,
+          isActive: roleDef.isActive,
+        },
+      });
+    } else {
+      if (
+        role.name !== roleDef.name ||
+        role.description !== roleDef.description ||
+        role.isSystem !== roleDef.isSystem ||
+        role.isActive !== roleDef.isActive
+      ) {
+        role = await prisma.role.update({
+          where: { id: role.id },
+          data: {
+            name: roleDef.name,
+            description: roleDef.description,
+            isSystem: roleDef.isSystem,
+            isActive: roleDef.isActive,
+          },
+        });
       }
     }
 
-    console.log(
-      `  ✅ Sync complete: Created ${createdCount}, Updated ${updatedCount} permissions.`,
-    );
-    if (createdCount === 0 && updatedCount === 0) {
-      console.log("  ✅ All permissions up to date.");
+    // Upsert role permissions
+    for (const item of roleDef.config) {
+      const permId = permissionMap.get(item.key);
+      if (!permId) continue;
+
+      const existingRolePerm = await prisma.rolePermission.findUnique({
+        where: {
+          roleId_permissionId: {
+            roleId: role.id,
+            permissionId: permId,
+          },
+        },
+      });
+
+      if (!existingRolePerm) {
+        await prisma.rolePermission.create({
+          data: {
+            roleId: role.id,
+            permissionId: permId,
+            allow: true,
+            dataAccess: (item.dataAccess as DataAccessLevel) ?? null,
+            editAccess: (item.editAccess as EditAccessLevel) ?? null,
+            deleteAccess: (item.deleteAccess as DeleteAccessLevel) ?? null,
+          },
+        });
+      } else {
+        if (
+          existingRolePerm.dataAccess !== (item.dataAccess ?? null) ||
+          existingRolePerm.editAccess !== (item.editAccess ?? null) ||
+          existingRolePerm.deleteAccess !== (item.deleteAccess ?? null)
+        ) {
+          await prisma.rolePermission.update({
+            where: { id: existingRolePerm.id },
+            data: {
+              dataAccess: (item.dataAccess as DataAccessLevel) ?? null,
+              editAccess: (item.editAccess as EditAccessLevel) ?? null,
+              deleteAccess: (item.deleteAccess as DeleteAccessLevel) ?? null,
+            },
+          });
+        }
+      }
     }
-    return;
   }
 
-  // ──────────────────────────────────────────────────────────────
-  // Create Roles
-  // ──────────────────────────────────────────────────────────────
-
-  const adminRole = await prisma.role.create({
-    data: {
-      name: "Administrator",
-      slug: "administrator",
-      description: "Full access to every module",
-      isSystem: true,
-    },
-  });
-
-  const adminRoleSecondary = await prisma.role.create({
-    data: {
-      name: "Admin",
-      slug: "admin",
-      description:
-        "High-level access with most permissions except RBAC management",
-      isSystem: true,
-    },
-  });
-
-  const salesRepRole = await prisma.role.create({
-    data: {
-      name: "พนักงานฝ่ายขาย",
-      slug: "sales_employee",
-      description: "พนักงานฝ่ายขาย",
-    },
-  });
-
-  const salesManagerRole = await prisma.role.create({
-    data: {
-      name: "ผู้จัดการฝ่ายขาย",
-      slug: "sales_manager",
-      description: "ผู้จัดการฝ่ายขาย",
-    },
-  });
-
-  const ceoRole = await prisma.role.create({
-    data: {
-      name: "ผู้บริหาร",
-      slug: "ceo",
-      description:
-        "ผู้บริหารสูงสุด - สิทธิ์ดูข้อมูลทั้งหมด (Read-only Executive Access)",
-      isSystem: true,
-    },
-  });
-
-  const salesAdminRole = await prisma.role.create({
-    data: {
-      name: "ธุรการขาย",
-      slug: "sales_admin",
-      description: "ธุรการขาย - จัดการการจัดส่งสินค้าและงานเอกสารฝ่ายขาย",
-    },
-  });
-
-  // ──────────────────────────────────────────────────────────────
-  // Create Permissions (from hierarchical groups)
-  // ──────────────────────────────────────────────────────────────
-
-  await prisma.$transaction(
-    allPermissionDefs.map((perm) => prisma.permission.create({ data: perm })),
+  console.log(
+    `✅ RBAC sync complete: Created ${createdPermCount}, Updated ${updatedPermCount} permissions.`,
   );
-
-  // Fetch all permissions to map IDs
-  const permissions = await prisma.permission.findMany();
-  const permissionMap = Object.fromEntries(
-    permissions.map((permission) => [permission.key, permission]),
-  );
-
-  const p = (key: string) => permissionMap[key]?.id;
-
-  // ──────────────────────────────────────────────────────────────
-  // Assign ALL permissions to Administrator
-  // ──────────────────────────────────────────────────────────────
-
-  const allowAll = permissions.map((permission) => ({
-    permissionId: permission.id,
-  }));
-
-  await prisma.rolePermission.createMany({
-    data: allowAll.map((entry) => {
-      const perm = permissions.find((p) => p.id === entry.permissionId);
-      const isDataPermission = perm?.category === "DATA";
-      return {
-        permissionId: entry.permissionId,
-        roleId: adminRole.id,
-        allow: true,
-        dataAccess: DataAccessLevel.VIEW_ALL,
-        // Add edit and delete access for DATA permissions
-        editAccess: isDataPermission ? EditAccessLevel.EDIT_ALL : null,
-        deleteAccess: isDataPermission ? DeleteAccessLevel.DELETE_ALL : null,
-      };
-    }),
-  });
-
-  // ──────────────────────────────────────────────────────────────
-  // Sales Rep (พนักงานฝ่ายขาย) Permissions
-  // ──────────────────────────────────────────────────────────────
-
-  const salesRepConfig = [
-    { key: "menu.dashboard.sales" },
-    { key: "menu.products" },
-    { key: "product.view", dataAccess: "VIEW_ALL" },
-    { key: "menu.sales" },
-    { key: "sale.create" },
-    { key: "sale.edit" },
-    { key: "sale.view" },
-    { key: "sale.delete" },
-    { key: "menu.customers" },
-    { key: "customer.edit.subdealer" },
-    { key: "customer.edit.farmer" },
-    { key: "customer.edit.broker" },
-    { key: "customer.view.dealer", dataAccess: "VIEW_ALL" },
-    { key: "customer.view.subdealer", dataAccess: "VIEW_ALL" },
-    { key: "customer.view.farmer", dataAccess: "VIEW_ALL" },
-    { key: "customer.view.broker", dataAccess: "VIEW_ALL" },
-    { key: "menu.temporary_credit_limits" },
-    { key: "temporary_creditlimit.create" },
-    { key: "temporary_creditlimit.edit" },
-    { key: "temporary_creditlimit.view" },
-    { key: "temporary_creditlimit.delete" },
-    { key: "employee.view", dataAccess: "VIEW_ALL" },
-    // DATA permission with view/edit/delete scopes
-    {
-      key: "data.sales",
-      dataAccess: "VIEW_OWN",
-      editAccess: "EDIT_OWN",
-      deleteAccess: "DELETE_OWN",
-    },
-    { key: "stock.view" },
-    { key: "customer.create.subdealer" },
-    { key: "customer.create.farmer" },
-    { key: "customer.create.broker" },
-    {
-      key: "data.customers",
-      dataAccess: "VIEW_OWN",
-      editAccess: "EDIT_OWN",
-      deleteAccess: "DELETE_NONE",
-    },
-    {
-      key: "data.temporary_creditlimits",
-      dataAccess: "VIEW_OWN",
-      editAccess: "EDIT_OWN",
-      deleteAccess: "DELETE_OWN",
-    },
-    {
-      key: "menu.sales_targets",
-    },
-    {
-      key: "data.sales_targets",
-      dataAccess: "VIEW_OWN",
-      editAccess: "EDIT_OWN",
-      deleteAccess: "DELETE_OWN",
-    },
-    { key: "sales_target.create" },
-    { key: "sales_target.edit" },
-    { key: "sales_target.view" },
-    { key: "sales_target.delete" },
-    { key: "menu.test_activity" },
-    { key: "menu.test_activity.trip_plan" },
-    { key: "menu.test_activity.activity_report" },
-    { key: "menu.test_activity.budget_report" },
-    { key: "menu.test_activity.customer_report" },
-    { key: "menu.promotional_materials" },
-    { key: "promotional_material.view" },
-  ];
-
-  await prisma.rolePermission.createMany({
-    data: salesRepConfig
-      .filter((item) => p(item.key))
-      .map((item) => ({
-        roleId: salesRepRole.id,
-        permissionId: p(item.key)!,
-        allow: true,
-        dataAccess: (item.dataAccess as DataAccessLevel) ?? null,
-        editAccess: (item.editAccess as EditAccessLevel) ?? null,
-        deleteAccess: (item.deleteAccess as DeleteAccessLevel) ?? null,
-      })),
-  });
-
-  // ──────────────────────────────────────────────────────────────
-  // Sales Manager (ผู้จัดการฝ่ายขาย) Permissions
-  // ──────────────────────────────────────────────────────────────
-
-  const salesManagerConfig = [
-    { key: "menu.products" },
-    { key: "product.view", dataAccess: "VIEW_ALL" },
-    { key: "menu.sales" },
-    { key: "sale.create" },
-    { key: "sale.edit" },
-    { key: "sale.delete" },
-    { key: "sale.view" },
-    { key: "sale.approve" },
-    { key: "menu.customers" },
-    { key: "customer.create.dealer" },
-    { key: "customer.create.subdealer" },
-    { key: "customer.create.farmer" },
-    { key: "customer.create.broker" },
-    { key: "customer.edit.dealer" },
-    { key: "customer.edit.subdealer" },
-    { key: "customer.edit.farmer" },
-    { key: "customer.edit.broker" },
-    { key: "customer.view.dealer", dataAccess: "VIEW_ALL" },
-    { key: "customer.view.subdealer", dataAccess: "VIEW_ALL" },
-    { key: "customer.view.farmer", dataAccess: "VIEW_ALL" },
-    { key: "customer.view.broker", dataAccess: "VIEW_ALL" },
-    { key: "menu.credit_limits" },
-    { key: "creditlimit.edit" },
-    // DATA permission - can view department but only edit/delete own
-    {
-      key: "data.sales",
-      dataAccess: "VIEW_TEAM",
-      editAccess: "EDIT_OWN",
-      deleteAccess: "DELETE_OWN",
-    },
-    { key: "menu.reports" },
-    { key: "report.time_sales" },
-    { key: "report.product_sales" },
-    { key: "report.customer_sales" },
-    { key: "report.salesperson" },
-    { key: "report.sales_forecast" },
-    { key: "report.executive_dashboard" },
-    { key: "menu.temporary_credit_limits" },
-    { key: "temporary_creditlimit.create" },
-    { key: "menu.dashboard.manager" },
-    { key: "menu.dashboard.sales" },
-    { key: "temporary_creditlimit.edit" },
-    { key: "temporary_creditlimit.view" },
-    { key: "temporary_creditlimit.delete" },
-    { key: "temporary_creditlimit.approve" },
-    { key: "stock.view" },
-    { key: "sales_target.view" },
-    {
-      key: "data.customers",
-      dataAccess: "VIEW_DEPARTMENT",
-      editAccess: "EDIT_OWN",
-      deleteAccess: "DELETE_OWN",
-    },
-    { key: "report.product_group_sales" },
-    { key: "menu.sales_forecast" },
-    { key: "menu.sales_targets" },
-    {
-      key: "data.sales_targets",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
-    { key: "sales_target.delete" },
-    { key: "sales_target.edit" },
-    { key: "sales_target.create" },
-    { key: "menu.test_activity" },
-    { key: "menu.test_activity.trip_plan" },
-    { key: "menu.test_activity.activity_report" },
-    { key: "menu.test_activity.budget_report" },
-    { key: "menu.test_activity.customer_report" },
-    { key: "menu.promotional_materials" },
-    { key: "promotional_material.view" },
-    { key: "promotional_material.create" },
-    { key: "promotional_material.edit" },
-    { key: "promotional_material.delete" },
-  ];
-
-  await prisma.rolePermission.createMany({
-    data: salesManagerConfig
-      .filter((item) => p(item.key))
-      .map((item) => ({
-        roleId: salesManagerRole.id,
-        permissionId: p(item.key)!,
-        allow: true,
-        dataAccess: (item.dataAccess as DataAccessLevel) ?? null,
-        editAccess: (item.editAccess as EditAccessLevel) ?? null,
-        deleteAccess: (item.deleteAccess as DeleteAccessLevel) ?? null,
-      })),
-  });
-
-  // ──────────────────────────────────────────────────────────────
-  // Admin (Secondary) Permissions
-  // ──────────────────────────────────────────────────────────────
-
-  const adminConfig = [
-    { key: "menu.dashboard.admin" },
-    { key: "menu.dashboard.manager" },
-    { key: "menu.dashboard.sales" },
-    { key: "menu.show_product" },
-    { key: "data.reports", dataAccess: DataAccessLevel.VIEW_ALL },
-    { key: "menu.reports" },
-    { key: "menu.sales" },
-    { key: "menu.products" },
-    { key: "menu.customers" },
-    { key: "menu.credit_limits" },
-    { key: "menu.temporary_credit_limits" },
-    { key: "menu.fulfillment" },
-    { key: "menu.employees" },
-    { key: "menu.companies" },
-    { key: "menu.sales_forecast" },
-    { key: "menu.sales_targets" },
-    // Report permissions
-    { key: "report.time_sales" },
-    { key: "report.product_sales" },
-    { key: "report.product_group_sales" },
-    { key: "report.customer_sales" },
-    { key: "report.salesperson" },
-    { key: "report.sales_forecast" },
-    { key: "report.executive_dashboard" },
-    { key: "report.kpi.total_sales" },
-    { key: "report.kpi.invoice" },
-    { key: "report.kpi.sales_note" },
-    // Sale permissions
-    { key: "sale.create" },
-    { key: "sale.edit" },
-    { key: "sale.view" },
-    { key: "sale.delete" },
-    { key: "sale.approve" },
-    { key: "sale.confirm-payment" },
-    // Product permissions
-    { key: "product.create" },
-    { key: "product.edit" },
-    { key: "product.delete" },
-    { key: "product.view" },
-    { key: "product.manage" },
-    { key: "product.approve" },
-    // Customer permissions
-    { key: "customer.create.dealer" },
-    { key: "customer.create.subdealer" },
-    { key: "customer.create.farmer" },
-    { key: "customer.create.broker" },
-    { key: "customer.edit.dealer" },
-    { key: "customer.edit.subdealer" },
-    { key: "customer.edit.farmer" },
-    { key: "customer.edit.broker" },
-    { key: "customer.delete.dealer" },
-    { key: "customer.delete.subdealer" },
-    { key: "customer.delete.farmer" },
-    { key: "customer.delete.broker" },
-    { key: "customer.view.dealer" },
-    { key: "customer.view.subdealer" },
-    { key: "customer.view.farmer" },
-    { key: "customer.view.broker" },
-    // Credit limit permissions
-    { key: "creditlimit.edit" },
-    // Temporary credit limit permissions
-    { key: "temporary_creditlimit.create" },
-    { key: "temporary_creditlimit.edit" },
-    { key: "temporary_creditlimit.delete" },
-    { key: "temporary_creditlimit.view" },
-    { key: "temporary_creditlimit.approve" },
-    // Company permissions
-    { key: "company.create" },
-    { key: "company.edit" },
-    { key: "company.delete" },
-    // Employee permissions
-    { key: "employee.view", dataAccess: "VIEW_ALL" },
-    // Data scope permissions - Admin can view/edit/delete all
-
-    {
-      key: "data.employees",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
-    {
-      key: "data.customers",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
-    {
-      key: "data.creditlimits",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
-    {
-      key: "data.temporary_creditlimits",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
-    {
-      key: "data.sales",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
-    { key: "menu.notifications" },
-    { key: "report.export" },
-    { key: "product.export" },
-    { key: "customer.export" },
-    { key: "employee.create" },
-    { key: "employee.delete" },
-    { key: "company.view" },
-    { key: "sales_target.view" },
-    { key: "sales_target.create" },
-    { key: "sales_target.edit" },
-    { key: "sales_target.delete" },
-    { key: "stock.view" },
-    { key: "stock.adjust" },
-    { key: "stock.lot.manage" },
-    { key: "system.audit_log" },
-    { key: "system.security_log" },
-    { key: "menu.announcements" },
-    { key: "announcement.manage" },
-
-    {
-      key: "data.sales_targets",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
-    { key: "menu.test_activity" },
-    { key: "menu.test_activity.trip_plan" },
-    { key: "menu.test_activity.activity_report" },
-    { key: "menu.test_activity.budget_report" },
-    { key: "menu.test_activity.customer_report" },
-    { key: "menu.promotional_materials" },
-    { key: "promotional_material.view" },
-    { key: "promotional_material.create" },
-    { key: "promotional_material.edit" },
-    { key: "promotional_material.delete" },
-    // Note: rbac.manage, menu.rbac, menu.admin, system.settings are excluded to differentiate from Administrator
-  ];
-
-  await prisma.rolePermission.createMany({
-    data: adminConfig
-      .filter((item) => p(item.key))
-      .map((item) => ({
-        roleId: adminRoleSecondary.id,
-        permissionId: p(item.key)!,
-        allow: true,
-        dataAccess: (item.dataAccess as DataAccessLevel) ?? null,
-        editAccess: (item.editAccess as EditAccessLevel) ?? null,
-        deleteAccess: (item.deleteAccess as DeleteAccessLevel) ?? null,
-      })),
-  });
-
-  // ──────────────────────────────────────────────────────────────
-  // CEO (ผู้บริหาร) Permissions - Read-only Executive Access
-  // ──────────────────────────────────────────────────────────────
-
-  const ceoConfig = [
-    // Menu permissions - access to view all areas
-    { key: "menu.dashboard.admin" },
-    { key: "menu.reports" },
-    { key: "menu.sales" },
-    { key: "menu.products" },
-    { key: "menu.customers" },
-    { key: "menu.employees" },
-    { key: "menu.companies" },
-    { key: "menu.credit_limits" },
-    { key: "menu.temporary_credit_limits" },
-    { key: "menu.fulfillment" },
-    { key: "menu.sales_forecast" },
-    { key: "menu.sales_targets" },
-    { key: "menu.notifications" },
-    { key: "menu.promotional_materials" },
-    { key: "promotional_material.view" },
-    // Report permissions - view all reports
-    { key: "report.time_sales" },
-    { key: "report.product_sales" },
-    { key: "report.product_group_sales" },
-    { key: "report.customer_sales" },
-    { key: "report.salesperson" },
-    { key: "report.sales_forecast" },
-    { key: "report.executive_dashboard" },
-    { key: "report.export" },
-    // View permissions - read-only access
-    { key: "sale.view", dataAccess: "VIEW_ALL" },
-    { key: "product.view", dataAccess: "VIEW_ALL" },
-    { key: "customer.view.dealer", dataAccess: "VIEW_ALL" },
-    { key: "customer.view.subdealer", dataAccess: "VIEW_ALL" },
-    { key: "customer.view.farmer", dataAccess: "VIEW_ALL" },
-    { key: "customer.view.broker", dataAccess: "VIEW_ALL" },
-    { key: "temporary_creditlimit.view", dataAccess: "VIEW_ALL" },
-    { key: "employee.view", dataAccess: "VIEW_ALL" },
-    { key: "company.view", dataAccess: "VIEW_ALL" },
-    { key: "sales_target.view", dataAccess: "VIEW_ALL" },
-    { key: "stock.view", dataAccess: "VIEW_ALL" },
-    { key: "system.audit_log" },
-    { key: "system.security_log" },
-
-    {
-      key: "data.employees",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_NONE",
-      deleteAccess: "DELETE_NONE",
-    },
-    {
-      key: "data.customers",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_NONE",
-      deleteAccess: "DELETE_NONE",
-    },
-    {
-      key: "data.creditlimits",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_NONE",
-      deleteAccess: "DELETE_NONE",
-    },
-    {
-      key: "data.temporary_creditlimits",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_NONE",
-      deleteAccess: "DELETE_NONE",
-    },
-    {
-      key: "data.sales",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_NONE",
-      deleteAccess: "DELETE_NONE",
-    },
-
-    {
-      key: "data.sales_targets",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_NONE",
-      deleteAccess: "DELETE_NONE",
-    },
-    { key: "menu.test_activity" },
-    { key: "menu.test_activity.trip_plan" },
-    { key: "menu.test_activity.activity_report" },
-    { key: "menu.test_activity.budget_report" },
-    { key: "menu.test_activity.customer_report" },
-  ];
-
-  await prisma.rolePermission.createMany({
-    data: ceoConfig
-      .filter((item) => p(item.key))
-      .map((item) => ({
-        roleId: ceoRole.id,
-        permissionId: p(item.key)!,
-        allow: true,
-        dataAccess: (item.dataAccess as DataAccessLevel) ?? null,
-        editAccess: (item.editAccess as EditAccessLevel) ?? null,
-        deleteAccess: (item.deleteAccess as DeleteAccessLevel) ?? null,
-      })),
-  });
-
-  // ──────────────────────────────────────────────────────────────
-  // Sales Admin (ธุรการขาย) Permissions - Fulfillment management
-  // ──────────────────────────────────────────────────────────────
-
-  const salesAdminConfig = [
-    // Menu permissions
-    { key: "menu.sales" },
-    { key: "menu.fulfillment" },
-    { key: "menu.customers" },
-    { key: "menu.products" },
-    // Sale permissions - view and manage fulfillment
-    {
-      key: "sale.create",
-    },
-    { key: "sale.view", dataAccess: "VIEW_ALL" },
-    // Product permissions - view only
-    { key: "product.view", dataAccess: "VIEW_ALL" },
-    { key: "product.create" },
-    { key: "product.edit" },
-    { key: "product.delete" },
-    { key: "product.manage" },
-    // Customer permissions - view only
-    { key: "customer.view.dealer", dataAccess: "VIEW_ALL" },
-    { key: "customer.view.subdealer", dataAccess: "VIEW_ALL" },
-    { key: "customer.view.farmer", dataAccess: "VIEW_ALL" },
-    { key: "customer.view.broker", dataAccess: "VIEW_ALL" },
-    // Stock permissions
-    { key: "stock.view" },
-    { key: "customer.create.dealer" },
-    { key: "customer.create.subdealer" },
-    { key: "customer.create.farmer" },
-    { key: "customer.create.broker" },
-    { key: "customer.edit.dealer" },
-    { key: "customer.edit.subdealer" },
-    { key: "customer.edit.farmer" },
-    { key: "customer.edit.broker" },
-    { key: "customer.delete.dealer" },
-    { key: "customer.delete.subdealer" },
-    { key: "customer.delete.farmer" },
-    { key: "customer.delete.broker" },
-    { key: "menu.temporary_credit_limits" },
-    { key: "temporary_creditlimit.create" },
-    { key: "temporary_creditlimit.edit" },
-    { key: "temporary_creditlimit.view" },
-    { key: "temporary_creditlimit.delete" },
-    { key: "menu.credit_limits" },
-    { key: "creditlimit.edit" },
-    // DATA permissions
-    {
-      key: "data.sales",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_OWN",
-      deleteAccess: "DELETE_OWN",
-    },
-    {
-      key: "data.customers",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
-
-    {
-      key: "data.creditlimits",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
-    {
-      key: "data.temporary_creditlimits",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
-    {
-      key: "data.stock",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
-    { key: "menu.show_product" },
-    { key: "menu.test_activity" },
-    { key: "menu.test_activity.trip_plan" },
-    { key: "menu.test_activity.activity_report" },
-    { key: "menu.test_activity.budget_report" },
-    { key: "menu.test_activity.customer_report" },
-  ];
-
-  await prisma.rolePermission.createMany({
-    data: salesAdminConfig
-      .filter((item) => p(item.key))
-      .map((item) => ({
-        roleId: salesAdminRole.id,
-        permissionId: p(item.key)!,
-        allow: true,
-        dataAccess: (item.dataAccess as DataAccessLevel) ?? null,
-        editAccess: (item.editAccess as EditAccessLevel) ?? null,
-        deleteAccess: (item.deleteAccess as DeleteAccessLevel) ?? null,
-      })),
-  });
-
-  console.log("✅ RBAC seeded.");
 }
