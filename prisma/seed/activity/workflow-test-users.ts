@@ -15,7 +15,7 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
 
   const mktDept = await prisma.department.upsert({
     where: { code: "MKT" },
-    update: {},
+    update: { name: "แผนกการตลาด" },
     create: { name: "แผนกการตลาด", code: "MKT" },
   });
 
@@ -117,7 +117,7 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
 
   const empMktMgr = await prisma.employee.upsert({
     where: { email: uMktMgr.email },
-    update: { name: uMktMgr.name, positionId: posMktMgr.id, departmentId: mktDept.id, positionTitle: posMktMgr.name, departmentName: mktDept.name },
+    update: { name: uMktMgr.name, positionId: posMktMgr.id, departmentId: mktDept.id, positionTitle: posMktMgr.name, departmentName: mktDept.name, managerId: empSalesDir.id },
     create: {
       email: uMktMgr.email,
       name: uMktMgr.name,
@@ -126,6 +126,7 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
       departmentId: mktDept.id,
       positionTitle: posMktMgr.name,
       departmentName: mktDept.name,
+      managerId: empSalesDir.id,
     },
   });
 

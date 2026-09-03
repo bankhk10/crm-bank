@@ -12,7 +12,7 @@ export async function seedActivityDepartmentsAndPositions(prisma: PrismaClient) 
 
   const mktDept = await prisma.department.upsert({
     where: { code: "MKT" },
-    update: {},
+    update: { name: "แผนกการตลาด" },
     create: { name: "แผนกการตลาด", code: "MKT" },
   });
 
