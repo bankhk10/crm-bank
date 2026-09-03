@@ -318,3 +318,58 @@ Example:
 ```tsx
 <div className="p-4 md:p-6 lg:p-8">
 ```
+
+---
+
+# 8. Database Schema & Prisma Migration Standards
+
+When a task requires modifying or extending database models, tables, columns, enums, or relations, you MUST follow these mandatory database migration standards:
+
+## 8.1 Schema Modification & Migration Coupling
+1. If you modify `prisma/schema.prisma` and introduce a persistent database schema change, creating a corresponding Prisma Migration is a **MANDATORY** part of the task.
+2. Modifying `prisma/schema.prisma` alone without generating a migration is **INCOMPLETE** and strictly prohibited.
+3. Never leave unmigrated schema changes in `schema.prisma`.
+
+## 8.2 Migration Creation & SQL Inspection
+1. Always generate migrations using standard Prisma migration workflows (`npx prisma migrate dev --create-only` or `prisma migrate diff`).
+2. You MUST inspect the generated `migration.sql` thoroughly before proceeding.
+3. Verify that `migration.sql` contains **ONLY** the schema changes intended for the specific feature or task.
+4. Check for destructive DDL statements:
+   - `DROP TABLE`
+   - `DROP COLUMN`
+   - `DROP TYPE`
+   - Data truncation or unrecoverable alterations
+5. Check for unexpected data mutations (`INSERT`, `UPDATE`, `DELETE`) inside migration files.
+6. If the generated migration includes unrelated schema changes from earlier unfinished work, you MUST **STOP** and report to the user immediately. Do NOT automatically bundle unrelated changes.
+
+## 8.3 Separation of Migration Creation vs Migration Application
+1. **Creation** (generating the migration file) and **Application** (`prisma migrate deploy` / executing DDL on database) MUST be treated as separate, distinct steps.
+2. You MUST NOT apply migrations to any database without explicit user authorization or workflow approval.
+3. Prohibit the use of `prisma db push` as a shortcut or substitute for schema migrations when changes are intended to be committed or deployed.
+
+## 8.4 Migration History, Drift & Incident Handling
+1. If a migration history conflict, schema drift, or failed migration record is detected in `_prisma_migrations`, you MUST **STOP** immediately and report the error.
+2. Do not attempt unapproved manual database mutations, forced resets (`prisma migrate reset`), or uncoordinated rollbacks.
+3. Any investigation into migration errors or database schema discrepancies MUST be strictly **Read-Only** until an approved recovery plan is established.
+
+## 8.5 End-to-End Consistency Validation
+Before declaring a database-related task complete, perform three-way validation:
+- **`schema.prisma`** (Application Data Model)
+- **`prisma/migrations/`** (Version-controlled Migration History)
+- **Database Catalog** (Actual Target Database Schema)
+Ensure all three layers are 100% synchronized with zero drift.
+
+---
+
+# 9. Pre-Completion Self-Validation
+
+Before declaring any task complete, verify the following:
+
+1. Architecture adheres to the Module Architecture Contract.
+2. Layer dependency rules are respected (features $\rightarrow$ server $\rightarrow$ application $\rightarrow$ infrastructure).
+3. If database schema was modified, a corresponding Prisma migration exists, is inspected, and is applied with zero drift.
+4. TypeScript check passes with zero errors (`pnpm tsc --noEmit`).
+5. ESLint check passes with zero errors.
+6. Automated tests pass without modification to existing tests unless explicitly requested.
+7. No unrelated code or files were modified.
+
