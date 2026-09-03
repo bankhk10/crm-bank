@@ -15,6 +15,8 @@
     "seed:core": "tsx prisma/seed/core/index.ts",
     "seed:sales-promotion": "tsx prisma/seed/core/sales-promotion-user.ts",
     "seed:activity": "tsx prisma/seed/activity/index.ts",
+    "activity:uat:seed": "tsx scripts/seed-activity-uat.ts",
+    "activity:uat:cleanup": "tsx scripts/seed-activity-uat.ts --cleanup",
     "db:migrate": "prisma migrate deploy"
   },
   "dependencies": {

@@ -193,14 +193,112 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
     },
   });
 
+  // 5. Link Users to Existing Roles in Database (Idempotent via userRole.upsert)
+  const rolePromoter = await prisma.role.findUnique({ where: { slug: "sales_promotion" } });
+  const roleSales = await prisma.role.findUnique({ where: { slug: "sales_employee" } });
+  const roleSalesManager = await prisma.role.findUnique({ where: { slug: "sales_manager" } });
+  const roleMktManager = await prisma.role.findUnique({ where: { slug: "marketing_manager" } });
+  const roleMktStaff = await prisma.role.findUnique({ where: { slug: "employee_mk" } });
+
+  const assignUserRole = async (userId: string, roleId?: string) => {
+    if (!roleId) return;
+    await prisma.userRole.upsert({
+      where: {
+        userId_roleId: {
+          userId,
+          roleId,
+        },
+      },
+      update: {
+        deletedAt: null,
+      },
+      create: {
+        userId,
+        roleId,
+      },
+    });
+  };
+
+  await assignUserRole(uPromoter.id, rolePromoter?.id);
+  await assignUserRole(uSales.id, roleSales?.id);
+  await assignUserRole(uAreaMgr.id, roleSalesManager?.id);
+  await assignUserRole(uSalesAdmin.id, roleSalesManager?.id);
+  await assignUserRole(uMktMgr.id, roleMktManager?.id);
+  await assignUserRole(uSalesDir.id, roleSalesManager?.id);
+  await assignUserRole(uMktStaff.id, roleMktStaff?.id);
+
+  // 6. Assign Permission Overrides for Activity Testing (Idempotent via userPermissionOverride.upsert)
+  const allPermissions = await prisma.permission.findMany({
+    where: {
+      key: {
+        in: [
+          "menu.test_activity",
+          "menu.activity_plans",
+          "activity.view",
+          "activity.approve",
+          "activity.create",
+          "activity.edit",
+          "data.activity_plans",
+        ],
+      },
+    },
+  });
+  const permMap = Object.fromEntries(allPermissions.map((p) => [p.key, p]));
+
+  const setOverride = async (
+    userId: string,
+    key: string,
+    allow: boolean = true,
+    dataAccess?: any,
+  ) => {
+    const perm = permMap[key];
+    if (!perm) return;
+    await prisma.userPermissionOverride.upsert({
+      where: {
+        userId_permissionId: {
+          userId,
+          permissionId: perm.id,
+        },
+      },
+      update: {
+        allow,
+        dataAccess: dataAccess || (perm.category === "DATA" ? "VIEW_ALL" : null),
+        deletedAt: null,
+      },
+      create: {
+        userId,
+        permissionId: perm.id,
+        allow,
+        dataAccess: dataAccess || (perm.category === "DATA" ? "VIEW_ALL" : null),
+        reason: "Activity Workflow Testing",
+      },
+    });
+  };
+
+  // Approver permissions: menu + view + approve + data (strictly NO create/edit)
+  const approverKeys = ["menu.test_activity", "menu.activity_plans", "activity.view", "activity.approve", "data.activity_plans"];
+  for (const key of approverKeys) {
+    await setOverride(uSales.id, key);
+    await setOverride(uAreaMgr.id, key);
+    await setOverride(uSalesAdmin.id, key);
+    await setOverride(uMktMgr.id, key);
+    await setOverride(uSalesDir.id, key);
+  }
+
+  // Marketing Staff (Helper): menu + view + data (NO approve, NO create, NO edit)
+  const helperKeys = ["menu.test_activity", "menu.activity_plans", "activity.view", "data.activity_plans"];
+  for (const key of helperKeys) {
+    await setOverride(uMktStaff.id, key, true, "VIEW_OWN");
+  }
+
   console.log("✅ Workflow Test Users & Hierarchy seeded successfully:");
-  console.log("   1. Promoter:    test.promoter@crm.local  -> Mgr: Sales");
-  console.log("   2. Sales:       test.sales@crm.local     -> Mgr: Area Mgr");
-  console.log("   3. Area Mgr:    test.areamgr@crm.local   -> Mgr: Sales Admin Mgr");
-  console.log("   4. Sales Admin: test.salesadmin@crm.local");
-  console.log("   5. MKT Mgr:     test.mktmgr@crm.local");
-  console.log("   6. Sales Dir:   test.salesdir@crm.local");
-  console.log("   7. MKT Staff:   test.mktstaff@crm.local  -> Mgr: MKT Mgr");
+  console.log("   1. Promoter:    test.promoter@crm.local  -> Role: sales_promotion");
+  console.log("   2. Sales:       test.sales@crm.local     -> Role: sales_employee + Approver Overrides");
+  console.log("   3. Area Mgr:    test.areamgr@crm.local   -> Role: sales_manager + Approver Overrides");
+  console.log("   4. Sales Admin: test.salesadmin@crm.local-> Role: sales_manager + Approver Overrides");
+  console.log("   5. MKT Mgr:     test.mktmgr@crm.local    -> Role: marketing_manager + Approver Overrides");
+  console.log("   6. Sales Dir:   test.salesdir@crm.local  -> Role: sales_manager + Approver Overrides");
+  console.log("   7. MKT Staff:   test.mktstaff@crm.local  -> Role: employee_mk + Helper Overrides");
 
   return {
     users: { uPromoter, uSales, uAreaMgr, uSalesAdmin, uMktMgr, uSalesDir, uMktStaff },
