@@ -42,7 +42,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { ActivityStatusBadge } from "../../ui/activity-status-badge";
+import { ActivityStatusBadge, ActivityStatusWithOperator } from "../../ui/activity-status-badge";
 import { getWorkTypeName } from "../../constants";
 import type { ActivityPlanWithRelations } from "../../types";
 import { getApprovalQueueDataAction } from "../../server/actions";
@@ -768,7 +768,7 @@ export default function ActivityPlanApprovalListView() {
                           {total > 0 ? `${total.toLocaleString()} ฿` : "-"}
                         </td>
                         <td className="p-3.5">
-                          <ActivityStatusBadge status={plan.status} />
+                          <ActivityStatusWithOperator plan={plan} />
                         </td>
                         <td className="p-3.5 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
@@ -1286,7 +1286,7 @@ function PlanCard({
               </span>
             ) : null}
           </div>
-          <ActivityStatusBadge status={plan.status} className="shrink-0" />
+          <ActivityStatusWithOperator plan={plan} className="shrink-0 items-end" />
         </div>
 
         {/* ── Title ── */}

@@ -10,7 +10,12 @@ export { default as PromotionalMaterialsView } from "./features/promotional-mate
 export { ActivityCalendarView } from "./features/calendar-view/activity-calendar-view";
 
 // Export UI components
-export { ActivityStatusBadge } from "./ui/activity-status-badge";
+export {
+  ActivityStatusBadge,
+  ActivityStatusWithOperator,
+  resolveCurrentOperator,
+  formatApproverRole,
+} from "./ui/activity-status-badge";
 export { FormActionButtons } from "./ui/form-action-buttons";
 
 // Export types & constants

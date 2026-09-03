@@ -16,12 +16,14 @@ import {
   User,
   FileText,
   Info,
+  UserCheck,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ActivityPlanWithRelations } from "../../types";
+import { ActivityStatusBadge, resolveCurrentOperator } from "../../ui/activity-status-badge";
 import {
   getActivityPlanAction,
   getDemoPlotHistoryAction,
@@ -341,19 +343,51 @@ export default function ActivityPlanDetailView({
             </div>
           </div>
 
-          {/* Right: Plan No */}
-          <div className="ml-auto flex items-center gap-2 self-start sm:self-auto">
+          {/* Right: Plan No & Status */}
+          <div className="ml-auto flex flex-wrap items-center gap-2 self-start sm:self-auto">
             {(plan.code || planSummary.planNo) && (
               <div className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs">
                 <Info className="w-3.5 h-3.5 shrink-0" />
                 <span>เลขที่แผน: {plan.code || planSummary.planNo}</span>
               </div>
             )}
+            <ActivityStatusBadge status={plan.status} />
           </div>
         </div>
 
         {/* ─── 2. GENERAL PLAN INFORMATION (Activity Plan Overview) ─── */}
         <div className="space-y-3.5">
+          {(() => {
+            const operator = resolveCurrentOperator(plan);
+            if (!operator) return null;
+            return (
+              <div className="bg-gradient-to-r from-blue-50/80 via-indigo-50/40 to-slate-50 border border-blue-200/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <UserCheck className="w-5 h-5 stroke-[2.2]" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-700 font-semibold uppercase tracking-wider">
+                      ผู้ดำเนินการปัจจุบัน
+                    </p>
+                    <p className="text-base sm:text-lg font-extrabold text-slate-900 mt-0.5">
+                      {operator.displayRole}
+                      {operator.employeeName && (
+                        <span className="text-xs sm:text-sm font-medium text-slate-600 ml-2">
+                          ({operator.employeeName})
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:items-end gap-1 shrink-0 self-start sm:self-auto border-t sm:border-t-0 border-blue-100 pt-2 sm:pt-0">
+                  <span className="text-[11px] text-slate-500 font-medium">สถานะ</span>
+                  <ActivityStatusBadge status={plan.status} />
+                </div>
+              </div>
+            );
+          })()}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {/* Card 1: ชื่อแผนงาน / กิจกรรม */}
             <div className="bg-[#f8fafc] border border-slate-200/80 rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs">

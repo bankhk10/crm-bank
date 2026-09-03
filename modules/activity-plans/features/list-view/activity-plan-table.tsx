@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations } from "../../types";
-import { ActivityStatusBadge } from "../../ui/activity-status-badge";
+import { ActivityStatusBadge, ActivityStatusWithOperator } from "../../ui/activity-status-badge";
 import { WORK_TYPE_CONFIG, getWorkTypeName } from "../../constants";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
@@ -227,12 +227,10 @@ export function ActivityPlanTable({
           const item = row.original;
           const resultStatus = (item as any).result?.resultStatus;
           return (
-            <div className="whitespace-nowrap">
-              <ActivityStatusBadge
-                status={item.status}
-                resultStatus={resultStatus}
-              />
-            </div>
+            <ActivityStatusWithOperator
+              plan={item}
+              resultStatus={resultStatus}
+            />
           );
         },
       },

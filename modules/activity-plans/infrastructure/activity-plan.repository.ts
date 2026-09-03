@@ -327,6 +327,19 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
         currentApprover: {
           select: { id: true, name: true, positionTitle: true },
         },
+        helpers: {
+          where: { deletedAt: null },
+          select: {
+            status: true,
+            employee: {
+              select: {
+                department: { select: { code: true } },
+                departmentName: true,
+                positionTitle: true,
+              },
+            },
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * perPage,

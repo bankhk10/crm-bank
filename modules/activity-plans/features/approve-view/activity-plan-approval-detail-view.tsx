@@ -23,12 +23,13 @@ import {
   ShieldCheck,
   Info,
   MapPin,
+  UserCheck,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ActivityStatusBadge } from "@/modules/activity-plans/ui/activity-status-badge";
+import { ActivityStatusBadge, resolveCurrentOperator } from "@/modules/activity-plans/ui/activity-status-badge";
 import type { ActivityPlanWithRelations } from "../../types";
 import {
   getActivityPlanAction,
@@ -432,6 +433,37 @@ export default function ActivityPlanApprovalDetailView({
 
         {/* ─── 2. GENERAL PLAN INFORMATION (Activity Plan Overview) ─── */}
         <div className="space-y-4">
+          {(() => {
+            const operator = resolveCurrentOperator(plan);
+            if (!operator) return null;
+            return (
+              <div className="bg-gradient-to-r from-blue-50/80 via-indigo-50/40 to-slate-50 border border-blue-200/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <UserCheck className="w-5 h-5 stroke-[2.2]" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-700 font-semibold uppercase tracking-wider">
+                      ผู้ดำเนินการปัจจุบัน
+                    </p>
+                    <p className="text-base sm:text-lg font-extrabold text-slate-900 mt-0.5">
+                      {operator.displayRole}
+                      {operator.employeeName && (
+                        <span className="text-xs sm:text-sm font-medium text-slate-600 ml-2">
+                          ({operator.employeeName})
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:items-end gap-1 shrink-0 self-start sm:self-auto border-t sm:border-t-0 border-blue-100 pt-2 sm:pt-0">
+                  <span className="text-[11px] text-slate-500 font-medium">สถานะ</span>
+                  <ActivityStatusBadge status={plan.status} />
+                </div>
+              </div>
+            );
+          })()}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {/* Card 1: ชื่อแผนงาน / กิจกรรม */}
             <div className="bg-gradient-to-br from-blue-50/80 via-sky-50/30 to-white border border-blue-200/70 rounded-2xl p-4 sm:p-4.5 flex items-center gap-3.5 shadow-2xs hover:shadow-xs transition-shadow">
