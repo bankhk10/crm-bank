@@ -6,6 +6,7 @@ import { seedProductMaster } from "./product-master";
 import { seedRBAC } from "./rbac";
 import { seedUsers } from "./users";
 import { seedSalesPromotionUser } from "./sales-promotion-user";
+import { seedPromotionalMaterials } from "../activity/promotional-materials";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -35,6 +36,9 @@ export async function seedCore() {
 
     // 5. Sales Promotion Test User & Permissions
     await seedSalesPromotionUser(prisma);
+
+    // 6. Promotional Materials Master Data (197 items)
+    await seedPromotionalMaterials(prisma);
 
     console.log("✅ Core Database Seeding completed successfully!");
   } catch (error) {

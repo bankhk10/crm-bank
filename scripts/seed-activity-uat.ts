@@ -2,6 +2,7 @@ import { PrismaClient, Prisma, ActivityStatus, ActivityHelperStatus } from "@pri
 import { db as prisma } from "../lib/db";
 import { seedWorkflowTestUsers } from "../prisma/seed/activity/workflow-test-users";
 import { seedActivityTypes } from "../prisma/seed/activity/activity-types";
+import { seedPromotionalMaterials } from "../prisma/seed/activity/promotional-materials";
 
 /**
  * Script for setting up UAT Test Data for Activity Workflow Scenarios (ACT-001 to ACT-010).
@@ -79,6 +80,9 @@ export async function seedUatActivityPlans(db: PrismaClient = prisma) {
   await seedActivityTypes(db);
   const activityTypes = await db.activityType.findMany();
   const typeMap = Object.fromEntries(activityTypes.map((t) => [t.code, t]));
+
+  // 3. Ensure Promotional Materials Master Data exist
+  await seedPromotionalMaterials(db);
 
   // Helper date generators for September 2026 UAT testing
   const makeDate = (day: number, hour: number = 9) => new Date(2026, 8, day, hour, 0, 0); // Month index 8 = September
