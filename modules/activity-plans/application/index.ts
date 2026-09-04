@@ -1,3 +1,4 @@
+import { db } from "@/lib/db";
 import { activityPlanSchema, activityResultSchema } from "./validations";
 import {
   findActivityPlanById,
@@ -227,7 +228,16 @@ export async function updateActivityPlanUseCase(id: string, userId: string, rawD
   if (!plan) return { success: false as const, error: "ไม่พบ Trip Plan" };
 
   if (plan.createdById !== userId) {
-    return { success: false as const, error: "คุณไม่มีสิทธิ์แก้ไข Trip Plan นี้" };
+    const userRole = await db.userRole.findFirst({
+      where: {
+        userId,
+        deletedAt: null,
+        role: { slug: { in: ["administrator", "admin", "ceo"] } },
+      },
+    });
+    if (!userRole) {
+      return { success: false as const, error: "คุณไม่มีสิทธิ์แก้ไข Trip Plan นี้" };
+    }
   }
 
   if (plan.status !== ActivityStatus.DRAFT && plan.status !== ActivityStatus.WAITING_FOR_CORRECTION) {
@@ -324,7 +334,16 @@ export async function deleteActivityPlanUseCase(id: string, userId: string) {
   if (!plan) return { success: false as const, error: "ไม่พบแผนกิจกรรม" };
 
   if (plan.createdById !== userId) {
-    return { success: false as const, error: "คุณไม่มีสิทธิ์ลบแผนกิจกรรมนี้" };
+    const userRole = await db.userRole.findFirst({
+      where: {
+        userId,
+        deletedAt: null,
+        role: { slug: { in: ["administrator", "admin", "ceo"] } },
+      },
+    });
+    if (!userRole) {
+      return { success: false as const, error: "คุณไม่มีสิทธิ์ลบแผนกิจกรรมนี้" };
+    }
   }
 
   await softDeleteActivityPlan(id);

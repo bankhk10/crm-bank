@@ -16,7 +16,20 @@ export async function GET(request: Request) {
 
   // RBAC permission check
   const permissions = session.user.permissionKeys ?? [];
-  if (!isAuthorized(resourcePath, permissions) && !permissions.includes("activity.view") && !permissions.includes("activity.manage")) {
+  const roles = session.user.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session.user as any)?.role === "administrator" ||
+    (session.user as any)?.role === "ADMIN";
+
+  if (
+    !isAdmin &&
+    !isAuthorized(resourcePath, permissions) &&
+    !permissions.includes("activity.view") &&
+    !permissions.includes("activity.manage")
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -103,7 +116,19 @@ export async function POST(request: Request) {
   }
 
   const permissions = session.user.permissionKeys ?? [];
-  if (!permissions.includes("activity.create") && !permissions.includes("activity.manage")) {
+  const roles = session.user.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session.user as any)?.role === "administrator" ||
+    (session.user as any)?.role === "ADMIN";
+
+  if (
+    !isAdmin &&
+    !permissions.includes("activity.create") &&
+    !permissions.includes("activity.manage")
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

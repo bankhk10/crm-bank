@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
@@ -23,13 +24,25 @@ interface Props {
 
 export default function ActivityPlanEditView({ id }: Props) {
   const router = useRouter();
+  const { data: session } = useSession();
   const { hasPermission, allowed, isLoading } = usePermission(
     "menu.activity_plans",
   );
 
+  const roles = (session?.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session?.user as any)?.role === "administrator" ||
+    (session?.user as any)?.role === "ADMIN";
+
   const canEdit =
-    hasPermission("activity.edit") || hasPermission("activity.manage");
+    isAdmin ||
+    hasPermission("activity.edit") ||
+    hasPermission("activity.manage");
   const canView =
+    isAdmin ||
     allowed ||
     hasPermission("activity.view") ||
     hasPermission("activity.manage") ||

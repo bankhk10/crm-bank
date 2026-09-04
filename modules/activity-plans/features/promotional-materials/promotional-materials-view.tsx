@@ -12,6 +12,7 @@ import {
   Tags,
   Coins,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { PromotionalMaterialsTable, type PromotionalMaterialItem } from "./promotional-materials-table";
 import { PromotionalMaterialFormDialog } from "./promotional-material-form-dialog";
 import { DeleteMaterialDialog } from "./delete-material-dialog";
@@ -21,32 +22,45 @@ import {
 } from "../../server/actions";
 
 export default function PromotionalMaterialsView() {
+  const { data: session } = useSession();
   const {
     hasPermission,
     allowed,
     isLoading: permLoading,
   } = usePermission("menu.promotional_materials");
 
+  const roles = (session?.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session?.user as any)?.role === "administrator" ||
+    (session?.user as any)?.role === "ADMIN";
+
   const canView =
-    !permLoading &&
-    (allowed ||
-      hasPermission("promotional_material.view") ||
-      hasPermission("activity.manage") ||
-      hasPermission("system.settings"));
+    isAdmin ||
+    (!permLoading &&
+      (allowed ||
+        hasPermission("promotional_material.view") ||
+        hasPermission("activity.manage") ||
+        hasPermission("system.settings")));
 
   const canCreate =
+    isAdmin ||
     hasPermission("promotional_material.create") ||
     hasPermission("menu.promotional_materials") ||
     hasPermission("activity.manage") ||
     hasPermission("system.settings");
 
   const canEdit =
+    isAdmin ||
     hasPermission("promotional_material.edit") ||
     hasPermission("menu.promotional_materials") ||
     hasPermission("activity.manage") ||
     hasPermission("system.settings");
 
   const canDelete =
+    isAdmin ||
     hasPermission("promotional_material.delete") ||
     hasPermission("menu.promotional_materials") ||
     hasPermission("activity.manage") ||

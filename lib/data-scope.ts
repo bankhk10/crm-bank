@@ -320,6 +320,15 @@ export async function applyEditScope<T extends Record<string, any>>(
   session: Session,
   resourceKey: string,
 ): Promise<T> {
+  const roles = session.user.roles ?? [];
+  const isSuperAdmin =
+    roles.includes("administrator") ||
+    (session.user as any)?.role === "administrator";
+
+  if (isSuperAdmin) {
+    return where;
+  }
+
   const baseConfig = RESOURCE_CONFIGS[resourceKey];
   if (!baseConfig) return where;
 
@@ -357,6 +366,15 @@ export async function applyDeleteScope<T extends Record<string, any>>(
   session: Session,
   resourceKey: string,
 ): Promise<T> {
+  const roles = session.user.roles ?? [];
+  const isSuperAdmin =
+    roles.includes("administrator") ||
+    (session.user as any)?.role === "administrator";
+
+  if (isSuperAdmin) {
+    return where;
+  }
+
   const baseConfig = RESOURCE_CONFIGS[resourceKey];
   if (!baseConfig) return where;
 
@@ -537,6 +555,15 @@ export async function canAccessRecord(
   resourceKey: string,
   options: OwnershipCheckOptions,
 ): Promise<boolean> {
+  const roles = session.user.roles ?? [];
+  const isSuperAdmin =
+    roles.includes("administrator") ||
+    (session.user as any)?.role === "administrator";
+
+  if (isSuperAdmin) {
+    return true;
+  }
+
   const config = RESOURCE_CONFIGS[resourceKey];
   if (!config) return false;
 

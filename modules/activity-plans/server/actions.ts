@@ -45,7 +45,16 @@ export async function createActivityPlanAction(rawData: unknown) {
 
   // Permission check
   const permissions = session.user.permissionKeys ?? [];
+  const roles = (session.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session.user as any)?.role === "administrator" ||
+    (session.user as any)?.role === "ADMIN";
+
   if (
+    !isAdmin &&
     !permissions.includes("activity.create") &&
     !permissions.includes("activity.manage")
   ) {
@@ -122,7 +131,16 @@ export async function updateActivityPlanAction(id: string, rawData: unknown) {
   }
 
   const permissions = session.user.permissionKeys ?? [];
+  const roles = (session.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session.user as any)?.role === "administrator" ||
+    (session.user as any)?.role === "ADMIN";
+
   if (
+    !isAdmin &&
     !permissions.includes("activity.edit") &&
     !permissions.includes("activity.manage")
   ) {
@@ -158,7 +176,16 @@ export async function deleteActivityPlanAction(id: string) {
   }
 
   const permissions = session.user.permissionKeys ?? [];
+  const roles = (session.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session.user as any)?.role === "administrator" ||
+    (session.user as any)?.role === "ADMIN";
+
   if (
+    !isAdmin &&
     !permissions.includes("activity.delete") &&
     !permissions.includes("activity.manage")
   ) {
@@ -692,7 +719,16 @@ export async function createPromotionalMaterialAction(rawData: unknown) {
   }
 
   const perms = session.user.permissionKeys ?? [];
+  const roles = (session.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session.user as any)?.role === "administrator" ||
+    (session.user as any)?.role === "ADMIN";
+
   const canCreate =
+    isAdmin ||
     perms.includes("promotional_material.create") ||
     perms.includes("menu.promotional_materials") ||
     perms.includes("activity.manage") ||
@@ -726,7 +762,16 @@ export async function updatePromotionalMaterialAction(id: string, rawData: unkno
   }
 
   const perms = session.user.permissionKeys ?? [];
+  const roles = (session.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session.user as any)?.role === "administrator" ||
+    (session.user as any)?.role === "ADMIN";
+
   const canEdit =
+    isAdmin ||
     perms.includes("promotional_material.edit") ||
     perms.includes("menu.promotional_materials") ||
     perms.includes("activity.manage") ||
@@ -760,7 +805,16 @@ export async function deletePromotionalMaterialAction(id: string) {
   }
 
   const perms = session.user.permissionKeys ?? [];
+  const roles = (session.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session.user as any)?.role === "administrator" ||
+    (session.user as any)?.role === "ADMIN";
+
   const canDelete =
+    isAdmin ||
     perms.includes("promotional_material.delete") ||
     perms.includes("menu.promotional_materials") ||
     perms.includes("activity.manage") ||

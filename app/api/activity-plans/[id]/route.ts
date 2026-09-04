@@ -53,7 +53,19 @@ export async function PUT(request: Request, context: RouteContext) {
 
   const { id } = await context.params;
   const permissions = session.user.permissionKeys ?? [];
-  if (!permissions.includes("activity.edit") && !permissions.includes("activity.manage")) {
+  const roles = session.user.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session.user as any)?.role === "administrator" ||
+    (session.user as any)?.role === "ADMIN";
+
+  if (
+    !isAdmin &&
+    !permissions.includes("activity.edit") &&
+    !permissions.includes("activity.manage")
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -77,7 +89,19 @@ export async function DELETE(request: Request, context: RouteContext) {
 
   const { id } = await context.params;
   const permissions = session.user.permissionKeys ?? [];
-  if (!permissions.includes("activity.delete") && !permissions.includes("activity.manage")) {
+  const roles = session.user.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session.user as any)?.role === "administrator" ||
+    (session.user as any)?.role === "ADMIN";
+
+  if (
+    !isAdmin &&
+    !permissions.includes("activity.delete") &&
+    !permissions.includes("activity.manage")
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
