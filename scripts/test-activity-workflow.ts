@@ -1,6 +1,7 @@
 import { Prisma, ActivityStatus, CalendarEventStatus, CalendarAttendeeRole } from "@prisma/client";
 import { db as prisma } from "../lib/db";
 import { seedWorkflowTestUsers } from "../prisma/seed/activity/workflow-test-users";
+import { seedActivityTypes } from "../prisma/seed/activity/activity-types";
 import {
   submitActivityPlanUseCase,
   approveActivityPlanUseCase,
@@ -51,6 +52,11 @@ async function runTests() {
   const { uPromoter, uSales, uAreaMgr, uSalesAdmin, uMktMgr, uSalesDir, uMktStaff } = seedData.users;
   const { empPromoter, empSales, empAreaMgr, empSalesAdmin, empMktMgr, empSalesDir, empMktStaff } = seedData.employees;
 
+  // Ensure Activity Types exist
+  await seedActivityTypes(prisma);
+  const allTypes = await prisma.activityType.findMany();
+  const typeMap = Object.fromEntries(allTypes.map((t) => [t.code, t]));
+
   // Clean old test plans
   await prisma.activityPlan.deleteMany({
     where: { code: { startsWith: "TEST-ACT-" } },
@@ -61,21 +67,46 @@ async function runTests() {
 
   // Helper to create test plan with fiscal dimensions
   const createTestPlan = async (data: any) => {
-    const startDate = data.startDate || now;
-    const endDate = data.endDate || tomorrow;
-    return prisma.activityPlan.create({
+    const { primaryTypeCode, workTypeCodes = [], ...rest } = data;
+    const startDate = rest.startDate || now;
+    const endDate = rest.endDate || tomorrow;
+    const primaryType = primaryTypeCode ? typeMap[primaryTypeCode] : null;
+
+    const plan = await prisma.activityPlan.create({
       data: {
         fiscalYear: startDate.getFullYear(),
         fiscalMonth: startDate.getMonth() + 1,
         fiscalQuarter: Math.ceil((startDate.getMonth() + 1) / 3),
         durationDays: 1,
-        objective: data.objective || "ทดสอบการจัดกิจกรรม",
-        status: data.status || ActivityStatus.DRAFT,
-        ...data,
+        objective: rest.objective || "ทดสอบการจัดกิจกรรม",
+        status: rest.status || ActivityStatus.DRAFT,
+        activityTypeId: primaryType?.id ?? null,
+        ...rest,
         startDate,
         endDate,
       },
     });
+
+    const codesToLink =
+      workTypeCodes.length > 0
+        ? workTypeCodes
+        : primaryTypeCode
+          ? [primaryTypeCode]
+          : [];
+
+    for (const wtCode of codesToLink) {
+      const wt = typeMap[wtCode];
+      if (wt) {
+        await prisma.activityPlanWorkType.create({
+          data: {
+            activityPlanId: plan.id,
+            activityTypeId: wt.id,
+          },
+        });
+      }
+    }
+
+    return plan;
   };
 
   // ─────────────────────────────────────────────────────────────
@@ -85,6 +116,8 @@ async function runTests() {
   try {
     const plan1 = await createTestPlan({
       code: "TEST-ACT-001",
+      primaryTypeCode: "TYPE_1",
+      workTypeCodes: ["TYPE_1"],
       title: "งานจัดแปลงสาธิตข้าวโพด อ.แม่ริม",
       location: "แปลงสาธิต อ.แม่ริม",
       province: "เชียงใหม่",
@@ -136,12 +169,12 @@ async function runTests() {
       "Promoter: 4-step Line Approval (No Budget/No Helper)",
       "Promoter -> Sales -> Area Mgr -> Sales Admin Mgr",
       "Status: APPROVED, Calendar Event Created",
-      `Status: ${p?.status}, Calendar: ${calEvent ? "Created" : "None"}`,
+      `Status: ${p?.status}, Calendar: ${calEvent ? "Created" : "Missing"}`,
       Boolean(passed),
     );
   } catch (err: any) {
     console.error("ACT-001 Error:", err);
-    await logResult("ACT-001", "Promoter Line Approval", "4-step", "APPROVED", "FAILED", false, err.message);
+    await logResult("ACT-001", "Line Approval", "Promoter -> ... -> Sales Admin Mgr", "APPROVED", "FAILED", false, err.message);
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -151,6 +184,8 @@ async function runTests() {
   try {
     const plan2 = await createTestPlan({
       code: "TEST-ACT-002",
+      primaryTypeCode: "TYPE_9",
+      workTypeCodes: ["TYPE_9"],
       title: "กิจกรรมส่งเสริมการขายหน้าร้าน ตลาดไท",
       location: "ตลาดไท",
       province: "ปทุมธานี",
@@ -205,6 +240,8 @@ async function runTests() {
   try {
     const plan3 = await createTestPlan({
       code: "TEST-ACT-003",
+      primaryTypeCode: "TYPE_8",
+      workTypeCodes: ["TYPE_8"],
       title: "จัดประชุมเกษตรกรและสัมมนาวิชาการ",
       location: "โรงแรมริมน้ำ",
       province: "สุพรรณบุรี",
@@ -246,6 +283,8 @@ async function runTests() {
   try {
     const plan4 = await createTestPlan({
       code: "TEST-ACT-004",
+      primaryTypeCode: "TYPE_10",
+      workTypeCodes: ["TYPE_10"],
       title: "งานใหญ่ Field Day ประจำปี",
       location: "ศูนย์เรียนรู้การเกษตร",
       province: "นครราชสีมา",
@@ -300,6 +339,8 @@ async function runTests() {
   try {
     const plan5 = await createTestPlan({
       code: "TEST-ACT-005",
+      primaryTypeCode: "TYPE_5",
+      workTypeCodes: ["TYPE_5", "TYPE_11"],
       title: "งานจัดบูธส่งเสริมการขายร่วมกับทีมภาค",
       location: "สหกรณ์การเกษตร",
       province: "ขอนแก่น",
@@ -360,6 +401,8 @@ async function runTests() {
   try {
     const plan6 = await createTestPlan({
       code: "TEST-ACT-006",
+      primaryTypeCode: "TYPE_7",
+      workTypeCodes: ["TYPE_7"],
       title: "เปิดตัวสินค้าใหม่ร่วมกับทีมการตลาด",
       location: "ศูนย์ประชุม",
       province: "กรุงเทพมหานคร",
@@ -413,6 +456,8 @@ async function runTests() {
   try {
     const plan7 = await createTestPlan({
       code: "TEST-ACT-007",
+      primaryTypeCode: "TYPE_3",
+      workTypeCodes: ["TYPE_3"],
       title: "แผนงานที่ไม่ผ่านเกณฑ์",
       objective: "ทดสอบการปฏิเสธแผนงาน",
       employeeId: empSales.id,
@@ -445,6 +490,8 @@ async function runTests() {
   try {
     const plan8 = await createTestPlan({
       code: "TEST-ACT-008",
+      primaryTypeCode: "TYPE_6",
+      workTypeCodes: ["TYPE_6"],
       title: "แผนงานที่ต้องแก้ไขเป้าหมาย",
       objective: "ทดสอบการขอข้อมูลเพิ่มเติม",
       employeeId: empSales.id,
@@ -477,6 +524,8 @@ async function runTests() {
   try {
     const plan9 = await createTestPlan({
       code: "TEST-ACT-009",
+      primaryTypeCode: "TYPE_2",
+      workTypeCodes: ["TYPE_2"],
       title: "แผนงานแก้ไขแล้ว",
       objective: "ทดสอบการส่งแผนงานซ้ำ",
       status: ActivityStatus.WAITING_FOR_CORRECTION,
@@ -508,6 +557,8 @@ async function runTests() {
   try {
     const plan10 = await createTestPlan({
       code: "TEST-ACT-010",
+      primaryTypeCode: "TYPE_1",
+      workTypeCodes: ["TYPE_1"],
       title: "ปฏิทินนัดหมายแปลงทดลองภาคสนาม",
       objective: "ทดสอบปฏิทินและผู้เข้าร่วม",
       location: "แปลงทดลอง อ.ดอยสะเก็ด",

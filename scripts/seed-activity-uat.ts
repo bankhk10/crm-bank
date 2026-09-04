@@ -1,6 +1,7 @@
 import { PrismaClient, Prisma, ActivityStatus, ActivityHelperStatus } from "@prisma/client";
 import { db as prisma } from "../lib/db";
 import { seedWorkflowTestUsers } from "../prisma/seed/activity/workflow-test-users";
+import { seedActivityTypes } from "../prisma/seed/activity/activity-types";
 
 /**
  * Script for setting up UAT Test Data for Activity Workflow Scenarios (ACT-001 to ACT-010).
@@ -75,6 +76,7 @@ export async function seedUatActivityPlans(db: PrismaClient = prisma) {
   const { users, employees } = await seedWorkflowTestUsers(db);
 
   // 2. Fetch Activity Types
+  await seedActivityTypes(db);
   const activityTypes = await db.activityType.findMany();
   const typeMap = Object.fromEntries(activityTypes.map((t) => [t.code, t]));
 

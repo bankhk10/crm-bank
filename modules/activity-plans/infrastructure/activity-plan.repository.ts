@@ -319,6 +319,12 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
       where,
       include: {
         activityType: true,
+        workTypes: {
+          include: {
+            activityType: true,
+          },
+        },
+        tour: true,
         items: true,
         result: true,
         employee: {

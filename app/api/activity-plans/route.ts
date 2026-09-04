@@ -79,6 +79,12 @@ export async function GET(request: Request) {
       where,
       include: {
         activityType: true,
+        workTypes: {
+          include: {
+            activityType: true,
+          },
+        },
+        tour: true,
         result: true,
         employee: {
           select: { id: true, name: true, positionTitle: true, departmentName: true },
