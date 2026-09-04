@@ -264,6 +264,15 @@ export async function applyDataScope<T extends Record<string, any>>(
   resourceKey: string,
   configOverride?: Partial<ResourceScopeConfig>,
 ): Promise<T> {
+  const roles = session.user.roles ?? [];
+  const isSuperAdmin =
+    roles.includes("administrator") ||
+    (session.user as any)?.role === "administrator";
+
+  if (isSuperAdmin) {
+    return where;
+  }
+
   const baseConfig = RESOURCE_CONFIGS[resourceKey];
   if (!baseConfig) {
     console.warn(
