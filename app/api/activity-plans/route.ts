@@ -57,6 +57,7 @@ export async function GET(request: Request) {
   if (q) {
     const searchFilter: Prisma.ActivityPlanWhereInput = {
       OR: [
+        { code: { contains: q, mode: "insensitive" } },
         { title: { contains: q, mode: "insensitive" } },
         { location: { contains: q, mode: "insensitive" } },
         { objective: { contains: q, mode: "insensitive" } },
