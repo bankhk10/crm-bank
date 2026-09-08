@@ -90,6 +90,7 @@ export const activityApprovalSchema = z.object({
     },
   ),
   comment: z.string().optional().nullable(),
+  selectedHelperEmployeeIds: z.array(z.string()).optional(),
 });
 
 export const actualRecordSchema = z.object({

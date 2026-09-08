@@ -46,12 +46,17 @@ export async function POST(request: Request, context: RouteContext) {
       return NextResponse.json({ error: errorMsg }, { status: 400 });
     }
 
-    const { action, comment } = parsed.data;
+    const { action, comment, selectedHelperEmployeeIds } = parsed.data;
     const commentStr = comment || undefined;
 
     let result;
     if (action === ActivityApprovalAction.APPROVE) {
-      result = await approveActivityPlanUseCase(id, session.user.id, commentStr);
+      result = await approveActivityPlanUseCase(
+        id,
+        session.user.id,
+        commentStr,
+        selectedHelperEmployeeIds,
+      );
     } else if (action === ActivityApprovalAction.REJECT) {
       result = await rejectActivityPlanUseCase(id, session.user.id, commentStr);
     } else if (action === ActivityApprovalAction.REQUEST_CORRECTION) {

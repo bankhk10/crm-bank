@@ -196,6 +196,7 @@ export function resolveCurrentOperator(plan?: {
   salesManagerApproved?: boolean | null;
   helpers?: Array<{
     status?: string;
+    respondedAt?: Date | string | null;
     employee?: {
       name?: string | null;
       department?: { code?: string | null; name?: string | null } | null;
@@ -311,8 +312,9 @@ export function resolveCurrentOperator(plan?: {
   // 5. Step 4: Helper Approval
   if (plan.status === "PENDING_HELPER_APPROVAL") {
     if (plan.helpers && plan.helpers.length > 0) {
+      // Only consider helpers that have not been responded to yet
       const pendingHelpers = plan.helpers.filter(
-        (h) => h.status === "PENDING",
+        (h) => h.status === "PENDING" && !h.respondedAt,
       );
 
       let hasSales = false;
@@ -479,6 +481,7 @@ export function canUserPerformApproval(
     helpers?: Array<{
       status?: string;
       approvedById?: string | null;
+      respondedAt?: Date | string | null;
       employee?: {
         name?: string | null;
         department?: { code?: string | null } | null;
@@ -551,7 +554,9 @@ export function canUserPerformApproval(
 
   // 5. Step 4: Helper Approval
   if (plan.status === "PENDING_HELPER_APPROVAL") {
-    const pendingHelpers = (plan.helpers || []).filter((h) => h.status === "PENDING");
+    const pendingHelpers = (plan.helpers || []).filter(
+      (h) => h.status === "PENDING" && !h.respondedAt,
+    );
     if (pendingHelpers.length === 0) return false;
 
     let hasPendingSalesHelper = false;

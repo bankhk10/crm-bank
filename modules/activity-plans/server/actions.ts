@@ -24,7 +24,6 @@ import {
   getDemoPlotHistoryUseCase,
   recordDemoPlotVisitUseCase,
   type ListActivityPlansParams,
-  type ListCalendarEventsParams,
 } from "../application";
 
 /**
@@ -228,7 +227,11 @@ export async function submitActivityPlanAction(id: string) {
 /**
  * Action: Approve an Activity Plan
  */
-export async function approveActivityPlanAction(id: string, comment?: string) {
+export async function approveActivityPlanAction(
+  id: string,
+  comment?: string,
+  selectedHelperEmployeeIds?: string[],
+) {
   const session = await auth();
   if (!session?.user) {
     return { success: false, error: "Unauthorized" };
@@ -257,6 +260,7 @@ export async function approveActivityPlanAction(id: string, comment?: string) {
       id,
       session.user.id,
       comment,
+      selectedHelperEmployeeIds,
     );
     if (result.success) {
       revalidatePath("/activity-plans");

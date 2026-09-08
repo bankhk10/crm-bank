@@ -56,6 +56,7 @@ async function sendNotificationToEmployee(
 // Helper to determine if an employee is the terminal line manager (Sales Admin Manager)
 function isSalesAdminManager(employee: any): boolean {
   if (!employee) return false;
+  if (isSalesDirector(employee)) return false;
   const posName = employee.position?.name || employee.positionTitle || "";
   const level = employee.position?.level ?? 0;
   return (
@@ -63,7 +64,7 @@ function isSalesAdminManager(employee: any): boolean {
     posName.includes("บริหารงานขาย") ||
     (employee.department?.code === "SA" &&
       employee.position?.isManagerial &&
-      level >= 3 &&
+      level === 3 &&
       !posName.includes("ภาค"))
   );
 }
@@ -99,6 +100,42 @@ function isTerminalLineManager(employee: any): boolean {
     isMarketingManager(employee) ||
     isSalesDirector(employee)
   );
+}
+
+// Helper to determine if an approver has authority to approve a specific helper
+function canApproverManageHelper(
+  approverEmployee: any,
+  helper: any,
+  isAdmin: boolean,
+): boolean {
+  if (isAdmin) return true;
+  if (!approverEmployee) return false;
+
+  const deptCode = helper.employee?.department?.code || "";
+  const pos = (
+    helper.employee?.positionTitle ||
+    helper.employee?.position?.name ||
+    ""
+  ).toLowerCase();
+  const isSalesAdmin = isSalesAdminManager(approverEmployee);
+  const isMkt = isMarketingManager(approverEmployee);
+
+  if (
+    isSalesAdmin &&
+    (deptCode === "SA" ||
+      deptCode === "SS" ||
+      pos.includes("เซลส์") ||
+      pos.includes("ส่งเสริม") ||
+      pos.includes("ขาย"))
+  ) {
+    return true;
+  }
+
+  if (isMkt && (deptCode === "MKT" || pos.includes("การตลาด"))) {
+    return true;
+  }
+
+  return false;
 }
 
 // Dynamic Approver Lookup Helpers
@@ -459,6 +496,12 @@ export async function submitActivityPlanUseCase(
       return { success: true };
     }
 
+    // Reset respondedAt on pending helpers so reviewers have a fresh review turn
+    await tx.activityHelper.updateMany({
+      where: { activityPlanId: planId, status: ActivityHelperStatus.PENDING },
+      data: { respondedAt: null },
+    });
+
     // Set status to PENDING_LINE_APPROVAL and assign first approver
     await tx.activityPlan.update({
       where: { id: planId },
@@ -500,13 +543,29 @@ export async function approveActivityPlanUseCase(
   planId: string,
   userId: string,
   comment?: string,
+  selectedHelperEmployeeIds?: string[],
 ) {
   return db.$transaction(async (tx) => {
     const plan = await tx.activityPlan.findUnique({
       where: { id: planId, deletedAt: null },
       include: {
-        employee: true,
-        helpers: { where: { deletedAt: null }, include: { employee: true } },
+        employee: {
+          include: {
+            position: true,
+            department: true,
+          },
+        },
+        helpers: {
+          where: { deletedAt: null },
+          include: {
+            employee: {
+              include: {
+                position: true,
+                department: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -516,7 +575,6 @@ export async function approveActivityPlanUseCase(
 
     const isAdmin = await checkIsAdministrator(userId, tx);
 
-    // Fetch approver employee profile (optional if isAdmin)
     const approverEmployee = await tx.employee.findFirst({
       where: { userId, deletedAt: null },
       include: { position: true, department: true },
@@ -526,63 +584,28 @@ export async function approveActivityPlanUseCase(
       return { success: false, error: "ไม่พบโปรไฟล์พนักงานของผู้ดำเนินการ" };
     }
 
+    const isSalesAdmin = isSalesAdminManager(approverEmployee);
+    const isMkt = isMarketingManager(approverEmployee);
+    const isDirector = isSalesDirector(approverEmployee);
+    const isTerminal = isAdmin || isTerminalLineManager(approverEmployee);
+    const isCurrentLineApprover =
+      plan.status === ActivityStatus.PENDING_LINE_APPROVAL &&
+      (isAdmin || plan.currentApproverEmployeeId === approverEmployee?.id);
+
     // ────────────────────────────────────────────────────────
-    // Step 2: Line Approval
+    // Step 2a: Intermediate Line Approval (e.g. Salesperson, Area Manager)
     // ────────────────────────────────────────────────────────
     if (plan.status === ActivityStatus.PENDING_LINE_APPROVAL) {
-      if (!isAdmin && plan.currentApproverEmployeeId !== approverEmployee?.id) {
+      if (!isCurrentLineApprover) {
         return {
           success: false,
           error: "คุณไม่มีสิทธิ์อนุมัติแผนงานนี้ในขั้นตอนนี้",
         };
       }
 
-      // Check if this approver is terminal line manager or Admin
-      if (isAdmin || isTerminalLineManager(approverEmployee)) {
-        // Line approval is complete! Proceed to Step 3 Budget Approval
-        await tx.activityApprovalLog.create({
-          data: {
-            activityPlanId: planId,
-            userId,
-            action: ActivityApprovalAction.APPROVE,
-            step: ActivityApprovalStep.LINE_APPROVAL,
-            comment:
-              comment ||
-              (isAdmin
-                ? "อนุมัติตามสายงาน (Administrator)"
-                : "อนุมัติตามสายงานขั้นสุดท้าย"),
-          },
-        });
-        await initiateBudgetApproval(
-          plan,
-          tx,
-          userId,
-          "ผ่านการตรวจสอบตามสายงาน",
-        );
-      } else {
-        // Not terminal, resolve next manager in chain (via managerId or dynamic position lookup)
+      if (!isTerminal) {
         const nextManagerId = await resolveNextLineApprover(approverEmployee, tx);
-
-        if (!nextManagerId || nextManagerId === approverEmployee?.id) {
-          // Terminal reached or fallback
-          await tx.activityApprovalLog.create({
-            data: {
-              activityPlanId: planId,
-              userId,
-              action: ActivityApprovalAction.APPROVE,
-              step: ActivityApprovalStep.LINE_APPROVAL,
-              comment:
-                comment ||
-                "อนุมัติตามสายงานสิ้นสุด",
-            },
-          });
-          await initiateBudgetApproval(
-            plan,
-            tx,
-            userId,
-            "ผ่านการตรวจสอบตามสายงาน",
-          );
-        } else {
+        if (nextManagerId && nextManagerId !== approverEmployee?.id) {
           await tx.activityPlan.update({
             where: { id: planId },
             data: { currentApproverEmployeeId: nextManagerId },
@@ -598,7 +621,6 @@ export async function approveActivityPlanUseCase(
             },
           });
 
-          // Notify Next Manager
           await sendNotificationToEmployee(
             nextManagerId,
             "แผนกิจกรรมรอการตรวจสอบ",
@@ -607,316 +629,196 @@ export async function approveActivityPlanUseCase(
             `/activity-plans/${plan.id}`,
             tx,
           );
+
+          return { success: true };
         }
       }
-      return { success: true };
     }
 
     // ────────────────────────────────────────────────────────
-    // Step 3: Budget Approval
+    // Aggregated Approval Evaluation (Terminal Line / Budget / Helper)
     // ────────────────────────────────────────────────────────
-    if (plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL) {
-      let isAnyBudgetApproved = false;
+    let didApproveLine = false;
+    let didApproveSPBudget = false;
+    let didApproveMKTBudget = false;
+    let didApproveDirectorBudget = false;
+    const approvedHelpers: typeof plan.helpers = [];
+    const unselectedPendingHelpers: typeof plan.helpers = [];
 
-      const hasSalesPromotion =
-        Number(plan.salesPromotionBudgetRequested || 0) > 0;
-      const hasMarketing =
-        Number(plan.marketingBudgetRequested || 0) > 0;
+    const hasSP = Number(plan.salesPromotionBudgetRequested || 0) > 0;
+    const hasMKT = Number(plan.marketingBudgetRequested || 0) > 0;
 
-      if (isAdmin) {
-        // Administrator approves all pending budget stages at once
-        if (hasSalesPromotion) plan.salesPromotionApproved = true;
-        if (hasMarketing) plan.marketingApproved = true;
-        plan.salesManagerApproved = true;
-        isAnyBudgetApproved = true;
-
-        await tx.activityApprovalLog.create({
-          data: {
-            activityPlanId: planId,
-            userId,
-            action: ActivityApprovalAction.APPROVE,
-            step: ActivityApprovalStep.BUDGET_APPROVAL,
-            comment: comment || "อนุมัติงบประมาณทั้งหมด (Administrator)",
-          },
-        });
-      } else {
-        // 1. Sales Promotion Budget Approval
-        if (hasSalesPromotion && plan.salesPromotionApproved !== true) {
-          if (isSalesAdminManager(approverEmployee)) {
-            plan.salesPromotionApproved = true;
-            isAnyBudgetApproved = true;
-            await tx.activityApprovalLog.create({
-              data: {
-                activityPlanId: planId,
-                userId,
-                action: ActivityApprovalAction.APPROVE,
-                step: ActivityApprovalStep.BUDGET_APPROVAL,
-                comment: comment || "อนุมัติงบส่งเสริมการขาย",
-              },
-            });
-          }
-        }
-
-        // 2. Marketing Budget Approval
-        if (hasMarketing && plan.marketingApproved !== true) {
-          if (isMarketingManager(approverEmployee)) {
-            plan.marketingApproved = true;
-            isAnyBudgetApproved = true;
-            await tx.activityApprovalLog.create({
-              data: {
-                activityPlanId: planId,
-                userId,
-                action: ActivityApprovalAction.APPROVE,
-                step: ActivityApprovalStep.BUDGET_APPROVAL,
-                comment: comment || "อนุมัติงบการตลาด",
-              },
-            });
-          }
-        }
-
-        // 3. Sales Director Approval (Overall Budget Approval)
-        const requiredSalesPromotionOk =
-          !hasSalesPromotion || plan.salesPromotionApproved === true;
-        const requiredMarketingOk =
-          !hasMarketing || plan.marketingApproved === true;
-
-        if (
-          requiredSalesPromotionOk &&
-          requiredMarketingOk &&
-          plan.salesManagerApproved !== true
-        ) {
-          if (isSalesDirector(approverEmployee)) {
-            plan.salesManagerApproved = true;
-            isAnyBudgetApproved = true;
-            await tx.activityApprovalLog.create({
-              data: {
-                activityPlanId: planId,
-                userId,
-                action: ActivityApprovalAction.APPROVE,
-                step: ActivityApprovalStep.BUDGET_APPROVAL,
-                comment: comment || "อนุมัติงบประมาณในภาพรวมทั้งหมด",
-              },
-            });
-          }
-        }
-      }
-
-      const requiredSalesPromotionOk =
-        !hasSalesPromotion || plan.salesPromotionApproved === true;
-      const requiredMarketingOk =
-        !hasMarketing || plan.marketingApproved === true;
-      const salesDirectorOk = plan.salesManagerApproved === true;
-
-      if (!isAnyBudgetApproved) {
-        return {
-          success: false,
-          error:
-            "คุณไม่มีสิทธิ์อนุมัติงบประมาณประเภทนี้ หรือได้รับการอนุมัติไปแล้ว",
-        };
-      }
-
-      // Update budget progress flags & approved budget amounts if complete
-      const isBudgetFullyApproved =
-        requiredSalesPromotionOk && requiredMarketingOk && salesDirectorOk;
-
-      const spApprovedAmount =
-        requiredSalesPromotionOk && hasSalesPromotion
-          ? plan.salesPromotionBudgetRequested
-          : null;
-      const mktApprovedAmount =
-        requiredMarketingOk && hasMarketing
-          ? plan.marketingBudgetRequested
-          : null;
-      const totalApprovedAmount = isBudgetFullyApproved
-        ? Number(spApprovedAmount || 0) + Number(mktApprovedAmount || 0)
-        : null;
-
-      const updatedPlan = await tx.activityPlan.update({
-        where: { id: planId },
-        data: {
-          salesPromotionApproved: plan.salesPromotionApproved,
-          marketingApproved: plan.marketingApproved,
-          salesManagerApproved: plan.salesManagerApproved,
-          salesPromotionBudgetApproved: spApprovedAmount,
-          marketingBudgetApproved: mktApprovedAmount,
-          totalBudgetApproved: totalApprovedAmount
-            ? new Prisma.Decimal(totalApprovedAmount)
-            : undefined,
-        },
-        include: { employee: true },
-      });
-
-      // If all budget stages approved, move to Step 4 Helper Approval
-      if (requiredSalesPromotionOk && requiredMarketingOk && salesDirectorOk) {
-        await initiateHelperApproval(updatedPlan, tx, userId);
-      } else {
-        // Budget stages still in progress, notify the remaining approvers
-        await notifyBudgetApprovers(updatedPlan, tx);
-      }
-
-      return { success: true };
+    // 1. Line Approval
+    if (isCurrentLineApprover) {
+      didApproveLine = true;
     }
 
-    // ────────────────────────────────────────────────────────
-    // Step 4: Helper Approval
-    // ────────────────────────────────────────────────────────
-    if (plan.status === ActivityStatus.PENDING_HELPER_APPROVAL) {
+    // 2. Sales Promotion Budget Approval
+    if (hasSP && plan.salesPromotionApproved !== true && (isAdmin || isSalesAdmin)) {
+      if (
+        plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL ||
+        (plan.status === ActivityStatus.PENDING_LINE_APPROVAL && isTerminal)
+      ) {
+        didApproveSPBudget = true;
+      }
+    }
+
+    // 3. Marketing Budget Approval
+    if (hasMKT && plan.marketingApproved !== true && (isAdmin || isMkt)) {
+      if (
+        plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL ||
+        (plan.status === ActivityStatus.PENDING_LINE_APPROVAL && isTerminal)
+      ) {
+        didApproveMKTBudget = true;
+      }
+    }
+
+    // 4. Overall Budget Approval (Sales Director)
+    const effectiveSPApproved = !hasSP || plan.salesPromotionApproved === true || didApproveSPBudget;
+    const effectiveMKTApproved = !hasMKT || plan.marketingApproved === true || didApproveMKTBudget;
+
+    if (
+      (hasSP || hasMKT) &&
+      effectiveSPApproved &&
+      effectiveMKTApproved &&
+      plan.salesManagerApproved !== true &&
+      (isAdmin || isDirector)
+    ) {
+      if (
+        plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL ||
+        (plan.status === ActivityStatus.PENDING_LINE_APPROVAL && isTerminal)
+      ) {
+        didApproveDirectorBudget = true;
+      }
+    }
+
+    // 5. Helpers in Scope
+    const canEvaluateHelpers =
+      plan.status === ActivityStatus.PENDING_HELPER_APPROVAL ||
+      (plan.status === ActivityStatus.PENDING_LINE_APPROVAL && isTerminal) ||
+      (plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL && (isAdmin || isSalesAdmin || isMkt));
+
+    if (canEvaluateHelpers) {
       const pendingHelpers = plan.helpers.filter(
         (h) => h.status === ActivityHelperStatus.PENDING,
       );
 
-      if (pendingHelpers.length === 0) {
-        await tx.activityPlan.update({
-          where: { id: planId },
-          data: {
-            status: ActivityStatus.APPROVED,
-            approvedAt: new Date(),
-            currentApproverEmployeeId: null,
-          },
-        });
-
-        // Notify creator & helpers
-        await sendNotificationHelper(
-          plan.employee.userId,
-          "แผนกิจกรรมได้รับการอนุมัติสำเร็จ 🚀",
-          `แผนกิจกรรม "${plan.title}" ได้รับการอนุมัติและเข้าระบบสำเร็จแล้ว`,
-          "APPROVED",
-          `/activity-plans/${plan.id}`,
-          tx,
-        );
-
-        // Sync to Calendar
-        await syncActivityPlanToCalendarUseCase(plan, tx);
-
-        return { success: true };
-      }
-
-      if (isAdmin) {
-        // Administrator approves ALL pending helpers at once
-        for (const helper of pendingHelpers) {
-          await tx.activityHelper.update({
-            where: { id: helper.id },
-            data: {
-              status: ActivityHelperStatus.APPROVED,
-              approvedById: approverEmployee?.id || null,
-              approvedAt: new Date(),
-            },
-          });
-        }
-
-        await tx.activityPlan.update({
-          where: { id: planId },
-          data: {
-            status: ActivityStatus.APPROVED,
-            approvedAt: new Date(),
-            currentApproverEmployeeId: null,
-          },
-        });
-
-        await tx.activityApprovalLog.create({
-          data: {
-            activityPlanId: planId,
-            userId,
-            action: ActivityApprovalAction.APPROVE,
-            step: ActivityApprovalStep.HELPER_APPROVAL,
-            comment:
-              comment ||
-              `อนุมัติพนักงานช่วยงานทั้งหมด ${pendingHelpers.length} คน (Administrator)`,
-          },
-        });
-
-        // Notify Creator
-        await sendNotificationHelper(
-          plan.employee.userId,
-          "แผนกิจกรรมได้รับการอนุมัติสำเร็จ 🚀",
-          `แผนกิจกรรม "${plan.title}" ได้รับการอนุมัติเสร็จสิ้นเรียบร้อยแล้ว`,
-          "APPROVED",
-          `/activity-plans/${plan.id}`,
-          tx,
-        );
-
-        // Notify Helpers
-        const helpersWithUsers = await tx.activityHelper.findMany({
-          where: {
-            activityPlanId: plan.id,
-            status: ActivityHelperStatus.APPROVED,
-            deletedAt: null,
-          },
-          include: { employee: true },
-        });
-        for (const h of helpersWithUsers) {
-          await sendNotificationHelper(
-            h.employee.userId,
-            "คุณได้รับมอบหมายงานช่วยกิจกรรม",
-            `คุณได้รับมอบหมายให้ช่วยจัดกิจกรรม "${plan.title}" ณ ${plan.location}`,
-            "INFO",
-            `/activity-plans/${plan.id}`,
-            tx,
-          );
-        }
-
-        // Sync to Calendar
-        await syncActivityPlanToCalendarUseCase(plan, tx);
-
-        return { success: true };
-      }
-
-      // Non-admin helper approval
-      let helperApprovedCount = 0;
-      const isSalesAdmin = isSalesAdminManager(approverEmployee);
-      const isMktManager = isMarketingManager(approverEmployee);
-
-      if (!isSalesAdmin && !isMktManager) {
-        return {
-          success: false,
-          error: "คุณไม่มีสิทธิ์อนุมัติผู้ช่วยงานกิจกรรม",
-        };
-      }
-
       for (const helper of pendingHelpers) {
-        const helperDeptId = helper.employee.departmentId || "";
+        if (canApproverManageHelper(approverEmployee, helper, isAdmin)) {
+          let isSelected = true;
+          if (selectedHelperEmployeeIds && Array.isArray(selectedHelperEmployeeIds)) {
+            isSelected = selectedHelperEmployeeIds.includes(helper.employeeId);
+          }
 
-        // Fetch helper's full department code to check
-        const dept = await tx.department.findUnique({
-          where: { id: helperDeptId },
-        });
-        const deptCode = dept?.code || "";
-
-        let shouldApprove = false;
-        if (
-          isSalesAdmin &&
-          (deptCode === "SA" ||
-            deptCode === "SS" ||
-            helper.employee.positionTitle?.includes("เซลส์") ||
-            helper.employee.positionTitle?.includes("ส่งเสริม"))
-        ) {
-          shouldApprove = true;
-        } else if (
-          isMktManager &&
-          (deptCode === "MKT" ||
-            helper.employee.positionTitle?.includes("การตลาด"))
-        ) {
-          shouldApprove = true;
-        }
-
-        if (shouldApprove) {
-          await tx.activityHelper.update({
-            where: { id: helper.id },
-            data: {
-              status: ActivityHelperStatus.APPROVED,
-              approvedById: approverEmployee!.id,
-              approvedAt: new Date(),
-            },
-          });
-          helperApprovedCount++;
+          if (isSelected) {
+            approvedHelpers.push(helper);
+          } else {
+            unselectedPendingHelpers.push(helper);
+          }
         }
       }
+    }
 
-      if (helperApprovedCount === 0) {
-        return {
-          success: false,
-          error: "ไม่มีผู้ช่วยงานภายใต้สังกัดของคุณที่รอการอนุมัติในแผนงานนี้",
-        };
+    const anyActionTaken =
+      didApproveLine ||
+      didApproveSPBudget ||
+      didApproveMKTBudget ||
+      didApproveDirectorBudget ||
+      approvedHelpers.length > 0 ||
+      unselectedPendingHelpers.length > 0;
+
+    if (!anyActionTaken) {
+      return {
+        success: false,
+        error: "คุณไม่มีสิทธิ์อนุมัติในขั้นตอนนี้ หรือรายการได้รับการอนุมัติไปแล้ว",
+      };
+    }
+
+    // ────────────────────────────────────────────────────────
+    // Execute Updates & Logs in Transaction
+    // ────────────────────────────────────────────────────────
+
+    // 1. Update Approved Helpers
+    for (const h of approvedHelpers) {
+      await tx.activityHelper.update({
+        where: { id: h.id },
+        data: {
+          status: ActivityHelperStatus.APPROVED,
+          approvedById: approverEmployee?.id || null,
+          approvedAt: new Date(),
+          respondedAt: new Date(),
+          rejectionReason: null,
+        },
+      });
+    }
+
+    // 2. Update Unselected Helpers (Keep PENDING, record respondedAt)
+    for (const h of unselectedPendingHelpers) {
+      await tx.activityHelper.update({
+        where: { id: h.id },
+        data: {
+          status: ActivityHelperStatus.PENDING,
+          respondedAt: new Date(),
+        },
+      });
+    }
+
+    // 3. Approval Logs
+    if (didApproveLine) {
+      await tx.activityApprovalLog.create({
+        data: {
+          activityPlanId: planId,
+          userId,
+          action: ActivityApprovalAction.APPROVE,
+          step: ActivityApprovalStep.LINE_APPROVAL,
+          comment:
+            comment ||
+            (isAdmin
+              ? "อนุมัติตามสายงาน (Administrator)"
+              : "อนุมัติตามสายงานขั้นสุดท้าย"),
+        },
+      });
+    }
+
+    if (didApproveSPBudget || didApproveMKTBudget || didApproveDirectorBudget) {
+      const budgetNotes: string[] = [];
+      if (didApproveSPBudget) {
+        budgetNotes.push(
+          `อนุมัติงบส่งเสริมการขาย ${Number(plan.salesPromotionBudgetRequested).toLocaleString()} บาท`,
+        );
+      }
+      if (didApproveMKTBudget) {
+        budgetNotes.push(
+          `อนุมัติงบการตลาด ${Number(plan.marketingBudgetRequested).toLocaleString()} บาท`,
+        );
+      }
+      if (didApproveDirectorBudget) {
+        budgetNotes.push("อนุมัติงบประมาณในภาพรวมทั้งหมด");
+      }
+
+      await tx.activityApprovalLog.create({
+        data: {
+          activityPlanId: planId,
+          userId,
+          action: ActivityApprovalAction.APPROVE,
+          step: ActivityApprovalStep.BUDGET_APPROVAL,
+          comment: comment || budgetNotes.join(", "),
+        },
+      });
+    }
+
+    if (approvedHelpers.length > 0 || unselectedPendingHelpers.length > 0) {
+      const approvedNames = approvedHelpers
+        .map((h) => h.employee.name)
+        .filter(Boolean)
+        .join(", ");
+      let helperLogComment = `อนุมัติพนักงานช่วยงานในสังกัดจำนวน ${approvedHelpers.length} คน: ${approvedNames || "-"}`;
+      if (unselectedPendingHelpers.length > 0) {
+        const pendingNames = unselectedPendingHelpers
+          .map((h) => h.employee.name)
+          .filter(Boolean)
+          .join(", ");
+        helperLogComment += ` (คงสถานะรออนุมัติ ${unselectedPendingHelpers.length} คน: ${pendingNames || "-"})`;
       }
 
       await tx.activityApprovalLog.create({
@@ -925,85 +827,136 @@ export async function approveActivityPlanUseCase(
           userId,
           action: ActivityApprovalAction.APPROVE,
           step: ActivityApprovalStep.HELPER_APPROVAL,
-          comment:
-            comment ||
-            `อนุมัติพนักงานช่วยงานในสังกัดจำนวน ${helperApprovedCount} คน`,
+          comment: helperLogComment,
+        },
+      });
+    }
+
+    // 4. Calculate Final State for Plan
+    const newSPApproved = didApproveSPBudget ? true : plan.salesPromotionApproved;
+    const newMKTApproved = didApproveMKTBudget ? true : plan.marketingApproved;
+    const newDirectorApproved = didApproveDirectorBudget ? true : plan.salesManagerApproved;
+
+    const isAllBudgetFinished =
+      (!hasSP || newSPApproved === true) &&
+      (!hasMKT || newMKTApproved === true) &&
+      ((!hasSP && !hasMKT) || newDirectorApproved === true);
+
+    const spApprovedAmount =
+      (!hasSP || newSPApproved === true) && hasSP
+        ? plan.salesPromotionBudgetRequested
+        : null;
+    const mktApprovedAmount =
+      (!hasMKT || newMKTApproved === true) && hasMKT
+        ? plan.marketingBudgetRequested
+        : null;
+    const totalApprovedAmount = isAllBudgetFinished
+      ? Number(spApprovedAmount || 0) + Number(mktApprovedAmount || 0)
+      : null;
+
+    // Query remaining helpers in DB
+    const allHelpersAfter = await tx.activityHelper.findMany({
+      where: { activityPlanId: planId, deletedAt: null },
+      include: { employee: { include: { department: true } } },
+    });
+
+    const unreviewedHelpers = allHelpersAfter.filter(
+      (h) => h.status === ActivityHelperStatus.PENDING && !h.respondedAt,
+    );
+
+    let nextStatus: ActivityStatus;
+    let nextApproverId: string | null = null;
+
+    if (hasSP || hasMKT) {
+      if (isAllBudgetFinished) {
+        if (unreviewedHelpers.length > 0) {
+          nextStatus = ActivityStatus.PENDING_HELPER_APPROVAL;
+          nextApproverId = null;
+        } else {
+          nextStatus = ActivityStatus.APPROVED;
+          nextApproverId = null;
+        }
+      } else {
+        nextStatus = ActivityStatus.PENDING_BUDGET_APPROVAL;
+        nextApproverId = null;
+      }
+    } else {
+      if (unreviewedHelpers.length > 0) {
+        nextStatus = ActivityStatus.PENDING_HELPER_APPROVAL;
+        nextApproverId = null;
+      } else {
+        nextStatus = ActivityStatus.APPROVED;
+        nextApproverId = null;
+      }
+    }
+
+    // Update ActivityPlan
+    const updatedPlan = await tx.activityPlan.update({
+      where: { id: planId },
+      data: {
+        status: nextStatus,
+        currentApproverEmployeeId: nextApproverId,
+        salesPromotionApproved: newSPApproved,
+        marketingApproved: newMKTApproved,
+        salesManagerApproved: newDirectorApproved,
+        salesPromotionBudgetApproved: spApprovedAmount,
+        marketingBudgetApproved: mktApprovedAmount,
+        totalBudgetApproved: totalApprovedAmount
+          ? new Prisma.Decimal(totalApprovedAmount)
+          : undefined,
+        approvedAt: nextStatus === ActivityStatus.APPROVED ? new Date() : undefined,
+      },
+      include: { employee: true },
+    });
+
+    // 5. Notifications & Calendar Sync
+    if (nextStatus === ActivityStatus.APPROVED) {
+      await tx.activityApprovalLog.create({
+        data: {
+          activityPlanId: planId,
+          userId,
+          action: ActivityApprovalAction.APPROVE,
+          step: ActivityApprovalStep.HELPER_APPROVAL,
+          comment: "อนุมัติแผนกิจกรรมสมบูรณ์และบันทึกลงระบบสำเร็จ 🚀",
         },
       });
 
-      // Reload helpers to check if all approved
-      const allHelpers = await tx.activityHelper.findMany({
-        where: { activityPlanId: planId, deletedAt: null },
-      });
-      const allApproved = allHelpers.every(
-        (h) => h.status === ActivityHelperStatus.APPROVED,
+      await sendNotificationHelper(
+        updatedPlan.employee.userId,
+        "แผนกิจกรรมได้รับการอนุมัติสำเร็จ 🚀",
+        `แผนกิจกรรม "${updatedPlan.title}" ได้รับการอนุมัติเสร็จสิ้นเรียบร้อยแล้ว`,
+        "APPROVED",
+        `/activity-plans/${updatedPlan.id}`,
+        tx,
       );
 
-      if (allApproved) {
-        // Complete the flow and transition to APPROVED (Step 5)
-        await tx.activityPlan.update({
-          where: { id: planId },
-          data: {
-            status: ActivityStatus.APPROVED,
-            approvedAt: new Date(),
-            currentApproverEmployeeId: null,
-          },
-        });
-
-        await tx.activityApprovalLog.create({
-          data: {
-            activityPlanId: planId,
-            userId,
-            action: ActivityApprovalAction.APPROVE,
-            step: ActivityApprovalStep.HELPER_APPROVAL,
-            comment: "อนุมัติแผนกิจกรรมสมบูรณ์และบันทึกลงระบบสำเร็จ 🚀",
-          },
-        });
-
-        // Notify Creator
+      const helpersToNotify = await tx.activityHelper.findMany({
+        where: {
+          activityPlanId: plan.id,
+          status: ActivityHelperStatus.APPROVED,
+          deletedAt: null,
+        },
+        include: { employee: true },
+      });
+      for (const h of helpersToNotify) {
         await sendNotificationHelper(
-          plan.employee.userId,
-          "แผนกิจกรรมได้รับการอนุมัติสำเร็จ 🚀",
-          `แผนกิจกรรม "${plan.title}" ได้รับการอนุมัติเสร็จสิ้นเรียบร้อยแล้ว`,
-          "APPROVED",
+          h.employee.userId,
+          "คุณได้รับมอบหมายงานช่วยกิจกรรม",
+          `คุณได้รับมอบหมายให้ช่วยจัดกิจกรรม "${plan.title}" ณ ${plan.location}`,
+          "INFO",
           `/activity-plans/${plan.id}`,
           tx,
         );
-
-        // Notify Helpers
-        const helpersWithUsers = await tx.activityHelper.findMany({
-          where: {
-            activityPlanId: plan.id,
-            status: ActivityHelperStatus.APPROVED,
-            deletedAt: null,
-          },
-          include: { employee: true },
-        });
-        for (const h of helpersWithUsers) {
-          await sendNotificationHelper(
-            h.employee.userId,
-            "คุณได้รับมอบหมายงานช่วยกิจกรรม",
-            `คุณได้รับมอบหมายให้ช่วยจัดกิจกรรม "${plan.title}" ณ ${plan.location}`,
-            "INFO",
-            `/activity-plans/${plan.id}`,
-            tx,
-          );
-        }
-
-        // Sync to Calendar
-        await syncActivityPlanToCalendarUseCase(plan, tx);
-      } else {
-        // Helper stages still in progress, notify remaining helper managers
-        await notifyHelperApprovers(plan, tx);
       }
 
-      return { success: true };
+      await syncActivityPlanToCalendarUseCase(updatedPlan, tx);
+    } else if (nextStatus === ActivityStatus.PENDING_BUDGET_APPROVAL) {
+      await notifyBudgetApprovers(updatedPlan, tx);
+    } else if (nextStatus === ActivityStatus.PENDING_HELPER_APPROVAL) {
+      await notifyHelperApprovers(updatedPlan, tx);
     }
 
-    return {
-      success: false,
-      error: "แผนกิจกรรมไม่อยู่ในสถานะที่ต้องการอนุมัติ",
-    };
+    return { success: true };
   });
 }
 
@@ -1356,9 +1309,13 @@ async function initiateHelperApproval(
   });
 
   if (helpers.length > 0) {
-    // Reset helper status to PENDING
+    // Only reset helpers that are NOT already approved!
     await tx.activityHelper.updateMany({
-      where: { activityPlanId: plan.id, deletedAt: null },
+      where: {
+        activityPlanId: plan.id,
+        status: { not: ActivityHelperStatus.APPROVED },
+        deletedAt: null,
+      },
       data: {
         status: ActivityHelperStatus.PENDING,
         approvedById: null,
@@ -1366,27 +1323,68 @@ async function initiateHelperApproval(
       },
     });
 
-    const updatedPlan = await tx.activityPlan.update({
-      where: { id: plan.id },
-      data: {
-        status: ActivityStatus.PENDING_HELPER_APPROVAL,
-        currentApproverEmployeeId: null,
-      },
-      include: { employee: true },
-    });
+    // Check if any unreviewed helpers remain
+    const unreviewedHelpers = helpers.filter(
+      (h) => h.status === ActivityHelperStatus.PENDING && !h.respondedAt,
+    );
 
-    await tx.activityApprovalLog.create({
-      data: {
-        activityPlanId: plan.id,
-        userId,
-        action: ActivityApprovalAction.SUBMIT,
-        step: ActivityApprovalStep.HELPER_APPROVAL,
-        comment: "ส่งขออนุญาตพนักงานช่วยงานกับหัวหน้าแผนกของผู้ช่วย",
-      },
-    });
+    if (unreviewedHelpers.length > 0) {
+      const updatedPlan = await tx.activityPlan.update({
+        where: { id: plan.id },
+        data: {
+          status: ActivityStatus.PENDING_HELPER_APPROVAL,
+          currentApproverEmployeeId: null,
+        },
+        include: { employee: true },
+      });
 
-    // Notify Helper Approvers
-    await notifyHelperApprovers(updatedPlan, tx);
+      await tx.activityApprovalLog.create({
+        data: {
+          activityPlanId: plan.id,
+          userId,
+          action: ActivityApprovalAction.SUBMIT,
+          step: ActivityApprovalStep.HELPER_APPROVAL,
+          comment: "ส่งขออนุญาตพนักงานช่วยงานกับหัวหน้าแผนกของผู้ช่วย",
+        },
+      });
+
+      // Notify Helper Approvers
+      await notifyHelperApprovers(updatedPlan, tx);
+    } else {
+      // All helpers are already approved (or reviewed) -> complete to APPROVED!
+      const updatedPlan = await tx.activityPlan.update({
+        where: { id: plan.id },
+        data: {
+          status: ActivityStatus.APPROVED,
+          currentApproverEmployeeId: null,
+          approvedAt: new Date(),
+        },
+        include: { employee: true },
+      });
+
+      await tx.activityApprovalLog.create({
+        data: {
+          activityPlanId: plan.id,
+          userId,
+          action: ActivityApprovalAction.APPROVE,
+          step: ActivityApprovalStep.HELPER_APPROVAL,
+          comment: "อนุมัติแผนกิจกรรมสมบูรณ์และบันทึกลงระบบสำเร็จ 🚀",
+        },
+      });
+
+      // Notify Creator
+      await sendNotificationHelper(
+        updatedPlan.employee.userId,
+        "แผนกิจกรรมได้รับการอนุมัติสำเร็จ 🚀",
+        `แผนกิจกรรม "${updatedPlan.title}" ได้รับการอนุมัติและจัดสรรเสร็จสมบูรณ์แล้ว`,
+        "APPROVED",
+        `/activity-plans/${updatedPlan.id}`,
+        tx,
+      );
+
+      // Sync to Calendar
+      await syncActivityPlanToCalendarUseCase(updatedPlan, tx);
+    }
   } else {
     // No helpers, fully approved!
     const updatedPlan = await tx.activityPlan.update({
@@ -1523,15 +1521,15 @@ export async function reviewSingleActivityHelperUseCase(
         },
       });
 
-      // Check if all helpers are approved
+      // Check if all unreviewed helpers are resolved
       const allHelpers = await tx.activityHelper.findMany({
         where: { activityPlanId, deletedAt: null },
       });
-      const allApproved = allHelpers.every(
-        (h) => h.status === ActivityHelperStatus.APPROVED,
+      const unreviewed = allHelpers.filter(
+        (h) => h.status === ActivityHelperStatus.PENDING && !h.respondedAt,
       );
 
-      if (allApproved) {
+      if (unreviewed.length === 0) {
         const updatedPlan = await tx.activityPlan.update({
           where: { id: activityPlanId },
           data: {
