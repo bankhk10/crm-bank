@@ -243,8 +243,8 @@ export async function seedUatActivityPlans(
       ],
     },
     {
-      code: "UAT-ACT-005",
-      title: "[UAT-ACT-005] สำรวจตลาดและตรวจสต็อกสินค้า (ขอพนักงานขายช่วยงาน)",
+      code: "TEST-ACT-005",
+      title: "[TEST-ACT-005] สำรวจตลาดและตรวจสต็อกสินค้า (ขอพนักงานขายช่วยงาน)",
       creatorUser: users.uPromoter,
       creatorEmp: employees.empPromoter,
       primaryTypeCode: "TYPE_5",
