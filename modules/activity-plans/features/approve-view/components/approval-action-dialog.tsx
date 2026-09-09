@@ -78,14 +78,23 @@ export function ApprovalActionDialog({
       plan.status === "PENDING_LINE_APPROVAL" &&
       (isAdmin || plan.currentApproverEmployeeId === userEmployeeId);
 
+    const userDept = (session?.user?.departmentCode || "").toUpperCase();
+    const userPos = (session?.user?.positionTitle || "").toLowerCase();
+
     const isSalesAdmin =
       isAdmin ||
+      userDept === "SA" ||
+      userPos.includes("บริหารงานขาย") ||
+      userPos.includes("sales admin") ||
       (isCurrentLine &&
         plan.currentApprover?.positionTitle?.includes("บริหารงานขาย")) ||
       plan.currentApprover?.department?.code === "SA";
 
     const isMkt =
       isAdmin ||
+      userDept === "MKT" ||
+      userPos.includes("การตลาด") ||
+      userPos.includes("marketing") ||
       plan.currentApprover?.positionTitle?.includes("การตลาด") ||
       plan.currentApprover?.department?.code === "MKT";
 
@@ -127,7 +136,13 @@ export function ApprovalActionDialog({
 
       return false;
     });
-  }, [plan, isAdmin, userEmployeeId]);
+  }, [
+    plan,
+    isAdmin,
+    userEmployeeId,
+    session?.user?.departmentCode,
+    session?.user?.positionTitle,
+  ]);
 
   // Default: Auto-select all helpers in scope when dialog opens
   useEffect(() => {

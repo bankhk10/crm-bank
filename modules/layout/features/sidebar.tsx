@@ -139,7 +139,10 @@ export default function Sidebar({
             roles.includes("sales_promotion") ||
             roles.includes("sales_promotion_supervisor")
         ) {
-            return navs.filter((nav) => nav.href !== dashboardHref);
+            // Filter out dashboard routes, but preserve business routes (e.g. /activity-plans)
+            return navs.filter(
+                (nav) => !nav.href.startsWith("/dashboard") && nav.href !== "/show-product"
+            );
         }
 
         const mainDashboardItem: SidebarNavItem = {

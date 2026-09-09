@@ -26,6 +26,8 @@ declare module "next-auth" {
       permissionKeys: string[]; // Changed from permissions object to simple key array
       departmentId?: string | null;
       positionId?: string | null;
+      positionTitle?: string | null;
+      departmentCode?: string | null;
       dataAccessByResource: Record<string, DataAccessLevel>;
       editAccessByResource?: Record<string, EditAccessLevel>;
       deleteAccessByResource?: Record<string, DeleteAccessLevel>;
@@ -38,6 +40,8 @@ declare module "next-auth" {
     id: string;
     roles: string[];
     employeeId?: string | null;
+    positionTitle?: string | null;
+    departmentCode?: string | null;
   }
 }
 
@@ -47,6 +51,8 @@ declare module "next-auth/jwt" {
     permissionKeys?: string[]; // Changed from permissions object to simple key array
     departmentId?: string | null;
     positionId?: string | null;
+    positionTitle?: string | null;
+    departmentCode?: string | null;
     dataAccessByResource?: Record<string, DataAccessLevel>;
     editAccessByResource?: Record<string, EditAccessLevel>;
     deleteAccessByResource?: Record<string, DeleteAccessLevel>;

@@ -14,16 +14,18 @@ import { seedPromotionalMaterials } from "../prisma/seed/activity/promotional-ma
  *   npx tsx --env-file=.env scripts/seed-activity-uat.ts --cleanup # Clean up UAT data
  */
 
-export async function cleanupUatActivityPlans(db: PrismaClient = prisma) {
-  console.log("🧹 Cleaning up existing UAT Activity Plans ([UAT-ACT-*])...");
+export async function cleanupUatActivityPlans(db: PrismaClient = prisma, targetCode?: string) {
+  console.log(`🧹 Cleaning up ${targetCode ? targetCode : "existing UAT Activity Plans ([UAT-ACT-*])"}...`);
 
   const uatPlans = await db.activityPlan.findMany({
-    where: {
-      OR: [
-        { code: { startsWith: "UAT-ACT-" } },
-        { title: { startsWith: "[UAT-ACT-" } },
-      ],
-    },
+    where: targetCode
+      ? { code: targetCode }
+      : {
+          OR: [
+            { code: { startsWith: "UAT-ACT-" } },
+            { title: { startsWith: "[UAT-ACT-" } },
+          ],
+        },
     select: { id: true, code: true, title: true },
   });
 
@@ -68,10 +70,16 @@ export async function cleanupUatActivityPlans(db: PrismaClient = prisma) {
   return deleteResult.count;
 }
 
-export async function seedUatActivityPlans(db: PrismaClient = prisma) {
+export async function seedUatActivityPlans(
+  db: PrismaClient = prisma,
+  options?: { targetCode?: string }
+) {
   console.log("═════════════════════════════════════════════════════════════════");
   console.log("🌱 SEEDING UAT TEST DATA FOR ACTIVITY WORKFLOW (ACT-001 - ACT-010)");
   console.log("═════════════════════════════════════════════════════════════════\n");
+
+  const codeArg = process.argv.find((arg) => arg.startsWith("--code="));
+  const targetCode = options?.targetCode || (codeArg ? codeArg.split("=")[1] : undefined);
 
   // 1. Ensure Workflow Test Users & Permissions exist
   const { users, employees } = await seedWorkflowTestUsers(db);
@@ -200,8 +208,8 @@ export async function seedUatActivityPlans(db: PrismaClient = prisma) {
       ],
     },
     {
-      code: "UAT-ACT-004",
-      title: "[UAT-ACT-004] จัดงาน Field Day ประจำปี (Parallel Budget SP 10,000 + MKT 15,000 = 25,000 บาท)",
+      code: "TEST-ACT-004",
+      title: "[TEST-ACT-004] จัดงาน Field Day ประจำปี (Parallel Budget SP 10,000 + MKT 15,000 = 25,000 บาท)",
       creatorUser: users.uPromoter,
       creatorEmp: employees.empPromoter,
       primaryTypeCode: "TYPE_10",
@@ -213,7 +221,11 @@ export async function seedUatActivityPlans(db: PrismaClient = prisma) {
       location: "แปลงเรียนรู้การเกษตรดอนเจดีย์",
       spBudget: 10000,
       mktBudget: 15000,
-      helpers: [] as string[],
+      helpers: [
+        employees.empSales.id,
+        employees.empAreaMgr.id,
+        employees.empMktStaff.id,
+      ],
       startDate: makeDate(14, 9),
       endDate: makeDate(15, 17),
       expectedWorkflow: "Line Approval -> Parallel (Sales Admin Mgr + MKT Mgr) -> Sales Director",
@@ -415,12 +427,20 @@ export async function seedUatActivityPlans(db: PrismaClient = prisma) {
     },
   ];
 
-  console.log("📝 Upserting 10 UAT Activity Plans in DRAFT status with Work Type Items...\n");
+  console.log("📝 Upserting UAT Activity Plans in DRAFT status with Work Type Items...\n");
 
   const seededPlans = [];
   let totalItemsCreated = 0;
 
-  for (const s of uatScenarios) {
+  const scenariosToSeed = targetCode
+    ? uatScenarios.filter((s) => s.code === targetCode)
+    : uatScenarios;
+
+  if (targetCode && scenariosToSeed.length === 0) {
+    console.warn(`⚠️ Warning: No scenario found matching code "${targetCode}".`);
+  }
+
+  for (const s of scenariosToSeed) {
     const primaryType = typeMap[s.primaryTypeCode];
     if (!primaryType) {
       throw new Error(`ActivityType ${s.primaryTypeCode} not found in database.`);
@@ -538,11 +558,18 @@ export async function seedUatActivityPlans(db: PrismaClient = prisma) {
 
     // Link Helpers (Status: PENDING)
     for (const helperEmpId of s.helpers) {
+      const helperEmp = await db.employee.findUnique({
+        where: { id: helperEmpId },
+        include: { department: true },
+      });
       await db.activityHelper.create({
         data: {
           activityPlanId: plan.id,
           employeeId: helperEmpId,
+          departmentId: helperEmp?.departmentId ?? null,
+          departmentName: helperEmp?.department?.name ?? null,
           status: ActivityHelperStatus.PENDING,
+          respondedAt: null,
         },
       });
     }
@@ -584,16 +611,18 @@ export async function seedUatActivityPlans(db: PrismaClient = prisma) {
 // Direct CLI execution handler
 if (require.main === module) {
   const isCleanup = process.argv.includes("--cleanup");
+  const codeArg = process.argv.find((arg) => arg.startsWith("--code="));
+  const targetCode = codeArg ? codeArg.split("=")[1] : undefined;
 
   if (isCleanup) {
-    cleanupUatActivityPlans()
+    cleanupUatActivityPlans(prisma, targetCode)
       .catch((err) => {
         console.error("❌ Cleanup failed:", err);
         process.exit(1);
       })
       .finally(() => prisma.$disconnect());
   } else {
-    seedUatActivityPlans()
+    seedUatActivityPlans(prisma, { targetCode })
       .catch((err) => {
         console.error("❌ Seeding failed:", err);
         process.exit(1);

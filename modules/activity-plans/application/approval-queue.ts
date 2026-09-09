@@ -70,8 +70,11 @@ export async function getApprovalQueueDataUseCase(user: ApprovalQueueUserContext
     if (p.status !== "PENDING_BUDGET_APPROVAL") return false;
     if (isAdmin) return true;
 
-    const hasSP = p.salesPromotionBudgetRequested && Number(p.salesPromotionBudgetRequested) > 0;
-    const hasMKT = p.marketingBudgetRequested && Number(p.marketingBudgetRequested) > 0;
+    const hasSP =
+      p.salesPromotionBudgetRequested &&
+      Number(p.salesPromotionBudgetRequested) > 0;
+    const hasMKT =
+      p.marketingBudgetRequested && Number(p.marketingBudgetRequested) > 0;
     const spPending = hasSP && p.salesPromotionApproved !== true;
     const mktPending = hasMKT && p.marketingApproved !== true;
     const directorPending =
@@ -79,9 +82,29 @@ export async function getApprovalQueueDataUseCase(user: ApprovalQueueUserContext
       (!hasMKT || p.marketingApproved === true) &&
       p.salesManagerApproved !== true;
 
+    const unreviewedHelpers = (p.helpers || []).filter(
+      (h: any) => h.status === "PENDING" && !(h as any).respondedAt,
+    );
+    const hasUnreviewedSalesHelpers = unreviewedHelpers.some((h: any) => {
+      const dept = (h.employee?.department?.code || "").toUpperCase();
+      const pos = (h.employee?.positionTitle || "").toLowerCase();
+      return (
+        dept === "SA" ||
+        dept === "SS" ||
+        pos.includes("เซลส์") ||
+        pos.includes("ส่งเสริม") ||
+        pos.includes("ขาย")
+      );
+    });
+    const hasUnreviewedMktHelpers = unreviewedHelpers.some((h: any) => {
+      const dept = (h.employee?.department?.code || "").toUpperCase();
+      const pos = (h.employee?.positionTitle || "").toLowerCase();
+      return dept === "MKT" || pos.includes("การตลาด");
+    });
+
     if (isDirector && directorPending) return true;
-    if (isSalesAdmin && spPending) return true;
-    if (isMkt && mktPending) return true;
+    if (isSalesAdmin && (spPending || hasUnreviewedSalesHelpers)) return true;
+    if (isMkt && (mktPending || hasUnreviewedMktHelpers)) return true;
     return false;
   });
 
@@ -147,9 +170,11 @@ export async function getApprovalQueueDataUseCase(user: ApprovalQueueUserContext
     ...budgetApprovals.map((p) => p.id),
     ...helperApprovalsForMe.map((p) => p.id),
   ]);
+  const myPendingPlans = pendingPlans.filter((p) => myPendingPlanIds.has(p.id));
+
   const counts = {
     totalPending: pendingPlans.length,
-    myLinePending: lineApprovalsForMe.length,
+    myLinePending: myPendingPlans.length,
     allLinePending: lineApprovalsAll.length,
     budgetPending: budgetApprovals.length,
     helperPending: helperApprovals.length,
@@ -157,8 +182,6 @@ export async function getApprovalQueueDataUseCase(user: ApprovalQueueUserContext
     historyCount: historyPlans.length,
     totalBudgetRequested,
   };
-
-  const myPendingPlans = pendingPlans.filter((p) => myPendingPlanIds.has(p.id));
 
   return {
     success: true as const,

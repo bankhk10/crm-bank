@@ -196,6 +196,7 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
 
   // 5. Link Users to Existing Roles in Database (Idempotent via userRole.upsert)
   const rolePromoter = await prisma.role.findUnique({ where: { slug: "sales_promotion" } });
+  const roleActivityPlanUser = await prisma.role.findUnique({ where: { slug: "activity_plan_user" } });
   const roleSales = await prisma.role.findUnique({ where: { slug: "sales_employee" } });
   const roleSalesManager = await prisma.role.findUnique({ where: { slug: "sales_manager" } });
   const roleMktManager = await prisma.role.findUnique({ where: { slug: "marketing_manager" } });
@@ -221,6 +222,7 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
   };
 
   await assignUserRole(uPromoter.id, rolePromoter?.id);
+  await assignUserRole(uPromoter.id, roleActivityPlanUser?.id);
   await assignUserRole(uSales.id, roleSales?.id);
   await assignUserRole(uAreaMgr.id, roleSalesManager?.id);
   await assignUserRole(uSalesAdmin.id, roleSalesManager?.id);
@@ -293,7 +295,7 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
   }
 
   console.log("✅ Workflow Test Users & Hierarchy seeded successfully:");
-  console.log("   1. Promoter:    test.promoter@crm.local  -> Role: sales_promotion");
+  console.log("   1. Promoter:    test.promoter@crm.local  -> Role: sales_promotion + activity_plan_user");
   console.log("   2. Sales:       test.sales@crm.local     -> Role: sales_employee + Approver Overrides");
   console.log("   3. Area Mgr:    test.areamgr@crm.local   -> Role: sales_manager + Approver Overrides");
   console.log("   4. Sales Admin: test.salesadmin@crm.local-> Role: sales_manager + Approver Overrides");

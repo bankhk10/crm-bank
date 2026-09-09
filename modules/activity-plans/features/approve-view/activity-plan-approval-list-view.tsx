@@ -85,6 +85,9 @@ export default function ActivityPlanApprovalListView() {
   const [pendingPlans, setPendingPlans] = useState<ActivityPlanWithRelations[]>(
     [],
   );
+  const [myPendingPlans, setMyPendingPlans] = useState<
+    ActivityPlanWithRelations[]
+  >([]);
   const [historyPlans, setHistoryPlans] = useState<ActivityPlanWithRelations[]>(
     [],
   );
@@ -127,6 +130,9 @@ export default function ActivityPlanApprovalListView() {
         setPendingPlans(
           (res.pendingPlans as ActivityPlanWithRelations[]) || [],
         );
+        setMyPendingPlans(
+          (res.myPendingPlans as ActivityPlanWithRelations[]) || [],
+        );
         setHistoryPlans(
           (res.historyPlans as ActivityPlanWithRelations[]) || [],
         );
@@ -163,11 +169,7 @@ export default function ActivityPlanApprovalListView() {
 
     // Apply tab filter
     if (activeTab === "my_line") {
-      source = source.filter(
-        (p) =>
-          p.status === "PENDING_LINE_APPROVAL" &&
-          (isAdmin || p.currentApproverEmployeeId === userEmployeeId),
-      );
+      source = myPendingPlans;
     } else if (activeTab === "budget") {
       source = source.filter((p) => p.status === "PENDING_BUDGET_APPROVAL");
     } else if (activeTab === "helper") {
@@ -225,11 +227,10 @@ export default function ActivityPlanApprovalListView() {
   }, [
     activeTab,
     pendingPlans,
+    myPendingPlans,
     historyPlans,
     searchQuery,
     typeFilter,
-    userEmployeeId,
-    isAdmin,
   ]);
 
   const handleOpenActionDialog = (
@@ -606,7 +607,7 @@ export default function ActivityPlanApprovalListView() {
             {searchQuery || hasActiveFilter
               ? "ไม่พบรายการที่ตรงกับเงื่อนไข"
               : activeTab === "my_line"
-                ? "ไม่มีแผนงานรออนุมัติในสายงานคุณ"
+                ? "ไม่มีงานรอคุณอนุมัติในขณะนี้"
                 : activeTab === "budget"
                   ? "ไม่มีแผนงานรออนุมัติงบประมาณ"
                   : activeTab === "helper"
@@ -899,7 +900,7 @@ const kpiCards: Array<{
   },
   {
     tab: "my_line",
-    label: "คิวของฉัน",
+    label: "งานรอฉันอนุมัติ",
     icon: ShieldCheck,
     color: "text-amber-600",
     activeColor: "text-amber-900",
@@ -1149,7 +1150,7 @@ const tabItems: Array<{
   },
   {
     value: "my_line",
-    label: "คิวสายงานของฉัน",
+    label: "งานรอฉันอนุมัติ",
     shortLabel: "ของฉัน",
     icon: ShieldCheck,
     activeClass: "text-amber-700",
