@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient, Prisma, ActivityStatus, ActivityHelperStatus } from "@prisma/client";
 import { db as prisma } from "../lib/db";
 import { seedWorkflowTestUsers } from "../prisma/seed/activity/workflow-test-users";
@@ -9,28 +10,79 @@ import { seedPromotionalMaterials } from "../prisma/seed/activity/promotional-ma
  * All test plans are created in DRAFT status with full ActivityPlanItems so users can
  * manually test the UI through the browser with rich initial values.
  * 
+ * Safety Protection:
+ * - Scenarios TEST-ACT-001, TEST-ACT-004, and TEST-ACT-005 are PROTECTED (Passed UAT).
+ * - Full seed / cleanup will NEVER overwrite or delete protected scenarios.
+ * 
  * Usage:
- *   npx tsx --env-file=.env scripts/seed-activity-uat.ts           # Seed / Reset UAT data
- *   npx tsx --env-file=.env scripts/seed-activity-uat.ts --cleanup # Clean up UAT data
+ *   pnpm activity:uat:seed --code=TEST-ACT-006  # Seed / Reset specific scenario (006)
+ *   pnpm activity:uat:seed                     # Seed unprotected scenarios (skips protected)
+ *   pnpm activity:uat:cleanup                  # Clean up unprotected UAT plans
  */
 
-export async function cleanupUatActivityPlans(db: PrismaClient = prisma, targetCode?: string) {
-  console.log(`🧹 Cleaning up ${targetCode ? targetCode : "existing UAT Activity Plans ([UAT-ACT-*])"}...`);
+export const PROTECTED_UAT_CODES = new Set([
+  "TEST-ACT-001",
+  "TEST-ACT-004",
+  "TEST-ACT-005",
+]);
 
-  const uatPlans = await db.activityPlan.findMany({
-    where: targetCode
-      ? { code: targetCode }
-      : {
+/**
+ * Normalizes scenario code input:
+ * Supports "TEST-ACT-006", "UAT-ACT-006", "ACT-006", "006", or "6" -> "TEST-ACT-006"
+ */
+export function normalizeScenarioCode(rawCode?: string): string | undefined {
+  if (!rawCode) return undefined;
+  const trimmed = rawCode.trim().toUpperCase();
+  const digitsMatch = trimmed.match(/\d+/);
+  if (!digitsMatch) return trimmed;
+  const num = parseInt(digitsMatch[0], 10);
+  if (isNaN(num)) return trimmed;
+  return `TEST-ACT-${String(num).padStart(3, "0")}`;
+}
+
+export async function cleanupUatActivityPlans(db: PrismaClient = prisma, rawTargetCode?: string) {
+  const targetCode = normalizeScenarioCode(rawTargetCode);
+  console.log(`🧹 Cleaning up ${targetCode ? targetCode : "unprotected UAT Activity Plans ([TEST-ACT-*], [UAT-ACT-*])"}...`);
+
+  let whereClause: Prisma.ActivityPlanWhereInput;
+
+  if (targetCode) {
+    if (PROTECTED_UAT_CODES.has(targetCode)) {
+      console.warn(`🛡️ Target [${targetCode}] is a PROTECTED UAT scenario (passed UAT). Skipping cleanup to preserve test data.`);
+      return 0;
+    }
+    whereClause = {
+      OR: [
+        { code: targetCode },
+        { title: { startsWith: `[${targetCode}]` } },
+      ],
+    };
+  } else {
+    // Full cleanup: protect passed UAT scenarios
+    whereClause = {
+      AND: [
+        {
           OR: [
+            { code: { startsWith: "TEST-ACT-" } },
             { code: { startsWith: "UAT-ACT-" } },
+            { title: { startsWith: "[TEST-ACT-" } },
             { title: { startsWith: "[UAT-ACT-" } },
           ],
         },
+        {
+          code: { notIn: Array.from(PROTECTED_UAT_CODES) },
+        },
+      ],
+    };
+  }
+
+  const uatPlans = await db.activityPlan.findMany({
+    where: whereClause,
     select: { id: true, code: true, title: true },
   });
 
   if (uatPlans.length === 0) {
-    console.log("   No UAT activity plans found to clean up.");
+    console.log("   No matching UAT activity plans found to clean up.");
     return 0;
   }
 
@@ -75,11 +127,12 @@ export async function seedUatActivityPlans(
   options?: { targetCode?: string }
 ) {
   console.log("═════════════════════════════════════════════════════════════════");
-  console.log("🌱 SEEDING UAT TEST DATA FOR ACTIVITY WORKFLOW (ACT-001 - ACT-010)");
+  console.log("🌱 SEEDING UAT TEST DATA FOR ACTIVITY WORKFLOW (TEST-ACT-001 - 010)");
   console.log("═════════════════════════════════════════════════════════════════\n");
 
   const codeArg = process.argv.find((arg) => arg.startsWith("--code="));
-  const targetCode = options?.targetCode || (codeArg ? codeArg.split("=")[1] : undefined);
+  const rawTargetCode = options?.targetCode || (codeArg ? codeArg.split("=")[1] : undefined);
+  const targetCode = normalizeScenarioCode(rawTargetCode);
 
   // 1. Ensure Workflow Test Users & Permissions exist
   const { users, employees } = await seedWorkflowTestUsers(db);
@@ -95,11 +148,11 @@ export async function seedUatActivityPlans(
   // Helper date generators for September 2026 UAT testing
   const makeDate = (day: number, hour: number = 9) => new Date(2026, 8, day, hour, 0, 0); // Month index 8 = September
 
-  // 3. Define 10 UAT Scenarios with full Work Type Items
+  // 3. Define 10 UAT Scenarios with standardized TEST-ACT-* codes
   const uatScenarios = [
     {
-      code: "UAT-ACT-001",
-      title: "[UAT-ACT-001] เข้าพบร้านค้าเขตภาคกลาง (No Budget / No Helper)",
+      code: "TEST-ACT-001",
+      title: "[TEST-ACT-001] เข้าพบร้านค้าเขตภาคกลาง (No Budget / No Helper)",
       creatorUser: users.uPromoter,
       creatorEmp: employees.empPromoter,
       primaryTypeCode: "TYPE_1",
@@ -126,8 +179,8 @@ export async function seedUatActivityPlans(
       ],
     },
     {
-      code: "UAT-ACT-002",
-      title: "[UAT-ACT-002] จัดกิจกรรมส่งเสริมการขายหน้าร้าน (Sales Promotion Budget 5,000 บาท)",
+      code: "TEST-ACT-002",
+      title: "[TEST-ACT-002] จัดกิจกรรมส่งเสริมการขายหน้าร้าน (Sales Promotion Budget 5,000 บาท)",
       creatorUser: users.uSales,
       creatorEmp: employees.empSales,
       primaryTypeCode: "TYPE_9",
@@ -157,8 +210,8 @@ export async function seedUatActivityPlans(
       ],
     },
     {
-      code: "UAT-ACT-003",
-      title: "[UAT-ACT-003] จัดประชุมการเกษตรและชี้แจงทิศทางการตลาด (Marketing Budget 8,000 บาท)",
+      code: "TEST-ACT-003",
+      title: "[TEST-ACT-003] จัดประชุมการเกษตรและชี้แจงทิศทางการตลาด (Marketing Budget 8,000 บาท)",
       creatorUser: users.uAreaMgr,
       creatorEmp: employees.empAreaMgr,
       primaryTypeCode: "TYPE_8",
@@ -278,8 +331,8 @@ export async function seedUatActivityPlans(
       ],
     },
     {
-      code: "UAT-ACT-006",
-      title: "[UAT-ACT-006] จัดกิจกรรมสาธิตแปลงทดลอง (ขอพนักงานการตลาดช่วยงาน)",
+      code: "TEST-ACT-006",
+      title: "[TEST-ACT-006] จัดกิจกรรมสาธิตแปลงทดลอง (ขอพนักงานการตลาดช่วยงาน)",
       creatorUser: users.uPromoter,
       creatorEmp: employees.empPromoter,
       primaryTypeCode: "TYPE_7",
@@ -311,8 +364,8 @@ export async function seedUatActivityPlans(
       ],
     },
     {
-      code: "UAT-ACT-007",
-      title: "[UAT-ACT-007] ทดสอบการปฏิเสธแผนงาน (Reject Flow Testing)",
+      code: "TEST-ACT-007",
+      title: "[TEST-ACT-007] ทดสอบการปฏิเสธแผนงาน (Reject Flow Testing)",
       creatorUser: users.uPromoter,
       creatorEmp: employees.empPromoter,
       primaryTypeCode: "TYPE_3",
@@ -342,8 +395,8 @@ export async function seedUatActivityPlans(
       ],
     },
     {
-      code: "UAT-ACT-008",
-      title: "[UAT-ACT-008] ทดสอบการส่งกลับแก้ไข (Request Correction Flow Testing)",
+      code: "TEST-ACT-008",
+      title: "[TEST-ACT-008] ทดสอบการส่งกลับแก้ไข (Request Correction Flow Testing)",
       creatorUser: users.uPromoter,
       creatorEmp: employees.empPromoter,
       primaryTypeCode: "TYPE_6",
@@ -370,8 +423,8 @@ export async function seedUatActivityPlans(
       ],
     },
     {
-      code: "UAT-ACT-009",
-      title: "[UAT-ACT-009] ทดสอบการส่งแผนงานซ้ำหลังแก้ไข (Resubmit Flow Testing)",
+      code: "TEST-ACT-009",
+      title: "[TEST-ACT-009] ทดสอบการส่งแผนงานซ้ำหลังแก้ไข (Resubmit Flow Testing)",
       creatorUser: users.uPromoter,
       creatorEmp: employees.empPromoter,
       primaryTypeCode: "TYPE_2",
@@ -398,8 +451,8 @@ export async function seedUatActivityPlans(
       ],
     },
     {
-      code: "UAT-ACT-010",
-      title: "[UAT-ACT-010] ทดสอบวงจรปฏิทินกิจกรรม (Calendar Lifecycle Testing)",
+      code: "TEST-ACT-010",
+      title: "[TEST-ACT-010] ทดสอบวงจรปฏิทินกิจกรรม (Calendar Lifecycle Testing)",
       creatorUser: users.uPromoter,
       creatorEmp: employees.empPromoter,
       primaryTypeCode: "TYPE_1",
@@ -411,7 +464,7 @@ export async function seedUatActivityPlans(
       location: "ศูนย์บริการการเกษตรกำแพงแสน",
       spBudget: 0,
       mktBudget: 0,
-      helpers: [] as string[],
+      helpers: [employees.empSales.id],
       startDate: makeDate(23, 9),
       endDate: makeDate(23, 17),
       expectedWorkflow: "Complete Approval -> Synced to Calendar -> View on Calendar -> Cancel",
@@ -432,12 +485,28 @@ export async function seedUatActivityPlans(
   const seededPlans = [];
   let totalItemsCreated = 0;
 
-  const scenariosToSeed = targetCode
-    ? uatScenarios.filter((s) => s.code === targetCode)
-    : uatScenarios;
+  // Filter scenarios to seed with Safety Protection for Passed UAT Scenarios
+  let scenariosToSeed: typeof uatScenarios;
 
-  if (targetCode && scenariosToSeed.length === 0) {
-    console.warn(`⚠️ Warning: No scenario found matching code "${targetCode}".`);
+  if (targetCode) {
+    if (PROTECTED_UAT_CODES.has(targetCode)) {
+      console.warn(`🛡️ Target [${targetCode}] is a PROTECTED UAT scenario (passed UAT). Operation blocked to preserve test records.`);
+      return { seededPlans: [], totalItemsCreated: 0 };
+    }
+    scenariosToSeed = uatScenarios.filter((s) => s.code === targetCode);
+    if (scenariosToSeed.length === 0) {
+      console.warn(`⚠️ Warning: No scenario found matching code "${rawTargetCode}" (normalized: "${targetCode}").`);
+      return { seededPlans: [], totalItemsCreated: 0 };
+    }
+  } else {
+    // Full seed (no --code specified): Protect passed UAT scenarios!
+    scenariosToSeed = uatScenarios.filter((s) => {
+      if (PROTECTED_UAT_CODES.has(s.code)) {
+        console.log(`🔒 Skipping protected UAT scenario [${s.code}] (already passed UAT, preserved)`);
+        return false;
+      }
+      return true;
+    });
   }
 
   for (const s of scenariosToSeed) {
@@ -449,9 +518,14 @@ export async function seedUatActivityPlans(
     const totalBudget = s.spBudget + s.mktBudget;
     const durationDays = Math.max(1, Math.ceil((s.endDate.getTime() - s.startDate.getTime()) / (1000 * 60 * 60 * 24)));
 
-    // Check if existing plan exists
-    let plan = await db.activityPlan.findUnique({
-      where: { code: s.code },
+    // Check if existing plan exists by code or legacy title prefix
+    let plan = await db.activityPlan.findFirst({
+      where: {
+        OR: [
+          { code: s.code },
+          { title: { startsWith: `[${s.code}]` } },
+        ],
+      },
     });
 
     if (plan) {
@@ -469,6 +543,7 @@ export async function seedUatActivityPlans(
       plan = await db.activityPlan.update({
         where: { id: plan.id },
         data: {
+          code: s.code,
           title: s.title,
           objective: s.objective,
           description: s.description,
@@ -590,20 +665,22 @@ export async function seedUatActivityPlans(
 
   // 4. Output Summary Table
   console.log("═════════════════════════════════════════════════════════════════════════════════════════════════════════════════");
-  console.log(`📊 UAT TEST DATA SEEDING COMPLETE (10 / 10 SCENARIOS, ${totalItemsCreated} ITEMS CREATED)`);
+  console.log(`📊 UAT TEST DATA SEEDING COMPLETE (${seededPlans.length} SCENARIOS PROCESSED, ${totalItemsCreated} ITEMS CREATED)`);
   console.log("═════════════════════════════════════════════════════════════════════════════════════════════════════════════════\n");
 
-  console.table(
-    seededPlans.map((p) => ({
-      ID: p.code,
-      Creator: p.creator,
-      "Work Types": p.workTypes,
-      Items: p.itemsCount,
-      Budget: p.budget,
-      Helpers: p.helpersCount,
-      Status: p.status,
-    }))
-  );
+  if (seededPlans.length > 0) {
+    console.table(
+      seededPlans.map((p) => ({
+        ID: p.code,
+        Creator: p.creator,
+        "Work Types": p.workTypes,
+        Items: p.itemsCount,
+        Budget: p.budget,
+        Helpers: p.helpersCount,
+        Status: p.status,
+      }))
+    );
+  }
 
   return { seededPlans, totalItemsCreated };
 }
@@ -612,17 +689,17 @@ export async function seedUatActivityPlans(
 if (require.main === module) {
   const isCleanup = process.argv.includes("--cleanup");
   const codeArg = process.argv.find((arg) => arg.startsWith("--code="));
-  const targetCode = codeArg ? codeArg.split("=")[1] : undefined;
+  const rawTargetCode = codeArg ? codeArg.split("=")[1] : undefined;
 
   if (isCleanup) {
-    cleanupUatActivityPlans(prisma, targetCode)
+    cleanupUatActivityPlans(prisma, rawTargetCode)
       .catch((err) => {
         console.error("❌ Cleanup failed:", err);
         process.exit(1);
       })
       .finally(() => prisma.$disconnect());
   } else {
-    seedUatActivityPlans(prisma, { targetCode })
+    seedUatActivityPlans(prisma, { targetCode: rawTargetCode })
       .catch((err) => {
         console.error("❌ Seeding failed:", err);
         process.exit(1);
