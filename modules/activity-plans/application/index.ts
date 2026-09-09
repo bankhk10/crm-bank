@@ -395,4 +395,10 @@ export {
   resolveActivityTypeId,
   findApprovalQueueData,
 } from "../infrastructure/activity-plan.repository";
+export {
+  getApproverDirectoryUseCase,
+  formatEmployeeName,
+  type ApproverDirectory,
+} from "./approver-directory";
+
 export type { ListActivityPlansParams };

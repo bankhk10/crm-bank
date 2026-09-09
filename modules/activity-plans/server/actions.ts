@@ -23,6 +23,7 @@ import {
   getFarmerCustomersUseCase,
   getDemoPlotHistoryUseCase,
   recordDemoPlotVisitUseCase,
+  getApproverDirectoryUseCase,
   type ListActivityPlansParams,
 } from "../application";
 
@@ -520,6 +521,24 @@ export async function getApprovalQueueDataAction() {
     };
   }
 }
+
+/**
+ * Action: Get Approver Directory (Employee names for managers)
+ */
+export async function getApproverDirectoryAction() {
+  try {
+    const result = await getApproverDirectoryUseCase();
+    return serialize(result);
+  } catch (err: any) {
+    console.error("Failed to get approver directory:", err);
+    return {
+      salesAdminEmployees: [],
+      marketingEmployees: [],
+      salesDirectorEmployees: [],
+    };
+  }
+}
+
 
 /**
  * Action: Record Post-Activity Outcome (ActivityResult)

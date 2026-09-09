@@ -1,6 +1,9 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import type { ActivityStatus } from "../types";
+import { getApproverDirectoryAction } from "../server/actions";
 
 const STATUS_STYLES: Record<
   string,
@@ -109,12 +112,67 @@ export function ActivityStatusBadge({
   );
 }
 
+/**
+ * Clean up test or internal role annotations from Employee.name
+ * e.g., "สมคิด บริหารงานขาย (ผจก.แผนก SA)" -> "สมคิด บริหารงานขาย"
+ * e.g., "วรัญญา การตลาด" -> "วรัญญา การตลาด"
+ */
+export function formatEmployeeName(name?: string | null): string {
+  if (!name) return "";
+  return name.replace(/\s*\([^)]*\)\s*$/, "").trim();
+}
+
+export interface ApproverDirectory {
+  salesAdminEmployees: string[];
+  marketingEmployees: string[];
+  salesDirectorEmployees: string[];
+}
+
 export interface CurrentOperatorInfo {
   roleName: string;
   roleTitleTh: string;
   displayRole: string;
+  operatorName?: string | null;
   employeeName?: string | null;
   stepDescription?: string;
+}
+
+let cachedDirectory: ApproverDirectory | null = null;
+let directoryPromise: Promise<ApproverDirectory> | null = null;
+
+export function useApproverDirectory(): ApproverDirectory | null {
+  const [directory, setDirectory] = useState<ApproverDirectory | null>(cachedDirectory);
+
+  useEffect(() => {
+    if (cachedDirectory) return;
+
+    if (!directoryPromise) {
+      directoryPromise = getApproverDirectoryAction()
+        .then((res) => {
+          cachedDirectory = res;
+          return res;
+        })
+        .catch((err) => {
+          console.error("Failed to load approver directory:", err);
+          return {
+            salesAdminEmployees: [],
+            marketingEmployees: [],
+            salesDirectorEmployees: [],
+          };
+        });
+    }
+
+    let isMounted = true;
+    directoryPromise.then((data) => {
+      if (isMounted) setDirectory(data);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  return directory;
 }
 
 export function formatApproverRole(positionTitleOrRole?: string | null): string {
@@ -180,31 +238,41 @@ export function formatApproverRole(positionTitleOrRole?: string | null): string 
   return title;
 }
 
-export function resolveCurrentOperator(plan?: {
-  status?: string;
-  currentApproverEmployeeId?: string | null;
-  currentApprover?: {
-    id?: string;
-    name?: string | null;
-    positionTitle?: string | null;
-    position?: { name?: string | null } | null;
-  } | null;
-  salesPromotionBudgetRequested?: any;
-  marketingBudgetRequested?: any;
-  salesPromotionApproved?: boolean | null;
-  marketingApproved?: boolean | null;
-  salesManagerApproved?: boolean | null;
-  helpers?: Array<{
+export function resolveCurrentOperator(
+  plan?: {
     status?: string;
-    respondedAt?: Date | string | null;
+    currentOperatorName?: string | null;
+    currentApproverEmployeeId?: string | null;
+    currentApprover?: {
+      id?: string;
+      name?: string | null;
+      positionTitle?: string | null;
+      position?: { name?: string | null } | null;
+    } | null;
     employee?: {
       name?: string | null;
-      department?: { code?: string | null; name?: string | null } | null;
-      departmentName?: string | null;
-      positionTitle?: string | null;
     } | null;
-  }> | null;
-} | null): CurrentOperatorInfo | null {
+    createdBy?: {
+      name?: string | null;
+    } | null;
+    salesPromotionBudgetRequested?: any;
+    marketingBudgetRequested?: any;
+    salesPromotionApproved?: boolean | null;
+    marketingApproved?: boolean | null;
+    salesManagerApproved?: boolean | null;
+    helpers?: Array<{
+      status?: string;
+      respondedAt?: Date | string | null;
+      employee?: {
+        name?: string | null;
+        department?: { code?: string | null; name?: string | null } | null;
+        departmentName?: string | null;
+        positionTitle?: string | null;
+      } | null;
+    }> | null;
+  } | null,
+  approverDirectory?: ApproverDirectory | null,
+): CurrentOperatorInfo | null {
   if (!plan || !plan.status) return null;
 
   // 1. Terminal / Non-pending statuses -> No current operator
@@ -217,12 +285,20 @@ export function resolveCurrentOperator(plan?: {
     return null;
   }
 
+  // Precomputed operator name on plan takes highest priority if passed
+  const precomputedOperatorName = (plan as any).currentOperatorName || null;
+
   // 2. Waiting for correction -> Creator
   if (plan.status === "WAITING_FOR_CORRECTION") {
+    const creatorName = formatEmployeeName(
+      (plan as any).employee?.name || (plan as any).createdBy?.name
+    );
     return {
       roleName: "Creator",
       roleTitleTh: "ผู้สร้างแผนงาน",
       displayRole: "ผู้จัดทำแผน (รอแก้ไข)",
+      operatorName: precomputedOperatorName || creatorName || "ผู้สร้างแผนงาน",
+      employeeName: creatorName || null,
       stepDescription: "รอผู้จัดทำแผนแก้ไขและส่งใหม่",
     };
   }
@@ -234,13 +310,15 @@ export function resolveCurrentOperator(plan?: {
       plan.currentApprover?.position?.name;
 
     const formattedRole = formatApproverRole(rawPos);
-    const empName = plan.currentApprover?.name || null;
+    const empRawName = plan.currentApprover?.name || null;
+    const empCleanName = formatEmployeeName(empRawName);
 
     return {
       roleName: formattedRole,
       roleTitleTh: rawPos || formattedRole,
       displayRole: formattedRole,
-      employeeName: empName,
+      operatorName: precomputedOperatorName || empCleanName || formattedRole,
+      employeeName: empCleanName || empRawName,
       stepDescription: "อนุมัติตามสายงาน",
     };
   }
@@ -266,45 +344,62 @@ export function resolveCurrentOperator(plan?: {
       plan.salesManagerApproved !== true;
 
     if (directorPending) {
+      const dirNames = approverDirectory?.salesDirectorEmployees || [];
+      const opName = dirNames.length > 0 ? dirNames.join(", ") : null;
       return {
         roleName: "Sales Director",
         roleTitleTh: "ผู้จัดการฝ่ายขาย (อนุมัติงบรวม)",
         displayRole: "Sales Director",
+        operatorName: precomputedOperatorName || opName || "Sales Director",
         stepDescription: "อนุมัติงบประมาณภาพรวมทั้งหมด",
       };
     }
 
     if (mktPending && !spPending) {
+      const mktNames = approverDirectory?.marketingEmployees || [];
+      const opName = mktNames.length > 0 ? mktNames.join(", ") : null;
       return {
         roleName: "Marketing Manager",
         roleTitleTh: "ผู้จัดการแผนกการตลาด",
         displayRole: "Marketing Manager",
+        operatorName: precomputedOperatorName || opName || "Marketing Manager",
         stepDescription: "อนุมัติงบการตลาด",
       };
     }
 
     if (spPending && !mktPending) {
+      const spNames = approverDirectory?.salesAdminEmployees || [];
+      const opName = spNames.length > 0 ? spNames.join(", ") : null;
       return {
         roleName: "Sales Admin Manager",
         roleTitleTh: "ผู้จัดการแผนกบริหารงานขาย",
         displayRole: "Sales Admin Manager",
+        operatorName: precomputedOperatorName || opName || "Sales Admin Manager",
         stepDescription: "อนุมัติงบส่งเสริมการขาย",
       };
     }
 
     if (spPending && mktPending) {
+      const spNames = approverDirectory?.salesAdminEmployees || [];
+      const mktNames = approverDirectory?.marketingEmployees || [];
+      const combined = [...spNames, ...mktNames].filter(Boolean);
+      const opName = combined.length > 0 ? combined.join(", ") : null;
       return {
         roleName: "Sales Admin & Marketing Manager",
         roleTitleTh: "ผจก.แผนกบริหารงานขาย และ ผจก.แผนกการตลาด",
         displayRole: "Sales Admin Manager, Marketing Manager",
+        operatorName: precomputedOperatorName || opName || "Sales Admin Manager, Marketing Manager",
         stepDescription: "อนุมัติงบส่งเสริมการขายและการตลาดคู่ขนาน",
       };
     }
 
+    const dirNames = approverDirectory?.salesDirectorEmployees || [];
+    const opName = dirNames.length > 0 ? dirNames.join(", ") : null;
     return {
       roleName: "Sales Director",
       roleTitleTh: "ผู้จัดการฝ่ายขาย",
       displayRole: "Sales Director",
+      operatorName: precomputedOperatorName || opName || "Sales Director",
       stepDescription: "อนุมัติงบประมาณ",
     };
   }
@@ -336,35 +431,48 @@ export function resolveCurrentOperator(plan?: {
       }
 
       if (hasSales && !hasMkt) {
+        const spNames = approverDirectory?.salesAdminEmployees || [];
+        const opName = spNames.length > 0 ? spNames.join(", ") : null;
         return {
           roleName: "Sales Admin Manager",
           roleTitleTh: "ผู้จัดการแผนกบริหารงานขาย",
           displayRole: "Sales Admin Manager",
+          operatorName: precomputedOperatorName || opName || "Sales Admin Manager",
           stepDescription: "อนุมัติพนักงานช่วยงานฝ่ายขาย",
         };
       }
       if (hasMkt && !hasSales) {
+        const mktNames = approverDirectory?.marketingEmployees || [];
+        const opName = mktNames.length > 0 ? mktNames.join(", ") : null;
         return {
           roleName: "Marketing Manager",
           roleTitleTh: "ผู้จัดการแผนกการตลาด",
           displayRole: "Marketing Manager",
+          operatorName: precomputedOperatorName || opName || "Marketing Manager",
           stepDescription: "อนุมัติพนักงานช่วยงานฝ่ายการตลาด",
         };
       }
       if (hasSales && hasMkt) {
+        const spNames = approverDirectory?.salesAdminEmployees || [];
+        const mktNames = approverDirectory?.marketingEmployees || [];
+        const combined = [...spNames, ...mktNames].filter(Boolean);
+        const opName = combined.length > 0 ? combined.join(", ") : null;
         return {
           roleName: "Sales Admin & Marketing Manager",
           roleTitleTh: "ผจก.แผนกบริหารงานขาย และ ผจก.แผนกการตลาด",
           displayRole: "Sales Admin Manager, Marketing Manager",
+          operatorName: precomputedOperatorName || opName || "Sales Admin Manager, Marketing Manager",
           stepDescription: "อนุมัติพนักงานช่วยงานทั้งฝ่ายขายและการตลาด",
         };
       }
     }
 
+    const fallbackEmp = formatEmployeeName(plan.currentApprover?.name);
     return {
       roleName: "Department Manager",
       roleTitleTh: "ผู้จัดการต้นสังกัดของผู้ช่วยงาน",
       displayRole: "ผู้จัดการต้นสังกัดของผู้ช่วย",
+      operatorName: precomputedOperatorName || fallbackEmp || "ผู้จัดการต้นสังกัดของผู้ช่วย",
       stepDescription: "อนุมัติพนักงานช่วยงาน",
     };
   }
@@ -383,8 +491,9 @@ export function ActivityStatusWithOperator({
   className?: string;
   badgeClassName?: string;
 }) {
+  const approverDirectory = useApproverDirectory();
   if (!plan) return null;
-  const operator = resolveCurrentOperator(plan);
+  const operator = resolveCurrentOperator(plan, approverDirectory);
 
   return (
     <div className={cn("flex flex-col items-start gap-0.5 py-0.5 min-w-[120px]", className)}>
@@ -397,7 +506,7 @@ export function ActivityStatusWithOperator({
         <div className="text-[11px] text-slate-500 leading-tight flex flex-wrap items-center gap-1 font-normal mt-0.5">
           <span>ผู้ดำเนินการ:</span>
           <span className="font-semibold text-slate-700">
-            {operator.displayRole}
+            {operator.operatorName || operator.displayRole}
           </span>
         </div>
       )}
