@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, AlertTriangle, Check } from "lucide-react";
+import { Loader2, AlertTriangle, Check, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   getActivityPlanAction,
   recordActivityResultAction,
@@ -158,6 +159,7 @@ export default function ActivityPlanActualView({
 
   // Loading & Feedback State
   const [loadingPlan, setLoadingPlan] = useState(!!id);
+  const [planStatus, setPlanStatus] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -336,6 +338,7 @@ export default function ActivityPlanActualView({
         const res = await getActivityPlanAction(id!);
         if (res.success && res.plan) {
           const p = res.plan;
+          setPlanStatus(p.status);
 
           const extracted = extractPlanData(p, initialTargets);
           setPlanSummary(extracted.planSummary);
@@ -817,6 +820,10 @@ export default function ActivityPlanActualView({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (planStatus && planStatus !== "APPROVED") {
+      setFormError("สามารถบันทึกผลได้เฉพาะแผนกิจกรรมที่ได้รับการอนุมัติเรียบร้อยแล้วเท่านั้น");
+      return;
+    }
     setFormError(null);
     setIsSubmitting(true);
 
@@ -1271,6 +1278,43 @@ export default function ActivityPlanActualView({
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
         <p>กำลังโหลดข้อมูลแผนกิจกรรม...</p>
       </div>
+    );
+  }
+
+  if (!loadingPlan && id && planStatus && planStatus !== "APPROVED") {
+    return (
+      <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
+        <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto">
+          <ActualViewHeader planNo={planSummary.planNo} />
+
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 sm:p-8 text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base sm:text-lg font-bold text-slate-800">
+                ไม่สามารถบันทึกผลการปฏิบัติงานได้
+              </h3>
+              <p className="text-sm text-slate-600">
+                สามารถบันทึกผลได้เฉพาะแผนกิจกรรมที่ได้รับการอนุมัติเรียบร้อยแล้วเท่านั้น
+              </p>
+            </div>
+            <div className="pt-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (onCancel) onCancel();
+                  else router.push(`/activity-plans/${id}`);
+                }}
+                className="gap-2 font-semibold border-slate-300"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                กลับหน้ารายละเอียดแผนงาน
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
     );
   }
 

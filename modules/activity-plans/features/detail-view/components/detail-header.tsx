@@ -118,7 +118,7 @@ export function DetailHeader({ plan, canEdit }: DetailHeaderProps) {
             </Button>
           )}
 
-          {!isTourOnly && (
+          {plan.status === "APPROVED" && !isTourOnly && (
             <Button
               size="sm"
               onClick={() => router.push(`/activity-plans/${plan.id}/actual`)}

@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations } from "../../types";
-import { ActivityStatusBadge, ActivityStatusWithOperator } from "../../ui/activity-status-badge";
+import { ActivityStatusWithOperator } from "../../ui/activity-status-badge";
 import { WORK_TYPE_CONFIG, getWorkTypeName } from "../../constants";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
@@ -243,6 +243,7 @@ export function ActivityPlanTable({
           const isCorrection = item.status === "WAITING_FOR_CORRECTION";
           const editable = isDraft || isCorrection;
           const deletable = editable || item.status === "CANCELLED";
+          const isApproved = item.status === "APPROVED";
 
           const isPending =
             item.status === "PENDING_LINE_APPROVAL" ||
@@ -272,7 +273,7 @@ export function ActivityPlanTable({
                 colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
               />
 
-              {hasActualWorkType && (
+              {isApproved && hasActualWorkType && (
                 <ActionButton
                   href={`/activity-plans/${item.id}/actual`}
                   icon={ClipboardList}
