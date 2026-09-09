@@ -5,6 +5,7 @@ import {
   CalendarAttendeeRole,
   CalendarAttendeeStatus,
   ActivityHelperStatus,
+  ActivityResultStatus,
 } from "@prisma/client";
 
 export interface SyncCalendarPlanInput {
@@ -126,6 +127,39 @@ export async function cancelActivityPlanCalendarUseCase(
   return tx.activityCalendarEvent.updateMany({
     where: { activityPlanId },
     data: { status: CalendarEventStatus.CANCELLED },
+  });
+}
+
+/**
+ * Synchronizes post-activity result (Actual) to ActivityCalendarEvent status.
+ * - COMPLETED / PARTIAL -> CalendarEventStatus.COMPLETED
+ * - CANCELLED -> CalendarEventStatus.CANCELLED
+ * - Other/POSTPONED -> does not modify or force status
+ */
+export async function syncActivityResultToCalendarUseCase(
+  activityPlanId: string,
+  resultStatus: ActivityResultStatus | string,
+  tx: Prisma.TransactionClient | typeof db = db,
+) {
+  let calendarStatus: CalendarEventStatus | null = null;
+
+  if (
+    resultStatus === ActivityResultStatus.COMPLETED ||
+    resultStatus === ActivityResultStatus.PARTIAL ||
+    resultStatus === ActivityResultStatus.FAILED
+  ) {
+    calendarStatus = CalendarEventStatus.COMPLETED;
+  } else if (resultStatus === ActivityResultStatus.CANCELLED) {
+    calendarStatus = CalendarEventStatus.CANCELLED;
+  }
+
+  if (!calendarStatus) {
+    return { count: 0 };
+  }
+
+  return tx.activityCalendarEvent.updateMany({
+    where: { activityPlanId },
+    data: { status: calendarStatus },
   });
 }
 

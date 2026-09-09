@@ -14,6 +14,7 @@ import {
 } from "../infrastructure/activity-plan.repository";
 import { ActivityStatus } from "@prisma/client";
 import { isActivityPlanTestMode } from "../config";
+import { syncActivityResultToCalendarUseCase } from "./calendar-integration";
 
 // Facade Use Cases
 
@@ -322,7 +323,12 @@ export async function recordActivityResultUseCase(
     attachments: parsed.data.attachments as any,
   };
 
-  const activityResult = await upsertActivityResult(resultInput);
+  const activityResult = await db.$transaction(async (tx) => {
+    const res = await upsertActivityResult(resultInput, tx);
+    await syncActivityResultToCalendarUseCase(planId, parsed.data.resultStatus, tx);
+    return res;
+  });
+
   return { success: true as const, result: activityResult };
 }
 
@@ -372,6 +378,7 @@ export {
 export {
   syncActivityPlanToCalendarUseCase,
   cancelActivityPlanCalendarUseCase,
+  syncActivityResultToCalendarUseCase,
   listActivityCalendarEventsUseCase,
   type ListCalendarEventsParams,
 } from "./calendar-integration";

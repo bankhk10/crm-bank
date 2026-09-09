@@ -1196,8 +1196,11 @@ export type CreateActivityResultInput = {
 /**
  * Create or update ActivityResult (Post-activity outcome recording)
  */
-export async function upsertActivityResult(input: CreateActivityResultInput) {
-  return db.$transaction(async (tx) => {
+export async function upsertActivityResult(
+  input: CreateActivityResultInput,
+  txClient?: Prisma.TransactionClient,
+) {
+  const handler = async (tx: Prisma.TransactionClient) => {
     const spSpent = input.actualSalesPromotionSpent ?? 0;
     const mktSpent = input.actualMarketingSpent ?? 0;
     const actualTotalSpent = spSpent + mktSpent;
@@ -1370,7 +1373,12 @@ export async function upsertActivityResult(input: CreateActivityResultInput) {
     }
 
     return result;
-  });
+  };
+
+  if (txClient) {
+    return handler(txClient);
+  }
+  return db.$transaction(handler);
 }
 
 /**

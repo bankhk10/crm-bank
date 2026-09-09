@@ -3,27 +3,20 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
   Clock,
   MapPin,
   Users,
   User,
-  Filter,
-  CheckCircle2,
   XCircle,
-  CalendarCheck2,
-  CalendarRange,
   Loader2,
   ExternalLink,
   ArrowLeft,
-  CalendarDays,
-  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { getActivityCalendarEventsAction } from "../../server/actions";
 import { cn } from "@/lib/utils";
 import {
@@ -36,9 +29,7 @@ import {
   endOfWeek,
   eachDayOfInterval,
   isSameMonth,
-  isSameDay,
   isToday,
-  parseISO,
 } from "date-fns";
 import { th } from "date-fns/locale";
 
@@ -236,7 +227,7 @@ export function ActivityCalendarView() {
 
         {/* Day Cells */}
         <div className="grid grid-cols-7 auto-rows-fr bg-slate-200 gap-[1px]">
-          {calendarDays.map((day, i) => {
+          {calendarDays.map((day) => {
             const dayEvents = getEventsForDay(day);
             const isCurrentMonth = isSameMonth(day, currentDate);
             const isDayToday = isToday(day);
@@ -290,7 +281,9 @@ export function ActivityCalendarView() {
                         "text-[11px] font-medium px-1.5 py-0.5 rounded-md truncate cursor-pointer transition-all border",
                         ev.status === "CANCELLED"
                           ? "bg-red-50 text-red-600 border-red-200 line-through"
-                          : "bg-blue-50/90 text-blue-700 border-blue-200 hover:bg-blue-100",
+                          : ev.status === "COMPLETED"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                            : "bg-blue-50/90 text-blue-700 border-blue-200 hover:bg-blue-100",
                       )}
                     >
                       <span className="font-semibold">{format(new Date(ev.startDate), "HH:mm")}</span>{" "}
@@ -319,11 +312,16 @@ export function ActivityCalendarView() {
                   variant="outline"
                   className={cn(
                     "text-xs font-semibold",
-                    selectedEvent.status === "SCHEDULED" && "bg-emerald-50 text-emerald-700 border-emerald-200",
+                    selectedEvent.status === "COMPLETED" && "bg-emerald-50 text-emerald-700 border-emerald-200",
+                    selectedEvent.status === "SCHEDULED" && "bg-blue-50 text-blue-700 border-blue-200",
                     selectedEvent.status === "CANCELLED" && "bg-red-50 text-red-700 border-red-200",
                   )}
                 >
-                  {selectedEvent.status === "SCHEDULED" ? "มีนัดหมายตามกำหนด" : "ยกเลิกนัดหมาย"}
+                  {selectedEvent.status === "COMPLETED"
+                    ? "ดำเนินการเสร็จสิ้น"
+                    : selectedEvent.status === "SCHEDULED"
+                      ? "มีนัดหมายตามกำหนด"
+                      : "ยกเลิกนัดหมาย"}
                 </Badge>
                 <h3 className="text-lg font-bold text-slate-900">{selectedEvent.title}</h3>
                 {selectedEvent.activityPlan?.code && (
@@ -461,8 +459,28 @@ export function ActivityCalendarView() {
                   className="p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50/50 cursor-pointer transition-colors space-y-1"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-slate-900">{ev.title}</span>
-                    <span className="text-[11px] font-semibold text-blue-600">
+                    <span
+                      className={cn(
+                        "font-bold text-xs",
+                        ev.status === "CANCELLED"
+                          ? "text-red-600 line-through"
+                          : ev.status === "COMPLETED"
+                            ? "text-emerald-700"
+                            : "text-slate-900",
+                      )}
+                    >
+                      {ev.title}
+                    </span>
+                    <span
+                      className={cn(
+                        "text-[11px] font-semibold",
+                        ev.status === "CANCELLED"
+                          ? "text-red-500"
+                          : ev.status === "COMPLETED"
+                            ? "text-emerald-600"
+                            : "text-blue-600",
+                      )}
+                    >
                       {format(new Date(ev.startDate), "HH:mm")} น.
                     </span>
                   </div>
