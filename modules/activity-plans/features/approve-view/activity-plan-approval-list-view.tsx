@@ -269,7 +269,7 @@ export default function ActivityPlanApprovalListView() {
   }
 
   return (
-    <section className="space-y-3 md:space-y-4 px-3 py-3 md:px-6 md:py-4 pb-28 md:pb-8 max-w-7xl mx-auto">
+    <section className="space-y-3 md:space-y-4 px-3 py-3 md:px-6 md:py-4 pb-28 md:pb-8 mx-auto bg-white rounded-lg shadow-sm border border-slate-100">
       {/* ─── 1. HEADER ─── */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -318,9 +318,7 @@ export default function ActivityPlanApprovalListView() {
             title="รีเฟรชคิวงาน"
             aria-label="รีเฟรชคิวงาน"
           >
-            <RefreshCw
-              className={cn("h-4 w-4", loading && "animate-spin")}
-            />
+            <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
           </Button>
           <Link href="/activity-plans" className="hidden md:block">
             <Button
@@ -511,7 +509,9 @@ export default function ActivityPlanApprovalListView() {
         <SheetContent side="bottom" className="rounded-t-2xl">
           <SheetHeader>
             <SheetTitle>ตัวกรอง</SheetTitle>
-            <SheetDescription>เลือกประเภทกิจกรรมที่ต้องการกรอง</SheetDescription>
+            <SheetDescription>
+              เลือกประเภทกิจกรรมที่ต้องการกรอง
+            </SheetDescription>
           </SheetHeader>
           <div className="px-4 pb-6 space-y-4">
             <div>
@@ -778,9 +778,7 @@ export default function ActivityPlanApprovalListView() {
                         </td>
                         <td className="p-3.5 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
-                            <Link
-                              href={`/activity-plans/approvals/${plan.id}`}
-                            >
+                            <Link href={`/activity-plans/approvals/${plan.id}`}>
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -1042,9 +1040,7 @@ function KpiCard({
         )}
       >
         {count}
-        <span className="text-xs font-medium text-slate-500 ml-1">
-          รายการ
-        </span>
+        <span className="text-xs font-medium text-slate-500 ml-1">รายการ</span>
       </div>
       <p
         className={cn(
@@ -1297,7 +1293,10 @@ function PlanCard({
               </span>
             ) : null}
           </div>
-          <ActivityStatusWithOperator plan={plan} className="shrink-0 items-end" />
+          <ActivityStatusWithOperator
+            plan={plan}
+            className="shrink-0 items-end"
+          />
         </div>
 
         {/* ── Title ── */}
@@ -1361,7 +1360,10 @@ function PlanCard({
         </div>
 
         {/* ── Summary Row: Stores · Products · Budget ── */}
-        {(storesCount > 0 || productsCount > 0 || budgetTotal > 0 || (plan.helpers && plan.helpers.length > 0)) && (
+        {(storesCount > 0 ||
+          productsCount > 0 ||
+          budgetTotal > 0 ||
+          (plan.helpers && plan.helpers.length > 0)) && (
           <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pt-2 border-t border-slate-100 text-[11px]">
             {storesCount > 0 && (
               <span className="inline-flex items-center gap-1 font-semibold text-amber-800">
