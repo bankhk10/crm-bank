@@ -180,6 +180,54 @@ export const activityPermissions: ActivityPermissionDef[] = [
     resource: "activity_plan",
     defaultDataAccess: DataAccessLevel.VIEW_OWN,
   },
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 3.6 สื่อส่งเสริมการขาย (Promotional Materials)
+  // ──────────────────────────────────────────────────────────────────────────
+  {
+    key: "menu.promotional_materials",
+    name: "เมนูสื่อส่งเสริมการขาย",
+    description: "เมนูจัดการสื่อส่งเสริมการขาย",
+    category: "MENU",
+    resource: "promotional_material",
+    menuPath: "/activity-plans/promotional-materials",
+  },
+  {
+    key: "promotional_material.view",
+    name: "ดูสื่อส่งเสริมการขาย",
+    description: "สิทธิ์ดูรายการและรายละเอียดของสื่อส่งเสริมการขาย",
+    category: "ACTION",
+    resource: "promotional_material",
+  },
+  {
+    key: "promotional_material.create",
+    name: "สร้างสื่อส่งเสริมการขาย",
+    description: "สิทธิ์สร้างสื่อส่งเสริมการขายใหม่",
+    category: "ACTION",
+    resource: "promotional_material",
+  },
+  {
+    key: "promotional_material.edit",
+    name: "แก้ไขสื่อส่งเสริมการขาย",
+    description: "สิทธิ์แก้ไขสื่อส่งเสริมการขาย",
+    category: "ACTION",
+    resource: "promotional_material",
+  },
+  {
+    key: "promotional_material.delete",
+    name: "ลบสื่อส่งเสริมการขาย",
+    description: "สิทธิ์ลบสื่อส่งเสริมการขาย",
+    category: "ACTION",
+    resource: "promotional_material",
+  },
+  {
+    key: "data.promotional_materials",
+    name: "ขอบเขตข้อมูลสื่อส่งเสริมการขาย",
+    description: "ขอบเขตการมองเห็นข้อมูลสื่อส่งเสริมการขาย",
+    category: "DATA",
+    resource: "promotional_material",
+    defaultDataAccess: DataAccessLevel.VIEW_ALL,
+  },
 ];
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -360,6 +408,46 @@ export const activityRoles: ActivityRoleDefinition[] = [
       },
     ],
   },
+
+  // 8. พนักงานการตลาด-กิจกรรม
+  {
+    name: "พนักงานการตลาด-กิจกรรม",
+    slug: "activity_marketing_employee",
+    description: "พนักงานการตลาด - สร้าง/ส่งแผนงานกิจกรรมการตลาดของตนเอง และบันทึกผลงานจริง",
+    isSystem: false,
+    isActive: true,
+    permissions: [
+      ...creatorPermissions.map((key) => ({ key })),
+      {
+        key: "data.activity_plans",
+        dataAccess: DataAccessLevel.VIEW_OWN,
+        editAccess: EditAccessLevel.EDIT_OWN,
+        deleteAccess: DeleteAccessLevel.DELETE_OWN,
+      },
+    ],
+  },
+
+  // 9. แอดมินการตลาด-กิจกรรม
+  {
+    name: "แอดมินการตลาด-กิจกรรม",
+    slug: "activity_marketing_admin",
+    description: "แอดมินการตลาด - ดูแลและจัดการข้อมูลสื่อส่งเสริมการขาย (Promotional Materials)",
+    isSystem: false,
+    isActive: true,
+    permissions: [
+      { key: "menu.promotional_materials" },
+      { key: "promotional_material.view" },
+      { key: "promotional_material.create" },
+      { key: "promotional_material.edit" },
+      { key: "promotional_material.delete" },
+      {
+        key: "data.promotional_materials",
+        dataAccess: DataAccessLevel.VIEW_ALL,
+        editAccess: EditAccessLevel.EDIT_ALL,
+        deleteAccess: DeleteAccessLevel.DELETE_ALL,
+      },
+    ],
+  },
 ];
 
 // ============================================================================
@@ -424,7 +512,7 @@ export async function seedActivityRBAC(prisma: PrismaClient) {
   });
   const permMap = new Map(allPerms.map((p) => [p.key, p.id]));
 
-  // 3. Seed / Upsert 7 Activity Roles & RolePermissions
+  // 3. Seed / Upsert 9 Activity Roles & RolePermissions
   let createdRoles = 0;
   let updatedRoles = 0;
   let mappedPermissionsCount = 0;

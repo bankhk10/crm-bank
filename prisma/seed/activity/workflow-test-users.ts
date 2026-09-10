@@ -236,7 +236,7 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
   const roleMktManager = await prisma.role.findUnique({ where: { slug: "marketing_manager" } });
   const roleMktStaff = await prisma.role.findUnique({ where: { slug: "employee_mk" } });
 
-  // 7 Activity Roles
+  // 9 Activity Roles
   const roleActPromoter = await prisma.role.findUnique({ where: { slug: "activity_promoter" } });
   const roleActSales = await prisma.role.findUnique({ where: { slug: "activity_sales_employee" } });
   const roleActAreaMgr = await prisma.role.findUnique({ where: { slug: "activity_area_manager" } });
@@ -244,6 +244,8 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
   const roleActSalesAdmin = await prisma.role.findUnique({ where: { slug: "activity_sales_admin_manager" } });
   const roleActMktMgr = await prisma.role.findUnique({ where: { slug: "activity_marketing_manager" } });
   const roleActSalesDir = await prisma.role.findUnique({ where: { slug: "activity_sales_director" } });
+  const roleActMktEmployee = await prisma.role.findUnique({ where: { slug: "activity_marketing_employee" } });
+  const roleActMktAdmin = await prisma.role.findUnique({ where: { slug: "activity_marketing_admin" } });
 
   const assignUserRole = async (userId: string, roleId?: string) => {
     if (!roleId) return;
@@ -283,7 +285,9 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
   await assignUserRole(uSalesAdmin.id, roleActSalesAdmin?.id);
   await assignUserRole(uMktMgr.id, roleActMktMgr?.id);
   await assignUserRole(uSalesDir.id, roleActSalesDir?.id);
-  // Note: uMktStaff remains employee_mk (specification has no dedicated Activity Role for Marketing Staff)
+  // Marketing Multi-role: employee_mk + activity_marketing_employee + activity_marketing_admin
+  await assignUserRole(uMktStaff.id, roleActMktEmployee?.id);
+  await assignUserRole(uMktStaff.id, roleActMktAdmin?.id);
 
   // 6. Assign Permission Overrides for Activity Testing (Idempotent via userPermissionOverride.upsert)
   const allPermissions = await prisma.permission.findMany({
@@ -358,7 +362,7 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
   console.log("   5. Sales Admin:  test.salesadmin@crm.local -> Roles: sales_manager, activity_sales_admin_manager");
   console.log("   6. MKT Mgr:      test.mktmgr@crm.local     -> Roles: marketing_manager, activity_marketing_manager");
   console.log("   7. Sales Dir:    test.salesdir@crm.local   -> Roles: sales_manager, activity_sales_director");
-  console.log("   8. MKT Staff:    test.mktstaff@crm.local   -> Roles: employee_mk + Helper Overrides");
+  console.log("   8. MKT Staff:    test.mktstaff@crm.local   -> Roles: employee_mk, activity_marketing_employee, activity_marketing_admin");
 
   return {
     users: { uPromoter, uSales, uDistrictMgr, uAreaMgr, uSalesAdmin, uMktMgr, uSalesDir, uMktStaff },

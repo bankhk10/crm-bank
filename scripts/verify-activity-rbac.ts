@@ -46,14 +46,14 @@ async function verify() {
     orderBy: { name: "asc" },
   });
 
-  const expectedRoleCount = 20;
+  const expectedRoleCount = 22;
   recordCheck(
     "CHK-A-001",
-    "Total Role Count (13 Existing + 7 Activity Roles = 20)",
-    "20 roles",
+    "Total Role Count (13 Existing + 9 Activity Roles = 22)",
+    "22 roles",
     `${allRoles.length} roles`,
     allRoles.length === expectedRoleCount,
-    allRoles.length !== expectedRoleCount ? `Expected 20, found ${allRoles.length}` : undefined,
+    allRoles.length !== expectedRoleCount ? `Expected 22, found ${allRoles.length}` : undefined,
   );
 
   // Check 13 Existing Roles
@@ -85,9 +85,9 @@ async function verify() {
   );
 
   // ──────────────────────────────────────────────────────────────────────────
-  // B. 7 Activity Roles Slugs & Names
+  // B. 9 Activity Roles Slugs & Names
   // ──────────────────────────────────────────────────────────────────────────
-  console.log("\n--- B. 7 Activity Roles Slugs & Names ---");
+  console.log("\n--- B. 9 Activity Roles Slugs & Names ---");
   const targetActivityRoles = [
     { slug: "activity_promoter", name: "พนักงานส่งเสริมการขาย-กิจกรรม" },
     { slug: "activity_sales_employee", name: "พนักงานขาย-กิจกรรม" },
@@ -96,6 +96,8 @@ async function verify() {
     { slug: "activity_sales_admin_manager", name: "ผู้จัดการแผนกบริหารงานขาย-กิจกรรม" },
     { slug: "activity_marketing_manager", name: "ผู้จัดการแผนกการตลาด-กิจกรรม" },
     { slug: "activity_sales_director", name: "ผู้จัดการฝ่ายขาย-กิจกรรม" },
+    { slug: "activity_marketing_employee", name: "พนักงานการตลาด-กิจกรรม" },
+    { slug: "activity_marketing_admin", name: "แอดมินการตลาด-กิจกรรม" },
   ];
 
   for (const target of targetActivityRoles) {
@@ -133,6 +135,12 @@ async function verify() {
     "activity_plan.edit_actual",
     "menu.activity_plans",
     "data.activity_plans",
+    "menu.promotional_materials",
+    "promotional_material.view",
+    "promotional_material.create",
+    "promotional_material.edit",
+    "promotional_material.delete",
+    "data.promotional_materials",
   ];
 
   const allPerms = await prisma.permission.findMany({
@@ -341,6 +349,120 @@ async function verify() {
     "VIEW_ALL",
   );
 
+  // Marketing Employee: 10 perms
+  checkRolePerms(
+    "activity_marketing_employee",
+    [
+      "activity_plan.view",
+      "activity_plan.create",
+      "activity_plan.edit",
+      "activity_plan.submit",
+      "activity_plan.view_own",
+      "activity_plan.view_calendar",
+      "activity_plan.record_actual",
+      "activity_plan.edit_actual",
+      "menu.activity_plans",
+      "data.activity_plans",
+    ],
+    "VIEW_OWN",
+  );
+
+  // Marketing Admin: 6 perms
+  {
+    const roleMktAdmin = allRoles.find((r) => r.slug === "activity_marketing_admin");
+    const mktAdminKeys = [
+      "menu.promotional_materials",
+      "promotional_material.view",
+      "promotional_material.create",
+      "promotional_material.edit",
+      "promotional_material.delete",
+      "data.promotional_materials",
+    ];
+    const assignedKeys = roleMktAdmin?.permissions.map((p) => p.permission.key) || [];
+    const missingKeys = mktAdminKeys.filter((k) => !assignedKeys.includes(k));
+    const dataPerm = roleMktAdmin?.permissions.find((p) => p.permission.key === "data.promotional_materials");
+    const passed = !!roleMktAdmin && missingKeys.length === 0 && dataPerm?.dataAccess === "VIEW_ALL";
+    recordCheck(
+      "CHK-D-activity_marketing_admin",
+      "Role activity_marketing_admin has 6 permissions + promotionalMaterials=VIEW_ALL",
+      "All 6 promotional keys + VIEW_ALL",
+      `Count=${assignedKeys.length} (Missing: ${missingKeys.length > 0 ? missingKeys.join(",") : "None"}), DataAccess=${dataPerm?.dataAccess}`,
+      passed,
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Security & Isolation Checks
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log("\n--- D2. Security & Privilege Isolation ---");
+
+  // Security Check 1: Marketing Employee has ZERO approval permissions
+  {
+    const roleMktEmp = allRoles.find((r) => r.slug === "activity_marketing_employee");
+    const forbiddenApprovals = [
+      "activity_plan.view_pending",
+      "activity_plan.approve",
+      "activity_plan.reject",
+      "activity_plan.request_correction",
+      "activity_plan.approve_sales_promotion_budget",
+      "activity_plan.approve_marketing_budget",
+      "activity_plan.approve_total_budget",
+      "activity_plan.review_sales_helper",
+      "activity_plan.review_marketing_helper",
+    ];
+    const assignedKeys = roleMktEmp?.permissions.map((p) => p.permission.key) || [];
+    const leakedKeys = forbiddenApprovals.filter((k) => assignedKeys.includes(k));
+    recordCheck(
+      "CHK-SEC-MKT-EMP-NO-APPROVAL",
+      "activity_marketing_employee has ZERO approval permissions",
+      "0 approval permissions",
+      leakedKeys.length === 0 ? "0 approval permissions (Clean)" : `Leaked: ${leakedKeys.join(",")}`,
+      leakedKeys.length === 0,
+    );
+  }
+
+  // Security Check 2: Marketing Admin has ZERO activity plan management/approval permissions
+  {
+    const roleMktAdmin = allRoles.find((r) => r.slug === "activity_marketing_admin");
+    const forbiddenKeys = [
+      "activity_plan.approve",
+      "activity_plan.reject",
+      "activity_plan.request_correction",
+      "activity_plan.approve_sales_promotion_budget",
+      "activity_plan.approve_marketing_budget",
+      "activity_plan.approve_total_budget",
+      "activity_plan.review_sales_helper",
+      "activity_plan.review_marketing_helper",
+      "activity.manage",
+    ];
+    const assignedKeys = roleMktAdmin?.permissions.map((p) => p.permission.key) || [];
+    const leakedKeys = forbiddenKeys.filter((k) => assignedKeys.includes(k));
+    const dataActPlan = roleMktAdmin?.permissions.find((p) => p.permission.key === "data.activity_plans");
+    recordCheck(
+      "CHK-SEC-MKT-ADMIN-NO-APPROVAL",
+      "activity_marketing_admin has ZERO activity approval & NO data.activity_plans",
+      "0 activity approvals, no activity data scope",
+      leakedKeys.length === 0 && !dataActPlan ? "Clean (PASS)" : `Leaked: ${leakedKeys.join(",")}, DataActPlan: ${dataActPlan?.dataAccess}`,
+      leakedKeys.length === 0 && !dataActPlan,
+    );
+  }
+
+  // Security Check 3: employee_mk legacy role has ZERO activity or promotional permissions
+  {
+    const roleEmpMk = allRoles.find((r) => r.slug === "employee_mk");
+    const assignedKeys = roleEmpMk?.permissions.map((p) => p.permission.key) || [];
+    const leakedActivityOrPromo = assignedKeys.filter(
+      (k) => k.startsWith("activity_plan.") || k.startsWith("promotional_material.") || k.startsWith("menu.activity") || k.startsWith("menu.promotional")
+    );
+    recordCheck(
+      "CHK-SEC-EMPLOYEE-MK-UNTOUCHED",
+      "employee_mk legacy role remains 100% untouched with zero activity/promo permissions",
+      "0 activity/promo permissions",
+      leakedActivityOrPromo.length === 0 ? "Clean (PASS)" : `Leaked: ${leakedActivityOrPromo.join(",")}`,
+      leakedActivityOrPromo.length === 0,
+    );
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // E. UserRole Multi-Role Assignment
   // ──────────────────────────────────────────────────────────────────────────
@@ -348,42 +470,42 @@ async function verify() {
   const testUserRoleExpectations = [
     {
       email: "test.promoter@crm.local",
-      expectedActivityRole: "activity_promoter",
+      expectedActivityRoles: ["activity_promoter"],
       legacyRoles: ["sales_promotion", "activity_plan_user"],
     },
     {
       email: "test.sales@crm.local",
-      expectedActivityRole: "activity_sales_employee",
+      expectedActivityRoles: ["activity_sales_employee"],
       legacyRoles: ["sales_employee"],
     },
     {
       email: "test.districtmgr@crm.local",
-      expectedActivityRole: "activity_district_manager",
+      expectedActivityRoles: ["activity_district_manager"],
       legacyRoles: ["sales_manager"],
     },
     {
       email: "test.areamgr@crm.local",
-      expectedActivityRole: "activity_area_manager",
+      expectedActivityRoles: ["activity_area_manager"],
       legacyRoles: ["sales_manager"],
     },
     {
       email: "test.salesadmin@crm.local",
-      expectedActivityRole: "activity_sales_admin_manager",
+      expectedActivityRoles: ["activity_sales_admin_manager"],
       legacyRoles: ["sales_manager"],
     },
     {
       email: "test.mktmgr@crm.local",
-      expectedActivityRole: "activity_marketing_manager",
+      expectedActivityRoles: ["activity_marketing_manager"],
       legacyRoles: ["marketing_manager"],
     },
     {
       email: "test.salesdir@crm.local",
-      expectedActivityRole: "activity_sales_director",
+      expectedActivityRoles: ["activity_sales_director"],
       legacyRoles: ["sales_manager"],
     },
     {
       email: "test.mktstaff@crm.local",
-      expectedActivityRole: undefined, // stays employee_mk
+      expectedActivityRoles: ["activity_marketing_employee", "activity_marketing_admin"],
       legacyRoles: ["employee_mk"],
     },
   ];
@@ -404,15 +526,17 @@ async function verify() {
     }
 
     const currentSlugs = user.userRoles.map((ur) => ur.role.slug);
-    const hasActivityRole = exp.expectedActivityRole ? currentSlugs.includes(exp.expectedActivityRole) : true;
+    const hasActivityRoles = exp.expectedActivityRoles
+      ? exp.expectedActivityRoles.every((r) => currentSlugs.includes(r))
+      : true;
     const hasLegacyRoles = exp.legacyRoles.every((r) => currentSlugs.includes(r));
 
     recordCheck(
       `CHK-E-${exp.email}`,
       `User ${exp.email} multi-role assignment`,
-      `Legacy: [${exp.legacyRoles.join(",")}] + Activity: ${exp.expectedActivityRole || "None"}`,
+      `Legacy: [${exp.legacyRoles.join(",")}] + Activity: [${exp.expectedActivityRoles?.join(",") || "None"}]`,
       `Current: [${currentSlugs.join(",")}]`,
-      hasActivityRole && hasLegacyRoles,
+      hasActivityRoles && hasLegacyRoles,
     );
   }
 
@@ -476,10 +600,10 @@ async function verify() {
 
   recordCheck(
     "CHK-G-SUMMARY",
-    "findRBACSummary() returns all 7 Activity Roles for /rbac Console",
-    "7 activity roles in summary.roles",
-    `${foundInSummary.length}/7 roles present`,
-    foundInSummary.length === 7,
+    "findRBACSummary() returns all 9 Activity Roles for /rbac Console",
+    "9 activity roles in summary.roles",
+    `${foundInSummary.length}/9 roles present`,
+    foundInSummary.length === 9,
   );
 
   console.log("\n═════════════════════════════════════════════════════════════════");

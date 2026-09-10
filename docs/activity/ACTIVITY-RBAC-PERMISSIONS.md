@@ -17,9 +17,9 @@
 
 ---
 
-## 2. Activity Roles (บทบาทเฉพาะของโมดูลกิจกรรม)
+## 2. Activity Roles (บทบาทเฉพาะของโมดูลกิจกรรมและสื่อส่งเสริมการขาย)
 
-ระบบได้ออกแบบชุด Role สำหรับโมดูล Activity Plan โดยเฉพาะจำนวน **7 Roles** เพื่อไม่ให้สิทธิ์ของ Workflow การวางแผนกิจกรรมปะปนกับสิทธิ์งานขายหรืองานเอกสารทั่วไป:
+ระบบได้ออกแบบชุด Role สำหรับโมดูล Activity Plan และสื่อส่งเสริมการขายโดยเฉพาะจำนวน **9 Roles** เพื่อไม่ให้สิทธิ์ของ Workflow การวางแผนกิจกรรมปะปนกับสิทธิ์งานขายหรืองานเอกสารทั่วไป:
 
 | ลำดับ | ชื่อ Role (ภาษาไทย) | Role Slug | หน้าที่หลักในระบบ | สิทธิ์สร้างแผนงาน | สิทธิ์อนุมัติ | ส่วนที่รับผิดชอบอนุมัติ | บันทึกผลจริง (Actual) | ขอบเขตข้อมูล (Data Scope) |
 | :---: | :--- | :--- | :--- | :---: | :---: | :--- | :---: | :--- |
@@ -30,6 +30,10 @@
 | 5 | **ผู้จัดการแผนกบริหารงานขาย-กิจกรรม** | `activity_sales_admin_manager` | สร้างแผนงานตนเอง + อนุมัติงบ SP + ตรวจคนช่วยงานขาย | ✅ มีสิทธิ์ | ✅ มีสิทธิ์ | Line Approval (ตาม managerId) + งบ SP + ผู้ช่วยงานฝ่ายขาย | ✅ มีสิทธิ์ | `VIEW_ALL` / `VIEW_DEPARTMENT` |
 | 6 | **ผู้จัดการแผนกการตลาด-กิจกรรม** | `activity_marketing_manager` | สร้างแผนงานตนเอง + อนุมัติงบ MKT + ตรวจคนช่วยงานตลาด | ✅ มีสิทธิ์ | ✅ มีสิทธิ์ | Line Approval (ตาม managerId) + งบ MKT + ผู้ช่วยงานการตลาด | ✅ มีสิทธิ์ | `VIEW_ALL` / `VIEW_DEPARTMENT` |
 | 7 | **ผู้จัดการฝ่ายขาย-กิจกรรม** | `activity_sales_director` | สร้างแผนงานระดับฝ่าย + อนุมัติงบประมาณรวมขั้นสุดท้าย | ✅ มีสิทธิ์ | ✅ มีสิทธิ์ | Line Approval (ตาม managerId) + งบประมาณรวมทั้งหมด (Final) | ✅ มีสิทธิ์ | `VIEW_ALL` (ทั้งหมดในระบบ) |
+| 8 | **พนักงานการตลาด-กิจกรรม** | `activity_marketing_employee` | สร้าง/ส่งแผนงานกิจกรรมการตลาดของตนเอง และบันทึกผลงานจริง | ✅ มีสิทธิ์ | ❌ ไม่มีสิทธิ์ | - (ไม่มีสิทธิ์ Approval) | ✅ มีสิทธิ์ | `VIEW_OWN` (แผนตนเอง + แผนที่ช่วยงาน) |
+| 9 | **แอดมินการตลาด-กิจกรรม** | `activity_marketing_admin` | ดูแลและจัดการข้อมูลสื่อส่งเสริมการขาย (Promotional Materials) ทั้งหมด | ❌ ไม่มีสิทธิ์* | ❌ ไม่มีสิทธิ์ | - (ห้ามมีสิทธิ์ Activity Approval/Budget) | ❌ ไม่มีสิทธิ์ | `VIEW_ALL` (สื่อส่งเสริมการขาย) |
+
+*\*หมายเหตุ: Role `activity_marketing_admin` มุ่งเน้นการจัดการแคตตาล็อกสื่อส่งเสริมการขาย หากผู้ใช้ต้องการสร้าง Activity Plan ของตนเองด้วย ให้ถือ Role `activity_marketing_employee` ควบคู่กัน (Multi-Role)*
 
 ---
 
@@ -74,38 +78,55 @@
 | `activity_plan.record_actual` | บันทึกผลการปฏิบัติงานจริง | สิทธิ์เปิดฟอร์มและบันทึกผลลัพธ์หลังเสร็จสิ้นกิจกรรม | หลังแผนงานได้รับอนุมัติ (Approved) |
 | `activity_plan.edit_actual` | แก้ไขผลการปฏิบัติงานจริง | สิทธิ์แก้ไขข้อมูลและรูปภาพผลการปฏิบัติงานจริง | หลังการบันทึกผล |
 
+### 3.6 กลุ่มสื่อส่งเสริมการขาย (Promotional Materials)
+| Permission Key | ชื่อภาษาไทย | หน้าที่และความหมาย | ส่วนงานที่เกี่ยวข้อง |
+| :--- | :--- | :--- | :--- |
+| `menu.promotional_materials` | เมนูสื่อส่งเสริมการขาย | สิทธิ์เข้าถึงเมนูสื่อส่งเสริมการขายในแถบเมนูข้าง (`/activity-plans/promotional-materials`) | ฝ่ายการตลาด / แอดมินสื่อ |
+| `promotional_material.view` | ดูสื่อส่งเสริมการขาย | สิทธิ์ดูรายการและรายละเอียดของสื่อส่งเสริมการขาย | ฝ่ายการตลาด / แอดมินสื่อ |
+| `promotional_material.create` | สร้างสื่อส่งเสริมการขาย | สิทธิ์เปิดฟอร์มเพิ่มรายการสื่อส่งเสริมการขายใหม่ | แอดมินการตลาด-กิจกรรม |
+| `promotional_material.edit` | แก้ไขสื่อส่งเสริมการขาย | สิทธิ์แก้ไขรายละเอียดและสถานะสื่อส่งเสริมการขาย | แอดมินการตลาด-กิจกรรม |
+| `promotional_material.delete` | ลบสื่อส่งเสริมการขาย | สิทธิ์ลบรายการสื่อส่งเสริมการขายออกจากระบบ | แอดมินการตลาด-กิจกรรม |
+| `data.promotional_materials` | ขอบเขตข้อมูลสื่อส่งเสริมการขาย | ขอบเขตการมองเห็นข้อมูลสื่อส่งเสริมการขาย (`VIEW_ALL`) | แอดมินการตลาด-กิจกรรม |
+
 ---
 
 ## 4. Permission Matrix (ตารางแมทริกซ์สิทธิ์)
 
-ตารางแสดงสิทธิ์การใช้งานของทั้ง 7 Roles (โดย **ผู้จัดการทุกระดับมีสิทธิ์ Create + Edit + Submit + View Own + Record/Edit Actual ได้ครบถ้วน**):
+ตารางแสดงสิทธิ์การใช้งานของทั้ง 9 Roles (โดย **ผู้จัดการทุกระดับมีสิทธิ์ Create + Edit + Submit + View Own + Record/Edit Actual ได้ครบถ้วน** และ **พนักงานการตลาด-กิจกรรม มีสิทธิ์ Create/Edit/Submit/Actual แต่ไม่มีสิทธิ์ Approval**):
 
-| กลุ่มสิทธิ์ / Permission Key | 1. Promoter | 2. Sales | 3. Area Mgr | 4. District Mgr | 5. Sales Admin Mgr | 6. MKT Mgr | 7. Sales Director |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Role Slug** | `activity_promoter` | `activity_sales_employee` | `activity_area_manager` | `activity_district_manager` | `activity_sales_admin_manager` | `activity_marketing_manager` | `activity_sales_director` |
-| **การจัดการแผนงาน** | | | | | | | |
-| `activity_plan.view` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `activity_plan.create` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `activity_plan.edit` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `activity_plan.submit` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `activity_plan.view_own` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `activity_plan.view_pending` | ❌ | ✅ (ถ้ามีลูกทีม) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **การอนุมัติตามสายงาน** | | | | | | | |
-| `activity_plan.approve` (Line) | ❌ | ✅ (ตาม managerId) | ✅ (ตาม managerId) | ✅ (ตาม managerId) | ✅ (ตาม managerId) | ✅ (ตาม managerId) | ✅ (ตาม managerId) |
-| `activity_plan.reject` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `activity_plan.request_correction` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **การอนุมัติงบประมาณ** | | | | | | | |
-| `activity_plan.approve_sales_promotion_budget` | ❌ | ❌ | ❌ | ❌ | ✅ (งบ SP) | ❌ | ❌ |
-| `activity_plan.approve_marketing_budget` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ (งบ MKT) | ❌ |
-| `activity_plan.approve_total_budget` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ (งบรวม Final) |
-| **การตรวจสอบคนช่วยงาน** | | | | | | | |
-| `activity_plan.review_sales_helper` | ❌ | ❌ | ❌ | ❌ | ✅ (ช่วยงานขาย) | ❌ | ❌ |
-| `activity_plan.review_marketing_helper` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ (ช่วยงานตลาด) | ❌ |
-| **ปฏิทินและผลงานจริง** | | | | | | | |
-| `activity_plan.view_calendar` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `activity_plan.record_actual` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `activity_plan.edit_actual` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **ขอบเขตข้อมูล (`data.activity_plans`)** | **VIEW_OWN** | **VIEW_OWN / TEAM** | **VIEW_TEAM** | **VIEW_TEAM** | **VIEW_ALL / DEPT** | **VIEW_ALL / DEPT** | **VIEW_ALL** |
+| กลุ่มสิทธิ์ / Permission Key | 1. Promoter | 2. Sales | 3. Area Mgr | 4. District Mgr | 5. Sales Admin Mgr | 6. MKT Mgr | 7. Sales Director | 8. MKT Staff | 9. MKT Admin |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Role Slug** | `activity_promoter` | `activity_sales_employee` | `activity_area_manager` | `activity_district_manager` | `activity_sales_admin_manager` | `activity_marketing_manager` | `activity_sales_director` | `activity_marketing_employee` | `activity_marketing_admin` |
+| **การจัดการแผนงาน** | | | | | | | | | |
+| `activity_plan.view` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `activity_plan.create` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `activity_plan.edit` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `activity_plan.submit` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `activity_plan.view_own` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `activity_plan.view_pending` | ❌ | ✅ (ถ้ามีลูกทีม) | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **การอนุมัติตามสายงาน** | | | | | | | | | |
+| `activity_plan.approve` (Line) | ❌ | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ❌ | ❌ |
+| `activity_plan.reject` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| `activity_plan.request_correction` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **การอนุมัติงบประมาณ** | | | | | | | | | |
+| `activity_plan.approve_sales_promotion_budget` | ❌ | ❌ | ❌ | ❌ | ✅ (งบ SP) | ❌ | ❌ | ❌ | ❌ |
+| `activity_plan.approve_marketing_budget` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ (งบ MKT) | ❌ | ❌ | ❌ |
+| `activity_plan.approve_total_budget` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ (งบรวม Final) | ❌ | ❌ |
+| **การตรวจสอบคนช่วยงาน** | | | | | | | | | |
+| `activity_plan.review_sales_helper` | ❌ | ❌ | ❌ | ❌ | ✅ (ช่วยงานขาย) | ❌ | ❌ | ❌ | ❌ |
+| `activity_plan.review_marketing_helper` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ (ช่วยงานตลาด) | ❌ | ❌ | ❌ |
+| **ปฏิทินและผลงานจริง** | | | | | | | | | |
+| `activity_plan.view_calendar` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `activity_plan.record_actual` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `activity_plan.edit_actual` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `menu.activity_plans` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **สื่อส่งเสริมการขาย (Promotional Materials)** | | | | | | | | | |
+| `menu.promotional_materials` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| `promotional_material.view` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| `promotional_material.create` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| `promotional_material.edit` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| `promotional_material.delete` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **ขอบเขตข้อมูล (Data Scope)** | **VIEW_OWN** | **VIEW_OWN / TEAM** | **VIEW_TEAM** | **VIEW_TEAM** | **VIEW_ALL / DEPT** | **VIEW_ALL / DEPT** | **VIEW_ALL** | **VIEW_OWN** | **VIEW_ALL (สื่อ)** |
 
 ---
 
@@ -215,19 +236,57 @@
 
 ---
 
+### 5.8 พนักงานการตลาด-กิจกรรม (`activity_marketing_employee`)
+- **บทบาท:** **พนักงานการตลาดระดับปฏิบัติการ (Operational Creator & Participant)**
+- **สามารถ:**
+  - สร้างแผนงานกิจกรรมการตลาด (Trip Plan / Marketing Event) ของตนเอง
+  - แก้ไขแผนงานของตนเองในสถานะแบบร่าง (Draft) หรือรอแก้ไข (Waiting for Correction)
+  - ส่งแผนงานเพื่อขออนุมัติตามสายงาน (Submit to Line Approval ส่งหา `Employee.managerId` ซึ่งเป็น ผจก.แผนกการตลาด)
+  - ดูรายการแผนงานและปฏิทินกิจกรรมของตนเอง และ **แผนงานที่ตนเองได้รับมอบหมายเป็นผู้ช่วยงาน (Helper)**
+  - เข้าถึงรายละเอียดกิจกรรม วันเวลา สถานที่ และเป้าหมายของงานที่ตนเองต้องไปช่วยปฏิบัติงาน
+  - บันทึกผลการปฏิบัติงานจริง (Record Actual) สำหรับแผนงานที่ตนเองเป็นผู้สร้างและได้รับอนุมัติแล้ว
+  - แก้ไขผลการปฏิบัติงานจริงของตนเอง
+- **ไม่สามารถ:**
+  - อนุมัติตามสายงาน (Line Approval) ทุกกรณี
+  - อนุมัติงบประมาณทุกประเภท (งบ SP, งบ MKT, งบรวม)
+  - ตรวจสอบ/อนุมัติผู้ช่วยงาน
+  - ดูคิวรออนุมัติ (`view_pending`)
+  - ดูแผนงานของผู้อื่นนอกเหนือจากแผนที่ตนเองสร้างหรือเป็น Helper
+
+---
+
+### 5.9 แอดมินการตลาด-กิจกรรม (`activity_marketing_admin`)
+- **บทบาท:** **ผู้ดูแลและจัดการข้อมูลสื่อส่งเสริมการขาย (Promotional Materials Specialist)**
+- **สามารถ:**
+  - เข้าถึงเมนูสื่อส่งเสริมการขาย (`menu.promotional_materials`)
+  - ดูรายการสื่อส่งเสริมการขายและรายละเอียดทั้งหมดในระบบ (`VIEW_ALL`)
+  - สร้าง เพิ่ม หรือนำเข้าข้อมูลสื่อส่งเสริมการขายใหม่
+  - แก้ไขรายละเอียด สถานะคงคลัง หรือสเปกของสื่อส่งเสริมการขาย
+  - ลบสื่อส่งเสริมการขายที่ไม่ใช้งาน
+- **ไม่สามารถ:**
+  - **อนุมัติแผนงานกิจกรรมทุกขั้นตอน (ห้ามมี Line Approval / Budget Approval เด็ดขาด)**
+  - อนุมัติงบประมาณการตลาดหรืองบประมาณรวม (Role นี้ไม่ใช่ Marketing Manager)
+  - ตรวจสอบ/อนุมัติผู้ช่วยงาน
+  - ดูข้อมูลแผนงานของผู้อื่นในระดับ `VIEW_ALL` (ไม่มีสิทธิ์ `data.activity_plans = VIEW_ALL`)
+  - ปฏิเสธ ตีกลับ หรือจัดการ Workflow แผนงานของผู้อื่น
+
+---
+
 ## 6. Data Scope (ขอบเขตการมองเห็นข้อมูล)
 
-การกำหนดระดับการเข้าถึงข้อมูลตาม Resource `data.activity_plans` ใน [lib/data-scope.ts](file:///d:/code/crm-bank/lib/data-scope.ts):
+การกำหนดระดับการเข้าถึงข้อมูลตาม Resource `data.activity_plans` และ `data.promotional_materials` ใน [lib/data-scope.ts](file:///d:/code/crm-bank/lib/data-scope.ts):
 
-| Role Slug | Data Access Level | ขอบเขตข้อมูลที่มองเห็นตาม Business Rule | ความหมายและนิยามเชิงลึก |
-| :--- | :--- | :--- | :--- |
-| `activity_promoter` | `VIEW_OWN` | **แผนที่สร้างเอง + แผนที่ได้รับมอบหมายเป็น Helper** | ไม่ขยายไปถึงแผนของผู้อื่นทั้งหมด เห็นเฉพาะงานที่ตนเองเกี่ยวข้องโดยตรง |
-| `activity_sales_employee` | `VIEW_OWN` / `VIEW_TEAM` | แผนตนเอง + แผนที่ช่วยงาน + แผนของลูกทีมในสังกัด | เห็นงานของตนเองและผู้ใต้บังคับบัญชาตามสายงาน |
-| `activity_area_manager` | `VIEW_TEAM` | แผนงานของทุกคนในสายการบังคับบัญชาระดับภาค | เห็นกิจกรรมทั้งหมดในภาคที่ตนเองรับผิดชอบ |
-| `activity_district_manager` | `VIEW_TEAM` | แผนงานของทุกคนในสายการบังคับบัญชาระดับเขต | เห็นกิจกรรมทั้งหมดในเขตที่ตนเองรับผิดชอบ |
-| `activity_sales_admin_manager` | `VIEW_ALL` / `VIEW_DEPARTMENT` | แผนงานทั้งหมดในแผนกบริหารงานขาย / ฝ่ายขาย | ติดตามภาพรวมงานขายและคำของบประมาณทั้งหมด |
-| `activity_marketing_manager` | `VIEW_ALL` / `VIEW_DEPARTMENT` | แผนงานทั้งหมดของแผนกการตลาด / งานที่มีงบตลาด | ติดตามแผนงาน Event และงบประมาณการตลาดทั้งหมด |
-| `activity_sales_director` | `VIEW_ALL` | แผนงานกิจกรรมทั้งหมดทุกแผนกในบริษัท 100% | ไม่ติด Filter ขอบเขตข้อมูล เพื่อการบริหารภาพรวม |
+| Role Slug | Resource | Data Access Level | ขอบเขตข้อมูลที่มองเห็นตาม Business Rule | ความหมายและนิยามเชิงลึก |
+| :--- | :--- | :--- | :--- | :--- |
+| `activity_promoter` | `activity_plan` | `VIEW_OWN` | **แผนที่สร้างเอง + แผนที่ได้รับมอบหมายเป็น Helper** | ไม่ขยายไปถึงแผนของผู้อื่นทั้งหมด เห็นเฉพาะงานที่ตนเองเกี่ยวข้องโดยตรง |
+| `activity_sales_employee` | `activity_plan` | `VIEW_OWN` / `VIEW_TEAM` | แผนตนเอง + แผนที่ช่วยงาน + แผนของลูกทีมในสังกัด | เห็นงานของตนเองและผู้ใต้บังคับบัญชาตามสายงาน |
+| `activity_area_manager` | `activity_plan` | `VIEW_TEAM` | แผนงานของทุกคนในสายการบังคับบัญชาระดับภาค | เห็นกิจกรรมทั้งหมดในภาคที่ตนเองรับผิดชอบ |
+| `activity_district_manager` | `activity_plan` | `VIEW_TEAM` | แผนงานของทุกคนในสายการบังคับบัญชาระดับเขต | เห็นกิจกรรมทั้งหมดในเขตที่ตนเองรับผิดชอบ |
+| `activity_sales_admin_manager` | `activity_plan` | `VIEW_ALL` / `VIEW_DEPARTMENT` | แผนงานทั้งหมดในแผนกบริหารงานขาย / ฝ่ายขาย | ติดตามภาพรวมงานขายและคำของบประมาณทั้งหมด |
+| `activity_marketing_manager` | `activity_plan` | `VIEW_ALL` / `VIEW_DEPARTMENT` | แผนงานทั้งหมดของแผนกการตลาด / งานที่มีงบตลาด | ติดตามแผนงาน Event และงบประมาณการตลาดทั้งหมด |
+| `activity_sales_director` | `activity_plan` | `VIEW_ALL` | แผนงานกิจกรรมทั้งหมดทุกแผนกในบริษัท 100% | ไม่ติด Filter ขอบเขตข้อมูล เพื่อการบริหารภาพรวม |
+| `activity_marketing_employee` | `activity_plan` | `VIEW_OWN` | **แผนที่สร้างเอง + แผนที่ได้รับมอบหมายเป็น Helper** | เห็นเฉพาะงานที่ตนเองสร้างหรือได้รับมอบหมายเป็น Helper เท่านั้น |
+| `activity_marketing_admin` | `promotional_material` | `VIEW_ALL` | **สื่อส่งเสริมการขายทั้งหมดในระบบ** | จัดการแคตตาล็อกสื่อส่งเสริมการขายได้ทั้งบริษัท |
 
 ---
 
@@ -416,12 +475,12 @@ flowchart TD
 - `sales_employee` : พนักงานฝ่ายขายเดิม (สิทธิ์ออร์เดอร์ขาย/ลูกค้า)
 - `sales_admin` : ธุรการขายเดิม (สิทธิ์การจัดส่ง/เอกสารขาย)
 - `marketing_manager` : ผู้จัดการแผนกการตลาดเดิม
-- `employee_mk` : พนักงานการตลาดเดิม
+- `employee_mk` : พนักงานการตลาดเดิม (คงเดิม 100% ห้ามเพิ่ม Activity หรือ Promotional Material Permissions)
 - `sales_promotion` : พนักงานส่งเสริมการขายเดิม
 - `sales_promotion_supervisor` : หัวหน้างานส่งเสริมการขายเดิม
 - `activity_plan_user` : Role แผนงานกิจกรรมแบบกว้างเดิม
 - `activity_plan_approver` : Role ผู้อนุมัติกิจกรรมแบบกว้างเดิม
-- `activity_plan_admin` : Role ผู้ดูแลแผนงานเดิม
+- `activity_plan_admin` : Role ผู้ดูแลแผนงานเดิม (Legacy Role คงไว้ ห้ามแก้ไข และไม่นำมาแทน `activity_marketing_admin`)
 
 ---
 
@@ -439,6 +498,11 @@ flowchart TD
 3. **ผู้จัดการแผนกการตลาด (Marketing Manager):**
    - ถือ Role เดิม: `marketing_manager` (เพื่อดูแลงานการตลาด สินค้า และโปรโมชัน)
    - ถือ Role ใหม่: `activity_marketing_manager` (เพื่อสร้าง Event และอนุมัติงบประมาณการตลาดของกิจกรรม)
+4. **พนักงานการตลาดมัลติโรล (Marketing Staff — กรณีศึกษา นาย A):**
+   - ถือ Role เดิม: `employee_mk` (ปฏิบัติงานการตลาด สินค้า ทั่วไป)
+   - ถือ Role กิจกรรม: `activity_marketing_employee` (สร้าง Trip Plan การตลาด, บันทึกผลจริง, เป็น Helper ให้ผู้อื่น)
+   - ถือ Role สื่อ: `activity_marketing_admin` (จัดการข้อมูลแคตตาล็อกสื่อส่งเสริมการขายทั้งระบบ)
+   - **การแยกสิทธิ์:** แต่ละ Role มีหน้าที่ของตนเองชัดเจน ไม่เกิดการปะปน และนาย A จะ **ไม่มีสิทธิ์อนุมัติแผนงานกิจกรรมหรืออนุมัติงบประมาณใดๆ** ทั้งสิ้น
 
 **ผลลัพธ์:** สิทธิ์ของโมดูลงานขาย ลูกค้า เครดิต และรายงานเดิมจะไม่ได้รับผลกระทบใดๆ ทั้งสิ้น
 
@@ -485,3 +549,4 @@ flowchart TD
 | **2026-09-10** | **Initial Release** | สร้างเอกสาร Activity RBAC Permission Reference อ้างอิงผล Investigation และข้อกำหนด Dual Capabilities (Creator + Approver) สำหรับผู้จัดการทุกระดับ | Antigravity AI |
 | **2026-09-10** | **Line Approval Rule Update** | เพิ่ม Business Rule ชัดเจนว่า Line Approval ให้ยึด `Employee.managerId` ของผู้สร้างแผนงานเป็นหลัก ไม่ Hardcode Position -> Position พร้อมตัวอย่างกรณีศึกษา และแยกนิยามระหว่าง Role, Position, managerId | Antigravity AI |
 | **2026-09-10** | **Helper Access & Data Scope Rule** | เพิ่ม Business Rule ให้ Helper สามารถเข้าดูรายละเอียดและ Calendar ของ Activity Plan ที่ตนเองมีส่วนร่วมได้, ขยายความหมาย `VIEW_OWN` = แผนที่สร้างเอง + แผนที่ช่วยงาน โดยไม่ขยายเป็น VIEW_ALL, พร้อมระบุ Gap ทางเทคนิคใน `data-scope.ts` และ `activity-calendar-view.tsx` | Antigravity AI |
+| **2026-09-10** | **Marketing Roles Expansion (9 Roles)** | เพิ่ม 2 Roles ฝั่งการตลาด: `activity_marketing_employee` (พนักงานการตลาด-กิจกรรม สำหรับสร้าง/ส่งแผนงานของตนเองและบันทึกผลงานจริง โดยไม่มีสิทธิ์อนุมัติ) และ `activity_marketing_admin` (แอดมินการตลาด-กิจกรรม สำหรับจัดการสื่อส่งเสริมการขาย โดยไม่มีสิทธิ์ Activity Approval/Budget), ปรับปรุง Permission Matrix, Data Scope, Coexistence และ Non-replacement Rule ให้ครอบคลุม 9 Roles | Antigravity AI |
