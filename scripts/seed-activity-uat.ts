@@ -40,17 +40,35 @@ export function normalizeScenarioCode(rawCode?: string): string | undefined {
   return `TEST-ACT-${String(num).padStart(3, "0")}`;
 }
 
-export async function cleanupUatActivityPlans(db: PrismaClient = prisma, rawTargetCode?: string) {
-  const targetCode = normalizeScenarioCode(rawTargetCode);
-  console.log(`🧹 Cleaning up ${targetCode ? targetCode : "unprotected UAT Activity Plans ([TEST-ACT-*], [UAT-ACT-*])"}...`);
+export interface CleanupUatOptions {
+  targetCode?: string;
+  cleanAll?: boolean;
+  cleanNotifications?: boolean;
+}
+
+export async function cleanupUatActivityPlans(
+  db: PrismaClient = prisma,
+  rawTargetCodeOrOptions?: string | CleanupUatOptions
+) {
+  let targetCode: string | undefined;
+  let cleanAll = false;
+  let cleanNotifications = true;
+
+  if (typeof rawTargetCodeOrOptions === "string") {
+    targetCode = normalizeScenarioCode(rawTargetCodeOrOptions);
+  } else if (rawTargetCodeOrOptions) {
+    targetCode = normalizeScenarioCode(rawTargetCodeOrOptions.targetCode);
+    cleanAll = !!rawTargetCodeOrOptions.cleanAll;
+    if (rawTargetCodeOrOptions.cleanNotifications !== undefined) {
+      cleanNotifications = rawTargetCodeOrOptions.cleanNotifications;
+    }
+  }
+
+  console.log(`🧹 Cleaning up ${targetCode ? targetCode : "all UAT / Test Activity Plans"}...`);
 
   let whereClause: Prisma.ActivityPlanWhereInput;
 
   if (targetCode) {
-    if (PROTECTED_UAT_CODES.has(targetCode)) {
-      console.warn(`🛡️ Target [${targetCode}] is a PROTECTED UAT scenario (passed UAT). Skipping cleanup to preserve test data.`);
-      return 0;
-    }
     whereClause = {
       OR: [
         { code: targetCode },
@@ -58,19 +76,35 @@ export async function cleanupUatActivityPlans(db: PrismaClient = prisma, rawTarg
       ],
     };
   } else {
-    // Full cleanup: protect passed UAT scenarios
+    // Full cleanup of all UAT and test activity plans
     whereClause = {
-      AND: [
+      OR: [
+        { code: { startsWith: "TEST-ACT-" } },
+        { code: { startsWith: "AUTO-ACT-" } },
+        { code: { startsWith: "HELPER-TEST-" } },
+        { code: { startsWith: "UAT-ACT-" } },
+        { code: { startsWith: "TP2608S" } },
+        { code: { startsWith: "TP2609" } },
+        { code: { startsWith: "TP2610" } },
+        { title: { startsWith: "[TEST-ACT-" } },
+        { title: { startsWith: "[UAT-ACT-" } },
+        { title: { startsWith: "Admin Test Plan Temporary" } },
+        { title: { startsWith: "(สำเนา)" } },
         {
-          OR: [
-            { code: { startsWith: "TEST-ACT-" } },
-            { code: { startsWith: "UAT-ACT-" } },
-            { title: { startsWith: "[TEST-ACT-" } },
-            { title: { startsWith: "[UAT-ACT-" } },
-          ],
-        },
-        {
-          code: { notIn: Array.from(PROTECTED_UAT_CODES) },
+          employee: {
+            email: {
+              in: [
+                "test.promoter@crm.local",
+                "test.sales@crm.local",
+                "test.areamgr@crm.local",
+                "test.districtmgr@crm.local",
+                "test.salesadmin@crm.local",
+                "test.mktmgr@crm.local",
+                "test.salesdir@crm.local",
+                "test.mktstaff@crm.local",
+              ],
+            },
+          },
         },
       ],
     };
@@ -86,6 +120,7 @@ export async function cleanupUatActivityPlans(db: PrismaClient = prisma, rawTarg
     return 0;
   }
 
+  console.log(`   Found ${uatPlans.length} UAT Activity Plans to clean up.`);
   const planIds = uatPlans.map((p) => p.id);
 
   // 1. Delete calendar attendees and events
@@ -104,19 +139,70 @@ export async function cleanupUatActivityPlans(db: PrismaClient = prisma, rawTarg
     });
   }
 
-  // 2. Delete child relations
+  // 2. Delete Activity Results and child results
+  const results = await db.activityResult.findMany({
+    where: { activityPlanId: { in: planIds } },
+    select: { id: true },
+  });
+  const resultIds = results.map((r) => r.id);
+  if (resultIds.length > 0) {
+    await db.activityResultSaleItem.deleteMany({ where: { activityResultId: { in: resultIds } } });
+    await db.activityResultStockItem.deleteMany({ where: { activityResultId: { in: resultIds } } });
+    await db.activityResultSurveyItem.deleteMany({ where: { activityResultId: { in: resultIds } } });
+    await db.activityResultDemoItem.deleteMany({ where: { activityResultId: { in: resultIds } } });
+    await db.activityResult.deleteMany({ where: { id: { in: resultIds } } });
+  }
+
+  // 3. Delete child relations
   await db.activityApprovalLog.deleteMany({ where: { activityPlanId: { in: planIds } } });
   await db.activityHelper.deleteMany({ where: { activityPlanId: { in: planIds } } });
   await db.activityPlanWorkType.deleteMany({ where: { activityPlanId: { in: planIds } } });
   await db.activityPlanStore.deleteMany({ where: { activityPlanId: { in: planIds } } });
   await db.activityPlanProduct.deleteMany({ where: { activityPlanId: { in: planIds } } });
+  await db.activityPlanTour.deleteMany({ where: { activityPlanId: { in: planIds } } });
   await db.activityPlanItem.deleteMany({ where: { activityPlanId: { in: planIds } } });
   await db.activityAttachment.deleteMany({ where: { activityPlanId: { in: planIds } } });
 
-  // 3. Delete the activity plans
+  // Disconnect DemoPlotVisits if any
+  await db.demoPlotVisit.updateMany({
+    where: { activityPlanId: { in: planIds } },
+    data: { activityPlanId: null },
+  });
+
+  // 4. Delete the activity plans
   const deleteResult = await db.activityPlan.deleteMany({
     where: { id: { in: planIds } },
   });
+
+  // 5. Clean up orphaned notifications for test users
+  if (cleanNotifications) {
+    const testUserEmails = [
+      "test.promoter@crm.local",
+      "test.sales@crm.local",
+      "test.areamgr@crm.local",
+      "test.districtmgr@crm.local",
+      "test.salesadmin@crm.local",
+      "test.mktmgr@crm.local",
+      "test.salesdir@crm.local",
+      "test.mktstaff@crm.local",
+    ];
+    const testUsers = await db.user.findMany({
+      where: { email: { in: testUserEmails } },
+      select: { id: true },
+    });
+    const testUserIds = testUsers.map((u) => u.id);
+    if (testUserIds.length > 0) {
+      const deletedNotifs = await db.notification.deleteMany({
+        where: {
+          userId: { in: testUserIds },
+          link: { contains: "/activity-plans/" },
+        },
+      });
+      if (deletedNotifs.count > 0) {
+        console.log(`   🔔 Cleaned up ${deletedNotifs.count} workflow notifications for test users.`);
+      }
+    }
+  }
 
   console.log(`   ✅ Successfully cleaned up ${deleteResult.count} UAT Activity Plans.`);
   return deleteResult.count;
@@ -692,7 +778,12 @@ if (require.main === module) {
   const rawTargetCode = codeArg ? codeArg.split("=")[1] : undefined;
 
   if (isCleanup) {
-    cleanupUatActivityPlans(prisma, rawTargetCode)
+    const isAll = process.argv.includes("--all") || !rawTargetCode;
+    cleanupUatActivityPlans(prisma, {
+      targetCode: rawTargetCode,
+      cleanAll: isAll,
+      cleanNotifications: true,
+    })
       .catch((err) => {
         console.error("❌ Cleanup failed:", err);
         process.exit(1);
