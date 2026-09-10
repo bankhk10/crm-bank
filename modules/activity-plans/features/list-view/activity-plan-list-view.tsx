@@ -327,6 +327,7 @@ export default function ActivityPlanListView() {
           total,
           onPageChange: setPage,
           onPerPageChange: setPerPage,
+          perPageOptions: [10, 20, 30],
         }}
         searchValue={searchDraft}
         onSearchChange={setSearchDraft}

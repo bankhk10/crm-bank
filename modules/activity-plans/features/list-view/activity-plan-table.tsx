@@ -41,6 +41,7 @@ interface ActivityPlanTableProps {
     total: number;
     onPageChange: (page: number) => void;
     onPerPageChange: (perPage: number) => void;
+    perPageOptions?: number[];
   };
   searchValue: string;
   onSearchChange: (value: string) => void;
