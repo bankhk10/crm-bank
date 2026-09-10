@@ -99,6 +99,7 @@ import {
   MARKETING_PRODUCT_CATEGORIES,
   USER_DEMO_PLOTS,
   isFieldDayItem,
+  isLocationAndTeamRequired,
   type UserDemoPlotOption,
 } from "../../constants";
 
@@ -1610,6 +1611,36 @@ export function ActivityPlanForm({
   const [helperSearch, setHelperSearch] = useState("");
   const [showHelperDropdown, setShowHelperDropdown] = useState(false);
 
+  // Conditional visibility for Location & Team section:
+  // Requires at least one of TYPE_8, TYPE_9, TYPE_10
+  const isLocationTeamVisible = useMemo(
+    () => isLocationAndTeamRequired(selectedWorkTypes),
+    [selectedWorkTypes],
+  );
+
+  // Auto-clear Location & Team when switching from visible -> hidden
+  // Protected against initial edit/create hydration via prevIsLocationTeamVisibleRef
+  const prevIsLocationTeamVisibleRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (prevIsLocationTeamVisibleRef.current === null) {
+      // Initial mount / hydration: record initial state, DO NOT clear
+      prevIsLocationTeamVisibleRef.current = isLocationTeamVisible;
+      return;
+    }
+
+    if (prevIsLocationTeamVisibleRef.current && !isLocationTeamVisible) {
+      // User transitioned from eligible -> ineligible work types
+      setProvince("");
+      setDistrict("");
+      setLocationText("");
+      setHelperEmployeeIds([]);
+      setHelperSearch("");
+      setShowHelperDropdown(false);
+    }
+
+    prevIsLocationTeamVisibleRef.current = isLocationTeamVisible;
+  }, [isLocationTeamVisible]);
+
   // Section 5: Budget & Expenses State
   const [isPromotionalMediaSelected, setIsPromotionalMediaSelected] =
     useState<boolean>(() => {
@@ -1999,15 +2030,7 @@ export function ActivityPlanForm({
       marketingBudget = calculatedMarketingSum;
     }
 
-    const hasLocationRequirement = selectedWorkTypes.some((t) =>
-      [
-        "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
-        "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
-        "จัดงาน Field Day",
-      ].includes(t),
-    );
-
-    if (hasLocationRequirement && !locationText.trim()) {
+    if (isLocationTeamVisible && !locationText.trim()) {
       setError("กรุณากรอกรายละเอียดพื้นที่จัดกิจกรรม");
       setLoading(false);
       return;
@@ -2325,16 +2348,16 @@ export function ActivityPlanForm({
         tourData,
         planStores,
         planProducts,
-        province: province.trim() || null,
-        district: district.trim() || null,
-        location: locationText.trim() || null,
+        province: isLocationTeamVisible ? province.trim() || null : null,
+        district: isLocationTeamVisible ? district.trim() || null : null,
+        location: isLocationTeamVisible ? locationText.trim() || null : null,
         objective: cleanObjective,
         description: cleanDescription,
         salesPromotionBudgetRequested: salesPromotionBudget,
         marketingBudgetRequested: marketingBudget,
         notes: extraNotes,
         items: allItemsToSend as any,
-        helperEmployeeIds,
+        helperEmployeeIds: isLocationTeamVisible ? helperEmployeeIds : [],
       });
 
       if (res && !res.success) {
@@ -2833,25 +2856,27 @@ export function ActivityPlanForm({
             )}
 
             {/* SECTION 4: สถานที่และทีมงาน (Location & Team) */}
-            <LocationTeamSection
-              selectedWorkTypes={selectedWorkTypes}
-              readonly={readonly}
-              helperSearch={helperSearch}
-              setHelperSearch={setHelperSearch}
-              showHelperDropdown={showHelperDropdown}
-              setShowHelperDropdown={setShowHelperDropdown}
-              filteredEmployees={filteredEmployees}
-              addHelper={addHelper}
-              helperEmployeeIds={helperEmployeeIds}
-              employees={employees}
-              removeHelper={removeHelper}
-              locationText={locationText}
-              setLocationText={setLocationText}
-              province={province}
-              setProvince={setProvince}
-              district={district}
-              setDistrict={setDistrict}
-            />
+            {isLocationTeamVisible && (
+              <LocationTeamSection
+                selectedWorkTypes={selectedWorkTypes}
+                readonly={readonly}
+                helperSearch={helperSearch}
+                setHelperSearch={setHelperSearch}
+                showHelperDropdown={showHelperDropdown}
+                setShowHelperDropdown={setShowHelperDropdown}
+                filteredEmployees={filteredEmployees}
+                addHelper={addHelper}
+                helperEmployeeIds={helperEmployeeIds}
+                employees={employees}
+                removeHelper={removeHelper}
+                locationText={locationText}
+                setLocationText={setLocationText}
+                province={province}
+                setProvince={setProvince}
+                district={district}
+                setDistrict={setDistrict}
+              />
+            )}
 
             {/* SECTION 5: งบประมาณและค่าใช้จ่าย (Budget & Expenses) */}
             <BudgetSection

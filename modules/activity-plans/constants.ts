@@ -124,6 +124,30 @@ export function getWorkTypeName(codeOrName: string): string {
   return codeOrName;
 }
 
+/**
+ * Work Type codes that require/display Location and Team section:
+ * - TYPE_8: จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์
+ * - TYPE_9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน
+ * - TYPE_10: จัดงาน Field Day
+ */
+export const LOCATION_TEAM_WORK_TYPE_CODES = new Set([
+  "TYPE_8",
+  "TYPE_9",
+  "TYPE_10",
+]);
+
+/**
+ * Returns true if any of the given work types (by name, shortName, or code)
+ * requires/displays the Location and Team section.
+ */
+export function isLocationAndTeamRequired(workTypes?: string[] | null): boolean {
+  if (!workTypes || workTypes.length === 0) return false;
+  return workTypes.some((wt) => {
+    const code = getWorkTypeCode(wt);
+    return LOCATION_TEAM_WORK_TYPE_CODES.has(code);
+  });
+}
+
 // Sample lists for dropdowns
 export const DEMO_OWNERS = [
   "บริษัททดสอบ",
