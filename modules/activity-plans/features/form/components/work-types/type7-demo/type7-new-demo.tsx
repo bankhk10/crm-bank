@@ -91,7 +91,13 @@ export function Type7NewDemo({
             labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
             triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
             value={item.productName}
-            onChange={(val) => updateType7Row(item.id, "productName", val)}
+            onChange={(val) => {
+              const prod = products.find((p) => p.name === val || p.id === val);
+              updateType7Row(item.id, "productName", prod?.name || val);
+              if (prod?.id) {
+                updateType7Row(item.id, "productId", prod.id);
+              }
+            }}
             options={productOptions}
             placeholder="เลือกสินค้า..."
             searchPlaceholder="ค้นหาสินค้า..."

@@ -39,17 +39,12 @@ export async function seedType3(prisma: PrismaClient, ctx: SeedContext) {
       { workTypeCode: "TYPE_3", storeId: store1.id, storeName: store1.name, remarks: "สาขาลพบุรี" },
     ],
     products: [
-      { workTypeCode: "TYPE_3", storeId: store0.id, productId: prod0.id, productName: prod0.name, targetQuantity: 20, unitPrice: price0, targetAmount: 20 * price0 },
-      { workTypeCode: "TYPE_3", storeId: store0.id, productId: prod1.id, productName: prod1.name, targetQuantity: 30, unitPrice: price1, targetAmount: 30 * price1 },
-      { workTypeCode: "TYPE_3", storeId: store1.id, productId: prod2.id, productName: prod2.name, targetQuantity: 15, unitPrice: price2, targetAmount: 15 * price2 },
+      { workTypeCode: "TYPE_3", storeId: store0.id, productId: prod0.id, productName: prod0.name, targetQuantity: 20, masterPrice: price0, unitPrice: price0, targetAmount: 20 * price0, isPriceOverridden: false },
+      { workTypeCode: "TYPE_3", storeId: store0.id, productId: prod1.id, productName: prod1.name, targetQuantity: 30, masterPrice: price1, unitPrice: price1, targetAmount: 30 * price1, isPriceOverridden: false },
+      { workTypeCode: "TYPE_3", storeId: store1.id, productId: prod2.id, productName: prod2.name, targetQuantity: 15, masterPrice: price2, unitPrice: price2, targetAmount: 15 * price2, isPriceOverridden: false },
     ],
     helpers: [
       { employeeId: helper0.id, departmentId: helper0.departmentId, departmentName: helper0.departmentName, status: ActivityHelperStatus.APPROVED, approvedById: ctx.managerEmployee.id, approvedAt: new Date("2026-08-06T14:00:00.000Z") },
-    ],
-    items: [
-      { workTypeCode: "TYPE_3", customerName: store0.name, saleProductName: prod0.name, saleQuantity: 20, saleUnitPrice: price0, saleTotalPrice: 20 * price0, detail: "เป้าหมายเปิดบิลสินค้าล็อตแรก" },
-      { workTypeCode: "TYPE_3", customerName: store0.name, saleProductName: prod1.name, saleQuantity: 30, saleUnitPrice: price1, saleTotalPrice: 30 * price1, detail: "โปรโมชั่นแพ็กเกจคู่" },
-      { workTypeCode: "TYPE_3", customerName: store1.name, saleProductName: prod2.name, saleQuantity: 15, saleUnitPrice: price2, saleTotalPrice: 15 * price2, detail: "สั่งซื้อสต็อกสำรอง" },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, comment: "ส่งแผนขออนุมัติยอดขาย", createdAt: new Date("2026-08-05T10:00:00.000Z") },
@@ -95,12 +90,8 @@ export async function seedType3(prisma: PrismaClient, ctx: SeedContext) {
       { workTypeCode: "TYPE_3", storeId: store2.id, storeName: store2.name },
     ],
     products: [
-      { workTypeCode: "TYPE_3", storeId: store2.id, productId: prod0.id, productName: prod0.name, targetQuantity: 40, unitPrice: price0, targetAmount: 40 * price0 },
-      { workTypeCode: "TYPE_3", storeId: store2.id, productId: prod1.id, productName: prod1.name, targetQuantity: 20, unitPrice: price1, targetAmount: 20 * price1 },
-    ],
-    items: [
-      { workTypeCode: "TYPE_3", customerName: store2.name, saleProductName: prod0.name, saleQuantity: 40, saleUnitPrice: price0, saleTotalPrice: 40 * price0 },
-      { workTypeCode: "TYPE_3", customerName: store2.name, saleProductName: prod1.name, saleQuantity: 20, saleUnitPrice: price1, saleTotalPrice: 20 * price1 },
+      { workTypeCode: "TYPE_3", storeId: store2.id, productId: prod0.id, productName: prod0.name, targetQuantity: 40, masterPrice: price0, unitPrice: price0, targetAmount: 40 * price0, isPriceOverridden: false },
+      { workTypeCode: "TYPE_3", storeId: store2.id, productId: prod1.id, productName: prod1.name, targetQuantity: 20, masterPrice: price1, unitPrice: price1, targetAmount: 20 * price1, isPriceOverridden: false },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-08T09:00:00.000Z") },
@@ -142,10 +133,7 @@ export async function seedType3(prisma: PrismaClient, ctx: SeedContext) {
       { workTypeCode: "TYPE_3", storeId: store0.id, storeName: store0.name },
     ],
     products: [
-      { workTypeCode: "TYPE_3", storeId: store0.id, productId: prod0.id, productName: prod0.name, targetQuantity: 15, unitPrice: price0, targetAmount: 15 * price0 },
-    ],
-    items: [
-      { workTypeCode: "TYPE_3", customerName: store0.name, saleProductName: prod0.name, saleQuantity: 15, saleUnitPrice: price0, saleTotalPrice: 15 * price0 },
+      { workTypeCode: "TYPE_3", storeId: store0.id, productId: prod0.id, productName: prod0.name, targetQuantity: 15, masterPrice: price0, unitPrice: price0, targetAmount: 15 * price0, isPriceOverridden: false },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-20T09:00:00.000Z") },

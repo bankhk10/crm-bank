@@ -36,10 +36,6 @@ export async function seedType1(prisma: PrismaClient, ctx: SeedContext) {
       { employeeId: helper0.id, departmentId: helper0.departmentId, departmentName: helper0.departmentName, status: ActivityHelperStatus.APPROVED, approvedById: ctx.managerEmployee.id, approvedAt: new Date("2026-08-02T09:00:00.000Z") },
       { employeeId: helper1.id, departmentId: helper1.departmentId, departmentName: helper1.departmentName, status: ActivityHelperStatus.APPROVED, approvedById: ctx.managerEmployee.id, approvedAt: new Date("2026-08-02T09:00:00.000Z") },
     ],
-    items: [
-      { workTypeCode: "TYPE_1", customerName: store0.name, visitTopic: "ชี้แจงแคมเปญส่งเสริมการขาย Q3", detail: "แนะนำรายการสะสมแต้มและโปรโมชั่นแถมสินค้า" },
-      { workTypeCode: "TYPE_1", customerName: store1.name, visitTopic: "เข้าพบเกษตรกรแปลงใหญ่ สวนทุเรียน", detail: "สอบถามปัญหาการใช้สารกำจัดแมลงช่วงฝนตกชุก" },
-    ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, comment: "ส่งขออนุมัติตามสายงาน", createdAt: new Date("2026-08-01T08:30:00.000Z") },
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.APPROVE, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.PENDING_LINE_APPROVAL, toStatus: ActivityStatus.APPROVED, comment: "อนุมัติแผนงานเรียบร้อย", createdAt: new Date("2026-08-03T10:00:00.000Z") },
@@ -83,9 +79,6 @@ export async function seedType1(prisma: PrismaClient, ctx: SeedContext) {
     helpers: [
       { employeeId: helper0.id, departmentId: helper0.departmentId, departmentName: helper0.departmentName, status: ActivityHelperStatus.PENDING },
     ],
-    items: [
-      { workTypeCode: "TYPE_1", customerName: store2.name, visitTopic: "เจรจาแผนการกระจายสินค้า", detail: "เตรียมโปรโมชั่นก่อนฤดูเก็บเกี่ยว" },
-    ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, comment: "ส่งแผนงานขออนุมัติ", createdAt: new Date("2026-08-15T10:00:00.000Z") },
     ],
@@ -107,9 +100,6 @@ export async function seedType1(prisma: PrismaClient, ctx: SeedContext) {
     createdById: ctx.adminUser.id,
     stores: [
       { workTypeCode: "TYPE_1", storeId: store3.id, storeName: store3.name },
-    ],
-    items: [
-      { workTypeCode: "TYPE_1", customerName: store3.name, visitTopic: "แนะนำนวัตกรรมสารบำรุงพืช", detail: "ทดสอบการใช้สารบำรุงทางใบ" },
     ],
   });
 }

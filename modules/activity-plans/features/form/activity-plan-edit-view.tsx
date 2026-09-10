@@ -134,7 +134,17 @@ export default function ActivityPlanEditView({ id }: Props) {
               ? Number(plan.marketingBudgetRequested)
               : 0,
             notes: plan.notes || "",
-            details: plan.items || [],
+            stores: plan.stores || [],
+            products: plan.products || [],
+            marketingItems: plan.marketingItems || [],
+            promotionItems: plan.promotionItems || [],
+            tour: plan.tour || null,
+            demoPlotId:
+              (plan as any).demoPlotVisits?.[0]?.demoPlotId ||
+              (plan as any).demoPlotId ||
+              null,
+            targetAttendeesCount: plan.targetAttendeesCount ?? null,
+            targetBookingSales: plan.targetBookingSales ? Number(plan.targetBookingSales) : null,
             helperEmployeeIds,
             planCode: plan.code || plan.id,
             employeeName: plan.employee?.name,

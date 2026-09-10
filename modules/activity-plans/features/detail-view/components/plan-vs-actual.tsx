@@ -29,19 +29,16 @@ export function PlanVsActual({ plan }: PlanVsActualProps) {
   const actualTotal = result.actualTotalSpent
     ? Number(result.actualTotalSpent)
     : 0;
-  const plannedSales =
-    (plan.items as any[])?.reduce(
-      (s: number, i: any) => s + Number(i.saleTotalPrice || 0),
-      0,
-    ) || 0;
+  const plannedSales = (plan.products || []).reduce(
+    (s, p) => s + (Number(p.targetAmount) || ((p.targetQuantity || 0) * (Number(p.unitPrice) || 0))),
+    0,
+  );
   const actualSales = result.salesResultAmount
     ? Number(result.salesResultAmount)
     : 0;
-  const plannedCollect =
-    (plan.items as any[])?.reduce(
-      (s: number, i: any) => s + Number(i.collectAmount || 0),
-      0,
-    ) || 0;
+  const plannedCollect = (plan.stores || [])
+    .filter((s) => s.workTypeCode === "TYPE_4")
+    .reduce((s, st) => s + (Number(st.targetAmount) || 0), 0);
   const actualCollect = result.collectResultAmount
     ? Number(result.collectResultAmount)
     : 0;

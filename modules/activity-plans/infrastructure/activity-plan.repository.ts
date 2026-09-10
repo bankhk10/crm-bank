@@ -152,8 +152,16 @@ export async function findActivityPlanById(id: string) {
           },
         },
       },
-      items: {
-        orderBy: { itemOrder: "asc" },
+      marketingItems: {
+        orderBy: { createdAt: "asc" },
+      },
+      promotionItems: {
+        orderBy: { createdAt: "asc" },
+      },
+      demoPlotVisits: {
+        include: {
+          demoPlot: true,
+        },
       },
       employee: {
         include: {
@@ -325,7 +333,22 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
           },
         },
         tour: true,
-        items: true,
+        stores: {
+          include: {
+            store: {
+              select: { id: true, name: true, customerCode: true },
+            },
+          },
+        },
+        products: {
+          include: {
+            product: {
+              select: { id: true, name: true, productCode: true },
+            },
+          },
+        },
+        marketingItems: true,
+        promotionItems: true,
         result: true,
         employee: {
           select: { id: true, name: true, positionTitle: true, departmentName: true },
@@ -417,13 +440,16 @@ export type CreateActivityPlanInput = {
   objective: string;
   description?: string | null;
   notes?: string | null;
+  targetAttendeesCount?: number | null;
+  targetBookingSales?: number | null;
+  demoPlotId?: string | null;
   salesPromotionBudgetRequested?: number | null;
   marketingBudgetRequested?: number | null;
+  totalBudgetRequested?: number | null;
   status?: ActivityStatus;
   employeeId: string;
   createdById: string;
   currentApproverEmployeeId?: string | null;
-  items?: Record<string, any>[];
   helperEmployeeIds?: string[];
   tourData?: {
     tourType: "CENTRAL" | "STORE";
@@ -436,16 +462,34 @@ export type CreateActivityPlanInput = {
     workTypeCode: string;
     storeId: string;
     storeName?: string | null;
+    targetAmount?: number | null;
+    subDealerStore?: string | null;
     remarks?: string | null;
+    notes?: string | null;
   }>;
   planProducts?: Array<{
     workTypeCode: string;
     storeId?: string | null;
     productId: string;
     productName?: string | null;
-    targetQuantity?: number | null;
+    masterPrice?: number | null;
     unitPrice?: number | null;
+    isPriceOverridden?: boolean;
+    targetQuantity?: number | null;
     targetAmount?: number | null;
+  }>;
+  marketingItems?: Array<{
+    category: string;
+    materialName: string;
+    unit?: string | null;
+    unitPrice?: number | null;
+    quantity?: number | null;
+    totalAmount?: number | null;
+  }>;
+  promotionItems?: Array<{
+    budgetType: string;
+    detail: string;
+    amount?: number | null;
   }>;
 };
 
@@ -466,7 +510,7 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
 
         const spRequested = input.salesPromotionBudgetRequested ?? 0;
         const mktRequested = input.marketingBudgetRequested ?? 0;
-        const totalRequested = spRequested + mktRequested;
+        const totalRequested = input.totalBudgetRequested ?? (spRequested + mktRequested);
 
         let primaryCode = "TYPE_1";
         if (input.workTypeCodes && input.workTypeCodes.length > 0) {
@@ -478,164 +522,141 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
 
         // 1. Create main ActivityPlan
         const plan = await tx.activityPlan.create({
-      data: {
-        code,
-        title: input.title,
-        startDate: input.startDate,
-        endDate: input.endDate,
-        durationDays: fiscal.durationDays,
-        fiscalYear: fiscal.fiscalYear,
-        fiscalMonth: fiscal.fiscalMonth,
-        fiscalQuarter: fiscal.fiscalQuarter,
-        activityTypeId: resolvedPrimaryTypeId,
-        location: input.location ? input.location.trim() || null : null,
-        province: input.province ?? null,
-        district: input.district ?? null,
-        objective: input.objective,
-        description: input.description ?? null,
-        notes: input.notes ?? null,
-        salesPromotionBudgetRequested: input.salesPromotionBudgetRequested ? new Prisma.Decimal(input.salesPromotionBudgetRequested) : null,
-        marketingBudgetRequested: input.marketingBudgetRequested ? new Prisma.Decimal(input.marketingBudgetRequested) : null,
-        totalBudgetRequested: new Prisma.Decimal(totalRequested),
-        status: input.status ?? ActivityStatus.DRAFT,
-        employeeId: input.employeeId,
-        createdById: input.createdById,
-        currentApproverEmployeeId: input.currentApproverEmployeeId ?? null,
-      },
-    });
+          data: {
+            code,
+            title: input.title,
+            startDate: input.startDate,
+            endDate: input.endDate,
+            durationDays: fiscal.durationDays,
+            fiscalYear: fiscal.fiscalYear,
+            fiscalMonth: fiscal.fiscalMonth,
+            fiscalQuarter: fiscal.fiscalQuarter,
+            activityTypeId: resolvedPrimaryTypeId,
+            location: input.location ? input.location.trim() || null : null,
+            province: input.province ?? null,
+            district: input.district ?? null,
+            objective: input.objective,
+            description: input.description ?? null,
+            notes: input.notes ?? null,
+            targetAttendeesCount: input.targetAttendeesCount ?? null,
+            targetBookingSales: input.targetBookingSales != null ? new Prisma.Decimal(input.targetBookingSales) : null,
+            salesPromotionBudgetRequested: input.salesPromotionBudgetRequested ? new Prisma.Decimal(input.salesPromotionBudgetRequested) : null,
+            marketingBudgetRequested: input.marketingBudgetRequested ? new Prisma.Decimal(input.marketingBudgetRequested) : null,
+            totalBudgetRequested: new Prisma.Decimal(totalRequested),
+            status: input.status ?? ActivityStatus.DRAFT,
+            employeeId: input.employeeId,
+            createdById: input.createdById,
+            currentApproverEmployeeId: input.currentApproverEmployeeId ?? null,
+          },
+        });
 
-    // 1.1 Create Work Types (Join Table)
-    const workTypeCodes = input.workTypeCodes && input.workTypeCodes.length > 0
-      ? input.workTypeCodes.map(getWorkTypeCode)
-      : [primaryCode];
+        // 1.1 Create Work Types (Join Table)
+        const workTypeCodes = input.workTypeCodes && input.workTypeCodes.length > 0
+          ? input.workTypeCodes.map(getWorkTypeCode)
+          : [primaryCode];
 
-    for (const wtCode of Array.from(new Set(workTypeCodes))) {
-      const typeId = await resolveActivityTypeId(wtCode, tx);
-      await tx.activityPlanWorkType.create({
-        data: {
-          activityPlanId: plan.id,
-          activityTypeId: typeId,
-        },
-      });
-    }
-
-    // 1.2 Create Tour if present
-    if (input.tourData || primaryCode === "TYPE_12" || workTypeCodes.includes("TYPE_12")) {
-      const tourInput = input.tourData;
-      let tourType: TourType = tourInput?.tourType === "STORE" ? TourType.STORE : TourType.CENTRAL;
-      let tourSize: TourSize | null = tourInput?.tourSize === "LARGE" ? TourSize.LARGE : (tourInput?.tourSize === "SMALL" ? TourSize.SMALL : null);
-      let country: string | null = tourInput?.country ?? null;
-      let storeId: string | null = tourInput?.storeId ?? null;
-      let destination: string | null = tourInput?.destination ?? null;
-
-      if (!input.tourData && input.items && input.items.length > 0) {
-        const item0 = input.items[0];
-        if (item0.visitTopic === "ทัวร์ร้านค้า" || item0.tourType === "STORE") {
-          tourType = TourType.STORE;
-          storeId = item0.storeId ?? null;
-          destination = item0.destination ?? item0.detail ?? null;
-        } else {
-          tourType = TourType.CENTRAL;
-          tourSize = item0.tourSize === "LARGE" ? TourSize.LARGE : TourSize.SMALL;
-          country = item0.country ?? item0.detail ?? null;
+        for (const wtCode of Array.from(new Set(workTypeCodes))) {
+          const typeId = await resolveActivityTypeId(wtCode, tx);
+          await tx.activityPlanWorkType.create({
+            data: {
+              activityPlanId: plan.id,
+              activityTypeId: typeId,
+            },
+          });
         }
-      }
 
-      await tx.activityPlanTour.create({
-        data: {
-          activityPlanId: plan.id,
-          tourType,
-          tourSize,
-          country,
-          storeId,
-          destination,
-        },
-      });
-    }
+        // 1.2 Create Tour if present
+        if (input.tourData || primaryCode === "TYPE_12" || workTypeCodes.includes("TYPE_12")) {
+          const tourInput = input.tourData;
+          const tourType: TourType = tourInput?.tourType === "STORE" ? TourType.STORE : TourType.CENTRAL;
+          const tourSize: TourSize | null = tourInput?.tourSize === "LARGE" ? TourSize.LARGE : (tourInput?.tourSize === "SMALL" ? TourSize.SMALL : null);
+          const country: string | null = tourInput?.country ?? null;
+          const storeId: string | null = tourInput?.storeId ?? null;
+          const destination: string | null = tourInput?.destination ?? null;
 
-    // 1.3 Create Stores if present
-    if (input.planStores && input.planStores.length > 0) {
-      await tx.activityPlanStore.createMany({
-        data: input.planStores.map((s) => ({
-          activityPlanId: plan.id,
-          workTypeCode: getWorkTypeCode(s.workTypeCode),
-          storeId: s.storeId,
-          storeName: s.storeName ?? null,
-          remarks: s.remarks ?? null,
-        })),
-      });
-    }
+          await tx.activityPlanTour.create({
+            data: {
+              activityPlanId: plan.id,
+              tourType,
+              tourSize,
+              country,
+              storeId,
+              destination,
+            },
+          });
+        }
 
-    // 1.4 Create Products if present
-    if (input.planProducts && input.planProducts.length > 0) {
-      await tx.activityPlanProduct.createMany({
-        data: input.planProducts.map((p) => ({
-          activityPlanId: plan.id,
-          workTypeCode: getWorkTypeCode(p.workTypeCode),
-          storeId: p.storeId ?? null,
-          productId: p.productId,
-          productName: p.productName ?? null,
-          targetQuantity: p.targetQuantity ?? null,
-          unitPrice: p.unitPrice != null ? new Prisma.Decimal(p.unitPrice) : null,
-          targetAmount: p.targetAmount != null ? new Prisma.Decimal(p.targetAmount) : null,
-        })),
-      });
-    }
+        // 1.3 Create Stores if present
+        if (input.planStores && input.planStores.length > 0) {
+          await tx.activityPlanStore.createMany({
+            data: input.planStores.map((s) => ({
+              activityPlanId: plan.id,
+              workTypeCode: getWorkTypeCode(s.workTypeCode),
+              storeId: s.storeId,
+              storeName: s.storeName ?? null,
+              targetAmount: s.targetAmount != null ? new Prisma.Decimal(s.targetAmount) : null,
+              subDealerStore: s.subDealerStore ?? null,
+              remarks: s.remarks ?? null,
+              notes: s.notes ?? null,
+            })),
+          });
+        }
 
-    // 2. Create Items (Compatibility Table)
-    if (input.items && input.items.length > 0) {
-      await tx.activityPlanItem.createMany({
-        data: input.items.map((item, idx) => ({
-          activityPlanId: plan.id,
-          itemOrder: idx + 1,
-          workTypeCode: item.workTypeCode ? getWorkTypeCode(item.workTypeCode) : null,
-          customerName: item.customerName ?? item.ownerName ?? item.storeName ?? null,
-          detail: item.detail ?? null,
-          visitTopic: item.visitTopic ?? item.topic ?? null,
-          followupProductName: item.followupProductName ?? item.productName ?? null,
-          saleProductName: item.saleProductName ?? item.productName ?? null,
-          saleQuantity: item.saleQuantity ?? item.quantity ?? null,
-          saleUnitPrice: item.saleUnitPrice != null ? new Prisma.Decimal(item.saleUnitPrice) : (item.unitPrice != null ? new Prisma.Decimal(item.unitPrice) : null),
-          saleTotalPrice:
-            item.saleTotalPrice != null
-              ? new Prisma.Decimal(item.saleTotalPrice)
-              : item.bookingSales != null
-                ? new Prisma.Decimal(item.bookingSales)
-                : item.targetSales != null
-                  ? new Prisma.Decimal(item.targetSales)
-                  : item.price != null
-                    ? new Prisma.Decimal(item.price)
-                    : null,
-          collectAmount: item.collectAmount != null ? new Prisma.Decimal(item.collectAmount) : null,
-          surveyCompetitorProduct: item.surveyCompetitorProduct ?? item.comparedProduct ?? null,
-          surveyStoreName: item.surveyStoreName ?? item.storeName ?? null,
-          issueType: item.issueType ?? null,
-          plotActivityType: item.plotActivityType ?? null,
-          plotOwnerName: item.plotOwnerName ?? item.ownerName ?? null,
-          plotProductName: item.plotProductName ?? item.showcase ?? item.productName ?? null,
-          plotCropCategory: item.plotCropCategory ?? item.cropCategory ?? null,
-          plotCropName: item.plotCropName ?? item.targetCrop ?? item.cropName ?? item.customCropName ?? null,
-          plotAreaRai: item.plotAreaRai ? new Prisma.Decimal(item.plotAreaRai) : (item.areaRai ? new Prisma.Decimal(item.areaRai) : null),
-          plotTreeCount: item.plotTreeCount ?? item.treeCount ?? null,
-          plotCount:
-            item.plotCount != null
-              ? Number(item.plotCount)
-              : item.plotsCount != null && item.plotsCount !== ""
-                ? Number(item.plotsCount)
-                : null,
-          existingPlotId: item.existingPlotId ?? null,
-          plotGrowthStage: item.plotGrowthStage ?? item.growthStage ?? null,
-          plotStatus: item.plotStatus ?? null,
-          meetingTopic: item.meetingTopic ?? item.topic ?? null,
-          meetingAttendeesCount: item.meetingAttendeesCount ?? item.targetAttendees ?? item.attendeesCount ?? null,
-          meetingTargetProducts: item.meetingTargetProducts ? (Array.isArray(item.meetingTargetProducts) ? item.meetingTargetProducts.join(",") : String(item.meetingTargetProducts)) : null,
-          storeProductName: item.storeProductName ?? item.productName ?? null,
-          storeQuantityCases: item.storeQuantityCases ?? item.quantityCases ?? null,
-          storePricePerCase: item.storePricePerCase ? new Prisma.Decimal(item.storePricePerCase) : (item.pricePerCase ? new Prisma.Decimal(item.pricePerCase) : null),
-          storeTotalAmount: item.storeTotalAmount ? new Prisma.Decimal(item.storeTotalAmount) : null,
-        })),
-      });
-    }
+        // 1.4 Create Products if present
+        if (input.planProducts && input.planProducts.length > 0) {
+          await tx.activityPlanProduct.createMany({
+            data: input.planProducts.map((p) => ({
+              activityPlanId: plan.id,
+              workTypeCode: getWorkTypeCode(p.workTypeCode),
+              storeId: p.storeId ?? null,
+              productId: p.productId,
+              productName: p.productName ?? null,
+              masterPrice: p.masterPrice != null ? new Prisma.Decimal(p.masterPrice) : null,
+              unitPrice: p.unitPrice != null ? new Prisma.Decimal(p.unitPrice) : null,
+              isPriceOverridden: p.isPriceOverridden ?? false,
+              targetQuantity: p.targetQuantity ?? null,
+              targetAmount: p.targetAmount != null ? new Prisma.Decimal(p.targetAmount) : null,
+            })),
+          });
+        }
+
+        // 1.5 Create Marketing Items if present
+        if (input.marketingItems && input.marketingItems.length > 0) {
+          await tx.activityPlanMarketingItem.createMany({
+            data: input.marketingItems.map((m) => ({
+              activityPlanId: plan.id,
+              category: m.category,
+              materialName: m.materialName,
+              unit: m.unit ?? null,
+              unitPrice: new Prisma.Decimal(m.unitPrice ?? 0),
+              quantity: m.quantity ?? 1,
+              totalAmount: new Prisma.Decimal(m.totalAmount ?? 0),
+            })),
+          });
+        }
+
+        // 1.6 Create Promotion Items if present
+        if (input.promotionItems && input.promotionItems.length > 0) {
+          await tx.activityPlanPromotionItem.createMany({
+            data: input.promotionItems.map((p) => ({
+              activityPlanId: plan.id,
+              budgetType: p.budgetType,
+              detail: p.detail,
+              amount: new Prisma.Decimal(p.amount ?? 0),
+            })),
+          });
+        }
+
+        // 1.7 Link Demo Plot Visit if demoPlotId is provided
+        if (input.demoPlotId) {
+          await tx.demoPlotVisit.create({
+            data: {
+              demoPlotId: input.demoPlotId,
+              activityPlanId: plan.id,
+              visitDate: input.startDate,
+            },
+          });
+        }
 
     // 3. Create Helpers
     if (input.helperEmployeeIds && input.helperEmployeeIds.length > 0) {
@@ -695,15 +716,28 @@ export async function updateActivityPlan(
   }
 ) {
   return db.$transaction(async (tx) => {
-    const { helperEmployeeIds, items, workTypeCodes, tourData, planStores, planProducts } = planData;
+    const {
+      helperEmployeeIds,
+      marketingItems,
+      promotionItems,
+      workTypeCodes,
+      tourData,
+      planStores,
+      planProducts,
+      targetAttendeesCount,
+      targetBookingSales,
+      demoPlotId,
+    } = planData;
     const updateFields: any = { ...planData };
     delete updateFields.updatedUserId;
     delete updateFields.helperEmployeeIds;
-    delete updateFields.items;
+    delete updateFields.marketingItems;
+    delete updateFields.promotionItems;
     delete updateFields.workTypeCodes;
     delete updateFields.tourData;
     delete updateFields.planStores;
     delete updateFields.planProducts;
+    delete updateFields.demoPlotId;
 
     // Build update dataset
     const dataToUpdate: Prisma.ActivityPlanUncheckedUpdateInput = {};
@@ -721,6 +755,13 @@ export async function updateActivityPlan(
     if (updateFields.description !== undefined) dataToUpdate.description = updateFields.description;
     if (updateFields.notes !== undefined) dataToUpdate.notes = updateFields.notes;
     if (updateFields.status !== undefined) dataToUpdate.status = updateFields.status;
+
+    if (targetAttendeesCount !== undefined) {
+      dataToUpdate.targetAttendeesCount = targetAttendeesCount ?? null;
+    }
+    if (targetBookingSales !== undefined) {
+      dataToUpdate.targetBookingSales = targetBookingSales != null ? new Prisma.Decimal(targetBookingSales) : null;
+    }
 
     if (updateFields.startDate || updateFields.endDate) {
       const existing = await tx.activityPlan.findUnique({ where: { id } });
@@ -798,7 +839,10 @@ export async function updateActivityPlan(
             workTypeCode: getWorkTypeCode(s.workTypeCode),
             storeId: s.storeId,
             storeName: s.storeName ?? null,
+            targetAmount: s.targetAmount != null ? new Prisma.Decimal(s.targetAmount) : null,
+            subDealerStore: s.subDealerStore ?? null,
             remarks: s.remarks ?? null,
+            notes: s.notes ?? null,
           })),
         });
       }
@@ -815,69 +859,59 @@ export async function updateActivityPlan(
             storeId: p.storeId ?? null,
             productId: p.productId,
             productName: p.productName ?? null,
-            targetQuantity: p.targetQuantity ?? null,
+            masterPrice: p.masterPrice != null ? new Prisma.Decimal(p.masterPrice) : null,
             unitPrice: p.unitPrice != null ? new Prisma.Decimal(p.unitPrice) : null,
+            isPriceOverridden: p.isPriceOverridden ?? false,
+            targetQuantity: p.targetQuantity ?? null,
             targetAmount: p.targetAmount != null ? new Prisma.Decimal(p.targetAmount) : null,
           })),
         });
       }
     }
 
-    // 2. Sync Items if provided
-    if (items !== undefined) {
-      await tx.activityPlanItem.deleteMany({ where: { activityPlanId: id } });
-
-      if (items.length > 0) {
-        await tx.activityPlanItem.createMany({
-          data: items.map((item, idx) => ({
+    // 1.5 Sync Marketing Items
+    if (marketingItems !== undefined) {
+      await tx.activityPlanMarketingItem.deleteMany({ where: { activityPlanId: id } });
+      if (marketingItems.length > 0) {
+        await tx.activityPlanMarketingItem.createMany({
+          data: marketingItems.map((m) => ({
             activityPlanId: id,
-            itemOrder: idx + 1,
-            workTypeCode: item.workTypeCode ? getWorkTypeCode(item.workTypeCode) : null,
-            customerName: item.customerName ?? item.ownerName ?? item.storeName ?? null,
-            detail: item.detail ?? null,
-            visitTopic: item.visitTopic ?? item.topic ?? null,
-            followupProductName: item.followupProductName ?? item.productName ?? null,
-            saleProductName: item.saleProductName ?? item.productName ?? null,
-            saleQuantity: item.saleQuantity ?? item.quantity ?? null,
-            saleUnitPrice: item.saleUnitPrice != null ? new Prisma.Decimal(item.saleUnitPrice) : (item.unitPrice != null ? new Prisma.Decimal(item.unitPrice) : null),
-            saleTotalPrice:
-              item.saleTotalPrice != null
-                ? new Prisma.Decimal(item.saleTotalPrice)
-                : item.bookingSales != null
-                  ? new Prisma.Decimal(item.bookingSales)
-                  : item.targetSales != null
-                    ? new Prisma.Decimal(item.targetSales)
-                    : item.price != null
-                      ? new Prisma.Decimal(item.price)
-                      : null,
-            collectAmount: item.collectAmount != null ? new Prisma.Decimal(item.collectAmount) : null,
-            surveyCompetitorProduct: item.surveyCompetitorProduct ?? item.comparedProduct ?? null,
-            surveyStoreName: item.surveyStoreName ?? item.storeName ?? null,
-            issueType: item.issueType ?? null,
-            plotActivityType: item.plotActivityType ?? null,
-            plotOwnerName: item.plotOwnerName ?? item.ownerName ?? null,
-            plotProductName: item.plotProductName ?? item.showcase ?? item.productName ?? null,
-            plotCropCategory: item.plotCropCategory ?? item.cropCategory ?? null,
-            plotCropName: item.plotCropName ?? item.targetCrop ?? item.cropName ?? item.customCropName ?? null,
-            plotAreaRai: item.plotAreaRai ? new Prisma.Decimal(item.plotAreaRai) : (item.areaRai ? new Prisma.Decimal(item.areaRai) : null),
-            plotTreeCount: item.plotTreeCount ?? item.treeCount ?? null,
-            plotCount:
-              item.plotCount != null
-                ? Number(item.plotCount)
-                : item.plotsCount != null && item.plotsCount !== ""
-                  ? Number(item.plotsCount)
-                  : null,
-            existingPlotId: item.existingPlotId ?? null,
-            plotGrowthStage: item.plotGrowthStage ?? item.growthStage ?? null,
-            plotStatus: item.plotStatus ?? null,
-            meetingTopic: item.meetingTopic ?? item.topic ?? null,
-            meetingAttendeesCount: item.meetingAttendeesCount ?? item.targetAttendees ?? item.attendeesCount ?? null,
-            meetingTargetProducts: item.meetingTargetProducts ? (Array.isArray(item.meetingTargetProducts) ? item.meetingTargetProducts.join(",") : String(item.meetingTargetProducts)) : null,
-            storeProductName: item.storeProductName ?? item.productName ?? null,
-            storeQuantityCases: item.storeQuantityCases ?? item.quantityCases ?? null,
-            storePricePerCase: item.storePricePerCase ? new Prisma.Decimal(item.storePricePerCase) : (item.pricePerCase ? new Prisma.Decimal(item.pricePerCase) : null),
-            storeTotalAmount: item.storeTotalAmount ? new Prisma.Decimal(item.storeTotalAmount) : null,
+            category: m.category,
+            materialName: m.materialName,
+            unit: m.unit ?? null,
+            unitPrice: new Prisma.Decimal(m.unitPrice ?? 0),
+            quantity: m.quantity ?? 1,
+            totalAmount: new Prisma.Decimal(m.totalAmount ?? 0),
           })),
+        });
+      }
+    }
+
+    // 1.6 Sync Promotion Items
+    if (promotionItems !== undefined) {
+      await tx.activityPlanPromotionItem.deleteMany({ where: { activityPlanId: id } });
+      if (promotionItems.length > 0) {
+        await tx.activityPlanPromotionItem.createMany({
+          data: promotionItems.map((p) => ({
+            activityPlanId: id,
+            budgetType: p.budgetType,
+            detail: p.detail,
+            amount: new Prisma.Decimal(p.amount ?? 0),
+          })),
+        });
+      }
+    }
+
+    // 1.7 Sync Demo Plot Visit
+    if (demoPlotId !== undefined) {
+      await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: id } });
+      if (demoPlotId) {
+        await tx.demoPlotVisit.create({
+          data: {
+            demoPlotId,
+            activityPlanId: id,
+            visitDate: updatedPlan.startDate,
+          },
         });
       }
     }
@@ -1422,8 +1456,16 @@ export async function findApprovalQueueData() {
         },
       },
     },
-    items: {
-      orderBy: { itemOrder: "asc" as const },
+    marketingItems: {
+      orderBy: { createdAt: "asc" as const },
+    },
+    promotionItems: {
+      orderBy: { createdAt: "asc" as const },
+    },
+    demoPlotVisits: {
+      include: {
+        demoPlot: true,
+      },
     },
     employee: {
       include: {
@@ -1460,7 +1502,16 @@ export async function findApprovalQueueData() {
       },
       orderBy: { createdAt: "desc" as const },
     },
-    result: true,
+    result: {
+      include: {
+        saleResults: true,
+        stockResults: true,
+        surveyResults: true,
+        demoResults: true,
+        attachments: true,
+      },
+    },
+    attachments: true,
   };
 
   const [pendingPlans, historyPlans, activityTypes] = await Promise.all([
@@ -1671,82 +1722,63 @@ export async function recordDemoPlotVisit(data: {
   // If plot not found in demo_plots table, look up ActivityPlan and Auto-Create DemoPlot Master
   if (!plot) {
     let plan: any = null;
-    let item: any = null;
 
     if (data.activityPlanId) {
       plan = await db.activityPlan.findUnique({
         where: { id: data.activityPlanId },
         include: {
-          items: true,
+          stores: { include: { store: true } },
+          demoPlotVisits: { include: { demoPlot: true } },
         },
       });
-      item = plan?.items?.find(
-        (it: any) =>
-          it.workType === "DEMO" ||
-          (typeof it.workType === "string" &&
-            (it.workType.includes("แปลงสาธิต") || it.workType.includes("7"))) ||
-          it.plotOwnerName ||
-          it.plotCropName,
-      );
-    } else if (data.demoPlotId.startsWith("legacy-")) {
-      const parts = data.demoPlotId.replace("legacy-", "").split("-");
-      const planId = parts[0];
-      const itemId = parts[1];
-      if (planId) {
-        plan = await db.activityPlan.findUnique({
-          where: { id: planId },
-          include: { items: true },
-        });
-        item = plan?.items?.find((it: any) => it.id === itemId);
+      if (plan?.demoPlotVisits && plan.demoPlotVisits.length > 0) {
+        plot = plan.demoPlotVisits[0].demoPlot;
       }
     }
 
-    const ownerName =
-      item?.plotOwnerName ||
-      item?.customerName ||
-      plan?.location ||
-      (data.demoPlotId.startsWith("legacy-") ? "เกษตรกร" : data.demoPlotId) ||
-      "เกษตรกร";
-    const cropName = item?.plotCropName || "พืชทั่วไป";
-    const productName = item?.plotProductName || "สินค้าสาธิต";
-    const plotName = `${ownerName} - ${cropName}`;
-
-    // Check if matching plot already exists by ownerName + cropName
-    plot = await db.demoPlot.findFirst({
-      where: {
-        ownerName,
-        cropName,
-        deletedAt: null,
-      },
-      include: { visits: true },
-    });
-
     if (!plot) {
-      const count = await db.demoPlot.count();
-      const code = `DP-${new Date().getFullYear().toString().slice(-2)}${(count + 1).toString().padStart(4, "0")}`;
+      const ownerName = plan?.stores?.[0]?.store?.name || plan?.location || "เกษตรกร";
+      const cropName = "พืชทั่วไป";
+      const productName = "สินค้าสาธิต";
+      const plotName = `${ownerName} - ${cropName}`;
 
-      plot = await db.demoPlot.create({
-        data: {
-          code,
-          name: plotName,
+      // Check if matching plot already exists by ownerName + cropName
+      plot = await db.demoPlot.findFirst({
+        where: {
           ownerName,
-          customerId: item?.customerId || null,
-          employeeId: plan?.employeeId || "emp-system",
-          cropCategory: item?.plotCropCategory || "พืชทั่วไป",
           cropName,
-          primaryProductName: productName,
-          areaRai: item?.plotAreaRai ? new Prisma.Decimal(item.plotAreaRai) : null,
-          treeCount: item?.plotTreeCount ? Number(item.plotTreeCount) : null,
-          startDate: plan?.startDate || data.visitDate,
-          plantingDate: data.plantingDate || plan?.startDate || data.visitDate,
-          plantingAreaCondition: data.plantingAreaCondition || null,
-          usageMethod: data.usageMethod || null,
-          objective: item?.plotObjective || null,
-          experimentDetail: item?.plotExperimentDetail || null,
-          status: data.plotStatus || DemoPlotStatus.IN_PROGRESS,
+          deletedAt: null,
         },
         include: { visits: true },
       });
+
+      if (!plot) {
+        const count = await db.demoPlot.count();
+        const code = `DP-${new Date().getFullYear().toString().slice(-2)}${(count + 1).toString().padStart(4, "0")}`;
+
+        plot = await db.demoPlot.create({
+          data: {
+            code,
+            name: plotName,
+            ownerName,
+            customerId: plan?.stores?.[0]?.storeId || null,
+            employeeId: plan?.employeeId || "emp-system",
+            cropCategory: "พืชทั่วไป",
+            cropName,
+            primaryProductName: productName,
+            areaRai: null,
+            treeCount: null,
+            startDate: plan?.startDate || data.visitDate,
+            plantingDate: data.plantingDate || plan?.startDate || data.visitDate,
+            plantingAreaCondition: data.plantingAreaCondition || null,
+            usageMethod: data.usageMethod || null,
+            objective: plan?.objective || null,
+            experimentDetail: null,
+            status: data.plotStatus || DemoPlotStatus.IN_PROGRESS,
+          },
+          include: { visits: true },
+        });
+      }
     }
   }
 
@@ -1893,28 +1925,6 @@ export async function findMasterDemoPlots() {
 }
 
 /**
- * Fetch legacy demo plot items from ActivityPlanItem (excluding CANCELLED items)
- */
-export async function findLegacyDemoPlotItems() {
-  return db.activityPlanItem.findMany({
-    where: {
-      activityPlan: { deletedAt: null },
-      plotActivityType: "CREATE",
-      plotOwnerName: { not: null },
-      NOT: {
-        plotStatus: "CANCELLED",
-      },
-    },
-    include: {
-      activityPlan: {
-        select: { id: true, location: true, startDate: true },
-      },
-    },
-    orderBy: { id: "desc" },
-  });
-}
-
-/**
  * Fetch Farmer customers for selection in Field Day
  */
 export async function findFarmerCustomerOptions() {
@@ -1977,23 +1987,6 @@ export async function findDemoPlotByIdOrName(demoPlotIdOrName: string) {
 }
 
 /**
- * Find legacy activity plan item for demo plot
- */
-export async function findLegacyActivityItemForDemoPlot(itemId: string, planId?: string) {
-  return db.activityPlanItem.findFirst({
-    where: {
-      id: itemId,
-      ...(planId ? { activityPlanId: planId } : {}),
-    },
-    include: {
-      activityPlan: {
-        select: { id: true, code: true, title: true, startDate: true, location: true },
-      },
-    },
-  });
-}
-
-/**
  * Find demo plot by owner name and crop name
  */
 export async function findDemoPlotByOwnerAndCrop(ownerName: string, cropName: string) {
@@ -2014,26 +2007,6 @@ export async function findDemoPlotByOwnerAndCrop(ownerName: string, cropName: st
         },
       },
     },
-  });
-}
-
-/**
- * Find latest CREATE activity plan item for demo plot
- */
-export async function findLatestCreateItemForDemoPlot(ownerName: string, cropName?: string) {
-  return db.activityPlanItem.findFirst({
-    where: {
-      plotActivityType: "CREATE",
-      activityPlan: { deletedAt: null },
-      plotOwnerName: ownerName,
-      ...(cropName ? { plotCropName: cropName } : {}),
-    },
-    include: {
-      activityPlan: {
-        select: { id: true, code: true, title: true, startDate: true, location: true },
-      },
-    },
-    orderBy: { id: "desc" },
   });
 }
 

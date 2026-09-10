@@ -31,17 +31,7 @@ export function DetailHeader({ plan, canEdit }: DetailHeaderProps) {
   const isTourOnly =
     (plan.activityType as any)?.name === "ทัวร์" ||
     (plan.activityType as any)?.code === "TYPE_12" ||
-    (Boolean(plan.objective?.includes("[ทัวร์")) &&
-      !WORK_TYPES.slice(0, 11).some((wt) =>
-        plan.objective?.includes(`[${wt}`),
-      )) ||
-    (plan.items &&
-      plan.items.length > 0 &&
-      plan.items.every(
-        (i: any) =>
-          i.visitTopic?.includes("ทัวร์") ||
-          (i.detail && i.detail.includes("[ทัวร์")),
-      ));
+    (Boolean(plan.tour) && (!plan.stores || plan.stores.length === 0) && (!plan.products || plan.products.length === 0));
 
   const displayActivityTypeName = isTourOnly
     ? "ทัวร์"

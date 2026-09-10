@@ -128,20 +128,48 @@ export interface SeedPlanInput {
   submittedAt?: Date | null;
   approvedAt?: Date | null;
   rejectedAt?: Date | null;
+  demoPlotId?: string | null;
+  targetAttendeesCount?: number | null;
+  targetBookingSales?: number | null;
   stores?: Array<{
     workTypeCode: string;
     storeId: string;
-    storeName?: string;
-    remarks?: string;
+    storeName?: string | null;
+    subDealerStore?: string | null;
+    targetAmount?: number | null;
+    notes?: string | null;
+    remarks?: string | null;
   }>;
   products?: Array<{
     workTypeCode: string;
     storeId?: string | null;
     productId: string;
-    productName?: string;
-    targetQuantity?: number;
+    productName?: string | null;
+    targetQuantity?: number | null;
+    masterPrice?: number | null;
+    unitPrice?: number | null;
+    targetAmount?: number | null;
+    isPriceOverridden?: boolean;
+    notes?: string | null;
+  }>;
+  marketingItems?: Array<{
+    category?: string;
+    marketingProductId?: string | null;
+    materialName: string;
+    unit?: string | null;
     unitPrice?: number;
-    targetAmount?: number;
+    unitCost?: number;
+    quantity: number;
+    totalAmount?: number;
+    totalCost?: number;
+  }>;
+  promotionItems?: Array<{
+    detail?: string;
+    promotionDetail?: string;
+    budgetType?: string;
+    amount?: number;
+    requestedAmount?: number;
+    approvedAmount?: number | null;
   }>;
   tour?: {
     tourType: TourType;
@@ -150,7 +178,6 @@ export interface SeedPlanInput {
     storeId?: string | null;
     destination?: string | null;
   } | null;
-  items?: Array<Record<string, any>>;
   helpers?: Array<{
     employeeId: string;
     departmentId?: string | null;
@@ -299,6 +326,8 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
         submittedAt: input.submittedAt ?? null,
         approvedAt: input.approvedAt ?? null,
         rejectedAt: input.rejectedAt ?? null,
+        targetAttendeesCount: input.targetAttendeesCount ?? null,
+        targetBookingSales: input.targetBookingSales != null ? new Prisma.Decimal(input.targetBookingSales) : null,
       },
       create: {
         code: input.code,
@@ -329,6 +358,8 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
         submittedAt: input.submittedAt ?? null,
         approvedAt: input.approvedAt ?? null,
         rejectedAt: input.rejectedAt ?? null,
+        targetAttendeesCount: input.targetAttendeesCount ?? null,
+        targetBookingSales: input.targetBookingSales != null ? new Prisma.Decimal(input.targetBookingSales) : null,
       },
     });
 
@@ -337,7 +368,8 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
     await tx.activityPlanStore.deleteMany({ where: { activityPlanId: plan.id } });
     await tx.activityPlanProduct.deleteMany({ where: { activityPlanId: plan.id } });
     await tx.activityPlanTour.deleteMany({ where: { activityPlanId: plan.id } });
-    await tx.activityPlanItem.deleteMany({ where: { activityPlanId: plan.id } });
+    await tx.activityPlanMarketingItem.deleteMany({ where: { activityPlanId: plan.id } });
+    await tx.activityPlanPromotionItem.deleteMany({ where: { activityPlanId: plan.id } });
     await tx.activityHelper.deleteMany({ where: { activityPlanId: plan.id } });
     await tx.activityApprovalLog.deleteMany({ where: { activityPlanId: plan.id } });
     await tx.activityResult.deleteMany({ where: { activityPlanId: plan.id } });
@@ -368,6 +400,9 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
           workTypeCode: s.workTypeCode,
           storeId: s.storeId,
           storeName: s.storeName ?? null,
+          subDealerStore: s.subDealerStore ?? null,
+          targetAmount: s.targetAmount != null ? new Prisma.Decimal(s.targetAmount) : null,
+          notes: s.notes ?? null,
           remarks: s.remarks ?? null,
         })),
       });
@@ -376,20 +411,89 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
     // 4. Plan Products
     if (input.products && input.products.length > 0) {
       await tx.activityPlanProduct.createMany({
-        data: input.products.map((p) => ({
-          activityPlanId: plan.id,
-          workTypeCode: p.workTypeCode,
-          storeId: p.storeId ?? null,
-          productId: p.productId,
-          productName: p.productName ?? null,
-          targetQuantity: p.targetQuantity ?? null,
-          unitPrice: p.unitPrice != null ? new Prisma.Decimal(p.unitPrice) : null,
-          targetAmount: p.targetAmount != null ? new Prisma.Decimal(p.targetAmount) : null,
-        })),
+        data: input.products.map((p) => {
+          const qty = p.targetQuantity != null ? Number(p.targetQuantity) : null;
+          const uPrice = p.unitPrice != null ? Number(p.unitPrice) : null;
+          const mPrice = p.masterPrice != null ? Number(p.masterPrice) : uPrice;
+          const totalAmt =
+            p.targetAmount != null
+              ? Number(p.targetAmount)
+              : qty != null && uPrice != null
+              ? qty * uPrice
+              : null;
+          const isOverridden =
+            p.isPriceOverridden ??
+            (mPrice != null && uPrice != null ? mPrice !== uPrice : false);
+          return {
+            activityPlanId: plan.id,
+            workTypeCode: p.workTypeCode,
+            storeId: p.storeId ?? null,
+            productId: p.productId,
+            productName: p.productName ?? null,
+            targetQuantity: qty != null ? Math.round(qty) : null,
+            masterPrice: mPrice != null ? new Prisma.Decimal(mPrice) : null,
+            unitPrice: uPrice != null ? new Prisma.Decimal(uPrice) : null,
+            targetAmount: totalAmt != null ? new Prisma.Decimal(totalAmt) : null,
+            isPriceOverridden: isOverridden,
+          };
+        }),
       });
     }
 
-    // 5. Tour (TYPE_12)
+    // 5. Marketing Items
+    if (input.marketingItems && input.marketingItems.length > 0) {
+      await tx.activityPlanMarketingItem.createMany({
+        data: input.marketingItems.map((m) => {
+          const uPrice = m.unitPrice ?? m.unitCost ?? 0;
+          const qty = m.quantity || 1;
+          const totalAmt = m.totalAmount ?? m.totalCost ?? qty * uPrice;
+          return {
+            activityPlanId: plan.id,
+            category: m.category || "สื่อส่งเสริมการขาย",
+            materialName: m.materialName,
+            unit: m.unit ?? "ชิ้น",
+            unitPrice: new Prisma.Decimal(uPrice),
+            quantity: qty,
+            totalAmount: new Prisma.Decimal(totalAmt),
+          };
+        }),
+      });
+    }
+
+    // 6. Promotion Items
+    if (input.promotionItems && input.promotionItems.length > 0) {
+      await tx.activityPlanPromotionItem.createMany({
+        data: input.promotionItems.map((p) => {
+          const amt = p.amount ?? p.requestedAmount ?? 0;
+          return {
+            activityPlanId: plan.id,
+            budgetType: p.budgetType || "SALES_PROMOTION",
+            detail: p.detail || p.promotionDetail || "",
+            amount: new Prisma.Decimal(amt),
+          };
+        }),
+      });
+    }
+
+    // 7. Demo Plot Link (if demoPlotId provided and no visit exists)
+    if (input.demoPlotId) {
+      const existingVisit = await tx.demoPlotVisit.findFirst({
+        where: { activityPlanId: plan.id },
+      });
+      if (!existingVisit) {
+        await tx.demoPlotVisit.create({
+          data: {
+            demoPlotId: input.demoPlotId,
+            activityPlanId: plan.id,
+            visitNumber: 1,
+            visitDate: start,
+            notes: "เข้าตรวจและติดตามแปลงสาธิตตามแผนกิจกรรม",
+          },
+        });
+      }
+    }
+
+    // 7. Tour (TYPE_12)
     if (input.tour) {
       await tx.activityPlanTour.create({
         data: {
@@ -403,48 +507,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
       });
     }
 
-    // 6. Plan Items
-    if (input.items && input.items.length > 0) {
-      await tx.activityPlanItem.createMany({
-        data: input.items.map((item, idx) => ({
-          activityPlanId: plan.id,
-          itemOrder: idx + 1,
-          workTypeCode: item.workTypeCode ?? input.primaryWorkTypeCode,
-          customerName: item.customerName ?? null,
-          detail: item.detail ?? null,
-          visitTopic: item.visitTopic ?? null,
-          followupProductName: item.followupProductName ?? null,
-          saleProductName: item.saleProductName ?? null,
-          saleQuantity: item.saleQuantity ?? null,
-          saleUnitPrice: item.saleUnitPrice != null ? new Prisma.Decimal(item.saleUnitPrice) : null,
-          saleTotalPrice: item.saleTotalPrice != null ? new Prisma.Decimal(item.saleTotalPrice) : null,
-          collectAmount: item.collectAmount != null ? new Prisma.Decimal(item.collectAmount) : null,
-          surveyCompetitorProduct: item.surveyCompetitorProduct ?? null,
-          surveyStoreName: item.surveyStoreName ?? null,
-          issueType: item.issueType ?? null,
-          plotActivityType: item.plotActivityType ?? null,
-          plotOwnerName: item.plotOwnerName ?? null,
-          plotProductName: item.plotProductName ?? null,
-          plotCropCategory: item.plotCropCategory ?? null,
-          plotCropName: item.plotCropName ?? null,
-          plotAreaRai: item.plotAreaRai != null ? new Prisma.Decimal(item.plotAreaRai) : null,
-          plotTreeCount: item.plotTreeCount ?? null,
-          plotCount: item.plotCount ?? null,
-          existingPlotId: item.existingPlotId ?? null,
-          plotGrowthStage: item.plotGrowthStage ?? null,
-          plotStatus: item.plotStatus ?? null,
-          meetingTopic: item.meetingTopic ?? null,
-          meetingAttendeesCount: item.meetingAttendeesCount ?? null,
-          meetingTargetProducts: item.meetingTargetProducts ?? null,
-          storeProductName: item.storeProductName ?? null,
-          storeQuantityCases: item.storeQuantityCases ?? null,
-          storePricePerCase: item.storePricePerCase != null ? new Prisma.Decimal(item.storePricePerCase) : null,
-          storeTotalAmount: item.storeTotalAmount != null ? new Prisma.Decimal(item.storeTotalAmount) : null,
-        })),
-      });
-    }
-
-    // 7. Helpers
+    // 8. Helpers
     if (input.helpers && input.helpers.length > 0) {
       await tx.activityHelper.createMany({
         data: input.helpers.map((h) => ({

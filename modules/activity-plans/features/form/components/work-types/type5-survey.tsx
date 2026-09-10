@@ -114,7 +114,15 @@ export function Type5Survey({
                   labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-purple-500"
                   value={item.storeName}
-                  onChange={(val) => updateType5Row(item.id, "storeName", val)}
+                  onChange={(val) => {
+                    const cust = customers.find(
+                      (c) => c.name === val || c.id === val,
+                    );
+                    updateType5Row(item.id, "storeName", cust?.name || val);
+                    if (cust?.id) {
+                      updateType5Row(item.id, "storeId", cust.id);
+                    }
+                  }}
                   options={customerOptions}
                   placeholder="เลือกร้านค้า..."
                   searchPlaceholder="ค้นหาร้านค้า / ลูกค้า..."
@@ -129,9 +137,15 @@ export function Type5Survey({
                   labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-purple-500"
                   value={item.comparedProduct}
-                  onChange={(val) =>
-                    updateType5Row(item.id, "comparedProduct", val)
-                  }
+                  onChange={(val) => {
+                    const prod = products.find(
+                      (p) => p.name === val || p.id === val,
+                    );
+                    updateType5Row(item.id, "comparedProduct", prod?.name || val);
+                    if (prod?.id) {
+                      updateType5Row(item.id, "productId", prod.id);
+                    }
+                  }}
                   options={productOptions}
                   placeholder="เลือกสินค้า..."
                   searchPlaceholder="ค้นหาสินค้า..."

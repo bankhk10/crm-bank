@@ -320,7 +320,13 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t3ProductSalesDetails.some(
       (d) => d.actualQty || d.actualSales || d.unclosedReason,
     )
-      ? `ยอดขายแยกสินค้าเสนอขาย: ${JSON.stringify(t3ProductSalesDetails)}`
+      ? `ยอดขายแยกสินค้า: ${t3ProductSalesDetails
+          .filter((d) => d.actualQty || d.actualSales || d.unclosedReason)
+          .map(
+            (d) =>
+              `${d.productName || "สินค้า"}: ขายได้ ${d.actualQty || 0} ชิ้น (${d.actualSales || 0} บ.)${d.unclosedReason ? ` [ไม่สำเร็จ: ${d.unclosedReason}]` : ""}`,
+          )
+          .join("; ")}`
       : null,
 
     // Type 4
@@ -344,7 +350,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
         (s.priceTagImages && s.priceTagImages.length > 0) ||
         (s.shelfImages && s.shelfImages.length > 0),
     )
-      ? `รายการสำรวจตลาดคู่แข่ง: ${JSON.stringify(t5SurveyDetails)}`
+      ? `รายการสำรวจตลาดคู่แข่ง: มีบันทึก ${t5SurveyDetails.length} รายการ`
       : null,
 
     // Type 6
@@ -354,7 +360,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       : null,
     t6Status ? `สถานะการแก้ปัญหา: ${t6Status}` : null,
     t6Images && t6Images.length > 0
-      ? `รูปภาพปัญหา/การแก้ไข: ${JSON.stringify(t6Images)}`
+      ? `รูปภาพปัญหา/การแก้ไข: มีแนบ ${t6Images.length} รูป`
       : null,
 
     // Type 7
@@ -405,10 +411,10 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       ? `สรุปผลสัมฤทธิ์แปลง: ${t7FinalSummaryNotes}`
       : null,
     t7CropImages && t7CropImages.length > 0
-      ? `รูปภาพสภาพพืช: ${JSON.stringify(t7CropImages)}`
+      ? `รูปภาพสภาพพืช: มีแนบ ${t7CropImages.length} รูป`
       : null,
     t7PlotImages && t7PlotImages.length > 0
-      ? `รูปภาพสภาพแปลง: ${JSON.stringify(t7PlotImages)}`
+      ? `รูปภาพสภาพแปลง: มีแนบ ${t7PlotImages.length} รูป`
       : null,
 
     // Type 8
@@ -419,10 +425,10 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t8ProductSalesDetails &&
     t8ProductSalesDetails.length > 0 &&
     t8ProductSalesDetails.some((d) => d.actualQty || d.actualSales)
-      ? `ยอดขายแยกสินค้าประชุม: ${JSON.stringify(t8ProductSalesDetails)}`
+      ? `ยอดขายแยกสินค้าประชุม: มีบันทึก ${t8ProductSalesDetails.length} รายการ`
       : null,
     t8Images && t8Images.length > 0
-      ? `รูปภาพบรรยากาศการประชุม: ${JSON.stringify(t8Images)}`
+      ? `รูปภาพบรรยากาศการประชุม: มีแนบ ${t8Images.length} รูป`
       : null,
 
     // Type 9
@@ -430,13 +436,13 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t9ProductSalesDetails &&
     t9ProductSalesDetails.length > 0 &&
     t9ProductSalesDetails.some((d) => d.actualQuantityCases || d.actualSales)
-      ? `ยอดขายแยกสินค้าหน้าร้าน: ${JSON.stringify(t9ProductSalesDetails)}`
+      ? `ยอดขายแยกสินค้าหน้าร้าน: มีบันทึก ${t9ProductSalesDetails.length} รายการ`
       : null,
     t9ActualAttendees
       ? `จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน: ${t9ActualAttendees}`
       : null,
     t9Images && t9Images.length > 0
-      ? `รูปภาพกิจกรรมส่งเสริมการขายหน้าร้าน: ${JSON.stringify(t9Images)}`
+      ? `รูปภาพกิจกรรมส่งเสริมการขายหน้าร้าน: มีแนบ ${t9Images.length} รูป`
       : null,
 
     // Type 10
@@ -451,14 +457,14 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       ? `รายชื่อเกษตรกรเป้าหมาย: ${t10TargetFarmersList}`
       : null,
     t10Images && t10Images.length > 0
-      ? `รูปภาพบรรยากาศงาน Field Day: ${JSON.stringify(t10Images)}`
+      ? `รูปภาพบรรยากาศงาน Field Day: มีแนบ ${t10Images.length} รูป`
       : null,
 
     // Type 11
     t11StockItems &&
     t11StockItems.length > 0 &&
     t11StockItems.some((i) => i.productName || i.remainingQty || i.remarks)
-      ? `รายการตรวจเช็กสต็อก: ${JSON.stringify(t11StockItems)}`
+      ? `รายการตรวจเช็กสต็อก: มีบันทึก ${t11StockItems.length} รายการ`
       : null,
     t11ProductList ? `รายการสินค้าตรวจเช็ก: ${t11ProductList}` : null,
     t11RemainingQty ? `จำนวนคงเหลือสต็อก: ${t11RemainingQty}` : null,
@@ -536,6 +542,137 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       ]
     : undefined;
 
+  // Build structured sale results
+  const saleResults: any[] = [];
+  if (input.t3ProductSalesDetails && Array.isArray(input.t3ProductSalesDetails)) {
+    input.t3ProductSalesDetails.forEach((d) => {
+      const pId = d.productId || d.id;
+      const qty = Number(d.actualQty || d.quantity || 0);
+      const uPrice = Number(d.unitPrice || d.price || 0);
+      const total = Number(d.actualSales || qty * uPrice);
+      if (pId && (qty > 0 || total > 0)) {
+        saleResults.push({
+          workTypeCode: "TYPE_3",
+          storeId: d.storeId || null,
+          productId: pId,
+          productName: d.productName || null,
+          actualQuantity: qty,
+          actualUnitPrice: uPrice,
+          actualTotal: total,
+          unclosedReason: input.t3UnclosedReason || null,
+        });
+      }
+    });
+  }
+  if (input.t9ProductSalesDetails && Array.isArray(input.t9ProductSalesDetails)) {
+    input.t9ProductSalesDetails.forEach((d) => {
+      const pId = d.productId || d.id;
+      const qty = Number(d.actualQuantityCases || d.quantityCases || 0);
+      const uPrice = Number(d.pricePerCase || 0);
+      const total = Number(d.actualSales || qty * uPrice);
+      if (pId && (qty > 0 || total > 0)) {
+        saleResults.push({
+          workTypeCode: "TYPE_9",
+          storeId: d.storeId || null,
+          productId: pId,
+          productName: d.productName || null,
+          actualQuantity: qty,
+          actualUnitPrice: uPrice,
+          actualTotal: total,
+        });
+      }
+    });
+  }
+  if (input.t8ProductSalesDetails && Array.isArray(input.t8ProductSalesDetails)) {
+    input.t8ProductSalesDetails.forEach((d) => {
+      const pId = d.productId || d.id;
+      const qty = Number(d.actualQty || 0);
+      const uPrice = Number(d.unitPrice || 0);
+      const total = Number(d.actualSales || qty * uPrice);
+      if (pId && (qty > 0 || total > 0)) {
+        saleResults.push({
+          workTypeCode: "TYPE_8",
+          storeId: null,
+          productId: pId,
+          productName: d.productName || null,
+          actualQuantity: qty,
+          actualUnitPrice: uPrice,
+          actualTotal: total,
+        });
+      }
+    });
+  }
+
+  // Build structured stock results
+  const stockResults: any[] = [];
+  if (input.t11StockItems && Array.isArray(input.t11StockItems)) {
+    input.t11StockItems.forEach((item) => {
+      const sId = item.storeId || (item.store && item.store.id);
+      const pId = item.productId || (item.product && item.product.id);
+      if (sId && pId) {
+        stockResults.push({
+          storeId: sId,
+          productId: pId,
+          remainingQuantity: Number(
+            item.remainingQuantity ??
+            item.remainingStockQty ??
+            item.remainingQty ??
+            item.quantity ??
+            0
+          ),
+          stockStatus: item.stockStatus || null,
+          reorderOpportunity: item.reorderOpportunity || null,
+          remarks: item.remarks || null,
+        });
+      }
+    });
+  }
+
+  // Build structured survey results
+  const surveyResults: any[] = [];
+  if (input.t5SurveyDetails && Array.isArray(input.t5SurveyDetails)) {
+    input.t5SurveyDetails.forEach((item) => {
+      const sId = (item as any).storeId || (item as any).id;
+      if (sId && (item.competitorBrand || item.competitorProduct)) {
+        surveyResults.push({
+          storeId: sId,
+          productId: (item as any).productId || null,
+          competitorBrand: item.competitorBrand || "-",
+          competitorProduct: item.competitorProduct || "-",
+          competitorPrice: parseCleanNumber(item.competitorPrice),
+          competitorUnit: item.competitorUnit || "ขวด",
+          promotionDetail: item.promotionDetail || null,
+        });
+      }
+    });
+  }
+
+  // Build structured attachments
+  const attachments: any[] = [];
+  const addAttachment = (
+    img: any,
+    workTypeCode: string,
+    category: string = "GENERAL",
+  ) => {
+    if (img && img.url) {
+      attachments.push({
+        workTypeCode,
+        category,
+        fileUrl: img.url,
+        fileName: img.name || `${workTypeCode.toLowerCase()}_image.jpg`,
+        fileSize: img.size || null,
+        mimeType: img.type || "image/jpeg",
+      });
+    }
+  };
+
+  (input.t6Images || []).forEach((img) => addAttachment(img, "TYPE_6"));
+  (input.t7CropImages || []).forEach((img) => addAttachment(img, "TYPE_7", "CROP"));
+  (input.t7PlotImages || []).forEach((img) => addAttachment(img, "TYPE_7", "PLOT"));
+  (input.t8Images || []).forEach((img) => addAttachment(img, "TYPE_8"));
+  (input.t9Images || []).forEach((img) => addAttachment(img, "TYPE_9"));
+  (input.t10Images || []).forEach((img) => addAttachment(img, "TYPE_10"));
+
   const payload = {
     actualStartDate: new Date(),
     actualEndDate: new Date(),
@@ -575,6 +712,10 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     collectResultAmount: collectResult,
     demoPlotsCreated: t7PlotName ? 1 : 0,
     demoResults,
+    saleResults: saleResults.length > 0 ? saleResults : undefined,
+    stockResults: stockResults.length > 0 ? stockResults : undefined,
+    surveyResults: surveyResults.length > 0 ? surveyResults : undefined,
+    attachments: attachments.length > 0 ? attachments : undefined,
   };
 
   return {

@@ -109,9 +109,15 @@ export function Type2Followup({
                   labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500"
                   value={item.productName}
-                  onChange={(val) =>
-                    updateType2Row(item.id, "productName", val)
-                  }
+                  onChange={(val) => {
+                    const prod = products.find(
+                      (p) => p.name === val || p.id === val,
+                    );
+                    updateType2Row(item.id, "productName", prod?.name || val);
+                    if (prod?.id) {
+                      updateType2Row(item.id, "productId", prod.id);
+                    }
+                  }}
                   options={productOptions}
                   placeholder="เลือกสินค้า..."
                   searchPlaceholder="ค้นหาสินค้า..."
@@ -126,9 +132,15 @@ export function Type2Followup({
                   labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500"
                   value={item.customerName}
-                  onChange={(val) =>
-                    updateType2Row(item.id, "customerName", val)
-                  }
+                  onChange={(val) => {
+                    const cust = customers.find(
+                      (c) => c.name === val || c.id === val,
+                    );
+                    updateType2Row(item.id, "customerName", cust?.name || val);
+                    if (cust?.id) {
+                      updateType2Row(item.id, "storeId", cust.id);
+                    }
+                  }}
                   options={customerOptions}
                   placeholder="เลือกร้านค้า / Key Farmer..."
                   searchPlaceholder="ค้นหาร้านค้า / Key Farmer..."

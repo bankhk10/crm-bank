@@ -1,18 +1,18 @@
 import "dotenv/config";
-import { PrismaClient, Prisma, ActivityStatus, ActivityHelperStatus } from "@prisma/client";
+import { PrismaClient, Prisma, ActivityStatus, ActivityHelperStatus, TourType, TourSize } from "@prisma/client";
 import { db as prisma } from "../lib/db";
 import { seedWorkflowTestUsers } from "../prisma/seed/activity/workflow-test-users";
 import { seedActivityTypes } from "../prisma/seed/activity/activity-types";
 import { seedPromotionalMaterials } from "../prisma/seed/activity/promotional-materials";
 
 /**
- * Script for setting up UAT Test Data for Activity Workflow Scenarios (ACT-001 to ACT-010).
- * All test plans are created in DRAFT status with full ActivityPlanItems so users can
+ * Script for setting up UAT Test Data for Activity Workflow Scenarios (TEST-ACT-001 to TEST-ACT-010).
+ * All test plans are created in DRAFT status with normalized Target Architecture sub-tables so users can
  * manually test the UI through the browser with rich initial values.
  * 
  * Safety Protection:
  * - Scenarios TEST-ACT-001, TEST-ACT-004, and TEST-ACT-005 are PROTECTED (Passed UAT).
- * - Full seed / cleanup will NEVER overwrite or delete protected scenarios.
+ * - Full seed / cleanup will NEVER overwrite or delete protected scenarios unless explicitly targeted.
  * 
  * Usage:
  *   pnpm activity:uat:seed --code=TEST-ACT-006  # Seed / Reset specific scenario (006)
@@ -153,14 +153,15 @@ export async function cleanupUatActivityPlans(
     await db.activityResult.deleteMany({ where: { id: { in: resultIds } } });
   }
 
-  // 3. Delete child relations
+  // 3. Delete normalized child relations (zero legacy ActivityPlanItem)
   await db.activityApprovalLog.deleteMany({ where: { activityPlanId: { in: planIds } } });
   await db.activityHelper.deleteMany({ where: { activityPlanId: { in: planIds } } });
   await db.activityPlanWorkType.deleteMany({ where: { activityPlanId: { in: planIds } } });
   await db.activityPlanStore.deleteMany({ where: { activityPlanId: { in: planIds } } });
   await db.activityPlanProduct.deleteMany({ where: { activityPlanId: { in: planIds } } });
+  await db.activityPlanMarketingItem.deleteMany({ where: { activityPlanId: { in: planIds } } });
+  await db.activityPlanPromotionItem.deleteMany({ where: { activityPlanId: { in: planIds } } });
   await db.activityPlanTour.deleteMany({ where: { activityPlanId: { in: planIds } } });
-  await db.activityPlanItem.deleteMany({ where: { activityPlanId: { in: planIds } } });
   await db.activityAttachment.deleteMany({ where: { activityPlanId: { in: planIds } } });
 
   // Disconnect DemoPlotVisits if any
@@ -231,10 +232,41 @@ export async function seedUatActivityPlans(
   // 3. Ensure Promotional Materials Master Data exist
   await seedPromotionalMaterials(db);
 
+  // 4. Resolve Master Customers (Strict Rule: No dummy creation, verify existence)
+  const custSoonthorn = await db.customer.findFirst({ where: { name: { contains: "สุนทร" } } });
+  const custSoithong = await db.customer.findFirst({ where: { name: { contains: "สร้อยทอง" } } });
+  const custWutthichai = await db.customer.findFirst({ where: { name: { contains: "วุฒิชัย" } } });
+  const custWirut = await db.customer.findFirst({ where: { name: { contains: "วิรุธ" } } });
+  const custAnuwat = await db.customer.findFirst({ where: { name: { contains: "อนุวัฒน์" } } });
+
+  if (!custSoonthorn || !custSoithong || !custWutthichai || !custWirut || !custAnuwat) {
+    throw new Error(
+      "Missing Master Data: Required Customer records not found in database. " +
+      "Please run core seed first to populate Master Customers."
+    );
+  }
+
+  // 5. Resolve Master Products (Strict Rule: No dummy creation, verify existence)
+  const prodTeraSorb =
+    (await db.product.findFirst({ where: { name: { contains: "เทอรา-ซอร์บ : 12x1" } } })) ||
+    (await db.product.findFirst({ where: { name: { contains: "เทอรา-ซอร์บ" } } }));
+  const prodAltera = await db.product.findFirst({ where: { name: { contains: "อัลเทอร่า" } } });
+  const prodAccaban = await db.product.findFirst({ where: { name: { contains: "อัคคาบัน" } } });
+
+  if (!prodTeraSorb || !prodAltera || !prodAccaban) {
+    throw new Error(
+      "Missing Master Data: Required Product records not found in database. " +
+      "Please run core seed first to populate Master Products."
+    );
+  }
+
+  // 6. Resolve DemoPlot (if available)
+  const demoPlot = await db.demoPlot.findFirst({ where: { deletedAt: null } });
+
   // Helper date generators for September 2026 UAT testing
   const makeDate = (day: number, hour: number = 9) => new Date(2026, 8, day, hour, 0, 0); // Month index 8 = September
 
-  // 3. Define 10 UAT Scenarios with standardized TEST-ACT-* codes
+  // 7. Define 10 UAT Scenarios with Normalized Sub-Relations
   const uatScenarios = [
     {
       code: "TEST-ACT-001",
@@ -254,15 +286,21 @@ export async function seedUatActivityPlans(
       startDate: makeDate(10, 9),
       endDate: makeDate(10, 17),
       expectedWorkflow: "Promoter -> Sales -> Area Manager -> Sales Admin Manager",
-      items: [
+      stores: [
         {
-          itemOrder: 1,
           workTypeCode: "TYPE_1",
-          customerName: "นายสุนทร เกตุกิตติสกุล(ต.การเกษตร)",
-          visitTopic: "แจ้งข่าวสาร",
-          detail: "เข้าพบร้านค้าตัวแทนจำหน่ายเพื่อแนะนำผลิตภัณฑ์และสร้างความสัมพันธ์",
+          storeId: custSoonthorn.id,
+          storeName: custSoonthorn.name,
+          remarks: "แจ้งข่าวสาร",
+          notes: "เข้าพบร้านค้าตัวแทนจำหน่ายเพื่อแนะนำผลิตภัณฑ์และสร้างความสัมพันธ์",
         },
       ],
+      products: [] as Array<any>,
+      marketingItems: [] as Array<any>,
+      promotionItems: [] as Array<any>,
+      demoPlotId: null as string | null,
+      targetAttendeesCount: null as number | null,
+      targetBookingSales: null as number | null,
     },
     {
       code: "TEST-ACT-002",
@@ -282,18 +320,38 @@ export async function seedUatActivityPlans(
       startDate: makeDate(11, 9),
       endDate: makeDate(11, 17),
       expectedWorkflow: "Area Manager -> Sales Admin Manager (SP Budget) -> Sales Director",
-      items: [
+      stores: [
         {
-          itemOrder: 1,
           workTypeCode: "TYPE_9",
-          customerName: "หจก. สร้อยทอง รุ่งเรืองการเกษตร",
-          storeProductName: "เทอรา-ซอร์บ : 12x1 ลิตร",
-          storeQuantityCases: 10,
-          storePricePerCase: new Prisma.Decimal(500),
-          storeTotalAmount: new Prisma.Decimal(5000),
-          detail: "จัดกิจกรรมส่งเสริมการขายร่วมกับร้านค้าเพื่อกระตุ้นยอดสั่งซื้อ",
+          storeId: custSoithong.id,
+          storeName: custSoithong.name,
+          notes: "จัดกิจกรรมส่งเสริมการขายร่วมกับร้านค้าเพื่อกระตุ้นยอดสั่งซื้อ",
         },
       ],
+      products: [
+        {
+          workTypeCode: "TYPE_9",
+          storeId: custSoithong.id,
+          productId: prodTeraSorb.id,
+          productName: prodTeraSorb.name,
+          targetQuantity: 10,
+          masterPrice: 500,
+          unitPrice: 500,
+          targetAmount: 5000,
+          isPriceOverridden: false,
+        },
+      ],
+      marketingItems: [] as Array<any>,
+      promotionItems: [
+        {
+          budgetType: "SALES_PROMOTION",
+          detail: "งบส่งเสริมการขายและส่วนลดพิเศษหน้าร้าน",
+          amount: 5000,
+        },
+      ],
+      demoPlotId: null as string | null,
+      targetAttendeesCount: null as number | null,
+      targetBookingSales: null as number | null,
     },
     {
       code: "TEST-ACT-003",
@@ -313,38 +371,48 @@ export async function seedUatActivityPlans(
       startDate: makeDate(12, 9),
       endDate: makeDate(12, 17),
       expectedWorkflow: "Sales Admin Manager -> MKT Manager (MKT Budget) -> Sales Director",
-      items: [
+      stores: [
         {
-          itemOrder: 1,
           workTypeCode: "TYPE_8",
-          meetingTopic: "ประชุมสัมมนาชี้แจงทิศทางการตลาดและผลิตภัณฑ์ใหม่",
-          meetingAttendeesCount: 30,
-          meetingTargetProducts: "เทอรา-ซอร์บ, อัลเทอร่า แมกนีเซียม ซิงค์",
-          detail: "จัดประชุมสัมมนาถ่ายทอดความรู้แก่กลุ่มเกษตรกรและดีลเลอร์ในพื้นที่",
-        },
-        {
-          itemOrder: 2,
-          visitTopic: "MARKETING_PRODUCT",
-          plotCropCategory: "Banner",
-          storeProductName: "ป้ายไวนิลประชาสัมพันธ์งานประชุม",
-          storeQuantityCases: 4,
-          plotCropName: "ผืน",
-          storePricePerCase: new Prisma.Decimal(1000),
-          storeTotalAmount: new Prisma.Decimal(4000),
-          detail: "ป้ายไวนิลประชาสัมพันธ์งานประชุม 4 ผืน รวม 4,000 บาท",
-        },
-        {
-          itemOrder: 3,
-          visitTopic: "MARKETING_PRODUCT",
-          plotCropCategory: "Leaflet",
-          storeProductName: "สมุดฉีกและเอกสารคู่มือเกษตรกร",
-          storeQuantityCases: 80,
-          plotCropName: "เล่ม",
-          storePricePerCase: new Prisma.Decimal(50),
-          storeTotalAmount: new Prisma.Decimal(4000),
-          detail: "สมุดฉีกและเอกสารคู่มือเกษตรกร 80 เล่ม รวม 4,000 บาท",
+          storeId: custSoonthorn.id,
+          storeName: custSoonthorn.name,
+          notes: "ประชุมสัมมนาชี้แจงทิศทางการตลาดและผลิตภัณฑ์ใหม่",
         },
       ],
+      products: [
+        {
+          workTypeCode: "TYPE_8",
+          productId: prodTeraSorb.id,
+          productName: prodTeraSorb.name,
+        },
+        {
+          workTypeCode: "TYPE_8",
+          productId: prodAltera.id,
+          productName: prodAltera.name,
+        },
+      ],
+      marketingItems: [
+        {
+          category: "ไวนิล",
+          materialName: "ป้ายไวนิลประชาสัมพันธ์งานประชุม",
+          unit: "ผืน",
+          unitPrice: 1000,
+          quantity: 4,
+          totalAmount: 4000,
+        },
+        {
+          category: "สื่อสิ่งพิมพ์",
+          materialName: "สมุดฉีกและเอกสารคู่มือเกษตรกร",
+          unit: "เล่ม",
+          unitPrice: 50,
+          quantity: 80,
+          totalAmount: 4000,
+        },
+      ],
+      promotionItems: [] as Array<any>,
+      demoPlotId: null as string | null,
+      targetAttendeesCount: 30,
+      targetBookingSales: null as number | null,
     },
     {
       code: "TEST-ACT-004",
@@ -368,18 +436,41 @@ export async function seedUatActivityPlans(
       startDate: makeDate(14, 9),
       endDate: makeDate(15, 17),
       expectedWorkflow: "Line Approval -> Parallel (Sales Admin Mgr + MKT Mgr) -> Sales Director",
-      items: [
+      stores: [
         {
-          itemOrder: 1,
           workTypeCode: "TYPE_10",
-          plotOwnerName: "แปลงเรียนรู้การเกษตรดอนเจดีย์",
-          plotCropName: "ข้าวสุพรรณบุรี 50",
-          plotProductName: "เทอรา-ซอร์บ : 12x1 ลิตร",
-          meetingAttendeesCount: 50,
-          saleTotalPrice: new Prisma.Decimal(25000),
-          detail: "จัดงาน Field Day แสดงนวัตกรรมและผลผลิตทางการเกษตรระดับแปลงใหญ่",
+          storeId: custSoonthorn.id,
+          storeName: custSoonthorn.name,
+          notes: "จัดงาน Field Day แสดงนวัตกรรมและผลผลิตทางการเกษตรระดับแปลงใหญ่",
         },
       ],
+      products: [
+        {
+          workTypeCode: "TYPE_10",
+          productId: prodTeraSorb.id,
+          productName: prodTeraSorb.name,
+        },
+      ],
+      marketingItems: [
+        {
+          category: "ป้ายและเวที",
+          materialName: "อุปกรณ์เวทีและฉากนิทรรศการ Field Day",
+          unit: "ชุด",
+          unitPrice: 15000,
+          quantity: 1,
+          totalAmount: 15000,
+        },
+      ],
+      promotionItems: [
+        {
+          budgetType: "SALES_PROMOTION",
+          detail: "ค่าของสมนาคุณและรางวัลร่วมกิจกรรม Field Day",
+          amount: 10000,
+        },
+      ],
+      demoPlotId: demoPlot?.id ?? null,
+      targetAttendeesCount: 50,
+      targetBookingSales: 25000,
     },
     {
       code: "TEST-ACT-005",
@@ -399,22 +490,41 @@ export async function seedUatActivityPlans(
       startDate: makeDate(16, 9),
       endDate: makeDate(16, 17),
       expectedWorkflow: "Line Approval -> Sales Admin Mgr (Helper Review) -> Approved -> Calendar (2 Attendees)",
-      items: [
+      stores: [
         {
-          itemOrder: 1,
           workTypeCode: "TYPE_5",
-          customerName: "นายวุฒิชัย เกิดผล(ลาดหลุมแก้วพาณิชย์)",
-          surveyStoreName: "นายวุฒิชัย เกิดผล(ลาดหลุมแก้วพาณิชย์)",
-          surveyCompetitorProduct: "ปุ๋ยเคมีตราคู่แข่ง",
-          detail: "ร่วมสำรวจราคาสินค้าคู่แข่งในพื้นที่",
+          storeId: custWutthichai.id,
+          storeName: custWutthichai.name,
+          remarks: "สำรวจราคาสินค้าคู่แข่ง",
+          notes: "ร่วมสำรวจราคาสินค้าคู่แข่งในพื้นที่",
         },
         {
-          itemOrder: 2,
           workTypeCode: "TYPE_11",
-          customerName: "นายวุฒิชัย เกิดผล(ลาดหลุมแก้วพาณิชย์)",
-          detail: "ตรวจนับสต็อกสินค้าคงเหลือและเช็กความต้องการสั่งซื้อเพิ่ม",
+          storeId: custWutthichai.id,
+          storeName: custWutthichai.name,
+          remarks: "ตรวจนับสต็อก",
+          notes: "ตรวจนับสต็อกสินค้าคงเหลือและเช็กความต้องการสั่งซื้อเพิ่ม",
         },
       ],
+      products: [
+        {
+          workTypeCode: "TYPE_5",
+          storeId: custWutthichai.id,
+          productId: prodTeraSorb.id,
+          productName: prodTeraSorb.name,
+        },
+        {
+          workTypeCode: "TYPE_11",
+          storeId: custWutthichai.id,
+          productId: prodTeraSorb.id,
+          productName: prodTeraSorb.name,
+        },
+      ],
+      marketingItems: [] as Array<any>,
+      promotionItems: [] as Array<any>,
+      demoPlotId: null as string | null,
+      targetAttendeesCount: null as number | null,
+      targetBookingSales: null as number | null,
     },
     {
       code: "TEST-ACT-006",
@@ -434,20 +544,27 @@ export async function seedUatActivityPlans(
       startDate: makeDate(17, 9),
       endDate: makeDate(17, 17),
       expectedWorkflow: "Line Approval -> MKT Manager (Helper Review) -> Approved -> Calendar (2 Attendees)",
-      items: [
+      stores: [
         {
-          itemOrder: 1,
           workTypeCode: "TYPE_7",
-          plotActivityType: "FOLLOW_UP",
-          plotOwnerName: "นายวิรุธ รุจิวงศ์",
-          plotProductName: "เทอรา-ซอร์บ : 12x1 ลิตร",
-          plotCropCategory: "ไม้ผล",
-          plotCropName: "ทุเรียนหมอนทอง",
-          plotAreaRai: new Prisma.Decimal(5),
-          plotTreeCount: 100,
-          detail: "จัดกิจกรรมแปลงสาธิตและบันทึกภาพผลการเจริญเติบโตของพืชสำหรับจัดทำสื่อ",
+          storeId: custWirut.id,
+          storeName: custWirut.name,
+          notes: "จัดกิจกรรมแปลงสาธิตและบันทึกภาพผลการเจริญเติบโตของพืชสำหรับจัดทำสื่อ",
         },
       ],
+      products: [
+        {
+          workTypeCode: "TYPE_7",
+          storeId: custWirut.id,
+          productId: prodTeraSorb.id,
+          productName: prodTeraSorb.name,
+        },
+      ],
+      marketingItems: [] as Array<any>,
+      promotionItems: [] as Array<any>,
+      demoPlotId: demoPlot?.id ?? null,
+      targetAttendeesCount: null as number | null,
+      targetBookingSales: null as number | null,
     },
     {
       code: "TEST-ACT-007",
@@ -467,18 +584,32 @@ export async function seedUatActivityPlans(
       startDate: makeDate(18, 9),
       endDate: makeDate(18, 17),
       expectedWorkflow: "Promoter Submit -> Area Mgr Rejects in UI -> Status: REJECTED",
-      items: [
+      stores: [
         {
-          itemOrder: 1,
           workTypeCode: "TYPE_3",
-          customerName: "นายสุนทร เกตุกิตติสกุล(ต.การเกษตร)",
-          saleProductName: "อัคคาบัน : 12x1 กิโลกรัม",
-          saleQuantity: 50,
-          saleUnitPrice: new Prisma.Decimal(305),
-          saleTotalPrice: new Prisma.Decimal(15250),
-          detail: "เสนอขายสินค้าและโปรโมชั่นพิเศษแก่ร้านค้ารายใหม่ (เตรียมสำหรับการกด Reject)",
+          storeId: custSoonthorn.id,
+          storeName: custSoonthorn.name,
+          notes: "เสนอขายสินค้าและโปรโมชั่นพิเศษแก่ร้านค้ารายใหม่ (เตรียมสำหรับการกด Reject)",
         },
       ],
+      products: [
+        {
+          workTypeCode: "TYPE_3",
+          storeId: custSoonthorn.id,
+          productId: prodAccaban.id,
+          productName: prodAccaban.name,
+          targetQuantity: 50,
+          masterPrice: 305,
+          unitPrice: 305,
+          targetAmount: 50 * 305,
+          isPriceOverridden: false,
+        },
+      ],
+      marketingItems: [] as Array<any>,
+      promotionItems: [] as Array<any>,
+      demoPlotId: null as string | null,
+      targetAttendeesCount: null as number | null,
+      targetBookingSales: null as number | null,
     },
     {
       code: "TEST-ACT-008",
@@ -498,15 +629,28 @@ export async function seedUatActivityPlans(
       startDate: makeDate(21, 9),
       endDate: makeDate(21, 17),
       expectedWorkflow: "Promoter Submit -> Area Mgr Requests Correction in UI -> Status: WAITING_FOR_CORRECTION",
-      items: [
+      stores: [
         {
-          itemOrder: 1,
           workTypeCode: "TYPE_6",
-          customerName: "นายอนุวัฒน์ คำมันตรี(สำรวยบริการ)",
-          issueType: "คุณภาพสินค้า",
-          detail: "ลงพื้นที่ตรวจสอบข้อร้องเรียนคุณภาพสินค้า (เตรียมสำหรับการกด Request Correction)",
+          storeId: custAnuwat.id,
+          storeName: custAnuwat.name,
+          remarks: "คุณภาพสินค้า",
+          notes: "ลงพื้นที่ตรวจสอบข้อร้องเรียนคุณภาพสินค้า (เตรียมสำหรับการกด Request Correction)",
         },
       ],
+      products: [
+        {
+          workTypeCode: "TYPE_6",
+          storeId: custAnuwat.id,
+          productId: prodTeraSorb.id,
+          productName: prodTeraSorb.name,
+        },
+      ],
+      marketingItems: [] as Array<any>,
+      promotionItems: [] as Array<any>,
+      demoPlotId: null as string | null,
+      targetAttendeesCount: null as number | null,
+      targetBookingSales: null as number | null,
     },
     {
       code: "TEST-ACT-009",
@@ -526,15 +670,27 @@ export async function seedUatActivityPlans(
       startDate: makeDate(22, 9),
       endDate: makeDate(22, 17),
       expectedWorkflow: "Correction -> Edit in Form -> Resubmit in UI -> Restarts Line Approval",
-      items: [
+      stores: [
         {
-          itemOrder: 1,
           workTypeCode: "TYPE_2",
-          customerName: "นายวิรุธ รุจิวงศ์",
-          followupProductName: "อัลเทอร่า แมกนีเซียม ซิงค์ : 12x1 ลิตร",
-          detail: "ติดตามผลการใช้ปุ๋ยและสารเสริมชีวภาพ (เตรียมสำหรับการแก้ไขและ Resubmit)",
+          storeId: custWirut.id,
+          storeName: custWirut.name,
+          notes: "ติดตามผลการใช้ปุ๋ยและสารเสริมชีวภาพ (เตรียมสำหรับการแก้ไขและ Resubmit)",
         },
       ],
+      products: [
+        {
+          workTypeCode: "TYPE_2",
+          storeId: custWirut.id,
+          productId: prodAltera.id,
+          productName: prodAltera.name,
+        },
+      ],
+      marketingItems: [] as Array<any>,
+      promotionItems: [] as Array<any>,
+      demoPlotId: null as string | null,
+      targetAttendeesCount: null as number | null,
+      targetBookingSales: null as number | null,
     },
     {
       code: "TEST-ACT-010",
@@ -554,22 +710,28 @@ export async function seedUatActivityPlans(
       startDate: makeDate(23, 9),
       endDate: makeDate(23, 17),
       expectedWorkflow: "Complete Approval -> Synced to Calendar -> View on Calendar -> Cancel",
-      items: [
+      stores: [
         {
-          itemOrder: 1,
           workTypeCode: "TYPE_1",
-          customerName: "นายวุฒิชัย เกิดผล(ลาดหลุมแก้วพาณิชย์)",
-          visitTopic: "แจ้งข่าวสาร",
-          detail: "เข้าพบร้านค้าและตรวจเยี่ยมเกษตรกร (เตรียมสำหรับการทดสอบปฏิทินนัดหมาย)",
+          storeId: custWutthichai.id,
+          storeName: custWutthichai.name,
+          remarks: "แจ้งข่าวสาร",
+          notes: "เข้าพบร้านค้าและตรวจเยี่ยมเกษตรกร (เตรียมสำหรับการทดสอบปฏิทินนัดหมาย)",
         },
       ],
+      products: [] as Array<any>,
+      marketingItems: [] as Array<any>,
+      promotionItems: [] as Array<any>,
+      demoPlotId: null as string | null,
+      targetAttendeesCount: null as number | null,
+      targetBookingSales: null as number | null,
     },
   ];
 
-  console.log("📝 Upserting UAT Activity Plans in DRAFT status with Work Type Items...\n");
+  console.log("📝 Upserting UAT Activity Plans in DRAFT status with normalized sub-tables...\n");
 
   const seededPlans = [];
-  let totalItemsCreated = 0;
+  let totalSubRecordsCreated = 0;
 
   // Filter scenarios to seed with Safety Protection for Passed UAT Scenarios
   let scenariosToSeed: typeof uatScenarios;
@@ -618,7 +780,11 @@ export async function seedUatActivityPlans(
       // 1. Reset child records for a clean DRAFT state
       await db.activityHelper.deleteMany({ where: { activityPlanId: plan.id } });
       await db.activityPlanWorkType.deleteMany({ where: { activityPlanId: plan.id } });
-      await db.activityPlanItem.deleteMany({ where: { activityPlanId: plan.id } });
+      await db.activityPlanStore.deleteMany({ where: { activityPlanId: plan.id } });
+      await db.activityPlanProduct.deleteMany({ where: { activityPlanId: plan.id } });
+      await db.activityPlanMarketingItem.deleteMany({ where: { activityPlanId: plan.id } });
+      await db.activityPlanPromotionItem.deleteMany({ where: { activityPlanId: plan.id } });
+      await db.activityPlanTour.deleteMany({ where: { activityPlanId: plan.id } });
       await db.activityApprovalLog.deleteMany({ where: { activityPlanId: plan.id } });
       await db.activityCalendarAttendee.deleteMany({
         where: { calendarEvent: { activityPlanId: plan.id } },
@@ -645,6 +811,8 @@ export async function seedUatActivityPlans(
           province: s.province,
           district: s.district,
           location: s.location,
+          targetAttendeesCount: s.targetAttendeesCount ?? null,
+          targetBookingSales: s.targetBookingSales != null ? new Prisma.Decimal(s.targetBookingSales) : null,
           salesPromotionBudgetRequested: s.spBudget > 0 ? new Prisma.Decimal(s.spBudget) : null,
           marketingBudgetRequested: s.mktBudget > 0 ? new Prisma.Decimal(s.mktBudget) : null,
           totalBudgetRequested: new Prisma.Decimal(totalBudget),
@@ -683,6 +851,8 @@ export async function seedUatActivityPlans(
           province: s.province,
           district: s.district,
           location: s.location,
+          targetAttendeesCount: s.targetAttendeesCount ?? null,
+          targetBookingSales: s.targetBookingSales != null ? new Prisma.Decimal(s.targetBookingSales) : null,
           salesPromotionBudgetRequested: s.spBudget > 0 ? new Prisma.Decimal(s.spBudget) : null,
           marketingBudgetRequested: s.mktBudget > 0 ? new Prisma.Decimal(s.mktBudget) : null,
           totalBudgetRequested: new Prisma.Decimal(totalBudget),
@@ -691,7 +861,7 @@ export async function seedUatActivityPlans(
       });
     }
 
-    // Link Work Types
+    // 1. Link Work Types
     for (const wtCode of s.workTypeCodes) {
       const wt = typeMap[wtCode];
       if (wt) {
@@ -704,20 +874,102 @@ export async function seedUatActivityPlans(
       }
     }
 
-    // Create Activity Plan Items
-    if (s.items && s.items.length > 0) {
-      for (const item of s.items) {
-        await db.activityPlanItem.create({
-          data: {
+    // 2. Link Stores
+    if (s.stores && s.stores.length > 0) {
+      await db.activityPlanStore.createMany({
+        data: s.stores.map((st: any) => ({
+          activityPlanId: plan.id,
+          workTypeCode: st.workTypeCode,
+          storeId: st.storeId,
+          storeName: st.storeName ?? null,
+          remarks: st.remarks ?? null,
+          notes: st.notes ?? null,
+        })),
+      });
+      totalSubRecordsCreated += s.stores.length;
+    }
+
+    // 3. Link Products
+    if (s.products && s.products.length > 0) {
+      await db.activityPlanProduct.createMany({
+        data: s.products.map((p) => {
+          const qty = p.targetQuantity != null ? Number(p.targetQuantity) : null;
+          const uPrice = p.unitPrice != null ? Number(p.unitPrice) : null;
+          const mPrice = p.masterPrice != null ? Number(p.masterPrice) : uPrice;
+          const totalAmt =
+            p.targetAmount != null
+              ? Number(p.targetAmount)
+              : qty != null && uPrice != null
+              ? qty * uPrice
+              : null;
+          const isOverridden =
+            p.isPriceOverridden ??
+            (mPrice != null && uPrice != null ? mPrice !== uPrice : false);
+          return {
             activityPlanId: plan.id,
-            ...item,
+            workTypeCode: p.workTypeCode,
+            storeId: p.storeId ?? null,
+            productId: p.productId,
+            productName: p.productName ?? null,
+            targetQuantity: qty != null ? Math.round(qty) : null,
+            masterPrice: mPrice != null ? new Prisma.Decimal(mPrice) : null,
+            unitPrice: uPrice != null ? new Prisma.Decimal(uPrice) : null,
+            targetAmount: totalAmt != null ? new Prisma.Decimal(totalAmt) : null,
+            isPriceOverridden: isOverridden,
+          };
+        }),
+      });
+      totalSubRecordsCreated += s.products.length;
+    }
+
+    // 4. Link Marketing Items
+    if (s.marketingItems && s.marketingItems.length > 0) {
+      await db.activityPlanMarketingItem.createMany({
+        data: s.marketingItems.map((m) => ({
+          activityPlanId: plan.id,
+          category: m.category || "สื่อส่งเสริมการขาย",
+          materialName: m.materialName,
+          unit: m.unit ?? "ชิ้น",
+          unitPrice: new Prisma.Decimal(m.unitPrice ?? 0),
+          quantity: m.quantity || 1,
+          totalAmount: new Prisma.Decimal(m.totalAmount ?? (m.quantity || 1) * (m.unitPrice ?? 0)),
+        })),
+      });
+      totalSubRecordsCreated += s.marketingItems.length;
+    }
+
+    // 5. Link Promotion Items
+    if (s.promotionItems && s.promotionItems.length > 0) {
+      await db.activityPlanPromotionItem.createMany({
+        data: s.promotionItems.map((p) => ({
+          activityPlanId: plan.id,
+          budgetType: p.budgetType || "SALES_PROMOTION",
+          detail: p.detail,
+          amount: new Prisma.Decimal(p.amount),
+        })),
+      });
+      totalSubRecordsCreated += s.promotionItems.length;
+    }
+
+    // 6. Link DemoPlotVisit (if demoPlotId provided)
+    if (s.demoPlotId) {
+      const existingVisit = await db.demoPlotVisit.findFirst({
+        where: { activityPlanId: plan.id },
+      });
+      if (!existingVisit) {
+        await db.demoPlotVisit.create({
+          data: {
+            demoPlotId: s.demoPlotId,
+            activityPlanId: plan.id,
+            visitNumber: 1,
+            visitDate: s.startDate,
+            notes: "เข้าตรวจและติดตามแปลงสาธิตตามแผนกิจกรรม UAT",
           },
         });
-        totalItemsCreated++;
       }
     }
 
-    // Link Helpers (Status: PENDING)
+    // 7. Link Helpers (Status: PENDING)
     for (const helperEmpId of s.helpers) {
       const helperEmp = await db.employee.findUnique({
         where: { id: helperEmpId },
@@ -741,7 +993,8 @@ export async function seedUatActivityPlans(
       title: s.title,
       creator: s.creatorUser.email,
       workTypes: s.workTypeCodes.join(", "),
-      itemsCount: s.items?.length || 0,
+      storesCount: s.stores.length,
+      productsCount: s.products.length,
       budget: totalBudget > 0 ? `${totalBudget.toLocaleString()} บาท (SP: ${s.spBudget}, MKT: ${s.mktBudget})` : "0 บาท",
       helpersCount: s.helpers.length,
       status: plan.status,
@@ -749,9 +1002,9 @@ export async function seedUatActivityPlans(
     });
   }
 
-  // 4. Output Summary Table
+  // 8. Output Summary Table
   console.log("═════════════════════════════════════════════════════════════════════════════════════════════════════════════════");
-  console.log(`📊 UAT TEST DATA SEEDING COMPLETE (${seededPlans.length} SCENARIOS PROCESSED, ${totalItemsCreated} ITEMS CREATED)`);
+  console.log(`📊 UAT TEST DATA SEEDING COMPLETE (${seededPlans.length} SCENARIOS PROCESSED, ${totalSubRecordsCreated} SUB-RECORDS CREATED)`);
   console.log("═════════════════════════════════════════════════════════════════════════════════════════════════════════════════\n");
 
   if (seededPlans.length > 0) {
@@ -760,7 +1013,8 @@ export async function seedUatActivityPlans(
         ID: p.code,
         Creator: p.creator,
         "Work Types": p.workTypes,
-        Items: p.itemsCount,
+        Stores: p.storesCount,
+        Products: p.productsCount,
         Budget: p.budget,
         Helpers: p.helpersCount,
         Status: p.status,
@@ -768,7 +1022,7 @@ export async function seedUatActivityPlans(
     );
   }
 
-  return { seededPlans, totalItemsCreated };
+  return { seededPlans, totalItemsCreated: totalSubRecordsCreated };
 }
 
 // Direct CLI execution handler

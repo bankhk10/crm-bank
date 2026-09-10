@@ -37,12 +37,6 @@ export async function seedType5(prisma: PrismaClient, ctx: SeedContext) {
       { workTypeCode: "TYPE_5", storeId: store1.id, productId: prod0.id, productName: prod0.name },
       { workTypeCode: "TYPE_5", storeId: store1.id, productId: prod1.id, productName: prod1.name },
     ],
-    items: [
-      { workTypeCode: "TYPE_5", customerName: store0.name, surveyStoreName: store0.name, surveyCompetitorProduct: "สารบำรุงพืช แบรนด์ A", detail: "สำรวจราคาขวด 1 ลิตร" },
-      { workTypeCode: "TYPE_5", customerName: store0.name, surveyStoreName: store0.name, surveyCompetitorProduct: "สารป้องกันเชื้อรา แบรนด์ B", detail: "สำรวจโปรโมชั่นตัดราคา" },
-      { workTypeCode: "TYPE_5", customerName: store1.name, surveyStoreName: store1.name, surveyCompetitorProduct: "สารบำรุงพืช แบรนด์ A", detail: "สำรวจส่วนลดซื้อยกลัง" },
-      { workTypeCode: "TYPE_5", customerName: store1.name, surveyStoreName: store1.name, surveyCompetitorProduct: "สารป้องกันเชื้อรา แบรนด์ B", detail: "สำรวจของแถมหน้าร้าน" },
-    ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-08T10:00:00.000Z") },
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.APPROVE, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.PENDING_LINE_APPROVAL, toStatus: ActivityStatus.APPROVED, createdAt: new Date("2026-08-10T14:00:00.000Z") },
@@ -101,9 +95,6 @@ export async function seedType5(prisma: PrismaClient, ctx: SeedContext) {
     products: [
       { workTypeCode: "TYPE_5", storeId: store2.id, productId: prod0.id, productName: prod0.name },
     ],
-    items: [
-      { workTypeCode: "TYPE_5", customerName: store2.name, surveyStoreName: store2.name, surveyCompetitorProduct: "ปุ๋ยเกล็ดนำเข้า สูตร 20-20-20", detail: "สำรวจขนาด 1 กิโลกรัม" },
-    ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-11T09:00:00.000Z") },
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.APPROVE, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.PENDING_LINE_APPROVAL, toStatus: ActivityStatus.APPROVED, createdAt: new Date("2026-08-12T10:00:00.000Z") },
@@ -142,9 +133,6 @@ export async function seedType5(prisma: PrismaClient, ctx: SeedContext) {
     submittedAt: new Date("2026-08-21T10:00:00.000Z"),
     stores: [
       { workTypeCode: "TYPE_5", storeId: store0.id, storeName: store0.name },
-    ],
-    items: [
-      { workTypeCode: "TYPE_5", customerName: store0.name, surveyStoreName: store0.name, surveyCompetitorProduct: "ไกลโฟเซต ตรายอดนิยม", detail: "ตรวจสอบสต็อกในร้าน" },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-21T10:00:00.000Z") },

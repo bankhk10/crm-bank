@@ -97,9 +97,15 @@ export function Type4Collect({
                   labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-amber-500"
                   value={item.customerName}
-                  onChange={(val) =>
-                    updateType4Row(item.id, "customerName", val)
-                  }
+                  onChange={(val) => {
+                    const cust = customers.find(
+                      (c) => c.name === val || c.id === val,
+                    );
+                    updateType4Row(item.id, "customerName", cust?.name || val);
+                    if (cust?.id) {
+                      updateType4Row(item.id, "storeId", cust.id);
+                    }
+                  }}
                   options={customerOptions}
                   placeholder="เลือกร้านค้า / ลูกค้า..."
                   searchPlaceholder="ค้นหาร้านค้า / ลูกค้า..."

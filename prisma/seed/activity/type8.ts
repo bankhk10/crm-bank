@@ -29,23 +29,18 @@ export async function seedType8(prisma: PrismaClient, ctx: SeedContext) {
     currentApproverEmployeeId: ctx.managerEmployee.id,
     submittedAt: new Date("2026-08-08T09:00:00.000Z"),
     approvedAt: new Date("2026-08-10T15:00:00.000Z"),
+    targetAttendeesCount: 50,
     stores: [
       { workTypeCode: "TYPE_8", storeId: store0.id, storeName: store0.name },
       { workTypeCode: "TYPE_8", storeId: store1.id, storeName: store1.name },
     ],
+    products: [
+      { workTypeCode: "TYPE_8", storeId: store0.id, productId: ctx.products[0].id, productName: ctx.products[0].name },
+      { workTypeCode: "TYPE_8", storeId: store0.id, productId: (ctx.products[1] || ctx.products[0]).id, productName: (ctx.products[1] || ctx.products[0]).name },
+    ],
     helpers: [
       { employeeId: helper0.id, departmentId: helper0.departmentId, departmentName: helper0.departmentName, status: ActivityHelperStatus.APPROVED, approvedById: ctx.managerEmployee.id, approvedAt: new Date("2026-08-09T10:00:00.000Z") },
       { employeeId: helper1.id, departmentId: helper1.departmentId, departmentName: helper1.departmentName, status: ActivityHelperStatus.APPROVED, approvedById: ctx.managerEmployee.id, approvedAt: new Date("2026-08-09T10:00:00.000Z") },
-    ],
-    items: [
-      {
-        workTypeCode: "TYPE_8",
-        customerName: store0.name,
-        meetingTopic: "เทคนิคการจัดการเพลี้ยกระโดดสีน้ำตาลและหนอนห่อใบข้าว",
-        meetingAttendeesCount: 50,
-        meetingTargetProducts: "คอนซัลท์, พาเหรด 84",
-        detail: "บรรยายวิชาการ 2 ชม. และสาธิตการใช้สารกำจัดแมลง",
-      },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-08T09:00:00.000Z") },
@@ -83,14 +78,15 @@ export async function seedType8(prisma: PrismaClient, ctx: SeedContext) {
     createdById: ctx.adminUser.id,
     currentApproverEmployeeId: ctx.managerEmployee.id,
     submittedAt: new Date("2026-08-18T14:00:00.000Z"),
+    targetAttendeesCount: 30,
     stores: [
       { workTypeCode: "TYPE_8", storeId: store2.id, storeName: store2.name },
     ],
+    products: [
+      { workTypeCode: "TYPE_8", storeId: store2.id, productId: ctx.products[0].id, productName: ctx.products[0].name },
+    ],
     helpers: [
       { employeeId: helper0.id, departmentId: helper0.departmentId, departmentName: helper0.departmentName, status: ActivityHelperStatus.PENDING },
-    ],
-    items: [
-      { workTypeCode: "TYPE_8", customerName: store2.name, meetingTopic: "ประชุมสัมมนาคู่ค้ารายย่อยภาคเหนือตอนล่าง", meetingAttendeesCount: 30, detail: "สรุปผลงานครึ่งปีแรก" },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-18T14:00:00.000Z") },
@@ -117,11 +113,12 @@ export async function seedType8(prisma: PrismaClient, ctx: SeedContext) {
     currentApproverEmployeeId: ctx.managerEmployee.id,
     submittedAt: new Date("2026-08-14T09:00:00.000Z"),
     approvedAt: new Date("2026-08-15T10:00:00.000Z"),
+    targetAttendeesCount: 25,
     stores: [
       { workTypeCode: "TYPE_8", storeId: store0.id, storeName: store0.name },
     ],
-    items: [
-      { workTypeCode: "TYPE_8", customerName: store0.name, meetingTopic: "เทคนิคการพ่นสารเคมีในข้าวโพด", meetingAttendeesCount: 25 },
+    products: [
+      { workTypeCode: "TYPE_8", storeId: store0.id, productId: ctx.products[0].id, productName: ctx.products[0].name },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-14T09:00:00.000Z") },

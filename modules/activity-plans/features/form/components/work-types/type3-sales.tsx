@@ -113,14 +113,37 @@ export function Type3Sales({
       const updated = { ...p, [field]: val };
       if (field === "productName") {
         if (!val) {
+          updated.productId = undefined;
           updated.unitPrice = 0;
+          updated.masterPrice = undefined;
+          updated.isPriceOverridden = false;
         } else {
-          const foundProd = (products || []).find((prod) => prod.name === val);
+          const foundProd = (products || []).find(
+            (prod) => prod.name === val || prod.id === val,
+          );
           if (foundProd && foundProd.price != null) {
+            updated.productId = foundProd.id;
+            updated.productName = foundProd.name;
+            updated.masterPrice = Number(foundProd.price);
             updated.unitPrice = Number(foundProd.price);
+            updated.isPriceOverridden = false;
+          } else if (foundProd) {
+            updated.productId = foundProd.id;
+            updated.productName = foundProd.name;
+            updated.unitPrice = 0;
+            updated.masterPrice = 0;
+            updated.isPriceOverridden = false;
           } else {
             updated.unitPrice = 0;
+            updated.isPriceOverridden = false;
           }
+        }
+      }
+      if (field === "unitPrice") {
+        const newPrice = parseFloat(val) || 0;
+        updated.unitPrice = newPrice;
+        if (updated.masterPrice != null) {
+          updated.isPriceOverridden = Number(newPrice) !== Number(updated.masterPrice);
         }
       }
       const qty =
@@ -244,9 +267,15 @@ export function Type3Sales({
                     labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
                     triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                     value={item.customerName}
-                    onChange={(val) =>
-                      updateType3Row(item.id, "customerName", val)
-                    }
+                    onChange={(val) => {
+                      const cust = customers.find(
+                        (c) => c.name === val || c.id === val,
+                      );
+                      updateType3Row(item.id, "customerName", cust?.name || val);
+                      if (cust?.id) {
+                        updateType3Row(item.id, "storeId", cust.id);
+                      }
+                    }}
                     options={customerOptions}
                     placeholder="เลือกร้านค้า / Key Farmer..."
                     searchPlaceholder="ค้นหาร้านค้า / Key Farmer..."

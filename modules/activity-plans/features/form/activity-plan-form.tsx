@@ -114,6 +114,7 @@ import {
   Type6IssueItem,
   Type7DemoPlotItem,
   Type8MeetingItem,
+  Type11StoreItem,
   MarketingBudgetProductItem,
   SalesPromotionItem,
 } from "./types";
@@ -629,6 +630,18 @@ export function ActivityPlanForm({
     ) {
       return initDetails.type1Items;
     }
+    const type1Stores = (initial as any)?.stores?.filter(
+      (s: any) => s.workTypeCode === "TYPE_1",
+    );
+    if (type1Stores && type1Stores.length > 0) {
+      return type1Stores.map((s: any, idx: number) => ({
+        id: s.id || String(idx + 1),
+        storeId: s.storeId,
+        customerName: s.store?.name || s.storeName || "",
+        topic: s.remarks || "แจ้งข่าวสาร",
+        detail: s.notes || "",
+      }));
+    }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
         (item: any) =>
@@ -641,6 +654,7 @@ export function ActivityPlanForm({
       if (items.length > 0) {
         return items.map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
+          storeId: item.storeId,
           customerName:
             item.customerName || item.storeName || item.ownerName || "",
           topic: item.visitTopic || item.topic || "แจ้งข่าวสาร",
@@ -691,6 +705,36 @@ export function ActivityPlanForm({
       ) {
         return initDetails.type2Items;
       }
+      const type2Prods = (initial as any)?.products?.filter(
+        (p: any) => p.workTypeCode === "TYPE_2",
+      );
+      const type2Stores = (initial as any)?.stores?.filter(
+        (s: any) => s.workTypeCode === "TYPE_2",
+      );
+      if (
+        (type2Prods && type2Prods.length > 0) ||
+        (type2Stores && type2Stores.length > 0)
+      ) {
+        const count = Math.max(
+          type2Prods?.length || 0,
+          type2Stores?.length || 0,
+        );
+        return Array.from({ length: count }).map((_, idx) => {
+          const p = type2Prods?.[idx];
+          const s =
+            type2Stores?.find((st: any) => st.storeId === p?.storeId) ||
+            type2Stores?.[idx];
+          return {
+            id: p?.id || s?.id || String(idx + 1),
+            storeId: s?.storeId || p?.storeId || "",
+            customerName: s?.store?.name || s?.storeName || "",
+            productId: p?.productId || "",
+            productName:
+              p?.product?.name || p?.productName || DEMO_PRODUCTS[0] || "",
+            detail: s?.notes || "",
+          };
+        });
+      }
       if (Array.isArray(initDetails) && initDetails.length > 0) {
         const items = initDetails.filter(
           (item: any) =>
@@ -703,6 +747,8 @@ export function ActivityPlanForm({
         if (items.length > 0) {
           return items.map((item: any, idx: number) => ({
             id: item.id || String(idx + 1),
+            storeId: item.storeId,
+            productId: item.productId,
             productName:
               item.followupProductName ||
               item.productName ||
@@ -755,6 +801,75 @@ export function ActivityPlanForm({
       initDetails.type3Items.length > 0
     ) {
       return initDetails.type3Items;
+    }
+    const type3Prods = (initial as any)?.products?.filter(
+      (p: any) => p.workTypeCode === "TYPE_3",
+    );
+    const type3Stores = (initial as any)?.stores?.filter(
+      (s: any) => s.workTypeCode === "TYPE_3",
+    );
+    if (
+      (type3Prods && type3Prods.length > 0) ||
+      (type3Stores && type3Stores.length > 0)
+    ) {
+      const storeMap = new Map<string, any[]>();
+      if (type3Prods && type3Prods.length > 0) {
+        type3Prods.forEach((p: any) => {
+          const sId = p.storeId || "default";
+          if (!storeMap.has(sId)) storeMap.set(sId, []);
+          storeMap.get(sId)!.push(p);
+        });
+      }
+      if (type3Stores && type3Stores.length > 0) {
+        type3Stores.forEach((s: any) => {
+          if (!storeMap.has(s.storeId)) storeMap.set(s.storeId, []);
+        });
+      }
+      return Array.from(storeMap.entries()).map(([sId, prods], idx) => {
+        const matchedStore = type3Stores?.find((s: any) => s.storeId === sId);
+        const prodLines = (prods || []).map((p: any, pIdx: number) => ({
+          id: p.id || `p-${idx}-${pIdx}`,
+          productId: p.productId,
+          productName: p.product?.name || p.productName || "",
+          quantity: p.targetQuantity != null ? Number(p.targetQuantity) : 1,
+          unitPrice: p.unitPrice != null ? Number(p.unitPrice) : 0,
+          price:
+            p.targetAmount != null
+              ? Number(p.targetAmount)
+              : (Number(p.targetQuantity) || 1) * (Number(p.unitPrice) || 0),
+          masterPrice: p.masterPrice != null ? Number(p.masterPrice) : null,
+          isPriceOverridden: p.isPriceOverridden ?? false,
+        }));
+        const firstProd = prodLines[0];
+        return {
+          id: String(idx + 1),
+          storeId: sId !== "default" ? sId : undefined,
+          customerName: matchedStore?.store?.name || matchedStore?.storeName || "",
+          products:
+            prodLines.length > 0
+              ? prodLines
+              : [
+                  {
+                    id: `p-${idx}-0`,
+                    productName: "",
+                    quantity: 1,
+                    unitPrice: 0,
+                    price: 0,
+                  },
+                ],
+          productId: firstProd?.productId,
+          productName: firstProd?.productName || "",
+          quantity: firstProd?.quantity || 1,
+          unitPrice: firstProd?.unitPrice || 0,
+          price: prodLines.reduce(
+            (sum: number, p: any) => sum + (p.price || 0),
+            0,
+          ),
+          masterPrice: firstProd?.masterPrice,
+          isPriceOverridden: firstProd?.isPriceOverridden,
+          detail: matchedStore?.notes || "",
+        };
+      });
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
@@ -896,6 +1011,18 @@ export function ActivityPlanForm({
     ) {
       return initDetails.type4Items;
     }
+    const type4Stores = (initial as any)?.stores?.filter(
+      (s: any) => s.workTypeCode === "TYPE_4",
+    );
+    if (type4Stores && type4Stores.length > 0) {
+      return type4Stores.map((s: any, idx: number) => ({
+        id: s.id || String(idx + 1),
+        storeId: s.storeId,
+        customerName: s.store?.name || s.storeName || "",
+        collectAmount: s.targetAmount != null ? Number(s.targetAmount) : 0,
+        detail: s.notes || "",
+      }));
+    }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
         (item: any) =>
@@ -910,6 +1037,7 @@ export function ActivityPlanForm({
       if (items.length > 0) {
         return items.map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
+          storeId: item.storeId,
           customerName: item.customerName || "",
           collectAmount: item.collectAmount ? Number(item.collectAmount) : 0,
           detail: item.detail || "",
@@ -958,6 +1086,34 @@ export function ActivityPlanForm({
     ) {
       return initDetails.type5Items;
     }
+    const type5Stores = (initial as any)?.stores?.filter(
+      (s: any) => s.workTypeCode === "TYPE_5",
+    );
+    const type5Prods = (initial as any)?.products?.filter(
+      (p: any) => p.workTypeCode === "TYPE_5",
+    );
+    if (
+      (type5Stores && type5Stores.length > 0) ||
+      (type5Prods && type5Prods.length > 0)
+    ) {
+      const count = Math.max(
+        type5Stores?.length || 0,
+        type5Prods?.length || 0,
+      );
+      return Array.from({ length: count }).map((_, idx) => {
+        const s = type5Stores?.[idx];
+        const p = type5Prods?.[idx];
+        return {
+          id: s?.id || p?.id || String(idx + 1),
+          storeId: s?.storeId || "",
+          storeName: s?.store?.name || s?.storeName || "",
+          productId: p?.productId || "",
+          comparedProduct:
+            p?.product?.name || p?.productName || DEMO_PRODUCTS[0] || "",
+          detail: s?.notes || "",
+        };
+      });
+    }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
         (item: any) =>
@@ -971,6 +1127,8 @@ export function ActivityPlanForm({
       if (items.length > 0) {
         return items.map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
+          storeId: item.storeId,
+          productId: item.productId,
           storeName: item.surveyStoreName || item.storeName || "",
           comparedProduct:
             item.surveyCompetitorProduct || DEMO_PRODUCTS[0] || "",
@@ -1020,6 +1178,18 @@ export function ActivityPlanForm({
     ) {
       return initDetails.type6Items;
     }
+    const type6Stores = (initial as any)?.stores?.filter(
+      (s: any) => s.workTypeCode === "TYPE_6",
+    );
+    if (type6Stores && type6Stores.length > 0) {
+      return type6Stores.map((s: any, idx: number) => ({
+        id: s.id || String(idx + 1),
+        storeId: s.storeId,
+        customerName: s.store?.name || s.storeName || "",
+        issueType: s.remarks || "เคลมของ",
+        detail: s.notes || "",
+      }));
+    }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
         (item: any) =>
@@ -1031,6 +1201,7 @@ export function ActivityPlanForm({
       if (items.length > 0) {
         return items.map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
+          storeId: item.storeId,
           customerName: item.customerName || "",
           issueType: item.issueType || "เคลมของ",
           detail: item.detail || "",
@@ -1203,6 +1374,28 @@ export function ActivityPlanForm({
     ) {
       return initDetails.type8Items;
     }
+    const type8Prods = (initial as any)?.products?.filter(
+      (p: any) => p.workTypeCode === "TYPE_8",
+    );
+    if (type8Prods && type8Prods.length > 0) {
+      return [
+        {
+          id: "1",
+          topic: "",
+          targetProducts: type8Prods.map(
+            (p: any) => p.product?.name || p.productName || "",
+          ),
+          targetProductIds: type8Prods
+            .map((p: any) => p.productId)
+            .filter(Boolean),
+          attendeesCount:
+            (initial as any)?.targetAttendeesCount != null
+              ? Number((initial as any).targetAttendeesCount)
+              : 1,
+          detail: "",
+        },
+      ];
+    }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
         (item: any) =>
@@ -1217,13 +1410,11 @@ export function ActivityPlanForm({
         return items.map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
           topic: item.meetingTopic || item.topic || "",
-          targetProducts: item.meetingTargetProducts
-            ? Array.isArray(item.meetingTargetProducts)
-              ? item.meetingTargetProducts
-              : String(item.meetingTargetProducts)
-                  .split(",")
-                  .map((s: string) => s.trim())
-            : [],
+          targetProducts: Array.isArray(item.meetingTargetProducts)
+            ? item.meetingTargetProducts
+            : item.meetingTargetProducts
+              ? [String(item.meetingTargetProducts).trim()]
+              : [],
           attendeesCount:
             item.meetingAttendeesCount ?? item.attendeesCount ?? 1,
           detail: item.detail || "",
@@ -1266,6 +1457,10 @@ export function ActivityPlanForm({
   };
 
   const [type9Store, setType9Store] = useState(() => {
+    const s = (initial as any)?.stores?.find(
+      (st: any) => st.workTypeCode === "TYPE_9",
+    );
+    if (s) return s.store?.name || s.storeName || "";
     if (initDetails?.type9Store) return initDetails.type9Store;
     if (Array.isArray(initDetails)) {
       const item = initDetails.find(
@@ -1290,6 +1485,10 @@ export function ActivityPlanForm({
     return "";
   });
   const [type9IsSubDealer, setType9IsSubDealer] = useState(() => {
+    const s = (initial as any)?.stores?.find(
+      (st: any) => st.workTypeCode === "TYPE_9",
+    );
+    if (s?.subDealerStore) return true;
     if (initDetails?.type9IsSubDealer !== undefined)
       return initDetails.type9IsSubDealer;
     if (Array.isArray(initDetails)) {
@@ -1311,6 +1510,10 @@ export function ActivityPlanForm({
     return false;
   });
   const [type9SubDealerStore, setType9SubDealerStore] = useState(() => {
+    const s = (initial as any)?.stores?.find(
+      (st: any) => st.workTypeCode === "TYPE_9",
+    );
+    if (s?.subDealerStore) return s.subDealerStore;
     if (initDetails?.type9SubDealerStore !== undefined)
       return initDetails.type9SubDealerStore;
     if (Array.isArray(initDetails)) {
@@ -1335,6 +1538,10 @@ export function ActivityPlanForm({
     return "";
   });
   const [type9Sales, setType9Sales] = useState<number>(() => {
+    const s = (initial as any)?.stores?.find(
+      (st: any) => st.workTypeCode === "TYPE_9",
+    );
+    if (s?.targetAmount != null) return Number(s.targetAmount);
     if (initDetails?.type9Sales !== undefined) return initDetails.type9Sales;
     if (Array.isArray(initDetails)) {
       const items = initDetails.filter(
@@ -1376,6 +1583,18 @@ export function ActivityPlanForm({
     ) {
       return initDetails.type9ProductItems;
     }
+    const type9Prods = (initial as any)?.products?.filter(
+      (p: any) => p.workTypeCode === "TYPE_9",
+    );
+    if (type9Prods && type9Prods.length > 0) {
+      return type9Prods.map((p: any, idx: number) => ({
+        id: p.id || String(idx + 1),
+        productId: p.productId,
+        productName: p.product?.name || p.productName || "",
+        quantityCases: p.targetQuantity != null ? Number(p.targetQuantity) : 0,
+        pricePerCase: p.unitPrice != null ? Number(p.unitPrice) : 0,
+      }));
+    }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
         (item: any) =>
@@ -1391,6 +1610,7 @@ export function ActivityPlanForm({
         .filter((item: any) => item.storeProductName || item.productName)
         .map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
+          productId: item.productId,
           productName: item.storeProductName || item.productName || "",
           quantityCases: item.storeQuantityCases ?? item.quantityCases ?? 0,
           pricePerCase: item.storePricePerCase
@@ -1410,6 +1630,9 @@ export function ActivityPlanForm({
   });
 
   const [type10DemoPlot, setType10DemoPlot] = useState(() => {
+    if ((initial as any)?.demoPlotId) return (initial as any).demoPlotId;
+    if ((initial as any)?.demoPlotVisits?.[0]?.demoPlotId)
+      return (initial as any).demoPlotVisits[0].demoPlotId;
     if (initDetails?.type10DemoPlot) return initDetails.type10DemoPlot;
     if (Array.isArray(initDetails)) {
       const item = initDetails.find(isFieldDayItem);
@@ -1453,6 +1676,8 @@ export function ActivityPlanForm({
     return "";
   });
   const [type10Attendees, setType10Attendees] = useState<number>(() => {
+    if ((initial as any)?.targetAttendeesCount != null)
+      return Number((initial as any).targetAttendeesCount);
     if (initDetails?.type10Attendees != null)
       return Number(initDetails.type10Attendees);
     if (Array.isArray(initDetails)) {
@@ -1470,6 +1695,8 @@ export function ActivityPlanForm({
     return 0;
   });
   const [type10BookingSales, setType10BookingSales] = useState<number>(() => {
+    if ((initial as any)?.targetBookingSales != null)
+      return Number((initial as any).targetBookingSales);
     if (initDetails?.type10BookingSales != null)
       return Number(initDetails.type10BookingSales);
     if (Array.isArray(initDetails)) {
@@ -1484,13 +1711,25 @@ export function ActivityPlanForm({
     return 0;
   });
 
-  const [type11Stores, setType11Stores] = useState(() => {
-    if (initDetails?.type11Stores) return initDetails.type11Stores;
+  const [type11Stores, setType11Stores] = useState<Type11StoreItem[]>(() => {
+    if (Array.isArray(initDetails?.type11Stores)) return initDetails.type11Stores;
+    const type11FromStores = (initial as any)?.stores?.filter(
+      (s: any) => s.workTypeCode === "TYPE_11",
+    );
+    if (type11FromStores && type11FromStores.length > 0) {
+      return type11FromStores.map((s: any) => ({
+        storeId: s.storeId,
+        storeName: s.store?.name || s.storeName || "",
+      }));
+    }
     if (Array.isArray(initDetails)) {
       const item = initDetails.find((i: any) => i.itemType === "TYPE_11");
-      if (item) return item.customerName || "";
+      if (item && item.customerName) {
+        const sMatch = customersList.find((c) => c.name === item.customerName);
+        return [{ storeId: sMatch?.id || "", storeName: item.customerName }];
+      }
     }
-    return "";
+    return [];
   });
 
   // Work Type 12: ทัวร์
@@ -1671,6 +1910,20 @@ export function ActivityPlanForm({
     MarketingBudgetProductItem[]
   >(() => {
     if (
+      (initial as any)?.marketingItems &&
+      Array.isArray((initial as any).marketingItems) &&
+      (initial as any).marketingItems.length > 0
+    ) {
+      return (initial as any).marketingItems.map((m: any, idx: number) => ({
+        id: m.id || String(idx + 1),
+        category: m.category || MARKETING_PRODUCT_CATEGORIES[0],
+        productName: m.materialName || "",
+        quantityCases: m.quantity != null ? Number(m.quantity) : 1,
+        unit: m.unit || "ชิ้น",
+        pricePerCase: m.unitPrice != null ? Number(m.unitPrice) : 0,
+      }));
+    }
+    if (
       initDetails?.marketingProductItems &&
       Array.isArray(initDetails.marketingProductItems) &&
       initDetails.marketingProductItems.length > 0
@@ -1761,6 +2014,18 @@ export function ActivityPlanForm({
   const [salesPromotionItems, setSalesPromotionItems] = useState<
     SalesPromotionItem[]
   >(() => {
+    if (
+      (initial as any)?.promotionItems &&
+      Array.isArray((initial as any).promotionItems) &&
+      (initial as any).promotionItems.length > 0
+    ) {
+      return (initial as any).promotionItems.map((p: any, idx: number) => ({
+        id: p.id || String(idx + 1),
+        budgetType: p.budgetType || "งบการตลาด",
+        detail: p.detail || "",
+        amount: p.amount != null ? Number(p.amount) : 0,
+      }));
+    }
     if (
       initDetails?.salesPromotionItems &&
       Array.isArray(initDetails.salesPromotionItems) &&
@@ -2046,205 +2311,342 @@ export function ActivityPlanForm({
       const activityTypeId =
         typeIndex >= 0 ? `TYPE_${typeIndex + 1}` : "TYPE_1";
 
-      const allItemsToSend: any[] = [];
+      const planStores: Array<{
+        workTypeCode: string;
+        storeId: string;
+        storeName?: string | null;
+        targetAmount?: number | null;
+        subDealerStore?: string | null;
+        remarks?: string | null;
+        notes?: string | null;
+      }> = [];
 
-      selectedWorkTypes.forEach((workType) => {
-        if (workType === "เข้าพบร้านค้า / Key Farmer") {
-          type1Items.forEach((item) => {
-            allItemsToSend.push({
-              itemType: "TYPE_1",
-              customerName: item.customerName,
-              visitTopic: item.topic,
-              detail: item.detail,
-            });
-          });
-        } else if (workType === "ติดตามผลการใช้สินค้า") {
-          type2Items.forEach((item) => {
-            allItemsToSend.push({
-              itemType: "TYPE_2",
-              customerName: item.customerName,
-              followupProductName: item.productName,
-              detail: item.detail,
-            });
-          });
-        } else if (workType === "เสนอขายสินค้า") {
-          type3Items.forEach((item) => {
-            const prodLines =
-              item.products && item.products.length > 0
-                ? item.products
-                : [
-                    {
-                      productName: item.productName || "",
-                      quantity: item.quantity || 1,
-                      unitPrice: item.unitPrice || 0,
-                      price: item.price || 0,
-                    },
-                  ];
-            prodLines.forEach((p) => {
-              allItemsToSend.push({
-                itemType: "TYPE_3",
-                customerName: item.customerName,
-                saleProductName: p.productName,
-                saleQuantity: p.quantity,
-                saleUnitPrice: p.unitPrice,
-                saleTotalPrice: (p.quantity || 0) * (p.unitPrice || 0),
-                detail: item.detail,
-              });
-            });
-          });
-        } else if (workType === "วางบิล / เก็บเงิน") {
-          type4Items.forEach((item) => {
-            allItemsToSend.push({
-              itemType: "TYPE_4",
-              customerName: item.customerName,
-              collectAmount: item.collectAmount,
-              detail: item.detail,
-            });
-          });
-        } else if (workType === "สำรวจตลาดของคู่แข่ง") {
-          type5Items.forEach((item) => {
-            allItemsToSend.push({
-              itemType: "TYPE_5",
-              surveyStoreName: item.storeName,
-              surveyCompetitorProduct: item.comparedProduct,
-              detail: item.detail,
-            });
-          });
-        } else if (workType === "แก้ปัญหา / รับเรื่องร้องเรียน") {
-          type6Items.forEach((item) => {
-            allItemsToSend.push({
-              itemType: "TYPE_6",
-              customerName: item.customerName,
-              issueType: item.issueType,
-              detail: item.detail,
-            });
-          });
-        } else if (workType === "ติดตามแปลงสาธิต / ทำแปลง") {
-          type7Items.forEach((item) => {
-            const detailParts = [];
-            if (item.objective?.trim()) {
-              detailParts.push(`วัตถุประสงค์: ${item.objective.trim()}`);
-            }
-            if (item.experimentDetail?.trim()) {
-              detailParts.push(`วิธีการทดลอง: ${item.experimentDetail.trim()}`);
-            }
-            if (
-              item.detail?.trim() &&
-              !item.detail.includes("วัตถุประสงค์:") &&
-              !item.detail.includes("วิธีการทดลอง:")
-            ) {
-              detailParts.push(item.detail.trim());
-            }
-            const combinedDetail =
-              detailParts.length > 0
-                ? detailParts.join(" | ")
-                : item.detail || null;
+      const planProducts: Array<{
+        workTypeCode: string;
+        storeId?: string | null;
+        productId: string;
+        productName?: string | null;
+        masterPrice?: number | null;
+        unitPrice?: number | null;
+        isPriceOverridden?: boolean;
+        targetQuantity?: number | null;
+        targetAmount?: number | null;
+      }> = [];
 
-            allItemsToSend.push({
-              itemType: "TYPE_7",
-              plotActivityType: item.plotActivityType,
-              plotOwnerName: item.ownerName,
-              plotProductName: item.productName,
-              plotCropCategory: item.cropCategory,
-              plotCropName: item.cropName || item.customCropName,
-              plotAreaRai: item.areaRai,
-              plotTreeCount: item.treeCount,
-              plotCount:
-                item.plotsCount !== "" && item.plotsCount != null
-                  ? Number(item.plotsCount)
-                  : null,
-              existingPlotId: item.existingPlotId,
-              growthStage: item.growthStage,
-              plotStatus: item.plotStatus,
-              detail: combinedDetail,
-            });
-          });
-        } else if (workType === "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์") {
-          type8Items.forEach((item) => {
-            allItemsToSend.push({
-              itemType: "TYPE_8",
-              meetingTopic: item.topic,
-              meetingAttendeesCount: item.attendeesCount,
-              meetingTargetProducts: item.targetProducts,
-              detail: item.detail,
-            });
-          });
-        } else if (workType === "จัดกิจกรรมส่งเสริมการขายหน้าร้าน") {
-          const finalCustomerName =
-            type9IsSubDealer && type9SubDealerStore
-              ? `${type9Store} (Sub Dealer: ${type9SubDealerStore})`
-              : type9Store;
+      let submittedTargetAttendees: number | null = null;
+      let submittedTargetBookingSales: number | null = null;
+      let submittedDemoPlotId: string | null = null;
 
-          const validProductItems = type9ProductItems.filter(
-            (item) => item.productName && item.productName.trim() !== "",
-          );
-
-          if (validProductItems.length > 0) {
-            validProductItems.forEach((item) => {
-              allItemsToSend.push({
-                itemType: "TYPE_9",
-                customerName: finalCustomerName,
-                storeProductName: item.productName,
-                storeQuantityCases: item.quantityCases,
-                storePricePerCase: item.pricePerCase,
-                storeTotalAmount:
-                  (item.quantityCases || 0) * (item.pricePerCase || 0),
-              });
-            });
-          } else if (finalCustomerName) {
-            allItemsToSend.push({
-              itemType: "TYPE_9",
-              customerName: finalCustomerName,
-              storeProductName: null,
-              storeQuantityCases: null,
-              storePricePerCase: null,
-              storeTotalAmount: type9Sales || null,
+      // 1. TYPE_1: เข้าพบร้านค้า / Key Farmer
+      if (selectedWorkTypes.includes("เข้าพบร้านค้า / Key Farmer")) {
+        type1Items.forEach((item) => {
+          const sId =
+            item.storeId ||
+            customersList.find((c) => c.name === item.customerName)?.id;
+          if (sId) {
+            planStores.push({
+              workTypeCode: "TYPE_1",
+              storeId: sId,
+              storeName: item.customerName || null,
+              remarks: item.topic || null,
+              notes: item.detail || null,
             });
           }
-        } else if (workType === "จัดงาน Field Day") {
-          allItemsToSend.push({
-            itemType: "TYPE_10",
-            detail: "จัดงานวันถ่ายทอดเทคโนโลยีการเกษตร (Field Day)",
-          });
-        } else if (workType === "ตรวจเช็กสต็อกหน้าร้าน") {
-          if (type11Stores) {
-            allItemsToSend.push({
-              itemType: "TYPE_11",
-              customerName: type11Stores,
-              detail: "ตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน",
+        });
+      }
+
+      // 2. TYPE_2: ติดตามผลการใช้สินค้า
+      if (selectedWorkTypes.includes("ติดตามผลการใช้สินค้า")) {
+        type2Items.forEach((item) => {
+          const sId =
+            item.storeId ||
+            customersList.find((c) => c.name === item.customerName)?.id;
+          const pId =
+            item.productId ||
+            productsList.find((p) => p.name === item.productName)?.id;
+          if (sId) {
+            planStores.push({
+              workTypeCode: "TYPE_2",
+              storeId: sId,
+              storeName: item.customerName || null,
+              notes: item.detail || null,
             });
           }
+          if (pId) {
+            planProducts.push({
+              workTypeCode: "TYPE_2",
+              storeId: sId || null,
+              productId: pId,
+              productName: item.productName || null,
+              isPriceOverridden: false,
+            });
+          }
+        });
+      }
+
+      // 3. TYPE_3: เสนอขายสินค้า
+      if (selectedWorkTypes.includes("เสนอขายสินค้า")) {
+        type3Items.forEach((item) => {
+          const sId =
+            item.storeId ||
+            customersList.find((c) => c.name === item.customerName)?.id;
+          if (sId) {
+            planStores.push({
+              workTypeCode: "TYPE_3",
+              storeId: sId,
+              storeName: item.customerName || null,
+              notes: item.detail || null,
+            });
+          }
+          const prodLines =
+            item.products && item.products.length > 0
+              ? item.products
+              : [
+                  {
+                    productId: item.productId,
+                    productName: item.productName || "",
+                    quantity: item.quantity || 1,
+                    unitPrice: item.unitPrice || 0,
+                    price: item.price || 0,
+                    masterPrice: item.masterPrice,
+                    isPriceOverridden: item.isPriceOverridden,
+                  },
+                ];
+          prodLines.forEach((p) => {
+            const matchedP = productsList.find(
+              (prod) => prod.id === p.productId || prod.name === p.productName,
+            );
+            const pId = p.productId || matchedP?.id;
+            if (pId) {
+              const qty = p.quantity != null ? Number(p.quantity) : 1;
+              const uPrice = p.unitPrice != null ? Number(p.unitPrice) : 0;
+              const mPrice =
+                p.masterPrice != null
+                  ? Number(p.masterPrice)
+                  : matchedP?.price != null
+                    ? Number(matchedP.price)
+                    : null;
+              const overridden =
+                p.isPriceOverridden ??
+                (mPrice != null ? uPrice !== mPrice : false);
+              planProducts.push({
+                workTypeCode: "TYPE_3",
+                storeId: sId || null,
+                productId: pId,
+                productName: p.productName || matchedP?.name || null,
+                masterPrice: mPrice,
+                unitPrice: uPrice,
+                isPriceOverridden: overridden,
+                targetQuantity: qty,
+                targetAmount: qty * uPrice,
+              });
+            }
+          });
+        });
+      }
+
+      // 4. TYPE_4: วางบิล / เก็บเงิน
+      if (selectedWorkTypes.includes("วางบิล / เก็บเงิน")) {
+        type4Items.forEach((item) => {
+          const sId =
+            item.storeId ||
+            customersList.find((c) => c.name === item.customerName)?.id;
+          if (sId) {
+            planStores.push({
+              workTypeCode: "TYPE_4",
+              storeId: sId,
+              storeName: item.customerName || null,
+              targetAmount:
+                item.collectAmount != null ? Number(item.collectAmount) : null,
+              notes: item.detail || null,
+            });
+          }
+        });
+      }
+
+      // 5. TYPE_5: สำรวจตลาดของคู่แข่ง
+      if (selectedWorkTypes.includes("สำรวจตลาดของคู่แข่ง")) {
+        type5Items.forEach((item) => {
+          const sId =
+            item.storeId ||
+            customersList.find((c) => c.name === item.storeName)?.id;
+          const pId =
+            item.productId ||
+            productsList.find((p) => p.name === item.comparedProduct)?.id;
+          if (sId) {
+            planStores.push({
+              workTypeCode: "TYPE_5",
+              storeId: sId,
+              storeName: item.storeName || null,
+              notes: item.detail || null,
+            });
+          }
+          if (pId) {
+            planProducts.push({
+              workTypeCode: "TYPE_5",
+              storeId: sId || null,
+              productId: pId,
+              productName: item.comparedProduct || null,
+              isPriceOverridden: false,
+            });
+          }
+        });
+      }
+
+      // 6. TYPE_6: แก้ปัญหา / รับเรื่องร้องเรียน
+      if (selectedWorkTypes.includes("แก้ปัญหา / รับเรื่องร้องเรียน")) {
+        type6Items.forEach((item) => {
+          const sId =
+            item.storeId ||
+            customersList.find((c) => c.name === item.customerName)?.id;
+          if (sId) {
+            planStores.push({
+              workTypeCode: "TYPE_6",
+              storeId: sId,
+              storeName: item.customerName || null,
+              remarks: item.issueType || null,
+              notes: item.detail || null,
+            });
+          }
+        });
+      }
+
+      // 7. TYPE_7: ติดตามแปลงสาธิต / ทำแปลง
+      if (selectedWorkTypes.includes("ติดตามแปลงสาธิต / ทำแปลง")) {
+        type7Items.forEach((item) => {
+          const pId =
+            item.productId ||
+            productsList.find((p) => p.name === item.productName)?.id;
+          if (pId) {
+            planProducts.push({
+              workTypeCode: "TYPE_7",
+              productId: pId,
+              productName: item.productName || null,
+              isPriceOverridden: false,
+            });
+          }
+          if (item.existingPlotId || item.demoPlotId) {
+            submittedDemoPlotId = item.existingPlotId || item.demoPlotId || null;
+          }
+        });
+      }
+
+      // 8. TYPE_8: จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์
+      if (
+        selectedWorkTypes.includes(
+          "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+        )
+      ) {
+        type8Items.forEach((item) => {
+          if (item.attendeesCount != null && Number(item.attendeesCount) > 0) {
+            submittedTargetAttendees =
+              (submittedTargetAttendees || 0) + Number(item.attendeesCount);
+          }
+          const pNames = Array.isArray(item.targetProducts)
+            ? item.targetProducts
+            : item.targetProducts
+              ? [item.targetProducts]
+              : [];
+          const pIds =
+            Array.isArray(item.targetProductIds) &&
+            item.targetProductIds.length > 0
+              ? item.targetProductIds
+              : pNames
+                  .map((name) => productsList.find((p) => p.name === name)?.id)
+                  .filter(Boolean);
+
+          pIds.forEach((pId, idx) => {
+            const matchedP = productsList.find((p) => p.id === pId);
+            planProducts.push({
+              workTypeCode: "TYPE_8",
+              productId: pId as string,
+              productName: matchedP?.name || pNames[idx] || null,
+              isPriceOverridden: false,
+            });
+          });
+        });
+      }
+
+      // 9. TYPE_9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน
+      if (selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")) {
+        const sId9 = customersList.find((c) => c.name === type9Store)?.id;
+        if (sId9) {
+          planStores.push({
+            workTypeCode: "TYPE_9",
+            storeId: sId9,
+            storeName: type9Store || null,
+            subDealerStore:
+              type9IsSubDealer && type9SubDealerStore
+                ? type9SubDealerStore
+                : null,
+            targetAmount: type9Sales != null ? Number(type9Sales) : null,
+          });
         }
-      });
-
-      if (isPromotionalMediaSelected && marketingProductItems.length > 0) {
-        marketingProductItems.forEach((mItem) => {
-          allItemsToSend.push({
-            itemType: "MARKETING_PRODUCT",
-            visitTopic: "MARKETING_PRODUCT",
-            plotCropCategory: mItem.category || MARKETING_PRODUCT_CATEGORIES[0],
-            storeProductName: mItem.productName,
-            storeQuantityCases: mItem.quantityCases,
-            plotCropName: mItem.unit || "ชิ้น",
-            storePricePerCase: mItem.pricePerCase,
-            storeTotalAmount:
-              (mItem.quantityCases || 0) * (mItem.pricePerCase || 0),
+        type9ProductItems
+          .filter((item) => item.productName && item.productName.trim() !== "")
+          .forEach((p) => {
+            const matchedP = productsList.find(
+              (prod) => prod.id === p.productId || prod.name === p.productName,
+            );
+            const pId = p.productId || matchedP?.id;
+            if (pId) {
+              const qty =
+                p.quantityCases != null ? Number(p.quantityCases) : 0;
+              const price =
+                p.pricePerCase != null ? Number(p.pricePerCase) : 0;
+              planProducts.push({
+                workTypeCode: "TYPE_9",
+                storeId: sId9 || null,
+                productId: pId,
+                productName: p.productName || matchedP?.name || null,
+                targetQuantity: qty,
+                unitPrice: price,
+                targetAmount: qty * price,
+                isPriceOverridden: false,
+              });
+            }
           });
-        });
       }
 
-      if (isSalesPromotionSelected && salesPromotionItems.length > 0) {
-        salesPromotionItems.forEach((spItem) => {
-          allItemsToSend.push({
-            itemType: "SALES_PROMOTION",
-            visitTopic: "SALES_PROMOTION",
-            plotCropCategory: spItem.budgetType || "งบการตลาด",
-            detail: spItem.detail,
-            collectAmount: spItem.amount,
-          });
-        });
+      // 10. TYPE_10: จัดงาน Field Day
+      if (selectedWorkTypes.includes("จัดงาน Field Day")) {
+        const plotMatch = demoPlotsList.find(
+          (dp) =>
+            dp.id === type10DemoPlot ||
+            dp.ownerName === type10DemoPlot ||
+            dp.code === type10DemoPlot,
+        );
+        if (plotMatch?.id || type10DemoPlot) {
+          submittedDemoPlotId = plotMatch?.id || type10DemoPlot || null;
+        }
+        if (type10Attendees != null && Number(type10Attendees) > 0) {
+          submittedTargetAttendees = Number(type10Attendees);
+        }
+        if (type10BookingSales != null && Number(type10BookingSales) > 0) {
+          submittedTargetBookingSales = Number(type10BookingSales);
+        }
       }
 
+      // 11. TYPE_11: ตรวจเช็กสต็อกหน้าร้าน
+      if (selectedWorkTypes.includes("ตรวจเช็กสต็อกหน้าร้าน")) {
+        if (Array.isArray(type11Stores)) {
+          type11Stores.forEach((st) => {
+            const sId =
+              st.storeId ||
+              customersList.find((c) => c.name === st.storeName)?.id;
+            if (sId) {
+              planStores.push({
+                workTypeCode: "TYPE_11",
+                storeId: sId,
+                storeName: st.storeName || null,
+                notes: "ตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน",
+              });
+            }
+          });
+        }
+      }
+
+      // 12. TYPE_12: ทัวร์
       const tourData = selectedWorkTypes.includes("ทัวร์")
         ? {
             tourType:
@@ -2272,69 +2674,41 @@ export function ActivityPlanForm({
           }
         : null;
 
-      const planStores: Array<{
-        workTypeCode: string;
-        storeId: string;
-        storeName?: string | null;
-        remarks?: string | null;
+      // Budget items
+      const marketingItems: Array<{
+        category: string;
+        materialName: string;
+        unit?: string | null;
+        unitPrice: number;
+        quantity: number;
+        totalAmount: number;
       }> = [];
-      const planProducts: Array<{
-        workTypeCode: string;
-        storeId?: string | null;
-        productId: string;
-        productName?: string | null;
-        targetQuantity?: number | null;
-        unitPrice?: number | null;
-        targetAmount?: number | null;
-      }> = [];
-
-      // Extract stores & products
-      if (selectedWorkTypes.includes("เข้าพบร้านค้า / Key Farmer")) {
-        type1Items.forEach((item) => {
-          const storeMatch = customersList.find(
-            (c) => c.name === item.customerName,
-          );
-          if (storeMatch) {
-            planStores.push({
-              workTypeCode: "TYPE_1",
-              storeId: storeMatch.id,
-              storeName: storeMatch.name,
-              remarks: item.topic,
-            });
-          }
+      if (isPromotionalMediaSelected && marketingProductItems.length > 0) {
+        marketingProductItems.forEach((mItem) => {
+          const qty = mItem.quantityCases || 1;
+          const price = mItem.pricePerCase || 0;
+          marketingItems.push({
+            category: mItem.category || MARKETING_PRODUCT_CATEGORIES[0],
+            materialName: mItem.productName || "สื่อส่งเสริมการขาย",
+            unit: mItem.unit || "ชิ้น",
+            unitPrice: price,
+            quantity: qty,
+            totalAmount: qty * price,
+          });
         });
       }
 
-      if (selectedWorkTypes.includes("เสนอขายสินค้า")) {
-        type3Items.forEach((item) => {
-          const storeMatch = customersList.find(
-            (c) => c.name === item.customerName,
-          );
-          const pList =
-            item.products && item.products.length > 0
-              ? item.products
-              : [
-                  {
-                    productName: item.productName || "",
-                    quantity: item.quantity || 1,
-                    unitPrice: item.unitPrice || 0,
-                  },
-                ];
-          pList.forEach((p) => {
-            const pMatch = productsList.find(
-              (prod) => prod.name === p.productName,
-            );
-            if (pMatch) {
-              planProducts.push({
-                workTypeCode: "TYPE_3",
-                storeId: storeMatch?.id || null,
-                productId: pMatch.id,
-                productName: pMatch.name,
-                targetQuantity: p.quantity,
-                unitPrice: p.unitPrice,
-                targetAmount: (p.quantity || 0) * (p.unitPrice || 0),
-              });
-            }
+      const promotionItems: Array<{
+        budgetType: string;
+        detail: string;
+        amount: number;
+      }> = [];
+      if (isSalesPromotionSelected && salesPromotionItems.length > 0) {
+        salesPromotionItems.forEach((spItem) => {
+          promotionItems.push({
+            budgetType: spItem.budgetType || "งบการตลาด",
+            detail: spItem.detail || "",
+            amount: spItem.amount || 0,
           });
         });
       }
@@ -2348,6 +2722,11 @@ export function ActivityPlanForm({
         tourData,
         planStores,
         planProducts,
+        marketingItems,
+        promotionItems,
+        targetAttendeesCount: submittedTargetAttendees,
+        targetBookingSales: submittedTargetBookingSales,
+        demoPlotId: submittedDemoPlotId,
         province: isLocationTeamVisible ? province.trim() || null : null,
         district: isLocationTeamVisible ? district.trim() || null : null,
         location: isLocationTeamVisible ? locationText.trim() || null : null,
@@ -2356,7 +2735,6 @@ export function ActivityPlanForm({
         salesPromotionBudgetRequested: salesPromotionBudget,
         marketingBudgetRequested: marketingBudget,
         notes: extraNotes,
-        items: allItemsToSend as any,
         helperEmployeeIds: isLocationTeamVisible ? helperEmployeeIds : [],
       });
 

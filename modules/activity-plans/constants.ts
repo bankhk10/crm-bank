@@ -275,6 +275,7 @@ export interface UserDemoPlotOption {
   cropCategory?: string;
   cropName?: string;
   customCropName?: string;
+  productId?: string;
   productName?: string;
   areaRai?: number;
   treeCount?: number;

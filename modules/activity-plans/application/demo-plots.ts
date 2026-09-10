@@ -1,13 +1,10 @@
 import {
   findFarmerCustomersForPlots,
   findMasterDemoPlots,
-  findLegacyDemoPlotItems,
   findFarmerCustomerOptions,
   findDemoPlotOwners,
   findDemoPlotByIdOrName,
-  findLegacyActivityItemForDemoPlot,
   findDemoPlotByOwnerAndCrop,
-  findLatestCreateItemForDemoPlot,
   recordDemoPlotVisit,
 } from "../infrastructure/activity-plan.repository";
 import type { UserDemoPlotOption } from "../constants";
@@ -154,41 +151,6 @@ export async function getDemoPlotsUseCase() {
     }
   });
 
-  // 4. Fetch from ActivityPlanItem (legacy fallback for backward compatibility)
-  const items = await findLegacyDemoPlotItems();
-
-  for (const item of items) {
-    if (!item.plotOwnerName && !item.plotCropName) continue;
-
-    const cropDisplay = item.plotCropName || "";
-    const ownerDisplay = item.plotOwnerName || item.customerName || "เกษตรกร";
-    const plotName = cropDisplay
-      ? `${ownerDisplay} - ${cropDisplay}`
-      : ownerDisplay;
-
-    // Only add if not already present in masterPlots
-    if (!realPlots.some((rp) => rp.name === plotName || rp.id === item.existingPlotId)) {
-      realPlots.push({
-        id: `legacy-${item.activityPlanId}-${item.id}`,
-        name: plotName,
-        location: item.activityPlan.location || `แปลงสาธิต ${ownerDisplay}`,
-        targetCrop: cropDisplay,
-        showcase: item.plotProductName || "",
-        ownerName: ownerDisplay,
-        cropCategory: item.plotCropCategory || "พืชสวน",
-        cropName: cropDisplay || "พืชสวน",
-        productName: item.plotProductName || "",
-        areaRai: item.plotAreaRai ? Number(item.plotAreaRai) : 0,
-        treeCount: item.plotTreeCount || 0,
-        startDate: item.activityPlan.startDate ? item.activityPlan.startDate.toISOString().split("T")[0] : "",
-        status: "IN_PROGRESS",
-        visitsCount: 1,
-        totalCost: 0,
-        daysSinceStart: 0,
-      });
-    }
-  }
-
   return {
     success: true as const,
     demoPlots: realPlots,
@@ -261,65 +223,12 @@ export async function getFarmerCustomersUseCase() {
  */
 export async function getDemoPlotHistoryUseCase(demoPlotIdOrName: string) {
   let plot: any = await findDemoPlotByIdOrName(demoPlotIdOrName);
-  let originalCreateItem: any = null;
 
-  if (!plot && demoPlotIdOrName.startsWith("legacy-")) {
-    const parts = demoPlotIdOrName.replace("legacy-", "").split("-");
-    const planId = parts[0];
-    const itemId = parts[1];
-    if (planId) {
-      originalCreateItem = await findLegacyActivityItemForDemoPlot(itemId, planId);
-      if (originalCreateItem) {
-        const owner = originalCreateItem.plotOwnerName || originalCreateItem.customerName || "เกษตรกร";
-        const crop = originalCreateItem.plotCropName || "พืชทั่วไป";
-        plot = await findDemoPlotByOwnerAndCrop(owner, crop);
-      }
+  if (!plot && demoPlotIdOrName.includes(" - ")) {
+    const [owner, crop] = demoPlotIdOrName.split(" - ").map((s) => s.trim());
+    if (owner && crop) {
+      plot = await findDemoPlotByOwnerAndCrop(owner, crop);
     }
-  }
-
-  // Also look up CREATE ActivityPlanItem if not yet found
-  if (!originalCreateItem) {
-    const ownerToSearch = plot?.ownerName || (demoPlotIdOrName.includes(" - ") ? demoPlotIdOrName.split(" - ")[0].trim() : demoPlotIdOrName);
-    const cropToSearch = plot?.cropName || (demoPlotIdOrName.includes(" - ") ? demoPlotIdOrName.split(" - ")[1].trim() : undefined);
-
-    originalCreateItem = await findLatestCreateItemForDemoPlot(ownerToSearch, cropToSearch);
-  }
-
-  // Parse objective and experimentDetail from create item's detail
-  let parsedObjective = "";
-  let parsedExperiment = "";
-  if (originalCreateItem?.detail) {
-    const raw = originalCreateItem.detail;
-    const objMatch = raw.match(/(?:วัตถุประสงค์ของแปลง|วัตถุประสงค์):\s*([^|]+)/);
-    const expMatch = raw.match(/(?:รายละเอียด \/ วิธีการทดลอง|วิธีการทดลอง|รายละเอียดการทดลอง):\s*([^|]+)/);
-    parsedObjective = objMatch ? objMatch[1].trim() : "";
-    parsedExperiment = expMatch ? expMatch[1].trim() : (objMatch ? "" : raw);
-  }
-
-  if (!plot && originalCreateItem) {
-    const owner = originalCreateItem.plotOwnerName || originalCreateItem.customerName || "เกษตรกร";
-    const crop = originalCreateItem.plotCropName || "พืชทั่วไป";
-    const plotName = `${owner} - ${crop}`;
-    plot = {
-      id: originalCreateItem.id,
-      code: `DP-INIT`,
-      name: plotName,
-      ownerName: owner,
-      cropName: crop,
-      cropCategory: originalCreateItem.plotCropCategory || "พืชทั่วไป",
-      primaryProductName: originalCreateItem.plotProductName || "",
-      productName: originalCreateItem.plotProductName || "",
-      areaRai: originalCreateItem.plotAreaRai ? Number(originalCreateItem.plotAreaRai) : null,
-      treeCount: originalCreateItem.plotTreeCount || null,
-      plotCount: originalCreateItem.plotCount != null ? Number(originalCreateItem.plotCount) : null,
-      demoProductQuantity: originalCreateItem.plotCount != null ? Number(originalCreateItem.plotCount) : null,
-      startDate: originalCreateItem.activityPlan?.startDate || new Date(),
-      plantingDate: originalCreateItem.activityPlan?.startDate || null,
-      objective: parsedObjective || null,
-      experimentDetail: parsedExperiment || null,
-      status: "IN_PROGRESS",
-      visits: [],
-    };
   }
 
   if (!plot) {
@@ -329,11 +238,6 @@ export async function getDemoPlotHistoryUseCase(demoPlotIdOrName: string) {
       plot: null,
     };
   }
-
-  // Fill in objective and experimentDetail if empty in demoPlot record
-  const finalObjective = plot.objective || parsedObjective || undefined;
-  const finalExperiment = plot.experimentDetail || parsedExperiment || undefined;
-  const finalPlotCount = (plot as any).plotCount ?? (originalCreateItem?.plotCount != null ? Number(originalCreateItem.plotCount) : undefined);
 
   const visits = plot.visits || [];
   const totalCost = visits.reduce(
@@ -352,10 +256,6 @@ export async function getDemoPlotHistoryUseCase(demoPlotIdOrName: string) {
     success: true as const,
     plot: {
       ...plot,
-      objective: finalObjective,
-      experimentDetail: finalExperiment,
-      plotCount: finalPlotCount,
-      demoProductQuantity: finalPlotCount,
       totalCost,
       daysSinceStart,
       visitsCount: visits.length,

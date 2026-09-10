@@ -109,12 +109,11 @@ export function ApprovalDetailDrawer({
   );
 
   const tourData = plan.tour;
-  const item0 = (plan.items?.[0] || {}) as Record<string, any>;
-  const tourType = tourData?.tourType ?? (item0.visitTopic === "ทัวร์ร้านค้า" ? "STORE" : "CENTRAL");
-  const tourSize = tourData?.tourSize ?? item0.tourSize ?? null;
-  const tourCountry = tourData?.country ?? item0.country ?? item0.detail ?? null;
-  const tourStoreName = tourData?.store?.name ?? item0.customerName ?? item0.store ?? null;
-  const tourDestination = tourData?.destination ?? item0.destination ?? item0.location ?? item0.detail ?? null;
+  const tourType = tourData?.tourType ?? "CENTRAL";
+  const tourSize = tourData?.tourSize ?? null;
+  const tourCountry = tourData?.country ?? null;
+  const tourStoreName = tourData?.store?.name ?? null;
+  const tourDestination = tourData?.destination ?? null;
 
   // 3. Resolve Stores from Normalized Relation
   const normalizedStores = plan.stores && plan.stores.length > 0
@@ -129,7 +128,7 @@ export function ApprovalDetailDrawer({
       }))
     : [];
 
-  // Fallback / Supplementary stores from tour or items if not in plan.stores
+  // Supplementary stores from tour if not in plan.stores
   const allStoreNames = new Set(normalizedStores.map((s) => s.name));
   const additionalStores: Array<{ id?: string; name: string; code: string | null; location: string | null; workTypeName: string; remarks: string | null }> = [];
 
@@ -143,23 +142,6 @@ export function ApprovalDetailDrawer({
       workTypeName: "ทัวร์ร้านค้า",
       remarks: null,
     });
-  }
-
-  if (normalizedStores.length === 0 && plan.items && plan.items.length > 0) {
-    for (const item of plan.items) {
-      const storeName = item.customerName || item.surveyStoreName;
-      if (storeName && !allStoreNames.has(storeName)) {
-        allStoreNames.add(storeName);
-        additionalStores.push({
-          id: item.id,
-          name: storeName,
-          code: null,
-          location: null,
-          workTypeName: item.workTypeCode ? getWorkTypeName(item.workTypeCode) : "ร้านค้าเป้าหมาย",
-          remarks: item.detail || null,
-        });
-      }
-    }
   }
 
   const combinedStores = [...normalizedStores, ...additionalStores];
@@ -180,27 +162,7 @@ export function ApprovalDetailDrawer({
       }))
     : [];
 
-  // Fallback supplementary products from items if not in plan.products
-  const additionalProducts: Array<{ id?: string; name: string; code: string | null; storeName: string | null; workTypeName: string; targetQuantity: number | null; unitPrice: number | null; targetAmount: number | null }> = [];
-  if (normalizedProducts.length === 0 && plan.items && plan.items.length > 0) {
-    for (const item of plan.items) {
-      const prodName = item.saleProductName || item.plotProductName || item.followupProductName || item.storeProductName;
-      if (prodName) {
-        additionalProducts.push({
-          id: item.id,
-          name: prodName,
-          code: null,
-          storeName: item.customerName || null,
-          workTypeName: item.workTypeCode ? getWorkTypeName(item.workTypeCode) : "สินค้าเป้าหมาย",
-          targetQuantity: item.saleQuantity || item.storeQuantityCases || null,
-          unitPrice: item.saleUnitPrice ? Number(item.saleUnitPrice) : (item.storePricePerCase ? Number(item.storePricePerCase) : null),
-          targetAmount: item.saleTotalPrice ? Number(item.saleTotalPrice) : (item.storeTotalAmount ? Number(item.storeTotalAmount) : null),
-        });
-      }
-    }
-  }
-
-  const combinedProducts = [...normalizedProducts, ...additionalProducts];
+  const combinedProducts = normalizedProducts;
 
   const isActionEligible =
     canApproveThisPlan !== undefined

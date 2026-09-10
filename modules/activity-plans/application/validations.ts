@@ -1,5 +1,49 @@
 import { z } from "zod";
-import { ActivityApprovalAction } from "@prisma/client";
+
+export const planStoreInputSchema = z.object({
+  workTypeCode: z.string(),
+  storeId: z.string(),
+  storeName: z.string().optional().nullable(),
+  targetAmount: z.number().optional().nullable(),
+  subDealerStore: z.string().optional().nullable(),
+  remarks: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+export const planProductInputSchema = z.object({
+  workTypeCode: z.string(),
+  storeId: z.string().optional().nullable(),
+  productId: z.string(),
+  productName: z.string().optional().nullable(),
+  masterPrice: z.number().optional().nullable(),
+  unitPrice: z.number().optional().nullable(),
+  isPriceOverridden: z.boolean().optional(),
+  targetQuantity: z.number().optional().nullable(),
+  targetAmount: z.number().optional().nullable(),
+});
+
+export const planMarketingItemInputSchema = z.object({
+  category: z.string(),
+  materialName: z.string(),
+  unit: z.string().optional().nullable(),
+  unitPrice: z.number().default(0),
+  quantity: z.number().int().default(1),
+  totalAmount: z.number().default(0),
+});
+
+export const planPromotionItemInputSchema = z.object({
+  budgetType: z.string(),
+  detail: z.string(),
+  amount: z.number().default(0),
+});
+
+export const tourDataInputSchema = z.object({
+  tourType: z.enum(["CENTRAL", "STORE"]),
+  tourSize: z.enum(["SMALL", "LARGE"]).optional().nullable(),
+  country: z.string().optional().nullable(),
+  storeId: z.string().optional().nullable(),
+  destination: z.string().optional().nullable(),
+});
 
 export const activityPlanSchema = z
   .object({
@@ -25,6 +69,10 @@ export const activityPlanSchema = z
     objective: z.string().optional().default(""),
     description: z.string().optional().nullable(),
     notes: z.string().optional().nullable(),
+    // Target metrics (TYPE_8, TYPE_10)
+    targetAttendeesCount: z.number().int().optional().nullable(),
+    targetBookingSales: z.number().optional().nullable(),
+    demoPlotId: z.string().optional().nullable(),
     // งบประมาณ (ที่ขอ)
     salesPromotionBudgetRequested: z
       .number()
@@ -36,42 +84,16 @@ export const activityPlanSchema = z
       .nonnegative("งบการตลาดต้องมีค่ามากกว่าหรือเท่ากับ 0")
       .optional()
       .nullable(),
-    // รายการย่อยตามประเภทงาน (แทน details JSON เดิม)
-    items: z.array(z.record(z.any())).default([]),
+    totalBudgetRequested: z.number().optional().nullable(),
+    // Normalized child collections
+    planStores: z.array(planStoreInputSchema).default([]),
+    planProducts: z.array(planProductInputSchema).default([]),
+    marketingItems: z.array(planMarketingItemInputSchema).default([]),
+    promotionItems: z.array(planPromotionItemInputSchema).default([]),
+    tourData: tourDataInputSchema.optional().nullable(),
     helperEmployeeIds: z.array(z.string()).default([]),
-    tourData: z
-      .object({
-        tourType: z.enum(["CENTRAL", "STORE"]),
-        tourSize: z.enum(["SMALL", "LARGE"]).optional().nullable(),
-        country: z.string().optional().nullable(),
-        storeId: z.string().optional().nullable(),
-        destination: z.string().optional().nullable(),
-      })
-      .optional()
-      .nullable(),
-    planStores: z
-      .array(
-        z.object({
-          workTypeCode: z.string(),
-          storeId: z.string(),
-          storeName: z.string().optional().nullable(),
-          remarks: z.string().optional().nullable(),
-        })
-      )
-      .optional(),
-    planProducts: z
-      .array(
-        z.object({
-          workTypeCode: z.string(),
-          storeId: z.string().optional().nullable(),
-          productId: z.string(),
-          productName: z.string().optional().nullable(),
-          targetQuantity: z.number().optional().nullable(),
-          unitPrice: z.number().optional().nullable(),
-          targetAmount: z.number().optional().nullable(),
-        })
-      )
-      .optional(),
+    // For transition: raw form items payload (will be normalized in application mapper)
+    items: z.array(z.record(z.any())).optional().default([]),
   })
   .refine((data) => data.endDate > data.startDate, {
     message: "วันเวลาสิ้นสุดต้องหลังจากวันเวลาเริ่มต้น",
@@ -80,11 +102,7 @@ export const activityPlanSchema = z
 
 export const activityApprovalSchema = z.object({
   action: z.enum(
-    [
-      ActivityApprovalAction.APPROVE,
-      ActivityApprovalAction.REJECT,
-      ActivityApprovalAction.REQUEST_CORRECTION,
-    ],
+    ["APPROVE", "REJECT", "REQUEST_CORRECTION"],
     {
       required_error: "กรุณาระบุการดำเนินการ",
     },
@@ -297,7 +315,7 @@ export function computeTotalBudget(
   return (salesPromotion ?? 0) + (marketing ?? 0);
 }
 
-export type ActivityPlanFormValues = z.infer<typeof activityPlanSchema>;
+export type ActivityPlanFormValues = z.input<typeof activityPlanSchema>;
 export type ActivityApprovalFormValues = z.infer<typeof activityApprovalSchema>;
 export type ActivityActualFormValues = z.infer<typeof actualRecordSchema>;
 export type ActivityResultFormValues = z.infer<typeof activityResultSchema>;

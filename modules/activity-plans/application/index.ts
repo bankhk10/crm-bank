@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { activityPlanSchema, activityResultSchema } from "./validations";
+import { normalizePlanInput } from "./plan-mapper";
 import {
   findActivityPlanById,
   findActivityPlans,
@@ -60,6 +61,7 @@ export async function createActivityPlanUseCase(
     return { success: false as const, error: "ไม่สามารถสร้างหรือค้นหาโปรไฟล์พนักงานได้" };
   }
 
+  const normalized = normalizePlanInput(parsed.data);
   const { helperEmployeeIds, items, tourData, planStores, planProducts, workTypeCodes, ...planFields } = parsed.data;
 
   const data = {
@@ -68,12 +70,16 @@ export async function createActivityPlanUseCase(
     marketingBudgetRequested: planFields.marketingBudgetRequested ?? null,
     province: planFields.province ?? null,
     district: planFields.district ?? null,
-    items: items ?? [],
-    helperEmployeeIds: helperEmployeeIds ?? [],
-    tourData: tourData ?? null,
-    planStores: planStores ?? [],
-    planProducts: planProducts ?? [],
-    workTypeCodes: workTypeCodes ?? [],
+    helperEmployeeIds: normalized.helperEmployeeIds,
+    tourData: normalized.tourData,
+    planStores: normalized.planStores,
+    planProducts: normalized.planProducts,
+    marketingItems: normalized.marketingItems,
+    promotionItems: normalized.promotionItems,
+    targetAttendeesCount: normalized.targetAttendeesCount,
+    targetBookingSales: normalized.targetBookingSales,
+    demoPlotId: normalized.demoPlotId,
+    workTypeCodes: normalized.workTypeCodes,
     status: ActivityStatus.DRAFT,
     employeeId: employee.id,
     createdById: userId,
@@ -115,7 +121,10 @@ export async function duplicateActivityPlanUseCase(
     workTypeCode: s.workTypeCode,
     storeId: s.storeId,
     storeName: s.storeName,
+    targetAmount: s.targetAmount ? Number(s.targetAmount) : null,
+    subDealerStore: s.subDealerStore,
     remarks: s.remarks,
+    notes: s.notes,
   }));
 
   // Products
@@ -124,9 +133,28 @@ export async function duplicateActivityPlanUseCase(
     storeId: p.storeId,
     productId: p.productId,
     productName: p.productName,
-    targetQuantity: p.targetQuantity,
+    masterPrice: p.masterPrice ? Number(p.masterPrice) : null,
     unitPrice: p.unitPrice ? Number(p.unitPrice) : null,
+    isPriceOverridden: p.isPriceOverridden,
+    targetQuantity: p.targetQuantity,
     targetAmount: p.targetAmount ? Number(p.targetAmount) : null,
+  }));
+
+  // Marketing Items
+  const marketingItems = (originalPlan.marketingItems || []).map((m) => ({
+    category: m.category,
+    materialName: m.materialName,
+    unit: m.unit,
+    unitPrice: m.unitPrice ? Number(m.unitPrice) : null,
+    quantity: m.quantity,
+    totalAmount: m.totalAmount ? Number(m.totalAmount) : null,
+  }));
+
+  // Promotion Items
+  const promotionItems = (originalPlan.promotionItems || []).map((p) => ({
+    budgetType: p.budgetType,
+    detail: p.detail,
+    amount: p.amount ? Number(p.amount) : null,
   }));
 
   // Tour
@@ -142,41 +170,6 @@ export async function duplicateActivityPlanUseCase(
 
   // Helpers
   const helperEmployeeIds = (originalPlan.helpers || []).map((h) => h.employeeId);
-
-  // Items
-  const items = (originalPlan.items || []).map((item) => ({
-    workTypeCode: item.workTypeCode,
-    customerName: item.customerName,
-    detail: item.detail,
-    visitTopic: item.visitTopic,
-    followupProductName: item.followupProductName,
-    saleProductName: item.saleProductName,
-    saleQuantity: item.saleQuantity,
-    saleUnitPrice: item.saleUnitPrice ? Number(item.saleUnitPrice) : null,
-    saleTotalPrice: item.saleTotalPrice ? Number(item.saleTotalPrice) : null,
-    collectAmount: item.collectAmount ? Number(item.collectAmount) : null,
-    surveyCompetitorProduct: item.surveyCompetitorProduct,
-    surveyStoreName: item.surveyStoreName,
-    issueType: item.issueType,
-    plotActivityType: item.plotActivityType,
-    plotOwnerName: item.plotOwnerName,
-    plotProductName: item.plotProductName,
-    plotCropCategory: item.plotCropCategory,
-    plotCropName: item.plotCropName,
-    plotAreaRai: item.plotAreaRai ? Number(item.plotAreaRai) : null,
-    plotTreeCount: item.plotTreeCount,
-    plotCount: item.plotCount,
-    existingPlotId: item.existingPlotId,
-    plotGrowthStage: item.plotGrowthStage,
-    plotStatus: item.plotStatus,
-    meetingTopic: item.meetingTopic,
-    meetingAttendeesCount: item.meetingAttendeesCount,
-    meetingTargetProducts: item.meetingTargetProducts,
-    storeProductName: item.storeProductName,
-    storeQuantityCases: item.storeQuantityCases,
-    storePricePerCase: item.storePricePerCase ? Number(item.storePricePerCase) : null,
-    storeTotalAmount: item.storeTotalAmount ? Number(item.storeTotalAmount) : null,
-  }));
 
   const titlePrefix = "(สำเนา) ";
   const newTitle = originalPlan.title.startsWith(titlePrefix)
@@ -199,6 +192,9 @@ export async function duplicateActivityPlanUseCase(
     marketingBudgetRequested: originalPlan.marketingBudgetRequested
       ? Number(originalPlan.marketingBudgetRequested)
       : null,
+    targetAttendeesCount: originalPlan.targetAttendeesCount ?? null,
+    targetBookingSales: originalPlan.targetBookingSales ? Number(originalPlan.targetBookingSales) : null,
+    demoPlotId: (originalPlan.demoPlotVisits && originalPlan.demoPlotVisits[0]?.demoPlotId) || null,
     status: ActivityStatus.DRAFT,
     employeeId: employee.id,
     createdById: userId,
@@ -207,8 +203,9 @@ export async function duplicateActivityPlanUseCase(
     tourData,
     planStores,
     planProducts,
+    marketingItems,
+    promotionItems,
     helperEmployeeIds,
-    items,
   };
 
   const plan = await createActivityPlan(data);
@@ -245,6 +242,7 @@ export async function updateActivityPlanUseCase(id: string, userId: string, rawD
     return { success: false as const, error: "สามารถแก้ไขได้เฉพาะ Trip Plan ในสถานะร่างหรือรอแก้ไขเท่านั้น" };
   }
 
+  const normalized = normalizePlanInput(parsed.data);
   const { helperEmployeeIds, items, tourData, planStores, planProducts, workTypeCodes, ...planFields } = parsed.data;
 
   const data = {
@@ -253,12 +251,16 @@ export async function updateActivityPlanUseCase(id: string, userId: string, rawD
     marketingBudgetRequested: planFields.marketingBudgetRequested ?? null,
     province: planFields.province ?? null,
     district: planFields.district ?? null,
-    items: items ?? [],
-    helperEmployeeIds,
-    tourData: tourData ?? null,
-    planStores: planStores ?? [],
-    planProducts: planProducts ?? [],
-    workTypeCodes: workTypeCodes ?? [],
+    helperEmployeeIds: normalized.helperEmployeeIds,
+    tourData: normalized.tourData,
+    planStores: normalized.planStores,
+    planProducts: normalized.planProducts,
+    marketingItems: normalized.marketingItems,
+    promotionItems: normalized.promotionItems,
+    targetAttendeesCount: normalized.targetAttendeesCount,
+    targetBookingSales: normalized.targetBookingSales,
+    demoPlotId: normalized.demoPlotId,
+    workTypeCodes: normalized.workTypeCodes,
     updatedUserId: userId,
   };
 
@@ -431,5 +433,10 @@ export {
   formatEmployeeName,
   type ApproverDirectory,
 } from "./approver-directory";
+
+export {
+  normalizePlanInput,
+  type NormalizedPlanData,
+} from "./plan-mapper";
 
 export type { ListActivityPlansParams };

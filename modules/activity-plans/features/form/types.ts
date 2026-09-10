@@ -1,5 +1,6 @@
 export interface RequisitionItem {
   id: string;
+  productId?: string;
   productName: string;
   quantity: number;
   unit: string;
@@ -8,6 +9,7 @@ export interface RequisitionItem {
 
 export interface Type9ProductItem {
   id: string;
+  productId?: string;
   productName: string;
   quantityCases: number;
   pricePerCase: number;
@@ -15,6 +17,7 @@ export interface Type9ProductItem {
 
 export interface Type1VisitItem {
   id: string;
+  storeId?: string;
   customerName: string;
   topic: string;
   detail: string;
@@ -22,32 +25,42 @@ export interface Type1VisitItem {
 
 export interface Type2ProductFollowupItem {
   id: string;
-  productName: string;
+  storeId?: string;
   customerName: string;
+  productId?: string;
+  productName: string;
   detail: string;
 }
 
 export interface Type3SalesProductLine {
   id: string;
+  productId?: string;
   productName: string;
   quantity: number;
   unitPrice: number;
+  masterPrice?: number;
+  isPriceOverridden?: boolean;
   price: number;
 }
 
 export interface Type3SalesItem {
   id: string;
+  storeId?: string;
   customerName: string;
   products?: Type3SalesProductLine[];
+  productId?: string;
   productName?: string;
   quantity?: number;
   unitPrice?: number;
+  masterPrice?: number;
+  isPriceOverridden?: boolean;
   price?: number;
   detail: string;
 }
 
 export interface Type4CollectItem {
   id: string;
+  storeId?: string;
   customerName: string;
   collectAmount: number;
   detail: string;
@@ -55,13 +68,16 @@ export interface Type4CollectItem {
 
 export interface Type5SurveyItem {
   id: string;
-  comparedProduct: string;
+  storeId?: string;
   storeName: string;
+  productId?: string;
+  comparedProduct: string;
   detail: string;
 }
 
 export interface Type6IssueItem {
   id: string;
+  storeId?: string;
   customerName: string;
   issueType: string;
   detail: string;
@@ -74,7 +90,10 @@ export interface Type7DemoPlotItem {
   plotActivityType?: PlotActivityType; // "CREATE" (ทำแปลงสาธิต) | "FOLLOW_UP" (ติดตามแปลงสาธิต)
 
   // Fields for CREATE (ทำแปลงสาธิต) & shared
+  demoPlotId?: string;
+  storeId?: string;
   ownerName: string;
+  productId?: string;
   productName: string;
   productUnit?: string;
   cropCategory: string;
@@ -103,9 +122,15 @@ export interface Type7DemoPlotItem {
 export interface Type8MeetingItem {
   id: string;
   topic: string;
+  targetProductIds?: string[];
   targetProducts?: string[];
   attendeesCount: number;
   detail: string;
+}
+
+export interface Type11StoreItem {
+  storeId: string;
+  storeName: string;
 }
 
 export interface MarketingBudgetProductItem {

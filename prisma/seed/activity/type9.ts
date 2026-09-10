@@ -47,26 +47,6 @@ export async function seedType9(prisma: PrismaClient, ctx: SeedContext) {
       { employeeId: helper0.id, departmentId: helper0.departmentId, departmentName: helper0.departmentName, status: ActivityHelperStatus.APPROVED, approvedById: ctx.managerEmployee.id, approvedAt: new Date("2026-08-10T11:00:00.000Z") },
       { employeeId: helper1.id, departmentId: helper1.departmentId, departmentName: helper1.departmentName, status: ActivityHelperStatus.APPROVED, approvedById: ctx.managerEmployee.id, approvedAt: new Date("2026-08-10T11:00:00.000Z") },
     ],
-    items: [
-      {
-        workTypeCode: "TYPE_9",
-        customerName: store0.name,
-        storeProductName: prod0.name,
-        storeQuantityCases: 30,
-        storePricePerCase: price0,
-        storeTotalAmount: 30 * price0,
-        detail: "จัดบูธหน้าร้าน แจกเสื้อยืดและคูปองส่วนลด",
-      },
-      {
-        workTypeCode: "TYPE_9",
-        customerName: store1.name,
-        storeProductName: prod1.name,
-        storeQuantityCases: 25,
-        storePricePerCase: price1,
-        storeTotalAmount: 25 * price1,
-        detail: "กิจกรรมซื้อ 2 แถม 1 หน้าร้าน",
-      },
-    ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-09T09:00:00.000Z") },
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.APPROVE, step: ActivityApprovalStep.BUDGET_APPROVAL, fromStatus: ActivityStatus.PENDING_LINE_APPROVAL, toStatus: ActivityStatus.APPROVED, comment: "อนุมัติงบส่งเสริมการขาย", createdAt: new Date("2026-08-11T16:00:00.000Z") },
@@ -112,11 +92,11 @@ export async function seedType9(prisma: PrismaClient, ctx: SeedContext) {
     stores: [
       { workTypeCode: "TYPE_9", storeId: store2.id, storeName: store2.name },
     ],
+    products: [
+      { workTypeCode: "TYPE_9", storeId: store2.id, productId: prod0.id, productName: prod0.name, targetQuantity: 20, unitPrice: price0, targetAmount: 20 * price0 },
+    ],
     helpers: [
       { employeeId: helper0.id, departmentId: helper0.departmentId, departmentName: helper0.departmentName, status: ActivityHelperStatus.PENDING },
-    ],
-    items: [
-      { workTypeCode: "TYPE_9", customerName: store2.name, storeProductName: prod0.name, storeQuantityCases: 20, storePricePerCase: price0, storeTotalAmount: 20 * price0 },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-20T10:00:00.000Z") },
@@ -145,8 +125,8 @@ export async function seedType9(prisma: PrismaClient, ctx: SeedContext) {
     stores: [
       { workTypeCode: "TYPE_9", storeId: store0.id, storeName: store0.name },
     ],
-    items: [
-      { workTypeCode: "TYPE_9", customerName: store0.name, storeProductName: prod1.name, storeQuantityCases: 15, storePricePerCase: price1, storeTotalAmount: 15 * price1 },
+    products: [
+      { workTypeCode: "TYPE_9", storeId: store0.id, productId: prod1.id, productName: prod1.name, targetQuantity: 15, unitPrice: price1, targetAmount: 15 * price1 },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-04T09:00:00.000Z") },

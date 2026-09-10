@@ -202,13 +202,7 @@ export default function ActivityPlanApprovalListView() {
               (s.store?.name || s.storeName || "").toLowerCase().includes(q),
             )) ||
           (p.tour?.store?.name &&
-            p.tour.store.name.toLowerCase().includes(q)) ||
-          (p.items &&
-            p.items.some((it) =>
-              (it.customerName || it.surveyStoreName || "")
-                .toLowerCase()
-                .includes(q),
-            )),
+            p.tour.store.name.toLowerCase().includes(q)),
       );
     }
 

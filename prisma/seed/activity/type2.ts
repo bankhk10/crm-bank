@@ -36,10 +36,6 @@ export async function seedType2(prisma: PrismaClient, ctx: SeedContext) {
     helpers: [
       { employeeId: helper0.id, departmentId: helper0.departmentId, departmentName: helper0.departmentName, status: ActivityHelperStatus.APPROVED, approvedById: ctx.managerEmployee.id, approvedAt: new Date("2026-08-06T10:00:00.000Z") },
     ],
-    items: [
-      { workTypeCode: "TYPE_2", customerName: store0.name, followupProductName: prod0.name, detail: "ตรวจสอบการแตกตาดอกและใบคู่แรกหลังใช้" },
-      { workTypeCode: "TYPE_2", customerName: store1.name, followupProductName: prod1.name, detail: "ประเมินการควบคุมโรคราใบไหม้" },
-    ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, comment: "ขออนุมัติติดตามผลสินค้า", createdAt: new Date("2026-08-05T09:00:00.000Z") },
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.APPROVE, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.PENDING_LINE_APPROVAL, toStatus: ActivityStatus.APPROVED, comment: "อนุมัติแผนติดตามผล", createdAt: new Date("2026-08-06T14:00:00.000Z") },
@@ -81,9 +77,6 @@ export async function seedType2(prisma: PrismaClient, ctx: SeedContext) {
     products: [
       { workTypeCode: "TYPE_2", storeId: store1.id, productId: prod0.id, productName: prod0.name },
     ],
-    items: [
-      { workTypeCode: "TYPE_2", customerName: store1.name, followupProductName: prod0.name, detail: "สุ่มตรวจยอดส้ม 50 ยอด" },
-    ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, comment: "ส่งแผนงานขออนุมัติ", createdAt: new Date("2026-08-16T11:00:00.000Z") },
     ],
@@ -108,9 +101,6 @@ export async function seedType2(prisma: PrismaClient, ctx: SeedContext) {
     ],
     products: [
       { workTypeCode: "TYPE_2", storeId: store0.id, productId: prod1.id, productName: prod1.name },
-    ],
-    items: [
-      { workTypeCode: "TYPE_2", customerName: store0.name, followupProductName: prod1.name, detail: "นับจำนวนต้นต่อกอและวัดความสูง" },
     ],
   });
 }

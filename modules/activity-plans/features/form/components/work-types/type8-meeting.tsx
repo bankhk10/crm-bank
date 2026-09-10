@@ -126,10 +126,24 @@ export function Type8Meeting({
                                     const updated = selectedProducts.filter(
                                       (p) => p !== prod,
                                     );
+                                    const prodObj = (products || []).find(
+                                      (p) => p.name === prod || p.id === prod,
+                                    );
+                                    const updatedIds = (
+                                      item.targetProductIds || []
+                                    ).filter(
+                                      (id) =>
+                                        id !== prodObj?.id && id !== prod,
+                                    );
                                     updateType8Row(
                                       item.id,
                                       "targetProducts",
                                       updated,
+                                    );
+                                    updateType8Row(
+                                      item.id,
+                                      "targetProductIds",
+                                      updatedIds,
                                     );
                                   }}
                                   className="text-blue-500 hover:text-blue-700 font-bold"
@@ -155,9 +169,18 @@ export function Type8Meeting({
                               selectedProducts.length < 3 &&
                               !selectedProducts.includes(val)
                             ) {
+                              const foundProd = (products || []).find(
+                                (p) => p.name === val || p.id === val,
+                              );
+                              const newProdName = foundProd?.name || val;
+                              const newProdId = foundProd?.id || val;
                               updateType8Row(item.id, "targetProducts", [
                                 ...selectedProducts,
-                                val,
+                                newProdName,
+                              ]);
+                              updateType8Row(item.id, "targetProductIds", [
+                                ...(item.targetProductIds || []),
+                                newProdId,
                               ]);
                             }
                           }}

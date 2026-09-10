@@ -260,8 +260,11 @@ export function Type9Store({
                           triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-md text-slate-800 focus:ring-2 focus:ring-teal-500"
                           value={item.productName}
                           onChange={(val) => {
-                            updateType9ProductItem(item.id, "productName", val);
-                            const found = products.find((p) => p.name === val);
+                            const found = products.find((p) => p.name === val || p.id === val);
+                            updateType9ProductItem(item.id, "productName", found?.name || val);
+                            if (found?.id) {
+                              updateType9ProductItem(item.id, "productId", found.id);
+                            }
                             if (found && found.price != null) {
                               updateType9ProductItem(
                                 item.id,

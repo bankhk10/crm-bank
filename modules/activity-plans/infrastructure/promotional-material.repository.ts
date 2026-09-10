@@ -276,9 +276,9 @@ export async function softDeletePromotionalMaterial(id: string) {
  * Check if a promotional material is used in any activity plans
  */
 export async function checkPromotionalMaterialUsage(productName: string) {
-  const count = await db.activityPlanItem.count({
+  const count = await db.activityPlanMarketingItem.count({
     where: {
-      storeProductName: productName,
+      materialName: productName,
     },
   });
   return count;

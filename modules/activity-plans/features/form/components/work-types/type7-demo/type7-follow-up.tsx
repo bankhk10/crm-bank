@@ -50,12 +50,15 @@ export function Type7FollowUp({
           onChange={(val) => {
             const match = plotList.find((p) => p.name === val || p.id === val);
             updateType7Row(item.id, "existingPlotId", match?.id || val);
+            updateType7Row(item.id, "demoPlotId", match?.id || val);
             updateType7Row(item.id, "existingPlotName", match?.name || val);
             if (match) {
               if (match.ownerName)
                 updateType7Row(item.id, "ownerName", match.ownerName);
               if (match.productName)
                 updateType7Row(item.id, "productName", match.productName);
+              if (match.productId)
+                updateType7Row(item.id, "productId", match.productId);
               if (match.cropCategory)
                 updateType7Row(item.id, "cropCategory", match.cropCategory);
               if (match.cropName)

@@ -25,13 +25,16 @@ export async function seedType6(prisma: PrismaClient, ctx: SeedContext) {
     submittedAt: new Date("2026-08-10T09:00:00.000Z"),
     approvedAt: new Date("2026-08-11T10:00:00.000Z"),
     stores: [
-      { workTypeCode: "TYPE_6", storeId: store0.id, storeName: store0.name },
+      {
+        workTypeCode: "TYPE_6",
+        storeId: store0.id,
+        storeName: store0.name,
+        remarks: "สินค้าตกตะกอน / แยกชั้น",
+        notes: "เกษตรกรแจ้งพบตะกอนที่ก้นขวดในล็อตผลิต LOT2605",
+      },
     ],
     products: [
       { workTypeCode: "TYPE_6", storeId: store0.id, productId: prod0.id, productName: prod0.name },
-    ],
-    items: [
-      { workTypeCode: "TYPE_6", customerName: store0.name, issueType: "สินค้าตกตะกอน / แยกชั้น", detail: "เกษตรกรแจ้งพบตะกอนที่ก้นขวดในล็อตผลิต LOT2605" },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-10T09:00:00.000Z") },
@@ -69,13 +72,16 @@ export async function seedType6(prisma: PrismaClient, ctx: SeedContext) {
     currentApproverEmployeeId: ctx.managerEmployee.id,
     submittedAt: new Date("2026-08-18T10:00:00.000Z"),
     stores: [
-      { workTypeCode: "TYPE_6", storeId: store1.id, storeName: store1.name },
+      {
+        workTypeCode: "TYPE_6",
+        storeId: store1.id,
+        storeName: store1.name,
+        remarks: "ฝาบรรจุภัณฑ์หลวม / รั่วซึม",
+        notes: "พบกล่องเปียกชื้น 2 กล่อง",
+      },
     ],
     products: [
       { workTypeCode: "TYPE_6", storeId: store1.id, productId: prod1.id, productName: prod1.name },
-    ],
-    items: [
-      { workTypeCode: "TYPE_6", customerName: store1.name, issueType: "ฝาบรรจุภัณฑ์หลวม / รั่วซึม", detail: "พบกล่องเปียกชื้น 2 กล่อง" },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-18T10:00:00.000Z") },
@@ -101,10 +107,13 @@ export async function seedType6(prisma: PrismaClient, ctx: SeedContext) {
     submittedAt: new Date("2026-08-14T09:00:00.000Z"),
     approvedAt: new Date("2026-08-15T11:00:00.000Z"),
     stores: [
-      { workTypeCode: "TYPE_6", storeId: store0.id, storeName: store0.name },
-    ],
-    items: [
-      { workTypeCode: "TYPE_6", customerName: store0.name, issueType: "ข้อสงสัยประสิทธิภาพผลิตภัณฑ์", detail: "เกษตรกรเข้าใจว่ายาไม่ตาย เนื่องจากใช้น้ำกร่อยผสม" },
+      {
+        workTypeCode: "TYPE_6",
+        storeId: store0.id,
+        storeName: store0.name,
+        remarks: "ข้อสงสัยประสิทธิภาพผลิตภัณฑ์",
+        notes: "เกษตรกรเข้าใจว่ายาไม่ตาย เนื่องจากใช้น้ำกร่อยผสม",
+      },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-14T09:00:00.000Z") },

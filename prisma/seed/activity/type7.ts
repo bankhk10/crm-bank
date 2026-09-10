@@ -131,6 +131,7 @@ export async function seedType7(prisma: PrismaClient, ctx: SeedContext) {
     currentApproverEmployeeId: ctx.managerEmployee.id,
     submittedAt: new Date("2026-08-03T09:00:00.000Z"),
     approvedAt: new Date("2026-08-04T10:00:00.000Z"),
+    demoPlotId: demoPlot1.id,
     stores: [
       { workTypeCode: "TYPE_7", storeId: store0.id, storeName: store0.name },
     ],
@@ -139,24 +140,6 @@ export async function seedType7(prisma: PrismaClient, ctx: SeedContext) {
     ],
     helpers: [
       { employeeId: helper0.id, departmentId: helper0.departmentId, departmentName: helper0.departmentName, status: ActivityHelperStatus.APPROVED, approvedById: ctx.managerEmployee.id, approvedAt: new Date("2026-08-04T09:00:00.000Z") },
-    ],
-    items: [
-      {
-        workTypeCode: "TYPE_7",
-        customerName: store0.name,
-        plotActivityType: "CREATE",
-        plotOwnerName: "นายสมชาย ใจดี",
-        plotProductName: prod0.name,
-        plotCropCategory: "พืชสวน",
-        plotCropName: "ทุเรียน",
-        plotAreaRai: 5.0,
-        plotTreeCount: 100,
-        plotCount: 1,
-        existingPlotId: demoPlot1.id,
-        plotGrowthStage: "แตกใบอ่อน",
-        plotStatus: "IN_PROGRESS",
-        detail: "ฉีดพ่นรอบที่ 1 และติดป้ายแปลงสาธิต",
-      },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-03T09:00:00.000Z") },
@@ -231,27 +214,12 @@ export async function seedType7(prisma: PrismaClient, ctx: SeedContext) {
     currentApproverEmployeeId: ctx.managerEmployee.id,
     submittedAt: new Date("2026-08-12T09:00:00.000Z"),
     approvedAt: new Date("2026-08-13T11:00:00.000Z"),
+    demoPlotId: demoPlot2.id,
     stores: [
       { workTypeCode: "TYPE_7", storeId: store0.id, storeName: store0.name },
     ],
     products: [
       { workTypeCode: "TYPE_7", storeId: store0.id, productId: prod1.id, productName: prod1.name },
-    ],
-    items: [
-      {
-        workTypeCode: "TYPE_7",
-        customerName: store0.name,
-        plotActivityType: "FOLLOW_UP",
-        plotOwnerName: "นายวีระ ชูใจ",
-        plotProductName: prod1.name,
-        plotCropCategory: "พืชไร่",
-        plotCropName: "ข้าว",
-        plotAreaRai: 10.0,
-        existingPlotId: demoPlot2.id,
-        plotGrowthStage: "เก็บเกี่ยว",
-        plotStatus: "COMPLETED",
-        detail: "ชั่งผลผลิตสุ่ม 1 ตารางเมตร 5 จุด",
-      },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-12T09:00:00.000Z") },
@@ -326,18 +294,8 @@ export async function seedType7(prisma: PrismaClient, ctx: SeedContext) {
     stores: [
       { workTypeCode: "TYPE_7", storeId: store0.id, storeName: store0.name },
     ],
-    items: [
-      {
-        workTypeCode: "TYPE_7",
-        customerName: store0.name,
-        plotActivityType: "CREATE",
-        plotOwnerName: "นายประเสริฐ สุขใจ",
-        plotProductName: prod0.name,
-        plotCropCategory: "พืชไร่",
-        plotCropName: "ข้าวโพด",
-        plotAreaRai: 8.0,
-        detail: "วางแปลงสาธิต 2 ซ้ำ",
-      },
+    products: [
+      { workTypeCode: "TYPE_7", storeId: store0.id, productId: prod0.id, productName: prod0.name },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-22T09:00:00.000Z") },

@@ -24,16 +24,12 @@ export async function seedType4(prisma: PrismaClient, ctx: SeedContext) {
     submittedAt: new Date("2026-08-08T09:00:00.000Z"),
     approvedAt: new Date("2026-08-09T11:00:00.000Z"),
     stores: [
-      { workTypeCode: "TYPE_4", storeId: store0.id, storeName: store0.name, remarks: "รอบบิลที่ 1" },
-      { workTypeCode: "TYPE_4", storeId: store1.id, storeName: store1.name, remarks: "รอบบิลที่ 2" },
-    ],
-    items: [
-      { workTypeCode: "TYPE_4", customerName: store0.name, collectAmount: 45000, detail: "วางบิลใบส่งของเลขที่ IV69012" },
-      { workTypeCode: "TYPE_4", customerName: store1.name, collectAmount: 32500, detail: "รับเช็คชำระค่าสินค้าครบกำหนด" },
+      { workTypeCode: "TYPE_4", storeId: store0.id, storeName: store0.name, targetAmount: 45000, remarks: "รอบบิลที่ 1" },
+      { workTypeCode: "TYPE_4", storeId: store1.id, storeName: store1.name, targetAmount: 32500, remarks: "รอบบิลที่ 2" },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-08T09:00:00.000Z") },
-      { userId: ctx.adminUser.id, action: ActivityApprovalAction.APPROVE, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.PENDING_LINE_APPROVAL, toStatus: ActivityStatus.APPROVED, createdAt: new Date("2026-08-09T11:00:00.000Z") },
+      { userId: ctx.adminUser.id, action: ActivityApprovalAction.APPROVE, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.PENDING_LINE_APPROVAL, toStatus: ActivityStatus.APPROVED, comment: "อนุมัติแผนงานเรียบร้อย", createdAt: new Date("2026-08-09T11:00:00.000Z") },
     ],
     actualResult: {
       actualStartDate: new Date("2026-08-15T09:00:00.000Z"),
@@ -64,10 +60,7 @@ export async function seedType4(prisma: PrismaClient, ctx: SeedContext) {
     currentApproverEmployeeId: ctx.managerEmployee.id,
     submittedAt: new Date("2026-08-18T09:00:00.000Z"),
     stores: [
-      { workTypeCode: "TYPE_4", storeId: store2.id, storeName: store2.name },
-    ],
-    items: [
-      { workTypeCode: "TYPE_4", customerName: store2.name, collectAmount: 28000, detail: "เก็บเงินสดตามใบวางบิล" },
+      { workTypeCode: "TYPE_4", storeId: store2.id, storeName: store2.name, targetAmount: 28000 },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-18T09:00:00.000Z") },
@@ -89,10 +82,7 @@ export async function seedType4(prisma: PrismaClient, ctx: SeedContext) {
     employeeId: ctx.primaryEmployee.id,
     createdById: ctx.adminUser.id,
     stores: [
-      { workTypeCode: "TYPE_4", storeId: store0.id, storeName: store0.name },
-    ],
-    items: [
-      { workTypeCode: "TYPE_4", customerName: store0.name, collectAmount: 52000, detail: "วางบิล 3 ใบแจ้งหนี้" },
+      { workTypeCode: "TYPE_4", storeId: store0.id, storeName: store0.name, targetAmount: 52000 },
     ],
   });
 }

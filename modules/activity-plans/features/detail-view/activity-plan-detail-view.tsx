@@ -253,21 +253,11 @@ export default function ActivityPlanDetailView({
   );
 
   const tourData = plan.tour;
-  const item0 = (plan.items?.[0] || {}) as Record<string, any>;
-  const tourType =
-    tourData?.tourType ??
-    (item0.visitTopic === "ทัวร์ร้านค้า" ? "STORE" : "CENTRAL");
-  const tourSize = tourData?.tourSize ?? item0.tourSize ?? null;
-  const tourCountry =
-    tourData?.country ?? item0.country ?? item0.detail ?? null;
-  const tourStoreName =
-    tourData?.store?.name ?? item0.customerName ?? item0.store ?? null;
-  const tourDestination =
-    tourData?.destination ??
-    item0.destination ??
-    item0.location ??
-    item0.detail ??
-    null;
+  const tourType = tourData?.tourType ?? "CENTRAL";
+  const tourSize = tourData?.tourSize ?? null;
+  const tourCountry = tourData?.country ?? null;
+  const tourStoreName = tourData?.store?.name ?? null;
+  const tourDestination = tourData?.destination ?? null;
 
   // Check if plan contains any actual work types (Types 1 - 11)
   const hasActualWorkTypes = planWorkTypes.some((wt) => wt !== "ทัวร์");

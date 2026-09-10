@@ -1,7 +1,7 @@
 import React from "react";
 import { ClipboardList, X } from "lucide-react";
 import { FormCombobox } from "@/components/custom/form-components";
-import { STORES_LIST } from "../../../../constants";
+import type { Type11StoreItem } from "../../types";
 
 export interface CustomerOption {
   id: string;
@@ -12,8 +12,8 @@ export interface CustomerOption {
 
 interface Props {
   readonly?: boolean;
-  type11Stores: string;
-  setType11Stores: (val: string) => void;
+  type11Stores: Type11StoreItem[] | string;
+  setType11Stores: (val: Type11StoreItem[]) => void;
   customers?: CustomerOption[];
 }
 
@@ -23,26 +23,22 @@ export function Type11Stock({
   setType11Stores,
   customers = [],
 }: Props) {
-  const selectedStores = type11Stores
-    ? type11Stores.split(", ").filter(Boolean)
-    : [];
+  // Normalize incoming stores: array of Type11StoreItem is primary
+  const selectedStores: Type11StoreItem[] = React.useMemo(() => {
+    if (Array.isArray(type11Stores)) {
+      return type11Stores;
+    }
+    return [];
+  }, [type11Stores]);
 
-  const customerOptions = (
-    customers && customers.length > 0
-      ? customers
-      : STORES_LIST.map((store) => ({
-          id: store,
-          name: store,
-          customerCode: null,
-        }))
-  ).map((c) => ({
-    value: c.name,
-    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
-  }));
+  const selectedStoreIds = new Set(selectedStores.map((s) => s.storeId));
 
-  const availableCustomerOptions = customerOptions.filter(
-    (c) => !selectedStores.includes(c.value),
-  );
+  const availableCustomerOptions = (customers || [])
+    .filter((c) => !selectedStoreIds.has(c.id))
+    .map((c) => ({
+      value: c.id,
+      label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
+    }));
 
   return (
     <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-4 md:p-5 space-y-4">
@@ -63,16 +59,18 @@ export function Type11Stock({
           <div className="flex flex-wrap gap-1.5 p-2.5 rounded-lg border border-slate-200 bg-white">
             {selectedStores.map((store) => (
               <span
-                key={store}
+                key={store.storeId}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 text-xs font-medium border border-slate-200"
               >
-                {store}
+                {store.storeName}
                 {!readonly && (
                   <button
                     type="button"
                     onClick={() => {
-                      const updated = selectedStores.filter((s) => s !== store);
-                      setType11Stores(updated.join(", "));
+                      const updated = selectedStores.filter(
+                        (s) => s.storeId !== store.storeId,
+                      );
+                      setType11Stores(updated);
                     }}
                     className="text-slate-400 hover:text-red-500 font-bold transition-colors"
                   >
@@ -92,11 +90,18 @@ export function Type11Stock({
             labelClassName="hidden"
             triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-slate-500"
             value=""
-            onChange={(val) => {
-              if (!val) return;
-              if (!selectedStores.includes(val)) {
-                const updated = [...selectedStores, val];
-                setType11Stores(updated.join(", "));
+            onChange={(selectedId) => {
+              if (!selectedId) return;
+              const foundCustomer = customers.find((c) => c.id === selectedId);
+              if (foundCustomer && !selectedStoreIds.has(foundCustomer.id)) {
+                const updated: Type11StoreItem[] = [
+                  ...selectedStores,
+                  {
+                    storeId: foundCustomer.id,
+                    storeName: foundCustomer.name,
+                  },
+                ];
+                setType11Stores(updated);
               }
             }}
             options={availableCustomerOptions}

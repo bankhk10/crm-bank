@@ -4,6 +4,7 @@ import { SeedContext, upsertSeedPlan } from "./seed-helpers";
 export async function seedType10(prisma: PrismaClient, ctx: SeedContext) {
   const helper0 = ctx.helperEmployees[0];
   const helper1 = ctx.helperEmployees[1] || ctx.helperEmployees[0];
+  const demoPlot = await prisma.demoPlot.findFirst({ where: { deletedAt: null } });
 
   // Plan 1: Large Scale Event + Multiple Helpers + Budget + Farmers Count + APPROVED + Actual
   await upsertSeedPlan(prisma, {
@@ -25,18 +26,12 @@ export async function seedType10(prisma: PrismaClient, ctx: SeedContext) {
     currentApproverEmployeeId: ctx.managerEmployee.id,
     submittedAt: new Date("2026-08-10T09:00:00.000Z"),
     approvedAt: new Date("2026-08-12T14:00:00.000Z"),
+    targetAttendeesCount: 120,
+    targetBookingSales: 150000,
+    demoPlotId: demoPlot?.id ?? null,
     helpers: [
       { employeeId: helper0.id, departmentId: helper0.departmentId, departmentName: helper0.departmentName, status: ActivityHelperStatus.APPROVED, approvedById: ctx.managerEmployee.id, approvedAt: new Date("2026-08-11T10:00:00.000Z") },
       { employeeId: helper1.id, departmentId: helper1.departmentId, departmentName: helper1.departmentName, status: ActivityHelperStatus.APPROVED, approvedById: ctx.managerEmployee.id, approvedAt: new Date("2026-08-11T10:00:00.000Z") },
-    ],
-    items: [
-      {
-        workTypeCode: "TYPE_10",
-        customerName: "เกษตรกรกลุ่มผู้ปลูกมันสำปะหลังและข้าว อ.พิมาย",
-        meetingTopic: "งานวันฟิลด์เดย์ อารักขาพืชยุคใหม่สู้ภัยแล้ง",
-        meetingAttendeesCount: 120,
-        detail: "จัดฐานเรียนรู้โรคพืช ฐานการใช้ปุ๋ย และฐานสาธิตแปลงจริง",
-      },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-10T09:00:00.000Z") },
@@ -75,11 +70,10 @@ export async function seedType10(prisma: PrismaClient, ctx: SeedContext) {
     createdById: ctx.adminUser.id,
     currentApproverEmployeeId: ctx.managerEmployee.id,
     submittedAt: new Date("2026-08-23T09:00:00.000Z"),
+    targetAttendeesCount: 80,
+    targetBookingSales: 80000,
     helpers: [
       { employeeId: helper0.id, departmentId: helper0.departmentId, departmentName: helper0.departmentName, status: ActivityHelperStatus.PENDING },
-    ],
-    items: [
-      { workTypeCode: "TYPE_10", meetingTopic: "การใช้โดรนพ่นยาอย่างมีประสิทธิภาพและปลอดภัย", meetingAttendeesCount: 80, detail: "สาธิตบินโดรนแปลงจริง 10 ไร่" },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-23T09:00:00.000Z") },
@@ -105,9 +99,8 @@ export async function seedType10(prisma: PrismaClient, ctx: SeedContext) {
     currentApproverEmployeeId: ctx.managerEmployee.id,
     submittedAt: new Date("2026-08-06T09:00:00.000Z"),
     approvedAt: new Date("2026-08-07T11:00:00.000Z"),
-    items: [
-      { workTypeCode: "TYPE_10", meetingTopic: "สรุปผลแปลงสาธิตพันธุ์ข้าวและสารอาหารพืช", meetingAttendeesCount: 60 },
-    ],
+    targetAttendeesCount: 60,
+    targetBookingSales: 50000,
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-06T09:00:00.000Z") },
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.APPROVE, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.PENDING_LINE_APPROVAL, toStatus: ActivityStatus.APPROVED, createdAt: new Date("2026-08-07T11:00:00.000Z") },

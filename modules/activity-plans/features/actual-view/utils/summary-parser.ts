@@ -140,6 +140,121 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
   if (!resData) return result;
 
+  // 1. Direct fields from ActivityResult model
+  if (resData.resultStatus) result.activityResultStatus = resData.resultStatus;
+  if (resData.cancelReason) result.cancelReason = resData.cancelReason;
+  if (resData.postponedDate) {
+    result.postponedDate = typeof resData.postponedDate === "string" ? resData.postponedDate.split("T")[0] : new Date(resData.postponedDate).toISOString().split("T")[0];
+  }
+  if (resData.postponedTime) result.postponedTime = resData.postponedTime;
+  if (resData.postponedReason) result.postponedReason = resData.postponedReason;
+  if (resData.postponedNotes) result.postponedNotes = resData.postponedNotes;
+  if (resData.discussionResult) result.t1DiscussionResult = resData.discussionResult;
+  if (resData.productAdvice) result.t1ProductAdvice = resData.productAdvice;
+  if (resData.salesOpportunity) result.t1SalesOpportunity = resData.salesOpportunity;
+  if (resData.problemFound) result.problemFound = resData.problemFound;
+  if (resData.nextAction) {
+    result.nextAction = resData.nextAction;
+    result.t1NextAction = resData.nextAction;
+    result.t11NextAction = resData.nextAction;
+  }
+  if (resData.nextMeetingDate) {
+    result.t1NextMeetingDate = typeof resData.nextMeetingDate === "string" ? resData.nextMeetingDate.split("T")[0] : new Date(resData.nextMeetingDate).toISOString().split("T")[0];
+  }
+
+  // 2. Direct collections from normalized relations
+  if (resData.saleResults && Array.isArray(resData.saleResults) && resData.saleResults.length > 0) {
+    const t3Sales = resData.saleResults.filter((s: any) => s.workTypeCode === "TYPE_3");
+    if (t3Sales.length > 0) {
+      result.t3ProductSalesDetails = t3Sales.map((s: any) => ({
+        productId: s.productId,
+        productName: s.productName || s.product?.name || "",
+        actualQty: Number(s.actualQuantity || 0),
+        unitPrice: Number(s.actualUnitPrice || 0),
+        actualSales: Number(s.actualTotal || 0),
+        storeId: s.storeId,
+      }));
+    }
+    const t9Sales = resData.saleResults.filter((s: any) => s.workTypeCode === "TYPE_9");
+    if (t9Sales.length > 0) {
+      result.t9ProductSalesDetails = t9Sales.map((s: any) => ({
+        productId: s.productId,
+        productName: s.productName || s.product?.name || "",
+        actualQuantityCases: Number(s.actualQuantity || 0),
+        pricePerCase: Number(s.actualUnitPrice || 0),
+        actualSales: Number(s.actualTotal || 0),
+        storeId: s.storeId,
+      }));
+    }
+    const t8Sales = resData.saleResults.filter((s: any) => s.workTypeCode === "TYPE_8");
+    if (t8Sales.length > 0) {
+      result.t8ProductSalesDetails = t8Sales.map((s: any) => ({
+        productId: s.productId,
+        productName: s.productName || s.product?.name || "",
+        actualQty: Number(s.actualQuantity || 0),
+        unitPrice: Number(s.actualUnitPrice || 0),
+        actualSales: Number(s.actualTotal || 0),
+      }));
+    }
+  }
+
+  if (resData.stockResults && Array.isArray(resData.stockResults) && resData.stockResults.length > 0) {
+    result.t11StockItems = resData.stockResults.map((st: any) => ({
+      storeId: st.storeId,
+      storeName: st.store?.name || "",
+      productId: st.productId,
+      productName: st.product?.name || "",
+      remainingQty: String(st.remainingQuantity ?? ""),
+      remainingQuantity: Number(st.remainingQuantity ?? 0),
+      remainingStockQty: Number(st.remainingQuantity ?? 0),
+      stockStatus: st.stockStatus || "",
+      reorderOpportunity: st.reorderOpportunity || "",
+      remarks: st.remarks || "",
+    }));
+  }
+
+  if (resData.surveyResults && Array.isArray(resData.surveyResults) && resData.surveyResults.length > 0) {
+    result.t5SurveyDetails = resData.surveyResults.map((sv: any) => ({
+      id: sv.id,
+      storeId: sv.storeId,
+      store: sv.store?.name || "",
+      productId: sv.productId,
+      product: sv.product?.name || "",
+      competitorBrand: sv.competitorBrand || "",
+      competitorProduct: sv.competitorProduct || "",
+      competitorPrice: sv.competitorPrice ? String(sv.competitorPrice) : "",
+      competitorUnit: sv.competitorUnit || "ขวด",
+      promotionDetail: sv.promotionDetail || "",
+    }));
+  }
+
+  if (resData.attachments && Array.isArray(resData.attachments) && resData.attachments.length > 0) {
+    const toImage = (a: any) => ({
+      id: a.id,
+      url: a.fileUrl,
+      name: a.fileName,
+      size: a.fileSize || undefined,
+      type: a.mimeType || undefined,
+    });
+    const t6Att = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_6");
+    if (t6Att.length > 0) result.t6Images = t6Att.map(toImage);
+
+    const t7CropAtt = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_7" && a.category === "CROP");
+    if (t7CropAtt.length > 0) result.t7CropImages = t7CropAtt.map(toImage);
+
+    const t7PlotAtt = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_7" && a.category === "PLOT");
+    if (t7PlotAtt.length > 0) result.t7PlotImages = t7PlotAtt.map(toImage);
+
+    const t8Att = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_8");
+    if (t8Att.length > 0) result.t8Images = t8Att.map(toImage);
+
+    const t9Att = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_9");
+    if (t9Att.length > 0) result.t9Images = t9Att.map(toImage);
+
+    const t10Att = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_10");
+    if (t10Att.length > 0) result.t10Images = t10Att.map(toImage);
+  }
+
   if (resData.resultSummary) {
     const summaryText = resData.resultSummary;
 
@@ -554,15 +669,17 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
 
     // Type 11
-    const t11StockItemsMatch = summaryText.match(/รายการตรวจเช็กสต็อก:\s*(.+)/);
-    if (t11StockItemsMatch && t11StockItemsMatch[1]) {
-      try {
-        const parsed = JSON.parse(t11StockItemsMatch[1].trim());
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          result.t11StockItems = parsed;
+    if (!result.t11StockItems || result.t11StockItems.length === 0) {
+      const t11StockItemsMatch = summaryText.match(/รายการตรวจเช็กสต็อก:\s*(\[.+\])/);
+      if (t11StockItemsMatch && t11StockItemsMatch[1]) {
+        try {
+          const parsed = JSON.parse(t11StockItemsMatch[1].trim());
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            result.t11StockItems = parsed;
+          }
+        } catch {
+          // Ignore legacy non-json qualitative summary
         }
-      } catch (e) {
-        console.error("Failed to parse t11StockItems", e);
       }
     }
     const t11ProductMatch = summaryText.match(/รายการสินค้าตรวจเช็ก:\s*(.+)/);

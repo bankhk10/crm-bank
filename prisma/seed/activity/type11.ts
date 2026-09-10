@@ -39,10 +39,6 @@ export async function seedType11(prisma: PrismaClient, ctx: SeedContext) {
       { workTypeCode: "TYPE_11", storeId: store1.id, productId: prod1.id, productName: prod1.name },
       { workTypeCode: "TYPE_11", storeId: store1.id, productId: prod2.id, productName: prod2.name },
     ],
-    items: [
-      { workTypeCode: "TYPE_11", customerName: store0.name, detail: "ตรวจนับสต็อกสินค้ากลุ่มบำรุงพืชและกำจัดแมลง" },
-      { workTypeCode: "TYPE_11", customerName: store1.name, detail: "ตรวจสอบสภาพกล่องและวันหมดอายุสินค้าค้างสต็อก" },
-    ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-15T09:00:00.000Z") },
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.APPROVE, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.PENDING_LINE_APPROVAL, toStatus: ActivityStatus.APPROVED, createdAt: new Date("2026-08-16T10:00:00.000Z") },
@@ -91,9 +87,6 @@ export async function seedType11(prisma: PrismaClient, ctx: SeedContext) {
       { workTypeCode: "TYPE_11", storeId: store2.id, productId: prod0.id, productName: prod0.name },
       { workTypeCode: "TYPE_11", storeId: store2.id, productId: prod1.id, productName: prod1.name },
     ],
-    items: [
-      { workTypeCode: "TYPE_11", customerName: store2.name, detail: "นับสินค้าพร้อมตรวจสอบล็อตผลิต" },
-    ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-16T09:00:00.000Z") },
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.APPROVE, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.PENDING_LINE_APPROVAL, toStatus: ActivityStatus.APPROVED, createdAt: new Date("2026-08-17T11:00:00.000Z") },
@@ -133,9 +126,6 @@ export async function seedType11(prisma: PrismaClient, ctx: SeedContext) {
     ],
     products: [
       { workTypeCode: "TYPE_11", storeId: store0.id, productId: prod0.id, productName: prod0.name },
-    ],
-    items: [
-      { workTypeCode: "TYPE_11", customerName: store0.name, detail: "นับสินค้า 10 รายการหลัก" },
     ],
     approvalLogs: [
       { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-22T10:00:00.000Z") },
