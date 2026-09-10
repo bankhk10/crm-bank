@@ -169,6 +169,7 @@ export interface ListCalendarEventsParams {
   endDate?: Date;
   status?: CalendarEventStatus;
   viewAll?: boolean;
+  teamEmployeeIds?: string[];
 }
 
 /**
@@ -195,11 +196,34 @@ export async function listActivityCalendarEventsUseCase(
     }
   }
 
-  if (params.employeeId && !params.viewAll) {
-    where.OR = [
-      { employeeId: params.employeeId },
-      { attendees: { some: { employeeId: params.employeeId } } },
-    ];
+  if (params.viewAll) {
+    // VIEW_ALL: No restriction on employee/team/attendees
+  } else if (params.teamEmployeeIds && params.teamEmployeeIds.length > 0) {
+    // VIEW_TEAM: Includes events created by team members OR attended by user/team
+    const teamFilter = {
+      OR: [
+        { employeeId: { in: params.teamEmployeeIds } },
+        { attendees: { some: { employeeId: { in: params.teamEmployeeIds } } } },
+      ],
+    };
+    if (Array.isArray(where.AND)) {
+      (where.AND as any[]).push(teamFilter);
+    } else {
+      where.AND = [teamFilter];
+    }
+  } else if (params.employeeId) {
+    // VIEW_OWN: Includes events created by user OR where user is an attendee (Approved Helper)
+    const ownFilter = {
+      OR: [
+        { employeeId: params.employeeId },
+        { attendees: { some: { employeeId: params.employeeId } } },
+      ],
+    };
+    if (Array.isArray(where.AND)) {
+      (where.AND as any[]).push(ownFilter);
+    } else {
+      where.AND = [ownFilter];
+    }
   }
 
   const events = await db.activityCalendarEvent.findMany({

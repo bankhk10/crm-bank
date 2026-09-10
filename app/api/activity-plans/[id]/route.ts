@@ -28,11 +28,12 @@ export async function GET(request: Request, context: RouteContext) {
 
     const plan = result.plan;
     
-    // Check permission-based data scope ownership
+    // Check permission-based data scope ownership (includes Creator, Manager/Team, and Approved Helpers)
     const hasAccess = await canAccessRecord(session, "activity_plan", {
       resourceOwnerId: plan.createdById,
       resourceEmployeeId: plan.employeeId,
       resourceDepartmentId: plan.employee.departmentId,
+      resourceHelpers: plan.helpers,
     });
 
     if (!hasAccess) {

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Loader2, AlertTriangle, Check, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -156,9 +157,11 @@ export default function ActivityPlanActualView({
   onSuccess,
 }: ActivityPlanActualViewProps) {
   const router = useRouter();
+  const { data: session } = useSession();
 
   // Loading & Feedback State
   const [loadingPlan, setLoadingPlan] = useState(!!id);
+  const [unauthorizedError, setUnauthorizedError] = useState<string | null>(null);
   const [planStatus, setPlanStatus] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -338,6 +341,31 @@ export default function ActivityPlanActualView({
         const res = await getActivityPlanAction(id!);
         if (res.success && res.plan) {
           const p = res.plan;
+
+          // Check Creator ownership: Helper is NOT allowed to record actual results
+          const roles = (session?.user as any)?.roles ?? [];
+          const isSuperAdmin =
+            roles.includes("administrator") ||
+            roles.includes("admin") ||
+            roles.includes("ceo") ||
+            (session?.user as any)?.role === "administrator" ||
+            (session?.user as any)?.role === "ADMIN";
+
+          const currentUserId = session?.user?.id;
+          const currentUserEmployeeId = session?.user?.employeeId;
+          const isCreator =
+            isSuperAdmin ||
+            (currentUserEmployeeId && p.employeeId === currentUserEmployeeId) ||
+            (currentUserId && p.createdById === currentUserId);
+
+          if (!isCreator) {
+            setUnauthorizedError(
+              "คุณไม่มีสิทธิ์บันทึกผลการปฏิบัติงานจริง — สิทธิ์การบันทึกผลเป็นของเจ้าของแผนงาน (Creator) เท่านั้น ผู้ช่วยงาน (Helper) ไม่สามารถบันทึกผลแทนได้",
+            );
+            setLoadingPlan(false);
+            return;
+          }
+
           setPlanStatus(p.status);
 
           const extracted = extractPlanData(p, initialTargets);
@@ -753,7 +781,7 @@ export default function ActivityPlanActualView({
       }
     }
     loadData();
-  }, [id]);
+  }, [id, session]);
 
   // Image helpers
   const createUploadHandler = (
@@ -1278,6 +1306,43 @@ export default function ActivityPlanActualView({
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
         <p>กำลังโหลดข้อมูลแผนกิจกรรม...</p>
       </div>
+    );
+  }
+
+  if (unauthorizedError) {
+    return (
+      <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
+        <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto">
+          <ActualViewHeader planNo={planSummary.planNo} />
+
+          <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 sm:p-8 text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base sm:text-lg font-bold text-slate-800">
+                ไม่มีสิทธิ์บันทึกผลการปฏิบัติงาน
+              </h3>
+              <p className="text-sm text-slate-600">
+                {unauthorizedError}
+              </p>
+            </div>
+            <div className="pt-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (onCancel) onCancel();
+                  else router.push(id ? `/activity-plans/${id}` : "/activity-plans");
+                }}
+                className="gap-2 font-semibold border-slate-300"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                กลับหน้ารายละเอียดแผนงาน
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
     );
   }
 

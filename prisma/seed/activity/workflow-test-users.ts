@@ -1,8 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { seedActivityRBAC } from "./activity-rbac";
 
 export async function seedWorkflowTestUsers(prisma: PrismaClient) {
   console.log("👥 Seeding Workflow Test Users & Hierarchy...");
+
+  // 0. Ensure Activity RBAC Master Data exists (Permissions, Roles & Mappings)
+  await seedActivityRBAC(prisma);
 
   const passwordHash = await bcrypt.hash("password123", 10);
 
@@ -30,6 +34,12 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
     where: { id: "pos_test_sales" },
     update: { name: "พนักงานขาย", level: 1, isManagerial: false, departmentId: salesDept.id },
     create: { id: "pos_test_sales", name: "พนักงานขาย", level: 1, isManagerial: false, departmentId: salesDept.id },
+  });
+
+  const posDistrictMgr = await prisma.position.upsert({
+    where: { id: "pos_test_districtmgr" },
+    update: { name: "ผู้จัดการเขต", level: 2, isManagerial: true, departmentId: salesDept.id },
+    create: { id: "pos_test_districtmgr", name: "ผู้จัดการเขต", level: 2, isManagerial: true, departmentId: salesDept.id },
   });
 
   const posAreaMgr = await prisma.position.upsert({
@@ -80,6 +90,7 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
   const uMktMgr = await getOrCreateUser("test.mktmgr@crm.local", "วิภา การตลาด (ผจก.แผนก MKT)");
   const uSalesDir = await getOrCreateUser("test.salesdir@crm.local", "ธนพล ฝ่ายขาย (ผจก.ฝ่ายขาย)");
   const uAreaMgr = await getOrCreateUser("test.areamgr@crm.local", "เกรียงไกร จัดการภาค (ผจก.ภาค)");
+  const uDistrictMgr = await getOrCreateUser("test.districtmgr@crm.local", "อภิสิทธิ์ จัดการเขต (ผจก.เขต)");
   const uSales = await getOrCreateUser("test.sales@crm.local", "กิตติพงษ์ ขายเก่ง (พนักงานขาย)");
   const uPromoter = await getOrCreateUser("test.promoter@crm.local", "สุดา ส่งเสริม (พนักงานส่งเสริมการขาย)");
   const uMktStaff = await getOrCreateUser("test.mktstaff@crm.local", "นที ช่วยการตลาด (พนักงานการตลาด)");
@@ -146,6 +157,29 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
     },
   });
 
+  // District Manager -> reports to Area Manager (Section 8 Case 1)
+  const empDistrictMgr = await prisma.employee.upsert({
+    where: { email: uDistrictMgr.email },
+    update: {
+      name: uDistrictMgr.name,
+      positionId: posDistrictMgr.id,
+      departmentId: salesDept.id,
+      positionTitle: posDistrictMgr.name,
+      departmentName: salesDept.name,
+      managerId: empAreaMgr.id,
+    },
+    create: {
+      email: uDistrictMgr.email,
+      name: uDistrictMgr.name,
+      userId: uDistrictMgr.id,
+      positionId: posDistrictMgr.id,
+      departmentId: salesDept.id,
+      positionTitle: posDistrictMgr.name,
+      departmentName: salesDept.name,
+      managerId: empAreaMgr.id,
+    },
+  });
+
   // Operational: Salesperson -> reports to Area Manager
   const empSales = await prisma.employee.upsert({
     where: { email: uSales.email },
@@ -202,6 +236,15 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
   const roleMktManager = await prisma.role.findUnique({ where: { slug: "marketing_manager" } });
   const roleMktStaff = await prisma.role.findUnique({ where: { slug: "employee_mk" } });
 
+  // 7 Activity Roles
+  const roleActPromoter = await prisma.role.findUnique({ where: { slug: "activity_promoter" } });
+  const roleActSales = await prisma.role.findUnique({ where: { slug: "activity_sales_employee" } });
+  const roleActAreaMgr = await prisma.role.findUnique({ where: { slug: "activity_area_manager" } });
+  const roleActDistrictMgr = await prisma.role.findUnique({ where: { slug: "activity_district_manager" } });
+  const roleActSalesAdmin = await prisma.role.findUnique({ where: { slug: "activity_sales_admin_manager" } });
+  const roleActMktMgr = await prisma.role.findUnique({ where: { slug: "activity_marketing_manager" } });
+  const roleActSalesDir = await prisma.role.findUnique({ where: { slug: "activity_sales_director" } });
+
   const assignUserRole = async (userId: string, roleId?: string) => {
     if (!roleId) return;
     await prisma.userRole.upsert({
@@ -221,14 +264,26 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
     });
   };
 
+  // 5.1 Assign Legacy Roles (100% Preserved)
   await assignUserRole(uPromoter.id, rolePromoter?.id);
   await assignUserRole(uPromoter.id, roleActivityPlanUser?.id);
   await assignUserRole(uSales.id, roleSales?.id);
   await assignUserRole(uAreaMgr.id, roleSalesManager?.id);
+  await assignUserRole(uDistrictMgr.id, roleSalesManager?.id);
   await assignUserRole(uSalesAdmin.id, roleSalesManager?.id);
   await assignUserRole(uMktMgr.id, roleMktManager?.id);
   await assignUserRole(uSalesDir.id, roleSalesManager?.id);
   await assignUserRole(uMktStaff.id, roleMktStaff?.id);
+
+  // 5.2 Assign New Activity Roles (Multi-role Assignment)
+  await assignUserRole(uPromoter.id, roleActPromoter?.id);
+  await assignUserRole(uSales.id, roleActSales?.id);
+  await assignUserRole(uAreaMgr.id, roleActAreaMgr?.id);
+  await assignUserRole(uDistrictMgr.id, roleActDistrictMgr?.id);
+  await assignUserRole(uSalesAdmin.id, roleActSalesAdmin?.id);
+  await assignUserRole(uMktMgr.id, roleActMktMgr?.id);
+  await assignUserRole(uSalesDir.id, roleActSalesDir?.id);
+  // Note: uMktStaff remains employee_mk (specification has no dedicated Activity Role for Marketing Staff)
 
   // 6. Assign Permission Overrides for Activity Testing (Idempotent via userPermissionOverride.upsert)
   const allPermissions = await prisma.permission.findMany({
@@ -282,6 +337,7 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
   const approverKeys = ["menu.test_activity", "menu.activity_plans", "activity.view", "activity.approve", "data.activity_plans"];
   for (const key of approverKeys) {
     await setOverride(uSales.id, key);
+    await setOverride(uDistrictMgr.id, key);
     await setOverride(uAreaMgr.id, key);
     await setOverride(uSalesAdmin.id, key);
     await setOverride(uMktMgr.id, key);
@@ -295,16 +351,31 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
   }
 
   console.log("✅ Workflow Test Users & Hierarchy seeded successfully:");
-  console.log("   1. Promoter:    test.promoter@crm.local  -> Role: sales_promotion + activity_plan_user");
-  console.log("   2. Sales:       test.sales@crm.local     -> Role: sales_employee + Approver Overrides");
-  console.log("   3. Area Mgr:    test.areamgr@crm.local   -> Role: sales_manager + Approver Overrides");
-  console.log("   4. Sales Admin: test.salesadmin@crm.local-> Role: sales_manager + Approver Overrides");
-  console.log("   5. MKT Mgr:     test.mktmgr@crm.local    -> Role: marketing_manager + Approver Overrides");
-  console.log("   6. Sales Dir:   test.salesdir@crm.local  -> Role: sales_manager + Approver Overrides");
-  console.log("   7. MKT Staff:   test.mktstaff@crm.local  -> Role: employee_mk + Helper Overrides");
+  console.log("   1. Promoter:     test.promoter@crm.local   -> Roles: sales_promotion, activity_plan_user, activity_promoter");
+  console.log("   2. Sales:        test.sales@crm.local      -> Roles: sales_employee, activity_sales_employee");
+  console.log("   3. District Mgr: test.districtmgr@crm.local-> Roles: sales_manager, activity_district_manager");
+  console.log("   4. Area Mgr:     test.areamgr@crm.local    -> Roles: sales_manager, activity_area_manager");
+  console.log("   5. Sales Admin:  test.salesadmin@crm.local -> Roles: sales_manager, activity_sales_admin_manager");
+  console.log("   6. MKT Mgr:      test.mktmgr@crm.local     -> Roles: marketing_manager, activity_marketing_manager");
+  console.log("   7. Sales Dir:    test.salesdir@crm.local   -> Roles: sales_manager, activity_sales_director");
+  console.log("   8. MKT Staff:    test.mktstaff@crm.local   -> Roles: employee_mk + Helper Overrides");
 
   return {
-    users: { uPromoter, uSales, uAreaMgr, uSalesAdmin, uMktMgr, uSalesDir, uMktStaff },
-    employees: { empPromoter, empSales, empAreaMgr, empSalesAdmin, empMktMgr, empSalesDir, empMktStaff },
+    users: { uPromoter, uSales, uDistrictMgr, uAreaMgr, uSalesAdmin, uMktMgr, uSalesDir, uMktStaff },
+    employees: { empPromoter, empSales, empDistrictMgr, empAreaMgr, empSalesAdmin, empMktMgr, empSalesDir, empMktStaff },
   };
+}
+
+// Standalone execution entrypoint
+if (process.argv[1]?.includes("workflow-test-users")) {
+  const { db } = require("../../../lib/db");
+  seedWorkflowTestUsers(db)
+    .then(async () => {
+      await db.$disconnect();
+    })
+    .catch(async (error: any) => {
+      console.error("❌ Workflow Test Users Seed failed:", error);
+      await db.$disconnect();
+      process.exit(1);
+    });
 }

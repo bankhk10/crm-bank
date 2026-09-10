@@ -53,7 +53,6 @@ export function ActivityCalendarView() {
       const res = await getActivityCalendarEventsAction({
         startDate: monthStart.toISOString(),
         endDate: monthEnd.toISOString(),
-        viewAll: true,
       });
 
       if (res.success && Array.isArray(res.events)) {

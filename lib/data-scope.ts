@@ -196,7 +196,7 @@ export const RESOURCE_CONFIGS: Record<string, ResourceScopeConfig> = {
  * "Team" = employees who share the same managerId, plus the manager themselves,
  * and recursively all direct and indirect subordinates under the user's hierarchy.
  */
-async function getTeamEmployeeIds(session: Session): Promise<string[]> {
+export async function getTeamEmployeeIds(session: Session): Promise<string[]> {
   const employeeId = session.user.employeeId;
   if (!employeeId) return [];
 
@@ -416,6 +416,37 @@ function applyOwnFilter(
   const userId = session.user.id;
   const fallback = config.fallbackOwnerField ?? "createdById";
 
+  // Specialized VIEW_OWN filtering for activity_plan:
+  // Includes both own-created plans and approved-helper plans without breaking existing where.OR
+  if (config.resource === "activity_plan") {
+    if (employeeId) {
+      const ownOrHelperFilter = {
+        OR: [
+          { employeeId: employeeId },
+          {
+            helpers: {
+              some: {
+                employeeId: employeeId,
+                status: "APPROVED",
+                deletedAt: null,
+              },
+            },
+          },
+        ],
+      };
+      if (Array.isArray(where.AND)) {
+        where.AND.push(ownOrHelperFilter);
+      } else if (where.AND) {
+        where.AND = [where.AND, ownOrHelperFilter];
+      } else {
+        where.AND = [ownOrHelperFilter];
+      }
+    } else {
+      where[fallback] = userId;
+    }
+    return;
+  }
+
   switch (config.ownStrategy) {
     case "employeeId":
       if (employeeId) {
@@ -544,6 +575,7 @@ export interface OwnershipCheckOptions {
   resourceOwnerId?: string | null;
   resourceEmployeeId?: string | null;
   resourceDepartmentId?: string | null;
+  resourceHelpers?: { employeeId: string; status: string; deletedAt?: Date | null }[] | null;
 }
 
 /**
@@ -562,6 +594,23 @@ export async function canAccessRecord(
 
   if (isSuperAdmin) {
     return true;
+  }
+
+  // Check if current user is an approved helper on activity_plan
+  if (
+    (resourceKey === "activity_plan" || resourceKey === "activity" || resourceKey === "activity_plans") &&
+    session.user.employeeId &&
+    options.resourceHelpers
+  ) {
+    const isApprovedHelper = options.resourceHelpers.some(
+      (h) =>
+        h.employeeId === session.user.employeeId &&
+        h.status === "APPROVED" &&
+        !h.deletedAt,
+    );
+    if (isApprovedHelper) {
+      return true;
+    }
   }
 
   const config = RESOURCE_CONFIGS[resourceKey];

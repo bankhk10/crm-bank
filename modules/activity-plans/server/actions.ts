@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
+import { getTeamEmployeeIds } from "@/lib/data-scope";
 import {
   createActivityPlanUseCase,
   duplicateActivityPlanUseCase,
@@ -922,11 +923,35 @@ export async function getActivityCalendarEventsAction(
       session.user.email ?? undefined,
     );
 
+    const roles = session.user.roles ?? [];
+    const isSuperAdmin =
+      roles.includes("administrator") ||
+      roles.includes("admin") ||
+      roles.includes("ceo") ||
+      (session.user as any)?.role === "administrator" ||
+      (session.user as any)?.role === "ADMIN";
+
+    const dataAccess = (session.user.dataAccessByResource?.["activity_plan"] ||
+      session.user.dataAccessByResource?.["activity"]) as string | undefined;
+
+    let viewMode: "ALL" | "TEAM" | "OWN" = "OWN";
+    let teamEmployeeIds: string[] | undefined = undefined;
+
+    if (isSuperAdmin || dataAccess === "VIEW_ALL") {
+      viewMode = "ALL";
+    } else if (dataAccess === "VIEW_TEAM" || dataAccess === "VIEW_DEPARTMENT") {
+      viewMode = "TEAM";
+      teamEmployeeIds = await getTeamEmployeeIds(session);
+    } else {
+      viewMode = "OWN";
+    }
+
     const result = await listActivityCalendarEventsUseCase({
       employeeId: employee?.id,
       startDate: params.startDate ? new Date(params.startDate) : undefined,
       endDate: params.endDate ? new Date(params.endDate) : undefined,
-      viewAll: params.viewAll ?? false,
+      viewAll: viewMode === "ALL",
+      teamEmployeeIds: viewMode === "TEAM" ? teamEmployeeIds : undefined,
     });
 
     return serialize(result);

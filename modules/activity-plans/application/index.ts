@@ -282,6 +282,30 @@ export async function recordActivityResultUseCase(
     return { success: false as const, error: "สามารถบันทึกผลได้เฉพาะแผนกิจกรรมที่ได้รับการอนุมัติเรียบร้อยแล้วเท่านั้น" };
   }
 
+  // Verify Creator ownership: ONLY the creator (or super admin) can record/edit actual results
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    include: {
+      employeeProfile: { select: { id: true } },
+      userRoles: { select: { role: { select: { slug: true } } } },
+    },
+  });
+
+  const isSuperAdmin = user?.userRoles?.some((r) =>
+    ["administrator", "admin", "ceo"].includes(r.role.slug),
+  );
+
+  const isCreator =
+    plan.createdById === userId ||
+    (user?.employeeProfile && plan.employeeId === user.employeeProfile.id);
+
+  if (!isCreator && !isSuperAdmin) {
+    return {
+      success: false as const,
+      error: "เฉพาะผู้สร้างแผนงาน (Creator) เท่านั้นที่มีสิทธิ์บันทึกผลการปฏิบัติงานจริง",
+    };
+  }
+
   const parsed = activityResultSchema.safeParse(rawData);
   if (!parsed.success) {
     const errorMsg = parsed.error.errors.map((e) => e.message).join(", ");

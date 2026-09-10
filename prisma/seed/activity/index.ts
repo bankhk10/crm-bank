@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { seedActivityDepartmentsAndPositions } from "./departments-positions";
+import { seedActivityRBAC } from "./activity-rbac";
 import { seedActivityTypes } from "./activity-types";
 import { seedPromotionalMaterials } from "./promotional-materials";
 import { ensureTestAssetsExist } from "./test-assets";
@@ -30,6 +31,9 @@ export async function seedActivityTestData(prisma: PrismaClient) {
 
   // 2. Departments & Positions
   await seedActivityDepartmentsAndPositions(prisma);
+
+  // 3. Activity RBAC Master Data (Roles, Permissions & Mapping)
+  await seedActivityRBAC(prisma);
 
   // 3. Promotional Materials (สื่อส่งเสริมการขาย)
   await seedPromotionalMaterials(prisma);

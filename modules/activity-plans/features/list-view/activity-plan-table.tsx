@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -90,6 +91,10 @@ export function ActivityPlanTable({
   onDuplicate,
   submitLoadingId,
 }: ActivityPlanTableProps) {
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id;
+  const currentUserEmployeeId = session?.user?.employeeId;
+
   const columns = React.useMemo<ColumnDef<ActivityPlanWithRelations>[]>(() => {
     return [
       {
@@ -265,6 +270,11 @@ export function ActivityPlanTable({
                 : item.activityType?.code !== "TYPE_12" &&
                   item.activityType?.name !== "ทัวร์";
 
+          const isCreator = Boolean(
+            (currentUserEmployeeId && item.employeeId === currentUserEmployeeId) ||
+            (currentUserId && item.createdById === currentUserId)
+          );
+
           return (
             <div className="flex items-center justify-center gap-2">
               <ActionButton
@@ -274,7 +284,7 @@ export function ActivityPlanTable({
                 colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
               />
 
-              {isApproved && hasActualWorkType && (
+              {isApproved && hasActualWorkType && isCreator && (
                 <ActionButton
                   href={`/activity-plans/${item.id}/actual`}
                   icon={ClipboardList}
@@ -292,7 +302,7 @@ export function ActivityPlanTable({
                 />
               )}
 
-              {editable &&
+              {editable && isCreator &&
                 (submitLoadingId === item.id ? (
                   <span className="text-xs text-slate-400 animate-pulse font-medium px-2 py-1 select-none">
                     กำลังส่ง...
@@ -306,7 +316,7 @@ export function ActivityPlanTable({
                   />
                 ))}
 
-              {canEdit && editable && (
+              {canEdit && editable && isCreator && (
                 <ActionButton
                   href={`/activity-plans/${item.id}/edit`}
                   icon={Edit}
@@ -324,7 +334,7 @@ export function ActivityPlanTable({
                 />
               )}
 
-              {canDelete && deletable && (
+              {canDelete && deletable && isCreator && (
                 <ActionButton
                   icon={Trash2}
                   label="ลบ"
@@ -342,6 +352,8 @@ export function ActivityPlanTable({
     canEdit,
     canDelete,
     canApprove,
+    currentUserId,
+    currentUserEmployeeId,
     onSubmitApproval,
     onDuplicate,
     onDelete,

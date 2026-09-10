@@ -99,6 +99,8 @@ export async function GET(request: Request) {
             status: true,
             employee: {
               select: {
+                id: true,
+                name: true,
                 department: { select: { code: true } },
                 departmentName: true,
                 positionTitle: true,
