@@ -42,12 +42,17 @@ export function ActivityCalendarView() {
   const [loading, setLoading] = useState<boolean>(true);
   const [filter, setFilter] = useState<CalendarFilter>("ALL");
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
-  const [selectedDayEvents, setSelectedDayEvents] = useState<{ day: Date; events: any[] } | null>(null);
+  const [selectedDayEvents, setSelectedDayEvents] = useState<{
+    day: Date;
+    events: any[];
+  } | null>(null);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
-      const monthStart = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 });
+      const monthStart = startOfWeek(startOfMonth(currentDate), {
+        weekStartsOn: 0,
+      });
       const monthEnd = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 });
 
       const res = await getActivityCalendarEventsAction({
@@ -100,8 +105,22 @@ export function ActivityCalendarView() {
     return filteredEvents.filter((e) => {
       const evStart = new Date(e.startDate);
       const evEnd = new Date(e.endDate);
-      const dayStart = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, 0, 0);
-      const dayEnd = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 23, 59, 59);
+      const dayStart = new Date(
+        day.getFullYear(),
+        day.getMonth(),
+        day.getDate(),
+        0,
+        0,
+        0,
+      );
+      const dayEnd = new Date(
+        day.getFullYear(),
+        day.getMonth(),
+        day.getDate(),
+        23,
+        59,
+        59,
+      );
       return evStart <= dayEnd && evEnd >= dayStart;
     });
   };
@@ -124,19 +143,23 @@ export function ActivityCalendarView() {
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
                 ปฏิทินกิจกรรม (Activity Calendar)
               </h1>
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              <Badge
+                variant="outline"
+                className="bg-blue-50 text-blue-700 border-blue-200"
+              >
                 {events.length} กิจกรรม
               </Badge>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              ตารางนัดหมายกิจกรรมที่ได้รับอนุมัติแล้ว สำหรับผู้สร้างแผนและผู้ช่วยงาน
+              ตารางนัดหมายกิจกรรมที่ได้รับอนุมัติแล้ว
+              สำหรับผู้สร้างแผนและผู้ช่วยงาน
             </p>
           </div>
         </div>
 
         {/* Month Navigation & Today Button */}
         <div className="flex items-center flex-wrap gap-2">
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <div className="flex items-center p-1 rounded-xl border border-slate-200">
             <Button
               variant="ghost"
               size="icon"
@@ -194,7 +217,7 @@ export function ActivityCalendarView() {
             onClick={() => setFilter("HELPER_EVENTS")}
             className="rounded-xl text-xs"
           >
-            กิจกรรมที่มีผู้ช่วยงาน
+            กิจกรรมที่เป็นผู้ช่วย
           </Button>
         </div>
 
@@ -210,12 +233,24 @@ export function ActivityCalendarView() {
       <Card className="rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-white">
         {/* Day of Week Headers */}
         <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center">
-          {["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"].map((d, i) => (
+          {[
+            "อาทิตย์",
+            "จันทร์",
+            "อังคาร",
+            "พุธ",
+            "พฤหัสบดี",
+            "ศุกร์",
+            "เสาร์",
+          ].map((d, i) => (
             <div
               key={d}
               className={cn(
                 "py-2.5 text-xs font-bold",
-                i === 0 ? "text-red-500" : i === 6 ? "text-blue-600" : "text-slate-600",
+                i === 0
+                  ? "text-red-500"
+                  : i === 6
+                    ? "text-blue-600"
+                    : "text-slate-600",
               )}
             >
               <span className="hidden sm:inline">{d}</span>
@@ -285,7 +320,9 @@ export function ActivityCalendarView() {
                             : "bg-blue-50/90 text-blue-700 border-blue-200 hover:bg-blue-100",
                       )}
                     >
-                      <span className="font-semibold">{format(new Date(ev.startDate), "HH:mm")}</span>{" "}
+                      <span className="font-semibold">
+                        {format(new Date(ev.startDate), "HH:mm")}
+                      </span>{" "}
                       {ev.title}
                     </div>
                   ))}
@@ -311,9 +348,12 @@ export function ActivityCalendarView() {
                   variant="outline"
                   className={cn(
                     "text-xs font-semibold",
-                    selectedEvent.status === "COMPLETED" && "bg-emerald-50 text-emerald-700 border-emerald-200",
-                    selectedEvent.status === "SCHEDULED" && "bg-blue-50 text-blue-700 border-blue-200",
-                    selectedEvent.status === "CANCELLED" && "bg-red-50 text-red-700 border-red-200",
+                    selectedEvent.status === "COMPLETED" &&
+                      "bg-emerald-50 text-emerald-700 border-emerald-200",
+                    selectedEvent.status === "SCHEDULED" &&
+                      "bg-blue-50 text-blue-700 border-blue-200",
+                    selectedEvent.status === "CANCELLED" &&
+                      "bg-red-50 text-red-700 border-red-200",
                   )}
                 >
                   {selectedEvent.status === "COMPLETED"
@@ -322,7 +362,9 @@ export function ActivityCalendarView() {
                       ? "มีนัดหมายตามกำหนด"
                       : "ยกเลิกนัดหมาย"}
                 </Badge>
-                <h3 className="text-lg font-bold text-slate-900">{selectedEvent.title}</h3>
+                <h3 className="text-lg font-bold text-slate-900">
+                  {selectedEvent.title}
+                </h3>
                 {selectedEvent.activityPlan?.code && (
                   <p className="text-xs text-slate-400 font-mono">
                     รหัส: {selectedEvent.activityPlan.code}
@@ -345,8 +387,15 @@ export function ActivityCalendarView() {
                 <Clock className="w-4 h-4 text-blue-500 shrink-0" />
                 <span>
                   <strong>เวลา:</strong>{" "}
-                  {format(new Date(selectedEvent.startDate), "d MMMM yyyy HH:mm", { locale: th })} -{" "}
-                  {format(new Date(selectedEvent.endDate), "HH:mm น.", { locale: th })}
+                  {format(
+                    new Date(selectedEvent.startDate),
+                    "d MMMM yyyy HH:mm",
+                    { locale: th },
+                  )}{" "}
+                  -{" "}
+                  {format(new Date(selectedEvent.endDate), "HH:mm น.", {
+                    locale: th,
+                  })}
                 </span>
               </div>
               {selectedEvent.location && (
@@ -363,7 +412,8 @@ export function ActivityCalendarView() {
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-purple-500 shrink-0" />
                   <span>
-                    <strong>ผู้สร้างแผนงาน:</strong> {selectedEvent.employee.name} (
+                    <strong>ผู้สร้างแผนงาน:</strong>{" "}
+                    {selectedEvent.employee.name} (
                     {selectedEvent.employee.positionTitle || "พนักงาน"})
                   </span>
                 </div>
@@ -375,7 +425,8 @@ export function ActivityCalendarView() {
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-slate-500" />
-                  รายชื่อผู้เข้าร่วมและผู้ช่วยงาน ({selectedEvent.attendees.length} คน)
+                  รายชื่อผู้เข้าร่วมและผู้ช่วยงาน (
+                  {selectedEvent.attendees.length} คน)
                 </label>
                 <div className="space-y-1.5 max-h-36 overflow-y-auto">
                   {selectedEvent.attendees.map((att: any, idx: number) => (
@@ -388,14 +439,20 @@ export function ActivityCalendarView() {
                           {att.employee?.name || "พนักงาน"}
                         </span>
                         <span className="text-slate-400">
-                          ({att.employee?.positionTitle || att.employee?.departmentName || "พนักงาน"})
+                          (
+                          {att.employee?.positionTitle ||
+                            att.employee?.departmentName ||
+                            "พนักงาน"}
+                          )
                         </span>
                       </div>
                       <Badge
                         variant="outline"
                         className={cn(
                           "text-[10px]",
-                          att.role === "CREATOR" ? "bg-purple-50 text-purple-700" : "bg-blue-50 text-blue-700",
+                          att.role === "CREATOR"
+                            ? "bg-purple-50 text-purple-700"
+                            : "bg-blue-50 text-blue-700",
                         )}
                       >
                         {att.role === "CREATOR" ? "ผู้สร้างแผน" : "ผู้ช่วยงาน"}
@@ -417,7 +474,11 @@ export function ActivityCalendarView() {
               </Button>
               {selectedEvent.activityPlanId && (
                 <Button
-                  onClick={() => router.push(`/activity-plans/${selectedEvent.activityPlanId}`)}
+                  onClick={() =>
+                    router.push(
+                      `/activity-plans/${selectedEvent.activityPlanId}`,
+                    )
+                  }
                   className="rounded-xl text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -435,7 +496,8 @@ export function ActivityCalendarView() {
           <div className="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <h3 className="text-base font-bold text-slate-900">
-                กิจกรรมวันที่ {format(selectedDayEvents.day, "d MMMM yyyy", { locale: th })}
+                กิจกรรมวันที่{" "}
+                {format(selectedDayEvents.day, "d MMMM yyyy", { locale: th })}
               </h3>
               <Button
                 variant="ghost"
