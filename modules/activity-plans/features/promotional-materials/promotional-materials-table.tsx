@@ -55,7 +55,10 @@ interface Props {
   onDelete: (item: PromotionalMaterialItem) => void;
 }
 
-const CATEGORY_STYLES: Record<string, { bg: string; text: string; border: string }> = {
+const CATEGORY_STYLES: Record<
+  string,
+  { bg: string; text: string; border: string }
+> = {
   Premium_item: {
     bg: "bg-purple-50",
     text: "text-purple-700",
@@ -127,7 +130,7 @@ export function PromotionalMaterialsTable({
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="ค้นหาตามชื่อสินค้า, รหัส SKU, หมวดหมู่..."
-              className="pl-9 h-9 text-xs bg-slate-50/70 border-slate-200 focus:bg-white text-slate-800"
+              className="pl-9 h-9 text-xs border-slate-200 focus:bg-white text-slate-800"
             />
           </div>
 
@@ -136,7 +139,7 @@ export function PromotionalMaterialsTable({
             <select
               value={selectedCategory}
               onChange={(e) => onCategoryChange(e.target.value)}
-              className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs bg-slate-50/70 focus:bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+              className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs focus:bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
             >
               <option value="ALL">📂 ทุกหมวดหมู่</option>
               {categories.map((cat) => (
@@ -152,7 +155,7 @@ export function PromotionalMaterialsTable({
             <select
               value={selectedStatus}
               onChange={(e) => onStatusChange(e.target.value)}
-              className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs bg-slate-50/70 focus:bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+              className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs focus:bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
             >
               <option value="ALL">🔘 ทุกสถานะ</option>
               <option value="ACTIVE">🟢 ใช้งาน (ACTIVE)</option>
@@ -169,7 +172,7 @@ export function PromotionalMaterialsTable({
             <TableHeader className="bg-slate-50/90 border-b border-slate-200">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-12 py-3 px-3 text-center text-xs font-bold text-slate-600">
-                  #
+                  ลำดับ
                 </TableHead>
                 <TableHead className="w-28 py-3 px-3 text-xs font-bold text-slate-600">
                   รหัส SKU
@@ -188,9 +191,6 @@ export function PromotionalMaterialsTable({
                 </TableHead>
                 <TableHead className="w-24 py-3 px-3 text-center text-xs font-bold text-slate-600">
                   สถานะ
-                </TableHead>
-                <TableHead className="w-28 py-3 px-3 text-center text-xs font-bold text-slate-600 hidden md:table-cell">
-                  วันที่แก้ไข
                 </TableHead>
                 {(canEdit || canDelete) && (
                   <TableHead className="w-24 py-3 px-3 text-center text-xs font-bold text-slate-600">
@@ -229,12 +229,11 @@ export function PromotionalMaterialsTable({
               ) : (
                 items.map((item, index) => {
                   const itemIndex = (page - 1) * perPage + index + 1;
-                  const catStyle =
-                    CATEGORY_STYLES[item.category] || {
-                      bg: "bg-slate-100",
-                      text: "text-slate-700",
-                      border: "border-slate-200",
-                    };
+                  const catStyle = CATEGORY_STYLES[item.category] || {
+                    bg: "bg-slate-100",
+                    text: "text-slate-700",
+                    border: "border-slate-200",
+                  };
 
                   return (
                     <TableRow
@@ -246,7 +245,7 @@ export function PromotionalMaterialsTable({
                       </TableCell>
 
                       {/* SKU */}
-                      <TableCell className="py-2.5 px-3 font-mono font-semibold text-slate-600 whitespace-nowrap">
+                      <TableCell className="py-2.5 px-3 font-semibold text-slate-600 whitespace-nowrap">
                         <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200/70 text-[11px]">
                           {item.sku}
                         </span>
@@ -301,11 +300,6 @@ export function PromotionalMaterialsTable({
                             ปิดใช้งาน
                           </span>
                         )}
-                      </TableCell>
-
-                      {/* Updated At */}
-                      <TableCell className="py-2.5 px-3 text-center text-[11px] text-slate-400 hidden md:table-cell whitespace-nowrap">
-                        {formatDate(item.updatedAt || item.createdAt)}
                       </TableCell>
 
                       {/* Actions */}
