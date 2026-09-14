@@ -238,7 +238,7 @@ export function ActualType1Visit({
             <Input
               value={nextAction}
               onChange={(e) => setNextAction(e.target.value)}
-              placeholder="เช่น ส่งใบเสนอราคา, นัดไดอะไซด์ปฐมนิเทศต่อ"
+              placeholder="เช่น ส่งใบเสนอราคา"
               className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
             />
           </div>
