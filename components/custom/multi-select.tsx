@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +34,7 @@ interface MultiSelectProps {
   emptyIndicator?: React.ReactNode;
   className?: string;
   disabled?: boolean;
+  maxCount?: number;
   animationConfig?: {
     badgeAnimation?: "fade" | "scale" | "slide";
     popoverAnimation?: "fade" | "scale" | "slide";
@@ -49,6 +50,7 @@ export function MultiSelect({
   emptyIndicator,
   className,
   disabled = false,
+  maxCount,
   animationConfig = {
     badgeAnimation: "fade",
     popoverAnimation: "scale",
@@ -91,6 +93,10 @@ export function MultiSelect({
     slide: "animate-in slide-in-from-left-2",
   }[animationConfig.badgeAnimation || "fade"];
 
+  const visibleValues =
+    maxCount && maxCount > 0 ? selectedValues.slice(0, maxCount) : selectedValues;
+  const extraCount = selectedValues.length - visibleValues.length;
+
   return (
     <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
       <PopoverTrigger asChild>
@@ -99,65 +105,99 @@ export function MultiSelect({
           role="combobox"
           aria-expanded={isPopoverOpen}
           className={cn(
-            "w-full justify-between min-h-[44px] h-auto mt-1 text-base",
-            selectedValues.length > 0 ? "h-auto" : "h-11",
+            "w-full justify-between min-h-[38px] h-auto text-xs px-3 py-1.5",
             className,
           )}
           disabled={disabled}
         >
-          <div className="flex gap-1 flex-wrap">
+          <div className="flex gap-1 flex-wrap items-center overflow-hidden flex-1">
             {selectedValues.length > 0 ? (
-              selectedValues.map((value) => {
-                const option = options.find((o) => o.value === value);
-                const IconComponent = option?.icon;
-                return (
+              <>
+                {visibleValues.map((value) => {
+                  const option = options.find((o) => o.value === value);
+                  const IconComponent = option?.icon;
+                  return (
+                    <Badge
+                      key={value}
+                      variant="secondary"
+                      className={cn(
+                        "mr-1 max-w-[calc(100%-10px)] font-normal text-xs py-0.5 px-2 bg-secondary/80",
+                        badgeAnimationClass,
+                      )}
+                    >
+                      {IconComponent && (
+                        <IconComponent className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
+                      )}
+                      <span className="truncate max-w-[140px]">{option?.label || value}</span>
+                      <span
+                        className="ml-1 rounded-full outline-none focus:ring-1 focus:ring-ring cursor-pointer flex-shrink-0 hover:bg-muted/80 p-0.5"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleUnselect(value);
+                          }
+                        }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleUnselect(value);
+                        }}
+                      >
+                        <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                      </span>
+                    </Badge>
+                  );
+                })}
+                {extraCount > 0 && (
                   <Badge
-                    key={value}
                     variant="secondary"
                     className={cn(
-                      "mr-1 mb-1 max-w-[calc(100%-10px)] font-normal text-sm py-0.5",
+                      "font-semibold text-xs py-0.5 px-2 bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20",
                       badgeAnimationClass,
                     )}
                   >
-                    {IconComponent && (
-                      <IconComponent className="h-4 w-4 mr-2 flex-shrink-0" />
-                    )}
-                    <span className="truncate max-w-full">{option?.label}</span>
-                    <span
-                      className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer flex-shrink-0"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleUnselect(value);
-                        }
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleUnselect(value);
-                      }}
-                    >
-                      <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                    </span>
+                    +{extraCount}
                   </Badge>
-                );
-              })
+                )}
+              </>
             ) : (
               <span className="text-muted-foreground">{placeholder}</span>
             )}
           </div>
+          <div className="flex items-center gap-1 ml-1 shrink-0">
+            {selectedValues.length > 0 && (
+              <span
+                role="button"
+                tabIndex={0}
+                className="p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleClearAll();
+                }}
+                title="ล้างทั้งหมด"
+              >
+                <X className="h-3.5 w-3.5" />
+              </span>
+            )}
+            <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground opacity-60" />
+          </div>
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] p-0"
+        className="w-[var(--radix-popover-trigger-width)] min-w-[280px] p-0"
         align="start"
       >
         <Command>
           {searchable && (
-            <CommandInput placeholder="Search..." className="h-9" />
+            <CommandInput placeholder="ค้นหาสถานะ..." className="h-9 text-xs" />
           )}
           <CommandList>
             <CommandEmpty>{emptyIndicator || "ไม่พบข้อมูล"}</CommandEmpty>
@@ -167,6 +207,7 @@ export function MultiSelect({
                 return (
                   <CommandItem
                     key={option.value}
+                    value={`${option.label} ${option.value}`}
                     onSelect={() => handleToggle(option.value)}
                     className="cursor-pointer group"
                   >

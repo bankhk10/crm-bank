@@ -61,8 +61,13 @@ import {
   exportPendingDeliveriesAction,
   exportProductStockAction,
 } from "../server/actions";
+import {
+  MultiSelect,
+  type MultiSelectOption,
+} from "@/components/custom/multi-select";
+import type { ExportSaleStatus } from "../infrastructure/export.repository";
 
-const SALE_STATUS_OPTIONS = [
+const SALE_STATUS_OPTIONS: MultiSelectOption[] = [
   { value: "ALL", label: "ทั้งหมด" },
   { value: "FORECAST", label: "Forecast" },
   { value: "SALES_NOTE", label: "Sales Note" },
@@ -231,7 +236,7 @@ function SalesAdminExportCard({
   const [endDate, setEndDate] = useState<string>(
     format(endOfMonth(new Date()), "yyyy-MM-dd"),
   );
-  const [status, setStatus] = useState<string>("ALL");
+  const [statuses, setStatuses] = useState<ExportSaleStatus[]>([]);
   const [isExporting, setIsExporting] = useState(false);
 
   const handlePresetChange = (preset: string) => {
@@ -253,6 +258,18 @@ function SalesAdminExportCard({
     setDatePreset("CUSTOM");
   };
 
+  const handleStatusChange = (newValues: string[]) => {
+    const typedValues = newValues as ExportSaleStatus[];
+    const justAddedAll =
+      !statuses.includes("ALL") && typedValues.includes("ALL");
+    if (justAddedAll) {
+      setStatuses(["ALL"]);
+      return;
+    }
+    const filtered = typedValues.filter((v) => v !== "ALL");
+    setStatuses(filtered);
+  };
+
   const handleExport = async () => {
     if (!canExport) {
       toast.error("คุณไม่มีสิทธิ์ในการส่งออกข้อมูลการขาย");
@@ -261,10 +278,11 @@ function SalesAdminExportCard({
 
     setIsExporting(true);
     try {
+      const activeStatuses = statuses.includes("ALL") ? [] : statuses;
       const res = await exportSalesAdminAction({
         startDate,
         endDate,
-        status: status as any,
+        statuses: activeStatuses,
       });
 
       if (!res.success || !res.data) {
@@ -374,55 +392,98 @@ function SalesAdminExportCard({
               />
             </div>
 
-            {/* Status Select */}
+            {/* Status MultiSelect */}
             <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-[11px] font-medium text-muted-foreground">
-                สถานะใบขาย
-              </Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="h-9 text-xs w-full bg-background/80 border-border/60">
-                  <SelectValue placeholder="เลือกสถานะ" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SALE_STATUS_OPTIONS.map((opt) => (
-                    <SelectItem
-                      key={opt.value}
-                      value={opt.value}
-                      className="text-xs"
-                    >
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center justify-between">
+                <Label className="text-[11px] font-medium text-muted-foreground">
+                  สถานะใบขาย
+                </Label>
+                {statuses.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setStatuses([])}
+                    className="text-[11px] text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+                  >
+                    ล้างการเลือก ({statuses.length})
+                  </button>
+                )}
+              </div>
+              <MultiSelect
+                options={SALE_STATUS_OPTIONS}
+                defaultValue={statuses}
+                onValueChange={handleStatusChange}
+                placeholder="ทั้งหมด (ไม่กรองสถานะ)"
+                maxCount={3}
+                className="min-h-[36px] text-xs w-full bg-background/80 border-border/60"
+              />
             </div>
 
-            {status === "SALES_NOTE" && (
-              <div className="sm:col-span-2 rounded-lg bg-orange-500/10 border border-orange-500/20 p-2.5 flex items-start gap-2 text-xs text-orange-700 dark:text-orange-300">
-                <Info className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>
-                  การกรองตามช่วงเวลาของสถานะ <strong>Sales Note</strong> จะยึดจาก <strong>&quot;วันที่ทำรายการ / เปิดบิล (saleDate)&quot;</strong> ของเอกสารทั้งหมดที่สร้างเข้ามาในระบบ
-                </span>
-              </div>
-            )}
+            {/* Dynamic Date Filter Information Message */}
+            {(() => {
+              const isAll = statuses.length === 0 || statuses.includes("ALL");
+              const hasSalesNote = isAll || statuses.includes("SALES_NOTE");
+              const hasInvoice = isAll || statuses.includes("INVOICE");
+              const hasForecast = isAll || statuses.includes("FORECAST");
 
-            {status === "INVOICE" && (
-              <div className="sm:col-span-2 rounded-lg bg-blue-500/10 border border-blue-500/20 p-2.5 flex items-start gap-2 text-xs text-blue-700 dark:text-blue-300">
-                <Info className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>
-                  การกรองตามช่วงเวลาของสถานะ <strong>Invoice</strong> จะยึดจาก <strong>&quot;วันที่ Invoice (Inv)&quot;</strong> ของเอกสาร
-                </span>
-              </div>
-            )}
+              if (isAll) {
+                return (
+                  <div className="sm:col-span-2 rounded-lg bg-blue-500/10 border border-blue-500/20 p-2.5 flex items-start gap-2 text-xs text-blue-700 dark:text-blue-300">
+                    <Info className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>
+                      การกรองตามช่วงเวลาของสถานะ <strong>ทั้งหมด</strong> จะยึดจาก <strong>วันที่ Invoice (Inv)</strong> สำหรับรายการ Invoice, ยึดจาก <strong>วันที่ทำรายการ (saleDate)</strong> สำหรับรายการ Sales Note, และยึดตาม <strong>เดือนและปี</strong> สำหรับเป้าหมายการขาย (Forecast)
+                    </span>
+                  </div>
+                );
+              }
 
-            {status === "ALL" && (
-              <div className="sm:col-span-2 rounded-lg bg-blue-500/10 border border-blue-500/20 p-2.5 flex items-start gap-2 text-xs text-blue-700 dark:text-blue-300">
-                <Info className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>
-                  การกรองตามช่วงเวลาของสถานะ <strong>ทั้งหมด</strong> จะยึดจาก <strong>วันที่ Invoice (Inv)</strong> สำหรับรายการ Invoice และยึดจาก <strong>วันที่ทำรายการ (Sales Note)</strong> สำหรับรายการ Sales Note
-                </span>
-              </div>
-            )}
+              if (statuses.length === 1 && statuses[0] === "SALES_NOTE") {
+                return (
+                  <div className="sm:col-span-2 rounded-lg bg-orange-500/10 border border-orange-500/20 p-2.5 flex items-start gap-2 text-xs text-orange-700 dark:text-orange-300">
+                    <Info className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>
+                      การกรองตามช่วงเวลาของสถานะ <strong>Sales Note</strong> จะยึดจาก <strong>&quot;วันที่ทำรายการ / เปิดบิล (saleDate)&quot;</strong> ของเอกสารทั้งหมดที่สร้างเข้ามาในระบบ
+                    </span>
+                  </div>
+                );
+              }
+
+              if (statuses.length === 1 && statuses[0] === "INVOICE") {
+                return (
+                  <div className="sm:col-span-2 rounded-lg bg-blue-500/10 border border-blue-500/20 p-2.5 flex items-start gap-2 text-xs text-blue-700 dark:text-blue-300">
+                    <Info className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>
+                      การกรองตามช่วงเวลาของสถานะ <strong>Invoice</strong> จะยึดจาก <strong>&quot;วันที่ Invoice (Inv)&quot;</strong> ของเอกสาร
+                    </span>
+                  </div>
+                );
+              }
+
+              if (statuses.length === 1 && statuses[0] === "FORECAST") {
+                return (
+                  <div className="sm:col-span-2 rounded-lg bg-purple-500/10 border border-purple-500/20 p-2.5 flex items-start gap-2 text-xs text-purple-700 dark:text-purple-300">
+                    <Info className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>
+                      การกรองตามช่วงเวลาของสถานะ <strong>Forecast</strong> จะยึดจาก <strong>&quot;เดือนและปี (Month/Year)&quot;</strong> ของเป้าหมายการขาย
+                    </span>
+                  </div>
+                );
+              }
+
+              // Multi-status combination
+              const descriptions: string[] = [];
+              if (hasInvoice) descriptions.push("รายการ Invoice ยึดตามวันที่ Invoice (Inv)");
+              if (hasSalesNote) descriptions.push("รายการ Sales Note ยึดตามวันที่ทำรายการ (saleDate)");
+              if (hasForecast) descriptions.push("รายการ Forecast ยึดตามเดือนและปีของเป้าหมาย");
+
+              return (
+                <div className="sm:col-span-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 p-2.5 flex items-start gap-2 text-xs text-indigo-700 dark:text-indigo-300">
+                  <Info className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>
+                    การกรองตามช่วงเวลา: {descriptions.join(", ")}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
         </div>
 

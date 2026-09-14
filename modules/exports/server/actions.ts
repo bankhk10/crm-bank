@@ -8,6 +8,10 @@ import {
   type ExportFilterParams,
 } from "../infrastructure/export.repository";
 import { buildSalesAdminExportWorkbook } from "../application/export-sales-admin";
+import {
+  exportSalesAdminFilterSchema,
+  normalizeAndValidateExportStatuses,
+} from "../application/validations";
 import { format } from "date-fns";
 
 import { exportPendingDeliveriesUseCase } from "@/modules/fulfillment/application";
@@ -30,7 +34,7 @@ export interface ExportFileResult {
  * Requires permission: export.sales_admin
  */
 export async function exportSalesAdminAction(
-  filters: ExportFilterParams
+  rawFilters?: ExportFilterParams | unknown,
 ): Promise<ActionResult<ExportFileResult>> {
   try {
     const session = await auth();
@@ -39,8 +43,25 @@ export async function exportSalesAdminAction(
     }
 
     if (!hasPermission(session, "export.sales_admin")) {
-      return { success: false, error: "คุณไม่มีสิทธิ์ในการส่งออกข้อมูลการขาย (ธุรการขาย)" };
+      return {
+        success: false,
+        error: "คุณไม่มีสิทธิ์ในการส่งออกข้อมูลการขาย (ธุรการขาย)",
+      };
     }
+
+    const parsedFilters = exportSalesAdminFilterSchema.parse(rawFilters || {});
+    const validatedStatuses = normalizeAndValidateExportStatuses({
+      statuses: parsedFilters.statuses,
+      status: parsedFilters.status,
+    });
+
+    const filters: ExportFilterParams = {
+      startDate: parsedFilters.startDate,
+      endDate: parsedFilters.endDate,
+      statuses: validatedStatuses,
+      customerId: parsedFilters.customerId,
+      employeeId: parsedFilters.employeeId,
+    };
 
     const records = await getSalesAdminExportRecords(filters);
     const base64 = await buildSalesAdminExportWorkbook(records);
