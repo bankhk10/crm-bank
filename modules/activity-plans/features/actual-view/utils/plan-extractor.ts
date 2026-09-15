@@ -91,9 +91,90 @@ export function extractType2Customers(
   };
 }
 
+export const DEFAULT_TARGETS: ActualTargetsState = {
+  t1: {
+    customer: "",
+    topic: "",
+    detail: "",
+    opportunity: "",
+    nextDate: "",
+  },
+  t2: {
+    product: "",
+    customer: "",
+    detail: "",
+    expectedResult: "",
+    items: [],
+  },
+  t3: {
+    product: "",
+    customer: "",
+    targetQty: "",
+    targetSales: "",
+    items: [],
+  },
+  t4: {
+    customer: "",
+    orderNo: "",
+    targetCollect: "",
+    items: [],
+  },
+  t5: {
+    store: "",
+    product: "",
+    detail: "",
+    items: [],
+  },
+  t6: {
+    customer: "",
+    issueType: "",
+    detail: "",
+    targetStatus: "",
+    items: [],
+  },
+  t7: {
+    owner: "",
+    product: "",
+    crop: "",
+    plots: "",
+    demoProductQuantity: "",
+    objective: "",
+    experimentDetail: "",
+    detail: "",
+    targetCondition: "",
+    items: [],
+  },
+  t8: {
+    topic: "",
+    products: "",
+    targetAttendees: "",
+  },
+  t9: {
+    store: "",
+    isSubDealer: false,
+    subDealerStore: "",
+    product: "",
+    targetSales: "",
+    targetAttendees: "",
+    items: [],
+  },
+  t10: {
+    plot: "",
+    location: "",
+    showcase: "",
+    targetAttendees: "",
+    targetSales: "",
+  },
+  t11: {
+    store: "",
+    detail: "",
+    targetOpportunity: "",
+  },
+};
+
 export function extractPlanData(
   p: ActivityPlanWithRelations,
-  prevTargets: ActualTargetsState,
+  prevTargets: ActualTargetsState = DEFAULT_TARGETS,
 ): ExtractedPlanData {
   const start = p.startDate ? new Date(p.startDate) : new Date();
   const end = p.endDate ? new Date(p.endDate) : new Date();
@@ -263,15 +344,29 @@ export function extractPlanData(
     new Set(stores.map((s) => s.storeName).filter(Boolean)),
   ).join(", ");
 
-  // TYPE 1: Store / Topic / Detail (Farmer Visit)
+  // TYPE 1: Store / Topic / Detail (Farmer or Store Visit)
   const t1Stores = stores.filter((s) => s.workTypeCode === "TYPE_1");
   const t1First = t1Stores[0];
   const t1CustomerName = t1First?.isUnregisteredFarmer
     ? (t1First.unregisteredFarmerName || "")
     : ((t1First as any)?.store?.name || t1First?.storeName || (t1Stores.length > 0 ? t1Stores.map((s) => (s as any).store?.name || s.storeName).filter(Boolean).join(", ") : "") || allStoreNames || p.location || "");
 
+  // Determine visitPurpose with historical compatibility
+  let t1VisitPurpose: "FARMER" | "STORE" = ((t1First as any)?.visitPurpose as "FARMER" | "STORE");
+  if (!t1VisitPurpose) {
+    if (t1First?.isUnregisteredFarmer || (t1First as any)?.store?.customerType === "FARMER") {
+      t1VisitPurpose = "FARMER";
+    } else if (["DEALER", "SUBDEALER"].includes((t1First as any)?.store?.customerType)) {
+      t1VisitPurpose = "STORE";
+    } else {
+      t1VisitPurpose = "FARMER";
+    }
+  }
+
   targets.t1 = {
     ...prevTargets.t1,
+    visitPurpose: t1VisitPurpose,
+    customerType: (t1First as any)?.store?.customerType || undefined,
     customer: t1CustomerName,
     topic: t1First?.remarks || prevTargets.t1.topic,
     detail: t1First?.notes || t1Stores.map((s) => s.notes || s.remarks).filter(Boolean).join(" | ") || "",

@@ -131,7 +131,7 @@ export async function findActivityPlanById(id: string) {
       stores: {
         include: {
           store: {
-            select: { id: true, name: true, customerCode: true, province: true, district: true },
+            select: { id: true, name: true, customerCode: true, customerType: true, province: true, district: true },
           },
         },
       },
@@ -460,6 +460,7 @@ export type CreateActivityPlanInput = {
   } | null;
   planStores?: Array<{
     workTypeCode: string;
+    visitPurpose?: string | null;
     storeId?: string | null;
     storeName?: string | null;
     province?: string | null;
@@ -596,6 +597,7 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
             data: input.planStores.map((s) => ({
               activityPlanId: plan.id,
               workTypeCode: getWorkTypeCode(s.workTypeCode),
+              visitPurpose: s.visitPurpose ?? null,
               storeId: s.storeId ?? null,
               storeName: s.storeName ?? null,
               province: s.province ?? null,
@@ -845,6 +847,7 @@ export async function updateActivityPlan(
           data: planStores.map((s) => ({
             activityPlanId: id,
             workTypeCode: getWorkTypeCode(s.workTypeCode),
+            visitPurpose: s.visitPurpose ?? null,
             storeId: s.storeId ?? null,
             storeName: s.storeName ?? null,
             province: s.province ?? null,
@@ -1962,6 +1965,30 @@ export async function findFarmerCustomerOptions(province?: string) {
       customerType: true,
       phone: true,
       farmPlots: true,
+      province: true,
+      district: true,
+    },
+    orderBy: { name: "asc" },
+  });
+}
+
+/**
+ * Fetch Dealer & Subdealer customers for selection in TYPE_1 Visit (Store)
+ */
+export async function findDealerAndSubdealerCustomerOptions() {
+  return db.customer.findMany({
+    where: {
+      deletedAt: null,
+      customerType: {
+        in: ["DEALER", "SUBDEALER"],
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      customerCode: true,
+      customerType: true,
+      phone: true,
       province: true,
       district: true,
     },

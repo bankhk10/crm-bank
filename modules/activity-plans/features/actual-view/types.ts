@@ -89,6 +89,8 @@ export interface ActualTargetsState {
     detail: string;
     opportunity: string;
     nextDate: string;
+    visitPurpose?: "FARMER" | "STORE";
+    customerType?: string;
     province?: string;
     isUnregisteredFarmer?: boolean;
     unregisteredFarmerName?: string;

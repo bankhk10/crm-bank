@@ -1722,6 +1722,7 @@ model ActivityPlanStore {
   id                     String   @id @default(cuid())
   activityPlanId         String   @map("activity_plan_id")
   workTypeCode           String   @map("work_type_code") // e.g. "TYPE_1", "TYPE_2", "TYPE_3", "TYPE_4", "TYPE_5", "TYPE_6", "TYPE_9", "TYPE_11"
+  visitPurpose           String?  @map("visit_purpose") // "FARMER" | "STORE"
   storeId                String?  @map("store_id")
   storeName              String?  @map("store_name")
   province               String?  @map("province")

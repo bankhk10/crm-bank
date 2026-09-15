@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { X, UserCheck, MapPin, Camera, Navigation, Phone, CheckCircle2 } from "lucide-react";
+import { X, UserCheck, Store, MapPin, Camera, Navigation, Phone, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -168,6 +168,7 @@ export function ActualType1Visit({
     );
   };
 
+  const isStore = target?.visitPurpose === "STORE";
   const isUnregistered = Boolean(target?.isUnregisteredFarmer);
   const farmerDisplayName = isUnregistered
     ? target?.unregisteredFarmerName || target?.customer || "-"
@@ -179,11 +180,11 @@ export function ActualType1Visit({
       <div className="flex items-center justify-between pb-1 border-b border-emerald-100">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
-            <UserCheck className="w-4 h-4" />
+            {isStore ? <Store className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
           </div>
           <div>
             <h2 className="font-bold text-emerald-900 text-base md:text-lg">
-              เข้าพบเกษตรกร
+              {isStore ? "เข้าพบร้านค้า" : "เข้าพบเกษตรกร"}
             </h2>
             <p className="text-xs text-slate-500">
               รายละเอียดแผนงานและบันทึกผลการเข้าพบจริง
@@ -206,90 +207,141 @@ export function ActualType1Visit({
             ข้อมูลตามแผนงาน (PLAN)
           </span>
           <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600">
-            1 Plan : 1 Farmer
+            {isStore ? "1 Plan : 1 Store" : "1 Plan : 1 Farmer"}
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-          {/* จังหวัด */}
-          <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-            <span className="text-slate-400 font-medium block">จังหวัด</span>
-            <span className="font-bold text-slate-800 text-sm block">
-              {target?.province || "-"}
-            </span>
-          </div>
+        {isStore ? (
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+              {/* ร้านค้า */}
+              <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                <span className="text-slate-400 font-medium block">ร้านค้า (Customer Master)</span>
+                <span className="font-bold text-slate-800 text-sm block truncate" title={target?.customer || "-"}>
+                  {target?.customer || "-"}
+                </span>
+              </div>
 
-          {/* สถานะเกษตรกร */}
-          <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-            <span className="text-slate-400 font-medium block">สถานะเกษตรกร</span>
-            <div>
+              {/* ประเภทลูกค้า */}
+              <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                <span className="text-slate-400 font-medium block">ประเภทลูกค้า</span>
+                <div>
+                  <Badge
+                    variant="outline"
+                    className="bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs"
+                  >
+                    {target?.customerType === "DEALER"
+                      ? "ตัวแทนจำหน่าย"
+                      : target?.customerType === "SUBDEALER"
+                        ? "ร้านค้าย่อย"
+                        : (target?.customerType || "ร้านค้า")}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* วัตถุประสงค์ (ประเด็นหลัก) */}
+              <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                <span className="text-slate-400 font-medium block">วัตถุประสงค์ (ประเด็นหลัก)</span>
+                <span className="font-bold text-slate-800 text-sm block">
+                  {target?.topic || "-"}
+                </span>
+              </div>
+            </div>
+
+            {/* รายละเอียดเพิ่มเติม */}
+            <div className="text-xs">
+              <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                <span className="text-slate-400 font-medium block">รายละเอียดเพิ่มเติม</span>
+                <p className="font-normal text-slate-700 whitespace-pre-wrap">
+                  {target?.detail || "-"}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+              {/* จังหวัด */}
+              <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                <span className="text-slate-400 font-medium block">จังหวัด</span>
+                <span className="font-bold text-slate-800 text-sm block">
+                  {target?.province || "-"}
+                </span>
+              </div>
+
+              {/* สถานะเกษตรกร */}
+              <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                <span className="text-slate-400 font-medium block">สถานะเกษตรกร</span>
+                <div>
+                  {isUnregistered ? (
+                    <Badge
+                      variant="outline"
+                      className="bg-amber-50 text-amber-800 border-amber-300 font-bold text-xs"
+                    >
+                      เกษตรกรนอกระบบ
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs flex items-center gap-1 w-fit"
+                    >
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                      เกษตรกรในระบบ
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* เกษตรกร / ชื่อ */}
+              <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                <span className="text-slate-400 font-medium block">
+                  {isUnregistered ? "ชื่อ - สกุล เกษตรกร" : "เกษตรกร (Customer Master)"}
+                </span>
+                <span className="font-bold text-slate-800 text-sm block truncate" title={farmerDisplayName}>
+                  {farmerDisplayName}
+                </span>
+              </div>
+
+              {/* เบอร์โทร (กรณีไม่มีในระบบ) */}
               {isUnregistered ? (
-                <Badge
-                  variant="outline"
-                  className="bg-amber-50 text-amber-800 border-amber-300 font-bold text-xs"
-                >
-                  เกษตรกรนอกระบบ
-                </Badge>
+                <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                  <span className="text-slate-400 font-medium block flex items-center gap-1">
+                    <Phone className="w-3 h-3 text-slate-400" />
+                    เบอร์โทรศัพท์
+                  </span>
+                  <span className="font-bold text-slate-800 text-sm block">
+                    {target?.unregisteredFarmerPhone || "-"}
+                  </span>
+                </div>
               ) : (
-                <Badge
-                  variant="outline"
-                  className="bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs flex items-center gap-1 w-fit"
-                >
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                  เกษตรกรในระบบ
-                </Badge>
+                <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                  <span className="text-slate-400 font-medium block">วัตถุประสงค์ (ประเด็นหลัก)</span>
+                  <span className="font-bold text-slate-800 text-sm block">
+                    {target?.topic || "-"}
+                  </span>
+                </div>
               )}
             </div>
-          </div>
 
-          {/* เกษตรกร / ชื่อ */}
-          <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-            <span className="text-slate-400 font-medium block">
-              {isUnregistered ? "ชื่อ - สกุล เกษตรกร" : "เกษตรกร (Customer Master)"}
-            </span>
-            <span className="font-bold text-slate-800 text-sm block truncate" title={farmerDisplayName}>
-              {farmerDisplayName}
-            </span>
-          </div>
-
-          {/* เบอร์โทร (กรณีไม่มีในระบบ) */}
-          {isUnregistered ? (
-            <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-              <span className="text-slate-400 font-medium block flex items-center gap-1">
-                <Phone className="w-3 h-3 text-slate-400" />
-                เบอร์โทรศัพท์
-              </span>
-              <span className="font-bold text-slate-800 text-sm block">
-                {target?.unregisteredFarmerPhone || "-"}
-              </span>
+            {/* Topic & Detail Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
+              {isUnregistered && (
+                <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                  <span className="text-slate-400 font-medium block">วัตถุประสงค์ (ประเด็นหลัก)</span>
+                  <span className="font-semibold text-slate-800 block">
+                    {target?.topic || "-"}
+                  </span>
+                </div>
+              )}
+              <div className={cn("bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1", !isUnregistered && "sm:col-span-2")}>
+                <span className="text-slate-400 font-medium block">รายละเอียดเพิ่มเติม</span>
+                <p className="font-normal text-slate-700 whitespace-pre-wrap">
+                  {target?.detail || "-"}
+                </p>
+              </div>
             </div>
-          ) : (
-            <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-              <span className="text-slate-400 font-medium block">วัตถุประสงค์ (ประเด็นหลัก)</span>
-              <span className="font-bold text-slate-800 text-sm block">
-                {target?.topic || "-"}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Topic & Detail Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
-          {isUnregistered && (
-            <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-              <span className="text-slate-400 font-medium block">วัตถุประสงค์ (ประเด็นหลัก)</span>
-              <span className="font-semibold text-slate-800 block">
-                {target?.topic || "-"}
-              </span>
-            </div>
-          )}
-          <div className={cn("bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1", !isUnregistered && "sm:col-span-2")}>
-            <span className="text-slate-400 font-medium block">รายละเอียดเพิ่มเติม</span>
-            <p className="font-normal text-slate-700 whitespace-pre-wrap">
-              {target?.detail || "-"}
-            </p>
-          </div>
-        </div>
+          </>
+        )}
       </div>
 
       {/* ACTUAL RESULTS FORM SECTION */}
@@ -301,101 +353,106 @@ export function ActualType1Visit({
           </h3>
         </div>
 
-        {/* 1. ที่อยู่บ้านเกษตรกร */}
-        <div className="space-y-1.5">
-          <label className="text-xs sm:text-sm font-semibold text-slate-800 flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-            ที่อยู่บ้านเกษตรกร
-          </label>
-          <Textarea
-            rows={2}
-            value={farmerHomeAddress}
-            onChange={(e) => setFarmerHomeAddress && setFarmerHomeAddress(e.target.value)}
-            placeholder="ระบุที่อยู่บ้านเกษตรกร เช่น เลขที่ หมู่ที่ ตำบล อำเภอ"
-            className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm"
-          />
-        </div>
-
-        {/* 2. พิกัดแปลง (Plot Coordinates) */}
-        <div className="space-y-2 bg-emerald-50/30 border border-emerald-100 rounded-xl p-3.5">
-          <div className="flex items-center justify-between">
-            <label className="text-xs sm:text-sm font-semibold text-emerald-950 flex items-center gap-1.5">
-              <Navigation className="w-3.5 h-3.5 text-emerald-700" />
-              พิกัดแปลง (Plot Coordinates)
-            </label>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleGetCurrentLocation}
-              disabled={geoLoading}
-              className="h-8 text-xs font-semibold bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50"
-            >
-              <Navigation className={cn("w-3 h-3 mr-1 text-emerald-600", geoLoading && "animate-spin")} />
-              {geoLoading ? "กำลังดึงพิกัด..." : "ใช้ตำแหน่งปัจจุบัน"}
-            </Button>
-          </div>
-
-          {geoError && (
-            <p className="text-xs text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200">
-              ⚠️ {geoError}
-            </p>
-          )}
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <span className="text-[11px] font-medium text-slate-600">
-                Latitude (-90 ถึง 90)
-              </span>
-              <Input
-                type="number"
-                step="any"
-                value={plotLatitude}
-                onChange={(e) => setPlotLatitude && setPlotLatitude(e.target.value)}
-                placeholder="เช่น 13.7563309"
-                className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
+        {/* Farmer-Specific Actual Fields (Hidden in Store Mode) */}
+        {!isStore && (
+          <>
+            {/* 1. ที่อยู่บ้านเกษตรกร */}
+            <div className="space-y-1.5">
+              <label className="text-xs sm:text-sm font-semibold text-slate-800 flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                ที่อยู่บ้านเกษตรกร
+              </label>
+              <Textarea
+                rows={2}
+                value={farmerHomeAddress}
+                onChange={(e) => setFarmerHomeAddress && setFarmerHomeAddress(e.target.value)}
+                placeholder="ระบุที่อยู่บ้านเกษตรกร เช่น เลขที่ หมู่ที่ ตำบล อำเภอ"
+                className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm"
               />
             </div>
-            <div className="space-y-1">
-              <span className="text-[11px] font-medium text-slate-600">
-                Longitude (-180 ถึง 180)
-              </span>
-              <Input
-                type="number"
-                step="any"
-                value={plotLongitude}
-                onChange={(e) => setPlotLongitude && setPlotLongitude(e.target.value)}
-                placeholder="เช่น 100.5017651"
-                className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
+
+            {/* 2. พิกัดแปลง (Plot Coordinates) */}
+            <div className="space-y-2 bg-emerald-50/30 border border-emerald-100 rounded-xl p-3.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs sm:text-sm font-semibold text-emerald-950 flex items-center gap-1.5">
+                  <Navigation className="w-3.5 h-3.5 text-emerald-700" />
+                  พิกัดแปลง (Plot Coordinates)
+                </label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGetCurrentLocation}
+                  disabled={geoLoading}
+                  className="h-8 text-xs font-semibold bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50"
+                >
+                  <Navigation className={cn("w-3 h-3 mr-1 text-emerald-600", geoLoading && "animate-spin")} />
+                  {geoLoading ? "กำลังดึงพิกัด..." : "ใช้ตำแหน่งปัจจุบัน"}
+                </Button>
+              </div>
+
+              {geoError && (
+                <p className="text-xs text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200">
+                  ⚠️ {geoError}
+                </p>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <span className="text-[11px] font-medium text-slate-600">
+                    Latitude (-90 ถึง 90)
+                  </span>
+                  <Input
+                    type="number"
+                    step="any"
+                    value={plotLatitude}
+                    onChange={(e) => setPlotLatitude && setPlotLatitude(e.target.value)}
+                    placeholder="เช่น 13.7563309"
+                    className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[11px] font-medium text-slate-600">
+                    Longitude (-180 ถึง 180)
+                  </span>
+                  <Input
+                    type="number"
+                    step="any"
+                    value={plotLongitude}
+                    onChange={(e) => setPlotLongitude && setPlotLongitude(e.target.value)}
+                    placeholder="เช่น 100.5017651"
+                    className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 3. รูปแปลง (Plot Photos - Max 5) */}
+            <div className="bg-emerald-50/20 border border-emerald-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
+              <div className="flex items-center gap-2 border-b border-emerald-100 pb-2.5">
+                <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200">
+                  <Camera className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-bold text-emerald-950">
+                    รูปแปลงเกษตรกร (สูงสุด 5 รูป)
+                  </h4>
+                  <p className="text-[11px] text-emerald-700/80">
+                    อัปโหลดรูปภาพแปลงเกษตรกร เช่น สภาพแปลง แปลงปลูก ต้นพืช
+                  </p>
+                </div>
+              </div>
+              <GalleryUpload
+                maxFiles={5}
+                maxSize={20 * 1024 * 1024}
+                accept="image/*"
+                multiple={true}
+                initialFiles={convertToFileMetadata(plotImages || [])}
+                onFilesChange={handleFilesChange}
               />
             </div>
-          </div>
-        </div>
-
-        {/* 3. รูปแปลง (Plot Photos - Max 5) */}
-        <div className="bg-emerald-50/20 border border-emerald-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
-          <div className="flex items-center gap-2 border-b border-emerald-100 pb-2.5">
-            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200">
-              <Camera className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="text-xs sm:text-sm font-bold text-emerald-950">
-                รูปแปลงเกษตรกร (สูงสุด 5 รูป)
-              </h4>
-              <p className="text-[11px] text-emerald-700/80">
-                อัปโหลดรูปภาพแปลงเกษตรกร เช่น สภาพแปลง แปลงปลูก ต้นพืช
-              </p>
-            </div>
-          </div>
-          <GalleryUpload
-            maxFiles={5}
-            maxSize={20 * 1024 * 1024}
-            accept="image/*"
-            multiple={true}
-            initialFiles={convertToFileMetadata(plotImages || [])}
-            onFilesChange={handleFilesChange}
-          />
-        </div>
+          </>
+        )}
 
         {/* 4. Conditional rendering for advice products & sales opportunity */}
         {isAdviceTopic && (
@@ -462,8 +519,6 @@ export function ActualType1Visit({
                       "py-2.5 px-4 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all flex items-center justify-center",
                       salesOpportunity === opt
                         ? opt === "สูง"
-                          ? "bg-emerald-50/90 border-emerald-500 text-emerald-950 ring-1 ring-emerald-500/50 shadow-2xs"
-                          : "bg-rose-50/90 border-rose-400 text-rose-950 ring-1 ring-rose-400/50 shadow-2xs"
                         : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
                     )}
                   >
@@ -484,7 +539,7 @@ export function ActualType1Visit({
             rows={2}
             value={discussionResult}
             onChange={(e) => setDiscussionResult(e.target.value)}
-            placeholder="สรุปประเด็นสำคัญจากการพูดคุยกับเกษตรกร"
+            placeholder={isStore ? "สรุปประเด็นสำคัญจากการพูดคุยกับร้านค้า" : "สรุปประเด็นสำคัญจากการพูดคุยกับเกษตรกร"}
             className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm"
           />
         </div>

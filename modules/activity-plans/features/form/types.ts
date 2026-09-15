@@ -17,6 +17,7 @@ export interface Type9ProductItem {
 
 export interface Type1VisitItem {
   id: string;
+  visitPurpose?: "FARMER" | "STORE";
   province?: string;
   isUnregisteredFarmer?: boolean;
   storeId?: string;

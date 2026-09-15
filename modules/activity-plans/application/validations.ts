@@ -3,6 +3,7 @@ import { z } from "zod";
 export const planStoreInputSchema = z
   .object({
     workTypeCode: z.string(),
+    visitPurpose: z.enum(["FARMER", "STORE"]).optional().nullable(),
     storeId: z.string().optional().nullable(),
     storeName: z.string().optional().nullable(),
     province: z.string().optional().nullable(),
@@ -16,34 +17,52 @@ export const planStoreInputSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.workTypeCode === "TYPE_1") {
-      if (!data.province || !data.province.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "กรุณาเลือกจังหวัดของเกษตรกร",
-          path: ["province"],
-        });
-      }
-      if (data.isUnregisteredFarmer) {
-        if (!data.unregisteredFarmerName || !data.unregisteredFarmerName.trim()) {
+      const purpose = data.visitPurpose || "FARMER";
+      if (purpose === "FARMER") {
+        if (!data.province || !data.province.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "กรุณาระบุชื่อ - สกุล เกษตรกร",
-            path: ["unregisteredFarmerName"],
+            message: "กรุณาเลือกจังหวัดของเกษตรกร",
+            path: ["province"],
           });
         }
-        const cleanedPhone = (data.unregisteredFarmerPhone || "").replace(/[-\s]/g, "");
-        if (!cleanedPhone || !/^[0-9]{9,10}$/.test(cleanedPhone)) {
+        if (data.isUnregisteredFarmer) {
+          if (!data.unregisteredFarmerName || !data.unregisteredFarmerName.trim()) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "กรุณาระบุชื่อ - สกุล เกษตรกร",
+              path: ["unregisteredFarmerName"],
+            });
+          }
+          const cleanedPhone = (data.unregisteredFarmerPhone || "").replace(/[-\s]/g, "");
+          if (!cleanedPhone || !/^[0-9]{9,10}$/.test(cleanedPhone)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "กรุณาระบุเบอร์โทรศัพท์ที่ถูกต้อง (9-10 หลัก)",
+              path: ["unregisteredFarmerPhone"],
+            });
+          }
+        } else {
+          if (!data.storeId || !data.storeId.trim()) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "กรุณาเลือกเกษตรกรจากรายชื่อ",
+              path: ["storeId"],
+            });
+          }
+        }
+      } else if (purpose === "STORE") {
+        if (data.isUnregisteredFarmer) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "กรุณาระบุเบอร์โทรศัพท์ที่ถูกต้อง (9-10 หลัก)",
-            path: ["unregisteredFarmerPhone"],
+            message: "เข้าพบร้านค้าไม่อนุญาตให้เลือกไม่มีในระบบ",
+            path: ["isUnregisteredFarmer"],
           });
         }
-      } else {
         if (!data.storeId || !data.storeId.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "กรุณาเลือกเกษตรกรจากรายชื่อ",
+            message: "กรุณาเลือกร้านค้า",
             path: ["storeId"],
           });
         }

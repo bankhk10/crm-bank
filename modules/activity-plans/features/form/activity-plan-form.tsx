@@ -630,25 +630,38 @@ export function ActivityPlanForm({
       Array.isArray(initDetails.type1Items) &&
       initDetails.type1Items.length > 0
     ) {
-      return initDetails.type1Items.slice(0, 1);
+      return initDetails.type1Items.slice(0, 1).map((item: any) => ({
+        ...item,
+        visitPurpose: item.visitPurpose || "FARMER",
+      }));
     }
     const type1Stores = (initial as any)?.stores?.filter(
       (s: any) => s.workTypeCode === "TYPE_1",
     );
     if (type1Stores && type1Stores.length > 0) {
-      return type1Stores.slice(0, 1).map((s: any, idx: number) => ({
-        id: s.id || String(idx + 1),
-        storeId: s.storeId || undefined,
-        customerName: s.isUnregisteredFarmer
-          ? (s.unregisteredFarmerName || "")
-          : (s.store?.name || s.storeName || ""),
-        topic: s.remarks || "แจ้งข่าวสาร",
-        detail: s.notes || "",
-        province: s.province || s.store?.province || "",
-        isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
-        unregisteredFarmerName: s.unregisteredFarmerName || "",
-        unregisteredFarmerPhone: s.unregisteredFarmerPhone || "",
-      }));
+      return type1Stores.slice(0, 1).map((s: any, idx: number) => {
+        const rawPurpose = s.visitPurpose;
+        const inferredPurpose: "FARMER" | "STORE" = rawPurpose
+          ? (rawPurpose as "FARMER" | "STORE")
+          : (s.isUnregisteredFarmer || s.store?.customerType === "FARMER"
+              ? "FARMER"
+              : (["DEALER", "SUBDEALER"].includes(s.store?.customerType) ? "STORE" : "FARMER"));
+
+        return {
+          id: s.id || String(idx + 1),
+          visitPurpose: inferredPurpose,
+          storeId: s.storeId || undefined,
+          customerName: s.isUnregisteredFarmer
+            ? (s.unregisteredFarmerName || "")
+            : (s.store?.name || s.storeName || ""),
+          topic: s.remarks || "แจ้งข่าวสาร",
+          detail: s.notes || "",
+          province: s.province || s.store?.province || "",
+          isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
+          unregisteredFarmerName: s.unregisteredFarmerName || "",
+          unregisteredFarmerPhone: s.unregisteredFarmerPhone || "",
+        };
+      });
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
@@ -662,6 +675,7 @@ export function ActivityPlanForm({
       if (items.length > 0) {
         return items.slice(0, 1).map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
+          visitPurpose: item.visitPurpose || "FARMER",
           storeId: item.storeId,
           customerName:
             item.customerName || item.storeName || item.ownerName || "",
@@ -677,6 +691,7 @@ export function ActivityPlanForm({
     return [
       {
         id: "1",
+        visitPurpose: "FARMER",
         customerName: "",
         topic: "แจ้งข่าวสาร",
         detail: "",
@@ -689,10 +704,11 @@ export function ActivityPlanForm({
   });
 
   const addType1Row = () => {
-    // 1 Plan : 1 Farmer (maximum 1 item)
+    // 1 Plan : 1 Target (maximum 1 item)
     if (type1Items.length === 0) {
       const newItem: Type1VisitItem = {
         id: Date.now().toString(),
+        visitPurpose: "FARMER",
         customerName: "",
         topic: "แจ้งข่าวสาร",
         detail: "",
@@ -714,6 +730,19 @@ export function ActivityPlanForm({
       prev.map((item) => {
         if (item.id !== id) return item;
         const updated = { ...item, [field]: val };
+        if (field === "visitPurpose") {
+          if (val === "STORE") {
+            updated.province = "";
+            updated.storeId = undefined;
+            updated.customerName = "";
+            updated.isUnregisteredFarmer = false;
+            updated.unregisteredFarmerName = "";
+            updated.unregisteredFarmerPhone = "";
+          } else if (val === "FARMER") {
+            updated.storeId = undefined;
+            updated.customerName = "";
+          }
+        }
         if (field === "isUnregisteredFarmer") {
           if (val === true) {
             updated.storeId = undefined;
@@ -2393,6 +2422,7 @@ export function ActivityPlanForm({
 
       const planStores: Array<{
         workTypeCode: string;
+        visitPurpose?: "FARMER" | "STORE" | null;
         storeId?: string | null;
         storeName?: string | null;
         targetAmount?: number | null;
@@ -2421,41 +2451,65 @@ export function ActivityPlanForm({
       let submittedTargetBookingSales: number | null = null;
       let submittedDemoPlotId: string | null = null;
 
-      // 1. TYPE_1: เข้าพบเกษตรกร
+      // 1. TYPE_1: เข้าพบเกษตรกร / เข้าพบร้านค้า
       if (
         selectedWorkTypes.includes("เข้าพบเกษตรกร") ||
         selectedWorkTypes.includes("เข้าพบร้านค้า / Key Farmer")
       ) {
         const item = type1Items[0];
         if (item) {
-          if (item.isUnregisteredFarmer) {
-            planStores.push({
-              workTypeCode: "TYPE_1",
-              storeId: null,
-              storeName: item.unregisteredFarmerName || null,
-              remarks: item.topic || null,
-              notes: item.detail || null,
-              province: item.province || null,
-              isUnregisteredFarmer: true,
-              unregisteredFarmerName: item.unregisteredFarmerName || null,
-              unregisteredFarmerPhone: item.unregisteredFarmerPhone || null,
-            });
-          } else {
+          const purpose = item.visitPurpose === "STORE" ? "STORE" : "FARMER";
+          if (purpose === "STORE") {
             const sId =
               item.storeId ||
               customersList.find((c) => c.name === item.customerName)?.id;
             if (sId) {
               planStores.push({
                 workTypeCode: "TYPE_1",
+                visitPurpose: "STORE",
                 storeId: sId,
                 storeName: item.customerName || null,
                 remarks: item.topic || null,
                 notes: item.detail || null,
-                province: item.province || null,
+                province: null,
                 isUnregisteredFarmer: false,
                 unregisteredFarmerName: null,
                 unregisteredFarmerPhone: null,
               });
+            }
+          } else {
+            // FARMER
+            if (item.isUnregisteredFarmer) {
+              planStores.push({
+                workTypeCode: "TYPE_1",
+                visitPurpose: "FARMER",
+                storeId: null,
+                storeName: item.unregisteredFarmerName || null,
+                remarks: item.topic || null,
+                notes: item.detail || null,
+                province: item.province || null,
+                isUnregisteredFarmer: true,
+                unregisteredFarmerName: item.unregisteredFarmerName || null,
+                unregisteredFarmerPhone: item.unregisteredFarmerPhone || null,
+              });
+            } else {
+              const sId =
+                item.storeId ||
+                customersList.find((c) => c.name === item.customerName)?.id;
+              if (sId) {
+                planStores.push({
+                  workTypeCode: "TYPE_1",
+                  visitPurpose: "FARMER",
+                  storeId: sId,
+                  storeName: item.customerName || null,
+                  remarks: item.topic || null,
+                  notes: item.detail || null,
+                  province: item.province || null,
+                  isUnregisteredFarmer: false,
+                  unregisteredFarmerName: null,
+                  unregisteredFarmerPhone: null,
+                });
+              }
             }
           }
         }

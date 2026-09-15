@@ -44,6 +44,7 @@ export interface NormalizedPlanData {
   totalBudgetRequested: number;
   planStores: Array<{
     workTypeCode: string;
+    visitPurpose?: "FARMER" | "STORE" | null;
     storeId?: string | null;
     storeName?: string | null;
     province?: string | null;
@@ -103,6 +104,7 @@ export function normalizePlanInput(
 ): NormalizedPlanData {
   const stores: NormalizedPlanData["planStores"] = (rawInput.planStores || []).map((s) => ({
     ...s,
+    visitPurpose: s.visitPurpose ?? null,
     province: s.province ?? null,
     isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
     unregisteredFarmerName: s.unregisteredFarmerName ?? null,

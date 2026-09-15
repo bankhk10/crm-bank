@@ -617,6 +617,26 @@ export async function getFarmerCustomerOptionsAction(province?: string) {
 }
 
 /**
+ * Action: Get list of Dealer & Subdealer customers for TYPE_1 Visit (Store)
+ */
+export async function getDealerAndSubdealerCustomerOptionsAction() {
+  try {
+    const { findDealerAndSubdealerCustomerOptions } = await import("../infrastructure/activity-plan.repository");
+    const stores = await findDealerAndSubdealerCustomerOptions();
+    return serialize({
+      success: true as const,
+      stores,
+    });
+  } catch (err: any) {
+    console.error("Failed to get dealer & subdealer customer options:", err);
+    return serialize({
+      success: false as const,
+      stores: [],
+    });
+  }
+}
+
+/**
  * Action: Get Demo Plot History with all visits
  */
 export async function getDemoPlotHistoryAction(demoPlotIdOrName: string) {

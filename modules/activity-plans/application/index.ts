@@ -42,6 +42,59 @@ export async function getActivityTypesUseCase() {
   return findActivityTypes();
 }
 
+export async function validateType1VisitPurposeCustomers(
+  planStores: Array<{
+    workTypeCode: string;
+    visitPurpose?: "FARMER" | "STORE" | null;
+    storeId?: string | null;
+    isUnregisteredFarmer?: boolean;
+  }>
+): Promise<{ valid: true } | { valid: false; error: string }> {
+  for (const s of planStores) {
+    if (s.workTypeCode === "TYPE_1") {
+      const purpose = s.visitPurpose || "FARMER";
+      if (purpose === "FARMER") {
+        if (!s.isUnregisteredFarmer && s.storeId) {
+          const customer = await db.customer.findUnique({
+            where: { id: s.storeId },
+            select: { id: true, customerType: true },
+          });
+          if (!customer) {
+            return { valid: false, error: "ไม่พบข้อมูลเกษตรกรในระบบ" };
+          }
+          if (customer.customerType !== "FARMER") {
+            return {
+              valid: false,
+              error: "วัตถุประสงค์เข้าพบเกษตรกร อนุญาตเฉพาะลูกค้าประเภทเกษตรกร (FARMER) เท่านั้น",
+            };
+          }
+        }
+      } else if (purpose === "STORE") {
+        if (s.isUnregisteredFarmer) {
+          return { valid: false, error: "วัตถุประสงค์เข้าพบร้านค้า ไม่อนุญาตให้ระบุว่าไม่มีในระบบ" };
+        }
+        if (!s.storeId) {
+          return { valid: false, error: "กรุณาเลือกร้านค้า" };
+        }
+        const customer = await db.customer.findUnique({
+          where: { id: s.storeId },
+          select: { id: true, customerType: true },
+        });
+        if (!customer) {
+          return { valid: false, error: "ไม่พบข้อมูลร้านค้าในระบบ" };
+        }
+        if (customer.customerType !== "DEALER" && customer.customerType !== "SUBDEALER") {
+          return {
+            valid: false,
+            error: "วัตถุประสงค์เข้าพบร้านค้า อนุญาตเฉพาะร้านค้าตัวแทนจำหน่าย (DEALER) หรือร้านค้าย่อย (SUBDEALER) เท่านั้น",
+          };
+        }
+      }
+    }
+  }
+  return { valid: true };
+}
+
 /**
  * Create a new ActivityPlan (Draft by default)
  */
@@ -62,6 +115,12 @@ export async function createActivityPlanUseCase(
   }
 
   const normalized = normalizePlanInput(parsed.data);
+
+  const customerValidation = await validateType1VisitPurposeCustomers(normalized.planStores);
+  if (!customerValidation.valid) {
+    return { success: false as const, error: customerValidation.error };
+  }
+
   const { helperEmployeeIds, items, tourData, planStores, planProducts, workTypeCodes, ...planFields } = parsed.data;
 
   const data = {
@@ -243,6 +302,12 @@ export async function updateActivityPlanUseCase(id: string, userId: string, rawD
   }
 
   const normalized = normalizePlanInput(parsed.data);
+
+  const customerValidation = await validateType1VisitPurposeCustomers(normalized.planStores);
+  if (!customerValidation.valid) {
+    return { success: false as const, error: customerValidation.error };
+  }
+
   const { helperEmployeeIds, items, tourData, planStores, planProducts, workTypeCodes, ...planFields } = parsed.data;
 
   const data = {
