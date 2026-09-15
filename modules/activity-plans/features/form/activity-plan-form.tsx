@@ -93,6 +93,8 @@ import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
+  resolveWorkTypeCode,
+  hydrateWorkTypesFromPlan,
   DEMO_OWNERS,
   DEMO_PRODUCTS,
   DEMO_PRODUCT_PRICES,
@@ -296,7 +298,11 @@ export function ActivityPlanForm({
     if (source && source.length > 0) {
       return [...source]
         .filter((t) => t.isActive !== false)
-        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        .map((t) => ({
+          ...t,
+          displayName: getWorkTypeName(t.code) || t.name,
+        }));
     }
 
     return [];
@@ -350,269 +356,36 @@ export function ActivityPlanForm({
     );
   }, [initial.approvalLogs]);
 
-  // Work types selection state
+  // Safeguard: Check if initial relation work types existed and validate mappability
+  const hydrationSafeguard = useMemo(() => {
+    const rawWorkTypes = (initial as any)?.workTypes;
+    if (!Array.isArray(rawWorkTypes) || rawWorkTypes.length === 0) {
+      return { hasRelation: false, initialCodes: [], unmappableCount: 0 };
+    }
+
+    const initialCodes: string[] = [];
+    let unmappableCount = 0;
+
+    for (const wt of rawWorkTypes) {
+      const code = resolveWorkTypeCode(wt, initialActivityTypes);
+      if (code && WORK_TYPE_CONFIG[code]) {
+        initialCodes.push(code);
+      } else {
+        unmappableCount++;
+      }
+    }
+
+    return {
+      hasRelation: true,
+      initialCodes: Array.from(new Set(initialCodes)),
+      unmappableCount,
+    };
+  }, [initial, initialActivityTypes]);
+
+  // Work types selection state hydrated with Code as Canonical Identifier
   const initialTypes = useMemo(() => {
-    const detectedTypes = new Set<string>();
-
-    // 1. Direct check from normalized relation
-    if (
-      (initial as any)?.workTypes &&
-      Array.isArray((initial as any).workTypes) &&
-      (initial as any).workTypes.length > 0
-    ) {
-      const typesFromRelation = (initial as any).workTypes
-        .map(
-          (wt: any) =>
-            wt.activityType?.name ||
-            getWorkTypeName(wt.activityTypeId || wt.workTypeCode),
-        )
-        .filter(Boolean);
-      if (typesFromRelation.length > 0) {
-        return WORK_TYPES.filter((t) => typesFromRelation.includes(t));
-      }
-    }
-    if ((initial as any)?.tour) {
-      detectedTypes.add("ทัวร์");
-    }
-
-    const initialTypesRaw =
-      (initial as any)?.activityType || (initial as any)?.activityTypeId || "";
-    if (typeof initialTypesRaw === "string") {
-      initialTypesRaw
-        .split(",")
-        .map((s: string) => s.trim())
-        .filter(Boolean)
-        .forEach((t) => {
-          if (WORK_TYPES.includes(t)) {
-            detectedTypes.add(t);
-          } else {
-            const idx = parseInt(t.replace("TYPE_", ""), 10) - 1;
-            if (idx >= 0 && idx < WORK_TYPES.length) {
-              detectedTypes.add(WORK_TYPES[idx]);
-            }
-          }
-        });
-    }
-
-    // Match explicit section headers in objective or title (do not scan description to avoid marketing/budget false-positives)
-    const objectiveText = [initial.objective, initial.title]
-      .filter(Boolean)
-      .join("\n");
-
-    if (objectiveText) {
-      if (
-        objectiveText.includes("[เข้าพบเกษตรกร") ||
-        objectiveText.includes("เข้าพบเกษตรกร") ||
-        objectiveText.includes("[เข้าพบร้านค้า") ||
-        objectiveText.includes("เข้าพบร้านค้า") ||
-        objectiveText.includes("Key Farmer")
-      ) {
-        detectedTypes.add(WORK_TYPES[0]);
-      }
-      if (
-        objectiveText.includes("[ติดตามผลการใช้สินค้า]") ||
-        objectiveText.includes("ติดตามผลการใช้สินค้า")
-      ) {
-        detectedTypes.add(WORK_TYPES[1]);
-      }
-      if (
-        objectiveText.includes("[เสนอขายสินค้า]") ||
-        objectiveText.includes("เสนอขายสินค้า")
-      ) {
-        detectedTypes.add(WORK_TYPES[2]);
-      }
-      if (
-        objectiveText.includes("[วางบิล") ||
-        objectiveText.includes("วางบิล / เก็บเงิน") ||
-        objectiveText.includes("วางบิล/เก็บเงิน") ||
-        objectiveText.includes("เป้ายอดเก็บเงิน")
-      ) {
-        detectedTypes.add(WORK_TYPES[3]);
-      }
-      if (
-        objectiveText.includes("[สำรวจตลาด") ||
-        objectiveText.includes("สำรวจตลาดของคู่แข่ง") ||
-        objectiveText.includes("สำรวจตลาดคู่แข่ง")
-      ) {
-        detectedTypes.add(WORK_TYPES[4]);
-      }
-      if (
-        objectiveText.includes("[แก้ปัญหา") ||
-        objectiveText.includes("แก้ปัญหา / รับเรื่องร้องเรียน") ||
-        objectiveText.includes("แก้ปัญหา/ร้องเรียน") ||
-        objectiveText.includes("รับเรื่องร้องเรียน")
-      ) {
-        detectedTypes.add(WORK_TYPES[5]);
-      }
-      if (
-        objectiveText.includes("[ติดตามแปลงสาธิต") ||
-        objectiveText.includes("ติดตามแปลงสาธิต / ทำแปลง") ||
-        objectiveText.includes("ทำแปลงสาธิต") ||
-        (objectiveText.includes("แปลงสาธิต") &&
-          !objectiveText.includes("Field Day") &&
-          !objectiveText.includes("[Field Day]"))
-      ) {
-        detectedTypes.add(WORK_TYPES[6]);
-      }
-      if (
-        objectiveText.includes("[จัดประชุม") ||
-        objectiveText.includes("จัดประชุมการเกษตร") ||
-        objectiveText.includes("ประชุมการเกษตร")
-      ) {
-        detectedTypes.add(WORK_TYPES[7]);
-      }
-      if (
-        objectiveText.includes("[กิจกรรมหน้าร้าน]") ||
-        objectiveText.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")
-      ) {
-        detectedTypes.add(WORK_TYPES[8]);
-      }
-      if (
-        objectiveText.includes("[Field Day]") ||
-        objectiveText.includes("Field Day") ||
-        objectiveText.includes("จัดงาน Field Day")
-      ) {
-        detectedTypes.add(WORK_TYPES[9]);
-      }
-      if (
-        objectiveText.includes("[ตรวจเช็กสต็อก") ||
-        objectiveText.includes("ตรวจเช็กสต็อกหน้าร้าน") ||
-        objectiveText.includes("เช็กสต็อกหน้าร้าน") ||
-        objectiveText.includes("สต็อกหน้าร้าน")
-      ) {
-        detectedTypes.add(WORK_TYPES[10]);
-      }
-      if (
-        objectiveText.includes("[ทัวร์]") ||
-        objectiveText.includes("[ทัวร์กลาง]") ||
-        objectiveText.includes("[ทัวร์ร้านค้า]") ||
-        objectiveText.includes("ทัวร์กลาง") ||
-        objectiveText.includes("ทัวร์ร้านค้า") ||
-        objectiveText.includes("ทัวร์")
-      ) {
-        detectedTypes.add(WORK_TYPES[11]);
-      }
-    }
-
-    const items = (initial as any)?.details;
-    if (Array.isArray(items)) {
-      // Filter out promotional media and sales promotions to prevent false positive work types
-      const actualItems = items.filter(
-        (item: any) =>
-          item.itemType !== "MARKETING_PRODUCT" &&
-          item.itemType !== "SALES_PROMOTION" &&
-          item.visitTopic !== "MARKETING_PRODUCT" &&
-          item.visitTopic !== "SALES_PROMOTION",
-      );
-
-      for (const item of actualItems) {
-        const isFD = isFieldDayItem(item);
-
-        if (
-          item.itemType === "TYPE_1" ||
-          (item.visitTopic &&
-            item.visitTopic !== "FOLLOWUP" &&
-            item.visitTopic !== "MARKETING_PRODUCT" &&
-            item.visitTopic !== "SALES_PROMOTION")
-        ) {
-          detectedTypes.add(WORK_TYPES[0]);
-        }
-        if (
-          item.itemType === "TYPE_2" ||
-          item.visitTopic === "FOLLOWUP" ||
-          item.followupProductName
-        ) {
-          detectedTypes.add(WORK_TYPES[1]);
-        }
-        if (
-          !isFD &&
-          (item.itemType === "TYPE_3" ||
-            item.saleProductName ||
-            (item.saleQuantity != null && item.saleUnitPrice != null) ||
-            (item.saleTotalPrice != null &&
-              !item.storeTotalAmount &&
-              !item.collectAmount &&
-              item.meetingAttendeesCount == null))
-        ) {
-          detectedTypes.add(WORK_TYPES[2]);
-        }
-        if (
-          !isFD &&
-          (item.itemType === "TYPE_4" ||
-            (item.collectAmount != null &&
-              item.visitTopic !== "SALES_PROMOTION"))
-        ) {
-          detectedTypes.add(WORK_TYPES[3]);
-        }
-        if (
-          item.itemType === "TYPE_5" ||
-          item.surveyCompetitorProduct ||
-          (item.surveyStoreName && item.itemType !== "TYPE_9")
-        ) {
-          detectedTypes.add(WORK_TYPES[4]);
-        }
-        if (item.itemType === "TYPE_6" || item.issueType) {
-          detectedTypes.add(WORK_TYPES[5]);
-        }
-        if (
-          !isFD &&
-          (item.itemType === "TYPE_7" ||
-            item.plotActivityType ||
-            item.existingPlotId ||
-            ((item.plotCropName ||
-              item.plotOwnerName ||
-              item.plotAreaRai != null) &&
-              !item.storePricePerCase))
-        ) {
-          detectedTypes.add(WORK_TYPES[6]);
-        }
-        if (
-          !isFD &&
-          (item.itemType === "TYPE_8" ||
-            item.meetingTopic ||
-            item.meetingTargetProducts ||
-            (item.meetingAttendeesCount != null && !item.storeProductName))
-        ) {
-          detectedTypes.add(WORK_TYPES[7]);
-        }
-        if (
-          !isFD &&
-          (item.itemType === "TYPE_9" ||
-            (item.storeProductName &&
-              item.visitTopic !== "MARKETING_PRODUCT") ||
-            (item.storeQuantityCases != null &&
-              item.visitTopic !== "MARKETING_PRODUCT") ||
-            (item.storePricePerCase != null &&
-              item.visitTopic !== "MARKETING_PRODUCT") ||
-            (item.storeTotalAmount != null &&
-              item.visitTopic !== "MARKETING_PRODUCT"))
-        ) {
-          detectedTypes.add(WORK_TYPES[8]);
-        }
-        if (isFD || item.itemType === "TYPE_10") {
-          detectedTypes.add(WORK_TYPES[9]);
-        }
-        if (
-          item.itemType === "TYPE_11" ||
-          item.targetOpportunity ||
-          (item.detail && item.detail.includes("ตรวจเช็กสต็อกหน้าร้าน"))
-        ) {
-          detectedTypes.add(WORK_TYPES[10]);
-        }
-        if (
-          item.itemType === "TYPE_12" ||
-          (item.detail && item.detail.includes("[ทัวร์")) ||
-          (item.visitTopic &&
-            (item.visitTopic === "ทัวร์กลาง" ||
-              item.visitTopic === "ทัวร์ร้านค้า"))
-        ) {
-          detectedTypes.add(WORK_TYPES[11]);
-        }
-      }
-    }
-
-    return WORK_TYPES.filter((t) => detectedTypes.has(t));
-  }, [initial]);
+    return hydrateWorkTypesFromPlan(initial, initialActivityTypes);
+  }, [initial, initialActivityTypes]);
 
   const [selectedWorkTypes, setSelectedWorkTypes] =
     useState<string[]>(initialTypes);
@@ -2181,18 +1954,39 @@ export function ActivityPlanForm({
 
   // Work type selection toggling
   const toggleWorkType = (typeStr: string) => {
-    if (tempSelectedWorkTypes.includes(typeStr)) {
+    const canonicalName = getWorkTypeName(getWorkTypeCode(typeStr)) || typeStr;
+    const isSelected = tempSelectedWorkTypes.some(
+      (t) =>
+        t === canonicalName ||
+        t === typeStr ||
+        getWorkTypeCode(t) === getWorkTypeCode(typeStr),
+    );
+
+    if (isSelected) {
       setTempSelectedWorkTypes(
-        tempSelectedWorkTypes.filter((t) => t !== typeStr),
+        tempSelectedWorkTypes.filter(
+          (t) =>
+            t !== canonicalName &&
+            t !== typeStr &&
+            getWorkTypeCode(t) !== getWorkTypeCode(typeStr),
+        ),
       );
     } else {
-      setTempSelectedWorkTypes([...tempSelectedWorkTypes, typeStr]);
+      setTempSelectedWorkTypes([...tempSelectedWorkTypes, canonicalName]);
     }
   };
 
   const removeWorkType = (typeStr: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    setSelectedWorkTypes(selectedWorkTypes.filter((t) => t !== typeStr));
+    const canonicalName = getWorkTypeName(getWorkTypeCode(typeStr)) || typeStr;
+    setSelectedWorkTypes(
+      selectedWorkTypes.filter(
+        (t) =>
+          t !== canonicalName &&
+          t !== typeStr &&
+          getWorkTypeCode(t) !== getWorkTypeCode(typeStr),
+      ),
+    );
   };
 
   // Type 9 Store Promotion Product Table Helpers
@@ -2290,6 +2084,23 @@ export function ActivityPlanForm({
       setError("กรุณากรอกชื่อกิจกรรม");
       return;
     }
+
+    // Safeguard: Data Loss Protection
+    if (isEdit && hydrationSafeguard.hasRelation) {
+      if (hydrationSafeguard.unmappableCount > 0) {
+        setError(
+          "ไม่สามารถบันทึกได้เนื่องจากพบประเภทงานที่ไม่สามารถระบุได้ในระบบ เพื่อป้องกันข้อมูลสูญหาย กรุณาติดต่อผู้ดูแลระบบ",
+        );
+        return;
+      }
+      if (selectedWorkTypes.length === 0) {
+        setError(
+          "ไม่สามารถบันทึกได้เนื่องจากไม่มีการระบุประเภทงาน เพื่อป้องกันข้อมูลสูญหาย กรุณาเลือกประเภทงานอย่างน้อย 1 ประเภท",
+        );
+        return;
+      }
+    }
+
     if (selectedWorkTypes.length === 0) {
       setError("กรุณาเลือกประเภทงานอย่างน้อย 1 ประเภท");
       return;
@@ -3133,13 +2944,20 @@ export function ActivityPlanForm({
                         </div>
                       ) : (
                         activeWorkTypeOptions.map((typeItem) => {
-                          const isChecked =
-                            tempSelectedWorkTypes.includes(typeItem.name) ||
-                            tempSelectedWorkTypes.includes(typeItem.code);
+                          const displayName =
+                            (typeItem as any).displayName ||
+                            getWorkTypeName(typeItem.code) ||
+                            typeItem.name;
+                          const isChecked = tempSelectedWorkTypes.some(
+                            (t) =>
+                              t === displayName ||
+                              t === typeItem.name ||
+                              getWorkTypeCode(t) === typeItem.code,
+                          );
                           return (
                             <label
                               key={typeItem.code}
-                              onClick={() => toggleWorkType(typeItem.name)}
+                              onClick={() => toggleWorkType(displayName)}
                               className={cn(
                                 "flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer transition-colors select-none",
                                 isChecked
@@ -3159,7 +2977,7 @@ export function ActivityPlanForm({
                                   <Check className="h-3 w-3 stroke-[3]" />
                                 )}
                               </div>
-                              <span>{typeItem.name}</span>
+                              <span>{displayName}</span>
                             </label>
                           );
                         })

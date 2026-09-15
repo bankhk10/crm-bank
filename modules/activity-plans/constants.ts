@@ -10,8 +10,8 @@ export interface WorkTypeConfig {
 export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
   TYPE_1: {
     code: "TYPE_1",
-    name: "เข้าพบเกษตรกร",
-    shortName: "Farmer Visit",
+    name: "เข้าพบร้านค้า / Key Farmer",
+    shortName: "Visit",
     sortOrder: 1,
     hasActual: true,
     requiresApproval: true,
@@ -112,7 +112,7 @@ export const WORK_TYPES = Object.values(WORK_TYPE_CONFIG).map((c) => c.name);
 // Helper function to resolve code from name or code
 export function getWorkTypeCode(nameOrCode: string): string {
   if (WORK_TYPE_CONFIG[nameOrCode]) return nameOrCode;
-  if (nameOrCode === "เข้าพบร้านค้า / Key Farmer") return "TYPE_1";
+  if (nameOrCode === "เข้าพบร้านค้า / Key Farmer" || nameOrCode === "เข้าพบเกษตรกร") return "TYPE_1";
   const entry = Object.values(WORK_TYPE_CONFIG).find(
     (c) => c.name === nameOrCode || c.shortName === nameOrCode,
   );
@@ -121,7 +121,11 @@ export function getWorkTypeCode(nameOrCode: string): string {
 
 // Helper function to resolve name from code
 export function getWorkTypeName(codeOrName: string): string {
-  if (codeOrName === "เข้าพบร้านค้า / Key Farmer" || codeOrName === "TYPE_1") {
+  if (
+    codeOrName === "เข้าพบร้านค้า / Key Farmer" ||
+    codeOrName === "เข้าพบเกษตรกร" ||
+    codeOrName === "TYPE_1"
+  ) {
     return WORK_TYPE_CONFIG.TYPE_1.name;
   }
   if (WORK_TYPE_CONFIG[codeOrName]) return WORK_TYPE_CONFIG[codeOrName].name;
@@ -386,3 +390,342 @@ export function isFieldDayItem(item: any): boolean {
   }
   return false;
 }
+
+/**
+ * Resolves canonical work type code (e.g. "TYPE_1") from relation item, code, or name.
+ */
+export function resolveWorkTypeCode(
+  wt: any,
+  masterList?: Array<{ id?: string; code?: string; name?: string }>,
+): string | null {
+  if (!wt) return null;
+  if (typeof wt === "string") {
+    if (WORK_TYPE_CONFIG[wt]) return wt;
+    if (wt === "เข้าพบร้านค้า / Key Farmer" || wt === "เข้าพบเกษตรกร") return "TYPE_1";
+    const found = Object.values(WORK_TYPE_CONFIG).find(
+      (c) => c.name === wt || c.shortName === wt,
+    );
+    if (found) return found.code;
+    return null;
+  }
+  // 1. Primary: activityType.code
+  if (wt.activityType?.code && typeof wt.activityType.code === "string") {
+    if (WORK_TYPE_CONFIG[wt.activityType.code]) return wt.activityType.code;
+  }
+  // 2. Direct workTypeCode
+  if (wt.workTypeCode && typeof wt.workTypeCode === "string") {
+    if (WORK_TYPE_CONFIG[wt.workTypeCode]) return wt.workTypeCode;
+  }
+  // 3. activityTypeId matching master lookup by id or code
+  if (wt.activityTypeId && typeof wt.activityTypeId === "string") {
+    if (WORK_TYPE_CONFIG[wt.activityTypeId]) return wt.activityTypeId;
+    if (masterList && masterList.length > 0) {
+      const matched = masterList.find(
+        (at) => at.id === wt.activityTypeId || at.code === wt.activityTypeId,
+      );
+      if (matched?.code && WORK_TYPE_CONFIG[matched.code]) {
+        return matched.code;
+      }
+    }
+  }
+  // 4. Fallback: activityType.name
+  if (wt.activityType?.name && typeof wt.activityType.name === "string") {
+    if (wt.activityType.name === "เข้าพบร้านค้า / Key Farmer" || wt.activityType.name === "เข้าพบเกษตรกร") return "TYPE_1";
+    const found = Object.values(WORK_TYPE_CONFIG).find(
+      (c) =>
+        c.name === wt.activityType.name || c.shortName === wt.activityType.name,
+    );
+    if (found) return found.code;
+  }
+  return null;
+}
+
+/**
+ * Resolves initial selected work type display names from initial plan data.
+ * Guarantees that canonical identifier (code) is used, preserving multi-select
+ * and current UI display names.
+ */
+export function hydrateWorkTypesFromPlan(
+  initial: any,
+  masterList?: Array<{ id?: string; code?: string; name?: string }>,
+): string[] {
+  const detectedTypes = new Set<string>();
+
+  // 1. Direct check from normalized relation (code as canonical identifier)
+  if (
+    initial?.workTypes &&
+    Array.isArray(initial.workTypes) &&
+    initial.workTypes.length > 0
+  ) {
+    const relationCodes: string[] = [];
+    for (const wt of initial.workTypes) {
+      const code = resolveWorkTypeCode(wt, masterList);
+      if (code && WORK_TYPE_CONFIG[code]) {
+        relationCodes.push(code);
+      }
+    }
+    if (relationCodes.length > 0) {
+      const mappedNames = new Set(
+        relationCodes.map((c) => WORK_TYPE_CONFIG[c].name),
+      );
+      return WORK_TYPES.filter((t) => mappedNames.has(t));
+    }
+  }
+
+  // 2. Legacy / compatibility checks
+  if (initial?.tour) {
+    detectedTypes.add(WORK_TYPE_CONFIG.TYPE_12.name);
+  }
+
+  const initialTypesRaw =
+    initial?.activityType || initial?.activityTypeId || "";
+  if (typeof initialTypesRaw === "string" && initialTypesRaw) {
+    initialTypesRaw
+      .split(",")
+      .map((s: string) => s.trim())
+      .filter(Boolean)
+      .forEach((t) => {
+        const code = resolveWorkTypeCode(t, masterList);
+        if (code && WORK_TYPE_CONFIG[code]) {
+          detectedTypes.add(WORK_TYPE_CONFIG[code].name);
+        } else if (WORK_TYPES.includes(t)) {
+          detectedTypes.add(t);
+        }
+      });
+  } else if (initialTypesRaw && typeof initialTypesRaw === "object") {
+    const code = resolveWorkTypeCode(initialTypesRaw, masterList);
+    if (code && WORK_TYPE_CONFIG[code]) {
+      detectedTypes.add(WORK_TYPE_CONFIG[code].name);
+    }
+  }
+
+  // Stores workTypeCode check
+  if (Array.isArray(initial?.stores)) {
+    for (const s of initial.stores) {
+      const code = s.workTypeCode
+        ? resolveWorkTypeCode(s.workTypeCode, masterList)
+        : undefined;
+      if (code && WORK_TYPE_CONFIG[code]) {
+        detectedTypes.add(WORK_TYPE_CONFIG[code].name);
+      }
+    }
+  }
+
+  // Heuristic / details check
+  const items = initial?.details;
+  if (Array.isArray(items)) {
+    const actualItems = items.filter(
+      (item: any) =>
+        item.itemType !== "MARKETING_PRODUCT" &&
+        item.itemType !== "SALES_PROMOTION" &&
+        item.visitTopic !== "MARKETING_PRODUCT" &&
+        item.visitTopic !== "SALES_PROMOTION",
+    );
+    for (const item of actualItems) {
+      const isFD = isFieldDayItem(item);
+      if (
+        item.itemType === "TYPE_1" ||
+        (item.visitTopic &&
+          item.visitTopic !== "FOLLOWUP" &&
+          item.visitTopic !== "MARKETING_PRODUCT" &&
+          item.visitTopic !== "SALES_PROMOTION")
+      ) {
+        detectedTypes.add(WORK_TYPES[0]);
+      }
+      if (
+        item.itemType === "TYPE_2" ||
+        item.visitTopic === "FOLLOWUP" ||
+        item.followupProductName
+      ) {
+        detectedTypes.add(WORK_TYPES[1]);
+      }
+      if (
+        !isFD &&
+        (item.itemType === "TYPE_3" ||
+          item.saleProductName ||
+          (item.saleQuantity != null && item.saleUnitPrice != null) ||
+          (item.saleTotalPrice != null &&
+            !item.storeTotalAmount &&
+            !item.collectAmount &&
+            item.meetingAttendeesCount == null))
+      ) {
+        detectedTypes.add(WORK_TYPES[2]);
+      }
+      if (
+        !isFD &&
+        (item.itemType === "TYPE_4" ||
+          (item.collectAmount != null &&
+            item.visitTopic !== "SALES_PROMOTION"))
+      ) {
+        detectedTypes.add(WORK_TYPES[3]);
+      }
+      if (
+        item.itemType === "TYPE_5" ||
+        item.surveyCompetitorProduct ||
+        (item.surveyStoreName && item.itemType !== "TYPE_9")
+      ) {
+        detectedTypes.add(WORK_TYPES[4]);
+      }
+      if (item.itemType === "TYPE_6" || item.issueType) {
+        detectedTypes.add(WORK_TYPES[5]);
+      }
+      if (
+        !isFD &&
+        (item.itemType === "TYPE_7" ||
+          item.plotActivityType ||
+          item.existingPlotId ||
+          ((item.plotCropName ||
+            item.plotOwnerName ||
+            item.plotAreaRai != null) &&
+            !item.storePricePerCase))
+      ) {
+        detectedTypes.add(WORK_TYPES[6]);
+      }
+      if (
+        !isFD &&
+        (item.itemType === "TYPE_8" ||
+          item.meetingTopic ||
+          item.meetingTargetProducts ||
+          (item.meetingAttendeesCount != null && !item.storeProductName))
+      ) {
+        detectedTypes.add(WORK_TYPES[7]);
+      }
+      if (
+        !isFD &&
+        (item.itemType === "TYPE_9" ||
+          (item.storeProductName &&
+            item.visitTopic !== "MARKETING_PRODUCT") ||
+          (item.storeQuantityCases != null &&
+            item.visitTopic !== "MARKETING_PRODUCT") ||
+          (item.storePricePerCase != null &&
+            item.visitTopic !== "MARKETING_PRODUCT") ||
+          (item.storeTotalAmount != null &&
+            item.visitTopic !== "MARKETING_PRODUCT"))
+      ) {
+        detectedTypes.add(WORK_TYPES[8]);
+      }
+      if (isFD || item.itemType === "TYPE_10") {
+        detectedTypes.add(WORK_TYPES[9]);
+      }
+      if (
+        item.itemType === "TYPE_11" ||
+        item.targetOpportunity ||
+        (item.detail && item.detail.includes("ตรวจเช็กสต็อกหน้าร้าน"))
+      ) {
+        detectedTypes.add(WORK_TYPES[10]);
+      }
+      if (
+        item.itemType === "TYPE_12" ||
+        (item.detail && item.detail.includes("[ทัวร์")) ||
+        (item.visitTopic &&
+          (item.visitTopic === "ทัวร์กลาง" ||
+            item.visitTopic === "ทัวร์ร้านค้า"))
+      ) {
+        detectedTypes.add(WORK_TYPES[11]);
+      }
+    }
+  }
+
+  // Match explicit section headers in objective or title
+  const objectiveText = [initial?.objective, initial?.title]
+    .filter(Boolean)
+    .join("\n");
+
+  if (objectiveText) {
+    if (
+      objectiveText.includes("[เข้าพบเกษตรกร") ||
+      objectiveText.includes("เข้าพบเกษตรกร") ||
+      objectiveText.includes("[เข้าพบร้านค้า") ||
+      objectiveText.includes("เข้าพบร้านค้า") ||
+      objectiveText.includes("Key Farmer")
+    ) {
+      detectedTypes.add(WORK_TYPES[0]);
+    }
+    if (
+      objectiveText.includes("[ติดตามผลการใช้สินค้า]") ||
+      objectiveText.includes("ติดตามผลการใช้สินค้า")
+    ) {
+      detectedTypes.add(WORK_TYPES[1]);
+    }
+    if (
+      objectiveText.includes("[เสนอขายสินค้า]") ||
+      objectiveText.includes("เสนอขายสินค้า")
+    ) {
+      detectedTypes.add(WORK_TYPES[2]);
+    }
+    if (
+      objectiveText.includes("[วางบิล") ||
+      objectiveText.includes("วางบิล / เก็บเงิน") ||
+      objectiveText.includes("วางบิล/เก็บเงิน") ||
+      objectiveText.includes("เป้ายอดเก็บเงิน")
+    ) {
+      detectedTypes.add(WORK_TYPES[3]);
+    }
+    if (
+      objectiveText.includes("[สำรวจตลาด") ||
+      objectiveText.includes("สำรวจตลาดของคู่แข่ง") ||
+      objectiveText.includes("สำรวจตลาดคู่แข่ง")
+    ) {
+      detectedTypes.add(WORK_TYPES[4]);
+    }
+    if (
+      objectiveText.includes("[แก้ปัญหา") ||
+      objectiveText.includes("แก้ปัญหา / รับเรื่องร้องเรียน") ||
+      objectiveText.includes("แก้ปัญหา/ร้องเรียน") ||
+      objectiveText.includes("รับเรื่องร้องเรียน")
+    ) {
+      detectedTypes.add(WORK_TYPES[5]);
+    }
+    if (
+      objectiveText.includes("[ติดตามแปลงสาธิต") ||
+      objectiveText.includes("ติดตามแปลงสาธิต / ทำแปลง") ||
+      objectiveText.includes("ทำแปลงสาธิต") ||
+      (objectiveText.includes("แปลงสาธิต") &&
+        !objectiveText.includes("Field Day") &&
+        !objectiveText.includes("[Field Day]"))
+    ) {
+      detectedTypes.add(WORK_TYPES[6]);
+    }
+    if (
+      objectiveText.includes("[จัดประชุม") ||
+      objectiveText.includes("จัดประชุมการเกษตร") ||
+      objectiveText.includes("ประชุมการเกษตร")
+    ) {
+      detectedTypes.add(WORK_TYPES[7]);
+    }
+    if (
+      objectiveText.includes("[กิจกรรมหน้าร้าน]") ||
+      objectiveText.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")
+    ) {
+      detectedTypes.add(WORK_TYPES[8]);
+    }
+    if (
+      objectiveText.includes("[Field Day]") ||
+      objectiveText.includes("Field Day") ||
+      objectiveText.includes("จัดงาน Field Day")
+    ) {
+      detectedTypes.add(WORK_TYPES[9]);
+    }
+    if (
+      objectiveText.includes("[ตรวจเช็กสต็อก") ||
+      objectiveText.includes("ตรวจเช็กสต็อกหน้าร้าน") ||
+      objectiveText.includes("เช็กสต็อกหน้าร้าน") ||
+      objectiveText.includes("สต็อกหน้าร้าน")
+    ) {
+      detectedTypes.add(WORK_TYPES[10]);
+    }
+    if (
+      objectiveText.includes("[ทัวร์]") ||
+      objectiveText.includes("[ทัวร์กลาง]") ||
+      objectiveText.includes("[ทัวร์ร้านค้า]") ||
+      objectiveText.includes("ทัวร์กลาง") ||
+      objectiveText.includes("ทัวร์ร้านค้า") ||
+      objectiveText.includes("ทัวร์")
+    ) {
+      detectedTypes.add(WORK_TYPES[11]);
+    }
+  }
+
+  return WORK_TYPES.filter((t) => detectedTypes.has(t));
+}
+

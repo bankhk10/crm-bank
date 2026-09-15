@@ -184,7 +184,7 @@ export function ActualType1Visit({
           </div>
           <div>
             <h2 className="font-bold text-emerald-900 text-base md:text-lg">
-              {isStore ? "เข้าพบร้านค้า" : "เข้าพบเกษตรกร"}
+              เข้าพบร้านค้า / Key Farmer
             </h2>
             <p className="text-xs text-slate-500">
               รายละเอียดแผนงานและบันทึกผลการเข้าพบจริง
@@ -213,7 +213,15 @@ export function ActualType1Visit({
 
         {isStore ? (
           <div className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+              {/* วัตถุประสงค์ของประเภทงาน */}
+              <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                <span className="text-slate-400 font-medium block">วัตถุประสงค์ของประเภทงาน</span>
+                <span className="font-bold text-slate-800 text-sm block">
+                  เข้าพบร้านค้า
+                </span>
+              </div>
+
               {/* ร้านค้า */}
               <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
                 <span className="text-slate-400 font-medium block">ร้านค้า (Customer Master)</span>
@@ -260,7 +268,15 @@ export function ActualType1Visit({
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+              {/* วัตถุประสงค์ของประเภทงาน */}
+              <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                <span className="text-slate-400 font-medium block">วัตถุประสงค์ของประเภทงาน</span>
+                <span className="font-bold text-slate-800 text-sm block">
+                  เข้าพบเกษตรกร
+                </span>
+              </div>
+
               {/* จังหวัด */}
               <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
                 <span className="text-slate-400 font-medium block">จังหวัด</span>

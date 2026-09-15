@@ -244,12 +244,8 @@ export function Type1Visit({
     <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4 relative">
       <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
         <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
-          {currentPurpose === "STORE" ? (
-            <Store className="h-4 w-4 text-emerald-600" />
-          ) : (
-            <UserCheck className="h-4 w-4 text-emerald-600" />
-          )}
-          <span>{currentPurpose === "STORE" ? "เข้าพบร้านค้า" : "เข้าพบเกษตรกร"}</span>
+          <Store className="h-4 w-4 text-emerald-600" />
+          <span>เข้าพบร้านค้า / Key Farmer</span>
         </div>
         <span className="text-[11px] font-medium text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
           {currentPurpose === "STORE" ? "1 แผน : 1 ร้านค้า" : "1 แผน : 1 เกษตรกร"}

@@ -303,6 +303,18 @@ export async function updateActivityPlanUseCase(id: string, userId: string, rawD
 
   const normalized = normalizePlanInput(parsed.data);
 
+  // Safeguard against accidental work type data loss during edit
+  if (
+    plan.workTypes &&
+    plan.workTypes.length > 0 &&
+    (!normalized.workTypeCodes || normalized.workTypeCodes.length === 0)
+  ) {
+    return {
+      success: false as const,
+      error: "ไม่สามารถบันทึกได้เนื่องจากไม่มีข้อมูลประเภทงาน เพื่อป้องกันข้อมูลสูญหาย กรุณาเลือกประเภทงานอย่างน้อย 1 ประเภท",
+    };
+  }
+
   const customerValidation = await validateType1VisitPurposeCustomers(normalized.planStores);
   if (!customerValidation.valid) {
     return { success: false as const, error: customerValidation.error };

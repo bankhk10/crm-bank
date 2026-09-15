@@ -30,7 +30,7 @@ export function ApprovalType1Visit({
             {isStore ? <Store className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
           </div>
           <h4 className="font-bold text-emerald-900 text-sm sm:text-base">
-            {isStore ? "เข้าพบร้านค้า" : "เข้าพบเกษตรกร"}
+            เข้าพบร้านค้า / Key Farmer
           </h4>
         </div>
         <Badge
@@ -108,7 +108,7 @@ export function ApprovalType1Visit({
             {/* วัตถุประสงค์ของประเภทงาน */}
             <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
               <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                วัตถุประสงค์
+                วัตถุประสงค์ของประเภทงาน
               </span>
               <span className="font-bold text-slate-800 block text-xs sm:text-sm">
                 เข้าพบเกษตรกร

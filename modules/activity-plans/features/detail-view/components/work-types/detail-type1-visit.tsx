@@ -131,7 +131,7 @@ export function DetailType1Visit({
           </div>
           <div>
             <h2 className="font-bold text-emerald-900 text-base md:text-lg">
-              {isStore ? "เข้าพบร้านค้า" : "เข้าพบเกษตรกร"}
+              เข้าพบร้านค้า / Key Farmer
             </h2>
             <p className="text-xs text-slate-500">
               รายละเอียดแผนงานและผลการปฏิบัติงานจริง
