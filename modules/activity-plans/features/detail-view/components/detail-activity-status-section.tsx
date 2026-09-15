@@ -10,6 +10,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import type { ActivityResultStatusType } from "../../actual-view/types";
+import { ACTIVITY_RESULT_STATUS_LABELS } from "../../../constants";
 
 interface DetailActivityStatusSectionProps {
   activityResultStatus?: ActivityResultStatusType;
@@ -48,7 +49,7 @@ export function DetailActivityStatusSection({
                 สถานะผลการทำกิจกรรม
               </span>
               <span className="text-sm font-extrabold text-emerald-950 block">
-                สำเร็จ
+                {ACTIVITY_RESULT_STATUS_LABELS.COMPLETED}
               </span>
             </div>
           </div>
@@ -80,7 +81,7 @@ export function DetailActivityStatusSection({
                 สถานะผลการทำกิจกรรม
               </span>
               <span className="text-sm font-extrabold text-sky-950 block">
-                เลื่อนกิจกรรม
+                {ACTIVITY_RESULT_STATUS_LABELS.POSTPONED}
               </span>
             </div>
           </div>

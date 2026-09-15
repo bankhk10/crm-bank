@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ActivityPlanWithRelations } from "../../../types";
+import { ACTIVITY_RESULT_STATUS_LABELS } from "../../../constants";
 
 interface PlanVsActualProps {
   plan: ActivityPlanWithRelations;
@@ -100,11 +101,11 @@ export function PlanVsActual({ plan }: PlanVsActualProps) {
               )}
             >
               {result.resultStatus === "COMPLETED"
-                ? "สำเร็จ"
+                ? ACTIVITY_RESULT_STATUS_LABELS.COMPLETED
                 : result.resultStatus === "PARTIAL"
                   ? "สำเร็จบางส่วน"
                   : result.resultStatus === "POSTPONED"
-                    ? "เลื่อนกิจกรรม"
+                    ? ACTIVITY_RESULT_STATUS_LABELS.POSTPONED
                     : "ยกเลิกกิจกรรม"}
             </Badge>
           )}

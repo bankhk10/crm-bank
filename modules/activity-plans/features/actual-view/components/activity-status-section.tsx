@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DateTimePicker } from "../../form/components/date-time-picker";
 import { cn } from "@/lib/utils";
 import type { ActivityResultStatusType } from "../types";
+import { ACTIVITY_RESULT_STATUS_LABELS } from "../../../constants";
 
 interface ActivityStatusSectionProps {
   activityResultStatus: ActivityResultStatusType;
@@ -37,16 +38,17 @@ export function ActivityStatusSection({
   setPostponedNotes,
 }: ActivityStatusSectionProps) {
   return (
-    <div className="space-y-4 pt-2">
-      <div className="bg-[#eff6ff] border border-blue-100 rounded-xl px-4 py-3 flex items-center gap-2.5 shadow-2xs">
-        <BarChart3 className="w-4 h-4 text-blue-600 shrink-0" />
-        <h2 className="text-sm font-bold text-blue-900">
-          สถานะผลการทำกิจกรรม
-        </h2>
+    <div className="border border-slate-200/80 rounded-2xl p-4 sm:p-6 bg-white space-y-5 shadow-xs">
+      <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+        <BarChart3 className="w-5 h-5 text-emerald-600" />
+        <h3 className="font-bold text-slate-800 text-base sm:text-lg">
+          ผลการทำกิจกรรม (Activity Outcome & Status)
+        </h3>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
-        <div className="space-y-2.5">
+      {/* RESULT STATUS SELECTION */}
+      <div className="space-y-3">
+        <div className="bg-slate-50 border border-slate-200/70 rounded-xl p-3.5 sm:p-4 space-y-3">
           <div className="flex items-center justify-between">
             <label className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
               <CheckSquare className="w-4 h-4 text-emerald-600" />
@@ -66,7 +68,7 @@ export function ActivityStatusSection({
                 id: "PARTIAL" as const,
                 label: (
                   <div className="text-center leading-tight">
-                    <div>สำเร็จบางส่วน</div>
+                    <div>{ACTIVITY_RESULT_STATUS_LABELS.PARTIAL}</div>
                   </div>
                 ),
                 icon: <span className="text-base">🏆</span>,
@@ -75,21 +77,21 @@ export function ActivityStatusSection({
               },
               {
                 id: "COMPLETED" as const,
-                label: <span>สำเร็จ</span>,
+                label: <span>{ACTIVITY_RESULT_STATUS_LABELS.COMPLETED}</span>,
                 icon: <CheckSquare className="w-4 h-4 text-emerald-600" />,
                 activeClass:
                   "bg-emerald-50/90 border-emerald-500 text-emerald-950 ring-1 ring-emerald-500/50 shadow-2xs",
               },
               {
                 id: "POSTPONED" as const,
-                label: <span>เลื่อน</span>,
+                label: <span>{ACTIVITY_RESULT_STATUS_LABELS.POSTPONED}</span>,
                 icon: <Calendar className="w-4 h-4 text-sky-600" />,
                 activeClass:
                   "bg-sky-50/90 border-sky-500 text-sky-950 ring-1 ring-sky-500/50 shadow-2xs",
               },
               {
                 id: "CANCELLED" as const,
-                label: <span>ยกเลิก</span>,
+                label: <span>{ACTIVITY_RESULT_STATUS_LABELS.CANCELLED}</span>,
                 icon: <X className="w-4 h-4 text-rose-600" />,
                 activeClass:
                   "bg-rose-50/90 border-rose-500 text-rose-950 ring-1 ring-rose-500/50 shadow-2xs",

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import type { ActivityStatus } from "../types";
 import { getApproverDirectoryAction } from "../server/actions";
+import { ACTIVITY_RESULT_STATUS_LABELS } from "../constants";
 
 const STATUS_STYLES: Record<
   string,
@@ -51,22 +52,22 @@ const STATUS_STYLES: Record<
   },
   // Actual Result statuses
   COMPLETED: {
-    label: "สำเร็จ",
+    label: ACTIVITY_RESULT_STATUS_LABELS.COMPLETED,
     className: "bg-emerald-50 text-emerald-700 border-emerald-200",
     dot: "bg-emerald-500",
   },
   PARTIAL: {
-    label: "สำเร็จบางส่วน",
+    label: ACTIVITY_RESULT_STATUS_LABELS.PARTIAL,
     className: "bg-amber-50 text-amber-700 border-amber-200",
     dot: "bg-amber-500",
   },
   POSTPONED: {
-    label: "เลื่อน",
+    label: ACTIVITY_RESULT_STATUS_LABELS.POSTPONED,
     className: "bg-sky-50 text-sky-700 border-sky-200",
     dot: "bg-sky-500",
   },
   FAILED: {
-    label: "ไม่สำเร็จ",
+    label: ACTIVITY_RESULT_STATUS_LABELS.FAILED,
     className: "bg-red-50 text-red-700 border-red-200",
     dot: "bg-red-500",
   },

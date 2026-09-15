@@ -729,3 +729,18 @@ export function hydrateWorkTypesFromPlan(
   return WORK_TYPES.filter((t) => detectedTypes.has(t));
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ACTIVITY RESULT STATUS LABELS (Display Mapping Single Source of Truth)
+// ─────────────────────────────────────────────────────────────────────────────
+export const ACTIVITY_RESULT_STATUS_LABELS: Record<string, string> = {
+  COMPLETED: "ปฏิบัติงานแล้วเสร็จ",
+  PARTIAL: "สำเร็จบางส่วน",
+  POSTPONED: "เลื่อนกำหนดการปฏิบัติงาน",
+  CANCELLED: "ยกเลิก",
+  FAILED: "ไม่สำเร็จ",
+};
+
+export function getActivityResultStatusLabel(status?: string | null): string {
+  if (!status) return "-";
+  return ACTIVITY_RESULT_STATUS_LABELS[status] || status;
+}

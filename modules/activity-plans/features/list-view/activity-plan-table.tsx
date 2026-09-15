@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations } from "../../types";
 import { ActivityStatusWithOperator } from "../../ui/activity-status-badge";
-import { WORK_TYPE_CONFIG, getWorkTypeName } from "../../constants";
+import { WORK_TYPE_CONFIG, getWorkTypeName, ACTIVITY_RESULT_STATUS_LABELS } from "../../constants";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { ActionButton } from "@/components/custom/action-button";
@@ -65,9 +65,9 @@ const STATUS_OPTIONS = [
   { value: "PENDING_BUDGET_APPROVAL", label: "รออนุมัติงบประมาณ" },
   { value: "PENDING_HELPER_APPROVAL", label: "รออนุมัติคนช่วยงาน" },
   { value: "APPROVED", label: "อนุมัติสำเร็จ" },
-  { value: "COMPLETED", label: "ผลกิจกรรม: สำเร็จ" },
+  { value: "COMPLETED", label: `ผลกิจกรรม: ${ACTIVITY_RESULT_STATUS_LABELS.COMPLETED}` },
   { value: "PARTIAL", label: "ผลกิจกรรม: สำเร็จบางส่วน" },
-  { value: "POSTPONED", label: "ผลกิจกรรม: เลื่อน" },
+  { value: "POSTPONED", label: `ผลกิจกรรม: ${ACTIVITY_RESULT_STATUS_LABELS.POSTPONED}` },
   { value: "WAITING_FOR_CORRECTION", label: "รอแก้ไข/ข้อมูลเพิ่ม" },
   { value: "REJECTED", label: "ปฏิเสธ" },
   { value: "CANCELLED", label: "ยกเลิก" },

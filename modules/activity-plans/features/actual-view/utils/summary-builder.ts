@@ -4,6 +4,7 @@ import type {
   Type5SurveyRecord,
   ImageFile,
 } from "../types";
+import { getActivityResultStatusLabel } from "../../../constants";
 
 export interface BuildSummaryInput {
   activityResultStatus: ActivityResultStatusType;
@@ -276,14 +277,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     };
   }
 
-  const statusLabel =
-    activityResultStatus === "COMPLETED"
-      ? "สำเร็จ"
-      : activityResultStatus === "POSTPONED"
-        ? "เลื่อน"
-        : activityResultStatus === "CANCELLED"
-          ? "ยกเลิก"
-          : "สำเร็จบางส่วน";
+  const statusLabel = getActivityResultStatusLabel(activityResultStatus);
 
   const summaryParts = [
     `สถานะผลกิจกรรม: ${statusLabel}`,
