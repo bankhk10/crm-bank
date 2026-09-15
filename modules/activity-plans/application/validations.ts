@@ -35,7 +35,7 @@ export const planStoreInputSchema = z
             });
           }
           const cleanedPhone = (data.unregisteredFarmerPhone || "").replace(/[-\s]/g, "");
-          if (!cleanedPhone || !/^[0-9]{9,10}$/.test(cleanedPhone)) {
+          if (cleanedPhone && !/^[0-9]{9,10}$/.test(cleanedPhone)) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: "กรุณาระบุเบอร์โทรศัพท์ที่ถูกต้อง (9-10 หลัก)",

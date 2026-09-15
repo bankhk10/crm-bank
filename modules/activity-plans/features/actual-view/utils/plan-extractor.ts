@@ -369,7 +369,7 @@ export function extractPlanData(
     customerType: (t1First as any)?.store?.customerType || undefined,
     customer: t1CustomerName,
     topic: t1First?.remarks || prevTargets.t1.topic,
-    detail: t1First?.notes || t1Stores.map((s) => s.notes || s.remarks).filter(Boolean).join(" | ") || "",
+    detail: t1First?.notes || t1Stores.map((s) => s.notes).filter(Boolean).join(" | ") || "",
     province: t1First?.province || (t1First as any)?.store?.province || p.province || undefined,
     isUnregisteredFarmer: Boolean(t1First?.isUnregisteredFarmer),
     unregisteredFarmerName: t1First?.unregisteredFarmerName || undefined,

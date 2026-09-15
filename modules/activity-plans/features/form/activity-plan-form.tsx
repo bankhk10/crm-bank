@@ -2332,16 +2332,13 @@ export function ActivityPlanForm({
             setLoading(false);
             return;
           }
-          if (!item.unregisteredFarmerPhone?.trim()) {
-            setError("กรุณากรอกเบอร์โทรศัพท์เกษตรกร");
-            setLoading(false);
-            return;
-          }
-          const cleanedPhone = item.unregisteredFarmerPhone.replace(/[-\s]/g, "");
-          if (!/^\d{9,10}$/.test(cleanedPhone)) {
-            setError("เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก");
-            setLoading(false);
-            return;
+          if (item.unregisteredFarmerPhone?.trim()) {
+            const cleanedPhone = item.unregisteredFarmerPhone.replace(/[-\s]/g, "");
+            if (!/^\d{9,10}$/.test(cleanedPhone)) {
+              setError("เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก");
+              setLoading(false);
+              return;
+            }
           }
         } else {
           const sId =

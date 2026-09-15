@@ -29,6 +29,7 @@ interface Props {
 const VISIT_TOPICS = [
   "แจ้งข่าวสาร",
   "อัปเดตข้อมูลลูกค้า",
+  "เพิ่มข้อมูลเกษตรกร",
   "เลี้ยงรับรอง / สังสรรค์",
   "ให้คำแนะนำการใช้สินค้า",
   "อื่นๆ",
@@ -404,7 +405,7 @@ export function Type1Visit({
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    เบอร์โทรศัพท์ <span className="text-rose-500">*</span>
+                    เบอร์โทรศัพท์
                   </label>
                   <input
                     type="tel"
@@ -420,7 +421,6 @@ export function Type1Visit({
                     placeholder="เช่น 0812345678"
                     maxLength={12}
                     className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                    required
                   />
                 </div>
               </div>

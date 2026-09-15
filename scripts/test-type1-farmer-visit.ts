@@ -723,8 +723,71 @@ async function runTests() {
   assert.strictEqual(bft8Msg, "กรุณาเลือกจังหวัดสำหรับเข้าพบเกษตรกร");
   console.log("  ✔ [PASS] BUG-FIX-TEST 8: STORE → FARMER requires Province before saving");
 
+  // --- UNREGISTERED FARMER OPTIONAL PHONE TESTS ---
+  console.log("\n▶ [TEST 18] FARMER + unregistered Farmer WITHOUT phone = PASS");
+  const t18Schema = planStoreInputSchema.safeParse({
+    workTypeCode: "TYPE_1",
+    visitPurpose: "FARMER",
+    province: "สุพรรณบุรี",
+    isUnregisteredFarmer: true,
+    unregisteredFarmerName: "นายสมชาย ใจดี",
+    unregisteredFarmerPhone: "",
+  });
+  assert(t18Schema.success, "FARMER with unregistered farmer name and EMPTY phone must pass schema");
+
+  const t18SchemaNull = planStoreInputSchema.safeParse({
+    workTypeCode: "TYPE_1",
+    visitPurpose: "FARMER",
+    province: "สุพรรณบุรี",
+    isUnregisteredFarmer: true,
+    unregisteredFarmerName: "นายสมชาย ใจดี",
+    unregisteredFarmerPhone: null,
+  });
+  assert(t18SchemaNull.success, "FARMER with unregistered farmer name and NULL phone must pass schema");
+  console.log("  ✔ [PASS] FARMER + unregistered Farmer without phone is allowed");
+
+  console.log("\n▶ [TEST 19] FARMER + unregistered Farmer with INVALID phone = FAIL");
+  const t19SchemaInvalid = planStoreInputSchema.safeParse({
+    workTypeCode: "TYPE_1",
+    visitPurpose: "FARMER",
+    province: "สุพรรณบุรี",
+    isUnregisteredFarmer: true,
+    unregisteredFarmerName: "นายสมชาย ใจดี",
+    unregisteredFarmerPhone: "123", // invalid
+  });
+  assert(!t19SchemaInvalid.success, "FARMER with invalid phone format must fail schema");
+  console.log("  ✔ [PASS] Invalid phone format is correctly rejected when provided");
+
+  // --- TYPE_1 TOPIC 'เพิ่มข้อมูลเกษตรกร' & DETAIL EXTRACTION TESTS ---
+  console.log("\n▶ [TEST 20] TYPE_1: remarks = 'เพิ่มข้อมูลเกษตรกร', notes = null -> topic = 'เพิ่มข้อมูลเกษตรกร', detail = ''");
+  const planTopicNew: any = {
+    code: "TP-TEST-TOPIC-01",
+    title: "เข้าพบเกษตรกร",
+    stores: [
+      {
+        workTypeCode: "TYPE_1",
+        visitPurpose: "FARMER",
+        storeId: testFarmer.id,
+        remarks: "เพิ่มข้อมูลเกษตรกร",
+        notes: null,
+      },
+    ],
+  };
+  const extractedNewTopic = extractPlanData(planTopicNew);
+  assert.strictEqual(
+    extractedNewTopic.targets.t1.topic,
+    "เพิ่มข้อมูลเกษตรกร",
+    "Topic must be 'เพิ่มข้อมูลเกษตรกร'",
+  );
+  assert.strictEqual(
+    extractedNewTopic.targets.t1.detail,
+    "",
+    "Detail must be empty string when notes is null",
+  );
+  console.log("  ✔ [PASS] topic 'เพิ่มข้อมูลเกษตรกร' extracted correctly without detail collision");
+
   console.log("\n=================================================================");
-  console.log("🎉 ALL 17 COMPREHENSIVE TYPE_1 TESTS + 8 BUG FIX TESTS PASSED!");
+  console.log("🎉 ALL TESTS (INCLUDING OPTIONAL PHONE & TOPIC FIXES) PASSED!");
   console.log("=================================================================\n");
 }
 
