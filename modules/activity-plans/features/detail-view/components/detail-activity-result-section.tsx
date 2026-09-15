@@ -77,6 +77,7 @@ export function DetailActivityResultSection({
           detail={parsedResults.t2FollowupDetail}
           usageResult={parsedResults.t2UsageResult}
           problemDetail={parsedResults.t2ProblemDetail}
+          images={parsedResults.t2Images}
         />
 
         {/* WORK TYPE 3 */}

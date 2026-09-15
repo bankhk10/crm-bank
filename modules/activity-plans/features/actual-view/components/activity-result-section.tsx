@@ -66,6 +66,8 @@ interface ActivityResultSectionProps {
   setT2ProblemDetail: (v: string) => void;
   t2FollowupResults?: FollowupProductItem[];
   setT2FollowupResults?: (items: FollowupProductItem[]) => void;
+  t2Images?: ImageFile[];
+  setT2Images?: React.Dispatch<React.SetStateAction<ImageFile[]>>;
 
   // Type 3
   t3SoldProducts: string;
@@ -270,6 +272,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     setT2ProblemDetail,
     t2FollowupResults,
     setT2FollowupResults,
+    t2Images,
+    setT2Images,
     t3SoldProducts,
     setT3SoldProducts,
     t3ActualSales,
@@ -474,6 +478,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setUsageResult={setT2UsageResult}
           problemDetail={t2ProblemDetail}
           setProblemDetail={setT2ProblemDetail}
+          images={t2Images}
+          setImages={setT2Images}
         />
 
         {/* WORK TYPE 3 */}

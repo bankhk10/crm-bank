@@ -210,6 +210,8 @@ export default function ActivityPlanActualView({
   const [t2FollowupResults, setT2FollowupResults] = useState<
     FollowupProductItem[]
   >([]);
+  const [t2Images, setT2Images] = useState<ImageFile[]>([]);
+  const initialT2ImagesRef = useRef<ImageFile[]>([]);
 
   // Work Type 3 States
   const [t3SoldProducts, setT3SoldProducts] = useState("");
@@ -516,6 +518,12 @@ export default function ActivityPlanActualView({
               } else if (parsed.t2ProblemDetail) {
                 setT2ProblemDetail(parsed.t2ProblemDetail);
               }
+            }
+            if (parsed.t2Images && parsed.t2Images.length > 0) {
+              setT2Images(parsed.t2Images);
+              initialT2ImagesRef.current = JSON.parse(
+                JSON.stringify(parsed.t2Images),
+              );
             }
 
             // Type 3
@@ -928,6 +936,24 @@ export default function ActivityPlanActualView({
           setT1PlotImages(cleanT1PlotImages);
         }
 
+        // Work Type 2
+        let cleanT2Images = t2Images;
+        if (
+          isTypeVisible("ติดตามผลการใช้สินค้า") &&
+          t2Images &&
+          t2Images.length > 0
+        ) {
+          const res = await uploadActivityPlanImageGroup(
+            id,
+            t2Images,
+            "followup",
+            "general",
+          );
+          cleanT2Images = res.updatedImages;
+          allNewlyUploadedUrls.push(...res.newlyUploadedUrls);
+          setT2Images(cleanT2Images);
+        }
+
         // Work Type 5
         let cleanT5SurveyDetails = t5SurveyDetails;
         if (
@@ -1079,6 +1105,13 @@ export default function ActivityPlanActualView({
           (u) => !currentT1Urls.has(u),
         );
 
+        // Type 2
+        const initialT2Urls = collectPermanentUrls(initialT2ImagesRef.current);
+        const currentT2Urls = new Set(collectPermanentUrls(cleanT2Images));
+        const oldT2ToDelete = initialT2Urls.filter(
+          (u) => !currentT2Urls.has(u),
+        );
+
         // Type 5
         const initialT5Urls = (initialT5SurveyDetailsRef.current || []).flatMap(
           (rec) => [
@@ -1149,6 +1182,7 @@ export default function ActivityPlanActualView({
 
         const allOldUrlsToDelete = [
           ...oldT1ToDelete,
+          ...oldT2ToDelete,
           ...oldT5ToDelete,
           ...oldT6ToDelete,
           ...oldT7CropToDelete,
@@ -1201,6 +1235,7 @@ export default function ActivityPlanActualView({
               ? ""
               : t2ProblemDetail,
           t2FollowupResults,
+          t2Images: cleanT2Images,
           products,
           t3SoldProducts,
           t3ActualSales,
@@ -1328,6 +1363,7 @@ export default function ActivityPlanActualView({
         }
 
         // Update initial references to current saved state
+        initialT2ImagesRef.current = JSON.parse(JSON.stringify(cleanT2Images));
         initialT5SurveyDetailsRef.current = JSON.parse(
           JSON.stringify(cleanT5SurveyDetails),
         );
@@ -1550,6 +1586,8 @@ export default function ActivityPlanActualView({
             setT2ProblemDetail={setT2ProblemDetail}
             t2FollowupResults={t2FollowupResults}
             setT2FollowupResults={setT2FollowupResults}
+            t2Images={t2Images}
+            setT2Images={setT2Images}
             // Type 3
             t3SoldProducts={t3SoldProducts}
             setT3SoldProducts={setT3SoldProducts}

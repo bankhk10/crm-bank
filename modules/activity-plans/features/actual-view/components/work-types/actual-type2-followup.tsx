@@ -3,12 +3,20 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Target, Layers, Plus, Trash2, Sparkles, Package } from "lucide-react";
+import { Target, Layers, Plus, Trash2, Sparkles, Package, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "../actual-target-card";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { Badge } from "@/components/ui/badge";
+import GalleryUpload from "@/components/custom/gallery-upload";
+import type { FileWithPreview } from "@/hooks/use-file-upload";
+import { ImageFile } from "../../types";
+import {
+  convertToFileMetadata,
+  filesWithPreviewToImageFiles,
+  isImageFilesEqual,
+} from "../../utils";
 
 export interface FollowupProductItem {
   id?: string;
@@ -49,6 +57,8 @@ export interface ActualType2FollowupProps {
   setUsageResult?: (v: "พืชตอบสนองดี" | "พบปัญหา" | "") => void;
   problemDetail?: string;
   setProblemDetail?: (v: string) => void;
+  images?: ImageFile[];
+  setImages?: (v: ImageFile[]) => void;
 }
 
 export function ActualType2Followup({
@@ -65,6 +75,8 @@ export function ActualType2Followup({
   usageResult = "",
   followupDetail = "",
   setProblemDetail,
+  images = [],
+  setImages,
 }: ActualType2FollowupProps) {
   // Local fallback active products loaded from master DB if not passed via props
   const [dbProducts, setDbProducts] = useState<
@@ -831,6 +843,36 @@ export function ActualType2Followup({
             })}
           </div>
         )}
+      </div>
+
+      {/* 4. ส่วนรูปภาพการติดตามผล (GalleryUpload - สูงสุด 5 รูป) */}
+      <div className="bg-emerald-50/20 border border-emerald-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
+        <div className="flex items-center gap-2 border-b border-emerald-100 pb-2.5">
+          <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200">
+            <Camera className="w-4 h-4" />
+          </div>
+          <div>
+            <h4 className="text-xs sm:text-sm font-bold text-emerald-950">
+              รูปภาพการติดตามผล
+            </h4>
+            <p className="text-[11px] text-emerald-700/80">
+              อัปโหลดรูปภาพสภาพพืช ผลผลิต หรือการติดตามผลการใช้สินค้า (สูงสุด 5 รูป)
+            </p>
+          </div>
+        </div>
+        <GalleryUpload
+          maxFiles={5}
+          maxSize={20 * 1024 * 1024}
+          accept="image/*"
+          multiple={true}
+          initialFiles={convertToFileMetadata(images || [])}
+          onFilesChange={(files: FileWithPreview[]) => {
+            const converted = filesWithPreviewToImageFiles(files);
+            if (!isImageFilesEqual(images, converted) && setImages) {
+              setImages(converted);
+            }
+          }}
+        />
       </div>
     </div>
   );

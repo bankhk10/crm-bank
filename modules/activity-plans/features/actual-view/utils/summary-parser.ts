@@ -33,9 +33,10 @@ export interface ParsedSummaryValues {
   // Type 2
   t2CustomerName?: string;
   t2FollowupDetail?: string;
-  t2UsageResult?: "พืชตอบสนองดี" | "พบปัญหา";
+  t2UsageResult?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา";
   t2ProblemDetail?: string;
   t2FollowupResults?: FollowupProductItem[];
+  t2Images?: ImageFile[];
 
   // Type 3
   t3SoldProducts?: string;
@@ -249,6 +250,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       (a: any) => a.workTypeCode === "TYPE_1" && a.category === "PLOT",
     );
     if (t1PlotAtt.length > 0) result.t1PlotImages = t1PlotAtt.map(toImage);
+
+    const t2Att = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_2");
+    if (t2Att.length > 0) result.t2Images = t2Att.map(toImage);
 
     const t6Att = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_6");
     if (t6Att.length > 0) result.t6Images = t6Att.map(toImage);

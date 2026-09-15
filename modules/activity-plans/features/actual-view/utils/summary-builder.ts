@@ -34,9 +34,10 @@ export interface BuildSummaryInput {
   t2CustomerName: string;
   t2FollowupDetail: string;
   t2Detail: string;
-  t2UsageResult: "พืชตอบสนองดี" | "พบปัญหา" | "";
+  t2UsageResult: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "";
   t2ProblemDetail: string;
   t2FollowupResults?: FollowupProductItem[];
+  t2Images?: ImageFile[];
 
   // Type 3
   t3SoldProducts: string;
@@ -166,6 +167,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t2Detail,
     t2UsageResult,
     t2ProblemDetail,
+    t2Images,
     t3SoldProducts,
     t3ActualSales,
     t3ActualQuantity,
@@ -333,6 +335,9 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       (typeof t2UsageResult === "string" && t2UsageResult.includes("พบปัญหา"))) &&
     t2ProblemDetail
       ? `ปัญหาการใช้สินค้า: ${t2ProblemDetail}`
+      : null,
+    t2Images && t2Images.length > 0
+      ? `รูปภาพการติดตามผล: มีแนบ ${t2Images.length} รูป`
       : null,
 
     // Type 3
@@ -720,6 +725,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
   };
 
   (input.t1PlotImages || []).slice(0, 5).forEach((img) => addAttachment(img, "TYPE_1", "PLOT"));
+  (input.t2Images || []).slice(0, 5).forEach((img) => addAttachment(img, "TYPE_2"));
   (input.t6Images || []).forEach((img) => addAttachment(img, "TYPE_6"));
   (input.t7CropImages || []).forEach((img) => addAttachment(img, "TYPE_7", "CROP"));
   (input.t7PlotImages || []).forEach((img) => addAttachment(img, "TYPE_7", "PLOT"));

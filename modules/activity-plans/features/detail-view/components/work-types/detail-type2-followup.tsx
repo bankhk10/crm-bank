@@ -1,9 +1,14 @@
 "use client";
 
-import React from "react";
-import { Layers, AlertCircle, CheckCircle2, Sparkles, Package } from "lucide-react";
+import React, { useState } from "react";
+import { Layers, AlertCircle, CheckCircle2, Sparkles, Package, Camera, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
+import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
+import {
+  ImageLightboxModal,
+  LightboxImage,
+} from "@/components/custom/image-lightbox-modal";
 
 export interface FollowupProductItem {
   id?: string;
@@ -36,6 +41,7 @@ interface DetailType2FollowupProps {
   followupDetail?: string;
   usageResult?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "";
   problemDetail?: string;
+  images?: ImageFile[];
 }
 
 // Helper to parse product-specific followup detail from combined string e.g. "Prod1: detail1 | Prod2: detail2"
@@ -112,8 +118,38 @@ export function DetailType2Followup({
   followupDetail,
   usageResult,
   problemDetail,
+  images = [],
 }: DetailType2FollowupProps) {
+  const [lightboxState, setLightboxState] = useState<{
+    isOpen: boolean;
+    title: string;
+    images: LightboxImage[];
+    initialIndex: number;
+  }>({
+    isOpen: false,
+    title: "",
+    images: [],
+    initialIndex: 0,
+  });
+
   if (!isVisible) return null;
+
+  const openLightbox = (
+    title: string,
+    imgs: ImageFile[] = [],
+    initialIndex: number = 0,
+  ) => {
+    if (!imgs || imgs.length === 0) return;
+    setLightboxState({
+      isOpen: true,
+      title,
+      images: imgs.map((img) => ({
+        url: img.url,
+        title: img.name || title,
+      })),
+      initialIndex,
+    });
+  };
 
   const hasMultiplePlanned = target.items && target.items.length > 0;
 
@@ -510,6 +546,65 @@ export function DetailType2Followup({
           </div>
         </div>
       )}
+
+      {/* 4. ส่วนรูปภาพการติดตามผล (Lightbox Gallery) */}
+      <div className="bg-emerald-50/20 border border-emerald-200/70 rounded-2xl p-4 sm:p-4.5 space-y-3 pt-2">
+        <div className="flex items-center justify-between border-b border-emerald-100/80 pb-2">
+          <span className="text-xs sm:text-sm font-bold text-emerald-950 flex items-center gap-1.5">
+            <Camera className="w-4 h-4 text-emerald-600" />
+            รูปภาพการติดตามผล
+          </span>
+          {images && images.length > 0 ? (
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+              {images.length} รูป
+            </span>
+          ) : null}
+        </div>
+
+        {images && images.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+            {images.map((img, imgIdx) => (
+              <button
+                key={img.id || imgIdx}
+                type="button"
+                onClick={() =>
+                  openLightbox(
+                    `รูปภาพการติดตามผล - ${target.customer || customerName || "ลูกค้า"}`,
+                    images,
+                    imgIdx,
+                  )
+                }
+                className="group relative rounded-xl border border-emerald-200/80 overflow-hidden bg-slate-100 aspect-video flex items-center justify-center shadow-2xs hover:shadow-md hover:border-emerald-400 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+                aria-label={`คลิกเพื่อดูรูปภาพการติดตามผลที่ ${imgIdx + 1} ขนาดใหญ่`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img.url}
+                  alt={img.name || `รูปภาพการติดตามผล ${imgIdx + 1}`}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors flex items-center justify-center">
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full bg-black/60 text-white backdrop-blur-xs shadow-md">
+                    <Eye className="w-4 h-4" />
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-5 bg-white/60 rounded-xl border border-dashed border-emerald-200 text-xs text-slate-400">
+            ไม่มีรูปภาพการติดตามผลที่แนบไว้
+          </div>
+        )}
+      </div>
+
+      <ImageLightboxModal
+        isOpen={lightboxState.isOpen}
+        onClose={() => setLightboxState((prev) => ({ ...prev, isOpen: false }))}
+        title={lightboxState.title}
+        images={lightboxState.images}
+        initialIndex={lightboxState.initialIndex}
+      />
     </div>
   );
 }
