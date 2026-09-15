@@ -314,9 +314,17 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
 
     // Type 2
     t2CustomerName ? `ลูกค้าติดตาม: ${t2CustomerName}` : null,
-    t2FollowupDetail || t2Detail
-      ? `ติดตามผล: ${t2FollowupDetail || t2Detail}`
-      : null,
+    (() => {
+      const isProblem =
+        t2UsageResult === "พบปัญหา" ||
+        (typeof t2UsageResult === "string" &&
+          t2UsageResult.includes("พบปัญหา") &&
+          !t2UsageResult.includes("พืชตอบสนองดี") &&
+          !t2UsageResult.includes("ลูกค้าพึงพอใจ"));
+      if (isProblem) return null;
+      const cleanDetail = (t2FollowupDetail?.trim() || t2Detail?.trim()) || "";
+      return cleanDetail ? `ติดตามผล: ${cleanDetail}` : null;
+    })(),
     t2UsageResult ? `ผลลัพธ์การใช้: ${t2UsageResult}` : null,
     (t2UsageResult === "พบปัญหา" ||
       (typeof t2UsageResult === "string" && t2UsageResult.includes("พบปัญหา"))) &&

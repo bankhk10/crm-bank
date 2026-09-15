@@ -334,9 +334,21 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     const usageResultMatch = summaryText.match(/ผลลัพธ์การใช้:\s*(.+)/);
     if (usageResultMatch && usageResultMatch[1]) {
       const resVal = usageResultMatch[1].split("\n")[0].trim();
-      result.t2UsageResult = resVal as any;
-      if (resVal === "พืชตอบสนองดี") {
+      const canonicalVal =
+        resVal === "ลูกค้าพึงพอใจ" || resVal.includes("ลูกค้าพึงพอใจ")
+          ? "พืชตอบสนองดี"
+          : resVal;
+      result.t2UsageResult = canonicalVal as any;
+      if (canonicalVal === "พืชตอบสนองดี") {
         result.t2ProblemDetail = "";
+      } else if (
+        canonicalVal === "พบปัญหา" ||
+        (typeof canonicalVal === "string" &&
+          canonicalVal.includes("พบปัญหา") &&
+          !canonicalVal.includes("พืชตอบสนองดี") &&
+          !canonicalVal.includes("ลูกค้าพึงพอใจ"))
+      ) {
+        result.t2FollowupDetail = "";
       }
     }
 

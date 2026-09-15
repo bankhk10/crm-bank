@@ -481,13 +481,35 @@ export default function ActivityPlanActualView({
 
             // Type 2
             if (parsed.t2CustomerName) setT2CustomerName(parsed.t2CustomerName);
-            if (parsed.t2FollowupDetail) {
-              setT2FollowupDetail(parsed.t2FollowupDetail);
-              setT2Detail(parsed.t2FollowupDetail);
+            if (parsed.t2UsageResult) {
+              setT2UsageResult(parsed.t2UsageResult);
             }
-            if (parsed.t2UsageResult) setT2UsageResult(parsed.t2UsageResult);
-            if (parsed.t2ProblemDetail)
-              setT2ProblemDetail(parsed.t2ProblemDetail);
+            if (
+              parsed.t2UsageResult === "พบปัญหา" ||
+              (typeof parsed.t2UsageResult === "string" &&
+                parsed.t2UsageResult.includes("พบปัญหา") &&
+                !parsed.t2UsageResult.includes("พืชตอบสนองดี") &&
+                !parsed.t2UsageResult.includes("ลูกค้าพึงพอใจ"))
+            ) {
+              setT2FollowupDetail("");
+              setT2Detail("");
+              if (parsed.t2ProblemDetail) {
+                setT2ProblemDetail(parsed.t2ProblemDetail);
+              }
+            } else {
+              if (parsed.t2FollowupDetail) {
+                setT2FollowupDetail(parsed.t2FollowupDetail);
+                setT2Detail(parsed.t2FollowupDetail);
+              }
+              if (
+                parsed.t2UsageResult === "พืชตอบสนองดี" ||
+                parsed.t2UsageResult === "ลูกค้าพึงพอใจ"
+              ) {
+                setT2ProblemDetail("");
+              } else if (parsed.t2ProblemDetail) {
+                setT2ProblemDetail(parsed.t2ProblemDetail);
+              }
+            }
 
             // Type 3
             if (parsed.t3SoldProducts) setT3SoldProducts(parsed.t3SoldProducts);
@@ -1149,10 +1171,28 @@ export default function ActivityPlanActualView({
           t1PlotLongitude,
           t1PlotImages: cleanT1PlotImages,
           t2CustomerName,
-          t2FollowupDetail,
-          t2Detail,
+          t2FollowupDetail:
+            t2UsageResult === "พบปัญหา" ||
+            (typeof t2UsageResult === "string" &&
+              t2UsageResult.includes("พบปัญหา") &&
+              !t2UsageResult.includes("พืชตอบสนองดี") &&
+              !t2UsageResult.includes("ลูกค้าพึงพอใจ"))
+              ? ""
+              : t2FollowupDetail,
+          t2Detail:
+            t2UsageResult === "พบปัญหา" ||
+            (typeof t2UsageResult === "string" &&
+              t2UsageResult.includes("พบปัญหา") &&
+              !t2UsageResult.includes("พืชตอบสนองดี") &&
+              !t2UsageResult.includes("ลูกค้าพึงพอใจ"))
+              ? ""
+              : t2Detail,
           t2UsageResult,
-          t2ProblemDetail,
+          t2ProblemDetail:
+            t2UsageResult === "พืชตอบสนองดี" ||
+            t2UsageResult === "ลูกค้าพึงพอใจ"
+              ? ""
+              : t2ProblemDetail,
           t3SoldProducts,
           t3ActualSales,
           t3ActualQuantity,

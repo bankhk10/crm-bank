@@ -101,10 +101,12 @@ export function ActualType2Followup({
     const match = text.match(regex);
     if (match && match[1]) {
       const val = match[1].trim();
-      if (val === "พืชตอบสนองดี" || val === "พบปัญหา") return val;
+      if (val === "พืชตอบสนองดี" || val === "ลูกค้าพึงพอใจ" || val === "พบปัญหา") {
+        return val === "ลูกค้าพึงพอใจ" ? "พืชตอบสนองดี" : val;
+      }
     }
-    if (text === "พืชตอบสนองดี" || text === "พบปัญหา") {
-      return text;
+    if (text === "พืชตอบสนองดี" || text === "ลูกค้าพึงพอใจ" || text === "พบปัญหา") {
+      return text === "ลูกค้าพึงพอใจ" ? "พืชตอบสนองดี" : text;
     }
     return fallback || "";
   };
@@ -137,18 +139,20 @@ export function ActualType2Followup({
             : "";
 
         const activeFollowup =
-          item.followupDetail ||
-          getParsedFollowupDetail(
-            followupDetail,
-            item.productName,
-            item.followupDetail,
-          );
+          activeUsage === "พบปัญหา"
+            ? ""
+            : item.followupDetail ||
+              getParsedFollowupDetail(
+                followupDetail,
+                item.productName,
+                item.followupDetail,
+              );
 
         return {
           ...item,
           usageResult: activeUsage,
           problemDetail: parsedProblem,
-          detail: item.detail || "",
+          detail: activeUsage === "พบปัญหา" ? "" : item.detail || "",
           followupDetail: activeFollowup,
         };
       });
@@ -172,6 +176,17 @@ export function ActualType2Followup({
         // When switching to "พืชตอบสนองดี", clear problemDetail
         problemDetail:
           value === "พืชตอบสนองดี" ? "" : updated[index].problemDetail,
+        // When switching to "พบปัญหา", clear followupDetail and detail immediately
+        followupDetail:
+          value === "พบปัญหา" ? "" : updated[index].followupDetail,
+        detail:
+          value === "พบปัญหา" ? "" : updated[index].detail,
+      };
+    } else if (field === "followupDetail") {
+      updated[index] = {
+        ...updated[index],
+        followupDetail: value,
+        detail: value,
       };
     } else {
       updated[index] = { ...updated[index], [field]: value as any };
@@ -194,25 +209,36 @@ export function ActualType2Followup({
 
       setUsageResult(combinedUsageResult as any);
 
-      const combinedProblem = updated
-        .map((item) =>
-          item.usageResult === "พบปัญหา" && item.problemDetail
-            ? `${item.productName}: ${item.problemDetail}`
-            : "",
-        )
-        .filter(Boolean)
-        .join(" | ");
+      const combinedProblem =
+        updated.length === 1
+          ? updated[0].usageResult === "พบปัญหา"
+            ? updated[0].problemDetail || ""
+            : ""
+          : updated
+              .map((item) =>
+                item.usageResult === "พบปัญหา" && item.problemDetail
+                  ? `${item.productName}: ${item.problemDetail}`
+                  : "",
+              )
+              .filter(Boolean)
+              .join(" | ");
 
       setProblemDetail(combinedProblem);
 
-      const combinedFollowup = updated
-        .map((item) =>
-          item.followupDetail
-            ? `${item.productName}: ${item.followupDetail}`
-            : "",
-        )
-        .filter(Boolean)
-        .join(" | ");
+      const combinedFollowup =
+        updated.length === 1
+          ? updated[0].usageResult !== "พบปัญหา"
+            ? updated[0].followupDetail || updated[0].detail || ""
+            : ""
+          : updated
+              .map((item) =>
+                item.usageResult !== "พบปัญหา" &&
+                (item.followupDetail || item.detail)
+                  ? `${item.productName}: ${item.followupDetail || item.detail}`
+                  : "",
+              )
+              .filter(Boolean)
+              .join(" | ");
 
       if (setFollowupDetail) {
         setFollowupDetail(combinedFollowup);
@@ -366,7 +392,7 @@ export function ActualType2Followup({
                         )}
                       >
                         <span>{resOpt === "พืชตอบสนองดี" ? "🟢" : "⚠️"}</span>
-                        <span>{resOpt}</span>
+                        <span>{resOpt === "พืชตอบสนองดี" ? "ลูกค้าพึงพอใจ" : resOpt}</span>
                       </button>
                     ))}
                   </div>
@@ -395,21 +421,23 @@ export function ActualType2Followup({
                   </div>
                 )}
 
-                {/* 3. รายละเอียดการติดตาม */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-800">
-                    รายละเอียดการติดตาม (สินค้าที่ {idx + 1})
-                  </label>
-                  <Textarea
-                    rows={2}
-                    value={prod.followupDetail || ""}
-                    onChange={(e) =>
-                      handleProductChange(idx, "followupDetail", e.target.value)
-                    }
-                    placeholder={`ระบุข้อแนะนำ หรือรายละเอียดการติดตามสำหรับ ${prod.productName}`}
-                    className="bg-white border-slate-300 text-xs"
-                  />
-                </div>
+                {/* 3. รายละเอียดการติดตาม (ซ่อนเมื่อเลือกพบปัญหา) */}
+                {prod.usageResult !== "พบปัญหา" && (
+                  <div className="space-y-1.5 animate-in fade-in-50">
+                    <label className="text-xs font-bold text-slate-800">
+                      รายละเอียดการติดตาม (สินค้าที่ {idx + 1})
+                    </label>
+                    <Textarea
+                      rows={2}
+                      value={prod.followupDetail || ""}
+                      onChange={(e) =>
+                        handleProductChange(idx, "followupDetail", e.target.value)
+                      }
+                      placeholder={`ระบุข้อแนะนำ หรือรายละเอียดการติดตามสำหรับ ${prod.productName}`}
+                      className="bg-white border-slate-300 text-xs"
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -431,6 +459,10 @@ export function ActualType2Followup({
                     if (resOpt === "พืชตอบสนองดี") {
                       setProblemDetail("");
                     }
+                    if (resOpt === "พบปัญหา") {
+                      if (setFollowupDetail) setFollowupDetail("");
+                      setDetail("");
+                    }
                   }}
                   className={cn(
                     "py-2.5 px-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all flex items-center justify-center gap-1",
@@ -442,7 +474,7 @@ export function ActualType2Followup({
                   )}
                 >
                   <span>{resOpt === "พืชตอบสนองดี" ? "🟢" : "⚠️"}</span>
-                  <span>{resOpt}</span>
+                  <span>{resOpt === "พืชตอบสนองดี" ? "ลูกค้าพึงพอใจ" : resOpt}</span>
                 </button>
               ))}
             </div>
@@ -464,21 +496,23 @@ export function ActualType2Followup({
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-slate-800">
-              รายละเอียดการติดตาม
-            </label>
-            <Textarea
-              rows={2}
-              value={followupDetail !== undefined ? followupDetail : detail}
-              onChange={(e) => {
-                if (setFollowupDetail) setFollowupDetail(e.target.value);
-                setDetail(e.target.value);
-              }}
-              placeholder="ระบุข้อแนะนำ หรือรายละเอียดการติดตามผลจริง (ถ้ามี)"
-              className="bg-white border-slate-300"
-            />
-          </div>
+          {usageResult !== "พบปัญหา" && (
+            <div className="space-y-1.5 animate-in fade-in-50">
+              <label className="text-sm font-semibold text-slate-800">
+                รายละเอียดการติดตาม
+              </label>
+              <Textarea
+                rows={2}
+                value={followupDetail !== undefined ? followupDetail : detail}
+                onChange={(e) => {
+                  if (setFollowupDetail) setFollowupDetail(e.target.value);
+                  setDetail(e.target.value);
+                }}
+                placeholder="ระบุข้อแนะนำ หรือรายละเอียดการติดตามผลจริง (ถ้ามี)"
+                className="bg-white border-slate-300"
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

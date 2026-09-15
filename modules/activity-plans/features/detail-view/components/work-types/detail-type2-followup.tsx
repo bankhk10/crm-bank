@@ -83,10 +83,12 @@ const getParsedUsageResult = (
   const match = text.match(regex);
   if (match && match[1]) {
     const val = match[1].trim();
-    if (val === "พืชตอบสนองดี" || val === "พบปัญหา") return val;
+    if (val === "พืชตอบสนองดี" || val === "ลูกค้าพึงพอใจ" || val === "พบปัญหา") {
+      return val === "ลูกค้าพึงพอใจ" ? "พืชตอบสนองดี" : val;
+    }
   }
-  if (text === "พืชตอบสนองดี" || text === "พบปัญหา") {
-    return text;
+  if (text === "พืชตอบสนองดี" || text === "ลูกค้าพึงพอใจ" || text === "พบปัญหา") {
+    return text === "ลูกค้าพึงพอใจ" ? "พืชตอบสนองดี" : text;
   }
   return fallback || "";
 };
@@ -169,25 +171,25 @@ export function DetailType2Followup({
       ) : (
         <ActualTargetCard
           iconColorClass="text-sky-600"
-          badgeColorClass="bg-sky-50 text-sky-700 border border-sky-200"
+          badgeColorClass="bg-sky-100 text-sky-800"
           gridColsClass="grid-cols-1 sm:grid-cols-3"
           items={[
-            { label: "สินค้าที่ติดตาม:", value: target.product || "-" },
-            { label: "ชื่อร้านค้า:", value: target.customer || "-" },
             {
-              label: "รายละเอียดเพิ่มเติม:",
-              value: target.detail || "-",
+              label: "สินค้าที่ต้องการติดตามผล:",
+              value: target.product || "-",
             },
+            { label: "ชื่อร้านค้า:", value: target.customer || "-" },
+            { label: "รายละเอียดเพิ่มเติม:", value: target.detail || "-" },
           ]}
         />
       )}
 
-      {/* READ-ONLY RESULT DISPLAY */}
-      <div className="space-y-3 pt-1 border-t border-slate-100">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-700 mt-4">
-          <span className="w-2 h-2 rounded-full bg-sky-500"></span>
-          <span>ผลการปฏิบัติงานจริง</span>
-        </div>
+      {/* ACTUAL RESULTS DISPLAY */}
+      <div className="space-y-3 pt-2">
+        <label className="text-sm font-bold text-slate-900 flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-sky-600"></span>
+          ผลการปฏิบัติงานจริง
+        </label>
 
         {hasMultipleProducts ? (
           <div className="space-y-3">
@@ -211,11 +213,11 @@ export function DetailType2Followup({
               return (
                 <div
                   key={idx}
-                  className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5"
+                  className="bg-sky-50/30 border border-sky-200/80 rounded-2xl p-4 space-y-3 shadow-2xs"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
-                    <div className="flex items-center gap-2 font-bold text-xs sm:text-sm text-slate-900">
-                      <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-800 flex items-center justify-center text-[10px] font-extrabold">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sky-100/80 pb-2.5">
+                    <div className="flex items-center gap-2 font-bold text-sm text-sky-950">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sky-600 text-white text-xs">
                         {idx + 1}
                       </span>
                       <span>{item.productName}</span>
@@ -231,17 +233,22 @@ export function DetailType2Followup({
                         <Badge
                           variant="outline"
                           className={
-                            itemResult === "พืชตอบสนองดี"
+                            itemResult === "พืชตอบสนองดี" ||
+                            (itemResult as string) === "ลูกค้าพึงพอใจ"
                               ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs"
                               : "bg-rose-50 text-rose-800 border-rose-300 font-bold text-xs"
                           }
                         >
-                          {itemResult === "พืชตอบสนองดี" ? (
+                          {itemResult === "พืชตอบสนองดี" ||
+                          (itemResult as string) === "ลูกค้าพึงพอใจ" ? (
                             <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-600" />
                           ) : (
                             <AlertCircle className="w-3 h-3 mr-1 text-rose-600" />
                           )}
-                          {itemResult}
+                          {itemResult === "พืชตอบสนองดี" ||
+                          (itemResult as string) === "ลูกค้าพึงพอใจ"
+                            ? "ลูกค้าพึงพอใจ"
+                            : itemResult}
                         </Badge>
                       ) : (
                         <span className="text-xs text-slate-400 font-medium">
@@ -252,17 +259,19 @@ export function DetailType2Followup({
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <span className="text-slate-500 block mb-0.5 font-medium">
-                        รายละเอียดการติดตามผล
-                      </span>
-                      <p className="text-slate-800 font-semibold block whitespace-pre-wrap">
-                        {itemFollowup || "-"}
-                      </p>
-                    </div>
+                    {itemResult !== "พบปัญหา" && (
+                      <div>
+                        <span className="text-slate-500 block mb-0.5 font-medium">
+                          รายละเอียดการติดตามผล
+                        </span>
+                        <p className="text-slate-800 font-semibold block whitespace-pre-wrap">
+                          {itemFollowup || "-"}
+                        </p>
+                      </div>
+                    )}
 
                     {itemResult === "พบปัญหา" && (
-                      <div className="bg-rose-50/70 border border-rose-200 rounded-lg p-2.5 space-y-0.5">
+                      <div className="bg-rose-50/70 border border-rose-200 rounded-lg p-2.5 space-y-0.5 md:col-span-2">
                         <span className="text-rose-600 font-bold block flex items-center gap-1">
                           <AlertCircle className="w-3 h-3" />
                           ปัญหาที่พบ
@@ -296,31 +305,38 @@ export function DetailType2Followup({
                 <Badge
                   variant="outline"
                   className={
-                    usageResult === "พืชตอบสนองดี"
+                    usageResult === "พืชตอบสนองดี" ||
+                    (usageResult as string) === "ลูกค้าพึงพอใจ"
                       ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs px-3 py-1"
                       : "bg-rose-50 text-rose-800 border-rose-300 font-bold text-xs px-3 py-1"
                   }
                 >
-                  {usageResult === "พืชตอบสนองดี" ? (
+                  {usageResult === "พืชตอบสนองดี" ||
+                  (usageResult as string) === "ลูกค้าพึงพอใจ" ? (
                     <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600" />
                   ) : (
                     <AlertCircle className="w-3.5 h-3.5 mr-1 text-rose-600" />
                   )}
-                  {usageResult}
+                  {usageResult === "พืชตอบสนองดี" ||
+                  (usageResult as string) === "ลูกค้าพึงพอใจ"
+                    ? "ลูกค้าพึงพอใจ"
+                    : usageResult}
                 </Badge>
               ) : (
                 <span className="text-xs text-slate-700 font-semibold">-</span>
               )}
             </div>
 
-            <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 md:col-span-2">
-              <span className="text-xs text-slate-500 font-medium block">
-                รายละเอียดการติดตามผล
-              </span>
-              <p className="text-xs sm:text-sm text-slate-800 font-medium whitespace-pre-wrap leading-relaxed">
-                {followupDetail || "-"}
-              </p>
-            </div>
+            {usageResult !== "พบปัญหา" && (
+              <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 md:col-span-2">
+                <span className="text-xs text-slate-500 font-medium block">
+                  รายละเอียดการติดตามผล
+                </span>
+                <p className="text-xs sm:text-sm text-slate-800 font-medium whitespace-pre-wrap leading-relaxed">
+                  {followupDetail || "-"}
+                </p>
+              </div>
+            )}
 
             {usageResult === "พบปัญหา" && (
               <div className="bg-rose-50/60 border border-rose-200 rounded-xl p-3.5 space-y-1 md:col-span-2">
