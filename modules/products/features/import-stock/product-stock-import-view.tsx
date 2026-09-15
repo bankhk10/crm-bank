@@ -199,11 +199,7 @@ export default function ProductStockImportView() {
                           : "bg-slate-100 text-slate-400"
                     }`}
                   >
-                    {isPast ? (
-                      <CheckCircle2 className="h-4 w-4" />
-                    ) : (
-                      idx + 1
-                    )}
+                    {isPast ? <CheckCircle2 className="h-4 w-4" /> : idx + 1}
                   </div>
                   <span
                     className={`hidden sm:inline text-sm font-medium ${
@@ -236,7 +232,8 @@ export default function ProductStockImportView() {
                       ดาวน์โหลด Template
                     </h3>
                     <p className="text-sm text-slate-500 mt-1">
-                      ดาวน์โหลดไฟล์ Template Excel พร้อมฟอร์แมตสำหรับการนำเข้าสต็อก
+                      ดาวน์โหลดไฟล์ Template Excel
+                      พร้อมฟอร์แมตสำหรับการนำเข้าสต็อก
                     </p>
                   </div>
                   <Button
@@ -325,10 +322,30 @@ export default function ProductStockImportView() {
               </CardHeader>
               <CardContent className="pb-5">
                 <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                  <li>ระบบจะค้นหาสินค้าจาก <strong className="text-rose-600">รหัสสินค้า (Product Code)</strong> เท่านั้น</li>
-                  <li>หากพบสินค้าในระบบ และ เลขที่ล็อต (Lot Number) ตรงกับในระบบสต็อก จะทำการ <strong className="text-emerald-600">อัปเดตจำนวนและข้อมูล</strong> ของล็อตนั้น</li>
-                  <li>หากรหัสมีอยู่ แต่เลขที่ล็อตไม่ซ้ำ จะทำการ <strong className="text-blue-600">สร้างล็อตใหม่</strong> เข้าไปในสต็อก</li>
-                  <li>เลขที่ล็อต (Lot Number) และ จำนวน (Quantity) เป็นฟิลด์ที่บังคับกรอก</li>
+                  <li>
+                    ระบบจะค้นหาสินค้าจาก{" "}
+                    <strong className="text-rose-600">
+                      รหัสสินค้า (Product Code)
+                    </strong>{" "}
+                    เท่านั้น
+                  </li>
+                  <li>
+                    หากพบสินค้าในระบบ และ เลขที่ล็อต (Lot Number)
+                    ตรงกับในระบบสต็อก จะทำการ{" "}
+                    <strong className="text-emerald-600">
+                      อัปเดตจำนวนและข้อมูล
+                    </strong>{" "}
+                    ของล็อตนั้น
+                  </li>
+                  <li>
+                    หากรหัสมีอยู่ แต่เลขที่ล็อตไม่ซ้ำ จะทำการ{" "}
+                    <strong className="text-blue-600">สร้างล็อตใหม่</strong>{" "}
+                    เข้าไปในสต็อก
+                  </li>
+                  <li>
+                    เลขที่ล็อต (Lot Number) และ จำนวน (Quantity)
+                    เป็นฟิลด์ที่บังคับกรอก
+                  </li>
                 </ul>
               </CardContent>
             </Card>
@@ -364,22 +381,30 @@ export default function ProductStockImportView() {
                   <Eye className="h-5 w-5 text-blue-500" />
                   พรีวิวข้อมูลก่อนนำเข้า
                 </CardTitle>
-                <p className="text-sm text-slate-500 mt-1">ตรวจสอบความถูกต้องก่อนกดยืนยันการบันทึกข้อมูลจริง</p>
+                <p className="text-sm text-slate-500 mt-1">
+                  ตรวจสอบความถูกต้องก่อนกดยืนยันการบันทึกข้อมูลจริง
+                </p>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="grid grid-cols-3 gap-4 p-4 border-b bg-white">
-                    <div className="text-center">
-                        <p className="text-2xl font-bold text-slate-700">{result.totalRows}</p>
-                        <p className="text-xs text-slate-500">จำนวนทั้งหมด</p>
-                    </div>
-                    <div className="text-center">
-                        <p className="text-2xl font-bold text-blue-600">{result.createdCount}</p>
-                        <p className="text-xs text-slate-500">สร้างใหม่</p>
-                    </div>
-                    <div className="text-center">
-                        <p className="text-2xl font-bold text-amber-500">{result.updatedCount}</p>
-                        <p className="text-xs text-slate-500">อัปเดต</p>
-                    </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-slate-700">
+                      {result.totalRows}
+                    </p>
+                    <p className="text-xs text-slate-500">จำนวนทั้งหมด</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-blue-600">
+                      {result.createdCount}
+                    </p>
+                    <p className="text-xs text-slate-500">สร้างใหม่</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-amber-500">
+                      {result.updatedCount}
+                    </p>
+                    <p className="text-xs text-slate-500">อัปเดต</p>
+                  </div>
                 </div>
 
                 <div className="overflow-x-auto max-h-[400px]">
@@ -388,20 +413,34 @@ export default function ProductStockImportView() {
                       <tr>
                         <th className="px-4 py-3">แถว</th>
                         <th className="px-4 py-3">สถานะ</th>
-                        <th className="px-4 py-3 whitespace-nowrap">รหัสสินค้า</th>
+                        <th className="px-4 py-3 whitespace-nowrap">
+                          รหัสสินค้า
+                        </th>
                         <th className="px-4 py-3 whitespace-nowrap">ล็อต</th>
-                        <th className="px-4 py-3 whitespace-nowrap text-right">รับเข้า</th>
-                        <th className="px-4 py-3 whitespace-nowrap text-right">คงเหลือ</th>
-                        <th className="px-4 py-3 whitespace-nowrap">วันที่นำเข้า</th>
-                        <th className="px-4 py-3 whitespace-nowrap">วันหมดอายุ</th>
-                        <th className="px-4 py-3 whitespace-nowrap">สถานที่จัดเก็บ</th>
+                        <th className="px-4 py-3 whitespace-nowrap text-right">
+                          รับเข้า
+                        </th>
+                        <th className="px-4 py-3 whitespace-nowrap text-right">
+                          คงเหลือ
+                        </th>
+                        <th className="px-4 py-3 whitespace-nowrap">
+                          วันที่รับเข้า
+                        </th>
+                        <th className="px-4 py-3 whitespace-nowrap">
+                          วันหมดอายุ
+                        </th>
+                        <th className="px-4 py-3 whitespace-nowrap">
+                          สถานที่จัดเก็บ
+                        </th>
                         <th className="px-4 py-3">หมายเหตุ</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {result.previewItems?.map((item: any, idx: number) => (
                         <tr key={idx} className="hover:bg-slate-50">
-                          <td className="px-4 py-3 font-medium text-slate-500">{item.rowNum}</td>
+                          <td className="px-4 py-3 font-medium text-slate-500">
+                            {item.rowNum}
+                          </td>
                           <td className="px-4 py-3">
                             {item.action === "CREATE" ? (
                               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
@@ -413,14 +452,33 @@ export default function ProductStockImportView() {
                               </span>
                             )}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">{item.productCode}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">{item.lotNumber}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-right">{item.importQuantity}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-right font-medium text-blue-600">{item.remainingQuantity}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">{item.importDate}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">{item.expiryDate || "-"}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">{item.storageLocation || "-"}</td>
-                          <td className="px-4 py-3 truncate max-w-[150px]" title={item.notes}>{item.notes || "-"}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            {item.productCode}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            {item.lotNumber}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-right">
+                            {item.importQuantity}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-right font-medium text-blue-600">
+                            {item.remainingQuantity}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            {item.importDate}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            {item.expiryDate || "-"}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            {item.storageLocation || "-"}
+                          </td>
+                          <td
+                            className="px-4 py-3 truncate max-w-[150px]"
+                            title={item.notes}
+                          >
+                            {item.notes || "-"}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -446,17 +504,27 @@ export default function ProductStockImportView() {
                     ))}
                   </div>
                   <p className="text-xs text-red-600 mt-2 font-medium">
-                    * รายการที่มีข้อผิดพลาดจะไม่ถูกนำเข้า คุณสามารถกดยืนยันเพื่อนำเข้าเฉพาะรายการที่ถูกต้อง หรือกดยกเลิกเพื่อแก้ไขไฟล์ก่อนได้
+                    * รายการที่มีข้อผิดพลาดจะไม่ถูกนำเข้า
+                    คุณสามารถกดยืนยันเพื่อนำเข้าเฉพาะรายการที่ถูกต้อง
+                    หรือกดยกเลิกเพื่อแก้ไขไฟล์ก่อนได้
                   </p>
                 </CardContent>
               </Card>
             )}
 
             <div className="flex justify-between mt-6">
-              <Button variant="outline" onClick={handleReset} disabled={loading}>
+              <Button
+                variant="outline"
+                onClick={handleReset}
+                disabled={loading}
+              >
                 ยกเลิก
               </Button>
-              <Button onClick={handleConfirmImport} disabled={loading || result.previewItems?.length === 0} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              <Button
+                onClick={handleConfirmImport}
+                disabled={loading || result.previewItems?.length === 0}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
                 {loading ? (
                   <>
                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -517,7 +585,9 @@ export default function ProductStockImportView() {
                     <p className="text-3xl font-bold text-slate-800">
                       {result.totalRows}
                     </p>
-                    <p className="text-sm text-slate-500 mt-1">จำนวนที่อ่านได้ทั้งหมด</p>
+                    <p className="text-sm text-slate-500 mt-1">
+                      จำนวนที่อ่านได้ทั้งหมด
+                    </p>
                   </CardContent>
                 </Card>
                 <Card className="border-blue-100">
@@ -533,7 +603,9 @@ export default function ProductStockImportView() {
                     <p className="text-3xl font-bold text-amber-600">
                       {result.updatedCount || 0}
                     </p>
-                    <p className="text-sm text-slate-500 mt-1">ล็อตที่ถูกอัปเดต</p>
+                    <p className="text-sm text-slate-500 mt-1">
+                      ล็อตที่ถูกอัปเดต
+                    </p>
                   </CardContent>
                 </Card>
               </div>

@@ -22,7 +22,7 @@ export async function downloadStockLotTemplateAction() {
       {
         "เลขที่ล็อต (Lot Number) *": "L-2026-001",
         "จำนวนนำเข้า (Quantity) *": 100,
-        "วันที่นำเข้า (Import Date)": "2026-04-17",
+        "วันที่รับเข้า (Import Date)": "2026-04-17",
         "วันหมดอายุ (Expiry Date)": "2027-04-17",
         "สถานที่จัดเก็บ (Storage)": "คลังบางเลน",
         "หมายเหตุ (Notes)": "First lot",
@@ -122,9 +122,9 @@ export async function parseStockLotsAction(formData: FormData) {
         row["จำนวนนำเข้า"] ||
         row["จำนวน"];
       const importDateRaw =
-        row["วันที่นำเข้า (Import Date)"] ||
+        row["วันที่รับเข้า (Import Date)"] ||
         row["Import Date"] ||
-        row["วันที่นำเข้า"];
+        row["วันที่รับเข้า"];
       const expiryDateRaw =
         row["วันหมดอายุ (Expiry Date)"] ||
         row["Expiry Date"] ||
@@ -218,7 +218,7 @@ export async function downloadBulkStockTemplateAction() {
             "เลขที่ล็อต (Lot Number) *": lot.lotNumber,
             "รับเข้า (Import Quantity) *": lot.initialQuantity,
             "จำนวนคงเหลือ (Remaining Quantity)": lot.quantity,
-            "วันที่นำเข้า (Import Date)": formatDate(lot.importDate),
+            "วันที่รับเข้า (Import Date)": formatDate(lot.importDate),
             "วันหมดอายุ (Expiry Date)": lot.expiryDate
               ? formatDate(lot.expiryDate)
               : "",
@@ -233,7 +233,7 @@ export async function downloadBulkStockTemplateAction() {
           "เลขที่ล็อต (Lot Number) *": "",
           "รับเข้า (Import Quantity) *": "",
           "จำนวนคงเหลือ (Remaining Quantity)": "",
-          "วันที่นำเข้า (Import Date)": "",
+          "วันที่รับเข้า (Import Date)": "",
           "วันหมดอายุ (Expiry Date)": "",
           "สถานที่จัดเก็บ (Storage)": "",
           "หมายเหตุ (Notes)": "",
@@ -248,7 +248,7 @@ export async function downloadBulkStockTemplateAction() {
         "เลขที่ล็อต (Lot Number) *": "L-2026-001",
         "จำนวนนำเข้า (Import Quantity) *": 100,
         "จำนวนคงเหลือ (Remaining Quantity)": 100,
-        "วันที่นำเข้า (Import Date)": "2026-04-17",
+        "วันที่รับเข้า (Import Date)": "2026-04-17",
         "วันหมดอายุ (Expiry Date)": "2027-04-17",
         "สถานที่จัดเก็บ (Storage)": "คลังบางเลน",
         "หมายเหตุ (Notes)": "First bulk lot",
@@ -410,9 +410,9 @@ export async function importBulkStockAction(
       ]);
 
       const importDateRaw = getVal(row, [
-        "วันที่นำเข้า (Import Date)",
+        "วันที่รับเข้า (Import Date)",
         "Import Date",
-        "วันที่นำเข้า",
+        "วันที่รับเข้า",
         "อัปเดทล่าสุด",
       ]);
       const expiryDateRaw = getVal(row, [
@@ -458,7 +458,7 @@ export async function importBulkStockAction(
       const importDateStr = excelDateToJSDate(importDateRaw);
       if (!importDateStr) {
         errors.push(
-          `แถวที่ ${i + 2}: ขาดวันที่นำเข้า สำหรับรหัสสินค้า [${productCode}]`,
+          `แถวที่ ${i + 2}: ขาดวันที่รับเข้า สำหรับรหัสสินค้า [${productCode}]`,
         );
         continue;
       }

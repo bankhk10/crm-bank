@@ -407,31 +407,55 @@ function createShipmentEventRows(
 }
 
 export async function buildSalesAdminExportWorkbook(
-  exportData: any[] | {
-    sales?: any[];
-    shipments?: any[];
-    targets?: any[];
-    filterStatus?: string;
-    startDate?: string;
-    endDate?: string;
-  },
+  exportData:
+    | any[]
+    | {
+        sales?: any[];
+        shipments?: any[];
+        targets?: any[];
+        filterStatuses?: string[];
+        filterStatus?: string;
+        startDate?: string;
+        endDate?: string;
+      },
 ): Promise<string> {
   const sales = Array.isArray(exportData) ? exportData : exportData.sales || [];
   const shipments = Array.isArray(exportData) ? [] : exportData.shipments || [];
   const targets = Array.isArray(exportData) ? [] : exportData.targets || [];
-  const filterStatus = Array.isArray(exportData) ? undefined : exportData.filterStatus;
+  const filterStatuses = Array.isArray(exportData)
+    ? undefined
+    : exportData.filterStatuses;
+  const filterStatus = Array.isArray(exportData)
+    ? undefined
+    : exportData.filterStatus;
   const startDate = Array.isArray(exportData) ? undefined : exportData.startDate;
   const endDate = Array.isArray(exportData) ? undefined : exportData.endDate;
 
+  const rawStatuses: string[] =
+    filterStatuses && filterStatuses.length > 0
+      ? filterStatuses
+      : filterStatus
+        ? [filterStatus]
+        : [];
+
+  const isAll = rawStatuses.length === 0 || rawStatuses.includes("ALL");
+  const includeSalesNotes = isAll || rawStatuses.includes("SALES_NOTE");
+  const includeInvoices = isAll || rawStatuses.includes("INVOICE");
+  const includeForecast = isAll || rawStatuses.includes("FORECAST");
+
+  // Specific Prisma SaleStatus filter, if any (excluding pseudo-statuses)
+  const pseudoSet = new Set(["ALL", "FORECAST", "SALES_NOTE", "INVOICE"]);
+  const specificStatuses = rawStatuses.filter((s) => !pseudoSet.has(s));
+  const hasSpecificStatuses = specificStatuses.length > 0;
+  const allowCancelled = rawStatuses.includes("CANCELLED");
+
   const allRows: any[] = [];
 
-  const includeSalesNotes = !filterStatus || filterStatus === "ALL" || filterStatus === "SALES_NOTE";
-  const includeInvoices = !filterStatus || filterStatus === "ALL" || filterStatus === "INVOICE";
-
   // 1. Process Sales Note Events (Creation of order)
-  if (includeSalesNotes) {
+  if (includeSalesNotes || hasSpecificStatuses) {
     for (const sale of sales) {
-      if (sale.status === "CANCELLED" || sale.deletedAt) continue;
+      if (!allowCancelled && sale.status === "CANCELLED") continue;
+      if (sale.deletedAt) continue;
       const saleDateObj = parseValidDate(sale.saleDate);
       if (!saleDateObj) continue;
 
@@ -449,10 +473,11 @@ export async function buildSalesAdminExportWorkbook(
   }
 
   // 2. Process Invoice Events (Realization of delivery)
-  if (includeInvoices) {
+  if (includeInvoices || hasSpecificStatuses) {
     // 2.1 Process Shipments with delivered / in-transit / completed status
     for (const sh of shipments) {
       if (sh.status === "CANCELLED" || sh.status === "PENDING") continue;
+      if (hasSpecificStatuses && !specificStatuses.includes(sh.sale?.status)) continue;
       const invDateObj = resolveShipmentReportingDate(sh, sh.sale);
       if (!invDateObj) continue;
 
@@ -471,7 +496,8 @@ export async function buildSalesAdminExportWorkbook(
     const legacySales = sales.filter((s) => {
       const hasNoShipments = !s.shipments || s.shipments.length === 0;
       const isInvoiceStatus = ["PAID", "DELIVERY_COMPLETED", "COMPLETED"].includes(s.status);
-      return hasNoShipments && isInvoiceStatus && !s.deletedAt;
+      const matchesSpecific = !hasSpecificStatuses || specificStatuses.includes(s.status);
+      return hasNoShipments && isInvoiceStatus && matchesSpecific && !s.deletedAt;
     });
 
     for (const sale of legacySales) {
@@ -537,8 +563,9 @@ export async function buildSalesAdminExportWorkbook(
     worksheet.addRow(row);
   }
 
-  // 2. Process SalesTarget (Forecast) records
-  for (const target of targets) {
+  // 3. Process SalesTarget (Forecast) records
+  if (includeForecast) {
+    for (const target of targets) {
     const saleYear = target.year ? target.year.toString() : "";
     const saleMonth = target.month
       ? format(new Date(target.year, target.month - 1, 1), "MMM")
@@ -671,6 +698,7 @@ export async function buildSalesAdminExportWorkbook(
       }
     }
   }
+}
 
   // Set Angsana New font for all rows and cells, format numbers & alignments
   worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {

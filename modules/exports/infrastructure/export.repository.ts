@@ -1,11 +1,21 @@
 import { db, type SaleStatus } from "@/lib/db";
 import { format } from "date-fns";
+import {
+  normalizeAndValidateExportStatuses,
+  type ExportSaleStatus,
+} from "../application/validations";
+
+export { type ExportSaleStatus };
 
 export interface ExportFilterParams {
   startDate?: string;
   endDate?: string;
-  status?: SaleStatus | "ALL" | "FORECAST" | "SALES_NOTE" | "INVOICE" | string;
+  statuses?: ExportSaleStatus[];
+  status?: ExportSaleStatus | string;
+  customerId?: string;
+  employeeId?: string;
 }
+
 
 function buildStatusWhereClause(status?: string) {
   if (!status || status === "ALL" || status === "FORECAST") {
@@ -253,14 +263,31 @@ const salesTargetInclude = {
  * Fetch sales and sales targets data formatted for Sales Admin (Fulfillment & Documents focus)
  */
 export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
-  const isInvoiceStatus = filters.status === "INVOICE";
-  const isSalesNoteStatus = filters.status === "SALES_NOTE";
-  const isAllStatus = !filters.status || filters.status === "ALL";
+  const normalizedStatuses = normalizeAndValidateExportStatuses({
+    statuses: filters.statuses,
+    status: typeof filters.status === "string" ? filters.status : undefined,
+  });
 
-  const fetchSales = isAllStatus || isSalesNoteStatus || isInvoiceStatus;
-  const fetchTargets = isAllStatus || filters.status === "FORECAST";
+  const isAllStatus =
+    normalizedStatuses.length === 0 || normalizedStatuses.includes("ALL");
+
+  const includeForecast = isAllStatus || normalizedStatuses.includes("FORECAST");
+  const includeSalesNote = isAllStatus || normalizedStatuses.includes("SALES_NOTE");
+  const includeInvoice = isAllStatus || normalizedStatuses.includes("INVOICE");
+
+  // Specific Prisma SaleStatus filters (excluding pseudo-statuses)
+  const pseudoSet = new Set(["ALL", "FORECAST", "SALES_NOTE", "INVOICE"]);
+  const specificSaleStatuses = normalizedStatuses.filter(
+    (s): s is SaleStatus => !pseudoSet.has(s),
+  );
+
+  const fetchSales =
+    includeSalesNote || includeInvoice || specificSaleStatuses.length > 0;
+  const fetchTargets = includeForecast;
+  const fetchShipments = includeInvoice;
 
   let sales: any[] = [];
+  let shipments: any[] = [];
   let targets: any[] = [];
 
   if (fetchSales) {
@@ -268,9 +295,35 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
       deletedAt: null,
     };
 
-    // For SALES_NOTE status, filter saleDate in database query directly
-    if (isSalesNoteStatus && (filters.startDate || filters.endDate)) {
-      const { start, end } = parseStartAndEndDates(filters.startDate, filters.endDate);
+    // Status filter for db.sale
+    if (includeSalesNote || isAllStatus) {
+      where.status = { notIn: ["CANCELLED"] };
+    } else {
+      const matchingStatuses: SaleStatus[] = [];
+      if (includeInvoice) {
+        matchingStatuses.push("DELIVERY_COMPLETED", "PAID", "COMPLETED");
+      }
+      if (specificSaleStatuses.length > 0) {
+        matchingStatuses.push(...specificSaleStatuses);
+      }
+      where.status = { in: Array.from(new Set(matchingStatuses)) };
+    }
+
+    // Date filter for db.sale:
+    // Apply saleDate filter in SQL ONLY if ONLY Sales Note is selected!
+    // If Invoice is also included (e.g. ALL, SALES_NOTE + INVOICE, FORECAST + INVOICE),
+    // we MUST NOT filter where.saleDate in SQL, because Invoice uses Invoice Date!
+    const isOnlySalesNote =
+      includeSalesNote &&
+      !includeInvoice &&
+      specificSaleStatuses.length === 0 &&
+      !isAllStatus;
+
+    if (isOnlySalesNote && (filters.startDate || filters.endDate)) {
+      const { start, end } = parseStartAndEndDates(
+        filters.startDate,
+        filters.endDate,
+      );
       where.saleDate = {};
       if (start) {
         where.saleDate.gte = start;
@@ -280,9 +333,11 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
       }
     }
 
-    const statusWhere = buildStatusWhereClause(filters.status);
-    if (statusWhere) {
-      where.status = statusWhere;
+    if (filters.customerId) {
+      where.customerId = filters.customerId;
+    }
+    if (filters.employeeId) {
+      where.employeeId = filters.employeeId;
     }
 
     sales = await db.sale.findMany({
@@ -332,8 +387,14 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
       },
     });
 
-    // 1. When status === "INVOICE": Filter strictly by Invoice Date (column "Inv")
-    if (isInvoiceStatus) {
+    // When ONLY INVOICE is selected:
+    const isOnlyInvoice =
+      includeInvoice &&
+      !includeSalesNote &&
+      specificSaleStatuses.length === 0 &&
+      !isAllStatus;
+
+    if (isOnlyInvoice) {
       if (filters.startDate || filters.endDate) {
         sales = sales.filter((sale) => {
           const invDate = getInvoiceDate(sale);
@@ -345,104 +406,110 @@ export async function getSalesAdminExportRecords(filters: ExportFilterParams) {
         });
       }
 
-      // Sort by Invoice Date descending (fallback to saleDate)
       sales.sort((a, b) => {
-        const dateA = getInvoiceDate(a)?.getTime() ?? (a.saleDate ? new Date(a.saleDate).getTime() : 0);
-        const dateB = getInvoiceDate(b)?.getTime() ?? (b.saleDate ? new Date(b.saleDate).getTime() : 0);
+        const dateA =
+          getInvoiceDate(a)?.getTime() ??
+          (a.saleDate ? new Date(a.saleDate).getTime() : 0);
+        const dateB =
+          getInvoiceDate(b)?.getTime() ??
+          (b.saleDate ? new Date(b.saleDate).getTime() : 0);
         return dateB - dateA;
       });
     }
+  }
 
-    // 2. Query shipments matching Invoice status (DELIVERED, IN_TRANSIT, COMPLETED) on active sales
-    let shipments: any[] = [];
-    if (isAllStatus || isInvoiceStatus) {
-      shipments = await db.shipment.findMany({
-        where: {
-          status: { in: ["DELIVERED", "IN_TRANSIT", "COMPLETED"] },
-          sale: { deletedAt: null },
-        },
-        include: {
-          items: {
-            include: {
-              saleItem: {
-                include: {
-                  product: {
-                    include: {
-                      productABCType: true,
-                      tradeNameGroup: true,
-                      category: true,
-                    },
+  if (fetchShipments) {
+    const shipmentSaleWhere: Record<string, any> = {
+      deletedAt: null,
+    };
+    if (filters.customerId) {
+      shipmentSaleWhere.customerId = filters.customerId;
+    }
+    if (filters.employeeId) {
+      shipmentSaleWhere.employeeId = filters.employeeId;
+    }
+
+    shipments = await db.shipment.findMany({
+      where: {
+        status: { in: ["DELIVERED", "IN_TRANSIT", "COMPLETED"] },
+        sale: shipmentSaleWhere,
+      },
+      include: {
+        items: {
+          include: {
+            saleItem: {
+              include: {
+                product: {
+                  include: {
+                    productABCType: true,
+                    tradeNameGroup: true,
+                    category: true,
                   },
                 },
               },
             },
           },
-          sale: {
-            include: {
-              customer: {
-                select: {
-                  id: true,
-                  name: true,
-                  customerType: true,
-                  province: true,
-                  district: true,
-                },
-              },
-              employee: {
-                select: {
-                  id: true,
-                  name: true,
-                  nickname: true,
-                  employeeCode: true,
-                  departmentName: true,
-                },
-              },
-              shippingCompany: {
-                select: {
-                  id: true,
-                  name: true,
-                },
+        },
+        sale: {
+          include: {
+            customer: {
+              select: {
+                id: true,
+                name: true,
+                customerType: true,
+                province: true,
+                district: true,
               },
             },
-          },
-          shippingCompany: {
-            select: {
-              id: true,
-              name: true,
+            employee: {
+              select: {
+                id: true,
+                name: true,
+                nickname: true,
+                employeeCode: true,
+                departmentName: true,
+              },
+            },
+            shippingCompany: {
+              select: {
+                id: true,
+                name: true,
+              },
             },
           },
         },
-        orderBy: { createdAt: "desc" },
-      });
-    }
+        shippingCompany: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
 
-    if (fetchTargets) {
-      const monthPairs = getYearMonthPairs(filters.startDate, filters.endDate);
-      const targetWhere: Record<string, any> = {};
-      if (monthPairs && monthPairs.length > 0) {
-        targetWhere.OR = monthPairs;
-      }
-      targets = await db.salesTarget.findMany({
-        where: targetWhere,
-        orderBy: [{ year: "desc" }, { month: "desc" }],
-        include: salesTargetInclude,
-      });
+  if (fetchTargets) {
+    const monthPairs = getYearMonthPairs(filters.startDate, filters.endDate);
+    const targetWhere: Record<string, any> = {};
+    if (monthPairs && monthPairs.length > 0) {
+      targetWhere.OR = monthPairs;
     }
-
-    return {
-      sales,
-      shipments,
-      targets,
-      filterStatus: filters.status,
-      startDate: filters.startDate,
-      endDate: filters.endDate,
-    };
+    if (filters.employeeId) {
+      targetWhere.employeeId = filters.employeeId;
+    }
+    targets = await db.salesTarget.findMany({
+      where: targetWhere,
+      orderBy: [{ year: "desc" }, { month: "desc" }],
+      include: salesTargetInclude,
+    });
   }
 
   return {
-    sales: [],
-    shipments: [],
-    targets: [],
+    sales,
+    shipments,
+    targets,
+    filterStatuses: normalizedStatuses,
     filterStatus: filters.status,
     startDate: filters.startDate,
     endDate: filters.endDate,
