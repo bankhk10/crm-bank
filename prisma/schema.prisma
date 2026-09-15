@@ -398,6 +398,7 @@ model Customer {
   activityResultSaleItems   ActivityResultSaleItem[]
   activityResultStockItems  ActivityResultStockItem[]
   activityResultSurveyItems ActivityResultSurveyItem[]
+  activityResultFollowupItems ActivityResultFollowupItem[]
   activityAttachments       ActivityAttachment[]
 }
 
@@ -690,6 +691,7 @@ model Product {
   activityResultSurveyItems      ActivityResultSurveyItem[] @relation("ActivityResultSurveyProductRef")
   activityResultDemoPlannedItems ActivityResultDemoItem[]   @relation("ActivityResultDemoPlannedProductRef")
   activityResultDemoActualItems  ActivityResultDemoItem[]   @relation("ActivityResultDemoActualProductRef")
+  activityResultFollowupItems    ActivityResultFollowupItem[] @relation("ActivityResultFollowupProductRef")
   activityAttachments            ActivityAttachment[]       @relation("ActivityAttachmentProductRef")
 
   parentId String?
@@ -1990,6 +1992,7 @@ model ActivityResult {
   stockResults  ActivityResultStockItem[]
   surveyResults ActivityResultSurveyItem[]
   demoResults   ActivityResultDemoItem[]
+  followupResults ActivityResultFollowupItem[]
   attachments   ActivityAttachment[]
 
   @@index([activityPlanId])
@@ -2089,6 +2092,28 @@ model ActivityResultDemoItem {
   @@index([plannedProductId])
   @@index([actualProductId])
   @@map("activity_result_demo_items")
+}
+
+model ActivityResultFollowupItem {
+  id               String   @id @default(cuid())
+  activityResultId String   @map("activity_result_id")
+  storeId          String?  @map("store_id")
+  productId        String   @map("product_id")
+  productName      String?  @map("product_name")
+  usageResult      String?  @map("usage_result") // "ลูกค้าพึงพอใจ" | "พบปัญหา"
+  followupDetail   String?  @map("followup_detail")
+  problemDetail    String?  @map("problem_detail")
+  isAdditional     Boolean  @default(false) @map("is_additional")
+
+  activityResult ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
+  store          Customer?      @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  product        Product        @relation("ActivityResultFollowupProductRef", fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityResultId])
+  @@index([productId])
+  @@index([storeId])
+  @@index([isAdditional])
+  @@map("activity_result_followup_items")
 }
 
 model ActivityAttachment {

@@ -379,20 +379,40 @@ export function extractPlanData(
   // TYPE 2: Store / Product / Detail
   const t2Stores = stores.filter((s) => s.workTypeCode === "TYPE_2");
   const t2Products = products.filter((pr) => pr.workTypeCode === "TYPE_2");
+  const t2StoreCustomerName =
+    (t2Stores[0] as any)?.store?.name ||
+    t2Stores[0]?.storeName ||
+    (t2Stores.length > 0
+      ? t2Stores
+          .map((s) => (s as any).store?.name || s.storeName)
+          .filter(Boolean)
+          .join(", ")
+      : "") ||
+    allStoreNames ||
+    p.location ||
+    "";
   const t2Items = t2Products.map((pr) => ({
-    productName: pr.productName || "สินค้า",
-    customer: t2Stores[0]?.storeName || p.location || "",
-    detail: "",
+    id: pr.id,
+    productId: pr.productId,
+    productName: pr.productName || (pr as any).product?.name || "สินค้า",
+    customer: (pr as any)?.store?.name || (pr as any)?.storeName || t2StoreCustomerName,
+    storeId: pr.storeId || t2Stores[0]?.storeId || undefined,
+    detail: (pr as any)?.notes || t2Stores[0]?.notes || "",
     expectedResult: "พืชตอบสนองดี",
+    isAdditional: false,
   }));
   const t2CustInfo = extractType2Customers(t2Items, p.location);
   targets.t2 = {
     ...prevTargets.t2,
-    customer: t2Stores.map((s) => s.storeName).filter(Boolean).join(", ") || allStoreNames || p.location || "",
+    customer:
+      t2Stores.map((s) => s.storeName).filter(Boolean).join(", ") ||
+      allStoreNames ||
+      p.location ||
+      "",
     storeName: t2CustInfo.storeName,
     keyFarmer: t2CustInfo.keyFarmer,
     product: t2Products.map((pr) => pr.productName).filter(Boolean).join(", "),
-    detail: "",
+    detail: t2Stores[0]?.notes || "",
     expectedResult: "พืชตอบสนองดี",
     items: t2Items,
   };

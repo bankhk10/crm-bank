@@ -3,7 +3,7 @@
 import React from "react";
 import { BarChart3 } from "lucide-react";
 import { WORK_TYPES } from "@/modules/activity-plans/constants";
-import type { ActualTargetsState, ImageFile, Type5SurveyRecord } from "../types";
+import type { ActualTargetsState, ImageFile, Type5SurveyRecord, FollowupProductItem } from "../types";
 import {
   ActualType1Visit,
   ActualType2Followup,
@@ -28,18 +28,18 @@ interface ActivityResultSectionProps {
   ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
   removeImage: (
     setter: React.Dispatch<React.SetStateAction<ImageFile[]>>,
-    imgId: string,
+    id: string,
   ) => void;
 
   // Type 1
   t1ProductAdvice: string;
   setT1ProductAdvice: (v: string) => void;
-  t1Detail: string;
-  setT1Detail: (v: string) => void;
-  t1DiscussionResult: string;
-  setT1DiscussionResult: (v: string) => void;
   t1SalesOpportunity: "สูง" | "ต่ำ" | "";
   setT1SalesOpportunity: (v: "สูง" | "ต่ำ" | "") => void;
+  t1DiscussionResult: string;
+  setT1DiscussionResult: (v: string) => void;
+  t1Detail: string;
+  setT1Detail: (v: string) => void;
   t1NextAction: string;
   setT1NextAction: (v: string) => void;
   t1NextMeetingDate: string;
@@ -64,6 +64,8 @@ interface ActivityResultSectionProps {
   setT2UsageResult: (v: "พืชตอบสนองดี" | "พบปัญหา" | "") => void;
   t2ProblemDetail: string;
   setT2ProblemDetail: (v: string) => void;
+  t2FollowupResults?: FollowupProductItem[];
+  setT2FollowupResults?: (items: FollowupProductItem[]) => void;
 
   // Type 3
   t3SoldProducts: string;
@@ -266,6 +268,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     setT2UsageResult,
     t2ProblemDetail,
     setT2ProblemDetail,
+    t2FollowupResults,
+    setT2FollowupResults,
     t3SoldProducts,
     setT3SoldProducts,
     t3ActualSales,
@@ -457,6 +461,9 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         <ActualType2Followup
           isVisible={isTypeVisible("ติดตามผลการใช้สินค้า")}
           target={targets.t2}
+          products={products}
+          followupResults={t2FollowupResults}
+          onUpdateFollowupResults={setT2FollowupResults}
           customerName={t2CustomerName}
           setCustomerName={setT2CustomerName}
           followupDetail={t2FollowupDetail}

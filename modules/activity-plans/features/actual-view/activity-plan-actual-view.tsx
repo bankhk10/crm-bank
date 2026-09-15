@@ -18,6 +18,7 @@ import type {
   ActualTargetsState,
   ActivityResultStatusType,
   Type5SurveyRecord,
+  FollowupProductItem,
 } from "./types";
 import {
   extractPlanData,
@@ -206,6 +207,9 @@ export default function ActivityPlanActualView({
     "พืชตอบสนองดี" | "พบปัญหา" | ""
   >("");
   const [t2ProblemDetail, setT2ProblemDetail] = useState("");
+  const [t2FollowupResults, setT2FollowupResults] = useState<
+    FollowupProductItem[]
+  >([]);
 
   // Work Type 3 States
   const [t3SoldProducts, setT3SoldProducts] = useState("");
@@ -481,6 +485,9 @@ export default function ActivityPlanActualView({
 
             // Type 2
             if (parsed.t2CustomerName) setT2CustomerName(parsed.t2CustomerName);
+            if (parsed.t2FollowupResults && parsed.t2FollowupResults.length > 0) {
+              setT2FollowupResults(parsed.t2FollowupResults);
+            }
             if (parsed.t2UsageResult) {
               setT2UsageResult(parsed.t2UsageResult);
             }
@@ -1190,9 +1197,11 @@ export default function ActivityPlanActualView({
           t2UsageResult,
           t2ProblemDetail:
             t2UsageResult === "พืชตอบสนองดี" ||
-            t2UsageResult === "ลูกค้าพึงพอใจ"
+            (t2UsageResult as string) === "ลูกค้าพึงพอใจ"
               ? ""
               : t2ProblemDetail,
+          t2FollowupResults,
+          products,
           t3SoldProducts,
           t3ActualSales,
           t3ActualQuantity,
@@ -1539,6 +1548,8 @@ export default function ActivityPlanActualView({
             setT2UsageResult={setT2UsageResult}
             t2ProblemDetail={t2ProblemDetail}
             setT2ProblemDetail={setT2ProblemDetail}
+            t2FollowupResults={t2FollowupResults}
+            setT2FollowupResults={setT2FollowupResults}
             // Type 3
             t3SoldProducts={t3SoldProducts}
             setT3SoldProducts={setT3SoldProducts}

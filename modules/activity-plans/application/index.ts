@@ -426,6 +426,7 @@ export async function recordActivityResultUseCase(
     stockResults: parsed.data.stockResults as any,
     surveyResults: parsed.data.surveyResults as any,
     demoResults: parsed.data.demoResults as any,
+    followupResults: parsed.data.followupResults as any,
     attachments: parsed.data.attachments as any,
   };
 

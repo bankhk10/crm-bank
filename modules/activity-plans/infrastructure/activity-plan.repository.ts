@@ -243,6 +243,16 @@ export async function findActivityPlanById(id: string) {
               },
             },
           },
+          followupResults: {
+            include: {
+              product: {
+                select: { id: true, name: true, productCode: true },
+              },
+              store: {
+                select: { id: true, name: true, customerCode: true },
+              },
+            },
+          },
           attachments: true,
         },
       },
@@ -1233,6 +1243,15 @@ export type CreateActivityResultInput = {
     controlYieldKg?: number | null;
     satisfactionScore?: number | null;
   }>;
+  followupResults?: Array<{
+    storeId?: string | null;
+    productId: string;
+    productName?: string | null;
+    usageResult?: string | null;
+    followupDetail?: string | null;
+    problemDetail?: string | null;
+    isAdditional?: boolean;
+  }>;
   attachments?: Array<{
     workTypeCode?: string | null;
     storeId?: string | null;
@@ -1409,7 +1428,26 @@ export async function upsertActivityResult(
       }
     }
 
-    // 5. Sync Attachments
+    // 5. Sync Followup Results
+    if (input.followupResults !== undefined) {
+      await tx.activityResultFollowupItem.deleteMany({ where: { activityResultId: result.id } });
+      if (input.followupResults.length > 0) {
+        await tx.activityResultFollowupItem.createMany({
+          data: input.followupResults.map((item) => ({
+            activityResultId: result.id,
+            storeId: item.storeId ?? null,
+            productId: item.productId,
+            productName: item.productName ?? null,
+            usageResult: item.usageResult ?? null,
+            followupDetail: item.followupDetail ?? null,
+            problemDetail: item.problemDetail ?? null,
+            isAdditional: Boolean(item.isAdditional),
+          })),
+        });
+      }
+    }
+
+    // 6. Sync Attachments
     if (input.attachments !== undefined) {
       await tx.activityAttachment.deleteMany({ where: { activityResultId: result.id } });
       if (input.attachments.length > 0) {
@@ -1450,6 +1488,21 @@ export async function findApprovalQueueData() {
   ];
 
   const fullPlanInclude = {
+    employee: {
+      include: {
+        position: true,
+        department: true,
+      },
+    },
+    createdBy: {
+      select: { id: true, name: true, email: true },
+    },
+    currentApprover: {
+      include: {
+        position: true,
+        department: true,
+      },
+    },
     activityType: true,
     workTypes: {
       include: {
@@ -1459,7 +1512,7 @@ export async function findApprovalQueueData() {
     stores: {
       include: {
         store: {
-          select: { id: true, name: true, customerCode: true, province: true, district: true },
+          select: { id: true, name: true, customerCode: true, customerType: true, province: true, district: true },
         },
       },
     },
@@ -1491,21 +1544,6 @@ export async function findApprovalQueueData() {
         demoPlot: true,
       },
     },
-    employee: {
-      include: {
-        position: true,
-        department: true,
-      },
-    },
-    createdBy: {
-      select: { id: true, name: true, email: true },
-    },
-    currentApprover: {
-      include: {
-        position: true,
-        department: true,
-      },
-    },
     helpers: {
       where: { deletedAt: null },
       include: {
@@ -1532,6 +1570,7 @@ export async function findApprovalQueueData() {
         stockResults: true,
         surveyResults: true,
         demoResults: true,
+        followupResults: true,
         attachments: true,
       },
     },

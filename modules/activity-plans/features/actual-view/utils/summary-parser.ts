@@ -1,6 +1,7 @@
 import type {
   ActivityResultStatusType,
   Type5SurveyRecord,
+  FollowupProductItem,
   ImageFile,
 } from "../types";
 
@@ -34,6 +35,7 @@ export interface ParsedSummaryValues {
   t2FollowupDetail?: string;
   t2UsageResult?: "พืชตอบสนองดี" | "พบปัญหา";
   t2ProblemDetail?: string;
+  t2FollowupResults?: FollowupProductItem[];
 
   // Type 3
   t3SoldProducts?: string;
@@ -355,6 +357,25 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     const problemMatch = summaryText.match(/ปัญหาการใช้สินค้า:\s*(.+)/);
     if (problemMatch && problemMatch[1]) {
       result.t2ProblemDetail = problemMatch[1].split("\n")[0].trim();
+    }
+
+    if (
+      resData.followupResults &&
+      Array.isArray(resData.followupResults) &&
+      resData.followupResults.length > 0
+    ) {
+      result.t2FollowupResults = resData.followupResults.map((item: any) => ({
+        id: item.id,
+        productId: item.productId,
+        productName: item.productName || item.product?.name || "สินค้า",
+        customer: item.store?.name || undefined,
+        storeId: item.storeId || undefined,
+        usageResult:
+          item.usageResult === "พบปัญหา" ? "พบปัญหา" : "ลูกค้าพึงพอใจ",
+        followupDetail: item.followupDetail || "",
+        problemDetail: item.problemDetail || "",
+        isAdditional: Boolean(item.isAdditional),
+      }));
     }
 
     // Type 3

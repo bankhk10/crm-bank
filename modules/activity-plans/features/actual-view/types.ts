@@ -194,3 +194,17 @@ export interface Type5SurveyRecord {
   shelfImages?: ImageFile[];
 }
 
+export interface FollowupProductItem {
+  id?: string;
+  productId?: string;
+  productName: string;
+  customer?: string;
+  storeId?: string;
+  expectedResult?: string;
+  usageResult?: "ลูกค้าพึงพอใจ" | "พบปัญหา" | "พืชตอบสนองดี" | "";
+  problemDetail?: string;
+  detail?: string; // รายละเอียดเพิ่มเติมจากแผนงาน
+  followupDetail?: string; // รายละเอียดการติดตามจากการปฏิบัติงานจริง
+  isAdditional?: boolean; // false = สินค้าตามแผน, true = สินค้าเพิ่มเติม
+}
+

@@ -2,6 +2,7 @@ import type {
   ActivityResultStatusType,
   PlanSummaryData,
   Type5SurveyRecord,
+  FollowupProductItem,
   ImageFile,
 } from "../types";
 import { getActivityResultStatusLabel } from "../../../constants";
@@ -15,6 +16,7 @@ export interface BuildSummaryInput {
   postponedNotes: string;
 
   planSummary: PlanSummaryData;
+  products?: Array<{ id: string; name: string; productCode?: string | null }>;
 
   // Type 1
   t1ProductAdvice: string;
@@ -34,6 +36,7 @@ export interface BuildSummaryInput {
   t2Detail: string;
   t2UsageResult: "พืชตอบสนองดี" | "พบปัญหา" | "";
   t2ProblemDetail: string;
+  t2FollowupResults?: FollowupProductItem[];
 
   // Type 3
   t3SoldProducts: string;
@@ -669,6 +672,34 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     });
   }
 
+  // Build structured followupResults for TYPE_2
+  const followupResults: any[] = [];
+  if (input.t2FollowupResults && input.t2FollowupResults.length > 0) {
+    input.t2FollowupResults.forEach((item) => {
+      if (item.productName && item.productName.trim()) {
+        const pId =
+          item.productId ||
+          (input.products || []).find(
+            (p) =>
+              p.name.trim().toLowerCase() === item.productName.trim().toLowerCase(),
+          )?.id ||
+          null;
+        const isProblem = item.usageResult === "พบปัญหา";
+        if (pId) {
+          followupResults.push({
+            storeId: item.storeId || null,
+            productId: pId,
+            productName: item.productName,
+            usageResult: isProblem ? "พบปัญหา" : "ลูกค้าพึงพอใจ",
+            followupDetail: isProblem ? null : item.followupDetail || null,
+            problemDetail: isProblem ? item.problemDetail || null : null,
+            isAdditional: Boolean(item.isAdditional),
+          });
+        }
+      }
+    });
+  }
+
   // Build structured attachments
   const attachments: any[] = [];
   const addAttachment = (
@@ -741,6 +772,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     saleResults: saleResults.length > 0 ? saleResults : undefined,
     stockResults: stockResults.length > 0 ? stockResults : undefined,
     surveyResults: surveyResults.length > 0 ? surveyResults : undefined,
+    followupResults: followupResults.length > 0 ? followupResults : undefined,
     attachments: attachments.length > 0 ? attachments : undefined,
   };
 

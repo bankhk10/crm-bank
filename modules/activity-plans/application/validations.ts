@@ -345,6 +345,19 @@ export const activityResultSchema = z
           ),
       )
       .optional(),
+    followupResults: z
+      .array(
+        z.object({
+          storeId: z.string().optional().nullable(),
+          productId: z.string(),
+          productName: z.string().optional().nullable(),
+          usageResult: z.string().optional().nullable(),
+          followupDetail: z.string().optional().nullable(),
+          problemDetail: z.string().optional().nullable(),
+          isAdditional: z.boolean().default(false),
+        })
+      )
+      .optional(),
     attachments: z
       .array(
         z.object({
