@@ -139,10 +139,10 @@ import { getDemoPlotsAction } from "../../server/actions";
 export function ActivityPlanForm({
   initial = {},
   employees = [],
-  customers: initialCustomers = [],
-  products: initialProducts = [],
-  activityTypes: initialActivityTypes = [],
-  demoPlots: initialDemoPlots = [],
+  customers: initialCustomers,
+  products: initialProducts,
+  activityTypes: initialActivityTypes,
+  demoPlots: initialDemoPlots,
   promotionalMaterialsByCategory,
   onSubmit,
   onCancel,
@@ -162,7 +162,7 @@ export function ActivityPlanForm({
   >(promotionalMaterialsByCategory);
 
   useEffect(() => {
-    if (promotionalMaterialsByCategory) {
+    if (promotionalMaterialsByCategory !== undefined) {
       setFetchedMaterialsByCategory(promotionalMaterialsByCategory);
       return;
     }
@@ -190,22 +190,22 @@ export function ActivityPlanForm({
   }, [promotionalMaterialsByCategory]);
 
   const customersList =
-    initialCustomers && initialCustomers.length > 0
+    initialCustomers !== undefined
       ? initialCustomers
       : fetchedCustomers;
 
   const productsList =
-    initialProducts && initialProducts.length > 0
+    initialProducts !== undefined
       ? initialProducts
       : fetchedProducts;
 
   const demoPlotsList =
-    initialDemoPlots && initialDemoPlots.length > 0
+    initialDemoPlots !== undefined
       ? initialDemoPlots
       : fetchedDemoPlots;
 
   useEffect(() => {
-    if (initialCustomers && initialCustomers.length > 0) return;
+    if (initialCustomers !== undefined) return;
 
     let isMounted = true;
     async function loadCustomers() {
@@ -227,7 +227,7 @@ export function ActivityPlanForm({
   }, [initialCustomers]);
 
   useEffect(() => {
-    if (initialProducts && initialProducts.length > 0) return;
+    if (initialProducts !== undefined) return;
 
     let isMounted = true;
     async function loadProducts() {
@@ -249,7 +249,7 @@ export function ActivityPlanForm({
   }, [initialProducts]);
 
   useEffect(() => {
-    if (initialDemoPlots && initialDemoPlots.length > 0) return;
+    if (initialDemoPlots !== undefined) return;
 
     let isMounted = true;
     async function loadDemoPlots() {
@@ -269,7 +269,7 @@ export function ActivityPlanForm({
   }, [initialDemoPlots]);
 
   useEffect(() => {
-    if (initialActivityTypes && initialActivityTypes.length > 0) return;
+    if (initialActivityTypes !== undefined) return;
 
     let isMounted = true;
     async function loadActivityTypes() {
@@ -291,7 +291,7 @@ export function ActivityPlanForm({
 
   const activeWorkTypeOptions = useMemo(() => {
     const source =
-      initialActivityTypes && initialActivityTypes.length > 0
+      initialActivityTypes !== undefined
         ? initialActivityTypes
         : fetchedActivityTypes;
 

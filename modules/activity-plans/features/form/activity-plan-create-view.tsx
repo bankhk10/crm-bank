@@ -52,9 +52,11 @@ export default function ActivityPlanCreateView() {
   >(undefined);
   const [currentEmployeeName, setCurrentEmployeeName] = useState<string>("");
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [pageLoading, setPageLoading] = useState<boolean>(true);
 
   useEffect(() => {
     async function loadData() {
+      setPageLoading(true);
       try {
         const [empRes, userRes, custRes, prodRes, plotRes, mktRes, actTypeRes] = await Promise.all([
           getAllEmployeesAction(),
@@ -101,6 +103,8 @@ export default function ActivityPlanCreateView() {
         }
       } catch {
         setLoadError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+      } finally {
+        setPageLoading(false);
       }
     }
     loadData();
@@ -117,7 +121,7 @@ export default function ActivityPlanCreateView() {
     return { success: false, error: res.error };
   };
 
-  if (isLoading) {
+  if (isLoading || pageLoading) {
     return <div className="p-6 text-center">กำลังโหลด...</div>;
   }
 
@@ -129,14 +133,18 @@ export default function ActivityPlanCreateView() {
     );
   }
 
-  return (
-    <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
-      {loadError && (
+  if (loadError) {
+    return (
+      <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
         <Alert variant="destructive" className="mb-4 max-w-5xl mx-auto">
           <AlertDescription>{loadError}</AlertDescription>
         </Alert>
-      )}
+      </section>
+    );
+  }
 
+  return (
+    <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
       <ActivityPlanForm
         initial={{ employeeName: currentEmployeeName }}
         employees={employees}
