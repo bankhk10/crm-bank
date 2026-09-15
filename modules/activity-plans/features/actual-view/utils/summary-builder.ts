@@ -22,6 +22,10 @@ export interface BuildSummaryInput {
   t1Detail: string;
   t1NextAction: string;
   t1NextMeetingDate: string;
+  t1FarmerHomeAddress?: string;
+  t1PlotLatitude?: string | number | null;
+  t1PlotLongitude?: string | number | null;
+  t1PlotImages?: ImageFile[];
 
   // Type 2
   t2CustomerName: string;
@@ -263,6 +267,15 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     };
   }
 
+  // Validate Type 1 Plot Images (Max 5 files)
+  if (input.t1PlotImages && input.t1PlotImages.length > 5) {
+    return {
+      validationError: "รูปแปลงสามารถแนบได้สูงสุด 5 รูป (Work Type 1)",
+      summaryParts: [],
+      payload: null,
+    };
+  }
+
   const statusLabel =
     activityResultStatus === "COMPLETED"
       ? "สำเร็จ"
@@ -297,6 +310,13 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t1Detail ? `รายละเอียดเข้าพบ: ${t1Detail}` : null,
     t1NextAction ? `สิ่งที่ต้องดำเนินการต่อ: ${t1NextAction}` : null,
     t1NextMeetingDate ? `วันที่นัดหมายครั้งถัดไป: ${t1NextMeetingDate}` : null,
+    input.t1FarmerHomeAddress ? `ที่อยู่บ้านเกษตรกร: ${input.t1FarmerHomeAddress}` : null,
+    input.t1PlotLatitude && input.t1PlotLongitude
+      ? `พิกัดแปลง: ${input.t1PlotLatitude}, ${input.t1PlotLongitude}`
+      : null,
+    input.t1PlotImages && input.t1PlotImages.length > 0
+      ? `รูปแปลง: มีแนบ ${input.t1PlotImages.length} รูป`
+      : null,
 
     // Type 2
     t2CustomerName ? `ลูกค้าติดตาม: ${t2CustomerName}` : null,
@@ -666,6 +686,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     }
   };
 
+  (input.t1PlotImages || []).slice(0, 5).forEach((img) => addAttachment(img, "TYPE_1", "PLOT"));
   (input.t6Images || []).forEach((img) => addAttachment(img, "TYPE_6"));
   (input.t7CropImages || []).forEach((img) => addAttachment(img, "TYPE_7", "CROP"));
   (input.t7PlotImages || []).forEach((img) => addAttachment(img, "TYPE_7", "PLOT"));
@@ -683,6 +704,9 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       summaryParts.length > 0
         ? summaryParts.join("\n")
         : `สถานะผลกิจกรรม: ${statusLabel}`,
+    farmerHomeAddress: input.t1FarmerHomeAddress?.trim() || null,
+    plotLatitude: parseCleanNumber(input.t1PlotLatitude),
+    plotLongitude: parseCleanNumber(input.t1PlotLongitude),
     discussionResult: t1DiscussionResult || null,
     productAdvice: t1ProductAdvice || null,
     salesOpportunity: t1SalesOpportunity || null,

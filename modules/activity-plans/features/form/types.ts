@@ -17,8 +17,12 @@ export interface Type9ProductItem {
 
 export interface Type1VisitItem {
   id: string;
+  province?: string;
+  isUnregisteredFarmer?: boolean;
   storeId?: string;
-  customerName: string;
+  customerName?: string;
+  unregisteredFarmerName?: string;
+  unregisteredFarmerPhone?: string;
   topic: string;
   detail: string;
 }

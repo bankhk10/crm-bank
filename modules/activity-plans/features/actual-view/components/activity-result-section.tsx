@@ -44,6 +44,14 @@ interface ActivityResultSectionProps {
   setT1NextAction: (v: string) => void;
   t1NextMeetingDate: string;
   setT1NextMeetingDate: (v: string) => void;
+  t1FarmerHomeAddress: string;
+  setT1FarmerHomeAddress: (v: string) => void;
+  t1PlotLatitude: string;
+  setT1PlotLatitude: (v: string) => void;
+  t1PlotLongitude: string;
+  setT1PlotLongitude: (v: string) => void;
+  t1PlotImages: ImageFile[];
+  setT1PlotImages: React.Dispatch<React.SetStateAction<ImageFile[]>>;
 
   // Type 2
   t2CustomerName: string;
@@ -240,6 +248,14 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     setT1NextAction,
     t1NextMeetingDate,
     setT1NextMeetingDate,
+    t1FarmerHomeAddress,
+    setT1FarmerHomeAddress,
+    t1PlotLatitude,
+    setT1PlotLatitude,
+    t1PlotLongitude,
+    setT1PlotLongitude,
+    t1PlotImages,
+    setT1PlotImages,
     t2CustomerName,
     setT2CustomerName,
     t2FollowupDetail,
@@ -409,7 +425,10 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
       <div className="space-y-4 md:space-y-6">
         {/* WORK TYPE 1 */}
         <ActualType1Visit
-          isVisible={isTypeVisible("เข้าพบร้านค้า / Key Farmer")}
+          isVisible={
+            isTypeVisible("เข้าพบเกษตรกร") ||
+            isTypeVisible("เข้าพบร้านค้า / Key Farmer")
+          }
           target={targets.t1}
           productAdvice={t1ProductAdvice}
           setProductAdvice={setT1ProductAdvice}
@@ -424,6 +443,14 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           nextMeetingDate={t1NextMeetingDate}
           setNextMeetingDate={setT1NextMeetingDate}
           products={products}
+          farmerHomeAddress={t1FarmerHomeAddress}
+          setFarmerHomeAddress={setT1FarmerHomeAddress}
+          plotLatitude={t1PlotLatitude}
+          setPlotLatitude={setT1PlotLatitude}
+          plotLongitude={t1PlotLongitude}
+          setPlotLongitude={setT1PlotLongitude}
+          plotImages={t1PlotImages}
+          setPlotImages={setT1PlotImages}
         />
 
         {/* WORK TYPE 2 */}

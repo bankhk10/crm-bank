@@ -263,14 +263,22 @@ export function extractPlanData(
     new Set(stores.map((s) => s.storeName).filter(Boolean)),
   ).join(", ");
 
-  // TYPE 1: Store / Topic / Detail
+  // TYPE 1: Store / Topic / Detail (Farmer Visit)
   const t1Stores = stores.filter((s) => s.workTypeCode === "TYPE_1");
   const t1First = t1Stores[0];
+  const t1CustomerName = t1First?.isUnregisteredFarmer
+    ? (t1First.unregisteredFarmerName || "")
+    : ((t1First as any)?.store?.name || t1First?.storeName || (t1Stores.length > 0 ? t1Stores.map((s) => (s as any).store?.name || s.storeName).filter(Boolean).join(", ") : "") || allStoreNames || p.location || "");
+
   targets.t1 = {
     ...prevTargets.t1,
-    customer: t1Stores.map((s) => s.storeName).filter(Boolean).join(", ") || allStoreNames || p.location || "",
+    customer: t1CustomerName,
     topic: t1First?.remarks || prevTargets.t1.topic,
-    detail: t1Stores.map((s) => s.notes || s.remarks).filter(Boolean).join(" | ") || "",
+    detail: t1First?.notes || t1Stores.map((s) => s.notes || s.remarks).filter(Boolean).join(" | ") || "",
+    province: t1First?.province || (t1First as any)?.store?.province || p.province || undefined,
+    isUnregisteredFarmer: Boolean(t1First?.isUnregisteredFarmer),
+    unregisteredFarmerName: t1First?.unregisteredFarmerName || undefined,
+    unregisteredFarmerPhone: t1First?.unregisteredFarmerPhone || undefined,
   };
 
   // TYPE 2: Store / Product / Detail

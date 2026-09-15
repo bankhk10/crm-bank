@@ -627,9 +627,12 @@ export default function ActivityPlanApprovalDetailView({
             </Badge>
           </div>
 
-          {/* TYPE_1: เข้าพบร้านค้า / Key Farmer */}
+          {/* TYPE_1: เข้าพบเกษตรกร */}
           <ApprovalType1Visit
-            isVisible={isTypeActive("TYPE_1", "เข้าพบร้านค้า / Key Farmer")}
+            isVisible={
+              isTypeActive("TYPE_1", "เข้าพบเกษตรกร") ||
+              isTypeActive("TYPE_1", "เข้าพบร้านค้า / Key Farmer")
+            }
             target={targets.t1}
           />
 

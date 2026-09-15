@@ -460,8 +460,12 @@ export type CreateActivityPlanInput = {
   } | null;
   planStores?: Array<{
     workTypeCode: string;
-    storeId: string;
+    storeId?: string | null;
     storeName?: string | null;
+    province?: string | null;
+    isUnregisteredFarmer?: boolean;
+    unregisteredFarmerName?: string | null;
+    unregisteredFarmerPhone?: string | null;
     targetAmount?: number | null;
     subDealerStore?: string | null;
     remarks?: string | null;
@@ -592,8 +596,12 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
             data: input.planStores.map((s) => ({
               activityPlanId: plan.id,
               workTypeCode: getWorkTypeCode(s.workTypeCode),
-              storeId: s.storeId,
+              storeId: s.storeId ?? null,
               storeName: s.storeName ?? null,
+              province: s.province ?? null,
+              isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
+              unregisteredFarmerName: s.unregisteredFarmerName ?? null,
+              unregisteredFarmerPhone: s.unregisteredFarmerPhone ?? null,
               targetAmount: s.targetAmount != null ? new Prisma.Decimal(s.targetAmount) : null,
               subDealerStore: s.subDealerStore ?? null,
               remarks: s.remarks ?? null,
@@ -837,8 +845,12 @@ export async function updateActivityPlan(
           data: planStores.map((s) => ({
             activityPlanId: id,
             workTypeCode: getWorkTypeCode(s.workTypeCode),
-            storeId: s.storeId,
+            storeId: s.storeId ?? null,
             storeName: s.storeName ?? null,
+            province: s.province ?? null,
+            isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
+            unregisteredFarmerName: s.unregisteredFarmerName ?? null,
+            unregisteredFarmerPhone: s.unregisteredFarmerPhone ?? null,
             targetAmount: s.targetAmount != null ? new Prisma.Decimal(s.targetAmount) : null,
             subDealerStore: s.subDealerStore ?? null,
             remarks: s.remarks ?? null,
@@ -1157,6 +1169,9 @@ export type CreateActivityResultInput = {
   problemFound?: string | null;
   nextAction?: string | null;
   nextMeetingDate?: Date | null;
+  farmerHomeAddress?: string | null;
+  plotLatitude?: number | Prisma.Decimal | null;
+  plotLongitude?: number | Prisma.Decimal | null;
   cancelReason?: string | null;
   postponedDate?: Date | null;
   postponedTime?: string | null;
@@ -1254,6 +1269,9 @@ export async function upsertActivityResult(
         problemFound: input.problemFound ?? null,
         nextAction: input.nextAction ?? null,
         nextMeetingDate: input.nextMeetingDate ?? null,
+        farmerHomeAddress: input.farmerHomeAddress ?? null,
+        plotLatitude: input.plotLatitude != null ? new Prisma.Decimal(input.plotLatitude) : null,
+        plotLongitude: input.plotLongitude != null ? new Prisma.Decimal(input.plotLongitude) : null,
         cancelReason: input.cancelReason ?? null,
         postponedDate: input.postponedDate ?? null,
         postponedTime: input.postponedTime ?? null,
@@ -1283,6 +1301,9 @@ export async function upsertActivityResult(
         problemFound: input.problemFound ?? null,
         nextAction: input.nextAction ?? null,
         nextMeetingDate: input.nextMeetingDate ?? null,
+        farmerHomeAddress: input.farmerHomeAddress ?? null,
+        plotLatitude: input.plotLatitude != null ? new Prisma.Decimal(input.plotLatitude) : null,
+        plotLongitude: input.plotLongitude != null ? new Prisma.Decimal(input.plotLongitude) : null,
         cancelReason: input.cancelReason ?? null,
         postponedDate: input.postponedDate ?? null,
         postponedTime: input.postponedTime ?? null,
@@ -1927,15 +1948,19 @@ export async function findMasterDemoPlots() {
 /**
  * Fetch Farmer customers for selection in Field Day
  */
-export async function findFarmerCustomerOptions() {
+export async function findFarmerCustomerOptions(province?: string) {
   return db.customer.findMany({
     where: {
       deletedAt: null,
       customerType: "FARMER",
+      ...(province && province.trim() ? { province: province.trim() } : {}),
     },
     select: {
       id: true,
       name: true,
+      customerCode: true,
+      customerType: true,
+      phone: true,
       farmPlots: true,
       province: true,
       district: true,

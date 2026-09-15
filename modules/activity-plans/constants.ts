@@ -10,8 +10,8 @@ export interface WorkTypeConfig {
 export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
   TYPE_1: {
     code: "TYPE_1",
-    name: "เข้าพบร้านค้า / Key Farmer",
-    shortName: "Visit",
+    name: "เข้าพบเกษตรกร",
+    shortName: "Farmer Visit",
     sortOrder: 1,
     hasActual: true,
     requiresApproval: true,
@@ -112,6 +112,7 @@ export const WORK_TYPES = Object.values(WORK_TYPE_CONFIG).map((c) => c.name);
 // Helper function to resolve code from name or code
 export function getWorkTypeCode(nameOrCode: string): string {
   if (WORK_TYPE_CONFIG[nameOrCode]) return nameOrCode;
+  if (nameOrCode === "เข้าพบร้านค้า / Key Farmer") return "TYPE_1";
   const entry = Object.values(WORK_TYPE_CONFIG).find(
     (c) => c.name === nameOrCode || c.shortName === nameOrCode,
   );
@@ -120,6 +121,9 @@ export function getWorkTypeCode(nameOrCode: string): string {
 
 // Helper function to resolve name from code
 export function getWorkTypeName(codeOrName: string): string {
+  if (codeOrName === "เข้าพบร้านค้า / Key Farmer" || codeOrName === "TYPE_1") {
+    return WORK_TYPE_CONFIG.TYPE_1.name;
+  }
   if (WORK_TYPE_CONFIG[codeOrName]) return WORK_TYPE_CONFIG[codeOrName].name;
   return codeOrName;
 }

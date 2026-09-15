@@ -44,8 +44,12 @@ export interface NormalizedPlanData {
   totalBudgetRequested: number;
   planStores: Array<{
     workTypeCode: string;
-    storeId: string;
+    storeId?: string | null;
     storeName?: string | null;
+    province?: string | null;
+    isUnregisteredFarmer?: boolean;
+    unregisteredFarmerName?: string | null;
+    unregisteredFarmerPhone?: string | null;
     targetAmount?: number | null;
     subDealerStore?: string | null;
     remarks?: string | null;
@@ -97,7 +101,14 @@ export function normalizePlanInput(
   rawInput: ActivityPlanFormValues,
   resolvers?: LookupResolvers
 ): NormalizedPlanData {
-  const stores = [...(rawInput.planStores || [])];
+  const stores: NormalizedPlanData["planStores"] = (rawInput.planStores || []).map((s) => ({
+    ...s,
+    province: s.province ?? null,
+    isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
+    unregisteredFarmerName: s.unregisteredFarmerName ?? null,
+    unregisteredFarmerPhone: s.unregisteredFarmerPhone ?? null,
+    storeId: s.isUnregisteredFarmer ? null : (s.storeId ?? null),
+  }));
   const products: NormalizedPlanData["planProducts"] = (rawInput.planProducts || []).map((p) => ({
     ...p,
     isPriceOverridden: p.isPriceOverridden ?? false,

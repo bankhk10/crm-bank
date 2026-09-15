@@ -222,8 +222,9 @@ async function runPhase4Tests() {
   // ─────────────────────────────────────────────────────────────
   // 9. Master Data Integrity & Foreign Key Validity
   // ─────────────────────────────────────────────────────────────
-  console.log("\n▶ 9. Master Data Foreign Key Integrity");
-  const allStoreIds = new Set(seededPlans.flatMap((p) => p.stores.map((s) => s.storeId)));
+  const allStoreIds = new Set(
+    seededPlans.flatMap((p) => p.stores.map((s) => s.storeId).filter((id): id is string => id !== null))
+  );
   const allProductIds = new Set(seededPlans.flatMap((p) => p.products.map((pr) => pr.productId)));
   const allEmployeeIds = new Set(seededPlans.map((p) => p.employeeId));
 

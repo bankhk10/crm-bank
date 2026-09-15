@@ -192,6 +192,11 @@ export default function ActivityPlanActualView({
   >("");
   const [t1NextAction, setT1NextAction] = useState("");
   const [t1NextMeetingDate, setT1NextMeetingDate] = useState("");
+  const [t1FarmerHomeAddress, setT1FarmerHomeAddress] = useState("");
+  const [t1PlotLatitude, setT1PlotLatitude] = useState<string>("");
+  const [t1PlotLongitude, setT1PlotLongitude] = useState<string>("");
+  const [t1PlotImages, setT1PlotImages] = useState<ImageFile[]>([]);
+  const initialT1PlotImagesRef = useRef<ImageFile[]>([]);
 
   // Work Type 2 States
   const [t2CustomerName, setT2CustomerName] = useState("");
@@ -457,6 +462,21 @@ export default function ActivityPlanActualView({
             if (parsed.t1NextAction) setT1NextAction(parsed.t1NextAction);
             if (parsed.t1NextMeetingDate) {
               setT1NextMeetingDate(parsed.t1NextMeetingDate);
+            }
+            if (parsed.t1FarmerHomeAddress) {
+              setT1FarmerHomeAddress(parsed.t1FarmerHomeAddress);
+            }
+            if (parsed.t1PlotLatitude != null) {
+              setT1PlotLatitude(String(parsed.t1PlotLatitude));
+            }
+            if (parsed.t1PlotLongitude != null) {
+              setT1PlotLongitude(String(parsed.t1PlotLongitude));
+            }
+            if (parsed.t1PlotImages && parsed.t1PlotImages.length > 0) {
+              setT1PlotImages(parsed.t1PlotImages);
+              initialT1PlotImagesRef.current = JSON.parse(
+                JSON.stringify(parsed.t1PlotImages),
+              );
             }
 
             // Type 2
@@ -860,6 +880,25 @@ export default function ActivityPlanActualView({
     try {
       if (id) {
         // --- 1. UPLOAD NEW IMAGES ACROSS ALL WORK TYPES ---
+        // Work Type 1
+        let cleanT1PlotImages = t1PlotImages;
+        if (
+          (isTypeVisible("เข้าพบเกษตรกร") ||
+            isTypeVisible("เข้าพบร้านค้า / Key Farmer")) &&
+          t1PlotImages &&
+          t1PlotImages.length > 0
+        ) {
+          const res = await uploadActivityPlanImageGroup(
+            id,
+            t1PlotImages,
+            "type1",
+            "plot",
+          );
+          cleanT1PlotImages = res.updatedImages;
+          allNewlyUploadedUrls.push(...res.newlyUploadedUrls);
+          setT1PlotImages(cleanT1PlotImages);
+        }
+
         // Work Type 5
         let cleanT5SurveyDetails = t5SurveyDetails;
         if (
@@ -1002,6 +1041,15 @@ export default function ActivityPlanActualView({
         }
 
         // --- 2. CALCULATE OLD REMOVED URLS ACROSS ALL WORK TYPES ---
+        // Type 1
+        const initialT1Urls = collectPermanentUrls(
+          initialT1PlotImagesRef.current,
+        );
+        const currentT1Urls = new Set(collectPermanentUrls(cleanT1PlotImages));
+        const oldT1ToDelete = initialT1Urls.filter(
+          (u) => !currentT1Urls.has(u),
+        );
+
         // Type 5
         const initialT5Urls = (initialT5SurveyDetailsRef.current || []).flatMap(
           (rec) => [
@@ -1071,6 +1119,7 @@ export default function ActivityPlanActualView({
         );
 
         const allOldUrlsToDelete = [
+          ...oldT1ToDelete,
           ...oldT5ToDelete,
           ...oldT6ToDelete,
           ...oldT7CropToDelete,
@@ -1095,6 +1144,10 @@ export default function ActivityPlanActualView({
           t1Detail,
           t1NextAction,
           t1NextMeetingDate,
+          t1FarmerHomeAddress,
+          t1PlotLatitude,
+          t1PlotLongitude,
+          t1PlotImages: cleanT1PlotImages,
           t2CustomerName,
           t2FollowupDetail,
           t2Detail,
@@ -1427,6 +1480,14 @@ export default function ActivityPlanActualView({
             setT1NextAction={setT1NextAction}
             t1NextMeetingDate={t1NextMeetingDate}
             setT1NextMeetingDate={setT1NextMeetingDate}
+            t1FarmerHomeAddress={t1FarmerHomeAddress}
+            setT1FarmerHomeAddress={setT1FarmerHomeAddress}
+            t1PlotLatitude={t1PlotLatitude}
+            setT1PlotLatitude={setT1PlotLatitude}
+            t1PlotLongitude={t1PlotLongitude}
+            setT1PlotLongitude={setT1PlotLongitude}
+            t1PlotImages={t1PlotImages}
+            setT1PlotImages={setT1PlotImages}
             // Type 2
             t2CustomerName={t2CustomerName}
             setT2CustomerName={setT2CustomerName}

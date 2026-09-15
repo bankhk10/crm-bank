@@ -1719,18 +1719,22 @@ model ActivityPlanWorkType {
 }
 
 model ActivityPlanStore {
-  id             String   @id @default(cuid())
-  activityPlanId String   @map("activity_plan_id")
-  workTypeCode   String   @map("work_type_code") // e.g. "TYPE_1", "TYPE_2", "TYPE_3", "TYPE_4", "TYPE_5", "TYPE_6", "TYPE_9", "TYPE_11"
-  storeId        String   @map("store_id")
-  storeName      String?  @map("store_name")
-  targetAmount   Decimal? @map("target_amount") @db.Decimal(15, 2) // สำหรับ TYPE_4 ยอดเงินที่ต้องเก็บ
-  subDealerStore String?  @map("sub_dealer_store") // สำหรับ TYPE_9 ร้านค้าช่วง / Sub Dealer
-  remarks        String? // สำหรับ topic (TYPE_1) หรือ issueType (TYPE_6)
-  notes          String? // บันทึกรายละเอียดเพิ่มเติม
+  id                     String   @id @default(cuid())
+  activityPlanId         String   @map("activity_plan_id")
+  workTypeCode           String   @map("work_type_code") // e.g. "TYPE_1", "TYPE_2", "TYPE_3", "TYPE_4", "TYPE_5", "TYPE_6", "TYPE_9", "TYPE_11"
+  storeId                String?  @map("store_id")
+  storeName              String?  @map("store_name")
+  province               String?  @map("province")
+  isUnregisteredFarmer   Boolean  @default(false) @map("is_unregistered_farmer")
+  unregisteredFarmerName  String?  @map("unregistered_farmer_name")
+  unregisteredFarmerPhone String?  @map("unregistered_farmer_phone")
+  targetAmount           Decimal? @map("target_amount") @db.Decimal(15, 2) // สำหรับ TYPE_4 ยอดเงินที่ต้องเก็บ
+  subDealerStore         String?  @map("sub_dealer_store") // สำหรับ TYPE_9 ร้านค้าช่วง / Sub Dealer
+  remarks                String? // สำหรับ topic (TYPE_1) หรือ issueType (TYPE_6)
+  notes                  String? // บันทึกรายละเอียดเพิ่มเติม
 
   activityPlan ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store        Customer     @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  store        Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
 
   @@index([activityPlanId])
   @@index([storeId])
@@ -1948,6 +1952,9 @@ model ActivityResult {
   productAdvice    String?   @map("product_advice")
   salesOpportunity String?   @map("sales_opportunity")
   nextMeetingDate  DateTime? @map("next_meeting_date")
+  farmerHomeAddress String?  @map("farmer_home_address")
+  plotLatitude     Decimal?  @map("plot_latitude") @db.Decimal(10, 7)
+  plotLongitude    Decimal?  @map("plot_longitude") @db.Decimal(10, 7)
 
   // ──── กรณีเลื่อน หรือ ยกเลิก ────────────────────────
   cancelReason    String?   @map("cancel_reason") // สาเหตุที่ยกเลิก

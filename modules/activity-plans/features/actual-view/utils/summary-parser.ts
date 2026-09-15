@@ -24,6 +24,10 @@ export interface ParsedSummaryValues {
   t1Detail?: string;
   t1NextAction?: string;
   t1NextMeetingDate?: string;
+  t1FarmerHomeAddress?: string;
+  t1PlotLatitude?: string | number | null;
+  t1PlotLongitude?: string | number | null;
+  t1PlotImages?: ImageFile[];
 
   // Type 2
   t2CustomerName?: string;
@@ -152,6 +156,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   if (resData.discussionResult) result.t1DiscussionResult = resData.discussionResult;
   if (resData.productAdvice) result.t1ProductAdvice = resData.productAdvice;
   if (resData.salesOpportunity) result.t1SalesOpportunity = resData.salesOpportunity;
+  if (resData.farmerHomeAddress) result.t1FarmerHomeAddress = resData.farmerHomeAddress;
+  if (resData.plotLatitude != null) result.t1PlotLatitude = Number(resData.plotLatitude);
+  if (resData.plotLongitude != null) result.t1PlotLongitude = Number(resData.plotLongitude);
   if (resData.problemFound) result.problemFound = resData.problemFound;
   if (resData.nextAction) {
     result.nextAction = resData.nextAction;
@@ -236,6 +243,11 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       size: a.fileSize || undefined,
       type: a.mimeType || undefined,
     });
+    const t1PlotAtt = resData.attachments.filter(
+      (a: any) => a.workTypeCode === "TYPE_1" && a.category === "PLOT",
+    );
+    if (t1PlotAtt.length > 0) result.t1PlotImages = t1PlotAtt.map(toImage);
+
     const t6Att = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_6");
     if (t6Att.length > 0) result.t6Images = t6Att.map(toImage);
 
@@ -258,7 +270,17 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   if (resData.resultSummary) {
     const summaryText = resData.resultSummary;
 
-    // Type 1
+    // Type 1 Fallback parsing
+    const homeAddressMatch = summaryText.match(/ที่อยู่บ้านเกษตรกร:\s*(.+)/);
+    if (homeAddressMatch && homeAddressMatch[1] && !result.t1FarmerHomeAddress) {
+      result.t1FarmerHomeAddress = homeAddressMatch[1].split("\n")[0].trim();
+    }
+    const coordsMatch = summaryText.match(/พิกัดแปลง:\s*([-\d.]+),\s*([-\d.]+)/);
+    if (coordsMatch && coordsMatch[1] && coordsMatch[2]) {
+      if (result.t1PlotLatitude == null) result.t1PlotLatitude = Number(coordsMatch[1]);
+      if (result.t1PlotLongitude == null) result.t1PlotLongitude = Number(coordsMatch[2]);
+    }
+
     const adviceMatch = summaryText.match(/สินค้าที่แนะนำ:\s*(.+)/);
     if (adviceMatch && adviceMatch[1]) {
       result.t1ProductAdvice = adviceMatch[1].split("\n")[0].trim();

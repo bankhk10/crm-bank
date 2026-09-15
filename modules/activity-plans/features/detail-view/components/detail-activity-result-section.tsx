@@ -51,13 +51,20 @@ export function DetailActivityResultSection({
       <div className="space-y-4 md:space-y-6">
         {/* WORK TYPE 1 */}
         <DetailType1Visit
-          isVisible={isTypeVisible("เข้าพบร้านค้า / Key Farmer")}
+          isVisible={
+            isTypeVisible("เข้าพบเกษตรกร") ||
+            isTypeVisible("เข้าพบร้านค้า / Key Farmer")
+          }
           target={targets.t1}
           productAdvice={parsedResults.t1ProductAdvice}
           discussionResult={parsedResults.t1DiscussionResult}
           salesOpportunity={parsedResults.t1SalesOpportunity}
           nextAction={parsedResults.t1NextAction}
           nextMeetingDate={parsedResults.t1NextMeetingDate}
+          farmerHomeAddress={parsedResults.t1FarmerHomeAddress}
+          plotLatitude={parsedResults.t1PlotLatitude}
+          plotLongitude={parsedResults.t1PlotLongitude}
+          plotImages={parsedResults.t1PlotImages}
         />
 
         {/* WORK TYPE 2 */}

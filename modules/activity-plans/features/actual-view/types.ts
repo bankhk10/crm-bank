@@ -89,6 +89,14 @@ export interface ActualTargetsState {
     detail: string;
     opportunity: string;
     nextDate: string;
+    province?: string;
+    isUnregisteredFarmer?: boolean;
+    unregisteredFarmerName?: string;
+    unregisteredFarmerPhone?: string;
+    farmerHomeAddress?: string;
+    plotLatitude?: string | number | null;
+    plotLongitude?: string | number | null;
+    plotImages?: ImageFile[];
   };
   t2: {
     product: string;

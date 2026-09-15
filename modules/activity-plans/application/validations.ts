@@ -1,14 +1,63 @@
 import { z } from "zod";
 
-export const planStoreInputSchema = z.object({
-  workTypeCode: z.string(),
-  storeId: z.string(),
-  storeName: z.string().optional().nullable(),
-  targetAmount: z.number().optional().nullable(),
-  subDealerStore: z.string().optional().nullable(),
-  remarks: z.string().optional().nullable(),
-  notes: z.string().optional().nullable(),
-});
+export const planStoreInputSchema = z
+  .object({
+    workTypeCode: z.string(),
+    storeId: z.string().optional().nullable(),
+    storeName: z.string().optional().nullable(),
+    province: z.string().optional().nullable(),
+    isUnregisteredFarmer: z.boolean().optional().default(false),
+    unregisteredFarmerName: z.string().optional().nullable(),
+    unregisteredFarmerPhone: z.string().optional().nullable(),
+    targetAmount: z.number().optional().nullable(),
+    subDealerStore: z.string().optional().nullable(),
+    remarks: z.string().optional().nullable(),
+    notes: z.string().optional().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.workTypeCode === "TYPE_1") {
+      if (!data.province || !data.province.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "กรุณาเลือกจังหวัดของเกษตรกร",
+          path: ["province"],
+        });
+      }
+      if (data.isUnregisteredFarmer) {
+        if (!data.unregisteredFarmerName || !data.unregisteredFarmerName.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "กรุณาระบุชื่อ - สกุล เกษตรกร",
+            path: ["unregisteredFarmerName"],
+          });
+        }
+        const cleanedPhone = (data.unregisteredFarmerPhone || "").replace(/[-\s]/g, "");
+        if (!cleanedPhone || !/^[0-9]{9,10}$/.test(cleanedPhone)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "กรุณาระบุเบอร์โทรศัพท์ที่ถูกต้อง (9-10 หลัก)",
+            path: ["unregisteredFarmerPhone"],
+          });
+        }
+      } else {
+        if (!data.storeId || !data.storeId.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "กรุณาเลือกเกษตรกรจากรายชื่อ",
+            path: ["storeId"],
+          });
+        }
+      }
+    } else {
+      if (!data.storeId || !data.storeId.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "กรุณาเลือกร้านค้า",
+          path: ["storeId"],
+        });
+      }
+    }
+  });
 
 export const planProductInputSchema = z.object({
   workTypeCode: z.string(),
@@ -166,6 +215,19 @@ export const activityResultSchema = z
     problemFound: z.string().optional().nullable(),
     nextAction: z.string().optional().nullable(),
     nextMeetingDate: z.coerce.date().optional().nullable(),
+    farmerHomeAddress: z.string().optional().nullable(),
+    plotLatitude: z.coerce
+      .number()
+      .min(-90, "ละติจูดต้องอยู่ระหว่าง -90 ถึง 90")
+      .max(90, "ละติจูดต้องอยู่ระหว่าง -90 ถึง 90")
+      .optional()
+      .nullable(),
+    plotLongitude: z.coerce
+      .number()
+      .min(-180, "ลองจิจูดต้องอยู่ระหว่าง -180 ถึง 180")
+      .max(180, "ลองจิจูดต้องอยู่ระหว่าง -180 ถึง 180")
+      .optional()
+      .nullable(),
     // กรณีเลื่อน หรือ ยกเลิก
     cancelReason: z.string().optional().nullable(),
     postponedDate: z.coerce.date().optional().nullable(),
@@ -276,6 +338,18 @@ export const activityResultSchema = z
           fileSize: z.number().optional().nullable(),
           mimeType: z.string().optional().nullable(),
         })
+      )
+      .refine(
+        (items) => {
+          const type1PlotPhotos = items.filter(
+            (a) => (a.workTypeCode === "TYPE_1" || a.workTypeCode === "เข้าพบเกษตรกร") && String(a.category) === "PLOT"
+          );
+          return type1PlotPhotos.length <= 5;
+        },
+        {
+          message: "รูปภาพแปลงสำหรับเข้าพบเกษตรกรต้องไม่เกิน 5 รูป",
+          path: ["attachments"],
+        }
       )
       .optional(),
   })

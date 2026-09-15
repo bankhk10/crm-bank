@@ -81,6 +81,7 @@ async function runPhase3Tests() {
     planStores: [
       {
         workTypeCode: "TYPE_1",
+        province: storeA.province || "กรุงเทพมหานคร",
         storeId: storeA.id,
         storeName: storeA.name,
         remarks: "แจ้งข่าวสาร",

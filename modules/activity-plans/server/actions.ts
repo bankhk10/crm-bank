@@ -597,6 +597,26 @@ export async function getFarmerCustomersAction() {
 }
 
 /**
+ * Action: Get list of Farmer customers (filtered by province) for TYPE_1 Visit
+ */
+export async function getFarmerCustomerOptionsAction(province?: string) {
+  try {
+    const { findFarmerCustomerOptions } = await import("../infrastructure/activity-plan.repository");
+    const farmers = await findFarmerCustomerOptions(province);
+    return serialize({
+      success: true as const,
+      farmers,
+    });
+  } catch (err: any) {
+    console.error("Failed to get farmer customer options:", err);
+    return serialize({
+      success: false as const,
+      farmers: [],
+    });
+  }
+}
+
+/**
  * Action: Get Demo Plot History with all visits
  */
 export async function getDemoPlotHistoryAction(demoPlotIdOrName: string) {
