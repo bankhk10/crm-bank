@@ -551,8 +551,180 @@ async function runTests() {
   assert.strictEqual(buildRes.payload.attachments.length, 2);
   console.log("  ✔ Actual result summary builder and parser passed");
 
+  // =========================================================================
+  // SECTION 8 SPECIFIC TEST CASES (Bug Fix Verification)
+  // =========================================================================
+  console.log("\n▶ [BUG-FIX-TEST 1] Purpose = FARMER, Province = null => FAIL ('กรุณาเลือกจังหวัดสำหรับเข้าพบเกษตรกร')");
+  const bft1Schema = planStoreInputSchema.safeParse({
+    workTypeCode: "TYPE_1",
+    visitPurpose: "FARMER",
+    province: null,
+    storeId: testFarmer.id,
+    isUnregisteredFarmer: false,
+  });
+  assert(!bft1Schema.success, "Purpose = FARMER with Province = null must fail");
+  const bft1Msg = !bft1Schema.success && bft1Schema.error.issues.find((i) => i.path.includes("province"))?.message;
+  assert.strictEqual(
+    bft1Msg,
+    "กรุณาเลือกจังหวัดสำหรับเข้าพบเกษตรกร",
+    "Must output 'กรุณาเลือกจังหวัดสำหรับเข้าพบเกษตรกร'",
+  );
+  console.log("  ✔ [PASS] BUG-FIX-TEST 1");
+
+  console.log("\n▶ [BUG-FIX-TEST 2] Purpose = FARMER, Province = กรุงเทพฯ, Farmer = valid FARMER => PASS");
+  const bft2Schema = planStoreInputSchema.safeParse({
+    workTypeCode: "TYPE_1",
+    visitPurpose: "FARMER",
+    province: "กรุงเทพฯ",
+    storeId: testFarmer.id,
+    isUnregisteredFarmer: false,
+  });
+  assert(bft2Schema.success, "Purpose = FARMER with Province = กรุงเทพฯ and valid FARMER must pass schema");
+  const bft2Server = await validateType1VisitPurposeCustomers([
+    {
+      workTypeCode: "TYPE_1",
+      visitPurpose: "FARMER",
+      storeId: testFarmer.id,
+      isUnregisteredFarmer: false,
+    },
+  ]);
+  assert(bft2Server.valid, "Server validation must pass for valid FARMER");
+  console.log("  ✔ [PASS] BUG-FIX-TEST 2");
+
+  console.log("\n▶ [BUG-FIX-TEST 3] Purpose = STORE, Province = null, Customer = valid DEALER => PASS");
+  const bft3Schema = planStoreInputSchema.safeParse({
+    workTypeCode: "TYPE_1",
+    visitPurpose: "STORE",
+    province: null,
+    storeId: testDealer.id,
+    isUnregisteredFarmer: false,
+  });
+  assert(bft3Schema.success, "Purpose = STORE with Province = null and valid DEALER must pass schema");
+  const bft3Server = await validateType1VisitPurposeCustomers([
+    {
+      workTypeCode: "TYPE_1",
+      visitPurpose: "STORE",
+      storeId: testDealer.id,
+      isUnregisteredFarmer: false,
+    },
+  ]);
+  assert(bft3Server.valid, "Server validation must pass for valid DEALER");
+  console.log("  ✔ [PASS] BUG-FIX-TEST 3");
+
+  console.log("\n▶ [BUG-FIX-TEST 4] Purpose = STORE, Province = null, Customer = valid SUBDEALER => PASS");
+  const bft4Schema = planStoreInputSchema.safeParse({
+    workTypeCode: "TYPE_1",
+    visitPurpose: "STORE",
+    province: null,
+    storeId: testSubdealer.id,
+    isUnregisteredFarmer: false,
+  });
+  assert(bft4Schema.success, "Purpose = STORE with Province = null and valid SUBDEALER must pass schema");
+  const bft4Server = await validateType1VisitPurposeCustomers([
+    {
+      workTypeCode: "TYPE_1",
+      visitPurpose: "STORE",
+      storeId: testSubdealer.id,
+      isUnregisteredFarmer: false,
+    },
+  ]);
+  assert(bft4Server.valid, "Server validation must pass for valid SUBDEALER");
+  console.log("  ✔ [PASS] BUG-FIX-TEST 4");
+
+  console.log("\n▶ [BUG-FIX-TEST 5] Purpose = STORE, Province = null, Customer = FARMER => FAIL");
+  const bft5Server = await validateType1VisitPurposeCustomers([
+    {
+      workTypeCode: "TYPE_1",
+      visitPurpose: "STORE",
+      storeId: testFarmer.id,
+      isUnregisteredFarmer: false,
+    },
+  ]);
+  assert(!bft5Server.valid, "Purpose = STORE with FARMER customer must fail server validation");
+  console.log("  ✔ [PASS] BUG-FIX-TEST 5 correctly rejected with error:", bft5Server.error);
+
+  console.log("\n▶ [BUG-FIX-TEST 6] Purpose = STORE, Province = null, Customer = BROKER => FAIL");
+  const bft6Server = await validateType1VisitPurposeCustomers([
+    {
+      workTypeCode: "TYPE_1",
+      visitPurpose: "STORE",
+      storeId: testBroker.id,
+      isUnregisteredFarmer: false,
+    },
+  ]);
+  assert(!bft6Server.valid, "Purpose = STORE with BROKER customer must fail server validation");
+  console.log("  ✔ [PASS] BUG-FIX-TEST 6 correctly rejected with error:", bft6Server.error);
+
+  console.log("\n▶ [BUG-FIX-TEST 7] FARMER → STORE: Farmer-specific Province validation no longer blocks Save => PASS");
+  const uiItemAfterSwitchToStore = {
+    id: "1",
+    visitPurpose: "STORE" as const,
+    province: "", // cleared upon switching
+    storeId: testDealer.id,
+    customerName: testDealer.name,
+    isUnregisteredFarmer: false,
+    unregisteredFarmerName: "",
+    unregisteredFarmerPhone: "",
+    topic: "แจ้งข่าวสาร",
+    detail: "เข้าพบร้านค้าตัวแทน",
+  };
+  const clientValidationResultStore = (() => {
+    const purpose = (uiItemAfterSwitchToStore.visitPurpose as string) === "STORE" ? "STORE" : "FARMER";
+    if (purpose === "STORE") {
+      if (!uiItemAfterSwitchToStore.storeId) return { valid: false, error: "กรุณาเลือกร้านค้า" };
+    } else {
+      if (!uiItemAfterSwitchToStore.province?.trim()) return { valid: false, error: "กรุณาเลือกจังหวัดสำหรับเข้าพบเกษตรกร" };
+    }
+    return { valid: true };
+  })();
+  assert(clientValidationResultStore.valid, "Client pre-submit validation must pass for STORE without province");
+  const bft7Schema = planStoreInputSchema.safeParse({
+    workTypeCode: "TYPE_1",
+    visitPurpose: uiItemAfterSwitchToStore.visitPurpose,
+    province: null,
+    storeId: uiItemAfterSwitchToStore.storeId,
+    isUnregisteredFarmer: false,
+  });
+  assert(bft7Schema.success, "Schema validation must pass for STORE without province");
+  console.log("  ✔ [PASS] BUG-FIX-TEST 7: Switching to STORE allows saving without province");
+
+  console.log("\n▶ [BUG-FIX-TEST 8] STORE → FARMER, Province = null => FAIL until Province is selected");
+  const uiItemAfterSwitchToFarmer = {
+    id: "1",
+    visitPurpose: "FARMER" as "FARMER" | "STORE",
+    province: "", // not yet selected
+    storeId: "", // cleared upon switching
+    customerName: "",
+    isUnregisteredFarmer: false,
+    topic: "แจ้งข่าวสาร",
+    detail: "",
+  };
+  const clientValidationResultFarmer = (() => {
+    const purpose = (uiItemAfterSwitchToFarmer.visitPurpose as string) === "STORE" ? "STORE" : "FARMER";
+    if (purpose === "STORE") {
+      if (!uiItemAfterSwitchToFarmer.storeId) return { valid: false, error: "กรุณาเลือกร้านค้า" };
+    } else {
+      if (!uiItemAfterSwitchToFarmer.province?.trim()) return { valid: false, error: "กรุณาเลือกจังหวัดสำหรับเข้าพบเกษตรกร" };
+    }
+    return { valid: true };
+  })();
+  assert(!clientValidationResultFarmer.valid, "Client pre-submit must fail for FARMER when province is empty");
+  assert.strictEqual(clientValidationResultFarmer.error, "กรุณาเลือกจังหวัดสำหรับเข้าพบเกษตรกร");
+
+  const bft8Schema = planStoreInputSchema.safeParse({
+    workTypeCode: "TYPE_1",
+    visitPurpose: "FARMER",
+    province: null,
+    storeId: testFarmer.id,
+    isUnregisteredFarmer: false,
+  });
+  assert(!bft8Schema.success, "Schema validation must fail for FARMER when province is null");
+  const bft8Msg = !bft8Schema.success && bft8Schema.error.issues.find((i) => i.path.includes("province"))?.message;
+  assert.strictEqual(bft8Msg, "กรุณาเลือกจังหวัดสำหรับเข้าพบเกษตรกร");
+  console.log("  ✔ [PASS] BUG-FIX-TEST 8: STORE → FARMER requires Province before saving");
+
   console.log("\n=================================================================");
-  console.log("🎉 ALL 17 COMPREHENSIVE TYPE_1 AUTOMATED VERIFICATION TESTS PASSED!");
+  console.log("🎉 ALL 17 COMPREHENSIVE TYPE_1 TESTS + 8 BUG FIX TESTS PASSED!");
   console.log("=================================================================\n");
 }
 

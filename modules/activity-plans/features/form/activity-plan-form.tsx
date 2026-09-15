@@ -2302,42 +2302,56 @@ export function ActivityPlanForm({
     const startDateTime = new Date(`${startDate}T${startTime}:00`);
     const endDateTime = new Date(`${endDate}T${endTime}:00`);
 
-    // Validation for Work Type 1: เข้าพบเกษตรกร
+    // Validation for Work Type 1: เข้าพบ (เกษตรกร / ร้านค้า)
     if (
       selectedWorkTypes.includes("เข้าพบเกษตรกร") ||
       selectedWorkTypes.includes("เข้าพบร้านค้า / Key Farmer")
     ) {
       const item = type1Items[0];
-      if (!item || !item.province?.trim()) {
-        setError("กรุณาเลือกจังหวัดสำหรับเข้าพบเกษตรกร");
-        setLoading(false);
-        return;
-      }
-      if (item.isUnregisteredFarmer) {
-        if (!item.unregisteredFarmerName?.trim()) {
-          setError("กรุณากรอกชื่อ - สกุล เกษตรกร");
-          setLoading(false);
-          return;
-        }
-        if (!item.unregisteredFarmerPhone?.trim()) {
-          setError("กรุณากรอกเบอร์โทรศัพท์เกษตรกร");
-          setLoading(false);
-          return;
-        }
-        const cleanedPhone = item.unregisteredFarmerPhone.replace(/[-\s]/g, "");
-        if (!/^\d{9,10}$/.test(cleanedPhone)) {
-          setError("เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก");
+      const purpose = item?.visitPurpose === "STORE" ? "STORE" : "FARMER";
+
+      if (purpose === "STORE") {
+        const sId =
+          item?.storeId ||
+          customersList.find((c) => c.name === item?.customerName)?.id;
+        if (!sId) {
+          setError("กรุณาเลือกร้านค้า");
           setLoading(false);
           return;
         }
       } else {
-        const sId =
-          item.storeId ||
-          customersList.find((c) => c.name === item.customerName)?.id;
-        if (!sId) {
-          setError("กรุณาเลือกเกษตรกร");
+        // purpose === "FARMER"
+        if (!item || !item.province?.trim()) {
+          setError("กรุณาเลือกจังหวัดสำหรับเข้าพบเกษตรกร");
           setLoading(false);
           return;
+        }
+        if (item.isUnregisteredFarmer) {
+          if (!item.unregisteredFarmerName?.trim()) {
+            setError("กรุณากรอกชื่อ - สกุล เกษตรกร");
+            setLoading(false);
+            return;
+          }
+          if (!item.unregisteredFarmerPhone?.trim()) {
+            setError("กรุณากรอกเบอร์โทรศัพท์เกษตรกร");
+            setLoading(false);
+            return;
+          }
+          const cleanedPhone = item.unregisteredFarmerPhone.replace(/[-\s]/g, "");
+          if (!/^\d{9,10}$/.test(cleanedPhone)) {
+            setError("เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก");
+            setLoading(false);
+            return;
+          }
+        } else {
+          const sId =
+            item.storeId ||
+            customersList.find((c) => c.name === item.customerName)?.id;
+          if (!sId) {
+            setError("กรุณาเลือกเกษตรกร");
+            setLoading(false);
+            return;
+          }
         }
       }
     }

@@ -22,7 +22,7 @@ export const planStoreInputSchema = z
         if (!data.province || !data.province.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "กรุณาเลือกจังหวัดของเกษตรกร",
+            message: "กรุณาเลือกจังหวัดสำหรับเข้าพบเกษตรกร",
             path: ["province"],
           });
         }
