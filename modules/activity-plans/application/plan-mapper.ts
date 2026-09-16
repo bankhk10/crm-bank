@@ -187,6 +187,7 @@ export function normalizePlanInput(
             isPriceOverridden: overridden,
             targetQuantity: qty,
             targetAmount: tAmount,
+            notes: item.detail || item.notes || null,
           });
         }
       }

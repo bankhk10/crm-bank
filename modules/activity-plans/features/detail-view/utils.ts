@@ -79,30 +79,28 @@ export function extractWorkTypeSections(
   );
   if (type3Products.length > 0 || type3Stores.length > 0 || t3Line) {
     const list = type3Products.map((pr) => {
+      const matchedStore = type3Stores.find((s) => s.storeId && pr.storeId && s.storeId === pr.storeId) || type3Stores[0];
+      const isSub = Boolean(matchedStore?.subDealerStore);
+      const storeDisplay = isSub
+        ? `${matchedStore?.subDealerStore} (Dealer: ${matchedStore?.storeName || "-"})`
+        : matchedStore?.storeName || "-";
+
       const extraFields: Array<{ label: string; value: string }> = [];
       if (pr.targetQuantity != null) {
         extraFields.push({
           label: "จำนวนเป้าหมาย",
-          value: `${pr.targetQuantity}`,
+          value: `${pr.targetQuantity} หน่วย`,
         });
       }
-      if (pr.unitPrice != null) {
+      if (pr.notes || matchedStore?.notes) {
         extraFields.push({
-          label: "ราคาต่อหน่วย",
-          value: `${Number(pr.unitPrice).toLocaleString()} บาท`,
-        });
-      }
-      if (pr.targetAmount != null) {
-        extraFields.push({
-          label: "มูลค่ารวม",
-          value: `${Number(pr.targetAmount).toLocaleString()} บาท`,
+          label: "รายละเอียด",
+          value: pr.notes || matchedStore?.notes || "",
         });
       }
       return {
         title: pr.productName || "สินค้า",
-        subtitle: type3Stores[0]?.storeName
-          ? `ร้านค้า: ${type3Stores[0].storeName}`
-          : undefined,
+        subtitle: `ร้านค้า: ${storeDisplay}`,
         extraFields: extraFields.length > 0 ? extraFields : undefined,
       };
     });

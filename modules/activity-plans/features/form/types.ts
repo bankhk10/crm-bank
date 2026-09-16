@@ -42,25 +42,29 @@ export interface Type3SalesProductLine {
   productId?: string;
   productName: string;
   quantity: number;
-  unitPrice: number;
+  notes?: string;
+  unitPrice?: number;
   masterPrice?: number;
   isPriceOverridden?: boolean;
-  price: number;
+  price?: number;
 }
 
 export interface Type3SalesItem {
   id: string;
+  isSubDealer?: boolean;
+  subDealerStore?: string;
   storeId?: string;
   customerName: string;
   products?: Type3SalesProductLine[];
   productId?: string;
   productName?: string;
   quantity?: number;
+  notes?: string;
   unitPrice?: number;
   masterPrice?: number;
   isPriceOverridden?: boolean;
   price?: number;
-  detail: string;
+  detail?: string;
 }
 
 export interface Type4CollectItem {

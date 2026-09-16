@@ -674,6 +674,7 @@ export function ActivityPlanForm({
           productId: p.productId,
           productName: p.product?.name || p.productName || "",
           quantity: p.targetQuantity != null ? Number(p.targetQuantity) : 1,
+          notes: p.notes || "",
           unitPrice: p.unitPrice != null ? Number(p.unitPrice) : 0,
           price:
             p.targetAmount != null
@@ -686,6 +687,8 @@ export function ActivityPlanForm({
         return {
           id: String(idx + 1),
           storeId: sId !== "default" ? sId : undefined,
+          isSubDealer: Boolean(matchedStore?.subDealerStore),
+          subDealerStore: matchedStore?.subDealerStore || "",
           customerName: matchedStore?.store?.name || matchedStore?.storeName || "",
           products:
             prodLines.length > 0
@@ -695,20 +698,13 @@ export function ActivityPlanForm({
                     id: `p-${idx}-0`,
                     productName: "",
                     quantity: 1,
-                    unitPrice: 0,
-                    price: 0,
+                    notes: "",
                   },
                 ],
           productId: firstProd?.productId,
           productName: firstProd?.productName || "",
           quantity: firstProd?.quantity || 1,
-          unitPrice: firstProd?.unitPrice || 0,
-          price: prodLines.reduce(
-            (sum: number, p: any) => sum + (p.price || 0),
-            0,
-          ),
-          masterPrice: firstProd?.masterPrice,
-          isPriceOverridden: firstProd?.isPriceOverridden,
+          notes: firstProd?.notes || "",
           detail: matchedStore?.notes || "",
         };
       });
@@ -778,20 +774,20 @@ export function ActivityPlanForm({
   const addType3Row = () => {
     const newItem: Type3SalesItem = {
       id: Date.now().toString(),
+      isSubDealer: false,
+      subDealerStore: "",
       customerName: "",
       products: [
         {
           id: "p-" + Date.now().toString(),
           productName: "",
           quantity: 1,
-          unitPrice: 0,
-          price: 0,
+          notes: "",
         },
       ],
       productName: "",
       quantity: 1,
-      unitPrice: 0,
-      price: 0,
+      notes: "",
       detail: "",
     };
     setType3Items((prev) => [...prev, newItem]);
@@ -2372,11 +2368,12 @@ export function ActivityPlanForm({
           const sId =
             item.storeId ||
             customersList.find((c) => c.name === item.customerName)?.id;
-          if (sId) {
+          if (sId || item.customerName) {
             planStores.push({
               workTypeCode: "TYPE_3",
-              storeId: sId,
+              storeId: sId || null,
               storeName: item.customerName || null,
+              subDealerStore: item.isSubDealer ? item.subDealerStore || null : null,
               notes: item.detail || null,
             });
           }
@@ -2388,10 +2385,7 @@ export function ActivityPlanForm({
                     productId: item.productId,
                     productName: item.productName || "",
                     quantity: item.quantity || 1,
-                    unitPrice: item.unitPrice || 0,
-                    price: item.price || 0,
-                    masterPrice: item.masterPrice,
-                    isPriceOverridden: item.isPriceOverridden,
+                    notes: item.notes || "",
                   },
                 ];
           prodLines.forEach((p) => {
@@ -2401,26 +2395,17 @@ export function ActivityPlanForm({
             const pId = p.productId || matchedP?.id;
             if (pId) {
               const qty = p.quantity != null ? Number(p.quantity) : 1;
-              const uPrice = p.unitPrice != null ? Number(p.unitPrice) : 0;
-              const mPrice =
-                p.masterPrice != null
-                  ? Number(p.masterPrice)
-                  : matchedP?.price != null
-                    ? Number(matchedP.price)
-                    : null;
-              const overridden =
-                p.isPriceOverridden ??
-                (mPrice != null ? uPrice !== mPrice : false);
               planProducts.push({
                 workTypeCode: "TYPE_3",
                 storeId: sId || null,
                 productId: pId,
                 productName: p.productName || matchedP?.name || null,
-                masterPrice: mPrice,
-                unitPrice: uPrice,
-                isPriceOverridden: overridden,
+                masterPrice: null,
+                unitPrice: null,
+                isPriceOverridden: false,
                 targetQuantity: qty,
-                targetAmount: qty * uPrice,
+                targetAmount: null,
+                notes: p.notes || null,
               });
             }
           });

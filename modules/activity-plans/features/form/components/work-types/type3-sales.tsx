@@ -1,14 +1,17 @@
 import React from "react";
-import { ShoppingCart, Plus, Trash2 } from "lucide-react";
+import { ShoppingCart, Plus, Trash2, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
 import type { Type3SalesItem, Type3SalesProductLine } from "../../types";
+
 export interface CustomerOption {
   id: string;
   name: string;
   customerCode?: string | null;
+  customerType?: string | null;
   responsibleEmployeeId?: string | null;
+  parentDealerId?: string | null;
 }
 
 export interface ProductOption {
@@ -38,9 +41,20 @@ export function Type3Sales({
   customers = [],
   products = [],
 }: Props) {
-  const customerOptions = (customers || []).map((c) => ({
+  // Filter only DEALER customer types from Customer Master
+  const dealerCustomers = (customers || []).filter(
+    (c) =>
+      c.customerType === "DEALER" ||
+      c.customerType === "Dealer" ||
+      !c.customerType, // fallback if not tagged
+  );
+
+  const dealerOptions = (
+    dealerCustomers.length > 0 ? dealerCustomers : customers || []
+  ).map((c) => ({
     value: c.name,
     label: c.name,
+    subLabel: c.customerCode || undefined,
   }));
 
   const boxProducts = products.filter(
@@ -68,8 +82,7 @@ export function Type3Sales({
               id: "p-1",
               productName: currentItem.productName || "",
               quantity: currentItem.quantity != null ? currentItem.quantity : 1,
-              unitPrice: currentItem.unitPrice || 0,
-              price: (currentItem.quantity != null ? currentItem.quantity : 1) * (currentItem.unitPrice || 0),
+              notes: currentItem.notes || "",
             },
           ];
 
@@ -77,8 +90,7 @@ export function Type3Sales({
       id: Date.now().toString(),
       productName: "",
       quantity: 1,
-      unitPrice: 0,
-      price: 0,
+      notes: "",
     };
 
     const updatedProducts = [...currentProducts, newProdLine];
@@ -103,8 +115,7 @@ export function Type3Sales({
               id: "p-1",
               productName: currentItem.productName || "",
               quantity: currentItem.quantity != null ? currentItem.quantity : 1,
-              unitPrice: currentItem.unitPrice || 0,
-              price: (currentItem.quantity != null ? currentItem.quantity : 1) * (currentItem.unitPrice || 0),
+              notes: currentItem.notes || "",
             },
           ];
 
@@ -114,47 +125,16 @@ export function Type3Sales({
       if (field === "productName") {
         if (!val) {
           updated.productId = undefined;
-          updated.unitPrice = 0;
-          updated.masterPrice = undefined;
-          updated.isPriceOverridden = false;
         } else {
           const foundProd = (products || []).find(
             (prod) => prod.name === val || prod.id === val,
           );
-          if (foundProd && foundProd.price != null) {
+          if (foundProd) {
             updated.productId = foundProd.id;
             updated.productName = foundProd.name;
-            updated.masterPrice = Number(foundProd.price);
-            updated.unitPrice = Number(foundProd.price);
-            updated.isPriceOverridden = false;
-          } else if (foundProd) {
-            updated.productId = foundProd.id;
-            updated.productName = foundProd.name;
-            updated.unitPrice = 0;
-            updated.masterPrice = 0;
-            updated.isPriceOverridden = false;
-          } else {
-            updated.unitPrice = 0;
-            updated.isPriceOverridden = false;
           }
         }
       }
-      if (field === "unitPrice") {
-        const newPrice = parseFloat(val) || 0;
-        updated.unitPrice = newPrice;
-        if (updated.masterPrice != null) {
-          updated.isPriceOverridden = Number(newPrice) !== Number(updated.masterPrice);
-        }
-      }
-      const qty =
-        typeof updated.quantity === "number"
-          ? updated.quantity
-          : parseInt(updated.quantity) || 0;
-      const uPrice =
-        typeof updated.unitPrice === "number"
-          ? updated.unitPrice
-          : parseFloat(updated.unitPrice) || 0;
-      updated.price = qty * uPrice;
       return updated;
     });
 
@@ -175,17 +155,14 @@ export function Type3Sales({
     updateType3Row(itemId, "products", updatedProducts);
   };
 
-  const totalAllSales = type3Items.reduce((sum, item) => {
+  const totalAllQuantity = type3Items.reduce((sum, item) => {
     if (item.products && item.products.length > 0) {
       return (
         sum +
-        item.products.reduce(
-          (pSum, p) => pSum + (p.quantity || 0) * (p.unitPrice || 0),
-          0,
-        )
+        item.products.reduce((pSum, p) => pSum + (Number(p.quantity) || 0), 0)
       );
     }
-    return sum + (item.quantity || 0) * (item.unitPrice || 0);
+    return sum + (Number(item.quantity) || 0);
   }, 0);
 
   return (
@@ -217,6 +194,7 @@ export function Type3Sales({
           </div>
         ) : (
           type3Items.map((item, index) => {
+            const isSubDealer = Boolean(item.isSubDealer);
             const prodListLines: Type3SalesProductLine[] =
               item.products && item.products.length > 0
                 ? item.products
@@ -225,13 +203,12 @@ export function Type3Sales({
                       id: "p-1",
                       productName: item.productName || "",
                       quantity: item.quantity != null ? item.quantity : 1,
-                      unitPrice: item.unitPrice || 0,
-                      price: (item.quantity != null ? item.quantity : 1) * (item.unitPrice || 0),
+                      notes: item.notes || "",
                     },
                   ];
 
-            const cardTotal = prodListLines.reduce(
-              (sum, p) => sum + (p.quantity || 0) * (p.unitPrice || 0),
+            const cardTotalQty = prodListLines.reduce(
+              (sum, p) => sum + (Number(p.quantity) || 0),
               0,
             );
 
@@ -259,38 +236,121 @@ export function Type3Sales({
                   )}
                 </div>
 
-                {/* Customer Combobox */}
-                <div>
-                  <FormCombobox
-                    id={`customer-combobox-${item.id}`}
-                    label="ชื่อร้านค้า / Key Farmer"
-                    labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
-                    triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                    value={item.customerName}
-                    onChange={(val) => {
-                      const cust = customers.find(
-                        (c) => c.name === val || c.id === val,
-                      );
-                      updateType3Row(item.id, "customerName", cust?.name || val);
-                      if (cust?.id) {
-                        updateType3Row(item.id, "storeId", cust.id);
-                      }
-                    }}
-                    options={customerOptions}
-                    placeholder="เลือกร้านค้า / Key Farmer..."
-                    searchPlaceholder="ค้นหาร้านค้า / Key Farmer..."
-                    emptyText="ไม่พบลูกค้า"
-                    disabled={readonly}
-                    required
-                  />
+                {/* 1. Customer Type Selector (Dealer vs Subdealer) */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-700">
+                    ประเภทลูกค้า / ร้านค้า <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                      <input
+                        type="radio"
+                        name={`customer-type-${item.id}`}
+                        checked={!isSubDealer}
+                        onChange={() => {
+                          updateType3Row(item.id, "isSubDealer", false);
+                          updateType3Row(item.id, "subDealerStore", "");
+                        }}
+                        disabled={readonly}
+                        className="text-emerald-600 focus:ring-emerald-500 h-4 w-4"
+                      />
+                      <span>Dealer (ร้านค้าหลัก)</span>
+                    </label>
+
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                      <input
+                        type="radio"
+                        name={`customer-type-${item.id}`}
+                        checked={isSubDealer}
+                        onChange={() => {
+                          updateType3Row(item.id, "isSubDealer", true);
+                        }}
+                        disabled={readonly}
+                        className="text-emerald-600 focus:ring-emerald-500 h-4 w-4"
+                      />
+                      <span>Subdealer (ร้านค้าย่อย)</span>
+                    </label>
+                  </div>
                 </div>
 
-                {/* Product Lines Section */}
+                {/* 2. Customer Form Fields */}
+                {!isSubDealer ? (
+                  /* Case DEALER: Select Dealer from Customer Master */
+                  <div>
+                    <FormCombobox
+                      id={`customer-combobox-${item.id}`}
+                      label="ชื่อร้านค้า (Dealer)"
+                      labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                      value={item.customerName}
+                      onChange={(val) => {
+                        const cust = customers.find(
+                          (c) => c.name === val || c.id === val,
+                        );
+                        updateType3Row(item.id, "customerName", cust?.name || val);
+                        if (cust?.id) {
+                          updateType3Row(item.id, "storeId", cust.id);
+                        }
+                      }}
+                      options={dealerOptions}
+                      placeholder="เลือกร้านค้า Dealer..."
+                      searchPlaceholder="ค้นหาร้านค้า Dealer..."
+                      emptyText="ไม่พบร้านค้า Dealer ในระบบ"
+                      disabled={readonly}
+                      required
+                    />
+                  </div>
+                ) : (
+                  /* Case SUBDEALER: Input Subdealer name + Select Parent Dealer */
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-amber-50/40 rounded-xl border border-amber-200/70">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        ชื่อร้าน Subdealer <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={item.subDealerStore || ""}
+                        onChange={(e) =>
+                          updateType3Row(item.id, "subDealerStore", e.target.value)
+                        }
+                        disabled={readonly}
+                        placeholder="ระบุชื่อร้านค้า Subdealer..."
+                        className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder:text-slate-400"
+                      />
+                    </div>
+
+                    <div>
+                      <FormCombobox
+                        id={`parent-dealer-combobox-${item.id}`}
+                        label="Dealer ต้นสังกัด"
+                        labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                        triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                        value={item.customerName}
+                        onChange={(val) => {
+                          const cust = customers.find(
+                            (c) => c.name === val || c.id === val,
+                          );
+                          updateType3Row(item.id, "customerName", cust?.name || val);
+                          if (cust?.id) {
+                            updateType3Row(item.id, "storeId", cust.id);
+                          }
+                        }}
+                        options={dealerOptions}
+                        placeholder="เลือก Dealer ต้นสังกัด..."
+                        searchPlaceholder="ค้นหา Dealer ต้นสังกัด..."
+                        emptyText="ไม่พบ Dealer ในระบบ"
+                        disabled={readonly}
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Product Lines Section */}
                 <div className="space-y-2.5 bg-slate-50/60 p-3 rounded-lg border border-slate-200/70">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-slate-700">
-                      รายการสินค้าที่จะเสนอขาย{" "}
-                      <span className="text-red-500">*</span>
+                      รายการสินค้าที่จะเสนอขาย <span className="text-red-500">*</span>
                     </label>
                     {!readonly && (
                       <Button
@@ -313,7 +373,7 @@ export function Type3Sales({
                         className="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-end bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs"
                       >
                         {/* Product Combobox */}
-                        <div className="md:col-span-6">
+                        <div className="md:col-span-5">
                           <FormCombobox
                             id={`product-combobox-${item.id}-${prodLine.id}`}
                             label={pIdx === 0 ? "สินค้า" : "สินค้า"}
@@ -361,42 +421,28 @@ export function Type3Sales({
                           />
                         </div>
 
-                        {/* Unit Price */}
-                        <div className="md:col-span-3">
+                        {/* Detail / Notes (แทนที่ช่องราคาเดิม) */}
+                        <div className="md:col-span-4">
                           {pIdx === 0 && (
                             <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                              ราคา (บาท) <span className="text-red-500">*</span>
+                              รายละเอียด
                             </label>
                           )}
-                          <div className="relative">
-                            <span className="absolute left-2.5 top-2 text-slate-400 text-xs font-semibold">
-                              ฿
-                            </span>
-                            <input
-                              type="number"
-                              min={0}
-                              step="any"
-                              value={prodLine.unitPrice === 0 ? "" : prodLine.unitPrice}
-                              onChange={(e) =>
-                                updateProductLine(
-                                  item.id,
-                                  prodLine.id,
-                                  "unitPrice",
-                                  e.target.value === ""
-                                    ? ""
-                                    : parseFloat(e.target.value) || 0,
-                                )
-                              }
-                              disabled={readonly}
-                              placeholder="0"
-                              className={cn(
-                                "w-full h-9 pl-6 pr-2.5 rounded-lg border border-slate-200 text-xs text-right font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500",
-                                readonly
-                                  ? "bg-slate-100 text-slate-500 cursor-not-allowed"
-                                  : "bg-white text-slate-800",
-                              )}
-                            />
-                          </div>
+                          <input
+                            type="text"
+                            value={prodLine.notes || ""}
+                            onChange={(e) =>
+                              updateProductLine(
+                                item.id,
+                                prodLine.id,
+                                "notes",
+                                e.target.value,
+                              )
+                            }
+                            disabled={readonly}
+                            placeholder="ระบุข้อเสนอหรือรายละเอียดสินค้า..."
+                            className="w-full h-9 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white placeholder:text-slate-400"
+                          />
                         </div>
 
                         {/* Delete Product Line Button */}
@@ -429,30 +475,14 @@ export function Type3Sales({
                   })}
                 </div>
 
-                {/* Card Summary & Detail */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-1 gap-2 border-t border-slate-100">
-                  <div className="text-xs text-slate-600 font-medium">
-                    รวมเป็นเงิน:{" "}
-                    <span className="text-sm font-bold text-emerald-700 ml-1">
-                      ฿{cardTotal.toLocaleString()}
+                {/* Card Summary */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-1 gap-2 border-t border-slate-100 text-xs text-slate-600 font-medium">
+                  <div>
+                    จำนวนสินค้ารวม:{" "}
+                    <span className="font-bold text-emerald-800 ml-1">
+                      {cardTotalQty.toLocaleString()} หน่วย
                     </span>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    รายละเอียดเพิ่มเติม
-                  </label>
-                  <input
-                    type="text"
-                    value={item.detail}
-                    onChange={(e) =>
-                      updateType3Row(item.id, "detail", e.target.value)
-                    }
-                    disabled={readonly}
-                    placeholder="ระบุรายละเอียดเพิ่มเติม..."
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                  />
                 </div>
               </div>
             );
@@ -463,9 +493,9 @@ export function Type3Sales({
       {type3Items.length > 0 && (
         <div className="flex justify-end p-3 rounded-xl bg-emerald-100/70 border border-emerald-200 text-xs font-bold text-emerald-900">
           <span>
-            รวมราคาเสนอขายทั้งสิ้น:{" "}
+            รวมจำนวนสินค้าทั้งหมด:{" "}
             <span className="text-sm font-extrabold text-emerald-700 ml-1.5">
-              ฿ {totalAllSales.toLocaleString()}
+              {totalAllQuantity.toLocaleString()} หน่วย
             </span>
           </span>
         </div>

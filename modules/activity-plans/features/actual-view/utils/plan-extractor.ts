@@ -417,42 +417,50 @@ export function extractPlanData(
     items: t2Items,
   };
 
-  // TYPE 3: Store / Product / Quantity / Price / Target Amount
+  // TYPE 3: Store / Product / Quantity / Detail / Notes
   const t3Stores = stores.filter((s) => s.workTypeCode === "TYPE_3");
   const t3Products = products.filter((pr) => pr.workTypeCode === "TYPE_3");
   const t3Items = t3Products.map((pr) => {
     const qtyVal = pr.targetQuantity != null ? String(pr.targetQuantity) : "";
-    const uPriceVal = pr.unitPrice ? `${Number(pr.unitPrice).toLocaleString()} บาท` : "";
-    const targetAmt = pr.targetAmount
-      ? Number(pr.targetAmount)
-      : (pr.targetQuantity || 0) * (Number(pr.unitPrice) || 0);
+    const matchedStore = t3Stores.find((s) => s.storeId && pr.storeId && s.storeId === pr.storeId) || t3Stores[0];
+    const isSub = Boolean(matchedStore?.subDealerStore);
+    const custDisplay = isSub
+      ? `${matchedStore?.subDealerStore} (Dealer: ${matchedStore?.storeName || "-"})`
+      : matchedStore?.storeName || allStoreNames || p.location || "";
+
     return {
       id: pr.id,
       productName: pr.productName || "สินค้าเสนอขาย",
-      customer: t3Stores[0]?.storeName || allStoreNames || p.location || "",
+      customer: custDisplay,
+      isSubDealer: isSub,
+      subDealerStore: matchedStore?.subDealerStore || "",
+      dealerName: matchedStore?.storeName || "",
       qty: qtyVal,
-      unitPrice: uPriceVal,
-      price: targetAmt > 0 ? `${targetAmt.toLocaleString()} บาท` : "",
-      targetSales: targetAmt > 0 ? targetAmt.toLocaleString() : "",
-      detail: "",
+      unitPrice: pr.unitPrice ? `${Number(pr.unitPrice).toLocaleString()} บาท` : "",
+      price: "",
+      targetSales: "",
+      detail: pr.notes || matchedStore?.notes || "",
+      notes: pr.notes || "",
     };
   });
-  const t3TotalSales = t3Products.reduce((sum, pr) => {
-    const amt = pr.targetAmount
-      ? Number(pr.targetAmount)
-      : (pr.targetQuantity || 0) * (Number(pr.unitPrice) || 0);
-    return sum + amt;
-  }, 0);
   const t3TotalQty = t3Products.reduce((sum, pr) => sum + (pr.targetQuantity || 0), 0);
+  const t3PrimaryStore = t3Stores[0];
+  const t3PrimaryIsSub = Boolean(t3PrimaryStore?.subDealerStore);
+  const t3PrimaryCustDisplay = t3PrimaryIsSub
+    ? `${t3PrimaryStore?.subDealerStore} (Dealer: ${t3PrimaryStore?.storeName || "-"})`
+    : t3Stores.map((s) => s.storeName).filter(Boolean).join(", ") || allStoreNames || p.location || "";
 
   targets.t3 = {
     ...prevTargets.t3,
-    customer: t3Stores.map((s) => s.storeName).filter(Boolean).join(", ") || allStoreNames || p.location || "",
+    customer: t3PrimaryCustDisplay,
+    isSubDealer: t3PrimaryIsSub,
+    subDealerStore: t3PrimaryStore?.subDealerStore || "",
+    dealerName: t3PrimaryStore?.storeName || "",
     product: t3Products.map((pr) => pr.productName).filter(Boolean).join(", "),
     targetQty: t3TotalQty > 0 ? String(t3TotalQty) : "",
-    unitPrice: t3Products[0]?.unitPrice ? `${Number(t3Products[0].unitPrice).toLocaleString()} บาท` : "",
-    detail: "",
-    targetSales: t3TotalSales > 0 ? `${t3TotalSales.toLocaleString()} บาท` : "",
+    unitPrice: "",
+    detail: t3Products[0]?.notes || t3PrimaryStore?.notes || "",
+    targetSales: "",
     items: t3Items,
   };
 

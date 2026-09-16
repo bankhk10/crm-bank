@@ -1757,6 +1757,7 @@ model ActivityPlanProduct {
   isPriceOverridden Boolean  @default(false) @map("is_price_overridden") // แฟล็กระบุว่าแก้ไขราคาต่างจาก Master
   targetQuantity    Int?     @map("target_quantity") // จำนวนเป้าหมาย (ลัง/หน่วย)
   targetAmount      Decimal? @map("target_amount") @db.Decimal(15, 2) // ยอดเงินเป้าหมาย = targetQuantity * unitPrice
+  notes             String? // รายละเอียดเพิ่มเติมเฉพาะรายการสินค้า (สำหรับ TYPE_3 ฯลฯ)
 
   activityPlan ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
   store        Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)

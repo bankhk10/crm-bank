@@ -492,6 +492,7 @@ export type CreateActivityPlanInput = {
     isPriceOverridden?: boolean;
     targetQuantity?: number | null;
     targetAmount?: number | null;
+    notes?: string | null;
   }>;
   marketingItems?: Array<{
     category: string;
@@ -636,6 +637,7 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
               isPriceOverridden: p.isPriceOverridden ?? false,
               targetQuantity: p.targetQuantity ?? null,
               targetAmount: p.targetAmount != null ? new Prisma.Decimal(p.targetAmount) : null,
+              notes: p.notes ?? null,
             })),
           });
         }
@@ -889,6 +891,7 @@ export async function updateActivityPlan(
             isPriceOverridden: p.isPriceOverridden ?? false,
             targetQuantity: p.targetQuantity ?? null,
             targetAmount: p.targetAmount != null ? new Prisma.Decimal(p.targetAmount) : null,
+            notes: p.notes ?? null,
           })),
         });
       }

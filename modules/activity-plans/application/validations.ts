@@ -88,6 +88,7 @@ export const planProductInputSchema = z.object({
   isPriceOverridden: z.boolean().optional(),
   targetQuantity: z.number().optional().nullable(),
   targetAmount: z.number().optional().nullable(),
+  notes: z.string().optional().nullable(),
 });
 
 export const planMarketingItemInputSchema = z.object({
