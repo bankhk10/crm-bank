@@ -1078,25 +1078,49 @@ export function ActivityPlanForm({
   };
 
   // Work Type 6: ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา
+  const normalizeType6Issue = (val?: string | null): string => {
+    if (!val) return "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย";
+    if (val === "อื่นๆ") return "อื่นๆ ระบุ";
+    if (
+      val === "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย" ||
+      val === "เกิดความเสียหายหลังการใช้สินค้า" ||
+      val === "อื่นๆ ระบุ"
+    ) {
+      return val;
+    }
+    return "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย";
+  };
+
   const [type6Items, setType6Items] = useState<Type6IssueItem[]>(() => {
     if (
       initDetails?.type6Items &&
       Array.isArray(initDetails.type6Items) &&
       initDetails.type6Items.length > 0
     ) {
-      return initDetails.type6Items;
+      return initDetails.type6Items.map((item: any) => ({
+        ...item,
+        isManualCustomer:
+          item.isManualCustomer !== undefined
+            ? item.isManualCustomer
+            : !item.storeId && Boolean(item.customerName),
+        issueType: normalizeType6Issue(item.issueType),
+      }));
     }
     const type6Stores = (initial as any)?.stores?.filter(
       (s: any) => s.workTypeCode === "TYPE_6",
     );
     if (type6Stores && type6Stores.length > 0) {
-      return type6Stores.map((s: any, idx: number) => ({
-        id: s.id || String(idx + 1),
-        storeId: s.storeId,
-        customerName: s.store?.name || s.storeName || "",
-        issueType: s.remarks || "เคลมของ",
-        detail: s.notes || "",
-      }));
+      return type6Stores.map((s: any, idx: number) => {
+        const isManual = !s.storeId && Boolean(s.storeName);
+        return {
+          id: s.id || String(idx + 1),
+          storeId: s.storeId || null,
+          customerName: s.store?.name || s.storeName || "",
+          isManualCustomer: isManual,
+          issueType: normalizeType6Issue(s.remarks),
+          detail: s.notes || "",
+        };
+      });
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
@@ -1109,9 +1133,10 @@ export function ActivityPlanForm({
       if (items.length > 0) {
         return items.map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
-          storeId: item.storeId,
+          storeId: item.storeId || null,
           customerName: item.customerName || "",
-          issueType: item.issueType || "เคลมของ",
+          isManualCustomer: !item.storeId && Boolean(item.customerName),
+          issueType: normalizeType6Issue(item.issueType),
           detail: item.detail || "",
         }));
       }
@@ -1120,7 +1145,8 @@ export function ActivityPlanForm({
       {
         id: "1",
         customerName: "",
-        issueType: "เคลมของ",
+        isManualCustomer: false,
+        issueType: "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
         detail: "",
       },
     ];
@@ -1131,7 +1157,8 @@ export function ActivityPlanForm({
       {
         id: Date.now().toString(),
         customerName: "",
-        issueType: "เคลมของ",
+        isManualCustomer: false,
+        issueType: "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
         detail: "",
       },
     ]);
@@ -2341,6 +2368,51 @@ export function ActivityPlanForm({
       }
     }
 
+    // Validation for Work Type 6: ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา
+    if (selectedWorkTypes.includes("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา")) {
+      if (type6Items.length === 0) {
+        setError(
+          "กรุณาเพิ่มรายการตรวจสอบเรื่องร้องเรียน / แก้ปัญหาอย่างน้อย 1 รายการ",
+        );
+        setLoading(false);
+        return;
+      }
+      for (let i = 0; i < type6Items.length; i++) {
+        const item = type6Items[i];
+        const rowNum = i + 1;
+        if (item.isManualCustomer) {
+          if (!item.customerName?.trim()) {
+            setError(`กรุณากรอกชื่อลูกค้า / ร้านค้า (รายการที่ ${rowNum})`);
+            setLoading(false);
+            return;
+          }
+        } else {
+          const sId =
+            item.storeId ||
+            customersList.find((c) => c.name === item.customerName)?.id;
+          if (!sId) {
+            setError(`กรุณาเลือกร้านค้า / Key Farmer (รายการที่ ${rowNum})`);
+            setLoading(false);
+            return;
+          }
+        }
+
+        if (!item.issueType?.trim()) {
+          setError(`กรุณาเลือกประเภทปัญหา (รายการที่ ${rowNum})`);
+          setLoading(false);
+          return;
+        }
+
+        if (item.issueType === "อื่นๆ ระบุ" && !item.detail?.trim()) {
+          setError(
+            `กรุณากรอกรายละเอียดสำหรับประเภทปัญหา "อื่นๆ ระบุ" (รายการที่ ${rowNum})`,
+          );
+          setLoading(false);
+          return;
+        }
+      }
+    }
+
     const cleanObjective = (initial as any)?.objective ?? "";
     const cleanDescription = (initial as any)?.description ?? null;
 
@@ -2675,17 +2747,35 @@ export function ActivityPlanForm({
       // 6. TYPE_6: ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา
       if (selectedWorkTypes.includes("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา")) {
         type6Items.forEach((item) => {
-          const sId =
-            item.storeId ||
-            customersList.find((c) => c.name === item.customerName)?.id;
-          if (sId) {
-            planStores.push({
-              workTypeCode: "TYPE_6",
-              storeId: sId,
-              storeName: item.customerName || null,
-              remarks: item.issueType || null,
-              notes: item.detail || null,
-            });
+          const detailValue =
+            item.issueType === "อื่นๆ ระบุ"
+              ? item.detail?.trim() || null
+              : item.detail?.trim() || null;
+
+          if (item.isManualCustomer) {
+            if (item.customerName?.trim()) {
+              planStores.push({
+                workTypeCode: "TYPE_6",
+                storeId: null,
+                storeName: item.customerName.trim(),
+                remarks: item.issueType || null,
+                notes: detailValue,
+              });
+            }
+          } else {
+            const sId =
+              item.storeId ||
+              customersList.find((c) => c.name === item.customerName)?.id;
+            if (sId) {
+              const matchedCust = customersList.find((c) => c.id === sId);
+              planStores.push({
+                workTypeCode: "TYPE_6",
+                storeId: sId,
+                storeName: matchedCust?.name || item.customerName || null,
+                remarks: item.issueType || null,
+                notes: detailValue,
+              });
+            }
           }
         });
       }

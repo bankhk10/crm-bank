@@ -1046,8 +1046,7 @@ export default function ActivityPlanActualView({
         // Work Type 6
         let cleanT6Images = t6Images;
         if (
-          (isTypeVisible("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา") ||
-            isTypeVisible("แก้ปัญหา / รับเรื่องร้องเรียน")) &&
+          isTypeVisible("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา") &&
           t6Images &&
           t6Images.length > 0
         ) {

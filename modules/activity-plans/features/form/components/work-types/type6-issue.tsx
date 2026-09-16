@@ -10,7 +10,11 @@ export interface CustomerOption {
   responsibleEmployeeId?: string | null;
 }
 
-const ISSUE_TYPES = ["เคลมของ", "ฉีดยาแล้วพืชเสียหาย", "อื่นๆ"];
+const ISSUE_TYPES = [
+  "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
+  "เกิดความเสียหายหลังการใช้สินค้า",
+  "อื่นๆ ระบุ",
+];
 
 interface Props {
   readonly?: boolean;
@@ -92,60 +96,118 @@ export function Type6Issue({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <FormCombobox
-                  id={`customer-combobox-${item.id}`}
-                  label="รายชื่อลูกค้า / ร้านค้า"
-                  labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
-                  triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
-                  value={item.customerName}
-                  onChange={(val) => {
-                    const cust = customers.find(
-                      (c) => c.name === val || c.id === val,
-                    );
-                    updateType6Row(item.id, "customerName", cust?.name || val);
-                    if (cust?.id) {
-                      updateType6Row(item.id, "storeId", cust.id);
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-medium text-slate-700">
+                      รายชื่อลูกค้า / ร้านค้า{" "}
+                      <span className="text-rose-500">*</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        id={`manual-customer-toggle-${item.id}`}
+                        checked={Boolean(item.isManualCustomer)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          updateType6Row(item.id, "isManualCustomer", checked);
+                          if (checked) {
+                            updateType6Row(item.id, "storeId", null);
+                          } else {
+                            const cust = customers.find(
+                              (c) => c.name === item.customerName,
+                            );
+                            if (cust) {
+                              updateType6Row(item.id, "storeId", cust.id);
+                            } else {
+                              updateType6Row(item.id, "customerName", "");
+                              updateType6Row(item.id, "storeId", null);
+                            }
+                          }
+                        }}
+                        disabled={readonly}
+                        className="w-3.5 h-3.5 text-rose-600 rounded border-slate-300 focus:ring-rose-500 cursor-pointer disabled:cursor-not-allowed"
+                      />
+                      <span>กรอกข้อมูลลูกค้า / ร้านเอง</span>
+                    </label>
+                  </div>
+
+                  {item.isManualCustomer ? (
+                    <input
+                      type="text"
+                      value={item.customerName || ""}
+                      onChange={(e) => {
+                        updateType6Row(item.id, "customerName", e.target.value);
+                        updateType6Row(item.id, "storeId", null);
+                      }}
+                      disabled={readonly}
+                      placeholder="กรอกชื่อลูกค้า / ร้านค้า..."
+                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
+                      required
+                    />
+                  ) : (
+                    <FormCombobox
+                      id={`customer-combobox-${item.id}`}
+                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
+                      value={item.customerName}
+                      onChange={(val) => {
+                        const cust = customers.find(
+                          (c) => c.name === val || c.id === val,
+                        );
+                        updateType6Row(
+                          item.id,
+                          "customerName",
+                          cust?.name || val,
+                        );
+                        updateType6Row(item.id, "storeId", cust?.id || null);
+                      }}
+                      options={customerOptions}
+                      placeholder="เลือกร้านค้า / Key Farmer..."
+                      searchPlaceholder="ค้นหาร้านค้า / Key Farmer..."
+                      emptyText="ไม่พบลูกค้า"
+                      disabled={readonly}
+                      required
+                    />
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <FormCombobox
+                    id={`issue-type-combobox-${item.id}`}
+                    label="ประเภทปัญหา"
+                    labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                    triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
+                    value={item.issueType}
+                    onChange={(val) =>
+                      updateType6Row(item.id, "issueType", val)
                     }
-                  }}
-                  options={customerOptions}
-                  placeholder="เลือกร้านค้า / Key Farmer..."
-                  searchPlaceholder="ค้นหาร้านค้า / Key Farmer..."
-                  emptyText="ไม่พบลูกค้า"
-                  disabled={readonly}
-                  required
-                />
-
-                <FormCombobox
-                  id={`issue-type-combobox-${item.id}`}
-                  label="ประเภทปัญหา"
-                  labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
-                  triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
-                  value={item.issueType}
-                  onChange={(val) => updateType6Row(item.id, "issueType", val)}
-                  options={issueTypeOptions}
-                  placeholder="เลือกประเภทปัญหา..."
-                  searchPlaceholder="ค้นหาประเภทปัญหา..."
-                  emptyText="ไม่พบประเภทปัญหา"
-                  disabled={readonly}
-                  required
-                />
+                    options={issueTypeOptions}
+                    placeholder="เลือกประเภทปัญหา..."
+                    searchPlaceholder="ค้นหาประเภทปัญหา..."
+                    emptyText="ไม่พบประเภทปัญหา"
+                    disabled={readonly}
+                    required
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
-                  รายละเอียดเพิ่มเติม
-                </label>
-                <input
-                  type="text"
-                  value={item.detail}
-                  onChange={(e) =>
-                    updateType6Row(item.id, "detail", e.target.value)
-                  }
-                  disabled={readonly}
-                  placeholder="ระบุรายละเอียดเพิ่มเติมของปัญหา..."
-                  className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
-                />
-              </div>
+              {item.issueType === "อื่นๆ ระบุ" && (
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    รายละเอียด <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={item.detail || ""}
+                    onChange={(e) =>
+                      updateType6Row(item.id, "detail", e.target.value)
+                    }
+                    disabled={readonly}
+                    placeholder="ระบุรายละเอียด..."
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
+                    required
+                  />
+                </div>
+              )}
             </div>
           ))
         )}

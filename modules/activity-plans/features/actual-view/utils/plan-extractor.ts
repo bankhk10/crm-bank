@@ -633,21 +633,24 @@ export function extractPlanData(
     ...prevTargets.t6,
     customer:
       t6Stores
-        .map((s) => s.storeName)
+        .map((s) => (s as any).store?.name || s.storeName)
         .filter(Boolean)
         .join(", ") ||
       allStoreNames ||
       p.location ||
       "",
-    issueType: t6Stores[0]?.remarks || prevTargets.t6.issueType || "เคลมของ",
+    issueType:
+      t6Stores[0]?.remarks ||
+      prevTargets.t6.issueType ||
+      "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
     detail:
       t6Stores
         .map((s) => s.notes)
         .filter(Boolean)
         .join(" | ") || "",
     items: t6Stores.map((s) => ({
-      customer: s.storeName || "",
-      issueType: s.remarks || "เคลมของ",
+      customer: (s as any).store?.name || s.storeName || "",
+      issueType: s.remarks || "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
       detail: s.notes || "",
     })),
   };

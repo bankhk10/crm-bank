@@ -110,11 +110,7 @@ export function DetailActivityResultSection({
 
         {/* WORK TYPE 6 */}
         <DetailType6Issue
-          isVisible={isTypeVisible("แก้ปัญหา / รับเรื่องร้องเรียน")}
-          isVisible={
-            isTypeVisible("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา") ||
-            isTypeVisible("แก้ปัญหา / รับเรื่องร้องเรียน")
-          }
+          isVisible={isTypeVisible("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา")}
           target={targets.t6}
           problemDetail={
             parsedResults.t6ProblemDetail || parsedResults.problemFound

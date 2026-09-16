@@ -73,6 +73,32 @@ export const planStoreInputSchema = z
           });
         }
       }
+    } else if (data.workTypeCode === "TYPE_6") {
+      const hasStoreId = Boolean(data.storeId && data.storeId.trim());
+      const hasStoreName = Boolean(data.storeName && data.storeName.trim());
+      if (!hasStoreId && !hasStoreName) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "กรุณาระบุรายชื่อลูกค้า / ร้านค้า หรือเลือกจากรายชื่อ",
+          path: ["storeId"],
+        });
+      }
+      if (!data.remarks || !data.remarks.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "กรุณาเลือกประเภทปัญหา",
+          path: ["remarks"],
+        });
+      } else if (
+        data.remarks === "อื่นๆ ระบุ" &&
+        (!data.notes || !data.notes.trim())
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "กรุณาระบุรายละเอียดเพิ่มเติมสำหรับประเภทปัญหาอื่นๆ",
+          path: ["notes"],
+        });
+      }
     } else {
       if (!data.storeId || !data.storeId.trim()) {
         ctx.addIssue({

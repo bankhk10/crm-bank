@@ -79,7 +79,10 @@ export function extractWorkTypeSections(
   );
   if (type3Products.length > 0 || type3Stores.length > 0 || t3Line) {
     const list = type3Products.map((pr) => {
-      const matchedStore = type3Stores.find((s) => s.storeId && pr.storeId && s.storeId === pr.storeId) || type3Stores[0];
+      const matchedStore =
+        type3Stores.find(
+          (s) => s.storeId && pr.storeId && s.storeId === pr.storeId,
+        ) || type3Stores[0];
       const isSub = Boolean(matchedStore?.subDealerStore);
       const storeDisplay = isSub
         ? `${matchedStore?.subDealerStore} (Dealer: ${matchedStore?.storeName || "-"})`
@@ -167,27 +170,27 @@ export function extractWorkTypeSections(
     });
   }
 
-  // ── 6. แก้ปัญหา / รับเรื่องร้องเรียน ─────────────────────
   // ── 6. ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา ─────────────────────
   const type6Stores = stores.filter((s) => s.workTypeCode === "TYPE_6");
   const t6Line = objectiveLines.find(
-    (l) => l.includes("[แก้ปัญหา") || l.includes("แก้ปัญหา"),
     (l) =>
       l.includes("[ตรวจสอบเรื่องร้องเรียน") ||
-      l.includes("ตรวจสอบเรื่องร้องเรียน") ||
-      l.includes("[แก้ปัญหา") ||
-      l.includes("แก้ปัญหา"),
+      l.includes("ตรวจสอบเรื่องร้องเรียน"),
   );
   if (type6Stores.length > 0 || t6Line) {
     const list = type6Stores.map((s) => ({
-      title: s.storeName || plan.location || "ลูกค้า/ร้านค้า",
+      title:
+        (s as any).store?.name ||
+        s.storeName ||
+        plan.location ||
+        "ลูกค้า/ร้านค้า",
       subtitle: s.remarks ? `ประเภทปัญหา: ${s.remarks}` : undefined,
       details: s.notes || undefined,
     }));
     sections.push({
       typeIndex: 6,
       title: WORK_TYPES[5],
-      badge: "แก้ปัญหา",
+      badge: "ร้องเรียน/ปัญหา",
       items: list,
       rawSummary: t6Line ? t6Line.replace(/^\[.*?\]\s*/, "") : undefined,
     });
@@ -306,9 +309,8 @@ export function extractWorkTypeSections(
     (l) => l.includes("[Field Day") || l.includes("Field Day"),
   );
   const isType10 =
-    plan.workTypes?.some(
-      (wt) => wt.activityType?.code === "TYPE_10",
-    ) || Boolean(t10Line);
+    plan.workTypes?.some((wt) => wt.activityType?.code === "TYPE_10") ||
+    Boolean(t10Line);
   if (isType10) {
     const extraFields: Array<{ label: string; value: string }> = [];
     if (plan.targetAttendeesCount) {

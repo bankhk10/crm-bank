@@ -543,11 +543,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
 
         {/* WORK TYPE 6 */}
         <ActualType6Issue
-          isVisible={isTypeVisible("แก้ปัญหา / รับเรื่องร้องเรียน")}
-          isVisible={
-            isTypeVisible("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา") ||
-            isTypeVisible("แก้ปัญหา / รับเรื่องร้องเรียน")
-          }
+          isVisible={isTypeVisible("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา")}
           target={targets.t6}
           problemDetail={t6ProblemDetail}
           setProblemDetail={setT6ProblemDetail}

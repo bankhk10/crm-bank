@@ -92,8 +92,9 @@ export interface Type5SurveyItem {
 
 export interface Type6IssueItem {
   id: string;
-  storeId?: string;
+  storeId?: string | null;
   customerName: string;
+  isManualCustomer?: boolean;
   issueType: string;
   detail: string;
 }

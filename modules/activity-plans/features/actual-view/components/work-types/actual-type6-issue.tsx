@@ -79,8 +79,6 @@ export function ActualType6Issue({
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
               <HelpCircle className="w-4 h-4 text-rose-600" />
-              รายการเป้าหมายแก้ปัญหา / รับเรื่องร้องเรียน (
-              {target.items?.length} รายการ):
               รายการเป้าหมายตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (
               {target.items?.length} รายการ):
             </span>
@@ -199,7 +197,6 @@ export function ActualType6Issue({
           </div>
           <div>
             <h4 className="text-xs sm:text-sm font-bold text-rose-950">
-              รูปภาพประกอบการแก้ปัญหา / รับเรื่องร้องเรียน
               รูปภาพประกอบการตรวจสอบเรื่องร้องเรียน / แก้ปัญหา
             </h4>
             <p className="text-[11px] text-rose-700/80">

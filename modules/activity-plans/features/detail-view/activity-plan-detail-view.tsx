@@ -544,14 +544,12 @@ export default function ActivityPlanDetailView({
             target={targets.t5}
           />
 
-          {/* TYPE_6: แก้ปัญหา / รับเรื่องร้องเรียน */}
           {/* TYPE_6: ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา */}
           <ApprovalType6Issue
-            isVisible={isTypeActive("TYPE_6", "แก้ปัญหา / รับเรื่องร้องเรียน")}
-            isVisible={
-              isTypeActive("TYPE_6", "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา") ||
-              isTypeActive("TYPE_6", "แก้ปัญหา / รับเรื่องร้องเรียน")
-            }
+            isVisible={isTypeActive(
+              "TYPE_6",
+              "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา",
+            )}
             target={targets.t6}
           />
 
