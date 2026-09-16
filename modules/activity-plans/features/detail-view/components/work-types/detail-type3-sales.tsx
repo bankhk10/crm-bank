@@ -271,29 +271,22 @@ export function DetailType3Sales({
                   <th className="py-2.5 px-3">สินค้า</th>
                   <th className="py-2.5 px-3">ร้านค้า (Dealer / Subdealer)</th>
                   <th className="py-2.5 px-3 text-center">เป้าจำนวน</th>
-                  <th className="py-2.5 px-3">รายละเอียดแผน</th>
+                  <th className="py-2.5 px-3">รายละเอียด</th>
                   <th className="py-2.5 px-3 text-center bg-blue-50/50">
                     ขายได้จริง (จำนวน)
-                  </th>
-                  <th className="py-2.5 px-3 text-right bg-emerald-50/40">
-                    ยอดขายจริง (บาท)
                   </th>
                   <th className="py-2.5 px-3">เหตุผล / ข้อเสนอ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {/* 1. PLANNED ITEMS */}
-                {processedPlanned.map(({ item, rawActualQty, rawActualSales, displayReason }, idx) => {
+                {processedPlanned.map(({ item, rawActualQty, displayReason }, idx) => {
                   const targetQtyVal =
                     item.qty !== "" && item.qty != null ? `${item.qty} หน่วย` : "-";
                   const detailVal = item.notes || item.detail || "-";
                   const displayActualQty =
                     rawActualQty !== undefined && rawActualQty !== ""
                       ? `${rawActualQty} หน่วย`
-                      : "-";
-                  const displayActualSales =
-                    rawActualSales !== undefined && rawActualSales !== ""
-                      ? `${Number(rawActualSales).toLocaleString()} บ.`
                       : "-";
 
                   const isSub = Boolean(item.isSubDealer || item.subDealerStore);
@@ -351,9 +344,6 @@ export function DetailType3Sales({
                       <td className="py-2.5 px-3 text-center font-bold text-blue-900 bg-blue-50/30">
                         {displayActualQty}
                       </td>
-                      <td className="py-2.5 px-3 text-right font-bold text-emerald-800 bg-emerald-50/20">
-                        {displayActualSales}
-                      </td>
                       <td className="py-2.5 px-3 text-slate-500 whitespace-pre-wrap">
                         {displayReason}
                       </td>
@@ -362,14 +352,10 @@ export function DetailType3Sales({
                 })}
 
                 {/* 2. ADDITIONAL ITEMS (สินค้านอกแผน) */}
-                {processedAdditional.map(({ item, rawActualQty, rawActualSales, displayReason }, idx) => {
+                {processedAdditional.map(({ item, rawActualQty, displayReason }, idx) => {
                   const displayActualQty =
                     rawActualQty !== undefined && rawActualQty !== ""
                       ? `${rawActualQty} หน่วย`
-                      : "-";
-                  const displayActualSales =
-                    rawActualSales !== undefined && rawActualSales !== ""
-                      ? `${Number(rawActualSales).toLocaleString()} บ.`
                       : "-";
 
                   return (
@@ -405,9 +391,6 @@ export function DetailType3Sales({
                       <td className="py-2.5 px-3 text-center font-bold text-purple-900 bg-purple-50/40">
                         {displayActualQty}
                       </td>
-                      <td className="py-2.5 px-3 text-right font-bold text-emerald-800 bg-emerald-50/20">
-                        {displayActualSales}
-                      </td>
                       <td className="py-2.5 px-3 text-slate-600 whitespace-pre-wrap">
                         {displayReason}
                       </td>
@@ -432,11 +415,6 @@ export function DetailType3Sales({
                   <td className="py-2.5 px-3 text-center text-blue-900 font-extrabold bg-blue-50/60">
                     {hasActualRecord ? `${totalActualQtySum.toLocaleString()} หน่วย` : "-"}
                   </td>
-                  <td className="py-2.5 px-3 text-right text-emerald-800 font-extrabold bg-emerald-50/40">
-                    {totalActualSalesSum > 0
-                      ? `${totalActualSalesSum.toLocaleString()} บ.`
-                      : "-"}
-                  </td>
                   <td></td>
                 </tr>
               </tfoot>
@@ -444,7 +422,7 @@ export function DetailType3Sales({
           </div>
 
           {/* SUMMARY STAT CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1">
               <span className="text-[11px] text-slate-500 font-semibold block">
                 เป้าจำนวนรวม (ตามแผน)
@@ -473,17 +451,6 @@ export function DetailType3Sales({
                   : "-"}
               </span>
             </div>
-
-            <div className="bg-emerald-50/60 border border-emerald-200 rounded-xl p-3 space-y-1">
-              <span className="text-[11px] text-emerald-700 font-semibold block">
-                ยอดขายรวมจริง (บาท)
-              </span>
-              <span className="text-sm font-extrabold text-emerald-800 block">
-                {totalActualSalesSum > 0
-                  ? `${totalActualSalesSum.toLocaleString()} บาท`
-                  : "-"}
-              </span>
-            </div>
           </div>
         </div>
       ) : (
@@ -494,7 +461,7 @@ export function DetailType3Sales({
             <span>ผลการปฏิบัติงานจริง</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
               <span className="text-xs text-slate-500 font-medium block">
                 รายการสินค้าที่ขายได้
@@ -513,17 +480,8 @@ export function DetailType3Sales({
               </span>
             </div>
 
-            <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
-              <span className="text-xs text-slate-500 font-medium block">
-                ยอดขายรวมจริง
-              </span>
-              <span className="text-xs sm:text-sm font-bold text-emerald-700 block">
-                {actualSales ? `${actualSales} บาท` : "-"}
-              </span>
-            </div>
-
             {unclosedReason && (
-              <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-3.5 space-y-1 sm:col-span-3">
+              <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-3.5 space-y-1 sm:col-span-2">
                 <span className="text-xs text-amber-700 font-medium block flex items-center gap-1">
                   <AlertTriangle className="w-3.5 h-3.5" />
                   เหตุผล / ข้อเสนอที่ไม่สามารถปิดการขายได้

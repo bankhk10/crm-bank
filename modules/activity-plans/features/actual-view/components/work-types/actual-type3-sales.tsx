@@ -376,7 +376,7 @@ export function ActualType3Sales({
   // Planned items handlers
   const handlePlannedChange = (
     index: number,
-    field: "actualQty" | "actualSales" | "unclosedReason",
+    field: "actualQty" | "unclosedReason",
     value: string,
   ) => {
     const updated = [...plannedItems];
@@ -422,7 +422,6 @@ export function ActualType3Sales({
       | "productId"
       | "productName"
       | "actualQty"
-      | "actualSales"
       | "unclosedReason",
     value: string,
   ) => {
@@ -489,12 +488,12 @@ export function ActualType3Sales({
 
       {/* TARGET SUMMARY CARD (PLAN OVERVIEW) */}
       <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs border-b border-slate-200/60 pb-2.5">
+        <div className="text-xs border-b border-slate-200/60 pb-2.5">
           <div className="space-y-0.5">
             <span className="text-[11px] font-semibold text-slate-500">
               ชื่อร้านค้า / Key Farmer:
             </span>
-            <p className="font-bold text-slate-900">
+            <div className="font-bold text-slate-900">
               {target.subDealerStore ? (
                 <span>
                   <Badge
@@ -519,15 +518,7 @@ export function ActualType3Sales({
                   {target.customer || "-"}
                 </span>
               )}
-            </p>
-          </div>
-          <div className="space-y-0.5">
-            <span className="text-[11px] font-semibold text-slate-500">
-              รายละเอียดเพิ่มเติมจากแผน:
-            </span>
-            <p className="font-medium text-slate-800">
-              {target.detail || "-"}
-            </p>
+            </div>
           </div>
         </div>
 
@@ -539,11 +530,6 @@ export function ActualType3Sales({
                 <Target className="w-4 h-4 text-emerald-600" />
                 รายการสินค้าในแผน ({plannedItems.length} รายการ):
               </span>
-              {target.targetSales && (
-                <span className="text-xs font-extrabold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md">
-                  เป้ายอดขายรวม {target.targetSales}
-                </span>
-              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
@@ -631,57 +617,29 @@ export function ActualType3Sales({
                   </div>
 
                   {/* Inputs */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-800">
-                        ปริมาณขายจริง (สินค้าที่ {idx + 1}){" "}
-                        <span className="text-rose-500">*</span>
-                      </label>
-                      <div className="relative flex items-center">
-                        <Input
-                          type="number"
-                          min="0"
-                          value={prod.actualQty || ""}
-                          onChange={(e) =>
-                            handlePlannedChange(
-                              idx,
-                              "actualQty",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="0"
-                          className="bg-white border-slate-300 pr-12 text-sm"
-                        />
-                        <span className="absolute right-3 text-xs font-semibold text-slate-500">
-                          {unitName}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-800">
-                        ยอดขายจริง (บาท) (สินค้าที่ {idx + 1}){" "}
-                        <span className="text-rose-500">*</span>
-                      </label>
-                      <div className="relative flex items-center">
-                        <Input
-                          type="number"
-                          min="0"
-                          value={prod.actualSales || ""}
-                          onChange={(e) =>
-                            handlePlannedChange(
-                              idx,
-                              "actualSales",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="0.00"
-                          className="bg-white border-slate-300 pr-12 text-sm"
-                        />
-                        <span className="absolute right-3 text-xs font-semibold text-slate-500">
-                          บาท
-                        </span>
-                      </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-800">
+                      ปริมาณขายจริง (สินค้าที่ {idx + 1}){" "}
+                      <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative flex items-center">
+                      <Input
+                        type="number"
+                        min="0"
+                        value={prod.actualQty || ""}
+                        onChange={(e) =>
+                          handlePlannedChange(
+                            idx,
+                            "actualQty",
+                            e.target.value,
+                          )
+                        }
+                        placeholder="0"
+                        className="bg-white border-slate-300 pr-12 text-sm"
+                      />
+                      <span className="absolute right-3 text-xs font-semibold text-slate-500">
+                        {unitName}
+                      </span>
                     </div>
                   </div>
 
@@ -815,56 +773,29 @@ export function ActualType3Sales({
                   />
                 </div>
 
-                {/* Inputs: actualQty and actualSales */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-800">
-                      ปริมาณขายจริง <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="relative flex items-center">
-                      <Input
-                        type="number"
-                        min="0"
-                        value={prod.actualQty || ""}
-                        onChange={(e) =>
-                          handleAdditionalChange(
-                            idx,
-                            "actualQty",
-                            e.target.value,
-                          )
-                        }
-                        placeholder="0"
-                        className="bg-white border-slate-300 pr-12 text-sm"
-                      />
-                      <span className="absolute right-3 text-xs font-semibold text-slate-500">
-                        ชิ้น
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-800">
-                      ยอดขายจริง (บาท) <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="relative flex items-center">
-                      <Input
-                        type="number"
-                        min="0"
-                        value={prod.actualSales || ""}
-                        onChange={(e) =>
-                          handleAdditionalChange(
-                            idx,
-                            "actualSales",
-                            e.target.value,
-                          )
-                        }
-                        placeholder="0.00"
-                        className="bg-white border-slate-300 pr-12 text-sm"
-                      />
-                      <span className="absolute right-3 text-xs font-semibold text-slate-500">
-                        บาท
-                      </span>
-                    </div>
+                {/* Inputs: actualQty */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-800">
+                    ปริมาณขายจริง <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative flex items-center">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={prod.actualQty || ""}
+                      onChange={(e) =>
+                        handleAdditionalChange(
+                          idx,
+                          "actualQty",
+                          e.target.value,
+                        )
+                      }
+                      placeholder="0"
+                      className="bg-white border-slate-300 pr-12 text-sm"
+                    />
+                    <span className="absolute right-3 text-xs font-semibold text-slate-500">
+                      ชิ้น
+                    </span>
                   </div>
                 </div>
 
@@ -912,12 +843,6 @@ export function ActualType3Sales({
             ปริมาณขายจริงรวม:{" "}
             <span className="text-emerald-700 font-extrabold text-sm">
               {totalActualQtySum.toLocaleString()} หน่วย
-            </span>
-          </span>
-          <span className="bg-white text-slate-800 font-bold px-3 py-1.5 rounded-xl border border-emerald-200 shadow-2xs">
-            ยอดขายรวมจริง:{" "}
-            <span className="text-emerald-700 font-extrabold text-sm">
-              {totalActualSalesSum.toLocaleString()} บาท
             </span>
           </span>
         </div>
