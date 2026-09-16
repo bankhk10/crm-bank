@@ -20,7 +20,7 @@ import {
   findOrCreateEmployeeForUser,
   getApprovalQueueDataUseCase,
   getActivityTypesUseCase,
-  getChemicalGroupsUseCase,
+  getProductCategoriesUseCase,
   getDemoPlotsUseCase,
   getFarmerCustomersUseCase,
   getDemoPlotHistoryUseCase,
@@ -588,22 +588,29 @@ export async function getDemoPlotsAction() {
 }
 
 /**
- * Action: Get chemical groups (ProductGroup) master lookups
+ * Action: Get product categories (ProductCategory) master lookups
  */
-export async function getChemicalGroupsAction() {
+export async function getProductCategoriesAction() {
   try {
-    const result = await getChemicalGroupsUseCase();
+    const result = await getProductCategoriesUseCase();
     return serialize({
       success: true,
-      chemicalGroups: result,
+      productCategories: result,
     });
   } catch (err: any) {
-    console.error("Failed to get chemical groups", err);
+    console.error("Failed to get product categories", err);
     return serialize({
       success: false,
-      chemicalGroups: [],
+      productCategories: [],
     });
   }
+}
+
+/**
+ * Backward compatibility alias for getProductCategoriesAction
+ */
+export async function getChemicalGroupsAction() {
+  return getProductCategoriesAction();
 }
 
 /**

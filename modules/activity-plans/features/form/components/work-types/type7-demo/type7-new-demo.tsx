@@ -24,9 +24,17 @@ export interface ProductOption {
   id: string;
   name: string;
   productCode?: string | null;
+  categoryId?: string | null;
   productGroupId?: string | null;
   price?: number | null;
   unit?: string | null;
+}
+
+export interface ProductCategoryOption {
+  id: string;
+  code: string;
+  description: string;
+  name?: string;
 }
 
 export interface ChemicalGroupOption {
@@ -48,6 +56,7 @@ interface Type7NewDemoProps {
   cropCategoryOptions: Array<{ value: string; label: string }>;
   customers?: CustomerOption[];
   products?: ProductOption[];
+  productCategories?: ProductCategoryOption[];
   chemicalGroups?: ChemicalGroupOption[];
   readonly?: boolean;
 }
@@ -58,6 +67,7 @@ export function Type7NewDemo({
   cropCategoryOptions,
   customers = [],
   products = [],
+  productCategories = [],
   chemicalGroups = [],
   readonly = false,
 }: Type7NewDemoProps) {
@@ -149,25 +159,38 @@ export function Type7NewDemo({
     "พืชสวนอื่นๆ",
   ].includes(item.cropName);
 
-  // 4. Chemical Group Options
-  const chemicalGroupOptions = useMemo(() => {
-    return chemicalGroups.map((g) => ({
-      value: g.id,
-      label: g.name,
-      subLabel: g.code ? `รหัส: ${g.code}` : undefined,
+  // 4. Product Category Options (หมวดสินค้า)
+  const categoryOptions = useMemo(() => {
+    const list =
+      productCategories && productCategories.length > 0
+        ? productCategories
+        : chemicalGroups;
+    return (list || []).map((c: any) => ({
+      value: c.id,
+      label:
+        c.code && c.description
+          ? `${c.code} - ${c.description}`
+          : c.description || c.name || c.code,
+      subLabel: c.code ? `รหัส: ${c.code}` : undefined,
     }));
-  }, [chemicalGroups]);
+  }, [productCategories, chemicalGroups]);
 
-  const handleChemicalGroupChange = (newGroupId: string) => {
-    updateType7Row(item.id, "chemicalGroupId", newGroupId);
+  const selectedCategoryId = item.categoryId || item.chemicalGroupId || "";
 
-    // Business Requirement: Auto-clear products not matching the selected chemical group
+  const handleCategoryChange = (newCatId: string) => {
+    updateType7Row(item.id, "categoryId", newCatId);
+    updateType7Row(item.id, "chemicalGroupId", newCatId);
+
+    // Business Requirement: Auto-clear products not matching the selected category
     const currentProducts = item.demoProducts || [];
     const filtered = currentProducts.filter((p) => {
       const matched = products.find(
         (prod) => prod.id === p.productId || prod.name === p.productName,
       );
-      return matched && matched.productGroupId === newGroupId;
+      return (
+        matched &&
+        (matched.categoryId === newCatId || matched.productGroupId === newCatId)
+      );
     });
 
     updateType7Row(
@@ -187,14 +210,18 @@ export function Type7NewDemo({
     );
   };
 
-  // 5. Products filtered strictly by chosen Chemical Group
-  const availableProductsForGroup = useMemo(() => {
-    if (!item.chemicalGroupId) return [];
-    return products.filter((p) => p.productGroupId === item.chemicalGroupId);
-  }, [products, item.chemicalGroupId]);
+  // 5. Products filtered strictly by chosen Product Category
+  const availableProductsForCategory = useMemo(() => {
+    if (!selectedCategoryId) return [];
+    return products.filter(
+      (p) =>
+        p.categoryId === selectedCategoryId ||
+        p.productGroupId === selectedCategoryId,
+    );
+  }, [products, selectedCategoryId]);
 
-  const productOptionsForGroup = useMemo(() => {
-    return availableProductsForGroup.map((p) => ({
+  const productOptionsForCategory = useMemo(() => {
+    return availableProductsForCategory.map((p) => ({
       value: p.id,
       label: p.name,
       subLabel: p.unit
@@ -203,7 +230,7 @@ export function Type7NewDemo({
           ? `รหัส: ${p.productCode}`
           : undefined,
     }));
-  }, [availableProductsForGroup]);
+  }, [availableProductsForCategory]);
 
   // 6. Demo Products Management
   const demoProducts: Type7DemoProductLine[] = useMemo(() => {
@@ -494,32 +521,32 @@ export function Type7NewDemo({
         </div>
       </div>
 
-      {/* SECTION 2: กลุ่มสารและวัตถุประสงค์ */}
+      {/* SECTION 2: หมวดสินค้าและวัตถุประสงค์ */}
       <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200/80 space-y-3">
         <h6 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
           <span>ข้อมูลการทดลองและวัตถุประสงค์</span>
         </h6>
 
-        {/* Chemical Group Combobox */}
+        {/* Product Category Combobox */}
         <div>
           <FormCombobox
-            id={`chemical-group-combobox-${item.id}`}
-            label="กลุ่มสาร"
+            id={`category-combobox-${item.id}`}
+            label="หมวดสินค้า"
             labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
             triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-            value={item.chemicalGroupId || ""}
-            onChange={handleChemicalGroupChange}
-            options={chemicalGroupOptions}
-            placeholder="เลือกกลุ่มสาร..."
-            searchPlaceholder="ค้นหากลุ่มสาร..."
-            emptyText="ไม่พบกลุ่มสาร"
+            value={selectedCategoryId}
+            onChange={handleCategoryChange}
+            options={categoryOptions}
+            placeholder="เลือกหมวดสินค้า..."
+            searchPlaceholder="ค้นหาหมวดสินค้า..."
+            emptyText="ไม่พบหมวดสินค้า"
             disabled={readonly}
             required
           />
-          {item.chemicalGroupId && (
+          {selectedCategoryId && (
             <p className="mt-1 text-[11px] text-emerald-600 flex items-center gap-1">
               <Info className="h-3 w-3 inline" />
-              สินค้าในตารางด้านล่างจะถูกกรองให้ตรงกับกลุ่มสารที่เลือกเท่านั้น
+              สินค้าในตารางด้านล่างจะถูกกรองให้ตรงกับหมวดสินค้าที่เลือกเท่านั้น
             </p>
           )}
         </div>
@@ -551,7 +578,8 @@ export function Type7NewDemo({
               <span className="text-red-500">*</span>
             </h6>
             <p className="text-[11px] text-slate-500">
-              ระบุรายการสินค้าและจำนวนที่จะใช้สาธิต (ต้องตรงกับกลุ่มสารที่เลือก)
+              ระบุรายการสินค้าและจำนวนที่จะใช้สาธิต
+              (ต้องตรงกับหมวดสินค้าที่เลือก)
             </p>
           </div>
           {!readonly && (
@@ -559,7 +587,7 @@ export function Type7NewDemo({
               type="button"
               size="sm"
               onClick={addProductRow}
-              disabled={!item.chemicalGroupId}
+              disabled={!selectedCategoryId}
               className="h-7 px-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1"
             >
               <Plus className="h-3.5 w-3.5" />
@@ -568,11 +596,11 @@ export function Type7NewDemo({
           )}
         </div>
 
-        {!item.chemicalGroupId ? (
+        {!selectedCategoryId ? (
           <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-lg text-xs text-amber-700 flex items-center gap-2">
             <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
             <span>
-              กรุณาเลือกกลุ่มสารในหัวข้อด้านบนก่อน เพื่อเลือกสินค้าที่จะสาธิต
+              กรุณาเลือกหมวดสินค้าในหัวข้อด้านบนก่อน เพื่อเลือกสินค้าที่จะสาธิต
             </span>
           </div>
         ) : (
@@ -594,10 +622,10 @@ export function Type7NewDemo({
                     onChange={(val) =>
                       updateProductRow(pLine.id, "productId", val)
                     }
-                    options={productOptionsForGroup}
+                    options={productOptionsForCategory}
                     placeholder="เลือกสินค้า..."
-                    searchPlaceholder="ค้นหาสินค้าในกลุ่มสารนี้..."
-                    emptyText="ไม่พบสินค้าในกลุ่มสารนี้"
+                    searchPlaceholder="ค้นหาสินค้าในหมวดหมู่นี้..."
+                    emptyText="ไม่พบสินค้าในหมวดหมู่นี้"
                     disabled={readonly}
                   />
                 </div>

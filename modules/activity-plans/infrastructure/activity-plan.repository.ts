@@ -150,6 +150,10 @@ export async function findActivityPlanById(id: string) {
               name: true,
               productCode: true,
               price: true,
+              categoryId: true,
+              category: {
+                select: { id: true, code: true, description: true },
+              },
               productGroupId: true,
               productGroup: {
                 select: { id: true, code: true, name: true },
@@ -183,9 +187,6 @@ export async function findActivityPlanById(id: string) {
         include: {
           demoPlot: {
             include: {
-              chemicalGroup: {
-                select: { id: true, code: true, name: true },
-              },
               customer: {
                 select: {
                   id: true,
@@ -533,7 +534,7 @@ export type CreateActivityPlanInput = {
     location?: string | null;
     province?: string | null;
     district?: string | null;
-    chemicalGroupId?: string | null;
+    categoryId?: string | null;
     objective?: string | null;
   } | null;
   salesPromotionBudgetRequested?: number | null;
@@ -801,7 +802,6 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
                 name: input.demoPlotData.name,
                 ownerName: input.demoPlotData.ownerName || "",
                 customerId: input.demoPlotData.customerId || null,
-                chemicalGroupId: input.demoPlotData.chemicalGroupId || null,
                 employeeId: input.employeeId,
                 cropCategory: input.demoPlotData.cropCategory,
                 cropName: input.demoPlotData.cropName,
@@ -827,7 +827,6 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
                 name: input.demoPlotData.name,
                 ownerName: input.demoPlotData.ownerName || "",
                 customerId: input.demoPlotData.customerId || null,
-                chemicalGroupId: input.demoPlotData.chemicalGroupId || null,
                 cropCategory: input.demoPlotData.cropCategory,
                 cropName: input.demoPlotData.cropName,
                 customCropName: input.demoPlotData.customCropName || null,
@@ -1185,7 +1184,6 @@ export async function updateActivityPlan(
               name: planData.demoPlotData.name,
               ownerName: planData.demoPlotData.ownerName || "",
               customerId: planData.demoPlotData.customerId || null,
-              chemicalGroupId: planData.demoPlotData.chemicalGroupId || null,
               cropCategory: planData.demoPlotData.cropCategory,
               cropName: planData.demoPlotData.cropName,
               customCropName: planData.demoPlotData.customCropName || null,
@@ -1223,7 +1221,6 @@ export async function updateActivityPlan(
               name: planData.demoPlotData.name,
               ownerName: planData.demoPlotData.ownerName || "",
               customerId: planData.demoPlotData.customerId || null,
-              chemicalGroupId: planData.demoPlotData.chemicalGroupId || null,
               employeeId: updatedPlan.employeeId,
               cropCategory: planData.demoPlotData.cropCategory,
               cropName: planData.demoPlotData.cropName,
@@ -2580,16 +2577,15 @@ export async function findDemoPlotByOwnerAndCrop(
 }
 
 /**
- * Find all active chemical groups (ProductGroup)
+ * Find all active product categories (ProductCategory)
  */
-export async function findChemicalGroups() {
-  return db.productGroup.findMany({
+export async function findProductCategories() {
+  return db.productCategory.findMany({
     where: { deletedAt: null },
-    orderBy: { name: "asc" },
+    orderBy: { code: "asc" },
     select: {
       id: true,
       code: true,
-      name: true,
       description: true,
     },
   });

@@ -11,7 +11,7 @@ import {
   getActivityPlanAction,
   updateActivityPlanAction,
   getDemoPlotsAction,
-  getChemicalGroupsAction,
+  getProductCategoriesAction,
   getActivePromotionalMaterialsGroupedAction,
   getActivityTypesAction,
 } from "../../server/actions";
@@ -52,7 +52,7 @@ export default function ActivityPlanEditView({ id }: Props) {
   const [employees, setEmployees] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [chemicalGroups, setChemicalGroups] = useState<any[]>([]);
+  const [productCategories, setProductCategories] = useState<any[]>([]);
   const [activityTypes, setActivityTypes] = useState<any[]>([]);
   const [demoPlots, setDemoPlots] = useState<any[]>([]);
   const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] =
@@ -71,7 +71,7 @@ export default function ActivityPlanEditView({ id }: Props) {
           custRes,
           prodRes,
           plotRes,
-          chemRes,
+          catRes,
           mktRes,
           actTypeRes,
         ] = await Promise.all([
@@ -84,9 +84,9 @@ export default function ActivityPlanEditView({ id }: Props) {
             products: [],
           })),
           getDemoPlotsAction().catch(() => ({ demoPlots: [] })),
-          getChemicalGroupsAction().catch(() => ({
+          getProductCategoriesAction().catch(() => ({
             success: false,
-            chemicalGroups: [],
+            productCategories: [],
           })),
           getActivePromotionalMaterialsGroupedAction().catch(() => ({
             success: false,
@@ -99,8 +99,8 @@ export default function ActivityPlanEditView({ id }: Props) {
           setActivityTypes(actTypeRes.types);
         }
 
-        if (chemRes && chemRes.success && chemRes.chemicalGroups) {
-          setChemicalGroups(chemRes.chemicalGroups);
+        if (catRes && catRes.success && catRes.productCategories) {
+          setProductCategories(catRes.productCategories);
         }
 
         if (empRes.success && empRes.employees) {
@@ -230,7 +230,7 @@ export default function ActivityPlanEditView({ id }: Props) {
           employees={employees}
           customers={customers}
           products={products}
-          chemicalGroups={chemicalGroups}
+          productCategories={productCategories}
           activityTypes={activityTypes}
           demoPlots={demoPlots}
           promotionalMaterialsByCategory={promotionalMaterialsByCategory}

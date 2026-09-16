@@ -98,7 +98,7 @@ export interface NormalizedPlanData {
     location?: string | null;
     province?: string | null;
     district?: string | null;
-    chemicalGroupId?: string | null;
+    categoryId?: string | null;
     objective?: string | null;
   } | null;
   helperEmployeeIds: string[];

@@ -65,6 +65,7 @@ interface Props {
     productCode?: string | null;
     unit?: string | null;
     price?: number | null;
+    categoryId?: string | null;
   }>;
   activityTypes?: Array<{
     id: string;
@@ -75,6 +76,12 @@ interface Props {
     hasActual: boolean;
     requiresApproval: boolean;
     isActive: boolean;
+  }>;
+  productCategories?: Array<{
+    id: string;
+    code: string;
+    description: string;
+    isActive?: boolean;
   }>;
   chemicalGroups?: Array<{
     id: string;
@@ -147,6 +154,7 @@ export function ActivityPlanForm({
   employees = [],
   customers: initialCustomers,
   products: initialProducts,
+  productCategories: initialProductCategories,
   chemicalGroups: initialChemicalGroups,
   activityTypes: initialActivityTypes,
   demoPlots: initialDemoPlots,
@@ -159,7 +167,9 @@ export function ActivityPlanForm({
 }: Props) {
   const [fetchedCustomers, setFetchedCustomers] = useState<any[]>([]);
   const [fetchedProducts, setFetchedProducts] = useState<any[]>([]);
-  const [fetchedChemicalGroups, setFetchedChemicalGroups] = useState<any[]>([]);
+  const [fetchedProductCategories, setFetchedProductCategories] = useState<
+    any[]
+  >([]);
   const [fetchedActivityTypes, setFetchedActivityTypes] = useState<any[]>([]);
   const [fetchedDemoPlots, setFetchedDemoPlots] = useState<
     UserDemoPlotOption[]
@@ -203,35 +213,41 @@ export function ActivityPlanForm({
   const productsList =
     initialProducts !== undefined ? initialProducts : fetchedProducts;
 
-  const chemicalGroupsList =
-    initialChemicalGroups !== undefined
-      ? initialChemicalGroups
-      : fetchedChemicalGroups;
+  const productCategoriesList =
+    initialProductCategories !== undefined
+      ? initialProductCategories
+      : initialChemicalGroups !== undefined
+        ? initialChemicalGroups
+        : fetchedProductCategories;
 
   const demoPlotsList =
     initialDemoPlots !== undefined ? initialDemoPlots : fetchedDemoPlots;
 
   useEffect(() => {
-    if (initialChemicalGroups !== undefined) return;
+    if (
+      initialProductCategories !== undefined ||
+      initialChemicalGroups !== undefined
+    )
+      return;
 
     let isMounted = true;
-    async function loadChemicalGroups() {
+    async function loadProductCategories() {
       try {
-        const { getChemicalGroupsAction } =
+        const { getProductCategoriesAction } =
           await import("../../server/actions");
-        const res = await getChemicalGroupsAction();
-        if (isMounted && res.success && res.chemicalGroups) {
-          setFetchedChemicalGroups(res.chemicalGroups);
+        const res = await getProductCategoriesAction();
+        if (isMounted && res.success && res.productCategories) {
+          setFetchedProductCategories(res.productCategories);
         }
       } catch (err) {
-        console.error("Failed to load chemical groups for Trip Plan:", err);
+        console.error("Failed to load product categories for Trip Plan:", err);
       }
     }
-    loadChemicalGroups();
+    loadProductCategories();
     return () => {
       isMounted = false;
     };
-  }, [initialChemicalGroups]);
+  }, [initialProductCategories, initialChemicalGroups]);
 
   useEffect(() => {
     if (initialCustomers !== undefined) return;
@@ -1246,6 +1262,13 @@ export function ActivityPlanForm({
           unit: p.product?.unit || "",
         }));
 
+      const derivedCategoryId =
+        (initial.products || []).find((p: any) => p.workTypeCode === "TYPE_7A")
+          ?.product?.categoryId ||
+        dp.categoryId ||
+        dp.chemicalGroupId ||
+        "";
+
       return [
         {
           id: dp.id || "1",
@@ -1261,7 +1284,8 @@ export function ActivityPlanForm({
           treeCount: dp.treeCount ?? 0,
           province: dp.province || "",
           district: dp.district || "",
-          chemicalGroupId: dp.chemicalGroupId || "",
+          categoryId: derivedCategoryId,
+          chemicalGroupId: derivedCategoryId,
           objective: dp.objective || "",
           demoProducts:
             type7aProds.length > 0
@@ -1321,11 +1345,12 @@ export function ActivityPlanForm({
 
           return {
             id: item.id || String(idx + 1),
-            plotActivityType: item.plotActivityType || "CREATE",
-            plotName: item.plotName || "",
-            storeId: item.storeId || "",
+            plotActivityType:
+              item.plotActivityType ||
+              (item.existingPlotId ? "FOLLOW_UP" : "CREATE"),
+            plotName: item.plotName || item.name || "",
+            storeId: item.storeId || item.customerId || "",
             ownerName: item.plotOwnerName || item.ownerName || "",
-            productName: item.plotProductName || item.productName || "",
             cropCategory: item.plotCropCategory || item.cropCategory || "",
             cropName: item.plotCropName || item.cropName || "",
             customCropName: item.customCropName || "",
@@ -1335,7 +1360,8 @@ export function ActivityPlanForm({
             treeCount: item.plotTreeCount ?? item.treeCount ?? 0,
             province: item.province || "",
             district: item.district || "",
-            chemicalGroupId: item.chemicalGroupId || "",
+            categoryId: item.categoryId || item.chemicalGroupId || "",
+            chemicalGroupId: item.categoryId || item.chemicalGroupId || "",
             demoProducts: item.demoProducts || [
               {
                 id: "1",
@@ -1374,6 +1400,7 @@ export function ActivityPlanForm({
         ownerName: "",
         province: "",
         district: "",
+        categoryId: "",
         chemicalGroupId: "",
         productName: "",
         cropCategory: "",
@@ -1414,6 +1441,7 @@ export function ActivityPlanForm({
         ownerName: "",
         province: "",
         district: "",
+        categoryId: "",
         chemicalGroupId: "",
         productName: "",
         cropCategory: "",
@@ -2659,8 +2687,9 @@ export function ActivityPlanForm({
         setLoading(false);
         return;
       }
-      if (!item.chemicalGroupId?.trim()) {
-        setError("กรุณาเลือกกลุ่มสาร");
+      const selectedCatId = item.categoryId || item.chemicalGroupId;
+      if (!selectedCatId?.trim()) {
+        setError("กรุณาเลือกหมวดสินค้า");
         setLoading(false);
         return;
       }
@@ -2687,13 +2716,11 @@ export function ActivityPlanForm({
         const matchedProd = productsList.find(
           (prod) => prod.id === p.productId || prod.name === p.productName,
         );
-        if (
-          matchedProd &&
-          matchedProd.productGroupId &&
-          matchedProd.productGroupId !== item.chemicalGroupId
-        ) {
+        const prodCatId =
+          matchedProd?.categoryId || (matchedProd as any)?.productGroupId;
+        if (matchedProd && prodCatId && prodCatId !== selectedCatId) {
           setError(
-            `สินค้า "${matchedProd.name}" ไม่ได้อยู่ในกลุ่มสารที่เลือก กรุณาเลือกสินค้าให้ตรงกับกลุ่มสาร`,
+            `สินค้า "${matchedProd.name}" ไม่ได้อยู่ในหมวดสินค้าที่เลือก กรุณาเลือกสินค้าให้ตรงกับหมวดสินค้า`,
           );
           setLoading(false);
           return;
@@ -3117,7 +3144,7 @@ export function ActivityPlanForm({
                 : null,
             province: item.province || null,
             district: item.district || null,
-            chemicalGroupId: item.chemicalGroupId || null,
+            categoryId: item.categoryId || item.chemicalGroupId || null,
             objective: item.objective || null,
           };
 
@@ -3779,7 +3806,8 @@ export function ActivityPlanForm({
                       deleteType7Row={deleteType7Row}
                       customers={customersList}
                       products={productsList}
-                      chemicalGroups={chemicalGroupsList}
+                      productCategories={productCategoriesList}
+                      chemicalGroups={productCategoriesList}
                       demoPlots={demoPlotsList}
                       parentStartDate={startDate}
                     />
@@ -3798,7 +3826,8 @@ export function ActivityPlanForm({
                       deleteType7Row={deleteType7Row}
                       customers={customersList}
                       products={productsList}
-                      chemicalGroups={chemicalGroupsList}
+                      productCategories={productCategoriesList}
+                      chemicalGroups={productCategoriesList}
                       demoPlots={demoPlotsList}
                       parentStartDate={startDate}
                     />

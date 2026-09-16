@@ -166,6 +166,8 @@ export interface ActualTargetsState {
     dealerName?: string;
     province?: string;
     district?: string;
+    categoryName?: string;
+    categoryCode?: string;
     chemicalGroupName?: string;
     cropCategory?: string;
     product: string;

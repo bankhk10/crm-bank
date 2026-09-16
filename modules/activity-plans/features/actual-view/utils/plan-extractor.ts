@@ -739,10 +739,30 @@ export function extractPlanData(
     activityType: hasT7B || t7Visit ? "FOLLOW_UP" : "CREATE",
   };
 
+  const t7aProducts = products.filter((pr) => pr.workTypeCode === "TYPE_7A");
+  const firstT7aProduct = t7aProducts[0];
+  const t7aCategory = (firstT7aProduct?.product as any)?.category;
+
   targets.t7a = {
     ...(prevTargets.t7a || prevTargets.t7),
     ...commonT7Data,
     activityType: "CREATE",
+    plotName: t7Plot?.name || "",
+    dealerName: (t7Plot as any)?.customer?.name || "",
+    province: t7Plot?.province || "",
+    district: t7Plot?.district || "",
+    cropCategory: t7Plot?.cropCategory || "",
+    areaRai: t7Plot?.areaRai ? Number(t7Plot.areaRai) : null,
+    treeCount: t7Plot?.treeCount ?? null,
+    categoryName: t7aCategory?.description || t7aCategory?.name || "",
+    categoryCode: t7aCategory?.code || "",
+    chemicalGroupName: t7aCategory?.description || "",
+    demoProducts: t7aProducts.map((pr) => ({
+      productId: pr.productId,
+      productName: pr.productName,
+      quantity: pr.targetQuantity,
+      unit: (pr.product as any)?.unit || null,
+    })),
   };
 
   targets.t7b = {

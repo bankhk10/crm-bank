@@ -13,11 +13,17 @@ import {
   Type7NewDemo,
   CustomerOption,
   ProductOption,
+  ProductCategoryOption,
   ChemicalGroupOption,
 } from "./type7-new-demo";
 import { Type7FollowUp } from "./type7-follow-up";
 
-export type { CustomerOption, ProductOption, ChemicalGroupOption };
+export type {
+  CustomerOption,
+  ProductOption,
+  ProductCategoryOption,
+  ChemicalGroupOption,
+};
 
 interface Props {
   mode?: "TYPE_7A" | "TYPE_7B";
@@ -32,6 +38,7 @@ interface Props {
   deleteType7Row: (id: string) => void;
   customers?: CustomerOption[];
   products?: ProductOption[];
+  productCategories?: ProductCategoryOption[];
   chemicalGroups?: ChemicalGroupOption[];
   demoPlots?: UserDemoPlotOption[];
   parentStartDate?: string;
@@ -46,6 +53,7 @@ export function Type7Demo({
   deleteType7Row,
   customers = [],
   products = [],
+  productCategories = [],
   chemicalGroups = [],
   demoPlots = [],
 }: Props) {
@@ -251,6 +259,7 @@ export function Type7Demo({
                     cropCategoryOptions={cropCategoryOptions}
                     customers={customers}
                     products={products}
+                    productCategories={productCategories}
                     chemicalGroups={chemicalGroups}
                     readonly={readonly}
                   />

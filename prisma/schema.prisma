@@ -713,8 +713,7 @@ model ProductGroup {
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
 
-  products  Product[]
-  demoPlots DemoPlot[]
+  products Product[]
 }
 
 model ProductStock {
@@ -2242,11 +2241,9 @@ model DemoPlot {
   name            String // ชื่อแปลง เช่น "แปลงสาธิตทุเรียนหมอนทอง นายสมชาย"
   ownerName       String  @map("owner_name") // เจ้าของแปลง/ลูกค้า
   customerId      String? @map("customer_id") // FK -> Customer (ถ้ามี)
-  chemicalGroupId String? @map("chemical_group_id") // FK -> ProductGroup (กลุ่มสาร)
   employeeId      String  @map("employee_id") // พนักงานผู้ดูแลแปลง
 
-  customer      Customer?     @relation("CustomerDemoPlots", fields: [customerId], references: [id], onDelete: SetNull)
-  chemicalGroup ProductGroup? @relation(fields: [chemicalGroupId], references: [id], onDelete: SetNull)
+  customer Customer? @relation("CustomerDemoPlots", fields: [customerId], references: [id], onDelete: SetNull)
 
   // ข้อมูลพืชและสถานที่
   cropCategory   String   @map("crop_category") // หมวดพืช เช่น ไม้ผล, พืชไร่
@@ -2288,7 +2285,6 @@ model DemoPlot {
   visits DemoPlotVisit[]
 
   @@index([customerId])
-  @@index([chemicalGroupId])
   @@index([province])
   @@index([district])
   @@index([employeeId])

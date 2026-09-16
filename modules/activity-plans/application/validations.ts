@@ -159,7 +159,7 @@ export const demoPlotDataInputSchema = z.object({
   location: z.string().optional().nullable(),
   province: z.string().min(1, "กรุณาเลือกจังหวัด"),
   district: z.string().min(1, "กรุณาเลือกอำเภอ"),
-  chemicalGroupId: z.string().min(1, "กรุณาเลือกกลุ่มสาร"),
+  categoryId: z.string().min(1, "กรุณาเลือกหมวดสินค้า"),
   objective: z.string().min(1, "กรุณากรอกวัตถุประสงค์"),
 });
 

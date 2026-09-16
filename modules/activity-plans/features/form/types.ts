@@ -119,7 +119,8 @@ export interface Type7DemoPlotItem {
   plotName?: string;
   province?: string;
   district?: string;
-  chemicalGroupId?: string;
+  categoryId?: string;
+  chemicalGroupId?: string; // Kept for backwards compatibility
   demoProducts?: Type7DemoProductLine[];
   storeId?: string;
   ownerName: string;

@@ -9,7 +9,7 @@ import {
   softDeleteActivityPlan,
   upsertActivityResult,
   findActivityTypes,
-  findChemicalGroups,
+  findProductCategories,
   findOrCreateEmployeeForUser,
   type ListActivityPlansParams,
   type CreateActivityResultInput,
@@ -46,10 +46,10 @@ export async function getActivityTypesUseCase() {
 }
 
 /**
- * Get chemical groups (ProductGroup) master lookups
+ * Get product categories (ProductCategory) master lookups
  */
-export async function getChemicalGroupsUseCase() {
-  return findChemicalGroups();
+export async function getProductCategoriesUseCase() {
+  return findProductCategories();
 }
 
 export async function validateType7aPlan(
@@ -59,7 +59,7 @@ export async function validateType7aPlan(
     customerId?: string | null;
     province?: string | null;
     district?: string | null;
-    chemicalGroupId?: string | null;
+    categoryId?: string | null;
     cropCategory: string;
     cropName: string;
     objective?: string | null;
@@ -115,8 +115,8 @@ export async function validateType7aPlan(
     return { valid: false, error: "กรุณาเลือกอำเภอ" };
   }
 
-  if (!demoPlotData.chemicalGroupId || !demoPlotData.chemicalGroupId.trim()) {
-    return { valid: false, error: "กรุณาเลือกกลุ่มสาร" };
+  if (!demoPlotData.categoryId || !demoPlotData.categoryId.trim()) {
+    return { valid: false, error: "กรุณาเลือกหมวดสินค้า" };
   }
 
   if (!demoPlotData.cropCategory || !demoPlotData.cropCategory.trim()) {
@@ -154,18 +154,18 @@ export async function validateType7aPlan(
     }
   }
 
-  // Validate that all selected products belong to the selected chemical group
+  // Validate that all selected products belong to the selected category
   const productIds = type7aProducts.map((p) => p.productId);
   const products = await db.product.findMany({
     where: { id: { in: productIds } },
-    select: { id: true, name: true, productGroupId: true },
+    select: { id: true, name: true, categoryId: true },
   });
 
   for (const p of products) {
-    if (p.productGroupId !== demoPlotData.chemicalGroupId) {
+    if (p.categoryId !== demoPlotData.categoryId) {
       return {
         valid: false,
-        error: `สินค้า "${p.name}" ไม่ได้อยู่ในกลุ่มสารที่เลือก กรุณาเลือกสินค้าให้ตรงกับกลุ่มสาร`,
+        error: `สินค้า "${p.name}" ไม่ได้อยู่ในหมวดสินค้าที่เลือก กรุณาเลือกสินค้าให้ตรงกับหมวดสินค้า`,
       };
     }
   }
