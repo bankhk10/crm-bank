@@ -2263,6 +2263,7 @@ export function ActivityPlanForm({
         isPriceOverridden?: boolean;
         targetQuantity?: number | null;
         targetAmount?: number | null;
+        notes?: string | null;
       }> = [];
 
       let submittedTargetAttendees: number | null = null;

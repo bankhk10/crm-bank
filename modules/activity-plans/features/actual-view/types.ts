@@ -116,6 +116,9 @@ export interface ActualTargetsState {
     unitPrice?: string;
     targetSales: string;
     detail?: string;
+    isSubDealer?: boolean;
+    subDealerStore?: string;
+    dealerName?: string;
     items: any[];
   };
   t4: {

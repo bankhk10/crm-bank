@@ -2013,6 +2013,7 @@ model ActivityResultSaleItem {
   actualUnitPrice  Decimal @map("actual_unit_price") @db.Decimal(15, 2)
   actualTotal      Decimal @map("actual_total") @db.Decimal(15, 2)
   unclosedReason   String? @map("unclosed_reason")
+  isAdditional     Boolean @default(false) @map("is_additional")
 
   activityResult ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
   store          Customer?      @relation(fields: [storeId], references: [id], onDelete: SetNull)
@@ -2022,6 +2023,7 @@ model ActivityResultSaleItem {
   @@index([productId])
   @@index([storeId])
   @@index([workTypeCode])
+  @@index([isAdditional])
   @@map("activity_result_sale_items")
 }
 

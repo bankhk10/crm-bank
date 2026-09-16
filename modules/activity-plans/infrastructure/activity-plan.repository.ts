@@ -1212,6 +1212,7 @@ export type CreateActivityResultInput = {
     actualUnitPrice: number;
     actualTotal: number;
     unclosedReason?: string | null;
+    isAdditional?: boolean;
   }>;
   stockResults?: Array<{
     storeId: string;
@@ -1363,6 +1364,7 @@ export async function upsertActivityResult(
             actualUnitPrice: new Prisma.Decimal(item.actualUnitPrice),
             actualTotal: new Prisma.Decimal(item.actualTotal),
             unclosedReason: item.unclosedReason ?? null,
+            isAdditional: Boolean(item.isAdditional),
           })),
         });
       }

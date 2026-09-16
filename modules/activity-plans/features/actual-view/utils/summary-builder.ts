@@ -580,7 +580,8 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       const qty = Number(d.actualQty || d.quantity || 0);
       const uPrice = Number(d.unitPrice || d.price || 0);
       const total = Number(d.actualSales || qty * uPrice);
-      if (pId && (qty > 0 || total > 0)) {
+      const reason = d.unclosedReason || input.t3UnclosedReason || null;
+      if (pId && (qty > 0 || total > 0 || reason || d.isAdditional)) {
         saleResults.push({
           workTypeCode: "TYPE_3",
           storeId: d.storeId || null,
@@ -589,7 +590,8 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
           actualQuantity: qty,
           actualUnitPrice: uPrice,
           actualTotal: total,
-          unclosedReason: input.t3UnclosedReason || null,
+          unclosedReason: reason,
+          isAdditional: Boolean(d.isAdditional),
         });
       }
     });

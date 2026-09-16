@@ -486,6 +486,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         <ActualType3Sales
           isVisible={isTypeVisible("เสนอขายสินค้า")}
           target={targets.t3}
+          products={products}
           soldProducts={t3SoldProducts}
           setSoldProducts={setT3SoldProducts}
           actualSales={t3ActualSales}

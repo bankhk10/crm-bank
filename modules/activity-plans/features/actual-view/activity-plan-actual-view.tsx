@@ -491,7 +491,7 @@ export default function ActivityPlanActualView({
               setT2FollowupResults(parsed.t2FollowupResults);
             }
             if (parsed.t2UsageResult) {
-              setT2UsageResult(parsed.t2UsageResult);
+              setT2UsageResult(parsed.t2UsageResult as any);
             }
             if (
               parsed.t2UsageResult === "พบปัญหา" ||

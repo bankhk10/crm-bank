@@ -66,6 +66,7 @@ export interface NormalizedPlanData {
     isPriceOverridden: boolean;
     targetQuantity?: number | null;
     targetAmount?: number | null;
+    notes?: string | null;
   }>;
   marketingItems: Array<{
     category: string;

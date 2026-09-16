@@ -177,12 +177,16 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     const t3Sales = resData.saleResults.filter((s: any) => s.workTypeCode === "TYPE_3");
     if (t3Sales.length > 0) {
       result.t3ProductSalesDetails = t3Sales.map((s: any) => ({
+        id: s.id,
         productId: s.productId,
         productName: s.productName || s.product?.name || "",
-        actualQty: Number(s.actualQuantity || 0),
+        actualQty: String(s.actualQuantity ?? ""),
         unitPrice: Number(s.actualUnitPrice || 0),
-        actualSales: Number(s.actualTotal || 0),
+        actualSales: String(s.actualTotal ?? ""),
         storeId: s.storeId,
+        customer: s.store?.name || undefined,
+        unclosedReason: s.unclosedReason || "",
+        isAdditional: Boolean(s.isAdditional),
       }));
     }
     const t9Sales = resData.saleResults.filter((s: any) => s.workTypeCode === "TYPE_9");
@@ -407,7 +411,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       try {
         const rawJson = t3DetailsMatch[1].split("\n")[0].trim();
         const parsed = JSON.parse(rawJson);
-        if (Array.isArray(parsed)) {
+        if (Array.isArray(parsed) && (!result.t3ProductSalesDetails || result.t3ProductSalesDetails.length === 0)) {
           result.t3ProductSalesDetails = parsed;
         }
       } catch (e) {

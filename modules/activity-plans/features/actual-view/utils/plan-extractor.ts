@@ -430,8 +430,10 @@ export function extractPlanData(
 
     return {
       id: pr.id,
-      productName: pr.productName || "สินค้าเสนอขาย",
+      productId: pr.productId,
+      productName: pr.productName || (pr as any).product?.name || "สินค้าเสนอขาย",
       customer: custDisplay,
+      storeId: pr.storeId || matchedStore?.storeId || undefined,
       isSubDealer: isSub,
       subDealerStore: matchedStore?.subDealerStore || "",
       dealerName: matchedStore?.storeName || "",
@@ -441,6 +443,7 @@ export function extractPlanData(
       targetSales: "",
       detail: pr.notes || matchedStore?.notes || "",
       notes: pr.notes || "",
+      isAdditional: false,
     };
   });
   const t3TotalQty = t3Products.reduce((sum, pr) => sum + (pr.targetQuantity || 0), 0);

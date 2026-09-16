@@ -278,6 +278,7 @@ export const activityResultSchema = z
           actualUnitPrice: z.coerce.number().min(0),
           actualTotal: z.coerce.number().min(0),
           unclosedReason: z.string().optional().nullable(),
+          isAdditional: z.boolean().optional(),
         })
       )
       .optional(),
