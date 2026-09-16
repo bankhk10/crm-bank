@@ -2,6 +2,7 @@ import type {
   ActivityResultStatusType,
   PlanSummaryData,
   Type5SurveyRecord,
+  Type6IssueRecord,
   FollowupProductItem,
   ImageFile,
 } from "../types";
@@ -61,10 +62,19 @@ export interface BuildSummaryInput {
   t5SurveyDetails?: Type5SurveyRecord[];
 
   // Type 6
-  t6ProblemDetail: string;
-  t6InitialSolution: string;
-  t6Status: "เสร็จสิ้น" | "รอติดตาม" | "";
+  t6ProblemDetail?: string;
+  t6InitialSolution?: string;
+  t6Status?: "เสร็จสิ้น" | "รอติดตาม" | "";
   t6Images?: ImageFile[];
+  t6IssueRecord?: Type6IssueRecord;
+  t6ProductId?: string | null;
+  t6ProductName?: string | null;
+  t6LotNumber?: string | null;
+  t6PurchaseChannel?: string;
+  t6StoreId?: string | null;
+  t6StoreName?: string | null;
+  t6IssueType?: string;
+  t6Detail?: string | null;
 
   // Type 7
   t7PlotName?: string;
@@ -668,12 +678,14 @@ export function buildResultSummary(
     surveyItemId?: string | null,
     storeId?: string | null,
     productId?: string | null,
+    issueItemId?: string | null,
   ) => {
     if (img && img.url) {
       attachments.push({
         workTypeCode,
         category,
         surveyItemId: surveyItemId || null,
+        issueItemId: issueItemId || null,
         storeId: storeId || null,
         productId: productId || null,
         fileUrl: img.url,
@@ -772,22 +784,82 @@ export function buildResultSummary(
     });
   }
 
+  // Build structured issueResults for TYPE_6
+  const issueResults: any[] = [];
+  const t6Record = input.t6IssueRecord;
+  const t6PurchaseChannel =
+    t6Record?.purchaseChannel || input.t6PurchaseChannel;
+  const t6IssueType = t6Record?.issueType || input.t6IssueType;
+  const t6StatusVal = t6Record?.status || input.t6Status || "เสร็จสิ้น";
+
+  if (t6PurchaseChannel && t6IssueType) {
+    const issueItemId = t6Record?.id || "issue-item-1";
+    const resolvedStoreId =
+      t6PurchaseChannel === "ร้านค้าตัวแทนจำหน่าย"
+        ? t6Record?.storeId || input.t6StoreId || null
+        : null;
+    const resolvedStoreName =
+      t6PurchaseChannel === "ร้านค้าตัวแทนจำหน่าย"
+        ? t6Record?.storeName || input.t6StoreName || null
+        : null;
+    const resolvedProductId = t6Record?.productId || input.t6ProductId || null;
+    const resolvedProductName =
+      t6Record?.productName || input.t6ProductName || null;
+    const resolvedLotNumber = t6Record?.lotNumber || input.t6LotNumber || null;
+    const resolvedDetail = (t6Record?.detail ?? input.t6Detail)?.trim() || null;
+
+    issueResults.push({
+      id: issueItemId,
+      productId: resolvedProductId,
+      productName: resolvedProductName,
+      lotNumber: resolvedLotNumber,
+      purchaseChannel: t6PurchaseChannel,
+      storeId: resolvedStoreId,
+      storeName: resolvedStoreName,
+      issueType: t6IssueType,
+      detail: resolvedDetail,
+      status: t6StatusVal,
+    });
+
+    const t6Imgs = t6Record?.images || input.t6Images || [];
+    (t6Imgs || []).slice(0, 5).forEach((img) => {
+      addAttachment(
+        img,
+        "TYPE_6",
+        "ISSUE",
+        null,
+        resolvedStoreId,
+        resolvedProductId,
+        issueItemId,
+      );
+    });
+  } else if (input.t6Images && input.t6Images.length > 0) {
+    (input.t6Images || []).slice(0, 5).forEach((img) => {
+      addAttachment(img, "TYPE_6", "ISSUE");
+    });
+  }
+
   (input.t1PlotImages || [])
     .slice(0, 5)
     .forEach((img) => addAttachment(img, "TYPE_1", "PLOT"));
   (input.t2Images || [])
     .slice(0, 5)
     .forEach((img) => addAttachment(img, "TYPE_2"));
-  (input.t6Images || []).forEach((img) => addAttachment(img, "TYPE_6"));
   (input.t7CropImages || []).forEach((img) =>
     addAttachment(img, "TYPE_7", "CROP"),
   );
   (input.t7PlotImages || []).forEach((img) =>
     addAttachment(img, "TYPE_7", "PLOT"),
   );
-  (input.t8Images || []).forEach((img) => addAttachment(img, "TYPE_8"));
-  (input.t9Images || []).forEach((img) => addAttachment(img, "TYPE_9"));
-  (input.t10Images || []).forEach((img) => addAttachment(img, "TYPE_10"));
+  (input.t8Images || [])
+    .slice(0, 5)
+    .forEach((img) => addAttachment(img, "TYPE_8"));
+  (input.t9Images || [])
+    .slice(0, 5)
+    .forEach((img) => addAttachment(img, "TYPE_9"));
+  (input.t10Images || [])
+    .slice(0, 5)
+    .forEach((img) => addAttachment(img, "TYPE_10"));
 
   const payload = {
     actualStartDate: new Date(),
@@ -835,6 +907,7 @@ export function buildResultSummary(
     stockResults: stockResults.length > 0 ? stockResults : undefined,
     surveyResults: surveyResults.length > 0 ? surveyResults : undefined,
     followupResults: followupResults.length > 0 ? followupResults : undefined,
+    issueResults: issueResults.length > 0 ? issueResults : undefined,
     attachments: attachments.length > 0 ? attachments : undefined,
   };
 

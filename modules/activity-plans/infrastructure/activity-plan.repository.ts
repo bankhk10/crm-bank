@@ -278,6 +278,17 @@ export async function findActivityPlanById(id: string) {
               },
             },
           },
+          issueResults: {
+            include: {
+              product: {
+                select: { id: true, name: true, productCode: true },
+              },
+              store: {
+                select: { id: true, name: true, customerCode: true },
+              },
+              attachments: true,
+            },
+          },
           attachments: true,
         },
       },
@@ -1390,11 +1401,24 @@ export type CreateActivityResultInput = {
     problemDetail?: string | null;
     isAdditional?: boolean;
   }>;
+  issueResults?: Array<{
+    id?: string;
+    productId?: string | null;
+    productName?: string | null;
+    lotNumber?: string | null;
+    purchaseChannel: string;
+    storeId?: string | null;
+    storeName?: string | null;
+    issueType: string;
+    detail?: string | null;
+    status?: string;
+  }>;
   attachments?: Array<{
     workTypeCode?: string | null;
     storeId?: string | null;
     productId?: string | null;
     surveyItemId?: string | null;
+    issueItemId?: string | null;
     category?: AttachmentCategory;
     fileUrl: string;
     fileName: string;
@@ -1650,7 +1674,31 @@ export async function upsertActivityResult(
       }
     }
 
-    // 6. Sync Attachments
+    // 6. Sync Issue Results (TYPE_6)
+    if (input.issueResults !== undefined) {
+      await tx.activityResultIssueItem.deleteMany({
+        where: { activityResultId: result.id },
+      });
+      if (input.issueResults.length > 0) {
+        await tx.activityResultIssueItem.createMany({
+          data: input.issueResults.map((item) => ({
+            id: item.id || undefined,
+            activityResultId: result.id,
+            productId: item.productId ?? null,
+            productName: item.productName ?? null,
+            lotNumber: item.lotNumber ?? null,
+            purchaseChannel: item.purchaseChannel,
+            storeId: item.storeId ?? null,
+            storeName: item.storeName ?? null,
+            issueType: item.issueType,
+            detail: item.detail ?? null,
+            status: item.status || "เสร็จสิ้น",
+          })),
+        });
+      }
+    }
+
+    // 7. Sync Attachments
     if (input.attachments !== undefined) {
       await tx.activityAttachment.deleteMany({
         where: { activityResultId: result.id },
@@ -1664,6 +1712,12 @@ export async function upsertActivityResult(
           existingSurveyItems.map((s) => s.id),
         );
 
+        const existingIssueItems = await tx.activityResultIssueItem.findMany({
+          where: { activityResultId: result.id },
+          select: { id: true },
+        });
+        const validIssueItemIds = new Set(existingIssueItems.map((s) => s.id));
+
         await tx.activityAttachment.createMany({
           data: input.attachments.map((att) => ({
             activityPlanId: input.activityPlanId,
@@ -1676,6 +1730,10 @@ export async function upsertActivityResult(
             surveyItemId:
               att.surveyItemId && validSurveyItemIds.has(att.surveyItemId)
                 ? att.surveyItemId
+                : null,
+            issueItemId:
+              att.issueItemId && validIssueItemIds.has(att.issueItemId)
+                ? att.issueItemId
                 : null,
             category: att.category ?? AttachmentCategory.GENERAL,
             fileUrl: att.fileUrl,

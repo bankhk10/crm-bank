@@ -118,14 +118,33 @@ interface ActivityResultSectionProps {
   setT5PriceTagImages?: React.Dispatch<React.SetStateAction<ImageFile[]>>;
 
   // Type 6
-  t6ProblemDetail: string;
-  setT6ProblemDetail: (v: string) => void;
-  t6InitialSolution: string;
-  setT6InitialSolution: (v: string) => void;
+  t6ProblemDetail?: string;
+  setT6ProblemDetail?: (v: string) => void;
+  t6InitialSolution?: string;
+  setT6InitialSolution?: (v: string) => void;
   t6Status: "เสร็จสิ้น" | "รอติดตาม" | "";
   setT6Status: (v: "เสร็จสิ้น" | "รอติดตาม" | "") => void;
   t6Images: ImageFile[];
   setT6Images: React.Dispatch<React.SetStateAction<ImageFile[]>>;
+  t6ProductId?: string | null;
+  setT6ProductId?: (v: string | null) => void;
+  t6ProductName?: string | null;
+  setT6ProductName?: (v: string | null) => void;
+  t6LotNumber?: string;
+  setT6LotNumber?: (v: string) => void;
+  t6PurchaseChannel?: "ร้านค้าตัวแทนจำหน่าย" | "ออนไลน์" | string;
+  setT6PurchaseChannel?: (
+    v: "ร้านค้าตัวแทนจำหน่าย" | "ออนไลน์" | string,
+  ) => void;
+  t6StoreId?: string | null;
+  setT6StoreId?: (v: string | null) => void;
+  t6StoreName?: string | null;
+  setT6StoreName?: (v: string | null) => void;
+  t6IssueType?: string;
+  setT6IssueType?: (v: string) => void;
+  t6Detail?: string;
+  setT6Detail?: (v: string) => void;
+  customers?: Array<{ id: string; name: string; customerCode?: string | null }>;
 
   // Type 7
   t7StartDate: string;
@@ -325,6 +344,23 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     setT6Status,
     t6Images,
     setT6Images,
+    t6ProductId,
+    setT6ProductId,
+    t6ProductName,
+    setT6ProductName,
+    t6LotNumber,
+    setT6LotNumber,
+    t6PurchaseChannel,
+    setT6PurchaseChannel,
+    t6StoreId,
+    setT6StoreId,
+    t6StoreName,
+    setT6StoreName,
+    t6IssueType,
+    setT6IssueType,
+    t6Detail,
+    setT6Detail,
+    customers,
     t7StartDate,
     t7ProductPrice,
     t7PlotName,
@@ -545,14 +581,32 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         <ActualType6Issue
           isVisible={isTypeVisible("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา")}
           target={targets.t6}
-          problemDetail={t6ProblemDetail}
-          setProblemDetail={setT6ProblemDetail}
-          initialSolution={t6InitialSolution}
-          setInitialSolution={setT6InitialSolution}
+          products={products}
+          customers={customers}
+          productId={t6ProductId}
+          setProductId={setT6ProductId}
+          productName={t6ProductName}
+          setProductName={setT6ProductName}
+          lotNumber={t6LotNumber}
+          setLotNumber={setT6LotNumber}
+          purchaseChannel={t6PurchaseChannel}
+          setPurchaseChannel={setT6PurchaseChannel}
+          storeId={t6StoreId}
+          setStoreId={setT6StoreId}
+          storeName={t6StoreName}
+          setStoreName={setT6StoreName}
+          issueType={t6IssueType}
+          setIssueType={setT6IssueType}
+          detail={t6Detail}
+          setDetail={setT6Detail}
           status={t6Status}
           setStatus={setT6Status}
           images={t6Images}
           setImages={setT6Images}
+          problemDetail={t6ProblemDetail}
+          setProblemDetail={setT6ProblemDetail}
+          initialSolution={t6InitialSolution}
+          setInitialSolution={setT6InitialSolution}
         />
 
         {/* WORK TYPE 7 */}

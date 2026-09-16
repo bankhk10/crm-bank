@@ -399,6 +399,7 @@ model Customer {
   activityResultStockItems  ActivityResultStockItem[]
   activityResultSurveyItems ActivityResultSurveyItem[]
   activityResultFollowupItems ActivityResultFollowupItem[]
+  activityResultIssueItems  ActivityResultIssueItem[]
   activityAttachments       ActivityAttachment[]
 }
 
@@ -692,6 +693,7 @@ model Product {
   activityResultDemoPlannedItems ActivityResultDemoItem[]   @relation("ActivityResultDemoPlannedProductRef")
   activityResultDemoActualItems  ActivityResultDemoItem[]   @relation("ActivityResultDemoActualProductRef")
   activityResultFollowupItems    ActivityResultFollowupItem[] @relation("ActivityResultFollowupProductRef")
+  activityResultIssueItems       ActivityResultIssueItem[]  @relation("ActivityResultIssueProductRef")
   activityAttachments            ActivityAttachment[]       @relation("ActivityAttachmentProductRef")
 
   parentId String?
@@ -1996,6 +1998,7 @@ model ActivityResult {
   surveyResults ActivityResultSurveyItem[]
   demoResults   ActivityResultDemoItem[]
   followupResults ActivityResultFollowupItem[]
+  issueResults  ActivityResultIssueItem[]
   attachments   ActivityAttachment[]
 
   @@index([activityPlanId])
@@ -2129,6 +2132,31 @@ model ActivityResultFollowupItem {
   @@map("activity_result_followup_items")
 }
 
+model ActivityResultIssueItem {
+  id               String   @id @default(cuid())
+  activityResultId String   @map("activity_result_id")
+  productId        String?  @map("product_id")
+  productName      String?  @map("product_name")
+  lotNumber        String?  @map("lot_number")
+  purchaseChannel  String   @map("purchase_channel") // "ร้านค้าตัวแทนจำหน่าย" | "ออนไลน์"
+  storeId          String?  @map("store_id")
+  storeName        String?  @map("store_name")
+  issueType        String   @map("issue_type") // "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย" | "เกิดความเสียหายหลังการใช้สินค้า" | "อื่นๆ ระบุ"
+  detail           String?  @map("detail") @db.Text
+  status           String   @default("เสร็จสิ้น") @map("status") // "เสร็จสิ้น" | "รอติดตาม"
+
+  activityResult ActivityResult       @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
+  product        Product?             @relation("ActivityResultIssueProductRef", fields: [productId], references: [id], onDelete: SetNull)
+  store          Customer?            @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  attachments    ActivityAttachment[]
+
+  @@index([activityResultId])
+  @@index([productId])
+  @@index([storeId])
+  @@index([purchaseChannel])
+  @@map("activity_result_issue_items")
+}
+
 model ActivityAttachment {
   id               String             @id @default(cuid())
   activityPlanId   String             @map("activity_plan_id")
@@ -2137,6 +2165,7 @@ model ActivityAttachment {
   storeId          String?            @map("store_id")
   productId        String?            @map("product_id")
   surveyItemId     String?            @map("survey_item_id")
+  issueItemId      String?            @map("issue_item_id")
   category         AttachmentCategory @default(GENERAL)
   fileUrl          String             @map("file_url")
   fileName         String             @map("file_name")
@@ -2149,6 +2178,7 @@ model ActivityAttachment {
   store          Customer?                 @relation(fields: [storeId], references: [id], onDelete: SetNull)
   product        Product?                  @relation("ActivityAttachmentProductRef", fields: [productId], references: [id], onDelete: SetNull)
   surveyItem     ActivityResultSurveyItem? @relation(fields: [surveyItemId], references: [id], onDelete: Cascade)
+  issueItem      ActivityResultIssueItem?  @relation(fields: [issueItemId], references: [id], onDelete: Cascade)
 
   @@index([activityPlanId])
   @@index([activityResultId])
@@ -2156,6 +2186,7 @@ model ActivityAttachment {
   @@index([storeId])
   @@index([productId])
   @@index([surveyItemId])
+  @@index([issueItemId])
   @@map("activity_attachments")
 }
 

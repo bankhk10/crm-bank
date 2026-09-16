@@ -226,3 +226,17 @@ export interface FollowupProductItem {
   followupDetail?: string; // รายละเอียดการติดตามจากการปฏิบัติงานจริง
   isAdditional?: boolean; // false = สินค้าตามแผน, true = สินค้าเพิ่มเติม
 }
+
+export interface Type6IssueRecord {
+  id?: string;
+  productId?: string | null;
+  productName?: string | null;
+  lotNumber?: string | null;
+  purchaseChannel: "ร้านค้าตัวแทนจำหน่าย" | "ออนไลน์" | string;
+  storeId?: string | null;
+  storeName?: string | null;
+  issueType: string;
+  detail?: string | null;
+  status: "เสร็จสิ้น" | "รอติดตาม" | string;
+  images?: ImageFile[];
+}

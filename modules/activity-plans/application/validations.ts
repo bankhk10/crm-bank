@@ -396,6 +396,22 @@ export const activityResultSchema = z
         }),
       )
       .optional(),
+    issueResults: z
+      .array(
+        z.object({
+          id: z.string().optional(),
+          productId: z.string().optional().nullable(),
+          productName: z.string().optional().nullable(),
+          lotNumber: z.string().optional().nullable(),
+          purchaseChannel: z.string(),
+          storeId: z.string().optional().nullable(),
+          storeName: z.string().optional().nullable(),
+          issueType: z.string(),
+          detail: z.string().optional().nullable(),
+          status: z.string().default("เสร็จสิ้น"),
+        }),
+      )
+      .optional(),
     attachments: z
       .array(
         z.object({
@@ -403,6 +419,7 @@ export const activityResultSchema = z
           storeId: z.string().optional().nullable(),
           productId: z.string().optional().nullable(),
           surveyItemId: z.string().optional().nullable(),
+          issueItemId: z.string().optional().nullable(),
           category: z.any().optional(),
           fileUrl: z.string(),
           fileName: z.string(),
@@ -422,6 +439,21 @@ export const activityResultSchema = z
         },
         {
           message: "รูปภาพแปลงสำหรับเข้าพบเกษตรกรต้องไม่เกิน 5 รูป",
+          path: ["attachments"],
+        },
+      )
+      .refine(
+        (items) => {
+          const type6Photos = items.filter(
+            (a) =>
+              a.workTypeCode === "TYPE_6" ||
+              a.workTypeCode === "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา",
+          );
+          return type6Photos.length <= 5;
+        },
+        {
+          message:
+            "รูปภาพสำหรับตรวจสอบเรื่องร้องเรียน / แก้ปัญหา ต้องไม่เกิน 5 รูป",
           path: ["attachments"],
         },
       )

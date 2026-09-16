@@ -504,6 +504,7 @@ export async function recordActivityResultUseCase(
     surveyResults: parsed.data.surveyResults as any,
     demoResults: parsed.data.demoResults as any,
     followupResults: parsed.data.followupResults as any,
+    issueResults: parsed.data.issueResults as any,
     attachments: parsed.data.attachments as any,
   };
 

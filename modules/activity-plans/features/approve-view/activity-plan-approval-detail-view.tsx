@@ -687,6 +687,13 @@ export default function ActivityPlanApprovalDetailView({
               "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา",
             )}
             target={targets.t6}
+            issueRecord={parsedResults.t6IssueRecord}
+            problemDetail={
+              parsedResults.t6ProblemDetail || parsedResults.problemFound
+            }
+            initialSolution={parsedResults.t6InitialSolution}
+            status={parsedResults.t6Status}
+            images={parsedResults.t6Images}
           />
 
           {/* TYPE_7: ทำ / ติดตามแปลงสาธิต */}

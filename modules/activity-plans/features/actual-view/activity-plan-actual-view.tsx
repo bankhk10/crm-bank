@@ -12,12 +12,14 @@ import {
   getDemoPlotHistoryAction,
 } from "../../server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";
+import { getCustomersAction } from "@/modules/customers/server/actions";
 import type {
   PlanSummaryData,
   ImageFile,
   ActualTargetsState,
   ActivityResultStatusType,
   Type5SurveyRecord,
+  Type6IssueRecord,
   FollowupProductItem,
 } from "./types";
 import {
@@ -175,6 +177,7 @@ export default function ActivityPlanActualView({
     useState<PlanSummaryData>(initialPlanSummary);
   const [planWorkTypes, setPlanWorkTypes] = useState<string[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
   const [targets, setTargets] = useState<ActualTargetsState>(initialTargets);
 
   // Activity Result Status
@@ -249,6 +252,18 @@ export default function ActivityPlanActualView({
   );
   const [t6Images, setT6Images] = useState<ImageFile[]>([]);
   const initialT6ImagesRef = useRef<ImageFile[]>([]);
+  const [t6ProductId, setT6ProductId] = useState<string | null>(null);
+  const [t6ProductName, setT6ProductName] = useState<string | null>("");
+  const [t6LotNumber, setT6LotNumber] = useState<string>("");
+  const [t6PurchaseChannel, setT6PurchaseChannel] = useState<
+    "ร้านค้าตัวแทนจำหน่าย" | "ออนไลน์" | ""
+  >("ร้านค้าตัวแทนจำหน่าย");
+  const [t6StoreId, setT6StoreId] = useState<string | null>(null);
+  const [t6StoreName, setT6StoreName] = useState<string | null>("");
+  const [t6IssueType, setT6IssueType] = useState<string>(
+    "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
+  );
+  const [t6Detail, setT6Detail] = useState<string>("");
 
   // Work Type 7 States
   const [t7StartDate, setT7StartDate] = useState("");
@@ -334,7 +349,7 @@ export default function ActivityPlanActualView({
   >("");
   const [t11NextAction, setT11NextAction] = useState("");
 
-  // Load products list once
+  // Load products & customers list once
   useEffect(() => {
     listProductsAction({ status: "ACTIVE", perPage: 1000 })
       .then((res: any) => {
@@ -342,6 +357,16 @@ export default function ActivityPlanActualView({
           setProducts(res.data);
         } else if (res?.products) {
           setProducts(res.products);
+        }
+      })
+      .catch(() => {});
+
+    getCustomersAction({ perPage: 1000 })
+      .then((res: any) => {
+        if (res?.success && res?.customers) {
+          setCustomers(res.customers);
+        } else if (res?.customers) {
+          setCustomers(res.customers);
         }
       })
       .catch(() => {});
@@ -677,20 +702,50 @@ export default function ActivityPlanActualView({
             );
 
             // Type 6
-            if (parsed.t6ProblemDetail) {
-              setT6ProblemDetail(parsed.t6ProblemDetail);
-            } else if (parsed.problemFound) {
-              setT6ProblemDetail((prev) => prev || parsed.problemFound || "");
-            }
-            if (parsed.t6InitialSolution) {
-              setT6InitialSolution(parsed.t6InitialSolution);
-            }
-            if (parsed.t6Status) setT6Status(parsed.t6Status);
-            if (parsed.t6Images && parsed.t6Images.length > 0) {
-              setT6Images(parsed.t6Images);
-              initialT6ImagesRef.current = JSON.parse(
-                JSON.stringify(parsed.t6Images),
-              );
+            if (parsed.t6IssueRecord) {
+              const rec = parsed.t6IssueRecord;
+              if (rec.productId) setT6ProductId(rec.productId);
+              if (rec.productName) setT6ProductName(rec.productName);
+              if (rec.lotNumber) setT6LotNumber(rec.lotNumber);
+              if (rec.purchaseChannel) {
+                setT6PurchaseChannel(
+                  rec.purchaseChannel as "ร้านค้าตัวแทนจำหน่าย" | "ออนไลน์",
+                );
+              }
+              if (rec.storeId) setT6StoreId(rec.storeId);
+              if (rec.storeName) setT6StoreName(rec.storeName);
+              if (rec.issueType) setT6IssueType(rec.issueType);
+              if (rec.detail) setT6Detail(rec.detail);
+              if (rec.status) {
+                setT6Status(
+                  rec.status === "รอติดตาม" ? "รอติดตาม" : "เสร็จสิ้น",
+                );
+              }
+              if (rec.images && rec.images.length > 0) {
+                setT6Images(rec.images);
+                initialT6ImagesRef.current = JSON.parse(
+                  JSON.stringify(rec.images),
+                );
+              }
+            } else {
+              // Backward compatibility fallback for old records
+              if (parsed.t6ProblemDetail) {
+                setT6ProblemDetail(parsed.t6ProblemDetail);
+                setT6Detail(parsed.t6ProblemDetail);
+              } else if (parsed.problemFound) {
+                setT6ProblemDetail((prev) => prev || parsed.problemFound || "");
+                setT6Detail((prev) => prev || parsed.problemFound || "");
+              }
+              if (parsed.t6InitialSolution) {
+                setT6InitialSolution(parsed.t6InitialSolution);
+              }
+              if (parsed.t6Status) setT6Status(parsed.t6Status);
+              if (parsed.t6Images && parsed.t6Images.length > 0) {
+                setT6Images(parsed.t6Images);
+                initialT6ImagesRef.current = JSON.parse(
+                  JSON.stringify(parsed.t6Images),
+                );
+              }
             }
 
             // Type 7
@@ -1043,6 +1098,42 @@ export default function ActivityPlanActualView({
           setT5SurveyDetails(cleanT5SurveyDetails);
         }
 
+        // Validate Work Type 6 if visible
+        if (isTypeVisible("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา")) {
+          if (!t6PurchaseChannel) {
+            setFormError(
+              "กรุณาระบุช่องทางการซื้อสินค้าสำหรับตรวจสอบเรื่องร้องเรียน",
+            );
+            setIsSubmitting(false);
+            return;
+          }
+          if (t6PurchaseChannel === "ร้านค้าตัวแทนจำหน่าย" && !t6StoreId) {
+            setFormError("กรุณาเลือกร้านค้าตัวแทนจำหน่าย");
+            setIsSubmitting(false);
+            return;
+          }
+          if (!t6ProductId) {
+            setFormError("กรุณาเลือกชื่อสินค้าสำหรับตรวจสอบเรื่องร้องเรียน");
+            setIsSubmitting(false);
+            return;
+          }
+          if (!t6LotNumber?.trim()) {
+            setFormError("กรุณาระบุเลข Lot");
+            setIsSubmitting(false);
+            return;
+          }
+          if (!t6IssueType) {
+            setFormError("กรุณาเลือกประเภทปัญหา");
+            setIsSubmitting(false);
+            return;
+          }
+          if (t6IssueType === "อื่นๆ ระบุ" && !t6Detail?.trim()) {
+            setFormError("กรุณาระบุรายละเอียดปัญหา");
+            setIsSubmitting(false);
+            return;
+          }
+        }
+
         // Work Type 6
         let cleanT6Images = t6Images;
         if (
@@ -1052,7 +1143,7 @@ export default function ActivityPlanActualView({
         ) {
           const res = await uploadActivityPlanImageGroup(
             id,
-            t6Images,
+            t6Images.slice(0, 5),
             "issue",
             "general",
           );
@@ -1301,6 +1392,31 @@ export default function ActivityPlanActualView({
           t5CompetitorUnit,
           t5PromotionDetail,
           t5SurveyDetails: cleanT5SurveyDetails,
+          t6IssueRecord: isTypeVisible("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา")
+            ? {
+                productId: t6ProductId || null,
+                productName:
+                  products.find((p) => p.id === t6ProductId)?.name ||
+                  t6ProductName ||
+                  null,
+                lotNumber: t6LotNumber?.trim() || null,
+                purchaseChannel: t6PurchaseChannel,
+                storeId:
+                  t6PurchaseChannel === "ร้านค้าตัวแทนจำหน่าย"
+                    ? t6StoreId || null
+                    : null,
+                storeName:
+                  t6PurchaseChannel === "ร้านค้าตัวแทนจำหน่าย"
+                    ? customers.find((c) => c.id === t6StoreId)?.name ||
+                      t6StoreName ||
+                      null
+                    : null,
+                issueType: t6IssueType,
+                detail: t6Detail?.trim() || null,
+                status: t6Status || "เสร็จสิ้น",
+                images: cleanT6Images,
+              }
+            : undefined,
           t6ProblemDetail,
           t6InitialSolution,
           t6Status,
@@ -1670,6 +1786,22 @@ export default function ActivityPlanActualView({
             t5CompetitorProduct={t5CompetitorProduct}
             setT5CompetitorProduct={setT5CompetitorProduct}
             // Type 6
+            t6ProductId={t6ProductId}
+            setT6ProductId={setT6ProductId}
+            t6ProductName={t6ProductName}
+            setT6ProductName={setT6ProductName}
+            t6LotNumber={t6LotNumber}
+            setT6LotNumber={setT6LotNumber}
+            t6PurchaseChannel={t6PurchaseChannel}
+            setT6PurchaseChannel={setT6PurchaseChannel}
+            t6StoreId={t6StoreId}
+            setT6StoreId={setT6StoreId}
+            t6StoreName={t6StoreName}
+            setT6StoreName={setT6StoreName}
+            t6IssueType={t6IssueType}
+            setT6IssueType={setT6IssueType}
+            t6Detail={t6Detail}
+            setT6Detail={setT6Detail}
             t6ProblemDetail={t6ProblemDetail}
             setT6ProblemDetail={setT6ProblemDetail}
             t6InitialSolution={t6InitialSolution}
@@ -1678,6 +1810,7 @@ export default function ActivityPlanActualView({
             setT6Status={setT6Status}
             t6Images={t6Images}
             setT6Images={setT6Images}
+            customers={customers}
             // Type 7
             t7StartDate={t7StartDate}
             t7ProductPrice={t7ProductPrice}

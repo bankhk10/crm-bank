@@ -1,6 +1,7 @@
 import type {
   ActivityResultStatusType,
   Type5SurveyRecord,
+  Type6IssueRecord,
   FollowupProductItem,
   ImageFile,
 } from "../types";
@@ -33,7 +34,8 @@ export interface ParsedSummaryValues {
   // Type 2
   t2CustomerName?: string;
   t2FollowupDetail?: string;
-  t2UsageResult?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา";
+  t2Detail?: string;
+  t2UsageResult?: "พืชตอบสนองดี" | "พบปัญหา";
   t2ProblemDetail?: string;
   t2FollowupResults?: FollowupProductItem[];
   t2Images?: ImageFile[];
@@ -41,15 +43,28 @@ export interface ParsedSummaryValues {
   // Type 3
   t3SoldProducts?: string;
   t3ActualSales?: string;
-  t3ActualQuantity?: string;
-  t3UnclosedReason?: string;
-  t3ProductSalesDetails?: any[];
+  t3PaymentType?: "เงินสด" | "เงินโอน" | "เครดิต";
+  t3CreditDays?: string;
+  t3OrderBookNo?: string;
+  t3Detail?: string;
+  t3SalesTargetTotal?: number;
+  t3SaleItems?: Array<{
+    id?: string;
+    productId: string;
+    productName: string;
+    actualQuantity: number;
+    actualUnitPrice: number;
+    actualTotal: number;
+    unclosedReason?: string | null;
+    isAdditional?: boolean;
+  }>;
 
   // Type 4
   t4OrderNo?: string;
+  t4BillingStatus?: "วางบิลสำเร็จ" | "รอวางบิล";
   t4ReceivedAmount?: string;
-  t4BillingStatus?: string;
   t4Detail?: string;
+  t4CollectActualAmount?: number;
 
   // Type 5
   t5CompetitorBrand?: string;
@@ -64,6 +79,16 @@ export interface ParsedSummaryValues {
   t6InitialSolution?: string;
   t6Status?: "เสร็จสิ้น" | "รอติดตาม";
   t6Images?: ImageFile[];
+  t6IssueRecord?: Type6IssueRecord;
+  t6IssueDetails?: Type6IssueRecord[];
+  t6ProductId?: string | null;
+  t6ProductName?: string | null;
+  t6LotNumber?: string | null;
+  t6PurchaseChannel?: string;
+  t6StoreId?: string | null;
+  t6StoreName?: string | null;
+  t6IssueType?: string;
+  t6Detail?: string | null;
 
   // Type 7
   t7PlotName?: string;
@@ -323,6 +348,67 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         promotionDetail: sv.promotionDetail || "",
       };
     });
+  }
+
+  if (
+    resData.issueResults &&
+    Array.isArray(resData.issueResults) &&
+    resData.issueResults.length > 0
+  ) {
+    const allAttachments = Array.isArray(resData.attachments)
+      ? resData.attachments
+      : [];
+
+    result.t6IssueDetails = resData.issueResults.map((iss: any) => {
+      const itemAttachments =
+        Array.isArray(iss.attachments) && iss.attachments.length > 0
+          ? iss.attachments
+          : allAttachments.filter(
+              (att: any) =>
+                att.issueItemId === iss.id ||
+                (att.workTypeCode === "TYPE_6" && att.category === "ISSUE"),
+            );
+
+      const images = itemAttachments.map((att: any) => ({
+        id: att.id,
+        url: att.fileUrl,
+        name: att.fileName,
+        size: att.fileSize || undefined,
+        type: att.mimeType || undefined,
+      }));
+
+      return {
+        id: iss.id,
+        productId: iss.productId || null,
+        productName: iss.product?.name || iss.productName || "",
+        lotNumber: iss.lotNumber || "",
+        purchaseChannel: iss.purchaseChannel || "",
+        storeId: iss.storeId || null,
+        storeName: iss.store?.name || iss.storeName || "",
+        issueType: iss.issueType || "",
+        detail: iss.detail || "",
+        status: iss.status || "เสร็จสิ้น",
+        images,
+      };
+    });
+
+    const firstIssue = result.t6IssueDetails[0];
+    if (firstIssue) {
+      result.t6IssueRecord = firstIssue;
+      result.t6ProductId = firstIssue.productId;
+      result.t6ProductName = firstIssue.productName;
+      result.t6LotNumber = firstIssue.lotNumber;
+      result.t6PurchaseChannel = firstIssue.purchaseChannel;
+      result.t6StoreId = firstIssue.storeId;
+      result.t6StoreName = firstIssue.storeName;
+      result.t6IssueType = firstIssue.issueType;
+      result.t6Detail = firstIssue.detail;
+      result.t6Status =
+        firstIssue.status === "รอติดตาม" ? "รอติดตาม" : "เสร็จสิ้น";
+      if (firstIssue.images && firstIssue.images.length > 0) {
+        result.t6Images = firstIssue.images;
+      }
+    }
   }
 
   if (
@@ -634,6 +720,24 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       } catch (e) {
         console.error("Failed to parse t6Images JSON:", e);
       }
+    }
+
+    if (
+      !result.t6IssueRecord &&
+      (result.t6ProblemDetail || result.problemFound || result.t6Status)
+    ) {
+      result.t6IssueRecord = {
+        productId: null,
+        productName: null,
+        lotNumber: null,
+        purchaseChannel: "ร้านค้าตัวแทนจำหน่าย",
+        storeId: null,
+        storeName: null,
+        issueType: "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
+        detail: result.t6ProblemDetail || result.problemFound || "",
+        status: result.t6Status || "เสร็จสิ้น",
+        images: result.t6Images || [],
+      };
     }
 
     // Type 7
