@@ -586,14 +586,28 @@ export function extractPlanData(
   // TYPE 5: Store / Product / Survey
   const t5Stores = stores.filter((s) => s.workTypeCode === "TYPE_5");
   const t5Products = products.filter((pr) => pr.workTypeCode === "TYPE_5");
-  const t5Items = t5Products.map((pr) => ({
-    id: pr.id,
-    store: t5Stores[0]?.storeName || p.location || "",
-    product: pr.productName || "",
-    detail: "",
-  }));
+  const t5Items = t5Products.map((pr) => {
+    const matchedStore =
+      t5Stores.find(
+        (s) => s.storeId && pr.storeId && s.storeId === pr.storeId,
+      ) || t5Stores[0];
+    return {
+      id: pr.id,
+      storeId: pr.storeId || matchedStore?.storeId || undefined,
+      store:
+        (pr as any)?.store?.name ||
+        pr.storeName ||
+        matchedStore?.storeName ||
+        p.location ||
+        "",
+      productId: pr.productId || undefined,
+      product: pr.productName || (pr as any)?.product?.name || "",
+      detail: (pr as any)?.notes || matchedStore?.notes || "",
+    };
+  });
   targets.t5 = {
     ...prevTargets.t5,
+    storeId: t5Stores[0]?.storeId || undefined,
     store:
       t5Stores
         .map((s) => s.storeName)
@@ -608,7 +622,7 @@ export function extractPlanData(
       .join(", "),
     detail: "",
     items: t5Items,
-  };
+  } as any;
 
   // TYPE 6: Store / Issue data
   const t6Stores = stores.filter((s) => s.workTypeCode === "TYPE_6");

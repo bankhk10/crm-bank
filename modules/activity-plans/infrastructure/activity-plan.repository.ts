@@ -53,7 +53,7 @@ export async function findActivityTypeByCode(code: string) {
  */
 export async function resolveActivityTypeId(
   idOrCode: string,
-  tx: Prisma.TransactionClient | typeof db = db
+  tx: Prisma.TransactionClient | typeof db = db,
 ): Promise<string> {
   if (!idOrCode) {
     const first = await tx.activityType.findFirst({
@@ -131,7 +131,14 @@ export async function findActivityPlanById(id: string) {
       stores: {
         include: {
           store: {
-            select: { id: true, name: true, customerCode: true, customerType: true, province: true, district: true },
+            select: {
+              id: true,
+              name: true,
+              customerCode: true,
+              customerType: true,
+              province: true,
+              district: true,
+            },
           },
         },
       },
@@ -148,7 +155,12 @@ export async function findActivityPlanById(id: string) {
       tour: {
         include: {
           store: {
-            select: { id: true, name: true, customerCode: true, province: true },
+            select: {
+              id: true,
+              name: true,
+              customerCode: true,
+              province: true,
+            },
           },
         },
       },
@@ -231,15 +243,28 @@ export async function findActivityPlanById(id: string) {
               store: {
                 select: { id: true, name: true, customerCode: true },
               },
+              attachments: true,
             },
           },
           demoResults: {
             include: {
               plannedProduct: {
-                select: { id: true, name: true, productCode: true, unit: true, packageSizeUnit: true },
+                select: {
+                  id: true,
+                  name: true,
+                  productCode: true,
+                  unit: true,
+                  packageSizeUnit: true,
+                },
               },
               actualProduct: {
-                select: { id: true, name: true, productCode: true, unit: true, packageSizeUnit: true },
+                select: {
+                  id: true,
+                  name: true,
+                  productCode: true,
+                  unit: true,
+                  packageSizeUnit: true,
+                },
               },
             },
           },
@@ -361,7 +386,12 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
         promotionItems: true,
         result: true,
         employee: {
-          select: { id: true, name: true, positionTitle: true, departmentName: true },
+          select: {
+            id: true,
+            name: true,
+            positionTitle: true,
+            departmentName: true,
+          },
         },
         currentApprover: {
           select: { id: true, name: true, positionTitle: true },
@@ -395,7 +425,7 @@ export async function findActivityPlans(params: ListActivityPlansParams) {
  */
 export async function generateActivityPlanCode(
   tx: Prisma.TransactionClient | typeof db,
-  date: Date = new Date()
+  date: Date = new Date(),
 ): Promise<string> {
   const yearStr = String(date.getFullYear()).slice(-2);
   const monthStr = String(date.getMonth() + 1).padStart(2, "0");
@@ -403,7 +433,8 @@ export async function generateActivityPlanCode(
 
   // 1. Transaction-level advisory lock to serialize concurrent code generation for the same monthly prefix
   try {
-    await (tx as any).$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${prefix}))`;
+    await (tx as any)
+      .$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${prefix}))`;
   } catch {
     // If not supported or outside transaction, proceed with regex-based scan
   }
@@ -521,12 +552,14 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
     attempt++;
     try {
       return await db.$transaction(async (tx) => {
-        const code = input.code || (await generateActivityPlanCode(tx, input.startDate));
+        const code =
+          input.code || (await generateActivityPlanCode(tx, input.startDate));
         const fiscal = computeFiscalFields(input.startDate, input.endDate);
 
         const spRequested = input.salesPromotionBudgetRequested ?? 0;
         const mktRequested = input.marketingBudgetRequested ?? 0;
-        const totalRequested = input.totalBudgetRequested ?? (spRequested + mktRequested);
+        const totalRequested =
+          input.totalBudgetRequested ?? spRequested + mktRequested;
 
         let primaryCode = "TYPE_1";
         if (input.workTypeCodes && input.workTypeCodes.length > 0) {
@@ -534,7 +567,10 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
         } else if (input.activityTypeId) {
           primaryCode = getWorkTypeCode(input.activityTypeId);
         }
-        const resolvedPrimaryTypeId = await resolveActivityTypeId(primaryCode, tx);
+        const resolvedPrimaryTypeId = await resolveActivityTypeId(
+          primaryCode,
+          tx,
+        );
 
         // 1. Create main ActivityPlan
         const plan = await tx.activityPlan.create({
@@ -555,9 +591,16 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
             description: input.description ?? null,
             notes: input.notes ?? null,
             targetAttendeesCount: input.targetAttendeesCount ?? null,
-            targetBookingSales: input.targetBookingSales != null ? new Prisma.Decimal(input.targetBookingSales) : null,
-            salesPromotionBudgetRequested: input.salesPromotionBudgetRequested ? new Prisma.Decimal(input.salesPromotionBudgetRequested) : null,
-            marketingBudgetRequested: input.marketingBudgetRequested ? new Prisma.Decimal(input.marketingBudgetRequested) : null,
+            targetBookingSales:
+              input.targetBookingSales != null
+                ? new Prisma.Decimal(input.targetBookingSales)
+                : null,
+            salesPromotionBudgetRequested: input.salesPromotionBudgetRequested
+              ? new Prisma.Decimal(input.salesPromotionBudgetRequested)
+              : null,
+            marketingBudgetRequested: input.marketingBudgetRequested
+              ? new Prisma.Decimal(input.marketingBudgetRequested)
+              : null,
             totalBudgetRequested: new Prisma.Decimal(totalRequested),
             status: input.status ?? ActivityStatus.DRAFT,
             employeeId: input.employeeId,
@@ -567,9 +610,10 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
         });
 
         // 1.1 Create Work Types (Join Table)
-        const workTypeCodes = input.workTypeCodes && input.workTypeCodes.length > 0
-          ? input.workTypeCodes.map(getWorkTypeCode)
-          : [primaryCode];
+        const workTypeCodes =
+          input.workTypeCodes && input.workTypeCodes.length > 0
+            ? input.workTypeCodes.map(getWorkTypeCode)
+            : [primaryCode];
 
         for (const wtCode of Array.from(new Set(workTypeCodes))) {
           const typeId = await resolveActivityTypeId(wtCode, tx);
@@ -582,10 +626,20 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
         }
 
         // 1.2 Create Tour if present
-        if (input.tourData || primaryCode === "TYPE_12" || workTypeCodes.includes("TYPE_12")) {
+        if (
+          input.tourData ||
+          primaryCode === "TYPE_12" ||
+          workTypeCodes.includes("TYPE_12")
+        ) {
           const tourInput = input.tourData;
-          const tourType: TourType = tourInput?.tourType === "STORE" ? TourType.STORE : TourType.CENTRAL;
-          const tourSize: TourSize | null = tourInput?.tourSize === "LARGE" ? TourSize.LARGE : (tourInput?.tourSize === "SMALL" ? TourSize.SMALL : null);
+          const tourType: TourType =
+            tourInput?.tourType === "STORE" ? TourType.STORE : TourType.CENTRAL;
+          const tourSize: TourSize | null =
+            tourInput?.tourSize === "LARGE"
+              ? TourSize.LARGE
+              : tourInput?.tourSize === "SMALL"
+                ? TourSize.SMALL
+                : null;
           const country: string | null = tourInput?.country ?? null;
           const storeId: string | null = tourInput?.storeId ?? null;
           const destination: string | null = tourInput?.destination ?? null;
@@ -615,7 +669,10 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
               isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
               unregisteredFarmerName: s.unregisteredFarmerName ?? null,
               unregisteredFarmerPhone: s.unregisteredFarmerPhone ?? null,
-              targetAmount: s.targetAmount != null ? new Prisma.Decimal(s.targetAmount) : null,
+              targetAmount:
+                s.targetAmount != null
+                  ? new Prisma.Decimal(s.targetAmount)
+                  : null,
               subDealerStore: s.subDealerStore ?? null,
               remarks: s.remarks ?? null,
               notes: s.notes ?? null,
@@ -632,11 +689,18 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
               storeId: p.storeId ?? null,
               productId: p.productId,
               productName: p.productName ?? null,
-              masterPrice: p.masterPrice != null ? new Prisma.Decimal(p.masterPrice) : null,
-              unitPrice: p.unitPrice != null ? new Prisma.Decimal(p.unitPrice) : null,
+              masterPrice:
+                p.masterPrice != null
+                  ? new Prisma.Decimal(p.masterPrice)
+                  : null,
+              unitPrice:
+                p.unitPrice != null ? new Prisma.Decimal(p.unitPrice) : null,
               isPriceOverridden: p.isPriceOverridden ?? false,
               targetQuantity: p.targetQuantity ?? null,
-              targetAmount: p.targetAmount != null ? new Prisma.Decimal(p.targetAmount) : null,
+              targetAmount:
+                p.targetAmount != null
+                  ? new Prisma.Decimal(p.targetAmount)
+                  : null,
               notes: p.notes ?? null,
             })),
           });
@@ -680,45 +744,48 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
           });
         }
 
-    // 3. Create Helpers
-    if (input.helperEmployeeIds && input.helperEmployeeIds.length > 0) {
-      const helperEmployees = await tx.employee.findMany({
-        where: { id: { in: input.helperEmployeeIds } },
-        include: { department: true },
-      });
+        // 3. Create Helpers
+        if (input.helperEmployeeIds && input.helperEmployeeIds.length > 0) {
+          const helperEmployees = await tx.employee.findMany({
+            where: { id: { in: input.helperEmployeeIds } },
+            include: { department: true },
+          });
 
-      await tx.activityHelper.createMany({
-        data: input.helperEmployeeIds.map((empId) => {
-          const emp = helperEmployees.find((e) => e.id === empId);
-          return {
+          await tx.activityHelper.createMany({
+            data: input.helperEmployeeIds.map((empId) => {
+              const emp = helperEmployees.find((e) => e.id === empId);
+              return {
+                activityPlanId: plan.id,
+                employeeId: empId,
+                departmentId: emp?.departmentId ?? null,
+                departmentName:
+                  emp?.departmentName || emp?.department?.name || null,
+                status: ActivityHelperStatus.PENDING,
+              };
+            }),
+          });
+        }
+
+        // 4. Create initial approval log
+        await tx.activityApprovalLog.create({
+          data: {
             activityPlanId: plan.id,
-            employeeId: empId,
-            departmentId: emp?.departmentId ?? null,
-            departmentName: emp?.departmentName || emp?.department?.name || null,
-            status: ActivityHelperStatus.PENDING,
-          };
-        }),
-      });
-    }
+            userId: input.createdById,
+            action: ActivityApprovalAction.SUBMIT,
+            step: ActivityApprovalStep.LINE_APPROVAL,
+            comment: "บันทึกแผนงานร่างแรก",
+          },
+        });
 
-    // 4. Create initial approval log
-    await tx.activityApprovalLog.create({
-      data: {
-        activityPlanId: plan.id,
-        userId: input.createdById,
-        action: ActivityApprovalAction.SUBMIT,
-        step: ActivityApprovalStep.LINE_APPROVAL,
-        comment: "บันทึกแผนงานร่างแรก",
-      },
-    });
-
-    return plan;
+        return plan;
       });
     } catch (err: any) {
       lastError = err;
       if (err?.code === "P2002" && !input.code && attempt < maxRetries) {
         // Collision detected on code; retry after a tiny jitter
-        await new Promise((resolve) => setTimeout(resolve, Math.random() * 50 + 20));
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.random() * 50 + 20),
+        );
         continue;
       }
       throw err;
@@ -735,7 +802,7 @@ export async function updateActivityPlan(
   planData: Partial<CreateActivityPlanInput> & {
     helperEmployeeIds?: string[];
     updatedUserId: string;
-  }
+  },
 ) {
   return db.$transaction(async (tx) => {
     const {
@@ -764,30 +831,46 @@ export async function updateActivityPlan(
     // Build update dataset
     const dataToUpdate: Prisma.ActivityPlanUncheckedUpdateInput = {};
 
-    if (updateFields.title !== undefined) dataToUpdate.title = updateFields.title;
+    if (updateFields.title !== undefined)
+      dataToUpdate.title = updateFields.title;
     if (updateFields.activityTypeId !== undefined) {
-      dataToUpdate.activityTypeId = await resolveActivityTypeId(updateFields.activityTypeId, tx);
+      dataToUpdate.activityTypeId = await resolveActivityTypeId(
+        updateFields.activityTypeId,
+        tx,
+      );
     }
     if (updateFields.location !== undefined) {
-      dataToUpdate.location = updateFields.location ? updateFields.location.trim() || null : null;
+      dataToUpdate.location = updateFields.location
+        ? updateFields.location.trim() || null
+        : null;
     }
-    if (updateFields.province !== undefined) dataToUpdate.province = updateFields.province;
-    if (updateFields.district !== undefined) dataToUpdate.district = updateFields.district;
-    if (updateFields.objective !== undefined) dataToUpdate.objective = updateFields.objective;
-    if (updateFields.description !== undefined) dataToUpdate.description = updateFields.description;
-    if (updateFields.notes !== undefined) dataToUpdate.notes = updateFields.notes;
-    if (updateFields.status !== undefined) dataToUpdate.status = updateFields.status;
+    if (updateFields.province !== undefined)
+      dataToUpdate.province = updateFields.province;
+    if (updateFields.district !== undefined)
+      dataToUpdate.district = updateFields.district;
+    if (updateFields.objective !== undefined)
+      dataToUpdate.objective = updateFields.objective;
+    if (updateFields.description !== undefined)
+      dataToUpdate.description = updateFields.description;
+    if (updateFields.notes !== undefined)
+      dataToUpdate.notes = updateFields.notes;
+    if (updateFields.status !== undefined)
+      dataToUpdate.status = updateFields.status;
 
     if (targetAttendeesCount !== undefined) {
       dataToUpdate.targetAttendeesCount = targetAttendeesCount ?? null;
     }
     if (targetBookingSales !== undefined) {
-      dataToUpdate.targetBookingSales = targetBookingSales != null ? new Prisma.Decimal(targetBookingSales) : null;
+      dataToUpdate.targetBookingSales =
+        targetBookingSales != null
+          ? new Prisma.Decimal(targetBookingSales)
+          : null;
     }
 
     if (updateFields.startDate || updateFields.endDate) {
       const existing = await tx.activityPlan.findUnique({ where: { id } });
-      const startDate = updateFields.startDate || existing?.startDate || new Date();
+      const startDate =
+        updateFields.startDate || existing?.startDate || new Date();
       const endDate = updateFields.endDate || existing?.endDate || new Date();
 
       const fiscal = computeFiscalFields(startDate, endDate);
@@ -799,18 +882,33 @@ export async function updateActivityPlan(
       dataToUpdate.fiscalQuarter = fiscal.fiscalQuarter;
     }
 
-    if (updateFields.salesPromotionBudgetRequested !== undefined || updateFields.marketingBudgetRequested !== undefined) {
+    if (
+      updateFields.salesPromotionBudgetRequested !== undefined ||
+      updateFields.marketingBudgetRequested !== undefined
+    ) {
       const existing = await tx.activityPlan.findUnique({ where: { id } });
-      const sp = updateFields.salesPromotionBudgetRequested !== undefined
-        ? updateFields.salesPromotionBudgetRequested
-        : (existing?.salesPromotionBudgetRequested ? Number(existing.salesPromotionBudgetRequested) : 0);
-      const mkt = updateFields.marketingBudgetRequested !== undefined
-        ? updateFields.marketingBudgetRequested
-        : (existing?.marketingBudgetRequested ? Number(existing.marketingBudgetRequested) : 0);
+      const sp =
+        updateFields.salesPromotionBudgetRequested !== undefined
+          ? updateFields.salesPromotionBudgetRequested
+          : existing?.salesPromotionBudgetRequested
+            ? Number(existing.salesPromotionBudgetRequested)
+            : 0;
+      const mkt =
+        updateFields.marketingBudgetRequested !== undefined
+          ? updateFields.marketingBudgetRequested
+          : existing?.marketingBudgetRequested
+            ? Number(existing.marketingBudgetRequested)
+            : 0;
 
-      dataToUpdate.salesPromotionBudgetRequested = sp ? new Prisma.Decimal(sp) : null;
-      dataToUpdate.marketingBudgetRequested = mkt ? new Prisma.Decimal(mkt) : null;
-      dataToUpdate.totalBudgetRequested = new Prisma.Decimal((sp || 0) + (mkt || 0));
+      dataToUpdate.salesPromotionBudgetRequested = sp
+        ? new Prisma.Decimal(sp)
+        : null;
+      dataToUpdate.marketingBudgetRequested = mkt
+        ? new Prisma.Decimal(mkt)
+        : null;
+      dataToUpdate.totalBudgetRequested = new Prisma.Decimal(
+        (sp || 0) + (mkt || 0),
+      );
     }
 
     // 1. Update main record
@@ -821,7 +919,9 @@ export async function updateActivityPlan(
 
     // 1.1 Sync Work Types
     if (workTypeCodes !== undefined) {
-      await tx.activityPlanWorkType.deleteMany({ where: { activityPlanId: id } });
+      await tx.activityPlanWorkType.deleteMany({
+        where: { activityPlanId: id },
+      });
       const codes = workTypeCodes.map(getWorkTypeCode);
       for (const wtCode of Array.from(new Set(codes))) {
         const typeId = await resolveActivityTypeId(wtCode, tx);
@@ -841,8 +941,14 @@ export async function updateActivityPlan(
         await tx.activityPlanTour.create({
           data: {
             activityPlanId: id,
-            tourType: tourData.tourType === "STORE" ? TourType.STORE : TourType.CENTRAL,
-            tourSize: tourData.tourSize === "LARGE" ? TourSize.LARGE : (tourData.tourSize === "SMALL" ? TourSize.SMALL : null),
+            tourType:
+              tourData.tourType === "STORE" ? TourType.STORE : TourType.CENTRAL,
+            tourSize:
+              tourData.tourSize === "LARGE"
+                ? TourSize.LARGE
+                : tourData.tourSize === "SMALL"
+                  ? TourSize.SMALL
+                  : null,
             country: tourData.country ?? null,
             storeId: tourData.storeId ?? null,
             destination: tourData.destination ?? null,
@@ -866,7 +972,10 @@ export async function updateActivityPlan(
             isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
             unregisteredFarmerName: s.unregisteredFarmerName ?? null,
             unregisteredFarmerPhone: s.unregisteredFarmerPhone ?? null,
-            targetAmount: s.targetAmount != null ? new Prisma.Decimal(s.targetAmount) : null,
+            targetAmount:
+              s.targetAmount != null
+                ? new Prisma.Decimal(s.targetAmount)
+                : null,
             subDealerStore: s.subDealerStore ?? null,
             remarks: s.remarks ?? null,
             notes: s.notes ?? null,
@@ -877,7 +986,9 @@ export async function updateActivityPlan(
 
     // 1.4 Sync Products
     if (planProducts !== undefined) {
-      await tx.activityPlanProduct.deleteMany({ where: { activityPlanId: id } });
+      await tx.activityPlanProduct.deleteMany({
+        where: { activityPlanId: id },
+      });
       if (planProducts.length > 0) {
         await tx.activityPlanProduct.createMany({
           data: planProducts.map((p) => ({
@@ -886,11 +997,16 @@ export async function updateActivityPlan(
             storeId: p.storeId ?? null,
             productId: p.productId,
             productName: p.productName ?? null,
-            masterPrice: p.masterPrice != null ? new Prisma.Decimal(p.masterPrice) : null,
-            unitPrice: p.unitPrice != null ? new Prisma.Decimal(p.unitPrice) : null,
+            masterPrice:
+              p.masterPrice != null ? new Prisma.Decimal(p.masterPrice) : null,
+            unitPrice:
+              p.unitPrice != null ? new Prisma.Decimal(p.unitPrice) : null,
             isPriceOverridden: p.isPriceOverridden ?? false,
             targetQuantity: p.targetQuantity ?? null,
-            targetAmount: p.targetAmount != null ? new Prisma.Decimal(p.targetAmount) : null,
+            targetAmount:
+              p.targetAmount != null
+                ? new Prisma.Decimal(p.targetAmount)
+                : null,
             notes: p.notes ?? null,
           })),
         });
@@ -899,7 +1015,9 @@ export async function updateActivityPlan(
 
     // 1.5 Sync Marketing Items
     if (marketingItems !== undefined) {
-      await tx.activityPlanMarketingItem.deleteMany({ where: { activityPlanId: id } });
+      await tx.activityPlanMarketingItem.deleteMany({
+        where: { activityPlanId: id },
+      });
       if (marketingItems.length > 0) {
         await tx.activityPlanMarketingItem.createMany({
           data: marketingItems.map((m) => ({
@@ -917,7 +1035,9 @@ export async function updateActivityPlan(
 
     // 1.6 Sync Promotion Items
     if (promotionItems !== undefined) {
-      await tx.activityPlanPromotionItem.deleteMany({ where: { activityPlanId: id } });
+      await tx.activityPlanPromotionItem.deleteMany({
+        where: { activityPlanId: id },
+      });
       if (promotionItems.length > 0) {
         await tx.activityPlanPromotionItem.createMany({
           data: promotionItems.map((p) => ({
@@ -951,7 +1071,8 @@ export async function updateActivityPlan(
       });
 
       const toRemove = existingHelpers.filter(
-        (h) => !helperEmployeeIds.includes(h.employeeId) && h.deletedAt === null
+        (h) =>
+          !helperEmployeeIds.includes(h.employeeId) && h.deletedAt === null,
       );
       if (toRemove.length > 0) {
         await tx.activityHelper.updateMany({
@@ -972,7 +1093,8 @@ export async function updateActivityPlan(
               activityPlanId: id,
               employeeId: empId,
               departmentId: emp?.departmentId ?? null,
-              departmentName: emp?.departmentName || emp?.department?.name || null,
+              departmentName:
+                emp?.departmentName || emp?.department?.name || null,
               status: ActivityHelperStatus.PENDING,
             },
           });
@@ -1052,7 +1174,7 @@ export async function updateHelperStatus(
   helperEmployeeId: string,
   status: ActivityHelperStatus,
   approvedById?: string,
-  rejectionReason?: string
+  rejectionReason?: string,
 ) {
   return db.activityHelper.update({
     where: {
@@ -1109,7 +1231,11 @@ export async function findEmployeeByUserId(userId: string) {
 /**
  * Retrieve or auto-create employee profile for logged-in user
  */
-export async function findOrCreateEmployeeForUser(userId: string, userName?: string, userEmail?: string) {
+export async function findOrCreateEmployeeForUser(
+  userId: string,
+  userName?: string,
+  userEmail?: string,
+) {
   let employee = await db.employee.findFirst({
     where: { userId, deletedAt: null },
     include: {
@@ -1144,7 +1270,9 @@ export async function findOrCreateEmployeeForUser(userId: string, userName?: str
   const email = userEmail || `user-${userId}@crm.local`;
 
   const existingEmail = await db.employee.findFirst({ where: { email } });
-  const finalEmail = existingEmail ? `emp-${userId.slice(-6)}@crm.local` : email;
+  const finalEmail = existingEmail
+    ? `emp-${userId.slice(-6)}@crm.local`
+    : email;
 
   return db.employee.create({
     data: {
@@ -1223,10 +1351,16 @@ export type CreateActivityResultInput = {
     remarks?: string | null;
   }>;
   surveyResults?: Array<{
+    id?: string;
     storeId: string;
     productId?: string | null;
     competitorBrand: string;
     competitorProduct: string;
+    posPrice?: number | null;
+    dealerPrice?: number | null;
+    subdealerPrice?: number | null;
+    farmerPrice?: number | null;
+    sellingPoints?: string | null;
     competitorPrice?: number | null;
     competitorUnit?: string | null;
     promotionDetail?: string | null;
@@ -1260,6 +1394,7 @@ export type CreateActivityResultInput = {
     workTypeCode?: string | null;
     storeId?: string | null;
     productId?: string | null;
+    surveyItemId?: string | null;
     category?: AttachmentCategory;
     fileUrl: string;
     fileName: string;
@@ -1296,19 +1431,33 @@ export async function upsertActivityResult(
         nextAction: input.nextAction ?? null,
         nextMeetingDate: input.nextMeetingDate ?? null,
         farmerHomeAddress: input.farmerHomeAddress ?? null,
-        plotLatitude: input.plotLatitude != null ? new Prisma.Decimal(input.plotLatitude) : null,
-        plotLongitude: input.plotLongitude != null ? new Prisma.Decimal(input.plotLongitude) : null,
+        plotLatitude:
+          input.plotLatitude != null
+            ? new Prisma.Decimal(input.plotLatitude)
+            : null,
+        plotLongitude:
+          input.plotLongitude != null
+            ? new Prisma.Decimal(input.plotLongitude)
+            : null,
         cancelReason: input.cancelReason ?? null,
         postponedDate: input.postponedDate ?? null,
         postponedTime: input.postponedTime ?? null,
         postponedReason: input.postponedReason ?? null,
         postponedNotes: input.postponedNotes ?? null,
-        actualSalesPromotionSpent: input.actualSalesPromotionSpent ? new Prisma.Decimal(input.actualSalesPromotionSpent) : null,
-        actualMarketingSpent: input.actualMarketingSpent ? new Prisma.Decimal(input.actualMarketingSpent) : null,
+        actualSalesPromotionSpent: input.actualSalesPromotionSpent
+          ? new Prisma.Decimal(input.actualSalesPromotionSpent)
+          : null,
+        actualMarketingSpent: input.actualMarketingSpent
+          ? new Prisma.Decimal(input.actualMarketingSpent)
+          : null,
         actualTotalSpent: new Prisma.Decimal(actualTotalSpent),
-        salesResultAmount: input.salesResultAmount ? new Prisma.Decimal(input.salesResultAmount) : null,
+        salesResultAmount: input.salesResultAmount
+          ? new Prisma.Decimal(input.salesResultAmount)
+          : null,
         salesOrdersCount: input.salesOrdersCount ?? null,
-        collectResultAmount: input.collectResultAmount ? new Prisma.Decimal(input.collectResultAmount) : null,
+        collectResultAmount: input.collectResultAmount
+          ? new Prisma.Decimal(input.collectResultAmount)
+          : null,
         demoPlotsCreated: input.demoPlotsCreated ?? null,
         demoPlotsFollowedUp: input.demoPlotsFollowedUp ?? null,
         distributorsCount: input.distributorsCount ?? null,
@@ -1328,19 +1477,33 @@ export async function upsertActivityResult(
         nextAction: input.nextAction ?? null,
         nextMeetingDate: input.nextMeetingDate ?? null,
         farmerHomeAddress: input.farmerHomeAddress ?? null,
-        plotLatitude: input.plotLatitude != null ? new Prisma.Decimal(input.plotLatitude) : null,
-        plotLongitude: input.plotLongitude != null ? new Prisma.Decimal(input.plotLongitude) : null,
+        plotLatitude:
+          input.plotLatitude != null
+            ? new Prisma.Decimal(input.plotLatitude)
+            : null,
+        plotLongitude:
+          input.plotLongitude != null
+            ? new Prisma.Decimal(input.plotLongitude)
+            : null,
         cancelReason: input.cancelReason ?? null,
         postponedDate: input.postponedDate ?? null,
         postponedTime: input.postponedTime ?? null,
         postponedReason: input.postponedReason ?? null,
         postponedNotes: input.postponedNotes ?? null,
-        actualSalesPromotionSpent: input.actualSalesPromotionSpent ? new Prisma.Decimal(input.actualSalesPromotionSpent) : null,
-        actualMarketingSpent: input.actualMarketingSpent ? new Prisma.Decimal(input.actualMarketingSpent) : null,
+        actualSalesPromotionSpent: input.actualSalesPromotionSpent
+          ? new Prisma.Decimal(input.actualSalesPromotionSpent)
+          : null,
+        actualMarketingSpent: input.actualMarketingSpent
+          ? new Prisma.Decimal(input.actualMarketingSpent)
+          : null,
         actualTotalSpent: new Prisma.Decimal(actualTotalSpent),
-        salesResultAmount: input.salesResultAmount ? new Prisma.Decimal(input.salesResultAmount) : null,
+        salesResultAmount: input.salesResultAmount
+          ? new Prisma.Decimal(input.salesResultAmount)
+          : null,
         salesOrdersCount: input.salesOrdersCount ?? null,
-        collectResultAmount: input.collectResultAmount ? new Prisma.Decimal(input.collectResultAmount) : null,
+        collectResultAmount: input.collectResultAmount
+          ? new Prisma.Decimal(input.collectResultAmount)
+          : null,
         demoPlotsCreated: input.demoPlotsCreated ?? null,
         demoPlotsFollowedUp: input.demoPlotsFollowedUp ?? null,
         distributorsCount: input.distributorsCount ?? null,
@@ -1351,7 +1514,9 @@ export async function upsertActivityResult(
 
     // 1. Sync Sale Results
     if (input.saleResults !== undefined) {
-      await tx.activityResultSaleItem.deleteMany({ where: { activityResultId: result.id } });
+      await tx.activityResultSaleItem.deleteMany({
+        where: { activityResultId: result.id },
+      });
       if (input.saleResults.length > 0) {
         await tx.activityResultSaleItem.createMany({
           data: input.saleResults.map((item) => ({
@@ -1372,7 +1537,9 @@ export async function upsertActivityResult(
 
     // 2. Sync Stock Results
     if (input.stockResults !== undefined) {
-      await tx.activityResultStockItem.deleteMany({ where: { activityResultId: result.id } });
+      await tx.activityResultStockItem.deleteMany({
+        where: { activityResultId: result.id },
+      });
       if (input.stockResults.length > 0) {
         await tx.activityResultStockItem.createMany({
           data: input.stockResults.map((item) => ({
@@ -1390,16 +1557,37 @@ export async function upsertActivityResult(
 
     // 3. Sync Survey Results
     if (input.surveyResults !== undefined) {
-      await tx.activityResultSurveyItem.deleteMany({ where: { activityResultId: result.id } });
+      await tx.activityResultSurveyItem.deleteMany({
+        where: { activityResultId: result.id },
+      });
       if (input.surveyResults.length > 0) {
         await tx.activityResultSurveyItem.createMany({
           data: input.surveyResults.map((item) => ({
+            id: item.id || undefined,
             activityResultId: result.id,
             storeId: item.storeId,
             productId: item.productId ?? null,
             competitorBrand: item.competitorBrand,
             competitorProduct: item.competitorProduct,
-            competitorPrice: item.competitorPrice != null ? new Prisma.Decimal(item.competitorPrice) : null,
+            posPrice:
+              item.posPrice != null ? new Prisma.Decimal(item.posPrice) : null,
+            dealerPrice:
+              item.dealerPrice != null
+                ? new Prisma.Decimal(item.dealerPrice)
+                : null,
+            subdealerPrice:
+              item.subdealerPrice != null
+                ? new Prisma.Decimal(item.subdealerPrice)
+                : null,
+            farmerPrice:
+              item.farmerPrice != null
+                ? new Prisma.Decimal(item.farmerPrice)
+                : null,
+            sellingPoints: item.sellingPoints ?? null,
+            competitorPrice:
+              item.competitorPrice != null
+                ? new Prisma.Decimal(item.competitorPrice)
+                : null,
             competitorUnit: item.competitorUnit ?? null,
             promotionDetail: item.promotionDetail ?? null,
           })),
@@ -1409,7 +1597,9 @@ export async function upsertActivityResult(
 
     // 4. Sync Demo Results
     if (input.demoResults !== undefined) {
-      await tx.activityResultDemoItem.deleteMany({ where: { activityResultId: result.id } });
+      await tx.activityResultDemoItem.deleteMany({
+        where: { activityResultId: result.id },
+      });
       if (input.demoResults.length > 0) {
         await tx.activityResultDemoItem.createMany({
           data: input.demoResults.map((item) => ({
@@ -1425,8 +1615,14 @@ export async function upsertActivityResult(
             cropCondition: item.cropCondition ?? null,
             productResponse: item.productResponse ?? null,
             problemDescription: item.problemDescription ?? null,
-            finalYieldKg: item.finalYieldKg != null ? new Prisma.Decimal(item.finalYieldKg) : null,
-            controlYieldKg: item.controlYieldKg != null ? new Prisma.Decimal(item.controlYieldKg) : null,
+            finalYieldKg:
+              item.finalYieldKg != null
+                ? new Prisma.Decimal(item.finalYieldKg)
+                : null,
+            controlYieldKg:
+              item.controlYieldKg != null
+                ? new Prisma.Decimal(item.controlYieldKg)
+                : null,
             satisfactionScore: item.satisfactionScore ?? null,
           })),
         });
@@ -1435,7 +1631,9 @@ export async function upsertActivityResult(
 
     // 5. Sync Followup Results
     if (input.followupResults !== undefined) {
-      await tx.activityResultFollowupItem.deleteMany({ where: { activityResultId: result.id } });
+      await tx.activityResultFollowupItem.deleteMany({
+        where: { activityResultId: result.id },
+      });
       if (input.followupResults.length > 0) {
         await tx.activityResultFollowupItem.createMany({
           data: input.followupResults.map((item) => ({
@@ -1454,15 +1652,31 @@ export async function upsertActivityResult(
 
     // 6. Sync Attachments
     if (input.attachments !== undefined) {
-      await tx.activityAttachment.deleteMany({ where: { activityResultId: result.id } });
+      await tx.activityAttachment.deleteMany({
+        where: { activityResultId: result.id },
+      });
       if (input.attachments.length > 0) {
+        const existingSurveyItems = await tx.activityResultSurveyItem.findMany({
+          where: { activityResultId: result.id },
+          select: { id: true },
+        });
+        const validSurveyItemIds = new Set(
+          existingSurveyItems.map((s) => s.id),
+        );
+
         await tx.activityAttachment.createMany({
           data: input.attachments.map((att) => ({
             activityPlanId: input.activityPlanId,
             activityResultId: result.id,
-            workTypeCode: att.workTypeCode ? getWorkTypeCode(att.workTypeCode) : null,
+            workTypeCode: att.workTypeCode
+              ? getWorkTypeCode(att.workTypeCode)
+              : null,
             storeId: att.storeId ?? null,
             productId: att.productId ?? null,
+            surveyItemId:
+              att.surveyItemId && validSurveyItemIds.has(att.surveyItemId)
+                ? att.surveyItemId
+                : null,
             category: att.category ?? AttachmentCategory.GENERAL,
             fileUrl: att.fileUrl,
             fileName: att.fileName,
@@ -1517,7 +1731,14 @@ export async function findApprovalQueueData() {
     stores: {
       include: {
         store: {
-          select: { id: true, name: true, customerCode: true, customerType: true, province: true, district: true },
+          select: {
+            id: true,
+            name: true,
+            customerCode: true,
+            customerType: true,
+            province: true,
+            district: true,
+          },
         },
       },
     },
@@ -1805,7 +2026,8 @@ export async function recordDemoPlotVisit(data: {
     }
 
     if (!plot) {
-      const ownerName = plan?.stores?.[0]?.store?.name || plan?.location || "เกษตรกร";
+      const ownerName =
+        plan?.stores?.[0]?.store?.name || plan?.location || "เกษตรกร";
       const cropName = "พืชทั่วไป";
       const productName = "สินค้าสาธิต";
       const plotName = `${ownerName} - ${cropName}`;
@@ -1837,7 +2059,8 @@ export async function recordDemoPlotVisit(data: {
             areaRai: null,
             treeCount: null,
             startDate: plan?.startDate || data.visitDate,
-            plantingDate: data.plantingDate || plan?.startDate || data.visitDate,
+            plantingDate:
+              data.plantingDate || plan?.startDate || data.visitDate,
             plantingAreaCondition: data.plantingAreaCondition || null,
             usageMethod: data.usageMethod || null,
             objective: plan?.objective || null,
@@ -1957,10 +2180,7 @@ export async function findFarmerCustomersForPlots() {
   return db.customer.findMany({
     where: {
       deletedAt: null,
-      OR: [
-        { customerType: "FARMER" },
-        { farmPlots: { not: Prisma.DbNull } },
-      ],
+      OR: [{ customerType: "FARMER" }, { farmPlots: { not: Prisma.DbNull } }],
     },
     select: {
       id: true,
@@ -2085,7 +2305,10 @@ export async function findDemoPlotByIdOrName(demoPlotIdOrName: string) {
 /**
  * Find demo plot by owner name and crop name
  */
-export async function findDemoPlotByOwnerAndCrop(ownerName: string, cropName: string) {
+export async function findDemoPlotByOwnerAndCrop(
+  ownerName: string,
+  cropName: string,
+) {
   return db.demoPlot.findFirst({
     where: { ownerName, cropName, deletedAt: null },
     include: {
@@ -2105,4 +2328,3 @@ export async function findDemoPlotByOwnerAndCrop(ownerName: string, cropName: st
     },
   });
 }
-

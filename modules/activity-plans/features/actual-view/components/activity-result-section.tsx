@@ -108,14 +108,14 @@ interface ActivityResultSectionProps {
   setT5CompetitorBrand: (v: string) => void;
   t5CompetitorProduct: string;
   setT5CompetitorProduct: (v: string) => void;
-  t5CompetitorPrice: string;
-  setT5CompetitorPrice: (v: string) => void;
-  t5CompetitorUnit: string;
-  setT5CompetitorUnit: (v: string) => void;
-  t5PromotionDetail: string;
-  setT5PromotionDetail: (v: string) => void;
-  t5PriceTagImages: ImageFile[];
-  setT5PriceTagImages: React.Dispatch<React.SetStateAction<ImageFile[]>>;
+  t5CompetitorPrice?: string;
+  setT5CompetitorPrice?: (v: string) => void;
+  t5CompetitorUnit?: string;
+  setT5CompetitorUnit?: (v: string) => void;
+  t5PromotionDetail?: string;
+  setT5PromotionDetail?: (v: string) => void;
+  t5PriceTagImages?: ImageFile[];
+  setT5PriceTagImages?: React.Dispatch<React.SetStateAction<ImageFile[]>>;
 
   // Type 6
   t6ProblemDetail: string;
@@ -539,15 +539,6 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setCompetitorBrand={setT5CompetitorBrand}
           competitorProduct={t5CompetitorProduct}
           setCompetitorProduct={setT5CompetitorProduct}
-          competitorPrice={t5CompetitorPrice}
-          setCompetitorPrice={setT5CompetitorPrice}
-          competitorUnit={t5CompetitorUnit}
-          setCompetitorUnit={setT5CompetitorUnit}
-          promotionDetail={t5PromotionDetail}
-          setPromotionDetail={setT5PromotionDetail}
-          priceTagImages={t5PriceTagImages}
-          onUploadImages={createUploadHandler(setT5PriceTagImages)}
-          onRemoveImage={(id) => removeImage(setT5PriceTagImages, id)}
         />
 
         {/* WORK TYPE 6 */}

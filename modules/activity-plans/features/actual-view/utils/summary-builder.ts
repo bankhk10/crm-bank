@@ -53,11 +53,11 @@ export interface BuildSummaryInput {
   t4Detail?: string;
 
   // Type 5
-  t5CompetitorBrand: string;
-  t5CompetitorProduct: string;
-  t5CompetitorPrice: string;
-  t5CompetitorUnit: string;
-  t5PromotionDetail: string;
+  t5CompetitorBrand?: string;
+  t5CompetitorProduct?: string;
+  t5CompetitorPrice?: string;
+  t5CompetitorUnit?: string;
+  t5PromotionDetail?: string;
   t5SurveyDetails?: Type5SurveyRecord[];
 
   // Type 6
@@ -375,22 +375,9 @@ export function buildResultSummary(
     t4Detail ? `รายละเอียดเพิ่มเติม (วางบิล/เก็บเงิน): ${t4Detail}` : null,
 
     // Type 5
-    t5CompetitorBrand ? `แบรนด์คู่แข่ง: ${t5CompetitorBrand}` : null,
-    t5CompetitorProduct ? `สินค้าคู่แข่ง: ${t5CompetitorProduct}` : null,
-    t5CompetitorPrice ? `ราคาคู่แข่ง: ${t5CompetitorPrice}` : null,
-    t5CompetitorUnit ? `หน่วยนับคู่แข่ง: ${t5CompetitorUnit}` : null,
-    t5PromotionDetail ? `โปรโมชันคู่แข่ง: ${t5PromotionDetail}` : null,
     t5SurveyDetails &&
     t5SurveyDetails.length > 0 &&
-    t5SurveyDetails.some(
-      (s) =>
-        s.competitorBrand ||
-        s.competitorProduct ||
-        s.competitorPrice ||
-        s.promotionDetail ||
-        (s.priceTagImages && s.priceTagImages.length > 0) ||
-        (s.shelfImages && s.shelfImages.length > 0),
-    )
+    t5SurveyDetails.some((s) => s.competitorBrand || s.competitorProduct)
       ? `รายการสำรวจตลาดคู่แข่ง: มีบันทึก ${t5SurveyDetails.length} รายการ`
       : null,
 
@@ -672,20 +659,85 @@ export function buildResultSummary(
     });
   }
 
+  // Build structured attachments
+  const attachments: any[] = [];
+  const addAttachment = (
+    img: any,
+    workTypeCode: string,
+    category: string = "GENERAL",
+    surveyItemId?: string | null,
+    storeId?: string | null,
+    productId?: string | null,
+  ) => {
+    if (img && img.url) {
+      attachments.push({
+        workTypeCode,
+        category,
+        surveyItemId: surveyItemId || null,
+        storeId: storeId || null,
+        productId: productId || null,
+        fileUrl: img.url,
+        fileName: img.name || `${workTypeCode.toLowerCase()}_image.jpg`,
+        fileSize: img.size || null,
+        mimeType: img.type || "image/jpeg",
+      });
+    }
+  };
+
   // Build structured survey results
   const surveyResults: any[] = [];
   if (input.t5SurveyDetails && Array.isArray(input.t5SurveyDetails)) {
-    input.t5SurveyDetails.forEach((item) => {
-      const sId = (item as any).storeId || (item as any).id;
-      if (sId && (item.competitorBrand || item.competitorProduct)) {
+    input.t5SurveyDetails.forEach((item, idx) => {
+      // Resolve valid storeId: must come from item.storeId or plan store (NEVER fallback to item.id)
+      const resolvedStoreId =
+        (item as any).storeId ||
+        ((item as any).store && (item as any).store.id) ||
+        (input.planSummary as any)?.stores?.find(
+          (s: any) =>
+            s.workTypeCode === "TYPE_5" ||
+            (item.store && s.storeName === item.store),
+        )?.storeId ||
+        (input.planSummary as any)?.stores?.[0]?.storeId ||
+        null;
+
+      if (resolvedStoreId && (item.competitorBrand || item.competitorProduct)) {
+        const itemId = item.id || `survey-item-${idx + 1}`;
+        const pId = (item as any).productId || null;
         surveyResults.push({
-          storeId: sId,
-          productId: (item as any).productId || null,
+          id: itemId,
+          storeId: resolvedStoreId,
+          productId: pId,
           competitorBrand: item.competitorBrand || "-",
           competitorProduct: item.competitorProduct || "-",
-          competitorPrice: parseCleanNumber(item.competitorPrice),
-          competitorUnit: item.competitorUnit || "ขวด",
-          promotionDetail: item.promotionDetail || null,
+          posPrice: parseCleanNumber(item.posPrice),
+          dealerPrice: parseCleanNumber(item.dealerPrice),
+          subdealerPrice: parseCleanNumber(item.subdealerPrice),
+          farmerPrice: parseCleanNumber(item.farmerPrice),
+          sellingPoints: item.sellingPoints?.trim() || null,
+        });
+
+        // 1. Bottle Images (max 2)
+        (item.bottleImages || []).slice(0, 2).forEach((img) => {
+          addAttachment(
+            img,
+            "TYPE_5",
+            "SURVEY_BOTTLE",
+            itemId,
+            resolvedStoreId,
+            pId,
+          );
+        });
+
+        // 2. Promotional Media Images (max 3)
+        (item.promotionalImages || []).slice(0, 3).forEach((img) => {
+          addAttachment(
+            img,
+            "TYPE_5",
+            "SURVEY_PROMO_MATERIAL",
+            itemId,
+            resolvedStoreId,
+            pId,
+          );
         });
       }
     });
@@ -719,25 +771,6 @@ export function buildResultSummary(
       }
     });
   }
-
-  // Build structured attachments
-  const attachments: any[] = [];
-  const addAttachment = (
-    img: any,
-    workTypeCode: string,
-    category: string = "GENERAL",
-  ) => {
-    if (img && img.url) {
-      attachments.push({
-        workTypeCode,
-        category,
-        fileUrl: img.url,
-        fileName: img.name || `${workTypeCode.toLowerCase()}_image.jpg`,
-        fileSize: img.size || null,
-        mimeType: img.type || "image/jpeg",
-      });
-    }
-  };
 
   (input.t1PlotImages || [])
     .slice(0, 5)

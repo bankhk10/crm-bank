@@ -194,9 +194,21 @@ export interface Type5SurveyRecord {
   detail?: string;
   competitorBrand: string;
   competitorProduct: string;
-  competitorPrice: string;
+  // Normalized 4-tier pricing
+  posPrice?: string | number | null;
+  dealerPrice?: string | number | null;
+  subdealerPrice?: string | number | null;
+  farmerPrice?: string | number | null;
+  // Highlights
+  sellingPoints?: string;
+  // Attachments (up to 2 bottle photos, up to 3 promo photos)
+  bottleImages?: ImageFile[];
+  promotionalImages?: ImageFile[];
+
+  // Legacy fields (optional for backward compatibility)
+  competitorPrice?: string;
   competitorUnit?: string;
-  promotionDetail: string;
+  promotionDetail?: string;
   priceTagImages?: ImageFile[];
   shelfImages?: ImageFile[];
 }

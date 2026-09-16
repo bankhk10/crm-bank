@@ -1,39 +1,17 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { Camera, BarChart2, Store, Package } from "lucide-react";
+import { Camera, BarChart2, Store, Package, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import GalleryUpload from "@/components/custom/gallery-upload";
-import type { FileMetadata, FileWithPreview } from "@/hooks/use-file-upload";
+import type { FileWithPreview } from "@/hooks/use-file-upload";
 import { ImageFile, Type5SurveyRecord } from "../../types";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
 } from "../../utils";
-
-export const COMPETITOR_PRODUCT_UNITS = [
-  "ขวด",
-  "แกลลอน",
-  "ถัง",
-  "ซอง",
-  "ถุง",
-  "กล่อง",
-  "กระสอบ",
-  "ชุด",
-  "ลิตร",
-  "มิลลิลิตร",
-  "กิโลกรัม",
-  "กรัม",
-];
 
 export interface TargetSurveyItem {
   id?: string;
@@ -65,15 +43,6 @@ interface ActualType5SurveyProps {
   setCompetitorBrand?: (v: string) => void;
   competitorProduct?: string;
   setCompetitorProduct?: (v: string) => void;
-  competitorPrice?: string;
-  setCompetitorPrice?: (v: string) => void;
-  competitorUnit?: string;
-  setCompetitorUnit?: (v: string) => void;
-  promotionDetail?: string;
-  setPromotionDetail?: (v: string) => void;
-  priceTagImages?: ImageFile[];
-  onUploadImages?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemoveImage?: (id: string) => void;
 }
 
 export function ActualType5Survey({
@@ -85,13 +54,6 @@ export function ActualType5Survey({
   setCompetitorBrand,
   competitorProduct = "",
   setCompetitorProduct,
-  competitorPrice = "",
-  setCompetitorPrice,
-  competitorUnit = "ขวด",
-  setCompetitorUnit,
-  promotionDetail = "",
-  setPromotionDetail,
-  priceTagImages = [],
 }: ActualType5SurveyProps) {
   // Normalized records to render: prefer surveyDetails if available, otherwise construct from target or fallback
   const recordsToRender: { record: Type5SurveyRecord; index: number }[] =
@@ -108,11 +70,13 @@ export function ActualType5Survey({
             detail: item.detail || target.detail || "",
             competitorBrand: idx === 0 ? competitorBrand : "",
             competitorProduct: idx === 0 ? competitorProduct : "",
-            competitorPrice: idx === 0 ? competitorPrice : "",
-            competitorUnit: idx === 0 ? competitorUnit : "ขวด",
-            promotionDetail: idx === 0 ? promotionDetail : "",
-            priceTagImages: idx === 0 ? priceTagImages : [],
-            shelfImages: [],
+            posPrice: "",
+            dealerPrice: "",
+            subdealerPrice: "",
+            farmerPrice: "",
+            sellingPoints: "",
+            bottleImages: [],
+            promotionalImages: [],
           },
           index: idx,
         }));
@@ -125,25 +89,18 @@ export function ActualType5Survey({
             detail: target.detail || "",
             competitorBrand,
             competitorProduct,
-            competitorPrice,
-            competitorUnit,
-            promotionDetail,
-            priceTagImages,
-            shelfImages: [],
+            posPrice: "",
+            dealerPrice: "",
+            subdealerPrice: "",
+            farmerPrice: "",
+            sellingPoints: "",
+            bottleImages: [],
+            promotionalImages: [],
           },
           index: 0,
         },
       ];
-    }, [
-      surveyDetails,
-      target,
-      competitorBrand,
-      competitorProduct,
-      competitorPrice,
-      competitorUnit,
-      promotionDetail,
-      priceTagImages,
-    ]);
+    }, [surveyDetails, target, competitorBrand, competitorProduct]);
 
   // Group records by Store Name
   const groupedByStore = useMemo(() => {
@@ -180,33 +137,33 @@ export function ActualType5Survey({
         setCompetitorBrand(val);
       if (field === "competitorProduct" && setCompetitorProduct)
         setCompetitorProduct(val);
-      if (field === "competitorPrice" && setCompetitorPrice)
-        setCompetitorPrice(val);
-      if (field === "competitorUnit" && setCompetitorUnit)
-        setCompetitorUnit(val);
-      if (field === "promotionDetail" && setPromotionDetail)
-        setPromotionDetail(val);
     }
   };
 
-  const handlePriceTagFilesChange = (
+  // Bottle photos change (Max 2)
+  const handleBottleFilesChange = (index: number, files: FileWithPreview[]) => {
+    // Strictly cap at 2 photos
+    const capped = files.slice(0, 2);
+    const converted = filesWithPreviewToImageFiles(capped);
+    const current = recordsToRender[index]?.record.bottleImages || [];
+
+    if (!isImageFilesEqual(current, converted) && onUpdateSurveyItem) {
+      onUpdateSurveyItem(index, { bottleImages: converted });
+    }
+  };
+
+  // Promotional media photos change (Max 3)
+  const handlePromotionalFilesChange = (
     index: number,
     files: FileWithPreview[],
   ) => {
-    const converted = filesWithPreviewToImageFiles(files);
-    const current = recordsToRender[index]?.record.priceTagImages || [];
+    // Strictly cap at 3 photos
+    const capped = files.slice(0, 3);
+    const converted = filesWithPreviewToImageFiles(capped);
+    const current = recordsToRender[index]?.record.promotionalImages || [];
 
     if (!isImageFilesEqual(current, converted) && onUpdateSurveyItem) {
-      onUpdateSurveyItem(index, { priceTagImages: converted });
-    }
-  };
-
-  const handleShelfFilesChange = (index: number, files: FileWithPreview[]) => {
-    const converted = filesWithPreviewToImageFiles(files);
-    const current = recordsToRender[index]?.record.shelfImages || [];
-
-    if (!isImageFilesEqual(current, converted) && onUpdateSurveyItem) {
-      onUpdateSurveyItem(index, { shelfImages: converted });
+      onUpdateSurveyItem(index, { promotionalImages: converted });
     }
   };
 
@@ -296,8 +253,8 @@ export function ActualType5Survey({
                     )}
                   </div>
 
-                  {/* Form Inputs Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {/* Brand & Product Name */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-slate-700">
                         แบรนด์คู่แข่งที่พบหน้างาน{" "}
@@ -334,134 +291,200 @@ export function ActualType5Survey({
                         className="bg-white border-slate-300 h-9 text-xs"
                       />
                     </div>
+                  </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-slate-700">
-                        ราคาของคู่แข่ง (บาท){" "}
-                        <span className="text-rose-500">*</span>
-                      </label>
-                      <Input
-                        type="text"
-                        value={record.competitorPrice || ""}
-                        onChange={(e) =>
-                          handleFieldChange(
-                            index,
-                            "competitorPrice",
-                            e.target.value,
-                          )
-                        }
-                        placeholder="ระบุราคา เช่น 450"
-                        className="bg-white border-slate-300 h-9 text-xs"
-                      />
+                  {/* Normalized 4-Tier Pricing */}
+                  <div className="bg-amber-50/30 border border-amber-100 rounded-xl p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                        โครงสร้างราคา 4 ระดับ (บาท)
+                      </span>
+                      <span className="text-[11px] text-amber-700/70">
+                        กรอกข้อมูลราคาที่สำรวจได้
+                      </span>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-slate-700">
-                        หน่วยนับ <span className="text-rose-500">*</span>
-                      </label>
-                      <Select
-                        value={record.competitorUnit || "ขวด"}
-                        onValueChange={(val) =>
-                          handleFieldChange(index, "competitorUnit", val)
-                        }
-                      >
-                        <SelectTrigger className="bg-white border-slate-300 !h-9 data-[size=default]:h-9 text-xs w-full">
-                          <SelectValue placeholder="เลือกหน่วยนับ" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {COMPETITOR_PRODUCT_UNITS.map((unit) => (
-                            <SelectItem
-                              key={unit}
-                              value={unit}
-                              className="text-xs"
-                            >
-                              {unit}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700">
+                          ราคา ณ จุดขาย (POS)
+                        </label>
+                        <Input
+                          type="text"
+                          value={
+                            record.posPrice != null
+                              ? String(record.posPrice)
+                              : ""
+                          }
+                          onChange={(e) =>
+                            handleFieldChange(index, "posPrice", e.target.value)
+                          }
+                          placeholder="เช่น 450"
+                          className="bg-white border-slate-300 h-9 text-xs font-medium"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700">
+                          ราคา Dealer
+                        </label>
+                        <Input
+                          type="text"
+                          value={
+                            record.dealerPrice != null
+                              ? String(record.dealerPrice)
+                              : ""
+                          }
+                          onChange={(e) =>
+                            handleFieldChange(
+                              index,
+                              "dealerPrice",
+                              e.target.value,
+                            )
+                          }
+                          placeholder="เช่น 380"
+                          className="bg-white border-slate-300 h-9 text-xs font-medium"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700">
+                          ราคา Subdealer
+                        </label>
+                        <Input
+                          type="text"
+                          value={
+                            record.subdealerPrice != null
+                              ? String(record.subdealerPrice)
+                              : ""
+                          }
+                          onChange={(e) =>
+                            handleFieldChange(
+                              index,
+                              "subdealerPrice",
+                              e.target.value,
+                            )
+                          }
+                          placeholder="เช่น 410"
+                          className="bg-white border-slate-300 h-9 text-xs font-medium"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700">
+                          ราคา Farmers
+                        </label>
+                        <Input
+                          type="text"
+                          value={
+                            record.farmerPrice != null
+                              ? String(record.farmerPrice)
+                              : ""
+                          }
+                          onChange={(e) =>
+                            handleFieldChange(
+                              index,
+                              "farmerPrice",
+                              e.target.value,
+                            )
+                          }
+                          placeholder="เช่น 450"
+                          className="bg-white border-slate-300 h-9 text-xs font-medium"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {/* Promotion Textarea */}
+                  {/* Product Selling Points / Highlights */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-700">
-                      โปรโมชันของคู่แข่งในช่วงนี้
+                    <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                      จุดขาย / จุดเด่นของสินค้า
                     </label>
                     <Textarea
                       rows={2}
-                      value={record.promotionDetail || ""}
+                      value={record.sellingPoints || ""}
                       onChange={(e) =>
                         handleFieldChange(
                           index,
-                          "promotionDetail",
+                          "sellingPoints",
                           e.target.value,
                         )
                       }
-                      placeholder="เช่น ซื้อ 10 แถม 1 หรือ มีของแถมพรีเมียมหน้าร้าน"
-                      className="bg-white border-slate-300 text-xs min-h-[56px]"
+                      placeholder="ระบุจุดขายหรือจุดเด่นของผลิตภัณฑ์คู่แข่ง เช่น ละลายน้ำไว ไม่ตกตะกอน บรรจุภัณฑ์จับถนัดมือ มีสารจับใบในตัว ฯลฯ"
+                      className="bg-white border-slate-300 text-xs min-h-[64px]"
                     />
                   </div>
 
-                  {/* 2 Separate Upload Sections using GalleryUpload from product-form.tsx */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
-                    {/* Price Tag Images */}
+                  {/* 2 Separate Upload Sections: Bottle Photos (Max 2) and Promotional Materials (Max 3) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-1">
+                    {/* Bottle Photos */}
                     <div className="bg-amber-50/20 border border-amber-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
-                      <div className="flex items-center gap-2 border-b border-amber-100 pb-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center border border-amber-200">
-                          <Camera className="w-4 h-4" />
+                      <div className="flex items-center justify-between border-b border-amber-100 pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center border border-amber-200">
+                            <Camera className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-bold text-amber-950">
+                              รูปถ่ายขวดผลิตภัณฑ์
+                            </h4>
+                            <p className="text-[11px] text-amber-700/80">
+                              รูปถ่ายขวดหรือบรรจุภัณฑ์ของสินค้าคู่แข่ง
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="text-xs sm:text-sm font-bold text-amber-950">
-                            รูปภาพป้ายราคาคู่แข่ง
-                          </h4>
-                          <p className="text-[11px] text-amber-700/80">
-                            รูปภาพป้ายราคาสำหรับ {record.product || "สินค้านี้"}
-                          </p>
-                        </div>
+                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                          {(record.bottleImages || []).length} / 2 รูป
+                        </span>
                       </div>
                       <GalleryUpload
-                        key={`price-tag-${record.id || `${storeGroup.storeName}-${record.product}-${index}`}`}
-                        maxFiles={10}
+                        key={`bottle-${record.id || `${storeGroup.storeName}-${record.product}-${index}`}`}
+                        maxFiles={2}
                         maxSize={20 * 1024 * 1024}
                         accept="image/*"
                         multiple={true}
                         initialFiles={convertToFileMetadata(
-                          record.priceTagImages || [],
+                          (record.bottleImages || []).slice(0, 2),
                         )}
                         onFilesChange={(files) =>
-                          handlePriceTagFilesChange(index, files)
+                          handleBottleFilesChange(index, files)
                         }
                       />
                     </div>
 
-                    {/* Shelf Images */}
-                    <div className="bg-indigo-50/20 border border-indigo-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
-                      <div className="flex items-center gap-2 border-b border-indigo-100 pb-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center border border-indigo-200">
-                          <Camera className="w-4 h-4" />
+                    {/* Promotional Materials Photos */}
+                    <div className="bg-blue-50/20 border border-blue-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
+                      <div className="flex items-center justify-between border-b border-blue-100 pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center border border-blue-200">
+                            <Camera className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-bold text-blue-950">
+                              รูปภาพสื่อส่งเสริมการขาย
+                            </h4>
+                            <p className="text-[11px] text-blue-700/80">
+                              ป้ายโฆษณา, แบนเนอร์, โบรชัวร์ หรือสื่อโปรโมท
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="text-xs sm:text-sm font-bold text-indigo-950">
-                            รูปภาพชั้นวางสินค้า
-                          </h4>
-                          <p className="text-[11px] text-indigo-700/80">
-                            รูปภาพชั้นวางสินค้าสำหรับ{" "}
-                            {record.product || "สินค้านี้"}
-                          </p>
-                        </div>
+                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                          {(record.promotionalImages || []).length} / 3 รูป
+                        </span>
                       </div>
                       <GalleryUpload
-                        key={`shelf-${record.id || `${storeGroup.storeName}-${record.product}-${index}`}`}
-                        maxFiles={10}
+                        key={`promo-${record.id || `${storeGroup.storeName}-${record.product}-${index}`}`}
+                        maxFiles={3}
                         maxSize={20 * 1024 * 1024}
                         accept="image/*"
                         multiple={true}
                         initialFiles={convertToFileMetadata(
-                          record.shelfImages || [],
+                          (record.promotionalImages || []).slice(0, 3),
                         )}
                         onFilesChange={(files) =>
-                          handleShelfFilesChange(index, files)
+                          handlePromotionalFilesChange(index, files)
                         }
                       />
                     </div>

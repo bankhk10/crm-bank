@@ -271,18 +271,58 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     Array.isArray(resData.surveyResults) &&
     resData.surveyResults.length > 0
   ) {
-    result.t5SurveyDetails = resData.surveyResults.map((sv: any) => ({
-      id: sv.id,
-      storeId: sv.storeId,
-      store: sv.store?.name || "",
-      productId: sv.productId,
-      product: sv.product?.name || "",
-      competitorBrand: sv.competitorBrand || "",
-      competitorProduct: sv.competitorProduct || "",
-      competitorPrice: sv.competitorPrice ? String(sv.competitorPrice) : "",
-      competitorUnit: sv.competitorUnit || "ขวด",
-      promotionDetail: sv.promotionDetail || "",
-    }));
+    const allAttachments = Array.isArray(resData.attachments)
+      ? resData.attachments
+      : [];
+
+    result.t5SurveyDetails = resData.surveyResults.map((sv: any) => {
+      // Collect attachments for this survey item: either via sv.attachments relation or resData.attachments matching surveyItemId
+      const itemAttachments =
+        Array.isArray(sv.attachments) && sv.attachments.length > 0
+          ? sv.attachments
+          : allAttachments.filter((att: any) => att.surveyItemId === sv.id);
+
+      const bottleImages = itemAttachments
+        .filter((att: any) => att.category === "SURVEY_BOTTLE")
+        .map((att: any) => ({
+          id: att.id,
+          url: att.fileUrl,
+          name: att.fileName,
+          size: att.fileSize || undefined,
+          type: att.mimeType || undefined,
+        }));
+
+      const promotionalImages = itemAttachments
+        .filter((att: any) => att.category === "SURVEY_PROMO_MATERIAL")
+        .map((att: any) => ({
+          id: att.id,
+          url: att.fileUrl,
+          name: att.fileName,
+          size: att.fileSize || undefined,
+          type: att.mimeType || undefined,
+        }));
+
+      return {
+        id: sv.id,
+        storeId: sv.storeId,
+        store: sv.store?.name || "",
+        productId: sv.productId,
+        product: sv.product?.name || "",
+        competitorBrand: sv.competitorBrand || "",
+        competitorProduct: sv.competitorProduct || "",
+        posPrice: sv.posPrice != null ? String(sv.posPrice) : "",
+        dealerPrice: sv.dealerPrice != null ? String(sv.dealerPrice) : "",
+        subdealerPrice:
+          sv.subdealerPrice != null ? String(sv.subdealerPrice) : "",
+        farmerPrice: sv.farmerPrice != null ? String(sv.farmerPrice) : "",
+        sellingPoints: sv.sellingPoints || "",
+        bottleImages,
+        promotionalImages,
+        competitorPrice: sv.competitorPrice ? String(sv.competitorPrice) : "",
+        competitorUnit: sv.competitorUnit || "",
+        promotionDetail: sv.promotionDetail || "",
+      };
+    });
   }
 
   if (

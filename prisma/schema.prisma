@@ -1582,6 +1582,8 @@ enum AttachmentCategory {
   PLOT // ภาพรวมแปลง
   ATMOSPHERE // บรรยากาศงานประชุม/หน้าร้าน
   ISSUE // รูปปัญหา/ข้อร้องเรียน
+  SURVEY_BOTTLE // รูปถ่ายขวดผลิตภัณฑ์ (สำรวจตลาด)
+  SURVEY_PROMO_MATERIAL // รูปภาพสื่อส่งเสริมการขาย (สำรวจตลาด)
   GENERAL // อื่นๆ
 }
 
@@ -2058,9 +2060,17 @@ model ActivityResultSurveyItem {
   competitorUnit    String?  @map("competitor_unit")
   promotionDetail   String?  @map("promotion_detail")
 
-  activityResult ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  store          Customer       @relation(fields: [storeId], references: [id], onDelete: Restrict)
-  product        Product?       @relation("ActivityResultSurveyProductRef", fields: [productId], references: [id], onDelete: SetNull)
+  // Normalized 4-tier pricing & product highlights (TYPE_5 requirement)
+  posPrice          Decimal? @map("pos_price") @db.Decimal(15, 2)
+  dealerPrice       Decimal? @map("dealer_price") @db.Decimal(15, 2)
+  subdealerPrice    Decimal? @map("subdealer_price") @db.Decimal(15, 2)
+  farmerPrice       Decimal? @map("farmer_price") @db.Decimal(15, 2)
+  sellingPoints     String?  @map("selling_points") @db.Text
+
+  activityResult ActivityResult       @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
+  store          Customer             @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  product        Product?             @relation("ActivityResultSurveyProductRef", fields: [productId], references: [id], onDelete: SetNull)
+  attachments    ActivityAttachment[]
 
   @@index([activityResultId])
   @@index([storeId])
@@ -2126,6 +2136,7 @@ model ActivityAttachment {
   workTypeCode     String?            @map("work_type_code")
   storeId          String?            @map("store_id")
   productId        String?            @map("product_id")
+  surveyItemId     String?            @map("survey_item_id")
   category         AttachmentCategory @default(GENERAL)
   fileUrl          String             @map("file_url")
   fileName         String             @map("file_name")
@@ -2133,16 +2144,18 @@ model ActivityAttachment {
   mimeType         String?            @map("mime_type")
   createdAt        DateTime           @default(now()) @map("created_at")
 
-  activityPlan   ActivityPlan    @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  activityResult ActivityResult? @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  store          Customer?       @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  product        Product?        @relation("ActivityAttachmentProductRef", fields: [productId], references: [id], onDelete: SetNull)
+  activityPlan   ActivityPlan              @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  activityResult ActivityResult?           @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
+  store          Customer?                 @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  product        Product?                  @relation("ActivityAttachmentProductRef", fields: [productId], references: [id], onDelete: SetNull)
+  surveyItem     ActivityResultSurveyItem? @relation(fields: [surveyItemId], references: [id], onDelete: Cascade)
 
   @@index([activityPlanId])
   @@index([activityResultId])
   @@index([category])
   @@index([storeId])
   @@index([productId])
+  @@index([surveyItemId])
   @@map("activity_attachments")
 }
 

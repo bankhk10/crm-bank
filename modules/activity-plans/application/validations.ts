@@ -304,6 +304,13 @@ export const activityResultSchema = z
           productId: z.string().optional().nullable(),
           competitorBrand: z.string(),
           competitorProduct: z.string(),
+          // Normalized 4-tier pricing & product highlights (TYPE_5)
+          posPrice: z.coerce.number().optional().nullable(),
+          dealerPrice: z.coerce.number().optional().nullable(),
+          subdealerPrice: z.coerce.number().optional().nullable(),
+          farmerPrice: z.coerce.number().optional().nullable(),
+          sellingPoints: z.string().optional().nullable(),
+          // Legacy fields
           competitorPrice: z.coerce.number().optional().nullable(),
           competitorUnit: z.string().optional().nullable(),
           promotionDetail: z.string().optional().nullable(),
@@ -369,6 +376,7 @@ export const activityResultSchema = z
           workTypeCode: z.string().optional().nullable(),
           storeId: z.string().optional().nullable(),
           productId: z.string().optional().nullable(),
+          surveyItemId: z.string().optional().nullable(),
           category: z.any().optional(),
           fileUrl: z.string(),
           fileName: z.string(),

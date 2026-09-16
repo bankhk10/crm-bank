@@ -588,16 +588,23 @@ export default function ActivityPlanActualView({
                   ]
             ).map((item) => ({
               id: item.id,
+              storeId:
+                (item as any).storeId ||
+                (extracted.targets.t5 as any).storeId ||
+                undefined,
               store: item.store || "",
+              productId: (item as any).productId || undefined,
               product: item.product || "",
               detail: item.detail || "",
               competitorBrand: "",
               competitorProduct: "",
-              competitorPrice: "",
-              competitorUnit: "ขวด",
-              promotionDetail: "",
-              priceTagImages: [],
-              shelfImages: [],
+              posPrice: "",
+              dealerPrice: "",
+              subdealerPrice: "",
+              farmerPrice: "",
+              sellingPoints: "",
+              bottleImages: [],
+              promotionalImages: [],
             }));
 
             const savedT5List = parsed.t5SurveyDetails || [];
@@ -614,16 +621,37 @@ export default function ActivityPlanActualView({
                 if (matched) {
                   return {
                     id: plannedItem.id || matched.id,
+                    storeId:
+                      (matched as any).storeId ||
+                      (plannedItem as any).storeId ||
+                      (extracted.targets.t5 as any).storeId ||
+                      undefined,
                     store: plannedItem.store || matched.store || "",
+                    productId:
+                      (matched as any).productId ||
+                      (plannedItem as any).productId ||
+                      undefined,
                     product: plannedItem.product || matched.product || "",
                     detail: plannedItem.detail || matched.detail || "",
                     competitorBrand: matched.competitorBrand || "",
                     competitorProduct: matched.competitorProduct || "",
-                    competitorPrice: matched.competitorPrice || "",
-                    competitorUnit: matched.competitorUnit || "ขวด",
-                    promotionDetail: matched.promotionDetail || "",
-                    priceTagImages: matched.priceTagImages || [],
-                    shelfImages: matched.shelfImages || [],
+                    posPrice:
+                      matched.posPrice != null ? String(matched.posPrice) : "",
+                    dealerPrice:
+                      matched.dealerPrice != null
+                        ? String(matched.dealerPrice)
+                        : "",
+                    subdealerPrice:
+                      matched.subdealerPrice != null
+                        ? String(matched.subdealerPrice)
+                        : "",
+                    farmerPrice:
+                      matched.farmerPrice != null
+                        ? String(matched.farmerPrice)
+                        : "",
+                    sellingPoints: matched.sellingPoints || "",
+                    bottleImages: matched.bottleImages || [],
+                    promotionalImages: matched.promotionalImages || [],
                   };
                 }
 
@@ -633,14 +661,13 @@ export default function ActivityPlanActualView({
                     idx === 0 ? parsed.t5CompetitorBrand || "" : "",
                   competitorProduct:
                     idx === 0 ? parsed.t5CompetitorProduct || "" : "",
-                  competitorPrice:
-                    idx === 0 ? parsed.t5CompetitorPrice || "" : "",
-                  competitorUnit:
-                    idx === 0 ? parsed.t5CompetitorUnit || "ขวด" : "ขวด",
-                  promotionDetail:
-                    idx === 0 ? parsed.t5PromotionDetail || "" : "",
-                  priceTagImages: [],
-                  shelfImages: [],
+                  posPrice: "",
+                  dealerPrice: "",
+                  subdealerPrice: "",
+                  farmerPrice: "",
+                  sellingPoints: "",
+                  bottleImages: [],
+                  promotionalImages: [],
                 };
               },
             );
@@ -830,16 +857,23 @@ export default function ActivityPlanActualView({
                   ]
             ).map((item) => ({
               id: item.id,
+              storeId:
+                (item as any).storeId ||
+                (extracted.targets.t5 as any).storeId ||
+                undefined,
               store: item.store || "",
+              productId: (item as any).productId || undefined,
               product: item.product || "",
               detail: item.detail || "",
               competitorBrand: "",
               competitorProduct: "",
-              competitorPrice: "",
-              competitorUnit: "ขวด",
-              promotionDetail: "",
-              priceTagImages: [],
-              shelfImages: [],
+              posPrice: "",
+              dealerPrice: "",
+              subdealerPrice: "",
+              farmerPrice: "",
+              sellingPoints: "",
+              bottleImages: [],
+              promotionalImages: [],
             }));
             setT5SurveyDetails(defaultT5Records);
           }
@@ -981,25 +1015,25 @@ export default function ActivityPlanActualView({
             const rec = { ...t5SurveyDetails[i] };
             const surveyItemId = rec.id || `item-${i + 1}`;
 
-            if (rec.priceTagImages && rec.priceTagImages.length > 0) {
+            if (rec.bottleImages && rec.bottleImages.length > 0) {
               const res = await uploadActivityPlanImageGroup(
                 id,
-                rec.priceTagImages,
-                "price-tag",
+                rec.bottleImages.slice(0, 2),
+                "bottle",
                 surveyItemId,
               );
-              rec.priceTagImages = res.updatedImages;
+              rec.bottleImages = res.updatedImages;
               allNewlyUploadedUrls.push(...res.newlyUploadedUrls);
             }
 
-            if (rec.shelfImages && rec.shelfImages.length > 0) {
+            if (rec.promotionalImages && rec.promotionalImages.length > 0) {
               const res = await uploadActivityPlanImageGroup(
                 id,
-                rec.shelfImages,
-                "shelf",
+                rec.promotionalImages.slice(0, 3),
+                "promo",
                 surveyItemId,
               );
-              rec.shelfImages = res.updatedImages;
+              rec.promotionalImages = res.updatedImages;
               allNewlyUploadedUrls.push(...res.newlyUploadedUrls);
             }
 
@@ -1130,14 +1164,14 @@ export default function ActivityPlanActualView({
         // Type 5
         const initialT5Urls = (initialT5SurveyDetailsRef.current || []).flatMap(
           (rec) => [
-            ...collectPermanentUrls(rec.priceTagImages),
-            ...collectPermanentUrls(rec.shelfImages),
+            ...collectPermanentUrls(rec.bottleImages),
+            ...collectPermanentUrls(rec.promotionalImages),
           ],
         );
         const currentT5Urls = new Set(
           cleanT5SurveyDetails.flatMap((rec) => [
-            ...collectPermanentUrls(rec.priceTagImages),
-            ...collectPermanentUrls(rec.shelfImages),
+            ...collectPermanentUrls(rec.bottleImages),
+            ...collectPermanentUrls(rec.promotionalImages),
           ]),
         );
         const oldT5ToDelete = initialT5Urls.filter(
@@ -1635,14 +1669,6 @@ export default function ActivityPlanActualView({
             setT5CompetitorBrand={setT5CompetitorBrand}
             t5CompetitorProduct={t5CompetitorProduct}
             setT5CompetitorProduct={setT5CompetitorProduct}
-            t5CompetitorPrice={t5CompetitorPrice}
-            setT5CompetitorPrice={setT5CompetitorPrice}
-            t5CompetitorUnit={t5CompetitorUnit}
-            setT5CompetitorUnit={setT5CompetitorUnit}
-            t5PromotionDetail={t5PromotionDetail}
-            setT5PromotionDetail={setT5PromotionDetail}
-            t5PriceTagImages={t5PriceTagImages}
-            setT5PriceTagImages={setT5PriceTagImages}
             // Type 6
             t6ProblemDetail={t6ProblemDetail}
             setT6ProblemDetail={setT6ProblemDetail}

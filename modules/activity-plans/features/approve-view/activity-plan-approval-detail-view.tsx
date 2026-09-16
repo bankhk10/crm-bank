@@ -64,8 +64,12 @@ import {
   PromotionalMaterialsSection,
   MarketingExpenseSection,
 } from "../actual-view/components";
-import { extractPlanData } from "../actual-view/utils";
-import type { PlanSummaryData, ActualTargetsState } from "../actual-view/types";
+import { extractPlanData, parseResultSummary } from "../actual-view/utils";
+import type {
+  PlanSummaryData,
+  ActualTargetsState,
+  ParsedSummaryValues,
+} from "../actual-view/types";
 
 interface ActivityPlanApprovalDetailViewProps {
   id: string;
@@ -170,13 +174,16 @@ export default function ActivityPlanApprovalDetailView({
     useState<PlanSummaryData>(initialPlanSummary);
   const [planWorkTypes, setPlanWorkTypes] = useState<string[]>([]);
   const [targets, setTargets] = useState<ActualTargetsState>(initialTargets);
+  const [parsedResults, setParsedResults] = useState<ParsedSummaryValues>({});
 
   // Approval Dialog states
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<ApprovalActionType>("APPROVE");
 
   // Helper review state
-  const [reviewingHelperId, setReviewingHelperId] = useState<string | null>(null);
+  const [reviewingHelperId, setReviewingHelperId] = useState<string | null>(
+    null,
+  );
   const [rejectHelperDialogOpen, setRejectHelperDialogOpen] = useState(false);
   const [helperRejectReason, setHelperRejectReason] = useState("");
   const [isProcessingHelper, setIsProcessingHelper] = useState(false);
@@ -196,6 +203,12 @@ export default function ActivityPlanApprovalDetailView({
         setPlanSummary(extracted.planSummary);
         setPlanWorkTypes(extracted.resolvedWorkTypes);
         setTargets(extracted.targets);
+
+        // Parse result summary if plan result exists in DB
+        if ((p as any).result) {
+          const parsed = parseResultSummary((p as any).result);
+          setParsedResults(parsed);
+        }
       } else {
         setError(res.error || "ไม่สามารถดึงข้อมูลรายละเอียด Trip Plan ได้");
       }
@@ -398,7 +411,8 @@ export default function ActivityPlanApprovalDetailView({
                 รายละเอียดแผนงานสำหรับการอนุมัติ
               </h1>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
-                ระบบตรวจสอบและพิจารณาอนุมัติแผนงานกิจกรรม (Activity Plan Approval)
+                ระบบตรวจสอบและพิจารณาอนุมัติแผนงานกิจกรรม (Activity Plan
+                Approval)
               </p>
             </div>
           </div>
@@ -442,7 +456,9 @@ export default function ActivityPlanApprovalDetailView({
                 </div>
 
                 <div className="flex flex-col sm:items-end gap-1 shrink-0 self-start sm:self-auto border-t sm:border-t-0 border-blue-100 pt-2 sm:pt-0">
-                  <span className="text-[11px] text-slate-500 font-medium">สถานะ</span>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    สถานะ
+                  </span>
                   <ActivityStatusBadge status={plan.status} />
                 </div>
               </div>
@@ -652,12 +668,16 @@ export default function ActivityPlanApprovalDetailView({
           <ApprovalType4Collect
             isVisible={isTypeActive("TYPE_4", "วางบิล / เก็บเงิน")}
             target={targets.t4}
+            actualCollectAmount={parsedResults.t4CollectActualAmount}
           />
 
           {/* TYPE_5: สำรวจตลาดของคู่แข่ง */}
           <ApprovalType5Survey
             isVisible={isTypeActive("TYPE_5", "สำรวจตลาดของคู่แข่ง")}
             target={targets.t5}
+            surveyDetails={parsedResults.t5SurveyDetails}
+            competitorBrand={parsedResults.t5CompetitorBrand}
+            competitorProduct={parsedResults.t5CompetitorProduct}
           />
 
           {/* TYPE_6: แก้ปัญหา / รับเรื่องร้องเรียน */}
@@ -859,7 +879,9 @@ export default function ActivityPlanApprovalDetailView({
                       ยกเลิก
                     </Button>
                     <Button
-                      disabled={isProcessingHelper || !helperRejectReason.trim()}
+                      disabled={
+                        isProcessingHelper || !helperRejectReason.trim()
+                      }
                       onClick={async () => {
                         if (!reviewingHelperId) return;
                         setIsProcessingHelper(true);

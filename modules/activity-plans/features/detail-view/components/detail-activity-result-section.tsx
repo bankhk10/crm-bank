@@ -106,16 +106,15 @@ export function DetailActivityResultSection({
           surveyDetails={parsedResults.t5SurveyDetails}
           competitorBrand={parsedResults.t5CompetitorBrand}
           competitorProduct={parsedResults.t5CompetitorProduct}
-          competitorPrice={parsedResults.t5CompetitorPrice}
-          competitorUnit={parsedResults.t5CompetitorUnit}
-          promotionDetail={parsedResults.t5PromotionDetail}
         />
 
         {/* WORK TYPE 6 */}
         <DetailType6Issue
           isVisible={isTypeVisible("แก้ปัญหา / รับเรื่องร้องเรียน")}
           target={targets.t6}
-          problemDetail={parsedResults.t6ProblemDetail || parsedResults.problemFound}
+          problemDetail={
+            parsedResults.t6ProblemDetail || parsedResults.problemFound
+          }
           initialSolution={parsedResults.t6InitialSolution}
           status={parsedResults.t6Status}
           images={parsedResults.t6Images}
