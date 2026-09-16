@@ -7,6 +7,7 @@ const ACTIVITY_TYPES = [
   { code: "TYPE_4",  name: "วางบิล / เก็บเงิน",                           shortName: "Collect",  sortOrder: 4,  hasActual: true,  requiresApproval: true },
   { code: "TYPE_5",  name: "สำรวจตลาดของคู่แข่ง",                         shortName: "Survey",   sortOrder: 5,  hasActual: true,  requiresApproval: true },
   { code: "TYPE_6",  name: "แก้ปัญหา / รับเรื่องร้องเรียน",               shortName: "Issue",    sortOrder: 6,  hasActual: true,  requiresApproval: true },
+  { code: "TYPE_6",  name: "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา",               shortName: "Issue",    sortOrder: 6,  hasActual: true,  requiresApproval: true },
   { code: "TYPE_7",  name: "ติดตามแปลงสาธิต / ทำแปลง",                   shortName: "Demo",     sortOrder: 7,  hasActual: true,  requiresApproval: true },
   { code: "TYPE_8",  name: "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์", shortName: "Meeting",  sortOrder: 8,  hasActual: true,  requiresApproval: true },
   { code: "TYPE_9",  name: "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",           shortName: "Store",    sortOrder: 9,  hasActual: true,  requiresApproval: true },

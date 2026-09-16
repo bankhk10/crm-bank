@@ -24,7 +24,7 @@ export function ApprovalType6Issue({
             <AlertTriangle className="w-4 h-4" />
           </div>
           <h4 className="font-bold text-red-900 text-sm sm:text-base">
-            แก้ปัญหา / รับเรื่องร้องเรียน
+            ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา
           </h4>
         </div>
         <Badge
@@ -42,6 +42,7 @@ export function ApprovalType6Issue({
           </span>
           <span className="font-bold text-slate-800 block text-xs sm:text-sm">
             แก้ปัญหาและรับเรื่องร้องเรียนจากลูกค้า
+            ตรวจสอบเรื่องร้องเรียนและแก้ปัญหาให้กับลูกค้า
           </span>
         </div>
 

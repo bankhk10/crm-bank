@@ -44,7 +44,7 @@ export function Type6Issue({
       <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
         <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
           <HelpCircle className="h-4 w-4 text-slate-600" />
-          <span>แก้ปัญหา / รับเรื่องร้องเรียน</span>
+          <span>ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา</span>
         </div>
 
         {!readonly && (

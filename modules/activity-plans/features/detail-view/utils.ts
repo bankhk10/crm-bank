@@ -168,9 +168,15 @@ export function extractWorkTypeSections(
   }
 
   // ── 6. แก้ปัญหา / รับเรื่องร้องเรียน ─────────────────────
+  // ── 6. ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา ─────────────────────
   const type6Stores = stores.filter((s) => s.workTypeCode === "TYPE_6");
   const t6Line = objectiveLines.find(
     (l) => l.includes("[แก้ปัญหา") || l.includes("แก้ปัญหา"),
+    (l) =>
+      l.includes("[ตรวจสอบเรื่องร้องเรียน") ||
+      l.includes("ตรวจสอบเรื่องร้องเรียน") ||
+      l.includes("[แก้ปัญหา") ||
+      l.includes("แก้ปัญหา"),
   );
   if (type6Stores.length > 0 || t6Line) {
     const list = type6Stores.map((s) => ({

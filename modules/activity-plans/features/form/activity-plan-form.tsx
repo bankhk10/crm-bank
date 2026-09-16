@@ -1077,7 +1077,7 @@ export function ActivityPlanForm({
     setType5Items((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Work Type 6: แก้ปัญหา / รับเรื่องร้องเรียน
+  // Work Type 6: ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา
   const [type6Items, setType6Items] = useState<Type6IssueItem[]>(() => {
     if (
       initDetails?.type6Items &&
@@ -2672,8 +2672,8 @@ export function ActivityPlanForm({
         });
       }
 
-      // 6. TYPE_6: แก้ปัญหา / รับเรื่องร้องเรียน
-      if (selectedWorkTypes.includes("แก้ปัญหา / รับเรื่องร้องเรียน")) {
+      // 6. TYPE_6: ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา
+      if (selectedWorkTypes.includes("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา")) {
         type6Items.forEach((item) => {
           const sId =
             item.storeId ||
@@ -3302,9 +3302,9 @@ export function ActivityPlanForm({
                     />
                   )}
 
-                  {/* Work Type 6: แก้ปัญหา / รับเรื่องร้องเรียน */}
+                  {/* Work Type 6: ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา */}
                   {selectedWorkTypes.includes(
-                    "แก้ปัญหา / รับเรื่องร้องเรียน",
+                    "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา",
                   ) && (
                     <Type6Issue
                       readonly={readonly}

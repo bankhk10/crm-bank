@@ -288,9 +288,9 @@ export function extractPlanData(
 
   if (p.workTypes && Array.isArray(p.workTypes) && p.workTypes.length > 0) {
     for (const wt of p.workTypes) {
-      const typeName =
-        wt.activityType?.name ||
-        getWorkTypeName(wt.activityType?.code || wt.activityTypeId);
+      const typeName = getWorkTypeName(
+        wt.activityType?.code || wt.activityType?.name || wt.activityTypeId,
+      );
       if (typeName && WORK_TYPES.includes(typeName)) {
         detectedWorkTypes.add(typeName);
       }
@@ -322,8 +322,11 @@ export function extractPlanData(
   // Primary activityType
   if (p.activityType) {
     if (typeof p.activityType === "object" && (p.activityType as any).name) {
-      if (WORK_TYPES.includes((p.activityType as any).name)) {
-        detectedWorkTypes.add((p.activityType as any).name);
+      const actName = getWorkTypeName(
+        (p.activityType as any).code || (p.activityType as any).name,
+      );
+      if (WORK_TYPES.includes(actName)) {
+        detectedWorkTypes.add(actName);
       }
     } else if (
       typeof p.activityType === "object" &&

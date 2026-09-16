@@ -50,7 +50,7 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
   },
   TYPE_6: {
     code: "TYPE_6",
-    name: "แก้ปัญหา / รับเรื่องร้องเรียน",
+    name: "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา",
     shortName: "Issue",
     sortOrder: 6,
     hasActual: true,
@@ -112,7 +112,17 @@ export const WORK_TYPES = Object.values(WORK_TYPE_CONFIG).map((c) => c.name);
 // Helper function to resolve code from name or code
 export function getWorkTypeCode(nameOrCode: string): string {
   if (WORK_TYPE_CONFIG[nameOrCode]) return nameOrCode;
-  if (nameOrCode === "เข้าพบร้านค้า / Key Farmer" || nameOrCode === "เข้าพบเกษตรกร") return "TYPE_1";
+  if (
+    nameOrCode === "เข้าพบร้านค้า / Key Farmer" ||
+    nameOrCode === "เข้าพบเกษตรกร"
+  )
+    return "TYPE_1";
+  if (
+    nameOrCode === "แก้ปัญหา / รับเรื่องร้องเรียน" ||
+    nameOrCode === "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา"
+  ) {
+    return "TYPE_6";
+  }
   const entry = Object.values(WORK_TYPE_CONFIG).find(
     (c) => c.name === nameOrCode || c.shortName === nameOrCode,
   );
@@ -127,6 +137,13 @@ export function getWorkTypeName(codeOrName: string): string {
     codeOrName === "TYPE_1"
   ) {
     return WORK_TYPE_CONFIG.TYPE_1.name;
+  }
+  if (
+    codeOrName === "แก้ปัญหา / รับเรื่องร้องเรียน" ||
+    codeOrName === "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา" ||
+    codeOrName === "TYPE_6"
+  ) {
+    return WORK_TYPE_CONFIG.TYPE_6.name;
   }
   if (WORK_TYPE_CONFIG[codeOrName]) return WORK_TYPE_CONFIG[codeOrName].name;
   return codeOrName;
@@ -148,7 +165,9 @@ export const LOCATION_TEAM_WORK_TYPE_CODES = new Set([
  * Returns true if any of the given work types (by name, shortName, or code)
  * requires/displays the Location and Team section.
  */
-export function isLocationAndTeamRequired(workTypes?: string[] | null): boolean {
+export function isLocationAndTeamRequired(
+  workTypes?: string[] | null,
+): boolean {
   if (!workTypes || workTypes.length === 0) return false;
   return workTypes.some((wt) => {
     const code = getWorkTypeCode(wt);
@@ -363,7 +382,11 @@ export const USER_DEMO_PLOTS: UserDemoPlotOption[] = [
 export function isFieldDayItem(item: any): boolean {
   if (!item) return false;
   if (item.itemType === "TYPE_10") return true;
-  if (typeof item.meetingTopic === "string" && item.meetingTopic.includes("Field Day")) return true;
+  if (
+    typeof item.meetingTopic === "string" &&
+    item.meetingTopic.includes("Field Day")
+  )
+    return true;
   const detailStr = String(item.detail || "");
   if (
     detailStr.includes("[Field Day]") ||
@@ -374,7 +397,8 @@ export function isFieldDayItem(item: any): boolean {
   }
   if (
     detailStr.includes("สินค้าโชว์:") ||
-    (detailStr.includes("พืชเป้าหมาย:") && (detailStr.includes("เป้ายอดจอง:") || detailStr.includes("ผู้ร่วมงาน:")))
+    (detailStr.includes("พืชเป้าหมาย:") &&
+      (detailStr.includes("เป้ายอดจอง:") || detailStr.includes("ผู้ร่วมงาน:")))
   ) {
     return true;
   }
@@ -401,7 +425,14 @@ export function resolveWorkTypeCode(
   if (!wt) return null;
   if (typeof wt === "string") {
     if (WORK_TYPE_CONFIG[wt]) return wt;
-    if (wt === "เข้าพบร้านค้า / Key Farmer" || wt === "เข้าพบเกษตรกร") return "TYPE_1";
+    if (wt === "เข้าพบร้านค้า / Key Farmer" || wt === "เข้าพบเกษตรกร")
+      return "TYPE_1";
+    if (
+      wt === "แก้ปัญหา / รับเรื่องร้องเรียน" ||
+      wt === "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา"
+    ) {
+      return "TYPE_6";
+    }
     const found = Object.values(WORK_TYPE_CONFIG).find(
       (c) => c.name === wt || c.shortName === wt,
     );
@@ -430,7 +461,17 @@ export function resolveWorkTypeCode(
   }
   // 4. Fallback: activityType.name
   if (wt.activityType?.name && typeof wt.activityType.name === "string") {
-    if (wt.activityType.name === "เข้าพบร้านค้า / Key Farmer" || wt.activityType.name === "เข้าพบเกษตรกร") return "TYPE_1";
+    if (
+      wt.activityType.name === "เข้าพบร้านค้า / Key Farmer" ||
+      wt.activityType.name === "เข้าพบเกษตรกร"
+    )
+      return "TYPE_1";
+    if (
+      wt.activityType.name === "แก้ปัญหา / รับเรื่องร้องเรียน" ||
+      wt.activityType.name === "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา"
+    ) {
+      return "TYPE_6";
+    }
     const found = Object.values(WORK_TYPE_CONFIG).find(
       (c) =>
         c.name === wt.activityType.name || c.shortName === wt.activityType.name,
@@ -554,8 +595,7 @@ export function hydrateWorkTypesFromPlan(
       if (
         !isFD &&
         (item.itemType === "TYPE_4" ||
-          (item.collectAmount != null &&
-            item.visitTopic !== "SALES_PROMOTION"))
+          (item.collectAmount != null && item.visitTopic !== "SALES_PROMOTION"))
       ) {
         detectedTypes.add(WORK_TYPES[3]);
       }
@@ -593,8 +633,7 @@ export function hydrateWorkTypesFromPlan(
       if (
         !isFD &&
         (item.itemType === "TYPE_9" ||
-          (item.storeProductName &&
-            item.visitTopic !== "MARKETING_PRODUCT") ||
+          (item.storeProductName && item.visitTopic !== "MARKETING_PRODUCT") ||
           (item.storeQuantityCases != null &&
             item.visitTopic !== "MARKETING_PRODUCT") ||
           (item.storePricePerCase != null &&
@@ -669,6 +708,9 @@ export function hydrateWorkTypesFromPlan(
       detectedTypes.add(WORK_TYPES[4]);
     }
     if (
+      objectiveText.includes("[ตรวจสอบเรื่องร้องเรียน") ||
+      objectiveText.includes("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา") ||
+      objectiveText.includes("ตรวจสอบเรื่องร้องเรียน") ||
       objectiveText.includes("[แก้ปัญหา") ||
       objectiveText.includes("แก้ปัญหา / รับเรื่องร้องเรียน") ||
       objectiveText.includes("แก้ปัญหา/ร้องเรียน") ||

@@ -69,7 +69,7 @@ export function ActualType6Issue({
       <div className="flex items-center justify-between border-b border-rose-100 pb-3">
         <div className="flex items-center gap-2.5">
           <h2 className="font-bold text-rose-900 text-base md:text-lg">
-            แก้ปัญหา / รับเรื่องร้องเรียน
+            ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา
           </h2>
         </div>
       </div>
@@ -79,7 +79,10 @@ export function ActualType6Issue({
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
               <HelpCircle className="w-4 h-4 text-rose-600" />
-              รายการเป้าหมายแก้ปัญหา / รับเรื่องร้องเรียน ({target.items?.length} รายการ):
+              รายการเป้าหมายแก้ปัญหา / รับเรื่องร้องเรียน (
+              {target.items?.length} รายการ):
+              รายการเป้าหมายตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (
+              {target.items?.length} รายการ):
             </span>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800">
               จากฟอร์มสร้างแผน
@@ -197,6 +200,7 @@ export function ActualType6Issue({
           <div>
             <h4 className="text-xs sm:text-sm font-bold text-rose-950">
               รูปภาพประกอบการแก้ปัญหา / รับเรื่องร้องเรียน
+              รูปภาพประกอบการตรวจสอบเรื่องร้องเรียน / แก้ปัญหา
             </h4>
             <p className="text-[11px] text-rose-700/80">
               อัปโหลดรูปภาพสินค้ามีปัญหา หรือรูปถ่ายหน้างาน (สูงสุด 10 รูป)

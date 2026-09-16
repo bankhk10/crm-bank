@@ -84,7 +84,7 @@ export function DetailType6Issue({
             <Wrench className="w-4 h-4" />
           </div>
           <h2 className="font-bold text-rose-900 text-base md:text-lg">
-            แก้ปัญหา / รับเรื่องร้องเรียน
+            ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา
           </h2>
         </div>
       </div>
