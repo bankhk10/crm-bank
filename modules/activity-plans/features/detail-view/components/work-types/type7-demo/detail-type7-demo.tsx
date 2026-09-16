@@ -11,6 +11,7 @@ import { DetailType7FollowUp } from "./detail-type7-follow-up";
 export type { DemoResultItemData };
 
 export interface DetailType7DemoProps {
+  mode?: "TYPE_7A" | "TYPE_7B";
   isVisible: boolean;
   target: {
     activityType?: "CREATE" | "FOLLOW_UP" | string;
@@ -65,8 +66,10 @@ export function DetailType7Demo(props: DetailType7DemoProps) {
   if (!props.isVisible) return null;
 
   const isFollowUp =
-    props.target.activityType === "FOLLOW_UP" ||
-    (props.target.owner && props.target.owner.startsWith("plot-"));
+    props.mode === "TYPE_7B" ||
+    (!props.mode &&
+      (props.target.activityType === "FOLLOW_UP" ||
+        (props.target.owner && props.target.owner.startsWith("plot-"))));
 
   if (isFollowUp) {
     return (

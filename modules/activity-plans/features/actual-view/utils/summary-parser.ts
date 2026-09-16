@@ -439,12 +439,20 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (t6Att.length > 0) result.t6Images = t6Att.map(toImage);
 
     const t7CropAtt = resData.attachments.filter(
-      (a: any) => a.workTypeCode === "TYPE_7" && a.category === "CROP",
+      (a: any) =>
+        (a.workTypeCode === "TYPE_7A" ||
+          a.workTypeCode === "TYPE_7B" ||
+          a.workTypeCode === "TYPE_7") &&
+        a.category === "CROP",
     );
     if (t7CropAtt.length > 0) result.t7CropImages = t7CropAtt.map(toImage);
 
     const t7PlotAtt = resData.attachments.filter(
-      (a: any) => a.workTypeCode === "TYPE_7" && a.category === "PLOT",
+      (a: any) =>
+        (a.workTypeCode === "TYPE_7A" ||
+          a.workTypeCode === "TYPE_7B" ||
+          a.workTypeCode === "TYPE_7") &&
+        a.category === "PLOT",
     );
     if (t7PlotAtt.length > 0) result.t7PlotImages = t7PlotAtt.map(toImage);
 

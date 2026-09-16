@@ -1,37 +1,52 @@
 "use client";
 
 import React from "react";
-import { Sprout } from "lucide-react";
+import { Sprout, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { ActualTargetsState } from "@/modules/activity-plans/features/actual-view/types";
 
 interface ApprovalType7DemoProps {
   isVisible: boolean;
+  workTypeCode?: "TYPE_7A" | "TYPE_7B" | string;
   target: ActualTargetsState["t7"];
 }
 
 export function ApprovalType7Demo({
   isVisible,
+  workTypeCode,
   target,
 }: ApprovalType7DemoProps) {
   if (!isVisible) return null;
+
+  const isFollowUp =
+    workTypeCode === "TYPE_7B" ||
+    (!workTypeCode &&
+      (target.activityType === "FOLLOW_UP" ||
+        target.activityType === "FOLLOWUP"));
+
+  const displayCode = isFollowUp ? "TYPE_7B" : "TYPE_7A";
+  const displayTitle = isFollowUp ? "ติดตามแปลงสาธิต" : "ทำแปลงสาธิต";
 
   return (
     <div className="border border-green-200/80 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
       <div className="flex items-center justify-between border-b border-green-100 pb-2.5">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-green-50 text-green-600 flex items-center justify-center shrink-0 border border-green-200">
-            <Sprout className="w-4 h-4" />
+            {isFollowUp ? (
+              <Search className="w-4 h-4 text-blue-600" />
+            ) : (
+              <Sprout className="w-4 h-4 text-emerald-600" />
+            )}
           </div>
           <h4 className="font-bold text-green-900 text-sm sm:text-base">
-            ทำ / ติดตามแปลงสาธิต
+            {displayTitle}
           </h4>
         </div>
         <Badge
           variant="outline"
           className="text-[11px] font-bold bg-green-50 text-green-800 border-green-200"
         >
-          TYPE_7
+          {displayCode}
         </Badge>
       </div>
 

@@ -3,10 +3,7 @@
 import React from "react";
 import type { DemoPlotStatus } from "@prisma/client";
 import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
-import {
-  ActualType7NewDemo,
-  TargetDemoItem,
-} from "./actual-type7-new-demo";
+import { ActualType7NewDemo, TargetDemoItem } from "./actual-type7-new-demo";
 import {
   ActualType7FollowUp,
   DemoPlotVisitHistoryItem,
@@ -15,6 +12,7 @@ import {
 export type { TargetDemoItem, DemoPlotVisitHistoryItem };
 
 export interface ActualType7DemoProps {
+  mode?: "TYPE_7A" | "TYPE_7B";
   isVisible: boolean;
   target: {
     activityType?: string;
@@ -107,12 +105,13 @@ export interface ActualType7DemoProps {
 export function ActualType7Demo(props: ActualType7DemoProps) {
   if (!props.isVisible) return null;
 
-  // Determine work flow from target
-  const activityType =
-    props.target.activityType ||
-    props.target.items?.[0]?.activityType ||
-    "CREATE";
-  const isFollowUp = activityType === "FOLLOW_UP";
+  // Determine work flow from mode or target
+  const isFollowUp =
+    props.mode === "TYPE_7B" ||
+    (!props.mode &&
+      (props.target.activityType === "FOLLOW_UP" ||
+        props.target.activityType === "FOLLOWUP" ||
+        props.target.items?.[0]?.activityType === "FOLLOW_UP"));
 
   if (isFollowUp) {
     return (

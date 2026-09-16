@@ -144,6 +144,30 @@ export const DEFAULT_TARGETS: ActualTargetsState = {
     targetCondition: "",
     items: [],
   },
+  t7a: {
+    owner: "",
+    product: "",
+    crop: "",
+    plots: "",
+    demoProductQuantity: "",
+    objective: "",
+    experimentDetail: "",
+    detail: "",
+    targetCondition: "",
+    items: [],
+  },
+  t7b: {
+    owner: "",
+    product: "",
+    crop: "",
+    plots: "",
+    demoProductQuantity: "",
+    objective: "",
+    experimentDetail: "",
+    detail: "",
+    targetCondition: "",
+    items: [],
+  },
   t8: {
     topic: "",
     products: "",
@@ -655,10 +679,15 @@ export function extractPlanData(
     })),
   };
 
-  // TYPE 7: Demo Plot
+  // TYPE 7: Demo Plot (TYPE_7A & TYPE_7B)
   const t7Visit = p.demoPlotVisits?.[0];
   const t7Plot = t7Visit?.demoPlot;
-  const t7PlanProduct = products.find((pr) => pr.workTypeCode === "TYPE_7");
+  const t7PlanProduct = products.find(
+    (pr) =>
+      pr.workTypeCode === "TYPE_7A" ||
+      pr.workTypeCode === "TYPE_7B" ||
+      pr.workTypeCode === "TYPE_7",
+  );
   const resolvedT7ProductId = t7PlanProduct?.productId || undefined;
 
   let t7StartDate: string | undefined;
@@ -667,9 +696,11 @@ export function extractPlanData(
   }
   const t7PlotIdentifier = t7Plot?.id || t7Plot?.ownerName || "";
 
-  targets.t7 = {
-    ...prevTargets.t7,
-    activityType: t7Visit ? "FOLLOWUP" : "CREATE",
+  const hasT7B =
+    resolvedWorkTypes.includes("ติดตามแปลงสาธิต") ||
+    resolvedWorkTypes.some((wt) => getWorkTypeCode(wt) === "TYPE_7B");
+
+  const commonT7Data = {
     owner: t7Plot?.ownerName || p.location || "",
     product: t7Plot?.primaryProductName || t7PlanProduct?.productName || "",
     productId: resolvedT7ProductId,
@@ -685,7 +716,7 @@ export function extractPlanData(
     items: t7Plot
       ? [
           {
-            activityType: t7Visit ? "FOLLOWUP" : "CREATE",
+            activityType: hasT7B ? "FOLLOW_UP" : "CREATE",
             owner: t7Plot.ownerName || "",
             product: t7Plot.primaryProductName || "",
             crop: t7Plot.cropName || "",
@@ -700,6 +731,24 @@ export function extractPlanData(
           },
         ]
       : [],
+  };
+
+  targets.t7 = {
+    ...prevTargets.t7,
+    ...commonT7Data,
+    activityType: hasT7B || t7Visit ? "FOLLOW_UP" : "CREATE",
+  };
+
+  targets.t7a = {
+    ...(prevTargets.t7a || prevTargets.t7),
+    ...commonT7Data,
+    activityType: "CREATE",
+  };
+
+  targets.t7b = {
+    ...(prevTargets.t7b || prevTargets.t7),
+    ...commonT7Data,
+    activityType: "FOLLOW_UP",
   };
 
   // TYPE 8: Meeting / Attendees

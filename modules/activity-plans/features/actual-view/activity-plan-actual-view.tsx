@@ -11,6 +11,7 @@ import {
   recordDemoPlotVisitAction,
   getDemoPlotHistoryAction,
 } from "../../server/actions";
+import { getWorkTypeCode, getWorkTypeName } from "../../constants";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import type {
@@ -1000,7 +1001,13 @@ export default function ActivityPlanActualView({
 
   const isTypeVisible = (typeTitle: string) => {
     if (planWorkTypes.length > 0) {
-      return planWorkTypes.includes(typeTitle);
+      const code = getWorkTypeCode(typeTitle);
+      return planWorkTypes.some(
+        (t) =>
+          t === typeTitle ||
+          getWorkTypeCode(t) === code ||
+          getWorkTypeName(code) === t,
+      );
     }
     return true;
   };
@@ -1152,10 +1159,14 @@ export default function ActivityPlanActualView({
           setT6Images(cleanT6Images);
         }
 
-        // Work Type 7
+        // Work Type 7 (7A / 7B)
         let cleanT7CropImages = t7CropImages;
         let cleanT7PlotImages = t7PlotImages;
-        if (isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")) {
+        if (
+          isTypeVisible("ทำแปลงสาธิต") ||
+          isTypeVisible("ติดตามแปลงสาธิต") ||
+          isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")
+        ) {
           const plotItemId = t7DemoPlotId || targets.t7.owner || "demo-plot";
           if (t7CropImages && t7CropImages.length > 0) {
             const res = await uploadActivityPlanImageGroup(
@@ -1341,6 +1352,7 @@ export default function ActivityPlanActualView({
           postponedReason,
           postponedNotes,
           planSummary,
+          planWorkTypes,
           t1ProductAdvice,
           t1SalesOpportunity,
           t1DiscussionResult,
@@ -1548,8 +1560,14 @@ export default function ActivityPlanActualView({
         );
 
         if (
-          isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง") &&
-          (t7DemoPlotId || targets.t7.owner || targets.t7.product)
+          (isTypeVisible("ทำแปลงสาธิต") ||
+            isTypeVisible("ติดตามแปลงสาธิต") ||
+            isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")) &&
+          (t7DemoPlotId ||
+            targets.t7.owner ||
+            targets.t7.product ||
+            targets.t7a?.owner ||
+            targets.t7b?.owner)
         ) {
           const qty =
             parseCleanNumber(

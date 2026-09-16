@@ -609,10 +609,82 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setInitialSolution={setT6InitialSolution}
         />
 
-        {/* WORK TYPE 7 */}
+        {/* WORK TYPE 7A: ทำแปลงสาธิต */}
         <ActualType7Demo
-          isVisible={isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")}
-          target={targets.t7}
+          isVisible={isTypeVisible("ทำแปลงสาธิต") || isTypeVisible("TYPE_7A")}
+          mode="TYPE_7A"
+          target={targets.t7a || targets.t7}
+          products={products}
+          plannedProductId={t7PlannedProductId}
+          setPlannedProductId={setT7PlannedProductId}
+          actualProductId={t7ActualProductId}
+          setActualProductId={setT7ActualProductId}
+          actualQuantity={t7ActualQuantity}
+          setActualQuantity={setT7ActualQuantity}
+          changeReason={t7ChangeReason}
+          setChangeReason={setT7ChangeReason}
+          plotObjective={t7PlotObjective}
+          setPlotObjective={setT7PlotObjective}
+          customPlotDetail={t7CustomPlotDetail}
+          setCustomPlotDetail={setT7CustomPlotDetail}
+          startDate={t7StartDate}
+          actualDate={new Date().toISOString().split("T")[0]}
+          productPrice={t7ProductPrice}
+          plotName={t7PlotName}
+          setPlotName={setT7PlotName}
+          usageMethod={t7UsageMethod}
+          setUsageMethod={setT7UsageMethod}
+          plantingDate={t7PlantingDate}
+          setPlantingDate={setT7PlantingDate}
+          plantingAreaCondition={t7PlantingAreaCondition}
+          setPlantingAreaCondition={setT7PlantingAreaCondition}
+          cropImages={t7CropImages}
+          setCropImages={setT7CropImages}
+          cropAgeValue={t7CropAgeValue}
+          setCropAgeValue={setT7CropAgeValue}
+          cropAgeUnit={t7CropAgeUnit}
+          setCropAgeUnit={setT7CropAgeUnit}
+          growthStage={t7GrowthStage}
+          setGrowthStage={setT7GrowthStage}
+          cropCondition={t7CropCondition}
+          setCropCondition={setT7CropCondition}
+          cropProblemDescription={t7CropProblemDescription}
+          setCropProblemDescription={setT7CropProblemDescription}
+          productResponse={t7ProductResponse}
+          setProductResponse={setT7ProductResponse}
+          problemDescription={t7ProblemDescription}
+          setProblemDescription={setT7ProblemDescription}
+          plotImages={t7PlotImages}
+          setPlotImages={setT7PlotImages}
+          plotStatus={t7PlotStatus}
+          setPlotStatus={setT7PlotStatus}
+          nextFollowUpDate={t7NextFollowUpDate}
+          setNextFollowUpDate={setT7NextFollowUpDate}
+          finalYieldKg={t7FinalYieldKg}
+          setFinalYieldKg={setT7FinalYieldKg}
+          controlYieldKg={t7ControlYieldKg}
+          setControlYieldKg={setT7ControlYieldKg}
+          yieldIncreasePercent={t7YieldIncreasePercent}
+          setYieldIncreasePercent={setT7YieldIncreasePercent}
+          farmerSatisfaction={t7FarmerSatisfaction}
+          setFarmerSatisfaction={setT7FarmerSatisfaction}
+          commercialPotential={t7CommercialPotential}
+          setCommercialPotential={setT7CommercialPotential}
+          finalSummaryNotes={t7FinalSummaryNotes}
+          setFinalSummaryNotes={setT7FinalSummaryNotes}
+          visitHistory={t7VisitHistory}
+          demoPlotData={t7DemoPlotData}
+          demoPlotId={t7DemoPlotId}
+          setDemoPlotId={setT7DemoPlotId}
+        />
+
+        {/* WORK TYPE 7B: ติดตามแปลงสาธิต */}
+        <ActualType7Demo
+          isVisible={
+            isTypeVisible("ติดตามแปลงสาธิต") || isTypeVisible("TYPE_7B")
+          }
+          mode="TYPE_7B"
+          target={targets.t7b || targets.t7}
           products={products}
           plannedProductId={t7PlannedProductId}
           setPlannedProductId={setT7PlannedProductId}

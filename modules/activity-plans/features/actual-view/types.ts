@@ -159,6 +159,36 @@ export interface ActualTargetsState {
     targetCondition: string;
     items: any[];
   };
+  t7a?: {
+    activityType?: string;
+    owner: string;
+    product: string;
+    productId?: string;
+    plannedProductId?: string;
+    crop: string;
+    plots: string;
+    demoProductQuantity: string;
+    objective: string;
+    experimentDetail: string;
+    detail: string;
+    targetCondition: string;
+    items: any[];
+  };
+  t7b?: {
+    activityType?: string;
+    owner: string;
+    product: string;
+    productId?: string;
+    plannedProductId?: string;
+    crop: string;
+    plots: string;
+    demoProductQuantity: string;
+    objective: string;
+    experimentDetail: string;
+    detail: string;
+    targetCondition: string;
+    items: any[];
+  };
   t8: {
     topic: string;
     products: string;

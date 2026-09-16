@@ -56,11 +56,19 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
     hasActual: true,
     requiresApproval: true,
   },
-  TYPE_7: {
-    code: "TYPE_7",
-    name: "ติดตามแปลงสาธิต / ทำแปลง",
-    shortName: "Demo",
+  TYPE_7A: {
+    code: "TYPE_7A",
+    name: "ทำแปลงสาธิต",
+    shortName: "DemoNew",
     sortOrder: 7,
+    hasActual: true,
+    requiresApproval: true,
+  },
+  TYPE_7B: {
+    code: "TYPE_7B",
+    name: "ติดตามแปลงสาธิต",
+    shortName: "DemoFollow",
+    sortOrder: 8,
     hasActual: true,
     requiresApproval: true,
   },
@@ -68,7 +76,7 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
     code: "TYPE_8",
     name: "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
     shortName: "Meeting",
-    sortOrder: 8,
+    sortOrder: 9,
     hasActual: true,
     requiresApproval: true,
   },
@@ -76,7 +84,7 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
     code: "TYPE_9",
     name: "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
     shortName: "Store",
-    sortOrder: 9,
+    sortOrder: 10,
     hasActual: true,
     requiresApproval: true,
   },
@@ -84,7 +92,7 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
     code: "TYPE_10",
     name: "จัดงาน Field Day",
     shortName: "FieldDay",
-    sortOrder: 10,
+    sortOrder: 11,
     hasActual: true,
     requiresApproval: true,
   },
@@ -92,7 +100,7 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
     code: "TYPE_11",
     name: "ตรวจเช็กสต็อกหน้าร้าน",
     shortName: "Stock",
-    sortOrder: 11,
+    sortOrder: 12,
     hasActual: true,
     requiresApproval: true,
   },
@@ -100,13 +108,13 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
     code: "TYPE_12",
     name: "ทัวร์",
     shortName: "Tour",
-    sortOrder: 12,
+    sortOrder: 13,
     hasActual: false,
     requiresApproval: true,
   },
 };
 
-// Master 12 work types list
+// Master 13 work types list
 export const WORK_TYPES = Object.values(WORK_TYPE_CONFIG).map((c) => c.name);
 
 // Helper function to resolve code from name or code
@@ -122,6 +130,15 @@ export function getWorkTypeCode(nameOrCode: string): string {
     nameOrCode === "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา"
   ) {
     return "TYPE_6";
+  }
+  if (nameOrCode === "ทำแปลงสาธิต" || nameOrCode === "TYPE_7A") {
+    return "TYPE_7A";
+  }
+  if (nameOrCode === "ติดตามแปลงสาธิต" || nameOrCode === "TYPE_7B") {
+    return "TYPE_7B";
+  }
+  if (nameOrCode === "ติดตามแปลงสาธิต / ทำแปลง" || nameOrCode === "TYPE_7") {
+    return "TYPE_7A";
   }
   const entry = Object.values(WORK_TYPE_CONFIG).find(
     (c) => c.name === nameOrCode || c.shortName === nameOrCode,
@@ -144,6 +161,12 @@ export function getWorkTypeName(codeOrName: string): string {
     codeOrName === "TYPE_6"
   ) {
     return WORK_TYPE_CONFIG.TYPE_6.name;
+  }
+  if (codeOrName === "ทำแปลงสาธิต" || codeOrName === "TYPE_7A") {
+    return WORK_TYPE_CONFIG.TYPE_7A.name;
+  }
+  if (codeOrName === "ติดตามแปลงสาธิต" || codeOrName === "TYPE_7B") {
+    return WORK_TYPE_CONFIG.TYPE_7B.name;
   }
   if (WORK_TYPE_CONFIG[codeOrName]) return WORK_TYPE_CONFIG[codeOrName].name;
   return codeOrName;

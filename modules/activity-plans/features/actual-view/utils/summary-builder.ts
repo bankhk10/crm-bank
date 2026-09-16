@@ -6,9 +6,13 @@ import type {
   FollowupProductItem,
   ImageFile,
 } from "../types";
-import { getActivityResultStatusLabel } from "../../../constants";
+import {
+  getActivityResultStatusLabel,
+  getWorkTypeCode,
+} from "../../../constants";
 
 export interface BuildSummaryInput {
+  planWorkTypes?: string[];
   activityResultStatus: ActivityResultStatusType;
   cancelReason: string;
   postponedDate: string;
@@ -845,11 +849,16 @@ export function buildResultSummary(
   (input.t2Images || [])
     .slice(0, 5)
     .forEach((img) => addAttachment(img, "TYPE_2"));
+  const isType7B = (input.planWorkTypes || []).some(
+    (wt) => wt === "ติดตามแปลงสาธิต" || getWorkTypeCode(wt) === "TYPE_7B",
+  );
+  const type7Code = isType7B ? "TYPE_7B" : "TYPE_7A";
+
   (input.t7CropImages || []).forEach((img) =>
-    addAttachment(img, "TYPE_7", "CROP"),
+    addAttachment(img, type7Code, "CROP"),
   );
   (input.t7PlotImages || []).forEach((img) =>
-    addAttachment(img, "TYPE_7", "PLOT"),
+    addAttachment(img, type7Code, "PLOT"),
   );
   (input.t8Images || [])
     .slice(0, 5)
@@ -901,7 +910,8 @@ export function buildResultSummary(
     actualTotalSpent: totalSpent,
     salesResultAmount: salesResult,
     collectResultAmount: collectResult,
-    demoPlotsCreated: t7PlotName ? 1 : 0,
+    demoPlotsCreated: !isType7B && t7PlotName ? 1 : 0,
+    demoPlotsFollowedUp: isType7B && t7PlotName ? 1 : 0,
     demoResults,
     saleResults: saleResults.length > 0 ? saleResults : undefined,
     stockResults: stockResults.length > 0 ? stockResults : undefined,

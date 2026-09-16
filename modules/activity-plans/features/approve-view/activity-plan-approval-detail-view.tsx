@@ -696,10 +696,18 @@ export default function ActivityPlanApprovalDetailView({
             images={parsedResults.t6Images}
           />
 
-          {/* TYPE_7: ทำ / ติดตามแปลงสาธิต */}
+          {/* TYPE_7A: ทำแปลงสาธิต */}
           <ApprovalType7Demo
-            isVisible={isTypeActive("TYPE_7", "ทำ / ติดตามแปลงสาธิต")}
-            target={targets.t7}
+            isVisible={isTypeActive("TYPE_7A", "ทำแปลงสาธิต")}
+            workTypeCode="TYPE_7A"
+            target={targets.t7a || targets.t7}
+          />
+
+          {/* TYPE_7B: ติดตามแปลงสาธิต */}
+          <ApprovalType7Demo
+            isVisible={isTypeActive("TYPE_7B", "ติดตามแปลงสาธิต")}
+            workTypeCode="TYPE_7B"
+            target={targets.t7b || targets.t7}
           />
 
           {/* TYPE_8: จัดประชุมการเกษตร */}

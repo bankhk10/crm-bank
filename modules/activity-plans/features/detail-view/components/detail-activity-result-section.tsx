@@ -121,10 +121,53 @@ export function DetailActivityResultSection({
           images={parsedResults.t6Images}
         />
 
-        {/* WORK TYPE 7 */}
+        {/* WORK TYPE 7A: ทำแปลงสาธิต */}
         <DetailType7Demo
-          isVisible={isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")}
-          target={targets.t7}
+          isVisible={isTypeVisible("ทำแปลงสาธิต") || isTypeVisible("TYPE_7A")}
+          mode="TYPE_7A"
+          target={targets.t7a || targets.t7}
+          demoResults={parsedResults.t7DemoResults}
+          plannedProductId={parsedResults.t7PlannedProductId}
+          actualProductId={parsedResults.t7ActualProductId}
+          actualQuantity={parsedResults.t7DemoProductQuantity}
+          plannedProductName={parsedResults.t7PlannedProductName}
+          actualProductName={parsedResults.t7ActualProductName}
+          changeReason={parsedResults.t7ChangeReason}
+          plotObjective={parsedResults.t7PlotObjective}
+          customPlotDetail={parsedResults.t7CustomPlotDetail}
+          demoPlotId={parsedResults.t7DemoPlotId}
+          plotName={parsedResults.t7PlotName}
+          usageMethod={parsedResults.t7UsageMethod}
+          plantingDate={parsedResults.t7PlantingDate}
+          plantingAreaCondition={parsedResults.t7PlantingAreaCondition}
+          cropAgeValue={parsedResults.t7CropAgeValue}
+          cropAgeUnit={parsedResults.t7CropAgeUnit}
+          growthStage={parsedResults.t7GrowthStage}
+          cropCondition={parsedResults.t7CropCondition}
+          cropProblemDescription={parsedResults.t7CropProblemDescription}
+          productResponse={parsedResults.t7ProductResponse}
+          problemDescription={parsedResults.t7ProblemDescription}
+          plotStatus={parsedResults.t7PlotStatus}
+          nextFollowUpDate={parsedResults.t7NextFollowUpDate}
+          finalYieldKg={parsedResults.t7FinalYieldKg}
+          controlYieldKg={parsedResults.t7ControlYieldKg}
+          yieldIncreasePercent={parsedResults.t7YieldIncreasePercent}
+          farmerSatisfaction={parsedResults.t7FarmerSatisfaction}
+          commercialPotential={parsedResults.t7CommercialPotential}
+          finalSummaryNotes={parsedResults.t7FinalSummaryNotes}
+          cropImages={parsedResults.t7CropImages}
+          plotImages={parsedResults.t7PlotImages}
+          demoPlotData={demoPlotData}
+          visitHistory={visitHistory}
+        />
+
+        {/* WORK TYPE 7B: ติดตามแปลงสาธิต */}
+        <DetailType7Demo
+          isVisible={
+            isTypeVisible("ติดตามแปลงสาธิต") || isTypeVisible("TYPE_7B")
+          }
+          mode="TYPE_7B"
+          target={targets.t7b || targets.t7}
           demoResults={parsedResults.t7DemoResults}
           plannedProductId={parsedResults.t7PlannedProductId}
           actualProductId={parsedResults.t7ActualProductId}

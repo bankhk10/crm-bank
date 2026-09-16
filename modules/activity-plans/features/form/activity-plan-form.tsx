@@ -1287,12 +1287,17 @@ export function ActivityPlanForm({
       },
     ];
   });
-  const addType7Row = () => {
+  const addType7Row = (forcedType?: "CREATE" | "FOLLOW_UP") => {
+    const isFollowUp =
+      forcedType === "FOLLOW_UP" ||
+      (!forcedType &&
+        selectedWorkTypes.some((t) => getWorkTypeCode(t) === "TYPE_7B"));
+
     setType7Items((prev) => [
       ...prev,
       {
         id: Date.now().toString(),
-        plotActivityType: "CREATE",
+        plotActivityType: isFollowUp ? "FOLLOW_UP" : "CREATE",
         ownerName: "",
         productName: "",
         cropCategory: "",
@@ -2069,25 +2074,29 @@ export function ActivityPlanForm({
 
   // Work type selection toggling
   const toggleWorkType = (typeStr: string) => {
-    const canonicalName = getWorkTypeName(getWorkTypeCode(typeStr)) || typeStr;
+    const code = getWorkTypeCode(typeStr);
+    const canonicalName = getWorkTypeName(code) || typeStr;
     const isSelected = tempSelectedWorkTypes.some(
       (t) =>
-        t === canonicalName ||
-        t === typeStr ||
-        getWorkTypeCode(t) === getWorkTypeCode(typeStr),
+        t === canonicalName || t === typeStr || getWorkTypeCode(t) === code,
     );
 
     if (isSelected) {
       setTempSelectedWorkTypes(
         tempSelectedWorkTypes.filter(
           (t) =>
-            t !== canonicalName &&
-            t !== typeStr &&
-            getWorkTypeCode(t) !== getWorkTypeCode(typeStr),
+            t !== canonicalName && t !== typeStr && getWorkTypeCode(t) !== code,
         ),
       );
     } else {
-      setTempSelectedWorkTypes([...tempSelectedWorkTypes, canonicalName]);
+      let next = [...tempSelectedWorkTypes];
+      // Mutual Exclusivity between TYPE_7A ("ทำแปลงสาธิต") and TYPE_7B ("ติดตามแปลงสาธิต")
+      if (code === "TYPE_7A") {
+        next = next.filter((t) => getWorkTypeCode(t) !== "TYPE_7B");
+      } else if (code === "TYPE_7B") {
+        next = next.filter((t) => getWorkTypeCode(t) !== "TYPE_7A");
+      }
+      setTempSelectedWorkTypes([...next, canonicalName]);
     }
   };
 
@@ -2436,6 +2445,38 @@ export function ActivityPlanForm({
           setLoading(false);
           return;
         }
+      }
+    }
+
+    // Validation for Mutual Exclusivity: TYPE_7A vs TYPE_7B
+    const hasType7ASelected = selectedWorkTypes.some(
+      (t) => getWorkTypeCode(t) === "TYPE_7A",
+    );
+    const hasType7BSelected = selectedWorkTypes.some(
+      (t) => getWorkTypeCode(t) === "TYPE_7B",
+    );
+
+    if (hasType7ASelected && hasType7BSelected) {
+      setError("ห้ามเลือกทำแปลงสาธิตและติดตามแปลงสาธิตพร้อมกันในแผนเดียว");
+      setLoading(false);
+      return;
+    }
+
+    // Validation for Work Type 7A: ทำแปลงสาธิต
+    if (hasType7ASelected) {
+      if (type7Items.length === 0) {
+        setError("กรุณาเพิ่มรายการทำแปลงสาธิตอย่างน้อย 1 รายการ");
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Validation for Work Type 7B: ติดตามแปลงสาธิต
+    if (hasType7BSelected) {
+      if (type7Items.length === 0) {
+        setError("กรุณาเพิ่มรายการติดตามแปลงสาธิตอย่างน้อย 1 รายการ");
+        setLoading(false);
+        return;
       }
     }
 
@@ -2811,15 +2852,22 @@ export function ActivityPlanForm({
         });
       }
 
-      // 7. TYPE_7: ติดตามแปลงสาธิต / ทำแปลง
-      if (selectedWorkTypes.includes("ติดตามแปลงสาธิต / ทำแปลง")) {
+      // 7. TYPE_7A / TYPE_7B: ทำแปลงสาธิต / ติดตามแปลงสาธิต
+      const hasType7APlan = selectedWorkTypes.some(
+        (t) => getWorkTypeCode(t) === "TYPE_7A",
+      );
+      const hasType7BPlan = selectedWorkTypes.some(
+        (t) => getWorkTypeCode(t) === "TYPE_7B",
+      );
+      if (hasType7APlan || hasType7BPlan) {
+        const wtCode = hasType7BPlan ? "TYPE_7B" : "TYPE_7A";
         type7Items.forEach((item) => {
           const pId =
             item.productId ||
             productsList.find((p) => p.name === item.productName)?.id;
           if (pId) {
             planProducts.push({
-              workTypeCode: "TYPE_7",
+              workTypeCode: wtCode,
               productId: pId,
               productName: item.productName || null,
               isPriceOverridden: false,
@@ -3437,12 +3485,33 @@ export function ActivityPlanForm({
                     />
                   )}
 
-                  {/* Work Type 7: ติดตามแปลงสาธิต / ทำแปลง */}
-                  {selectedWorkTypes.includes("ติดตามแปลงสาธิต / ทำแปลง") && (
+                  {/* Work Type 7A: ทำแปลงสาธิต */}
+                  {selectedWorkTypes.some(
+                    (t) => getWorkTypeCode(t) === "TYPE_7A",
+                  ) && (
                     <Type7Demo
+                      mode="TYPE_7A"
                       readonly={readonly}
                       type7Items={type7Items}
-                      addType7Row={addType7Row}
+                      addType7Row={() => addType7Row("CREATE")}
+                      updateType7Row={updateType7Row}
+                      deleteType7Row={deleteType7Row}
+                      customers={customersList}
+                      products={productsList}
+                      demoPlots={demoPlotsList}
+                      parentStartDate={startDate}
+                    />
+                  )}
+
+                  {/* Work Type 7B: ติดตามแปลงสาธิต */}
+                  {selectedWorkTypes.some(
+                    (t) => getWorkTypeCode(t) === "TYPE_7B",
+                  ) && (
+                    <Type7Demo
+                      mode="TYPE_7B"
+                      readonly={readonly}
+                      type7Items={type7Items}
+                      addType7Row={() => addType7Row("FOLLOW_UP")}
                       updateType7Row={updateType7Row}
                       deleteType7Row={deleteType7Row}
                       customers={customersList}
