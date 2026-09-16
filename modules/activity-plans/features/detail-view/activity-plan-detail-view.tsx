@@ -23,7 +23,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ActivityPlanWithRelations } from "../../types";
-import { ActivityStatusBadge, resolveCurrentOperator } from "../../ui/activity-status-badge";
+import {
+  ActivityStatusBadge,
+  resolveCurrentOperator,
+} from "../../ui/activity-status-badge";
 import {
   getActivityPlanAction,
   getDemoPlotHistoryAction,
@@ -372,7 +375,9 @@ export default function ActivityPlanDetailView({
                 </div>
 
                 <div className="flex flex-col sm:items-end gap-1 shrink-0 self-start sm:self-auto border-t sm:border-t-0 border-blue-100 pt-2 sm:pt-0">
-                  <span className="text-[11px] text-slate-500 font-medium">สถานะ</span>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    สถานะ
+                  </span>
                   <ActivityStatusBadge status={plan.status} />
                 </div>
               </div>
@@ -523,6 +528,14 @@ export default function ActivityPlanDetailView({
           <ApprovalType4Collect
             isVisible={isTypeActive("TYPE_4", "วางบิล / เก็บเงิน")}
             target={targets.t4}
+            actualCollectAmount={
+              parsedResults.t4ReceivedAmount != null &&
+              parsedResults.t4ReceivedAmount !== ""
+                ? Number(parsedResults.t4ReceivedAmount.replace(/,/g, ""))
+                : plan?.result?.collectResultAmount != null
+                  ? Number(plan.result.collectResultAmount)
+                  : undefined
+            }
           />
 
           {/* TYPE_5: สำรวจตลาดของคู่แข่ง */}

@@ -125,6 +125,10 @@ export interface ActualTargetsState {
     customer: string;
     orderNo: string;
     targetCollect: string;
+    collectType?: "BILLING" | "COLLECT";
+    targetAmountNum?: number;
+    collectAmount?: number;
+    actualCollectAmount?: number | null;
     items: any[];
   };
   t5: {
@@ -210,4 +214,3 @@ export interface FollowupProductItem {
   followupDetail?: string; // รายละเอียดการติดตามจากการปฏิบัติงานจริง
   isAdditional?: boolean; // false = สินค้าตามแผน, true = สินค้าเพิ่มเติม
 }
-

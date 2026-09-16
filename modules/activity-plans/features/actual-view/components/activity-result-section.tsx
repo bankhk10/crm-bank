@@ -3,7 +3,12 @@
 import React from "react";
 import { BarChart3 } from "lucide-react";
 import { WORK_TYPES } from "@/modules/activity-plans/constants";
-import type { ActualTargetsState, ImageFile, Type5SurveyRecord, FollowupProductItem } from "../types";
+import type {
+  ActualTargetsState,
+  ImageFile,
+  Type5SurveyRecord,
+  FollowupProductItem,
+} from "../types";
 import {
   ActualType1Visit,
   ActualType2Followup,
@@ -86,6 +91,10 @@ interface ActivityResultSectionProps {
   setT4OrderNo: (v: string) => void;
   t4ReceivedAmount: string;
   setT4ReceivedAmount: (v: string) => void;
+  t4BillingStatus?: string;
+  setT4BillingStatus?: (v: string) => void;
+  t4Detail?: string;
+  setT4Detail?: (v: string) => void;
   t4PaymentImages: ImageFile[];
   setT4PaymentImages: React.Dispatch<React.SetStateAction<ImageFile[]>>;
 
@@ -288,6 +297,10 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     setT4OrderNo,
     t4ReceivedAmount,
     setT4ReceivedAmount,
+    t4BillingStatus,
+    setT4BillingStatus,
+    t4Detail,
+    setT4Detail,
     t4PaymentImages,
     setT4PaymentImages,
     t5SurveyDetails,
@@ -507,6 +520,10 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setOrderNo={setT4OrderNo}
           receivedAmount={t4ReceivedAmount}
           setReceivedAmount={setT4ReceivedAmount}
+          billingStatus={t4BillingStatus}
+          setBillingStatus={setT4BillingStatus}
+          collectDetail={t4Detail}
+          setCollectDetail={setT4Detail}
           paymentImages={t4PaymentImages}
           onUploadImages={createUploadHandler(setT4PaymentImages)}
           onRemoveImage={(id) => removeImage(setT4PaymentImages, id)}

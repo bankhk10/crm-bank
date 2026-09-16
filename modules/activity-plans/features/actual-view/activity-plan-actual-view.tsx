@@ -162,7 +162,9 @@ export default function ActivityPlanActualView({
 
   // Loading & Feedback State
   const [loadingPlan, setLoadingPlan] = useState(!!id);
-  const [unauthorizedError, setUnauthorizedError] = useState<string | null>(null);
+  const [unauthorizedError, setUnauthorizedError] = useState<string | null>(
+    null,
+  );
   const [planStatus, setPlanStatus] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -223,6 +225,8 @@ export default function ActivityPlanActualView({
   // Work Type 4 States
   const [t4OrderNo, setT4OrderNo] = useState("");
   const [t4ReceivedAmount, setT4ReceivedAmount] = useState("");
+  const [t4BillingStatus, setT4BillingStatus] = useState("");
+  const [t4Detail, setT4Detail] = useState("");
   const [t4PaymentImages, setT4PaymentImages] = useState<ImageFile[]>([]);
 
   // Work Type 5 States
@@ -487,7 +491,10 @@ export default function ActivityPlanActualView({
 
             // Type 2
             if (parsed.t2CustomerName) setT2CustomerName(parsed.t2CustomerName);
-            if (parsed.t2FollowupResults && parsed.t2FollowupResults.length > 0) {
+            if (
+              parsed.t2FollowupResults &&
+              parsed.t2FollowupResults.length > 0
+            ) {
               setT2FollowupResults(parsed.t2FollowupResults);
             }
             if (parsed.t2UsageResult) {
@@ -543,6 +550,12 @@ export default function ActivityPlanActualView({
             if (parsed.t4OrderNo) setT4OrderNo(parsed.t4OrderNo);
             if (parsed.t4ReceivedAmount) {
               setT4ReceivedAmount(parsed.t4ReceivedAmount);
+            }
+            if (parsed.t4BillingStatus) {
+              setT4BillingStatus(parsed.t4BillingStatus);
+            }
+            if (parsed.t4Detail) {
+              setT4Detail(parsed.t4Detail);
             }
 
             // Type 5
@@ -906,7 +919,9 @@ export default function ActivityPlanActualView({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (planStatus && planStatus !== "APPROVED") {
-      setFormError("สามารถบันทึกผลได้เฉพาะแผนกิจกรรมที่ได้รับการอนุมัติเรียบร้อยแล้วเท่านั้น");
+      setFormError(
+        "สามารถบันทึกผลได้เฉพาะแผนกิจกรรมที่ได้รับการอนุมัติเรียบร้อยแล้วเท่านั้น",
+      );
       return;
     }
     setFormError(null);
@@ -1244,6 +1259,8 @@ export default function ActivityPlanActualView({
           t3ProductSalesDetails,
           t4OrderNo,
           t4ReceivedAmount,
+          t4BillingStatus,
+          t4Detail,
           t5CompetitorBrand,
           t5CompetitorProduct,
           t5CompetitorPrice,
@@ -1461,16 +1478,17 @@ export default function ActivityPlanActualView({
               <h3 className="text-base sm:text-lg font-bold text-slate-800">
                 ไม่มีสิทธิ์บันทึกผลการปฏิบัติงาน
               </h3>
-              <p className="text-sm text-slate-600">
-                {unauthorizedError}
-              </p>
+              <p className="text-sm text-slate-600">{unauthorizedError}</p>
             </div>
             <div className="pt-2">
               <Button
                 variant="outline"
                 onClick={() => {
                   if (onCancel) onCancel();
-                  else router.push(id ? `/activity-plans/${id}` : "/activity-plans");
+                  else
+                    router.push(
+                      id ? `/activity-plans/${id}` : "/activity-plans",
+                    );
                 }}
                 className="gap-2 font-semibold border-slate-300"
               >
@@ -1604,6 +1622,10 @@ export default function ActivityPlanActualView({
             setT4OrderNo={setT4OrderNo}
             t4ReceivedAmount={t4ReceivedAmount}
             setT4ReceivedAmount={setT4ReceivedAmount}
+            t4BillingStatus={t4BillingStatus}
+            setT4BillingStatus={setT4BillingStatus}
+            t4Detail={t4Detail}
+            setT4Detail={setT4Detail}
             t4PaymentImages={t4PaymentImages}
             setT4PaymentImages={setT4PaymentImages}
             // Type 5

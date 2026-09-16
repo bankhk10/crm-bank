@@ -49,6 +49,8 @@ export interface BuildSummaryInput {
   // Type 4
   t4OrderNo: string;
   t4ReceivedAmount: string;
+  t4BillingStatus?: string;
+  t4Detail?: string;
 
   // Type 5
   t5CompetitorBrand: string;
@@ -147,7 +149,9 @@ export function parseCleanNumber(val: unknown): number | null {
   return isNaN(num) ? null : num;
 }
 
-export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult {
+export function buildResultSummary(
+  input: BuildSummaryInput,
+): BuildSummaryResult {
   const {
     activityResultStatus,
     cancelReason,
@@ -175,6 +179,8 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t3ProductSalesDetails,
     t4OrderNo,
     t4ReceivedAmount,
+    t4BillingStatus,
+    t4Detail,
     t5CompetitorBrand,
     t5CompetitorProduct,
     t5CompetitorPrice,
@@ -309,7 +315,9 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t1Detail ? `รายละเอียดเข้าพบ: ${t1Detail}` : null,
     t1NextAction ? `สิ่งที่ต้องดำเนินการต่อ: ${t1NextAction}` : null,
     t1NextMeetingDate ? `วันที่นัดหมายครั้งถัดไป: ${t1NextMeetingDate}` : null,
-    input.t1FarmerHomeAddress ? `ที่อยู่บ้านเกษตรกร: ${input.t1FarmerHomeAddress}` : null,
+    input.t1FarmerHomeAddress
+      ? `ที่อยู่บ้านเกษตรกร: ${input.t1FarmerHomeAddress}`
+      : null,
     input.t1PlotLatitude && input.t1PlotLongitude
       ? `พิกัดแปลง: ${input.t1PlotLatitude}, ${input.t1PlotLongitude}`
       : null,
@@ -327,12 +335,13 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
           !t2UsageResult.includes("พืชตอบสนองดี") &&
           !t2UsageResult.includes("ลูกค้าพึงพอใจ"));
       if (isProblem) return null;
-      const cleanDetail = (t2FollowupDetail?.trim() || t2Detail?.trim()) || "";
+      const cleanDetail = t2FollowupDetail?.trim() || t2Detail?.trim() || "";
       return cleanDetail ? `ติดตามผล: ${cleanDetail}` : null;
     })(),
     t2UsageResult ? `ผลลัพธ์การใช้: ${t2UsageResult}` : null,
     (t2UsageResult === "พบปัญหา" ||
-      (typeof t2UsageResult === "string" && t2UsageResult.includes("พบปัญหา"))) &&
+      (typeof t2UsageResult === "string" &&
+        t2UsageResult.includes("พบปัญหา"))) &&
     t2ProblemDetail
       ? `ปัญหาการใช้สินค้า: ${t2ProblemDetail}`
       : null,
@@ -361,7 +370,9 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
 
     // Type 4
     t4OrderNo ? `เลขที่บิล/ใบแจ้งหนี้: ${t4OrderNo}` : null,
+    t4BillingStatus ? `สถานะการวางบิล: ${t4BillingStatus}` : null,
     t4ReceivedAmount ? `ยอดเงินที่เก็บได้จริง: ${t4ReceivedAmount}` : null,
+    t4Detail ? `รายละเอียดเพิ่มเติม (วางบิล/เก็บเงิน): ${t4Detail}` : null,
 
     // Type 5
     t5CompetitorBrand ? `แบรนด์คู่แข่ง: ${t5CompetitorBrand}` : null,
@@ -385,9 +396,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
 
     // Type 6
     t6ProblemDetail ? `ปัญหาลูกค้าร้องเรียน: ${t6ProblemDetail}` : null,
-    t6InitialSolution
-      ? `แนวทางแก้ไขเบื้องต้น: ${t6InitialSolution}`
-      : null,
+    t6InitialSolution ? `แนวทางแก้ไขเบื้องต้น: ${t6InitialSolution}` : null,
     t6Status ? `สถานะการแก้ปัญหา: ${t6Status}` : null,
     t6Images && t6Images.length > 0
       ? `รูปภาพปัญหา/การแก้ไข: มีแนบ ${t6Images.length} รูป`
@@ -425,9 +434,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       ? `กำหนดการติดตามครั้งถัดไป: ${t7NextFollowUpDate}`
       : null,
     t7FinalYieldKg ? `ผลผลิตแปลงสาธิต: ${t7FinalYieldKg} กก./ไร่` : null,
-    t7ControlYieldKg
-      ? `ผลผลิตแปลงควบคุม: ${t7ControlYieldKg} กก./ไร่`
-      : null,
+    t7ControlYieldKg ? `ผลผลิตแปลงควบคุม: ${t7ControlYieldKg} กก./ไร่` : null,
     t7YieldIncreasePercent
       ? `% ผลผลิตเพิ่มขึ้น: ${t7YieldIncreasePercent}%`
       : null,
@@ -437,9 +444,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t7CommercialPotential
       ? `โอกาสสั่งซื้อจริง: ${t7CommercialPotential}`
       : null,
-    t7FinalSummaryNotes
-      ? `สรุปผลสัมฤทธิ์แปลง: ${t7FinalSummaryNotes}`
-      : null,
+    t7FinalSummaryNotes ? `สรุปผลสัมฤทธิ์แปลง: ${t7FinalSummaryNotes}` : null,
     t7CropImages && t7CropImages.length > 0
       ? `รูปภาพสภาพพืช: มีแนบ ${t7CropImages.length} รูป`
       : null,
@@ -500,9 +505,7 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     t11RemainingQty ? `จำนวนคงเหลือสต็อก: ${t11RemainingQty}` : null,
     t11Remarks ? `ข้อสังเกตสต็อก: ${t11Remarks}` : null,
     t11StockStatus ? `สถานะสต็อก: ${t11StockStatus}` : null,
-    t11ReorderOpportunity
-      ? `โอกาสสั่งซื้อซ้ำ: ${t11ReorderOpportunity}`
-      : null,
+    t11ReorderOpportunity ? `โอกาสสั่งซื้อซ้ำ: ${t11ReorderOpportunity}` : null,
     t11NextAction ? `แผนการติดตามสต็อก: ${t11NextAction}` : null,
   ].filter(Boolean) as string[];
 
@@ -574,7 +577,10 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
 
   // Build structured sale results
   const saleResults: any[] = [];
-  if (input.t3ProductSalesDetails && Array.isArray(input.t3ProductSalesDetails)) {
+  if (
+    input.t3ProductSalesDetails &&
+    Array.isArray(input.t3ProductSalesDetails)
+  ) {
     input.t3ProductSalesDetails.forEach((d) => {
       const pId = d.productId || d.id;
       const qty = Number(d.actualQty || d.quantity || 0);
@@ -596,7 +602,10 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       }
     });
   }
-  if (input.t9ProductSalesDetails && Array.isArray(input.t9ProductSalesDetails)) {
+  if (
+    input.t9ProductSalesDetails &&
+    Array.isArray(input.t9ProductSalesDetails)
+  ) {
     input.t9ProductSalesDetails.forEach((d) => {
       const pId = d.productId || d.id;
       const qty = Number(d.actualQuantityCases || d.quantityCases || 0);
@@ -615,7 +624,10 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
       }
     });
   }
-  if (input.t8ProductSalesDetails && Array.isArray(input.t8ProductSalesDetails)) {
+  if (
+    input.t8ProductSalesDetails &&
+    Array.isArray(input.t8ProductSalesDetails)
+  ) {
     input.t8ProductSalesDetails.forEach((d) => {
       const pId = d.productId || d.id;
       const qty = Number(d.actualQty || 0);
@@ -647,10 +659,10 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
           productId: pId,
           remainingQuantity: Number(
             item.remainingQuantity ??
-            item.remainingStockQty ??
-            item.remainingQty ??
-            item.quantity ??
-            0
+              item.remainingStockQty ??
+              item.remainingQty ??
+              item.quantity ??
+              0,
           ),
           stockStatus: item.stockStatus || null,
           reorderOpportunity: item.reorderOpportunity || null,
@@ -688,7 +700,8 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
           item.productId ||
           (input.products || []).find(
             (p) =>
-              p.name.trim().toLowerCase() === item.productName.trim().toLowerCase(),
+              p.name.trim().toLowerCase() ===
+              item.productName.trim().toLowerCase(),
           )?.id ||
           null;
         const isProblem = item.usageResult === "พบปัญหา";
@@ -726,11 +739,19 @@ export function buildResultSummary(input: BuildSummaryInput): BuildSummaryResult
     }
   };
 
-  (input.t1PlotImages || []).slice(0, 5).forEach((img) => addAttachment(img, "TYPE_1", "PLOT"));
-  (input.t2Images || []).slice(0, 5).forEach((img) => addAttachment(img, "TYPE_2"));
+  (input.t1PlotImages || [])
+    .slice(0, 5)
+    .forEach((img) => addAttachment(img, "TYPE_1", "PLOT"));
+  (input.t2Images || [])
+    .slice(0, 5)
+    .forEach((img) => addAttachment(img, "TYPE_2"));
   (input.t6Images || []).forEach((img) => addAttachment(img, "TYPE_6"));
-  (input.t7CropImages || []).forEach((img) => addAttachment(img, "TYPE_7", "CROP"));
-  (input.t7PlotImages || []).forEach((img) => addAttachment(img, "TYPE_7", "PLOT"));
+  (input.t7CropImages || []).forEach((img) =>
+    addAttachment(img, "TYPE_7", "CROP"),
+  );
+  (input.t7PlotImages || []).forEach((img) =>
+    addAttachment(img, "TYPE_7", "PLOT"),
+  );
   (input.t8Images || []).forEach((img) => addAttachment(img, "TYPE_8"));
   (input.t9Images || []).forEach((img) => addAttachment(img, "TYPE_9"));
   (input.t10Images || []).forEach((img) => addAttachment(img, "TYPE_10"));

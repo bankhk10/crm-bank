@@ -74,6 +74,7 @@ export interface Type3SalesItem {
 
 export interface Type4CollectItem {
   id: string;
+  collectType?: "BILLING" | "COLLECT";
   storeId?: string;
   customerName: string;
   collectAmount: number;

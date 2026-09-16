@@ -5,9 +5,22 @@ import { Building2, Receipt, ImageIcon } from "lucide-react";
 import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
 import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
 
+function parseCleanAmount(val: unknown): number | null {
+  if (val === null || val === undefined) return null;
+  if (typeof val === "number") return isNaN(val) ? null : val;
+  if (typeof val !== "string") return null;
+  const trimmed = val.trim();
+  if (trimmed === "" || trimmed === "-") return null;
+  const sanitized = trimmed.replace(/,/g, "").replace(/[^\d.-]/g, "");
+  if (sanitized === "" || sanitized === "-" || sanitized === ".") return null;
+  const num = parseFloat(sanitized);
+  return isNaN(num) ? null : num;
+}
+
 export interface TargetCollectCompanyItem {
   companyName: string;
   targetCollect: string;
+  targetAmountNum?: number;
   receivedAmount?: string;
 }
 
@@ -17,6 +30,8 @@ interface DetailType4CollectProps {
     customer: string;
     orderNo: string;
     targetCollect: string;
+    targetAmountNum?: number;
+    collectAmount?: number;
     items?: TargetCollectCompanyItem[];
   };
   orderNo?: string;
@@ -37,11 +52,35 @@ export function DetailType4Collect({
 
   const totalReceived = hasMultipleCompanies
     ? target.items!.reduce(
-        (sum, item) =>
-          sum + (Number(item.receivedAmount?.replace(/,/g, "")) || 0),
+        (sum, item) => sum + (parseCleanAmount(item.receivedAmount) || 0),
         0,
       )
-    : Number(receivedAmount?.replace(/,/g, "")) || 0;
+    : parseCleanAmount(receivedAmount) || 0;
+
+  const totalTarget = hasMultipleCompanies
+    ? target.items!.reduce(
+        (sum, item) =>
+          sum +
+          (item.targetAmountNum ??
+            (item as any).collectAmount ??
+            parseCleanAmount(item.targetCollect) ??
+            0),
+        0,
+      )
+    : ((target as any).targetAmountNum ??
+      (target as any).collectAmount ??
+      parseCleanAmount(target.targetCollect) ??
+      0);
+
+  const hasActual = hasMultipleCompanies
+    ? totalReceived > 0
+    : parseCleanAmount(receivedAmount) != null;
+
+  const remainingAmount = hasActual
+    ? Math.max(0, totalTarget - totalReceived)
+    : totalTarget;
+
+  const showRemaining = !hasActual || totalReceived < totalTarget;
 
   return (
     <div className="border border-indigo-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-4 shadow-xs">
@@ -103,7 +142,10 @@ export function DetailType4Collect({
             { label: "ลูกค้า/ร้านค้า:", value: target.customer || "-" },
             {
               label: "เป้ายอดเก็บเงิน:",
-              value: target.targetCollect || "-",
+              value:
+                totalTarget > 0
+                  ? `${totalTarget.toLocaleString()} ฿`
+                  : target.targetCollect || "-",
               highlight: true,
             },
           ]}
@@ -120,55 +162,95 @@ export function DetailType4Collect({
         {hasMultipleCompanies ? (
           <div className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {target.items!.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 flex items-center justify-between"
-                >
-                  <div className="space-y-0.5">
-                    <span className="text-xs text-slate-500 font-medium block">
-                      {idx + 1}. {item.companyName}
-                    </span>
-                    <span className="text-[11px] text-slate-400">
-                      เป้าหมาย: {item.targetCollect}
-                    </span>
+              {target.items!.map((item, idx) => {
+                const itemRec = parseCleanAmount(item.receivedAmount);
+                return (
+                  <div
+                    key={idx}
+                    className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 flex items-center justify-between"
+                  >
+                    <div className="space-y-0.5">
+                      <span className="text-xs text-slate-500 font-medium block">
+                        {idx + 1}. {item.companyName}
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        เป้าหมาย: {item.targetCollect}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs text-slate-400 block">
+                        รับชำระจริง
+                      </span>
+                      <span className="text-sm font-extrabold text-indigo-900">
+                        {itemRec != null
+                          ? `${itemRec.toLocaleString()} ฿`
+                          : "-"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-xs text-slate-400 block">
-                      รับชำระจริง
-                    </span>
-                    <span className="text-sm font-extrabold text-indigo-900">
-                      {item.receivedAmount
-                        ? `฿${Number(item.receivedAmount.replace(/,/g, "")).toLocaleString()}`
-                        : "-"}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {totalReceived > 0 && (
-              <div className="bg-indigo-50/70 border border-indigo-200 rounded-xl p-3 flex items-center justify-between">
+              <div className="bg-indigo-50/70 border border-indigo-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs font-bold text-indigo-900">
                   รวมเงินที่รับชำระจริงทั้งหมด:
                 </span>
-                <span className="text-base font-black text-indigo-900">
-                  ฿{totalReceived.toLocaleString()} บาท
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-base font-black text-indigo-900">
+                    {totalReceived.toLocaleString()} ฿
+                  </span>
+                  {showRemaining && remainingAmount > 0 && (
+                    <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2.5 py-1 rounded-md">
+                      ยอดคงค้าง: {remainingAmount.toLocaleString()} ฿
+                    </span>
+                  )}
+                </div>
               </div>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div className="bg-indigo-50/60 border border-indigo-200 rounded-xl p-3.5 space-y-1">
-              <span className="text-xs text-indigo-600 font-medium block">
-                จำนวนเงินที่รับชำระจริง
-              </span>
-              <span className="text-sm sm:text-base font-extrabold text-indigo-900 block">
-                {receivedAmount
-                  ? `฿${Number(receivedAmount.replace(/,/g, "")).toLocaleString()} บาท`
-                  : "-"}
-              </span>
+          <div className="space-y-3">
+            {(orderNo || target.orderNo) && (
+              <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">
+                  เลขที่เอกสาร/ใบสั่งซื้อ:
+                </span>
+                <span className="font-semibold text-slate-800">
+                  {orderNo || target.orderNo}
+                </span>
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
+              <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                <span className="text-xs text-slate-500 font-medium block">
+                  เป้ายอดเก็บเงิน
+                </span>
+                <span className="text-sm sm:text-base font-extrabold text-slate-900 block">
+                  {totalTarget > 0 ? `${totalTarget.toLocaleString()} ฿` : "-"}
+                </span>
+              </div>
+
+              <div className="bg-indigo-50/60 border border-indigo-200 rounded-xl p-3.5 space-y-1">
+                <span className="text-xs text-indigo-600 font-medium block">
+                  ยอดเก็บเงินจริง
+                </span>
+                <span className="text-sm sm:text-base font-extrabold text-indigo-900 block">
+                  {hasActual ? `${totalReceived.toLocaleString()} ฿` : "-"}
+                </span>
+              </div>
+
+              {showRemaining && (
+                <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-3.5 space-y-1">
+                  <span className="text-xs text-amber-700 font-medium block">
+                    ยอดคงค้าง
+                  </span>
+                  <span className="text-sm sm:text-base font-extrabold text-amber-900 block">
+                    {`${remainingAmount.toLocaleString()} ฿`}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

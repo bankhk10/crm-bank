@@ -184,7 +184,11 @@ export function extractPlanData(
     id: item.id,
     productName: item.materialName || "สื่อส่งเสริมการขาย",
     quantityCases: item.quantity || 1,
-    pricePerCase: item.unitPrice ? Number(item.unitPrice) : (item.totalAmount ? Number(item.totalAmount) : 0),
+    pricePerCase: item.unitPrice
+      ? Number(item.unitPrice)
+      : item.totalAmount
+        ? Number(item.totalAmount)
+        : 0,
   }));
 
   // Sales Promotion Items from normalized relation
@@ -257,13 +261,14 @@ export function extractPlanData(
     salesPromotionBudget: p.salesPromotionBudgetRequested
       ? Number(p.salesPromotionBudgetRequested)
       : undefined,
-    targetSales: (p.products || []).reduce(
-      (sum, pr) =>
-        sum +
-        (Number(pr.targetAmount) ||
-          (pr.targetQuantity || 0) * (Number(pr.unitPrice) || 0)),
-      0,
-    ) || undefined,
+    targetSales:
+      (p.products || []).reduce(
+        (sum, pr) =>
+          sum +
+          (Number(pr.targetAmount) ||
+            (pr.targetQuantity || 0) * (Number(pr.unitPrice) || 0)),
+        0,
+      ) || undefined,
     isPromotionalMediaSelected: mktProductItems.length > 0,
     marketingProductItems: mktProductItems,
     isSalesPromotionSelected:
@@ -283,7 +288,9 @@ export function extractPlanData(
 
   if (p.workTypes && Array.isArray(p.workTypes) && p.workTypes.length > 0) {
     for (const wt of p.workTypes) {
-      const typeName = wt.activityType?.name || getWorkTypeName(wt.activityType?.code || wt.activityTypeId);
+      const typeName =
+        wt.activityType?.name ||
+        getWorkTypeName(wt.activityType?.code || wt.activityTypeId);
       if (typeName && WORK_TYPES.includes(typeName)) {
         detectedWorkTypes.add(typeName);
       }
@@ -318,8 +325,13 @@ export function extractPlanData(
       if (WORK_TYPES.includes((p.activityType as any).name)) {
         detectedWorkTypes.add((p.activityType as any).name);
       }
-    } else if (typeof p.activityType === "object" && (p.activityType as any).id) {
-      const idx = parseInt(String((p.activityType as any).id).replace("TYPE_", ""), 10) - 1;
+    } else if (
+      typeof p.activityType === "object" &&
+      (p.activityType as any).id
+    ) {
+      const idx =
+        parseInt(String((p.activityType as any).id).replace("TYPE_", ""), 10) -
+        1;
       if (idx >= 0 && idx < WORK_TYPES.length) {
         detectedWorkTypes.add(WORK_TYPES[idx]);
       }
@@ -331,7 +343,9 @@ export function extractPlanData(
     }
   }
 
-  const resolvedWorkTypes = WORK_TYPES.filter((t: string) => detectedWorkTypes.has(t));
+  const resolvedWorkTypes = WORK_TYPES.filter((t: string) =>
+    detectedWorkTypes.has(t),
+  );
 
   // 2. Populate targets from Normalized Tables
   const targets: ActualTargetsState = { ...prevTargets };
@@ -348,15 +362,32 @@ export function extractPlanData(
   const t1Stores = stores.filter((s) => s.workTypeCode === "TYPE_1");
   const t1First = t1Stores[0];
   const t1CustomerName = t1First?.isUnregisteredFarmer
-    ? (t1First.unregisteredFarmerName || "")
-    : ((t1First as any)?.store?.name || t1First?.storeName || (t1Stores.length > 0 ? t1Stores.map((s) => (s as any).store?.name || s.storeName).filter(Boolean).join(", ") : "") || allStoreNames || p.location || "");
+    ? t1First.unregisteredFarmerName || ""
+    : (t1First as any)?.store?.name ||
+      t1First?.storeName ||
+      (t1Stores.length > 0
+        ? t1Stores
+            .map((s) => (s as any).store?.name || s.storeName)
+            .filter(Boolean)
+            .join(", ")
+        : "") ||
+      allStoreNames ||
+      p.location ||
+      "";
 
   // Determine visitPurpose with historical compatibility
-  let t1VisitPurpose: "FARMER" | "STORE" = ((t1First as any)?.visitPurpose as "FARMER" | "STORE");
+  let t1VisitPurpose: "FARMER" | "STORE" = (t1First as any)?.visitPurpose as
+    | "FARMER"
+    | "STORE";
   if (!t1VisitPurpose) {
-    if (t1First?.isUnregisteredFarmer || (t1First as any)?.store?.customerType === "FARMER") {
+    if (
+      t1First?.isUnregisteredFarmer ||
+      (t1First as any)?.store?.customerType === "FARMER"
+    ) {
       t1VisitPurpose = "FARMER";
-    } else if (["DEALER", "SUBDEALER"].includes((t1First as any)?.store?.customerType)) {
+    } else if (
+      ["DEALER", "SUBDEALER"].includes((t1First as any)?.store?.customerType)
+    ) {
       t1VisitPurpose = "STORE";
     } else {
       t1VisitPurpose = "FARMER";
@@ -369,8 +400,18 @@ export function extractPlanData(
     customerType: (t1First as any)?.store?.customerType || undefined,
     customer: t1CustomerName,
     topic: t1First?.remarks || prevTargets.t1.topic,
-    detail: t1First?.notes || t1Stores.map((s) => s.notes).filter(Boolean).join(" | ") || "",
-    province: t1First?.province || (t1First as any)?.store?.province || p.province || undefined,
+    detail:
+      t1First?.notes ||
+      t1Stores
+        .map((s) => s.notes)
+        .filter(Boolean)
+        .join(" | ") ||
+      "",
+    province:
+      t1First?.province ||
+      (t1First as any)?.store?.province ||
+      p.province ||
+      undefined,
     isUnregisteredFarmer: Boolean(t1First?.isUnregisteredFarmer),
     unregisteredFarmerName: t1First?.unregisteredFarmerName || undefined,
     unregisteredFarmerPhone: t1First?.unregisteredFarmerPhone || undefined,
@@ -395,7 +436,8 @@ export function extractPlanData(
     id: pr.id,
     productId: pr.productId,
     productName: pr.productName || (pr as any).product?.name || "สินค้า",
-    customer: (pr as any)?.store?.name || (pr as any)?.storeName || t2StoreCustomerName,
+    customer:
+      (pr as any)?.store?.name || (pr as any)?.storeName || t2StoreCustomerName,
     storeId: pr.storeId || t2Stores[0]?.storeId || undefined,
     detail: (pr as any)?.notes || t2Stores[0]?.notes || "",
     expectedResult: "พืชตอบสนองดี",
@@ -405,13 +447,19 @@ export function extractPlanData(
   targets.t2 = {
     ...prevTargets.t2,
     customer:
-      t2Stores.map((s) => s.storeName).filter(Boolean).join(", ") ||
+      t2Stores
+        .map((s) => s.storeName)
+        .filter(Boolean)
+        .join(", ") ||
       allStoreNames ||
       p.location ||
       "",
     storeName: t2CustInfo.storeName,
     keyFarmer: t2CustInfo.keyFarmer,
-    product: t2Products.map((pr) => pr.productName).filter(Boolean).join(", "),
+    product: t2Products
+      .map((pr) => pr.productName)
+      .filter(Boolean)
+      .join(", "),
     detail: t2Stores[0]?.notes || "",
     expectedResult: "พืชตอบสนองดี",
     items: t2Items,
@@ -422,7 +470,10 @@ export function extractPlanData(
   const t3Products = products.filter((pr) => pr.workTypeCode === "TYPE_3");
   const t3Items = t3Products.map((pr) => {
     const qtyVal = pr.targetQuantity != null ? String(pr.targetQuantity) : "";
-    const matchedStore = t3Stores.find((s) => s.storeId && pr.storeId && s.storeId === pr.storeId) || t3Stores[0];
+    const matchedStore =
+      t3Stores.find(
+        (s) => s.storeId && pr.storeId && s.storeId === pr.storeId,
+      ) || t3Stores[0];
     const isSub = Boolean(matchedStore?.subDealerStore);
     const custDisplay = isSub
       ? `${matchedStore?.subDealerStore} (Dealer: ${matchedStore?.storeName || "-"})`
@@ -431,14 +482,17 @@ export function extractPlanData(
     return {
       id: pr.id,
       productId: pr.productId,
-      productName: pr.productName || (pr as any).product?.name || "สินค้าเสนอขาย",
+      productName:
+        pr.productName || (pr as any).product?.name || "สินค้าเสนอขาย",
       customer: custDisplay,
       storeId: pr.storeId || matchedStore?.storeId || undefined,
       isSubDealer: isSub,
       subDealerStore: matchedStore?.subDealerStore || "",
       dealerName: matchedStore?.storeName || "",
       qty: qtyVal,
-      unitPrice: pr.unitPrice ? `${Number(pr.unitPrice).toLocaleString()} บาท` : "",
+      unitPrice: pr.unitPrice
+        ? `${Number(pr.unitPrice).toLocaleString()} บาท`
+        : "",
       price: "",
       targetSales: "",
       detail: pr.notes || matchedStore?.notes || "",
@@ -446,12 +500,21 @@ export function extractPlanData(
       isAdditional: false,
     };
   });
-  const t3TotalQty = t3Products.reduce((sum, pr) => sum + (pr.targetQuantity || 0), 0);
+  const t3TotalQty = t3Products.reduce(
+    (sum, pr) => sum + (pr.targetQuantity || 0),
+    0,
+  );
   const t3PrimaryStore = t3Stores[0];
   const t3PrimaryIsSub = Boolean(t3PrimaryStore?.subDealerStore);
   const t3PrimaryCustDisplay = t3PrimaryIsSub
     ? `${t3PrimaryStore?.subDealerStore} (Dealer: ${t3PrimaryStore?.storeName || "-"})`
-    : t3Stores.map((s) => s.storeName).filter(Boolean).join(", ") || allStoreNames || p.location || "";
+    : t3Stores
+        .map((s) => s.storeName)
+        .filter(Boolean)
+        .join(", ") ||
+      allStoreNames ||
+      p.location ||
+      "";
 
   targets.t3 = {
     ...prevTargets.t3,
@@ -459,7 +522,10 @@ export function extractPlanData(
     isSubDealer: t3PrimaryIsSub,
     subDealerStore: t3PrimaryStore?.subDealerStore || "",
     dealerName: t3PrimaryStore?.storeName || "",
-    product: t3Products.map((pr) => pr.productName).filter(Boolean).join(", "),
+    product: t3Products
+      .map((pr) => pr.productName)
+      .filter(Boolean)
+      .join(", "),
     targetQty: t3TotalQty > 0 ? String(t3TotalQty) : "",
     unitPrice: "",
     detail: t3Products[0]?.notes || t3PrimaryStore?.notes || "",
@@ -469,17 +535,52 @@ export function extractPlanData(
 
   // TYPE 4: Store / Target Amount (Collect)
   const t4Stores = stores.filter((s) => s.workTypeCode === "TYPE_4");
-  const t4CollectAmt = t4Stores.reduce((sum, s) => sum + (Number(s.targetAmount) || 0), 0);
+  const t4CollectAmt = t4Stores.reduce(
+    (sum, s) => sum + (Number(s.targetAmount ?? (s as any).collectAmount) || 0),
+    0,
+  );
+  const primaryCollectType =
+    t4Stores[0]?.remarks === "BILLING" || t4Stores[0]?.remarks === "วางบิล"
+      ? "BILLING"
+      : "COLLECT";
+
+  const actualCollectAmount =
+    (p as any).result?.collectResultAmount != null
+      ? Number((p as any).result.collectResultAmount)
+      : null;
+
   targets.t4 = {
     ...prevTargets.t4,
-    customer: t4Stores.map((s) => s.storeName).filter(Boolean).join(", ") || allStoreNames || "",
-    targetCollect: t4CollectAmt > 0 ? `${t4CollectAmt.toLocaleString()} บาท` : "",
+    customer:
+      t4Stores
+        .map((s) => s.storeName)
+        .filter(Boolean)
+        .join(", ") ||
+      allStoreNames ||
+      "",
+    targetCollect:
+      t4CollectAmt > 0 ? `${t4CollectAmt.toLocaleString()} บาท` : "",
+    targetAmountNum: t4CollectAmt,
+    collectAmount: t4CollectAmt,
+    actualCollectAmount,
+    collectType: primaryCollectType,
     orderNo: "",
-    items: t4Stores.map((s) => ({
-      id: s.id,
-      customer: s.storeName || "",
-      targetCollect: s.targetAmount ? `${Number(s.targetAmount).toLocaleString()} บาท` : "",
-    })),
+    items: t4Stores.map((s) => {
+      const itemAmt = Number(s.targetAmount ?? (s as any).collectAmount) || 0;
+      return {
+        id: s.id,
+        customer: s.storeName || "",
+        companyName: s.storeName || "",
+        collectType:
+          s.remarks === "BILLING" || s.remarks === "วางบิล"
+            ? "BILLING"
+            : "COLLECT",
+        targetCollect: itemAmt > 0 ? `${itemAmt.toLocaleString()} บาท` : "",
+        targetAmountNum: itemAmt,
+        collectAmount: itemAmt,
+        notes: s.notes || "",
+      };
+    }),
   };
 
   // TYPE 5: Store / Product / Survey
@@ -493,8 +594,18 @@ export function extractPlanData(
   }));
   targets.t5 = {
     ...prevTargets.t5,
-    store: t5Stores.map((s) => s.storeName).filter(Boolean).join(", ") || allStoreNames || p.location || "",
-    product: t5Products.map((pr) => pr.productName).filter(Boolean).join(", "),
+    store:
+      t5Stores
+        .map((s) => s.storeName)
+        .filter(Boolean)
+        .join(", ") ||
+      allStoreNames ||
+      p.location ||
+      "",
+    product: t5Products
+      .map((pr) => pr.productName)
+      .filter(Boolean)
+      .join(", "),
     detail: "",
     items: t5Items,
   };
@@ -503,9 +614,20 @@ export function extractPlanData(
   const t6Stores = stores.filter((s) => s.workTypeCode === "TYPE_6");
   targets.t6 = {
     ...prevTargets.t6,
-    customer: t6Stores.map((s) => s.storeName).filter(Boolean).join(", ") || allStoreNames || p.location || "",
+    customer:
+      t6Stores
+        .map((s) => s.storeName)
+        .filter(Boolean)
+        .join(", ") ||
+      allStoreNames ||
+      p.location ||
+      "",
     issueType: t6Stores[0]?.remarks || prevTargets.t6.issueType || "เคลมของ",
-    detail: t6Stores.map((s) => s.notes).filter(Boolean).join(" | ") || "",
+    detail:
+      t6Stores
+        .map((s) => s.notes)
+        .filter(Boolean)
+        .join(" | ") || "",
     items: t6Stores.map((s) => ({
       customer: s.storeName || "",
       issueType: s.remarks || "เคลมของ",
@@ -534,7 +656,8 @@ export function extractPlanData(
     plannedProductId: resolvedT7ProductId,
     crop: t7Plot?.cropName || "",
     plots: t7Plot?.areaRai ? `${Number(t7Plot.areaRai)} ไร่` : "",
-    demoProductQuantity: t7Visit?.productUsedQty != null ? String(t7Visit.productUsedQty) : "-",
+    demoProductQuantity:
+      t7Visit?.productUsedQty != null ? String(t7Visit.productUsedQty) : "-",
     objective: t7Plot?.objective || "",
     experimentDetail: t7Plot?.experimentDetail || "",
     detail: "",
@@ -547,7 +670,10 @@ export function extractPlanData(
             product: t7Plot.primaryProductName || "",
             crop: t7Plot.cropName || "",
             plots: t7Plot.areaRai ? `${Number(t7Plot.areaRai)} ไร่` : "",
-            demoProductQuantity: t7Visit?.productUsedQty != null ? String(t7Visit.productUsedQty) : "-",
+            demoProductQuantity:
+              t7Visit?.productUsedQty != null
+                ? String(t7Visit.productUsedQty)
+                : "-",
             objective: t7Plot.objective || "",
             experimentDetail: t7Plot.experimentDetail || "",
             detail: "",
@@ -561,8 +687,13 @@ export function extractPlanData(
   targets.t8 = {
     ...prevTargets.t8,
     topic: p.title || "",
-    products: t8Products.map((pr) => pr.productName).filter(Boolean).join(", "),
-    targetAttendees: p.targetAttendeesCount ? `${p.targetAttendeesCount} คน` : "",
+    products: t8Products
+      .map((pr) => pr.productName)
+      .filter(Boolean)
+      .join(", "),
+    targetAttendees: p.targetAttendeesCount
+      ? `${p.targetAttendeesCount} คน`
+      : "",
   };
 
   // TYPE 9: Store / Product / Target Sales
@@ -578,12 +709,16 @@ export function extractPlanData(
       ? Number(pr.targetAmount)
       : (pr.targetQuantity || 0) * (Number(pr.unitPrice) || 0),
   }));
-  const t9TotalSales = t9ItemsFromDb.reduce((sum, item) => sum + item.totalAmount, 0);
+  const t9TotalSales = t9ItemsFromDb.reduce(
+    (sum, item) => sum + item.totalAmount,
+    0,
+  );
   const t9ProductSummary = t9ItemsFromDb
     .map((prod) => `${prod.productName} (${prod.quantityCases} ลัง)`)
     .join(", ");
 
-  const t9MainStore = t9FirstStore?.storeName || allStoreNames || p.location || "";
+  const t9MainStore =
+    t9FirstStore?.storeName || allStoreNames || p.location || "";
   const t9IsSubDealer = Boolean(t9FirstStore?.subDealerStore);
   const t9SubDealerStore = t9FirstStore?.subDealerStore || "";
 
@@ -594,7 +729,9 @@ export function extractPlanData(
     subDealerStore: t9SubDealerStore,
     product: t9ProductSummary,
     targetSales: t9TotalSales > 0 ? `${t9TotalSales.toLocaleString()} บาท` : "",
-    targetAttendees: p.targetAttendeesCount ? `${p.targetAttendeesCount} คน` : "",
+    targetAttendees: p.targetAttendeesCount
+      ? `${p.targetAttendeesCount} คน`
+      : "",
     items: t9ItemsFromDb,
   };
 
@@ -602,20 +739,36 @@ export function extractPlanData(
   const t10Plot = p.demoPlotVisits?.[0]?.demoPlot;
   targets.t10 = {
     ...prevTargets.t10,
-    plot: t10Plot?.ownerName ? `${t10Plot.ownerName} (${t10Plot.name || ""})` : p.location || "",
+    plot: t10Plot?.ownerName
+      ? `${t10Plot.ownerName} (${t10Plot.name || ""})`
+      : p.location || "",
     location: p.location || prevTargets.t10.location || "",
-    showcase: t10Plot?.primaryProductName || products.find((pr) => pr.workTypeCode === "TYPE_10")?.productName || "",
-    targetAttendees: p.targetAttendeesCount ? `${p.targetAttendeesCount} คน` : "",
-    targetSales: p.targetBookingSales ? `฿${Number(p.targetBookingSales).toLocaleString()}` : "",
+    showcase:
+      t10Plot?.primaryProductName ||
+      products.find((pr) => pr.workTypeCode === "TYPE_10")?.productName ||
+      "",
+    targetAttendees: p.targetAttendeesCount
+      ? `${p.targetAttendeesCount} คน`
+      : "",
+    targetSales: p.targetBookingSales
+      ? `฿${Number(p.targetBookingSales).toLocaleString()}`
+      : "",
   };
 
   // TYPE 11: Multiple Stores
   const t11Stores = stores.filter((s) => s.workTypeCode === "TYPE_11");
-  const t11StoreNames = t11Stores.map((s) => s.storeName).filter(Boolean).join(", ");
+  const t11StoreNames = t11Stores
+    .map((s) => s.storeName)
+    .filter(Boolean)
+    .join(", ");
   targets.t11 = {
     ...prevTargets.t11,
     store: t11StoreNames || allStoreNames || "",
-    detail: t11Stores.map((s) => s.remarks || s.notes).filter(Boolean).join(" | ") || "",
+    detail:
+      t11Stores
+        .map((s) => s.remarks || s.notes)
+        .filter(Boolean)
+        .join(" | ") || "",
   };
 
   return {

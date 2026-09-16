@@ -48,6 +48,8 @@ export interface ParsedSummaryValues {
   // Type 4
   t4OrderNo?: string;
   t4ReceivedAmount?: string;
+  t4BillingStatus?: string;
+  t4Detail?: string;
 
   // Type 5
   t5CompetitorBrand?: string;
@@ -80,8 +82,20 @@ export interface ParsedSummaryValues {
     actualProductId?: string | null;
     changeReason?: string | null;
     plotObjective?: string | null;
-    plannedProduct?: { id: string; name: string; productCode?: string | null; unit?: string | null; packageSizeUnit?: string | null } | null;
-    actualProduct?: { id: string; name: string; productCode?: string | null; unit?: string | null; packageSizeUnit?: string | null } | null;
+    plannedProduct?: {
+      id: string;
+      name: string;
+      productCode?: string | null;
+      unit?: string | null;
+      packageSizeUnit?: string | null;
+    } | null;
+    actualProduct?: {
+      id: string;
+      name: string;
+      productCode?: string | null;
+      unit?: string | null;
+      packageSizeUnit?: string | null;
+    } | null;
     cropAgeValue?: string | null;
     cropAgeUnit?: string | null;
     growthStage?: string | null;
@@ -151,17 +165,25 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   if (resData.resultStatus) result.activityResultStatus = resData.resultStatus;
   if (resData.cancelReason) result.cancelReason = resData.cancelReason;
   if (resData.postponedDate) {
-    result.postponedDate = typeof resData.postponedDate === "string" ? resData.postponedDate.split("T")[0] : new Date(resData.postponedDate).toISOString().split("T")[0];
+    result.postponedDate =
+      typeof resData.postponedDate === "string"
+        ? resData.postponedDate.split("T")[0]
+        : new Date(resData.postponedDate).toISOString().split("T")[0];
   }
   if (resData.postponedTime) result.postponedTime = resData.postponedTime;
   if (resData.postponedReason) result.postponedReason = resData.postponedReason;
   if (resData.postponedNotes) result.postponedNotes = resData.postponedNotes;
-  if (resData.discussionResult) result.t1DiscussionResult = resData.discussionResult;
+  if (resData.discussionResult)
+    result.t1DiscussionResult = resData.discussionResult;
   if (resData.productAdvice) result.t1ProductAdvice = resData.productAdvice;
-  if (resData.salesOpportunity) result.t1SalesOpportunity = resData.salesOpportunity;
-  if (resData.farmerHomeAddress) result.t1FarmerHomeAddress = resData.farmerHomeAddress;
-  if (resData.plotLatitude != null) result.t1PlotLatitude = Number(resData.plotLatitude);
-  if (resData.plotLongitude != null) result.t1PlotLongitude = Number(resData.plotLongitude);
+  if (resData.salesOpportunity)
+    result.t1SalesOpportunity = resData.salesOpportunity;
+  if (resData.farmerHomeAddress)
+    result.t1FarmerHomeAddress = resData.farmerHomeAddress;
+  if (resData.plotLatitude != null)
+    result.t1PlotLatitude = Number(resData.plotLatitude);
+  if (resData.plotLongitude != null)
+    result.t1PlotLongitude = Number(resData.plotLongitude);
   if (resData.problemFound) result.problemFound = resData.problemFound;
   if (resData.nextAction) {
     result.nextAction = resData.nextAction;
@@ -169,12 +191,21 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     result.t11NextAction = resData.nextAction;
   }
   if (resData.nextMeetingDate) {
-    result.t1NextMeetingDate = typeof resData.nextMeetingDate === "string" ? resData.nextMeetingDate.split("T")[0] : new Date(resData.nextMeetingDate).toISOString().split("T")[0];
+    result.t1NextMeetingDate =
+      typeof resData.nextMeetingDate === "string"
+        ? resData.nextMeetingDate.split("T")[0]
+        : new Date(resData.nextMeetingDate).toISOString().split("T")[0];
   }
 
   // 2. Direct collections from normalized relations
-  if (resData.saleResults && Array.isArray(resData.saleResults) && resData.saleResults.length > 0) {
-    const t3Sales = resData.saleResults.filter((s: any) => s.workTypeCode === "TYPE_3");
+  if (
+    resData.saleResults &&
+    Array.isArray(resData.saleResults) &&
+    resData.saleResults.length > 0
+  ) {
+    const t3Sales = resData.saleResults.filter(
+      (s: any) => s.workTypeCode === "TYPE_3",
+    );
     if (t3Sales.length > 0) {
       result.t3ProductSalesDetails = t3Sales.map((s: any) => ({
         id: s.id,
@@ -189,7 +220,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         isAdditional: Boolean(s.isAdditional),
       }));
     }
-    const t9Sales = resData.saleResults.filter((s: any) => s.workTypeCode === "TYPE_9");
+    const t9Sales = resData.saleResults.filter(
+      (s: any) => s.workTypeCode === "TYPE_9",
+    );
     if (t9Sales.length > 0) {
       result.t9ProductSalesDetails = t9Sales.map((s: any) => ({
         productId: s.productId,
@@ -200,7 +233,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         storeId: s.storeId,
       }));
     }
-    const t8Sales = resData.saleResults.filter((s: any) => s.workTypeCode === "TYPE_8");
+    const t8Sales = resData.saleResults.filter(
+      (s: any) => s.workTypeCode === "TYPE_8",
+    );
     if (t8Sales.length > 0) {
       result.t8ProductSalesDetails = t8Sales.map((s: any) => ({
         productId: s.productId,
@@ -212,7 +247,11 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
   }
 
-  if (resData.stockResults && Array.isArray(resData.stockResults) && resData.stockResults.length > 0) {
+  if (
+    resData.stockResults &&
+    Array.isArray(resData.stockResults) &&
+    resData.stockResults.length > 0
+  ) {
     result.t11StockItems = resData.stockResults.map((st: any) => ({
       storeId: st.storeId,
       storeName: st.store?.name || "",
@@ -227,7 +266,11 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }));
   }
 
-  if (resData.surveyResults && Array.isArray(resData.surveyResults) && resData.surveyResults.length > 0) {
+  if (
+    resData.surveyResults &&
+    Array.isArray(resData.surveyResults) &&
+    resData.surveyResults.length > 0
+  ) {
     result.t5SurveyDetails = resData.surveyResults.map((sv: any) => ({
       id: sv.id,
       storeId: sv.storeId,
@@ -242,7 +285,11 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }));
   }
 
-  if (resData.attachments && Array.isArray(resData.attachments) && resData.attachments.length > 0) {
+  if (
+    resData.attachments &&
+    Array.isArray(resData.attachments) &&
+    resData.attachments.length > 0
+  ) {
     const toImage = (a: any) => ({
       id: a.id,
       url: a.fileUrl,
@@ -255,25 +302,39 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     );
     if (t1PlotAtt.length > 0) result.t1PlotImages = t1PlotAtt.map(toImage);
 
-    const t2Att = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_2");
+    const t2Att = resData.attachments.filter(
+      (a: any) => a.workTypeCode === "TYPE_2",
+    );
     if (t2Att.length > 0) result.t2Images = t2Att.map(toImage);
 
-    const t6Att = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_6");
+    const t6Att = resData.attachments.filter(
+      (a: any) => a.workTypeCode === "TYPE_6",
+    );
     if (t6Att.length > 0) result.t6Images = t6Att.map(toImage);
 
-    const t7CropAtt = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_7" && a.category === "CROP");
+    const t7CropAtt = resData.attachments.filter(
+      (a: any) => a.workTypeCode === "TYPE_7" && a.category === "CROP",
+    );
     if (t7CropAtt.length > 0) result.t7CropImages = t7CropAtt.map(toImage);
 
-    const t7PlotAtt = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_7" && a.category === "PLOT");
+    const t7PlotAtt = resData.attachments.filter(
+      (a: any) => a.workTypeCode === "TYPE_7" && a.category === "PLOT",
+    );
     if (t7PlotAtt.length > 0) result.t7PlotImages = t7PlotAtt.map(toImage);
 
-    const t8Att = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_8");
+    const t8Att = resData.attachments.filter(
+      (a: any) => a.workTypeCode === "TYPE_8",
+    );
     if (t8Att.length > 0) result.t8Images = t8Att.map(toImage);
 
-    const t9Att = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_9");
+    const t9Att = resData.attachments.filter(
+      (a: any) => a.workTypeCode === "TYPE_9",
+    );
     if (t9Att.length > 0) result.t9Images = t9Att.map(toImage);
 
-    const t10Att = resData.attachments.filter((a: any) => a.workTypeCode === "TYPE_10");
+    const t10Att = resData.attachments.filter(
+      (a: any) => a.workTypeCode === "TYPE_10",
+    );
     if (t10Att.length > 0) result.t10Images = t10Att.map(toImage);
   }
 
@@ -282,13 +343,21 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
     // Type 1 Fallback parsing
     const homeAddressMatch = summaryText.match(/ที่อยู่บ้านเกษตรกร:\s*(.+)/);
-    if (homeAddressMatch && homeAddressMatch[1] && !result.t1FarmerHomeAddress) {
+    if (
+      homeAddressMatch &&
+      homeAddressMatch[1] &&
+      !result.t1FarmerHomeAddress
+    ) {
       result.t1FarmerHomeAddress = homeAddressMatch[1].split("\n")[0].trim();
     }
-    const coordsMatch = summaryText.match(/พิกัดแปลง:\s*([-\d.]+),\s*([-\d.]+)/);
+    const coordsMatch = summaryText.match(
+      /พิกัดแปลง:\s*([-\d.]+),\s*([-\d.]+)/,
+    );
     if (coordsMatch && coordsMatch[1] && coordsMatch[2]) {
-      if (result.t1PlotLatitude == null) result.t1PlotLatitude = Number(coordsMatch[1]);
-      if (result.t1PlotLongitude == null) result.t1PlotLongitude = Number(coordsMatch[2]);
+      if (result.t1PlotLatitude == null)
+        result.t1PlotLatitude = Number(coordsMatch[1]);
+      if (result.t1PlotLongitude == null)
+        result.t1PlotLongitude = Number(coordsMatch[2]);
     }
 
     const adviceMatch = summaryText.match(/สินค้าที่แนะนำ:\s*(.+)/);
@@ -314,14 +383,18 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       result.t1Detail = detailMatch[1].split("\n")[0].trim();
     }
 
-    const nextActionMatch = summaryText.match(/สิ่งที่ต้องดำเนินการต่อ:\s*(.+)/);
+    const nextActionMatch = summaryText.match(
+      /สิ่งที่ต้องดำเนินการต่อ:\s*(.+)/,
+    );
     if (nextActionMatch && nextActionMatch[1]) {
       result.t1NextAction = nextActionMatch[1].split("\n")[0].trim();
     } else if (resData.nextAction) {
       result.t1NextAction = resData.nextAction;
     }
 
-    const nextMeetingMatch = summaryText.match(/วันที่นัดหมายครั้งถัดไป:\s*(.+)/);
+    const nextMeetingMatch = summaryText.match(
+      /วันที่นัดหมายครั้งถัดไป:\s*(.+)/,
+    );
     if (nextMeetingMatch && nextMeetingMatch[1]) {
       let val = nextMeetingMatch[1].split("\n")[0].trim();
       if (val.includes("T")) {
@@ -411,7 +484,11 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       try {
         const rawJson = t3DetailsMatch[1].split("\n")[0].trim();
         const parsed = JSON.parse(rawJson);
-        if (Array.isArray(parsed) && (!result.t3ProductSalesDetails || result.t3ProductSalesDetails.length === 0)) {
+        if (
+          Array.isArray(parsed) &&
+          (!result.t3ProductSalesDetails ||
+            result.t3ProductSalesDetails.length === 0)
+        ) {
           result.t3ProductSalesDetails = parsed;
         }
       } catch (e) {
@@ -424,11 +501,21 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (orderNoMatch && orderNoMatch[1]) {
       result.t4OrderNo = orderNoMatch[1].split("\n")[0].trim();
     }
+    const billingStatusMatch = summaryText.match(/สถานะการวางบิล:\s*(.+)/);
+    if (billingStatusMatch && billingStatusMatch[1]) {
+      result.t4BillingStatus = billingStatusMatch[1].split("\n")[0].trim();
+    }
     const receivedMatch = summaryText.match(/ยอดเงินที่เก็บได้จริง:\s*(.+)/);
     if (receivedMatch && receivedMatch[1]) {
       result.t4ReceivedAmount = receivedMatch[1].split("\n")[0].trim();
     } else if (resData.collectResultAmount) {
       result.t4ReceivedAmount = String(resData.collectResultAmount);
+    }
+    const t4DetailMatch = summaryText.match(
+      /(?:รายละเอียดเพิ่มเติม\s*\(วางบิล\/เก็บเงิน\)|รายละเอียดเพิ่มเติม):\s*(.+)/,
+    );
+    if (t4DetailMatch && t4DetailMatch[1]) {
+      result.t4Detail = t4DetailMatch[1].split("\n")[0].trim();
     }
 
     // Type 5
@@ -444,7 +531,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (compPriceMatch && compPriceMatch[1]) {
       result.t5CompetitorPrice = compPriceMatch[1].split("\n")[0].trim();
     }
-    const compUnitMatch = summaryText.match(/(?:หน่วยนับคู่แข่ง|หน่วยนับ):\s*(.+)/);
+    const compUnitMatch = summaryText.match(
+      /(?:หน่วยนับคู่แข่ง|หน่วยนับ):\s*(.+)/,
+    );
     if (compUnitMatch && compUnitMatch[1]) {
       result.t5CompetitorUnit = compUnitMatch[1].split("\n")[0].trim();
     }
@@ -452,7 +541,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (promoMatch && promoMatch[1]) {
       result.t5PromotionDetail = promoMatch[1].split("\n")[0].trim();
     }
-    const t5SurveyMatch = summaryText.match(/รายการสำรวจตลาดคู่แข่ง:\s*(\[.+\])/);
+    const t5SurveyMatch = summaryText.match(
+      /รายการสำรวจตลาดคู่แข่ง:\s*(\[.+\])/,
+    );
     if (t5SurveyMatch && t5SurveyMatch[1]) {
       try {
         result.t5SurveyDetails = JSON.parse(t5SurveyMatch[1]);
@@ -514,7 +605,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (t7MethodMatch && t7MethodMatch[1]) {
       result.t7UsageMethod = t7MethodMatch[1].split("\n")[0].trim();
     }
-    const t7AgeMatch = summaryText.match(/อายุพืช:\s*(\d+)\s*(วัน|สัปดาห์|เดือน|ปี)?/);
+    const t7AgeMatch = summaryText.match(
+      /อายุพืช:\s*(\d+)\s*(วัน|สัปดาห์|เดือน|ปี)?/,
+    );
     if (t7AgeMatch && t7AgeMatch[1]) {
       result.t7CropAgeValue = t7AgeMatch[1].trim();
       if (t7AgeMatch[2]) {
@@ -537,7 +630,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         result.t7CropCondition = cVal as any;
       }
     }
-    const t7DescMatch = summaryText.match(/(?:ปัญหาของสภาพพืช|รายละเอียดแปลง):\s*(.+)/);
+    const t7DescMatch = summaryText.match(
+      /(?:ปัญหาของสภาพพืช|รายละเอียดแปลง):\s*(.+)/,
+    );
     if (t7DescMatch && t7DescMatch[1]) {
       result.t7CropProblemDescription = t7DescMatch[1].split("\n")[0].trim();
     }
@@ -548,7 +643,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         result.t7ProductResponse = resp;
       }
     }
-    const t7ProblemMatch = summaryText.match(/รายละเอียดปัญหาการใช้ผลิตภัณฑ์:\s*(.+)/);
+    const t7ProblemMatch = summaryText.match(
+      /รายละเอียดปัญหาการใช้ผลิตภัณฑ์:\s*(.+)/,
+    );
     if (t7ProblemMatch && t7ProblemMatch[1]) {
       result.t7ProblemDescription = t7ProblemMatch[1].split("\n")[0].trim();
     }
@@ -575,7 +672,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         result.t7PlotStatus = s as any;
       }
     }
-    const nextVisitMatch = summaryText.match(/กำหนดการติดตามครั้งถัดไป:\s*(.+)/);
+    const nextVisitMatch = summaryText.match(
+      /กำหนดการติดตามครั้งถัดไป:\s*(.+)/,
+    );
     if (nextVisitMatch && nextVisitMatch[1]) {
       result.t7NextFollowUpDate = nextVisitMatch[1].split("\n")[0].trim();
     }
@@ -627,7 +726,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
 
     // Type 8
-    const t8AttendeesMatch = summaryText.match(/จำนวนผู้เข้าร่วมประชุมจริง:\s*(.+)/);
+    const t8AttendeesMatch = summaryText.match(
+      /จำนวนผู้เข้าร่วมประชุมจริง:\s*(.+)/,
+    );
     if (t8AttendeesMatch && t8AttendeesMatch[1]) {
       result.t8ActualAttendees = t8AttendeesMatch[1].split("\n")[0].trim();
     }
@@ -663,7 +764,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (t9SalesMatch && t9SalesMatch[1]) {
       result.t9ActualSales = t9SalesMatch[1].split("\n")[0].trim();
     }
-    const t9ProductsMatch = summaryText.match(/ยอดขายแยกสินค้าหน้าร้าน:\s*(.+)/);
+    const t9ProductsMatch = summaryText.match(
+      /ยอดขายแยกสินค้าหน้าร้าน:\s*(.+)/,
+    );
     if (t9ProductsMatch && t9ProductsMatch[1]) {
       try {
         const parsed = JSON.parse(t9ProductsMatch[1].trim());
@@ -674,7 +777,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         console.error("Failed to parse t9ProductSalesDetails", e);
       }
     }
-    const t9AttendeesMatch = summaryText.match(/จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน:\s*(.+)/);
+    const t9AttendeesMatch = summaryText.match(
+      /จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน:\s*(.+)/,
+    );
     if (t9AttendeesMatch && t9AttendeesMatch[1]) {
       result.t9ActualAttendees = t9AttendeesMatch[1].split("\n")[0].trim();
     }
@@ -691,7 +796,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
 
     // Type 10
-    const t10AttendeesMatch = summaryText.match(/จำนวนผู้เข้าร่วม Field Day จริง:\s*(.+)/);
+    const t10AttendeesMatch = summaryText.match(
+      /จำนวนผู้เข้าร่วม Field Day จริง:\s*(.+)/,
+    );
     if (t10AttendeesMatch && t10AttendeesMatch[1]) {
       result.t10ActualAttendees = t10AttendeesMatch[1].split("\n")[0].trim();
     } else if (
@@ -701,19 +808,25 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       result.t10ActualAttendees = String(resData.actualAttendeesCount);
     }
 
-    const t10SalesMatch = summaryText.match(/ยอดขายหรือยอดจอง Field Day จริง:\s*(.+)/);
+    const t10SalesMatch = summaryText.match(
+      /ยอดขายหรือยอดจอง Field Day จริง:\s*(.+)/,
+    );
     if (t10SalesMatch && t10SalesMatch[1]) {
       result.t10ActualSalesOrBooking = t10SalesMatch[1].split("\n")[0].trim();
     } else if (
       resData.salesResultAmount != null &&
       Number(resData.salesResultAmount) > 0
     ) {
-      result.t10ActualSalesOrBooking = String(Number(resData.salesResultAmount));
+      result.t10ActualSalesOrBooking = String(
+        Number(resData.salesResultAmount),
+      );
     }
 
     const t10FeedbackMatch = summaryText.match(/ความสนใจเกษตรกร:\s*(.+)/);
     if (t10FeedbackMatch && t10FeedbackMatch[1]) {
-      result.t10FarmerFeedback = t10FeedbackMatch[1].split("\n")[0].trim() as any;
+      result.t10FarmerFeedback = t10FeedbackMatch[1]
+        .split("\n")[0]
+        .trim() as any;
     }
     const t10FarmersMatch = summaryText.match(/รายชื่อเกษตรกรเป้าหมาย:\s*(.+)/);
     if (t10FarmersMatch && t10FarmersMatch[1]) {
@@ -733,7 +846,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
     // Type 11
     if (!result.t11StockItems || result.t11StockItems.length === 0) {
-      const t11StockItemsMatch = summaryText.match(/รายการตรวจเช็กสต็อก:\s*(\[.+\])/);
+      const t11StockItemsMatch = summaryText.match(
+        /รายการตรวจเช็กสต็อก:\s*(\[.+\])/,
+      );
       if (t11StockItemsMatch && t11StockItemsMatch[1]) {
         try {
           const parsed = JSON.parse(t11StockItemsMatch[1].trim());
@@ -763,7 +878,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
     const t11ReorderMatch = summaryText.match(/โอกาสสั่งซื้อซ้ำ:\s*(.+)/);
     if (t11ReorderMatch && t11ReorderMatch[1]) {
-      result.t11ReorderOpportunity = t11ReorderMatch[1].split("\n")[0].trim() as any;
+      result.t11ReorderOpportunity = t11ReorderMatch[1]
+        .split("\n")[0]
+        .trim() as any;
     }
     const t11NextActionMatch = summaryText.match(/แผนการติดตามสต็อก:\s*(.+)/);
     if (t11NextActionMatch && t11NextActionMatch[1]) {
@@ -780,7 +897,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   }
   if (resData.postponedDate) {
     const d = new Date(resData.postponedDate);
-    result.postponedDate = !isNaN(d.getTime()) ? d.toISOString().split("T")[0] : "";
+    result.postponedDate = !isNaN(d.getTime())
+      ? d.toISOString().split("T")[0]
+      : "";
   }
   if (resData.postponedTime) {
     result.postponedTime = resData.postponedTime;
@@ -822,7 +941,11 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   }
 
   // Structured Type 7 Demo Results from DB
-  if (resData.demoResults && Array.isArray(resData.demoResults) && resData.demoResults.length > 0) {
+  if (
+    resData.demoResults &&
+    Array.isArray(resData.demoResults) &&
+    resData.demoResults.length > 0
+  ) {
     result.t7DemoResults = resData.demoResults.map((demo: any) => ({
       id: demo.id,
       plannedProductId: demo.plannedProductId ?? null,
@@ -837,8 +960,10 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       cropCondition: demo.cropCondition ?? null,
       productResponse: demo.productResponse ?? null,
       problemDescription: demo.problemDescription ?? null,
-      finalYieldKg: demo.finalYieldKg != null ? Number(demo.finalYieldKg) : null,
-      controlYieldKg: demo.controlYieldKg != null ? Number(demo.controlYieldKg) : null,
+      finalYieldKg:
+        demo.finalYieldKg != null ? Number(demo.finalYieldKg) : null,
+      controlYieldKg:
+        demo.controlYieldKg != null ? Number(demo.controlYieldKg) : null,
       satisfactionScore: demo.satisfactionScore ?? null,
     }));
 
@@ -853,21 +978,29 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         result.t7DemoPlotId = demo.demoPlotId;
       }
     }
-    if (demo.plannedProductId) result.t7PlannedProductId = demo.plannedProductId;
+    if (demo.plannedProductId)
+      result.t7PlannedProductId = demo.plannedProductId;
     if (demo.actualProductId) result.t7ActualProductId = demo.actualProductId;
     if (demo.changeReason) result.t7ChangeReason = demo.changeReason;
     if (demo.plotObjective) result.t7PlotObjective = demo.plotObjective;
-    if (demo.plannedProduct?.name) result.t7PlannedProductName = demo.plannedProduct.name;
-    if (demo.actualProduct?.name) result.t7ActualProductName = demo.actualProduct.name;
+    if (demo.plannedProduct?.name)
+      result.t7PlannedProductName = demo.plannedProduct.name;
+    if (demo.actualProduct?.name)
+      result.t7ActualProductName = demo.actualProduct.name;
     if (demo.cropAgeValue) result.t7CropAgeValue = String(demo.cropAgeValue);
     if (demo.cropAgeUnit) result.t7CropAgeUnit = demo.cropAgeUnit;
     if (demo.growthStage) result.t7GrowthStage = demo.growthStage;
     if (demo.cropCondition) result.t7CropCondition = demo.cropCondition as any;
-    if (demo.productResponse) result.t7ProductResponse = demo.productResponse as any;
-    if (demo.problemDescription) result.t7ProblemDescription = demo.problemDescription;
-    if (demo.finalYieldKg != null) result.t7FinalYieldKg = String(demo.finalYieldKg);
-    if (demo.controlYieldKg != null) result.t7ControlYieldKg = String(demo.controlYieldKg);
-    if (demo.satisfactionScore != null) result.t7FarmerSatisfaction = demo.satisfactionScore;
+    if (demo.productResponse)
+      result.t7ProductResponse = demo.productResponse as any;
+    if (demo.problemDescription)
+      result.t7ProblemDescription = demo.problemDescription;
+    if (demo.finalYieldKg != null)
+      result.t7FinalYieldKg = String(demo.finalYieldKg);
+    if (demo.controlYieldKg != null)
+      result.t7ControlYieldKg = String(demo.controlYieldKg);
+    if (demo.satisfactionScore != null)
+      result.t7FarmerSatisfaction = demo.satisfactionScore;
   }
 
   return result;
