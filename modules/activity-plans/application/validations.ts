@@ -16,7 +16,7 @@ export const planStoreInputSchema = z
     notes: z.string().optional().nullable(),
   })
   .superRefine((data, ctx) => {
-    if (data.workTypeCode === "TYPE_1") {
+    if (data.workTypeCode === "TYPE_1" || data.workTypeCode === "TYPE_2") {
       const purpose = data.visitPurpose || "FARMER";
       if (purpose === "FARMER") {
         if (!data.province || !data.province.trim()) {
@@ -27,14 +27,20 @@ export const planStoreInputSchema = z
           });
         }
         if (data.isUnregisteredFarmer) {
-          if (!data.unregisteredFarmerName || !data.unregisteredFarmerName.trim()) {
+          if (
+            !data.unregisteredFarmerName ||
+            !data.unregisteredFarmerName.trim()
+          ) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: "กรุณาระบุชื่อ - สกุล เกษตรกร",
               path: ["unregisteredFarmerName"],
             });
           }
-          const cleanedPhone = (data.unregisteredFarmerPhone || "").replace(/[-\s]/g, "");
+          const cleanedPhone = (data.unregisteredFarmerPhone || "").replace(
+            /[-\s]/g,
+            "",
+          );
           if (cleanedPhone && !/^[0-9]{9,10}$/.test(cleanedPhone)) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
@@ -170,12 +176,9 @@ export const activityPlanSchema = z
   });
 
 export const activityApprovalSchema = z.object({
-  action: z.enum(
-    ["APPROVE", "REJECT", "REQUEST_CORRECTION"],
-    {
-      required_error: "กรุณาระบุการดำเนินการ",
-    },
-  ),
+  action: z.enum(["APPROVE", "REJECT", "REQUEST_CORRECTION"], {
+    required_error: "กรุณาระบุการดำเนินการ",
+  }),
   comment: z.string().optional().nullable(),
   selectedHelperEmployeeIds: z.array(z.string()).optional(),
 });
@@ -279,7 +282,7 @@ export const activityResultSchema = z
           actualTotal: z.coerce.number().min(0),
           unclosedReason: z.string().optional().nullable(),
           isAdditional: z.boolean().optional(),
-        })
+        }),
       )
       .optional(),
     stockResults: z
@@ -291,7 +294,7 @@ export const activityResultSchema = z
           stockStatus: z.string().optional().nullable(),
           reorderOpportunity: z.string().optional().nullable(),
           remarks: z.string().optional().nullable(),
-        })
+        }),
       )
       .optional(),
     surveyResults: z
@@ -304,7 +307,7 @@ export const activityResultSchema = z
           competitorPrice: z.coerce.number().optional().nullable(),
           competitorUnit: z.string().optional().nullable(),
           promotionDetail: z.string().optional().nullable(),
-        })
+        }),
       )
       .optional(),
     demoResults: z
@@ -357,7 +360,7 @@ export const activityResultSchema = z
           followupDetail: z.string().optional().nullable(),
           problemDetail: z.string().optional().nullable(),
           isAdditional: z.boolean().default(false),
-        })
+        }),
       )
       .optional(),
     attachments: z
@@ -371,19 +374,22 @@ export const activityResultSchema = z
           fileName: z.string(),
           fileSize: z.number().optional().nullable(),
           mimeType: z.string().optional().nullable(),
-        })
+        }),
       )
       .refine(
         (items) => {
           const type1PlotPhotos = items.filter(
-            (a) => (a.workTypeCode === "TYPE_1" || a.workTypeCode === "เข้าพบเกษตรกร") && String(a.category) === "PLOT"
+            (a) =>
+              (a.workTypeCode === "TYPE_1" ||
+                a.workTypeCode === "เข้าพบเกษตรกร") &&
+              String(a.category) === "PLOT",
           );
           return type1PlotPhotos.length <= 5;
         },
         {
           message: "รูปภาพแปลงสำหรับเข้าพบเกษตรกรต้องไม่เกิน 5 รูป",
           path: ["attachments"],
-        }
+        },
       )
       .optional(),
   })

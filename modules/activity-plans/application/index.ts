@@ -31,7 +31,9 @@ export async function getActivityPlanDetailUseCase(id: string) {
 /**
  * List plans with filtering
  */
-export async function listActivityPlansUseCase(params: ListActivityPlansParams) {
+export async function listActivityPlansUseCase(
+  params: ListActivityPlansParams,
+) {
   return findActivityPlans(params);
 }
 
@@ -48,10 +50,10 @@ export async function validateType1VisitPurposeCustomers(
     visitPurpose?: "FARMER" | "STORE" | null;
     storeId?: string | null;
     isUnregisteredFarmer?: boolean;
-  }>
+  }>,
 ): Promise<{ valid: true } | { valid: false; error: string }> {
   for (const s of planStores) {
-    if (s.workTypeCode === "TYPE_1") {
+    if (s.workTypeCode === "TYPE_1" || s.workTypeCode === "TYPE_2") {
       const purpose = s.visitPurpose || "FARMER";
       if (purpose === "FARMER") {
         if (!s.isUnregisteredFarmer && s.storeId) {
@@ -65,13 +67,17 @@ export async function validateType1VisitPurposeCustomers(
           if (customer.customerType !== "FARMER") {
             return {
               valid: false,
-              error: "วัตถุประสงค์เข้าพบเกษตรกร อนุญาตเฉพาะลูกค้าประเภทเกษตรกร (FARMER) เท่านั้น",
+              error:
+                "วัตถุประสงค์เข้าพบเกษตรกร อนุญาตเฉพาะลูกค้าประเภทเกษตรกร (FARMER) เท่านั้น",
             };
           }
         }
       } else if (purpose === "STORE") {
         if (s.isUnregisteredFarmer) {
-          return { valid: false, error: "วัตถุประสงค์เข้าพบร้านค้า ไม่อนุญาตให้ระบุว่าไม่มีในระบบ" };
+          return {
+            valid: false,
+            error: "วัตถุประสงค์เข้าพบร้านค้า ไม่อนุญาตให้ระบุว่าไม่มีในระบบ",
+          };
         }
         if (!s.storeId) {
           return { valid: false, error: "กรุณาเลือกร้านค้า" };
@@ -83,10 +89,14 @@ export async function validateType1VisitPurposeCustomers(
         if (!customer) {
           return { valid: false, error: "ไม่พบข้อมูลร้านค้าในระบบ" };
         }
-        if (customer.customerType !== "DEALER" && customer.customerType !== "SUBDEALER") {
+        if (
+          customer.customerType !== "DEALER" &&
+          customer.customerType !== "SUBDEALER"
+        ) {
           return {
             valid: false,
-            error: "วัตถุประสงค์เข้าพบร้านค้า อนุญาตเฉพาะร้านค้าตัวแทนจำหน่าย (DEALER) หรือร้านค้าย่อย (SUBDEALER) เท่านั้น",
+            error:
+              "วัตถุประสงค์เข้าพบร้านค้า อนุญาตเฉพาะร้านค้าตัวแทนจำหน่าย (DEALER) หรือร้านค้าย่อย (SUBDEALER) เท่านั้น",
           };
         }
       }
@@ -101,7 +111,7 @@ export async function validateType1VisitPurposeCustomers(
 export async function createActivityPlanUseCase(
   userId: string,
   rawData: unknown,
-  userDetails?: { name?: string; email?: string }
+  userDetails?: { name?: string; email?: string },
 ) {
   const parsed = activityPlanSchema.safeParse(rawData);
   if (!parsed.success) {
@@ -109,23 +119,41 @@ export async function createActivityPlanUseCase(
     return { success: false as const, error: errorMsg };
   }
 
-  const employee = await findOrCreateEmployeeForUser(userId, userDetails?.name, userDetails?.email);
+  const employee = await findOrCreateEmployeeForUser(
+    userId,
+    userDetails?.name,
+    userDetails?.email,
+  );
   if (!employee) {
-    return { success: false as const, error: "ไม่สามารถสร้างหรือค้นหาโปรไฟล์พนักงานได้" };
+    return {
+      success: false as const,
+      error: "ไม่สามารถสร้างหรือค้นหาโปรไฟล์พนักงานได้",
+    };
   }
 
   const normalized = normalizePlanInput(parsed.data);
 
-  const customerValidation = await validateType1VisitPurposeCustomers(normalized.planStores);
+  const customerValidation = await validateType1VisitPurposeCustomers(
+    normalized.planStores,
+  );
   if (!customerValidation.valid) {
     return { success: false as const, error: customerValidation.error };
   }
 
-  const { helperEmployeeIds, items, tourData, planStores, planProducts, workTypeCodes, ...planFields } = parsed.data;
+  const {
+    helperEmployeeIds,
+    items,
+    tourData,
+    planStores,
+    planProducts,
+    workTypeCodes,
+    ...planFields
+  } = parsed.data;
 
   const data = {
     ...planFields,
-    salesPromotionBudgetRequested: planFields.salesPromotionBudgetRequested ?? null,
+    salesPromotionBudgetRequested:
+      planFields.salesPromotionBudgetRequested ?? null,
     marketingBudgetRequested: planFields.marketingBudgetRequested ?? null,
     province: planFields.province ?? null,
     district: planFields.district ?? null,
@@ -155,25 +183,37 @@ export async function createActivityPlanUseCase(
 export async function duplicateActivityPlanUseCase(
   originalPlanId: string,
   userId: string,
-  userDetails?: { name?: string; email?: string }
+  userDetails?: { name?: string; email?: string },
 ) {
   const originalPlan = await findActivityPlanById(originalPlanId);
   if (!originalPlan) {
-    return { success: false as const, error: "ไม่พบ Trip Plan ต้นฉบับที่ต้องการทำสำเนา" };
+    return {
+      success: false as const,
+      error: "ไม่พบ Trip Plan ต้นฉบับที่ต้องการทำสำเนา",
+    };
   }
 
-  const employee = await findOrCreateEmployeeForUser(userId, userDetails?.name, userDetails?.email);
+  const employee = await findOrCreateEmployeeForUser(
+    userId,
+    userDetails?.name,
+    userDetails?.email,
+  );
   if (!employee) {
-    return { success: false as const, error: "ไม่สามารถสร้างหรือค้นหาโปรไฟล์พนักงานได้" };
+    return {
+      success: false as const,
+      error: "ไม่สามารถสร้างหรือค้นหาโปรไฟล์พนักงานได้",
+    };
   }
 
   // Work type codes
   const workTypeCodes =
     originalPlan.workTypes && originalPlan.workTypes.length > 0
-      ? (originalPlan.workTypes.map((wt) => wt.activityType?.code).filter(Boolean) as string[])
+      ? (originalPlan.workTypes
+          .map((wt) => wt.activityType?.code)
+          .filter(Boolean) as string[])
       : originalPlan.activityType?.code
-      ? [originalPlan.activityType.code]
-      : ["TYPE_1"];
+        ? [originalPlan.activityType.code]
+        : ["TYPE_1"];
 
   // Stores
   const planStores = (originalPlan.stores || []).map((s) => ({
@@ -228,7 +268,9 @@ export async function duplicateActivityPlanUseCase(
     : null;
 
   // Helpers
-  const helperEmployeeIds = (originalPlan.helpers || []).map((h) => h.employeeId);
+  const helperEmployeeIds = (originalPlan.helpers || []).map(
+    (h) => h.employeeId,
+  );
 
   const titlePrefix = "(สำเนา) ";
   const newTitle = originalPlan.title.startsWith(titlePrefix)
@@ -252,8 +294,13 @@ export async function duplicateActivityPlanUseCase(
       ? Number(originalPlan.marketingBudgetRequested)
       : null,
     targetAttendeesCount: originalPlan.targetAttendeesCount ?? null,
-    targetBookingSales: originalPlan.targetBookingSales ? Number(originalPlan.targetBookingSales) : null,
-    demoPlotId: (originalPlan.demoPlotVisits && originalPlan.demoPlotVisits[0]?.demoPlotId) || null,
+    targetBookingSales: originalPlan.targetBookingSales
+      ? Number(originalPlan.targetBookingSales)
+      : null,
+    demoPlotId:
+      (originalPlan.demoPlotVisits &&
+        originalPlan.demoPlotVisits[0]?.demoPlotId) ||
+      null,
     status: ActivityStatus.DRAFT,
     employeeId: employee.id,
     createdById: userId,
@@ -274,7 +321,11 @@ export async function duplicateActivityPlanUseCase(
 /**
  * Update an existing ActivityPlan
  */
-export async function updateActivityPlanUseCase(id: string, userId: string, rawData: unknown) {
+export async function updateActivityPlanUseCase(
+  id: string,
+  userId: string,
+  rawData: unknown,
+) {
   const parsed = activityPlanSchema.safeParse(rawData);
   if (!parsed.success) {
     const errorMsg = parsed.error.errors.map((e) => e.message).join(", ");
@@ -293,12 +344,21 @@ export async function updateActivityPlanUseCase(id: string, userId: string, rawD
       },
     });
     if (!userRole) {
-      return { success: false as const, error: "คุณไม่มีสิทธิ์แก้ไข Trip Plan นี้" };
+      return {
+        success: false as const,
+        error: "คุณไม่มีสิทธิ์แก้ไข Trip Plan นี้",
+      };
     }
   }
 
-  if (plan.status !== ActivityStatus.DRAFT && plan.status !== ActivityStatus.WAITING_FOR_CORRECTION) {
-    return { success: false as const, error: "สามารถแก้ไขได้เฉพาะ Trip Plan ในสถานะร่างหรือรอแก้ไขเท่านั้น" };
+  if (
+    plan.status !== ActivityStatus.DRAFT &&
+    plan.status !== ActivityStatus.WAITING_FOR_CORRECTION
+  ) {
+    return {
+      success: false as const,
+      error: "สามารถแก้ไขได้เฉพาะ Trip Plan ในสถานะร่างหรือรอแก้ไขเท่านั้น",
+    };
   }
 
   const normalized = normalizePlanInput(parsed.data);
@@ -311,20 +371,32 @@ export async function updateActivityPlanUseCase(id: string, userId: string, rawD
   ) {
     return {
       success: false as const,
-      error: "ไม่สามารถบันทึกได้เนื่องจากไม่มีข้อมูลประเภทงาน เพื่อป้องกันข้อมูลสูญหาย กรุณาเลือกประเภทงานอย่างน้อย 1 ประเภท",
+      error:
+        "ไม่สามารถบันทึกได้เนื่องจากไม่มีข้อมูลประเภทงาน เพื่อป้องกันข้อมูลสูญหาย กรุณาเลือกประเภทงานอย่างน้อย 1 ประเภท",
     };
   }
 
-  const customerValidation = await validateType1VisitPurposeCustomers(normalized.planStores);
+  const customerValidation = await validateType1VisitPurposeCustomers(
+    normalized.planStores,
+  );
   if (!customerValidation.valid) {
     return { success: false as const, error: customerValidation.error };
   }
 
-  const { helperEmployeeIds, items, tourData, planStores, planProducts, workTypeCodes, ...planFields } = parsed.data;
+  const {
+    helperEmployeeIds,
+    items,
+    tourData,
+    planStores,
+    planProducts,
+    workTypeCodes,
+    ...planFields
+  } = parsed.data;
 
   const data = {
     ...planFields,
-    salesPromotionBudgetRequested: planFields.salesPromotionBudgetRequested ?? null,
+    salesPromotionBudgetRequested:
+      planFields.salesPromotionBudgetRequested ?? null,
     marketingBudgetRequested: planFields.marketingBudgetRequested ?? null,
     province: planFields.province ?? null,
     district: planFields.district ?? null,
@@ -351,14 +423,18 @@ export async function updateActivityPlanUseCase(id: string, userId: string, rawD
 export async function recordActivityResultUseCase(
   planId: string,
   userId: string,
-  rawData: unknown
+  rawData: unknown,
 ) {
   const plan = await findActivityPlanById(planId);
   if (!plan) return { success: false as const, error: "ไม่พบ Trip Plan" };
 
   const isTestMode = isActivityPlanTestMode();
   if (plan.status !== ActivityStatus.APPROVED && !isTestMode) {
-    return { success: false as const, error: "สามารถบันทึกผลได้เฉพาะแผนกิจกรรมที่ได้รับการอนุมัติเรียบร้อยแล้วเท่านั้น" };
+    return {
+      success: false as const,
+      error:
+        "สามารถบันทึกผลได้เฉพาะแผนกิจกรรมที่ได้รับการอนุมัติเรียบร้อยแล้วเท่านั้น",
+    };
   }
 
   // Verify Creator ownership: ONLY the creator (or super admin) can record/edit actual results
@@ -381,7 +457,8 @@ export async function recordActivityResultUseCase(
   if (!isCreator && !isSuperAdmin) {
     return {
       success: false as const,
-      error: "เฉพาะผู้สร้างแผนงาน (Creator) เท่านั้นที่มีสิทธิ์บันทึกผลการปฏิบัติงานจริง",
+      error:
+        "เฉพาะผู้สร้างแผนงาน (Creator) เท่านั้นที่มีสิทธิ์บันทึกผลการปฏิบัติงานจริง",
     };
   }
 
@@ -432,7 +509,11 @@ export async function recordActivityResultUseCase(
 
   const activityResult = await db.$transaction(async (tx) => {
     const res = await upsertActivityResult(resultInput, tx);
-    await syncActivityResultToCalendarUseCase(planId, parsed.data.resultStatus, tx);
+    await syncActivityResultToCalendarUseCase(
+      planId,
+      parsed.data.resultStatus,
+      tx,
+    );
     return res;
   });
 
@@ -455,7 +536,10 @@ export async function deleteActivityPlanUseCase(id: string, userId: string) {
       },
     });
     if (!userRole) {
-      return { success: false as const, error: "คุณไม่มีสิทธิ์ลบแผนกิจกรรมนี้" };
+      return {
+        success: false as const,
+        error: "คุณไม่มีสิทธิ์ลบแผนกิจกรรมนี้",
+      };
     }
   }
 
@@ -497,9 +581,7 @@ export {
   recordDemoPlotVisitUseCase,
 } from "./demo-plots";
 
-export {
-  getApprovalQueueDataUseCase,
-} from "./approval-queue";
+export { getApprovalQueueDataUseCase } from "./approval-queue";
 
 export {
   findEmployeeById,
@@ -515,9 +597,6 @@ export {
   type ApproverDirectory,
 } from "./approver-directory";
 
-export {
-  normalizePlanInput,
-  type NormalizedPlanData,
-} from "./plan-mapper";
+export { normalizePlanInput, type NormalizedPlanData } from "./plan-mapper";
 
 export type { ListActivityPlansParams };

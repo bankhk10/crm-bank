@@ -30,8 +30,13 @@ export interface Type1VisitItem {
 
 export interface Type2ProductFollowupItem {
   id: string;
+  visitPurpose?: "FARMER" | "STORE";
+  province?: string;
+  isUnregisteredFarmer?: boolean;
   storeId?: string;
   customerName: string;
+  unregisteredFarmerName?: string;
+  unregisteredFarmerPhone?: string;
   productId?: string;
   productName: string;
   detail: string;
