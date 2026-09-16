@@ -1097,14 +1097,22 @@ export function ActivityPlanForm({
       Array.isArray(initDetails.type6Items) &&
       initDetails.type6Items.length > 0
     ) {
-      return initDetails.type6Items.map((item: any) => ({
-        ...item,
-        isManualCustomer:
+      return initDetails.type6Items.map((item: any) => {
+        const isManual =
           item.isManualCustomer !== undefined
             ? item.isManualCustomer
-            : !item.storeId && Boolean(item.customerName),
-        issueType: normalizeType6Issue(item.issueType),
-      }));
+            : !item.storeId &&
+              Boolean(item.manualCustomerName || item.customerName);
+        return {
+          ...item,
+          customerName: isManual ? "" : item.customerName || "",
+          manualCustomerName: isManual
+            ? item.manualCustomerName || item.customerName || ""
+            : "",
+          isManualCustomer: isManual,
+          issueType: normalizeType6Issue(item.issueType),
+        };
+      });
     }
     const type6Stores = (initial as any)?.stores?.filter(
       (s: any) => s.workTypeCode === "TYPE_6",
@@ -1115,7 +1123,8 @@ export function ActivityPlanForm({
         return {
           id: s.id || String(idx + 1),
           storeId: s.storeId || null,
-          customerName: s.store?.name || s.storeName || "",
+          customerName: isManual ? "" : s.store?.name || s.storeName || "",
+          manualCustomerName: isManual ? s.storeName || "" : "",
           isManualCustomer: isManual,
           issueType: normalizeType6Issue(s.remarks),
           detail: s.notes || "",
@@ -1131,20 +1140,31 @@ export function ActivityPlanForm({
           (item.itemType === "TYPE_6" || item.issueType),
       );
       if (items.length > 0) {
-        return items.map((item: any, idx: number) => ({
-          id: item.id || String(idx + 1),
-          storeId: item.storeId || null,
-          customerName: item.customerName || "",
-          isManualCustomer: !item.storeId && Boolean(item.customerName),
-          issueType: normalizeType6Issue(item.issueType),
-          detail: item.detail || "",
-        }));
+        return items.map((item: any, idx: number) => {
+          const isManual =
+            item.isManualCustomer !== undefined
+              ? item.isManualCustomer
+              : !item.storeId &&
+                Boolean(item.manualCustomerName || item.customerName);
+          return {
+            id: item.id || String(idx + 1),
+            storeId: item.storeId || null,
+            customerName: isManual ? "" : item.customerName || "",
+            manualCustomerName: isManual
+              ? item.manualCustomerName || item.customerName || ""
+              : "",
+            isManualCustomer: isManual,
+            issueType: normalizeType6Issue(item.issueType),
+            detail: item.detail || "",
+          };
+        });
       }
     }
     return [
       {
         id: "1",
         customerName: "",
+        manualCustomerName: "",
         isManualCustomer: false,
         issueType: "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
         detail: "",
@@ -1157,6 +1177,7 @@ export function ActivityPlanForm({
       {
         id: Date.now().toString(),
         customerName: "",
+        manualCustomerName: "",
         isManualCustomer: false,
         issueType: "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
         detail: "",
@@ -2381,7 +2402,12 @@ export function ActivityPlanForm({
         const item = type6Items[i];
         const rowNum = i + 1;
         if (item.isManualCustomer) {
-          if (!item.customerName?.trim()) {
+          const manualName = (
+            item.manualCustomerName ||
+            item.customerName ||
+            ""
+          ).trim();
+          if (!manualName) {
             setError(`กรุณากรอกชื่อลูกค้า / ร้านค้า (รายการที่ ${rowNum})`);
             setLoading(false);
             return;
@@ -2753,11 +2779,16 @@ export function ActivityPlanForm({
               : item.detail?.trim() || null;
 
           if (item.isManualCustomer) {
-            if (item.customerName?.trim()) {
+            const manualName = (
+              item.manualCustomerName ||
+              item.customerName ||
+              ""
+            ).trim();
+            if (manualName) {
               planStores.push({
                 workTypeCode: "TYPE_6",
                 storeId: null,
-                storeName: item.customerName.trim(),
+                storeName: manualName,
                 remarks: item.issueType || null,
                 notes: detailValue,
               });

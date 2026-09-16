@@ -94,6 +94,7 @@ export interface Type6IssueItem {
   id: string;
   storeId?: string | null;
   customerName: string;
+  manualCustomerName?: string;
   isManualCustomer?: boolean;
   issueType: string;
   detail: string;
