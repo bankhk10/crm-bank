@@ -11,6 +11,7 @@ import {
   createActivityPlanAction,
   getCurrentUserEmployeeAction,
   getDemoPlotsAction,
+  getChemicalGroupsAction,
   getActivePromotionalMaterialsGroupedAction,
   getActivityTypesAction,
 } from "../../server/actions";
@@ -21,7 +22,9 @@ import { listProductsAction } from "@/modules/products/server/actions";
 export default function ActivityPlanCreateView() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { hasPermission, allowed, isLoading } = usePermission("menu.activity_plans");
+  const { hasPermission, allowed, isLoading } = usePermission(
+    "menu.activity_plans",
+  );
 
   const roles = (session?.user as any)?.roles ?? [];
   const isAdmin =
@@ -45,11 +48,11 @@ export default function ActivityPlanCreateView() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [chemicalGroups, setChemicalGroups] = useState<any[]>([]);
   const [activityTypes, setActivityTypes] = useState<any[]>([]);
   const [demoPlots, setDemoPlots] = useState<any[]>([]);
-  const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] = useState<
-    Record<string, any[]> | undefined
-  >(undefined);
+  const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] =
+    useState<Record<string, any[]> | undefined>(undefined);
   const [currentEmployeeName, setCurrentEmployeeName] = useState<string>("");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState<boolean>(true);
@@ -58,18 +61,42 @@ export default function ActivityPlanCreateView() {
     async function loadData() {
       setPageLoading(true);
       try {
-        const [empRes, userRes, custRes, prodRes, plotRes, mktRes, actTypeRes] = await Promise.all([
+        const [
+          empRes,
+          userRes,
+          custRes,
+          prodRes,
+          plotRes,
+          chemRes,
+          mktRes,
+          actTypeRes,
+        ] = await Promise.all([
           getAllEmployeesAction(),
           getCurrentUserEmployeeAction(),
-          getCustomersAction({ perPage: 1000 }).catch(() => ({ customers: [] })),
-          listProductsAction({ status: "ACTIVE", perPage: 1000 }).catch(() => ({ products: [] })),
+          getCustomersAction({ perPage: 1000 }).catch(() => ({
+            customers: [],
+          })),
+          listProductsAction({ status: "ACTIVE", perPage: 1000 }).catch(() => ({
+            products: [],
+          })),
           getDemoPlotsAction().catch(() => ({ demoPlots: [] })),
-          getActivePromotionalMaterialsGroupedAction().catch(() => ({ success: false, grouped: {} })),
+          getChemicalGroupsAction().catch(() => ({
+            success: false,
+            chemicalGroups: [],
+          })),
+          getActivePromotionalMaterialsGroupedAction().catch(() => ({
+            success: false,
+            grouped: {},
+          })),
           getActivityTypesAction().catch(() => ({ success: false, types: [] })),
         ]);
 
         if (actTypeRes && actTypeRes.success && actTypeRes.types) {
           setActivityTypes(actTypeRes.types);
+        }
+
+        if (chemRes && chemRes.success && chemRes.chemicalGroups) {
+          setChemicalGroups(chemRes.chemicalGroups);
         }
 
         if (empRes.success && empRes.employees) {
@@ -150,6 +177,7 @@ export default function ActivityPlanCreateView() {
         employees={employees}
         customers={customers}
         products={products}
+        chemicalGroups={chemicalGroups}
         activityTypes={activityTypes}
         demoPlots={demoPlots}
         promotionalMaterialsByCategory={promotionalMaterialsByCategory}

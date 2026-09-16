@@ -11,6 +11,7 @@ import {
   getActivityPlanAction,
   updateActivityPlanAction,
   getDemoPlotsAction,
+  getChemicalGroupsAction,
   getActivePromotionalMaterialsGroupedAction,
   getActivityTypesAction,
 } from "../../server/actions";
@@ -51,11 +52,11 @@ export default function ActivityPlanEditView({ id }: Props) {
   const [employees, setEmployees] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [chemicalGroups, setChemicalGroups] = useState<any[]>([]);
   const [activityTypes, setActivityTypes] = useState<any[]>([]);
   const [demoPlots, setDemoPlots] = useState<any[]>([]);
-  const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] = useState<
-    Record<string, any[]> | undefined
-  >(undefined);
+  const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] =
+    useState<Record<string, any[]> | undefined>(undefined);
   const [initialData, setInitialData] = useState<any>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
@@ -64,7 +65,16 @@ export default function ActivityPlanEditView({ id }: Props) {
     async function loadData() {
       setPageLoading(true);
       try {
-        const [empRes, planRes, custRes, prodRes, plotRes, mktRes, actTypeRes] = await Promise.all([
+        const [
+          empRes,
+          planRes,
+          custRes,
+          prodRes,
+          plotRes,
+          chemRes,
+          mktRes,
+          actTypeRes,
+        ] = await Promise.all([
           getAllEmployeesAction(),
           getActivityPlanAction(id),
           getCustomersAction({ perPage: 1000 }).catch(() => ({
@@ -74,12 +84,23 @@ export default function ActivityPlanEditView({ id }: Props) {
             products: [],
           })),
           getDemoPlotsAction().catch(() => ({ demoPlots: [] })),
-          getActivePromotionalMaterialsGroupedAction().catch(() => ({ success: false, grouped: {} })),
+          getChemicalGroupsAction().catch(() => ({
+            success: false,
+            chemicalGroups: [],
+          })),
+          getActivePromotionalMaterialsGroupedAction().catch(() => ({
+            success: false,
+            grouped: {},
+          })),
           getActivityTypesAction().catch(() => ({ success: false, types: [] })),
         ]);
 
         if (actTypeRes && actTypeRes.success && actTypeRes.types) {
           setActivityTypes(actTypeRes.types);
+        }
+
+        if (chemRes && chemRes.success && chemRes.chemicalGroups) {
+          setChemicalGroups(chemRes.chemicalGroups);
         }
 
         if (empRes.success && empRes.employees) {
@@ -117,8 +138,15 @@ export default function ActivityPlanEditView({ id }: Props) {
             status: plan.status,
             approvalLogs: plan.approvalLogs || [],
             title: plan.title,
-            activityTypeId: plan.activityTypeId || (typeof plan.activityType === "object" ? plan.activityType?.id : ""),
-            activityType: typeof plan.activityType === "object" ? plan.activityType?.name : plan.activityType,
+            activityTypeId:
+              plan.activityTypeId ||
+              (typeof plan.activityType === "object"
+                ? plan.activityType?.id
+                : ""),
+            activityType:
+              typeof plan.activityType === "object"
+                ? plan.activityType?.name
+                : plan.activityType,
             workTypes: plan.workTypes || [],
             startDate: plan.startDate,
             endDate: plan.endDate,
@@ -143,8 +171,11 @@ export default function ActivityPlanEditView({ id }: Props) {
               (plan as any).demoPlotVisits?.[0]?.demoPlotId ||
               (plan as any).demoPlotId ||
               null,
+            demoPlot: (plan as any).demoPlotVisits?.[0]?.demoPlot || null,
             targetAttendeesCount: plan.targetAttendeesCount ?? null,
-            targetBookingSales: plan.targetBookingSales ? Number(plan.targetBookingSales) : null,
+            targetBookingSales: plan.targetBookingSales
+              ? Number(plan.targetBookingSales)
+              : null,
             helperEmployeeIds,
             planCode: plan.code || plan.id,
             employeeName: plan.employee?.name,
@@ -199,6 +230,7 @@ export default function ActivityPlanEditView({ id }: Props) {
           employees={employees}
           customers={customers}
           products={products}
+          chemicalGroups={chemicalGroups}
           activityTypes={activityTypes}
           demoPlots={demoPlots}
           promotionalMaterialsByCategory={promotionalMaterialsByCategory}

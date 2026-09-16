@@ -9,10 +9,15 @@ import {
   CROP_CATEGORIES,
   type UserDemoPlotOption,
 } from "@/modules/activity-plans/constants";
-import { Type7NewDemo, CustomerOption, ProductOption } from "./type7-new-demo";
+import {
+  Type7NewDemo,
+  CustomerOption,
+  ProductOption,
+  ChemicalGroupOption,
+} from "./type7-new-demo";
 import { Type7FollowUp } from "./type7-follow-up";
 
-export type { CustomerOption, ProductOption };
+export type { CustomerOption, ProductOption, ChemicalGroupOption };
 
 interface Props {
   mode?: "TYPE_7A" | "TYPE_7B";
@@ -27,6 +32,7 @@ interface Props {
   deleteType7Row: (id: string) => void;
   customers?: CustomerOption[];
   products?: ProductOption[];
+  chemicalGroups?: ChemicalGroupOption[];
   demoPlots?: UserDemoPlotOption[];
   parentStartDate?: string;
 }
@@ -40,6 +46,7 @@ export function Type7Demo({
   deleteType7Row,
   customers = [],
   products = [],
+  chemicalGroups = [],
   demoPlots = [],
 }: Props) {
   const plotList = (demoPlots || []).filter(
@@ -242,7 +249,9 @@ export function Type7Demo({
                     customerOptions={customerOptions}
                     productOptions={productOptions}
                     cropCategoryOptions={cropCategoryOptions}
+                    customers={customers}
                     products={products}
+                    chemicalGroups={chemicalGroups}
                     readonly={readonly}
                   />
                 )}

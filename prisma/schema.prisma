@@ -401,6 +401,7 @@ model Customer {
   activityResultFollowupItems ActivityResultFollowupItem[]
   activityResultIssueItems  ActivityResultIssueItem[]
   activityAttachments       ActivityAttachment[]
+  demoPlots                 DemoPlot[]                 @relation("CustomerDemoPlots")
 }
 
 model CustomerAddress {
@@ -712,7 +713,8 @@ model ProductGroup {
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
 
-  products Product[]
+  products  Product[]
+  demoPlots DemoPlot[]
 }
 
 model ProductStock {
@@ -2235,12 +2237,16 @@ enum DemoPlotStatus {
 }
 
 model DemoPlot {
-  id         String  @id @default(cuid())
-  code       String  @unique // รหัสแปลงสาธิต เช่น DP2603001
-  name       String // ชื่อแปลง เช่น "แปลงสาธิตทุเรียนหมอนทอง นายสมชาย"
-  ownerName  String  @map("owner_name") // เจ้าของแปลง/ลูกค้า
-  customerId String? @map("customer_id") // FK -> Customer (ถ้ามี)
-  employeeId String  @map("employee_id") // พนักงานผู้ดูแลแปลง
+  id              String  @id @default(cuid())
+  code            String  @unique // รหัสแปลงสาธิต เช่น DP2603001
+  name            String // ชื่อแปลง เช่น "แปลงสาธิตทุเรียนหมอนทอง นายสมชาย"
+  ownerName       String  @map("owner_name") // เจ้าของแปลง/ลูกค้า
+  customerId      String? @map("customer_id") // FK -> Customer (ถ้ามี)
+  chemicalGroupId String? @map("chemical_group_id") // FK -> ProductGroup (กลุ่มสาร)
+  employeeId      String  @map("employee_id") // พนักงานผู้ดูแลแปลง
+
+  customer      Customer?     @relation("CustomerDemoPlots", fields: [customerId], references: [id], onDelete: SetNull)
+  chemicalGroup ProductGroup? @relation(fields: [chemicalGroupId], references: [id], onDelete: SetNull)
 
   // ข้อมูลพืชและสถานที่
   cropCategory   String   @map("crop_category") // หมวดพืช เช่น ไม้ผล, พืชไร่
@@ -2254,7 +2260,7 @@ model DemoPlot {
 
   // ข้อมูลสินค้าและการทดลอง
   primaryProductId   String? @map("primary_product_id") // สินค้าหลักที่ใช้สาธิต
-  primaryProductName String  @map("primary_product_name") // ชื่อสินค้า
+  primaryProductName String? @map("primary_product_name") // ชื่อสินค้า
   objective          String? // วัตถุประสงค์แปลง
   experimentDetail   String? @map("experiment_detail") // รายละเอียด/วิธีการทดลอง
 
@@ -2281,6 +2287,10 @@ model DemoPlot {
 
   visits DemoPlotVisit[]
 
+  @@index([customerId])
+  @@index([chemicalGroupId])
+  @@index([province])
+  @@index([district])
   @@index([employeeId])
   @@index([status])
   @@index([cropCategory])

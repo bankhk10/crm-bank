@@ -102,12 +102,25 @@ export interface Type6IssueItem {
 
 export type PlotActivityType = "CREATE" | "FOLLOW_UP";
 
+export interface Type7DemoProductLine {
+  id: string;
+  productId?: string;
+  productName: string;
+  quantity: number;
+  unit?: string;
+}
+
 export interface Type7DemoPlotItem {
   id: string;
   plotActivityType?: PlotActivityType; // "CREATE" (ทำแปลงสาธิต) | "FOLLOW_UP" (ติดตามแปลงสาธิต)
 
   // Fields for CREATE (ทำแปลงสาธิต) & shared
   demoPlotId?: string;
+  plotName?: string;
+  province?: string;
+  district?: string;
+  chemicalGroupId?: string;
+  demoProducts?: Type7DemoProductLine[];
   storeId?: string;
   ownerName: string;
   productId?: string;

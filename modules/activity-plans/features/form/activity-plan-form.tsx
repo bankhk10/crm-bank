@@ -76,6 +76,12 @@ interface Props {
     requiresApproval: boolean;
     isActive: boolean;
   }>;
+  chemicalGroups?: Array<{
+    id: string;
+    code: string;
+    name: string;
+    description?: string | null;
+  }>;
   demoPlots?: Array<UserDemoPlotOption>;
   promotionalMaterialsByCategory?: Record<
     string,
@@ -141,6 +147,7 @@ export function ActivityPlanForm({
   employees = [],
   customers: initialCustomers,
   products: initialProducts,
+  chemicalGroups: initialChemicalGroups,
   activityTypes: initialActivityTypes,
   demoPlots: initialDemoPlots,
   promotionalMaterialsByCategory,
@@ -152,6 +159,7 @@ export function ActivityPlanForm({
 }: Props) {
   const [fetchedCustomers, setFetchedCustomers] = useState<any[]>([]);
   const [fetchedProducts, setFetchedProducts] = useState<any[]>([]);
+  const [fetchedChemicalGroups, setFetchedChemicalGroups] = useState<any[]>([]);
   const [fetchedActivityTypes, setFetchedActivityTypes] = useState<any[]>([]);
   const [fetchedDemoPlots, setFetchedDemoPlots] = useState<
     UserDemoPlotOption[]
@@ -195,8 +203,35 @@ export function ActivityPlanForm({
   const productsList =
     initialProducts !== undefined ? initialProducts : fetchedProducts;
 
+  const chemicalGroupsList =
+    initialChemicalGroups !== undefined
+      ? initialChemicalGroups
+      : fetchedChemicalGroups;
+
   const demoPlotsList =
     initialDemoPlots !== undefined ? initialDemoPlots : fetchedDemoPlots;
+
+  useEffect(() => {
+    if (initialChemicalGroups !== undefined) return;
+
+    let isMounted = true;
+    async function loadChemicalGroups() {
+      try {
+        const { getChemicalGroupsAction } =
+          await import("../../server/actions");
+        const res = await getChemicalGroupsAction();
+        if (isMounted && res.success && res.chemicalGroups) {
+          setFetchedChemicalGroups(res.chemicalGroups);
+        }
+      } catch (err) {
+        console.error("Failed to load chemical groups for Trip Plan:", err);
+      }
+    }
+    loadChemicalGroups();
+    return () => {
+      isMounted = false;
+    };
+  }, [initialChemicalGroups]);
 
   useEffect(() => {
     if (initialCustomers !== undefined) return;
@@ -1199,6 +1234,53 @@ export function ActivityPlanForm({
 
   // Work Type 7: ติดตามแปลงสาธิต / ทำแปลง
   const [type7Items, setType7Items] = useState<Type7DemoPlotItem[]>(() => {
+    if (initial?.demoPlot) {
+      const dp = initial.demoPlot;
+      const type7aProds = (initial.products || [])
+        .filter((p: any) => p.workTypeCode === "TYPE_7A")
+        .map((p: any, idx: number) => ({
+          id: p.id || String(idx + 1),
+          productId: p.productId,
+          productName: p.productName || p.product?.name || "",
+          quantity: p.targetQuantity || 1,
+          unit: p.product?.unit || "",
+        }));
+
+      return [
+        {
+          id: dp.id || "1",
+          plotActivityType: "CREATE",
+          demoPlotId: dp.id,
+          plotName: dp.name || "",
+          storeId: dp.customerId || "",
+          ownerName: dp.customer?.name || dp.ownerName || "",
+          cropCategory: dp.cropCategory || "",
+          cropName: dp.cropName || "",
+          customCropName: dp.customCropName || "",
+          areaRai: dp.areaRai ? Number(dp.areaRai) : 0,
+          treeCount: dp.treeCount ?? 0,
+          province: dp.province || "",
+          district: dp.district || "",
+          chemicalGroupId: dp.chemicalGroupId || "",
+          objective: dp.objective || "",
+          demoProducts:
+            type7aProds.length > 0
+              ? type7aProds
+              : [
+                  {
+                    id: "1",
+                    productId: "",
+                    productName: "",
+                    quantity: 1,
+                    unit: "",
+                  },
+                ],
+          startDate: format(new Date(dp.startDate || new Date()), "yyyy-MM-dd"),
+          followUpDate: format(new Date(), "yyyy-MM-dd"),
+          detail: dp.objective || "",
+        },
+      ];
+    }
     if (
       initDetails?.type7Items &&
       Array.isArray(initDetails.type7Items) &&
@@ -1240,6 +1322,8 @@ export function ActivityPlanForm({
           return {
             id: item.id || String(idx + 1),
             plotActivityType: item.plotActivityType || "CREATE",
+            plotName: item.plotName || "",
+            storeId: item.storeId || "",
             ownerName: item.plotOwnerName || item.ownerName || "",
             productName: item.plotProductName || item.productName || "",
             cropCategory: item.plotCropCategory || item.cropCategory || "",
@@ -1249,6 +1333,18 @@ export function ActivityPlanForm({
               ? Number(item.plotAreaRai)
               : item.areaRai || 0,
             treeCount: item.plotTreeCount ?? item.treeCount ?? 0,
+            province: item.province || "",
+            district: item.district || "",
+            chemicalGroupId: item.chemicalGroupId || "",
+            demoProducts: item.demoProducts || [
+              {
+                id: "1",
+                productId: item.productId || "",
+                productName: item.plotProductName || item.productName || "",
+                quantity: item.plotCount != null ? Number(item.plotCount) : 1,
+                unit: item.productUnit || "",
+              },
+            ],
             startDate:
               item.startDate || startDate || format(new Date(), "yyyy-MM-dd"),
             followUpDate:
@@ -1273,15 +1369,30 @@ export function ActivityPlanForm({
       {
         id: "1",
         plotActivityType: "CREATE",
+        plotName: "",
+        storeId: "",
         ownerName: "",
+        province: "",
+        district: "",
+        chemicalGroupId: "",
         productName: "",
         cropCategory: "",
         cropName: "",
+        customCropName: "",
         areaRai: 0,
         treeCount: 0,
         startDate: format(new Date(), "yyyy-MM-dd"),
         followUpDate: startDate || format(new Date(), "yyyy-MM-dd"),
         objective: "",
+        demoProducts: [
+          {
+            id: "1",
+            productId: "",
+            productName: "",
+            quantity: 1,
+            unit: "",
+          },
+        ],
         plotsCount: "",
         detail: "",
       },
@@ -1298,7 +1409,12 @@ export function ActivityPlanForm({
       {
         id: Date.now().toString(),
         plotActivityType: isFollowUp ? "FOLLOW_UP" : "CREATE",
+        plotName: "",
+        storeId: "",
         ownerName: "",
+        province: "",
+        district: "",
+        chemicalGroupId: "",
         productName: "",
         cropCategory: "",
         cropName: "",
@@ -1308,6 +1424,15 @@ export function ActivityPlanForm({
         startDate: startDate || format(new Date(), "yyyy-MM-dd"),
         followUpDate: startDate || format(new Date(), "yyyy-MM-dd"),
         objective: "",
+        demoProducts: [
+          {
+            id: Date.now().toString(),
+            productId: "",
+            productName: "",
+            quantity: 1,
+            unit: "",
+          },
+        ],
         plotsCount: "",
         detail: "",
       },
@@ -2469,6 +2594,111 @@ export function ActivityPlanForm({
         setLoading(false);
         return;
       }
+      const item = type7Items[0];
+      if (!item.plotName?.trim()) {
+        setError("กรุณากรอกชื่อแปลงสาธิต");
+        setLoading(false);
+        return;
+      }
+      const dealerId =
+        item.storeId ||
+        customersList.find((c) => c.name === item.ownerName)?.id;
+      if (!dealerId) {
+        setError("กรุณาเลือกร้านค้า Dealer สำหรับแปลงสาธิต");
+        setLoading(false);
+        return;
+      }
+      const dealer = customersList.find((c) => c.id === dealerId);
+      if (dealer?.customerType && dealer.customerType !== "DEALER") {
+        setError(
+          "ร้านค้าของแปลงสาธิตต้องเป็นประเภทร้านค้าตัวแทนจำหน่าย (DEALER) เท่านั้น",
+        );
+        setLoading(false);
+        return;
+      }
+      if (!item.province?.trim()) {
+        setError("กรุณาเลือกจังหวัดของแปลงสาธิต");
+        setLoading(false);
+        return;
+      }
+      if (!item.district?.trim()) {
+        setError("กรุณาเลือกอำเภอของแปลงสาธิต");
+        setLoading(false);
+        return;
+      }
+      if (!item.cropCategory?.trim()) {
+        setError("กรุณาเลือกหมวดพืช");
+        setLoading(false);
+        return;
+      }
+      if (!item.cropName?.trim()) {
+        setError("กรุณาเลือกหรือระบุชื่อพืช");
+        setLoading(false);
+        return;
+      }
+      const isCustomCrop = [
+        "ผักและพืชล้มลุกอื่นๆ",
+        "พืชไร่อื่นๆ",
+        "พืชสวนอื่นๆ",
+      ].includes(item.cropName);
+      if (isCustomCrop && !item.customCropName?.trim()) {
+        setError("กรุณาระบุชื่อพืชเพิ่มเติม");
+        setLoading(false);
+        return;
+      }
+      const isRaiUnit = ["พืชไร่", "ผักและพืชล้มลุก"].includes(
+        item.cropCategory,
+      );
+      if (isRaiUnit && (!item.areaRai || item.areaRai <= 0)) {
+        setError("กรุณาระบุพื้นที่ (ไร่) ให้มากกว่า 0");
+        setLoading(false);
+        return;
+      }
+      if (!isRaiUnit && (!item.treeCount || item.treeCount <= 0)) {
+        setError("กรุณาระบุจำนวนต้นให้มากกว่า 0");
+        setLoading(false);
+        return;
+      }
+      if (!item.chemicalGroupId?.trim()) {
+        setError("กรุณาเลือกกลุ่มสาร");
+        setLoading(false);
+        return;
+      }
+      if (!item.objective?.trim()) {
+        setError("กรุณาระบุวัตถุประสงค์การทำแปลง");
+        setLoading(false);
+        return;
+      }
+      const prods = (item.demoProducts || []).filter(
+        (p) => p.productId || p.productName,
+      );
+      if (prods.length === 0) {
+        setError("กรุณาระบุสินค้าที่จะสาธิตอย่างน้อย 1 รายการ");
+        setLoading(false);
+        return;
+      }
+      for (let i = 0; i < prods.length; i++) {
+        const p = prods[i];
+        if (!p.quantity || p.quantity <= 0) {
+          setError(`จำนวนสินค้าที่จะสาธิตต้องมากกว่า 0 (รายการที่ ${i + 1})`);
+          setLoading(false);
+          return;
+        }
+        const matchedProd = productsList.find(
+          (prod) => prod.id === p.productId || prod.name === p.productName,
+        );
+        if (
+          matchedProd &&
+          matchedProd.productGroupId &&
+          matchedProd.productGroupId !== item.chemicalGroupId
+        ) {
+          setError(
+            `สินค้า "${matchedProd.name}" ไม่ได้อยู่ในกลุ่มสารที่เลือก กรุณาเลือกสินค้าให้ตรงกับกลุ่มสาร`,
+          );
+          setLoading(false);
+          return;
+        }
+      }
     }
 
     // Validation for Work Type 7B: ติดตามแปลงสาธิต
@@ -2859,15 +3089,65 @@ export function ActivityPlanForm({
       const hasType7BPlan = selectedWorkTypes.some(
         (t) => getWorkTypeCode(t) === "TYPE_7B",
       );
-      if (hasType7APlan || hasType7BPlan) {
-        const wtCode = hasType7BPlan ? "TYPE_7B" : "TYPE_7A";
+
+      let submittedDemoPlotData: any = null;
+
+      if (hasType7APlan) {
+        const item = type7Items[0];
+        if (item) {
+          const dealerId =
+            item.storeId ||
+            customersList.find((c) => c.name === item.ownerName)?.id ||
+            null;
+          const dealerCust = customersList.find((c) => c.id === dealerId);
+
+          submittedDemoPlotData = {
+            id: item.demoPlotId || null,
+            name: item.plotName || "",
+            customerId: dealerId,
+            ownerName: dealerCust?.name || item.ownerName || "",
+            cropCategory: item.cropCategory,
+            cropName: item.cropName,
+            customCropName: item.customCropName || null,
+            areaRai: item.areaRai ? Number(item.areaRai) : null,
+            treeCount: item.treeCount ? Number(item.treeCount) : null,
+            location:
+              item.province && item.district
+                ? `${item.district}, ${item.province}`
+                : null,
+            province: item.province || null,
+            district: item.district || null,
+            chemicalGroupId: item.chemicalGroupId || null,
+            objective: item.objective || null,
+          };
+
+          const prods = (item.demoProducts || []).filter(
+            (p) => p.productId || p.productName,
+          );
+          prods.forEach((dp) => {
+            const pId =
+              dp.productId ||
+              productsList.find((p) => p.name === dp.productName)?.id;
+            if (pId) {
+              const matchedProd = productsList.find((p) => p.id === pId);
+              planProducts.push({
+                workTypeCode: "TYPE_7A",
+                productId: pId,
+                productName: matchedProd?.name || dp.productName || null,
+                targetQuantity: dp.quantity ? Number(dp.quantity) : 1,
+                isPriceOverridden: false,
+              });
+            }
+          });
+        }
+      } else if (hasType7BPlan) {
         type7Items.forEach((item) => {
           const pId =
             item.productId ||
             productsList.find((p) => p.name === item.productName)?.id;
           if (pId) {
             planProducts.push({
-              workTypeCode: wtCode,
+              workTypeCode: "TYPE_7B",
               productId: pId,
               productName: item.productName || null,
               isPriceOverridden: false,
@@ -3065,6 +3345,7 @@ export function ActivityPlanForm({
         activityTypeId,
         workTypeCodes: selectedWorkTypes.map(getWorkTypeCode),
         tourData,
+        demoPlotData: submittedDemoPlotData,
         planStores,
         planProducts,
         marketingItems,
@@ -3498,6 +3779,7 @@ export function ActivityPlanForm({
                       deleteType7Row={deleteType7Row}
                       customers={customersList}
                       products={productsList}
+                      chemicalGroups={chemicalGroupsList}
                       demoPlots={demoPlotsList}
                       parentStartDate={startDate}
                     />
@@ -3516,6 +3798,7 @@ export function ActivityPlanForm({
                       deleteType7Row={deleteType7Row}
                       customers={customersList}
                       products={productsList}
+                      chemicalGroups={chemicalGroupsList}
                       demoPlots={demoPlotsList}
                       parentStartDate={startDate}
                     />

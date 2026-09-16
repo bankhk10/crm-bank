@@ -145,7 +145,16 @@ export async function findActivityPlanById(id: string) {
       products: {
         include: {
           product: {
-            select: { id: true, name: true, productCode: true, price: true },
+            select: {
+              id: true,
+              name: true,
+              productCode: true,
+              price: true,
+              productGroupId: true,
+              productGroup: {
+                select: { id: true, code: true, name: true },
+              },
+            },
           },
           store: {
             select: { id: true, name: true, customerCode: true },
@@ -172,7 +181,23 @@ export async function findActivityPlanById(id: string) {
       },
       demoPlotVisits: {
         include: {
-          demoPlot: true,
+          demoPlot: {
+            include: {
+              chemicalGroup: {
+                select: { id: true, code: true, name: true },
+              },
+              customer: {
+                select: {
+                  id: true,
+                  name: true,
+                  customerCode: true,
+                  customerType: true,
+                  province: true,
+                  district: true,
+                },
+              },
+            },
+          },
         },
       },
       employee: {
@@ -495,6 +520,22 @@ export type CreateActivityPlanInput = {
   targetAttendeesCount?: number | null;
   targetBookingSales?: number | null;
   demoPlotId?: string | null;
+  demoPlotData?: {
+    id?: string | null;
+    name: string;
+    customerId?: string | null;
+    ownerName: string;
+    cropCategory: string;
+    cropName: string;
+    customCropName?: string | null;
+    areaRai?: number | null;
+    treeCount?: number | null;
+    location?: string | null;
+    province?: string | null;
+    district?: string | null;
+    chemicalGroupId?: string | null;
+    objective?: string | null;
+  } | null;
   salesPromotionBudgetRequested?: number | null;
   marketingBudgetRequested?: number | null;
   totalBudgetRequested?: number | null;
@@ -744,8 +785,73 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
           });
         }
 
-        // 1.7 Link Demo Plot Visit if demoPlotId is provided
-        if (input.demoPlotId) {
+        // 1.7 Create/Link Demo Plot Visit
+        if (input.demoPlotData) {
+          let plotId = input.demoPlotData.id;
+          if (!plotId) {
+            const d = new Date(input.startDate);
+            const year = String(d.getFullYear()).slice(-2);
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const count = await tx.demoPlot.count();
+            const code = `DP${year}${month}${String(count + 1).padStart(4, "0")}`;
+
+            const plot = await tx.demoPlot.create({
+              data: {
+                code,
+                name: input.demoPlotData.name,
+                ownerName: input.demoPlotData.ownerName || "",
+                customerId: input.demoPlotData.customerId || null,
+                chemicalGroupId: input.demoPlotData.chemicalGroupId || null,
+                employeeId: input.employeeId,
+                cropCategory: input.demoPlotData.cropCategory,
+                cropName: input.demoPlotData.cropName,
+                customCropName: input.demoPlotData.customCropName || null,
+                areaRai:
+                  input.demoPlotData.areaRai != null
+                    ? new Prisma.Decimal(input.demoPlotData.areaRai)
+                    : null,
+                treeCount: input.demoPlotData.treeCount || null,
+                location: input.demoPlotData.location || null,
+                province: input.demoPlotData.province || null,
+                district: input.demoPlotData.district || null,
+                objective: input.demoPlotData.objective || null,
+                startDate: input.startDate,
+                status: DemoPlotStatus.IN_PROGRESS,
+              },
+            });
+            plotId = plot.id;
+          } else {
+            await tx.demoPlot.update({
+              where: { id: plotId },
+              data: {
+                name: input.demoPlotData.name,
+                ownerName: input.demoPlotData.ownerName || "",
+                customerId: input.demoPlotData.customerId || null,
+                chemicalGroupId: input.demoPlotData.chemicalGroupId || null,
+                cropCategory: input.demoPlotData.cropCategory,
+                cropName: input.demoPlotData.cropName,
+                customCropName: input.demoPlotData.customCropName || null,
+                areaRai:
+                  input.demoPlotData.areaRai != null
+                    ? new Prisma.Decimal(input.demoPlotData.areaRai)
+                    : null,
+                treeCount: input.demoPlotData.treeCount || null,
+                location: input.demoPlotData.location || null,
+                province: input.demoPlotData.province || null,
+                district: input.demoPlotData.district || null,
+                objective: input.demoPlotData.objective || null,
+              },
+            });
+          }
+
+          await tx.demoPlotVisit.create({
+            data: {
+              demoPlotId: plotId,
+              activityPlanId: plan.id,
+              visitDate: input.startDate,
+            },
+          });
+        } else if (input.demoPlotId) {
           await tx.demoPlotVisit.create({
             data: {
               demoPlotId: input.demoPlotId,
@@ -838,6 +944,7 @@ export async function updateActivityPlan(
     delete updateFields.planStores;
     delete updateFields.planProducts;
     delete updateFields.demoPlotId;
+    delete updateFields.demoPlotData;
 
     // Build update dataset
     const dataToUpdate: Prisma.ActivityPlanUncheckedUpdateInput = {};
@@ -1062,7 +1169,92 @@ export async function updateActivityPlan(
     }
 
     // 1.7 Sync Demo Plot Visit
-    if (demoPlotId !== undefined) {
+    if (planData.demoPlotData !== undefined) {
+      if (planData.demoPlotData) {
+        const existingVisit = await tx.demoPlotVisit.findFirst({
+          where: { activityPlanId: id },
+          include: { demoPlot: true },
+        });
+
+        let plotId = planData.demoPlotData.id || existingVisit?.demoPlotId;
+
+        if (plotId) {
+          await tx.demoPlot.update({
+            where: { id: plotId },
+            data: {
+              name: planData.demoPlotData.name,
+              ownerName: planData.demoPlotData.ownerName || "",
+              customerId: planData.demoPlotData.customerId || null,
+              chemicalGroupId: planData.demoPlotData.chemicalGroupId || null,
+              cropCategory: planData.demoPlotData.cropCategory,
+              cropName: planData.demoPlotData.cropName,
+              customCropName: planData.demoPlotData.customCropName || null,
+              areaRai:
+                planData.demoPlotData.areaRai != null
+                  ? new Prisma.Decimal(planData.demoPlotData.areaRai)
+                  : null,
+              treeCount: planData.demoPlotData.treeCount || null,
+              location: planData.demoPlotData.location || null,
+              province: planData.demoPlotData.province || null,
+              district: planData.demoPlotData.district || null,
+              objective: planData.demoPlotData.objective || null,
+            },
+          });
+
+          if (!existingVisit) {
+            await tx.demoPlotVisit.create({
+              data: {
+                demoPlotId: plotId,
+                activityPlanId: id,
+                visitDate: updatedPlan.startDate,
+              },
+            });
+          }
+        } else {
+          const d = new Date(updatedPlan.startDate);
+          const year = String(d.getFullYear()).slice(-2);
+          const month = String(d.getMonth() + 1).padStart(2, "0");
+          const count = await tx.demoPlot.count();
+          const code = `DP${year}${month}${String(count + 1).padStart(4, "0")}`;
+
+          const newPlot = await tx.demoPlot.create({
+            data: {
+              code,
+              name: planData.demoPlotData.name,
+              ownerName: planData.demoPlotData.ownerName || "",
+              customerId: planData.demoPlotData.customerId || null,
+              chemicalGroupId: planData.demoPlotData.chemicalGroupId || null,
+              employeeId: updatedPlan.employeeId,
+              cropCategory: planData.demoPlotData.cropCategory,
+              cropName: planData.demoPlotData.cropName,
+              customCropName: planData.demoPlotData.customCropName || null,
+              areaRai:
+                planData.demoPlotData.areaRai != null
+                  ? new Prisma.Decimal(planData.demoPlotData.areaRai)
+                  : null,
+              treeCount: planData.demoPlotData.treeCount || null,
+              location: planData.demoPlotData.location || null,
+              province: planData.demoPlotData.province || null,
+              district: planData.demoPlotData.district || null,
+              objective: planData.demoPlotData.objective || null,
+              startDate: updatedPlan.startDate,
+              status: DemoPlotStatus.IN_PROGRESS,
+            },
+          });
+
+          await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: id } });
+          await tx.demoPlotVisit.create({
+            data: {
+              demoPlotId: newPlot.id,
+              activityPlanId: id,
+              visitDate: updatedPlan.startDate,
+            },
+          });
+        }
+      } else {
+        await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: id } });
+      }
+    } else if (demoPlotId !== undefined) {
       await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: id } });
       if (demoPlotId) {
         await tx.demoPlotVisit.create({
@@ -2383,6 +2575,22 @@ export async function findDemoPlotByOwnerAndCrop(
           },
         },
       },
+    },
+  });
+}
+
+/**
+ * Find all active chemical groups (ProductGroup)
+ */
+export async function findChemicalGroups() {
+  return db.productGroup.findMany({
+    where: { deletedAt: null },
+    orderBy: { name: "asc" },
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      description: true,
     },
   });
 }

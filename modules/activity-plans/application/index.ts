@@ -9,6 +9,7 @@ import {
   softDeleteActivityPlan,
   upsertActivityResult,
   findActivityTypes,
+  findChemicalGroups,
   findOrCreateEmployeeForUser,
   type ListActivityPlansParams,
   type CreateActivityResultInput,
@@ -42,6 +43,134 @@ export async function listActivityPlansUseCase(
  */
 export async function getActivityTypesUseCase() {
   return findActivityTypes();
+}
+
+/**
+ * Get chemical groups (ProductGroup) master lookups
+ */
+export async function getChemicalGroupsUseCase() {
+  return findChemicalGroups();
+}
+
+export async function validateType7aPlan(
+  workTypeCodes: string[],
+  demoPlotData?: {
+    name: string;
+    customerId?: string | null;
+    province?: string | null;
+    district?: string | null;
+    chemicalGroupId?: string | null;
+    cropCategory: string;
+    cropName: string;
+    objective?: string | null;
+  } | null,
+  planProducts?: Array<{
+    workTypeCode: string;
+    productId: string;
+    targetQuantity?: number | null;
+  }>,
+): Promise<{ valid: true } | { valid: false; error: string }> {
+  if (!workTypeCodes.includes("TYPE_7A")) {
+    return { valid: true };
+  }
+
+  if (!demoPlotData) {
+    return {
+      valid: false,
+      error: "กรุณาระบุข้อมูลแปลงสาธิตสำหรับประเภทงานทำแปลงสาธิต",
+    };
+  }
+
+  if (!demoPlotData.name || !demoPlotData.name.trim()) {
+    return { valid: false, error: "กรุณากรอกชื่อแปลงสาธิต" };
+  }
+
+  if (!demoPlotData.customerId) {
+    return {
+      valid: false,
+      error: "กรุณาเลือกร้านค้า Dealer สำหรับแปลงสาธิต",
+    };
+  }
+
+  const customer = await db.customer.findUnique({
+    where: { id: demoPlotData.customerId },
+    select: { id: true, customerType: true },
+  });
+  if (!customer) {
+    return { valid: false, error: "ไม่พบข้อมูลร้านค้า Dealer ในระบบ" };
+  }
+  if (customer.customerType !== "DEALER") {
+    return {
+      valid: false,
+      error:
+        "ร้านค้าของแปลงสาธิตต้องเป็นประเภทร้านค้าตัวแทนจำหน่าย (DEALER) เท่านั้น",
+    };
+  }
+
+  if (!demoPlotData.province || !demoPlotData.province.trim()) {
+    return { valid: false, error: "กรุณาเลือกจังหวัด" };
+  }
+
+  if (!demoPlotData.district || !demoPlotData.district.trim()) {
+    return { valid: false, error: "กรุณาเลือกอำเภอ" };
+  }
+
+  if (!demoPlotData.chemicalGroupId || !demoPlotData.chemicalGroupId.trim()) {
+    return { valid: false, error: "กรุณาเลือกกลุ่มสาร" };
+  }
+
+  if (!demoPlotData.cropCategory || !demoPlotData.cropCategory.trim()) {
+    return { valid: false, error: "กรุณาเลือกหมวดพืช" };
+  }
+
+  if (!demoPlotData.cropName || !demoPlotData.cropName.trim()) {
+    return { valid: false, error: "กรุณาเลือกหรือระบุชื่อพืช" };
+  }
+
+  if (!demoPlotData.objective || !demoPlotData.objective.trim()) {
+    return { valid: false, error: "กรุณาระบุวัตถุประสงค์การทำแปลง" };
+  }
+
+  // Check demo products
+  const type7aProducts = (planProducts || []).filter(
+    (p) => p.workTypeCode === "TYPE_7A",
+  );
+  if (type7aProducts.length === 0) {
+    return {
+      valid: false,
+      error: "กรุณาระบุสินค้าที่จะสาธิตอย่างน้อย 1 รายการ",
+    };
+  }
+
+  for (const p of type7aProducts) {
+    if (!p.productId) {
+      return { valid: false, error: "กรุณาเลือกสินค้าที่จะสาธิต" };
+    }
+    if (!p.targetQuantity || p.targetQuantity <= 0) {
+      return {
+        valid: false,
+        error: "จำนวนสินค้าที่จะสาธิตต้องมากกว่า 0",
+      };
+    }
+  }
+
+  // Validate that all selected products belong to the selected chemical group
+  const productIds = type7aProducts.map((p) => p.productId);
+  const products = await db.product.findMany({
+    where: { id: { in: productIds } },
+    select: { id: true, name: true, productGroupId: true },
+  });
+
+  for (const p of products) {
+    if (p.productGroupId !== demoPlotData.chemicalGroupId) {
+      return {
+        valid: false,
+        error: `สินค้า "${p.name}" ไม่ได้อยู่ในกลุ่มสารที่เลือก กรุณาเลือกสินค้าให้ตรงกับกลุ่มสาร`,
+      };
+    }
+  }
+
+  return { valid: true };
 }
 
 export async function validateType1VisitPurposeCustomers(
@@ -140,6 +269,15 @@ export async function createActivityPlanUseCase(
     return { success: false as const, error: customerValidation.error };
   }
 
+  const type7aValidation = await validateType7aPlan(
+    normalized.workTypeCodes,
+    normalized.demoPlotData,
+    normalized.planProducts,
+  );
+  if (!type7aValidation.valid) {
+    return { success: false as const, error: type7aValidation.error };
+  }
+
   const {
     helperEmployeeIds,
     items,
@@ -166,6 +304,7 @@ export async function createActivityPlanUseCase(
     targetAttendeesCount: normalized.targetAttendeesCount,
     targetBookingSales: normalized.targetBookingSales,
     demoPlotId: normalized.demoPlotId,
+    demoPlotData: normalized.demoPlotData,
     workTypeCodes: normalized.workTypeCodes,
     status: ActivityStatus.DRAFT,
     employeeId: employee.id,
@@ -383,6 +522,15 @@ export async function updateActivityPlanUseCase(
     return { success: false as const, error: customerValidation.error };
   }
 
+  const type7aValidation = await validateType7aPlan(
+    normalized.workTypeCodes,
+    normalized.demoPlotData,
+    normalized.planProducts,
+  );
+  if (!type7aValidation.valid) {
+    return { success: false as const, error: type7aValidation.error };
+  }
+
   const {
     helperEmployeeIds,
     items,
@@ -409,6 +557,7 @@ export async function updateActivityPlanUseCase(
     targetAttendeesCount: normalized.targetAttendeesCount,
     targetBookingSales: normalized.targetBookingSales,
     demoPlotId: normalized.demoPlotId,
+    demoPlotData: normalized.demoPlotData,
     workTypeCodes: normalized.workTypeCodes,
     updatedUserId: userId,
   };

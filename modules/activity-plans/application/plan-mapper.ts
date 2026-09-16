@@ -1,9 +1,9 @@
 /**
  * Application Layer: Normalized Plan Input Mapper
- * 
+ *
  * Maps incoming raw/form payloads into strictly normalized data structures
  * ready for repository persistence.
- * 
+ *
  * Guarantees:
  * - NO ActivityPlanItem is ever generated
  * - Store arrays are 1-row-per-store (even for TYPE_11)
@@ -13,10 +13,7 @@
  */
 
 import { z } from "zod";
-import {
-  activityPlanSchema,
-  type ActivityPlanFormValues,
-} from "./validations";
+import { activityPlanSchema, type ActivityPlanFormValues } from "./validations";
 import {
   calculateMarketingBudget,
   calculatePromotionBudget,
@@ -88,12 +85,30 @@ export interface NormalizedPlanData {
     storeId?: string | null;
     destination?: string | null;
   } | null;
+  demoPlotData?: {
+    id?: string | null;
+    name: string;
+    customerId?: string | null;
+    ownerName: string;
+    cropCategory: string;
+    cropName: string;
+    customCropName?: string | null;
+    areaRai?: number | null;
+    treeCount?: number | null;
+    location?: string | null;
+    province?: string | null;
+    district?: string | null;
+    chemicalGroupId?: string | null;
+    objective?: string | null;
+  } | null;
   helperEmployeeIds: string[];
 }
 
 export interface LookupResolvers {
   findCustomerIdByName?: (name: string) => string | undefined;
-  findProductIdByName?: (name: string) => { id: string; price?: number | null } | undefined;
+  findProductIdByName?: (
+    name: string,
+  ) => { id: string; price?: number | null } | undefined;
 }
 
 /**
@@ -101,9 +116,11 @@ export interface LookupResolvers {
  */
 export function normalizePlanInput(
   rawInput: ActivityPlanFormValues,
-  resolvers?: LookupResolvers
+  resolvers?: LookupResolvers,
 ): NormalizedPlanData {
-  const stores: NormalizedPlanData["planStores"] = (rawInput.planStores || []).map((s) => ({
+  const stores: NormalizedPlanData["planStores"] = (
+    rawInput.planStores || []
+  ).map((s) => ({
     ...s,
     visitPurpose: s.visitPurpose ?? null,
     province: s.province ?? null,
@@ -112,17 +129,23 @@ export function normalizePlanInput(
     unregisteredFarmerPhone: s.unregisteredFarmerPhone ?? null,
     storeId: s.isUnregisteredFarmer ? null : (s.storeId ?? null),
   }));
-  const products: NormalizedPlanData["planProducts"] = (rawInput.planProducts || []).map((p) => ({
+  const products: NormalizedPlanData["planProducts"] = (
+    rawInput.planProducts || []
+  ).map((p) => ({
     ...p,
     isPriceOverridden: p.isPriceOverridden ?? false,
   }));
-  const marketing: NormalizedPlanData["marketingItems"] = (rawInput.marketingItems || []).map((m) => ({
+  const marketing: NormalizedPlanData["marketingItems"] = (
+    rawInput.marketingItems || []
+  ).map((m) => ({
     ...m,
     unitPrice: m.unitPrice ?? 0,
     quantity: m.quantity ?? 1,
     totalAmount: m.totalAmount ?? 0,
   }));
-  const promotion: NormalizedPlanData["promotionItems"] = (rawInput.promotionItems || []).map((p) => ({
+  const promotion: NormalizedPlanData["promotionItems"] = (
+    rawInput.promotionItems || []
+  ).map((p) => ({
     ...p,
     amount: p.amount ?? 0,
   }));
@@ -137,8 +160,17 @@ export function normalizePlanInput(
       const wtCode = String(item.workTypeCode || item.workType || "");
 
       // Extract Attendees & Booking Sales (TYPE_8, TYPE_10)
-      if (item.meetingAttendeesCount != null || item.targetAttendees != null || item.attendeesCount != null) {
-        targetAttendees = Number(item.meetingAttendeesCount ?? item.targetAttendees ?? item.attendeesCount) || targetAttendees;
+      if (
+        item.meetingAttendeesCount != null ||
+        item.targetAttendees != null ||
+        item.attendeesCount != null
+      ) {
+        targetAttendees =
+          Number(
+            item.meetingAttendeesCount ??
+              item.targetAttendees ??
+              item.attendeesCount,
+          ) || targetAttendees;
       }
       if (item.bookingSales != null) {
         targetBooking = Number(item.bookingSales) || targetBooking;
@@ -148,18 +180,32 @@ export function normalizePlanInput(
       }
 
       // Extract Store relations
-      const custName = item.customerName || item.storeName || item.surveyStoreName;
-      if (custName && typeof custName === "string" && resolvers?.findCustomerIdByName) {
+      const custName =
+        item.customerName || item.storeName || item.surveyStoreName;
+      if (
+        custName &&
+        typeof custName === "string" &&
+        resolvers?.findCustomerIdByName
+      ) {
         // Handle comma-separated stores (e.g. TYPE_11)
-        const nameList = custName.split(",").map((s) => s.trim()).filter(Boolean);
+        const nameList = custName
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
         for (const singleName of nameList) {
           const matchedStoreId = resolvers.findCustomerIdByName(singleName);
-          if (matchedStoreId && !stores.some((s) => s.storeId === matchedStoreId && s.workTypeCode === wtCode)) {
+          if (
+            matchedStoreId &&
+            !stores.some(
+              (s) => s.storeId === matchedStoreId && s.workTypeCode === wtCode,
+            )
+          ) {
             stores.push({
               workTypeCode: wtCode || "TYPE_1",
               storeId: matchedStoreId,
               storeName: singleName,
-              targetAmount: item.collectAmount != null ? Number(item.collectAmount) : null,
+              targetAmount:
+                item.collectAmount != null ? Number(item.collectAmount) : null,
               subDealerStore: item.subDealerStore || null,
               remarks: item.visitTopic || item.topic || item.issueType || null,
               notes: item.detail || null,
@@ -169,15 +215,44 @@ export function normalizePlanInput(
       }
 
       // Extract Product relations
-      const prodName = item.saleProductName || item.productName || item.followupProductName || item.surveyCompetitorProduct;
-      if (prodName && typeof prodName === "string" && resolvers?.findProductIdByName) {
+      const prodName =
+        item.saleProductName ||
+        item.productName ||
+        item.followupProductName ||
+        item.surveyCompetitorProduct;
+      if (
+        prodName &&
+        typeof prodName === "string" &&
+        resolvers?.findProductIdByName
+      ) {
         const matchedProd = resolvers.findProductIdByName(prodName);
-        if (matchedProd && !products.some((p) => p.productId === matchedProd.id && p.workTypeCode === wtCode)) {
-          const qty = item.saleQuantity != null ? Number(item.saleQuantity) : (item.quantity != null ? Number(item.quantity) : null);
-          const uPrice = item.saleUnitPrice != null ? Number(item.saleUnitPrice) : (item.unitPrice != null ? Number(item.unitPrice) : null);
-          const tAmount = item.saleTotalPrice != null ? Number(item.saleTotalPrice) : (qty != null && uPrice != null ? qty * uPrice : null);
+        if (
+          matchedProd &&
+          !products.some(
+            (p) => p.productId === matchedProd.id && p.workTypeCode === wtCode,
+          )
+        ) {
+          const qty =
+            item.saleQuantity != null
+              ? Number(item.saleQuantity)
+              : item.quantity != null
+                ? Number(item.quantity)
+                : null;
+          const uPrice =
+            item.saleUnitPrice != null
+              ? Number(item.saleUnitPrice)
+              : item.unitPrice != null
+                ? Number(item.unitPrice)
+                : null;
+          const tAmount =
+            item.saleTotalPrice != null
+              ? Number(item.saleTotalPrice)
+              : qty != null && uPrice != null
+                ? qty * uPrice
+                : null;
           const mPrice = matchedProd.price ?? null;
-          const overridden = uPrice != null ? isPriceOverridden(uPrice, mPrice) : false;
+          const overridden =
+            uPrice != null ? isPriceOverridden(uPrice, mPrice) : false;
 
           products.push({
             workTypeCode: wtCode || "TYPE_3",
@@ -199,7 +274,9 @@ export function normalizePlanInput(
         const price = Number(item.unitPrice || item.pricePerCase || 0);
         marketing.push({
           category: String(item.category || "สื่อทั่วไป"),
-          materialName: String(item.materialName || item.productName || "สื่อส่งเสริมการขาย"),
+          materialName: String(
+            item.materialName || item.productName || "สื่อส่งเสริมการขาย",
+          ),
           unit: item.unit ? String(item.unit) : null,
           unitPrice: price,
           quantity: qty,
@@ -223,7 +300,7 @@ export function normalizePlanInput(
   const promotionBudget = calculatePromotionBudget(promotion);
   const totalBudget = calculateTotalBudget(
     rawInput.marketingBudgetRequested ?? marketingBudget,
-    rawInput.salesPromotionBudgetRequested ?? promotionBudget
+    rawInput.salesPromotionBudgetRequested ?? promotionBudget,
   );
 
   return {
@@ -241,14 +318,19 @@ export function normalizePlanInput(
     targetAttendeesCount: targetAttendees,
     targetBookingSales: targetBooking,
     demoPlotId: demoPlot,
-    salesPromotionBudgetRequested: rawInput.salesPromotionBudgetRequested ?? (promotionBudget > 0 ? promotionBudget : null),
-    marketingBudgetRequested: rawInput.marketingBudgetRequested ?? (marketingBudget > 0 ? marketingBudget : null),
+    salesPromotionBudgetRequested:
+      rawInput.salesPromotionBudgetRequested ??
+      (promotionBudget > 0 ? promotionBudget : null),
+    marketingBudgetRequested:
+      rawInput.marketingBudgetRequested ??
+      (marketingBudget > 0 ? marketingBudget : null),
     totalBudgetRequested: totalBudget,
     planStores: stores,
     planProducts: products,
     marketingItems: marketing,
     promotionItems: promotion,
     tourData: rawInput.tourData || null,
+    demoPlotData: rawInput.demoPlotData || null,
     helperEmployeeIds: rawInput.helperEmployeeIds || [],
   };
 }

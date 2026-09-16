@@ -162,12 +162,26 @@ export interface ActualTargetsState {
   t7a?: {
     activityType?: string;
     owner: string;
+    plotName?: string;
+    dealerName?: string;
+    province?: string;
+    district?: string;
+    chemicalGroupName?: string;
+    cropCategory?: string;
     product: string;
     productId?: string;
     plannedProductId?: string;
     crop: string;
     plots: string;
+    areaRai?: number | null;
+    treeCount?: number | null;
     demoProductQuantity: string;
+    demoProducts?: Array<{
+      productId: string;
+      productName: string;
+      quantity: number;
+      unit?: string | null;
+    }>;
     objective: string;
     experimentDetail: string;
     detail: string;

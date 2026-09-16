@@ -146,6 +146,23 @@ export const tourDataInputSchema = z.object({
   destination: z.string().optional().nullable(),
 });
 
+export const demoPlotDataInputSchema = z.object({
+  id: z.string().optional().nullable(),
+  name: z.string().min(1, "กรุณากรอกชื่อแปลง"),
+  customerId: z.string().optional().nullable(),
+  ownerName: z.string().default(""),
+  cropCategory: z.string().min(1, "กรุณาเลือกหมวดพืช"),
+  cropName: z.string().min(1, "กรุณาเลือกหรือระบุพืช"),
+  customCropName: z.string().optional().nullable(),
+  areaRai: z.number().optional().nullable(),
+  treeCount: z.number().optional().nullable(),
+  location: z.string().optional().nullable(),
+  province: z.string().min(1, "กรุณาเลือกจังหวัด"),
+  district: z.string().min(1, "กรุณาเลือกอำเภอ"),
+  chemicalGroupId: z.string().min(1, "กรุณาเลือกกลุ่มสาร"),
+  objective: z.string().min(1, "กรุณากรอกวัตถุประสงค์"),
+});
+
 export const activityPlanSchema = z
   .object({
     title: z.string().min(1, "กรุณากรอกชื่อกิจกรรม"),
@@ -174,6 +191,7 @@ export const activityPlanSchema = z
     targetAttendeesCount: z.number().int().optional().nullable(),
     targetBookingSales: z.number().optional().nullable(),
     demoPlotId: z.string().optional().nullable(),
+    demoPlotData: demoPlotDataInputSchema.optional().nullable(),
     // งบประมาณ (ที่ขอ)
     salesPromotionBudgetRequested: z
       .number()

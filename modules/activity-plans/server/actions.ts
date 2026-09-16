@@ -20,6 +20,7 @@ import {
   findOrCreateEmployeeForUser,
   getApprovalQueueDataUseCase,
   getActivityTypesUseCase,
+  getChemicalGroupsUseCase,
   getDemoPlotsUseCase,
   getFarmerCustomersUseCase,
   getDemoPlotHistoryUseCase,
@@ -540,11 +541,13 @@ export async function getApproverDirectoryAction() {
   }
 }
 
-
 /**
  * Action: Record Post-Activity Outcome (ActivityResult)
  */
-export async function recordActivityResultAction(planId: string, rawData: unknown) {
+export async function recordActivityResultAction(
+  planId: string,
+  rawData: unknown,
+) {
   const session = await auth();
   if (!session?.user) {
     return { success: false, error: "Unauthorized" };
@@ -552,7 +555,11 @@ export async function recordActivityResultAction(planId: string, rawData: unknow
 
   try {
     const { recordActivityResultUseCase } = await import("../application");
-    const result = await recordActivityResultUseCase(planId, session.user.id, rawData);
+    const result = await recordActivityResultUseCase(
+      planId,
+      session.user.id,
+      rawData,
+    );
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath(`/activity-plans/${planId}`);
@@ -581,6 +588,25 @@ export async function getDemoPlotsAction() {
 }
 
 /**
+ * Action: Get chemical groups (ProductGroup) master lookups
+ */
+export async function getChemicalGroupsAction() {
+  try {
+    const result = await getChemicalGroupsUseCase();
+    return serialize({
+      success: true,
+      chemicalGroups: result,
+    });
+  } catch (err: any) {
+    console.error("Failed to get chemical groups", err);
+    return serialize({
+      success: false,
+      chemicalGroups: [],
+    });
+  }
+}
+
+/**
  * Action: Get list of Farmer customers for Type 10 Field Day target selection
  */
 export async function getFarmerCustomersAction() {
@@ -601,7 +627,8 @@ export async function getFarmerCustomersAction() {
  */
 export async function getFarmerCustomerOptionsAction(province?: string) {
   try {
-    const { findFarmerCustomerOptions } = await import("../infrastructure/activity-plan.repository");
+    const { findFarmerCustomerOptions } =
+      await import("../infrastructure/activity-plan.repository");
     const farmers = await findFarmerCustomerOptions(province);
     return serialize({
       success: true as const,
@@ -621,7 +648,8 @@ export async function getFarmerCustomerOptionsAction(province?: string) {
  */
 export async function getDealerAndSubdealerCustomerOptionsAction() {
   try {
-    const { findDealerAndSubdealerCustomerOptions } = await import("../infrastructure/activity-plan.repository");
+    const { findDealerAndSubdealerCustomerOptions } =
+      await import("../infrastructure/activity-plan.repository");
     const stores = await findDealerAndSubdealerCustomerOptions();
     return serialize({
       success: true as const,
@@ -799,11 +827,17 @@ export async function createPromotionalMaterialAction(rawData: unknown) {
     perms.includes("system.settings");
 
   if (!canCreate) {
-    return serialize({ success: false, error: "Forbidden: ไม่มีสิทธิ์สร้างสื่อส่งเสริมการขาย" });
+    return serialize({
+      success: false,
+      error: "Forbidden: ไม่มีสิทธิ์สร้างสื่อส่งเสริมการขาย",
+    });
   }
 
   try {
-    const result = await createPromotionalMaterialUseCase(rawData, session.user.id);
+    const result = await createPromotionalMaterialUseCase(
+      rawData,
+      session.user.id,
+    );
     revalidatePath("/activity-plans/promotional-materials");
     revalidatePath("/activity-plans/new");
     revalidatePath("/activity-plans");
@@ -819,7 +853,10 @@ export async function createPromotionalMaterialAction(rawData: unknown) {
 /**
  * Update an existing promotional material
  */
-export async function updatePromotionalMaterialAction(id: string, rawData: unknown) {
+export async function updatePromotionalMaterialAction(
+  id: string,
+  rawData: unknown,
+) {
   const session = await auth();
   if (!session?.user) {
     return serialize({ success: false, error: "Unauthorized" });
@@ -842,11 +879,18 @@ export async function updatePromotionalMaterialAction(id: string, rawData: unkno
     perms.includes("system.settings");
 
   if (!canEdit) {
-    return serialize({ success: false, error: "Forbidden: ไม่มีสิทธิ์แก้ไขสื่อส่งเสริมการขาย" });
+    return serialize({
+      success: false,
+      error: "Forbidden: ไม่มีสิทธิ์แก้ไขสื่อส่งเสริมการขาย",
+    });
   }
 
   try {
-    const result = await updatePromotionalMaterialUseCase(id, rawData, session.user.id);
+    const result = await updatePromotionalMaterialUseCase(
+      id,
+      rawData,
+      session.user.id,
+    );
     revalidatePath("/activity-plans/promotional-materials");
     revalidatePath("/activity-plans/new");
     revalidatePath("/activity-plans");
@@ -885,7 +929,10 @@ export async function deletePromotionalMaterialAction(id: string) {
     perms.includes("system.settings");
 
   if (!canDelete) {
-    return serialize({ success: false, error: "Forbidden: ไม่มีสิทธิ์ลบสื่อส่งเสริมการขาย" });
+    return serialize({
+      success: false,
+      error: "Forbidden: ไม่มีสิทธิ์ลบสื่อส่งเสริมการขาย",
+    });
   }
 
   try {
@@ -893,7 +940,11 @@ export async function deletePromotionalMaterialAction(id: string) {
     revalidatePath("/activity-plans/promotional-materials");
     revalidatePath("/activity-plans/new");
     revalidatePath("/activity-plans");
-    return serialize({ success: true, message: result.message, usageCount: result.usageCount });
+    return serialize({
+      success: true,
+      message: result.message,
+      usageCount: result.usageCount,
+    });
   } catch (err: any) {
     return serialize({
       success: false,
@@ -1003,5 +1054,3 @@ export async function getActivityCalendarEventsAction(
     });
   }
 }
-
-
