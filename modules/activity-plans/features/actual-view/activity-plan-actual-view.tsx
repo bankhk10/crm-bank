@@ -323,6 +323,7 @@ export default function ActivityPlanActualView({
   const [t7FarmerPhone, setT7FarmerPhone] = useState("");
   const [t7IsUnregisteredFarmer, setT7IsUnregisteredFarmer] = useState(false);
   const [t7DealerName, setT7DealerName] = useState("");
+  const [t7DealerCode, setT7DealerCode] = useState("");
   const [t7Latitude, setT7Latitude] = useState("");
   const [t7Longitude, setT7Longitude] = useState("");
   const [t7District, setT7District] = useState("");
@@ -458,6 +459,8 @@ export default function ActivityPlanActualView({
           setPlanWorkTypes(extracted.resolvedWorkTypes);
           setTargets(extracted.targets);
 
+          const t7aTarget = extracted.targets.t7a || extracted.targets.t7;
+
           if (extracted.t7StartDate) {
             setT7StartDate(extracted.t7StartDate);
           }
@@ -525,13 +528,33 @@ export default function ActivityPlanActualView({
             const dp = linkedDemoPlot;
             setT7DemoPlotId(dp.id);
             setT7DemoPlotData(dp);
+            if (dp.ownerProvince) {
+              setT7FarmerProvince(dp.ownerProvince);
+            } else if (dp.customer?.customerType === "FARMER" && dp.customer?.province) {
+              setT7FarmerProvince(dp.customer.province);
+            }
             if (dp.district) setT7District(dp.district);
-            if (dp.customerId) setT7FarmerCustomerId(dp.customerId);
+            if (dp.customerId && dp.customer?.customerType === "FARMER") {
+              setT7FarmerCustomerId(dp.customerId);
+            } else {
+              setT7FarmerCustomerId("");
+            }
             if (dp.ownerName) setT7FarmerName(dp.ownerName);
             if (dp.ownerPhone) setT7FarmerPhone(dp.ownerPhone);
             if (dp.isUnregisteredFarmer != null)
               setT7IsUnregisteredFarmer(Boolean(dp.isUnregisteredFarmer));
-            if (dp.dealerName) setT7DealerName(dp.dealerName);
+            const resolvedDealerName =
+              dp.customer?.name ||
+              (extracted.targets.t7a as any)?.dealerName ||
+              (t7aTarget as any)?.dealerName ||
+              "";
+            if (resolvedDealerName) setT7DealerName(resolvedDealerName);
+            const resolvedDealerCode =
+              dp.customer?.customerCode ||
+              (extracted.targets.t7a as any)?.dealerCode ||
+              (t7aTarget as any)?.dealerCode ||
+              "";
+            if (resolvedDealerCode) setT7DealerCode(resolvedDealerCode);
             if (dp.latitude != null) setT7Latitude(String(dp.latitude));
             if (dp.longitude != null) setT7Longitude(String(dp.longitude));
             const resolvedPlotName = dp.name || dp.plotName;
@@ -543,9 +566,10 @@ export default function ActivityPlanActualView({
             if (dp.treeCount != null) setT7TreeCount(String(dp.treeCount));
             if (dp.objective) setT7PlotObjective(dp.objective);
             if (dp.experimentDetail) setT7ExperimentDetail(dp.experimentDetail);
-            if (dp.mainCropInfo) setT7MainCropInfo(dp.mainCropInfo);
+            const resolvedMainCropInfo = dp.mainCropInfo || dp.plantingAreaCondition;
+            if (resolvedMainCropInfo) setT7MainCropInfo(resolvedMainCropInfo);
             if (dp.irrigations && dp.irrigations.length > 0) {
-              setT7Irrigations(dp.irrigations.map((ir: any) => ir.methodName));
+              setT7Irrigations(dp.irrigations.map((ir: any) => ir.method || ir.methodName));
             }
             if (dp.plantingDate) {
               setT7PlantingDate(
@@ -610,7 +634,33 @@ export default function ActivityPlanActualView({
                 );
               }
             }
-            if (dp.notes) setT7UsageMethod(dp.notes);
+            const resolvedUsageMethod = dp.usageMethod || dp.notes;
+            if (resolvedUsageMethod) setT7UsageMethod(resolvedUsageMethod);
+
+            const latestVisit =
+              (dp.visits && dp.visits.length > 0
+                ? dp.visits[dp.visits.length - 1]
+                : null) ||
+              ((p as any).demoPlotVisits && (p as any).demoPlotVisits.length > 0
+                ? (p as any).demoPlotVisits[(p as any).demoPlotVisits.length - 1]
+                : null);
+
+            if (latestVisit) {
+              if (latestVisit.cropAgeValue != null)
+                setT7CropAgeValue(String(latestVisit.cropAgeValue));
+              if (latestVisit.cropAgeUnit)
+                setT7CropAgeUnit(latestVisit.cropAgeUnit);
+              if (latestVisit.growthStage)
+                setT7GrowthStage(latestVisit.growthStage);
+              if (latestVisit.cropCondition)
+                setT7CropCondition(latestVisit.cropCondition);
+              if (latestVisit.cropProblemDesc)
+                setT7CropProblemDescription(latestVisit.cropProblemDesc);
+              if (latestVisit.productResponse)
+                setT7ProductResponse(latestVisit.productResponse);
+              if (latestVisit.productProblemDesc)
+                setT7ProblemDescription(latestVisit.productProblemDesc);
+            }
             if (dp.attachments && dp.attachments.length > 0) {
               const mapped = dp.attachments.map((a: any) => ({
                 id: a.id,
@@ -626,7 +676,6 @@ export default function ActivityPlanActualView({
             }
           } else {
             // Initial pre-population from plan for TYPE_7A fallback
-            const t7aTarget = extracted.targets.t7a || extracted.targets.t7;
             if (t7aTarget) {
               const fallbackPlotName =
                 (t7aTarget as any).plotName || (t7aTarget as any).name;
@@ -635,6 +684,8 @@ export default function ActivityPlanActualView({
                 setT7District((t7aTarget as any).district);
               if ((t7aTarget as any).dealerName)
                 setT7DealerName((t7aTarget as any).dealerName);
+              if ((t7aTarget as any).dealerCode)
+                setT7DealerCode((t7aTarget as any).dealerCode);
               if (t7aTarget.owner) setT7FarmerName(t7aTarget.owner);
               if (t7aTarget.crop) setT7CropName(t7aTarget.crop);
               if ((t7aTarget as any).cropCategory)
@@ -1065,14 +1116,21 @@ export default function ActivityPlanActualView({
             // Restore TYPE_7A specific parsed fields
             if ((parsed as any).type7aDemoPlot) {
               const dp = (parsed as any).type7aDemoPlot;
-              if (dp.province) setT7FarmerProvince(dp.province);
+              if (dp.ownerProvince) setT7FarmerProvince(dp.ownerProvince);
               if (dp.district) setT7District(dp.district);
               if (dp.customerId) setT7FarmerCustomerId(dp.customerId);
               if (dp.ownerName) setT7FarmerName(dp.ownerName);
               if (dp.ownerPhone) setT7FarmerPhone(dp.ownerPhone);
               if (dp.isUnregisteredFarmer != null)
                 setT7IsUnregisteredFarmer(Boolean(dp.isUnregisteredFarmer));
-              if (dp.dealerName) setT7DealerName(dp.dealerName);
+              if (dp.dealerName) {
+                setT7DealerName(dp.dealerName);
+              } else if (linkedDemoPlot?.customer?.name) {
+                setT7DealerName(linkedDemoPlot.customer.name);
+              }
+              if (linkedDemoPlot?.customer?.customerCode) {
+                setT7DealerCode(linkedDemoPlot.customer.customerCode);
+              }
               if (dp.latitude != null) setT7Latitude(String(dp.latitude));
               if (dp.longitude != null) setT7Longitude(String(dp.longitude));
               const resolvedPlotName = dp.name || dp.plotName;
@@ -1908,10 +1966,14 @@ export default function ActivityPlanActualView({
           JSON.stringify(cleanT10Images),
         );
 
+        const isType7AWork =
+          isTypeVisible("TYPE_7A") || isTypeVisible("ทำแปลงสาธิต");
+        const isType7BWork =
+          isTypeVisible("TYPE_7B") || isTypeVisible("ติดตามแปลงสาธิต");
+
         if (
-          (isTypeVisible("ทำแปลงสาธิต") ||
-            isTypeVisible("ติดตามแปลงสาธิต") ||
-            isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")) &&
+          !isType7AWork &&
+          isType7BWork &&
           (t7DemoPlotId ||
             targets.t7.owner ||
             targets.t7.product ||
@@ -2301,6 +2363,7 @@ export default function ActivityPlanActualView({
             setT7IsUnregisteredFarmer={setT7IsUnregisteredFarmer}
             t7DealerName={t7DealerName}
             setT7DealerName={setT7DealerName}
+            t7DealerCode={t7DealerCode}
             t7Latitude={t7Latitude}
             setT7Latitude={setT7Latitude}
             t7Longitude={t7Longitude}

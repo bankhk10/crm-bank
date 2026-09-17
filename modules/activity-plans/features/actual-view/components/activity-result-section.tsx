@@ -226,6 +226,7 @@ interface ActivityResultSectionProps {
   setT7IsUnregisteredFarmer?: (v: boolean) => void;
   t7DealerName?: string;
   setT7DealerName?: (v: string) => void;
+  t7DealerCode?: string;
   t7Latitude?: string;
   setT7Latitude?: (v: string) => void;
   t7Longitude?: string;
@@ -487,6 +488,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     setT7IsUnregisteredFarmer,
     t7DealerName,
     setT7DealerName,
+    t7DealerCode,
     t7Latitude,
     setT7Latitude,
     t7Longitude,
@@ -728,6 +730,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setIsUnregisteredFarmer={setT7IsUnregisteredFarmer}
           dealerName={t7DealerName}
           setDealerName={setT7DealerName}
+          dealerCode={t7DealerCode}
           latitude={t7Latitude}
           setLatitude={setT7Latitude}
           longitude={t7Longitude}

@@ -755,6 +755,7 @@ export function extractPlanData(
       activityType: "CREATE",
       plotName: t7Plot?.name || "",
       dealerName: (t7Plot as any)?.customer?.name || "",
+      dealerCode: (t7Plot as any)?.customer?.customerCode || "",
       province: t7Plot?.province || p.province || "",
       district: t7Plot?.district || p.district || "",
       cropCategory: t7Plot?.cropCategory || "",

@@ -342,14 +342,19 @@ export function DetailType7NewDemo({
                       : "-"}
                 </span>
               </div>
-              {(demoPlotData.farmerName || demoPlotData.farmer?.name) && (
+              {(demoPlotData.ownerName || demoPlotData.farmerName || demoPlotData.farmer?.name) && (
                 <div>
                   <span className="text-slate-500 font-medium block">เกษตรกรเจ้าของแปลง:</span>
                   <span className="font-bold text-slate-900">
-                    {demoPlotData.farmerName || demoPlotData.farmer?.name}
-                    {demoPlotData.farmerPhone || demoPlotData.farmer?.phone
-                      ? ` (${demoPlotData.farmerPhone || demoPlotData.farmer?.phone})`
+                    {demoPlotData.ownerName || demoPlotData.farmerName || demoPlotData.farmer?.name}
+                    {demoPlotData.ownerPhone || demoPlotData.farmerPhone || demoPlotData.farmer?.phone
+                      ? ` (${demoPlotData.ownerPhone || demoPlotData.farmerPhone || demoPlotData.farmer?.phone})`
                       : ""}
+                    {demoPlotData.ownerProvince
+                      ? ` จ.${demoPlotData.ownerProvince}`
+                      : demoPlotData.customer?.province
+                        ? ` จ.${demoPlotData.customer.province}`
+                        : ""}
                   </span>
                 </div>
               )}

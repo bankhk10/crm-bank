@@ -282,6 +282,7 @@ export const type7aDemoPlotInputSchema = z
     customerId: z.string().optional().nullable(),
     ownerName: z.string().min(1, "กรุณาระบุชื่อเกษตรกรเจ้าของแปลง"),
     ownerPhone: z.string().optional().nullable(),
+    ownerProvince: z.string().optional().nullable(),
     isUnregisteredFarmer: z.boolean().default(false),
     province: z.string().min(1, "กรุณาเลือกจังหวัด"),
     district: z.string().optional().nullable(),

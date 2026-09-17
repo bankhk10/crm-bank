@@ -2277,6 +2277,7 @@ model DemoPlot {
   usageMethod           String?        @map("usage_method") // วิธีใช้/อัตราการใช้ตอนเริ่มต้น
   notes                 String?        @map("notes") // ข้อมูลเพิ่มเติม
   ownerPhone            String?        @map("owner_phone") // เบอร์โทรศัพท์เจ้าของแปลง
+  ownerProvince         String?        @map("owner_province") // จังหวัดของเกษตรกรเจ้าของแปลง
   isUnregisteredFarmer  Boolean        @default(false) @map("is_unregistered_farmer") // เกษตรกรนอกระบบ
   latitude              Decimal?       @map("latitude") @db.Decimal(10, 7) // พิกัดแปลง Lat
   longitude             Decimal?       @map("longitude") @db.Decimal(10, 7) // พิกัดแปลง Lng

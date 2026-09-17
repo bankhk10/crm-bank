@@ -1160,18 +1160,20 @@ export function buildResultSummary(
       input.t7FarmerName?.trim() ||
       input.planSummary?.title ||
       "เกษตรกรเจ้าของแปลง";
-    const provinceVal =
-      input.t7FarmerProvince?.trim() ||
+    const plotProvinceVal =
       input.planSummary?.province?.trim() ||
+      (input as any).t7DemoPlotData?.province?.trim() ||
       "กรุงเทพมหานคร";
+    const farmerProvinceVal =
+      input.t7FarmerProvince?.trim() || null;
 
     type7aDemoPlot = {
-      customerId: input.t7FarmerCustomerId || null,
       ownerName: farmerName,
       ownerPhone: input.t7FarmerPhone?.trim() || null,
+      ownerProvince: farmerProvinceVal,
       isUnregisteredFarmer: Boolean(input.t7IsUnregisteredFarmer),
-      province: provinceVal,
-      district: input.t7FarmerDistrict?.trim() || input.planSummary?.district || null,
+      province: plotProvinceVal,
+      district: input.t7District?.trim() || input.planSummary?.district || null,
       latitude: latNum ?? 0,
       longitude: lngNum ?? 0,
       plotName: input.t7PlotName?.trim() || `แปลงสาธิต ${farmerName}`,

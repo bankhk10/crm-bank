@@ -624,6 +624,7 @@ export async function recordActivityResultUseCase(
     actualAttendeesCount: parsed.data.actualAttendeesCount,
     resultStatus: parsed.data.resultStatus as any,
     resultSummary: parsed.data.resultSummary,
+    type7aDemoPlot: parsed.data.type7aDemoPlot as any,
     discussionResult: parsed.data.discussionResult,
     productAdvice: parsed.data.productAdvice,
     salesOpportunity: parsed.data.salesOpportunity,

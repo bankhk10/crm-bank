@@ -1196,7 +1196,7 @@ export async function updateActivityPlan(
           include: { demoPlot: true },
         });
 
-        let plotId = planData.demoPlotData.id || existingVisit?.demoPlotId;
+        const plotId = planData.demoPlotData.id || existingVisit?.demoPlotId;
 
         if (plotId) {
           await tx.demoPlot.update({
@@ -1627,6 +1627,7 @@ export type CreateActivityResultInput = {
     customerId?: string | null;
     ownerName: string;
     ownerPhone?: string | null;
+    ownerProvince?: string | null;
     isUnregisteredFarmer: boolean;
     province: string;
     district?: string | null;
@@ -1963,14 +1964,24 @@ export async function upsertActivityResult(
       const demoData = input.type7aDemoPlot;
       const plan = await tx.activityPlan.findUnique({
         where: { id: input.activityPlanId },
-        select: { employeeId: true, demoPlotId: true },
+        select: {
+          employeeId: true,
+          demoPlotVisits: {
+            where: { visitNumber: 1 },
+            include: { demoPlot: true },
+            take: 1,
+          },
+        },
       });
 
-      let existingPlot = null;
-      if (plan?.demoPlotId) {
-        existingPlot = await tx.demoPlot.findUnique({
-          where: { id: plan.demoPlotId },
+      let existingPlot = plan?.demoPlotVisits?.[0]?.demoPlot || null;
+      if (!existingPlot) {
+        const earliestVisit = await tx.demoPlotVisit.findFirst({
+          where: { activityPlanId: input.activityPlanId },
+          orderBy: [{ visitNumber: "asc" }, { createdAt: "asc" }],
+          include: { demoPlot: true },
         });
+        existingPlot = earliestVisit?.demoPlot || null;
       }
       if (!existingPlot) {
         existingPlot = await tx.demoPlot.findFirst({
@@ -1993,8 +2004,8 @@ export async function upsertActivityResult(
             name: demoData.plotName,
             ownerName: demoData.ownerName,
             ownerPhone: demoData.ownerPhone ?? null,
+            ownerProvince: demoData.ownerProvince ?? null,
             isUnregisteredFarmer: demoData.isUnregisteredFarmer,
-            customerId: demoData.customerId ?? null,
             province: demoData.province,
             district: demoData.district ?? null,
             latitude: new Prisma.Decimal(demoData.latitude),
@@ -2031,6 +2042,7 @@ export async function upsertActivityResult(
             name: demoData.plotName,
             ownerName: demoData.ownerName,
             ownerPhone: demoData.ownerPhone ?? null,
+            ownerProvince: demoData.ownerProvince ?? null,
             isUnregisteredFarmer: demoData.isUnregisteredFarmer,
             customerId: demoData.customerId ?? null,
             employeeId: plan?.employeeId || "emp-system",
@@ -2062,12 +2074,6 @@ export async function upsertActivityResult(
         plotId = newPlot.id;
       }
       createdDemoPlotId = plotId;
-
-      // Link plan to plot if not linked
-      await tx.activityPlan.update({
-        where: { id: input.activityPlanId },
-        data: { demoPlotId: plotId },
-      });
 
       // Save DemoPlotProduct (Single Source of Truth for applicationRate)
       await tx.demoPlotProduct.deleteMany({ where: { demoPlotId: plotId } });

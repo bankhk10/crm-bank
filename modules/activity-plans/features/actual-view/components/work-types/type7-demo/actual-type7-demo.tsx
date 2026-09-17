@@ -55,6 +55,7 @@ export interface ActualType7DemoProps {
   setIsUnregisteredFarmer?: (v: boolean) => void;
   dealerName?: string;
   setDealerName?: (v: string) => void;
+  dealerCode?: string;
 
   // 2. Plot Location
   latitude?: string;
@@ -255,6 +256,7 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
       setIsUnregisteredFarmer={props.setIsUnregisteredFarmer}
       dealerName={props.dealerName}
       setDealerName={props.setDealerName}
+      dealerCode={props.dealerCode}
       latitude={props.latitude}
       setLatitude={props.setLatitude}
       longitude={props.longitude}

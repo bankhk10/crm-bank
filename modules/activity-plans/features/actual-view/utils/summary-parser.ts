@@ -749,16 +749,20 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
 
     // Type 7
-    const t7PlotMatch = summaryText.match(/ชื่อแปลงทดสอบ:\s*(.+)/);
+    const t7PlotMatch = summaryText.match(
+      /(?:ชื่อแปลงทดสอบ|ชื่อแปลงสาธิต):\s*(.+)/,
+    );
     if (t7PlotMatch && t7PlotMatch[1]) {
       result.t7PlotName = t7PlotMatch[1].split("\n")[0].trim();
     }
-    const t7MethodMatch = summaryText.match(/วิธีใช้\/อัตราการใช้:\s*(.+)/);
+    const t7MethodMatch = summaryText.match(
+      /(?:วิธีใช้\/อัตราการใช้|ข้อมูลเพิ่มเติม):\s*(.+)/,
+    );
     if (t7MethodMatch && t7MethodMatch[1]) {
       result.t7UsageMethod = t7MethodMatch[1].split("\n")[0].trim();
     }
     const t7AgeMatch = summaryText.match(
-      /อายุพืช:\s*(\d+)\s*(วัน|สัปดาห์|เดือน|ปี)?/,
+      /(?:อายุพืช|อายุพืช\s*\(วันหลังปลูก\)):\s*(\d+)\s*(วัน|สัปดาห์|เดือน|ปี)?/,
     );
     if (t7AgeMatch && t7AgeMatch[1]) {
       result.t7CropAgeValue = t7AgeMatch[1].trim();
@@ -766,7 +770,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         result.t7CropAgeUnit = t7AgeMatch[2].trim();
       }
     }
-    const t7GrowthMatch = summaryText.match(/ระยะการเจริญเติบโต:\s*(.+)/);
+    const t7GrowthMatch = summaryText.match(
+      /(?:ระยะการเจริญเติบโต|ระยะพืช\s*\(Stage\)):\s*(.+)/,
+    );
     if (t7GrowthMatch && t7GrowthMatch[1]) {
       result.t7GrowthStage = t7GrowthMatch[1].split("\n")[0].trim();
     }

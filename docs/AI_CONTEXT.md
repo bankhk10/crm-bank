@@ -1,8 +1,8 @@
 # AI Context - CRM System
 
 > **Document Type**: Master Context Document  
-> **Version**: 3.0.0  
-> **Last Updated**: 2026-08-28  
+> **Version**: 3.2.0
+> **Last Updated**: 2026-09-17  
 > **Related Documents**: [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md) | [ARCHITECTURE.md](./ARCHITECTURE.md) | [DATA_MODEL.md](./DATA_MODEL.md) | [CODING_STANDARDS.md](./CODING_STANDARDS.md) | [MODULE_ARCHITECTURE.md](./MODULE_ARCHITECTURE.md)
 
 ---
@@ -501,6 +501,7 @@ Step 8: STOP and await approval
 ### Prohibited Trial-and-Error Patterns
 
 The AI Agent MUST NOT guess or experiment with random commands, including:
+
 - ❌ Trying `npm run ...` or `npx ...` instead of `pnpm`.
 - ❌ Experimenting with alternative runners or CLI flags without checking `package.json`.
 - ❌ Guessing the module path of Prisma Client or the project's database client.
@@ -512,6 +513,95 @@ The AI Agent MUST NOT guess or experiment with random commands, including:
 > **STOP immediately.** Do NOT guess or execute trial commands. Report what was discovered from `package.json`, `prisma.config.ts`, and `lib/db.ts`, and request clarification before proceeding.
 
 ---
+
+## 5.11 Investigation Scope Rules
+
+The AI Agent MUST use TARGETED INVESTIGATION by default.
+
+### Default Principle
+
+Start with the smallest set of files, functions, and data directly related to the reported issue.
+
+Do NOT perform broad repository-wide investigation unless it is necessary.
+
+### Investigation Levels
+
+LEVEL 1 — Direct Point
+
+Inspect only:
+
+- The UI/component where the issue appears
+- The immediate state/props/function involved
+- The immediate data source used by that code
+
+If the Root Cause is proven:
+→ STOP investigation.
+
+LEVEL 2 — Direct Data Flow
+
+Only expand when LEVEL 1 cannot determine the Root Cause.
+
+Follow only the required path:
+
+UI
+→ State / Props
+→ Application / Action
+→ Repository
+→ Database
+
+Do NOT inspect unrelated layers or files.
+
+LEVEL 3 — Cross-Layer Investigation
+
+Only expand further when there is a concrete reason, such as:
+
+- Root Cause cannot be determined from LEVEL 1 or LEVEL 2
+- Database state conflicts with UI state
+- Data crosses an unexpected architectural boundary
+- A shared component is involved
+- The proposed fix may affect another business flow
+
+### Stop Rule
+
+Once the Root Cause is proven:
+
+1. Stop investigating.
+2. Identify the smallest safe fix.
+3. Report the Root Cause.
+4. Report the Proposed Fix.
+5. List only the files that actually need modification.
+6. STOP and wait for APPROVED.
+
+### Scope Rules
+
+The AI Agent MUST NOT:
+
+- Search the entire repository by default
+- Inspect unrelated modules
+- Inspect unrelated TYPEs
+- Trace unrelated workflows
+- Investigate future requirements that are not part of the reported issue
+- Perform speculative architecture analysis
+- Continue investigating after the Root Cause is already proven
+
+### Expansion Rule
+
+Before expanding the investigation scope, the AI Agent MUST be able to answer:
+
+"Why is this additional file, layer, or data source necessary to determine the Root Cause?"
+
+If there is no concrete reason:
+→ Do NOT expand.
+
+### Goal
+
+The goal of Investigation is:
+
+"Find the smallest proven Root Cause and the smallest safe fix."
+
+Not:
+
+"Understand the entire system before making any change."
 
 # 6. Tech Stack Summary
 
@@ -587,14 +677,15 @@ pages: app/(main)/
 
 ## 9. Changelog
 
-| Date       | Version | Changes                                                                                                                                                   |
-| ---------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Date       | Version | Changes                                                                                                                                                    |
+| ---------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-09-17 | 3.2.0   | Added targeted Investigation Scope Rules to prevent unnecessary repository-wide investigation and enforce stop-on-root-cause workflow                      |
 | 2026-09-17 | 3.1.0   | Added Section 5.10 Database Inspection Rules & Workflow (read-only enforcement, pnpm standard, prohibition of ad-hoc PrismaClient/raw connection guessing) |
-| 2026-08-28 | 3.0.0   | Reworked AI context to align with the project-wide Module Architecture Contract and removed dependency on any single module as the architecture reference |
-| 2026-02-24 | 2.0.0   | Major update: reflect modules/ architecture, updated paths, added module context                                                                          |
-| 2026-02-09 | 1.2.0   | Updated sale status flow + scope alignment with notifications and forecast                                                                                |
-| 2026-02-02 | 1.1.0   | Updated Tech Stack versions                                                                                                                               |
-| 2026-01-28 | 1.0.0   | Initial documentation created                                                                                                                             |
+| 2026-08-28 | 3.0.0   | Reworked AI context to align with the project-wide Module Architecture Contract and removed dependency on any single module as the architecture reference  |
+| 2026-02-24 | 2.0.0   | Major update: reflect modules/ architecture, updated paths, added module context                                                                           |
+| 2026-02-09 | 1.2.0   | Updated sale status flow + scope alignment with notifications and forecast                                                                                 |
+| 2026-02-02 | 1.1.0   | Updated Tech Stack versions                                                                                                                                |
+| 2026-01-28 | 1.0.0   | Initial documentation created                                                                                                                              |
 
 ---
 
