@@ -267,6 +267,9 @@ export function extractPlanData(
       ? extractedHelpers.map((h: any) => h.name)
       : undefined;
 
+  const t7Plot =
+    p.demoPlotVisits?.[0]?.demoPlot || (p as any).demoPlot;
+
   const planSummary: PlanSummaryData = {
     planNo: p.code || "TP-DRAFT",
     title: p.title || "แผนงานกิจกรรม",
@@ -277,8 +280,8 @@ export function extractPlanData(
     timeStr: `${format(start, "HH:mm")} - ${format(end, "HH:mm")} น.`,
     locationStr: p.location || "ไม่ระบุสถานที่",
     location: p.location || undefined,
-    province: p.province || undefined,
-    district: p.district || undefined,
+    province: p.province || t7Plot?.province || undefined,
+    district: p.district || t7Plot?.district || undefined,
     marketingBudget: p.marketingBudgetRequested
       ? Number(p.marketingBudgetRequested)
       : undefined,

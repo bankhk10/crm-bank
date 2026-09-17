@@ -63,6 +63,7 @@ export interface ActualType7DemoProps {
   setLongitude?: (v: string) => void;
 
   // 3. Demo Plot Initial Data
+  planProvince?: string;
   plotName: string;
   setPlotName: (v: string) => void;
   district?: string;
@@ -258,6 +259,7 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
       setLatitude={props.setLatitude}
       longitude={props.longitude}
       setLongitude={props.setLongitude}
+      planProvince={props.planProvince}
       plotName={props.plotName}
       setPlotName={props.setPlotName}
       district={props.district}

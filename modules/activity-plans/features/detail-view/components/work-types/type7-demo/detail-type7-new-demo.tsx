@@ -283,8 +283,87 @@ export function DetailType7NewDemo({
       <div className="space-y-3 pt-1 border-t border-slate-100">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
           <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-          <span>ผลการจัดทำแปลงสาธิตเริ่มต้น</span>
+          <span>ผลการจัดทำแปลงสาธิตเริ่มต้น (Actual Baseline)</span>
         </div>
+
+        {/* ข้อมูลแปลงสาธิตจริงจาก DemoPlot Baseline */}
+        {demoPlotData && (
+          <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-xl p-3.5 space-y-3">
+            <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+              <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                <Sprout className="w-4 h-4 text-emerald-700" />
+                ข้อมูลแปลงสาธิตจริง (Demo Plot Actual Baseline)
+              </span>
+              {demoPlotData.code && (
+                <Badge
+                  variant="outline"
+                  className="bg-white text-emerald-800 border-emerald-300 font-mono text-[11px]"
+                >
+                  รหัสแปลง: {demoPlotData.code}
+                </Badge>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+              <div>
+                <span className="text-slate-500 font-medium block">ชื่อแปลงสาธิต:</span>
+                <span className="font-bold text-slate-900">
+                  {demoPlotData.name || plotName || "-"}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-medium block">ที่ตั้งแปลง:</span>
+                <span className="font-bold text-slate-900">
+                  {demoPlotData.district ? `อ.${demoPlotData.district} ` : ""}
+                  {demoPlotData.province ? `จ.${demoPlotData.province}` : "-"}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-medium block">พืชที่ทดสอบ:</span>
+                <span className="font-bold text-slate-900">
+                  {demoPlotData.cropName || "-"}
+                  {demoPlotData.customCropName ? ` (${demoPlotData.customCropName})` : ""}
+                  {demoPlotData.cropCategory ? ` (${demoPlotData.cropCategory})` : ""}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-medium block">
+                  {["พืชไร่", "ผักและพืชล้มลุก"].includes(demoPlotData.cropCategory)
+                    ? "ขนาดพื้นที่:"
+                    : "จำนวนต้น:"}
+                </span>
+                <span className="font-bold text-slate-900">
+                  {["พืชไร่", "ผักและพืชล้มลุก"].includes(demoPlotData.cropCategory)
+                    ? demoPlotData.areaRai
+                      ? `${demoPlotData.areaRai} ไร่`
+                      : "-"
+                    : demoPlotData.treeCount
+                      ? `${demoPlotData.treeCount} ต้น`
+                      : "-"}
+                </span>
+              </div>
+              {(demoPlotData.farmerName || demoPlotData.farmer?.name) && (
+                <div>
+                  <span className="text-slate-500 font-medium block">เกษตรกรเจ้าของแปลง:</span>
+                  <span className="font-bold text-slate-900">
+                    {demoPlotData.farmerName || demoPlotData.farmer?.name}
+                    {demoPlotData.farmerPhone || demoPlotData.farmer?.phone
+                      ? ` (${demoPlotData.farmerPhone || demoPlotData.farmer?.phone})`
+                      : ""}
+                  </span>
+                </div>
+              )}
+              {(demoPlotData.latitude || demoPlotData.longitude) && (
+                <div>
+                  <span className="text-slate-500 font-medium block">พิกัดแปลง (Lat, Long):</span>
+                  <span className="font-bold text-slate-900 font-mono text-[11px]">
+                    {demoPlotData.latitude || "-"}, {demoPlotData.longitude || "-"}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
           {/* แปลงเกษตรของเกษตรกร */}

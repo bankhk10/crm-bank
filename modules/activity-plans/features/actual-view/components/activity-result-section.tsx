@@ -213,6 +213,7 @@ interface ActivityResultSectionProps {
   setT7DemoPlotId?: (id: string | null) => void;
 
   // TYPE_7A Initial Data Props
+  planProvince?: string;
   t7FarmerProvince?: string;
   setT7FarmerProvince?: (v: string) => void;
   t7FarmerCustomerId?: string | null;
@@ -473,6 +474,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     t7DemoPlotData,
     t7DemoPlotId,
     setT7DemoPlotId,
+    planProvince,
     t7FarmerProvince,
     setT7FarmerProvince,
     t7FarmerCustomerId,
@@ -713,6 +715,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           target={targets.t7a || targets.t7}
           products={products}
           customers={customers}
+          planProvince={planProvince}
           farmerProvince={t7FarmerProvince}
           setFarmerProvince={setT7FarmerProvince}
           farmerCustomerId={t7FarmerCustomerId}
@@ -745,7 +748,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setTreeCount={setT7TreeCount}
           plotObjective={t7PlotObjective}
           setPlotObjective={setT7PlotObjective}
-          experimentDetail={t7ExperimentDetail || t7CustomPlotDetail}
+          experimentDetail={t7ExperimentDetail}
           setExperimentDetail={setT7ExperimentDetail}
           mainCropInfo={t7MainCropInfo || t7PlantingAreaCondition}
           setMainCropInfo={setT7MainCropInfo}

@@ -127,6 +127,7 @@ export interface BuildSummaryInput {
   t7CustomCropName?: string;
   t7AreaRai?: string | number | null;
   t7TreeCount?: string | number | null;
+  t7ExperimentDetail?: string;
   t7MainCropInfo?: string;
   t7InitialSprayDate?: string;
   t7NextSprayDate?: string;
@@ -246,6 +247,7 @@ export function buildResultSummary(
     t7PlotName = "",
     t7PlotObjective,
     t7CustomPlotDetail,
+    t7ExperimentDetail,
     t7PlantingDate,
     t7PlantingAreaCondition,
     t7UsageMethod,
@@ -1180,7 +1182,7 @@ export function buildResultSummary(
       areaRai: parseCleanNumber(input.t7AreaRai),
       treeCount: parseCleanNumber(input.t7TreeCount),
       objective: input.t7PlotObjective?.trim() || null,
-      experimentDetail: input.t7CustomPlotDetail?.trim() || null,
+      experimentDetail: input.t7ExperimentDetail?.trim() || input.t7CustomPlotDetail?.trim() || null,
       mainCropInfo: input.t7MainCropInfo?.trim() || null,
       plantingDate: input.t7PlantingDate ? new Date(input.t7PlantingDate) : null,
       initialSprayDate: input.t7InitialSprayDate

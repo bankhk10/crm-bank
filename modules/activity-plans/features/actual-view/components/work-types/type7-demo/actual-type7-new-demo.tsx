@@ -14,6 +14,7 @@ import {
   Droplets,
   Layers,
   Store,
+  Edit3,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,7 +34,6 @@ import {
   DemoPlotProductItem,
   DemoPlotExternalProductItem,
 } from "@/modules/activity-plans/features/actual-view/types";
-import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
 import {
   ALL_THAI_PROVINCES,
 } from "@/lib/province-region-mapping";
@@ -121,6 +121,7 @@ export interface ActualType7NewDemoProps {
   setLongitude?: (v: string) => void;
 
   // 3. Demo Plot Initial Data
+  planProvince?: string;
   plotName?: string;
   setPlotName?: (v: string) => void;
   t7PlotName?: string;
@@ -229,6 +230,7 @@ export function ActualType7NewDemo({
   setLongitude,
 
   // 3. Demo Plot Initial Data
+  planProvince = "",
   plotName: propPlotName = "",
   t7PlotName = "",
   setPlotName,
@@ -303,6 +305,15 @@ export function ActualType7NewDemo({
     setPlotName?.(val);
     setT7PlotName?.(val);
   };
+
+  // Checkbox: แก้ไขข้อมูลแปลงสาธิต (Actual Baseline)
+  const [isEditingBaseline, setIsEditingBaseline] = useState(false);
+
+  // Business Rule: พืชไร่ / ผักและพืชล้มลุก = ไร่, หมวดอื่น = จำนวนต้น
+  const isRaiUnit = ["พืชไร่", "ผักและพืชล้มลุก"].includes(cropCategory);
+  const isCustomCropName =
+    cropName === "อื่นๆ" ||
+    ["ผักและพืชล้มลุกอื่นๆ", "พืชไร่อื่นๆ", "พืชสวนอื่นๆ"].includes(cropName);
 
   // Server-fetched farmers for the selected province (customerType === "FARMER")
   const [farmersFromApi, setFarmersFromApi] = useState<CustomerOption[]>([]);
@@ -551,52 +562,254 @@ export function ActualType7NewDemo({
         </Badge>
       </div>
 
-      {/* SECTION 1: PLANNED TARGET CARD */}
-      <ActualTargetCard
-        iconColorClass="text-emerald-700"
-        badgeColorClass="bg-emerald-50 text-emerald-800 border border-emerald-200"
-        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
-        items={[
-          { label: "ประเภทงาน:", value: "ทำแปลงสาธิต (เริ่มทำแปลงใหม่)" },
-          { label: "เกษตรกร / เจ้าของแปลง:", value: target.owner || "-" },
-          { label: "พืชที่ทดสอบ:", value: target.crop || "-" },
-          { label: "สินค้าที่วางแผน:", value: target.product || "-" },
-          { label: "จำนวนแปลง / พื้นที่:", value: target.plots || "-" },
-          ...(target.demoProductQuantity
-            ? [
-                {
-                  label: "จำนวนสินค้าที่ใช้ตามแผน:",
-                  value: `${target.demoProductQuantity}`,
-                },
-              ]
-            : []),
-          ...(target.experimentDetail || target.detail
-            ? [
-                {
-                  label: "รายละเอียดการทดลองตามแผน:",
-                  value: target.experimentDetail || target.detail,
-                },
-              ]
-            : []),
-        ]}
-      />
+      {/* GROUP 1: ข้อมูลตั้งต้นของแปลงสาธิต (Demo Plot Details) */}
+      <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
+        <div className="flex flex-wrap items-center justify-between border-b border-slate-200/80 pb-2.5 gap-2">
+          <div className="flex items-center gap-2">
+            <Layers className="w-4 h-4 text-emerald-700" />
+            <h3 className="text-sm font-bold text-slate-900">
+              1. ข้อมูลตั้งต้นของแปลงสาธิต (Demo Plot Details)
+            </h3>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-3 py-1.5 rounded-xl border border-slate-200 hover:border-emerald-300 transition-colors shadow-2xs">
+            <input
+              type="checkbox"
+              id="edit-baseline-toggle"
+              checked={isEditingBaseline}
+              onChange={(e) => setIsEditingBaseline(e.target.checked)}
+              className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+            />
+            <span className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+              <Edit3 className="w-3.5 h-3.5 text-emerald-600" />
+              แก้ไขข้อมูล (Actual Baseline)
+            </span>
+          </label>
+        </div>
 
-      {/* SECTION 2: FARMER OWNER (ตาม Rule 1) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* ชื่อแปลงสาธิต */}
+          <div className="md:col-span-2 space-y-1">
+            <label className="block text-xs font-bold text-slate-700">
+              ชื่อแปลงสาธิต <span className="text-rose-500">*</span>
+            </label>
+            <Input
+              value={plotName}
+              onChange={(e) => handlePlotNameChange(e.target.value)}
+              disabled={!isEditingBaseline}
+              placeholder="เช่น แปลงสาธิตทุเรียนหมอนทอง นายสมชาย..."
+              className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
+                !isEditingBaseline
+                  ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
+                  : "bg-white border-slate-200"
+              }`}
+              required
+            />
+          </div>
+
+          {/* จังหวัดของแปลง ดึงจาก ActivityPlan */}
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-700">
+              จังหวัดของแปลงสาธิต (จากแผนงาน)
+            </label>
+            <Input
+              value={planProvince || "-"}
+              disabled
+              className="h-10 text-xs sm:text-sm bg-slate-100/90 text-slate-600 border-slate-200 rounded-xl cursor-not-allowed font-medium"
+            />
+          </div>
+
+          {/* อำเภอ */}
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-700">
+              อำเภอ / เขต
+            </label>
+            <Input
+              value={district}
+              onChange={(e) => setDistrict?.(e.target.value)}
+              disabled={!isEditingBaseline}
+              placeholder="เช่น ท่าใหม่, บางกรวย, เมือง..."
+              className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
+                !isEditingBaseline
+                  ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
+                  : "bg-white border-slate-200"
+              }`}
+            />
+          </div>
+
+          {/* หมวดหมู่พืช */}
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-700">
+              หมวดหมู่พืช <span className="text-rose-500">*</span>
+            </label>
+            <Select
+              value={cropCategory}
+              onValueChange={(val) => {
+                setCropCategory?.(val);
+                setCropName?.("");
+              }}
+              disabled={!isEditingBaseline}
+            >
+              <SelectTrigger
+                className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
+                  !isEditingBaseline
+                    ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
+                    : "bg-white border-slate-200"
+                }`}
+              >
+                <SelectValue placeholder="เลือกหมวดหมู่พืช..." />
+              </SelectTrigger>
+              <SelectContent>
+                {CROP_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* พืชที่ทดสอบ */}
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-700">
+              พืชที่ทดสอบ <span className="text-rose-500">*</span>
+            </label>
+            {cropCategory && availableCrops.length > 0 ? (
+              <Select
+                value={cropName}
+                onValueChange={(val) => setCropName?.(val)}
+                disabled={!isEditingBaseline}
+              >
+                <SelectTrigger
+                  className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
+                    !isEditingBaseline
+                      ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
+                      : "bg-white border-slate-200"
+                  }`}
+                >
+                  <SelectValue placeholder="เลือกพืชที่ทดสอบ..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableCrops.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="อื่นๆ">อื่นๆ (ระบุเอง)</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                value={cropName}
+                onChange={(e) => setCropName?.(e.target.value)}
+                disabled={!isEditingBaseline}
+                placeholder="ระบุชื่อพืช เช่น ทุเรียน, ข้าว..."
+                className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
+                  !isEditingBaseline
+                    ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
+                    : "bg-white border-slate-200"
+                }`}
+                required
+              />
+            )}
+          </div>
+
+          {/* พืชอื่นๆ ถ้าเลือก อื่นๆ */}
+          {isCustomCropName && (
+            <div className="md:col-span-2 space-y-1">
+              <label className="block text-xs font-bold text-slate-700">
+                ระบุชื่อพืชเพิ่มเติม <span className="text-rose-500">*</span>
+              </label>
+              <Input
+                value={customCropName}
+                onChange={(e) => setCustomCropName?.(e.target.value)}
+                disabled={!isEditingBaseline}
+                placeholder="พิมพ์ชื่อพืชที่ทดสอบ..."
+                className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
+                  !isEditingBaseline
+                    ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
+                    : "bg-white border-slate-200"
+                }`}
+              />
+            </div>
+          )}
+
+          {/* แสดง "ขนาดพื้นที่ (ไร่)" หรือ "จำนวนต้น" เพียงช่องเดียว ตาม Business Rule */}
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-700">
+              {isRaiUnit ? "ขนาดพื้นที่ (ไร่)" : "จำนวนต้น"}{" "}
+              <span className="text-rose-500">*</span>
+            </label>
+            {isRaiUnit ? (
+              <Input
+                type="number"
+                step="any"
+                min={0}
+                value={areaRai}
+                onChange={(e) => setAreaRai?.(e.target.value)}
+                disabled={!isEditingBaseline}
+                placeholder="เช่น 5 หรือ 2.5"
+                className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
+                  !isEditingBaseline
+                    ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
+                    : "bg-white border-slate-200"
+                }`}
+              />
+            ) : (
+              <Input
+                type="number"
+                step="any"
+                min={0}
+                value={treeCount}
+                onChange={(e) => setTreeCount?.(e.target.value)}
+                disabled={!isEditingBaseline}
+                placeholder="เช่น 100"
+                className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
+                  !isEditingBaseline
+                    ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
+                    : "bg-white border-slate-200"
+                }`}
+              />
+            )}
+          </div>
+
+          {/* วัตถุประสงค์แปลง */}
+          <div className="md:col-span-2 space-y-1">
+            <label className="block text-xs font-bold text-slate-700">
+              วัตถุประสงค์ของแปลงสาธิต
+            </label>
+            <Textarea
+              rows={2}
+              value={plotObjective}
+              onChange={(e) => setPlotObjective?.(e.target.value)}
+              disabled={!isEditingBaseline}
+              placeholder="ระบุวัตถุประสงค์ของการทำแปลงสาธิต เช่น ทดสอบการแตกยอด ลดอาการใบไหม้..."
+              className={`text-xs sm:text-sm rounded-xl ${
+                !isEditingBaseline
+                  ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
+                  : "bg-white border-slate-200"
+              }`}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* GROUP 2: เกษตรกรเจ้าของแปลงและพิกัดแปลง (Farmer Owner & Coordinates) */}
       <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
         <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
           <div className="flex items-center gap-2">
             <UserCheck className="w-4 h-4 text-emerald-700" />
             <h3 className="text-sm font-bold text-slate-900">
-              1. เกษตรกรเจ้าของแปลง <span className="text-rose-500">*</span>
+              2. เกษตรกรเจ้าของแปลงและพิกัดแปลง (Farmer Owner & Coordinates){" "}
+              <span className="text-rose-500">*</span>
             </h3>
           </div>
           <span className="text-[11px] text-slate-500">
-            บังคับระบุจังหวัดก่อนเลือกเกษตรกร
+            เลือกจังหวัดก่อนเพื่อค้นหาเกษตรกร
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* จังหวัด REQUIRED และเลือกก่อน */}
+          {/* จังหวัดของเกษตรกร REQUIRED และเลือกก่อน (Default ไม่ได้เลือก) */}
           <div>
             <FormCombobox
               id="farmer-province-combobox"
@@ -712,7 +925,7 @@ export function ActualType7NewDemo({
             </div>
           )}
 
-          {/* Dealer/Store Owner ตาม requirement เดิมของ TYPE7A */}
+          {/* Dealer/Store Owner */}
           <div className="md:col-span-2">
             <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
               <Store className="w-3.5 h-3.5 text-emerald-600" />
@@ -725,21 +938,11 @@ export function ActualType7NewDemo({
               className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
             />
           </div>
-        </div>
-      </div>
 
-      {/* SECTION 3: PLOT LOCATION (ตาม Rule 2: Latitude & Longitude REQUIRED numeric) */}
-      <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
-        <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2.5">
-          <MapPin className="w-4 h-4 text-emerald-700" />
-          <h3 className="text-sm font-bold text-slate-900">
-            2. พิกัดแปลงสาธิต (Plot Coordinates) <span className="text-rose-500">*</span>
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* พิกัดแปลงสาธิต (Plot Coordinates: Latitude & Longitude REQUIRED) */}
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
+            <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
               ละติจูด (Latitude) <span className="text-rose-500">*</span>
             </label>
             <Input
@@ -757,7 +960,8 @@ export function ActualType7NewDemo({
           </div>
 
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
+            <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
               ลองจิจูด (Longitude) <span className="text-rose-500">*</span>
             </label>
             <Input
@@ -776,149 +980,19 @@ export function ActualType7NewDemo({
         </div>
       </div>
 
-      {/* SECTION 4: DEMO PLOT INITIAL DATA (ตาม Rule 3 & Rule 7) */}
+      {/* GROUP 3: ข้อมูลสภาพแปลงเริ่มต้น (Initial Plot Condition & Observations) */}
       <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
-        <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2.5">
-          <Layers className="w-4 h-4 text-emerald-700" />
-          <h3 className="text-sm font-bold text-slate-900">
-            3. ข้อมูลตั้งต้นของแปลงสาธิต (Demo Plot Details)
-          </h3>
+        <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-emerald-700" />
+            <h3 className="text-sm font-bold text-slate-900">
+              3. ข้อมูลสภาพแปลงเริ่มต้น (Initial Plot Condition & Observations)
+            </h3>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* ชื่อแปลงสาธิต */}
-          <div className="md:col-span-2 space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              ชื่อแปลงสาธิต <span className="text-rose-500">*</span>
-            </label>
-            <Input
-              value={plotName}
-              onChange={(e) => handlePlotNameChange(e.target.value)}
-              placeholder="เช่น แปลงสาธิตทุเรียนหมอนทอง นายสมชาย..."
-              className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
-              required
-            />
-          </div>
-
-          {/* อำเภอ */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              อำเภอ / เขต
-            </label>
-            <Input
-              value={district}
-              onChange={(e) => setDistrict?.(e.target.value)}
-              placeholder="เช่น ท่าใหม่, เมือง..."
-              className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          {/* หมวดหมู่พืช */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              หมวดหมู่พืช <span className="text-rose-500">*</span>
-            </label>
-            <Select
-              value={cropCategory}
-              onValueChange={(val) => {
-                setCropCategory?.(val);
-                setCropName?.("");
-              }}
-            >
-              <SelectTrigger className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500">
-                <SelectValue placeholder="เลือกหมวดหมู่พืช..." />
-              </SelectTrigger>
-              <SelectContent>
-                {CROP_CATEGORIES.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* ชื่อพืชที่ทดสอบ */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              พืชที่ทดสอบ <span className="text-rose-500">*</span>
-            </label>
-            {cropCategory && availableCrops.length > 0 ? (
-              <Select
-                value={cropName}
-                onValueChange={(val) => setCropName?.(val)}
-              >
-                <SelectTrigger className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500">
-                  <SelectValue placeholder="เลือกพืชที่ทดสอบ..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableCrops.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="อื่นๆ">อื่นๆ (ระบุเอง)</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <Input
-                value={cropName}
-                onChange={(e) => setCropName?.(e.target.value)}
-                placeholder="ระบุชื่อพืช เช่น ทุเรียน, ข้าว..."
-                className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                required
-              />
-            )}
-          </div>
-
-          {/* พืชอื่นๆ ถ้าเลือก อื่นๆ */}
-          {cropName === "อื่นๆ" && (
-            <div className="space-y-1">
-              <label className="block text-xs font-bold text-slate-700">
-                ระบุชื่อพืชเพิ่มเติม <span className="text-rose-500">*</span>
-              </label>
-              <Input
-                value={customCropName}
-                onChange={(e) => setCustomCropName?.(e.target.value)}
-                placeholder="พิมพ์ชื่อพืชที่ทดสอบ..."
-                className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
-          )}
-
-          {/* ขนาดพื้นที่ (ไร่) */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              ขนาดพื้นที่ (ไร่)
-            </label>
-            <Input
-              type="number"
-              step="any"
-              min={0}
-              value={areaRai}
-              onChange={(e) => setAreaRai?.(e.target.value)}
-              placeholder="เช่น 5 หรือ 2.5"
-              className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          {/* จำนวนต้น */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              จำนวนต้น
-            </label>
-            <Input
-              type="number"
-              step="any"
-              min={0}
-              value={treeCount}
-              onChange={(e) => setTreeCount?.(e.target.value)}
-              placeholder="เช่น 100"
-              className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          {/* ข้อมูลพืชประธาน (Rule 8: ข้อมูลพืชประธาน) */}
+          {/* ข้อมูลพืชประธาน */}
           <div className="md:col-span-2 space-y-1">
             <label className="block text-xs font-bold text-slate-700">
               ข้อมูลพืชประธาน
@@ -934,38 +1008,23 @@ export function ActualType7NewDemo({
             />
           </div>
 
-          {/* วัตถุประสงค์แปลง */}
-          <div className="md:col-span-2 space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              วัตถุประสงค์ของแปลงสาธิต
-            </label>
-            <Textarea
-              rows={2}
-              value={plotObjective}
-              onChange={(e) => setPlotObjective?.(e.target.value)}
-              placeholder="ระบุวัตถุประสงค์ของการทำแปลงสาธิต เช่น ทดสอบการแตกยอด ลดอาการใบไหม้..."
-              className="text-xs sm:text-sm bg-white border-slate-200 rounded-xl"
-            />
-          </div>
-
-          {/* วิธีการทดลอง */}
+          {/* วิธีการทดลอง / แผนการทดสอบ (Rule 9: strictly experimentDetail) */}
           <div className="md:col-span-2 space-y-1">
             <label className="block text-xs font-bold text-slate-700">
               วิธีการทดลอง / แผนการทดสอบ
             </label>
             <Textarea
               rows={2}
-              value={experimentDetail || customPlotDetail}
+              value={experimentDetail}
               onChange={(e) => {
                 setExperimentDetail?.(e.target.value);
-                setCustomPlotDetail?.(e.target.value);
               }}
               placeholder="ระบุวิธีการทดลอง การแบ่งแปลงเปรียบเทียบ..."
               className="text-xs sm:text-sm bg-white border-slate-200 rounded-xl"
             />
           </div>
 
-          {/* ระบบน้ำ (Rule 7: Normalized Multi-select Checkboxes) */}
+          {/* ระบบน้ำ (Multiple Checkboxes) */}
           <div className="md:col-span-2 space-y-2 pt-1 border-t border-slate-200/80">
             <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
               <Droplets className="w-3.5 h-3.5 text-blue-600" />
@@ -995,16 +1054,137 @@ export function ActualType7NewDemo({
               })}
             </div>
           </div>
+
+          {/* วันที่ฉีดพ่น */}
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-700">
+              วันที่ฉีดพ่น <span className="text-rose-500">*</span>
+            </label>
+            <DatePicker
+              value={initialSprayDate}
+              onChange={(v) => setInitialSprayDate?.(v || "")}
+              placeholder="เลือกวันที่ฉีดพ่นครั้งแรก"
+              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
+              required
+            />
+          </div>
+
+          {/* กำหนดฉีดพ่นครั้งต่อไป */}
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-700">
+              กำหนดฉีดพ่นครั้งต่อไป
+            </label>
+            <DatePicker
+              value={nextSprayDate || nextFollowUpDate}
+              onChange={(v) => {
+                setNextSprayDate?.(v || "");
+                setNextFollowUpDate?.(v || "");
+              }}
+              placeholder="เลือกกำหนดฉีดพ่นครั้งต่อไป"
+              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
+            />
+          </div>
+
+          {/* วันที่เริ่มปลูกจริง */}
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-700">
+              วันที่เริ่มปลูกจริง
+            </label>
+            <DatePicker
+              value={plantingDate}
+              onChange={(v) => setPlantingDate?.(v || "")}
+              placeholder="เลือกวันที่เริ่มปลูกจริง"
+              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
+            />
+          </div>
+
+          {/* อายุพืช (วันหลังปลูก) */}
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-700">
+              อายุพืช
+            </label>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                min={0}
+                value={cropAgeValue}
+                onChange={(e) => setCropAgeValue?.(e.target.value)}
+                placeholder="เช่น 15"
+                className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl flex-1"
+              />
+              <Select
+                value={cropAgeUnit}
+                onValueChange={(v) => setCropAgeUnit?.(v)}
+              >
+                <SelectTrigger className="w-24 h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl">
+                  <SelectValue placeholder="หน่วย" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="วัน">วัน</SelectItem>
+                  <SelectItem value="สัปดาห์">สัปดาห์</SelectItem>
+                  <SelectItem value="เดือน">เดือน</SelectItem>
+                  <SelectItem value="ปี">ปี</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* ระยะการเจริญเติบโต (Stage) */}
+          <div className="md:col-span-2 space-y-1">
+            <label className="block text-xs font-bold text-slate-700">
+              ระยะการเจริญเติบโต (Stage)
+            </label>
+            <Input
+              value={growthStage}
+              onChange={(e) => setGrowthStage?.(e.target.value)}
+              placeholder="เช่น ระยะแตกยอดอ่อน, ระยะติดผล..."
+              className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl"
+            />
+          </div>
+
+          {/* ข้อมูลเพิ่มเติม */}
+          <div className="md:col-span-2 space-y-1">
+            <label className="block text-xs font-bold text-slate-700">
+              ข้อมูลเพิ่มเติม
+            </label>
+            <Textarea
+              rows={3}
+              value={usageMethod}
+              onChange={(e) => setUsageMethod?.(e.target.value)}
+              placeholder="ระบุข้อมูลเพิ่มเติม สภาพอากาศ หรือหมายเหตุอื่นๆ..."
+              className="text-xs sm:text-sm bg-white border-slate-200 rounded-xl"
+            />
+          </div>
+
+          {/* ภาพถ่ายสภาพแปลงเริ่มต้น (Max 10 รูป) */}
+          <div className="md:col-span-2 space-y-2 pt-2 border-t border-slate-200/80">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <ImageIcon className="w-4 h-4 text-emerald-700" />
+                ภาพถ่ายสภาพแปลงเริ่มต้น (Initial Plot Photos)
+              </label>
+              <span className="text-[11px] text-slate-500 font-medium">
+                แนบได้สูงสุด 10 รูป
+              </span>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-slate-200/90">
+              <GalleryUpload
+                initialFiles={convertToFileMetadata(effectivePhotos)}
+                onFilesChange={handlePhotosChange}
+                maxFiles={10}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* SECTION 5: DEMO PRODUCTS (ตาม Rule 5: Multiple products with applicationRate SSoT) */}
+      {/* GROUP 4: ข้อมูลผลิตภัณฑ์และการทดลอง (Products & Chemicals) */}
       <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
         <div className="flex flex-wrap items-center justify-between border-b border-slate-200/80 pb-2.5 gap-2">
           <div className="flex items-center gap-2">
             <Package className="w-4 h-4 text-emerald-700" />
             <h3 className="text-sm font-bold text-slate-900">
-              4. สินค้าสาธิตที่ใช้จริง (Demonstration Products){" "}
+              4. ข้อมูลผลิตภัณฑ์และการทดลอง (Products & Chemicals){" "}
               <span className="text-rose-500">*</span>
             </h3>
           </div>
@@ -1124,19 +1304,9 @@ export function ActualType7NewDemo({
             ))}
           </div>
         )}
-      </div>
-
-      {/* SECTION 6: SPRAY METHOD & EXTERNAL CHEMICALS (ตาม Rule 6) */}
-      <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
-        <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2.5">
-          <FlaskConical className="w-4 h-4 text-emerald-700" />
-          <h3 className="text-sm font-bold text-slate-900">
-            5. วิธีการฉีดพ่นและสารเคมีภายนอก (Spray Method & Chemicals)
-          </h3>
-        </div>
 
         {/* วิธีการฉีดพ่น SINGLE vs TANK_MIXED */}
-        <div className="space-y-2">
+        <div className="space-y-2 pt-3 border-t border-slate-200/80">
           <label className="block text-xs font-bold text-slate-700">
             วิธีการฉีดพ่น <span className="text-rose-500">*</span>
           </label>
@@ -1371,142 +1541,6 @@ export function ActualType7NewDemo({
             )}
           </div>
         )}
-      </div>
-
-      {/* SECTION 7: INITIAL CONDITION & SPRAY DATES (ตาม Rule 4, 8, 9) */}
-      <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
-        <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2.5">
-          <Calendar className="w-4 h-4 text-emerald-700" />
-          <h3 className="text-sm font-bold text-slate-900">
-            6. ข้อมูลสภาพแปลงเริ่มต้น (Initial Plot Condition & Spraying)
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* วันที่ฉีดพ่น (Rule 8: วันที่ฉีดพ่น REQUIRED) */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              วันที่ฉีดพ่น <span className="text-rose-500">*</span>
-            </label>
-            <DatePicker
-              value={initialSprayDate}
-              onChange={(v) => setInitialSprayDate?.(v || "")}
-              placeholder="เลือกวันที่ฉีดพ่นครั้งแรก"
-              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
-              required
-            />
-          </div>
-
-          {/* กำหนดฉีดพ่นครั้งต่อไป (Rule 8: กำหนดฉีดพ่นครั้งต่อไป) */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              กำหนดฉีดพ่นครั้งต่อไป
-            </label>
-            <DatePicker
-              value={nextSprayDate || nextFollowUpDate}
-              onChange={(v) => {
-                setNextSprayDate?.(v || "");
-                setNextFollowUpDate?.(v || "");
-              }}
-              placeholder="เลือกกำหนดฉีดพ่นครั้งต่อไป"
-              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
-            />
-          </div>
-
-          {/* วันที่เริ่มปลูกจริง (Rule 4: plantingDate = วันที่เริ่มปลูก) */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              วันที่เริ่มปลูกจริง
-            </label>
-            <DatePicker
-              value={plantingDate}
-              onChange={(v) => setPlantingDate?.(v || "")}
-              placeholder="เลือกวันที่เริ่มปลูกจริง"
-              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
-            />
-          </div>
-
-          {/* อายุพืช (Rule 9: ข้อมูลของ Visit #1) */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              อายุพืช (วันหลังปลูก)
-            </label>
-            <div className="flex gap-2">
-              <Input
-                type="number"
-                min={0}
-                value={cropAgeValue}
-                onChange={(e) => setCropAgeValue?.(e.target.value)}
-                placeholder="เช่น 15"
-                className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl flex-1"
-              />
-              <Select
-                value={cropAgeUnit}
-                onValueChange={(v) => setCropAgeUnit?.(v)}
-              >
-                <SelectTrigger className="w-24 h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl">
-                  <SelectValue placeholder="หน่วย" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="วัน">วัน</SelectItem>
-                  <SelectItem value="สัปดาห์">สัปดาห์</SelectItem>
-                  <SelectItem value="เดือน">เดือน</SelectItem>
-                  <SelectItem value="ปี">ปี</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* ระยะพืช (Stage) (Rule 9: ข้อมูลของ Visit #1) */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              ระยะพืช (Stage)
-            </label>
-            <Input
-              value={growthStage}
-              onChange={(e) => setGrowthStage?.(e.target.value)}
-              placeholder="เช่น ระยะแตกยอดอ่อน, ระยะติดผล..."
-              className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl"
-            />
-          </div>
-
-          {/* ข้อมูลเพิ่มเติม (Rule 8: ข้อมูลเพิ่มเติม) */}
-          <div className="md:col-span-2 space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              ข้อมูลเพิ่มเติม
-            </label>
-            <Textarea
-              rows={3}
-              value={usageMethod}
-              onChange={(e) => setUsageMethod?.(e.target.value)}
-              placeholder="ระบุข้อมูลเพิ่มเติม สภาพอากาศ หรือหมายเหตุอื่นๆ..."
-              className="text-xs sm:text-sm bg-white border-slate-200 rounded-xl"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* SECTION 8: INITIAL PHOTOS (ตาม Rule 10: ภาพถ่ายสภาพแปลงเริ่มต้น Max 10 รูป) */}
-      <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
-        <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
-          <div className="flex items-center gap-2">
-            <ImageIcon className="w-4 h-4 text-emerald-700" />
-            <h3 className="text-sm font-bold text-slate-900">
-              7. ภาพถ่ายสภาพแปลงเริ่มต้น (Initial Plot Photos)
-            </h3>
-          </div>
-          <span className="text-[11px] text-slate-500 font-medium">
-            แนบได้สูงสุด 10 รูป
-          </span>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl border border-slate-200/90">
-          <GalleryUpload
-            initialFiles={convertToFileMetadata(effectivePhotos)}
-            onFilesChange={handlePhotosChange}
-            maxFiles={10}
-          />
-        </div>
       </div>
     </div>
   );

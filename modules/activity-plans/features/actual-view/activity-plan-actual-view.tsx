@@ -525,7 +525,6 @@ export default function ActivityPlanActualView({
             const dp = linkedDemoPlot;
             setT7DemoPlotId(dp.id);
             setT7DemoPlotData(dp);
-            if (dp.province) setT7FarmerProvince(dp.province);
             if (dp.district) setT7District(dp.district);
             if (dp.customerId) setT7FarmerCustomerId(dp.customerId);
             if (dp.ownerName) setT7FarmerName(dp.ownerName);
@@ -634,8 +633,6 @@ export default function ActivityPlanActualView({
               if (fallbackPlotName) setT7PlotName(fallbackPlotName);
               if ((t7aTarget as any).district)
                 setT7District((t7aTarget as any).district);
-              if ((t7aTarget as any).province)
-                setT7FarmerProvince((t7aTarget as any).province);
               if ((t7aTarget as any).dealerName)
                 setT7DealerName((t7aTarget as any).dealerName);
               if (t7aTarget.owner) setT7FarmerName(t7aTarget.owner);
@@ -653,7 +650,6 @@ export default function ActivityPlanActualView({
                 );
               }
             }
-            if (p.province) setT7FarmerProvince(p.province);
             if ((t7aTarget as any)?.district) {
               setT7District((t7aTarget as any).district);
             } else if (p.district) {
@@ -2287,6 +2283,12 @@ export default function ActivityPlanActualView({
             t7DemoPlotData={t7DemoPlotData}
             t7DemoPlotId={t7DemoPlotId}
             setT7DemoPlotId={setT7DemoPlotId}
+            planProvince={
+              (t7DemoPlotData as any)?.province ||
+              targets.t7a?.province ||
+              planSummary?.province ||
+              ""
+            }
             t7FarmerProvince={t7FarmerProvince}
             setT7FarmerProvince={setT7FarmerProvince}
             t7FarmerCustomerId={t7FarmerCustomerId}

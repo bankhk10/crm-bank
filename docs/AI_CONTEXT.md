@@ -440,6 +440,79 @@ The AI Agent MUST NOT:
 
 ---
 
+## 5.10 Database Inspection Rules
+
+To prevent trial-and-error commands, connection errors, and accidental data mutation during investigation or troubleshooting, the AI Agent MUST strictly adhere to the project's established database execution standards.
+
+### Core Principles
+
+- **"Database inspection is read-only by default."**
+- **"Do not modify project configuration or database configuration during investigation."**
+- **Primary Package Manager**: The project strictly uses `pnpm`. Always run commands with `pnpm ...`. Do NOT switch to `npm` or `yarn` without explicit instruction and permission.
+- **Existing Prisma Client Singleton**: Database access must exclusively use the project's pre-configured Prisma Client instance:
+  ```ts
+  import { db } from "@/lib/db";
+  ```
+- **Prohibited Actions during Investigation**:
+  - ❌ Do NOT create `new PrismaClient()` or instantiate a new database client.
+  - ❌ Do NOT establish separate or raw connection pools manually.
+  - ❌ Do NOT hardcode `DATABASE_URL`, credentials, or connection strings.
+  - ❌ Do NOT modify `.env`, `.env.local`, or any environment configuration files.
+  - ❌ Do NOT perform any mutating operations (`INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, `DROP`).
+  - ❌ Do NOT run migrations (`prisma migrate dev`, `prisma db push`).
+  - ❌ Do NOT modify `prisma/schema.prisma` during investigation.
+  - ❌ Do NOT create test records or synthetic data in the database unless explicitly authorized.
+  - ❌ Do NOT install additional npm packages solely for inspecting the database.
+
+### Temporary TypeScript Inspection Scripts
+
+If an ad-hoc query or verification script is necessary to inspect database state, it MUST follow the project's standard architecture:
+
+1. **Load Environment**: Use `import "dotenv/config";` to load configuration via the project's standard `.env`.
+2. **Import Shared DB Client**: Use `import { db } from "@/lib/db";` (or relative path to `lib/db.ts`).
+3. **Execution Command**: Always run using the project's installed TypeScript runner via `pnpm`:
+   ```bash
+   pnpm tsx <script>.ts
+   ```
+4. **Inspect Before Creating**: Never create a new inspection script without first verifying whether an existing script (e.g., in `scripts/`) or repository query already satisfies the requirement.
+
+### Database Inspection Workflow
+
+When investigating or diagnosing issues that require database verification, follow these mandatory steps:
+
+```text
+Step 1: Check package.json (confirm scripts and runner)
+    ↓
+Step 2: Check prisma.config.ts (confirm schema path and datasource url configuration)
+    ↓
+Step 3: Check lib/db.ts (confirm driver adapter and client singleton setup)
+    ↓
+Step 4: Check existing scripts (search scripts/ or test suites for existing queries)
+    ↓
+Step 5: Select a verified method supported by the project
+    ↓
+Step 6: Execute strictly READ-ONLY queries
+    ↓
+Step 7: Report findings
+    ↓
+Step 8: STOP and await approval
+```
+
+### Prohibited Trial-and-Error Patterns
+
+The AI Agent MUST NOT guess or experiment with random commands, including:
+- ❌ Trying `npm run ...` or `npx ...` instead of `pnpm`.
+- ❌ Experimenting with alternative runners or CLI flags without checking `package.json`.
+- ❌ Guessing the module path of Prisma Client or the project's database client.
+- ❌ Guessing or deriving `DATABASE_URL` credentials.
+- ❌ Trying multiple database connection methods sequentially when one fails.
+
+> [!IMPORTANT]
+> **If the database inspection method or query path is unclear:**
+> **STOP immediately.** Do NOT guess or execute trial commands. Report what was discovered from `package.json`, `prisma.config.ts`, and `lib/db.ts`, and request clarification before proceeding.
+
+---
+
 # 6. Tech Stack Summary
 
 | Layer            | Technology                          | Version         |
@@ -516,6 +589,7 @@ pages: app/(main)/
 
 | Date       | Version | Changes                                                                                                                                                   |
 | ---------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-09-17 | 3.1.0   | Added Section 5.10 Database Inspection Rules & Workflow (read-only enforcement, pnpm standard, prohibition of ad-hoc PrismaClient/raw connection guessing) |
 | 2026-08-28 | 3.0.0   | Reworked AI context to align with the project-wide Module Architecture Contract and removed dependency on any single module as the architecture reference |
 | 2026-02-24 | 2.0.0   | Major update: reflect modules/ architecture, updated paths, added module context                                                                          |
 | 2026-02-09 | 1.2.0   | Updated sale status flow + scope alignment with notifications and forecast                                                                                |
