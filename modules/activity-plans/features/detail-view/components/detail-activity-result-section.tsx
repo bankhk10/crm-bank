@@ -138,6 +138,8 @@ export function DetailActivityResultSection({
           demoPlotId={parsedResults.t7DemoPlotId}
           plotName={parsedResults.t7PlotName}
           usageMethod={parsedResults.t7UsageMethod}
+          experimentDetail={parsedResults.t7ExperimentDetail || demoPlotData?.experimentDetail}
+          notes={demoPlotData?.notes || demoPlotData?.visits?.[0]?.notes || parsedResults.t7Notes || parsedResults.t7UsageMethod}
           plantingDate={parsedResults.t7PlantingDate}
           plantingAreaCondition={parsedResults.t7PlantingAreaCondition}
           cropAgeValue={parsedResults.t7CropAgeValue}

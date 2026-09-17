@@ -132,6 +132,8 @@ export interface ParsedSummaryValues {
     satisfactionScore?: number | null;
   }>;
   t7UsageMethod?: string;
+  t7Notes?: string;
+  t7ExperimentDetail?: string;
   t7CropAgeValue?: string;
   t7CropAgeUnit?: string;
   t7GrowthStage?: string;
@@ -760,6 +762,13 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     );
     if (t7MethodMatch && t7MethodMatch[1]) {
       result.t7UsageMethod = t7MethodMatch[1].split("\n")[0].trim();
+      result.t7Notes = result.t7UsageMethod;
+    }
+    const t7ExpMatch = summaryText.match(
+      /(?:วิธีการทดลอง|วิธีการทดลอง\s*\/\s*แผนการทดสอบ):\s*(.+)/,
+    );
+    if (t7ExpMatch && t7ExpMatch[1]) {
+      result.t7ExperimentDetail = t7ExpMatch[1].split("\n")[0].trim();
     }
     const t7AgeMatch = summaryText.match(
       /(?:อายุพืช|อายุพืช\s*\(วันหลังปลูก\)):\s*(\d+)\s*(วัน|สัปดาห์|เดือน|ปี)?/,
@@ -815,11 +824,15 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (summaryText.includes("แปลงเกษตร: แปลงอื่นๆ") && !result.t7DemoPlotId) {
       result.t7DemoPlotId = "OTHER";
     }
-    const plantingDateMatch = summaryText.match(/วันที่ปลูก:\s*(.+)/);
+    const plantingDateMatch = summaryText.match(
+      /(?:วันที่เริ่มปลูกจริง|วันที่ปลูก):\s*(.+)/,
+    );
     if (plantingDateMatch && plantingDateMatch[1]) {
       result.t7PlantingDate = plantingDateMatch[1].split("\n")[0].trim();
     }
-    const areaCondMatch = summaryText.match(/สภาพพื้นที่ปลูก:\s*(.+)/);
+    const areaCondMatch = summaryText.match(
+      /(?:สภาพพื้นที่ปลูกตอนเริ่มต้น|สภาพพื้นที่ปลูก|ข้อมูลพืชประธาน):\s*(.+)/,
+    );
     if (areaCondMatch && areaCondMatch[1]) {
       result.t7PlantingAreaCondition = areaCondMatch[1].split("\n")[0].trim();
     }

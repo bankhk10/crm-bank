@@ -39,6 +39,8 @@ export interface DetailType7DemoProps {
   startDate?: string;
   plotName?: string;
   usageMethod?: string;
+  notes?: string | null;
+  experimentDetail?: string | null;
   plantingDate?: string;
   plantingAreaCondition?: string;
   cropAgeValue?: string;
@@ -117,6 +119,11 @@ export function DetailType7Demo(props: DetailType7DemoProps) {
       usageMethod={props.usageMethod}
       plantingDate={props.plantingDate}
       plantingAreaCondition={props.plantingAreaCondition}
+      cropAgeValue={props.cropAgeValue}
+      cropAgeUnit={props.cropAgeUnit}
+      growthStage={props.growthStage}
+      experimentDetail={props.experimentDetail || props.demoPlotData?.experimentDetail}
+      notes={props.notes || props.demoPlotData?.notes || props.demoPlotData?.visits?.[0]?.notes}
       cropImages={props.cropImages}
       plotImages={props.plotImages}
       demoPlotData={props.demoPlotData}

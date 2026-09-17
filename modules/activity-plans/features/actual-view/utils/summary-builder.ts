@@ -706,6 +706,9 @@ export function buildResultSummary(
           input.t7Irrigations && input.t7Irrigations.length > 0
             ? `ระบบน้ำ: ${input.t7Irrigations.join(", ")}`
             : null,
+          input.t7ExperimentDetail
+            ? `วิธีการทดลอง: ${input.t7ExperimentDetail.trim()}`
+            : null,
           t7CropAgeValue
             ? `อายุพืช (วันหลังปลูก): ${t7CropAgeValue} ${t7CropAgeUnit || "วัน"}`
             : null,
@@ -1184,7 +1187,7 @@ export function buildResultSummary(
       areaRai: parseCleanNumber(input.t7AreaRai),
       treeCount: parseCleanNumber(input.t7TreeCount),
       objective: input.t7PlotObjective?.trim() || null,
-      experimentDetail: input.t7ExperimentDetail?.trim() || input.t7CustomPlotDetail?.trim() || null,
+      experimentDetail: input.t7ExperimentDetail?.trim() || null,
       mainCropInfo: input.t7MainCropInfo?.trim() || null,
       plantingDate: input.t7PlantingDate ? new Date(input.t7PlantingDate) : null,
       initialSprayDate: input.t7InitialSprayDate

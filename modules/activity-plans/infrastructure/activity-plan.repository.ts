@@ -2840,6 +2840,7 @@ export async function findDemoPlotByIdOrName(demoPlotIdOrName: string) {
       deletedAt: null,
     },
     include: {
+      customer: true,
       demoProducts: {
         include: { product: true },
         orderBy: { sortOrder: "asc" },
