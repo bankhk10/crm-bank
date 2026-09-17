@@ -119,7 +119,7 @@ export async function resolveActivityTypeId(
  * Find activity plan by ID with full relations
  */
 export async function findActivityPlanById(id: string) {
-  return db.activityPlan.findFirst({
+  const plan = await db.activityPlan.findFirst({
     where: { id, deletedAt: null },
     include: {
       activityType: true,
