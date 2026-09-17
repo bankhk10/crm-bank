@@ -257,12 +257,112 @@ export const actualRecordSchema = z.object({
   atmosphereImageUrls: z.array(z.string()).default([]),
 });
 
+// ────────────────────────────────────────────────────────────────────────────
+// TYPE_7A Demo Plot Input Schemas
+// ────────────────────────────────────────────────────────────────────────────
+export const type7aDemoPlotProductInputSchema = z.object({
+  productId: z.string().min(1, "กรุณาเลือกสินค้าสาธิต"),
+  productName: z.string().optional().nullable(),
+  quantity: z.coerce.number().min(0.01, "จำนวนสินค้าต้องมากกว่า 0"),
+  unit: z.string().optional().nullable(),
+  applicationRate: z.string().min(1, "กรุณาระบุอัตราการใช้ (application rate)"),
+});
+
+export const type7aDemoPlotExternalProductInputSchema = z.object({
+  company: z.string().min(1, "กรุณาระบุบริษัท"),
+  productName: z.string().min(1, "กรุณาระบุชื่อยา/เคมี"),
+  activeIngredient: z.string().optional().nullable(),
+  formula: z.string().min(1, "กรุณาเลือกสูตรยา"),
+  customFormula: z.string().optional().nullable(),
+  applicationRate: z.string().min(1, "กรุณาระบุอัตราการใช้"),
+});
+
+export const type7aDemoPlotInputSchema = z
+  .object({
+    customerId: z.string().optional().nullable(),
+    ownerName: z.string().min(1, "กรุณาระบุชื่อเกษตรกรเจ้าของแปลง"),
+    ownerPhone: z.string().optional().nullable(),
+    isUnregisteredFarmer: z.boolean().default(false),
+    province: z.string().min(1, "กรุณาเลือกจังหวัด"),
+    district: z.string().optional().nullable(),
+    latitude: z.coerce.number({ required_error: "กรุณาระบุละติจูด" }),
+    longitude: z.coerce.number({ required_error: "กรุณาระบุลองจิจูด" }),
+    plotName: z.string().min(1, "กรุณากรอกชื่อแปลงสาธิต"),
+    dealerName: z.string().optional().nullable(),
+    cropCategory: z.string().min(1, "กรุณาระบุหมวดพืช"),
+    cropName: z.string().min(1, "กรุณาระบุชื่อพืช"),
+    customCropName: z.string().optional().nullable(),
+    areaRai: z.coerce.number().optional().nullable(),
+    treeCount: z.coerce.number().int().optional().nullable(),
+    objective: z.string().optional().nullable(),
+    experimentDetail: z.string().optional().nullable(),
+    mainCropInfo: z.string().optional().nullable(),
+    plantingDate: z.coerce.date().optional().nullable(),
+    initialSprayDate: z.coerce.date().optional().nullable(),
+    nextSprayDate: z.coerce.date().optional().nullable(),
+    sprayMethod: z.enum(["SINGLE", "TANK_MIXED"]),
+    hasExternalChemicals: z.boolean().default(false),
+    demoProducts: z
+      .array(type7aDemoPlotProductInputSchema)
+      .min(1, "กรุณาระบุสินค้าสาธิตอย่างน้อย 1 รายการ"),
+    externalProducts: z
+      .array(type7aDemoPlotExternalProductInputSchema)
+      .max(4, "ยาภายนอกระบุได้สูงสุด 4 รายการ")
+      .optional()
+      .default([]),
+    irrigations: z.array(z.string()).default([]),
+    usageMethod: z.string().optional().nullable(),
+    notes: z.string().optional().nullable(),
+    cropAgeValue: z.coerce.number().int().optional().nullable(),
+    cropAgeUnit: z.string().default("วัน"),
+    growthStage: z.string().optional().nullable(),
+    cropCondition: z.string().optional().nullable(),
+    productResponse: z.string().optional().nullable(),
+  })
+  .refine(
+    (data) => {
+      if (data.isUnregisteredFarmer) {
+        return (
+          typeof data.ownerName === "string" &&
+          data.ownerName.trim().length > 0 &&
+          typeof data.ownerPhone === "string" &&
+          data.ownerPhone.trim().length > 0
+        );
+      }
+      return true;
+    },
+    {
+      message: "กรณีไม่มีเกษตรกรในระบบ กรุณากรอกชื่อและเบอร์โทรศัพท์",
+      path: ["ownerPhone"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.sprayMethod === "TANK_MIXED" && data.hasExternalChemicals) {
+        for (const ep of data.externalProducts || []) {
+          if (
+            ep.formula === "อื่นๆ" &&
+            (!ep.customFormula || !ep.customFormula.trim())
+          ) {
+            return false;
+          }
+        }
+      }
+      return true;
+    },
+    {
+      message: "กรณีเลือกสูตรยา 'อื่นๆ' กรุณาระบุรายละเอียด",
+      path: ["externalProducts"],
+    },
+  );
+
 /**
  * Schema สำหรับบันทึกผลหลังกิจกรรม (ActivityResult)
  * สร้างได้เฉพาะเมื่อ ActivityPlan.status = APPROVED
  */
 export const activityResultSchema = z
   .object({
+    type7aDemoPlot: type7aDemoPlotInputSchema.optional().nullable(),
     actualStartDate: z.coerce.date({
       required_error: "กรุณาระบุวันที่เริ่มต้นจริง",
     }),
@@ -438,6 +538,7 @@ export const activityResultSchema = z
           productId: z.string().optional().nullable(),
           surveyItemId: z.string().optional().nullable(),
           issueItemId: z.string().optional().nullable(),
+          demoPlotId: z.string().optional().nullable(),
           category: z.any().optional(),
           fileUrl: z.string(),
           fileName: z.string(),
@@ -472,6 +573,20 @@ export const activityResultSchema = z
         {
           message:
             "รูปภาพสำหรับตรวจสอบเรื่องร้องเรียน / แก้ปัญหา ต้องไม่เกิน 5 รูป",
+          path: ["attachments"],
+        },
+      )
+      .refine(
+        (items) => {
+          const type7aPhotos = items.filter(
+            (a) =>
+              a.workTypeCode === "TYPE_7A" ||
+              a.workTypeCode === "ทำแปลงสาธิต",
+          );
+          return type7aPhotos.length <= 10;
+        },
+        {
+          message: "ภาพถ่ายสภาพแปลงเริ่มต้นต้องไม่เกิน 10 รูป",
           path: ["attachments"],
         },
       )

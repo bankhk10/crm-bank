@@ -119,6 +119,7 @@ export const WORK_TYPES = Object.values(WORK_TYPE_CONFIG).map((c) => c.name);
 
 // Helper function to resolve code from name or code
 export function getWorkTypeCode(nameOrCode: string): string {
+  if (!nameOrCode) return "";
   if (WORK_TYPE_CONFIG[nameOrCode]) return nameOrCode;
   if (
     nameOrCode === "เข้าพบร้านค้า / Key Farmer" ||
@@ -143,11 +144,12 @@ export function getWorkTypeCode(nameOrCode: string): string {
   const entry = Object.values(WORK_TYPE_CONFIG).find(
     (c) => c.name === nameOrCode || c.shortName === nameOrCode,
   );
-  return entry ? entry.code : "TYPE_1";
+  return entry ? entry.code : nameOrCode;
 }
 
 // Helper function to resolve name from code
 export function getWorkTypeName(codeOrName: string): string {
+  if (!codeOrName) return "";
   if (
     codeOrName === "เข้าพบร้านค้า / Key Farmer" ||
     codeOrName === "เข้าพบเกษตรกร" ||
@@ -162,7 +164,11 @@ export function getWorkTypeName(codeOrName: string): string {
   ) {
     return WORK_TYPE_CONFIG.TYPE_6.name;
   }
-  if (codeOrName === "ทำแปลงสาธิต" || codeOrName === "TYPE_7A") {
+  if (
+    codeOrName === "ทำแปลงสาธิต" ||
+    codeOrName === "TYPE_7A" ||
+    codeOrName === "TYPE_7"
+  ) {
     return WORK_TYPE_CONFIG.TYPE_7A.name;
   }
   if (codeOrName === "ติดตามแปลงสาธิต" || codeOrName === "TYPE_7B") {
@@ -809,3 +815,41 @@ export function getActivityResultStatusLabel(status?: string | null): string {
   if (!status) return "-";
   return ACTIVITY_RESULT_STATUS_LABELS[status] || status;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TYPE_7A DEMO PLOT CONSTANTS (Source of Truth)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const DEMO_PLOT_SPRAY_METHODS = [
+  { value: "SINGLE", label: "ฉีดเดี่ยว (Single)" },
+  { value: "TANK_MIXED", label: "ผสมถัง (Tank-mixed)" },
+] as const;
+
+export type DemoPlotSprayMethod = (typeof DEMO_PLOT_SPRAY_METHODS)[number]["value"];
+
+export const EXTERNAL_CHEMICAL_FORMULAS = [
+  "SL",
+  "SC",
+  "EC",
+  "EW",
+  "ZC",
+  "OD",
+  "WP",
+  "WG",
+  "อื่นๆ",
+] as const;
+
+export type ExternalChemicalFormula = (typeof EXTERNAL_CHEMICAL_FORMULAS)[number];
+
+export const DEMO_PLOT_IRRIGATION_METHODS = [
+  "น้ำหยด",
+  "สายยาง",
+  "สปิงเกอร์",
+  "ให้ตามร่อง",
+  "ปล่อยท่วม(flooding)",
+  "รอน้ำฝน",
+  "นาหว่านน้ำตม",
+] as const;
+
+export type DemoPlotIrrigationMethod = (typeof DEMO_PLOT_IRRIGATION_METHODS)[number];
+

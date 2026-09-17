@@ -8,6 +8,8 @@ import type {
   ImageFile,
   Type5SurveyRecord,
   FollowupProductItem,
+  DemoPlotProductItem,
+  DemoPlotExternalProductItem,
 } from "../types";
 import {
   ActualType1Visit,
@@ -209,6 +211,56 @@ interface ActivityResultSectionProps {
   t7DemoPlotData: any;
   t7DemoPlotId?: string | null;
   setT7DemoPlotId?: (id: string | null) => void;
+
+  // TYPE_7A Initial Data Props
+  t7FarmerProvince?: string;
+  setT7FarmerProvince?: (v: string) => void;
+  t7FarmerCustomerId?: string | null;
+  setT7FarmerCustomerId?: (v: string | null) => void;
+  t7FarmerName?: string;
+  setT7FarmerName?: (v: string) => void;
+  t7FarmerPhone?: string;
+  setT7FarmerPhone?: (v: string) => void;
+  t7IsUnregisteredFarmer?: boolean;
+  setT7IsUnregisteredFarmer?: (v: boolean) => void;
+  t7DealerName?: string;
+  setT7DealerName?: (v: string) => void;
+  t7Latitude?: string;
+  setT7Latitude?: (v: string) => void;
+  t7Longitude?: string;
+  setT7Longitude?: (v: string) => void;
+  t7District?: string;
+  setT7District?: (v: string) => void;
+  t7CropCategory?: string;
+  setT7CropCategory?: (v: string) => void;
+  t7CropName?: string;
+  setT7CropName?: (v: string) => void;
+  t7CustomCropName?: string;
+  setT7CustomCropName?: (v: string) => void;
+  t7AreaRai?: string;
+  setT7AreaRai?: (v: string) => void;
+  t7TreeCount?: string;
+  setT7TreeCount?: (v: string) => void;
+  t7ExperimentDetail?: string;
+  setT7ExperimentDetail?: (v: string) => void;
+  t7MainCropInfo?: string;
+  setT7MainCropInfo?: (v: string) => void;
+  t7Irrigations?: string[];
+  setT7Irrigations?: (v: string[]) => void;
+  t7InitialSprayDate?: string;
+  setT7InitialSprayDate?: (v: string) => void;
+  t7NextSprayDate?: string;
+  setT7NextSprayDate?: (v: string) => void;
+  t7DemoProducts?: DemoPlotProductItem[];
+  setT7DemoProducts?: (items: DemoPlotProductItem[]) => void;
+  t7SprayMethod?: "SINGLE" | "TANK_MIXED";
+  setT7SprayMethod?: (v: "SINGLE" | "TANK_MIXED") => void;
+  t7HasExternalChemicals?: boolean;
+  setT7HasExternalChemicals?: (v: boolean) => void;
+  t7ExternalProducts?: DemoPlotExternalProductItem[];
+  setT7ExternalProducts?: (items: DemoPlotExternalProductItem[]) => void;
+  t7InitialPhotos?: ImageFile[];
+  setT7InitialPhotos?: (imgs: ImageFile[]) => void;
 
   // Type 8
   t8ActualAttendees: string;
@@ -421,6 +473,54 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     t7DemoPlotData,
     t7DemoPlotId,
     setT7DemoPlotId,
+    t7FarmerProvince,
+    setT7FarmerProvince,
+    t7FarmerCustomerId,
+    setT7FarmerCustomerId,
+    t7FarmerName,
+    setT7FarmerName,
+    t7FarmerPhone,
+    setT7FarmerPhone,
+    t7IsUnregisteredFarmer,
+    setT7IsUnregisteredFarmer,
+    t7DealerName,
+    setT7DealerName,
+    t7Latitude,
+    setT7Latitude,
+    t7Longitude,
+    setT7Longitude,
+    t7District,
+    setT7District,
+    t7CropCategory,
+    setT7CropCategory,
+    t7CropName,
+    setT7CropName,
+    t7CustomCropName,
+    setT7CustomCropName,
+    t7AreaRai,
+    setT7AreaRai,
+    t7TreeCount,
+    setT7TreeCount,
+    t7ExperimentDetail,
+    setT7ExperimentDetail,
+    t7MainCropInfo,
+    setT7MainCropInfo,
+    t7Irrigations,
+    setT7Irrigations,
+    t7InitialSprayDate,
+    setT7InitialSprayDate,
+    t7NextSprayDate,
+    setT7NextSprayDate,
+    t7DemoProducts,
+    setT7DemoProducts,
+    t7SprayMethod,
+    setT7SprayMethod,
+    t7HasExternalChemicals,
+    setT7HasExternalChemicals,
+    t7ExternalProducts,
+    setT7ExternalProducts,
+    t7InitialPhotos,
+    setT7InitialPhotos,
     t8ActualAttendees,
     setT8ActualAttendees,
     t8FeedbackQnA,
@@ -482,10 +582,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
       <div className="space-y-4 md:space-y-6">
         {/* WORK TYPE 1 */}
         <ActualType1Visit
-          isVisible={
-            isTypeVisible("เข้าพบเกษตรกร") ||
-            isTypeVisible("เข้าพบร้านค้า / Key Farmer")
-          }
+          isVisible={isTypeVisible("TYPE_1")}
           target={targets.t1}
           productAdvice={t1ProductAdvice}
           setProductAdvice={setT1ProductAdvice}
@@ -512,7 +609,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
 
         {/* WORK TYPE 2 */}
         <ActualType2Followup
-          isVisible={isTypeVisible("ติดตามผลการใช้สินค้า")}
+          isVisible={isTypeVisible("TYPE_2")}
           target={targets.t2}
           products={products}
           followupResults={t2FollowupResults}
@@ -533,7 +630,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
 
         {/* WORK TYPE 3 */}
         <ActualType3Sales
-          isVisible={isTypeVisible("เสนอขายสินค้า")}
+          isVisible={isTypeVisible("TYPE_3")}
           target={targets.t3}
           products={products}
           soldProducts={t3SoldProducts}
@@ -550,7 +647,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
 
         {/* WORK TYPE 4 */}
         <ActualType4Collect
-          isVisible={isTypeVisible("วางบิล / เก็บเงิน")}
+          isVisible={isTypeVisible("TYPE_4")}
           target={targets.t4}
           orderNo={t4OrderNo}
           setOrderNo={setT4OrderNo}
@@ -567,7 +664,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
 
         {/* WORK TYPE 5 */}
         <ActualType5Survey
-          isVisible={isTypeVisible("สำรวจตลาดของคู่แข่ง")}
+          isVisible={isTypeVisible("TYPE_5")}
           target={targets.t5}
           surveyDetails={t5SurveyDetails}
           onUpdateSurveyItem={onUpdateT5SurveyItem}
@@ -579,7 +676,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
 
         {/* WORK TYPE 6 */}
         <ActualType6Issue
-          isVisible={isTypeVisible("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา")}
+          isVisible={isTypeVisible("TYPE_6")}
           target={targets.t6}
           products={products}
           customers={customers}
@@ -611,10 +708,73 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
 
         {/* WORK TYPE 7A: ทำแปลงสาธิต */}
         <ActualType7Demo
-          isVisible={isTypeVisible("ทำแปลงสาธิต") || isTypeVisible("TYPE_7A")}
+          isVisible={isTypeVisible("TYPE_7A")}
           mode="TYPE_7A"
           target={targets.t7a || targets.t7}
           products={products}
+          customers={customers}
+          farmerProvince={t7FarmerProvince}
+          setFarmerProvince={setT7FarmerProvince}
+          farmerCustomerId={t7FarmerCustomerId}
+          setFarmerCustomerId={setT7FarmerCustomerId}
+          farmerName={t7FarmerName}
+          setFarmerName={setT7FarmerName}
+          farmerPhone={t7FarmerPhone}
+          setFarmerPhone={setT7FarmerPhone}
+          isUnregisteredFarmer={t7IsUnregisteredFarmer}
+          setIsUnregisteredFarmer={setT7IsUnregisteredFarmer}
+          dealerName={t7DealerName}
+          setDealerName={setT7DealerName}
+          latitude={t7Latitude}
+          setLatitude={setT7Latitude}
+          longitude={t7Longitude}
+          setLongitude={setT7Longitude}
+          plotName={t7PlotName}
+          setPlotName={setT7PlotName}
+          district={t7District}
+          setDistrict={setT7District}
+          cropCategory={t7CropCategory}
+          setCropCategory={setT7CropCategory}
+          cropName={t7CropName}
+          setCropName={setT7CropName}
+          customCropName={t7CustomCropName}
+          setCustomCropName={setT7CustomCropName}
+          areaRai={t7AreaRai}
+          setAreaRai={setT7AreaRai}
+          treeCount={t7TreeCount}
+          setTreeCount={setT7TreeCount}
+          plotObjective={t7PlotObjective}
+          setPlotObjective={setT7PlotObjective}
+          experimentDetail={t7ExperimentDetail || t7CustomPlotDetail}
+          setExperimentDetail={setT7ExperimentDetail}
+          mainCropInfo={t7MainCropInfo || t7PlantingAreaCondition}
+          setMainCropInfo={setT7MainCropInfo}
+          irrigations={t7Irrigations}
+          setIrrigations={setT7Irrigations}
+          plantingDate={t7PlantingDate}
+          setPlantingDate={setT7PlantingDate}
+          initialSprayDate={t7InitialSprayDate}
+          setInitialSprayDate={setT7InitialSprayDate}
+          nextSprayDate={t7NextSprayDate || t7NextFollowUpDate}
+          setNextSprayDate={setT7NextSprayDate}
+          demoProducts={t7DemoProducts}
+          setDemoProducts={setT7DemoProducts}
+          sprayMethod={t7SprayMethod}
+          setSprayMethod={setT7SprayMethod}
+          hasExternalChemicals={t7HasExternalChemicals}
+          setHasExternalChemicals={setT7HasExternalChemicals}
+          externalProducts={t7ExternalProducts}
+          setExternalProducts={setT7ExternalProducts}
+          cropAgeValue={t7CropAgeValue}
+          setCropAgeValue={setT7CropAgeValue}
+          cropAgeUnit={t7CropAgeUnit}
+          setCropAgeUnit={setT7CropAgeUnit}
+          growthStage={t7GrowthStage}
+          setGrowthStage={setT7GrowthStage}
+          usageMethod={t7UsageMethod}
+          setUsageMethod={setT7UsageMethod}
+          initialPhotos={t7InitialPhotos}
+          setInitialPhotos={setT7InitialPhotos}
           plannedProductId={t7PlannedProductId}
           setPlannedProductId={setT7PlannedProductId}
           actualProductId={t7ActualProductId}
@@ -623,29 +783,15 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setActualQuantity={setT7ActualQuantity}
           changeReason={t7ChangeReason}
           setChangeReason={setT7ChangeReason}
-          plotObjective={t7PlotObjective}
-          setPlotObjective={setT7PlotObjective}
           customPlotDetail={t7CustomPlotDetail}
           setCustomPlotDetail={setT7CustomPlotDetail}
           startDate={t7StartDate}
           actualDate={new Date().toISOString().split("T")[0]}
           productPrice={t7ProductPrice}
-          plotName={t7PlotName}
-          setPlotName={setT7PlotName}
-          usageMethod={t7UsageMethod}
-          setUsageMethod={setT7UsageMethod}
-          plantingDate={t7PlantingDate}
-          setPlantingDate={setT7PlantingDate}
           plantingAreaCondition={t7PlantingAreaCondition}
           setPlantingAreaCondition={setT7PlantingAreaCondition}
           cropImages={t7CropImages}
           setCropImages={setT7CropImages}
-          cropAgeValue={t7CropAgeValue}
-          setCropAgeValue={setT7CropAgeValue}
-          cropAgeUnit={t7CropAgeUnit}
-          setCropAgeUnit={setT7CropAgeUnit}
-          growthStage={t7GrowthStage}
-          setGrowthStage={setT7GrowthStage}
           cropCondition={t7CropCondition}
           setCropCondition={setT7CropCondition}
           cropProblemDescription={t7CropProblemDescription}
@@ -680,9 +826,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
 
         {/* WORK TYPE 7B: ติดตามแปลงสาธิต */}
         <ActualType7Demo
-          isVisible={
-            isTypeVisible("ติดตามแปลงสาธิต") || isTypeVisible("TYPE_7B")
-          }
+          isVisible={isTypeVisible("TYPE_7B")}
           mode="TYPE_7B"
           target={targets.t7b || targets.t7}
           products={products}
@@ -751,9 +895,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
 
         {/* WORK TYPE 8 */}
         <ActualType8Meeting
-          isVisible={isTypeVisible(
-            "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
-          )}
+          isVisible={isTypeVisible("TYPE_8")}
           target={targets.t8}
           actualAttendees={t8ActualAttendees}
           setActualAttendees={setT8ActualAttendees}
@@ -767,7 +909,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
 
         {/* WORK TYPE 9 */}
         <ActualType9Store
-          isVisible={isTypeVisible("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")}
+          isVisible={isTypeVisible("TYPE_9")}
           target={targets.t9}
           formats={t9Formats}
           setFormats={setT9Formats}
@@ -783,7 +925,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
 
         {/* WORK TYPE 10 */}
         <ActualType10FieldDay
-          isVisible={isTypeVisible("จัดงาน Field Day")}
+          isVisible={isTypeVisible("TYPE_10")}
           target={targets.t10}
           actualAttendees={t10ActualAttendees}
           setActualAttendees={setT10ActualAttendees}
@@ -799,7 +941,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
 
         {/* WORK TYPE 11 */}
         <ActualType11Stock
-          isVisible={isTypeVisible("ตรวจเช็กสต็อกหน้าร้าน")}
+          isVisible={isTypeVisible("TYPE_11")}
           target={targets.t11}
           products={products}
           stockItems={t11StockItems}

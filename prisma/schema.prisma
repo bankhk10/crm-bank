@@ -696,6 +696,7 @@ model Product {
   activityResultFollowupItems    ActivityResultFollowupItem[] @relation("ActivityResultFollowupProductRef")
   activityResultIssueItems       ActivityResultIssueItem[]  @relation("ActivityResultIssueProductRef")
   activityAttachments            ActivityAttachment[]       @relation("ActivityAttachmentProductRef")
+  demoPlotProducts               DemoPlotProduct[]          @relation("DemoPlotProductRef")
 
   parentId String?
   parent   Product?  @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
@@ -2180,9 +2181,12 @@ model ActivityAttachment {
   product        Product?                  @relation("ActivityAttachmentProductRef", fields: [productId], references: [id], onDelete: SetNull)
   surveyItem     ActivityResultSurveyItem? @relation(fields: [surveyItemId], references: [id], onDelete: Cascade)
   issueItem      ActivityResultIssueItem?  @relation(fields: [issueItemId], references: [id], onDelete: Cascade)
+  demoPlotId     String?                   @map("demo_plot_id")
+  demoPlot       DemoPlot?                 @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
 
   @@index([activityPlanId])
   @@index([activityResultId])
+  @@index([demoPlotId])
   @@index([category])
   @@index([storeId])
   @@index([productId])
@@ -2264,8 +2268,18 @@ model DemoPlot {
   // ข้อมูลเวลาและสถานะ
   startDate             DateTime       @map("start_date") // วันที่เริ่มต้นทำแผนแปลง
   plantingDate          DateTime?      @map("planting_date") // วันที่ปลูกจริง
+  initialSprayDate      DateTime?      @map("initial_spray_date") // วันที่ฉีดพ่นครั้งแรก
+  nextSprayDate         DateTime?      @map("next_spray_date") // กำหนดฉีดพ่นครั้งต่อไป
   plantingAreaCondition String?        @map("planting_area_condition") // สภาพพื้นที่ปลูกตอนเริ่มต้น
+  mainCropInfo          String?        @map("main_crop_info") // ข้อมูลพืชประธาน
+  sprayMethod           String?        @map("spray_method") // วิธีการฉีดพ่น (SINGLE / TANK_MIXED)
+  hasExternalChemicals  Boolean        @default(false) @map("has_external_chemicals") // มียาภายนอกหรือไม่
   usageMethod           String?        @map("usage_method") // วิธีใช้/อัตราการใช้ตอนเริ่มต้น
+  notes                 String?        @map("notes") // ข้อมูลเพิ่มเติม
+  ownerPhone            String?        @map("owner_phone") // เบอร์โทรศัพท์เจ้าของแปลง
+  isUnregisteredFarmer  Boolean        @default(false) @map("is_unregistered_farmer") // เกษตรกรนอกระบบ
+  latitude              Decimal?       @map("latitude") @db.Decimal(10, 7) // พิกัดแปลง Lat
+  longitude             Decimal?       @map("longitude") @db.Decimal(10, 7) // พิกัดแปลง Lng
   closedDate            DateTime?      @map("closed_date") // วันที่ปิดแปลง
   status                DemoPlotStatus @default(IN_PROGRESS)
 
@@ -2282,7 +2296,11 @@ model DemoPlot {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  visits DemoPlotVisit[]
+  visits           DemoPlotVisit[]
+  demoProducts     DemoPlotProduct[]
+  externalProducts DemoPlotExternalProduct[]
+  irrigations      DemoPlotIrrigation[]
+  attachments      ActivityAttachment[]
 
   @@index([customerId])
   @@index([province])
@@ -2333,4 +2351,52 @@ model DemoPlotVisit {
   @@index([activityPlanId])
   @@index([visitDate])
   @@map("demo_plot_visits")
+}
+
+model DemoPlotProduct {
+  id              String   @id @default(cuid())
+  demoPlotId      String   @map("demo_plot_id")
+  productId       String   @map("product_id")
+  productName     String?  @map("product_name")
+  applicationRate String   @map("application_rate") // e.g. "20 ml / 20 L"
+  quantity        Decimal? @map("quantity") @db.Decimal(10, 2)
+  unit            String?  @map("unit")
+  sortOrder       Int      @default(0) @map("sort_order")
+
+  demoPlot DemoPlot @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
+  product  Product  @relation("DemoPlotProductRef", fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([demoPlotId])
+  @@index([productId])
+  @@map("demo_plot_products")
+}
+
+model DemoPlotExternalProduct {
+  id               String   @id @default(cuid())
+  demoPlotId       String   @map("demo_plot_id")
+  company          String   @map("company") // บริษัท
+  productName      String   @map("product_name") // ชื่อยา
+  activeIngredient String?  @map("active_ingredient") // สารออกฤทธิ์
+  formula          String   @map("formula") // SL, SC, EC, EW, ZC, OD, WP, WG, OTHER
+  customFormula    String?  @map("custom_formula") // ถ้าเลือก อื่นๆ ระบุ...
+  applicationRate  String   @map("application_rate") // อัตราการใช้
+  sortOrder        Int      @default(0) @map("sort_order") // 1-4
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  demoPlot DemoPlot @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
+
+  @@index([demoPlotId])
+  @@map("demo_plot_external_products")
+}
+
+model DemoPlotIrrigation {
+  id         String @id @default(cuid())
+  demoPlotId String @map("demo_plot_id")
+  method     String @map("method") // "น้ำหยด", "สายยาง", "สปิงเกอร์", "ให้ตามร่อง", "ปล่อยท่วม (flooding)", "รอน้ำฝน", "นาหว่านน้ำตม"
+
+  demoPlot DemoPlot @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
+
+  @@unique([demoPlotId, method])
+  @@index([demoPlotId])
+  @@map("demo_plot_irrigations")
 }

@@ -2,8 +2,12 @@
 
 import React from "react";
 import type { DemoPlotStatus } from "@prisma/client";
-import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
-import { ActualType7NewDemo, TargetDemoItem } from "./actual-type7-new-demo";
+import {
+  ImageFile,
+  DemoPlotProductItem,
+  DemoPlotExternalProductItem,
+} from "@/modules/activity-plans/features/actual-view/types";
+import { ActualType7NewDemo, TargetDemoItem, CustomerOption } from "./actual-type7-new-demo";
 import {
   ActualType7FollowUp,
   DemoPlotVisitHistoryItem,
@@ -29,7 +33,80 @@ export interface ActualType7DemoProps {
     detail?: string;
     items?: TargetDemoItem[];
   };
-  products?: Array<{ id: string; name: string; productCode?: string | null }>;
+  products?: Array<{
+    id: string;
+    name: string;
+    productCode?: string | null;
+    unit?: string | null;
+    packageSizeUnit?: string | null;
+  }>;
+  customers?: CustomerOption[];
+
+  // 1. Farmer Owner
+  farmerProvince?: string;
+  setFarmerProvince?: (v: string) => void;
+  farmerCustomerId?: string | null;
+  setFarmerCustomerId?: (v: string | null) => void;
+  farmerName?: string;
+  setFarmerName?: (v: string) => void;
+  farmerPhone?: string;
+  setFarmerPhone?: (v: string) => void;
+  isUnregisteredFarmer?: boolean;
+  setIsUnregisteredFarmer?: (v: boolean) => void;
+  dealerName?: string;
+  setDealerName?: (v: string) => void;
+
+  // 2. Plot Location
+  latitude?: string;
+  setLatitude?: (v: string) => void;
+  longitude?: string;
+  setLongitude?: (v: string) => void;
+
+  // 3. Demo Plot Initial Data
+  plotName: string;
+  setPlotName: (v: string) => void;
+  district?: string;
+  setDistrict?: (v: string) => void;
+  cropCategory?: string;
+  setCropCategory?: (v: string) => void;
+  cropName?: string;
+  setCropName?: (v: string) => void;
+  customCropName?: string;
+  setCustomCropName?: (v: string) => void;
+  areaRai?: string;
+  setAreaRai?: (v: string) => void;
+  treeCount?: string;
+  setTreeCount?: (v: string) => void;
+  plotObjective?: string;
+  setPlotObjective?: (v: string) => void;
+  experimentDetail?: string;
+  setExperimentDetail?: (v: string) => void;
+  mainCropInfo?: string;
+  setMainCropInfo?: (v: string) => void;
+  irrigations?: string[];
+  setIrrigations?: (v: string[]) => void;
+
+  // 4. Planting / Spray Date
+  plantingDate?: string;
+  setPlantingDate?: (v: string) => void;
+  initialSprayDate?: string;
+  setInitialSprayDate?: (v: string) => void;
+  nextSprayDate?: string;
+  setNextSprayDate?: (v: string) => void;
+
+  // 5. Demo Products
+  demoProducts?: DemoPlotProductItem[];
+  setDemoProducts?: (items: DemoPlotProductItem[]) => void;
+
+  // 6. Spray Method & External Chemicals
+  sprayMethod?: "SINGLE" | "TANK_MIXED";
+  setSprayMethod?: (v: "SINGLE" | "TANK_MIXED") => void;
+  hasExternalChemicals?: boolean;
+  setHasExternalChemicals?: (v: boolean) => void;
+  externalProducts?: DemoPlotExternalProductItem[];
+  setExternalProducts?: (items: DemoPlotExternalProductItem[]) => void;
+
+  // Legacy & Shared Props
   plannedProductId?: string | null;
   setPlannedProductId?: (id: string | null) => void;
   actualProductId?: string | null;
@@ -38,27 +115,21 @@ export interface ActualType7DemoProps {
   setActualQuantity?: (qty: string) => void;
   changeReason?: string;
   setChangeReason?: (reason: string) => void;
-  plotObjective?: string;
-  setPlotObjective?: (v: string) => void;
   customPlotDetail?: string;
   setCustomPlotDetail?: (v: string) => void;
   startDate?: string;
   actualDate?: string;
   productPrice?: number;
-  plotName: string;
-  setPlotName: (v: string) => void;
   usageMethod: string;
   setUsageMethod: (v: string) => void;
-  // Master Setup (NEW_DEMO)
-  plantingDate?: string;
-  setPlantingDate?: (v: string) => void;
   plantingAreaCondition?: string;
   setPlantingAreaCondition?: (v: string) => void;
   cropImages?: ImageFile[];
   setCropImages?: (imgs: ImageFile[]) => void;
   onUploadCropImages?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveCropImage?: (id: string) => void;
-  // Observation (FOLLOW_UP)
+
+  // Observation (FOLLOW_UP / TYPE_7B & Visit #1)
   cropAgeValue?: string;
   setCropAgeValue?: (v: string) => void;
   cropAgeUnit?: string;
@@ -77,9 +148,12 @@ export interface ActualType7DemoProps {
   setProblemDescription?: (v: string) => void;
   plotImages?: ImageFile[];
   setPlotImages?: (imgs: ImageFile[]) => void;
+  initialPhotos?: ImageFile[];
+  setInitialPhotos?: (imgs: ImageFile[]) => void;
   onUploadPlotImages?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemovePlotImage?: (id: string) => void;
-  // Status & Final Yield (FOLLOW_UP)
+
+  // Status & Final Yield (FOLLOW_UP / TYPE_7B)
   plotStatus?: DemoPlotStatus;
   setPlotStatus?: (v: any) => void;
   nextFollowUpDate?: string;
@@ -167,6 +241,69 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
     <ActualType7NewDemo
       target={props.target}
       products={props.products}
+      customers={props.customers}
+      farmerProvince={props.farmerProvince}
+      setFarmerProvince={props.setFarmerProvince}
+      farmerCustomerId={props.farmerCustomerId}
+      setFarmerCustomerId={props.setFarmerCustomerId}
+      farmerName={props.farmerName}
+      setFarmerName={props.setFarmerName}
+      farmerPhone={props.farmerPhone}
+      setFarmerPhone={props.setFarmerPhone}
+      isUnregisteredFarmer={props.isUnregisteredFarmer}
+      setIsUnregisteredFarmer={props.setIsUnregisteredFarmer}
+      dealerName={props.dealerName}
+      setDealerName={props.setDealerName}
+      latitude={props.latitude}
+      setLatitude={props.setLatitude}
+      longitude={props.longitude}
+      setLongitude={props.setLongitude}
+      plotName={props.plotName}
+      setPlotName={props.setPlotName}
+      district={props.district}
+      setDistrict={props.setDistrict}
+      cropCategory={props.cropCategory}
+      setCropCategory={props.setCropCategory}
+      cropName={props.cropName}
+      setCropName={props.setCropName}
+      customCropName={props.customCropName}
+      setCustomCropName={props.setCustomCropName}
+      areaRai={props.areaRai}
+      setAreaRai={props.setAreaRai}
+      treeCount={props.treeCount}
+      setTreeCount={props.setTreeCount}
+      plotObjective={props.plotObjective}
+      setPlotObjective={props.setPlotObjective}
+      experimentDetail={props.experimentDetail}
+      setExperimentDetail={props.setExperimentDetail}
+      mainCropInfo={props.mainCropInfo}
+      setMainCropInfo={props.setMainCropInfo}
+      irrigations={props.irrigations}
+      setIrrigations={props.setIrrigations}
+      plantingDate={props.plantingDate}
+      setPlantingDate={props.setPlantingDate}
+      initialSprayDate={props.initialSprayDate}
+      setInitialSprayDate={props.setInitialSprayDate}
+      nextSprayDate={props.nextSprayDate}
+      setNextSprayDate={props.setNextSprayDate}
+      demoProducts={props.demoProducts}
+      setDemoProducts={props.setDemoProducts}
+      sprayMethod={props.sprayMethod}
+      setSprayMethod={props.setSprayMethod}
+      hasExternalChemicals={props.hasExternalChemicals}
+      setHasExternalChemicals={props.setHasExternalChemicals}
+      externalProducts={props.externalProducts}
+      setExternalProducts={props.setExternalProducts}
+      cropAgeValue={props.cropAgeValue}
+      setCropAgeValue={props.setCropAgeValue}
+      cropAgeUnit={props.cropAgeUnit}
+      setCropAgeUnit={props.setCropAgeUnit}
+      growthStage={props.growthStage}
+      setGrowthStage={props.setGrowthStage}
+      usageMethod={props.usageMethod}
+      setUsageMethod={props.setUsageMethod}
+      initialPhotos={props.initialPhotos}
+      setInitialPhotos={props.setInitialPhotos}
       plannedProductId={props.plannedProductId}
       actualProductId={props.actualProductId}
       setActualProductId={props.setActualProductId}
@@ -174,16 +311,8 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
       setActualQuantity={props.setActualQuantity}
       changeReason={props.changeReason}
       setChangeReason={props.setChangeReason}
-      plotObjective={props.plotObjective}
-      setPlotObjective={props.setPlotObjective}
       customPlotDetail={props.customPlotDetail}
       setCustomPlotDetail={props.setCustomPlotDetail}
-      plotName={props.plotName}
-      setPlotName={props.setPlotName}
-      usageMethod={props.usageMethod}
-      setUsageMethod={props.setUsageMethod}
-      plantingDate={props.plantingDate}
-      setPlantingDate={props.setPlantingDate}
       plantingAreaCondition={props.plantingAreaCondition}
       setPlantingAreaCondition={props.setPlantingAreaCondition}
       nextFollowUpDate={props.nextFollowUpDate}

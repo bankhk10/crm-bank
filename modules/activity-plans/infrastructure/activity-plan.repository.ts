@@ -197,6 +197,22 @@ export async function findActivityPlanById(id: string) {
                   district: true,
                 },
               },
+              demoProducts: {
+                include: {
+                  product: {
+                    select: {
+                      id: true,
+                      name: true,
+                      productCode: true,
+                      unit: true,
+                      packageSizeUnit: true,
+                    },
+                  },
+                },
+              },
+              externalProducts: true,
+              irrigations: true,
+              attachments: true,
             },
           },
         },
@@ -321,6 +337,11 @@ export async function findActivityPlanById(id: string) {
       attachments: true,
     },
   });
+
+  if (plan) {
+    (plan as any).demoPlot = plan.demoPlotVisits?.[0]?.demoPlot || null;
+  }
+  return plan;
 }
 
 /**
@@ -1602,12 +1623,61 @@ export type CreateActivityResultInput = {
     detail?: string | null;
     status?: string;
   }>;
+  type7aDemoPlot?: {
+    customerId?: string | null;
+    ownerName: string;
+    ownerPhone?: string | null;
+    isUnregisteredFarmer: boolean;
+    province: string;
+    district?: string | null;
+    latitude: number;
+    longitude: number;
+    plotName: string;
+    dealerName?: string | null;
+    cropCategory: string;
+    cropName: string;
+    customCropName?: string | null;
+    areaRai?: number | null;
+    treeCount?: number | null;
+    objective?: string | null;
+    experimentDetail?: string | null;
+    mainCropInfo?: string | null;
+    plantingDate?: Date | null;
+    initialSprayDate?: Date | null;
+    nextSprayDate?: Date | null;
+    sprayMethod: string;
+    hasExternalChemicals: boolean;
+    demoProducts: Array<{
+      productId: string;
+      productName?: string | null;
+      quantity: number;
+      unit?: string | null;
+      applicationRate: string;
+    }>;
+    externalProducts?: Array<{
+      company: string;
+      productName: string;
+      activeIngredient?: string | null;
+      formula: string;
+      customFormula?: string | null;
+      applicationRate: string;
+    }>;
+    irrigations?: string[];
+    usageMethod?: string | null;
+    notes?: string | null;
+    cropAgeValue?: number | null;
+    cropAgeUnit?: string | null;
+    growthStage?: string | null;
+    cropCondition?: string | null;
+    productResponse?: string | null;
+  } | null;
   attachments?: Array<{
     workTypeCode?: string | null;
     storeId?: string | null;
     productId?: string | null;
     surveyItemId?: string | null;
     issueItemId?: string | null;
+    demoPlotId?: string | null;
     category?: AttachmentCategory;
     fileUrl: string;
     fileName: string;
@@ -1887,6 +1957,211 @@ export async function upsertActivityResult(
       }
     }
 
+    // 6.5. Sync TYPE_7A Demo Plot Initial Data (Rule 11: Persistence Architecture)
+    let createdDemoPlotId: string | null = null;
+    if (input.type7aDemoPlot) {
+      const demoData = input.type7aDemoPlot;
+      const plan = await tx.activityPlan.findUnique({
+        where: { id: input.activityPlanId },
+        select: { employeeId: true, demoPlotId: true },
+      });
+
+      let existingPlot = null;
+      if (plan?.demoPlotId) {
+        existingPlot = await tx.demoPlot.findUnique({
+          where: { id: plan.demoPlotId },
+        });
+      }
+      if (!existingPlot) {
+        existingPlot = await tx.demoPlot.findFirst({
+          where: {
+            OR: [
+              { visits: { some: { activityPlanId: input.activityPlanId } } },
+              { name: demoData.plotName, ownerName: demoData.ownerName, deletedAt: null },
+            ],
+          },
+        });
+      }
+
+      let plotId: string;
+      const primaryProduct = demoData.demoProducts[0];
+      if (existingPlot) {
+        plotId = existingPlot.id;
+        await tx.demoPlot.update({
+          where: { id: plotId },
+          data: {
+            name: demoData.plotName,
+            ownerName: demoData.ownerName,
+            ownerPhone: demoData.ownerPhone ?? null,
+            isUnregisteredFarmer: demoData.isUnregisteredFarmer,
+            customerId: demoData.customerId ?? null,
+            province: demoData.province,
+            district: demoData.district ?? null,
+            latitude: new Prisma.Decimal(demoData.latitude),
+            longitude: new Prisma.Decimal(demoData.longitude),
+            cropCategory: demoData.cropCategory,
+            cropName: demoData.cropName,
+            customCropName: demoData.customCropName ?? null,
+            areaRai: demoData.areaRai != null ? new Prisma.Decimal(demoData.areaRai) : null,
+            treeCount: demoData.treeCount ?? null,
+            objective: demoData.objective ?? null,
+            experimentDetail: demoData.experimentDetail ?? null,
+            mainCropInfo: demoData.mainCropInfo ?? null,
+            plantingDate: demoData.plantingDate ?? null,
+            initialSprayDate: demoData.initialSprayDate ?? null,
+            nextSprayDate: demoData.nextSprayDate ?? null,
+            sprayMethod: demoData.sprayMethod,
+            hasExternalChemicals: demoData.hasExternalChemicals,
+            usageMethod: demoData.usageMethod ?? null,
+            notes: demoData.notes ?? null,
+            primaryProductName: primaryProduct?.productName || null,
+            primaryProductId: primaryProduct?.productId || null,
+          },
+        });
+      } else {
+        const d = demoData.initialSprayDate || demoData.plantingDate || new Date();
+        const year = String(d.getFullYear()).slice(-2);
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const count = await tx.demoPlot.count();
+        const code = `DP${year}${month}${String(count + 1).padStart(4, "0")}`;
+
+        const newPlot = await tx.demoPlot.create({
+          data: {
+            code,
+            name: demoData.plotName,
+            ownerName: demoData.ownerName,
+            ownerPhone: demoData.ownerPhone ?? null,
+            isUnregisteredFarmer: demoData.isUnregisteredFarmer,
+            customerId: demoData.customerId ?? null,
+            employeeId: plan?.employeeId || "emp-system",
+            province: demoData.province,
+            district: demoData.district ?? null,
+            latitude: new Prisma.Decimal(demoData.latitude),
+            longitude: new Prisma.Decimal(demoData.longitude),
+            cropCategory: demoData.cropCategory,
+            cropName: demoData.cropName,
+            customCropName: demoData.customCropName ?? null,
+            areaRai: demoData.areaRai != null ? new Prisma.Decimal(demoData.areaRai) : null,
+            treeCount: demoData.treeCount ?? null,
+            objective: demoData.objective ?? null,
+            experimentDetail: demoData.experimentDetail ?? null,
+            mainCropInfo: demoData.mainCropInfo ?? null,
+            startDate: demoData.initialSprayDate || demoData.plantingDate || new Date(),
+            plantingDate: demoData.plantingDate ?? null,
+            initialSprayDate: demoData.initialSprayDate ?? null,
+            nextSprayDate: demoData.nextSprayDate ?? null,
+            sprayMethod: demoData.sprayMethod,
+            hasExternalChemicals: demoData.hasExternalChemicals,
+            usageMethod: demoData.usageMethod ?? null,
+            notes: demoData.notes ?? null,
+            primaryProductName: primaryProduct?.productName || null,
+            primaryProductId: primaryProduct?.productId || null,
+            status: DemoPlotStatus.IN_PROGRESS,
+          },
+        });
+        plotId = newPlot.id;
+      }
+      createdDemoPlotId = plotId;
+
+      // Link plan to plot if not linked
+      await tx.activityPlan.update({
+        where: { id: input.activityPlanId },
+        data: { demoPlotId: plotId },
+      });
+
+      // Save DemoPlotProduct (Single Source of Truth for applicationRate)
+      await tx.demoPlotProduct.deleteMany({ where: { demoPlotId: plotId } });
+      if (demoData.demoProducts && demoData.demoProducts.length > 0) {
+        await tx.demoPlotProduct.createMany({
+          data: demoData.demoProducts.map((p, idx) => ({
+            demoPlotId: plotId,
+            productId: p.productId,
+            productName: p.productName ?? null,
+            quantity: new Prisma.Decimal(p.quantity),
+            unit: p.unit ?? null,
+            applicationRate: p.applicationRate,
+            sortOrder: idx,
+          })),
+        });
+      }
+
+      // Save DemoPlotExternalProduct
+      await tx.demoPlotExternalProduct.deleteMany({ where: { demoPlotId: plotId } });
+      if (
+        demoData.sprayMethod === "TANK_MIXED" &&
+        demoData.hasExternalChemicals &&
+        demoData.externalProducts &&
+        demoData.externalProducts.length > 0
+      ) {
+        await tx.demoPlotExternalProduct.createMany({
+          data: demoData.externalProducts.slice(0, 4).map((ep, idx) => ({
+            demoPlotId: plotId,
+            company: ep.company,
+            productName: ep.productName,
+            activeIngredient: ep.activeIngredient ?? null,
+            formula: ep.formula,
+            customFormula: ep.formula === "อื่นๆ" ? ep.customFormula ?? null : null,
+            applicationRate: ep.applicationRate,
+            sortOrder: idx,
+          })),
+        });
+      }
+
+      // Save DemoPlotIrrigation (1:N normalized)
+      await tx.demoPlotIrrigation.deleteMany({ where: { demoPlotId: plotId } });
+      if (demoData.irrigations && demoData.irrigations.length > 0) {
+        const uniqueMethods = Array.from(new Set(demoData.irrigations));
+        await tx.demoPlotIrrigation.createMany({
+          data: uniqueMethods.map((m) => ({
+            demoPlotId: plotId,
+            method: m,
+          })),
+        });
+      }
+
+      // Create / Update DemoPlotVisit #1
+      const existingVisit1 = await tx.demoPlotVisit.findFirst({
+        where: {
+          demoPlotId: plotId,
+          activityPlanId: input.activityPlanId,
+        },
+      });
+
+      const visitDate = demoData.initialSprayDate || demoData.plantingDate || input.actualStartDate || new Date();
+      if (existingVisit1) {
+        await tx.demoPlotVisit.update({
+          where: { id: existingVisit1.id },
+          data: {
+            visitDate,
+            cropAgeValue: demoData.cropAgeValue ?? null,
+            cropAgeUnit: demoData.cropAgeUnit || "วัน",
+            growthStage: demoData.growthStage ?? null,
+            cropCondition: demoData.cropCondition ?? null,
+            productResponse: demoData.productResponse ?? null,
+            usageMethod: demoData.usageMethod ?? null,
+            notes: demoData.notes ?? null,
+          },
+        });
+      } else {
+        await tx.demoPlotVisit.create({
+          data: {
+            demoPlotId: plotId,
+            activityPlanId: input.activityPlanId,
+            visitNumber: 1,
+            visitDate,
+            daysSinceStart: 0,
+            cropAgeValue: demoData.cropAgeValue ?? null,
+            cropAgeUnit: demoData.cropAgeUnit || "วัน",
+            growthStage: demoData.growthStage ?? null,
+            cropCondition: demoData.cropCondition ?? null,
+            productResponse: demoData.productResponse ?? null,
+            usageMethod: demoData.usageMethod ?? null,
+            notes: demoData.notes ?? null,
+          },
+        });
+      }
+    }
+
     // 7. Sync Attachments
     if (input.attachments !== undefined) {
       await tx.activityAttachment.deleteMany({
@@ -1924,6 +2199,11 @@ export async function upsertActivityResult(
               att.issueItemId && validIssueItemIds.has(att.issueItemId)
                 ? att.issueItemId
                 : null,
+            demoPlotId:
+              att.demoPlotId ||
+              (att.workTypeCode === "TYPE_7A" || att.workTypeCode === "ทำแปลงสาธิต"
+                ? createdDemoPlotId
+                : null),
             category: att.category ?? AttachmentCategory.GENERAL,
             fileUrl: att.fileUrl,
             fileName: att.fileName,
@@ -2137,6 +2417,15 @@ export async function getDemoPlotWithHistory(demoPlotId: string) {
   return db.demoPlot.findUnique({
     where: { id: demoPlotId },
     include: {
+      demoProducts: {
+        include: { product: true },
+        orderBy: { sortOrder: "asc" },
+      },
+      externalProducts: {
+        orderBy: { sortOrder: "asc" },
+      },
+      irrigations: true,
+      attachments: true,
       visits: {
         orderBy: { visitDate: "asc" },
         include: {
@@ -2235,6 +2524,7 @@ export async function recordDemoPlotVisit(data: {
   notes?: string | null;
   plantingDate?: Date | null;
   plantingAreaCondition?: string | null;
+  nextSprayDate?: Date | null;
   plotStatus?: DemoPlotStatus;
   finalYieldKg?: number | null;
   controlYieldKg?: number | null;
@@ -2379,6 +2669,9 @@ export async function recordDemoPlotVisit(data: {
     if (data.usageMethod && !plot.usageMethod) {
       plotUpdateData.usageMethod = data.usageMethod;
     }
+    if (data.nextSprayDate) {
+      plotUpdateData.nextSprayDate = data.nextSprayDate;
+    }
 
     if (data.plotStatus && data.plotStatus !== plot.status) {
       plotUpdateData.status = data.plotStatus;
@@ -2451,6 +2744,15 @@ export async function findMasterDemoPlots() {
       status: { not: DemoPlotStatus.CANCELLED },
     },
     include: {
+      demoProducts: {
+        include: { product: true },
+        orderBy: { sortOrder: "asc" },
+      },
+      externalProducts: {
+        orderBy: { sortOrder: "asc" },
+      },
+      irrigations: true,
+      attachments: true,
       visits: {
         orderBy: { visitDate: "asc" },
       },
@@ -2532,6 +2834,15 @@ export async function findDemoPlotByIdOrName(demoPlotIdOrName: string) {
       deletedAt: null,
     },
     include: {
+      demoProducts: {
+        include: { product: true },
+        orderBy: { sortOrder: "asc" },
+      },
+      externalProducts: {
+        orderBy: { sortOrder: "asc" },
+      },
+      irrigations: true,
+      attachments: true,
       visits: {
         orderBy: { visitDate: "asc" },
         include: {

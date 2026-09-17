@@ -286,3 +286,59 @@ export interface Type6IssueRecord {
   status: "เสร็จสิ้น" | "รอติดตาม" | string;
   images?: ImageFile[];
 }
+
+export interface DemoPlotProductItem {
+  id?: string;
+  productId: string;
+  productName?: string;
+  quantity: number | string;
+  unit?: string | null;
+  applicationRate: string; // Single Source of Truth for product application rate
+}
+
+export interface DemoPlotExternalProductItem {
+  id?: string;
+  company: string;
+  productName: string;
+  activeIngredient?: string;
+  formula: string; // SL, SC, EC, EW, ZC, OD, WP, WG, อื่นๆ
+  customFormula?: string;
+  applicationRate: string;
+}
+
+export interface Type7aDemoPlotData {
+  customerId?: string | null;
+  ownerName: string;
+  ownerPhone?: string | null;
+  isUnregisteredFarmer: boolean;
+  province: string;
+  district?: string | null;
+  latitude: number | string;
+  longitude: number | string;
+  plotName: string;
+  dealerName?: string | null;
+  cropCategory: string;
+  cropName: string;
+  customCropName?: string | null;
+  areaRai?: number | string | null;
+  treeCount?: number | string | null;
+  objective?: string | null;
+  experimentDetail?: string | null;
+  mainCropInfo?: string | null;
+  plantingDate?: string | Date | null;
+  initialSprayDate?: string | Date | null;
+  nextSprayDate?: string | Date | null;
+  demoProducts: DemoPlotProductItem[];
+  sprayMethod: "SINGLE" | "TANK_MIXED";
+  hasExternalChemicals: boolean;
+  externalProducts?: DemoPlotExternalProductItem[];
+  irrigations: string[];
+  usageMethod?: string | null;
+  notes?: string | null;
+  cropAgeValue?: number | string | null;
+  cropAgeUnit?: string | null;
+  growthStage?: string | null;
+  cropCondition?: string | null;
+  productResponse?: string | null;
+}
+

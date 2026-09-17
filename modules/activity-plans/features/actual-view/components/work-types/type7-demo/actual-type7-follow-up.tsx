@@ -10,6 +10,11 @@ import {
   Star,
   TrendingUp,
   Sparkles,
+  MapPin,
+  Droplets,
+  FlaskConical,
+  Layers,
+  Package,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -273,6 +278,148 @@ export function ActualType7FollowUp({
           },
         ]}
       />
+
+      {/* READ-ONLY INITIAL DATA CARD FOR TYPE_7B */}
+      {demoPlotData && (
+        <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-3.5 text-xs shadow-2xs">
+          <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+            <div className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-emerald-700" />
+              <h3 className="text-sm font-bold text-slate-800">
+                ข้อมูลตั้งต้นของแปลงสาธิต (Initial Plot Data - Read Only)
+              </h3>
+            </div>
+            <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[10px]">
+              BASELINE
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-slate-700">
+            <div>
+              <span className="text-slate-400 block text-[11px]">ชื่อแปลง</span>
+              <span className="font-semibold text-slate-900">
+                {demoPlotData.plotName || demoPlotData.name || "-"}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[11px]">เกษตรกรเจ้าของแปลง</span>
+              <span className="font-semibold text-slate-900">
+                {demoPlotData.ownerName || target.owner || "-"}{" "}
+                {demoPlotData.ownerPhone ? `(${demoPlotData.ownerPhone})` : ""}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[11px]">พิกัดแปลง (Lat, Lng)</span>
+              <span className="font-semibold text-slate-900 flex items-center gap-1">
+                <MapPin className="w-3 h-3 text-emerald-600" />
+                {demoPlotData.latitude && demoPlotData.longitude
+                  ? `${demoPlotData.latitude}, ${demoPlotData.longitude}`
+                  : "-"}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[11px]">พืช / หมวดหมู่</span>
+              <span className="font-semibold text-slate-900">
+                {demoPlotData.cropName || demoPlotData.targetCrop || target.crop || "-"}{" "}
+                {demoPlotData.cropCategory ? `(${demoPlotData.cropCategory})` : ""}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[11px]">ขนาดพื้นที่</span>
+              <span className="font-semibold text-slate-900">
+                {demoPlotData.areaRai ? `${demoPlotData.areaRai} ไร่` : "-"}{" "}
+                {demoPlotData.treeCount ? `(${demoPlotData.treeCount} ต้น)` : ""}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[11px]">วิธีการฉีดพ่น</span>
+              <span className="font-semibold text-slate-900">
+                {demoPlotData.sprayMethod === "TANK_MIXED"
+                  ? "ผสมถัง (Tank-mixed)"
+                  : "ฉีดเดี่ยว (Single)"}
+              </span>
+            </div>
+            {demoPlotData.mainCropInfo && (
+              <div className="sm:col-span-2 md:col-span-3">
+                <span className="text-slate-400 block text-[11px]">ข้อมูลพืชประธาน</span>
+                <span className="font-medium text-slate-800">
+                  {demoPlotData.mainCropInfo}
+                </span>
+              </div>
+            )}
+            {demoPlotData.irrigations && demoPlotData.irrigations.length > 0 && (
+              <div className="sm:col-span-2 md:col-span-3">
+                <span className="text-slate-400 block text-[11px] flex items-center gap-1">
+                  <Droplets className="w-3 h-3 text-blue-500" />
+                  ระบบน้ำ
+                </span>
+                <span className="font-medium text-slate-800">
+                  {demoPlotData.irrigations
+                    .map((ir: any) => ir.methodName || ir)
+                    .join(", ")}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Initial Demo Products with SSoT Application Rate */}
+          {demoPlotData.demoProducts && demoPlotData.demoProducts.length > 0 && (
+            <div className="pt-2 border-t border-slate-200/70 space-y-1.5">
+              <span className="text-[11px] font-bold text-slate-700 block flex items-center gap-1">
+                <Package className="w-3.5 h-3.5 text-emerald-600" />
+                สินค้าสาธิตตั้งต้นและอัตราการใช้ (SSoT)
+              </span>
+              <div className="space-y-1">
+                {demoPlotData.demoProducts.map((dp: any, idx: number) => (
+                  <div
+                    key={idx}
+                    className="p-2 rounded-lg bg-white border border-slate-200 flex flex-wrap items-center justify-between gap-2"
+                  >
+                    <span className="font-bold text-slate-800">
+                      {dp.product?.name || dp.productName || "สินค้าสาธิต"}
+                    </span>
+                    <div className="flex items-center gap-3 text-[11px] text-slate-600">
+                      <span>
+                        จำนวน: <b>{dp.quantity}</b> {dp.unit || dp.product?.unit || ""}
+                      </span>
+                      <span>
+                        อัตราการใช้: <b className="text-emerald-800">{dp.applicationRate || "-"}</b>
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* External Chemicals if any */}
+          {demoPlotData.hasExternalChemicals &&
+            demoPlotData.externalProducts &&
+            demoPlotData.externalProducts.length > 0 && (
+              <div className="pt-2 border-t border-slate-200/70 space-y-1.5">
+                <span className="text-[11px] font-bold text-amber-900 block flex items-center gap-1">
+                  <FlaskConical className="w-3.5 h-3.5 text-amber-600" />
+                  สารเคมีภายนอกตั้งต้น
+                </span>
+                <div className="space-y-1">
+                  {demoPlotData.externalProducts.map((ep: any, idx: number) => (
+                    <div
+                      key={idx}
+                      className="p-2 rounded-lg bg-amber-50/70 border border-amber-200/70 flex flex-wrap items-center justify-between gap-2 text-[11px]"
+                    >
+                      <span className="font-semibold text-amber-950">
+                        {ep.company} - {ep.productName} ({ep.formula === "อื่นๆ" ? ep.customFormula || "อื่นๆ" : ep.formula})
+                      </span>
+                      <span className="text-amber-900">
+                        อัตราใช้: <b>{ep.applicationRate}</b>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+        </div>
+      )}
 
       {/* SECTION 2: OBSERVATIONS & CROP HEALTH */}
       <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4">

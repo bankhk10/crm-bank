@@ -22,6 +22,8 @@ import type {
   Type5SurveyRecord,
   Type6IssueRecord,
   FollowupProductItem,
+  DemoPlotProductItem,
+  DemoPlotExternalProductItem,
 } from "./types";
 import {
   extractPlanData,
@@ -312,6 +314,33 @@ export default function ActivityPlanActualView({
   const [t7VisitHistory, setT7VisitHistory] = useState<any[]>([]);
   const [t7DemoPlotData, setT7DemoPlotData] = useState<any>(null);
 
+  // Work Type 7A Specific States
+  const [t7FarmerProvince, setT7FarmerProvince] = useState("");
+  const [t7FarmerCustomerId, setT7FarmerCustomerId] = useState<string | null>(null);
+  const [t7FarmerName, setT7FarmerName] = useState("");
+  const [t7FarmerPhone, setT7FarmerPhone] = useState("");
+  const [t7IsUnregisteredFarmer, setT7IsUnregisteredFarmer] = useState(false);
+  const [t7DealerName, setT7DealerName] = useState("");
+  const [t7Latitude, setT7Latitude] = useState("");
+  const [t7Longitude, setT7Longitude] = useState("");
+  const [t7District, setT7District] = useState("");
+  const [t7CropCategory, setT7CropCategory] = useState("");
+  const [t7CropName, setT7CropName] = useState("");
+  const [t7CustomCropName, setT7CustomCropName] = useState("");
+  const [t7AreaRai, setT7AreaRai] = useState("");
+  const [t7TreeCount, setT7TreeCount] = useState("");
+  const [t7ExperimentDetail, setT7ExperimentDetail] = useState("");
+  const [t7MainCropInfo, setT7MainCropInfo] = useState("");
+  const [t7Irrigations, setT7Irrigations] = useState<string[]>([]);
+  const [t7InitialSprayDate, setT7InitialSprayDate] = useState("");
+  const [t7NextSprayDate, setT7NextSprayDate] = useState("");
+  const [t7DemoProducts, setT7DemoProducts] = useState<DemoPlotProductItem[]>([]);
+  const [t7SprayMethod, setT7SprayMethod] = useState<"SINGLE" | "TANK_MIXED">("SINGLE");
+  const [t7HasExternalChemicals, setT7HasExternalChemicals] = useState(false);
+  const [t7ExternalProducts, setT7ExternalProducts] = useState<DemoPlotExternalProductItem[]>([]);
+  const [t7InitialPhotos, setT7InitialPhotos] = useState<ImageFile[]>([]);
+  const initialT7InitialPhotosRef = useRef<ImageFile[]>([]);
+
   // Work Type 8 States
   const [t8ActualAttendees, setT8ActualAttendees] = useState("");
   const [t8FeedbackQnA, setT8FeedbackQnA] = useState("");
@@ -380,8 +409,12 @@ export default function ActivityPlanActualView({
       try {
         setLoadingPlan(true);
         const res = await getActivityPlanAction(id!);
-        if (res.success && res.plan) {
-          const p = res.plan;
+        if (!res.success || !res.plan) {
+          setFormError(res.error || "ไม่สามารถโหลดข้อมูลแผนงานกิจกรรมได้");
+          setLoadingPlan(false);
+          return;
+        }
+        const p = res.plan;
 
           // Check Creator ownership: Helper is NOT allowed to record actual results
           const roles = (session?.user as any)?.roles ?? [];
@@ -435,8 +468,10 @@ export default function ActivityPlanActualView({
                   setT7DemoPlotId(histRes.plot.id);
                   setT7DemoPlotData(histRes.plot);
                   setT7VisitHistory(histRes.plot.visits || []);
-                  if (histRes.plot.plotName) {
-                    setT7PlotName(histRes.plot.plotName);
+                  const histPlotName =
+                    histRes.plot.name || (histRes.plot as any).plotName;
+                  if (histPlotName) {
+                    setT7PlotName(histPlotName);
                   }
                   if (histRes.plot.plantingDate) {
                     setT7PlantingDate(
@@ -468,6 +503,202 @@ export default function ActivityPlanActualView({
                 }
               },
             );
+          }
+
+          // Check if plan has a linked DemoPlot (e.g. from previous save or relation)
+          const linkedDemoPlot =
+            (p as any).demoPlotVisits?.[0]?.demoPlot ||
+            (p as any).demoPlot;
+
+          if (linkedDemoPlot) {
+            const dp = linkedDemoPlot;
+            setT7DemoPlotId(dp.id);
+            setT7DemoPlotData(dp);
+            if (dp.province) setT7FarmerProvince(dp.province);
+            if (dp.district) setT7District(dp.district);
+            if (dp.customerId) setT7FarmerCustomerId(dp.customerId);
+            if (dp.ownerName) setT7FarmerName(dp.ownerName);
+            if (dp.ownerPhone) setT7FarmerPhone(dp.ownerPhone);
+            if (dp.isUnregisteredFarmer != null)
+              setT7IsUnregisteredFarmer(Boolean(dp.isUnregisteredFarmer));
+            if (dp.dealerName) setT7DealerName(dp.dealerName);
+            if (dp.latitude != null) setT7Latitude(String(dp.latitude));
+            if (dp.longitude != null) setT7Longitude(String(dp.longitude));
+            const resolvedPlotName = dp.name || dp.plotName;
+            if (resolvedPlotName) setT7PlotName(resolvedPlotName);
+            if (dp.cropCategory) setT7CropCategory(dp.cropCategory);
+            if (dp.cropName) setT7CropName(dp.cropName);
+            if (dp.customCropName) setT7CustomCropName(dp.customCropName);
+            if (dp.areaRai != null) setT7AreaRai(String(dp.areaRai));
+            if (dp.treeCount != null) setT7TreeCount(String(dp.treeCount));
+            if (dp.objective) setT7PlotObjective(dp.objective);
+            if (dp.experimentDetail) setT7ExperimentDetail(dp.experimentDetail);
+            if (dp.mainCropInfo) setT7MainCropInfo(dp.mainCropInfo);
+            if (dp.irrigations && dp.irrigations.length > 0) {
+              setT7Irrigations(dp.irrigations.map((ir: any) => ir.methodName));
+            }
+            if (dp.plantingDate) {
+              setT7PlantingDate(
+                new Date(dp.plantingDate).toISOString().split("T")[0],
+              );
+            }
+            if (dp.initialSprayDate) {
+              setT7InitialSprayDate(
+                new Date(dp.initialSprayDate).toISOString().split("T")[0],
+              );
+            }
+            if (dp.nextSprayDate) {
+              setT7NextSprayDate(
+                new Date(dp.nextSprayDate).toISOString().split("T")[0],
+              );
+            }
+            if (dp.sprayMethod) setT7SprayMethod(dp.sprayMethod);
+            if (dp.hasExternalChemicals != null)
+              setT7HasExternalChemicals(Boolean(dp.hasExternalChemicals));
+            if (dp.externalProducts && dp.externalProducts.length > 0) {
+              setT7ExternalProducts(
+                dp.externalProducts.map((ep: any) => ({
+                  company: ep.company,
+                  productName: ep.productName,
+                  activeIngredient: ep.activeIngredient || "",
+                  formula: ep.formula,
+                  customFormula: ep.customFormula || "",
+                  applicationRate: ep.applicationRate,
+                })),
+              );
+            }
+            if (dp.demoProducts && dp.demoProducts.length > 0) {
+              setT7DemoProducts(
+                dp.demoProducts.map((dpr: any) => ({
+                  productId: dpr.productId,
+                  productName: dpr.product?.name || "",
+                  quantity: dpr.quantity || 1,
+                  unit: dpr.product?.unit || dpr.product?.packageSizeUnit || "",
+                  applicationRate: dpr.applicationRate || "",
+                })),
+              );
+            } else {
+              const planT7aProducts = (
+                (p as any).products ||
+                (p as any).planProducts ||
+                []
+              ).filter(
+                (pr: any) =>
+                  pr.workTypeCode === "TYPE_7A" ||
+                  pr.workTypeCode === "TYPE_7" ||
+                  !pr.workTypeCode,
+              );
+              if (planT7aProducts.length > 0) {
+                setT7DemoProducts(
+                  planT7aProducts.map((pr: any) => ({
+                    productId: pr.productId,
+                    productName: pr.product?.name || pr.productName || "",
+                    quantity: pr.targetQuantity || pr.quantity || 1,
+                    unit: pr.product?.unit || pr.product?.packageSizeUnit || "",
+                    applicationRate: "",
+                  })),
+                );
+              }
+            }
+            if (dp.notes) setT7UsageMethod(dp.notes);
+            if (dp.attachments && dp.attachments.length > 0) {
+              const mapped = dp.attachments.map((a: any) => ({
+                id: a.id,
+                url: a.fileUrl,
+                fileName: a.fileName,
+                fileSize: a.fileSize,
+                mimeType: a.fileType,
+              }));
+              setT7InitialPhotos(mapped);
+              initialT7InitialPhotosRef.current = JSON.parse(
+                JSON.stringify(mapped),
+              );
+            }
+          } else {
+            // Initial pre-population from plan for TYPE_7A fallback
+            const t7aTarget = extracted.targets.t7a || extracted.targets.t7;
+            if (t7aTarget) {
+              const fallbackPlotName =
+                (t7aTarget as any).plotName || (t7aTarget as any).name;
+              if (fallbackPlotName) setT7PlotName(fallbackPlotName);
+              if ((t7aTarget as any).district)
+                setT7District((t7aTarget as any).district);
+              if ((t7aTarget as any).province)
+                setT7FarmerProvince((t7aTarget as any).province);
+              if ((t7aTarget as any).dealerName)
+                setT7DealerName((t7aTarget as any).dealerName);
+              if (t7aTarget.owner) setT7FarmerName(t7aTarget.owner);
+              if (t7aTarget.crop) setT7CropName(t7aTarget.crop);
+              if ((t7aTarget as any).cropCategory)
+                setT7CropCategory((t7aTarget as any).cropCategory);
+              if ((t7aTarget as any).areaRai != null)
+                setT7AreaRai(String((t7aTarget as any).areaRai));
+              if ((t7aTarget as any).treeCount != null)
+                setT7TreeCount(String((t7aTarget as any).treeCount));
+              if (t7aTarget.objective) setT7PlotObjective(t7aTarget.objective);
+              if (t7aTarget.experimentDetail || t7aTarget.detail) {
+                setT7ExperimentDetail(
+                  t7aTarget.experimentDetail || t7aTarget.detail || "",
+                );
+              }
+            }
+            if (p.province) setT7FarmerProvince(p.province);
+            if ((t7aTarget as any)?.district) {
+              setT7District((t7aTarget as any).district);
+            } else if (p.district) {
+              setT7District(p.district);
+            }
+            if (p.latitude != null) setT7Latitude(String(p.latitude));
+            if (p.longitude != null) setT7Longitude(String(p.longitude));
+            if (p.stores && p.stores.length > 0) {
+              const storeNames = p.stores
+                .map((s: any) => s.store?.name || s.storeName)
+                .filter(Boolean)
+                .join(", ");
+              if (storeNames) setT7DealerName(storeNames);
+            }
+            if (p.startDate) {
+              const sDate = new Date(p.startDate).toISOString().split("T")[0];
+              setT7InitialSprayDate(sDate);
+            }
+
+            // Pre-populate demoProducts from planProducts for TYPE_7A
+            const planT7aProducts = (
+              (p as any).products ||
+              (p as any).planProducts ||
+              []
+            ).filter(
+              (pr: any) =>
+                pr.workTypeCode === "TYPE_7A" || !pr.workTypeCode,
+            );
+            if (planT7aProducts.length > 0) {
+              setT7DemoProducts(
+                planT7aProducts.map((pr: any) => ({
+                  productId: pr.productId,
+                  productName: pr.product?.name || pr.productName || "",
+                  quantity: pr.targetQuantity || pr.quantity || 1,
+                  unit: pr.product?.unit || pr.product?.packageSizeUnit || "",
+                  applicationRate: "",
+                })),
+              );
+            } else if (
+              extracted.targets.t7?.plannedProductId ||
+              extracted.targets.t7?.productId
+            ) {
+              const pId =
+                extracted.targets.t7.plannedProductId ||
+                extracted.targets.t7.productId;
+              setT7DemoProducts([
+                {
+                  productId: pId!,
+                  productName: extracted.targets.t7.product || "",
+                  quantity:
+                    Number(extracted.targets.t7.demoProductQuantity) || 1,
+                  unit: "",
+                  applicationRate: "",
+                },
+              ]);
+            }
           }
 
           // Restore saved post-activity outcome (p.result) if exists
@@ -824,6 +1055,73 @@ export default function ActivityPlanActualView({
               );
             }
 
+            // Restore TYPE_7A specific parsed fields
+            if ((parsed as any).type7aDemoPlot) {
+              const dp = (parsed as any).type7aDemoPlot;
+              if (dp.province) setT7FarmerProvince(dp.province);
+              if (dp.district) setT7District(dp.district);
+              if (dp.customerId) setT7FarmerCustomerId(dp.customerId);
+              if (dp.ownerName) setT7FarmerName(dp.ownerName);
+              if (dp.ownerPhone) setT7FarmerPhone(dp.ownerPhone);
+              if (dp.isUnregisteredFarmer != null)
+                setT7IsUnregisteredFarmer(Boolean(dp.isUnregisteredFarmer));
+              if (dp.dealerName) setT7DealerName(dp.dealerName);
+              if (dp.latitude != null) setT7Latitude(String(dp.latitude));
+              if (dp.longitude != null) setT7Longitude(String(dp.longitude));
+              const resolvedPlotName = dp.name || dp.plotName;
+              if (resolvedPlotName) setT7PlotName(resolvedPlotName);
+              if (dp.cropCategory) setT7CropCategory(dp.cropCategory);
+              if (dp.cropName) setT7CropName(dp.cropName);
+              if (dp.customCropName) setT7CustomCropName(dp.customCropName);
+              if (dp.areaRai != null) setT7AreaRai(String(dp.areaRai));
+              if (dp.treeCount != null) setT7TreeCount(String(dp.treeCount));
+              if (dp.objective) setT7PlotObjective(dp.objective);
+              if (dp.experimentDetail) setT7ExperimentDetail(dp.experimentDetail);
+              if (dp.mainCropInfo) setT7MainCropInfo(dp.mainCropInfo);
+              if (dp.irrigations && dp.irrigations.length > 0)
+                setT7Irrigations(dp.irrigations);
+              if (dp.plantingDate) {
+                setT7PlantingDate(
+                  new Date(dp.plantingDate).toISOString().split("T")[0],
+                );
+              }
+              if (dp.initialSprayDate) {
+                setT7InitialSprayDate(
+                  new Date(dp.initialSprayDate).toISOString().split("T")[0],
+                );
+              }
+              if (dp.nextSprayDate) {
+                setT7NextSprayDate(
+                  new Date(dp.nextSprayDate).toISOString().split("T")[0],
+                );
+              }
+              if (dp.sprayMethod) setT7SprayMethod(dp.sprayMethod);
+              if (dp.hasExternalChemicals != null)
+                setT7HasExternalChemicals(Boolean(dp.hasExternalChemicals));
+              if (dp.externalProducts) setT7ExternalProducts(dp.externalProducts);
+              if (dp.demoProducts) setT7DemoProducts(dp.demoProducts);
+            }
+
+            // Restore TYPE_7A photos from result attachments if present
+            const t7aAttachments = ((p as any).result?.attachments || []).filter(
+              (a: any) =>
+                a.workTypeCode === "TYPE_7A" ||
+                (a.fileCategory === "PLOT" && a.workTypeCode === "TYPE_7A"),
+            );
+            if (t7aAttachments.length > 0) {
+              const mapped = t7aAttachments.map((a: any) => ({
+                id: a.id,
+                url: a.fileUrl,
+                fileName: a.fileName,
+                fileSize: a.fileSize,
+                mimeType: a.fileType,
+              }));
+              setT7InitialPhotos(mapped);
+              initialT7InitialPhotosRef.current = JSON.parse(
+                JSON.stringify(mapped),
+              );
+            }
+
             // Type 8
             if (parsed.t8ActualAttendees) {
               setT8ActualAttendees(parsed.t8ActualAttendees);
@@ -933,9 +1231,9 @@ export default function ActivityPlanActualView({
             }));
             setT5SurveyDetails(defaultT5Records);
           }
-        }
-      } catch (e) {
+      } catch (e: any) {
         console.error("Failed to load plan for actual record", e);
+        setFormError(e?.message || "เกิดข้อผิดพลาดในการโหลดข้อมูลแผนงาน");
       } finally {
         setLoadingPlan(false);
       }
@@ -999,17 +1297,15 @@ export default function ActivityPlanActualView({
     }
   };
 
-  const isTypeVisible = (typeTitle: string) => {
-    if (planWorkTypes.length > 0) {
-      const code = getWorkTypeCode(typeTitle);
-      return planWorkTypes.some(
-        (t) =>
-          t === typeTitle ||
-          getWorkTypeCode(t) === code ||
-          getWorkTypeName(code) === t,
-      );
-    }
-    return true;
+  const isTypeVisible = (typeTitleOrCode: string) => {
+    if (loadingPlan) return false;
+    const targetCode = getWorkTypeCode(typeTitleOrCode);
+    if (!targetCode) return false;
+
+    return planWorkTypes.some((t) => {
+      const code = getWorkTypeCode(t);
+      return code === targetCode;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1031,8 +1327,7 @@ export default function ActivityPlanActualView({
         // Work Type 1
         let cleanT1PlotImages = t1PlotImages;
         if (
-          (isTypeVisible("เข้าพบเกษตรกร") ||
-            isTypeVisible("เข้าพบร้านค้า / Key Farmer")) &&
+          isTypeVisible("TYPE_1") &&
           t1PlotImages &&
           t1PlotImages.length > 0
         ) {
@@ -1050,7 +1345,7 @@ export default function ActivityPlanActualView({
         // Work Type 2
         let cleanT2Images = t2Images;
         if (
-          isTypeVisible("ติดตามผลการใช้สินค้า") &&
+          isTypeVisible("TYPE_2") &&
           t2Images &&
           t2Images.length > 0
         ) {
@@ -1068,7 +1363,7 @@ export default function ActivityPlanActualView({
         // Work Type 5
         let cleanT5SurveyDetails = t5SurveyDetails;
         if (
-          isTypeVisible("สำรวจตลาดของคู่แข่ง") &&
+          isTypeVisible("TYPE_5") &&
           t5SurveyDetails &&
           t5SurveyDetails.length > 0
         ) {
@@ -1106,7 +1401,7 @@ export default function ActivityPlanActualView({
         }
 
         // Validate Work Type 6 if visible
-        if (isTypeVisible("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา")) {
+        if (isTypeVisible("TYPE_6")) {
           if (!t6PurchaseChannel) {
             setFormError(
               "กรุณาระบุช่องทางการซื้อสินค้าสำหรับตรวจสอบเรื่องร้องเรียน",
@@ -1144,7 +1439,7 @@ export default function ActivityPlanActualView({
         // Work Type 6
         let cleanT6Images = t6Images;
         if (
-          isTypeVisible("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา") &&
+          isTypeVisible("TYPE_6") &&
           t6Images &&
           t6Images.length > 0
         ) {
@@ -1162,12 +1457,23 @@ export default function ActivityPlanActualView({
         // Work Type 7 (7A / 7B)
         let cleanT7CropImages = t7CropImages;
         let cleanT7PlotImages = t7PlotImages;
+        let cleanT7InitialPhotos = t7InitialPhotos;
         if (
-          isTypeVisible("ทำแปลงสาธิต") ||
-          isTypeVisible("ติดตามแปลงสาธิต") ||
-          isTypeVisible("ติดตามแปลงสาธิต / ทำแปลง")
+          isTypeVisible("TYPE_7A") ||
+          isTypeVisible("TYPE_7B")
         ) {
           const plotItemId = t7DemoPlotId || targets.t7.owner || "demo-plot";
+          if (t7InitialPhotos && t7InitialPhotos.length > 0) {
+            const res = await uploadActivityPlanImageGroup(
+              id,
+              t7InitialPhotos,
+              "plot",
+              plotItemId,
+            );
+            cleanT7InitialPhotos = res.updatedImages;
+            allNewlyUploadedUrls.push(...res.newlyUploadedUrls);
+            setT7InitialPhotos(cleanT7InitialPhotos);
+          }
           if (t7CropImages && t7CropImages.length > 0) {
             const res = await uploadActivityPlanImageGroup(
               id,
@@ -1195,7 +1501,7 @@ export default function ActivityPlanActualView({
         // Work Type 8
         let cleanT8Images = t8Images;
         if (
-          isTypeVisible("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์") &&
+          isTypeVisible("TYPE_8") &&
           t8Images &&
           t8Images.length > 0
         ) {
@@ -1213,7 +1519,7 @@ export default function ActivityPlanActualView({
         // Work Type 9
         let cleanT9Images = t9Images;
         if (
-          isTypeVisible("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") &&
+          isTypeVisible("TYPE_9") &&
           t9Images &&
           t9Images.length > 0
         ) {
@@ -1231,7 +1537,7 @@ export default function ActivityPlanActualView({
         // Work Type 10
         let cleanT10Images = t10Images;
         if (
-          isTypeVisible("จัดงาน Field Day") &&
+          isTypeVisible("TYPE_10") &&
           t10Images &&
           t10Images.length > 0
         ) {
@@ -1308,6 +1614,16 @@ export default function ActivityPlanActualView({
           (u) => !currentT7PlotUrls.has(u),
         );
 
+        const initialT7InitialUrls = collectPermanentUrls(
+          initialT7InitialPhotosRef.current,
+        );
+        const currentT7InitialUrls = new Set(
+          collectPermanentUrls(cleanT7InitialPhotos),
+        );
+        const oldT7InitialToDelete = initialT7InitialUrls.filter(
+          (u) => !currentT7InitialUrls.has(u),
+        );
+
         // Type 8
         const initialT8Urls = collectPermanentUrls(initialT8ImagesRef.current);
         const currentT8Urls = new Set(collectPermanentUrls(cleanT8Images));
@@ -1338,6 +1654,7 @@ export default function ActivityPlanActualView({
           ...oldT6ToDelete,
           ...oldT7CropToDelete,
           ...oldT7PlotToDelete,
+          ...oldT7InitialToDelete,
           ...oldT8ToDelete,
           ...oldT9ToDelete,
           ...oldT10ToDelete,
@@ -1492,6 +1809,30 @@ export default function ActivityPlanActualView({
           t7FinalSummaryNotes,
           t7CropImages: cleanT7CropImages,
           t7PlotImages: cleanT7PlotImages,
+          t7FarmerProvince,
+          t7FarmerCustomerId,
+          t7FarmerName,
+          t7FarmerPhone,
+          t7IsUnregisteredFarmer,
+          t7DealerName,
+          t7Latitude,
+          t7Longitude,
+          t7District,
+          t7CropCategory,
+          t7CropName,
+          t7CustomCropName,
+          t7AreaRai,
+          t7TreeCount,
+          t7ExperimentDetail,
+          t7MainCropInfo,
+          t7Irrigations,
+          t7InitialSprayDate,
+          t7NextSprayDate,
+          t7DemoProducts,
+          t7SprayMethod,
+          t7HasExternalChemicals,
+          t7ExternalProducts,
+          t7InitialPhotos: cleanT7InitialPhotos,
           t8ActualAttendees,
           t8FeedbackQnA,
           t8ProductSalesDetails,
@@ -1647,6 +1988,44 @@ export default function ActivityPlanActualView({
                 ไม่มีสิทธิ์บันทึกผลการปฏิบัติงาน
               </h3>
               <p className="text-sm text-slate-600">{unauthorizedError}</p>
+            </div>
+            <div className="pt-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (onCancel) onCancel();
+                  else
+                    router.push(
+                      id ? `/activity-plans/${id}` : "/activity-plans",
+                    );
+                }}
+                className="gap-2 font-semibold border-slate-300"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                กลับหน้ารายละเอียดแผนงาน
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!loadingPlan && id && formError && !planStatus) {
+    return (
+      <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
+        <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto">
+          <ActualViewHeader planNo={planSummary.planNo} />
+
+          <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 sm:p-8 text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base sm:text-lg font-bold text-slate-800">
+                เกิดข้อผิดพลาดในการโหลดข้อมูลแผนงาน
+              </h3>
+              <p className="text-sm text-slate-600">{formError}</p>
             </div>
             <div className="pt-2">
               <Button
@@ -1890,6 +2269,54 @@ export default function ActivityPlanActualView({
             t7DemoPlotData={t7DemoPlotData}
             t7DemoPlotId={t7DemoPlotId}
             setT7DemoPlotId={setT7DemoPlotId}
+            t7FarmerProvince={t7FarmerProvince}
+            setT7FarmerProvince={setT7FarmerProvince}
+            t7FarmerCustomerId={t7FarmerCustomerId}
+            setT7FarmerCustomerId={setT7FarmerCustomerId}
+            t7FarmerName={t7FarmerName}
+            setT7FarmerName={setT7FarmerName}
+            t7FarmerPhone={t7FarmerPhone}
+            setT7FarmerPhone={setT7FarmerPhone}
+            t7IsUnregisteredFarmer={t7IsUnregisteredFarmer}
+            setT7IsUnregisteredFarmer={setT7IsUnregisteredFarmer}
+            t7DealerName={t7DealerName}
+            setT7DealerName={setT7DealerName}
+            t7Latitude={t7Latitude}
+            setT7Latitude={setT7Latitude}
+            t7Longitude={t7Longitude}
+            setT7Longitude={setT7Longitude}
+            t7District={t7District}
+            setT7District={setT7District}
+            t7CropCategory={t7CropCategory}
+            setT7CropCategory={setT7CropCategory}
+            t7CropName={t7CropName}
+            setT7CropName={setT7CropName}
+            t7CustomCropName={t7CustomCropName}
+            setT7CustomCropName={setT7CustomCropName}
+            t7AreaRai={t7AreaRai}
+            setT7AreaRai={setT7AreaRai}
+            t7TreeCount={t7TreeCount}
+            setT7TreeCount={setT7TreeCount}
+            t7ExperimentDetail={t7ExperimentDetail}
+            setT7ExperimentDetail={setT7ExperimentDetail}
+            t7MainCropInfo={t7MainCropInfo}
+            setT7MainCropInfo={setT7MainCropInfo}
+            t7Irrigations={t7Irrigations}
+            setT7Irrigations={setT7Irrigations}
+            t7InitialSprayDate={t7InitialSprayDate}
+            setT7InitialSprayDate={setT7InitialSprayDate}
+            t7NextSprayDate={t7NextSprayDate}
+            setT7NextSprayDate={setT7NextSprayDate}
+            t7DemoProducts={t7DemoProducts}
+            setT7DemoProducts={setT7DemoProducts}
+            t7SprayMethod={t7SprayMethod}
+            setT7SprayMethod={setT7SprayMethod}
+            t7HasExternalChemicals={t7HasExternalChemicals}
+            setT7HasExternalChemicals={setT7HasExternalChemicals}
+            t7ExternalProducts={t7ExternalProducts}
+            setT7ExternalProducts={setT7ExternalProducts}
+            t7InitialPhotos={t7InitialPhotos}
+            setT7InitialPhotos={setT7InitialPhotos}
             // Type 8
             t8ActualAttendees={t8ActualAttendees}
             setT8ActualAttendees={setT8ActualAttendees}

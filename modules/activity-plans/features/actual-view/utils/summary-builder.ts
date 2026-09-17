@@ -112,6 +112,44 @@ export interface BuildSummaryInput {
   t7CropImages?: ImageFile[];
   t7PlotImages?: ImageFile[];
 
+  // Type 7A Specific Initial Fields
+  t7FarmerCustomerId?: string | null;
+  t7FarmerName?: string;
+  t7FarmerPhone?: string;
+  t7IsUnregisteredFarmer?: boolean;
+  t7FarmerProvince?: string;
+  t7FarmerDistrict?: string;
+  t7DealerName?: string;
+  t7Latitude?: string | number | null;
+  t7Longitude?: string | number | null;
+  t7CropCategory?: string;
+  t7CropName?: string;
+  t7CustomCropName?: string;
+  t7AreaRai?: string | number | null;
+  t7TreeCount?: string | number | null;
+  t7MainCropInfo?: string;
+  t7InitialSprayDate?: string;
+  t7NextSprayDate?: string;
+  t7DemoProducts?: Array<{
+    productId: string;
+    productName?: string;
+    quantity: number | string;
+    unit?: string | null;
+    applicationRate: string;
+  }>;
+  t7SprayMethod?: "SINGLE" | "TANK_MIXED";
+  t7HasExternalChemicals?: boolean;
+  t7ExternalProducts?: Array<{
+    company: string;
+    productName: string;
+    activeIngredient?: string;
+    formula: string;
+    customFormula?: string;
+    applicationRate: string;
+  }>;
+  t7Irrigations?: string[];
+  t7InitialPhotos?: ImageFile[];
+
   // Type 8
   t8ActualAttendees: string;
   t8FeedbackQnA: string;
@@ -276,13 +314,189 @@ export function buildResultSummary(
     }
   }
 
-  // Validate Type 7 Product Change
+  const isType7B = (input.planWorkTypes || []).some(
+    (wt) => wt === "ติดตามแปลงสาธิต" || getWorkTypeCode(wt) === "TYPE_7B",
+  );
+  const isType7A = (input.planWorkTypes || []).some(
+    (wt) => wt === "ทำแปลงสาธิต" || getWorkTypeCode(wt) === "TYPE_7A",
+  );
+
+  // Validate TYPE_7A fields if COMPLETED
+  if (isType7A && !isType7B && activityResultStatus === "COMPLETED") {
+    // 1. Farmer Owner
+    if (!input.t7FarmerProvince?.trim()) {
+      return {
+        validationError: "กรุณาเลือกจังหวัดของเกษตรกรเจ้าของแปลง (Work Type 7A)",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+    if (input.t7IsUnregisteredFarmer) {
+      if (!input.t7FarmerName?.trim()) {
+        return {
+          validationError: "กรุณาระบุชื่อเกษตรกรเจ้าของแปลง (Work Type 7A)",
+          summaryParts: [],
+          payload: null,
+        };
+      }
+      if (!input.t7FarmerPhone?.trim()) {
+        return {
+          validationError: "กรุณาระบุเบอร์โทรศัพท์เกษตรกรเจ้าของแปลง (Work Type 7A)",
+          summaryParts: [],
+          payload: null,
+        };
+      }
+    } else {
+      if (!input.t7FarmerCustomerId && !input.t7FarmerName?.trim()) {
+        return {
+          validationError: "กรุณาเลือกเกษตรกรจากระบบ Customer Master (Work Type 7A)",
+          summaryParts: [],
+          payload: null,
+        };
+      }
+    }
+
+    // 2. Plot Location (Latitude & Longitude REQUIRED numeric)
+    const lat = parseCleanNumber(input.t7Latitude);
+    const lng = parseCleanNumber(input.t7Longitude);
+    if (lat === null || isNaN(lat)) {
+      return {
+        validationError: "กรุณาระบุพิกัดละติจูด (Latitude) ของแปลงสาธิตเป็นตัวเลข",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+    if (lng === null || isNaN(lng)) {
+      return {
+        validationError: "กรุณาระบุพิกัดลองจิจูด (Longitude) ของแปลงสาธิตเป็นตัวเลข",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+
+    // 3. Demo Plot Initial Data
+    if (!input.t7PlotName?.trim()) {
+      return {
+        validationError: "กรุณาระบุชื่อแปลงสาธิต (Work Type 7A)",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+    if (!input.t7CropCategory?.trim()) {
+      return {
+        validationError: "กรุณาระบุหมวดหมู่พืช (Work Type 7A)",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+    if (!input.t7CropName?.trim()) {
+      return {
+        validationError: "กรุณาระบุชื่อพืชที่ทดสอบ (Work Type 7A)",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+
+    // 4. Planting / Spray Date
+    if (!input.t7InitialSprayDate) {
+      return {
+        validationError: "กรุณาระบุวันที่ฉีดพ่น (Work Type 7A)",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+
+    // 5. Demo Products
+    if (!input.t7DemoProducts || input.t7DemoProducts.length === 0) {
+      return {
+        validationError: "กรุณาระบุสินค้าสาธิตอย่างน้อย 1 รายการ (Work Type 7A)",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+    for (const p of input.t7DemoProducts) {
+      if (!p.productId) {
+        return {
+          validationError: "กรุณาเลือกสินค้าสาธิตจากระบบ (Work Type 7A)",
+          summaryParts: [],
+          payload: null,
+        };
+      }
+      if (!p.applicationRate || !p.applicationRate.trim()) {
+        return {
+          validationError: `กรุณาระบุอัตราการใช้ (Application Rate) ของสินค้า ${p.productName || ""}`,
+          summaryParts: [],
+          payload: null,
+        };
+      }
+    }
+
+    // 6. Spray Method & External Chemicals
+    if (input.t7SprayMethod === "TANK_MIXED" && input.t7HasExternalChemicals) {
+      if (!input.t7ExternalProducts || input.t7ExternalProducts.length === 0) {
+        return {
+          validationError: "กรุณาระบุสารเคมีภายนอกอย่างน้อย 1 รายการ หรือยกเลิกการเลือกมียาภายนอก",
+          summaryParts: [],
+          payload: null,
+        };
+      }
+      if (input.t7ExternalProducts.length > 4) {
+        return {
+          validationError: "สามารถระบุสารเคมีภายนอกได้สูงสุด 4 รายการ",
+          summaryParts: [],
+          payload: null,
+        };
+      }
+      for (const ep of input.t7ExternalProducts) {
+        if (!ep.company?.trim() || !ep.productName?.trim()) {
+          return {
+            validationError: "กรุณากรอกชื่อบริษัทและชื่อสินค้าของสารเคมีภายนอกให้ครบถ้วน",
+            summaryParts: [],
+            payload: null,
+          };
+        }
+        if (!ep.formula) {
+          return {
+            validationError: "กรุณาเลือกสูตรยาของสารเคมีภายนอก",
+            summaryParts: [],
+            payload: null,
+          };
+        }
+        if (ep.formula === "อื่นๆ" && !ep.customFormula?.trim()) {
+          return {
+            validationError: "กรุณาระบุรายละเอียดสูตรยาเมื่อเลือก 'อื่นๆ'",
+            summaryParts: [],
+            payload: null,
+          };
+        }
+        if (!ep.applicationRate?.trim()) {
+          return {
+            validationError: "กรุณาระบุอัตราการใช้ของสารเคมีภายนอก",
+            summaryParts: [],
+            payload: null,
+          };
+        }
+      }
+    }
+
+    // 10. Initial Photos (Max 10)
+    if (input.t7InitialPhotos && input.t7InitialPhotos.length > 10) {
+      return {
+        validationError: "ภาพถ่ายสภาพแปลงเริ่มต้นสามารถแนบได้สูงสุด 10 รูป (Work Type 7A)",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+  }
+
+  // Validate Type 7 Product Change (TYPE_7B / Legacy)
   const isT7ProductChanged =
     Boolean(input.t7ActualProductId) &&
     Boolean(input.t7PlannedProductId) &&
     input.t7ActualProductId !== input.t7PlannedProductId;
 
   if (
+    isType7B &&
     isT7ProductChanged &&
     (!input.t7ChangeReason || !input.t7ChangeReason.trim())
   ) {
@@ -404,54 +618,101 @@ export function buildResultSummary(
       : null,
 
     // Type 7
-    isT7ProductChanged
-      ? `⚠️ เปลี่ยนสินค้าหน้างาน: ${input.t7ActualProductName || "สินค้าใหม่"} (สินค้าตามแผน: ${input.t7PlannedProductName || "สินค้าเดิม"}) เหตุผล: ${input.t7ChangeReason?.trim()}`
-      : null,
-    input.t7DemoPlotId === "OTHER" ? `แปลงเกษตร: แปลงอื่นๆ` : null,
-    t7CustomPlotDetail?.trim()
-      ? `รายละเอียดแปลง: ${t7CustomPlotDetail.trim()}`
-      : null,
-    t7PlotName ? `ชื่อแปลงทดสอบ: ${t7PlotName}` : null,
-    t7PlotObjective ? `วัตถุประสงค์ของแปลง: ${t7PlotObjective}` : null,
-    t7PlantingDate ? `วันที่ปลูก: ${t7PlantingDate}` : null,
-    t7PlantingAreaCondition
-      ? `สภาพพื้นที่ปลูก: ${t7PlantingAreaCondition}`
-      : null,
-    t7UsageMethod ? `วิธีใช้/อัตราการใช้: ${t7UsageMethod}` : null,
-    t7CropAgeValue
-      ? `อายุพืช: ${t7CropAgeValue} ${t7CropAgeUnit || "วัน"}`
-      : null,
-    t7GrowthStage ? `ระยะการเจริญเติบโต: ${t7GrowthStage}` : null,
-    t7CropCondition ? `สภาพแปลง: ${t7CropCondition}` : null,
-    t7CropProblemDescription
-      ? `ปัญหาของสภาพพืช: ${t7CropProblemDescription}`
-      : null,
-    t7ProductResponse ? `ผลการใช้ผลิตภัณฑ์: ${t7ProductResponse}` : null,
-    t7ProblemDescription
-      ? `รายละเอียดปัญหาการใช้ผลิตภัณฑ์: ${t7ProblemDescription}`
-      : null,
-    t7PlotStatus ? `สถานะแปลง: ${t7PlotStatus}` : null,
-    t7NextFollowUpDate
-      ? `กำหนดการติดตามครั้งถัดไป: ${t7NextFollowUpDate}`
-      : null,
-    t7FinalYieldKg ? `ผลผลิตแปลงสาธิต: ${t7FinalYieldKg} กก./ไร่` : null,
-    t7ControlYieldKg ? `ผลผลิตแปลงควบคุม: ${t7ControlYieldKg} กก./ไร่` : null,
-    t7YieldIncreasePercent
-      ? `% ผลผลิตเพิ่มขึ้น: ${t7YieldIncreasePercent}%`
-      : null,
-    t7FarmerSatisfaction
-      ? `ความพึงพอใจเกษตรกร: ${t7FarmerSatisfaction}/5`
-      : null,
-    t7CommercialPotential
-      ? `โอกาสสั่งซื้อจริง: ${t7CommercialPotential}`
-      : null,
-    t7FinalSummaryNotes ? `สรุปผลสัมฤทธิ์แปลง: ${t7FinalSummaryNotes}` : null,
-    t7CropImages && t7CropImages.length > 0
-      ? `รูปภาพสภาพพืช: มีแนบ ${t7CropImages.length} รูป`
-      : null,
-    t7PlotImages && t7PlotImages.length > 0
-      ? `รูปภาพสภาพแปลง: มีแนบ ${t7PlotImages.length} รูป`
-      : null,
+    ...(isType7B
+      ? [
+          isT7ProductChanged
+            ? `⚠️ เปลี่ยนสินค้าหน้างาน: ${input.t7ActualProductName || "สินค้าใหม่"} (สินค้าตามแผน: ${input.t7PlannedProductName || "สินค้าเดิม"}) เหตุผล: ${input.t7ChangeReason?.trim()}`
+            : null,
+          input.t7DemoPlotId === "OTHER" ? `แปลงเกษตร: แปลงอื่นๆ` : null,
+          t7CustomPlotDetail?.trim()
+            ? `รายละเอียดแปลง: ${t7CustomPlotDetail.trim()}`
+            : null,
+          t7PlotName ? `ชื่อแปลงทดสอบ: ${t7PlotName}` : null,
+          t7PlotObjective ? `วัตถุประสงค์ของแปลง: ${t7PlotObjective}` : null,
+          t7PlantingDate ? `วันที่ปลูก: ${t7PlantingDate}` : null,
+          t7PlantingAreaCondition
+            ? `สภาพพื้นที่ปลูก: ${t7PlantingAreaCondition}`
+            : null,
+          t7UsageMethod ? `วิธีใช้/อัตราการใช้: ${t7UsageMethod}` : null,
+          t7CropAgeValue
+            ? `อายุพืช: ${t7CropAgeValue} ${t7CropAgeUnit || "วัน"}`
+            : null,
+          t7GrowthStage ? `ระยะการเจริญเติบโต: ${t7GrowthStage}` : null,
+          t7CropCondition ? `สภาพแปลง: ${t7CropCondition}` : null,
+          t7CropProblemDescription
+            ? `ปัญหาของสภาพพืช: ${t7CropProblemDescription}`
+            : null,
+          t7ProductResponse ? `ผลการใช้ผลิตภัณฑ์: ${t7ProductResponse}` : null,
+          t7ProblemDescription
+            ? `รายละเอียดปัญหาการใช้ผลิตภัณฑ์: ${t7ProblemDescription}`
+            : null,
+          t7PlotStatus ? `สถานะแปลง: ${t7PlotStatus}` : null,
+          t7NextFollowUpDate
+            ? `กำหนดการติดตามครั้งถัดไป: ${t7NextFollowUpDate}`
+            : null,
+          t7FinalYieldKg ? `ผลผลิตแปลงสาธิต: ${t7FinalYieldKg} กก./ไร่` : null,
+          t7ControlYieldKg ? `ผลผลิตแปลงควบคุม: ${t7ControlYieldKg} กก./ไร่` : null,
+          t7YieldIncreasePercent
+            ? `% ผลผลิตเพิ่มขึ้น: ${t7YieldIncreasePercent}%`
+            : null,
+          t7FarmerSatisfaction
+            ? `ความพึงพอใจเกษตรกร: ${t7FarmerSatisfaction}/5`
+            : null,
+          t7CommercialPotential
+            ? `โอกาสสั่งซื้อจริง: ${t7CommercialPotential}`
+            : null,
+          t7FinalSummaryNotes ? `สรุปผลสัมฤทธิ์แปลง: ${t7FinalSummaryNotes}` : null,
+          t7CropImages && t7CropImages.length > 0
+            ? `รูปภาพสภาพพืช: มีแนบ ${t7CropImages.length} รูป`
+            : null,
+          t7PlotImages && t7PlotImages.length > 0
+            ? `รูปภาพสภาพแปลง: มีแนบ ${t7PlotImages.length} รูป`
+            : null,
+        ]
+      : [
+          // TYPE_7A Initial Summary (Rule 8 Labels)
+          t7PlotName ? `ชื่อแปลงสาธิต: ${t7PlotName}` : null,
+          input.t7FarmerName
+            ? `เกษตรกรเจ้าของแปลง: ${input.t7FarmerName}${input.t7IsUnregisteredFarmer ? " (ไม่มีในระบบ)" : ""}${input.t7FarmerProvince ? ` จ.${input.t7FarmerProvince}` : ""}`
+            : null,
+          input.t7FarmerPhone ? `เบอร์โทรศัพท์เกษตรกร: ${input.t7FarmerPhone}` : null,
+          input.t7Latitude && input.t7Longitude
+            ? `พิกัดแปลงสาธิต: ${input.t7Latitude}, ${input.t7Longitude}`
+            : null,
+          input.t7CropName
+            ? `พืชที่ทดสอบ: ${input.t7CropName}${input.t7CropCategory ? ` (${input.t7CropCategory})` : ""}`
+            : null,
+          input.t7AreaRai ? `ขนาดพื้นที่แปลง: ${input.t7AreaRai} ไร่` : null,
+          input.t7TreeCount ? `จำนวนต้น: ${input.t7TreeCount} ต้น` : null,
+          input.t7MainCropInfo ? `ข้อมูลพืชประธาน: ${input.t7MainCropInfo}` : null,
+          input.t7InitialSprayDate ? `วันที่ฉีดพ่น: ${input.t7InitialSprayDate}` : null,
+          input.t7NextSprayDate
+            ? `กำหนดฉีดพ่นครั้งต่อไป: ${input.t7NextSprayDate}`
+            : null,
+          t7PlantingDate ? `วันที่เริ่มปลูกจริง: ${t7PlantingDate}` : null,
+          input.t7SprayMethod
+            ? `วิธีการฉีดพ่น: ${input.t7SprayMethod === "TANK_MIXED" ? "ผสมถัง (Tank-mixed)" : "ฉีดเดี่ยว (Single)"}`
+            : null,
+          input.t7DemoProducts && input.t7DemoProducts.length > 0
+            ? `สินค้าสาธิต: ${input.t7DemoProducts.map((dp) => `${dp.productName || "สินค้า"} (${dp.quantity} ${dp.unit || ""}) อัตราใช้: ${dp.applicationRate}`).join(", ")}`
+            : null,
+          input.t7HasExternalChemicals &&
+          input.t7ExternalProducts &&
+          input.t7ExternalProducts.length > 0
+            ? `ยาภายนอก: ${input.t7ExternalProducts.map((ep) => `${ep.company} - ${ep.productName} [${ep.formula === "อื่นๆ" ? ep.customFormula || "อื่นๆ" : ep.formula}] (${ep.applicationRate})`).join(", ")}`
+            : null,
+          input.t7Irrigations && input.t7Irrigations.length > 0
+            ? `ระบบน้ำ: ${input.t7Irrigations.join(", ")}`
+            : null,
+          t7CropAgeValue
+            ? `อายุพืช (วันหลังปลูก): ${t7CropAgeValue} ${t7CropAgeUnit || "วัน"}`
+            : null,
+          t7GrowthStage ? `ระยะพืช (Stage): ${t7GrowthStage}` : null,
+          t7UsageMethod ? `ข้อมูลเพิ่มเติม: ${t7UsageMethod}` : null,
+          input.t7InitialPhotos && input.t7InitialPhotos.length > 0
+            ? `ภาพถ่ายสภาพแปลงเริ่มต้น: มีแนบ ${input.t7InitialPhotos.length} รูป`
+            : null,
+        ]),
 
     // Type 8
     t8ActualAttendees
@@ -849,17 +1110,26 @@ export function buildResultSummary(
   (input.t2Images || [])
     .slice(0, 5)
     .forEach((img) => addAttachment(img, "TYPE_2"));
-  const isType7B = (input.planWorkTypes || []).some(
-    (wt) => wt === "ติดตามแปลงสาธิต" || getWorkTypeCode(wt) === "TYPE_7B",
-  );
   const type7Code = isType7B ? "TYPE_7B" : "TYPE_7A";
 
-  (input.t7CropImages || []).forEach((img) =>
-    addAttachment(img, type7Code, "CROP"),
-  );
-  (input.t7PlotImages || []).forEach((img) =>
-    addAttachment(img, type7Code, "PLOT"),
-  );
+  if (isType7B) {
+    (input.t7CropImages || []).forEach((img) =>
+      addAttachment(img, type7Code, "CROP"),
+    );
+    (input.t7PlotImages || []).forEach((img) =>
+      addAttachment(img, type7Code, "PLOT"),
+    );
+  } else {
+    // Initial Demonstration Photos (Rule 10: up to 10 photos via ActivityAttachment)
+    const initialPhotos =
+      input.t7InitialPhotos && input.t7InitialPhotos.length > 0
+        ? input.t7InitialPhotos
+        : [...(input.t7CropImages || []), ...(input.t7PlotImages || [])];
+    initialPhotos.slice(0, 10).forEach((img) => {
+      addAttachment(img, "TYPE_7A", "PLOT");
+    });
+  }
+
   (input.t8Images || [])
     .slice(0, 5)
     .forEach((img) => addAttachment(img, "TYPE_8"));
@@ -869,6 +1139,94 @@ export function buildResultSummary(
   (input.t10Images || [])
     .slice(0, 5)
     .forEach((img) => addAttachment(img, "TYPE_10"));
+
+  // Build TYPE_7A DemoPlot Initial Data
+  let type7aDemoPlot = undefined;
+  const hasType7AData =
+    !isType7B &&
+    Boolean(
+      input.t7PlotName ||
+        input.t7FarmerName ||
+        (input.t7DemoProducts && input.t7DemoProducts.length > 0) ||
+        input.t7Latitude,
+    );
+
+  if (hasType7AData) {
+    const latNum = parseCleanNumber(input.t7Latitude);
+    const lngNum = parseCleanNumber(input.t7Longitude);
+    const farmerName =
+      input.t7FarmerName?.trim() ||
+      input.planSummary?.title ||
+      "เกษตรกรเจ้าของแปลง";
+    const provinceVal =
+      input.t7FarmerProvince?.trim() ||
+      input.planSummary?.province?.trim() ||
+      "กรุงเทพมหานคร";
+
+    type7aDemoPlot = {
+      customerId: input.t7FarmerCustomerId || null,
+      ownerName: farmerName,
+      ownerPhone: input.t7FarmerPhone?.trim() || null,
+      isUnregisteredFarmer: Boolean(input.t7IsUnregisteredFarmer),
+      province: provinceVal,
+      district: input.t7FarmerDistrict?.trim() || input.planSummary?.district || null,
+      latitude: latNum ?? 0,
+      longitude: lngNum ?? 0,
+      plotName: input.t7PlotName?.trim() || `แปลงสาธิต ${farmerName}`,
+      dealerName: input.t7DealerName?.trim() || null,
+      cropCategory: input.t7CropCategory?.trim() || "พืชทั่วไป",
+      cropName: input.t7CropName?.trim() || "พืชทั่วไป",
+      customCropName: input.t7CustomCropName?.trim() || null,
+      areaRai: parseCleanNumber(input.t7AreaRai),
+      treeCount: parseCleanNumber(input.t7TreeCount),
+      objective: input.t7PlotObjective?.trim() || null,
+      experimentDetail: input.t7CustomPlotDetail?.trim() || null,
+      mainCropInfo: input.t7MainCropInfo?.trim() || null,
+      plantingDate: input.t7PlantingDate ? new Date(input.t7PlantingDate) : null,
+      initialSprayDate: input.t7InitialSprayDate
+        ? new Date(input.t7InitialSprayDate)
+        : new Date(),
+      nextSprayDate: input.t7NextSprayDate
+        ? new Date(input.t7NextSprayDate)
+        : null,
+      sprayMethod: input.t7SprayMethod || "SINGLE",
+      hasExternalChemicals: Boolean(input.t7HasExternalChemicals),
+      demoProducts: (input.t7DemoProducts && input.t7DemoProducts.length > 0
+        ? input.t7DemoProducts
+        : [
+            {
+              productId: input.t7ActualProductId || input.t7PlannedProductId || "prod-default",
+              productName: input.t7ActualProductName || input.t7PlannedProductName || "สินค้าสาธิต",
+              quantity: 1,
+              unit: "",
+              applicationRate: input.t7UsageMethod || "-",
+            },
+          ]
+      ).map((p) => ({
+        productId: p.productId,
+        productName: p.productName || null,
+        quantity: Number(p.quantity) || 1,
+        unit: p.unit || null,
+        applicationRate: p.applicationRate || "-",
+      })),
+      externalProducts: (input.t7ExternalProducts || []).map((ep) => ({
+        company: ep.company,
+        productName: ep.productName,
+        activeIngredient: ep.activeIngredient || null,
+        formula: ep.formula,
+        customFormula: ep.customFormula || null,
+        applicationRate: ep.applicationRate,
+      })),
+      irrigations: input.t7Irrigations || [],
+      usageMethod: input.t7UsageMethod || null,
+      notes: input.t7UsageMethod || null,
+      cropAgeValue: parseCleanNumber(input.t7CropAgeValue),
+      cropAgeUnit: input.t7CropAgeUnit || "วัน",
+      growthStage: input.t7GrowthStage?.trim() || null,
+      cropCondition: input.t7CropCondition || null,
+      productResponse: input.t7ProductResponse || null,
+    };
+  }
 
   const payload = {
     actualStartDate: new Date(),
@@ -881,8 +1239,8 @@ export function buildResultSummary(
         ? summaryParts.join("\n")
         : `สถานะผลกิจกรรม: ${statusLabel}`,
     farmerHomeAddress: input.t1FarmerHomeAddress?.trim() || null,
-    plotLatitude: parseCleanNumber(input.t1PlotLatitude),
-    plotLongitude: parseCleanNumber(input.t1PlotLongitude),
+    plotLatitude: parseCleanNumber(input.t1PlotLatitude || input.t7Latitude),
+    plotLongitude: parseCleanNumber(input.t1PlotLongitude || input.t7Longitude),
     discussionResult: t1DiscussionResult || null,
     productAdvice: t1ProductAdvice || null,
     salesOpportunity: t1SalesOpportunity || null,
@@ -910,8 +1268,9 @@ export function buildResultSummary(
     actualTotalSpent: totalSpent,
     salesResultAmount: salesResult,
     collectResultAmount: collectResult,
-    demoPlotsCreated: !isType7B && t7PlotName ? 1 : 0,
+    demoPlotsCreated: !isType7B && (t7PlotName || type7aDemoPlot) ? 1 : 0,
     demoPlotsFollowedUp: isType7B && t7PlotName ? 1 : 0,
+    type7aDemoPlot,
     demoResults,
     saleResults: saleResults.length > 0 ? saleResults : undefined,
     stockResults: stockResults.length > 0 ? stockResults : undefined,

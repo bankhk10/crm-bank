@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import type { ActivityPlanWithRelations } from "../../../types";
-import { WORK_TYPES, getWorkTypeName } from "../../../constants";
+import { WORK_TYPES, getWorkTypeName, getWorkTypeCode } from "../../../constants";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -380,498 +380,524 @@ export function extractPlanData(
   const stores = p.stores || [];
   const products = p.products || [];
 
-  // All store names combined
-  const allStoreNames = Array.from(
-    new Set(stores.map((s) => s.storeName).filter(Boolean)),
-  ).join(", ");
+  const resolvedWorkTypeCodes = new Set(
+    resolvedWorkTypes.map((t) => getWorkTypeCode(t)),
+  );
+  const isWorkTypePresent = (code: string) => resolvedWorkTypeCodes.has(code);
 
   // TYPE 1: Store / Topic / Detail (Farmer or Store Visit)
-  const t1Stores = stores.filter((s) => s.workTypeCode === "TYPE_1");
-  const t1First = t1Stores[0];
-  const t1CustomerName = t1First?.isUnregisteredFarmer
-    ? t1First.unregisteredFarmerName || ""
-    : (t1First as any)?.store?.name ||
-      t1First?.storeName ||
-      (t1Stores.length > 0
-        ? t1Stores
+  if (isWorkTypePresent("TYPE_1")) {
+    const t1Stores = stores.filter((s) => s.workTypeCode === "TYPE_1");
+    const t1First = t1Stores[0];
+    const t1CustomerName = t1First?.isUnregisteredFarmer
+      ? t1First.unregisteredFarmerName || ""
+      : (t1First as any)?.store?.name ||
+        t1First?.storeName ||
+        (t1Stores.length > 0
+          ? t1Stores
+              .map((s) => (s as any).store?.name || s.storeName)
+              .filter(Boolean)
+              .join(", ")
+          : "") ||
+        p.location ||
+        "";
+
+    let t1VisitPurpose: "FARMER" | "STORE" = (t1First as any)?.visitPurpose as
+      | "FARMER"
+      | "STORE";
+    if (!t1VisitPurpose) {
+      if (
+        t1First?.isUnregisteredFarmer ||
+        (t1First as any)?.store?.customerType === "FARMER"
+      ) {
+        t1VisitPurpose = "FARMER";
+      } else if (
+        ["DEALER", "SUBDEALER"].includes((t1First as any)?.store?.customerType)
+      ) {
+        t1VisitPurpose = "STORE";
+      } else {
+        t1VisitPurpose = "FARMER";
+      }
+    }
+
+    targets.t1 = {
+      ...prevTargets.t1,
+      visitPurpose: t1VisitPurpose,
+      customerType: (t1First as any)?.store?.customerType || undefined,
+      customer: t1CustomerName,
+      topic: t1First?.remarks || prevTargets.t1.topic,
+      detail:
+        t1First?.notes ||
+        t1Stores
+          .map((s) => s.notes)
+          .filter(Boolean)
+          .join(" | ") ||
+        "",
+      province:
+        t1First?.province ||
+        (t1First as any)?.store?.province ||
+        p.province ||
+        undefined,
+      isUnregisteredFarmer: Boolean(t1First?.isUnregisteredFarmer),
+      unregisteredFarmerName: t1First?.unregisteredFarmerName || undefined,
+      unregisteredFarmerPhone: t1First?.unregisteredFarmerPhone || undefined,
+    };
+  }
+
+  // TYPE 2: Store / Product / Detail
+  if (isWorkTypePresent("TYPE_2")) {
+    const t2Stores = stores.filter((s) => s.workTypeCode === "TYPE_2");
+    const t2Products = products.filter((pr) => pr.workTypeCode === "TYPE_2");
+    const t2StoreCustomerName =
+      (t2Stores[0] as any)?.store?.name ||
+      t2Stores[0]?.storeName ||
+      (t2Stores.length > 0
+        ? t2Stores
             .map((s) => (s as any).store?.name || s.storeName)
             .filter(Boolean)
             .join(", ")
         : "") ||
-      allStoreNames ||
-      p.location ||
       "";
-
-  // Determine visitPurpose with historical compatibility
-  let t1VisitPurpose: "FARMER" | "STORE" = (t1First as any)?.visitPurpose as
-    | "FARMER"
-    | "STORE";
-  if (!t1VisitPurpose) {
-    if (
-      t1First?.isUnregisteredFarmer ||
-      (t1First as any)?.store?.customerType === "FARMER"
-    ) {
-      t1VisitPurpose = "FARMER";
-    } else if (
-      ["DEALER", "SUBDEALER"].includes((t1First as any)?.store?.customerType)
-    ) {
-      t1VisitPurpose = "STORE";
-    } else {
-      t1VisitPurpose = "FARMER";
-    }
-  }
-
-  targets.t1 = {
-    ...prevTargets.t1,
-    visitPurpose: t1VisitPurpose,
-    customerType: (t1First as any)?.store?.customerType || undefined,
-    customer: t1CustomerName,
-    topic: t1First?.remarks || prevTargets.t1.topic,
-    detail:
-      t1First?.notes ||
-      t1Stores
-        .map((s) => s.notes)
-        .filter(Boolean)
-        .join(" | ") ||
-      "",
-    province:
-      t1First?.province ||
-      (t1First as any)?.store?.province ||
-      p.province ||
-      undefined,
-    isUnregisteredFarmer: Boolean(t1First?.isUnregisteredFarmer),
-    unregisteredFarmerName: t1First?.unregisteredFarmerName || undefined,
-    unregisteredFarmerPhone: t1First?.unregisteredFarmerPhone || undefined,
-  };
-
-  // TYPE 2: Store / Product / Detail
-  const t2Stores = stores.filter((s) => s.workTypeCode === "TYPE_2");
-  const t2Products = products.filter((pr) => pr.workTypeCode === "TYPE_2");
-  const t2StoreCustomerName =
-    (t2Stores[0] as any)?.store?.name ||
-    t2Stores[0]?.storeName ||
-    (t2Stores.length > 0
-      ? t2Stores
-          .map((s) => (s as any).store?.name || s.storeName)
+    const t2Items = t2Products.map((pr) => ({
+      id: pr.id,
+      productId: pr.productId,
+      productName: pr.productName || (pr as any).product?.name || "สินค้า",
+      customer:
+        (pr as any)?.store?.name || (pr as any)?.storeName || t2StoreCustomerName,
+      storeId: pr.storeId || t2Stores[0]?.storeId || undefined,
+      detail: (pr as any)?.notes || t2Stores[0]?.notes || "",
+      expectedResult: "พืชตอบสนองดี",
+      isAdditional: false,
+    }));
+    const t2CustInfo = extractType2Customers(t2Items, p.location);
+    targets.t2 = {
+      ...prevTargets.t2,
+      customer:
+        t2Stores
+          .map((s) => s.storeName)
           .filter(Boolean)
-          .join(", ")
-      : "") ||
-    allStoreNames ||
-    p.location ||
-    "";
-  const t2Items = t2Products.map((pr) => ({
-    id: pr.id,
-    productId: pr.productId,
-    productName: pr.productName || (pr as any).product?.name || "สินค้า",
-    customer:
-      (pr as any)?.store?.name || (pr as any)?.storeName || t2StoreCustomerName,
-    storeId: pr.storeId || t2Stores[0]?.storeId || undefined,
-    detail: (pr as any)?.notes || t2Stores[0]?.notes || "",
-    expectedResult: "พืชตอบสนองดี",
-    isAdditional: false,
-  }));
-  const t2CustInfo = extractType2Customers(t2Items, p.location);
-  targets.t2 = {
-    ...prevTargets.t2,
-    customer:
-      t2Stores
-        .map((s) => s.storeName)
+          .join(", ") || "",
+      storeName: t2CustInfo.storeName,
+      keyFarmer: t2CustInfo.keyFarmer,
+      product: t2Products
+        .map((pr) => pr.productName)
         .filter(Boolean)
-        .join(", ") ||
-      allStoreNames ||
-      p.location ||
-      "",
-    storeName: t2CustInfo.storeName,
-    keyFarmer: t2CustInfo.keyFarmer,
-    product: t2Products
-      .map((pr) => pr.productName)
-      .filter(Boolean)
-      .join(", "),
-    detail: t2Stores[0]?.notes || "",
-    expectedResult: "พืชตอบสนองดี",
-    items: t2Items,
-  };
+        .join(", "),
+      detail: t2Stores[0]?.notes || "",
+      expectedResult: "พืชตอบสนองดี",
+      items: t2Items,
+    };
+  }
 
   // TYPE 3: Store / Product / Quantity / Detail / Notes
-  const t3Stores = stores.filter((s) => s.workTypeCode === "TYPE_3");
-  const t3Products = products.filter((pr) => pr.workTypeCode === "TYPE_3");
-  const t3Items = t3Products.map((pr) => {
-    const qtyVal = pr.targetQuantity != null ? String(pr.targetQuantity) : "";
-    const matchedStore =
-      t3Stores.find(
-        (s) => s.storeId && pr.storeId && s.storeId === pr.storeId,
-      ) || t3Stores[0];
-    const isSub = Boolean(matchedStore?.subDealerStore);
-    const custDisplay = isSub
-      ? `${matchedStore?.subDealerStore} (Dealer: ${matchedStore?.storeName || "-"})`
-      : matchedStore?.storeName || allStoreNames || p.location || "";
+  if (isWorkTypePresent("TYPE_3")) {
+    const t3Stores = stores.filter((s) => s.workTypeCode === "TYPE_3");
+    const t3Products = products.filter((pr) => pr.workTypeCode === "TYPE_3");
+    const t3Items = t3Products.map((pr) => {
+      const qtyVal = pr.targetQuantity != null ? String(pr.targetQuantity) : "";
+      const matchedStore =
+        t3Stores.find(
+          (s) => s.storeId && pr.storeId && s.storeId === pr.storeId,
+        ) || t3Stores[0];
+      const isSub = Boolean(matchedStore?.subDealerStore);
+      const custDisplay = isSub
+        ? `${matchedStore?.subDealerStore} (Dealer: ${matchedStore?.storeName || "-"})`
+        : matchedStore?.storeName || "";
 
-    return {
-      id: pr.id,
-      productId: pr.productId,
-      productName:
-        pr.productName || (pr as any).product?.name || "สินค้าเสนอขาย",
-      customer: custDisplay,
-      storeId: pr.storeId || matchedStore?.storeId || undefined,
-      isSubDealer: isSub,
-      subDealerStore: matchedStore?.subDealerStore || "",
-      dealerName: matchedStore?.storeName || "",
-      qty: qtyVal,
-      unitPrice: pr.unitPrice
-        ? `${Number(pr.unitPrice).toLocaleString()} บาท`
-        : "",
-      price: "",
-      targetSales: "",
-      detail: pr.notes || matchedStore?.notes || "",
-      notes: pr.notes || "",
-      isAdditional: false,
-    };
-  });
-  const t3TotalQty = t3Products.reduce(
-    (sum, pr) => sum + (pr.targetQuantity || 0),
-    0,
-  );
-  const t3PrimaryStore = t3Stores[0];
-  const t3PrimaryIsSub = Boolean(t3PrimaryStore?.subDealerStore);
-  const t3PrimaryCustDisplay = t3PrimaryIsSub
-    ? `${t3PrimaryStore?.subDealerStore} (Dealer: ${t3PrimaryStore?.storeName || "-"})`
-    : t3Stores
-        .map((s) => s.storeName)
+      return {
+        id: pr.id,
+        productId: pr.productId,
+        productName:
+          pr.productName || (pr as any).product?.name || "สินค้าเสนอขาย",
+        customer: custDisplay,
+        storeId: pr.storeId || matchedStore?.storeId || undefined,
+        isSubDealer: isSub,
+        subDealerStore: matchedStore?.subDealerStore || "",
+        dealerName: matchedStore?.storeName || "",
+        qty: qtyVal,
+        unitPrice: pr.unitPrice
+          ? `${Number(pr.unitPrice).toLocaleString()} บาท`
+          : "",
+        price: "",
+        targetSales: "",
+        detail: pr.notes || matchedStore?.notes || "",
+        notes: pr.notes || "",
+        isAdditional: false,
+      };
+    });
+    const t3TotalQty = t3Products.reduce(
+      (sum, pr) => sum + (pr.targetQuantity || 0),
+      0,
+    );
+    const t3PrimaryStore = t3Stores[0];
+    const t3PrimaryIsSub = Boolean(t3PrimaryStore?.subDealerStore);
+    const t3PrimaryCustDisplay = t3PrimaryIsSub
+      ? `${t3PrimaryStore?.subDealerStore} (Dealer: ${t3PrimaryStore?.storeName || "-"})`
+      : t3Stores
+          .map((s) => s.storeName)
+          .filter(Boolean)
+          .join(", ") || "";
+
+    targets.t3 = {
+      ...prevTargets.t3,
+      customer: t3PrimaryCustDisplay,
+      isSubDealer: t3PrimaryIsSub,
+      subDealerStore: t3PrimaryStore?.subDealerStore || "",
+      dealerName: t3PrimaryStore?.storeName || "",
+      product: t3Products
+        .map((pr) => pr.productName)
         .filter(Boolean)
-        .join(", ") ||
-      allStoreNames ||
-      p.location ||
-      "";
-
-  targets.t3 = {
-    ...prevTargets.t3,
-    customer: t3PrimaryCustDisplay,
-    isSubDealer: t3PrimaryIsSub,
-    subDealerStore: t3PrimaryStore?.subDealerStore || "",
-    dealerName: t3PrimaryStore?.storeName || "",
-    product: t3Products
-      .map((pr) => pr.productName)
-      .filter(Boolean)
-      .join(", "),
-    targetQty: t3TotalQty > 0 ? String(t3TotalQty) : "",
-    unitPrice: "",
-    detail: t3Products[0]?.notes || t3PrimaryStore?.notes || "",
-    targetSales: "",
-    items: t3Items,
-  };
+        .join(", "),
+      targetQty: t3TotalQty > 0 ? String(t3TotalQty) : "",
+      unitPrice: "",
+      detail: t3Products[0]?.notes || t3PrimaryStore?.notes || "",
+      targetSales: "",
+      items: t3Items,
+    };
+  }
 
   // TYPE 4: Store / Target Amount (Collect)
-  const t4Stores = stores.filter((s) => s.workTypeCode === "TYPE_4");
-  const t4CollectAmt = t4Stores.reduce(
-    (sum, s) => sum + (Number(s.targetAmount ?? (s as any).collectAmount) || 0),
-    0,
-  );
-  const primaryCollectType =
-    t4Stores[0]?.remarks === "BILLING" || t4Stores[0]?.remarks === "วางบิล"
-      ? "BILLING"
-      : "COLLECT";
+  if (isWorkTypePresent("TYPE_4")) {
+    const t4Stores = stores.filter((s) => s.workTypeCode === "TYPE_4");
+    const t4CollectAmt = t4Stores.reduce(
+      (sum, s) => sum + (Number(s.targetAmount ?? (s as any).collectAmount) || 0),
+      0,
+    );
+    const primaryCollectType =
+      t4Stores[0]?.remarks === "BILLING" || t4Stores[0]?.remarks === "วางบิล"
+        ? "BILLING"
+        : "COLLECT";
 
-  const actualCollectAmount =
-    (p as any).result?.collectResultAmount != null
-      ? Number((p as any).result.collectResultAmount)
-      : null;
+    const actualCollectAmount =
+      (p as any).result?.collectResultAmount != null
+        ? Number((p as any).result.collectResultAmount)
+        : null;
 
-  targets.t4 = {
-    ...prevTargets.t4,
-    customer:
-      t4Stores
-        .map((s) => s.storeName)
-        .filter(Boolean)
-        .join(", ") ||
-      allStoreNames ||
-      "",
-    targetCollect:
-      t4CollectAmt > 0 ? `${t4CollectAmt.toLocaleString()} บาท` : "",
-    targetAmountNum: t4CollectAmt,
-    collectAmount: t4CollectAmt,
-    actualCollectAmount,
-    collectType: primaryCollectType,
-    orderNo: "",
-    items: t4Stores.map((s) => {
-      const itemAmt = Number(s.targetAmount ?? (s as any).collectAmount) || 0;
-      return {
-        id: s.id,
-        customer: s.storeName || "",
-        companyName: s.storeName || "",
-        collectType:
-          s.remarks === "BILLING" || s.remarks === "วางบิล"
-            ? "BILLING"
-            : "COLLECT",
-        targetCollect: itemAmt > 0 ? `${itemAmt.toLocaleString()} บาท` : "",
-        targetAmountNum: itemAmt,
-        collectAmount: itemAmt,
-        notes: s.notes || "",
-      };
-    }),
-  };
+    targets.t4 = {
+      ...prevTargets.t4,
+      customer:
+        t4Stores
+          .map((s) => s.storeName)
+          .filter(Boolean)
+          .join(", ") || "",
+      targetCollect:
+        t4CollectAmt > 0 ? `${t4CollectAmt.toLocaleString()} บาท` : "",
+      targetAmountNum: t4CollectAmt,
+      collectAmount: t4CollectAmt,
+      actualCollectAmount,
+      collectType: primaryCollectType,
+      orderNo: "",
+      items: t4Stores.map((s) => {
+        const itemAmt = Number(s.targetAmount ?? (s as any).collectAmount) || 0;
+        return {
+          id: s.id,
+          customer: s.storeName || "",
+          companyName: s.storeName || "",
+          collectType:
+            s.remarks === "BILLING" || s.remarks === "วางบิล"
+              ? "BILLING"
+              : "COLLECT",
+          targetCollect: itemAmt > 0 ? `${itemAmt.toLocaleString()} บาท` : "",
+          targetAmountNum: itemAmt,
+          collectAmount: itemAmt,
+          notes: s.notes || "",
+        };
+      }),
+    };
+  }
 
   // TYPE 5: Store / Product / Survey
-  const t5Stores = stores.filter((s) => s.workTypeCode === "TYPE_5");
-  const t5Products = products.filter((pr) => pr.workTypeCode === "TYPE_5");
-  const t5Items = t5Products.map((pr) => {
-    const matchedStore =
-      t5Stores.find(
-        (s) => s.storeId && pr.storeId && s.storeId === pr.storeId,
-      ) || t5Stores[0];
-    return {
-      id: pr.id,
-      storeId: pr.storeId || matchedStore?.storeId || undefined,
+  if (isWorkTypePresent("TYPE_5")) {
+    const t5Stores = stores.filter((s) => s.workTypeCode === "TYPE_5");
+    const t5Products = products.filter((pr) => pr.workTypeCode === "TYPE_5");
+    const t5Items = t5Products.map((pr) => {
+      const matchedStore =
+        t5Stores.find(
+          (s) => s.storeId && pr.storeId && s.storeId === pr.storeId,
+        ) || t5Stores[0];
+      return {
+        id: pr.id,
+        storeId: pr.storeId || matchedStore?.storeId || undefined,
+        store:
+          (pr as any)?.store?.name ||
+          pr.storeName ||
+          matchedStore?.storeName ||
+          "",
+        productId: pr.productId || undefined,
+        product: pr.productName || (pr as any)?.product?.name || "",
+        detail: (pr as any)?.notes || matchedStore?.notes || "",
+      };
+    });
+    targets.t5 = {
+      ...prevTargets.t5,
+      storeId: t5Stores[0]?.storeId || undefined,
       store:
-        (pr as any)?.store?.name ||
-        pr.storeName ||
-        matchedStore?.storeName ||
-        p.location ||
-        "",
-      productId: pr.productId || undefined,
-      product: pr.productName || (pr as any)?.product?.name || "",
-      detail: (pr as any)?.notes || matchedStore?.notes || "",
-    };
-  });
-  targets.t5 = {
-    ...prevTargets.t5,
-    storeId: t5Stores[0]?.storeId || undefined,
-    store:
-      t5Stores
-        .map((s) => s.storeName)
+        t5Stores
+          .map((s) => s.storeName)
+          .filter(Boolean)
+          .join(", ") || "",
+      product: t5Products
+        .map((pr) => pr.productName)
         .filter(Boolean)
-        .join(", ") ||
-      allStoreNames ||
-      p.location ||
-      "",
-    product: t5Products
-      .map((pr) => pr.productName)
-      .filter(Boolean)
-      .join(", "),
-    detail: "",
-    items: t5Items,
-  } as any;
+        .join(", "),
+      detail: "",
+      items: t5Items,
+    } as any;
+  }
 
   // TYPE 6: Store / Issue data
-  const t6Stores = stores.filter((s) => s.workTypeCode === "TYPE_6");
-  targets.t6 = {
-    ...prevTargets.t6,
-    customer:
-      t6Stores
-        .map((s) => (s as any).store?.name || s.storeName)
-        .filter(Boolean)
-        .join(", ") ||
-      allStoreNames ||
-      p.location ||
-      "",
-    issueType:
-      t6Stores[0]?.remarks ||
-      prevTargets.t6.issueType ||
-      "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
-    detail:
-      t6Stores
-        .map((s) => s.notes)
-        .filter(Boolean)
-        .join(" | ") || "",
-    items: t6Stores.map((s) => ({
-      customer: (s as any).store?.name || s.storeName || "",
-      issueType: s.remarks || "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
-      detail: s.notes || "",
-    })),
-  };
+  if (isWorkTypePresent("TYPE_6")) {
+    const t6Stores = stores.filter((s) => s.workTypeCode === "TYPE_6");
+    targets.t6 = {
+      ...prevTargets.t6,
+      customer:
+        t6Stores
+          .map((s) => (s as any).store?.name || s.storeName)
+          .filter(Boolean)
+          .join(", ") || "",
+      issueType:
+        t6Stores[0]?.remarks ||
+        prevTargets.t6.issueType ||
+        "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
+      detail:
+        t6Stores
+          .map((s) => s.notes)
+          .filter(Boolean)
+          .join(" | ") || "",
+      items: t6Stores.map((s) => ({
+        customer: (s as any).store?.name || s.storeName || "",
+        issueType: s.remarks || "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
+        detail: s.notes || "",
+      })),
+    };
+  }
 
   // TYPE 7: Demo Plot (TYPE_7A & TYPE_7B)
-  const t7Visit = p.demoPlotVisits?.[0];
-  const t7Plot = t7Visit?.demoPlot;
-  const t7PlanProduct = products.find(
-    (pr) =>
-      pr.workTypeCode === "TYPE_7A" ||
-      pr.workTypeCode === "TYPE_7B" ||
-      pr.workTypeCode === "TYPE_7",
-  );
-  const resolvedT7ProductId = t7PlanProduct?.productId || undefined;
+  const isT7Present =
+    isWorkTypePresent("TYPE_7A") ||
+    isWorkTypePresent("TYPE_7B") ||
+    Boolean(p.demoPlotVisits && p.demoPlotVisits.length > 0);
 
   let t7StartDate: string | undefined;
-  if (p.startDate) {
-    t7StartDate = new Date(p.startDate).toISOString().split("T")[0];
+  let t7PlotIdentifier: string | undefined;
+
+  if (isT7Present) {
+    const t7Visit = p.demoPlotVisits?.[0];
+    const t7Plot = t7Visit?.demoPlot || (p as any).demoPlot;
+    const t7PlanProduct = products.find(
+      (pr) =>
+        pr.workTypeCode === "TYPE_7A" ||
+        pr.workTypeCode === "TYPE_7B" ||
+        pr.workTypeCode === "TYPE_7",
+    );
+    const resolvedT7ProductId = t7PlanProduct?.productId || undefined;
+
+    if (p.startDate) {
+      t7StartDate = new Date(p.startDate).toISOString().split("T")[0];
+    }
+    t7PlotIdentifier = t7Plot?.id || t7Plot?.ownerName || "";
+
+    const hasT7B =
+      isWorkTypePresent("TYPE_7B") ||
+      resolvedWorkTypes.includes("ติดตามแปลงสาธิต");
+
+    const commonT7Data = {
+      owner: t7Plot?.ownerName || p.location || "",
+      product: t7Plot?.primaryProductName || t7PlanProduct?.productName || "",
+      productId: resolvedT7ProductId,
+      plannedProductId: resolvedT7ProductId,
+      crop: t7Plot?.cropName || "",
+      plots: t7Plot?.areaRai ? `${Number(t7Plot.areaRai)} ไร่` : "",
+      demoProductQuantity:
+        t7Visit?.productUsedQty != null ? String(t7Visit.productUsedQty) : "-",
+      objective: t7Plot?.objective || "",
+      experimentDetail: t7Plot?.experimentDetail || "",
+      detail: "",
+      targetCondition: "",
+      items: t7Plot
+        ? [
+            {
+              activityType: hasT7B ? "FOLLOW_UP" : "CREATE",
+              owner: t7Plot.ownerName || "",
+              product: t7Plot.primaryProductName || "",
+              crop: t7Plot.cropName || "",
+              plots: t7Plot.areaRai ? `${Number(t7Plot.areaRai)} ไร่` : "",
+              demoProductQuantity:
+                t7Visit?.productUsedQty != null
+                  ? String(t7Visit.productUsedQty)
+                  : "-",
+              objective: t7Plot.objective || "",
+              experimentDetail: t7Plot.experimentDetail || "",
+              detail: "",
+            },
+          ]
+        : [],
+    };
+
+    targets.t7 = {
+      ...prevTargets.t7,
+      ...commonT7Data,
+      activityType: hasT7B || t7Visit ? "FOLLOW_UP" : "CREATE",
+    };
+
+    const t7aProducts = products.filter(
+      (pr) => pr.workTypeCode === "TYPE_7A" || pr.workTypeCode === "TYPE_7",
+    );
+    const firstT7aProduct = t7aProducts[0];
+    const t7aCategory = (firstT7aProduct?.product as any)?.category;
+
+    targets.t7a = {
+      ...(prevTargets.t7a || prevTargets.t7),
+      ...commonT7Data,
+      activityType: "CREATE",
+      plotName: t7Plot?.name || "",
+      dealerName: (t7Plot as any)?.customer?.name || "",
+      province: t7Plot?.province || p.province || "",
+      district: t7Plot?.district || p.district || "",
+      cropCategory: t7Plot?.cropCategory || "",
+      areaRai: t7Plot?.areaRai ? Number(t7Plot.areaRai) : null,
+      treeCount: t7Plot?.treeCount ?? null,
+      categoryName: t7aCategory?.description || t7aCategory?.name || "",
+      categoryCode: t7aCategory?.code || "",
+      chemicalGroupName: t7aCategory?.description || "",
+      demoProducts: t7aProducts.map((pr) => ({
+        productId: pr.productId,
+        productName: pr.productName,
+        quantity: pr.targetQuantity,
+        unit: (pr.product as any)?.unit || null,
+      })),
+    };
+
+    targets.t7b = {
+      ...(prevTargets.t7b || prevTargets.t7),
+      ...commonT7Data,
+      activityType: "FOLLOW_UP",
+    };
   }
-  const t7PlotIdentifier = t7Plot?.id || t7Plot?.ownerName || "";
-
-  const hasT7B =
-    resolvedWorkTypes.includes("ติดตามแปลงสาธิต") ||
-    resolvedWorkTypes.some((wt) => getWorkTypeCode(wt) === "TYPE_7B");
-
-  const commonT7Data = {
-    owner: t7Plot?.ownerName || p.location || "",
-    product: t7Plot?.primaryProductName || t7PlanProduct?.productName || "",
-    productId: resolvedT7ProductId,
-    plannedProductId: resolvedT7ProductId,
-    crop: t7Plot?.cropName || "",
-    plots: t7Plot?.areaRai ? `${Number(t7Plot.areaRai)} ไร่` : "",
-    demoProductQuantity:
-      t7Visit?.productUsedQty != null ? String(t7Visit.productUsedQty) : "-",
-    objective: t7Plot?.objective || "",
-    experimentDetail: t7Plot?.experimentDetail || "",
-    detail: "",
-    targetCondition: "",
-    items: t7Plot
-      ? [
-          {
-            activityType: hasT7B ? "FOLLOW_UP" : "CREATE",
-            owner: t7Plot.ownerName || "",
-            product: t7Plot.primaryProductName || "",
-            crop: t7Plot.cropName || "",
-            plots: t7Plot.areaRai ? `${Number(t7Plot.areaRai)} ไร่` : "",
-            demoProductQuantity:
-              t7Visit?.productUsedQty != null
-                ? String(t7Visit.productUsedQty)
-                : "-",
-            objective: t7Plot.objective || "",
-            experimentDetail: t7Plot.experimentDetail || "",
-            detail: "",
-          },
-        ]
-      : [],
-  };
-
-  targets.t7 = {
-    ...prevTargets.t7,
-    ...commonT7Data,
-    activityType: hasT7B || t7Visit ? "FOLLOW_UP" : "CREATE",
-  };
-
-  const t7aProducts = products.filter((pr) => pr.workTypeCode === "TYPE_7A");
-  const firstT7aProduct = t7aProducts[0];
-  const t7aCategory = (firstT7aProduct?.product as any)?.category;
-
-  targets.t7a = {
-    ...(prevTargets.t7a || prevTargets.t7),
-    ...commonT7Data,
-    activityType: "CREATE",
-    plotName: t7Plot?.name || "",
-    dealerName: (t7Plot as any)?.customer?.name || "",
-    province: t7Plot?.province || "",
-    district: t7Plot?.district || "",
-    cropCategory: t7Plot?.cropCategory || "",
-    areaRai: t7Plot?.areaRai ? Number(t7Plot.areaRai) : null,
-    treeCount: t7Plot?.treeCount ?? null,
-    categoryName: t7aCategory?.description || t7aCategory?.name || "",
-    categoryCode: t7aCategory?.code || "",
-    chemicalGroupName: t7aCategory?.description || "",
-    demoProducts: t7aProducts.map((pr) => ({
-      productId: pr.productId,
-      productName: pr.productName,
-      quantity: pr.targetQuantity,
-      unit: (pr.product as any)?.unit || null,
-    })),
-  };
-
-  targets.t7b = {
-    ...(prevTargets.t7b || prevTargets.t7),
-    ...commonT7Data,
-    activityType: "FOLLOW_UP",
-  };
 
   // TYPE 8: Meeting / Attendees
-  const t8Products = products.filter((pr) => pr.workTypeCode === "TYPE_8");
-  targets.t8 = {
-    ...prevTargets.t8,
-    topic: p.title || "",
-    products: t8Products
-      .map((pr) => pr.productName)
-      .filter(Boolean)
-      .join(", "),
-    targetAttendees: p.targetAttendeesCount
-      ? `${p.targetAttendeesCount} คน`
-      : "",
-  };
+  if (isWorkTypePresent("TYPE_8")) {
+    const t8Products = products.filter((pr) => pr.workTypeCode === "TYPE_8");
+    targets.t8 = {
+      ...prevTargets.t8,
+      topic: p.title || "",
+      products: t8Products
+        .map((pr) => pr.productName)
+        .filter(Boolean)
+        .join(", "),
+      targetAttendees: p.targetAttendeesCount
+        ? `${p.targetAttendeesCount} คน`
+        : "",
+    };
+  }
 
   // TYPE 9: Store / Product / Target Sales
-  const t9Stores = stores.filter((s) => s.workTypeCode === "TYPE_9");
-  const t9FirstStore = t9Stores[0];
-  const t9Products = products.filter((pr) => pr.workTypeCode === "TYPE_9");
-  const t9ItemsFromDb = t9Products.map((pr, idx) => ({
-    id: pr.id || String(idx + 1),
-    productName: pr.productName || "",
-    quantityCases: pr.targetQuantity || 0,
-    pricePerCase: pr.unitPrice ? Number(pr.unitPrice) : 0,
-    totalAmount: pr.targetAmount
-      ? Number(pr.targetAmount)
-      : (pr.targetQuantity || 0) * (Number(pr.unitPrice) || 0),
-  }));
-  const t9TotalSales = t9ItemsFromDb.reduce(
-    (sum, item) => sum + item.totalAmount,
-    0,
-  );
-  const t9ProductSummary = t9ItemsFromDb
-    .map((prod) => `${prod.productName} (${prod.quantityCases} ลัง)`)
-    .join(", ");
-
-  const t9MainStore =
-    t9FirstStore?.storeName || allStoreNames || p.location || "";
-  const t9IsSubDealer = Boolean(t9FirstStore?.subDealerStore);
-  const t9SubDealerStore = t9FirstStore?.subDealerStore || "";
-
-  targets.t9 = {
-    ...prevTargets.t9,
-    store: t9MainStore,
-    isSubDealer: t9IsSubDealer,
-    subDealerStore: t9SubDealerStore,
-    product: t9ProductSummary,
-    targetSales: t9TotalSales > 0 ? `${t9TotalSales.toLocaleString()} บาท` : "",
-    targetAttendees: p.targetAttendeesCount
-      ? `${p.targetAttendeesCount} คน`
-      : "",
-    items: t9ItemsFromDb,
+  let t9Extra = {
+    mainStore: "",
+    isSubDealer: false,
+    subDealerStore: "",
+    productSummary: "",
+    totalSales: 0,
+    items: [] as any[],
   };
 
-  // TYPE 10: Field Day (Demo plot + Attendees + Booking Sales)
-  const t10Plot = p.demoPlotVisits?.[0]?.demoPlot;
-  targets.t10 = {
-    ...prevTargets.t10,
-    plot: t10Plot?.ownerName
-      ? `${t10Plot.ownerName} (${t10Plot.name || ""})`
-      : p.location || "",
-    location: p.location || prevTargets.t10.location || "",
-    showcase:
-      t10Plot?.primaryProductName ||
-      products.find((pr) => pr.workTypeCode === "TYPE_10")?.productName ||
-      "",
-    targetAttendees: p.targetAttendeesCount
-      ? `${p.targetAttendeesCount} คน`
-      : "",
-    targetSales: p.targetBookingSales
-      ? `฿${Number(p.targetBookingSales).toLocaleString()}`
-      : "",
-  };
+  if (isWorkTypePresent("TYPE_9")) {
+    const t9Stores = stores.filter((s) => s.workTypeCode === "TYPE_9");
+    const t9FirstStore = t9Stores[0];
+    const t9Products = products.filter((pr) => pr.workTypeCode === "TYPE_9");
+    const t9ItemsFromDb = t9Products.map((pr, idx) => ({
+      id: pr.id || String(idx + 1),
+      productName: pr.productName || "",
+      quantityCases: pr.targetQuantity || 0,
+      pricePerCase: pr.unitPrice ? Number(pr.unitPrice) : 0,
+      totalAmount: pr.targetAmount
+        ? Number(pr.targetAmount)
+        : (pr.targetQuantity || 0) * (Number(pr.unitPrice) || 0),
+    }));
+    const t9TotalSales = t9ItemsFromDb.reduce(
+      (sum, item) => sum + item.totalAmount,
+      0,
+    );
+    const t9ProductSummary = t9ItemsFromDb
+      .map((prod) => `${prod.productName} (${prod.quantityCases} ลัง)`)
+      .join(", ");
 
-  // TYPE 11: Multiple Stores
-  const t11Stores = stores.filter((s) => s.workTypeCode === "TYPE_11");
-  const t11StoreNames = t11Stores
-    .map((s) => s.storeName)
-    .filter(Boolean)
-    .join(", ");
-  targets.t11 = {
-    ...prevTargets.t11,
-    store: t11StoreNames || allStoreNames || "",
-    detail:
-      t11Stores
-        .map((s) => s.remarks || s.notes)
-        .filter(Boolean)
-        .join(" | ") || "",
-  };
+    const t9MainStore = t9FirstStore?.storeName || "";
+    const t9IsSubDealer = Boolean(t9FirstStore?.subDealerStore);
+    const t9SubDealerStore = t9FirstStore?.subDealerStore || "";
 
-  return {
-    planSummary,
-    resolvedWorkTypes,
-    targets,
-    t9Extra: {
+    targets.t9 = {
+      ...prevTargets.t9,
+      store: t9MainStore,
+      isSubDealer: t9IsSubDealer,
+      subDealerStore: t9SubDealerStore,
+      product: t9ProductSummary,
+      targetSales: t9TotalSales > 0 ? `${t9TotalSales.toLocaleString()} บาท` : "",
+      targetAttendees: p.targetAttendeesCount
+        ? `${p.targetAttendeesCount} คน`
+        : "",
+      items: t9ItemsFromDb,
+    };
+
+    t9Extra = {
       mainStore: t9MainStore,
       isSubDealer: t9IsSubDealer,
       subDealerStore: t9SubDealerStore,
       productSummary: t9ProductSummary,
       totalSales: t9TotalSales,
       items: t9ItemsFromDb,
-    },
+    };
+  }
+
+  // TYPE 10: Field Day (Demo plot + Attendees + Booking Sales)
+  if (isWorkTypePresent("TYPE_10")) {
+    const t10Plot = p.demoPlotVisits?.[0]?.demoPlot;
+    targets.t10 = {
+      ...prevTargets.t10,
+      plot: t10Plot?.ownerName
+        ? `${t10Plot.ownerName} (${t10Plot.name || ""})`
+        : "",
+      location: p.location || prevTargets.t10.location || "",
+      showcase:
+        t10Plot?.primaryProductName ||
+        products.find((pr) => pr.workTypeCode === "TYPE_10")?.productName ||
+        "",
+      targetAttendees: p.targetAttendeesCount
+        ? `${p.targetAttendeesCount} คน`
+        : "",
+      targetSales: p.targetBookingSales
+        ? `฿${Number(p.targetBookingSales).toLocaleString()}`
+        : "",
+    };
+  }
+
+  // TYPE 11: Multiple Stores
+  if (isWorkTypePresent("TYPE_11")) {
+    const t11Stores = stores.filter((s) => s.workTypeCode === "TYPE_11");
+    const t11StoreNames = t11Stores
+      .map((s) => s.storeName)
+      .filter(Boolean)
+      .join(", ");
+    targets.t11 = {
+      ...prevTargets.t11,
+      store: t11StoreNames || "",
+      detail:
+        t11Stores
+          .map((s) => s.remarks || s.notes)
+          .filter(Boolean)
+          .join(" | ") || "",
+      items: t11Stores.map((s) => ({
+        store: s.storeName || "",
+        detail: s.remarks || s.notes || "",
+      })),
+    };
+  }
+
+  return {
+    planSummary,
+    resolvedWorkTypes,
+    targets,
+    t9Extra,
     t7StartDate,
     t7PlotIdentifier,
   };

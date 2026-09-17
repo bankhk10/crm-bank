@@ -104,8 +104,18 @@ export async function getDemoPlotsUseCase() {
       daysSinceStart,
       objective: p.objective || undefined,
       experimentDetail: p.experimentDetail || undefined,
-      latitude: plotLat,
-      longitude: plotLng,
+      latitude: p.latitude ? String(p.latitude) : plotLat,
+      longitude: p.longitude ? String(p.longitude) : plotLng,
+      province: p.province || undefined,
+      district: p.district || undefined,
+      initialSprayDate: p.initialSprayDate ? p.initialSprayDate.toISOString().split("T")[0] : undefined,
+      nextSprayDate: p.nextSprayDate ? p.nextSprayDate.toISOString().split("T")[0] : undefined,
+      mainCropInfo: p.mainCropInfo || undefined,
+      sprayMethod: p.sprayMethod || undefined,
+      hasExternalChemicals: p.hasExternalChemicals || false,
+      demoProducts: p.demoProducts,
+      externalProducts: p.externalProducts,
+      irrigations: (p.irrigations || []).map((ir: any) => ir.method),
     };
   });
 
@@ -281,6 +291,7 @@ export async function recordDemoPlotVisitUseCase(rawData: any) {
     usageMethod: rawData.usageMethod ?? null,
     plantingDate: rawData.plantingDate ? new Date(rawData.plantingDate) : null,
     plantingAreaCondition: rawData.plantingAreaCondition ?? null,
+    nextSprayDate: rawData.nextSprayDate ? new Date(rawData.nextSprayDate) : null,
     productUsedQty: rawData.productUsedQty ? Number(rawData.productUsedQty) : 0,
     productUnitPrice: rawData.productUnitPrice ? Number(rawData.productUnitPrice) : 0,
     otherExpenses: rawData.otherExpenses ? Number(rawData.otherExpenses) : 0,
