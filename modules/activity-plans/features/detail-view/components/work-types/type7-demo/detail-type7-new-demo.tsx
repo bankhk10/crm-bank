@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Sprout,
   AlertTriangle,
@@ -260,7 +260,204 @@ export function DetailType7NewDemo({
     usageMethod ||
     null;
 
-  // Planned Target Items (strictly without 'สภาพแปลงเป้าหมาย' / Target Condition)
+  // Build unified product list ensuring all products from planned target and actual baseline are present
+  const unifiedProducts = useMemo(() => {
+    const plannedList: any[] = (target as any)?.demoProducts || [];
+    const actualList: any[] = demoPlotData?.demoProducts || [];
+
+    const rows: Array<{
+      id: string;
+      productName: string;
+      productCode?: string;
+      unit: string;
+      plannedQty: number | string | null;
+      actualQty: number | string | null;
+      remainingQty: number | string | null;
+      applicationRate: string;
+    }> = [];
+
+    const matchedActualIndices = new Set<number>();
+
+    // 1. Process all planned products (ActivityPlanProduct)
+    if (plannedList.length > 0) {
+      plannedList.forEach((planned, pIdx) => {
+        let actualMatchIdx = actualList.findIndex((act, aIdx) => {
+          if (matchedActualIndices.has(aIdx)) return false;
+          if (
+            planned.productId &&
+            act.productId &&
+            String(planned.productId) === String(act.productId)
+          ) {
+            return true;
+          }
+          if (
+            planned.productName &&
+            (act.productName || act.product?.name) &&
+            planned.productName.trim().toLowerCase() ===
+              (act.productName || act.product?.name).trim().toLowerCase()
+          ) {
+            return true;
+          }
+          return false;
+        });
+
+        if (
+          actualMatchIdx === -1 &&
+          actualList.length === plannedList.length &&
+          !matchedActualIndices.has(pIdx)
+        ) {
+          actualMatchIdx = pIdx;
+        }
+
+        const act = actualMatchIdx !== -1 ? actualList[actualMatchIdx] : null;
+        if (actualMatchIdx !== -1) {
+          matchedActualIndices.add(actualMatchIdx);
+        }
+
+        const pName =
+          act?.product?.name || act?.productName || planned.productName || "-";
+        const pCode = act?.product?.productCode || planned.productCode;
+        const pUnit =
+          act?.unit ||
+          act?.product?.unit ||
+          act?.product?.packageSizeUnit ||
+          planned.unit ||
+          "";
+
+        const plannedQty =
+          planned.quantity != null && planned.quantity !== ""
+            ? planned.quantity
+            : null;
+        const actualQty =
+          act?.quantity != null && act?.quantity !== "" ? act.quantity : null;
+
+        const rawRemaining =
+          act?.remainingQuantity !== null &&
+          act?.remainingQuantity !== undefined &&
+          act?.remainingQuantity !== ""
+            ? act.remainingQuantity
+            : act?.remaining_quantity !== null &&
+                act?.remaining_quantity !== undefined &&
+                act?.remaining_quantity !== ""
+              ? act.remaining_quantity
+              : null;
+
+        let resolvedRemaining: number | string | null = rawRemaining;
+        if (
+          resolvedRemaining === null &&
+          plannedQty != null &&
+          actualQty != null
+        ) {
+          const pNum = Number(plannedQty);
+          const uNum = Number(actualQty);
+          if (!isNaN(pNum) && !isNaN(uNum)) {
+            resolvedRemaining = Math.max(0, pNum - uNum);
+          }
+        }
+
+        rows.push({
+          id: act?.id || planned.productId || `plan-${pIdx}`,
+          productName: pName,
+          productCode: pCode,
+          unit: pUnit,
+          plannedQty,
+          actualQty,
+          remainingQty: resolvedRemaining,
+          applicationRate: act?.applicationRate || "-",
+        });
+      });
+    }
+
+    // 2. Add any remaining actual products not in planned list
+    actualList.forEach((act, aIdx) => {
+      if (matchedActualIndices.has(aIdx)) return;
+
+      const pName = act.product?.name || act.productName || "-";
+      const pCode = act.product?.productCode;
+      const pUnit =
+        act.unit ||
+        act.product?.unit ||
+        act.product?.packageSizeUnit ||
+        "";
+
+      const plannedQtyVal =
+        aIdx === 0 &&
+        plannedList.length === 0 &&
+        (target as any)?.demoProductQuantity != null
+          ? (target as any).demoProductQuantity
+          : null;
+
+      const actualQty =
+        act.quantity != null && act.quantity !== "" ? act.quantity : null;
+
+      const rawRemaining =
+        act.remainingQuantity !== null &&
+        act.remainingQuantity !== undefined &&
+        act.remainingQuantity !== ""
+          ? act.remainingQuantity
+          : act.remaining_quantity !== null &&
+              act.remaining_quantity !== undefined &&
+              act.remaining_quantity !== ""
+            ? act.remaining_quantity
+            : null;
+
+      let resolvedRemaining: number | string | null = rawRemaining;
+      if (
+        resolvedRemaining === null &&
+        plannedQtyVal != null &&
+        actualQty != null
+      ) {
+        const pNum = Number(plannedQtyVal);
+        const uNum = Number(actualQty);
+        if (!isNaN(pNum) && !isNaN(uNum)) {
+          resolvedRemaining = Math.max(0, pNum - uNum);
+        }
+      }
+
+      rows.push({
+        id: act.id || `act-${aIdx}`,
+        productName: pName,
+        productCode: pCode,
+        unit: pUnit,
+        plannedQty: plannedQtyVal,
+        actualQty,
+        remainingQty: resolvedRemaining,
+        applicationRate: act.applicationRate || "-",
+      });
+    });
+
+    // 3. Fallback for single product plan/actual
+    if (rows.length === 0 && (rawActualName !== "-" || rawPlannedName !== "-")) {
+      rows.push({
+        id: "single-product",
+        productName: rawActualName !== "-" ? rawActualName : rawPlannedName,
+        productCode: actualCode || plannedCode,
+        unit: actualUnit || plannedUnit || "",
+        plannedQty:
+          (target as any)?.demoProductQuantity != null
+            ? (target as any).demoProductQuantity
+            : null,
+        actualQty: resolvedActualQuantity || null,
+        remainingQty: null,
+        applicationRate: "-",
+      });
+    }
+
+    return rows;
+  }, [
+    (target as any)?.demoProducts,
+    (target as any)?.demoProductQuantity,
+    demoPlotData?.demoProducts,
+    rawActualName,
+    rawPlannedName,
+    actualCode,
+    plannedCode,
+    actualUnit,
+    plannedUnit,
+    resolvedActualQuantity,
+  ]);
+
+  // Planned Target Items (strictly preserved in state/memory, UI hidden per requirement)
   const plannedTargetItems = [
     { label: "ประเภทงาน:", value: "ทำแปลงสาธิต (เริ่มทำแปลงใหม่)" },
     { label: "เกษตรกร / เจ้าของแปลง:", value: target.owner || "-" },
@@ -313,13 +510,7 @@ export function DetailType7NewDemo({
         </Badge>
       </div>
 
-      {/* SECTION 1: PLANNED TARGET CARD (No Target Condition field) */}
-      <ActualTargetCard
-        iconColorClass="text-emerald-700"
-        badgeColorClass="bg-emerald-50 text-emerald-800 border border-emerald-200"
-        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
-        items={plannedTargetItems}
-      />
+      {/* SECTION 1: PLANNED TARGET CARD (Hidden per requirement - data preserved) */}
 
       {/* SECTION 2: READ-ONLY RESULT DISPLAY */}
       <div className="space-y-3 pt-1 border-t border-slate-100">
@@ -463,22 +654,31 @@ export function DetailType7NewDemo({
                   {resolvedGrowthStage || "-"}
                 </span>
               </div>
-              {(demoPlotData.ownerName || demoPlotData.farmerName || demoPlotData.farmer?.name) && (
-                <div>
-                  <span className="text-slate-500 font-medium block">เกษตรกรเจ้าของแปลง:</span>
-                  <span className="font-bold text-slate-900">
-                    {demoPlotData.ownerName || demoPlotData.farmerName || demoPlotData.farmer?.name}
-                    {demoPlotData.ownerPhone || demoPlotData.farmerPhone || demoPlotData.farmer?.phone
-                      ? ` (${demoPlotData.ownerPhone || demoPlotData.farmerPhone || demoPlotData.farmer?.phone})`
-                      : ""}
-                    {demoPlotData.ownerProvince
-                      ? ` จ.${demoPlotData.ownerProvince}`
-                      : demoPlotData.customer?.province
-                        ? ` จ.${demoPlotData.customer.province}`
-                        : ""}
-                  </span>
-                </div>
-              )}
+              <div>
+                <span className="text-slate-500 font-medium block">เกษตรกรเจ้าของแปลง:</span>
+                <span className="font-bold text-slate-900">
+                  {demoPlotData.ownerName ||
+                    demoPlotData.farmerName ||
+                    demoPlotData.farmer?.name ||
+                    demoPlotData.farmerCustomer?.name ||
+                    "-"}
+                  {demoPlotData.ownerPhone ||
+                  demoPlotData.farmerPhone ||
+                  demoPlotData.farmer?.phone ||
+                  demoPlotData.farmerCustomer?.phone
+                    ? ` (${demoPlotData.ownerPhone || demoPlotData.farmerPhone || demoPlotData.farmer?.phone || demoPlotData.farmerCustomer?.phone})`
+                    : ""}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-medium block">จังหวัดเกษตรกร:</span>
+                <span className="font-bold text-slate-900">
+                  {demoPlotData.ownerProvince ||
+                    demoPlotData.farmerCustomer?.province ||
+                    demoPlotData.farmer?.province ||
+                    "-"}
+                </span>
+              </div>
               {(demoPlotData.latitude || demoPlotData.longitude) && (
                 <div>
                   <span className="text-slate-500 font-medium block">พิกัดแปลง (Lat, Long):</span>
@@ -591,19 +791,19 @@ export function DetailType7NewDemo({
             </div>
           )}
 
-          {/* Actual Demonstration Product with Change Tracking */}
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5 sm:col-span-2 md:col-span-3">
+          {/* Demonstration Products Responsive Table */}
+          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-3 sm:col-span-2 md:col-span-3">
             <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
               <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                 <Package className="w-4 h-4 text-emerald-700" />
-                สินค้าที่ใช้สาธิตจริง (Actual Demonstration Product)
+                สินค้าที่จะสาธิต
               </span>
-              {demoPlotData?.demoProducts && demoPlotData.demoProducts.length > 0 ? (
+              {unifiedProducts.length > 0 ? (
                 <Badge
                   variant="outline"
                   className="bg-emerald-50 text-emerald-800 border-emerald-300 font-medium text-xs"
                 >
-                  {demoPlotData.demoProducts.length} รายการ
+                  {unifiedProducts.length} รายการ
                 </Badge>
               ) : isProductChanged ? (
                 <Badge
@@ -616,185 +816,105 @@ export function DetailType7NewDemo({
               ) : null}
             </div>
 
-            {demoPlotData?.demoProducts && demoPlotData.demoProducts.length > 0 ? (
-              <div className="space-y-3">
-                {demoPlotData.demoProducts.map((prod: any, idx: number) => {
-                  const pName = prod.product?.name || prod.productName || "-";
-                  const pCode = prod.product?.productCode;
-                  const pUnit =
-                    prod.unit || prod.product?.unit || prod.product?.packageSizeUnit || "";
-
-                  const matchedPlan =
-                    (target as any)?.demoProducts?.find(
-                      (p: any) => p.productId === prod.productId,
-                    ) ||
-                    (target as any)?.items?.find(
-                      (p: any) => p.productId === prod.productId,
-                    );
-
-                  const plannedQtyVal =
-                    matchedPlan?.quantity != null && matchedPlan?.quantity !== ""
-                      ? matchedPlan.quantity
-                      : idx === 0
-                        ? (target as any)?.demoProductQuantity
-                        : null;
-
-                  const plannedDisplay =
-                    plannedQtyVal != null && plannedQtyVal !== ""
-                      ? `${plannedQtyVal} ${pUnit}`.trim()
-                      : "-";
-
-                  const usedQtyVal =
-                    prod.quantity != null && prod.quantity !== ""
-                      ? prod.quantity
-                      : null;
-
-                  const usedDisplay =
-                    usedQtyVal != null
-                      ? `${usedQtyVal} ${pUnit}`.trim()
-                      : "-";
-
-                  // Source of truth: DemoPlotProduct.remainingQuantity
-                  // Fallback: planned - used (if legacy record without stored remainingQuantity)
-                  const rawRemaining =
-                    prod.remainingQuantity !== null && prod.remainingQuantity !== undefined && prod.remainingQuantity !== ""
-                      ? prod.remainingQuantity
-                      : prod.remaining_quantity !== null && prod.remaining_quantity !== undefined && prod.remaining_quantity !== ""
-                        ? prod.remaining_quantity
-                        : null;
-
-                  let resolvedRemaining: number | string | null = rawRemaining;
-                  if (resolvedRemaining === null && plannedQtyVal != null && usedQtyVal != null) {
-                    const pNum = Number(plannedQtyVal);
-                    const uNum = Number(usedQtyVal);
-                    if (!isNaN(pNum) && !isNaN(uNum)) {
-                      resolvedRemaining = Math.max(0, pNum - uNum);
-                    }
-                  }
-
-                  const remainingDisplay =
-                    resolvedRemaining !== null && resolvedRemaining !== undefined && resolvedRemaining !== ""
-                      ? `${resolvedRemaining} ${pUnit}`.trim()
-                      : "-";
-
-                  const pRate = prod.applicationRate || "-";
-
-                  return (
-                    <div
-                      key={prod.id || idx}
-                      className="p-4 bg-white rounded-xl border border-slate-200/80 shadow-sm space-y-3"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200/60">
-                            {idx + 1}
-                          </span>
-                          <span className="text-sm font-bold text-slate-900">
-                            {pName} {pCode ? `(${pCode})` : ""}
-                          </span>
-                        </div>
-                        {pRate && (
-                          <div className="text-xs text-slate-600 flex items-center gap-1 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200/60">
-                            <span className="text-slate-400 font-medium">อัตราการใช้:</span>
-                            <span className="font-semibold text-emerald-800">{pRate}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-2.5 pt-1 text-center">
-                        <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                          <div className="text-[11px] font-medium text-slate-500 mb-1">
-                            จำนวนที่เบิก
-                          </div>
-                          <div className="text-sm font-semibold text-slate-700">
-                            {plannedDisplay}
-                          </div>
-                        </div>
-
-                        <div className="p-2.5 rounded-lg bg-emerald-50/60 border border-emerald-100">
-                          <div className="text-[11px] font-medium text-emerald-700 mb-1">
-                            จำนวนที่ใช้จริง
-                          </div>
-                          <div className="text-sm font-bold text-emerald-800">
-                            {usedDisplay}
-                          </div>
-                        </div>
-
-                        <div className="p-2.5 rounded-lg bg-blue-50/60 border border-blue-100">
-                          <div className="text-[11px] font-medium text-blue-700 mb-1">
-                            จำนวนคงเหลือ
-                          </div>
-                          <div className="text-sm font-bold text-blue-800">
-                            {remainingDisplay}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : !isProductChanged ? (
-              <div className="p-3.5 bg-white rounded-xl border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <span className="text-xs text-slate-500 font-medium block">
-                    สินค้าที่ใช้สาธิตจริง
-                  </span>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-bold text-slate-900">
-                      {actualProductDisplay}
-                    </span>
-                    {resolvedActualQuantity && (
-                      <Badge
-                        variant="secondary"
-                        className="text-xs bg-slate-100 text-slate-700 font-medium"
+            {unifiedProducts.length > 0 ? (
+              <div className="w-full overflow-x-auto rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                <table className="w-full min-w-[560px] text-xs divide-y divide-slate-200/70 text-left">
+                  <thead className="bg-slate-50/90 text-slate-600 font-semibold">
+                    <tr>
+                      <th scope="col" className="py-2.5 px-3 w-12 text-center">
+                        ลำดับ
+                      </th>
+                      <th scope="col" className="py-2.5 px-3 min-w-[170px]">
+                        สินค้า
+                      </th>
+                      <th
+                        scope="col"
+                        className="py-2.5 px-3 text-right whitespace-nowrap min-w-[90px]"
                       >
-                        จำนวน {actualQuantityDisplay}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg font-medium flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  ตรงตามแผนที่วางไว้
-                </span>
+                        จำนวนที่เบิก
+                      </th>
+                      <th scope="col" className="py-2.5 px-3 min-w-[130px]">
+                        อัตราการใช้
+                      </th>
+                      <th
+                        scope="col"
+                        className="py-2.5 px-3 text-right whitespace-nowrap min-w-[90px]"
+                      >
+                        จำนวนที่ใช้จริง
+                      </th>
+                      <th
+                        scope="col"
+                        className="py-2.5 px-3 text-right whitespace-nowrap min-w-[90px]"
+                      >
+                        จำนวนคงเหลือ
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-slate-800">
+                    {unifiedProducts.map((prod, idx) => {
+                      const plannedDisplay =
+                        prod.plannedQty != null && prod.plannedQty !== ""
+                          ? `${prod.plannedQty} ${prod.unit}`.trim()
+                          : "-";
+                      const actualDisplay =
+                        prod.actualQty != null && prod.actualQty !== ""
+                          ? `${prod.actualQty} ${prod.unit}`.trim()
+                          : "-";
+                      const remainingDisplay =
+                        prod.remainingQty != null && prod.remainingQty !== ""
+                          ? `${prod.remainingQty} ${prod.unit}`.trim()
+                          : "-";
+
+                      return (
+                        <tr
+                          key={prod.id || idx}
+                          className="hover:bg-slate-50/50 transition-colors"
+                        >
+                          <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
+                            {idx + 1}
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <div className="font-bold text-slate-900">
+                              {prod.productName}
+                            </div>
+                            {prod.productCode && (
+                              <div className="text-[11px] text-slate-500 font-mono">
+                                {prod.productCode}
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-semibold text-slate-700 whitespace-nowrap">
+                            {plannedDisplay}
+                          </td>
+                          <td className="py-2.5 px-3 text-emerald-800 font-medium">
+                            {prod.applicationRate || "-"}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-bold text-emerald-700 whitespace-nowrap">
+                            {actualDisplay}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-bold text-blue-700 whitespace-nowrap">
+                            {remainingDisplay}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             ) : (
-              <div className="p-4 bg-amber-50/60 border border-amber-200/90 rounded-xl space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="space-y-1">
-                    <span className="text-xs text-slate-500 font-medium block">
-                      สินค้าที่ใช้จริงหน้างาน
-                    </span>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-bold text-slate-950">
-                        {actualProductDisplay}
-                      </span>
-                      {resolvedActualQuantity && (
-                        <Badge
-                          variant="secondary"
-                          className="text-xs bg-amber-100 text-amber-900 font-bold border border-amber-200"
-                        >
-                          จำนวน {actualQuantityDisplay}
-                        </Badge>
-                      )}
-                      <span className="text-xs text-slate-400">
-                        (สินค้าตามแผน:{" "}
-                        <span className="line-through">{plannedProductDisplay}</span>)
-                      </span>
-                    </div>
-                  </div>
-                </div>
+              <div className="text-center py-6 text-slate-400 text-xs">
+                ไม่มีรายการสินค้าที่บันทึก
+              </div>
+            )}
 
-                {resolvedChangeReason && (
-                  <div className="pt-2.5 border-t border-amber-200/70 text-xs text-amber-950">
-                    <span className="font-bold text-amber-900 block mb-0.5">
-                      เหตุผลที่เปลี่ยนหน้างาน:
-                    </span>
-                    <p className="text-amber-900 leading-relaxed font-medium bg-white/70 p-2.5 rounded-lg border border-amber-200/60">
-                      {resolvedChangeReason}
-                    </p>
-                  </div>
-                )}
+            {resolvedChangeReason && (
+              <div className="p-3 bg-amber-50/60 border border-amber-200/90 rounded-xl space-y-1 text-xs">
+                <span className="font-bold text-amber-900 block">
+                  เหตุผลที่เปลี่ยนหน้างาน:
+                </span>
+                <p className="text-amber-900 leading-relaxed font-medium bg-white/70 p-2 rounded-lg border border-amber-200/60">
+                  {resolvedChangeReason}
+                </p>
               </div>
             )}
           </div>
