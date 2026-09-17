@@ -163,7 +163,9 @@ export default function ActivityPlanActualView({
   onSuccess,
 }: ActivityPlanActualViewProps) {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
+  const hasLoadedRef = useRef<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Loading & Feedback State
   const [loadingPlan, setLoadingPlan] = useState(!!id);
@@ -405,15 +407,24 @@ export default function ActivityPlanActualView({
   // Load plan details if ID passed
   useEffect(() => {
     if (!id) return;
+    if (sessionStatus === "loading") return;
+    if (hasLoadedRef.current === id) return;
+
     async function loadData() {
       try {
-        setLoadingPlan(true);
+        if (!hasLoadedRef.current) {
+          setLoadingPlan(true);
+        } else {
+          setIsRefreshing(true);
+        }
         const res = await getActivityPlanAction(id!);
         if (!res.success || !res.plan) {
           setFormError(res.error || "ไม่สามารถโหลดข้อมูลแผนงานกิจกรรมได้");
           setLoadingPlan(false);
+          setIsRefreshing(false);
           return;
         }
+        hasLoadedRef.current = id!;
         const p = res.plan;
 
           // Check Creator ownership: Helper is NOT allowed to record actual results
@@ -1236,10 +1247,11 @@ export default function ActivityPlanActualView({
         setFormError(e?.message || "เกิดข้อผิดพลาดในการโหลดข้อมูลแผนงาน");
       } finally {
         setLoadingPlan(false);
+        setIsRefreshing(false);
       }
     }
     loadData();
-  }, [id, session]);
+  }, [id, sessionStatus, session?.user?.id]);
 
   // Image helpers
   const createUploadHandler = (
@@ -1964,7 +1976,7 @@ export default function ActivityPlanActualView({
     }
   };
 
-  if (loadingPlan) {
+  if (loadingPlan && !hasLoadedRef.current) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-500 gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
@@ -2091,6 +2103,12 @@ export default function ActivityPlanActualView({
       <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
         {/* TOP HEADER */}
         <ActualViewHeader planNo={planSummary.planNo} />
+        {isRefreshing && (
+          <div className="flex items-center gap-2 text-xs text-slate-500 animate-pulse">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+            <span>กำลังอัปเดตข้อมูลแผนงานในพื้นหลัง...</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           {formError && (
