@@ -402,6 +402,7 @@ model Customer {
   activityResultIssueItems  ActivityResultIssueItem[]
   activityAttachments       ActivityAttachment[]
   demoPlots                 DemoPlot[]                 @relation("CustomerDemoPlots")
+  farmerDemoPlots           DemoPlot[]                 @relation("FarmerDemoPlots")
 }
 
 model CustomerAddress {
@@ -2249,6 +2250,9 @@ model DemoPlot {
 
   customer Customer? @relation("CustomerDemoPlots", fields: [customerId], references: [id], onDelete: SetNull)
 
+  farmerCustomerId String?   @map("farmer_customer_id")
+  farmerCustomer   Customer? @relation("FarmerDemoPlots", fields: [farmerCustomerId], references: [id], onDelete: SetNull)
+
   // ข้อมูลพืชและสถานที่
   cropCategory   String   @map("crop_category") // หมวดพืช เช่น ไม้ผล, พืชไร่
   cropName       String   @map("crop_name") // ชื่อพืช เช่น ทุเรียน, ข้าว
@@ -2304,6 +2308,7 @@ model DemoPlot {
   attachments      ActivityAttachment[]
 
   @@index([customerId])
+  @@index([farmerCustomerId])
   @@index([province])
   @@index([district])
   @@index([employeeId])

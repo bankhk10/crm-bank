@@ -280,6 +280,7 @@ export const type7aDemoPlotExternalProductInputSchema = z.object({
 export const type7aDemoPlotInputSchema = z
   .object({
     customerId: z.string().optional().nullable(),
+    farmerCustomerId: z.string().optional().nullable(),
     ownerName: z.string().min(1, "กรุณาระบุชื่อเกษตรกรเจ้าของแปลง"),
     ownerPhone: z.string().optional().nullable(),
     ownerProvince: z.string().optional().nullable(),

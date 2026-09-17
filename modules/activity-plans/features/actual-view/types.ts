@@ -310,6 +310,7 @@ export interface DemoPlotExternalProductItem {
 
 export interface Type7aDemoPlotData {
   customerId?: string | null;
+  farmerCustomerId?: string | null;
   ownerName: string;
   ownerPhone?: string | null;
   isUnregisteredFarmer: boolean;

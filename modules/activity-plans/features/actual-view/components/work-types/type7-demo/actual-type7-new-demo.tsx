@@ -454,10 +454,18 @@ export function ActualType7NewDemo({
           phone: matched.phone || "",
           district: matched.district || "",
         });
+      } else if (farmerName) {
+        opts.push({
+          value: farmerCustomerId,
+          label: farmerName,
+          customerName: farmerName,
+          phone: farmerPhone || "",
+          district: district || "",
+        });
       }
     }
     return opts;
-  }, [allFarmers, farmerProvince, farmerCustomerId]);
+  }, [allFarmers, farmerProvince, farmerCustomerId, farmerName, farmerPhone, district]);
 
   // Handle Province Change: reset farmer selection
   const handleProvinceChange = (newProvince: string) => {

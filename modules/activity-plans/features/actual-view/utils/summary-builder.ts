@@ -1217,6 +1217,9 @@ export function buildResultSummary(
       input.t7FarmerProvince?.trim() || null;
 
     type7aDemoPlot = {
+      farmerCustomerId: input.t7IsUnregisteredFarmer
+        ? null
+        : input.t7FarmerCustomerId || null,
       ownerName: farmerName,
       ownerPhone: input.t7FarmerPhone?.trim() || null,
       ownerProvince: farmerProvinceVal,

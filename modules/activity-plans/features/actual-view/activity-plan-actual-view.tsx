@@ -530,27 +530,27 @@ export default function ActivityPlanActualView({
             setT7DemoPlotData(dp);
             if (dp.ownerProvince) {
               setT7FarmerProvince(dp.ownerProvince);
-            } else if (dp.customer?.customerType === "FARMER" && dp.customer?.province) {
-              setT7FarmerProvince(dp.customer.province);
+            } else if (dp.farmerCustomer?.province) {
+              setT7FarmerProvince(dp.farmerCustomer.province);
             }
             if (dp.district) setT7District(dp.district);
-            if (dp.customerId && dp.customer?.customerType === "FARMER") {
-              setT7FarmerCustomerId(dp.customerId);
+            if (dp.farmerCustomerId) {
+              setT7FarmerCustomerId(dp.farmerCustomerId);
+              setT7IsUnregisteredFarmer(false);
             } else {
               setT7FarmerCustomerId("");
+              setT7IsUnregisteredFarmer(Boolean(dp.isUnregisteredFarmer));
             }
             if (dp.ownerName) setT7FarmerName(dp.ownerName);
             if (dp.ownerPhone) setT7FarmerPhone(dp.ownerPhone);
-            if (dp.isUnregisteredFarmer != null)
-              setT7IsUnregisteredFarmer(Boolean(dp.isUnregisteredFarmer));
             const resolvedDealerName =
-              dp.customer?.name ||
+              (dp.customer?.customerType !== "FARMER" ? dp.customer?.name : "") ||
               (extracted.targets.t7a as any)?.dealerName ||
               (t7aTarget as any)?.dealerName ||
               "";
             if (resolvedDealerName) setT7DealerName(resolvedDealerName);
             const resolvedDealerCode =
-              dp.customer?.customerCode ||
+              (dp.customer?.customerType !== "FARMER" ? dp.customer?.customerCode : "") ||
               (extracted.targets.t7a as any)?.dealerCode ||
               (t7aTarget as any)?.dealerCode ||
               "";
@@ -1167,7 +1167,10 @@ export default function ActivityPlanActualView({
               const dp = (parsed as any).type7aDemoPlot;
               if (dp.ownerProvince) setT7FarmerProvince(dp.ownerProvince);
               if (dp.district) setT7District(dp.district);
-              if (dp.customerId) setT7FarmerCustomerId(dp.customerId);
+              if (dp.farmerCustomerId) {
+                setT7FarmerCustomerId(dp.farmerCustomerId);
+                setT7IsUnregisteredFarmer(false);
+              }
               if (dp.ownerName) setT7FarmerName(dp.ownerName);
               if (dp.ownerPhone) setT7FarmerPhone(dp.ownerPhone);
               if (dp.isUnregisteredFarmer != null)

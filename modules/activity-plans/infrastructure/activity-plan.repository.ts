@@ -197,6 +197,17 @@ export async function findActivityPlanById(id: string) {
                   district: true,
                 },
               },
+              farmerCustomer: {
+                select: {
+                  id: true,
+                  name: true,
+                  customerCode: true,
+                  customerType: true,
+                  province: true,
+                  district: true,
+                  phone: true,
+                },
+              },
               demoProducts: {
                 include: {
                   product: {
@@ -1625,6 +1636,7 @@ export type CreateActivityResultInput = {
   }>;
   type7aDemoPlot?: {
     customerId?: string | null;
+    farmerCustomerId?: string | null;
     ownerName: string;
     ownerPhone?: string | null;
     ownerProvince?: string | null;
@@ -1967,6 +1979,7 @@ export async function upsertActivityResult(
         where: { id: input.activityPlanId },
         select: {
           employeeId: true,
+          stores: { select: { storeId: true } },
           demoPlotVisits: {
             where: { visitNumber: 1 },
             include: { demoPlot: true },
@@ -2007,6 +2020,7 @@ export async function upsertActivityResult(
             ownerPhone: demoData.ownerPhone ?? null,
             ownerProvince: demoData.ownerProvince ?? null,
             isUnregisteredFarmer: demoData.isUnregisteredFarmer,
+            farmerCustomerId: demoData.farmerCustomerId ?? null,
             province: demoData.province,
             district: demoData.district ?? null,
             latitude: new Prisma.Decimal(demoData.latitude),
@@ -2045,7 +2059,8 @@ export async function upsertActivityResult(
             ownerPhone: demoData.ownerPhone ?? null,
             ownerProvince: demoData.ownerProvince ?? null,
             isUnregisteredFarmer: demoData.isUnregisteredFarmer,
-            customerId: demoData.customerId ?? null,
+            customerId: demoData.customerId || plan?.stores?.[0]?.storeId || null,
+            farmerCustomerId: demoData.farmerCustomerId ?? null,
             employeeId: plan?.employeeId || "emp-system",
             province: demoData.province,
             district: demoData.district ?? null,
@@ -2846,6 +2861,7 @@ export async function findDemoPlotByIdOrName(demoPlotIdOrName: string) {
     },
     include: {
       customer: true,
+      farmerCustomer: true,
       demoProducts: {
         include: { product: true },
         orderBy: { sortOrder: "asc" },
