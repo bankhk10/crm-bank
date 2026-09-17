@@ -56,6 +56,12 @@ export interface DetailType7NewDemoProps {
     experimentDetail?: string;
     detail?: string;
     items?: any[];
+    demoProducts?: Array<{
+      productId: string;
+      productName?: string | null;
+      quantity?: number | string | null;
+      unit?: string | null;
+    }>;
   };
   demoResults?: DemoResultItemData[];
   plannedProductId?: string | null;
@@ -611,46 +617,117 @@ export function DetailType7NewDemo({
             </div>
 
             {demoPlotData?.demoProducts && demoPlotData.demoProducts.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {demoPlotData.demoProducts.map((prod: any, idx: number) => {
                   const pName = prod.product?.name || prod.productName || "-";
                   const pCode = prod.product?.productCode;
                   const pUnit =
                     prod.unit || prod.product?.unit || prod.product?.packageSizeUnit || "";
-                  const pQty =
-                    prod.quantity !== null && prod.quantity !== undefined
-                      ? `${prod.quantity} ${pUnit}`.trim()
+
+                  const matchedPlan =
+                    (target as any)?.demoProducts?.find(
+                      (p: any) => p.productId === prod.productId,
+                    ) ||
+                    (target as any)?.items?.find(
+                      (p: any) => p.productId === prod.productId,
+                    );
+
+                  const plannedQtyVal =
+                    matchedPlan?.quantity != null && matchedPlan?.quantity !== ""
+                      ? matchedPlan.quantity
+                      : idx === 0
+                        ? (target as any)?.demoProductQuantity
+                        : null;
+
+                  const plannedDisplay =
+                    plannedQtyVal != null && plannedQtyVal !== ""
+                      ? `${plannedQtyVal} ${pUnit}`.trim()
+                      : "-";
+
+                  const usedQtyVal =
+                    prod.quantity != null && prod.quantity !== ""
+                      ? prod.quantity
                       : null;
-                  const pRate = prod.applicationRate;
+
+                  const usedDisplay =
+                    usedQtyVal != null
+                      ? `${usedQtyVal} ${pUnit}`.trim()
+                      : "-";
+
+                  // Source of truth: DemoPlotProduct.remainingQuantity
+                  // Fallback: planned - used (if legacy record without stored remainingQuantity)
+                  const rawRemaining =
+                    prod.remainingQuantity !== null && prod.remainingQuantity !== undefined && prod.remainingQuantity !== ""
+                      ? prod.remainingQuantity
+                      : prod.remaining_quantity !== null && prod.remaining_quantity !== undefined && prod.remaining_quantity !== ""
+                        ? prod.remaining_quantity
+                        : null;
+
+                  let resolvedRemaining: number | string | null = rawRemaining;
+                  if (resolvedRemaining === null && plannedQtyVal != null && usedQtyVal != null) {
+                    const pNum = Number(plannedQtyVal);
+                    const uNum = Number(usedQtyVal);
+                    if (!isNaN(pNum) && !isNaN(uNum)) {
+                      resolvedRemaining = Math.max(0, pNum - uNum);
+                    }
+                  }
+
+                  const remainingDisplay =
+                    resolvedRemaining !== null && resolvedRemaining !== undefined && resolvedRemaining !== ""
+                      ? `${resolvedRemaining} ${pUnit}`.trim()
+                      : "-";
+
+                  const pRate = prod.applicationRate || "-";
 
                   return (
                     <div
                       key={prod.id || idx}
-                      className="p-3.5 bg-white rounded-xl border border-slate-200/80 flex flex-wrap items-center justify-between gap-3"
+                      className="p-4 bg-white rounded-xl border border-slate-200/80 shadow-sm space-y-3"
                     >
-                      <div className="space-y-1">
-                        <span className="text-xs text-slate-500 font-medium block">
-                          สินค้าที่ {idx + 1}
-                        </span>
-                        <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200/60">
+                            {idx + 1}
+                          </span>
                           <span className="text-sm font-bold text-slate-900">
                             {pName} {pCode ? `(${pCode})` : ""}
                           </span>
-                          {pQty && (
-                            <Badge
-                              variant="secondary"
-                              className="text-xs bg-slate-100 text-slate-700 font-medium"
-                            >
-                              จำนวน {pQty}
-                            </Badge>
-                          )}
                         </div>
                         {pRate && (
-                          <div className="text-xs text-slate-600 mt-0.5">
-                            <span className="text-slate-400">อัตราการใช้: </span>
+                          <div className="text-xs text-slate-600 flex items-center gap-1 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200/60">
+                            <span className="text-slate-400 font-medium">อัตราการใช้:</span>
                             <span className="font-semibold text-emerald-800">{pRate}</span>
                           </div>
                         )}
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2.5 pt-1 text-center">
+                        <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                          <div className="text-[11px] font-medium text-slate-500 mb-1">
+                            จำนวนที่เบิก
+                          </div>
+                          <div className="text-sm font-semibold text-slate-700">
+                            {plannedDisplay}
+                          </div>
+                        </div>
+
+                        <div className="p-2.5 rounded-lg bg-emerald-50/60 border border-emerald-100">
+                          <div className="text-[11px] font-medium text-emerald-700 mb-1">
+                            จำนวนที่ใช้จริง
+                          </div>
+                          <div className="text-sm font-bold text-emerald-800">
+                            {usedDisplay}
+                          </div>
+                        </div>
+
+                        <div className="p-2.5 rounded-lg bg-blue-50/60 border border-blue-100">
+                          <div className="text-[11px] font-medium text-blue-700 mb-1">
+                            จำนวนคงเหลือ
+                          </div>
+                          <div className="text-sm font-bold text-blue-800">
+                            {remainingDisplay}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );

@@ -2360,8 +2360,9 @@ model DemoPlotProduct {
   productId       String   @map("product_id")
   productName     String?  @map("product_name")
   applicationRate String   @map("application_rate") // e.g. "20 ml / 20 L"
-  quantity        Decimal? @map("quantity") @db.Decimal(10, 2)
-  unit            String?  @map("unit")
+  quantity          Decimal? @map("quantity") @db.Decimal(10, 2)
+  remainingQuantity Decimal? @map("remaining_quantity") @db.Decimal(10, 2)
+  unit              String?  @map("unit")
   sortOrder       Int      @default(0) @map("sort_order")
 
   demoPlot DemoPlot @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)

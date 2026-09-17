@@ -291,7 +291,9 @@ export interface DemoPlotProductItem {
   id?: string;
   productId: string;
   productName?: string;
-  quantity: number | string;
+  plannedQuantity?: number | string | null;
+  quantity: number | string; // Actual Used Quantity (Source of Truth for used quantity)
+  remainingQuantity?: number | string | null; // Actual Remaining Quantity
   unit?: string | null;
   applicationRate: string; // Single Source of Truth for product application rate
 }

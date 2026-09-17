@@ -602,14 +602,46 @@ export default function ActivityPlanActualView({
               );
             }
             if (dp.demoProducts && dp.demoProducts.length > 0) {
+              const planT7aProducts = (
+                (p as any).products ||
+                (p as any).planProducts ||
+                []
+              ).filter(
+                (pr: any) =>
+                  pr.workTypeCode === "TYPE_7A" ||
+                  pr.workTypeCode === "TYPE_7" ||
+                  !pr.workTypeCode,
+              );
               setT7DemoProducts(
-                dp.demoProducts.map((dpr: any) => ({
-                  productId: dpr.productId,
-                  productName: dpr.product?.name || "",
-                  quantity: dpr.quantity || 1,
-                  unit: dpr.product?.unit || dpr.product?.packageSizeUnit || "",
-                  applicationRate: dpr.applicationRate || "",
-                })),
+                dp.demoProducts.map((dpr: any) => {
+                  const matchedPlan = planT7aProducts.find(
+                    (pr: any) => pr.productId === dpr.productId,
+                  );
+                  const plannedQty =
+                    matchedPlan?.targetQuantity != null
+                      ? matchedPlan.targetQuantity
+                      : matchedPlan?.quantity != null
+                        ? matchedPlan.quantity
+                        : null;
+                  const usedQty = dpr.quantity ?? (plannedQty != null ? plannedQty : 1);
+                  const remainingQty =
+                    dpr.remainingQuantity !== null && dpr.remainingQuantity !== undefined
+                      ? dpr.remainingQuantity
+                      : plannedQty != null && usedQty != null
+                        ? Math.max(0, Number(plannedQty) - Number(usedQty))
+                        : null;
+
+                  return {
+                    id: dpr.id,
+                    productId: dpr.productId,
+                    productName: dpr.product?.name || dpr.productName || "",
+                    plannedQuantity: plannedQty,
+                    quantity: usedQty,
+                    remainingQuantity: remainingQty,
+                    unit: dpr.product?.unit || dpr.product?.packageSizeUnit || dpr.unit || "",
+                    applicationRate: dpr.applicationRate || "",
+                  };
+                }),
               );
             } else {
               const planT7aProducts = (
@@ -624,13 +656,20 @@ export default function ActivityPlanActualView({
               );
               if (planT7aProducts.length > 0) {
                 setT7DemoProducts(
-                  planT7aProducts.map((pr: any) => ({
-                    productId: pr.productId,
-                    productName: pr.product?.name || pr.productName || "",
-                    quantity: pr.targetQuantity || pr.quantity || 1,
-                    unit: pr.product?.unit || pr.product?.packageSizeUnit || "",
-                    applicationRate: "",
-                  })),
+                  planT7aProducts.map((pr: any) => {
+                    const plannedQty = pr.targetQuantity ?? pr.quantity ?? 1;
+                    const usedQty = plannedQty;
+                    const remainingQty = Math.max(0, Number(plannedQty) - Number(usedQty));
+                    return {
+                      productId: pr.productId,
+                      productName: pr.product?.name || pr.productName || "",
+                      plannedQuantity: plannedQty,
+                      quantity: usedQty,
+                      remainingQuantity: remainingQty,
+                      unit: pr.product?.unit || pr.product?.packageSizeUnit || "",
+                      applicationRate: "",
+                    };
+                  }),
                 );
               }
             }
@@ -731,13 +770,20 @@ export default function ActivityPlanActualView({
             );
             if (planT7aProducts.length > 0) {
               setT7DemoProducts(
-                planT7aProducts.map((pr: any) => ({
-                  productId: pr.productId,
-                  productName: pr.product?.name || pr.productName || "",
-                  quantity: pr.targetQuantity || pr.quantity || 1,
-                  unit: pr.product?.unit || pr.product?.packageSizeUnit || "",
-                  applicationRate: "",
-                })),
+                planT7aProducts.map((pr: any) => {
+                  const plannedQty = pr.targetQuantity ?? pr.quantity ?? 1;
+                  const usedQty = plannedQty;
+                  const remainingQty = Math.max(0, Number(plannedQty) - Number(usedQty));
+                  return {
+                    productId: pr.productId,
+                    productName: pr.product?.name || pr.productName || "",
+                    plannedQuantity: plannedQty,
+                    quantity: usedQty,
+                    remainingQuantity: remainingQty,
+                    unit: pr.product?.unit || pr.product?.packageSizeUnit || "",
+                    applicationRate: "",
+                  };
+                }),
               );
             } else if (
               extracted.targets.t7?.plannedProductId ||
@@ -746,12 +792,15 @@ export default function ActivityPlanActualView({
               const pId =
                 extracted.targets.t7.plannedProductId ||
                 extracted.targets.t7.productId;
+              const plannedQty =
+                Number(extracted.targets.t7.demoProductQuantity) || 1;
               setT7DemoProducts([
                 {
                   productId: pId!,
                   productName: extracted.targets.t7.product || "",
-                  quantity:
-                    Number(extracted.targets.t7.demoProductQuantity) || 1,
+                  plannedQuantity: plannedQty,
+                  quantity: plannedQty,
+                  remainingQuantity: 0,
                   unit: "",
                   applicationRate: "",
                 },

@@ -535,6 +535,15 @@ export function ActualType7NewDemo({
       current.productId = val;
       current.productName = matched?.name || "";
       current.unit = matched?.unit || matched?.packageSizeUnit || "";
+    } else if (field === "quantity") {
+      current.quantity = val;
+      if (current.plannedQuantity != null) {
+        const planned = Number(current.plannedQuantity);
+        const used = val === "" ? 0 : Number(val);
+        if (!isNaN(planned) && !isNaN(used)) {
+          current.remainingQuantity = Math.max(0, planned - used);
+        }
+      }
     } else {
       (current as any)[field] = val;
     }
@@ -1363,7 +1372,7 @@ export function ActualType7NewDemo({
 
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                   {/* สินค้า */}
-                  <div className="sm:col-span-6">
+                  <div className="sm:col-span-12 md:col-span-5">
                     <FormCombobox
                       id={`demo-product-combobox-${idx}`}
                       label="สินค้าจากระบบ *"
@@ -1381,29 +1390,61 @@ export function ActualType7NewDemo({
                     />
                   </div>
 
-                  {/* จำนวน */}
-                  <div className="sm:col-span-2">
+                  {/* จำนวนที่เบิก (Read Only) */}
+                  <div className="sm:col-span-6 md:col-span-2">
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      จำนวน {item.unit ? `(${item.unit})` : ""} *
+                      จำนวนที่เบิก {item.unit ? `(${item.unit})` : ""}
                     </label>
-                    <Input
-                      type="number"
-                      min={0.01}
-                      step="any"
-                      value={item.quantity || ""}
-                      onChange={(e) =>
-                        handleUpdateProduct(idx, "quantity", e.target.value)
-                      }
-                      placeholder="เช่น 1"
-                      className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                      required
-                    />
+                    <div className="h-10 px-3 flex items-center bg-slate-100/90 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 select-none">
+                      {item.plannedQuantity !== null && item.plannedQuantity !== undefined && item.plannedQuantity !== ""
+                        ? item.plannedQuantity
+                        : "-"}
+                    </div>
                   </div>
 
+                  {/* จำนวนที่ใช้จริง */}
+                  {(() => {
+                    const isExceeded =
+                      item.plannedQuantity != null &&
+                      item.plannedQuantity !== "" &&
+                      item.quantity !== undefined &&
+                      item.quantity !== null &&
+                      item.quantity !== "" &&
+                      Number(item.quantity) > Number(item.plannedQuantity);
+
+                    return (
+                      <div className="sm:col-span-6 md:col-span-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          จำนวนที่ใช้จริง {item.unit ? `(${item.unit})` : ""} *
+                        </label>
+                        <Input
+                          type="number"
+                          min={0}
+                          step="any"
+                          value={item.quantity !== undefined && item.quantity !== null ? item.quantity : ""}
+                          onChange={(e) =>
+                            handleUpdateProduct(idx, "quantity", e.target.value)
+                          }
+                          placeholder="เช่น 10"
+                          className={cn(
+                            "h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 font-medium",
+                            isExceeded && "border-rose-400 focus:ring-rose-500 bg-rose-50/20 text-rose-900"
+                          )}
+                          required
+                        />
+                        {isExceeded && (
+                          <p className="text-[11px] text-rose-600 font-semibold mt-1">
+                            จำนวนที่ใช้จริงต้องไม่เกินจำนวนที่เบิก ({item.plannedQuantity})
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
+
                   {/* อัตราการใช้ (Single Source of Truth) */}
-                  <div className="sm:col-span-4">
+                  <div className="sm:col-span-12 md:col-span-3">
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      อัตราการใช้ (Application Rate) *
+                      อัตราการใช้ *
                     </label>
                     <Input
                       value={item.applicationRate || ""}

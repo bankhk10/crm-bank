@@ -134,7 +134,9 @@ export interface BuildSummaryInput {
   t7DemoProducts?: Array<{
     productId: string;
     productName?: string;
+    plannedQuantity?: number | string | null;
     quantity: number | string;
+    remainingQuantity?: number | string | null;
     unit?: string | null;
     applicationRate: string;
   }>;
@@ -424,6 +426,34 @@ export function buildResultSummary(
           payload: null,
         };
       }
+      if (
+        p.quantity === undefined ||
+        p.quantity === null ||
+        p.quantity === "" ||
+        isNaN(Number(p.quantity)) ||
+        Number(p.quantity) < 0
+      ) {
+        return {
+          validationError: `กรุณาระบุจำนวนที่ใช้จริงของสินค้า ${p.productName || ""}`,
+          summaryParts: [],
+          payload: null,
+        };
+      }
+      if (
+        p.plannedQuantity !== undefined &&
+        p.plannedQuantity !== null &&
+        p.plannedQuantity !== ""
+      ) {
+        const planned = Number(p.plannedQuantity);
+        const used = Number(p.quantity);
+        if (!isNaN(planned) && !isNaN(used) && used > planned) {
+          return {
+            validationError: `จำนวนที่ใช้จริงของสินค้า ${p.productName || ""} (${used}) ต้องไม่เกินจำนวนที่เบิก (${planned})`,
+            summaryParts: [],
+            payload: null,
+          };
+        }
+      }
       if (!p.applicationRate || !p.applicationRate.trim()) {
         return {
           validationError: `กรุณาระบุอัตราการใช้ (Application Rate) ของสินค้า ${p.productName || ""}`,
@@ -696,7 +726,23 @@ export function buildResultSummary(
             ? `วิธีการฉีดพ่น: ${input.t7SprayMethod === "TANK_MIXED" ? "ผสมถัง (Tank-mixed)" : "ฉีดเดี่ยว (Single)"}`
             : null,
           input.t7DemoProducts && input.t7DemoProducts.length > 0
-            ? `สินค้าสาธิต: ${input.t7DemoProducts.map((dp) => `${dp.productName || "สินค้า"} (${dp.quantity} ${dp.unit || ""}) อัตราใช้: ${dp.applicationRate}`).join(", ")}`
+            ? `สินค้าสาธิต: ${input.t7DemoProducts
+                .map((dp) => {
+                  const pNum =
+                    dp.plannedQuantity != null && dp.plannedQuantity !== ""
+                      ? Number(dp.plannedQuantity)
+                      : null;
+                  const uNum = Number(dp.quantity) || 0;
+                  const rNum =
+                    pNum != null
+                      ? Math.max(0, pNum - uNum)
+                      : dp.remainingQuantity != null &&
+                          dp.remainingQuantity !== ""
+                        ? Number(dp.remainingQuantity)
+                        : null;
+                  return `${dp.productName || "สินค้า"} (เบิก: ${pNum ?? "-"}, ใช้จริง: ${uNum} ${dp.unit || ""}${rNum != null ? `, คงเหลือ: ${rNum}` : ""}) อัตราใช้: ${dp.applicationRate}`;
+                })
+                .join(", ")}`
             : null,
           input.t7HasExternalChemicals &&
           input.t7ExternalProducts &&
@@ -1204,18 +1250,36 @@ export function buildResultSummary(
             {
               productId: input.t7ActualProductId || input.t7PlannedProductId || "prod-default",
               productName: input.t7ActualProductName || input.t7PlannedProductName || "สินค้าสาธิต",
+              plannedQuantity: null,
               quantity: 1,
+              remainingQuantity: null,
               unit: "",
               applicationRate: input.t7UsageMethod || "-",
             },
           ]
-      ).map((p) => ({
-        productId: p.productId,
-        productName: p.productName || null,
-        quantity: Number(p.quantity) || 1,
-        unit: p.unit || null,
-        applicationRate: p.applicationRate || "-",
-      })),
+      ).map((p) => {
+        const planned =
+          p.plannedQuantity != null && p.plannedQuantity !== ""
+            ? Number(p.plannedQuantity)
+            : null;
+        const used = Number(p.quantity) || 0;
+        const remaining =
+          planned != null
+            ? Math.max(0, planned - used)
+            : p.remainingQuantity != null && p.remainingQuantity !== ""
+              ? Number(p.remainingQuantity)
+              : null;
+
+        return {
+          productId: p.productId,
+          productName: p.productName || null,
+          plannedQuantity: planned,
+          quantity: used,
+          remainingQuantity: remaining,
+          unit: p.unit || null,
+          applicationRate: p.applicationRate || "-",
+        };
+      }),
       externalProducts: (input.t7ExternalProducts || []).map((ep) => ({
         company: ep.company,
         productName: ep.productName,

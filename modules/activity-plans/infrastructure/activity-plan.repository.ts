@@ -1652,6 +1652,7 @@ export type CreateActivityResultInput = {
       productId: string;
       productName?: string | null;
       quantity: number;
+      remainingQuantity?: number | null;
       unit?: string | null;
       applicationRate: string;
     }>;
@@ -2084,6 +2085,10 @@ export async function upsertActivityResult(
             productId: p.productId,
             productName: p.productName ?? null,
             quantity: new Prisma.Decimal(p.quantity),
+            remainingQuantity:
+              p.remainingQuantity != null
+                ? new Prisma.Decimal(p.remainingQuantity)
+                : null,
             unit: p.unit ?? null,
             applicationRate: p.applicationRate,
             sortOrder: idx,
