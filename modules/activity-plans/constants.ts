@@ -853,3 +853,13 @@ export const DEMO_PLOT_IRRIGATION_METHODS = [
 
 export type DemoPlotIrrigationMethod = (typeof DEMO_PLOT_IRRIGATION_METHODS)[number];
 
+export const DEMO_PLOT_SPRAY_EQUIPMENTS = [
+  "เป้สะพายหลัง",
+  "คน + สายลาก",
+  "โดรน",
+  "แอร์บัส",
+  "อื่นๆ ระบุ..",
+] as const;
+
+export type DemoPlotSprayEquipment = (typeof DEMO_PLOT_SPRAY_EQUIPMENTS)[number];
+

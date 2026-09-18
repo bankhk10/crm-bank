@@ -748,8 +748,9 @@ export default function ActivityPlanDetailView({
             isTypeVisible={isTypeVisible}
             targets={targets}
             parsedResults={parsedResults}
-            demoPlotData={t7DemoPlotData}
-            visitHistory={t7VisitHistory}
+            demoPlotData={t7DemoPlotData || (plan as any)?.demoPlot}
+            visitHistory={t7VisitHistory || (plan as any)?.demoPlotVisits || []}
+            currentVisit={(plan as any)?.demoPlotVisits?.[0] || t7VisitHistory?.find((v: any) => v.activityPlanId === plan?.id) || t7VisitHistory?.[0]}
           />
         )}
 

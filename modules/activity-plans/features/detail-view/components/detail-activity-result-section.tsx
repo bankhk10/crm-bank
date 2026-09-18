@@ -25,6 +25,7 @@ interface DetailActivityResultSectionProps {
   parsedResults: ParsedSummaryValues;
   demoPlotData?: any;
   visitHistory?: any[];
+  currentVisit?: any;
 }
 
 export function DetailActivityResultSection({
@@ -33,6 +34,7 @@ export function DetailActivityResultSection({
   parsedResults,
   demoPlotData,
   visitHistory = [],
+  currentVisit,
 }: DetailActivityResultSectionProps) {
   const hasAnyActualWorkType = WORK_TYPES.slice(0, 11).some((wt) =>
     isTypeVisible(wt),
@@ -171,6 +173,13 @@ export function DetailActivityResultSection({
           mode="TYPE_7B"
           target={targets.t7b || targets.t7}
           demoResults={parsedResults.t7DemoResults}
+          daysAfterSpray={parsedResults.t7DaysAfterSpray || currentVisit?.daysSinceStart}
+          sprayMethod={currentVisit?.sprayMethod}
+          sprayEquipment={parsedResults.t7SprayEquipment || currentVisit?.sprayEquipment}
+          otherEquipment={parsedResults.t7OtherEquipment || currentVisit?.otherEquipment}
+          nextSprayDate={parsedResults.t7NextSprayDate || currentVisit?.nextSprayDate}
+          visitDate={currentVisit?.visitDate}
+          externalProducts={currentVisit?.externalProducts || demoPlotData?.externalProducts}
           plannedProductId={parsedResults.t7PlannedProductId}
           actualProductId={parsedResults.t7ActualProductId}
           actualQuantity={parsedResults.t7DemoProductQuantity}
@@ -180,8 +189,9 @@ export function DetailActivityResultSection({
           plotObjective={parsedResults.t7PlotObjective}
           customPlotDetail={parsedResults.t7CustomPlotDetail}
           demoPlotId={parsedResults.t7DemoPlotId}
-          plotName={parsedResults.t7PlotName}
+          plotName={parsedResults.t7PlotName || demoPlotData?.plotCode || demoPlotData?.farmerName}
           usageMethod={parsedResults.t7UsageMethod}
+          notes={demoPlotData?.notes || demoPlotData?.visits?.[0]?.notes || parsedResults.t7Notes || parsedResults.t7UsageMethod}
           plantingDate={parsedResults.t7PlantingDate}
           plantingAreaCondition={parsedResults.t7PlantingAreaCondition}
           cropAgeValue={parsedResults.t7CropAgeValue}
@@ -192,7 +202,7 @@ export function DetailActivityResultSection({
           productResponse={parsedResults.t7ProductResponse}
           problemDescription={parsedResults.t7ProblemDescription}
           plotStatus={parsedResults.t7PlotStatus}
-          nextFollowUpDate={parsedResults.t7NextFollowUpDate}
+          nextFollowUpDate={parsedResults.t7NextSprayDate || parsedResults.t7NextFollowUpDate || currentVisit?.nextSprayDate}
           finalYieldKg={parsedResults.t7FinalYieldKg}
           controlYieldKg={parsedResults.t7ControlYieldKg}
           yieldIncreasePercent={parsedResults.t7YieldIncreasePercent}

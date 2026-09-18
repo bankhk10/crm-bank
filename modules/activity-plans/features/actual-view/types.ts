@@ -345,3 +345,10 @@ export interface Type7aDemoPlotData {
   productResponse?: string | null;
 }
 
+export interface Type7bProductRateItem {
+  productId: string;
+  productName: string;
+  baselineRate?: string;
+  actualRate: string;
+}
+

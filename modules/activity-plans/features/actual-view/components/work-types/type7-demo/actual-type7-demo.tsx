@@ -6,6 +6,7 @@ import {
   ImageFile,
   DemoPlotProductItem,
   DemoPlotExternalProductItem,
+  Type7bProductRateItem,
 } from "@/modules/activity-plans/features/actual-view/types";
 import { ActualType7NewDemo, TargetDemoItem, CustomerOption } from "./actual-type7-new-demo";
 import {
@@ -22,8 +23,6 @@ export interface ActualType7DemoProps {
     activityType?: string;
     owner: string;
     product: string;
-    productId?: string;
-    plannedProductId?: string;
     crop: string;
     plots: string;
     targetCondition?: string;
@@ -31,7 +30,7 @@ export interface ActualType7DemoProps {
     objective?: string;
     experimentDetail?: string;
     detail?: string;
-    items?: TargetDemoItem[];
+    items?: any[];
   };
   products?: Array<{
     id: string;
@@ -42,61 +41,64 @@ export interface ActualType7DemoProps {
   }>;
   customers?: CustomerOption[];
 
-  // 1. Farmer Owner
+  // 1. Farmer / Customer Identification
   farmerProvince?: string;
   setFarmerProvince?: (v: string) => void;
   farmerCustomerId?: string | null;
-  setFarmerCustomerId?: (v: string | null) => void;
+  setFarmerCustomerId?: (id: string | null) => void;
   farmerName?: string;
-  setFarmerName?: (v: string) => void;
+  setFarmerName?: (name: string) => void;
   farmerPhone?: string;
-  setFarmerPhone?: (v: string) => void;
+  setFarmerPhone?: (phone: string) => void;
   isUnregisteredFarmer?: boolean;
-  setIsUnregisteredFarmer?: (v: boolean) => void;
-  dealerName?: string;
-  setDealerName?: (v: string) => void;
-  dealerCode?: string;
+  setIsUnregisteredFarmer?: (val: boolean) => void;
 
-  // 2. Plot Location
-  latitude?: string;
-  setLatitude?: (v: string) => void;
-  longitude?: string;
-  setLongitude?: (v: string) => void;
-
-  // 3. Demo Plot Initial Data
-  planProvince?: string;
+  // 2. Plot Location & Identification
   plotName: string;
-  setPlotName: (v: string) => void;
+  setPlotName?: (name: string) => void;
+  dealerName?: string;
+  setDealerName?: (name: string) => void;
+  dealerCode?: string;
+  setDealerCode?: (code: string) => void;
+  province?: string;
+  setProvince?: (prov: string) => void;
   district?: string;
-  setDistrict?: (v: string) => void;
+  setDistrict?: (dist: string) => void;
+  latitude?: string;
+  setLatitude?: (lat: string) => void;
+  longitude?: string;
+  setLongitude?: (lng: string) => void;
+  planProvince?: string;
+
+  // 3. Crop Details
   cropCategory?: string;
-  setCropCategory?: (v: string) => void;
+  setCropCategory?: (cat: string) => void;
   cropName?: string;
-  setCropName?: (v: string) => void;
+  setCropName?: (crop: string) => void;
   customCropName?: string;
-  setCustomCropName?: (v: string) => void;
+  setCustomCropName?: (custom: string) => void;
   areaRai?: string;
-  setAreaRai?: (v: string) => void;
+  setAreaRai?: (rai: string) => void;
   treeCount?: string;
-  setTreeCount?: (v: string) => void;
-  plotObjective?: string;
-  setPlotObjective?: (v: string) => void;
-  experimentDetail?: string;
-  setExperimentDetail?: (v: string) => void;
+  setTreeCount?: (trees: string) => void;
   mainCropInfo?: string;
-  setMainCropInfo?: (v: string) => void;
-  irrigations?: string[];
-  setIrrigations?: (v: string[]) => void;
+  setMainCropInfo?: (info: string) => void;
 
-  // 4. Planting / Spray Date
+  // 4. Experiment & Plot Objectives
+  plotObjective?: string;
+  setPlotObjective?: (obj: string) => void;
+  experimentDetail?: string;
+  setExperimentDetail?: (detail: string) => void;
+
+  // 5. Timeline & Irrigation
   plantingDate?: string;
-  setPlantingDate?: (v: string) => void;
+  setPlantingDate?: (date: string) => void;
   initialSprayDate?: string;
-  setInitialSprayDate?: (v: string) => void;
+  setInitialSprayDate?: (date: string) => void;
   nextSprayDate?: string;
-  setNextSprayDate?: (v: string) => void;
-
-  // 5. Demo Products
+  setNextSprayDate?: (date: string) => void;
+  irrigations?: string[];
+  setIrrigations?: (irrs: string[]) => void;
   demoProducts?: DemoPlotProductItem[];
   setDemoProducts?: (items: DemoPlotProductItem[]) => void;
 
@@ -107,6 +109,18 @@ export interface ActualType7DemoProps {
   setHasExternalChemicals?: (v: boolean) => void;
   externalProducts?: DemoPlotExternalProductItem[];
   setExternalProducts?: (items: DemoPlotExternalProductItem[]) => void;
+
+  // TYPE_7B Specific Props
+  actualStartDate?: string;
+  setActualStartDate?: (v: string) => void;
+  daysAfterSpray?: string | number;
+  setDaysAfterSpray?: (v: string) => void;
+  bProductRates?: Type7bProductRateItem[];
+  setBProductRates?: (items: Type7bProductRateItem[]) => void;
+  sprayEquipment?: string;
+  setSprayEquipment?: (v: string) => void;
+  otherEquipment?: string;
+  setOtherEquipment?: (v: string) => void;
 
   // Legacy & Shared Props
   plannedProductId?: string | null;
@@ -196,6 +210,24 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
         plotName={props.plotName}
         usageMethod={props.usageMethod}
         setUsageMethod={props.setUsageMethod}
+        actualStartDate={props.actualStartDate}
+        setActualStartDate={props.setActualStartDate}
+        daysAfterSpray={props.daysAfterSpray}
+        setDaysAfterSpray={props.setDaysAfterSpray}
+        bProductRates={props.bProductRates}
+        setBProductRates={props.setBProductRates}
+        sprayMethod={props.sprayMethod}
+        setSprayMethod={props.setSprayMethod}
+        hasExternalChemicals={props.hasExternalChemicals}
+        setHasExternalChemicals={props.setHasExternalChemicals}
+        externalProducts={props.externalProducts}
+        setExternalProducts={props.setExternalProducts}
+        sprayEquipment={props.sprayEquipment}
+        setSprayEquipment={props.setSprayEquipment}
+        otherEquipment={props.otherEquipment}
+        setOtherEquipment={props.setOtherEquipment}
+        nextSprayDate={props.nextSprayDate}
+        setNextSprayDate={props.setNextSprayDate}
         cropImages={props.cropImages}
         setCropImages={props.setCropImages}
         plotImages={props.plotImages}

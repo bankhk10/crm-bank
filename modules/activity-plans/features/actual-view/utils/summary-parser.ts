@@ -130,6 +130,7 @@ export interface ParsedSummaryValues {
     finalYieldKg?: number | null;
     controlYieldKg?: number | null;
     satisfactionScore?: number | null;
+    applicationRate?: string | null;
   }>;
   t7UsageMethod?: string;
   t7Notes?: string;
@@ -153,6 +154,10 @@ export interface ParsedSummaryValues {
   t7FinalSummaryNotes?: string;
   t7CropImages?: ImageFile[];
   t7PlotImages?: ImageFile[];
+  t7DaysAfterSpray?: string;
+  t7SprayEquipment?: string;
+  t7OtherEquipment?: string;
+  t7NextSprayDate?: string;
 
   // Type 8
   t8ActualAttendees?: string;
@@ -803,7 +808,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (t7DescMatch && t7DescMatch[1]) {
       result.t7CropProblemDescription = t7DescMatch[1].split("\n")[0].trim();
     }
-    const t7ResponseMatch = summaryText.match(/ผลการใช้ผลิตภัณฑ์:\s*(.+)/);
+    const t7ResponseMatch = summaryText.match(
+      /(?:ผลหลังการฉีดพ่น|ผลการใช้ผลิตภัณฑ์):\s*(.+)/,
+    );
     if (t7ResponseMatch && t7ResponseMatch[1]) {
       const resp = t7ResponseMatch[1].split("\n")[0].trim();
       if (resp === "พืชตอบสนองดี" || resp === "พบปัญหา") {
@@ -811,7 +818,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       }
     }
     const t7ProblemMatch = summaryText.match(
-      /รายละเอียดปัญหาการใช้ผลิตภัณฑ์:\s*(.+)/,
+      /(?:รายละเอียดปัญหาหลังการฉีดพ่น|รายละเอียดปัญหาการใช้ผลิตภัณฑ์|รายละเอียดปัญหา):\s*(.+)/,
     );
     if (t7ProblemMatch && t7ProblemMatch[1]) {
       result.t7ProblemDescription = t7ProblemMatch[1].split("\n")[0].trim();
@@ -844,10 +851,24 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       }
     }
     const nextVisitMatch = summaryText.match(
-      /กำหนดการติดตามครั้งถัดไป:\s*(.+)/,
+      /(?:กำหนดฉีดพ่นครั้งต่อไป|กำหนดการติดตามครั้งถัดไป):\s*(.+)/,
     );
     if (nextVisitMatch && nextVisitMatch[1]) {
       result.t7NextFollowUpDate = nextVisitMatch[1].split("\n")[0].trim();
+      result.t7NextSprayDate = result.t7NextFollowUpDate;
+    }
+    const daysAfterSprayMatch = summaryText.match(/จำนวนวันหลังฉีดพ่น:\s*(\d+)/);
+    if (daysAfterSprayMatch && daysAfterSprayMatch[1]) {
+      result.t7DaysAfterSpray = daysAfterSprayMatch[1].trim();
+    }
+    const sprayEquipMatch = summaryText.match(
+      /อุปกรณ์ที่ใช้ฉีดพ่น:\s*([^\n(]+)(?:\s*\(([^)]+)\))?/,
+    );
+    if (sprayEquipMatch && sprayEquipMatch[1]) {
+      result.t7SprayEquipment = sprayEquipMatch[1].trim();
+      if (sprayEquipMatch[2]) {
+        result.t7OtherEquipment = sprayEquipMatch[2].trim();
+      }
     }
     const yieldMatch = summaryText.match(/ผลผลิตแปลงสาธิต:\s*(.+)/);
     if (yieldMatch && yieldMatch[1]) {
@@ -1121,6 +1142,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       id: demo.id,
       plannedProductId: demo.plannedProductId ?? null,
       actualProductId: demo.actualProductId ?? null,
+      applicationRate: demo.applicationRate ?? null,
       changeReason: demo.changeReason ?? null,
       plotObjective: demo.plotObjective ?? null,
       plannedProduct: demo.plannedProduct ?? null,

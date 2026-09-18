@@ -1619,6 +1619,7 @@ export type CreateActivityResultInput = {
     finalYieldKg?: number | null;
     controlYieldKg?: number | null;
     satisfactionScore?: number | null;
+    applicationRate?: string | null;
   }>;
   followupResults?: Array<{
     storeId?: string | null;
@@ -1939,6 +1940,7 @@ export async function upsertActivityResult(
                 ? new Prisma.Decimal(item.controlYieldKg)
                 : null,
             satisfactionScore: item.satisfactionScore ?? null,
+            applicationRate: item.applicationRate ?? null,
           })),
         });
       }
@@ -2603,6 +2605,7 @@ export async function recordDemoPlotVisit(data: {
   demoPlotId: string;
   activityPlanId?: string | null;
   visitDate: Date;
+  daysSinceStart?: number | null;
   cropAgeValue?: number | null;
   cropAgeUnit?: string | null;
   growthStage?: string | null;
@@ -2611,6 +2614,17 @@ export async function recordDemoPlotVisit(data: {
   productResponse?: string | null;
   productProblemDesc?: string | null;
   usageMethod?: string | null;
+  sprayMethod?: string | null;
+  sprayEquipment?: string | null;
+  otherEquipment?: string | null;
+  externalProducts?: Array<{
+    company: string;
+    productName: string;
+    activeIngredient?: string | null;
+    formula: string;
+    customFormula?: string | null;
+    applicationRate: string;
+  }>;
   productUsedQty?: number | null;
   productUnitPrice?: number | null;
   otherExpenses?: number | null;
@@ -2708,13 +2722,17 @@ export async function recordDemoPlotVisit(data: {
 
   const visitNumber = plot.visits.length + 1;
   const msPerDay = 1000 * 60 * 60 * 24;
-  const baseStartDate = plot.plantingDate || plot.startDate;
-  const daysSinceStart = Math.max(
+  const baseStartDate = plot.initialSprayDate || plot.plantingDate || plot.startDate;
+  const calculatedDaysSinceStart = Math.max(
     0,
     Math.floor(
       (data.visitDate.getTime() - new Date(baseStartDate).getTime()) / msPerDay,
     ),
   );
+  const effectiveDaysSinceStart =
+    data.daysSinceStart !== undefined && data.daysSinceStart !== null
+      ? data.daysSinceStart
+      : calculatedDaysSinceStart;
 
   const productUsedQty = data.productUsedQty || 0;
   const productUnitPrice = data.productUnitPrice || 0;
@@ -2727,34 +2745,102 @@ export async function recordDemoPlotVisit(data: {
   const legacyImageUrls = data.imageUrls || plotImageUrls;
 
   return db.$transaction(async (tx) => {
-    const visit = await tx.demoPlotVisit.create({
-      data: {
-        demoPlotId: plot.id,
-        activityPlanId: data.activityPlanId ?? null,
-        visitNumber,
-        visitDate: data.visitDate,
-        daysSinceStart,
-        cropAgeValue: data.cropAgeValue ?? null,
-        cropAgeUnit: data.cropAgeUnit ?? null,
-        growthStage: data.growthStage ?? null,
-        cropCondition: data.cropCondition ?? null,
-        cropProblemDesc: data.cropProblemDesc ?? null,
-        productResponse: data.productResponse ?? null,
-        productProblemDesc: data.productProblemDesc ?? null,
-        usageMethod: data.usageMethod ?? null,
-        productUsedQty,
-        productUnitPrice: new Prisma.Decimal(productUnitPrice),
-        productCost: new Prisma.Decimal(productCost),
-        otherExpenses: new Prisma.Decimal(otherExpenses),
-        totalVisitCost: new Prisma.Decimal(totalVisitCost),
-        cropImageUrls,
-        plotImageUrls,
-        imageUrls: legacyImageUrls,
-        notes: data.notes ?? null,
-      },
-    });
+    const existingVisit = data.activityPlanId
+      ? await tx.demoPlotVisit.findFirst({
+          where: {
+            activityPlanId: data.activityPlanId,
+            demoPlotId: plot.id,
+          },
+        })
+      : null;
 
-    // Update master plot initial info if not yet set or provided on visit 1
+    let visit;
+    if (existingVisit) {
+      visit = await tx.demoPlotVisit.update({
+        where: { id: existingVisit.id },
+        data: {
+          visitDate: data.visitDate,
+          daysSinceStart: effectiveDaysSinceStart,
+          cropAgeValue: data.cropAgeValue ?? null,
+          cropAgeUnit: data.cropAgeUnit ?? null,
+          growthStage: data.growthStage ?? null,
+          cropCondition: data.cropCondition ?? null,
+          cropProblemDesc: data.cropProblemDesc ?? null,
+          productResponse: data.productResponse ?? null,
+          productProblemDesc: data.productProblemDesc ?? null,
+          usageMethod: data.usageMethod ?? null,
+          sprayMethod: data.sprayMethod ?? null,
+          sprayEquipment: data.sprayEquipment ?? null,
+          otherEquipment: data.otherEquipment ?? null,
+          productUsedQty,
+          productUnitPrice: new Prisma.Decimal(productUnitPrice),
+          productCost: new Prisma.Decimal(productCost),
+          otherExpenses: new Prisma.Decimal(otherExpenses),
+          totalVisitCost: new Prisma.Decimal(totalVisitCost),
+          cropImageUrls,
+          plotImageUrls,
+          imageUrls: legacyImageUrls,
+          notes: data.notes ?? null,
+        },
+      });
+    } else {
+      visit = await tx.demoPlotVisit.create({
+        data: {
+          demoPlotId: plot.id,
+          activityPlanId: data.activityPlanId ?? null,
+          visitNumber,
+          visitDate: data.visitDate,
+          daysSinceStart: effectiveDaysSinceStart,
+          cropAgeValue: data.cropAgeValue ?? null,
+          cropAgeUnit: data.cropAgeUnit ?? null,
+          growthStage: data.growthStage ?? null,
+          cropCondition: data.cropCondition ?? null,
+          cropProblemDesc: data.cropProblemDesc ?? null,
+          productResponse: data.productResponse ?? null,
+          productProblemDesc: data.productProblemDesc ?? null,
+          usageMethod: data.usageMethod ?? null,
+          sprayMethod: data.sprayMethod ?? null,
+          sprayEquipment: data.sprayEquipment ?? null,
+          otherEquipment: data.otherEquipment ?? null,
+          productUsedQty,
+          productUnitPrice: new Prisma.Decimal(productUnitPrice),
+          productCost: new Prisma.Decimal(productCost),
+          otherExpenses: new Prisma.Decimal(otherExpenses),
+          totalVisitCost: new Prisma.Decimal(totalVisitCost),
+          cropImageUrls,
+          plotImageUrls,
+          imageUrls: legacyImageUrls,
+          notes: data.notes ?? null,
+        },
+      });
+    }
+
+    // Sync external chemicals if provided
+    if (data.externalProducts !== undefined) {
+      await tx.demoPlotExternalProduct.deleteMany({
+        where: { demoPlotId: plot.id },
+      });
+      if (
+        data.sprayMethod === "TANK_MIXED" &&
+        data.externalProducts.length > 0
+      ) {
+        await tx.demoPlotExternalProduct.createMany({
+          data: data.externalProducts.slice(0, 4).map((ep, idx) => ({
+            demoPlotId: plot.id,
+            company: ep.company,
+            productName: ep.productName,
+            activeIngredient: ep.activeIngredient ?? null,
+            formula: ep.formula,
+            customFormula:
+              ep.formula === "อื่นๆ" ? ep.customFormula ?? null : null,
+            applicationRate: ep.applicationRate,
+            sortOrder: idx,
+          })),
+        });
+      }
+    }
+
+    // Update master plot initial info if not yet set or provided on visit
     const plotUpdateData: any = {};
     if (data.plantingDate && !plot.plantingDate) {
       plotUpdateData.plantingDate = data.plantingDate;
@@ -2767,6 +2853,13 @@ export async function recordDemoPlotVisit(data: {
     }
     if (data.nextSprayDate) {
       plotUpdateData.nextSprayDate = data.nextSprayDate;
+    }
+    if (data.sprayMethod) {
+      plotUpdateData.sprayMethod = data.sprayMethod;
+    }
+    if (data.externalProducts !== undefined) {
+      plotUpdateData.hasExternalChemicals =
+        data.sprayMethod === "TANK_MIXED" && data.externalProducts.length > 0;
     }
 
     if (data.plotStatus && data.plotStatus !== plot.status) {

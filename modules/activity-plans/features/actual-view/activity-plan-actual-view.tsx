@@ -24,6 +24,7 @@ import type {
   FollowupProductItem,
   DemoPlotProductItem,
   DemoPlotExternalProductItem,
+  Type7bProductRateItem,
 } from "./types";
 import {
   extractPlanData,
@@ -343,6 +344,10 @@ export default function ActivityPlanActualView({
   const [t7ExternalProducts, setT7ExternalProducts] = useState<DemoPlotExternalProductItem[]>([]);
   const [t7InitialPhotos, setT7InitialPhotos] = useState<ImageFile[]>([]);
   const initialT7InitialPhotosRef = useRef<ImageFile[]>([]);
+  const [t7DaysAfterSpray, setT7DaysAfterSpray] = useState<string | number>("");
+  const [t7bProductRates, setT7bProductRates] = useState<Type7bProductRateItem[]>([]);
+  const [t7SprayEquipment, setT7SprayEquipment] = useState<string>("โดรน");
+  const [t7OtherEquipment, setT7OtherEquipment] = useState<string>("");
 
   // Work Type 8 States
   const [t8ActualAttendees, setT8ActualAttendees] = useState("");
@@ -676,6 +681,28 @@ export default function ActivityPlanActualView({
             const resolvedUsageMethod = dp.usageMethod || dp.notes;
             if (resolvedUsageMethod) setT7UsageMethod(resolvedUsageMethod);
 
+            // Populate t7bProductRates from dp.demoProducts
+            if (dp.demoProducts && dp.demoProducts.length > 0) {
+              const existingDemoResults = (p as any).result?.demoResults || [];
+              const rates: Type7bProductRateItem[] = dp.demoProducts.map(
+                (dpr: any) => {
+                  const matched = existingDemoResults.find(
+                    (dr: any) =>
+                      dr.plannedProductId === dpr.productId ||
+                      dr.actualProductId === dpr.productId,
+                  );
+                  return {
+                    productId: dpr.productId,
+                    productName:
+                      dpr.product?.name || dpr.productName || "สินค้าสาธิต",
+                    baselineRate: dpr.applicationRate || "",
+                    actualRate: matched?.applicationRate || "",
+                  };
+                },
+              );
+              setT7bProductRates(rates);
+            }
+
             const latestVisit =
               (dp.visits && dp.visits.length > 0
                 ? dp.visits[dp.visits.length - 1]
@@ -685,6 +712,11 @@ export default function ActivityPlanActualView({
                 : null);
 
             if (latestVisit) {
+              if (latestVisit.visitDate) {
+                setT7StartDate(
+                  new Date(latestVisit.visitDate).toISOString().split("T")[0],
+                );
+              }
               if (latestVisit.cropAgeValue != null)
                 setT7CropAgeValue(String(latestVisit.cropAgeValue));
               if (latestVisit.cropAgeUnit)
@@ -699,6 +731,16 @@ export default function ActivityPlanActualView({
                 setT7ProductResponse(latestVisit.productResponse);
               if (latestVisit.productProblemDesc)
                 setT7ProblemDescription(latestVisit.productProblemDesc);
+              if (latestVisit.daysSinceStart != null)
+                setT7DaysAfterSpray(String(latestVisit.daysSinceStart));
+              if (latestVisit.sprayMethod)
+                setT7SprayMethod(latestVisit.sprayMethod as any);
+              if (latestVisit.sprayEquipment)
+                setT7SprayEquipment(latestVisit.sprayEquipment);
+              if (latestVisit.otherEquipment)
+                setT7OtherEquipment(latestVisit.otherEquipment);
+              if (latestVisit.notes)
+                setT7UsageMethod(latestVisit.notes);
             }
             if (dp.attachments && dp.attachments.length > 0) {
               const mapped = dp.attachments.map((a: any) => ({
@@ -1148,6 +1190,18 @@ export default function ActivityPlanActualView({
             }
             if (parsed.t7FinalSummaryNotes) {
               setT7FinalSummaryNotes(parsed.t7FinalSummaryNotes);
+            }
+            if (parsed.t7DaysAfterSpray) {
+              setT7DaysAfterSpray(parsed.t7DaysAfterSpray);
+            }
+            if (parsed.t7SprayEquipment) {
+              setT7SprayEquipment(parsed.t7SprayEquipment);
+            }
+            if (parsed.t7OtherEquipment) {
+              setT7OtherEquipment(parsed.t7OtherEquipment);
+            }
+            if (parsed.t7NextSprayDate) {
+              setT7NextSprayDate(parsed.t7NextSprayDate);
             }
             if (parsed.t7CropImages && parsed.t7CropImages.length > 0) {
               setT7CropImages(parsed.t7CropImages);
@@ -1951,6 +2005,11 @@ export default function ActivityPlanActualView({
           t7HasExternalChemicals,
           t7ExternalProducts,
           t7InitialPhotos: cleanT7InitialPhotos,
+          t7DaysAfterSpray,
+          t7bProductRates,
+          t7SprayEquipment,
+          t7OtherEquipment,
+          actualStartDate: t7StartDate,
           t8ActualAttendees,
           t8FeedbackQnA,
           t8ProductSalesDetails,
@@ -2039,7 +2098,11 @@ export default function ActivityPlanActualView({
           await recordDemoPlotVisitAction({
             demoPlotId: t7DemoPlotId || targets.t7.owner || "plot-default",
             activityPlanId: id,
-            visitDate: new Date(),
+            visitDate: t7StartDate ? new Date(t7StartDate) : new Date(),
+            daysSinceStart:
+              t7DaysAfterSpray !== "" && t7DaysAfterSpray != null
+                ? Number(t7DaysAfterSpray)
+                : undefined,
             cropAgeValue: parseCleanNumber(t7CropAgeValue),
             cropAgeUnit: t7CropAgeUnit,
             growthStage: t7GrowthStage,
@@ -2048,6 +2111,15 @@ export default function ActivityPlanActualView({
             productResponse: t7ProductResponse,
             productProblemDesc: t7ProblemDescription,
             usageMethod: t7UsageMethod,
+            notes: t7UsageMethod,
+            sprayMethod: t7SprayMethod,
+            sprayEquipment: t7SprayEquipment,
+            otherEquipment: t7OtherEquipment,
+            externalProducts:
+              t7SprayMethod === "TANK_MIXED" && t7HasExternalChemicals
+                ? t7ExternalProducts
+                : [],
+            nextSprayDate: t7NextSprayDate ? new Date(t7NextSprayDate) : null,
             plantingDate: t7PlantingDate,
             plantingAreaCondition: t7PlantingAreaCondition,
             productUsedQty: qty,
@@ -2338,6 +2410,7 @@ export default function ActivityPlanActualView({
             customers={customers}
             // Type 7
             t7StartDate={t7StartDate}
+            setT7StartDate={setT7StartDate}
             t7ProductPrice={t7ProductPrice}
             t7PlotName={t7PlotName}
             setT7PlotName={setT7PlotName}
@@ -2452,6 +2525,14 @@ export default function ActivityPlanActualView({
             setT7ExternalProducts={setT7ExternalProducts}
             t7InitialPhotos={t7InitialPhotos}
             setT7InitialPhotos={setT7InitialPhotos}
+            t7DaysAfterSpray={t7DaysAfterSpray}
+            setT7DaysAfterSpray={setT7DaysAfterSpray}
+            t7bProductRates={t7bProductRates}
+            setT7bProductRates={setT7bProductRates}
+            t7SprayEquipment={t7SprayEquipment}
+            setT7SprayEquipment={setT7SprayEquipment}
+            t7OtherEquipment={t7OtherEquipment}
+            setOtherEquipment={setT7OtherEquipment}
             // Type 8
             t8ActualAttendees={t8ActualAttendees}
             setT8ActualAttendees={setT8ActualAttendees}

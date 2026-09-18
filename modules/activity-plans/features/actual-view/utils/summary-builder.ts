@@ -152,6 +152,16 @@ export interface BuildSummaryInput {
   }>;
   t7Irrigations?: string[];
   t7InitialPhotos?: ImageFile[];
+  t7DaysAfterSpray?: number | string;
+  t7SprayEquipment?: string;
+  t7OtherEquipment?: string;
+  t7bProductRates?: Array<{
+    productId: string;
+    productName?: string;
+    baselineRate?: string;
+    actualRate: string;
+  }>;
+  actualStartDate?: string;
 
   // Type 8
   t8ActualAttendees: string;
@@ -657,49 +667,40 @@ export function buildResultSummary(
             : null,
           input.t7DemoPlotId === "OTHER" ? `แปลงเกษตร: แปลงอื่นๆ` : null,
           t7CustomPlotDetail?.trim()
-            ? `รายละเอียดแปลง: ${t7CustomPlotDetail.trim()}`
+            ? `รายละเอียดแปลงเพิ่มเติม: ${t7CustomPlotDetail.trim()}`
             : null,
-          t7PlotName ? `ชื่อแปลงทดสอบ: ${t7PlotName}` : null,
-          t7PlotObjective ? `วัตถุประสงค์ของแปลง: ${t7PlotObjective}` : null,
-          t7PlantingDate ? `วันที่ปลูก: ${t7PlantingDate}` : null,
-          t7PlantingAreaCondition
-            ? `สภาพพื้นที่ปลูก: ${t7PlantingAreaCondition}`
-            : null,
-          t7UsageMethod ? `วิธีใช้/อัตราการใช้: ${t7UsageMethod}` : null,
-          t7CropAgeValue
-            ? `อายุพืช: ${t7CropAgeValue} ${t7CropAgeUnit || "วัน"}`
-            : null,
-          t7GrowthStage ? `ระยะการเจริญเติบโต: ${t7GrowthStage}` : null,
-          t7CropCondition ? `สภาพแปลง: ${t7CropCondition}` : null,
-          t7CropProblemDescription
-            ? `ปัญหาของสภาพพืช: ${t7CropProblemDescription}`
-            : null,
-          t7ProductResponse ? `ผลการใช้ผลิตภัณฑ์: ${t7ProductResponse}` : null,
+          input.actualStartDate ? `วันที่ติดตามจริง: ${input.actualStartDate}` : null,
+          input.t7DaysAfterSpray ? `จำนวนวันหลังฉีดพ่น: ${input.t7DaysAfterSpray} วัน` : null,
+          t7ProductResponse ? `ผลหลังการฉีดพ่น: ${t7ProductResponse}` : null,
           t7ProblemDescription
-            ? `รายละเอียดปัญหาการใช้ผลิตภัณฑ์: ${t7ProblemDescription}`
+            ? `รายละเอียดปัญหา: ${t7ProblemDescription}`
             : null,
-          t7PlotStatus ? `สถานะแปลง: ${t7PlotStatus}` : null,
-          t7NextFollowUpDate
-            ? `กำหนดการติดตามครั้งถัดไป: ${t7NextFollowUpDate}`
-            : null,
-          t7FinalYieldKg ? `ผลผลิตแปลงสาธิต: ${t7FinalYieldKg} กก./ไร่` : null,
-          t7ControlYieldKg ? `ผลผลิตแปลงควบคุม: ${t7ControlYieldKg} กก./ไร่` : null,
-          t7YieldIncreasePercent
-            ? `% ผลผลิตเพิ่มขึ้น: ${t7YieldIncreasePercent}%`
-            : null,
-          t7FarmerSatisfaction
-            ? `ความพึงพอใจเกษตรกร: ${t7FarmerSatisfaction}/5`
-            : null,
-          t7CommercialPotential
-            ? `โอกาสสั่งซื้อจริง: ${t7CommercialPotential}`
-            : null,
-          t7FinalSummaryNotes ? `สรุปผลสัมฤทธิ์แปลง: ${t7FinalSummaryNotes}` : null,
           t7CropImages && t7CropImages.length > 0
-            ? `รูปภาพสภาพพืช: มีแนบ ${t7CropImages.length} รูป`
+            ? `รูปผลหลังการฉีดพ่น: มีแนบ ${Math.min(t7CropImages.length, 5)} รูป`
             : null,
+          input.t7bProductRates && input.t7bProductRates.length > 0
+            ? `อัตราการฉีดพ่น: ${input.t7bProductRates.map((p) => `${p.productName || "ยา"}: ${p.applicationRate || (p as any).actualRate || "-"}`).join(", ")}`
+            : null,
+          input.t7SprayMethod
+            ? `วิธีการฉีดพ่น: ${input.t7SprayMethod === "TANK_MIXED" ? "ผสมถัง (Tank-mixed)" : "ฉีดเดี่ยว (Single)"}`
+            : null,
+          input.t7HasExternalChemicals &&
+          input.t7ExternalProducts &&
+          input.t7ExternalProducts.length > 0
+            ? `ยาภายนอก: ${input.t7ExternalProducts.map((ep) => `${ep.company} - ${ep.productName} [${ep.formula === "อื่นๆ" ? ep.customFormula || "อื่นๆ" : ep.formula}] (${ep.applicationRate})`).join(", ")}`
+            : null,
+          input.t7SprayEquipment
+            ? `อุปกรณ์ที่ใช้ฉีดพ่น: ${input.t7SprayEquipment}${input.t7SprayEquipment === "อื่นๆ ระบุ.." && input.t7OtherEquipment ? ` (${input.t7OtherEquipment})` : ""}`
+            : null,
+          input.t7NextSprayDate
+            ? `กำหนดฉีดพ่นครั้งต่อไป: ${input.t7NextSprayDate}`
+            : t7NextFollowUpDate
+              ? `กำหนดฉีดพ่นครั้งต่อไป: ${t7NextFollowUpDate}`
+              : null,
           t7PlotImages && t7PlotImages.length > 0
-            ? `รูปภาพสภาพแปลง: มีแนบ ${t7PlotImages.length} รูป`
+            ? `รูปการฉีดพ่น: มีแนบ ${Math.min(t7PlotImages.length, 5)} รูป`
             : null,
+          t7UsageMethod ? `ข้อมูลเพิ่มเติม: ${t7UsageMethod}` : null,
         ]
       : [
           // TYPE_7A Initial Summary (Rule 8 Labels)
@@ -827,9 +828,9 @@ export function buildResultSummary(
     (typeof t2UsageResult === "string" && t2UsageResult.includes("พบปัญหา"));
 
   const actualSalesPromotionSpent = parseCleanNumber(
-    planSummary.salesPromotionBudget,
+    planSummary?.salesPromotionBudget,
   );
-  const actualMarketingSpent = parseCleanNumber(planSummary.marketingBudget);
+  const actualMarketingSpent = parseCleanNumber(planSummary?.marketingBudget);
   const totalSpent =
     actualSalesPromotionSpent != null || actualMarketingSpent != null
       ? (actualSalesPromotionSpent ?? 0) + (actualMarketingSpent ?? 0)
@@ -864,16 +865,14 @@ export function buildResultSummary(
     Boolean(input.t7PlannedProductId) ||
     Boolean(input.t7DemoPlotId);
 
-  const demoResults = hasType7Data
-    ? [
-        {
+  const demoResults =
+    isType7B && input.t7bProductRates && input.t7bProductRates.length > 0
+      ? input.t7bProductRates.map((pr) => ({
           demoPlotId: effectiveDemoPlotId,
-          plannedProductId: input.t7PlannedProductId || null,
-          actualProductId:
-            input.t7ActualProductId || input.t7PlannedProductId || null,
-          changeReason: isT7ProductChanged
-            ? input.t7ChangeReason?.trim() || null
-            : null,
+          plannedProductId: pr.productId,
+          actualProductId: pr.productId,
+          applicationRate: pr.actualRate?.trim() || null,
+          changeReason: null,
           plotObjective: t7PlotObjective?.trim() || null,
           cropAgeValue: t7CropAgeValue || null,
           cropAgeUnit: t7CropAgeUnit || null,
@@ -884,9 +883,31 @@ export function buildResultSummary(
           finalYieldKg: parseCleanNumber(t7FinalYieldKg),
           controlYieldKg: parseCleanNumber(t7ControlYieldKg),
           satisfactionScore: t7FarmerSatisfaction ?? null,
-        },
-      ]
-    : undefined;
+        }))
+      : hasType7Data
+        ? [
+            {
+              demoPlotId: effectiveDemoPlotId,
+              plannedProductId: input.t7PlannedProductId || null,
+              actualProductId:
+                input.t7ActualProductId || input.t7PlannedProductId || null,
+              applicationRate: null,
+              changeReason: isT7ProductChanged
+                ? input.t7ChangeReason?.trim() || null
+                : null,
+              plotObjective: t7PlotObjective?.trim() || null,
+              cropAgeValue: t7CropAgeValue || null,
+              cropAgeUnit: t7CropAgeUnit || null,
+              growthStage: t7GrowthStage || null,
+              cropCondition: t7CropCondition || null,
+              productResponse: t7ProductResponse || null,
+              problemDescription: t7ProblemDescription || null,
+              finalYieldKg: parseCleanNumber(t7FinalYieldKg),
+              controlYieldKg: parseCleanNumber(t7ControlYieldKg),
+              satisfactionScore: t7FarmerSatisfaction ?? null,
+            },
+          ]
+        : undefined;
 
   // Build structured sale results
   const saleResults: any[] = [];
@@ -1164,10 +1185,10 @@ export function buildResultSummary(
   const type7Code = isType7B ? "TYPE_7B" : "TYPE_7A";
 
   if (isType7B) {
-    (input.t7CropImages || []).forEach((img) =>
+    (input.t7CropImages || []).slice(0, 5).forEach((img) =>
       addAttachment(img, type7Code, "CROP"),
     );
-    (input.t7PlotImages || []).forEach((img) =>
+    (input.t7PlotImages || []).slice(0, 5).forEach((img) =>
       addAttachment(img, type7Code, "PLOT"),
     );
   } else {

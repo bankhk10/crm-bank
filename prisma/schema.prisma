@@ -2109,6 +2109,7 @@ model ActivityResultDemoItem {
   finalYieldKg       Decimal? @map("final_yield_kg") @db.Decimal(10, 2)
   controlYieldKg     Decimal? @map("control_yield_kg") @db.Decimal(10, 2)
   satisfactionScore  Int?     @map("satisfaction_score")
+  applicationRate    String?  @map("application_rate") // อัตราการฉีดพ่นจริงรอบนี้
 
   activityResult ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
   plannedProduct Product?       @relation("ActivityResultDemoPlannedProductRef", fields: [plannedProductId], references: [id], onDelete: SetNull)
@@ -2374,7 +2375,10 @@ model DemoPlotVisit {
   cropImageUrls String[] @default([]) @map("crop_image_urls") // รูปสภาพพืชรอบนี้
   plotImageUrls String[] @default([]) @map("plot_image_urls") // รูปภาพสภาพแปลงรอบนี้
   imageUrls     String[] @default([]) @map("image_urls") // รูปภาพสภาพแปลงรอบนี้ (backward compatibility)
-  notes         String?
+  notes          String?
+  sprayMethod    String?  @map("spray_method") // วิธีการฉีดพ่นรอบนี้ (SINGLE / TANK_MIXED)
+  sprayEquipment String?  @map("spray_equipment") // อุปกรณ์ที่ใช้ฉีดพ่น
+  otherEquipment String?  @map("other_equipment") // อื่นๆ ระบุ (ถ้าเลือก อื่นๆ)
 
   demoPlot     DemoPlot      @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
   activityPlan ActivityPlan? @relation(fields: [activityPlanId], references: [id], onDelete: SetNull)

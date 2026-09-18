@@ -311,6 +311,10 @@ export async function recordDemoPlotVisitUseCase(rawData: any) {
     demoPlotId: rawData.demoPlotId,
     activityPlanId: rawData.activityPlanId ?? null,
     visitDate: rawData.visitDate ? new Date(rawData.visitDate) : new Date(),
+    daysSinceStart:
+      rawData.daysSinceStart !== undefined && rawData.daysSinceStart !== null
+        ? Number(rawData.daysSinceStart)
+        : undefined,
     cropAgeValue: rawData.cropAgeValue ? Number(rawData.cropAgeValue) : null,
     cropAgeUnit: rawData.cropAgeUnit ?? "วัน",
     growthStage: rawData.growthStage ?? null,
@@ -319,6 +323,10 @@ export async function recordDemoPlotVisitUseCase(rawData: any) {
     productResponse: rawData.productResponse ?? null,
     productProblemDesc: rawData.productProblemDesc ?? null,
     usageMethod: rawData.usageMethod ?? null,
+    sprayMethod: rawData.sprayMethod ?? null,
+    sprayEquipment: rawData.sprayEquipment ?? null,
+    otherEquipment: rawData.otherEquipment ?? null,
+    externalProducts: rawData.externalProducts ?? undefined,
     plantingDate: rawData.plantingDate ? new Date(rawData.plantingDate) : null,
     plantingAreaCondition: rawData.plantingAreaCondition ?? null,
     nextSprayDate: rawData.nextSprayDate ? new Date(rawData.nextSprayDate) : null,

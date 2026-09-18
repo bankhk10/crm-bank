@@ -62,6 +62,14 @@ export interface DetailType7DemoProps {
   plotImages?: ImageFile[];
   visitHistory?: any[];
   demoPlotData?: any;
+  visitDate?: string;
+  daysAfterSpray?: string | number;
+  daysSinceStart?: string | number;
+  sprayMethod?: string;
+  sprayEquipment?: string;
+  otherEquipment?: string;
+  nextSprayDate?: string;
+  externalProducts?: any[];
 }
 
 export function DetailType7Demo(props: DetailType7DemoProps) {
@@ -87,7 +95,7 @@ export function DetailType7Demo(props: DetailType7DemoProps) {
         productResponse={props.productResponse}
         problemDescription={props.problemDescription}
         plotStatus={props.plotStatus}
-        nextFollowUpDate={props.nextFollowUpDate}
+        nextFollowUpDate={props.nextFollowUpDate || props.nextSprayDate}
         finalYieldKg={props.finalYieldKg}
         controlYieldKg={props.controlYieldKg}
         yieldIncreasePercent={props.yieldIncreasePercent}
@@ -98,6 +106,14 @@ export function DetailType7Demo(props: DetailType7DemoProps) {
         plotImages={props.plotImages}
         visitHistory={props.visitHistory}
         demoPlotData={props.demoPlotData}
+        visitDate={props.visitDate || props.startDate}
+        daysAfterSpray={props.daysAfterSpray ?? props.daysSinceStart}
+        sprayMethod={props.sprayMethod}
+        sprayEquipment={props.sprayEquipment}
+        otherEquipment={props.otherEquipment}
+        nextSprayDate={props.nextSprayDate || props.nextFollowUpDate}
+        demoResults={props.demoResults}
+        externalProducts={props.externalProducts || props.demoPlotData?.externalProducts}
       />
     );
   }

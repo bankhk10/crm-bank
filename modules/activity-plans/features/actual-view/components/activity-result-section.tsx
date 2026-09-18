@@ -10,6 +10,7 @@ import type {
   FollowupProductItem,
   DemoPlotProductItem,
   DemoPlotExternalProductItem,
+  Type7bProductRateItem,
 } from "../types";
 import {
   ActualType1Visit,
@@ -150,6 +151,7 @@ interface ActivityResultSectionProps {
 
   // Type 7
   t7StartDate: string;
+  setT7StartDate?: (v: string) => void;
   t7ProductPrice: number;
   t7PlotName: string;
   setT7PlotName: (v: string) => void;
@@ -263,6 +265,14 @@ interface ActivityResultSectionProps {
   setT7ExternalProducts?: (items: DemoPlotExternalProductItem[]) => void;
   t7InitialPhotos?: ImageFile[];
   setT7InitialPhotos?: (imgs: ImageFile[]) => void;
+  t7DaysAfterSpray?: string | number;
+  setT7DaysAfterSpray?: (v: string) => void;
+  t7bProductRates?: Type7bProductRateItem[];
+  setT7bProductRates?: (items: Type7bProductRateItem[]) => void;
+  t7SprayEquipment?: string;
+  setT7SprayEquipment?: (v: string) => void;
+  t7OtherEquipment?: string;
+  setOtherEquipment?: (v: string) => void;
 
   // Type 8
   t8ActualAttendees: string;
@@ -416,6 +426,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     setT6Detail,
     customers,
     t7StartDate,
+    setT7StartDate,
     t7ProductPrice,
     t7PlotName,
     setT7PlotName,
@@ -525,6 +536,14 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     setT7ExternalProducts,
     t7InitialPhotos,
     setT7InitialPhotos,
+    t7DaysAfterSpray,
+    setT7DaysAfterSpray,
+    t7bProductRates,
+    setT7bProductRates,
+    t7SprayEquipment,
+    setT7SprayEquipment,
+    t7OtherEquipment,
+    setOtherEquipment,
     t8ActualAttendees,
     setT8ActualAttendees,
     t8FeedbackQnA,
@@ -850,6 +869,24 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setCustomPlotDetail={setT7CustomPlotDetail}
           startDate={t7StartDate}
           actualDate={new Date().toISOString().split("T")[0]}
+          actualStartDate={t7StartDate}
+          setActualStartDate={setT7StartDate}
+          daysAfterSpray={t7DaysAfterSpray}
+          setDaysAfterSpray={setT7DaysAfterSpray}
+          bProductRates={t7bProductRates}
+          setBProductRates={setT7bProductRates}
+          sprayMethod={t7SprayMethod}
+          setSprayMethod={setT7SprayMethod}
+          hasExternalChemicals={t7HasExternalChemicals}
+          setHasExternalChemicals={setT7HasExternalChemicals}
+          externalProducts={t7ExternalProducts}
+          setExternalProducts={setT7ExternalProducts}
+          sprayEquipment={t7SprayEquipment}
+          setSprayEquipment={setT7SprayEquipment}
+          otherEquipment={t7OtherEquipment}
+          setOtherEquipment={setOtherEquipment}
+          nextSprayDate={t7NextSprayDate}
+          setNextSprayDate={setT7NextSprayDate}
           productPrice={t7ProductPrice}
           plotName={t7PlotName}
           setPlotName={setT7PlotName}
