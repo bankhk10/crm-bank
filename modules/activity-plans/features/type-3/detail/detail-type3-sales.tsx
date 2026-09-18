@@ -3,7 +3,7 @@
 import React from "react";
 import { ShoppingBag, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
+import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 
 export interface TargetProductItem {
   id?: string;

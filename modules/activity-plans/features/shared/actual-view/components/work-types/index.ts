@@ -1,6 +1,6 @@
 export * from "@/modules/activity-plans/features/type-1/actual/actual-type1-visit";
 export * from "@/modules/activity-plans/features/type-2/actual/actual-type2-followup";
-export * from "./actual-type3-sales";
+export * from "@/modules/activity-plans/features/type-3/actual/actual-type3-sales";
 export * from "./actual-type4-collect";
 export * from "./actual-type5-survey";
 export * from "./actual-type6-issue";

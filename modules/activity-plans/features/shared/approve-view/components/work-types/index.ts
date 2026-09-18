@@ -1,6 +1,6 @@
 export * from "@/modules/activity-plans/features/type-1/approval/approval-type1-visit";
 export * from "@/modules/activity-plans/features/type-2/approval/approval-type2-followup";
-export * from "./approval-type3-sales";
+export * from "@/modules/activity-plans/features/type-3/approval/approval-type3-sales";
 export * from "./approval-type4-collect";
 export * from "./approval-type5-survey";
 export * from "./approval-type6-issue";

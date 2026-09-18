@@ -3,7 +3,7 @@ import { ShoppingCart, Plus, Trash2, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
-import type { Type3SalesItem, Type3SalesProductLine } from "../../types";
+import type { Type3SalesItem, Type3SalesProductLine } from "@/modules/activity-plans/features/shared/form/types";
 
 export interface CustomerOption {
   id: string;

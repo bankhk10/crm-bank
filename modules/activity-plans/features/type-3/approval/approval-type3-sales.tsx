@@ -3,7 +3,7 @@
 import React from "react";
 import { Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { ActualTargetsState } from "@/modules/activity-plans/features/actual-view/types";
+import type { ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
 
 interface ApprovalType3SalesProps {
   isVisible: boolean;

@@ -137,7 +137,7 @@ import { BudgetSection } from "./components/budget-section";
 import { LocationTeamSection } from "./components/location-team-section";
 import { Type1Visit } from "@/modules/activity-plans/features/type-1/form/type1-visit";
 import { Type2Followup } from "@/modules/activity-plans/features/type-2/form/type2-followup";
-import { Type3Sales } from "./components/work-types/type3-sales";
+import { Type3Sales } from "@/modules/activity-plans/features/type-3/form/type3-sales";
 import { Type4Collect } from "./components/work-types/type4-collect";
 import { Type5Survey } from "./components/work-types/type5-survey";
 import { Type6Issue } from "./components/work-types/type6-issue";
