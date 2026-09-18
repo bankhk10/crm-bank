@@ -1340,9 +1340,9 @@ export function ActivityPlanForm({
           categoryId: derivedCategoryId,
           chemicalGroupId: derivedCategoryId,
           objective: dp?.objective || "",
-          productId: type7bProd?.productId || "",
+          productId: type7bProds[0]?.productId || "",
           productName:
-            type7bProd?.productName || type7bProd?.product?.name || "",
+            type7bProds[0]?.productName || type7bProds[0]?.product?.name || "",
           demoProducts:
             type7aProds.length > 0
               ? type7aProds
