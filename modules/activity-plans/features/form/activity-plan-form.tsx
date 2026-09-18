@@ -2915,9 +2915,7 @@ export function ActivityPlanForm({
 
     try {
       const firstType = selectedWorkTypes[0] || WORK_TYPES[0];
-      const typeIndex = WORK_TYPES.indexOf(firstType);
-      const activityTypeId =
-        typeIndex >= 0 ? `TYPE_${typeIndex + 1}` : "TYPE_1";
+      const activityTypeId = getWorkTypeCode(firstType) || "TYPE_1";
 
       const planStores: Array<{
         workTypeCode: string;

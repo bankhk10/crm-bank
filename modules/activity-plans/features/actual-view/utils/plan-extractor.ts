@@ -313,7 +313,10 @@ export function extractPlanData(
   // 1. Detect ALL selected work types from normalized relations
   const detectedWorkTypes = new Set<string>();
 
-  if (p.workTypes && Array.isArray(p.workTypes) && p.workTypes.length > 0) {
+  const hasNormalizedWorkTypes =
+    p.workTypes && Array.isArray(p.workTypes) && p.workTypes.length > 0;
+
+  if (hasNormalizedWorkTypes) {
     for (const wt of p.workTypes) {
       const typeName = getWorkTypeName(
         wt.activityType?.code || wt.activityType?.name || wt.activityTypeId,
@@ -328,48 +331,56 @@ export function extractPlanData(
     detectedWorkTypes.add("ทัวร์");
   }
 
-  // Also check normalized stores / products workTypeCode
-  if (p.stores && Array.isArray(p.stores)) {
-    for (const s of p.stores) {
-      const typeName = getWorkTypeName(s.workTypeCode);
-      if (typeName && WORK_TYPES.includes(typeName)) {
-        detectedWorkTypes.add(typeName);
+  // Fallback: only if no work types were resolved from normalized relations
+  if (
+    detectedWorkTypes.size === 0 ||
+    (detectedWorkTypes.size === 1 &&
+      detectedWorkTypes.has("ทัวร์") &&
+      !hasNormalizedWorkTypes)
+  ) {
+    // Check normalized stores / products workTypeCode
+    if (p.stores && Array.isArray(p.stores)) {
+      for (const s of p.stores) {
+        const typeName = getWorkTypeName(s.workTypeCode);
+        if (typeName && WORK_TYPES.includes(typeName)) {
+          detectedWorkTypes.add(typeName);
+        }
       }
     }
-  }
-  if (p.products && Array.isArray(p.products)) {
-    for (const pr of p.products) {
-      const typeName = getWorkTypeName(pr.workTypeCode);
-      if (typeName && WORK_TYPES.includes(typeName)) {
-        detectedWorkTypes.add(typeName);
+    if (p.products && Array.isArray(p.products)) {
+      for (const pr of p.products) {
+        const typeName = getWorkTypeName(pr.workTypeCode);
+        if (typeName && WORK_TYPES.includes(typeName)) {
+          detectedWorkTypes.add(typeName);
+        }
       }
     }
-  }
 
-  // Primary activityType
-  if (p.activityType) {
-    if (typeof p.activityType === "object" && (p.activityType as any).name) {
-      const actName = getWorkTypeName(
-        (p.activityType as any).code || (p.activityType as any).name,
-      );
-      if (WORK_TYPES.includes(actName)) {
-        detectedWorkTypes.add(actName);
+    // Primary activityType
+    if (p.activityType) {
+      if (typeof p.activityType === "object" && (p.activityType as any).name) {
+        const actName = getWorkTypeName(
+          (p.activityType as any).code || (p.activityType as any).name,
+        );
+        if (WORK_TYPES.includes(actName)) {
+          detectedWorkTypes.add(actName);
+        }
+      } else if (
+        typeof p.activityType === "object" &&
+        (p.activityType as any).id
+      ) {
+        const idx =
+          parseInt(String((p.activityType as any).id).replace("TYPE_", ""), 10) -
+          1;
+        if (idx >= 0 && idx < WORK_TYPES.length) {
+          detectedWorkTypes.add(WORK_TYPES[idx]);
+        }
       }
-    } else if (
-      typeof p.activityType === "object" &&
-      (p.activityType as any).id
-    ) {
-      const idx =
-        parseInt(String((p.activityType as any).id).replace("TYPE_", ""), 10) -
-        1;
+    } else if (p.activityTypeId) {
+      const idx = parseInt(String(p.activityTypeId).replace("TYPE_", ""), 10) - 1;
       if (idx >= 0 && idx < WORK_TYPES.length) {
         detectedWorkTypes.add(WORK_TYPES[idx]);
       }
-    }
-  } else if (p.activityTypeId) {
-    const idx = parseInt(String(p.activityTypeId).replace("TYPE_", ""), 10) - 1;
-    if (idx >= 0 && idx < WORK_TYPES.length) {
-      detectedWorkTypes.add(WORK_TYPES[idx]);
     }
   }
 
