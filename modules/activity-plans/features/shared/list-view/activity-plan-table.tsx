@@ -19,9 +19,9 @@ import {
   Calendar as CalendarIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { ActivityPlanWithRelations } from "../../types";
-import { ActivityStatusWithOperator } from "../../ui/activity-status-badge";
-import { WORK_TYPE_CONFIG, getWorkTypeName, ACTIVITY_RESULT_STATUS_LABELS } from "../../constants";
+import type { ActivityPlanWithRelations } from "../../../types";
+import { ActivityStatusWithOperator } from "../../../ui/activity-status-badge";
+import { WORK_TYPE_CONFIG, getWorkTypeName, ACTIVITY_RESULT_STATUS_LABELS } from "../../../constants";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { ActionButton } from "@/components/custom/action-button";

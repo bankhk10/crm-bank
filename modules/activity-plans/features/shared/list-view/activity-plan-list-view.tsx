@@ -5,12 +5,12 @@ import { useSession } from "next-auth/react";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ActivityPlanTable } from "./activity-plan-table";
-import type { ActivityPlanWithRelations } from "../../types";
+import type { ActivityPlanWithRelations } from "../../../types";
 import {
   deleteActivityPlanAction,
   submitActivityPlanAction,
   duplicateActivityPlanAction,
-} from "../../server/actions";
+} from "../../../server/actions";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, Copy } from "lucide-react";
 import { toast } from "sonner";

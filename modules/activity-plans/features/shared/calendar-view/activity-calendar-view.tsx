@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { getActivityCalendarEventsAction } from "../../server/actions";
+import { getActivityCalendarEventsAction } from "../../../server/actions";
 import { cn } from "@/lib/utils";
 import {
   format,
