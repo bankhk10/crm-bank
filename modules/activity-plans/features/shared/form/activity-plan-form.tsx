@@ -135,7 +135,7 @@ import {
 } from "./types";
 import { BudgetSection } from "./components/budget-section";
 import { LocationTeamSection } from "./components/location-team-section";
-import { Type1Visit } from "./components/work-types/type1-visit";
+import { Type1Visit } from "@/modules/activity-plans/features/type-1/form/type1-visit";
 import { Type2Followup } from "./components/work-types/type2-followup";
 import { Type3Sales } from "./components/work-types/type3-sales";
 import { Type4Collect } from "./components/work-types/type4-collect";

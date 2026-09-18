@@ -3,7 +3,7 @@
 import React from "react";
 import { UserCheck, Store, Phone, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { ActualTargetsState } from "@/modules/activity-plans/features/actual-view/types";
+import type { ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
 
 interface ApprovalType1VisitProps {
   isVisible: boolean;

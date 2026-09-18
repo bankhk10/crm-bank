@@ -1,4 +1,4 @@
-export * from "./actual-type1-visit";
+export * from "@/modules/activity-plans/features/type-1/actual/actual-type1-visit";
 export * from "./actual-type2-followup";
 export * from "./actual-type3-sales";
 export * from "./actual-type4-collect";

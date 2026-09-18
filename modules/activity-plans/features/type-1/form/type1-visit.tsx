@@ -4,7 +4,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { Users, Store, UserCheck } from "lucide-react";
 import { FormCombobox } from "@/components/custom/form-components";
 import { ALL_THAI_PROVINCES } from "@/lib/province-region-mapping";
-import type { Type1VisitItem } from "../../types";
+import type { Type1VisitItem } from "@/modules/activity-plans/features/shared/form/types";
 
 export interface CustomerOption {
   id: string;

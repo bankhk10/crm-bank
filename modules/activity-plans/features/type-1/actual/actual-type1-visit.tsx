@@ -12,12 +12,12 @@ import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import DatePicker from "@/components/custom/DatePicker";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
-import type { ImageFile, ActualTargetsState } from "../../types";
+import type { ImageFile, ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
-} from "../../utils";
+} from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 export interface ProductOption {
   id: string;

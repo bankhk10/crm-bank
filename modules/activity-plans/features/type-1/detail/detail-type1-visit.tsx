@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { ActualTargetsState, ImageFile } from "@/modules/activity-plans/features/actual-view/types";
+import { ActualTargetsState, ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   ImageLightboxModal,
   LightboxImage,
