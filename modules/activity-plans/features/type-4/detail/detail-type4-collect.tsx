@@ -2,8 +2,8 @@
 
 import React from "react";
 import { Building2, Receipt, ImageIcon } from "lucide-react";
-import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
-import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
+import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
+import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 
 function parseCleanAmount(val: unknown): number | null {
   if (val === null || val === undefined) return null;

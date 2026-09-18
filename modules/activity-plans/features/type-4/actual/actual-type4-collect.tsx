@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { ActualTargetCard } from "../actual-target-card";
-import { ImageFile } from "../../types";
+import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
+import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 
 export interface TargetCollectCompanyItem {
   id?: string;

@@ -4,7 +4,7 @@ import React from "react";
 import { DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { ActualTargetsState } from "@/modules/activity-plans/features/actual-view/types";
+import type { ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
 
 interface ApprovalType4CollectProps {
   isVisible: boolean;
