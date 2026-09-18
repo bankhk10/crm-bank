@@ -7,6 +7,6 @@ export * from "@/modules/activity-plans/features/type-6/detail/detail-type6-issu
 export * from "./detail-type7-demo";
 export * from "@/modules/activity-plans/features/type-8/detail/detail-type8-meeting";
 export * from "@/modules/activity-plans/features/type-9/detail/detail-type9-store";
-export * from "./detail-type10-field-day";
+export * from "@/modules/activity-plans/features/type-10/detail/detail-type10-field-day";
 export * from "./detail-type11-stock";
 export * from "./detail-type12-tour";

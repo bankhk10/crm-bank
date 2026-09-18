@@ -12,8 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { ActualTargetCard } from "../actual-target-card";
-import { ImageFile } from "../../types";
+import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
+import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 import { getFarmerCustomersAction } from "@/modules/activity-plans/server/actions";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
@@ -21,7 +21,7 @@ import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
-} from "../../utils";
+} from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 const OTHER_OPTION = "ไม่พบข้อมูล / ระบุเพิ่มเติม";
 
