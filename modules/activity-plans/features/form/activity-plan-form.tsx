@@ -147,7 +147,10 @@ import { Type9Store } from "./components/work-types/type9-store";
 import { Type10FieldDay } from "./components/work-types/type10-field-day";
 import { Type11Stock } from "./components/work-types/type11-stock";
 import { Type12Tour } from "./components/work-types/type12-tour";
-import { getDemoPlotsAction } from "../../server/actions";
+import {
+  getDemoPlotsAction,
+  getFollowUpDemoPlotsAction,
+} from "../../server/actions";
 
 export function ActivityPlanForm({
   initial = {},
@@ -172,6 +175,9 @@ export function ActivityPlanForm({
   >([]);
   const [fetchedActivityTypes, setFetchedActivityTypes] = useState<any[]>([]);
   const [fetchedDemoPlots, setFetchedDemoPlots] = useState<
+    UserDemoPlotOption[]
+  >([]);
+  const [fetchedFollowUpDemoPlots, setFetchedFollowUpDemoPlots] = useState<
     UserDemoPlotOption[]
   >([]);
   const [fetchedMaterialsByCategory, setFetchedMaterialsByCategory] = useState<
@@ -312,6 +318,27 @@ export function ActivityPlanForm({
       isMounted = false;
     };
   }, [initialDemoPlots]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadFollowUpPlots() {
+      try {
+        const res = await getFollowUpDemoPlotsAction();
+        if (isMounted && res.success && res.demoPlots) {
+          setFetchedFollowUpDemoPlots(res.demoPlots);
+        }
+      } catch (err) {
+        console.error(
+          "Failed to load follow-up demo plots for Trip Plan:",
+          err,
+        );
+      }
+    }
+    loadFollowUpPlots();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (initialActivityTypes !== undefined) return;
@@ -1250,8 +1277,18 @@ export function ActivityPlanForm({
 
   // Work Type 7: ติดตามแปลงสาธิต / ทำแปลง
   const [type7Items, setType7Items] = useState<Type7DemoPlotItem[]>(() => {
-    if (initial?.demoPlot) {
-      const dp = initial.demoPlot;
+    if (initial?.demoPlot || (initial as any)?.demoPlotId) {
+      const dp = initial?.demoPlot;
+      const fallbackPlotId = dp?.id || (initial as any)?.demoPlotId || "";
+      const isInitialType7B =
+        initialTypes.some((t) => getWorkTypeCode(t) === "TYPE_7B") ||
+        (initial as any)?.workTypes?.some(
+          (wt: any) =>
+            getWorkTypeCode(wt) === "TYPE_7B" ||
+            wt?.activityType?.code === "TYPE_7B" ||
+            wt === "TYPE_7B",
+        );
+
       const type7aProds = (initial.products || [])
         .filter((p: any) => p.workTypeCode === "TYPE_7A")
         .map((p: any, idx: number) => ({
@@ -1262,31 +1299,40 @@ export function ActivityPlanForm({
           unit: p.product?.unit || "",
         }));
 
+      const type7bProd = (initial.products || []).find(
+        (p: any) => p.workTypeCode === "TYPE_7B",
+      );
+
       const derivedCategoryId =
         (initial.products || []).find((p: any) => p.workTypeCode === "TYPE_7A")
           ?.product?.categoryId ||
-        dp.categoryId ||
-        dp.chemicalGroupId ||
+        dp?.categoryId ||
+        dp?.chemicalGroupId ||
         "";
 
       return [
         {
-          id: dp.id || "1",
-          plotActivityType: "CREATE",
-          demoPlotId: dp.id,
-          plotName: dp.name || "",
-          storeId: dp.customerId || "",
-          ownerName: dp.customer?.name || dp.ownerName || "",
-          cropCategory: dp.cropCategory || "",
-          cropName: dp.cropName || "",
-          customCropName: dp.customCropName || "",
-          areaRai: dp.areaRai ? Number(dp.areaRai) : 0,
-          treeCount: dp.treeCount ?? 0,
-          province: dp.province || "",
-          district: dp.district || "",
+          id: fallbackPlotId || "1",
+          plotActivityType: isInitialType7B ? "FOLLOW_UP" : "CREATE",
+          demoPlotId: fallbackPlotId,
+          existingPlotId: isInitialType7B ? fallbackPlotId : undefined,
+          existingPlotName: isInitialType7B ? (dp?.name || "") : undefined,
+          plotName: dp?.name || "",
+          storeId: dp?.customerId || "",
+          ownerName: dp?.customer?.name || dp?.ownerName || "",
+          cropCategory: dp?.cropCategory || "",
+          cropName: dp?.cropName || "",
+          customCropName: dp?.customCropName || "",
+          areaRai: dp?.areaRai ? Number(dp.areaRai) : 0,
+          treeCount: dp?.treeCount ?? 0,
+          province: dp?.province || "",
+          district: dp?.district || "",
           categoryId: derivedCategoryId,
           chemicalGroupId: derivedCategoryId,
-          objective: dp.objective || "",
+          objective: dp?.objective || "",
+          productId: type7bProd?.productId || "",
+          productName:
+            type7bProd?.productName || type7bProd?.product?.name || "",
           demoProducts:
             type7aProds.length > 0
               ? type7aProds
@@ -1299,9 +1345,12 @@ export function ActivityPlanForm({
                     unit: "",
                   },
                 ],
-          startDate: format(new Date(dp.startDate || new Date()), "yyyy-MM-dd"),
+          startDate: format(
+            new Date(dp?.startDate || new Date()),
+            "yyyy-MM-dd",
+          ),
           followUpDate: format(new Date(), "yyyy-MM-dd"),
-          detail: dp.objective || "",
+          detail: dp?.objective || "",
         },
       ];
     }
@@ -1425,6 +1474,93 @@ export function ActivityPlanForm({
       },
     ];
   });
+
+  // Dedicated follow-up demo plots for TYPE_7B (strictly completed TYPE_7A plots)
+  // Preserves existing plot data for hydration when editing an existing plan
+  const followUpPlotsForType7B = useMemo(() => {
+    const list = [...fetchedFollowUpDemoPlots];
+    type7Items.forEach((item) => {
+      const targetPlotId = item.existingPlotId || item.demoPlotId;
+      const targetPlotName = item.existingPlotName || item.plotName;
+      if (targetPlotId || targetPlotName) {
+        const exists = list.some(
+          (p) =>
+            (targetPlotId && p.id === targetPlotId) ||
+            (targetPlotName && p.name === targetPlotName),
+        );
+        if (!exists) {
+          const original = demoPlotsList.find(
+            (p) =>
+              (targetPlotId && p.id === targetPlotId) ||
+              (targetPlotName && p.name === targetPlotName),
+          );
+          if (original) {
+            list.push(original);
+          } else if (
+            initial?.demoPlot &&
+            (initial.demoPlot.id === targetPlotId ||
+              initial.demoPlot.name === targetPlotName)
+          ) {
+            const dp = initial.demoPlot;
+            const matchedProd = (initial.products || []).find(
+              (p: any) => p.workTypeCode === "TYPE_7B",
+            );
+            list.push({
+              id: dp.id,
+              code: dp.code || "",
+              name: dp.name || targetPlotName || "",
+              location:
+                dp.district && dp.province
+                  ? `${dp.district}, ${dp.province}`
+                  : dp.province || "",
+              targetCrop: dp.cropName || item.cropName || "",
+              showcase:
+                matchedProd?.productName ||
+                matchedProd?.product?.name ||
+                item.productName ||
+                "",
+              productId: matchedProd?.productId || item.productId || "",
+              productName:
+                matchedProd?.productName ||
+                matchedProd?.product?.name ||
+                item.productName ||
+                "",
+              ownerName:
+                dp.customer?.name || dp.ownerName || item.ownerName || "",
+              cropCategory: dp.cropCategory || item.cropCategory || "",
+              cropName: dp.cropName || item.cropName || "",
+              customCropName: dp.customCropName || item.customCropName || "",
+              areaRai: dp.areaRai ? Number(dp.areaRai) : item.areaRai || 0,
+              treeCount: dp.treeCount ?? (item.treeCount || 0),
+              startDate: dp.startDate
+                ? format(new Date(dp.startDate), "yyyy-MM-dd")
+                : item.startDate || "",
+              status: dp.status || "IN_PROGRESS",
+              objective: dp.objective || undefined,
+              experimentDetail: dp.experimentDetail || undefined,
+            });
+          } else if (targetPlotName || targetPlotId) {
+            list.push({
+              id: targetPlotId || targetPlotName || "",
+              code: "",
+              name: targetPlotName || targetPlotId || "",
+              location: "",
+              targetCrop: item.cropName || "",
+              showcase: item.productName || "",
+              ownerName: item.ownerName || "",
+              cropCategory: item.cropCategory || "",
+              cropName: item.cropName || "",
+              areaRai: item.areaRai || 0,
+              treeCount: item.treeCount || 0,
+              startDate: item.startDate || "",
+              status: "IN_PROGRESS",
+            });
+          }
+        }
+      }
+    });
+    return list;
+  }, [fetchedFollowUpDemoPlots, type7Items, demoPlotsList, initial]);
   const addType7Row = (forcedType?: "CREATE" | "FOLLOW_UP") => {
     const isFollowUp =
       forcedType === "FOLLOW_UP" ||
@@ -3828,7 +3964,7 @@ export function ActivityPlanForm({
                       products={productsList}
                       productCategories={productCategoriesList}
                       chemicalGroups={productCategoriesList}
-                      demoPlots={demoPlotsList}
+                      demoPlots={followUpPlotsForType7B}
                       parentStartDate={startDate}
                     />
                   )}

@@ -22,6 +22,7 @@ import {
   getActivityTypesUseCase,
   getProductCategoriesUseCase,
   getDemoPlotsUseCase,
+  getFollowUpDemoPlotsUseCase,
   getFarmerCustomersUseCase,
   getDemoPlotHistoryUseCase,
   recordDemoPlotVisitUseCase,
@@ -580,6 +581,22 @@ export async function getDemoPlotsAction() {
     return serialize(result);
   } catch (err: any) {
     console.error("Failed to get demo plots", err);
+    return serialize({
+      success: false,
+      demoPlots: [],
+    });
+  }
+}
+
+/**
+ * Action: Get follow-up demo plots strictly for TYPE_7B (completed TYPE_7A only)
+ */
+export async function getFollowUpDemoPlotsAction() {
+  try {
+    const result = await getFollowUpDemoPlotsUseCase();
+    return serialize(result);
+  } catch (err: any) {
+    console.error("Failed to get follow-up demo plots", err);
     return serialize({
       success: false,
       demoPlots: [],

@@ -1,6 +1,7 @@
 import {
   findFarmerCustomersForPlots,
   findMasterDemoPlots,
+  findFollowUpDemoPlots,
   findFarmerCustomerOptions,
   findDemoPlotOwners,
   findDemoPlotByIdOrName,
@@ -8,6 +9,103 @@ import {
   recordDemoPlotVisit,
 } from "../infrastructure/activity-plan.repository";
 import type { UserDemoPlotOption } from "../constants";
+
+function mapDemoPlotToOption(
+  p: any,
+  farmerMap: Map<string, any>,
+): UserDemoPlotOption {
+  const visitsCount = p.visits.length;
+  const totalCost = p.visits.reduce(
+    (sum: number, v: any) => sum + (Number(v.totalVisitCost) || 0),
+    0,
+  );
+  const lastVisit = p.visits[p.visits.length - 1];
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const latestDate = lastVisit ? new Date(lastVisit.visitDate) : new Date();
+  const daysSinceStart = Math.max(
+    0,
+    Math.floor(
+      (latestDate.getTime() - new Date(p.startDate).getTime()) / msPerDay,
+    ),
+  );
+
+  // Check coordinates from linked farmer customer or location field
+  const linkedCustomer =
+    (p.customerId && farmerMap.get(p.customerId)) ||
+    (p.ownerName && farmerMap.get(p.ownerName.trim()));
+
+  let plotLat: string | undefined = undefined;
+  let plotLng: string | undefined = undefined;
+
+  if (linkedCustomer) {
+    if (linkedCustomer.farmPlots && Array.isArray(linkedCustomer.farmPlots)) {
+      const matchedPlot = (linkedCustomer.farmPlots as any[]).find(
+        (fp) =>
+          (fp.cropType && fp.cropType === p.cropName) ||
+          (fp.latitude && fp.longitude),
+      );
+      if (matchedPlot) {
+        plotLat = matchedPlot.latitude ? String(matchedPlot.latitude).trim() : undefined;
+        plotLng = matchedPlot.longitude ? String(matchedPlot.longitude).trim() : undefined;
+      }
+    }
+    if (!plotLat && linkedCustomer.latitude) {
+      plotLat = String(linkedCustomer.latitude).trim();
+    }
+    if (!plotLng && linkedCustomer.longitude) {
+      plotLng = String(linkedCustomer.longitude).trim();
+    }
+  }
+
+  // Check if location string is formatted like "13.xxx, 100.xxx"
+  if (!plotLat && !plotLng && p.location) {
+    const coordMatch = p.location.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+    if (coordMatch) {
+      plotLat = coordMatch[1];
+      plotLng = coordMatch[2];
+    }
+  }
+
+  const formattedLocation =
+    plotLat && plotLng
+      ? `${plotLat}, ${plotLng}`
+      : p.location || (p.ownerName ? `แปลงสาธิต ${p.ownerName}` : "");
+
+  return {
+    id: p.id,
+    code: p.code,
+    name: p.name,
+    location: formattedLocation,
+    targetCrop: p.customCropName || p.cropName,
+    showcase: p.primaryProductName,
+    ownerName: p.ownerName,
+    cropCategory: p.cropCategory,
+    cropName: p.cropName,
+    customCropName: p.customCropName || undefined,
+    productName: p.primaryProductName,
+    areaRai: p.areaRai ? Number(p.areaRai) : 0,
+    treeCount: p.treeCount || 0,
+    startDate: p.startDate ? p.startDate.toISOString().split("T")[0] : "",
+    status: p.status,
+    visitsCount,
+    totalCost,
+    daysSinceStart,
+    objective: p.objective || undefined,
+    experimentDetail: p.experimentDetail || undefined,
+    latitude: p.latitude ? String(p.latitude) : plotLat,
+    longitude: p.longitude ? String(p.longitude) : plotLng,
+    province: p.province || undefined,
+    district: p.district || undefined,
+    initialSprayDate: p.initialSprayDate ? p.initialSprayDate.toISOString().split("T")[0] : undefined,
+    nextSprayDate: p.nextSprayDate ? p.nextSprayDate.toISOString().split("T")[0] : undefined,
+    mainCropInfo: p.mainCropInfo || undefined,
+    sprayMethod: p.sprayMethod || undefined,
+    hasExternalChemicals: p.hasExternalChemicals || false,
+    demoProducts: p.demoProducts,
+    externalProducts: p.externalProducts,
+    irrigations: (p.irrigations || []).map((ir: any) => ir.method),
+  };
+}
 
 /**
  * Use Case: Get available demo plots (with real DemoPlot master records + legacy plan items fallback)
@@ -25,99 +123,9 @@ export async function getDemoPlotsUseCase() {
   // 2. Fetch from Master DemoPlot table
   const masterPlots = await findMasterDemoPlots();
 
-  const realPlots: UserDemoPlotOption[] = masterPlots.map((p) => {
-    const visitsCount = p.visits.length;
-    const totalCost = p.visits.reduce(
-      (sum, v) => sum + (Number(v.totalVisitCost) || 0),
-      0,
-    );
-    const lastVisit = p.visits[p.visits.length - 1];
-    const msPerDay = 1000 * 60 * 60 * 24;
-    const latestDate = lastVisit ? new Date(lastVisit.visitDate) : new Date();
-    const daysSinceStart = Math.max(
-      0,
-      Math.floor(
-        (latestDate.getTime() - new Date(p.startDate).getTime()) / msPerDay,
-      ),
-    );
-
-    // Check coordinates from linked farmer customer or location field
-    const linkedCustomer =
-      (p.customerId && farmerMap.get(p.customerId)) ||
-      (p.ownerName && farmerMap.get(p.ownerName.trim()));
-
-    let plotLat: string | undefined = undefined;
-    let plotLng: string | undefined = undefined;
-
-    if (linkedCustomer) {
-      if (linkedCustomer.farmPlots && Array.isArray(linkedCustomer.farmPlots)) {
-        const matchedPlot = (linkedCustomer.farmPlots as any[]).find(
-          (fp) =>
-            (fp.cropType && fp.cropType === p.cropName) ||
-            (fp.latitude && fp.longitude),
-        );
-        if (matchedPlot) {
-          plotLat = matchedPlot.latitude ? String(matchedPlot.latitude).trim() : undefined;
-          plotLng = matchedPlot.longitude ? String(matchedPlot.longitude).trim() : undefined;
-        }
-      }
-      if (!plotLat && linkedCustomer.latitude) {
-        plotLat = String(linkedCustomer.latitude).trim();
-      }
-      if (!plotLng && linkedCustomer.longitude) {
-        plotLng = String(linkedCustomer.longitude).trim();
-      }
-    }
-
-    // Check if location string is formatted like "13.xxx, 100.xxx"
-    if (!plotLat && !plotLng && p.location) {
-      const coordMatch = p.location.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
-      if (coordMatch) {
-        plotLat = coordMatch[1];
-        plotLng = coordMatch[2];
-      }
-    }
-
-    const formattedLocation =
-      plotLat && plotLng
-        ? `${plotLat}, ${plotLng}`
-        : p.location || (p.ownerName ? `แปลงสาธิต ${p.ownerName}` : "");
-
-    return {
-      id: p.id,
-      code: p.code,
-      name: p.name,
-      location: formattedLocation,
-      targetCrop: p.customCropName || p.cropName,
-      showcase: p.primaryProductName,
-      ownerName: p.ownerName,
-      cropCategory: p.cropCategory,
-      cropName: p.cropName,
-      customCropName: p.customCropName || undefined,
-      productName: p.primaryProductName,
-      areaRai: p.areaRai ? Number(p.areaRai) : 0,
-      treeCount: p.treeCount || 0,
-      startDate: p.startDate ? p.startDate.toISOString().split("T")[0] : "",
-      status: p.status,
-      visitsCount,
-      totalCost,
-      daysSinceStart,
-      objective: p.objective || undefined,
-      experimentDetail: p.experimentDetail || undefined,
-      latitude: p.latitude ? String(p.latitude) : plotLat,
-      longitude: p.longitude ? String(p.longitude) : plotLng,
-      province: p.province || undefined,
-      district: p.district || undefined,
-      initialSprayDate: p.initialSprayDate ? p.initialSprayDate.toISOString().split("T")[0] : undefined,
-      nextSprayDate: p.nextSprayDate ? p.nextSprayDate.toISOString().split("T")[0] : undefined,
-      mainCropInfo: p.mainCropInfo || undefined,
-      sprayMethod: p.sprayMethod || undefined,
-      hasExternalChemicals: p.hasExternalChemicals || false,
-      demoProducts: p.demoProducts,
-      externalProducts: p.externalProducts,
-      irrigations: (p.irrigations || []).map((ir: any) => ir.method),
-    };
-  });
+  const realPlots: UserDemoPlotOption[] = masterPlots.map((p) =>
+    mapDemoPlotToOption(p, farmerMap),
+  );
 
   // 3. Map farmer agricultural farm plots from Customer.farmPlots (for NEW_DEMO and linking)
   farmerCustomers.forEach((farmer) => {
@@ -164,6 +172,28 @@ export async function getDemoPlotsUseCase() {
   return {
     success: true as const,
     demoPlots: realPlots,
+  };
+}
+
+/**
+ * Use Case: Get follow-up demo plots strictly for TYPE_7B "ติดตามแปลงสาธิต"
+ * Only returns plots originating from TYPE_7A that are APPROVED and COMPLETED ("ปฏิบัติงานแล้วเสร็จ")
+ * Does NOT include Customer.farmPlots.
+ */
+export async function getFollowUpDemoPlotsUseCase() {
+  const farmerCustomers = await findFarmerCustomersForPlots();
+  const farmerMap = new Map<string, (typeof farmerCustomers)[0]>();
+  farmerCustomers.forEach((f) => {
+    farmerMap.set(f.id, f);
+    if (f.name) farmerMap.set(f.name.trim(), f);
+  });
+
+  const followUpPlots = await findFollowUpDemoPlots();
+  const demoPlots = followUpPlots.map((p) => mapDemoPlotToOption(p, farmerMap));
+
+  return {
+    success: true as const,
+    demoPlots,
   };
 }
 

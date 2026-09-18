@@ -727,6 +727,7 @@ export {
 
 export {
   getDemoPlotsUseCase,
+  getFollowUpDemoPlotsUseCase,
   getFarmerCustomersUseCase,
   getDemoPlotHistoryUseCase,
   recordDemoPlotVisitUseCase,

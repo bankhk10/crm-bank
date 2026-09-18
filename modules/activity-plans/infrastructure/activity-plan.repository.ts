@@ -1209,88 +1209,84 @@ export async function updateActivityPlan(
     }
 
     // 1.7 Sync Demo Plot Visit
-    if (planData.demoPlotData !== undefined) {
-      if (planData.demoPlotData) {
-        const existingVisit = await tx.demoPlotVisit.findFirst({
-          where: { activityPlanId: id },
-          include: { demoPlot: true },
+    if (planData.demoPlotData) {
+      const existingVisit = await tx.demoPlotVisit.findFirst({
+        where: { activityPlanId: id },
+        include: { demoPlot: true },
+      });
+
+      const plotId = planData.demoPlotData.id || existingVisit?.demoPlotId;
+
+      if (plotId) {
+        await tx.demoPlot.update({
+          where: { id: plotId },
+          data: {
+            name: planData.demoPlotData.name,
+            ownerName: planData.demoPlotData.ownerName || "",
+            customerId: planData.demoPlotData.customerId || null,
+            cropCategory: planData.demoPlotData.cropCategory,
+            cropName: planData.demoPlotData.cropName,
+            customCropName: planData.demoPlotData.customCropName || null,
+            areaRai:
+              planData.demoPlotData.areaRai != null
+                ? new Prisma.Decimal(planData.demoPlotData.areaRai)
+                : null,
+            treeCount: planData.demoPlotData.treeCount || null,
+            location: planData.demoPlotData.location || null,
+            province: planData.demoPlotData.province || null,
+            district: planData.demoPlotData.district || null,
+            objective: planData.demoPlotData.objective || null,
+          },
         });
 
-        const plotId = planData.demoPlotData.id || existingVisit?.demoPlotId;
-
-        if (plotId) {
-          await tx.demoPlot.update({
-            where: { id: plotId },
-            data: {
-              name: planData.demoPlotData.name,
-              ownerName: planData.demoPlotData.ownerName || "",
-              customerId: planData.demoPlotData.customerId || null,
-              cropCategory: planData.demoPlotData.cropCategory,
-              cropName: planData.demoPlotData.cropName,
-              customCropName: planData.demoPlotData.customCropName || null,
-              areaRai:
-                planData.demoPlotData.areaRai != null
-                  ? new Prisma.Decimal(planData.demoPlotData.areaRai)
-                  : null,
-              treeCount: planData.demoPlotData.treeCount || null,
-              location: planData.demoPlotData.location || null,
-              province: planData.demoPlotData.province || null,
-              district: planData.demoPlotData.district || null,
-              objective: planData.demoPlotData.objective || null,
-            },
-          });
-
-          if (!existingVisit) {
-            await tx.demoPlotVisit.create({
-              data: {
-                demoPlotId: plotId,
-                activityPlanId: id,
-                visitDate: updatedPlan.startDate,
-              },
-            });
-          }
-        } else {
-          const d = new Date(updatedPlan.startDate);
-          const year = String(d.getFullYear()).slice(-2);
-          const month = String(d.getMonth() + 1).padStart(2, "0");
-          const count = await tx.demoPlot.count();
-          const code = `DP${year}${month}${String(count + 1).padStart(4, "0")}`;
-
-          const newPlot = await tx.demoPlot.create({
-            data: {
-              code,
-              name: planData.demoPlotData.name,
-              ownerName: planData.demoPlotData.ownerName || "",
-              customerId: planData.demoPlotData.customerId || null,
-              employeeId: updatedPlan.employeeId,
-              cropCategory: planData.demoPlotData.cropCategory,
-              cropName: planData.demoPlotData.cropName,
-              customCropName: planData.demoPlotData.customCropName || null,
-              areaRai:
-                planData.demoPlotData.areaRai != null
-                  ? new Prisma.Decimal(planData.demoPlotData.areaRai)
-                  : null,
-              treeCount: planData.demoPlotData.treeCount || null,
-              location: planData.demoPlotData.location || null,
-              province: planData.demoPlotData.province || null,
-              district: planData.demoPlotData.district || null,
-              objective: planData.demoPlotData.objective || null,
-              startDate: updatedPlan.startDate,
-              status: DemoPlotStatus.IN_PROGRESS,
-            },
-          });
-
-          await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: id } });
+        if (!existingVisit) {
           await tx.demoPlotVisit.create({
             data: {
-              demoPlotId: newPlot.id,
+              demoPlotId: plotId,
               activityPlanId: id,
               visitDate: updatedPlan.startDate,
             },
           });
         }
       } else {
+        const d = new Date(updatedPlan.startDate);
+        const year = String(d.getFullYear()).slice(-2);
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const count = await tx.demoPlot.count();
+        const code = `DP${year}${month}${String(count + 1).padStart(4, "0")}`;
+
+        const newPlot = await tx.demoPlot.create({
+          data: {
+            code,
+            name: planData.demoPlotData.name,
+            ownerName: planData.demoPlotData.ownerName || "",
+            customerId: planData.demoPlotData.customerId || null,
+            employeeId: updatedPlan.employeeId,
+            cropCategory: planData.demoPlotData.cropCategory,
+            cropName: planData.demoPlotData.cropName,
+            customCropName: planData.demoPlotData.customCropName || null,
+            areaRai:
+              planData.demoPlotData.areaRai != null
+                ? new Prisma.Decimal(planData.demoPlotData.areaRai)
+                : null,
+            treeCount: planData.demoPlotData.treeCount || null,
+            location: planData.demoPlotData.location || null,
+            province: planData.demoPlotData.province || null,
+            district: planData.demoPlotData.district || null,
+            objective: planData.demoPlotData.objective || null,
+            startDate: updatedPlan.startDate,
+            status: DemoPlotStatus.IN_PROGRESS,
+          },
+        });
+
         await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: id } });
+        await tx.demoPlotVisit.create({
+          data: {
+            demoPlotId: newPlot.id,
+            activityPlanId: id,
+            visitDate: updatedPlan.startDate,
+          },
+        });
       }
     } else if (demoPlotId !== undefined) {
       await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: id } });
@@ -1303,6 +1299,8 @@ export async function updateActivityPlan(
           },
         });
       }
+    } else if (planData.demoPlotData === null) {
+      await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: id } });
     }
 
     // 3. Sync Helpers if provided
@@ -2840,6 +2838,49 @@ export async function findMasterDemoPlots() {
     where: {
       deletedAt: null,
       status: { not: DemoPlotStatus.CANCELLED },
+    },
+    include: {
+      demoProducts: {
+        include: { product: true },
+        orderBy: { sortOrder: "asc" },
+      },
+      externalProducts: {
+        orderBy: { sortOrder: "asc" },
+      },
+      irrigations: true,
+      attachments: true,
+      visits: {
+        orderBy: { visitDate: "asc" },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+/**
+ * Fetch dedicated demo plots for TYPE_7B "ติดตามแปลงสาธิต"
+ * Only returns plots originating from TYPE_7A plans that are APPROVED and COMPLETED ("ปฏิบัติงานแล้วเสร็จ")
+ */
+export async function findFollowUpDemoPlots() {
+  return db.demoPlot.findMany({
+    where: {
+      deletedAt: null,
+      status: { not: DemoPlotStatus.CANCELLED },
+      visits: {
+        some: {
+          activityPlan: {
+            deletedAt: null,
+            status: ActivityStatus.APPROVED,
+            result: {
+              resultStatus: ActivityResultStatus.COMPLETED,
+            },
+            OR: [
+              { activityType: { code: "TYPE_7A" } },
+              { workTypes: { some: { activityType: { code: "TYPE_7A" } } } },
+            ],
+          },
+        },
+      },
     },
     include: {
       demoProducts: {
