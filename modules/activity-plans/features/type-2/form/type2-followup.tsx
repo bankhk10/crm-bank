@@ -5,7 +5,7 @@ import { CheckSquare, Plus, Trash2, Store, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
 import { ALL_THAI_PROVINCES } from "@/lib/province-region-mapping";
-import type { Type2ProductFollowupItem } from "../../types";
+import type { Type2ProductFollowupItem } from "@/modules/activity-plans/features/shared/form/types";
 
 export interface CustomerOption {
   id: string;

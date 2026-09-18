@@ -5,18 +5,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Target, Layers, Plus, Trash2, Sparkles, Package, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ActualTargetCard } from "../actual-target-card";
+import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { Badge } from "@/components/ui/badge";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
-import { ImageFile } from "../../types";
+import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
-} from "../../utils";
+} from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 export interface FollowupProductItem {
   id?: string;
