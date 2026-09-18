@@ -603,6 +603,143 @@ Not:
 
 "Understand the entire system before making any change."
 
+## 5.12 Implementation Approval Gate
+
+### Purpose
+
+The AI Agent MUST NOT start implementation immediately after creating, updating, or presenting an Implementation Plan.
+
+An Implementation Plan is a proposal for user review, not an execution command.
+
+### Required Workflow
+
+The required workflow is:
+
+Investigation
+→ Implementation Plan
+→ USER REVIEW
+→ EXPLICIT USER APPROVAL
+→ IMPLEMENTATION
+→ MANUAL UAT
+
+### Explicit Approval Required
+
+The AI Agent MUST wait for explicit user approval before modifying source code.
+
+Examples of explicit approval:
+
+- "อนุมัติ"
+- "อนุมัติแผน"
+- "เริ่ม Implement ได้"
+- "ดำเนินการได้"
+- "Approved"
+
+### Do NOT Treat These as Approval
+
+The following do NOT constitute implementation approval:
+
+- Creating an implementation_plan.md
+- Updating an implementation_plan.md
+- Presenting an implementation plan
+- User uploading an implementation plan
+- User asking for review
+- User asking whether the plan is correct
+- User asking questions about the plan
+- User discussing implementation details
+- User saying "โอเคไหม"
+- Any ambiguous response where implementation approval is not explicit
+
+### Before Approval
+
+While waiting for approval, the AI Agent may:
+
+- Explain the plan
+- Review the plan
+- Identify risks
+- Suggest changes
+- Update the implementation plan
+
+The AI Agent MUST NOT:
+
+- Modify source code
+- Modify Prisma schema
+- Create migrations
+- Execute migrations
+- Modify database data
+- Modify UI
+- Modify repositories/services/use cases
+- Refactor code as preparation for implementation
+
+### After Explicit Approval
+
+Only after explicit approval may the AI Agent:
+
+1. Implement the approved plan.
+2. Modify only the approved scope.
+3. Report implementation changes.
+4. Report verification results.
+5. STOP and wait for Manual UAT.
+
+### Important
+
+`implementation_plan.md` is a planning artifact, NOT an execution command.
+
+Creating or completing an Implementation Plan MUST NOT automatically trigger implementation.
+
+Plan ≠ Approval.
+
+## 5.13 Scope Expansion Approval
+
+### Purpose
+
+User approval applies only to the specific Implementation Plan that was approved.
+
+The AI Agent MUST NOT silently expand the implementation scope.
+
+### Scope Expansion
+
+If implementation discovers a requirement, dependency, architecture change, or code change that is outside the approved plan, the AI Agent MUST STOP before making that additional change.
+
+Examples:
+
+- New database table not included in the approved plan
+- New Prisma field or relation not included in the approved plan
+- New migration not included in the approved plan
+- New API behavior
+- New business rule
+- Changes to another Activity Plan TYPE
+- Changes to shared components outside the approved scope
+- Unrelated refactoring
+- Changes to existing data
+- Changes to another module
+
+### Required Action
+
+The AI Agent must report:
+
+1. What was discovered
+2. Why the additional change appears necessary
+3. Files/components affected
+4. Proposed change
+5. Whether schema/migration/database changes are required
+
+Then:
+
+STOP and wait for explicit user approval.
+
+The AI Agent MUST NOT implement the additional scope automatically.
+
+### Exception
+
+Minor implementation details that are strictly necessary to complete the already-approved plan may be implemented without additional approval, provided that:
+
+- They do not change the business requirement.
+- They do not expand the affected module/type.
+- They do not introduce new schema or database changes.
+- They remain within the approved implementation scope.
+
+When uncertain, STOP and ask for approval.
+
 # 6. Tech Stack Summary
 
 | Layer            | Technology                          | Version         |
