@@ -19,7 +19,7 @@ import type {
   ActualTargetsState,
   ImageFile,
   Type6IssueRecord,
-} from "@/modules/activity-plans/features/actual-view/types";
+} from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   ImageLightboxModal,
   LightboxImage,

@@ -3,7 +3,7 @@ export * from "@/modules/activity-plans/features/type-2/detail/detail-type2-foll
 export * from "@/modules/activity-plans/features/type-3/detail/detail-type3-sales";
 export * from "@/modules/activity-plans/features/type-4/detail/detail-type4-collect";
 export * from "@/modules/activity-plans/features/type-5/detail/detail-type5-survey";
-export * from "./detail-type6-issue";
+export * from "@/modules/activity-plans/features/type-6/detail/detail-type6-issue";
 export * from "./detail-type7-demo";
 export * from "./detail-type8-meeting";
 export * from "./detail-type9-store";

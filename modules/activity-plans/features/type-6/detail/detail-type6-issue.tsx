@@ -15,11 +15,11 @@ import {
   FileText,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
+import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 import {
   ImageFile,
   Type6IssueRecord,
-} from "@/modules/activity-plans/features/actual-view/types";
+} from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   ImageLightboxModal,
   LightboxImage,
