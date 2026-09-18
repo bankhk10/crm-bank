@@ -13,7 +13,7 @@ import {
 import {
   ImageFile,
   Type5SurveyRecord,
-} from "@/modules/activity-plans/features/actual-view/types";
+} from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   ImageLightboxModal,
   LightboxImage,

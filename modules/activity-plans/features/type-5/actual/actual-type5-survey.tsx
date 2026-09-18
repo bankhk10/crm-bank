@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
-import { ImageFile, Type5SurveyRecord } from "../../types";
+import { ImageFile, Type5SurveyRecord } from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
-} from "../../utils";
+} from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 export interface TargetSurveyItem {
   id?: string;

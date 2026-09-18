@@ -2,7 +2,7 @@ export * from "@/modules/activity-plans/features/type-1/actual/actual-type1-visi
 export * from "@/modules/activity-plans/features/type-2/actual/actual-type2-followup";
 export * from "@/modules/activity-plans/features/type-3/actual/actual-type3-sales";
 export * from "@/modules/activity-plans/features/type-4/actual/actual-type4-collect";
-export * from "./actual-type5-survey";
+export * from "@/modules/activity-plans/features/type-5/actual/actual-type5-survey";
 export * from "./actual-type6-issue";
 export * from "./actual-type7-demo";
 export * from "./actual-type8-meeting";

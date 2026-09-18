@@ -2,7 +2,7 @@ import React from "react";
 import { BarChart2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
-import type { Type5SurveyItem } from "../../types";
+import type { Type5SurveyItem } from "@/modules/activity-plans/features/shared/form/types";
 
 export interface CustomerOption {
   id: string;

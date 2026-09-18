@@ -139,7 +139,7 @@ import { Type1Visit } from "@/modules/activity-plans/features/type-1/form/type1-
 import { Type2Followup } from "@/modules/activity-plans/features/type-2/form/type2-followup";
 import { Type3Sales } from "@/modules/activity-plans/features/type-3/form/type3-sales";
 import { Type4Collect } from "@/modules/activity-plans/features/type-4/form/type4-collect";
-import { Type5Survey } from "./components/work-types/type5-survey";
+import { Type5Survey } from "@/modules/activity-plans/features/type-5/form/type5-survey";
 import { Type6Issue } from "./components/work-types/type6-issue";
 import { Type7Demo } from "./components/work-types/type7-demo";
 import { Type8Meeting } from "./components/work-types/type8-meeting";
