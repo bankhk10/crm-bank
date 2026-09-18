@@ -3,7 +3,7 @@ import { Store, Package, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormCombobox } from "@/components/custom/form-components";
-import type { Type9ProductItem } from "../../types";
+import type { Type9ProductItem } from "@/modules/activity-plans/features/shared/form/types";
 import { STORES_LIST } from "@/modules/activity-plans/constants";
 
 export interface CustomerOption {
