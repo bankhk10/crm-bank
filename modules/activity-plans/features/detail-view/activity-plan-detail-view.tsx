@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
@@ -202,6 +202,37 @@ export default function ActivityPlanDetailView({
     loadData();
   }, [loadData]);
 
+  // Merge and sort Approval and Actual audit logs chronologically (newest first)
+  const mergedLogs = useMemo(() => {
+    if (!plan) return [];
+
+    const approvalItems = (plan.approvalLogs || []).map((log) => ({
+      id: `approval-${log.id}`,
+      isActual: false as const,
+      user: log.user,
+      action: log.action,
+      comment: log.comment,
+      createdAt: new Date(log.createdAt),
+      raw: log,
+    }));
+
+    const actualLogs = (((plan as any).result)?.logs || []).map((log: any) => ({
+      id: `actual-${log.id}`,
+      isActual: true as const,
+      user: log.user,
+      action: log.action,
+      comment: log.comment,
+      previousStatus: log.previousStatus,
+      newStatus: log.newStatus,
+      createdAt: new Date(log.createdAt),
+      raw: log,
+    }));
+
+    return [...approvalItems, ...actualLogs].sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
+  }, [plan?.approvalLogs, (plan as any)?.result?.logs]);
+
   const handleBack = () => {
     if (onBack) {
       onBack();
@@ -318,6 +349,23 @@ export default function ActivityPlanDetailView({
 
   const startTimeDisplay = formatTimeStr(planSummary.startTimeStr, start);
   const endTimeDisplay = formatTimeStr(planSummary.endTimeStr, end);
+
+  const formatActivityResultStatus = (status?: string | null) => {
+    switch (status) {
+      case "COMPLETED":
+        return "ทำสำเร็จตามแผน";
+      case "PARTIAL":
+        return "ทำได้บางส่วน";
+      case "POSTPONED":
+        return "เลื่อนกิจกรรม";
+      case "CANCELLED":
+        return "ยกเลิกกิจกรรม";
+      case "FAILED":
+        return "ไม่สำเร็จ";
+      default:
+        return status || "-";
+    }
+  };
 
   return (
     <section className="space-y-6 container mx-auto px-0 sm:px-0">
@@ -719,18 +767,18 @@ export default function ActivityPlanDetailView({
             />
           )}
 
-        {/* ─── 5. APPROVAL AUDIT LOGS ─── */}
-        {plan.approvalLogs && plan.approvalLogs.length > 0 && (
+        {/* ─── 5. AUDIT LOGS (APPROVAL & ACTUAL) ─── */}
+        {mergedLogs.length > 0 && (
           <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xs">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-2.5">
               <History className="h-4 w-4 text-slate-500" />
               <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                ประวัติการดำเนินการ (Approval Audit Logs)
+                ประวัติการดำเนินการ
               </h4>
             </div>
 
             <div className="space-y-2">
-              {plan.approvalLogs.map((log) => (
+              {mergedLogs.map((log) => (
                 <div
                   key={log.id}
                   className="bg-slate-50/70 p-3 rounded-xl border border-slate-100 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-1.5"
@@ -740,20 +788,85 @@ export default function ActivityPlanDetailView({
                       <span className="font-bold text-slate-900">
                         {log.user?.name || "ผู้ใช้งาน"}
                       </span>
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] px-1.5 py-0"
-                      >
-                        {log.action}
-                      </Badge>
+                      {!log.isActual ? (
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-[10px] px-1.5 py-0 font-bold",
+                            log.action === "APPROVE" &&
+                              "bg-emerald-50 text-emerald-700 border-emerald-200",
+                            log.action === "REJECT" &&
+                              "bg-red-50 text-red-700 border-red-200",
+                            log.action === "REQUEST_CORRECTION" &&
+                              "bg-amber-50 text-amber-700 border-amber-200",
+                            log.action === "SUBMIT" &&
+                              "bg-blue-50 text-blue-700 border-blue-200",
+                          )}
+                        >
+                          {log.action}
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-[10px] px-1.5 py-0 font-bold",
+                            log.action === "RECORD_ACTUAL" &&
+                              "bg-emerald-50 text-emerald-700 border-emerald-200",
+                            log.action === "UPDATE_ACTUAL" &&
+                              "bg-blue-50 text-blue-700 border-blue-200",
+                            log.action === "CHANGE_ACTUAL_STATUS" &&
+                              "bg-purple-50 text-purple-700 border-purple-200",
+                          )}
+                        >
+                          {log.action}
+                        </Badge>
+                      )}
                     </div>
-                    {log.comment && (
-                      <div className="text-slate-600 text-xs italic bg-white p-1.5 rounded border border-slate-100 mt-1">
-                        &quot;{log.comment}&quot;
+
+                    {!log.isActual ? (
+                      log.comment && (
+                        <div className="text-slate-600 text-xs italic bg-white p-1.5 rounded border border-slate-100 mt-1">
+                          &quot;{log.comment}&quot;
+                        </div>
+                      )
+                    ) : (
+                      <div className="text-slate-700 text-xs mt-1 space-y-0.5">
+                        {log.action === "RECORD_ACTUAL" && (
+                          <div className="font-medium">
+                            บันทึกผลการทำกิจกรรม
+                          </div>
+                        )}
+                        {log.action === "UPDATE_ACTUAL" && (
+                          <div className="font-medium">
+                            แก้ไขผลการทำกิจกรรม
+                          </div>
+                        )}
+                        {log.action === "CHANGE_ACTUAL_STATUS" && (
+                          <div>
+                            <div className="font-medium">
+                              เปลี่ยนสถานะผลการทำกิจกรรม
+                            </div>
+                            {log.previousStatus && log.newStatus && (
+                              <div className="text-[11px] text-slate-500 font-normal">
+                                {formatActivityResultStatus(log.previousStatus)} →{" "}
+                                {formatActivityResultStatus(log.newStatus)}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {log.comment &&
+                          log.comment !== "บันทึกผลการทำกิจกรรม" &&
+                          log.comment !== "แก้ไขผลการทำกิจกรรม" &&
+                          log.comment !== "เปลี่ยนสถานะผลการทำกิจกรรม" && (
+                            <div className="text-slate-600 text-xs italic bg-white p-1.5 rounded border border-slate-100 mt-1">
+                              &quot;{log.comment}&quot;
+                            </div>
+                          )}
                       </div>
                     )}
                   </div>
-                  <div className="text-slate-400 text-[11px] whitespace-nowrap flex items-center gap-1">
+
+                  <div className="text-slate-400 text-[11px] whitespace-nowrap flex items-center gap-1 self-start sm:self-center">
                     <Clock className="w-3 h-3 text-slate-400" />
                     <span>
                       {format(new Date(log.createdAt), "dd/MM/yyyy HH:mm", {

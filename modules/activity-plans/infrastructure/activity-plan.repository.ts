@@ -6,6 +6,7 @@ import {
   ActivityApprovalAction,
   ActivityApprovalStep,
   ActivityResultStatus,
+  ActivityResultAction,
   DemoPlotStatus,
   TourType,
   TourSize,
@@ -265,6 +266,14 @@ export async function findActivityPlanById(id: string) {
       },
       result: {
         include: {
+          logs: {
+            include: {
+              user: {
+                select: { id: true, name: true, email: true },
+              },
+            },
+            orderBy: { createdAt: "desc" },
+          },
           recordedBy: {
             select: { id: true, name: true, email: true },
           },
@@ -1708,6 +1717,17 @@ export async function upsertActivityResult(
   txClient?: Prisma.TransactionClient,
 ) {
   const handler = async (tx: Prisma.TransactionClient) => {
+    // Check if result already exists before upsert to detect create vs edit and status change
+    const existingResult = await tx.activityResult.findUnique({
+      where: { activityPlanId: input.activityPlanId },
+      select: { id: true, resultStatus: true },
+    });
+
+    const isFirstTime = !existingResult;
+    const oldStatus = existingResult?.resultStatus ?? null;
+    const newStatus = input.resultStatus ?? ActivityResultStatus.COMPLETED;
+    const isStatusChanged = !isFirstTime && oldStatus !== newStatus;
+
     const spSpent = input.actualSalesPromotionSpent ?? 0;
     const mktSpent = input.actualMarketingSpent ?? 0;
     const actualTotalSpent = spSpent + mktSpent;
@@ -2240,6 +2260,50 @@ export async function upsertActivityResult(
       }
     }
 
+    // Audit Logging in the same transaction
+    const actorUserId = input.recordedById;
+    if (actorUserId) {
+      if (isFirstTime) {
+        // 6 & 10. First time recording: RECORD_ACTUAL
+        await tx.activityResultLog.create({
+          data: {
+            activityResultId: result.id,
+            userId: actorUserId,
+            action: ActivityResultAction.RECORD_ACTUAL,
+            previousStatus: null,
+            newStatus: result.resultStatus,
+            comment: "บันทึกผลการทำกิจกรรม",
+          },
+        });
+      } else {
+        // 7 & 9. Editing existing: UPDATE_ACTUAL
+        await tx.activityResultLog.create({
+          data: {
+            activityResultId: result.id,
+            userId: actorUserId,
+            action: ActivityResultAction.UPDATE_ACTUAL,
+            previousStatus: oldStatus,
+            newStatus: result.resultStatus,
+            comment: "แก้ไขผลการทำกิจกรรม",
+          },
+        });
+
+        // 8. If status changed: additionally create CHANGE_ACTUAL_STATUS
+        if (isStatusChanged) {
+          await tx.activityResultLog.create({
+            data: {
+              activityResultId: result.id,
+              userId: actorUserId,
+              action: ActivityResultAction.CHANGE_ACTUAL_STATUS,
+              previousStatus: oldStatus,
+              newStatus: result.resultStatus,
+              comment: "เปลี่ยนสถานะผลการทำกิจกรรม",
+            },
+          });
+        }
+      }
+    }
+
     return result;
   };
 
@@ -2345,6 +2409,14 @@ export async function findApprovalQueueData() {
     },
     result: {
       include: {
+        logs: {
+          include: {
+            user: {
+              select: { id: true, name: true, email: true },
+            },
+          },
+          orderBy: { createdAt: "desc" as const },
+        },
         saleResults: true,
         stockResults: true,
         surveyResults: true,

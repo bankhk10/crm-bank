@@ -117,6 +117,7 @@ model User {
   activityPlans                  ActivityPlan[]           @relation("UserActivityPlans")
   activityApprovalLogs           ActivityApprovalLog[]    @relation("UserActivityApprovalLogs")
   activityResults                ActivityResult[]         @relation("UserActivityResults")
+  activityResultLogs             ActivityResultLog[]      @relation("UserActivityResultLogs")
   approvedProducts               Product[]                @relation("ProductApprovedByUser")
   createdCalendarEvents          ActivityCalendarEvent[]  @relation("UserCreatedCalendarEvents")
 }
@@ -1553,6 +1554,12 @@ enum ActivityResultStatus {
   FAILED // ไม่สำเร็จ
 }
 
+enum ActivityResultAction {
+  RECORD_ACTUAL
+  UPDATE_ACTUAL
+  CHANGE_ACTUAL_STATUS
+}
+
 enum CalendarEventStatus {
   SCHEDULED // มีนัดหมายตามกำหนด
   CANCELLED // ยกเลิกนัดหมาย
@@ -2003,6 +2010,7 @@ model ActivityResult {
   followupResults ActivityResultFollowupItem[]
   issueResults  ActivityResultIssueItem[]
   attachments   ActivityAttachment[]
+  logs          ActivityResultLog[]
 
   @@index([activityPlanId])
   @@index([resultStatus])
@@ -2194,6 +2202,26 @@ model ActivityAttachment {
   @@index([surveyItemId])
   @@index([issueItemId])
   @@map("activity_attachments")
+}
+
+model ActivityResultLog {
+  id               String                @id @default(cuid())
+  activityResultId String                @map("activity_result_id")
+  userId           String                @map("user_id")
+  action           ActivityResultAction
+  previousStatus   ActivityResultStatus? @map("previous_status")
+  newStatus        ActivityResultStatus? @map("new_status")
+  comment          String?
+  createdAt        DateTime              @default(now()) @map("created_at")
+
+  activityResult ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
+  user           User           @relation("UserActivityResultLogs", fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([activityResultId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("activity_result_logs")
 }
 
 // ==========================================
