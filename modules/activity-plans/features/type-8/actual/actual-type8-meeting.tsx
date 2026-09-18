@@ -4,15 +4,15 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Users, ShoppingBag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ActualTargetCard } from "../actual-target-card";
-import { ImageFile } from "../../types";
+import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
+import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
 import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
-} from "../../utils";
+} from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 export interface ProductSaleDetail {
   productName: string;

@@ -142,7 +142,7 @@ import { Type4Collect } from "@/modules/activity-plans/features/type-4/form/type
 import { Type5Survey } from "@/modules/activity-plans/features/type-5/form/type5-survey";
 import { Type6Issue } from "@/modules/activity-plans/features/type-6/form/type6-issue";
 import { Type7Demo } from "./components/work-types/type7-demo";
-import { Type8Meeting } from "./components/work-types/type8-meeting";
+import { Type8Meeting } from "@/modules/activity-plans/features/type-8/form/type8-meeting";
 import { Type9Store } from "./components/work-types/type9-store";
 import { Type10FieldDay } from "./components/work-types/type10-field-day";
 import { Type11Stock } from "./components/work-types/type11-stock";

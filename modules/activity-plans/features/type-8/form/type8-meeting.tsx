@@ -2,7 +2,7 @@ import React from "react";
 import { Users, Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
-import type { Type8MeetingItem } from "../../types";
+import type { Type8MeetingItem } from "@/modules/activity-plans/features/shared/form/types";
 export interface ProductOption {
   id: string;
   name: string;

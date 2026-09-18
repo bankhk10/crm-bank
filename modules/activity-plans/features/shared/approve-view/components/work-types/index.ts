@@ -5,7 +5,7 @@ export * from "@/modules/activity-plans/features/type-4/approval/approval-type4-
 export * from "@/modules/activity-plans/features/type-5/approval/approval-type5-survey";
 export * from "@/modules/activity-plans/features/type-6/approval/approval-type6-issue";
 export * from "./approval-type7-demo";
-export * from "./approval-type8-meeting";
+export * from "@/modules/activity-plans/features/type-8/approval/approval-type8-meeting";
 export * from "./approval-type9-store";
 export * from "./approval-type10-field-day";
 export * from "./approval-type11-stock";

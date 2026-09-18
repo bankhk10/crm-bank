@@ -5,7 +5,7 @@ export * from "@/modules/activity-plans/features/type-4/detail/detail-type4-coll
 export * from "@/modules/activity-plans/features/type-5/detail/detail-type5-survey";
 export * from "@/modules/activity-plans/features/type-6/detail/detail-type6-issue";
 export * from "./detail-type7-demo";
-export * from "./detail-type8-meeting";
+export * from "@/modules/activity-plans/features/type-8/detail/detail-type8-meeting";
 export * from "./detail-type9-store";
 export * from "./detail-type10-field-day";
 export * from "./detail-type11-stock";
