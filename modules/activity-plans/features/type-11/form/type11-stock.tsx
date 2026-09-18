@@ -1,7 +1,7 @@
 import React from "react";
 import { ClipboardList, X } from "lucide-react";
 import { FormCombobox } from "@/components/custom/form-components";
-import type { Type11StoreItem } from "../../types";
+import type { Type11StoreItem } from "@/modules/activity-plans/features/shared/form/types";
 
 export interface CustomerOption {
   id: string;

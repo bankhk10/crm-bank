@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
-import { ActualTargetCard } from "../actual-target-card";
+import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import { listProductsAction } from "@/modules/products/server/actions";
 
