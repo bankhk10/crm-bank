@@ -330,7 +330,7 @@ export function normalizePlanInput(
     marketingItems: marketing,
     promotionItems: promotion,
     tourData: rawInput.tourData || null,
-    demoPlotData: rawInput.demoPlotData || null,
+    demoPlotData: (rawInput.demoPlotData as any) || null,
     helperEmployeeIds: rawInput.helperEmployeeIds || [],
   };
 }

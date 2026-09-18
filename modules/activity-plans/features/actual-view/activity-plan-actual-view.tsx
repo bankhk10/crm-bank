@@ -25,6 +25,7 @@ import type {
   DemoPlotProductItem,
   DemoPlotExternalProductItem,
   Type7bProductRateItem,
+  Type7bSprayingRoundItem,
 } from "./types";
 import {
   extractPlanData,
@@ -348,6 +349,8 @@ export default function ActivityPlanActualView({
   const [t7bProductRates, setT7bProductRates] = useState<Type7bProductRateItem[]>([]);
   const [t7SprayEquipment, setT7SprayEquipment] = useState<string>("โดรน");
   const [t7OtherEquipment, setT7OtherEquipment] = useState<string>("");
+  const [t7bSprayingRounds, setT7bSprayingRounds] = useState<Type7bSprayingRoundItem[]>([]);
+  const initialT7bSprayingRoundsRef = useRef<Type7bSprayingRoundItem[]>([]);
 
   // Work Type 8 States
   const [t8ActualAttendees, setT8ActualAttendees] = useState("");
@@ -787,8 +790,8 @@ export default function ActivityPlanActualView({
             } else if (p.district) {
               setT7District(p.district);
             }
-            if (p.latitude != null) setT7Latitude(String(p.latitude));
-            if (p.longitude != null) setT7Longitude(String(p.longitude));
+            if ((p as any).latitude != null) setT7Latitude(String((p as any).latitude));
+            if ((p as any).longitude != null) setT7Longitude(String((p as any).longitude));
             if (p.stores && p.stores.length > 0) {
               const storeNames = p.stores
                 .map((s: any) => s.store?.name || s.storeName)
@@ -943,7 +946,7 @@ export default function ActivityPlanActualView({
             if (parsed.t3SoldProducts) setT3SoldProducts(parsed.t3SoldProducts);
             if (parsed.t3ActualSales) setT3ActualSales(parsed.t3ActualSales);
             if (parsed.t3ActualQuantity) {
-              setT3ActualQuantity(parsed.t3ActualQuantity);
+              setT3ActualQuantity(String(parsed.t3ActualQuantity));
             }
             if (parsed.t3UnclosedReason) {
               setT3UnclosedReason(parsed.t3UnclosedReason);
@@ -1213,6 +1216,12 @@ export default function ActivityPlanActualView({
               setT7PlotImages(parsed.t7PlotImages);
               initialT7PlotImagesRef.current = JSON.parse(
                 JSON.stringify(parsed.t7PlotImages),
+              );
+            }
+            if (parsed.t7bSprayingRounds && parsed.t7bSprayingRounds.length > 0) {
+              setT7bSprayingRounds(parsed.t7bSprayingRounds);
+              initialT7bSprayingRoundsRef.current = JSON.parse(
+                JSON.stringify(parsed.t7bSprayingRounds),
               );
             }
 
@@ -1670,6 +1679,34 @@ export default function ActivityPlanActualView({
           }
         }
 
+        // TYPE_7B Spraying Rounds Images
+        let cleanT7bSprayingRounds = t7bSprayingRounds;
+        if (
+          isTypeVisible("TYPE_7B") &&
+          t7bSprayingRounds &&
+          t7bSprayingRounds.length > 0
+        ) {
+          cleanT7bSprayingRounds = await Promise.all(
+            t7bSprayingRounds.map(async (round) => {
+              if (round.plotImages && round.plotImages.length > 0) {
+                const res = await uploadActivityPlanImageGroup(
+                  id,
+                  round.plotImages,
+                  `spray-round-${round.roundNumber}`,
+                  t7DemoPlotId || targets.t7b?.owner || targets.t7?.owner || "demo-plot",
+                );
+                allNewlyUploadedUrls.push(...res.newlyUploadedUrls);
+                return {
+                  ...round,
+                  plotImages: res.updatedImages,
+                };
+              }
+              return round;
+            }),
+          );
+          setT7bSprayingRounds(cleanT7bSprayingRounds);
+        }
+
         // Work Type 8
         let cleanT8Images = t8Images;
         if (
@@ -1819,6 +1856,16 @@ export default function ActivityPlanActualView({
           (u) => !currentT10Urls.has(u),
         );
 
+        const initialRoundUrls = (initialT7bSprayingRoundsRef.current || []).flatMap(
+          (r) => collectPermanentUrls(r.plotImages),
+        );
+        const currentRoundUrls = new Set(
+          cleanT7bSprayingRounds.flatMap((r) => collectPermanentUrls(r.plotImages)),
+        );
+        const oldRoundUrlsToDelete = initialRoundUrls.filter(
+          (u) => !currentRoundUrls.has(u),
+        );
+
         const allOldUrlsToDelete = [
           ...oldT1ToDelete,
           ...oldT2ToDelete,
@@ -1827,6 +1874,7 @@ export default function ActivityPlanActualView({
           ...oldT7CropToDelete,
           ...oldT7PlotToDelete,
           ...oldT7InitialToDelete,
+          ...oldRoundUrlsToDelete,
           ...oldT8ToDelete,
           ...oldT9ToDelete,
           ...oldT10ToDelete,
@@ -2010,6 +2058,7 @@ export default function ActivityPlanActualView({
           t7SprayEquipment,
           t7OtherEquipment,
           actualStartDate: t7StartDate,
+          t7bSprayingRounds: cleanT7bSprayingRounds,
           t8ActualAttendees,
           t8FeedbackQnA,
           t8ProductSalesDetails,
@@ -2390,7 +2439,7 @@ export default function ActivityPlanActualView({
             t6LotNumber={t6LotNumber}
             setT6LotNumber={setT6LotNumber}
             t6PurchaseChannel={t6PurchaseChannel}
-            setT6PurchaseChannel={setT6PurchaseChannel}
+            setT6PurchaseChannel={(v: any) => setT6PurchaseChannel(v)}
             t6StoreId={t6StoreId}
             setT6StoreId={setT6StoreId}
             t6StoreName={t6StoreName}
@@ -2533,6 +2582,8 @@ export default function ActivityPlanActualView({
             setT7SprayEquipment={setT7SprayEquipment}
             t7OtherEquipment={t7OtherEquipment}
             setOtherEquipment={setT7OtherEquipment}
+            t7bSprayingRounds={t7bSprayingRounds}
+            setT7bSprayingRounds={setT7bSprayingRounds}
             // Type 8
             t8ActualAttendees={t8ActualAttendees}
             setT8ActualAttendees={setT8ActualAttendees}

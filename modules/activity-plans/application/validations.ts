@@ -532,6 +532,54 @@ export const activityResultSchema = z
         }),
       )
       .optional(),
+    sprayRounds: z
+      .array(
+        z.object({
+          demoPlotId: z.string(),
+          roundNumber: z.coerce.number().int(),
+          sprayDate: z.coerce.date().or(z.string()),
+          sprayMethod: z.string(),
+          sprayEquipment: z.string(),
+          otherEquipment: z.string().optional().nullable(),
+          productResponse: z.string(),
+          problemDetail: z.string().optional().nullable(),
+          products: z.array(
+            z.object({
+              productId: z.string(),
+              productName: z.string().optional().nullable(),
+              baselineRate: z.string().optional().nullable(),
+              actualRate: z.string(),
+              quantityUsed: z.coerce.number(),
+              unit: z.string().optional().nullable(),
+            }),
+          ),
+          externalProducts: z
+            .array(
+              z.object({
+                company: z.string(),
+                productName: z.string(),
+                activeIngredient: z.string().optional().nullable(),
+                formula: z.string(),
+                customFormula: z.string().optional().nullable(),
+                applicationRate: z.string(),
+              }),
+            )
+            .optional()
+            .default([]),
+          attachments: z
+            .array(
+              z.object({
+                fileUrl: z.string(),
+                fileName: z.string().optional(),
+                fileSize: z.number().optional(),
+                mimeType: z.string().optional(),
+              }),
+            )
+            .optional()
+            .default([]),
+        }),
+      )
+      .optional(),
     attachments: z
       .array(
         z.object({

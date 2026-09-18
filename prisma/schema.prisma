@@ -699,6 +699,7 @@ model Product {
   activityResultIssueItems       ActivityResultIssueItem[]  @relation("ActivityResultIssueProductRef")
   activityAttachments            ActivityAttachment[]       @relation("ActivityAttachmentProductRef")
   demoPlotProducts               DemoPlotProduct[]          @relation("DemoPlotProductRef")
+  activityResultSprayProducts    ActivityResultSprayProduct[] @relation("ActivityResultSprayProductRef")
 
   parentId String?
   parent   Product?  @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
@@ -2009,6 +2010,7 @@ model ActivityResult {
   demoResults   ActivityResultDemoItem[]
   followupResults ActivityResultFollowupItem[]
   issueResults  ActivityResultIssueItem[]
+  sprayRounds   ActivityResultSprayRound[]
   attachments   ActivityAttachment[]
   logs          ActivityResultLog[]
 
@@ -2122,6 +2124,65 @@ model ActivityResultDemoItem {
   @@map("activity_result_demo_items")
 }
 
+model ActivityResultSprayRound {
+  id               String   @id @default(cuid())
+  activityResultId String   @map("activity_result_id")
+  demoPlotId       String   @map("demo_plot_id")
+  roundNumber      Int      @map("round_number") // รอบที่ 1, 2, 3...
+  sprayDate        DateTime @default(now()) @map("spray_date") // วันที่ฉีดพ่นรอบนี้
+  sprayMethod      String   @map("spray_method") // SINGLE / TANK_MIXED
+  sprayEquipment   String   @map("spray_equipment") // เป้สะพายหลัง, คน+สายลาก, โดรน, แอร์บัส, อื่นๆ ระบุ..
+  otherEquipment   String?  @map("other_equipment") // ระบุอุปกรณ์กรณีเลือกอื่นๆ
+  productResponse  String   @map("product_response") // พืชตอบสนองดี / ยังไม่เห็นผลชัดเจน / พบปัญหา
+  problemDetail    String?  @map("problem_detail") // รายละเอียดกรณีพบปัญหา
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  activityResult   ActivityResult                @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
+  demoPlot         DemoPlot                      @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
+  products         ActivityResultSprayProduct[]
+  externalProducts ActivityResultSprayExternal[]
+  attachments      ActivityAttachment[]
+
+  @@index([activityResultId])
+  @@index([demoPlotId])
+  @@index([roundNumber])
+  @@map("activity_result_spray_rounds")
+}
+
+model ActivityResultSprayProduct {
+  id           String   @id @default(cuid())
+  sprayRoundId String   @map("spray_round_id")
+  productId    String   @map("product_id")
+  productName  String?  @map("product_name")
+  baselineRate String?  @map("baseline_rate") // อัตราตั้งต้นเดิม (Read-only Snapshot)
+  actualRate   String   @map("actual_rate") // อัตราที่ฉีดพ่นจริงรอบนี้
+  quantityUsed Decimal  @map("quantity_used") @db.Decimal(10, 2) // จำนวนที่ใช้ยาในรอบนี้
+  unit         String?  @map("unit")
+
+  sprayRound   ActivityResultSprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
+  product      Product                  @relation("ActivityResultSprayProductRef", fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([sprayRoundId])
+  @@index([productId])
+  @@map("activity_result_spray_products")
+}
+
+model ActivityResultSprayExternal {
+  id               String   @id @default(cuid())
+  sprayRoundId     String   @map("spray_round_id")
+  company          String   @map("company")
+  productName      String   @map("product_name")
+  activeIngredient String?  @map("active_ingredient")
+  formula          String   @map("formula")
+  customFormula    String?  @map("custom_formula")
+  applicationRate  String   @map("application_rate")
+
+  sprayRound       ActivityResultSprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
+
+  @@index([sprayRoundId])
+  @@map("activity_result_spray_externals")
+}
+
 model ActivityResultFollowupItem {
   id               String   @id @default(cuid())
   activityResultId String   @map("activity_result_id")
@@ -2193,10 +2254,13 @@ model ActivityAttachment {
   issueItem      ActivityResultIssueItem?  @relation(fields: [issueItemId], references: [id], onDelete: Cascade)
   demoPlotId     String?                   @map("demo_plot_id")
   demoPlot       DemoPlot?                 @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  sprayRoundId   String?                   @map("spray_round_id")
+  sprayRound     ActivityResultSprayRound? @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
 
   @@index([activityPlanId])
   @@index([activityResultId])
   @@index([demoPlotId])
+  @@index([sprayRoundId])
   @@index([category])
   @@index([storeId])
   @@index([productId])
@@ -2335,6 +2399,7 @@ model DemoPlot {
   externalProducts DemoPlotExternalProduct[]
   irrigations      DemoPlotIrrigation[]
   attachments      ActivityAttachment[]
+  sprayRounds      ActivityResultSprayRound[]
 
   @@index([customerId])
   @@index([farmerCustomerId])

@@ -70,6 +70,7 @@ export interface DetailType7DemoProps {
   otherEquipment?: string;
   nextSprayDate?: string;
   externalProducts?: any[];
+  sprayRounds?: any[];
 }
 
 export function DetailType7Demo(props: DetailType7DemoProps) {
@@ -112,8 +113,9 @@ export function DetailType7Demo(props: DetailType7DemoProps) {
         sprayEquipment={props.sprayEquipment}
         otherEquipment={props.otherEquipment}
         nextSprayDate={props.nextSprayDate || props.nextFollowUpDate}
-        demoResults={props.demoResults}
+        demoResults={props.demoResults as any}
         externalProducts={props.externalProducts || props.demoPlotData?.externalProducts}
+        sprayRounds={props.sprayRounds || props.demoPlotData?.sprayRounds}
       />
     );
   }

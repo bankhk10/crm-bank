@@ -617,6 +617,7 @@ export function Type7NewDemo({
                 <div className="col-span-6 sm:col-span-7">
                   <FormCombobox
                     id={`demo-prod-${item.id}-${pLine.id}`}
+                    label=""
                     triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
                     value={pLine.productId || ""}
                     onChange={(val) =>

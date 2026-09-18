@@ -5,6 +5,7 @@ import type {
   Type6IssueRecord,
   FollowupProductItem,
   ImageFile,
+  Type7bSprayingRoundItem,
 } from "../types";
 import {
   getActivityResultStatusLabel,
@@ -122,6 +123,7 @@ export interface BuildSummaryInput {
   t7DealerName?: string;
   t7Latitude?: string | number | null;
   t7Longitude?: string | number | null;
+  t7District?: string;
   t7CropCategory?: string;
   t7CropName?: string;
   t7CustomCropName?: string;
@@ -162,6 +164,7 @@ export interface BuildSummaryInput {
     actualRate: string;
   }>;
   actualStartDate?: string;
+  t7bSprayingRounds?: Type7bSprayingRoundItem[];
 
   // Type 8
   t8ActualAttendees: string;
@@ -549,6 +552,126 @@ export function buildResultSummary(
     };
   }
 
+  if (isType7B && activityResultStatus === "COMPLETED") {
+    if (!input.actualStartDate) {
+      return {
+        validationError: "กรุณาระบุวันที่ติดตามจริง (Work Type 7B)",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+    if (
+      input.t7DaysAfterSpray === undefined ||
+      input.t7DaysAfterSpray === null ||
+      input.t7DaysAfterSpray === ""
+    ) {
+      return {
+        validationError: "กรุณาระบุจำนวนวันหลังฉีดพ่น (Work Type 7B)",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+    if (input.t7CropImages && input.t7CropImages.length > 5) {
+      return {
+        validationError:
+          "รูปผลหลังการฉีดพ่น (รูปภาพสภาพพืช) สามารถแนบได้สูงสุด 5 รูป (Work Type 7B)",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+
+    if (input.t7bSprayingRounds && input.t7bSprayingRounds.length > 0) {
+      for (const sr of input.t7bSprayingRounds) {
+        if (!sr.productRates || sr.productRates.length === 0) {
+          return {
+            validationError: `รอบการฉีดพ่นที่ ${sr.roundNumber} ต้องมีรายการผลิตภัณฑ์อย่างน้อย 1 รายการ`,
+            summaryParts: [],
+            payload: null,
+          };
+        }
+        for (const pr of sr.productRates) {
+          if (!pr.actualRate || !pr.actualRate.trim()) {
+            return {
+              validationError: `กรุณาระบุอัตราการฉีดพ่นจริงของ ${pr.productName || "สินค้า"} ในรอบที่ ${sr.roundNumber}`,
+              summaryParts: [],
+              payload: null,
+            };
+          }
+          if (
+            pr.quantityUsed === undefined ||
+            pr.quantityUsed === null ||
+            pr.quantityUsed === "" ||
+            isNaN(Number(pr.quantityUsed)) ||
+            Number(pr.quantityUsed) < 0
+          ) {
+            return {
+              validationError: `กรุณาระบุจำนวนที่ใช้ยาในรอบนี้ของ ${pr.productName || "สินค้า"} ในรอบที่ ${sr.roundNumber}`,
+              summaryParts: [],
+              payload: null,
+            };
+          }
+        }
+        if (sr.sprayMethod === "TANK_MIXED" && sr.hasExternalChemicals) {
+          if (!sr.externalProducts || sr.externalProducts.length === 0) {
+            return {
+              validationError: `กรุณาระบุสารเคมีภายนอกอย่างน้อย 1 รายการ หรือยกเลิกการเลือกมียาภายนอก ในรอบที่ ${sr.roundNumber}`,
+              summaryParts: [],
+              payload: null,
+            };
+          }
+          if (sr.externalProducts.length > 4) {
+            return {
+              validationError: `สามารถระบุสารเคมีภายนอกได้สูงสุด 4 รายการ ในรอบที่ ${sr.roundNumber}`,
+              summaryParts: [],
+              payload: null,
+            };
+          }
+        }
+        if (!sr.sprayEquipment) {
+          return {
+            validationError: `กรุณาเลือกอุปกรณ์ที่ใช้ฉีดพ่นในรอบที่ ${sr.roundNumber}`,
+            summaryParts: [],
+            payload: null,
+          };
+        }
+        if (
+          sr.sprayEquipment === "อื่นๆ ระบุ.." &&
+          (!sr.otherEquipment || !sr.otherEquipment.trim())
+        ) {
+          return {
+            validationError: `กรุณาระบุอุปกรณ์ฉีดพ่นอื่นๆ ในรอบที่ ${sr.roundNumber}`,
+            summaryParts: [],
+            payload: null,
+          };
+        }
+        if (!sr.productResponse) {
+          return {
+            validationError: `กรุณาเลือกผลหลังการฉีดพ่นในรอบที่ ${sr.roundNumber}`,
+            summaryParts: [],
+            payload: null,
+          };
+        }
+        if (
+          sr.productResponse === "พบปัญหา" &&
+          (!sr.problemDetail || !sr.problemDetail.trim())
+        ) {
+          return {
+            validationError: `กรุณาระบุรายละเอียดปัญหาที่พบหลังการฉีดพ่นในรอบที่ ${sr.roundNumber}`,
+            summaryParts: [],
+            payload: null,
+          };
+        }
+        if (sr.plotImages && sr.plotImages.length > 5) {
+          return {
+            validationError: `รูปการฉีดพ่นในรอบที่ ${sr.roundNumber} สามารถแนบได้สูงสุด 5 รูป`,
+            summaryParts: [],
+            payload: null,
+          };
+        }
+      }
+    }
+  }
+
   // Validate Type 1 Plot Images (Max 5 files)
   if (input.t1PlotImages && input.t1PlotImages.length > 5) {
     return {
@@ -671,35 +794,19 @@ export function buildResultSummary(
             : null,
           input.actualStartDate ? `วันที่ติดตามจริง: ${input.actualStartDate}` : null,
           input.t7DaysAfterSpray ? `จำนวนวันหลังฉีดพ่น: ${input.t7DaysAfterSpray} วัน` : null,
-          t7ProductResponse ? `ผลหลังการฉีดพ่น: ${t7ProductResponse}` : null,
-          t7ProblemDescription
-            ? `รายละเอียดปัญหา: ${t7ProblemDescription}`
+          input.t7CropImages && input.t7CropImages.length > 0
+            ? `รูปผลหลังการฉีดพ่น (สภาพพืช): มีแนบ ${Math.min(input.t7CropImages.length, 5)} รูป`
             : null,
-          t7CropImages && t7CropImages.length > 0
-            ? `รูปผลหลังการฉีดพ่น: มีแนบ ${Math.min(t7CropImages.length, 5)} รูป`
-            : null,
-          input.t7bProductRates && input.t7bProductRates.length > 0
-            ? `อัตราการฉีดพ่น: ${input.t7bProductRates.map((p) => `${p.productName || "ยา"}: ${p.applicationRate || (p as any).actualRate || "-"}`).join(", ")}`
-            : null,
-          input.t7SprayMethod
-            ? `วิธีการฉีดพ่น: ${input.t7SprayMethod === "TANK_MIXED" ? "ผสมถัง (Tank-mixed)" : "ฉีดเดี่ยว (Single)"}`
-            : null,
-          input.t7HasExternalChemicals &&
-          input.t7ExternalProducts &&
-          input.t7ExternalProducts.length > 0
-            ? `ยาภายนอก: ${input.t7ExternalProducts.map((ep) => `${ep.company} - ${ep.productName} [${ep.formula === "อื่นๆ" ? ep.customFormula || "อื่นๆ" : ep.formula}] (${ep.applicationRate})`).join(", ")}`
-            : null,
-          input.t7SprayEquipment
-            ? `อุปกรณ์ที่ใช้ฉีดพ่น: ${input.t7SprayEquipment}${input.t7SprayEquipment === "อื่นๆ ระบุ.." && input.t7OtherEquipment ? ` (${input.t7OtherEquipment})` : ""}`
-            : null,
+          input.t7bSprayingRounds && input.t7bSprayingRounds.length > 0
+            ? `การฉีดพ่น (${input.t7bSprayingRounds.length} รอบ): ${input.t7bSprayingRounds.map((r) => `รอบที่ ${r.roundNumber} [${r.sprayMethod === "TANK_MIXED" ? "ผสมถัง" : "ฉีดเดี่ยว"}] ยา: ${r.productRates.map((p) => `${p.productName} (อัตรา: ${p.actualRate}, ใช้: ${p.quantityUsed})`).join(", ")} ผล: ${r.productResponse}`).join("; ")}`
+            : input.t7bProductRates && input.t7bProductRates.length > 0
+              ? `อัตราการฉีดพ่น: ${input.t7bProductRates.map((p) => `${p.productName || "ยา"}: ${p.actualRate || (p as any).applicationRate || "-"}`).join(", ")}`
+              : null,
           input.t7NextSprayDate
             ? `กำหนดฉีดพ่นครั้งต่อไป: ${input.t7NextSprayDate}`
             : t7NextFollowUpDate
               ? `กำหนดฉีดพ่นครั้งต่อไป: ${t7NextFollowUpDate}`
               : null,
-          t7PlotImages && t7PlotImages.length > 0
-            ? `รูปการฉีดพ่น: มีแนบ ${Math.min(t7PlotImages.length, 5)} รูป`
-            : null,
           t7UsageMethod ? `ข้อมูลเพิ่มเติม: ${t7UsageMethod}` : null,
         ]
       : [
@@ -865,49 +972,72 @@ export function buildResultSummary(
     Boolean(input.t7PlannedProductId) ||
     Boolean(input.t7DemoPlotId);
 
-  const demoResults =
-    isType7B && input.t7bProductRates && input.t7bProductRates.length > 0
-      ? input.t7bProductRates.map((pr) => ({
+  const sprayRounds =
+    isType7B && input.t7bSprayingRounds && input.t7bSprayingRounds.length > 0
+      ? input.t7bSprayingRounds.map((sr) => ({
           demoPlotId: effectiveDemoPlotId,
-          plannedProductId: pr.productId,
-          actualProductId: pr.productId,
-          applicationRate: pr.actualRate?.trim() || null,
-          changeReason: null,
-          plotObjective: t7PlotObjective?.trim() || null,
-          cropAgeValue: t7CropAgeValue || null,
-          cropAgeUnit: t7CropAgeUnit || null,
-          growthStage: t7GrowthStage || null,
-          cropCondition: t7CropCondition || null,
-          productResponse: t7ProductResponse || null,
-          problemDescription: t7ProblemDescription || null,
-          finalYieldKg: parseCleanNumber(t7FinalYieldKg),
-          controlYieldKg: parseCleanNumber(t7ControlYieldKg),
-          satisfactionScore: t7FarmerSatisfaction ?? null,
+          roundNumber: sr.roundNumber,
+          sprayDate: sr.sprayDate || input.actualStartDate || new Date(),
+          sprayMethod: sr.sprayMethod,
+          sprayEquipment: sr.sprayEquipment,
+          otherEquipment: sr.otherEquipment || null,
+          productResponse: sr.productResponse,
+          problemDetail: sr.problemDetail || null,
+          products: (sr.productRates || []).map((pr) => ({
+            productId: pr.productId,
+            productName: pr.productName,
+            baselineRate: pr.baselineRate || null,
+            actualRate: pr.actualRate,
+            quantityUsed: Number(pr.quantityUsed) || 0,
+            unit: pr.unit || null,
+          })),
+          externalProducts:
+            sr.sprayMethod === "TANK_MIXED" &&
+            sr.hasExternalChemicals &&
+            sr.externalProducts
+              ? sr.externalProducts.map((ep) => ({
+                  company: ep.company,
+                  productName: ep.productName,
+                  activeIngredient: ep.activeIngredient || null,
+                  formula: ep.formula,
+                  customFormula: ep.customFormula || null,
+                  applicationRate: ep.applicationRate,
+                }))
+              : [],
+          attachments: (sr.plotImages || []).slice(0, 5).map((img) => ({
+            fileUrl: img.url,
+            fileName: img.name || "spray-round-photo.jpg",
+            fileSize: img.size || null,
+            mimeType: img.type || null,
+          })),
         }))
-      : hasType7Data
-        ? [
-            {
-              demoPlotId: effectiveDemoPlotId,
-              plannedProductId: input.t7PlannedProductId || null,
-              actualProductId:
-                input.t7ActualProductId || input.t7PlannedProductId || null,
-              applicationRate: null,
-              changeReason: isT7ProductChanged
-                ? input.t7ChangeReason?.trim() || null
-                : null,
-              plotObjective: t7PlotObjective?.trim() || null,
-              cropAgeValue: t7CropAgeValue || null,
-              cropAgeUnit: t7CropAgeUnit || null,
-              growthStage: t7GrowthStage || null,
-              cropCondition: t7CropCondition || null,
-              productResponse: t7ProductResponse || null,
-              problemDescription: t7ProblemDescription || null,
-              finalYieldKg: parseCleanNumber(t7FinalYieldKg),
-              controlYieldKg: parseCleanNumber(t7ControlYieldKg),
-              satisfactionScore: t7FarmerSatisfaction ?? null,
-            },
-          ]
-        : undefined;
+      : undefined;
+
+  const demoResults =
+    !isType7B && hasType7Data
+      ? [
+          {
+            demoPlotId: effectiveDemoPlotId,
+            plannedProductId: input.t7PlannedProductId || null,
+            actualProductId:
+              input.t7ActualProductId || input.t7PlannedProductId || null,
+            applicationRate: null,
+            changeReason: isT7ProductChanged
+              ? input.t7ChangeReason?.trim() || null
+              : null,
+            plotObjective: t7PlotObjective?.trim() || null,
+            cropAgeValue: t7CropAgeValue || null,
+            cropAgeUnit: t7CropAgeUnit || null,
+            growthStage: t7GrowthStage || null,
+            cropCondition: t7CropCondition || null,
+            productResponse: t7ProductResponse || null,
+            problemDescription: t7ProblemDescription || null,
+            finalYieldKg: parseCleanNumber(t7FinalYieldKg),
+            controlYieldKg: parseCleanNumber(t7ControlYieldKg),
+            satisfactionScore: t7FarmerSatisfaction ?? null,
+          },
+        ]
+      : undefined;
 
   // Build structured sale results
   const saleResults: any[] = [];
@@ -1364,9 +1494,10 @@ export function buildResultSummary(
     salesResultAmount: salesResult,
     collectResultAmount: collectResult,
     demoPlotsCreated: !isType7B && (t7PlotName || type7aDemoPlot) ? 1 : 0,
-    demoPlotsFollowedUp: isType7B && t7PlotName ? 1 : 0,
+    demoPlotsFollowedUp: isType7B && (t7PlotName || effectiveDemoPlotId) ? 1 : 0,
     type7aDemoPlot,
     demoResults,
+    sprayRounds,
     saleResults: saleResults.length > 0 ? saleResults : undefined,
     stockResults: stockResults.length > 0 ? stockResults : undefined,
     surveyResults: surveyResults.length > 0 ? surveyResults : undefined,

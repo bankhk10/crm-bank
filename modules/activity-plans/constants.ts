@@ -344,6 +344,16 @@ export interface UserDemoPlotOption {
   experimentDetail?: string;
   latitude?: string;
   longitude?: string;
+  province?: string;
+  district?: string;
+  initialSprayDate?: string;
+  nextSprayDate?: string;
+  mainCropInfo?: string;
+  sprayMethod?: string;
+  hasExternalChemicals?: boolean;
+  demoProducts?: any[];
+  externalProducts?: any[];
+  irrigations?: any[];
 }
 
 export const USER_DEMO_PLOTS: UserDemoPlotOption[] = [

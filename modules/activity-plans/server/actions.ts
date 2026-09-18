@@ -397,7 +397,8 @@ export async function getActivityPlanAction(id: string) {
   try {
     const result = await getActivityPlanDetailUseCase(id);
     return serialize(result);
-  } catch {
+  } catch (err) {
+    console.error("getActivityPlanAction ERROR for id:", id, err);
     return {
       success: false as const,
       error: "ล้มเหลวในการดึงข้อมูล Trip Plan",

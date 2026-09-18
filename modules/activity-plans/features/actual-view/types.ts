@@ -164,6 +164,7 @@ export interface ActualTargetsState {
     owner: string;
     plotName?: string;
     dealerName?: string;
+    dealerCode?: string;
     province?: string;
     district?: string;
     categoryName?: string;
@@ -204,6 +205,8 @@ export interface ActualTargetsState {
     detail: string;
     targetCondition: string;
     items: any[];
+    plotName?: string;
+    plotCode?: string;
   };
   t8: {
     topic: string;
@@ -230,6 +233,7 @@ export interface ActualTargetsState {
     store: string;
     detail: string;
     targetOpportunity: string;
+    items?: any[];
   };
 }
 
@@ -350,5 +354,35 @@ export interface Type7bProductRateItem {
   productName: string;
   baselineRate?: string;
   actualRate: string;
+  quantityUsed?: number | string;
+  unit?: string;
 }
+
+export interface Type7bSprayProductRateItem {
+  productId: string;
+  productName: string;
+  baselineRate?: string;
+  withdrawnQuantity?: number | string | null;
+  actualRate: string;
+  quantityUsed: number | string;
+  unit?: string;
+}
+
+export interface Type7bSprayingRoundItem {
+  id?: string;
+  roundNumber: number;
+  sprayDate?: string;
+  sprayMethod: "SINGLE" | "TANK_MIXED";
+  hasExternalChemicals?: boolean;
+  externalProducts?: DemoPlotExternalProductItem[];
+  sprayEquipment: string;
+  otherEquipment?: string;
+  productResponse: string;
+  problemDetail?: string;
+  productRates: Type7bSprayProductRateItem[];
+  plotImages: ImageFile[];
+}
+
+export type { ParsedSummaryValues } from "./utils/summary-parser";
+
 

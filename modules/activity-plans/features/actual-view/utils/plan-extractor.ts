@@ -634,7 +634,7 @@ export function extractPlanData(
         storeId: pr.storeId || matchedStore?.storeId || undefined,
         store:
           (pr as any)?.store?.name ||
-          pr.storeName ||
+          (pr as any)?.storeName ||
           matchedStore?.storeName ||
           "",
         productId: pr.productId || undefined,
@@ -777,16 +777,23 @@ export function extractPlanData(
       chemicalGroupName: t7aCategory?.description || "",
       demoProducts: t7aProducts.map((pr) => ({
         productId: pr.productId,
-        productName: pr.productName,
-        quantity: pr.targetQuantity,
+        productName: pr.productName || (pr.product as any)?.name || "",
+        quantity: pr.targetQuantity ?? 1,
         unit: (pr.product as any)?.unit || null,
       })),
     };
 
+    const t7bDetail =
+      (hasT7B ? (p.objective || p.notes) : "") ||
+      prevTargets.t7b?.detail ||
+      "";
     targets.t7b = {
       ...(prevTargets.t7b || prevTargets.t7),
       ...commonT7Data,
       activityType: "FOLLOW_UP",
+      plotName: t7Plot?.name || "",
+      plotCode: t7Plot?.code || "",
+      detail: t7bDetail,
     };
   }
 

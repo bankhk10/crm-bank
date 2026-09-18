@@ -7,6 +7,7 @@ import {
   DemoPlotProductItem,
   DemoPlotExternalProductItem,
   Type7bProductRateItem,
+  Type7bSprayingRoundItem,
 } from "@/modules/activity-plans/features/actual-view/types";
 import { ActualType7NewDemo, TargetDemoItem, CustomerOption } from "./actual-type7-new-demo";
 import {
@@ -121,6 +122,8 @@ export interface ActualType7DemoProps {
   setSprayEquipment?: (v: string) => void;
   otherEquipment?: string;
   setOtherEquipment?: (v: string) => void;
+  t7bSprayingRounds?: Type7bSprayingRoundItem[];
+  setT7bSprayingRounds?: (rounds: Type7bSprayingRoundItem[]) => void;
 
   // Legacy & Shared Props
   plannedProductId?: string | null;
@@ -226,6 +229,8 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
         setSprayEquipment={props.setSprayEquipment}
         otherEquipment={props.otherEquipment}
         setOtherEquipment={props.setOtherEquipment}
+        t7bSprayingRounds={props.t7bSprayingRounds}
+        setT7bSprayingRounds={props.setT7bSprayingRounds}
         nextSprayDate={props.nextSprayDate}
         setNextSprayDate={props.setNextSprayDate}
         cropImages={props.cropImages}

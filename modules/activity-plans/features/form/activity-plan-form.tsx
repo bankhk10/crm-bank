@@ -1277,8 +1277,8 @@ export function ActivityPlanForm({
 
   // Work Type 7: ติดตามแปลงสาธิต / ทำแปลง
   const [type7Items, setType7Items] = useState<Type7DemoPlotItem[]>(() => {
-    if (initial?.demoPlot || (initial as any)?.demoPlotId) {
-      const dp = initial?.demoPlot;
+    if ((initial as any)?.demoPlot || (initial as any)?.demoPlotId) {
+      const dp = (initial as any)?.demoPlot;
       const fallbackPlotId = dp?.id || (initial as any)?.demoPlotId || "";
       const isInitialType7B =
         initialTypes.some((t) => getWorkTypeCode(t) === "TYPE_7B") ||
@@ -1289,7 +1289,7 @@ export function ActivityPlanForm({
             wt === "TYPE_7B",
         );
 
-      const type7aProds = (initial.products || [])
+      const type7aProds = ((initial as any)?.products || [])
         .filter((p: any) => p.workTypeCode === "TYPE_7A")
         .map((p: any, idx: number) => ({
           id: p.id || String(idx + 1),
@@ -1299,12 +1299,20 @@ export function ActivityPlanForm({
           unit: p.product?.unit || "",
         }));
 
-      const type7bProd = (initial.products || []).find(
-        (p: any) => p.workTypeCode === "TYPE_7B",
-      );
+      const type7bProds = ((initial as any)?.products || [])
+        .filter((p: any) => p.workTypeCode === "TYPE_7B")
+        .map((p: any, idx: number) => ({
+          id: p.id || String(idx + 1),
+          productId: p.productId,
+          productName: p.productName || p.product?.name || "",
+          quantity: p.targetQuantity || 1,
+          unit: p.product?.unit || "",
+        }));
+
+      const has7bWithdrawal = isInitialType7B && type7bProds.length > 0;
 
       const derivedCategoryId =
-        (initial.products || []).find((p: any) => p.workTypeCode === "TYPE_7A")
+        ((initial as any)?.products || []).find((p: any) => p.workTypeCode === "TYPE_7A")
           ?.product?.categoryId ||
         dp?.categoryId ||
         dp?.chemicalGroupId ||
@@ -1317,6 +1325,8 @@ export function ActivityPlanForm({
           demoPlotId: fallbackPlotId,
           existingPlotId: isInitialType7B ? fallbackPlotId : undefined,
           existingPlotName: isInitialType7B ? (dp?.name || "") : undefined,
+          hasProductWithdrawal: has7bWithdrawal,
+          withdrawnProducts: has7bWithdrawal ? type7bProds : [],
           plotName: dp?.name || "",
           storeId: dp?.customerId || "",
           ownerName: dp?.customer?.name || dp?.ownerName || "",
@@ -1350,7 +1360,9 @@ export function ActivityPlanForm({
             "yyyy-MM-dd",
           ),
           followUpDate: format(new Date(), "yyyy-MM-dd"),
-          detail: dp?.objective || "",
+          detail: isInitialType7B
+            ? ((initial as any)?.objective || (initial as any)?.notes || "")
+            : (dp?.objective || ""),
         },
       ];
     }
@@ -1497,12 +1509,12 @@ export function ActivityPlanForm({
           if (original) {
             list.push(original);
           } else if (
-            initial?.demoPlot &&
-            (initial.demoPlot.id === targetPlotId ||
-              initial.demoPlot.name === targetPlotName)
+            (initial as any)?.demoPlot &&
+            ((initial as any).demoPlot.id === targetPlotId ||
+              (initial as any).demoPlot.name === targetPlotName)
           ) {
-            const dp = initial.demoPlot;
-            const matchedProd = (initial.products || []).find(
+            const dp = (initial as any).demoPlot;
+            const matchedProd = ((initial as any)?.products || []).find(
               (p: any) => p.workTypeCode === "TYPE_7B",
             );
             list.push({
@@ -2873,7 +2885,7 @@ export function ActivityPlanForm({
       }
     }
 
-    const cleanObjective = (initial as any)?.objective ?? "";
+    let cleanObjective = (initial as any)?.objective ?? "";
     const cleanDescription = (initial as any)?.description ?? null;
 
     // Budgets mapping
@@ -3303,15 +3315,25 @@ export function ActivityPlanForm({
         }
       } else if (hasType7BPlan) {
         type7Items.forEach((item) => {
-          const pId =
-            item.productId ||
-            productsList.find((p) => p.name === item.productName)?.id;
-          if (pId) {
-            planProducts.push({
-              workTypeCode: "TYPE_7B",
-              productId: pId,
-              productName: item.productName || null,
-              isPriceOverridden: false,
+          if (
+            item.hasProductWithdrawal &&
+            item.withdrawnProducts &&
+            item.withdrawnProducts.length > 0
+          ) {
+            item.withdrawnProducts.forEach((wp) => {
+              const pId =
+                wp.productId ||
+                productsList.find((p) => p.name === wp.productName)?.id;
+              if (pId) {
+                const matchedP = productsList.find((p) => p.id === pId);
+                planProducts.push({
+                  workTypeCode: "TYPE_7B",
+                  productId: pId,
+                  productName: wp.productName || matchedP?.name || null,
+                  targetQuantity: wp.quantity ? Number(wp.quantity) : 1,
+                  isPriceOverridden: false,
+                });
+              }
             });
           }
           if (item.existingPlotId || item.demoPlotId) {
@@ -3319,6 +3341,10 @@ export function ActivityPlanForm({
               item.existingPlotId || item.demoPlotId || null;
           }
         });
+        const t7bDetail = type7Items[0]?.detail?.trim();
+        if (t7bDetail) {
+          cleanObjective = t7bDetail;
+        }
       }
 
       // 8. TYPE_8: จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์

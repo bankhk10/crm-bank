@@ -11,6 +11,7 @@ import type {
   DemoPlotProductItem,
   DemoPlotExternalProductItem,
   Type7bProductRateItem,
+  Type7bSprayingRoundItem,
 } from "../types";
 import {
   ActualType1Visit,
@@ -273,6 +274,8 @@ interface ActivityResultSectionProps {
   setT7SprayEquipment?: (v: string) => void;
   t7OtherEquipment?: string;
   setOtherEquipment?: (v: string) => void;
+  t7bSprayingRounds?: Type7bSprayingRoundItem[];
+  setT7bSprayingRounds?: (rounds: Type7bSprayingRoundItem[]) => void;
 
   // Type 8
   t8ActualAttendees: string;
@@ -544,6 +547,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     setT7SprayEquipment,
     t7OtherEquipment,
     setOtherEquipment,
+    t7bSprayingRounds,
+    setT7bSprayingRounds,
     t8ActualAttendees,
     setT8ActualAttendees,
     t8FeedbackQnA,
@@ -885,6 +890,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setSprayEquipment={setT7SprayEquipment}
           otherEquipment={t7OtherEquipment}
           setOtherEquipment={setOtherEquipment}
+          t7bSprayingRounds={t7bSprayingRounds}
+          setT7bSprayingRounds={setT7bSprayingRounds}
           nextSprayDate={t7NextSprayDate}
           setNextSprayDate={setT7NextSprayDate}
           productPrice={t7ProductPrice}

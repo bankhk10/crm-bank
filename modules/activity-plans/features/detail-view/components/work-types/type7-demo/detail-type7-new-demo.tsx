@@ -431,7 +431,7 @@ export function DetailType7NewDemo({
       rows.push({
         id: "single-product",
         productName: rawActualName !== "-" ? rawActualName : rawPlannedName,
-        productCode: actualCode || plannedCode,
+        productCode: actualCode || plannedCode || undefined,
         unit: actualUnit || plannedUnit || "",
         plannedQty:
           (target as any)?.demoProductQuantity != null

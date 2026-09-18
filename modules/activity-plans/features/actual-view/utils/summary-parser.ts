@@ -4,6 +4,7 @@ import type {
   Type6IssueRecord,
   FollowupProductItem,
   ImageFile,
+  Type7bSprayingRoundItem,
 } from "../types";
 
 export interface ParsedSummaryValues {
@@ -43,6 +44,9 @@ export interface ParsedSummaryValues {
   // Type 3
   t3SoldProducts?: string;
   t3ActualSales?: string;
+  t3ActualQuantity?: string | number;
+  t3UnclosedReason?: string;
+  t3ProductSalesDetails?: any[];
   t3PaymentType?: "เงินสด" | "เงินโอน" | "เครดิต";
   t3CreditDays?: string;
   t3OrderBookNo?: string;
@@ -101,6 +105,7 @@ export interface ParsedSummaryValues {
   t7PlotObjective?: string;
   t7CustomPlotDetail?: string;
   t7DemoPlotId?: string | null;
+  t7bSprayingRounds?: Type7bSprayingRoundItem[];
   t7DemoResults?: Array<{
     id?: string;
     plannedProductId?: string | null;
@@ -399,7 +404,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       };
     });
 
-    const firstIssue = result.t6IssueDetails[0];
+    const firstIssue = result.t6IssueDetails?.[0];
     if (firstIssue) {
       result.t6IssueRecord = firstIssue;
       result.t6ProductId = firstIssue.productId;
@@ -1194,6 +1199,54 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       result.t7ControlYieldKg = String(demo.controlYieldKg);
     if (demo.satisfactionScore != null)
       result.t7FarmerSatisfaction = demo.satisfactionScore;
+  }
+
+  // Structured Type 7B Multiple Spraying Rounds from DB
+  if (
+    resData.sprayRounds &&
+    Array.isArray(resData.sprayRounds) &&
+    resData.sprayRounds.length > 0
+  ) {
+    result.t7bSprayingRounds = resData.sprayRounds.map((sr: any) => ({
+      id: sr.id,
+      roundNumber: sr.roundNumber,
+      sprayDate: sr.sprayDate
+        ? new Date(sr.sprayDate).toISOString().split("T")[0]
+        : undefined,
+      sprayMethod: sr.sprayMethod,
+      sprayEquipment: sr.sprayEquipment,
+      otherEquipment: sr.otherEquipment || undefined,
+      productResponse: sr.productResponse,
+      problemDetail: sr.problemDetail || undefined,
+      productRates: (sr.products || []).map((p: any) => ({
+        productId: p.productId,
+        productName: p.productName || p.product?.name || "",
+        baselineRate: p.baselineRate || undefined,
+        actualRate: p.actualRate || "",
+        quantityUsed: p.quantityUsed != null ? Number(p.quantityUsed) : 0,
+        unit: p.unit || p.product?.unit || undefined,
+      })),
+      hasExternalChemicals:
+        sr.sprayMethod === "TANK_MIXED" &&
+        sr.externalProducts &&
+        sr.externalProducts.length > 0,
+      externalProducts: (sr.externalProducts || []).map((ep: any) => ({
+        id: ep.id,
+        company: ep.company,
+        productName: ep.productName,
+        activeIngredient: ep.activeIngredient || undefined,
+        formula: ep.formula,
+        customFormula: ep.customFormula || undefined,
+        applicationRate: ep.applicationRate,
+      })),
+      plotImages: (sr.attachments || []).map((att: any) => ({
+        id: att.id,
+        url: att.fileUrl,
+        name: att.fileName || "spray-round-photo.jpg",
+        size: att.fileSize || undefined,
+        type: att.mimeType || undefined,
+      })),
+    }));
   }
 
   return result;

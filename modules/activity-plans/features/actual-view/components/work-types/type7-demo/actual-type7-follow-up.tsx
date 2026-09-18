@@ -5,20 +5,18 @@ import {
   Sprout,
   Clock,
   History,
-  Search,
-  ImageIcon,
-  Star,
-  TrendingUp,
-  Sparkles,
-  MapPin,
   Droplets,
-  FlaskConical,
   Layers,
-  Package,
   Plus,
   Trash2,
-  Calendar,
-  Wrench,
+  MapPin,
+  Sparkles,
+  TrendingUp,
+  Star,
+  CheckCircle2,
+  AlertTriangle,
+  FileText,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,10 +30,12 @@ import {
 } from "@/components/ui/select";
 import type { DemoPlotStatus } from "@prisma/client";
 import { cn } from "@/lib/utils";
-import {
+import type {
   ImageFile,
   DemoPlotExternalProductItem,
   Type7bProductRateItem,
+  Type7bSprayingRoundItem,
+  Type7bSprayProductRateItem,
 } from "@/modules/activity-plans/features/actual-view/types";
 import {
   DEMO_PLOT_SPRAY_METHODS,
@@ -96,53 +96,42 @@ export interface ActualType7FollowUpProps {
   usageMethod: string;
   setUsageMethod: (v: string) => void;
 
-  // 1. วันที่ติดตามจริง
+  // Section A: Tracking
   actualStartDate?: string;
   setActualStartDate?: (v: string) => void;
-
-  // 2. จำนวนวันหลังฉีดพ่น
   daysAfterSpray?: string | number;
   setDaysAfterSpray?: (v: string) => void;
+  cropImages?: ImageFile[];
+  setCropImages?: (imgs: ImageFile[]) => void;
 
-  // 3. ผลหลังการฉีดพ่น
+  // Section B: Multiple Spraying Rounds
+  t7bSprayingRounds?: Type7bSprayingRoundItem[];
+  setT7bSprayingRounds?: (rounds: Type7bSprayingRoundItem[]) => void;
+
+  // Backward compatibility / shared props
   productResponse?: string;
   setProductResponse?: (v: any) => void;
   problemDescription?: string;
   setProblemDescription?: (v: string) => void;
-
-  // 4. รูปผลหลังการฉีดพ่น (max 5)
-  cropImages?: ImageFile[];
-  setCropImages?: (imgs: ImageFile[]) => void;
-
-  // 5. อัตราการฉีดพ่นแยกตามแต่ละตัวยา
   bProductRates?: Type7bProductRateItem[];
   setBProductRates?: (items: Type7bProductRateItem[]) => void;
-
-  // 6. วิธีการฉีดพ่น & สารเคมีภายนอก
   sprayMethod?: "SINGLE" | "TANK_MIXED";
   setSprayMethod?: (v: "SINGLE" | "TANK_MIXED") => void;
   hasExternalChemicals?: boolean;
   setHasExternalChemicals?: (v: boolean) => void;
   externalProducts?: DemoPlotExternalProductItem[];
   setExternalProducts?: (items: DemoPlotExternalProductItem[]) => void;
-
-  // 7. อุปกรณ์ที่ใช้ฉีดพ่น
   sprayEquipment?: string;
   setSprayEquipment?: (v: string) => void;
   otherEquipment?: string;
   setOtherEquipment?: (v: string) => void;
-
-  // 8. วันที่นัดหมายครั้งถัดไป (Label: กำหนดฉีดพ่นครั้งต่อไป)
   nextSprayDate?: string;
   setNextSprayDate?: (v: string) => void;
   nextFollowUpDate?: string;
   setNextFollowUpDate?: (v: string) => void;
-
-  // 9. รูปการฉีดพ่น (max 5)
   plotImages?: ImageFile[];
   setPlotImages?: (imgs: ImageFile[]) => void;
 
-  // Additional / Observation fields
   cropAgeValue?: string;
   setCropAgeValue?: (v: string) => void;
   cropAgeUnit?: string;
@@ -156,7 +145,7 @@ export interface ActualType7FollowUpProps {
   cropProblemDescription?: string;
   setCropProblemDescription?: (v: string) => void;
 
-  // Status & Final Yield
+  // Final evaluation
   plotStatus?: DemoPlotStatus;
   setPlotStatus?: (v: any) => void;
   finalYieldKg?: string;
@@ -186,42 +175,14 @@ export function ActualType7FollowUp({
   setActualStartDate,
   daysAfterSpray = "",
   setDaysAfterSpray,
-  productResponse = "พืชตอบสนองดี",
-  setProductResponse,
-  problemDescription = "",
-  setProblemDescription,
   cropImages = [],
   setCropImages,
-  bProductRates = [],
-  setBProductRates,
-  sprayMethod = "SINGLE",
-  setSprayMethod,
-  hasExternalChemicals = false,
-  setHasExternalChemicals,
-  externalProducts = [],
-  setExternalProducts,
-  sprayEquipment = "โดรน",
-  setSprayEquipment,
-  otherEquipment = "",
-  setOtherEquipment,
+  t7bSprayingRounds = [],
+  setT7bSprayingRounds,
   nextSprayDate = "",
   setNextSprayDate,
   nextFollowUpDate = "",
   setNextFollowUpDate,
-  plotImages = [],
-  setPlotImages,
-  cropAgeValue = "",
-  setCropAgeValue,
-  cropAgeUnit = "วัน",
-  setCropAgeUnit,
-  growthStage = "",
-  setGrowthStage,
-  cropCondition = "สมบูรณ์",
-  setCropCondition,
-  cropProblemDesc = "",
-  setCropProblemDesc,
-  cropProblemDescription = "",
-  setCropProblemDescription,
   plotStatus = "IN_PROGRESS" as DemoPlotStatus,
   setPlotStatus,
   finalYieldKg = "",
@@ -242,29 +203,7 @@ export function ActualType7FollowUp({
 }: ActualType7FollowUpProps) {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
-  // Initialize or merge products list from demoPlotData.demoProducts into bProductRates
-  useEffect(() => {
-    if (demoPlotData?.demoProducts && demoPlotData.demoProducts.length > 0) {
-      const currentRates = bProductRates || [];
-      const missing = demoPlotData.demoProducts.filter(
-        (dp: any) => !currentRates.some((r) => r.productId === dp.productId),
-      );
-      if (missing.length > 0) {
-        const merged: Type7bProductRateItem[] = [
-          ...currentRates,
-          ...missing.map((dp: any) => ({
-            productId: dp.productId,
-            productName: dp.product?.name || dp.productName || "สินค้าสาธิต",
-            baselineRate: dp.applicationRate || "",
-            actualRate: "",
-          })),
-        ];
-        setBProductRates?.(merged);
-      }
-    }
-  }, [demoPlotData?.demoProducts, bProductRates, setBProductRates]);
-
-  // Auto calculate days after spray from initialSprayDate and actualStartDate if not yet set
+  // Auto calculate days after spray from baseline initialSprayDate and actualStartDate
   useEffect(() => {
     if (
       (daysAfterSpray === "" || daysAfterSpray == null) &&
@@ -288,44 +227,208 @@ export function ActualType7FollowUp({
     setDaysAfterSpray,
   ]);
 
-  const handleProductRateChange = (productId: string, val: string) => {
-    if (!bProductRates) return;
-    const updated = bProductRates.map((item) =>
-      item.productId === productId ? { ...item, actualRate: val } : item,
-    );
-    setBProductRates?.(updated);
+  // Auto-initialize first spraying round if empty and demoPlotData loaded
+  useEffect(() => {
+    if ((!t7bSprayingRounds || t7bSprayingRounds.length === 0) && demoPlotData) {
+      const existingRounds = demoPlotData.sprayRounds || [];
+      const maxExisting =
+        existingRounds.length > 0
+          ? Math.max(...existingRounds.map((r: any) => Number(r.roundNumber) || 0))
+          : 0;
+      const nextRoundNum = maxExisting + 1;
+
+      const defaultProducts: Type7bSprayProductRateItem[] = (
+        demoPlotData.demoProducts || []
+      ).map((dp: any) => ({
+        productId: dp.productId,
+        productName: dp.product?.name || dp.productName || "สินค้าสาธิต",
+        baselineRate: dp.applicationRate || "",
+        actualRate: dp.applicationRate || "",
+        quantityUsed: dp.quantity ?? 1,
+        unit: dp.product?.unit || dp.product?.packageSizeUnit || dp.unit || "",
+      }));
+
+      const initialRound: Type7bSprayingRoundItem = {
+        roundNumber: nextRoundNum,
+        sprayDate: actualStartDate || "",
+        sprayMethod: (demoPlotData.sprayMethod as any) || "SINGLE",
+        hasExternalChemicals: false,
+        externalProducts: [],
+        sprayEquipment: "โดรน",
+        otherEquipment: "",
+        productResponse: "พืชตอบสนองดี",
+        problemDetail: "",
+        productRates: defaultProducts,
+        plotImages: [],
+      };
+
+      setT7bSprayingRounds?.([initialRound]);
+    }
+  }, [demoPlotData, t7bSprayingRounds, setT7bSprayingRounds, actualStartDate]);
+
+  // Handler for adding a new spraying round
+  const handleAddSprayingRound = () => {
+    const currentRounds = t7bSprayingRounds || [];
+    const existingRounds = demoPlotData?.sprayRounds || [];
+    const maxExisting =
+      existingRounds.length > 0
+        ? Math.max(...existingRounds.map((r: any) => Number(r.roundNumber) || 0))
+        : 0;
+    const maxCurrent =
+      currentRounds.length > 0
+        ? Math.max(...currentRounds.map((r) => r.roundNumber))
+        : maxExisting;
+    const nextRoundNum = maxCurrent + 1;
+
+    const defaultProducts: Type7bSprayProductRateItem[] = (
+      demoPlotData?.demoProducts || []
+    ).map((dp: any) => ({
+      productId: dp.productId,
+      productName: dp.product?.name || dp.productName || "สินค้าสาธิต",
+      baselineRate: dp.applicationRate || "",
+      actualRate: dp.applicationRate || "",
+      quantityUsed: dp.quantity ?? 1,
+      unit: dp.product?.unit || dp.product?.packageSizeUnit || dp.unit || "",
+    }));
+
+    const newRound: Type7bSprayingRoundItem = {
+      roundNumber: nextRoundNum,
+      sprayDate: actualStartDate || "",
+      sprayMethod: (demoPlotData?.sprayMethod as any) || "SINGLE",
+      hasExternalChemicals: false,
+      externalProducts: [],
+      sprayEquipment: "โดรน",
+      otherEquipment: "",
+      productResponse: "พืชตอบสนองดี",
+      problemDetail: "",
+      productRates: defaultProducts,
+      plotImages: [],
+    };
+
+    setT7bSprayingRounds?.([...currentRounds, newRound]);
   };
 
-  // External Products Handlers (Same as actual-type7-new-demo.tsx)
-  const handleAddExternalProduct = () => {
-    if (externalProducts.length >= 4) return;
-    const newItems: DemoPlotExternalProductItem[] = [
-      ...externalProducts,
-      {
-        company: "",
-        productName: "",
-        activeIngredient: "",
-        formula: "SL",
-        customFormula: "",
-        applicationRate: "",
-      },
-    ];
-    setExternalProducts?.(newItems);
+  const handleRemoveSprayingRound = (idx: number) => {
+    const currentRounds = t7bSprayingRounds || [];
+    const updated = currentRounds.filter((_, i) => i !== idx);
+    setT7bSprayingRounds?.(updated);
   };
 
-  const handleUpdateExternalProduct = (
-    index: number,
-    field: keyof DemoPlotExternalProductItem,
-    value: string,
+  const handleUpdateRound = (
+    idx: number,
+    field: keyof Type7bSprayingRoundItem,
+    value: any,
   ) => {
-    const updated = [...externalProducts];
-    updated[index] = { ...updated[index], [field]: value };
-    setExternalProducts?.(updated);
+    const currentRounds = [...(t7bSprayingRounds || [])];
+    if (currentRounds[idx]) {
+      currentRounds[idx] = {
+        ...currentRounds[idx],
+        [field]: value,
+      };
+      setT7bSprayingRounds?.(currentRounds);
+    }
   };
 
-  const handleRemoveExternalProduct = (index: number) => {
-    const updated = externalProducts.filter((_, i) => i !== index);
-    setExternalProducts?.(updated);
+  const handleUpdateRoundProduct = (
+    roundIdx: number,
+    productIdx: number,
+    field: keyof Type7bSprayProductRateItem,
+    value: any,
+  ) => {
+    const currentRounds = [...(t7bSprayingRounds || [])];
+    if (currentRounds[roundIdx]) {
+      const products = [...currentRounds[roundIdx].productRates];
+      if (products[productIdx]) {
+        products[productIdx] = {
+          ...products[productIdx],
+          [field]: value,
+        };
+        currentRounds[roundIdx].productRates = products;
+        setT7bSprayingRounds?.(currentRounds);
+      }
+    }
+  };
+
+  const handleAddExternalProductToRound = (roundIdx: number) => {
+    const currentRounds = [...(t7bSprayingRounds || [])];
+    if (currentRounds[roundIdx]) {
+      const externals = currentRounds[roundIdx].externalProducts || [];
+      if (externals.length >= 4) return;
+      currentRounds[roundIdx].externalProducts = [
+        ...externals,
+        {
+          company: "",
+          productName: "",
+          activeIngredient: "",
+          formula: "SL",
+          customFormula: "",
+          applicationRate: "",
+        },
+      ];
+      currentRounds[roundIdx].hasExternalChemicals = true;
+      setT7bSprayingRounds?.(currentRounds);
+    }
+  };
+
+  const handleUpdateRoundExternalProduct = (
+    roundIdx: number,
+    extIdx: number,
+    field: keyof DemoPlotExternalProductItem,
+    value: any,
+  ) => {
+    const currentRounds = [...(t7bSprayingRounds || [])];
+    if (currentRounds[roundIdx]) {
+      const externals = [...(currentRounds[roundIdx].externalProducts || [])];
+      if (externals[extIdx]) {
+        externals[extIdx] = {
+          ...externals[extIdx],
+          [field]: value,
+        };
+        currentRounds[roundIdx].externalProducts = externals;
+        setT7bSprayingRounds?.(currentRounds);
+      }
+    }
+  };
+
+  const handleRemoveRoundExternalProduct = (
+    roundIdx: number,
+    extIdx: number,
+  ) => {
+    const currentRounds = [...(t7bSprayingRounds || [])];
+    if (currentRounds[roundIdx]) {
+      const externals = (currentRounds[roundIdx].externalProducts || []).filter(
+        (_, i) => i !== extIdx,
+      );
+      currentRounds[roundIdx].externalProducts = externals;
+      if (externals.length === 0) {
+        currentRounds[roundIdx].hasExternalChemicals = false;
+      }
+      setT7bSprayingRounds?.(currentRounds);
+    }
+  };
+
+  const handleRoundPlotFilesChange = (
+    roundIdx: number,
+    files: FileWithPreview[],
+  ) => {
+    const newFiles = filesWithPreviewToImageFiles(files);
+    const currentRounds = [...(t7bSprayingRounds || [])];
+    if (currentRounds[roundIdx]) {
+      if (!isImageFilesEqual(currentRounds[roundIdx].plotImages, newFiles)) {
+        currentRounds[roundIdx] = {
+          ...currentRounds[roundIdx],
+          plotImages: newFiles.slice(0, 5),
+        };
+        setT7bSprayingRounds?.(currentRounds);
+      }
+    }
+  };
+
+  const handleCropFilesChange = (files: FileWithPreview[]) => {
+    const newFiles = filesWithPreviewToImageFiles(files);
+    if (!isImageFilesEqual(cropImages, newFiles)) {
+      setCropImages?.(newFiles.slice(0, 5));
+    }
   };
 
   const handleYieldChange = (finalVal: string, controlVal: string) => {
@@ -341,22 +444,12 @@ export function ActualType7FollowUp({
     }
   };
 
-  const handleCropFilesChange = (files: FileWithPreview[]) => {
-    const newFiles = filesWithPreviewToImageFiles(files);
-    if (!isImageFilesEqual(cropImages, newFiles)) {
-      setCropImages?.(newFiles.slice(0, 5));
-    }
-  };
-
-  const handlePlotFilesChange = (files: FileWithPreview[]) => {
-    const newFiles = filesWithPreviewToImageFiles(files);
-    if (!isImageFilesEqual(plotImages, newFiles)) {
-      setPlotImages?.(newFiles.slice(0, 5));
-    }
-  };
-
-  const totalVisitsCount =
-    demoPlotData?.visits?.length || visitHistory?.length || 0;
+  // Past follow-up visits count (Problem 3.1 fix):
+  // Exclude baseline visit (visitNumber <= 1) and only count completed visits with recorded responses
+  const completedVisits = (demoPlotData?.visits || visitHistory || []).filter(
+    (v: any) => v.visitNumber > 1 && v.productResponse != null,
+  );
+  const completedVisitsCount = completedVisits.length;
 
   const modalPlotData = demoPlotData
     ? {
@@ -398,36 +491,34 @@ export function ActualType7FollowUp({
             className="h-8 gap-1.5 text-xs text-blue-700 border-blue-200 bg-blue-50/50 hover:bg-blue-100 font-semibold"
           >
             <History className="w-3.5 h-3.5" />
-            <span>ดูประวัติการติดตาม ({totalVisitsCount} ครั้ง)</span>
+            <span>ดูประวัติการติดตาม ({completedVisitsCount} ครั้ง)</span>
           </Button>
         </div>
       </div>
 
-      {/* SECTION 1: PLANNED TARGET CARD */}
+      {/* SECTION 1: PLANNED TARGET CARD (Problem 3.2 Fix: Selected Plot + Planned Detail only) */}
       <ActualTargetCard
         iconColorClass="text-blue-700"
         badgeColorClass="bg-blue-50 text-blue-800 border border-blue-200"
-        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
+        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
         items={[
           { label: "ประเภทงาน:", value: "ติดตามแปลงสาธิต" },
-          { label: "แปลงสาธิต / เกษตรกร:", value: target.owner || "-" },
-          { label: "พืชที่ติดตาม:", value: target.crop || "-" },
-          { label: "สินค้าสาธิตของแปลง:", value: target.product || "-" },
-          { label: "ขนาดแปลง:", value: target.plots || "-" },
           {
-            label: "เป้าหมายการติดตาม:",
-            value: target.targetCondition || target.objective || "-",
+            label: "แปลงสาธิตที่เลือก:",
+            value: demoPlotData?.code
+              ? `[${demoPlotData.code}] ${demoPlotData.name || demoPlotData.plotName || target.owner}`
+              : target.owner || "-",
           },
           {
             label: "สิ่งที่ตั้งใจไปติดตาม:",
-            value: target.experimentDetail || target.detail || "-",
+            value: target.detail || target.experimentDetail || "-",
           },
         ]}
       />
 
-      {/* READ-ONLY INITIAL DATA CARD FOR TYPE_7B */}
+      {/* READ-ONLY INITIAL DATA CARD FOR TYPE_7B (Problem 3.3 Fix: Complete Baseline Plot Data) */}
       {demoPlotData && (
-        <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-3.5 text-xs shadow-2xs">
+        <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 text-xs shadow-2xs">
           <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-emerald-700" />
@@ -440,9 +531,15 @@ export function ActualType7FollowUp({
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-slate-700">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-slate-700">
             <div>
-              <span className="text-slate-400 block text-[11px]">ชื่อแปลง</span>
+              <span className="text-slate-400 block text-[11px]">รหัสแปลงสาธิต</span>
+              <span className="font-semibold text-slate-900 font-mono">
+                {demoPlotData.code || "-"}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[11px]">ชื่อแปลงสาธิต</span>
               <span className="font-semibold text-slate-900">
                 {demoPlotData.plotName || demoPlotData.name || "-"}
               </span>
@@ -452,6 +549,19 @@ export function ActualType7FollowUp({
               <span className="font-semibold text-slate-900">
                 {demoPlotData.ownerName || target.owner || "-"}{" "}
                 {demoPlotData.ownerPhone ? `(${demoPlotData.ownerPhone})` : ""}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[11px]">จังหวัด / อำเภอ</span>
+              <span className="font-semibold text-slate-900">
+                {demoPlotData.ownerProvince || demoPlotData.farmerCustomer?.province || "-"}{" "}
+                {demoPlotData.district ? `/ ${demoPlotData.district}` : ""}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[11px]">ร้านค้าตัวแทนจำหน่าย</span>
+              <span className="font-semibold text-slate-900">
+                {demoPlotData.customer?.name || demoPlotData.dealerName || "-"}
               </span>
             </div>
             <div>
@@ -477,8 +587,36 @@ export function ActualType7FollowUp({
                 {demoPlotData.treeCount ? `(${demoPlotData.treeCount} ต้น)` : ""}
               </span>
             </div>
+            <div className="sm:col-span-2">
+              <span className="text-slate-400 block text-[11px]">วัตถุประสงค์แปลงสาธิต</span>
+              <span className="font-medium text-slate-800">
+                {demoPlotData.objective || "-"}
+              </span>
+            </div>
+            <div className="sm:col-span-2">
+              <span className="text-slate-400 block text-[11px]">รายละเอียดการทดสอบ</span>
+              <span className="font-medium text-slate-800">
+                {demoPlotData.experimentDetail || "-"}
+              </span>
+            </div>
+            <div className="sm:col-span-2">
+              <span className="text-slate-400 block text-[11px]">ข้อมูลแปลงหลัก / สภาพพื้นที่ปลูก</span>
+              <span className="font-medium text-slate-800">
+                {demoPlotData.mainCropInfo || demoPlotData.plantingAreaCondition || "-"}
+              </span>
+            </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">วันที่ฉีดพ่นครั้งแรก</span>
+              <span className="text-slate-400 block text-[11px]">แหล่งน้ำ / ระบบการให้น้ำ</span>
+              <span className="font-medium text-slate-800">
+                {demoPlotData.irrigations && demoPlotData.irrigations.length > 0
+                  ? demoPlotData.irrigations
+                      .map((i: any) => i.method || i.methodName)
+                      .join(", ")
+                  : "-"}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[11px]">วันที่เริ่มฉีดพ่นครั้งแรก</span>
               <span className="font-semibold text-slate-900">
                 {demoPlotData.initialSprayDate
                   ? new Date(demoPlotData.initialSprayDate).toLocaleDateString("th-TH")
@@ -486,26 +624,135 @@ export function ActualType7FollowUp({
               </span>
             </div>
           </div>
+
+          {/* Baseline Demo Products Table */}
+          {demoPlotData.demoProducts && demoPlotData.demoProducts.length > 0 && (
+            <div className="pt-2 border-t border-slate-200/80 space-y-2">
+              <span className="text-xs font-bold text-slate-800 block">
+                ตารางรายการยาที่ใช้สาธิตของแปลง (Baseline Products):
+              </span>
+              <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                      <th className="p-2.5 w-12 text-center">#</th>
+                      <th className="p-2.5">ชื่อสินค้าสาธิต</th>
+                      <th className="p-2.5">อัตราการใช้ตามเกณฑ์ (Baseline Rate)</th>
+                      <th className="p-2.5 text-right">ปริมาณที่ใช้สาธิต</th>
+                      <th className="p-2.5">หน่วย</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {demoPlotData.demoProducts.map((p: any, pIdx: number) => (
+                      <tr key={p.id || pIdx} className="hover:bg-slate-50/50">
+                        <td className="p-2.5 text-center text-slate-400">{pIdx + 1}</td>
+                        <td className="p-2.5 font-bold text-slate-900">
+                          {p.product?.name || p.productName || "-"}
+                        </td>
+                        <td className="p-2.5 text-slate-700">
+                          {p.applicationRate ? (
+                            <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-medium border border-blue-200">
+                              {p.applicationRate}
+                            </span>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                        <td className="p-2.5 text-right font-semibold text-slate-800">
+                          {p.quantity ?? "-"}
+                        </td>
+                        <td className="p-2.5 text-slate-600">
+                          {p.product?.unit || p.unit || ""}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Baseline External Chemicals Table */}
+          {demoPlotData.externalProducts && demoPlotData.externalProducts.length > 0 && (
+            <div className="pt-2 border-t border-slate-200/80 space-y-2">
+              <span className="text-xs font-bold text-slate-800 block">
+                ตารางสารเคมีภายนอกตั้งต้น (Baseline External Chemicals):
+              </span>
+              <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                      <th className="p-2.5 w-12 text-center">#</th>
+                      <th className="p-2.5">บริษัท</th>
+                      <th className="p-2.5">ชื่อสินค้า / สารเคมี</th>
+                      <th className="p-2.5">สารสำคัญ</th>
+                      <th className="p-2.5">สูตรเคมี</th>
+                      <th className="p-2.5">อัตราการใช้</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {demoPlotData.externalProducts.map((ep: any, epIdx: number) => (
+                      <tr key={ep.id || epIdx} className="hover:bg-slate-50/50">
+                        <td className="p-2.5 text-center text-slate-400">{epIdx + 1}</td>
+                        <td className="p-2.5 text-slate-800 font-medium">{ep.company || "-"}</td>
+                        <td className="p-2.5 text-slate-900 font-bold">{ep.productName || "-"}</td>
+                        <td className="p-2.5 text-slate-600">{ep.activeIngredient || "-"}</td>
+                        <td className="p-2.5 text-slate-700">
+                          {ep.formula === "อื่นๆ" ? ep.customFormula : ep.formula}
+                        </td>
+                        <td className="p-2.5 font-medium text-slate-800">{ep.applicationRate || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Baseline Initial Photos */}
+          {demoPlotData.attachments && demoPlotData.attachments.length > 0 && (
+            <div className="pt-2 border-t border-slate-200/80 space-y-2">
+              <span className="text-xs font-bold text-slate-800 block">
+                รูปถ่ายแปลงเริ่มต้น (Baseline Photos):
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {demoPlotData.attachments.map((att: any, attIdx: number) => (
+                  <a
+                    key={att.id || attIdx}
+                    href={att.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 hover:opacity-90 transition-opacity shadow-xs"
+                  >
+                    <img
+                      src={att.fileUrl}
+                      alt={att.fileName || "Baseline Photo"}
+                      className="w-full h-full object-cover"
+                    />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* SECTION 2: ฟอร์มบันทึกการติดตามจริง (10 REQUIREMENTS) */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-6 shadow-xs">
+      {/* SECTION A: ข้อมูลการติดตามแปลง (Tracking) */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-5 shadow-xs">
         <div className="border-b border-slate-100 pb-3">
           <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-emerald-600" />
-            ข้อมูลการติดตามและการฉีดพ่นรอบนี้
+            <Clock className="w-4 h-4 text-blue-600" />
+            ส่วนที่ 1: ข้อมูลการติดตามแปลง (Tracking Details)
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            กรุณากรอกข้อมูลผลการติดตามและรายละเอียดการฉีดพ่นจริงให้ครบถ้วน
+            บันทึกวันที่เข้าติดตาม จำนวนวันหลังฉีดพ่น และภาพถ่ายสภาพพืชรอบนี้
           </p>
         </div>
 
-        {/* 1. วันที่ติดตามจริง & 2. จำนวนวันหลังฉีดพ่น */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-slate-700">
-              1. วันที่ติดตามจริง <span className="text-rose-500">*</span>
+              วันที่ติดตามจริง <span className="text-rose-500">*</span>
             </label>
             <Input
               type="date"
@@ -518,7 +765,7 @@ export function ActualType7FollowUp({
 
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-slate-700">
-              2. จำนวนวันหลังฉีดพ่น (วัน) <span className="text-rose-500">*</span>
+              จำนวนวันหลังฉีดพ่น (วัน) <span className="text-rose-500">*</span>
             </label>
             <div className="flex gap-2 items-center">
               <Input
@@ -532,58 +779,17 @@ export function ActualType7FollowUp({
               />
               <span className="text-xs text-slate-500 whitespace-nowrap">วัน</span>
             </div>
+            <p className="text-[11px] text-slate-400">
+              คำนวณอัตโนมัติจากวันที่เริ่มฉีดพ่นครั้งแรกของแปลง
+            </p>
           </div>
         </div>
 
-        {/* 3. ผลหลังการฉีดพ่น */}
-        <div className="space-y-2 pt-2 border-t border-slate-100">
-          <label className="block text-xs font-bold text-slate-700">
-            3. ผลหลังการฉีดพ่น <span className="text-rose-500">*</span>
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Select
-              value={productResponse}
-              onValueChange={(v) => setProductResponse?.(v)}
-            >
-              <SelectTrigger className="h-9 text-xs bg-white border-slate-200 rounded-lg font-medium">
-                <SelectValue placeholder="เลือกผลการฉีดพ่น" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="พืชตอบสนองดี">
-                  ✨ พืชตอบสนองดี (เห็นผลตามเป้าหมาย)
-                </SelectItem>
-                <SelectItem value="ยังไม่เห็นผลชัดเจน">
-                  ⏱️ ยังไม่เห็นผลชัดเจน (ต้องติดตามต่อ)
-                </SelectItem>
-                <SelectItem value="พบปัญหา">
-                  ❌ พบปัญหาหลังการฉีดพ่น (เช่น ใบไหม้ ยาตกตะกอน)
-                </SelectItem>
-              </SelectContent>
-            </Select>
-
-            {productResponse === "พบปัญหา" && (
-              <div className="sm:col-span-2 space-y-1.5 p-3 bg-rose-50/70 border border-rose-200 rounded-xl">
-                <label className="block text-xs font-bold text-rose-800">
-                  ระบุรายละเอียดปัญหาที่พบหลังการฉีดพ่น <span className="text-rose-500">*</span>
-                </label>
-                <Textarea
-                  rows={2}
-                  value={problemDescription}
-                  onChange={(e) => setProblemDescription?.(e.target.value)}
-                  placeholder="ระบุอาการ ใบไหม้ ดอกร่วง หรือปัญหาที่เกิดขึ้น..."
-                  className="text-xs bg-white border-rose-300 rounded-lg"
-                  required
-                />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 4. รูปผลหลังการฉีดพ่น (Upload สูงสุด 5 รูป) */}
+        {/* รูปสภาพพืชรอบนี้ (Upload สูงสุด 5 รูป) */}
         <div className="space-y-2 pt-2 border-t border-slate-100">
           <div className="flex items-center justify-between">
             <label className="block text-xs font-bold text-slate-700">
-              4. รูปผลหลังการฉีดพ่น (รูปภาพสภาพพืช)
+              รูปภาพสภาพพืชในการติดตามรอบนี้
             </label>
             <span className="text-[11px] text-slate-500">
               อัปโหลดได้สูงสุด 5 รูป ({cropImages.length}/5)
@@ -597,388 +803,532 @@ export function ActualType7FollowUp({
             />
           </div>
         </div>
+      </div>
 
-        {/* 5. อัตราการฉีดพ่น (แยกตามแต่ละตัวยา) */}
-        <div className="space-y-3 pt-2 border-t border-slate-100">
-          <div className="flex items-center justify-between">
-            <label className="block text-xs font-bold text-slate-700">
-              5. อัตราการฉีดพ่น (แยกตามผลิตภัณฑ์/ตัวยา) <span className="text-rose-500">*</span>
-            </label>
-            <span className="text-[11px] text-emerald-700 font-medium">
-              ดึงรายการยาจากแปลงสาธิตเดิม
-            </span>
+      {/* SECTION B: ข้อมูลการฉีดพ่นรอบต่างๆ (Multiple Spraying Rounds) */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Droplets className="w-4 h-4 text-emerald-600" />
+              ส่วนที่ 2: ข้อมูลการฉีดพ่นรอบต่างๆ (Multiple Spraying Rounds)
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              บันทึกรอบการฉีดพ่นยา อัตราการใช้จริง วิธีผสม และรูปถ่ายการฉีดพ่น
+            </p>
           </div>
 
-          {bProductRates && bProductRates.length > 0 ? (
-            <div className="space-y-2.5">
-              {bProductRates.map((pr, pIdx) => (
-                <div
-                  key={pr.productId || pIdx}
-                  className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                >
-                  <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-slate-800 block">
-                      {pIdx + 1}. {pr.productName}
-                    </span>
-                    {pr.baselineRate && (
-                      <span className="text-[11px] text-slate-500">
-                        อัตราตั้งต้นเดิม (Baseline): <b className="text-slate-700">{pr.baselineRate}</b>
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2 sm:w-80">
-                    <label className="text-[11px] font-semibold text-slate-600 whitespace-nowrap">
-                      อัตราใช้จริงรอบนี้:
-                    </label>
-                    <Input
-                      value={pr.actualRate}
-                      onChange={(e) => handleProductRateChange(pr.productId, e.target.value)}
-                      placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร..."
-                      className="h-8 text-xs bg-white border-slate-200 rounded-lg flex-1"
-                      required
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
-              ไม่พบรายการผลิตภัณฑ์จากแปลงสาธิตเดิม
-            </div>
-          )}
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleAddSprayingRound}
+            className="h-8 gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-xs font-semibold self-start sm:self-auto"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ เพิ่มรอบการฉีดพ่น</span>
+          </Button>
         </div>
 
-        {/* 6. วิธีการฉีดพ่น SINGLE vs TANK_MIXED (Reuse logic จาก actual-type7-new-demo.tsx) */}
-        <div className="space-y-3 pt-2 border-t border-slate-100">
-          <label className="block text-xs font-bold text-slate-700">
-            6. วิธีการฉีดพ่น <span className="text-rose-500">*</span>
-          </label>
-          <div className="flex flex-wrap gap-4 items-center">
-            {DEMO_PLOT_SPRAY_METHODS.map((m) => (
-              <label
-                key={m.value}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-semibold cursor-pointer select-none transition-colors ${
-                  sprayMethod === m.value
-                    ? "bg-emerald-50 border-emerald-400 text-emerald-950 font-bold shadow-2xs"
-                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="type7b-spray-method"
-                  value={m.value}
-                  checked={sprayMethod === m.value}
-                  onChange={() => {
-                    setSprayMethod?.(m.value);
-                    if (m.value === "SINGLE") {
-                      setHasExternalChemicals?.(false);
-                      setExternalProducts?.([]);
-                    }
-                  }}
-                  className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer"
-                />
-                <span>{m.label}</span>
-              </label>
-            ))}
+        {(!t7bSprayingRounds || t7bSprayingRounds.length === 0) ? (
+          <div className="p-6 text-center border-2 border-dashed border-slate-200 rounded-2xl space-y-2 bg-slate-50/50">
+            <Droplets className="w-8 h-8 text-slate-400 mx-auto" />
+            <p className="text-xs font-semibold text-slate-600">
+              ยังไม่มีการบันทึกรอบการฉีดพ่นในครั้งนี้
+            </p>
+            <p className="text-[11px] text-slate-400">
+              หากมีการฉีดพ่นในรอบการเข้าแปลงนี้ สามารถกดปุ่มเพิ่มรอบการฉีดพ่นด้านบน
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAddSprayingRound}
+              className="mt-2 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              เพิ่มรอบการฉีดพ่น
+            </Button>
           </div>
-
-          {/* ถ้าเลือก TANK_MIXED: แสดง Checkbox "มียาภายนอก" */}
-          {sprayMethod === "TANK_MIXED" && (
-            <div className="pt-2 border-t border-slate-200/80 space-y-3">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="type7b-external-chemicals-toggle"
-                  checked={Boolean(hasExternalChemicals)}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    setHasExternalChemicals?.(checked);
-                    if (checked && externalProducts.length === 0) {
-                      handleAddExternalProduct();
-                    }
-                  }}
-                  className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
-                />
-                <label
-                  htmlFor="type7b-external-chemicals-toggle"
-                  className="text-xs font-bold text-slate-800 cursor-pointer select-none"
-                >
-                  มียาภายนอก (External Chemicals)
-                </label>
-              </div>
-
-              {hasExternalChemicals && (
-                <div className="p-4 bg-amber-50/60 border border-amber-200 rounded-xl space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-950">
-                      รายการสารเคมีภายนอก (สูงสุด 4 รายการ)
+        ) : (
+          <div className="space-y-6">
+            {t7bSprayingRounds.map((round, rIdx) => (
+              <div
+                key={round.id || rIdx}
+                className="p-4 sm:p-5 border border-emerald-200 rounded-2xl space-y-5 bg-emerald-50/20 relative"
+              >
+                {/* Round Header */}
+                <div className="flex items-center justify-between border-b border-emerald-200/80 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
+                      {round.roundNumber}
                     </span>
-                    {externalProducts.length < 4 && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={handleAddExternalProduct}
-                        className="h-7 text-xs bg-amber-700 hover:bg-amber-800 text-white rounded-lg shadow-xs"
-                      >
-                        <Plus className="w-3.5 h-3.5 mr-1" />
-                        เพิ่มสารเคมี ({externalProducts.length}/4)
-                      </Button>
-                    )}
+                    <h4 className="text-sm font-bold text-emerald-950">
+                      รอบการฉีดพ่นที่ {round.roundNumber}
+                    </h4>
                   </div>
 
-                  {externalProducts.length === 0 ? (
-                    <p className="text-xs text-amber-800">
-                      กรุณากดปุ่มเพิ่มรายการสารเคมีภายนอก
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {externalProducts.map((ep, eIdx) => (
-                        <div
-                          key={eIdx}
-                          className="p-3 bg-white border border-amber-200 rounded-xl space-y-2.5 shadow-2xs"
-                        >
-                          <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
-                            <span className="text-xs font-bold text-slate-800">
-                              สารเคมีภายนอก #{eIdx + 1}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveSprayingRound(rIdx)}
+                    className="h-7 text-xs text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-2"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+                    ลบรอบนี้
+                  </Button>
+                </div>
+
+                {/* 1. ตารางสินค้าสาธิตและอัตราการใช้ในรอบนี้ */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-slate-700">
+                      1. รายการสินค้าสาธิตและอัตราการใช้จริงในรอบนี้ <span className="text-rose-500">*</span>
+                    </label>
+                    <span className="text-[11px] text-emerald-700 font-medium">
+                      อัตราตามเกณฑ์ (Baseline) คือข้อมูลอ้างอิงจากแปลงสาธิต
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {round.productRates.map((pr, pIdx) => (
+                      <div
+                        key={pr.productId || pIdx}
+                        className="p-3 bg-white border border-slate-200 rounded-xl space-y-2 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4 shadow-2xs"
+                      >
+                        <div className="sm:w-1/3">
+                          <span className="text-xs font-bold text-slate-900 block">
+                            {pIdx + 1}. {pr.productName}
+                          </span>
+                          <span className="text-[11px] text-slate-500 block mt-0.5">
+                            อัตราตามเกณฑ์:{" "}
+                            <b className="text-slate-700">
+                              {pr.baselineRate || "ไม่ระบุ"}
+                            </b>
+                          </span>
+                        </div>
+
+                        <div className="sm:w-1/3 space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-600 block">
+                            อัตราการใช้จริงในรอบนี้ *
+                          </label>
+                          <Input
+                            value={pr.actualRate}
+                            onChange={(e) =>
+                              handleUpdateRoundProduct(
+                                rIdx,
+                                pIdx,
+                                "actualRate",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร..."
+                            className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                            required
+                          />
+                        </div>
+
+                        <div className="sm:w-1/4 space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-600 block">
+                            ปริมาณที่ใช้ในรอบนี้
+                          </label>
+                          <div className="flex items-center gap-1.5">
+                            <Input
+                              type="number"
+                              min={0}
+                              value={pr.quantityUsed}
+                              onChange={(e) =>
+                                handleUpdateRoundProduct(
+                                  rIdx,
+                                  pIdx,
+                                  "quantityUsed",
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="เช่น 1"
+                              className="h-8 text-xs bg-white border-slate-200 rounded-lg flex-1"
+                            />
+                            <span className="text-xs text-slate-500 whitespace-nowrap">
+                              {pr.unit || ""}
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveExternalProduct(eIdx)}
-                              className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 transition-colors"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                              ลบ
-                            </button>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                            <div>
-                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                บริษัท (Company) *
-                              </label>
-                              <Input
-                                value={ep.company}
-                                onChange={(e) =>
-                                  handleUpdateExternalProduct(
-                                    eIdx,
-                                    "company",
-                                    e.target.value,
-                                  )
-                                }
-                                placeholder="เช่น บริษัท ไบเออร์..."
-                                className="h-9 text-xs bg-white border-slate-200 rounded-lg"
-                                required
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                ชื่อสินค้า / สารเคมี *
-                              </label>
-                              <Input
-                                value={ep.productName}
-                                onChange={(e) =>
-                                  handleUpdateExternalProduct(
-                                    eIdx,
-                                    "productName",
-                                    e.target.value,
-                                  )
-                                }
-                                placeholder="เช่น คอนฟิดอร์..."
-                                className="h-9 text-xs bg-white border-slate-200 rounded-lg"
-                                required
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                สารสำคัญ (Active Ingredient)
-                              </label>
-                              <Input
-                                value={ep.activeIngredient || ""}
-                                onChange={(e) =>
-                                  handleUpdateExternalProduct(
-                                    eIdx,
-                                    "activeIngredient",
-                                    e.target.value,
-                                  )
-                                }
-                                placeholder="เช่น อิมิดาโคลพริด..."
-                                className="h-9 text-xs bg-white border-slate-200 rounded-lg"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                สูตรยา (Formula) *
-                              </label>
-                              <Select
-                                value={ep.formula}
-                                onValueChange={(val) =>
-                                  handleUpdateExternalProduct(
-                                    eIdx,
-                                    "formula",
-                                    val,
-                                  )
-                                }
-                              >
-                                <SelectTrigger className="h-9 text-xs bg-white border-slate-200 rounded-lg">
-                                  <SelectValue placeholder="เลือกสูตรยา..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {EXTERNAL_CHEMICAL_FORMULAS.map((f) => (
-                                    <SelectItem key={f} value={f}>
-                                      {f}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            {ep.formula === "อื่นๆ" && (
-                              <div>
-                                <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                  ระบุสูตรยา *
-                                </label>
-                                <Input
-                                  value={ep.customFormula || ""}
-                                  onChange={(e) =>
-                                    handleUpdateExternalProduct(
-                                      eIdx,
-                                      "customFormula",
-                                      e.target.value,
-                                    )
-                                  }
-                                  placeholder="ระบุสูตรยา..."
-                                  className="h-9 text-xs bg-white border-slate-200 rounded-lg"
-                                  required
-                                />
-                              </div>
-                            )}
-
-                            <div>
-                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                อัตราการใช้ *
-                              </label>
-                              <Input
-                                value={ep.applicationRate}
-                                onChange={(e) =>
-                                  handleUpdateExternalProduct(
-                                    eIdx,
-                                    "applicationRate",
-                                    e.target.value,
-                                  )
-                                }
-                                placeholder="เช่น 10 ซีซี / น้ำ 20 ลิตร"
-                                className="h-9 text-xs bg-white border-slate-200 rounded-lg"
-                                required
-                              />
-                            </div>
                           </div>
                         </div>
-                      ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. วิธีการฉีดพ่น (SINGLE vs TANK_MIXED) */}
+                <div className="space-y-2 pt-2 border-t border-emerald-100">
+                  <label className="block text-xs font-bold text-slate-700">
+                    2. วิธีการฉีดพ่น <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-3 items-center">
+                    {DEMO_PLOT_SPRAY_METHODS.map((m) => (
+                      <label
+                        key={m.value}
+                        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold cursor-pointer select-none transition-colors ${
+                          round.sprayMethod === m.value
+                            ? "bg-emerald-100/70 border-emerald-500 text-emerald-950 font-bold shadow-2xs"
+                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={`round-${round.roundNumber}-sprayMethod`}
+                          value={m.value}
+                          checked={round.sprayMethod === m.value}
+                          onChange={() => {
+                            handleUpdateRound(rIdx, "sprayMethod", m.value);
+                            if (m.value === "SINGLE") {
+                              handleUpdateRound(rIdx, "hasExternalChemicals", false);
+                              handleUpdateRound(rIdx, "externalProducts", []);
+                            }
+                          }}
+                          className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                        />
+                        <span>{m.label}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  {/* สารเคมีภายนอกเมื่อเลือก TANK_MIXED */}
+                  {round.sprayMethod === "TANK_MIXED" && (
+                    <div className="mt-3 p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id={`round-${round.roundNumber}-external-toggle`}
+                            checked={Boolean(round.hasExternalChemicals)}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              handleUpdateRound(rIdx, "hasExternalChemicals", checked);
+                              if (checked && (!round.externalProducts || round.externalProducts.length === 0)) {
+                                handleAddExternalProductToRound(rIdx);
+                              }
+                            }}
+                            className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer"
+                          />
+                          <label
+                            htmlFor={`round-${round.roundNumber}-external-toggle`}
+                            className="text-xs font-bold text-amber-950 cursor-pointer select-none"
+                          >
+                            มีสารเคมีภายนอกร่วมด้วย (External Chemicals)
+                          </label>
+                        </div>
+
+                        {round.hasExternalChemicals && (round.externalProducts?.length || 0) < 4 && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => handleAddExternalProductToRound(rIdx)}
+                            className="h-7 text-xs bg-amber-700 hover:bg-amber-800 text-white rounded-lg shadow-xs"
+                          >
+                            <Plus className="w-3.5 h-3.5 mr-1" />
+                            เพิ่มสารเคมี ({round.externalProducts?.length || 0}/4)
+                          </Button>
+                        )}
+                      </div>
+
+                      {round.hasExternalChemicals && (
+                        <div className="space-y-2.5">
+                          {(round.externalProducts || []).map((ep, eIdx) => (
+                            <div
+                              key={eIdx}
+                              className="p-3 bg-white border border-amber-200 rounded-xl space-y-2 shadow-2xs"
+                            >
+                              <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+                                <span className="text-xs font-bold text-slate-800">
+                                  สารเคมีภายนอก #{eIdx + 1}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveRoundExternalProduct(rIdx, eIdx)}
+                                  className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 transition-colors"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                  ลบ
+                                </button>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                    บริษัท *
+                                  </label>
+                                  <Input
+                                    value={ep.company}
+                                    onChange={(e) =>
+                                      handleUpdateRoundExternalProduct(
+                                        rIdx,
+                                        eIdx,
+                                        "company",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="เช่น บริษัท ไบเออร์..."
+                                    className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                    ชื่อสินค้า / สารเคมี *
+                                  </label>
+                                  <Input
+                                    value={ep.productName}
+                                    onChange={(e) =>
+                                      handleUpdateRoundExternalProduct(
+                                        rIdx,
+                                        eIdx,
+                                        "productName",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="เช่น คอนฟิดอร์..."
+                                    className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                    สารสำคัญ (Active Ingredient)
+                                  </label>
+                                  <Input
+                                    value={ep.activeIngredient || ""}
+                                    onChange={(e) =>
+                                      handleUpdateRoundExternalProduct(
+                                        rIdx,
+                                        eIdx,
+                                        "activeIngredient",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="เช่น อิมิดาโคลพริด..."
+                                    className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                    สูตรยา *
+                                  </label>
+                                  <Select
+                                    value={ep.formula}
+                                    onValueChange={(val) =>
+                                      handleUpdateRoundExternalProduct(
+                                        rIdx,
+                                        eIdx,
+                                        "formula",
+                                        val,
+                                      )
+                                    }
+                                  >
+                                    <SelectTrigger className="h-8 text-xs bg-white border-slate-200 rounded-lg">
+                                      <SelectValue placeholder="เลือกสูตรยา..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {EXTERNAL_CHEMICAL_FORMULAS.map((f) => (
+                                        <SelectItem key={f} value={f}>
+                                          {f}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                {ep.formula === "อื่นๆ" && (
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                      ระบุสูตรยา *
+                                    </label>
+                                    <Input
+                                      value={ep.customFormula || ""}
+                                      onChange={(e) =>
+                                        handleUpdateRoundExternalProduct(
+                                          rIdx,
+                                          eIdx,
+                                          "customFormula",
+                                          e.target.value,
+                                        )
+                                      }
+                                      placeholder="ระบุสูตรยา..."
+                                      className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                      required
+                                    />
+                                  </div>
+                                )}
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                    อัตราการใช้ *
+                                  </label>
+                                  <Input
+                                    value={ep.applicationRate}
+                                    onChange={(e) =>
+                                      handleUpdateRoundExternalProduct(
+                                        rIdx,
+                                        eIdx,
+                                        "applicationRate",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="เช่น 10 ซีซี / น้ำ 20 ลิตร"
+                                    className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                    required
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          )}
-        </div>
 
-        {/* 7. อุปกรณ์ที่ใช้ฉีดพ่น */}
-        <div className="space-y-3 pt-2 border-t border-slate-100">
-          <label className="block text-xs font-bold text-slate-700">
-            7. อุปกรณ์ที่ใช้ฉีดพ่น <span className="text-rose-500">*</span>
-          </label>
-          <div className="flex flex-wrap gap-3 items-center">
-            {DEMO_PLOT_SPRAY_EQUIPMENTS.map((eq) => (
-              <label
-                key={eq}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold cursor-pointer select-none transition-colors ${
-                  sprayEquipment === eq
-                    ? "bg-emerald-50 border-emerald-400 text-emerald-950 font-bold shadow-2xs"
-                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="type7b-spray-equipment"
-                  value={eq}
-                  checked={sprayEquipment === eq}
-                  onChange={() => {
-                    setSprayEquipment?.(eq);
-                    if (eq !== "อื่นๆ ระบุ..") {
-                      setOtherEquipment?.("");
-                    }
-                  }}
-                  className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer"
-                />
-                <span>{eq}</span>
-              </label>
+                {/* 3. อุปกรณ์ที่ใช้ฉีดพ่น */}
+                <div className="space-y-2 pt-2 border-t border-emerald-100">
+                  <label className="block text-xs font-bold text-slate-700">
+                    3. อุปกรณ์ที่ใช้ฉีดพ่น <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2.5 items-center">
+                    {DEMO_PLOT_SPRAY_EQUIPMENTS.map((eq) => (
+                      <label
+                        key={eq}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer select-none transition-colors ${
+                          round.sprayEquipment === eq
+                            ? "bg-emerald-100/80 border-emerald-500 text-emerald-950 font-bold shadow-2xs"
+                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={`round-${round.roundNumber}-equipment`}
+                          value={eq}
+                          checked={round.sprayEquipment === eq}
+                          onChange={() => {
+                            handleUpdateRound(rIdx, "sprayEquipment", eq);
+                            if (eq !== "อื่นๆ ระบุ..") {
+                              handleUpdateRound(rIdx, "otherEquipment", "");
+                            }
+                          }}
+                          className="w-3.5 h-3.5 text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                        />
+                        <span>{eq}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  {round.sprayEquipment === "อื่นๆ ระบุ.." && (
+                    <div className="pt-2 sm:w-80">
+                      <Input
+                        value={round.otherEquipment || ""}
+                        onChange={(e) =>
+                          handleUpdateRound(rIdx, "otherEquipment", e.target.value)
+                        }
+                        placeholder="ระบุอุปกรณ์ที่ใช้..."
+                        className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                        required
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. ผลหลังการฉีดพ่น */}
+                <div className="space-y-2 pt-2 border-t border-emerald-100">
+                  <label className="block text-xs font-bold text-slate-700">
+                    4. ผลหลังการฉีดพ่นรอบนี้ <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Select
+                      value={round.productResponse}
+                      onValueChange={(v) =>
+                        handleUpdateRound(rIdx, "productResponse", v)
+                      }
+                    >
+                      <SelectTrigger className="h-8 text-xs bg-white border-slate-200 rounded-lg font-medium">
+                        <SelectValue placeholder="เลือกผลการฉีดพ่น" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="พืชตอบสนองดี">
+                          ✨ พืชตอบสนองดี (เห็นผลตามเป้าหมาย)
+                        </SelectItem>
+                        <SelectItem value="พบปัญหา">
+                          ❌ พบปัญหาหลังการฉีดพ่น (เช่น ใบไหม้ ยาตกตะกอน)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {round.productResponse === "พบปัญหา" && (
+                      <div className="sm:col-span-2 space-y-1 p-3 bg-rose-50/70 border border-rose-200 rounded-xl">
+                        <label className="block text-xs font-bold text-rose-800">
+                          ระบุรายละเอียดปัญหาที่พบหลังการฉีดพ่นรอบนี้ <span className="text-rose-500">*</span>
+                        </label>
+                        <Textarea
+                          rows={2}
+                          value={round.problemDetail || ""}
+                          onChange={(e) =>
+                            handleUpdateRound(rIdx, "problemDetail", e.target.value)
+                          }
+                          placeholder="ระบุอาการ ใบไหม้ ดอกร่วง หรือปัญหาที่เกิดขึ้น..."
+                          className="text-xs bg-white border-rose-300 rounded-lg"
+                          required
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 5. รูปถ่ายการฉีดพ่นรอบนี้ (Upload สูงสุด 5 รูป) */}
+                <div className="space-y-2 pt-2 border-t border-emerald-100">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-slate-700">
+                      5. รูปถ่ายการฉีดพ่นรอบนี้ (รูปภาพแปลง / ขณะปฏิบัติงาน)
+                    </label>
+                    <span className="text-[11px] text-slate-500">
+                      อัปโหลดได้สูงสุด 5 รูป ({round.plotImages.length}/5)
+                    </span>
+                  </div>
+                  <div className="p-3 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
+                    <GalleryUpload
+                      initialFiles={convertToFileMetadata(round.plotImages)}
+                      onFilesChange={(files) =>
+                        handleRoundPlotFilesChange(rIdx, files)
+                      }
+                      maxFiles={5}
+                    />
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
+        )}
 
-          {sprayEquipment === "อื่นๆ ระบุ.." && (
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 sm:w-96">
-              <label className="block text-xs font-bold text-slate-700">
-                ระบุอุปกรณ์ฉีดพ่นอื่นๆ <span className="text-rose-500">*</span>
-              </label>
-              <Input
-                value={otherEquipment}
-                onChange={(e) => setOtherEquipment?.(e.target.value)}
-                placeholder="ระบุอุปกรณ์ที่ใช้..."
-                className="h-9 text-xs bg-white border-slate-200 rounded-lg"
-                required
-              />
-            </div>
-          )}
-        </div>
-
-        {/* 8. กำหนดฉีดพ่นครั้งต่อไป (Label: "กำหนดฉีดพ่นครั้งต่อไป") */}
-        <div className="space-y-1.5 pt-2 border-t border-slate-100 sm:w-80">
-          <label className="block text-xs font-bold text-slate-700">
-            8. กำหนดฉีดพ่นครั้งต่อไป
-          </label>
-          <Input
-            type="date"
-            value={effectiveNextDate}
-            onChange={(e) => handleNextDateChange(e.target.value)}
-            className="h-9 text-xs bg-white border-slate-200 rounded-lg"
-          />
-        </div>
-
-        {/* 9. รูปการฉีดพ่น (Upload สูงสุด 5 รูป) */}
-        <div className="space-y-2 pt-2 border-t border-slate-100">
-          <div className="flex items-center justify-between">
+        {/* 6. กำหนดฉีดพ่นครั้งต่อไป & บันทึกเพิ่มเติม */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+          <div className="space-y-1.5">
             <label className="block text-xs font-bold text-slate-700">
-              9. รูปการฉีดพ่น (รูปภาพแปลง / ขณะปฏิบัติงาน)
+              กำหนดฉีดพ่น / ติดตามครั้งต่อไป
             </label>
-            <span className="text-[11px] text-slate-500">
-              อัปโหลดได้สูงสุด 5 รูป ({plotImages.length}/5)
-            </span>
-          </div>
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-            <GalleryUpload
-              initialFiles={convertToFileMetadata(plotImages)}
-              onFilesChange={handlePlotFilesChange}
-              maxFiles={5}
+            <Input
+              type="date"
+              value={effectiveNextDate}
+              onChange={(e) => handleNextDateChange(e.target.value)}
+              className="h-9 text-xs bg-white border-slate-200 rounded-lg"
             />
           </div>
-        </div>
 
-        {/* 10. ข้อมูลเพิ่มเติม */}
-        <div className="space-y-1.5 pt-2 border-t border-slate-100">
-          <label className="block text-xs font-bold text-slate-700">
-            10. ข้อมูลเพิ่มเติม
-          </label>
-          <Textarea
-            rows={3}
-            value={usageMethod}
-            onChange={(e) => setUsageMethod(e.target.value)}
-            placeholder="บันทึกข้อสังเกตเพิ่มเติม สภาพอากาศ หรือหมายเหตุอื่นๆ..."
-            className="text-xs bg-white border-slate-200 rounded-lg"
-          />
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-700">
+              ข้อสังเกตหรือข้อมูลเพิ่มเติม
+            </label>
+            <Textarea
+              rows={2}
+              value={usageMethod}
+              onChange={(e) => setUsageMethod(e.target.value)}
+              placeholder="บันทึกข้อสังเกตเพิ่มเติม สภาพอากาศ หรือหมายเหตุอื่นๆ..."
+              className="text-xs bg-white border-slate-200 rounded-lg"
+            />
+          </div>
         </div>
       </div>
 

@@ -88,7 +88,7 @@ export function DetailActivityResultSection({
           target={targets.t3}
           soldProducts={parsedResults.t3SoldProducts}
           actualSales={parsedResults.t3ActualSales}
-          actualQuantity={parsedResults.t3ActualQuantity}
+          actualQuantity={parsedResults.t3ActualQuantity != null ? String(parsedResults.t3ActualQuantity) : undefined}
           unclosedReason={parsedResults.t3UnclosedReason}
           productSalesDetails={parsedResults.t3ProductSalesDetails}
         />
@@ -180,6 +180,7 @@ export function DetailActivityResultSection({
           nextSprayDate={parsedResults.t7NextSprayDate || currentVisit?.nextSprayDate}
           visitDate={currentVisit?.visitDate}
           externalProducts={currentVisit?.externalProducts || demoPlotData?.externalProducts}
+          sprayRounds={parsedResults.t7bSprayingRounds || (currentVisit as any)?.sprayRounds || demoPlotData?.sprayRounds}
           plannedProductId={parsedResults.t7PlannedProductId}
           actualProductId={parsedResults.t7ActualProductId}
           actualQuantity={parsedResults.t7DemoProductQuantity}

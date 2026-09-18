@@ -125,7 +125,7 @@ export function ActualType6Issue({
   useEffect(() => {
     let isMounted = true;
     if (!products || products.length === 0) {
-      listProductsAction({ perPage: 1000, isActive: true })
+      listProductsAction({ perPage: 1000, status: "ACTIVE" as any })
         .then((res: any) => {
           if (isMounted && res?.products && res.products.length > 0) {
             setDbProducts(res.products);

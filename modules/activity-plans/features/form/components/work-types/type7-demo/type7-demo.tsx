@@ -248,6 +248,7 @@ export function Type7Demo({
                     updateType7Row={updateType7Row}
                     existingPlotOptions={existingPlotOptions}
                     plotList={plotList}
+                    products={products}
                     readonly={readonly}
                   />
                 ) : (

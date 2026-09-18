@@ -351,6 +351,26 @@ export async function findActivityPlanById(id: string) {
               attachments: true,
             },
           },
+          sprayRounds: {
+            include: {
+              products: {
+                include: {
+                  product: {
+                    select: {
+                      id: true,
+                      name: true,
+                      productCode: true,
+                      unit: true,
+                      packageSizeUnit: true,
+                    },
+                  },
+                },
+              },
+              externalProducts: true,
+              attachments: true,
+            },
+            orderBy: { roundNumber: "asc" },
+          },
           attachments: true,
         },
       },
@@ -1621,6 +1641,38 @@ export type CreateActivityResultInput = {
     satisfactionScore?: number | null;
     applicationRate?: string | null;
   }>;
+  sprayRounds?: Array<{
+    demoPlotId: string;
+    roundNumber: number;
+    sprayDate?: string | Date;
+    sprayMethod: string;
+    sprayEquipment: string;
+    otherEquipment?: string | null;
+    productResponse: string;
+    problemDetail?: string | null;
+    products: Array<{
+      productId: string;
+      productName?: string | null;
+      baselineRate?: string | null;
+      actualRate: string;
+      quantityUsed: number | string;
+      unit?: string | null;
+    }>;
+    externalProducts?: Array<{
+      company: string;
+      productName: string;
+      activeIngredient?: string | null;
+      formula: string;
+      customFormula?: string | null;
+      applicationRate: string;
+    }>;
+    attachments?: Array<{
+      fileUrl: string;
+      fileName?: string;
+      fileSize?: number;
+      mimeType?: string;
+    }>;
+  }>;
   followupResults?: Array<{
     storeId?: string | null;
     productId: string;
@@ -1988,6 +2040,68 @@ export async function upsertActivityResult(
             status: item.status || "เสร็จสิ้น",
           })),
         });
+      }
+    }
+
+    // 6.2. Sync TYPE_7B Multiple Spraying Rounds
+    if (input.sprayRounds !== undefined) {
+      await tx.activityResultSprayRound.deleteMany({
+        where: { activityResultId: result.id },
+      });
+      if (input.sprayRounds.length > 0) {
+        for (const round of input.sprayRounds) {
+          const createdRound = await tx.activityResultSprayRound.create({
+            data: {
+              activityResultId: result.id,
+              demoPlotId: round.demoPlotId,
+              roundNumber: round.roundNumber,
+              sprayDate: round.sprayDate ? new Date(round.sprayDate) : new Date(),
+              sprayMethod: round.sprayMethod,
+              sprayEquipment: round.sprayEquipment,
+              otherEquipment: round.otherEquipment ?? null,
+              productResponse: round.productResponse,
+              problemDetail: round.problemDetail ?? null,
+              products: {
+                create: (round.products || []).map((p) => ({
+                  productId: p.productId,
+                  productName: p.productName ?? null,
+                  baselineRate: p.baselineRate ?? null,
+                  actualRate: p.actualRate,
+                  quantityUsed: new Prisma.Decimal(Number(p.quantityUsed) || 0),
+                  unit: p.unit ?? null,
+                })),
+              },
+              externalProducts: {
+                create: (round.externalProducts || []).map((ep) => ({
+                  company: ep.company,
+                  productName: ep.productName,
+                  activeIngredient: ep.activeIngredient ?? null,
+                  formula: ep.formula,
+                  customFormula: ep.customFormula ?? null,
+                  applicationRate: ep.applicationRate,
+                })),
+              },
+            },
+          });
+
+          // Link attachments for this spraying round if any
+          if (round.attachments && round.attachments.length > 0) {
+            await tx.activityAttachment.createMany({
+              data: round.attachments.map((att: any) => ({
+                activityPlanId: input.activityPlanId,
+                activityResultId: result.id,
+                workTypeCode: "TYPE_7B",
+                demoPlotId: round.demoPlotId,
+                sprayRoundId: createdRound.id,
+                category: AttachmentCategory.PLOT,
+                fileUrl: att.fileUrl,
+                fileName: att.fileName || "spray-round-photo.jpg",
+                fileSize: att.fileSize ?? null,
+                mimeType: att.mimeType ?? null,
+              })),
+            });
+          }
+        }
       }
     }
 
@@ -2422,6 +2536,14 @@ export async function findApprovalQueueData() {
         surveyResults: true,
         demoResults: true,
         followupResults: true,
+        sprayRounds: {
+          include: {
+            products: true,
+            externalProducts: true,
+            attachments: true,
+          },
+          orderBy: { roundNumber: "asc" as const },
+        },
         attachments: true,
       },
     },
@@ -2524,6 +2646,20 @@ export async function getDemoPlotWithHistory(demoPlotId: string) {
       },
       irrigations: true,
       attachments: true,
+      sprayRounds: {
+        include: {
+          products: {
+            include: {
+              product: {
+                select: { id: true, name: true, productCode: true, unit: true },
+              },
+            },
+          },
+          externalProducts: true,
+          attachments: true,
+        },
+        orderBy: { roundNumber: "asc" as const },
+      },
       visits: {
         orderBy: { visitDate: "asc" },
         include: {
@@ -3077,6 +3213,20 @@ export async function findDemoPlotByIdOrName(demoPlotIdOrName: string) {
       },
       irrigations: true,
       attachments: true,
+      sprayRounds: {
+        include: {
+          products: {
+            include: {
+              product: {
+                select: { id: true, name: true, productCode: true, unit: true },
+              },
+            },
+          },
+          externalProducts: true,
+          attachments: true,
+        },
+        orderBy: { roundNumber: "asc" as const },
+      },
       visits: {
         orderBy: { visitDate: "asc" },
         include: {

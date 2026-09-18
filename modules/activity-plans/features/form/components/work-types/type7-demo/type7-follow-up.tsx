@@ -1,10 +1,15 @@
 "use client";
 
 import React from "react";
-import { Info } from "lucide-react";
+import { Info, PackageCheck, Plus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
-import type { Type7DemoPlotItem } from "@/modules/activity-plans/features/form/types";
+import type {
+  Type7DemoPlotItem,
+  Type7bWithdrawnProductLine,
+} from "@/modules/activity-plans/features/form/types";
 import type { UserDemoPlotOption } from "@/modules/activity-plans/constants";
+import type { ProductOption } from "./type7-demo";
 
 interface Type7FollowUpProps {
   item: Type7DemoPlotItem;
@@ -19,6 +24,7 @@ interface Type7FollowUpProps {
     subLabel?: string;
   }>;
   plotList: UserDemoPlotOption[];
+  products?: ProductOption[];
   readonly?: boolean;
 }
 
@@ -27,6 +33,7 @@ export function Type7FollowUp({
   updateType7Row,
   existingPlotOptions,
   plotList,
+  products = [],
   readonly = false,
 }: Type7FollowUpProps) {
   // Find selected existing plot info for FOLLOW_UP read-only card
@@ -36,6 +43,85 @@ export function Type7FollowUp({
       p.id === item.existingPlotId ||
       p.name === item.existingPlotId,
   );
+
+  const productOptions = (products || []).map((p) => ({
+    value: p.id,
+    label: p.name,
+    subLabel: p.productCode ? `รหัส: ${p.productCode}` : undefined,
+  }));
+
+  const withdrawnProducts: Type7bWithdrawnProductLine[] =
+    item.withdrawnProducts || [];
+
+  const handleToggleWithdrawal = (checked: boolean) => {
+    updateType7Row(item.id, "hasProductWithdrawal", checked);
+    if (
+      checked &&
+      (!item.withdrawnProducts || item.withdrawnProducts.length === 0)
+    ) {
+      updateType7Row(item.id, "withdrawnProducts", [
+        {
+          id: Date.now().toString(),
+          productId: "",
+          productName: "",
+          quantity: 1,
+          unit: "ขวด",
+        },
+      ]);
+    }
+  };
+
+  const addWithdrawnProductRow = () => {
+    const newRow: Type7bWithdrawnProductLine = {
+      id: Date.now().toString(),
+      productId: "",
+      productName: "",
+      quantity: 1,
+      unit: "ขวด",
+    };
+    updateType7Row(item.id, "withdrawnProducts", [
+      ...withdrawnProducts,
+      newRow,
+    ]);
+  };
+
+  const updateWithdrawnProductRow = (
+    rowId: string,
+    field: keyof Type7bWithdrawnProductLine,
+    value: any,
+  ) => {
+    const updated = withdrawnProducts.map((p) => {
+      if (p.id !== rowId) return p;
+      if (field === "productId") {
+        const matched = products?.find((prod) => prod.id === value);
+        return {
+          ...p,
+          productId: value,
+          productName: matched?.name || "",
+          unit: matched?.unit || p.unit || "ขวด",
+        };
+      }
+      return { ...p, [field]: value };
+    });
+    updateType7Row(item.id, "withdrawnProducts", updated);
+  };
+
+  const deleteWithdrawnProductRow = (rowId: string) => {
+    if (withdrawnProducts.length <= 1) {
+      updateType7Row(item.id, "withdrawnProducts", [
+        {
+          id: Date.now().toString(),
+          productId: "",
+          productName: "",
+          quantity: 1,
+          unit: "ขวด",
+        },
+      ]);
+      return;
+    }
+    const updated = withdrawnProducts.filter((p) => p.id !== rowId);
+    updateType7Row(item.id, "withdrawnProducts", updated);
+  };
 
   return (
     <div className="space-y-3.5 pt-1">
@@ -171,6 +257,116 @@ export function Type7FollowUp({
           )}
         </div>
       )}
+
+      {/* 2. การเบิกสินค้าสำหรับรอบติดตามนี้ (TYPE_7B Product Withdrawal) */}
+      <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-200/80 space-y-2.5">
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-2.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              id={`has-withdrawal-${item.id}`}
+              checked={!!item.hasProductWithdrawal}
+              onChange={(e) => handleToggleWithdrawal(e.target.checked)}
+              disabled={readonly}
+              className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 transition-all cursor-pointer"
+            />
+            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <PackageCheck className="h-4 w-4 text-emerald-600" />
+              มีการเบิกสินค้า
+            </span>
+          </label>
+          {item.hasProductWithdrawal && !readonly && (
+            <Button
+              type="button"
+              size="sm"
+              onClick={addWithdrawnProductRow}
+              className="h-7 px-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>เพิ่มสินค้าที่เบิก</span>
+            </Button>
+          )}
+        </div>
+
+        {item.hasProductWithdrawal && (
+          <div className="space-y-2 pt-2 border-t border-slate-200/60">
+            <p className="text-[11px] text-slate-500">
+              ระบุรายการสินค้าสาธิตและจำนวนที่ต้องการขอเบิกสำหรับงานติดตามแปลงครั้งนี้
+            </p>
+            <div className="space-y-1.5">
+              {withdrawnProducts.map((pLine, idx) => (
+                <div
+                  key={pLine.id}
+                  className="grid grid-cols-12 gap-2 p-2 bg-white rounded-lg border border-slate-200 items-center shadow-2xs"
+                >
+                  <div className="col-span-1 text-center font-bold text-xs text-slate-500">
+                    {idx + 1}
+                  </div>
+
+                  <div className="col-span-6 sm:col-span-6">
+                    <FormCombobox
+                      id={`withdrawn-prod-${item.id}-${pLine.id}`}
+                      label=""
+                      triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
+                      value={pLine.productId || ""}
+                      onChange={(val) =>
+                        updateWithdrawnProductRow(pLine.id, "productId", val)
+                      }
+                      options={productOptions}
+                      placeholder="เลือกสินค้าที่ต้องการเบิก..."
+                      searchPlaceholder="ค้นหาสินค้า..."
+                      emptyText="ไม่พบสินค้า"
+                      disabled={readonly}
+                    />
+                  </div>
+
+                  <div className="col-span-4 sm:col-span-4 flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      min={1}
+                      value={pLine.quantity ?? ""}
+                      onChange={(e) => {
+                        const val = Math.max(1, parseInt(e.target.value) || 1);
+                        updateWithdrawnProductRow(pLine.id, "quantity", val);
+                      }}
+                      disabled={readonly}
+                      placeholder="จำนวน"
+                      className="w-full h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
+                    />
+                    <input
+                      type="text"
+                      value={pLine.unit || ""}
+                      onChange={(e) =>
+                        updateWithdrawnProductRow(
+                          pLine.id,
+                          "unit",
+                          e.target.value,
+                        )
+                      }
+                      disabled={readonly}
+                      placeholder="หน่วย"
+                      className="w-16 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-700 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                    />
+                  </div>
+
+                  <div className="col-span-1 text-right">
+                    {!readonly && (
+                      <button
+                        type="button"
+                        onClick={() => deleteWithdrawnProductRow(pLine.id)}
+                        className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                        title="ลบแถวสินค้านี้"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Details / Follow-up Notes */}
       <div>

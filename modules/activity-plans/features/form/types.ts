@@ -141,6 +141,8 @@ export interface Type7DemoPlotItem {
   // Fields for FOLLOW_UP (ติดตามแปลงสาธิต)
   existingPlotId?: string;
   existingPlotName?: string;
+  hasProductWithdrawal?: boolean;
+  withdrawnProducts?: Type7bWithdrawnProductLine[];
   followUpDate?: string;
   growthStage?: string;
   plotStatus?: string;
@@ -148,6 +150,15 @@ export interface Type7DemoPlotItem {
   problemDescription?: string;
   recommendation?: string;
   plotImages?: string[];
+}
+
+export interface Type7bWithdrawnProductLine {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unit?: string;
+  notes?: string;
 }
 
 export interface Type8MeetingItem {
