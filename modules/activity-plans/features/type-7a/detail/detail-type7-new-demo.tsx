@@ -508,16 +508,7 @@ export function DetailType7NewDemo({
             </span>
           </div>
         </div>
-
-        <Badge
-          variant="outline"
-          className="bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
-        >
-          NEW DEMO PLOT
-        </Badge>
       </div>
-
-      {/* SECTION 1: PLANNED TARGET CARD (Hidden per requirement - data preserved) */}
 
       {/* SECTION 2: READ-ONLY RESULT DISPLAY */}
       <div className="space-y-3 pt-1 border-t border-slate-100">
@@ -534,14 +525,6 @@ export function DetailType7NewDemo({
                 <Sprout className="w-4 h-4 text-emerald-700" />
                 ข้อมูลแปลงสาธิตจริง (Demo Plot Actual Baseline)
               </span>
-              {demoPlotData.code && (
-                <Badge
-                  variant="outline"
-                  className="bg-white text-emerald-800 border-emerald-300 font-mono text-[11px]"
-                >
-                  รหัสแปลง: {demoPlotData.code}
-                </Badge>
-              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
@@ -551,7 +534,7 @@ export function DetailType7NewDemo({
                 </span>
                 <span className="font-bold text-slate-900">
                   {demoPlotData.customer?.name
-                    ? `${demoPlotData.customer.name}${demoPlotData.customer.customerCode ? ` (${demoPlotData.customer.customerCode})` : ""}`
+                    ? `${demoPlotData.customer.name}`
                     : "-"}
                 </span>
               </div>
@@ -609,14 +592,6 @@ export function DetailType7NewDemo({
                     : demoPlotData.treeCount
                       ? `${demoPlotData.treeCount} ต้น`
                       : "-"}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-500 font-medium block">
-                  วัตถุประสงค์:
-                </span>
-                <span className="font-bold text-slate-900">
-                  {demoPlotData.objective || plotObjective || "-"}
                 </span>
               </div>
               <div>
@@ -759,100 +734,7 @@ export function DetailType7NewDemo({
               (resolvedDemoPlotId?.startsWith("OTHER:")
                 ? resolvedDemoPlotId.replace("OTHER:", "")
                 : "");
-
-            return (
-              <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1.5">
-                <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                  แปลงเกษตรของเกษตรกร
-                </span>
-                <span className="text-xs sm:text-sm font-bold text-slate-800 block">
-                  {isOtherPlot
-                    ? "แปลงอื่นๆ"
-                    : demoPlotData?.name ||
-                      (resolvedDemoPlotId && resolvedDemoPlotId !== "OTHER"
-                        ? `แปลงรหัส ${resolvedDemoPlotId}`
-                        : "-")}
-                </span>
-                {isOtherPlot && resolvedCustomDetail && (
-                  <div className="text-xs text-slate-600 bg-white p-2 rounded-lg border border-slate-200 mt-1">
-                    <span className="font-semibold text-slate-700 block mb-0.5">
-                      รายละเอียดแปลง:
-                    </span>
-                    <span className="whitespace-pre-wrap">
-                      {resolvedCustomDetail}
-                    </span>
-                  </div>
-                )}
-                {!isOtherPlot && demoPlotData?.code && (
-                  <span className="text-[11px] text-slate-500 font-mono block">
-                    รหัสแปลง: {demoPlotData.code}
-                  </span>
-                )}
-              </div>
-            );
           })()}
-
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
-            <span className="text-xs text-slate-500 font-medium block flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" />
-              วันที่เริ่มปลูกจริง
-            </span>
-            <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-              {demoPlotData?.plantingDate
-                ? formatThaiDate(demoPlotData.plantingDate)
-                : plantingDate
-                  ? formatThaiDate(plantingDate)
-                  : "-"}
-            </span>
-          </div>
-
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
-            <span className="text-xs text-slate-500 font-medium block">
-              ข้อมูลพืชประธาน / สภาพพื้นที่ปลูกตอนเริ่มต้น
-            </span>
-            <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-              {demoPlotData?.mainCropInfo ||
-                demoPlotData?.plantingAreaCondition ||
-                plantingAreaCondition ||
-                "-"}
-            </span>
-          </div>
-
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
-            <span className="text-xs text-slate-500 font-medium block">
-              อายุพืช
-            </span>
-            <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-              {resolvedCropAge
-                ? `${resolvedCropAge} ${resolvedCropAgeUnit}`
-                : "-"}
-            </span>
-          </div>
-
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
-            <span className="text-xs text-slate-500 font-medium block">
-              ระยะการเจริญเติบโต (Stage)
-            </span>
-            <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-              {resolvedGrowthStage || "-"}
-            </span>
-          </div>
-
-          {(demoPlotData?.objective ||
-            firstResult?.plotObjective ||
-            plotObjective) && (
-            <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2 md:col-span-3">
-              <span className="text-xs text-slate-500 font-medium block">
-                วัตถุประสงค์ของแปลง
-              </span>
-              <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-                {demoPlotData?.objective ||
-                  firstResult?.plotObjective ||
-                  plotObjective}
-              </span>
-            </div>
-          )}
 
           {/* Demonstration Products Responsive Table */}
           <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-3 sm:col-span-2 md:col-span-3">
@@ -896,9 +778,6 @@ export function DetailType7NewDemo({
                       >
                         จำนวนที่เบิก
                       </th>
-                      <th scope="col" className="py-2.5 px-3 min-w-[130px]">
-                        อัตราการใช้
-                      </th>
                       <th
                         scope="col"
                         className="py-2.5 px-3 text-right whitespace-nowrap min-w-[90px]"
@@ -910,6 +789,9 @@ export function DetailType7NewDemo({
                         className="py-2.5 px-3 text-right whitespace-nowrap min-w-[90px]"
                       >
                         จำนวนคงเหลือ
+                      </th>
+                      <th scope="col" className="py-2.5 px-3 min-w-[130px]">
+                        อัตราการใช้
                       </th>
                     </tr>
                   </thead>
@@ -940,23 +822,18 @@ export function DetailType7NewDemo({
                             <div className="font-bold text-slate-900">
                               {prod.productName}
                             </div>
-                            {prod.productCode && (
-                              <div className="text-[11px] text-slate-500 font-mono">
-                                {prod.productCode}
-                              </div>
-                            )}
                           </td>
                           <td className="py-2.5 px-3 text-right font-semibold text-slate-700 whitespace-nowrap">
                             {plannedDisplay}
-                          </td>
-                          <td className="py-2.5 px-3 text-emerald-800 font-medium">
-                            {prod.applicationRate || "-"}
                           </td>
                           <td className="py-2.5 px-3 text-right font-bold text-emerald-700 whitespace-nowrap">
                             {actualDisplay}
                           </td>
                           <td className="py-2.5 px-3 text-right font-bold text-blue-700 whitespace-nowrap">
                             {remainingDisplay}
+                          </td>
+                          <td className="py-2.5 px-3 text-emerald-800 font-medium">
+                            {prod.applicationRate || "-"}
                           </td>
                         </tr>
                       );
@@ -1059,10 +936,10 @@ export function DetailType7NewDemo({
               </div>
             )}
 
-          {/* วิธีการทดลอง / แผนการทดสอบ */}
+          {/* วิธีการทดลอง  */}
           <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2 md:col-span-3">
             <span className="text-xs text-slate-500 font-medium block">
-              วิธีการทดลอง / แผนการทดสอบ
+              วิธีการทดลอง
             </span>
             <p className="text-xs sm:text-sm text-slate-800 font-medium whitespace-pre-wrap leading-relaxed">
               {resolvedExperimentDetail || "-"}
