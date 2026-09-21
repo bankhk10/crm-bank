@@ -164,6 +164,52 @@ export function useType7aActual() {
             };
           }),
         );
+      } else {
+        const planT7aProducts = (
+          plan?.products ||
+          plan?.planProducts ||
+          []
+        ).filter(
+          (pr: any) =>
+            pr.workTypeCode === "TYPE_7A" ||
+            pr.workTypeCode === "TYPE_7" ||
+            !pr.workTypeCode,
+        );
+        if (planT7aProducts.length > 0) {
+          setT7DemoProducts(
+            planT7aProducts.map((pr: any, idx: number) => {
+              const plannedQty = pr.targetQuantity ?? pr.quantity ?? 1;
+              const usedQty = plannedQty;
+              const remainingQty = Math.max(0, Number(plannedQty) - Number(usedQty));
+              return {
+                id: pr.id || String(idx + 1),
+                productId: pr.productId,
+                productName: pr.product?.name || pr.productName || "",
+                plannedQuantity: plannedQty,
+                quantity: usedQty,
+                remainingQuantity: remainingQty,
+                unit: pr.product?.unit || pr.product?.packageSizeUnit || pr.unit || "",
+                applicationRate: "",
+              };
+            }),
+          );
+        } else if (t7aTarget?.demoProducts && t7aTarget.demoProducts.length > 0) {
+          setT7DemoProducts(
+            t7aTarget.demoProducts.map((pr: any, idx: number) => {
+              const plannedQty = pr.quantity ?? 1;
+              return {
+                id: String(idx + 1),
+                productId: pr.productId,
+                productName: pr.productName || "",
+                plannedQuantity: plannedQty,
+                quantity: plannedQty,
+                remainingQuantity: 0,
+                unit: pr.unit || "",
+                applicationRate: "",
+              };
+            }),
+          );
+        }
       }
       const resolvedUsageMethod = dp.usageMethod || dp.notes;
       if (resolvedUsageMethod) setT7UsageMethod(resolvedUsageMethod);
