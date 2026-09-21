@@ -1,11 +1,9 @@
 export {
   Type7FollowUp,
-  type CustomerOption,
   type ProductOption,
 } from "./create/type7-follow-up";
 export {
   EditType7bFollowUp,
-  type EditCustomerOption,
   type EditProductOption,
 } from "./edit/edit-type7b";
 export {

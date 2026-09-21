@@ -9,7 +9,8 @@ import type {
   Type7bWithdrawnProductLine,
 } from "@/modules/activity-plans/features/form/types";
 import type { UserDemoPlotOption } from "@/modules/activity-plans/constants";
-import type { ProductOption } from "./type7-demo";
+import type { ProductOption } from "@/modules/activity-plans/features/type-7a/create/type7-new-demo";
+export type { ProductOption };
 
 interface Type7FollowUpProps {
   item: Type7DemoPlotItem;
