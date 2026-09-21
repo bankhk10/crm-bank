@@ -2256,11 +2256,14 @@ model ActivityAttachment {
   demoPlot       DemoPlot?                 @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
   sprayRoundId   String?                   @map("spray_round_id")
   sprayRound     ActivityResultSprayRound? @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
+  demoPlotVisitId String?                  @map("demo_plot_visit_id")
+  demoPlotVisit  DemoPlotVisit?            @relation(fields: [demoPlotVisitId], references: [id], onDelete: Cascade)
 
   @@index([activityPlanId])
   @@index([activityResultId])
   @@index([demoPlotId])
   @@index([sprayRoundId])
+  @@index([demoPlotVisitId])
   @@index([category])
   @@index([storeId])
   @@index([productId])
@@ -2346,9 +2349,12 @@ model DemoPlot {
   farmerCustomerId String?   @map("farmer_customer_id")
   farmerCustomer   Customer? @relation("FarmerDemoPlots", fields: [farmerCustomerId], references: [id], onDelete: SetNull)
 
+  // ประเภทแปลง (GENERAL_DEMO สำหรับ TYPE_7A/7B, HATTACK สำหรับ TYPE_13/14)
+  plotType       String   @default("GENERAL_DEMO") @map("plot_type")
+
   // ข้อมูลพืชและสถานที่
-  cropCategory   String   @map("crop_category") // หมวดพืช เช่น ไม้ผล, พืชไร่
-  cropName       String   @map("crop_name") // ชื่อพืช เช่น ทุเรียน, ข้าว
+  cropCategory   String?  @map("crop_category") // หมวดพืช เช่น ไม้ผล, พืชไร่
+  cropName       String?  @map("crop_name") // ชื่อพืช เช่น ทุเรียน, ข้าว
   customCropName String?  @map("custom_crop_name")
   areaRai        Decimal? @map("area_rai") @db.Decimal(10, 2)
   treeCount      Int?     @map("tree_count")
@@ -2401,6 +2407,7 @@ model DemoPlot {
   attachments      ActivityAttachment[]
   sprayRounds      ActivityResultSprayRound[]
 
+  @@index([plotType])
   @@index([customerId])
   @@index([farmerCustomerId])
   @@index([province])
@@ -2416,6 +2423,7 @@ model DemoPlotVisit {
   id             String   @id @default(cuid())
   demoPlotId     String   @map("demo_plot_id")
   activityPlanId String?  @map("activity_plan_id") // ผูกกับ Trip Plan ที่มาตรวจรอบนี้
+  workTypeCode   String?  @map("work_type_code") // e.g. "TYPE_7A", "TYPE_7B", "TYPE_14"
   visitNumber    Int      @default(1) @map("visit_number") // ครั้งที่ 1, 2, 3...
   visitDate      DateTime @map("visit_date") // วันที่ตรวจจริง
   daysSinceStart Int      @default(0) @map("days_since_start") // จำนวนวันนับจากวันเริ่มแปลง (Auto Calc)
@@ -2447,11 +2455,13 @@ model DemoPlotVisit {
 
   demoPlot     DemoPlot      @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
   activityPlan ActivityPlan? @relation(fields: [activityPlanId], references: [id], onDelete: SetNull)
+  attachments  ActivityAttachment[]
 
   createdAt DateTime @default(now()) @map("created_at")
 
   @@index([demoPlotId])
   @@index([activityPlanId])
+  @@index([workTypeCode])
   @@index([visitDate])
   @@map("demo_plot_visits")
 }

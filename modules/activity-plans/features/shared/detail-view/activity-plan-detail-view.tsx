@@ -51,6 +51,10 @@ import {
   ApprovalType11Stock,
   ApprovalType12Tour,
 } from "../approve-view/components/work-types";
+import { Type13Detail } from "@/modules/activity-plans/features/type-13";
+import type { Type13PlotItem } from "../../../application/validations";
+import { Type14Detail } from "@/modules/activity-plans/features/type-14";
+import type { Type14PlanInput } from "../../../application/validations";
 import {
   BudgetSection,
   PromotionalMaterialsSection,
@@ -320,6 +324,91 @@ export default function ActivityPlanDetailView({
       planWorkTypes.includes(name)
     );
   };
+
+  const type13Plots: Type13PlotItem[] = useMemo(() => {
+    if (!plan?.demoPlotVisits || plan.demoPlotVisits.length === 0) return [];
+    const visits = plan.demoPlotVisits.filter(
+      (v) => v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK"
+    );
+    if (visits.length === 0) return [];
+
+    const plotMap = new Map<string, Type13PlotItem>();
+    visits.forEach((v) => {
+      const dp = v.demoPlot;
+      if (!dp || plotMap.has(dp.id)) return;
+      plotMap.set(dp.id, {
+        id: dp.id,
+        name: dp.name || `แปลง #${v.visitNumber || 1}`,
+        storeId: dp.customerId || "",
+        ownerName: dp.ownerName || dp.farmerCustomer?.name || "",
+        province: dp.province || "",
+        district: dp.district || "",
+        products: (dp.demoProducts || []).map((prod) => ({
+          productId: prod.productId,
+          productName: prod.productName || prod.product?.name || "",
+          quantity: Number(prod.quantity) || 1,
+          unit: prod.unit || prod.product?.unit || prod.product?.packageSizeUnit || "ขวด",
+        })),
+      });
+    });
+
+    return Array.from(plotMap.values());
+  }, [plan?.demoPlotVisits]);
+
+  const type13ActualData = useMemo(() => {
+    if (!plan?.result?.resultSummary) return undefined;
+    try {
+      const parsed =
+        typeof plan.result.resultSummary === "string"
+          ? JSON.parse(plan.result.resultSummary)
+          : plan.result.resultSummary;
+      return {
+        type13PlotsActual: parsed.type13PlotsActual,
+        sprayRounds: parsed.sprayRounds,
+      };
+    } catch {
+      return undefined;
+    }
+  }, [plan?.result?.resultSummary]);
+
+  const type14Data: Type14PlanInput | null = useMemo(() => {
+    if (!plan?.demoPlotVisits || plan.demoPlotVisits.length === 0) return null;
+    const visits = plan.demoPlotVisits.filter(
+      (v) =>
+        v.workTypeCode === "TYPE_14" || v.demoPlot?.plotType === "HATTACK",
+    );
+    if (visits.length === 0) return null;
+
+    const firstVisit = visits[0];
+    const plot = firstVisit.demoPlot;
+    return {
+      mode: (plot?.id ? "EXISTING_PLOT" : "NEW_PLOT") as
+        | "EXISTING_PLOT"
+        | "NEW_PLOT",
+      demoPlotId: plot?.id || null,
+      name: plot?.name || "แปลงแฮตแทค",
+      storeId: plot?.customerId || "",
+      ownerName: plot?.ownerName || plot?.farmerCustomer?.name || "",
+      province: plot?.province || plan.province || "",
+      district: plot?.district || plan.district || "",
+      latitude: plot?.latitude ? String(plot.latitude) : "",
+      longitude: plot?.longitude ? String(plot.longitude) : "",
+      trackings: visits.map((v) => ({
+        id: v.id,
+        visitDate: v.visitDate
+          ? new Date(v.visitDate).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
+        daysSinceStart: v.daysSinceStart ?? 0,
+        notes: v.notes || "",
+        attachments: (v.attachments || []).map((att) => ({
+          fileUrl: att.fileUrl,
+          fileName: att.fileName,
+          fileSize: att.fileSize ?? undefined,
+          mimeType: att.mimeType ?? undefined,
+        })),
+      })),
+    };
+  }, [plan?.demoPlotVisits, plan?.province, plan?.district]);
 
   // Helper function to format Buddhist Era (พ.ศ.)
   const formatThaiYear = (dateStr?: string) => {
@@ -651,6 +740,29 @@ export default function ActivityPlanDetailView({
             storeName={tourStoreName}
             destination={tourDestination}
           />
+
+          {/* TYPE_13: ฉีดแปลงแฮตแทค */}
+          {isTypeActive("TYPE_13", "ฉีดแปลงแฮตแทค") && (
+            <Type13Detail
+              plots={type13Plots}
+              planSummary={{
+                province: plan.province,
+                district: plan.district,
+              }}
+              actualData={type13ActualData}
+            />
+          )}
+
+          {/* TYPE_14: ติดตามแปลงแฮทแทค */}
+          {isTypeActive("TYPE_14", "ติดตามแปลงแฮทแทค") && type14Data && (
+            <Type14Detail
+              data={type14Data}
+              planSummary={{
+                province: plan.province,
+                district: plan.district,
+              }}
+            />
+          )}
         </div>
 
         {/* Card 5: สถานที่จัดงาน */}

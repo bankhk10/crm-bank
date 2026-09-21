@@ -23,6 +23,7 @@ import {
   getProductCategoriesUseCase,
   getDemoPlotsUseCase,
   getFollowUpDemoPlotsUseCase,
+  getHattackFollowUpDemoPlotsUseCase,
   getFarmerCustomersUseCase,
   getDemoPlotHistoryUseCase,
   recordDemoPlotVisitUseCase,
@@ -598,6 +599,22 @@ export async function getFollowUpDemoPlotsAction() {
     return serialize(result);
   } catch (err: any) {
     console.error("Failed to get follow-up demo plots", err);
+    return serialize({
+      success: false,
+      demoPlots: [],
+    });
+  }
+}
+
+/**
+ * Action: Get follow-up demo plots strictly for TYPE_14 (HATTACK plots only)
+ */
+export async function getHattackFollowUpDemoPlotsAction() {
+  try {
+    const result = await getHattackFollowUpDemoPlotsUseCase();
+    return serialize(result);
+  } catch (err: any) {
+    console.error("Failed to get Hattack follow-up demo plots", err);
     return serialize({
       success: false,
       demoPlots: [],

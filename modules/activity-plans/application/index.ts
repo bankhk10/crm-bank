@@ -305,6 +305,8 @@ export async function createActivityPlanUseCase(
     targetBookingSales: normalized.targetBookingSales,
     demoPlotId: normalized.demoPlotId,
     demoPlotData: normalized.demoPlotData,
+    type13Plots: normalized.type13Plots,
+    type14Data: normalized.type14Data,
     workTypeCodes: normalized.workTypeCodes,
     status: ActivityStatus.DRAFT,
     employeeId: employee.id,
@@ -558,6 +560,8 @@ export async function updateActivityPlanUseCase(
     targetBookingSales: normalized.targetBookingSales,
     demoPlotId: normalized.demoPlotId,
     demoPlotData: normalized.demoPlotData,
+    type13Plots: normalized.type13Plots,
+    type14Data: normalized.type14Data,
     workTypeCodes: normalized.workTypeCodes,
     updatedUserId: userId,
   };
@@ -656,6 +660,7 @@ export async function recordActivityResultUseCase(
     followupResults: parsed.data.followupResults as any,
     issueResults: parsed.data.issueResults as any,
     sprayRounds: parsed.data.sprayRounds as any,
+    type13PlotsActual: (parsed.data as any).type13PlotsActual,
     attachments: parsed.data.attachments as any,
   };
 
@@ -729,6 +734,7 @@ export {
 export {
   getDemoPlotsUseCase,
   getFollowUpDemoPlotsUseCase,
+  getHattackFollowUpDemoPlotsUseCase,
   getFarmerCustomersUseCase,
   getDemoPlotHistoryUseCase,
   recordDemoPlotVisitUseCase,

@@ -163,6 +163,115 @@ export const demoPlotDataInputSchema = z.object({
   objective: z.string().min(1, "กรุณากรอกวัตถุประสงค์"),
 });
 
+// ── TYPE_13 ("ฉีดแปลงแฮตแทค") Validations ─────────────────────────────
+export const type13ProductLineSchema = z.object({
+  id: z.string().optional(),
+  productId: z.string().min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
+  productName: z.string().optional().nullable(),
+  quantity: z.number().min(1, "จำนวนต้องอย่างน้อย 1"),
+  unit: z.string().optional().nullable(),
+});
+
+export const type13PlotItemSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, "กรุณาระบุชื่อแปลง"),
+  storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),
+  ownerName: z.string().optional().nullable(),
+  province: z.string().min(1, "กรุณาเลือกจังหวัด"),
+  district: z.string().min(1, "กรุณาเลือกอำเภอ"),
+  products: z
+    .array(type13ProductLineSchema)
+    .min(1, "ต้องระบุตัวยา/ผลิตภัณฑ์อย่างน้อย 1 รายการ"),
+});
+
+export const type13PlanInputSchema = z.object({
+  plots: z
+    .array(type13PlotItemSchema)
+    .min(1, "ต้องมีแปลงอย่างน้อย 1 แปลง")
+    .max(10, "เพิ่มแปลงได้สูงสุดไม่เกิน 10 แปลง"),
+});
+
+export const type13SprayProductSchema = z.object({
+  productId: z.string().min(1, "กรุณาเลือกสินค้า"),
+  productName: z.string().optional().nullable(),
+  actualRate: z.string().min(1, "กรุณาระบุอัตราการฉีดพ่นจริง"),
+  quantityUsed: z.number().min(0, "จำนวนที่ใช้ต้องไม่ติดลบ"),
+  unit: z.string().optional().nullable(),
+});
+
+export const type13SprayExternalSchema = z.object({
+  company: z.string().min(1, "กรุณาระบุบริษัท"),
+  productName: z.string().min(1, "กรุณาระบุชื่อยา/สารเคมี"),
+  activeIngredient: z.string().optional().nullable(),
+  formula: z.string().min(1, "กรุณาเลือกสูตรยา"),
+  customFormula: z.string().optional().nullable(),
+  applicationRate: z.string().min(1, "กรุณาระบุอัตราการใช้"),
+});
+
+export const type13SprayingRoundSchema = z.object({
+  id: z.string().optional(),
+  demoPlotId: z.string().min(1),
+  roundNumber: z.number().min(1),
+  sprayDate: z.union([z.string(), z.date()]),
+  sprayMethod: z.enum(["SINGLE", "TANK_MIXED"]),
+  sprayEquipment: z.string().min(1, "กรุณาระบุอุปกรณ์ที่ใช้"),
+  otherEquipment: z.string().optional().nullable(),
+  productResponse: z.string().min(1, "กรุณาระบุผลหลังการฉีดพ่น"),
+  problemDetail: z.string().optional().nullable(),
+  products: z.array(type13SprayProductSchema),
+  externalProducts: z.array(type13SprayExternalSchema).optional().default([]),
+  attachments: z
+    .array(z.any())
+    .max(2, "รูปภาพก่อนฉีดพ่นต้องไม่เกิน 2 รูปต่อรอบ")
+    .optional()
+    .default([]),
+});
+
+export const type13PlotActualSchema = z.object({
+  demoPlotId: z.string().min(1),
+  latitude: z.string().min(1, "กรุณาระบุละติจูด (Latitude) ของแปลง"),
+  longitude: z.string().min(1, "กรุณาระบุลองจิจูด (Longitude) ของแปลง"),
+  sprayRounds: z
+    .array(type13SprayingRoundSchema)
+    .min(1, "ต้องมีรอบการฉีดพ่นอย่างน้อย 1 รอบ"),
+});
+
+// ── TYPE_14 ("ติดตามแปลงแฮทแทค") Validations ────────────────────────────
+export const type14TrackingItemSchema = z.object({
+  id: z.string().optional(),
+  visitDate: z.union([z.string(), z.date()]),
+  daysSinceStart: z.number().min(0, "จำนวนวันหลังฉีดพ่นต้องไม่ติดลบ"),
+  notes: z.string().optional().nullable(),
+  attachments: z
+    .array(z.any())
+    .max(5, "รูปผลหลังการฉีดพ่นต้องไม่เกิน 5 รูปต่อครั้ง")
+    .optional()
+    .default([]),
+});
+
+export const type14PlanInputSchema = z.object({
+  mode: z.enum(["EXISTING_PLOT", "NEW_PLOT"]),
+  demoPlotId: z.string().optional().nullable(),
+  name: z.string().min(1, "กรุณาระบุชื่อแปลง"),
+  storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),
+  ownerName: z.string().optional().nullable(),
+  province: z.string().min(1, "กรุณาเลือกจังหวัด"),
+  district: z.string().min(1, "กรุณาเลือกอำเภอ"),
+  latitude: z.string().min(1, "กรุณาระบุละติจูด (Latitude)"),
+  longitude: z.string().min(1, "กรุณาระบุลองจิจูด (Longitude)"),
+  trackings: z
+    .array(type14TrackingItemSchema)
+    .min(1, "ต้องมีข้อมูลการติดตามแปลงอย่างน้อย 1 รายการ"),
+});
+
+export type Type13ProductLine = z.infer<typeof type13ProductLineSchema>;
+export type Type13PlotItem = z.infer<typeof type13PlotItemSchema>;
+export type Type13PlanInput = z.infer<typeof type13PlanInputSchema>;
+export type Type13SprayingRound = z.infer<typeof type13SprayingRoundSchema>;
+export type Type13PlotActual = z.infer<typeof type13PlotActualSchema>;
+export type Type14TrackingItem = z.infer<typeof type14TrackingItemSchema>;
+export type Type14PlanInput = z.infer<typeof type14PlanInputSchema>;
+
 export const activityPlanSchema = z
   .object({
     title: z.string().min(1, "กรุณากรอกชื่อกิจกรรม"),
@@ -211,6 +320,8 @@ export const activityPlanSchema = z
     promotionItems: z.array(planPromotionItemInputSchema).default([]),
     tourData: tourDataInputSchema.optional().nullable(),
     helperEmployeeIds: z.array(z.string()).default([]),
+    type13Plots: z.array(type13PlotItemSchema).optional(),
+    type14Data: type14PlanInputSchema.optional(),
     // For transition: raw form items payload (will be normalized in application mapper)
     items: z.array(z.record(z.any())).optional().default([]),
   })
@@ -543,6 +654,7 @@ export const activityResultSchema = z
           otherEquipment: z.string().optional().nullable(),
           productResponse: z.string(),
           problemDetail: z.string().optional().nullable(),
+          workTypeCode: z.string().optional().nullable(),
           products: z.array(
             z.object({
               productId: z.string(),
@@ -577,6 +689,15 @@ export const activityResultSchema = z
             )
             .optional()
             .default([]),
+        }),
+      )
+      .optional(),
+    type13PlotsActual: z
+      .array(
+        z.object({
+          demoPlotId: z.string(),
+          latitude: z.union([z.string(), z.number()]),
+          longitude: z.union([z.string(), z.number()]),
         }),
       )
       .optional(),
@@ -682,3 +803,4 @@ export type ActivityPlanFormValues = z.input<typeof activityPlanSchema>;
 export type ActivityApprovalFormValues = z.infer<typeof activityApprovalSchema>;
 export type ActivityActualFormValues = z.infer<typeof actualRecordSchema>;
 export type ActivityResultFormValues = z.infer<typeof activityResultSchema>;
+

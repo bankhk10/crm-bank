@@ -23,6 +23,7 @@ import type { useType8Actual } from "@/modules/activity-plans/features/type-8";
 import type { useType9Actual } from "@/modules/activity-plans/features/type-9";
 import type { useType10Actual } from "@/modules/activity-plans/features/type-10";
 import type { useType11Actual } from "@/modules/activity-plans/features/type-11";
+import type { useType13ActualState } from "@/modules/activity-plans/features/type-13";
 
 interface UseActualSubmitProps {
   id?: string;
@@ -49,6 +50,7 @@ interface UseActualSubmitProps {
     type9: ReturnType<typeof useType9Actual>;
     type10: ReturnType<typeof useType10Actual>;
     type11: ReturnType<typeof useType11Actual>;
+    type13?: ReturnType<typeof useType13ActualState>;
   };
 }
 
@@ -221,6 +223,24 @@ export function useActualSubmit({
           const t10Payload = type10.collectPayload(cleanT10Images);
           const t11Payload = type11.collectPayload();
 
+          // TYPE_13: ฉีดแปลงแฮตแทค
+          const isType13 =
+            isTypeVisible("ฉีดแปลงแฮตแทค") || isTypeVisible("TYPE_13");
+          let t13Payload: any = {};
+          if (isType13 && typeHooks.type13) {
+            for (let i = 0; i < typeHooks.type13.plotsActual.length; i++) {
+              const p = typeHooks.type13.plotsActual[i];
+              if (!p.latitude?.trim() || !p.longitude?.trim()) {
+                setFormError(
+                  `กรุณาระบุพิกัด Latitude และ Longitude ให้ครบถ้วน (${p.plotName || `แปลงที่ ${i + 1}`})`,
+                );
+                setIsSubmitting(false);
+                return;
+              }
+            }
+            t13Payload = typeHooks.type13.buildType13ActualPayload();
+          }
+
           const buildResult = buildResultSummary({
             activityResultStatus: statusState.activityResultStatus,
             cancelReason: statusState.cancelReason,
@@ -255,7 +275,21 @@ export function useActualSubmit({
           }
 
           // --- 4. RECORD TO DATABASE ---
-          const res = await recordActivityResultAction(id, buildResult.payload);
+          const combinedPayload = {
+            ...buildResult.payload,
+            ...(t13Payload.sprayRounds?.length
+              ? {
+                  sprayRounds: [
+                    ...(buildResult.payload.sprayRounds || []),
+                    ...t13Payload.sprayRounds,
+                  ],
+                }
+              : {}),
+            ...(t13Payload.type13PlotsActual?.length
+              ? { type13PlotsActual: t13Payload.type13PlotsActual }
+              : {}),
+          };
+          const res = await recordActivityResultAction(id, combinedPayload);
           if (!res.success) {
             if (allNewlyUploadedUrls.length > 0) {
               await deleteActivityPlanImagePaths(id, allNewlyUploadedUrls);

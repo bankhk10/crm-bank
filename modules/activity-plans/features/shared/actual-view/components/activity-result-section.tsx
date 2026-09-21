@@ -39,6 +39,7 @@ import type { useType8Actual } from "@/modules/activity-plans/features/type-8";
 import type { useType9Actual } from "@/modules/activity-plans/features/type-9";
 import type { useType10Actual } from "@/modules/activity-plans/features/type-10";
 import type { useType11Actual } from "@/modules/activity-plans/features/type-11";
+import { Type13Actual } from "@/modules/activity-plans/features/type-13";
 
 export interface ActualTypeHooks {
   type1: ReturnType<typeof useType1Actual>;
@@ -53,6 +54,7 @@ export interface ActualTypeHooks {
   type9: ReturnType<typeof useType9Actual>;
   type10: ReturnType<typeof useType10Actual>;
   type11: ReturnType<typeof useType11Actual>;
+  type13?: any;
 }
 
 export interface ActivityResultSectionProps {
@@ -808,6 +810,15 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           nextAction={t11NextAction}
           setNextAction={setT11NextAction}
         />
+
+        {/* WORK TYPE 13: ฉีดแปลงแฮตแทค */}
+        {typeHooks?.type13 && (
+          <Type13Actual
+            isVisible={isTypeVisible("ฉีดแปลงแฮตแทค") || isTypeVisible("TYPE_13")}
+            actualState={typeHooks.type13}
+            products={products}
+          />
+        )}
       </div>
     </div>
   );

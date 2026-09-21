@@ -101,6 +101,8 @@ export interface NormalizedPlanData {
     categoryId?: string | null;
     objective?: string | null;
   } | null;
+  type13Plots?: any[];
+  type14Data?: any;
   helperEmployeeIds: string[];
 }
 
@@ -331,6 +333,8 @@ export function normalizePlanInput(
     promotionItems: promotion,
     tourData: rawInput.tourData || null,
     demoPlotData: (rawInput.demoPlotData as any) || null,
+    type13Plots: rawInput.type13Plots || undefined,
+    type14Data: rawInput.type14Data || undefined,
     helperEmployeeIds: rawInput.helperEmployeeIds || [],
   };
 }

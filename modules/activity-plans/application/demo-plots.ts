@@ -2,6 +2,7 @@ import {
   findFarmerCustomersForPlots,
   findMasterDemoPlots,
   findFollowUpDemoPlots,
+  findHattackFollowUpDemoPlots,
   findFarmerCustomerOptions,
   findDemoPlotOwners,
   findDemoPlotByIdOrName,
@@ -190,6 +191,59 @@ export async function getFollowUpDemoPlotsUseCase() {
 
   const followUpPlots = await findFollowUpDemoPlots();
   const demoPlots = followUpPlots.map((p) => mapDemoPlotToOption(p, farmerMap));
+
+  return {
+    success: true as const,
+    demoPlots,
+  };
+}
+
+/**
+ * Use Case: Get dedicated demo plots for TYPE_14 "ติดตามแปลงแฮทแทค"
+ * Returns only HATTACK plots created/sprayed in TYPE_13 (or previous TYPE_14)
+ */
+export async function getHattackFollowUpDemoPlotsUseCase() {
+  const hattackPlots = await findHattackFollowUpDemoPlots();
+  const demoPlots: UserDemoPlotOption[] = hattackPlots.map((p: any) => {
+    const visitsCount = p.visits?.length || 0;
+    const lastVisit = p.visits?.[p.visits.length - 1];
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const latestDate = lastVisit ? new Date(lastVisit.visitDate) : new Date();
+    const daysSinceStart = Math.max(
+      0,
+      Math.floor(
+        (latestDate.getTime() - new Date(p.startDate || p.createdAt).getTime()) /
+          msPerDay,
+      ),
+    );
+
+    return {
+      id: p.id,
+      code: p.code || `HATTACK-${p.id.slice(-4)}`,
+      name: p.name,
+      location: [p.district, p.province].filter(Boolean).join(", "),
+      targetCrop: p.cropName || "พืชทั่วไป",
+      showcase: "",
+      ownerName: p.ownerName || undefined,
+      cropCategory: p.cropCategory || undefined,
+      cropName: p.cropName || undefined,
+      dealerId: p.customerId || undefined,
+      dealerName: p.customer?.name || undefined,
+      province: p.province || undefined,
+      district: p.district || undefined,
+      latitude: p.latitude ? String(p.latitude) : undefined,
+      longitude: p.longitude ? String(p.longitude) : undefined,
+      status: p.status,
+      visitsCount,
+      daysSinceStart,
+      demoProducts: (p.demoProducts || []).map((dp: any) => ({
+        productId: dp.productId,
+        productName: dp.product?.name,
+        targetQuantity: dp.targetQuantity != null ? Number(dp.targetQuantity) : null,
+        actualQuantity: dp.actualQuantity != null ? Number(dp.actualQuantity) : null,
+      })),
+    };
+  });
 
   return {
     success: true as const,

@@ -112,9 +112,25 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
     hasActual: false,
     requiresApproval: true,
   },
+  TYPE_13: {
+    code: "TYPE_13",
+    name: "ฉีดแปลงแฮตแทค",
+    shortName: "HattackSpray",
+    sortOrder: 14,
+    hasActual: true,
+    requiresApproval: true,
+  },
+  TYPE_14: {
+    code: "TYPE_14",
+    name: "ติดตามแปลงแฮทแทค",
+    shortName: "HattackFollow",
+    sortOrder: 15,
+    hasActual: false,
+    requiresApproval: true,
+  },
 };
 
-// Master 13 work types list
+// Master work types list
 export const WORK_TYPES = Object.values(WORK_TYPE_CONFIG).map((c) => c.name);
 
 // Helper function to resolve code from name or code
@@ -140,6 +156,12 @@ export function getWorkTypeCode(nameOrCode: string): string {
   }
   if (nameOrCode === "ติดตามแปลงสาธิต / ทำแปลง" || nameOrCode === "TYPE_7") {
     return "TYPE_7A";
+  }
+  if (nameOrCode === "ฉีดแปลงแฮตแทค" || nameOrCode === "TYPE_13") {
+    return "TYPE_13";
+  }
+  if (nameOrCode === "ติดตามแปลงแฮทแทค" || nameOrCode === "TYPE_14") {
+    return "TYPE_14";
   }
   const entry = Object.values(WORK_TYPE_CONFIG).find(
     (c) => c.name === nameOrCode || c.shortName === nameOrCode,
@@ -173,6 +195,12 @@ export function getWorkTypeName(codeOrName: string): string {
   }
   if (codeOrName === "ติดตามแปลงสาธิต" || codeOrName === "TYPE_7B") {
     return WORK_TYPE_CONFIG.TYPE_7B.name;
+  }
+  if (codeOrName === "ฉีดแปลงแฮตแทค" || codeOrName === "TYPE_13") {
+    return WORK_TYPE_CONFIG.TYPE_13.name;
+  }
+  if (codeOrName === "ติดตามแปลงแฮทแทค" || codeOrName === "TYPE_14") {
+    return WORK_TYPE_CONFIG.TYPE_14.name;
   }
   if (WORK_TYPE_CONFIG[codeOrName]) return WORK_TYPE_CONFIG[codeOrName].name;
   return codeOrName;
@@ -351,6 +379,8 @@ export interface UserDemoPlotOption {
   mainCropInfo?: string;
   sprayMethod?: string;
   hasExternalChemicals?: boolean;
+  dealerId?: string;
+  dealerName?: string;
   demoProducts?: any[];
   externalProducts?: any[];
   irrigations?: any[];

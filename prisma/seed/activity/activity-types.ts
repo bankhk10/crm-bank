@@ -105,10 +105,26 @@ const ACTIVITY_TYPES = [
     hasActual: false,
     requiresApproval: true,
   },
+  {
+    code: "TYPE_13",
+    name: "ฉีดแปลงแฮตแทค",
+    shortName: "HattackSpray",
+    sortOrder: 14,
+    hasActual: true,
+    requiresApproval: true,
+  },
+  {
+    code: "TYPE_14",
+    name: "ติดตามแปลงแฮทแทค",
+    shortName: "HattackFollow",
+    sortOrder: 15,
+    hasActual: false,
+    requiresApproval: true,
+  },
 ];
 
 export async function seedActivityTypes(prisma: PrismaClient) {
-  console.log("Seeding ActivityTypes (13 types)...");
+  console.log("Seeding ActivityTypes (15 types)...");
   for (const type of ACTIVITY_TYPES) {
     await prisma.activityType.upsert({
       where: { code: type.code },

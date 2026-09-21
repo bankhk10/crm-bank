@@ -186,6 +186,7 @@ export async function findActivityPlanById(id: string) {
       },
       demoPlotVisits: {
         include: {
+          attachments: true,
           demoPlot: {
             include: {
               customer: {
@@ -652,6 +653,44 @@ export type CreateActivityPlanInput = {
     detail: string;
     amount?: number | null;
   }>;
+  type13Plots?: Array<{
+    id?: string;
+    demoPlotId?: string | null;
+    name: string;
+    storeId: string;
+    ownerName?: string | null;
+    province: string;
+    district: string;
+    products: Array<{
+      productId: string;
+      productName?: string | null;
+      quantity: number;
+      unit?: string | null;
+    }>;
+  }>;
+  type14Data?: {
+    mode: "EXISTING_PLOT" | "NEW_PLOT";
+    demoPlotId?: string | null;
+    name: string;
+    storeId: string;
+    ownerName?: string | null;
+    province: string;
+    district: string;
+    latitude: string | number;
+    longitude: string | number;
+    trackings: Array<{
+      id?: string;
+      visitDate: Date | string;
+      daysSinceStart: number;
+      notes?: string | null;
+      attachments?: Array<{
+        fileUrl: string;
+        fileName?: string;
+        fileSize?: number | null;
+        mimeType?: string | null;
+      }>;
+    }>;
+  };
 };
 
 /**
@@ -916,9 +955,201 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
             data: {
               demoPlotId: input.demoPlotId,
               activityPlanId: plan.id,
+              workTypeCode: "TYPE_7B",
               visitDate: input.startDate,
             },
           });
+        }
+
+        // 1.8 TYPE_13 ("ฉีดแปลงแฮตแทค"): Create up to 10 DemoPlots + DemoPlotProducts + DemoPlotVisit + Roll-up
+        if (input.type13Plots && input.type13Plots.length > 0) {
+          const rollUpMap = new Map<
+            string,
+            {
+              productId: string;
+              productName?: string;
+              quantity: number;
+              unit?: string;
+            }
+          >();
+
+          for (let i = 0; i < input.type13Plots.length; i++) {
+            const plotItem = input.type13Plots[i];
+            const d = new Date(input.startDate);
+            const year = String(d.getFullYear()).slice(-2);
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const count = await tx.demoPlot.count();
+            const code = `DP${year}${month}${String(count + 1 + i).padStart(4, "0")}`;
+
+            const plot = await tx.demoPlot.create({
+              data: {
+                code,
+                name: plotItem.name,
+                ownerName: plotItem.ownerName || "",
+                customerId: plotItem.storeId || null,
+                employeeId: input.employeeId,
+                province: plotItem.province,
+                district: plotItem.district,
+                plotType: "HATTACK",
+                startDate: input.startDate,
+                status: DemoPlotStatus.IN_PROGRESS,
+              },
+            });
+
+            if (plotItem.products && plotItem.products.length > 0) {
+              await tx.demoPlotProduct.createMany({
+                data: plotItem.products.map((prod, pIdx) => ({
+                  demoPlotId: plot.id,
+                  productId: prod.productId,
+                  productName: prod.productName ?? null,
+                  quantity: new Prisma.Decimal(prod.quantity),
+                  unit: prod.unit ?? null,
+                  applicationRate: "-",
+                  sortOrder: pIdx,
+                })),
+              });
+
+              for (const prod of plotItem.products) {
+                const existing = rollUpMap.get(prod.productId);
+                if (existing) {
+                  existing.quantity += Number(prod.quantity) || 0;
+                } else {
+                  rollUpMap.set(prod.productId, {
+                    productId: prod.productId,
+                    productName: prod.productName || undefined,
+                    quantity: Number(prod.quantity) || 0,
+                    unit: prod.unit || undefined,
+                  });
+                }
+              }
+            }
+
+            await tx.demoPlotVisit.create({
+              data: {
+                demoPlotId: plot.id,
+                activityPlanId: plan.id,
+                workTypeCode: "TYPE_13",
+                visitNumber: 1,
+                visitDate: input.startDate,
+              },
+            });
+
+            // Also record in ActivityPlanStore for dealer filtering
+            if (plotItem.storeId) {
+              await tx.activityPlanStore.create({
+                data: {
+                  activityPlanId: plan.id,
+                  workTypeCode: "TYPE_13",
+                  storeId: plotItem.storeId,
+                  storeName: plotItem.name,
+                  province: plotItem.province,
+                },
+              });
+            }
+          }
+
+          // Auto Roll-up into ActivityPlanProduct
+          if (rollUpMap.size > 0) {
+            await tx.activityPlanProduct.createMany({
+              data: Array.from(rollUpMap.values()).map((item) => ({
+                activityPlanId: plan.id,
+                workTypeCode: "TYPE_13",
+                productId: item.productId,
+                productName: item.productName ?? null,
+                targetQuantity: item.quantity,
+                unitPrice: null,
+                masterPrice: null,
+                isPriceOverridden: false,
+                targetAmount: null,
+                notes: "Roll-up from Hattack plots",
+              })),
+            });
+          }
+        }
+
+        // 1.9 TYPE_14 ("ติดตามแปลงแฮทแทค"): DemoPlot + DemoPlotVisit + ActivityAttachment
+        if (input.type14Data) {
+          const t14 = input.type14Data;
+          let targetPlotId = t14.demoPlotId;
+
+          if (t14.mode === "EXISTING_PLOT" && targetPlotId) {
+            await tx.demoPlot.update({
+              where: { id: targetPlotId },
+              data: {
+                latitude:
+                  t14.latitude != null
+                    ? new Prisma.Decimal(Number(t14.latitude))
+                    : undefined,
+                longitude:
+                  t14.longitude != null
+                    ? new Prisma.Decimal(Number(t14.longitude))
+                    : undefined,
+              },
+            });
+          } else {
+            const d = new Date(input.startDate);
+            const year = String(d.getFullYear()).slice(-2);
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const count = await tx.demoPlot.count();
+            const code = `DP${year}${month}${String(count + 1).padStart(4, "0")}`;
+
+            const newPlot = await tx.demoPlot.create({
+              data: {
+                code,
+                name: t14.name,
+                ownerName: t14.ownerName || "",
+                customerId: t14.storeId || null,
+                employeeId: input.employeeId,
+                province: t14.province,
+                district: t14.district,
+                latitude:
+                  t14.latitude != null
+                    ? new Prisma.Decimal(Number(t14.latitude))
+                    : null,
+                longitude:
+                  t14.longitude != null
+                    ? new Prisma.Decimal(Number(t14.longitude))
+                    : null,
+                plotType: "HATTACK",
+                startDate: input.startDate,
+                status: DemoPlotStatus.IN_PROGRESS,
+              },
+            });
+            targetPlotId = newPlot.id;
+          }
+
+          if (targetPlotId && t14.trackings && t14.trackings.length > 0) {
+            for (let tIdx = 0; tIdx < t14.trackings.length; tIdx++) {
+              const tracking = t14.trackings[tIdx];
+              const visit = await tx.demoPlotVisit.create({
+                data: {
+                  demoPlotId: targetPlotId,
+                  activityPlanId: plan.id,
+                  workTypeCode: "TYPE_14",
+                  visitNumber: tIdx + 1,
+                  visitDate: new Date(tracking.visitDate),
+                  daysSinceStart: Number(tracking.daysSinceStart) || 0,
+                  notes: tracking.notes ?? null,
+                },
+              });
+
+              if (tracking.attachments && tracking.attachments.length > 0) {
+                await tx.activityAttachment.createMany({
+                  data: tracking.attachments.slice(0, 5).map((att) => ({
+                    activityPlanId: plan.id,
+                    demoPlotId: targetPlotId,
+                    demoPlotVisitId: visit.id,
+                    workTypeCode: "TYPE_14",
+                    category: AttachmentCategory.PLOT,
+                    fileUrl: att.fileUrl,
+                    fileName: att.fileName || "hattack-result-photo.jpg",
+                    fileSize: att.fileSize ?? null,
+                    mimeType: att.mimeType ?? null,
+                  })),
+                });
+              }
+            }
+          }
         }
 
         // 3. Create Helpers
@@ -1323,6 +1554,238 @@ export async function updateActivityPlan(
       await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: id } });
     }
 
+    // 1.8 Sync TYPE_13 Plots & Roll-up
+    if (planData.type13Plots !== undefined) {
+      const existingVisits = await tx.demoPlotVisit.findMany({
+        where: { activityPlanId: id, workTypeCode: "TYPE_13" },
+        include: { demoPlot: true },
+      });
+      const existingPlotIds = existingVisits.map((v) => v.demoPlotId);
+
+      await tx.activityPlanProduct.deleteMany({
+        where: { activityPlanId: id, workTypeCode: "TYPE_13" },
+      });
+      await tx.activityPlanStore.deleteMany({
+        where: { activityPlanId: id, workTypeCode: "TYPE_13" },
+      });
+
+      const rollUpMap = new Map<
+        string,
+        {
+          productId: string;
+          productName?: string;
+          quantity: number;
+          unit?: string;
+        }
+      >();
+
+      if (planData.type13Plots && planData.type13Plots.length > 0) {
+        for (let i = 0; i < planData.type13Plots.length; i++) {
+          const plotItem = planData.type13Plots[i];
+          let plotId: string = plotItem.demoPlotId || plotItem.id || "";
+          const isRealPlot = Boolean(
+            plotId && existingPlotIds.includes(plotId),
+          );
+
+          if (isRealPlot) {
+            await tx.demoPlot.update({
+              where: { id: plotId },
+              data: {
+                name: plotItem.name,
+                ownerName: plotItem.ownerName || "",
+                customerId: plotItem.storeId || null,
+                province: plotItem.province,
+                district: plotItem.district,
+              },
+            });
+          } else {
+            const d = new Date(updatedPlan.startDate);
+            const year = String(d.getFullYear()).slice(-2);
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const count = await tx.demoPlot.count();
+            const code = `DP${year}${month}${String(count + 1 + i).padStart(4, "0")}`;
+
+            const newPlot = await tx.demoPlot.create({
+              data: {
+                code,
+                name: plotItem.name,
+                ownerName: plotItem.ownerName || "",
+                customerId: plotItem.storeId || null,
+                employeeId: updatedPlan.employeeId,
+                province: plotItem.province,
+                district: plotItem.district,
+                plotType: "HATTACK",
+                startDate: updatedPlan.startDate,
+                status: DemoPlotStatus.IN_PROGRESS,
+              },
+            });
+            plotId = newPlot.id;
+
+            await tx.demoPlotVisit.create({
+              data: {
+                demoPlotId: plotId,
+                activityPlanId: id,
+                workTypeCode: "TYPE_13",
+                visitNumber: 1,
+                visitDate: updatedPlan.startDate,
+              },
+            });
+          }
+
+          await tx.demoPlotProduct.deleteMany({
+            where: { demoPlotId: plotId },
+          });
+          if (plotItem.products && plotItem.products.length > 0) {
+            await tx.demoPlotProduct.createMany({
+              data: plotItem.products.map((prod, pIdx) => ({
+                demoPlotId: plotId,
+                productId: prod.productId,
+                productName: prod.productName ?? null,
+                quantity: new Prisma.Decimal(prod.quantity),
+                unit: prod.unit ?? null,
+                applicationRate: "-",
+                sortOrder: pIdx,
+              })),
+            });
+
+            for (const prod of plotItem.products) {
+              const existing = rollUpMap.get(prod.productId);
+              if (existing) {
+                existing.quantity += Number(prod.quantity) || 0;
+              } else {
+                rollUpMap.set(prod.productId, {
+                  productId: prod.productId,
+                  productName: prod.productName || undefined,
+                  quantity: Number(prod.quantity) || 0,
+                  unit: prod.unit || undefined,
+                });
+              }
+            }
+          }
+
+          if (plotItem.storeId) {
+            await tx.activityPlanStore.create({
+              data: {
+                activityPlanId: id,
+                workTypeCode: "TYPE_13",
+                storeId: plotItem.storeId,
+                storeName: plotItem.name,
+                province: plotItem.province,
+              },
+            });
+          }
+        }
+
+        if (rollUpMap.size > 0) {
+          await tx.activityPlanProduct.createMany({
+            data: Array.from(rollUpMap.values()).map((item) => ({
+              activityPlanId: id,
+              workTypeCode: "TYPE_13",
+              productId: item.productId,
+              productName: item.productName ?? null,
+              targetQuantity: item.quantity,
+              unitPrice: null,
+              masterPrice: null,
+              isPriceOverridden: false,
+              targetAmount: null,
+              notes: "Roll-up from Hattack plots",
+            })),
+          });
+        }
+      }
+    }
+
+    // 1.9 Sync TYPE_14 Data
+    if (planData.type14Data !== undefined) {
+      if (planData.type14Data) {
+        const t14 = planData.type14Data;
+        let targetPlotId = t14.demoPlotId;
+
+        if (t14.mode === "EXISTING_PLOT" && targetPlotId) {
+          await tx.demoPlot.update({
+            where: { id: targetPlotId },
+            data: {
+              latitude:
+                t14.latitude != null
+                  ? new Prisma.Decimal(Number(t14.latitude))
+                  : undefined,
+              longitude:
+                t14.longitude != null
+                  ? new Prisma.Decimal(Number(t14.longitude))
+                  : undefined,
+            },
+          });
+        } else if (!targetPlotId) {
+          const d = new Date(updatedPlan.startDate);
+          const year = String(d.getFullYear()).slice(-2);
+          const month = String(d.getMonth() + 1).padStart(2, "0");
+          const count = await tx.demoPlot.count();
+          const code = `DP${year}${month}${String(count + 1).padStart(4, "0")}`;
+
+          const newPlot = await tx.demoPlot.create({
+            data: {
+              code,
+              name: t14.name,
+              ownerName: t14.ownerName || "",
+              customerId: t14.storeId || null,
+              employeeId: updatedPlan.employeeId,
+              province: t14.province,
+              district: t14.district,
+              latitude:
+                t14.latitude != null
+                  ? new Prisma.Decimal(Number(t14.latitude))
+                  : null,
+              longitude:
+                t14.longitude != null
+                  ? new Prisma.Decimal(Number(t14.longitude))
+                  : null,
+              plotType: "HATTACK",
+              startDate: updatedPlan.startDate,
+              status: DemoPlotStatus.IN_PROGRESS,
+            },
+          });
+          targetPlotId = newPlot.id;
+        }
+
+        await tx.demoPlotVisit.deleteMany({
+          where: { activityPlanId: id, workTypeCode: "TYPE_14" },
+        });
+
+        if (targetPlotId && t14.trackings && t14.trackings.length > 0) {
+          for (let tIdx = 0; tIdx < t14.trackings.length; tIdx++) {
+            const tracking = t14.trackings[tIdx];
+            const visit = await tx.demoPlotVisit.create({
+              data: {
+                demoPlotId: targetPlotId,
+                activityPlanId: id,
+                workTypeCode: "TYPE_14",
+                visitNumber: tIdx + 1,
+                visitDate: new Date(tracking.visitDate),
+                daysSinceStart: Number(tracking.daysSinceStart) || 0,
+                notes: tracking.notes ?? null,
+              },
+            });
+
+            if (tracking.attachments && tracking.attachments.length > 0) {
+              await tx.activityAttachment.createMany({
+                data: tracking.attachments.slice(0, 5).map((att) => ({
+                  activityPlanId: id,
+                  demoPlotId: targetPlotId,
+                  demoPlotVisitId: visit.id,
+                  workTypeCode: "TYPE_14",
+                  category: AttachmentCategory.PLOT,
+                  fileUrl: att.fileUrl,
+                  fileName: att.fileName || "hattack-result-photo.jpg",
+                  fileSize: att.fileSize ?? null,
+                  mimeType: att.mimeType ?? null,
+                })),
+              });
+            }
+          }
+        }
+      }
+    }
+
     // 3. Sync Helpers if provided
     if (helperEmployeeIds !== undefined) {
       const existingHelpers = await tx.activityHelper.findMany({
@@ -1650,6 +2113,7 @@ export type CreateActivityResultInput = {
     otherEquipment?: string | null;
     productResponse: string;
     problemDetail?: string | null;
+    workTypeCode?: string | null;
     products: Array<{
       productId: string;
       productName?: string | null;
@@ -1672,6 +2136,11 @@ export type CreateActivityResultInput = {
       fileSize?: number;
       mimeType?: string;
     }>;
+  }>;
+  type13PlotsActual?: Array<{
+    demoPlotId: string;
+    latitude: number | string | Prisma.Decimal;
+    longitude: number | string | Prisma.Decimal;
   }>;
   followupResults?: Array<{
     storeId?: string | null;
@@ -2055,7 +2524,9 @@ export async function upsertActivityResult(
               activityResultId: result.id,
               demoPlotId: round.demoPlotId,
               roundNumber: round.roundNumber,
-              sprayDate: round.sprayDate ? new Date(round.sprayDate) : new Date(),
+              sprayDate: round.sprayDate
+                ? new Date(round.sprayDate)
+                : new Date(),
               sprayMethod: round.sprayMethod,
               sprayEquipment: round.sprayEquipment,
               otherEquipment: round.otherEquipment ?? null,
@@ -2090,7 +2561,7 @@ export async function upsertActivityResult(
               data: round.attachments.map((att: any) => ({
                 activityPlanId: input.activityPlanId,
                 activityResultId: result.id,
-                workTypeCode: "TYPE_7B",
+                workTypeCode: round.workTypeCode || "TYPE_7B",
                 demoPlotId: round.demoPlotId,
                 sprayRoundId: createdRound.id,
                 category: AttachmentCategory.PLOT,
@@ -2101,6 +2572,25 @@ export async function upsertActivityResult(
               })),
             });
           }
+        }
+      }
+    }
+
+    // 6.3. Sync TYPE_13 Demo Plots GPS Coordinates
+    if (input.type13PlotsActual && input.type13PlotsActual.length > 0) {
+      for (const plotItem of input.type13PlotsActual) {
+        if (
+          plotItem.demoPlotId &&
+          plotItem.latitude != null &&
+          plotItem.longitude != null
+        ) {
+          await tx.demoPlot.update({
+            where: { id: plotItem.demoPlotId },
+            data: {
+              latitude: new Prisma.Decimal(plotItem.latitude),
+              longitude: new Prisma.Decimal(plotItem.longitude),
+            },
+          });
         }
       }
     }
@@ -2136,7 +2626,11 @@ export async function upsertActivityResult(
           where: {
             OR: [
               { visits: { some: { activityPlanId: input.activityPlanId } } },
-              { name: demoData.plotName, ownerName: demoData.ownerName, deletedAt: null },
+              {
+                name: demoData.plotName,
+                ownerName: demoData.ownerName,
+                deletedAt: null,
+              },
             ],
           },
         });
@@ -2162,7 +2656,10 @@ export async function upsertActivityResult(
             cropCategory: demoData.cropCategory,
             cropName: demoData.cropName,
             customCropName: demoData.customCropName ?? null,
-            areaRai: demoData.areaRai != null ? new Prisma.Decimal(demoData.areaRai) : null,
+            areaRai:
+              demoData.areaRai != null
+                ? new Prisma.Decimal(demoData.areaRai)
+                : null,
             treeCount: demoData.treeCount ?? null,
             objective: demoData.objective ?? null,
             experimentDetail: demoData.experimentDetail ?? null,
@@ -2179,7 +2676,8 @@ export async function upsertActivityResult(
           },
         });
       } else {
-        const d = demoData.initialSprayDate || demoData.plantingDate || new Date();
+        const d =
+          demoData.initialSprayDate || demoData.plantingDate || new Date();
         const year = String(d.getFullYear()).slice(-2);
         const month = String(d.getMonth() + 1).padStart(2, "0");
         const count = await tx.demoPlot.count();
@@ -2193,7 +2691,8 @@ export async function upsertActivityResult(
             ownerPhone: demoData.ownerPhone ?? null,
             ownerProvince: demoData.ownerProvince ?? null,
             isUnregisteredFarmer: demoData.isUnregisteredFarmer,
-            customerId: demoData.customerId || plan?.stores?.[0]?.storeId || null,
+            customerId:
+              demoData.customerId || plan?.stores?.[0]?.storeId || null,
             farmerCustomerId: demoData.farmerCustomerId ?? null,
             employeeId: plan?.employeeId || "emp-system",
             province: demoData.province,
@@ -2203,12 +2702,16 @@ export async function upsertActivityResult(
             cropCategory: demoData.cropCategory,
             cropName: demoData.cropName,
             customCropName: demoData.customCropName ?? null,
-            areaRai: demoData.areaRai != null ? new Prisma.Decimal(demoData.areaRai) : null,
+            areaRai:
+              demoData.areaRai != null
+                ? new Prisma.Decimal(demoData.areaRai)
+                : null,
             treeCount: demoData.treeCount ?? null,
             objective: demoData.objective ?? null,
             experimentDetail: demoData.experimentDetail ?? null,
             mainCropInfo: demoData.mainCropInfo ?? null,
-            startDate: demoData.initialSprayDate || demoData.plantingDate || new Date(),
+            startDate:
+              demoData.initialSprayDate || demoData.plantingDate || new Date(),
             plantingDate: demoData.plantingDate ?? null,
             initialSprayDate: demoData.initialSprayDate ?? null,
             nextSprayDate: demoData.nextSprayDate ?? null,
@@ -2246,7 +2749,9 @@ export async function upsertActivityResult(
       }
 
       // Save DemoPlotExternalProduct
-      await tx.demoPlotExternalProduct.deleteMany({ where: { demoPlotId: plotId } });
+      await tx.demoPlotExternalProduct.deleteMany({
+        where: { demoPlotId: plotId },
+      });
       if (
         demoData.sprayMethod === "TANK_MIXED" &&
         demoData.hasExternalChemicals &&
@@ -2260,7 +2765,8 @@ export async function upsertActivityResult(
             productName: ep.productName,
             activeIngredient: ep.activeIngredient ?? null,
             formula: ep.formula,
-            customFormula: ep.formula === "อื่นๆ" ? ep.customFormula ?? null : null,
+            customFormula:
+              ep.formula === "อื่นๆ" ? (ep.customFormula ?? null) : null,
             applicationRate: ep.applicationRate,
             sortOrder: idx,
           })),
@@ -2287,7 +2793,11 @@ export async function upsertActivityResult(
         },
       });
 
-      const visitDate = demoData.initialSprayDate || demoData.plantingDate || input.actualStartDate || new Date();
+      const visitDate =
+        demoData.initialSprayDate ||
+        demoData.plantingDate ||
+        input.actualStartDate ||
+        new Date();
       if (existingVisit1) {
         await tx.demoPlotVisit.update({
           where: { id: existingVisit1.id },
@@ -2361,7 +2871,8 @@ export async function upsertActivityResult(
                 : null,
             demoPlotId:
               att.demoPlotId ||
-              (att.workTypeCode === "TYPE_7A" || att.workTypeCode === "ทำแปลงสาธิต"
+              (att.workTypeCode === "TYPE_7A" ||
+              att.workTypeCode === "ทำแปลงสาธิต"
                 ? createdDemoPlotId
                 : null),
             category: att.category ?? AttachmentCategory.GENERAL,
@@ -2858,7 +3369,8 @@ export async function recordDemoPlotVisit(data: {
 
   const visitNumber = plot.visits.length + 1;
   const msPerDay = 1000 * 60 * 60 * 24;
-  const baseStartDate = plot.initialSprayDate || plot.plantingDate || plot.startDate;
+  const baseStartDate =
+    plot.initialSprayDate || plot.plantingDate || plot.startDate;
   const calculatedDaysSinceStart = Math.max(
     0,
     Math.floor(
@@ -2968,7 +3480,7 @@ export async function recordDemoPlotVisit(data: {
             activeIngredient: ep.activeIngredient ?? null,
             formula: ep.formula,
             customFormula:
-              ep.formula === "อื่นๆ" ? ep.customFormula ?? null : null,
+              ep.formula === "อื่นๆ" ? (ep.customFormula ?? null) : null,
             applicationRate: ep.applicationRate,
             sortOrder: idx,
           })),
@@ -3061,11 +3573,13 @@ export async function findFarmerCustomersForPlots() {
 
 /**
  * Fetch all master demo plots with visits (excluding CANCELLED and deleted plots)
+ * Isolated to GENERAL_DEMO plots for TYPE_7A
  */
 export async function findMasterDemoPlots() {
   return db.demoPlot.findMany({
     where: {
       deletedAt: null,
+      plotType: "GENERAL_DEMO",
       status: { not: DemoPlotStatus.CANCELLED },
     },
     include: {
@@ -3089,11 +3603,13 @@ export async function findMasterDemoPlots() {
 /**
  * Fetch dedicated demo plots for TYPE_7B "ติดตามแปลงสาธิต"
  * Only returns plots originating from TYPE_7A plans that are APPROVED and COMPLETED ("ปฏิบัติงานแล้วเสร็จ")
+ * Isolated to GENERAL_DEMO plots
  */
 export async function findFollowUpDemoPlots() {
   return db.demoPlot.findMany({
     where: {
       deletedAt: null,
+      plotType: "GENERAL_DEMO",
       status: { not: DemoPlotStatus.CANCELLED },
       visits: {
         some: {
@@ -3124,6 +3640,32 @@ export async function findFollowUpDemoPlots() {
       visits: {
         orderBy: { visitDate: "asc" },
       },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+/**
+ * Fetch HATTACK demo plots for TYPE_14 "ติดตามแปลงแฮทแทค"
+ * Returns plots with plotType = "HATTACK" (excluding CANCELLED and deleted)
+ */
+export async function findHattackFollowUpDemoPlots() {
+  return db.demoPlot.findMany({
+    where: {
+      deletedAt: null,
+      plotType: "HATTACK",
+      status: { not: DemoPlotStatus.CANCELLED },
+    },
+    include: {
+      customer: { select: { id: true, name: true } },
+      demoProducts: {
+        include: { product: true },
+        orderBy: { sortOrder: "asc" },
+      },
+      visits: {
+        orderBy: { visitDate: "asc" },
+      },
+      attachments: true,
     },
     orderBy: { createdAt: "desc" },
   });

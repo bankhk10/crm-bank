@@ -31,6 +31,7 @@ import { useType8Actual } from "@/modules/activity-plans/features/type-8";
 import { useType9Actual } from "@/modules/activity-plans/features/type-9";
 import { useType10Actual } from "@/modules/activity-plans/features/type-10";
 import { useType11Actual } from "@/modules/activity-plans/features/type-11";
+import { useType13ActualState } from "@/modules/activity-plans/features/type-13";
 
 interface ActivityPlanActualViewProps {
   id?: string;
@@ -78,6 +79,7 @@ export function ActivityPlanActualView({
   const type9 = useType9Actual();
   const type10 = useType10Actual();
   const type11 = useType11Actual();
+  const type13 = useType13ActualState();
 
   const typeHooks = useMemo(
     () => ({
@@ -93,6 +95,7 @@ export function ActivityPlanActualView({
       type9,
       type10,
       type11,
+      type13,
     }),
     [
       type1,
@@ -107,6 +110,7 @@ export function ActivityPlanActualView({
       type9,
       type10,
       type11,
+      type13,
     ],
   );
 
@@ -126,6 +130,7 @@ export function ActivityPlanActualView({
     type9.hydrate(parsedResult);
     type10.hydrate(parsedResult);
     type11.hydrate(parsedResult);
+    type13.hydrate(plan, parsedResult, targets);
   }, [plan, parsedResult]);
 
   // 5. Submit Handler
