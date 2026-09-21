@@ -530,16 +530,6 @@ export function DetailType7NewDemo({
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
               <div>
                 <span className="text-slate-500 font-medium block">
-                  ร้านค้าตัวแทนจำหน่าย (Dealer):
-                </span>
-                <span className="font-bold text-slate-900">
-                  {demoPlotData.customer?.name
-                    ? `${demoPlotData.customer.name}`
-                    : "-"}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-500 font-medium block">
                   ชื่อแปลงสาธิต:
                 </span>
                 <span className="font-bold text-slate-900">
@@ -548,11 +538,12 @@ export function DetailType7NewDemo({
               </div>
               <div>
                 <span className="text-slate-500 font-medium block">
-                  ที่ตั้งแปลง:
+                  ร้านค้าตัวแทนจำหน่าย (Dealer):
                 </span>
                 <span className="font-bold text-slate-900">
-                  {demoPlotData.district ? `อ.${demoPlotData.district} ` : ""}
-                  {demoPlotData.province ? `จ.${demoPlotData.province}` : "-"}
+                  {demoPlotData.customer?.name
+                    ? `${demoPlotData.customer.name}`
+                    : "-"}
                 </span>
               </div>
               <div>
