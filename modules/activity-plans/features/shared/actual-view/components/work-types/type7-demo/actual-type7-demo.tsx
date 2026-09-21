@@ -9,7 +9,7 @@ import {
   Type7bProductRateItem,
   Type7bSprayingRoundItem,
 } from "@/modules/activity-plans/features/actual-view/types";
-import { ActualType7NewDemo, TargetDemoItem, CustomerOption } from "./actual-type7-new-demo";
+import { ActualType7NewDemo, TargetDemoItem, CustomerOption } from "@/modules/activity-plans/features/type-7a/actual/actual-type7-new-demo";
 import {
   ActualType7FollowUp,
   DemoPlotVisitHistoryItem,

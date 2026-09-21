@@ -15,7 +15,7 @@ import {
   ProductOption,
   ProductCategoryOption,
   ChemicalGroupOption,
-} from "./type7-new-demo";
+} from "@/modules/activity-plans/features/type-7a/create/type7-new-demo";
 import { Type7FollowUp } from "./type7-follow-up";
 
 export type {

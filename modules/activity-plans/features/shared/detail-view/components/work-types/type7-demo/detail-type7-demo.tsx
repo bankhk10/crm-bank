@@ -5,7 +5,7 @@ import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
 import {
   DetailType7NewDemo,
   DemoResultItemData,
-} from "./detail-type7-new-demo";
+} from "@/modules/activity-plans/features/type-7a/detail/detail-type7-new-demo";
 import { DetailType7FollowUp } from "./detail-type7-follow-up";
 
 export type { DemoResultItemData };
