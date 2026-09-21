@@ -38,9 +38,7 @@ import {
   DemoPlotProductItem,
   DemoPlotExternalProductItem,
 } from "@/modules/activity-plans/features/actual-view/types";
-import {
-  ALL_THAI_PROVINCES,
-} from "@/lib/province-region-mapping";
+import { ALL_THAI_PROVINCES } from "@/lib/province-region-mapping";
 import {
   CROP_CATEGORIES,
   CROPS_BY_CATEGORY,
@@ -322,7 +320,9 @@ export function ActualType7NewDemo({
 
   const handleGetCurrentLocation = () => {
     if (typeof window === "undefined" || !navigator.geolocation) {
-      setGeoError("เบราว์เซอร์หรืออุปกรณ์นี้ไม่รองรับการค้นหาตำแหน่งพิกัด (Geolocation)");
+      setGeoError(
+        "เบราว์เซอร์หรืออุปกรณ์นี้ไม่รองรับการค้นหาตำแหน่งพิกัด (Geolocation)",
+      );
       setGeoSuccess(false);
       return;
     }
@@ -465,7 +465,14 @@ export function ActualType7NewDemo({
       }
     }
     return opts;
-  }, [allFarmers, farmerProvince, farmerCustomerId, farmerName, farmerPhone, district]);
+  }, [
+    allFarmers,
+    farmerProvince,
+    farmerCustomerId,
+    farmerName,
+    farmerPhone,
+    district,
+  ]);
 
   // Handle Province Change: reset farmer selection
   const handleProvinceChange = (newProvince: string) => {
@@ -630,16 +637,11 @@ export function ActualType7NewDemo({
               ทำแปลงสาธิต (เริ่มทำแปลงใหม่)
             </h2>
             <p className="text-xs text-slate-500">
-              บันทึกข้อมูลตั้งต้นของแปลงสาธิต (Initial Data) เพื่อใช้อ้างอิงตลอดอายุแปลง
+              บันทึกข้อมูลตั้งต้นของแปลงสาธิต (Initial Data)
+              เพื่อใช้อ้างอิงตลอดอายุแปลง
             </p>
           </div>
         </div>
-        <Badge
-          variant="outline"
-          className="bg-emerald-50 text-emerald-800 border-emerald-300 font-bold px-3 py-1"
-        >
-          DEMO PLOT SETUP (TYPE 7A)
-        </Badge>
       </div>
 
       {/* GROUP 1: ข้อมูลตั้งต้นของแปลงสาธิต (Demo Plot Details) */}
@@ -651,7 +653,8 @@ export function ActualType7NewDemo({
               1. ข้อมูลตั้งต้นของแปลงสาธิต (Demo Plot Details)
             </h3>
           </div>
-          <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-3 py-1.5 rounded-xl border border-slate-200 hover:border-emerald-300 transition-colors shadow-2xs">
+          {/* ยังไม่เรียนใช้งานทำเผื่อไว้ */}
+          {/* <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-3 py-1.5 rounded-xl border border-slate-200 hover:border-emerald-300 transition-colors shadow-2xs">
             <input
               type="checkbox"
               id="edit-baseline-toggle"
@@ -663,7 +666,7 @@ export function ActualType7NewDemo({
               <Edit3 className="w-3.5 h-3.5 text-emerald-600" />
               แก้ไขข้อมูล (Actual Baseline)
             </span>
-          </label>
+          </label> */}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1039,7 +1042,8 @@ export function ActualType7NewDemo({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-emerald-600" />
-                พิกัดแปลงสาธิต (Plot Coordinates) <span className="text-rose-500">*</span>
+                พิกัดแปลงสาธิต (Plot Coordinates){" "}
+                <span className="text-rose-500">*</span>
               </label>
               <Button
                 type="button"
@@ -1049,7 +1053,12 @@ export function ActualType7NewDemo({
                 disabled={geoLoading}
                 className="h-8 text-xs font-semibold bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50 shadow-2xs gap-1.5"
               >
-                <Navigation className={cn("w-3.5 h-3.5 text-emerald-600", geoLoading && "animate-spin")} />
+                <Navigation
+                  className={cn(
+                    "w-3.5 h-3.5 text-emerald-600",
+                    geoLoading && "animate-spin",
+                  )}
+                />
                 {geoLoading ? "กำลังดึงพิกัด..." : "📍 ดึงพิกัดปัจจุบัน"}
               </Button>
             </div>
@@ -1404,7 +1413,9 @@ export function ActualType7NewDemo({
                       จำนวนที่เบิก {item.unit ? `(${item.unit})` : ""}
                     </label>
                     <div className="h-10 px-3 flex items-center bg-slate-100/90 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 select-none">
-                      {item.plannedQuantity !== null && item.plannedQuantity !== undefined && item.plannedQuantity !== ""
+                      {item.plannedQuantity !== null &&
+                      item.plannedQuantity !== undefined &&
+                      item.plannedQuantity !== ""
                         ? item.plannedQuantity
                         : "-"}
                     </div>
@@ -1429,20 +1440,27 @@ export function ActualType7NewDemo({
                           type="number"
                           min={0}
                           step="any"
-                          value={item.quantity !== undefined && item.quantity !== null ? item.quantity : ""}
+                          value={
+                            item.quantity !== undefined &&
+                            item.quantity !== null
+                              ? item.quantity
+                              : ""
+                          }
                           onChange={(e) =>
                             handleUpdateProduct(idx, "quantity", e.target.value)
                           }
                           placeholder="เช่น 10"
                           className={cn(
                             "h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 font-medium",
-                            isExceeded && "border-rose-400 focus:ring-rose-500 bg-rose-50/20 text-rose-900"
+                            isExceeded &&
+                              "border-rose-400 focus:ring-rose-500 bg-rose-50/20 text-rose-900",
                           )}
                           required
                         />
                         {isExceeded && (
                           <p className="text-[11px] text-rose-600 font-semibold mt-1">
-                            จำนวนที่ใช้จริงต้องไม่เกินจำนวนที่เบิก ({item.plannedQuantity})
+                            จำนวนที่ใช้จริงต้องไม่เกินจำนวนที่เบิก (
+                            {item.plannedQuantity})
                           </p>
                         )}
                       </div>
