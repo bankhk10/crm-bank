@@ -115,24 +115,43 @@ export function ApprovalType7aDemo({
         </div>
 
         {demoProducts.length > 0 && (
-          <div className="mt-3 bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-            <span className="text-slate-700 block text-[11px] font-bold mb-2">
-              สินค้าที่จะสาธิต ({demoProducts.length} รายการ)
-            </span>
-            <div className="divide-y divide-slate-200/60 text-xs">
-              {demoProducts.map((p: any, idx: number) => (
-                <div
-                  key={idx}
-                  className="py-1.5 flex items-center justify-between"
-                >
-                  <span className="font-medium text-slate-800">
-                    {idx + 1}. {p.productName || "-"}
-                  </span>
-                  <span className="font-bold text-emerald-700">
-                    {p.quantity} {p.unit || ""}
-                  </span>
-                </div>
-              ))}
+          <div className="mt-3 bg-slate-50/80 p-3 rounded-xl border border-slate-200/80">
+            {/* Header Title */}
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-slate-800 text-[11px] font-bold">
+                สินค้าที่จะสาธิต ({demoProducts.length} รายการ)
+              </span>
+            </div>
+
+            {/* Table Container */}
+            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-100/75 border-b border-slate-200 text-[11px] font-bold text-slate-600">
+                    <th className="py-2 px-3 w-12 text-center">ลำดับ</th>
+                    <th className="py-2 px-3">ชื่อสินค้า</th>
+                    <th className="py-2 px-3 text-right">จำนวน</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  {demoProducts.map((p: any, idx: number) => (
+                    <tr
+                      key={idx}
+                      className="hover:bg-slate-50/60 transition-colors"
+                    >
+                      <td className="py-2 px-3 text-center text-slate-400 font-medium">
+                        {idx + 1}
+                      </td>
+                      <td className="py-2 px-3 font-medium text-slate-800">
+                        {p.productName || "-"}
+                      </td>
+                      <td className="py-2 px-3 text-right font-bold text-emerald-700 whitespace-nowrap">
+                        {p.quantity ?? "-"} {p.unit || ""}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
