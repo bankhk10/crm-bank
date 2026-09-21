@@ -1324,7 +1324,7 @@ export function buildResultSummary(
   } else {
     // Initial Demonstration Photos (Rule 10: up to 10 photos via ActivityAttachment)
     const initialPhotos =
-      input.t7InitialPhotos && input.t7InitialPhotos.length > 0
+      input.t7InitialPhotos !== undefined
         ? input.t7InitialPhotos
         : [...(input.t7CropImages || []), ...(input.t7PlotImages || [])];
     initialPhotos.slice(0, 10).forEach((img) => {
@@ -1503,7 +1503,7 @@ export function buildResultSummary(
     surveyResults: surveyResults.length > 0 ? surveyResults : undefined,
     followupResults: followupResults.length > 0 ? followupResults : undefined,
     issueResults: issueResults.length > 0 ? issueResults : undefined,
-    attachments: attachments.length > 0 ? attachments : undefined,
+    attachments: attachments,
   };
 
   return {

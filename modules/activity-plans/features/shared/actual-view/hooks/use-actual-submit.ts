@@ -212,9 +212,9 @@ export function useActualSubmit({
           });
           const t7aPayload = type7a.collectPayload(cleanT7InitialPhotos);
           const t7bPayload = type7b.collectPayload({
-            cleanCropImages: cleanT7CropImages,
-            cleanPlotImages: cleanT7PlotImages,
-            cleanRounds: cleanT7bRounds,
+            cleanCropImages: isType7B ? cleanT7CropImages : [],
+            cleanPlotImages: isType7B ? cleanT7PlotImages : [],
+            cleanRounds: isType7B ? cleanT7bRounds : [],
             products,
             targets,
           });
