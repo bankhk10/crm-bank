@@ -1218,8 +1218,8 @@ export function ActualType7NewDemo({
                     <FormCombobox
                       id={`demo-product-combobox-${idx}`}
                       label="สินค้าจากระบบ"
-                      labelClassName="block text-xs font-bold text-slate-700 mb-1"
-                      triggerClassName="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                      labelClassName="block text-xs font-bold text-slate-700"
+                      triggerClassName="text-xs sm:text-sm bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                       value={item.productId}
                       onChange={(val) =>
                         handleUpdateProduct(idx, "productId", val)
