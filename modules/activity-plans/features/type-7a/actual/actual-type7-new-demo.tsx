@@ -635,14 +635,17 @@ export function ActualType7NewDemo({
   };
 
   // Photos handler (Max 10)
-  const effectivePhotos = initialPhotos.length > 0 ? initialPhotos : plotImages;
+  const effectivePhotos = initialPhotos.length > 0 ? initialPhotos : (plotImages || []);
   const handlePhotosChange = (files: FileWithPreview[]) => {
     const newImageFiles = filesWithPreviewToImageFiles(files);
-    if (setInitialPhotos && !isImageFilesEqual(initialPhotos, newImageFiles)) {
-      setInitialPhotos(newImageFiles);
-    }
-    if (setPlotImages && !isImageFilesEqual(plotImages, newImageFiles)) {
-      setPlotImages(newImageFiles);
+    if (setInitialPhotos) {
+      if (!isImageFilesEqual(initialPhotos, newImageFiles)) {
+        setInitialPhotos(newImageFiles);
+      }
+    } else if (setPlotImages) {
+      if (!isImageFilesEqual(plotImages, newImageFiles)) {
+        setPlotImages(newImageFiles);
+      }
     }
   };
 
@@ -1162,6 +1165,7 @@ export function ActualType7NewDemo({
             </div>
             <div className="bg-white p-4 rounded-xl border border-slate-200/90">
               <GalleryUpload
+                key={effectivePhotos.map((f) => f.url || f.id).join(",") || "empty"}
                 initialFiles={convertToFileMetadata(effectivePhotos)}
                 onFilesChange={handlePhotosChange}
                 maxFiles={10}

@@ -221,9 +221,9 @@ export function useType7aActual() {
         const mapped = dp.attachments.map((a: any) => ({
           id: a.id,
           url: a.fileUrl,
-          fileName: a.fileName,
-          fileSize: a.fileSize,
-          mimeType: a.fileType,
+          name: a.fileName || "image.jpg",
+          size: a.fileSize || 0,
+          type: a.fileType || "image/jpeg",
         }));
         setT7InitialPhotos(mapped);
         initialT7InitialPhotosRef.current = JSON.parse(
@@ -366,9 +366,9 @@ export function useType7aActual() {
         const mapped = t7aAttachments.map((a: any) => ({
           id: a.id,
           url: a.fileUrl,
-          fileName: a.fileName,
-          fileSize: a.fileSize,
-          mimeType: a.fileType,
+          name: a.fileName || "image.jpg",
+          size: a.fileSize || 0,
+          type: a.fileType || "image/jpeg",
         }));
         setT7InitialPhotos(mapped);
         initialT7InitialPhotosRef.current = JSON.parse(

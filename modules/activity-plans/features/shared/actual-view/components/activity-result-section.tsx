@@ -623,8 +623,6 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           productPrice={t7ProductPrice}
           plantingAreaCondition={t7PlantingAreaCondition}
           setPlantingAreaCondition={setT7PlantingAreaCondition}
-          cropImages={t7CropImages}
-          setCropImages={setT7CropImages}
           cropCondition={t7CropCondition}
           setCropCondition={setT7CropCondition}
           cropProblemDescription={t7CropProblemDescription}
@@ -633,8 +631,6 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setProductResponse={setT7ProductResponse}
           problemDescription={t7ProblemDescription}
           setProblemDescription={setT7ProblemDescription}
-          plotImages={t7PlotImages}
-          setPlotImages={setT7PlotImages}
           plotStatus={t7PlotStatus}
           setPlotStatus={setT7PlotStatus}
           nextFollowUpDate={t7NextFollowUpDate}

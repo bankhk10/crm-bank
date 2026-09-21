@@ -144,7 +144,7 @@ export function useActualSubmit({
             "demo-plot";
 
           let cleanT7InitialPhotos = type7a.t7InitialPhotos;
-          if (isType7A || isType7B) {
+          if (isType7A) {
             cleanT7InitialPhotos = await type7a.uploadImages(
               id,
               plotItemId,
@@ -155,7 +155,7 @@ export function useActualSubmit({
           let cleanT7CropImages = type7b.t7CropImages;
           let cleanT7PlotImages = type7b.t7PlotImages;
           let cleanT7bRounds = type7b.t7bSprayingRounds;
-          if (isType7A || isType7B) {
+          if (isType7B) {
             const res = await type7b.uploadImages(
               id,
               plotItemId,
