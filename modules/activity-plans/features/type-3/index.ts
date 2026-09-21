@@ -11,4 +11,5 @@ export {
 export { DetailType3Sales } from "./detail/detail-type3-sales";
 export { ApprovalType3Sales } from "./approval/approval-type3-sales";
 export { ActualType3Sales } from "./actual/actual-type3-sales";
+export { useType3Actual } from "./actual/use-type3-actual";
 export type { TargetProductItem } from "./detail/detail-type3-sales";

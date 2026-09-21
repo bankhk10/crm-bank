@@ -27,305 +27,50 @@ import {
   ActualType11Stock,
 } from "./work-types";
 
-interface ActivityResultSectionProps {
+import type { useType1Actual } from "@/modules/activity-plans/features/type-1";
+import type { useType2Actual } from "@/modules/activity-plans/features/type-2";
+import type { useType3Actual } from "@/modules/activity-plans/features/type-3";
+import type { useType4Actual } from "@/modules/activity-plans/features/type-4";
+import type { useType5Actual } from "@/modules/activity-plans/features/type-5";
+import type { useType6Actual } from "@/modules/activity-plans/features/type-6";
+import type { useType7aActual } from "@/modules/activity-plans/features/type-7a";
+import type { useType7bActual } from "@/modules/activity-plans/features/type-7b";
+import type { useType8Actual } from "@/modules/activity-plans/features/type-8";
+import type { useType9Actual } from "@/modules/activity-plans/features/type-9";
+import type { useType10Actual } from "@/modules/activity-plans/features/type-10";
+import type { useType11Actual } from "@/modules/activity-plans/features/type-11";
+
+export interface ActualTypeHooks {
+  type1: ReturnType<typeof useType1Actual>;
+  type2: ReturnType<typeof useType2Actual>;
+  type3: ReturnType<typeof useType3Actual>;
+  type4: ReturnType<typeof useType4Actual>;
+  type5: ReturnType<typeof useType5Actual>;
+  type6: ReturnType<typeof useType6Actual>;
+  type7a: ReturnType<typeof useType7aActual>;
+  type7b: ReturnType<typeof useType7bActual>;
+  type8: ReturnType<typeof useType8Actual>;
+  type9: ReturnType<typeof useType9Actual>;
+  type10: ReturnType<typeof useType10Actual>;
+  type11: ReturnType<typeof useType11Actual>;
+}
+
+export interface ActivityResultSectionProps {
   isTypeVisible: (typeTitle: string) => boolean;
   targets: ActualTargetsState;
   products: any[];
+  customers?: any[];
+  planProvince?: string;
+  typeHooks?: ActualTypeHooks;
 
-  createUploadHandler: (
+  createUploadHandler?: (
     setter: React.Dispatch<React.SetStateAction<ImageFile[]>>,
   ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
-  removeImage: (
+  removeImage?: (
     setter: React.Dispatch<React.SetStateAction<ImageFile[]>>,
     id: string,
   ) => void;
-
-  // Type 1
-  t1ProductAdvice: string;
-  setT1ProductAdvice: (v: string) => void;
-  t1SalesOpportunity: "สูง" | "ต่ำ" | "";
-  setT1SalesOpportunity: (v: "สูง" | "ต่ำ" | "") => void;
-  t1DiscussionResult: string;
-  setT1DiscussionResult: (v: string) => void;
-  t1Detail: string;
-  setT1Detail: (v: string) => void;
-  t1NextAction: string;
-  setT1NextAction: (v: string) => void;
-  t1NextMeetingDate: string;
-  setT1NextMeetingDate: (v: string) => void;
-  t1FarmerHomeAddress: string;
-  setT1FarmerHomeAddress: (v: string) => void;
-  t1PlotLatitude: string;
-  setT1PlotLatitude: (v: string) => void;
-  t1PlotLongitude: string;
-  setT1PlotLongitude: (v: string) => void;
-  t1PlotImages: ImageFile[];
-  setT1PlotImages: React.Dispatch<React.SetStateAction<ImageFile[]>>;
-
-  // Type 2
-  t2CustomerName: string;
-  setT2CustomerName: (v: string) => void;
-  t2FollowupDetail: string;
-  setT2FollowupDetail: (v: string) => void;
-  t2Detail: string;
-  setT2Detail: (v: string) => void;
-  t2UsageResult: "พืชตอบสนองดี" | "พบปัญหา" | "";
-  setT2UsageResult: (v: "พืชตอบสนองดี" | "พบปัญหา" | "") => void;
-  t2ProblemDetail: string;
-  setT2ProblemDetail: (v: string) => void;
-  t2FollowupResults?: FollowupProductItem[];
-  setT2FollowupResults?: (items: FollowupProductItem[]) => void;
-  t2Images?: ImageFile[];
-  setT2Images?: React.Dispatch<React.SetStateAction<ImageFile[]>>;
-
-  // Type 3
-  t3SoldProducts: string;
-  setT3SoldProducts: (v: string) => void;
-  t3ActualSales: string;
-  setT3ActualSales: (v: string) => void;
-  t3ActualQuantity: string;
-  setT3ActualQuantity: (v: string) => void;
-  t3UnclosedReason: string;
-  setT3UnclosedReason: (v: string) => void;
-  t3ProductSalesDetails?: any[];
-  setT3ProductSalesDetails?: (v: any[]) => void;
-
-  // Type 4
-  t4OrderNo: string;
-  setT4OrderNo: (v: string) => void;
-  t4ReceivedAmount: string;
-  setT4ReceivedAmount: (v: string) => void;
-  t4BillingStatus?: string;
-  setT4BillingStatus?: (v: string) => void;
-  t4Detail?: string;
-  setT4Detail?: (v: string) => void;
-  t4PaymentImages: ImageFile[];
-  setT4PaymentImages: React.Dispatch<React.SetStateAction<ImageFile[]>>;
-
-  // Type 5
-  t5SurveyDetails?: Type5SurveyRecord[];
-  onUpdateT5SurveyItem?: (
-    index: number,
-    updated: Partial<Type5SurveyRecord>,
-  ) => void;
-  t5CompetitorBrand: string;
-  setT5CompetitorBrand: (v: string) => void;
-  t5CompetitorProduct: string;
-  setT5CompetitorProduct: (v: string) => void;
-  t5CompetitorPrice?: string;
-  setT5CompetitorPrice?: (v: string) => void;
-  t5CompetitorUnit?: string;
-  setT5CompetitorUnit?: (v: string) => void;
-  t5PromotionDetail?: string;
-  setT5PromotionDetail?: (v: string) => void;
-  t5PriceTagImages?: ImageFile[];
-  setT5PriceTagImages?: React.Dispatch<React.SetStateAction<ImageFile[]>>;
-
-  // Type 6
-  t6ProblemDetail?: string;
-  setT6ProblemDetail?: (v: string) => void;
-  t6InitialSolution?: string;
-  setT6InitialSolution?: (v: string) => void;
-  t6Status: "เสร็จสิ้น" | "รอติดตาม" | "";
-  setT6Status: (v: "เสร็จสิ้น" | "รอติดตาม" | "") => void;
-  t6Images: ImageFile[];
-  setT6Images: React.Dispatch<React.SetStateAction<ImageFile[]>>;
-  t6ProductId?: string | null;
-  setT6ProductId?: (v: string | null) => void;
-  t6ProductName?: string | null;
-  setT6ProductName?: (v: string | null) => void;
-  t6LotNumber?: string;
-  setT6LotNumber?: (v: string) => void;
-  t6PurchaseChannel?: "ร้านค้าตัวแทนจำหน่าย" | "ออนไลน์" | string;
-  setT6PurchaseChannel?: (
-    v: "ร้านค้าตัวแทนจำหน่าย" | "ออนไลน์" | string,
-  ) => void;
-  t6StoreId?: string | null;
-  setT6StoreId?: (v: string | null) => void;
-  t6StoreName?: string | null;
-  setT6StoreName?: (v: string | null) => void;
-  t6IssueType?: string;
-  setT6IssueType?: (v: string) => void;
-  t6Detail?: string;
-  setT6Detail?: (v: string) => void;
-  customers?: Array<{ id: string; name: string; customerCode?: string | null }>;
-
-  // Type 7
-  t7StartDate: string;
-  setT7StartDate?: (v: string) => void;
-  t7ProductPrice: number;
-  t7PlotName: string;
-  setT7PlotName: (v: string) => void;
-  t7PlannedProductId?: string | null;
-  setT7PlannedProductId?: (v: string | null) => void;
-  t7ActualProductId?: string | null;
-  setT7ActualProductId?: (v: string | null) => void;
-  t7ActualQuantity?: string;
-  setT7ActualQuantity?: (v: string) => void;
-  t7ChangeReason?: string;
-  setT7ChangeReason?: (v: string) => void;
-  t7PlotObjective: string;
-  setT7PlotObjective: (v: string) => void;
-  t7CustomPlotDetail?: string;
-  setT7CustomPlotDetail?: (v: string) => void;
-  t7UsageMethod: string;
-  setT7UsageMethod: (v: string) => void;
-  t7PlantingDate: string;
-  setT7PlantingDate: (v: string) => void;
-  t7PlantingAreaCondition: string;
-  setT7PlantingAreaCondition: (v: string) => void;
-  t7CropImages: ImageFile[];
-  setT7CropImages: React.Dispatch<React.SetStateAction<ImageFile[]>>;
-  t7CropAgeValue: string;
-  setT7CropAgeValue: (v: string) => void;
-  t7CropAgeUnit: string;
-  setT7CropAgeUnit: (v: string) => void;
-  t7GrowthStage: string;
-  setT7GrowthStage: (v: string) => void;
-  t7CropCondition: "สมบูรณ์" | "มีปัญหา" | "ปานกลาง" | "ทรุดโทรม" | "";
-  setT7CropCondition: (
-    v: "สมบูรณ์" | "มีปัญหา" | "ปานกลาง" | "ทรุดโทรม" | "",
-  ) => void;
-  t7CropProblemDescription: string;
-  setT7CropProblemDescription: (v: string) => void;
-  t7ProductResponse: "พืชตอบสนองดี" | "พบปัญหา" | "";
-  setT7ProductResponse: (v: "พืชตอบสนองดี" | "พบปัญหา" | "") => void;
-  t7ProblemDescription: string;
-  setT7ProblemDescription: (v: string) => void;
-  t7PlotImages: ImageFile[];
-  setT7PlotImages: React.Dispatch<React.SetStateAction<ImageFile[]>>;
-  t7PlotStatus: "IN_PROGRESS" | "COMPLETED" | "FAILED";
-  setT7PlotStatus: (v: "IN_PROGRESS" | "COMPLETED" | "FAILED") => void;
-  t7NextFollowUpDate: string;
-  setT7NextFollowUpDate: (v: string) => void;
-  t7FinalYieldKg: string;
-  setT7FinalYieldKg: (v: string) => void;
-  t7ControlYieldKg: string;
-  setT7ControlYieldKg: (v: string) => void;
-  t7YieldIncreasePercent: string;
-  setT7YieldIncreasePercent: (v: string) => void;
-  t7FarmerSatisfaction: number;
-  setT7FarmerSatisfaction: (v: number) => void;
-  t7CommercialPotential: string;
-  setT7CommercialPotential: (v: string) => void;
-  t7FinalSummaryNotes: string;
-  setT7FinalSummaryNotes: (v: string) => void;
-  t7VisitHistory: any[];
-  t7DemoPlotData: any;
-  t7DemoPlotId?: string | null;
-  setT7DemoPlotId?: (id: string | null) => void;
-
-  // TYPE_7A Initial Data Props
-  planProvince?: string;
-  t7FarmerProvince?: string;
-  setT7FarmerProvince?: (v: string) => void;
-  t7FarmerCustomerId?: string | null;
-  setT7FarmerCustomerId?: (v: string | null) => void;
-  t7FarmerName?: string;
-  setT7FarmerName?: (v: string) => void;
-  t7FarmerPhone?: string;
-  setT7FarmerPhone?: (v: string) => void;
-  t7IsUnregisteredFarmer?: boolean;
-  setT7IsUnregisteredFarmer?: (v: boolean) => void;
-  t7DealerName?: string;
-  setT7DealerName?: (v: string) => void;
-  t7DealerCode?: string;
-  t7Latitude?: string;
-  setT7Latitude?: (v: string) => void;
-  t7Longitude?: string;
-  setT7Longitude?: (v: string) => void;
-  t7District?: string;
-  setT7District?: (v: string) => void;
-  t7CropCategory?: string;
-  setT7CropCategory?: (v: string) => void;
-  t7CropName?: string;
-  setT7CropName?: (v: string) => void;
-  t7CustomCropName?: string;
-  setT7CustomCropName?: (v: string) => void;
-  t7AreaRai?: string;
-  setT7AreaRai?: (v: string) => void;
-  t7TreeCount?: string;
-  setT7TreeCount?: (v: string) => void;
-  t7ExperimentDetail?: string;
-  setT7ExperimentDetail?: (v: string) => void;
-  t7MainCropInfo?: string;
-  setT7MainCropInfo?: (v: string) => void;
-  t7Irrigations?: string[];
-  setT7Irrigations?: (v: string[]) => void;
-  t7InitialSprayDate?: string;
-  setT7InitialSprayDate?: (v: string) => void;
-  t7NextSprayDate?: string;
-  setT7NextSprayDate?: (v: string) => void;
-  t7DemoProducts?: DemoPlotProductItem[];
-  setT7DemoProducts?: (items: DemoPlotProductItem[]) => void;
-  t7SprayMethod?: "SINGLE" | "TANK_MIXED";
-  setT7SprayMethod?: (v: "SINGLE" | "TANK_MIXED") => void;
-  t7HasExternalChemicals?: boolean;
-  setT7HasExternalChemicals?: (v: boolean) => void;
-  t7ExternalProducts?: DemoPlotExternalProductItem[];
-  setT7ExternalProducts?: (items: DemoPlotExternalProductItem[]) => void;
-  t7InitialPhotos?: ImageFile[];
-  setT7InitialPhotos?: (imgs: ImageFile[]) => void;
-  t7DaysAfterSpray?: string | number;
-  setT7DaysAfterSpray?: (v: string) => void;
-  t7bProductRates?: Type7bProductRateItem[];
-  setT7bProductRates?: (items: Type7bProductRateItem[]) => void;
-  t7SprayEquipment?: string;
-  setT7SprayEquipment?: (v: string) => void;
-  t7OtherEquipment?: string;
-  setOtherEquipment?: (v: string) => void;
-  t7bSprayingRounds?: Type7bSprayingRoundItem[];
-  setT7bSprayingRounds?: (rounds: Type7bSprayingRoundItem[]) => void;
-
-  // Type 8
-  t8ActualAttendees: string;
-  setT8ActualAttendees: (v: string) => void;
-  t8FeedbackQnA: string;
-  setT8FeedbackQnA: (v: string) => void;
-  t8ProductSalesDetails: any[];
-  setT8ProductSalesDetails: (v: any[]) => void;
-  t8Images: ImageFile[];
-  setT8Images: React.Dispatch<React.SetStateAction<ImageFile[]>>;
-
-  // Type 9
-  t9Formats: string[];
-  setT9Formats: (v: string[]) => void;
-  t9ActualSales: string;
-  setT9ActualSales: (v: string) => void;
-  t9ProductSalesDetails: any[];
-  setT9ProductSalesDetails: (v: any[]) => void;
-  t9ActualAttendees: string;
-  setT9ActualAttendees: (v: string) => void;
-  t9Images: ImageFile[];
-  setT9Images: React.Dispatch<React.SetStateAction<ImageFile[]>>;
-
-  // Type 10
-  t10ActualAttendees: string;
-  setT10ActualAttendees: (v: string) => void;
-  t10ActualSalesOrBooking: string;
-  setT10ActualSalesOrBooking: (v: string) => void;
-  t10TargetFarmersList: string;
-  setT10TargetFarmersList: (v: string) => void;
-  t10FarmerFeedback: "สูง" | "กลาง" | "ต่ำ" | "";
-  setT10FarmerFeedback: (v: "สูง" | "กลาง" | "ต่ำ" | "") => void;
-  t10Images: ImageFile[];
-  setT10Images: React.Dispatch<React.SetStateAction<ImageFile[]>>;
-
-  // Type 11
-  t11StockItems: any[];
-  setT11StockItems: (v: any[]) => void;
-  t11ProductList: string;
-  setT11ProductList: (v: string) => void;
-  t11RemainingQty: string;
-  setT11RemainingQty: (v: string) => void;
-  t11Remarks: string;
-  setT11Remarks: (v: string) => void;
-  t11StockStatus: "ใกล้หมด" | "ขาดสต็อก" | "";
-  setT11StockStatus: (v: "ใกล้หมด" | "ขาดสต็อก" | "") => void;
-  t11ReorderOpportunity: "สูง" | "ต่ำ" | "ยังไม่แน่ใจ" | "";
-  setT11ReorderOpportunity: (v: "สูง" | "ต่ำ" | "ยังไม่แน่ใจ" | "") => void;
-  t11NextAction: string;
-  setT11NextAction: (v: string) => void;
+  [key: string]: any;
 }
 
 export function ActivityResultSection(props: ActivityResultSectionProps) {
@@ -333,265 +78,319 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     isTypeVisible,
     targets,
     products,
-    createUploadHandler,
-    removeImage,
-    t1ProductAdvice,
-    setT1ProductAdvice,
-    t1Detail,
-    setT1Detail,
-    t1DiscussionResult,
-    setT1DiscussionResult,
-    t1SalesOpportunity,
-    setT1SalesOpportunity,
-    t1NextAction,
-    setT1NextAction,
-    t1NextMeetingDate,
-    setT1NextMeetingDate,
-    t1FarmerHomeAddress,
-    setT1FarmerHomeAddress,
-    t1PlotLatitude,
-    setT1PlotLatitude,
-    t1PlotLongitude,
-    setT1PlotLongitude,
-    t1PlotImages,
-    setT1PlotImages,
-    t2CustomerName,
-    setT2CustomerName,
-    t2FollowupDetail,
-    setT2FollowupDetail,
-    t2Detail,
-    setT2Detail,
-    t2UsageResult,
-    setT2UsageResult,
-    t2ProblemDetail,
-    setT2ProblemDetail,
-    t2FollowupResults,
-    setT2FollowupResults,
-    t2Images,
-    setT2Images,
-    t3SoldProducts,
-    setT3SoldProducts,
-    t3ActualSales,
-    setT3ActualSales,
-    t3ActualQuantity,
-    setT3ActualQuantity,
-    t3UnclosedReason,
-    setT3UnclosedReason,
-    t3ProductSalesDetails,
-    setT3ProductSalesDetails,
-    t4OrderNo,
-    setT4OrderNo,
-    t4ReceivedAmount,
-    setT4ReceivedAmount,
-    t4BillingStatus,
-    setT4BillingStatus,
-    t4Detail,
-    setT4Detail,
-    t4PaymentImages,
-    setT4PaymentImages,
-    t5SurveyDetails,
-    onUpdateT5SurveyItem,
-    t5CompetitorBrand,
-    setT5CompetitorBrand,
-    t5CompetitorProduct,
-    setT5CompetitorProduct,
-    t5CompetitorPrice,
-    setT5CompetitorPrice,
-    t5CompetitorUnit,
-    setT5CompetitorUnit,
-    t5PromotionDetail,
-    setT5PromotionDetail,
-    t5PriceTagImages,
-    setT5PriceTagImages,
-    t6ProblemDetail,
-    setT6ProblemDetail,
-    t6InitialSolution,
-    setT6InitialSolution,
-    t6Status,
-    setT6Status,
-    t6Images,
-    setT6Images,
-    t6ProductId,
-    setT6ProductId,
-    t6ProductName,
-    setT6ProductName,
-    t6LotNumber,
-    setT6LotNumber,
-    t6PurchaseChannel,
-    setT6PurchaseChannel,
-    t6StoreId,
-    setT6StoreId,
-    t6StoreName,
-    setT6StoreName,
-    t6IssueType,
-    setT6IssueType,
-    t6Detail,
-    setT6Detail,
     customers,
-    t7StartDate,
-    setT7StartDate,
-    t7ProductPrice,
-    t7PlotName,
-    setT7PlotName,
-    t7PlannedProductId,
-    setT7PlannedProductId,
-    t7ActualProductId,
-    setT7ActualProductId,
-    t7ActualQuantity,
-    setT7ActualQuantity,
-    t7ChangeReason,
-    setT7ChangeReason,
-    t7PlotObjective,
-    setT7PlotObjective,
-    t7CustomPlotDetail,
-    setT7CustomPlotDetail,
-    t7UsageMethod,
-    setT7UsageMethod,
-    t7PlantingDate,
-    setT7PlantingDate,
-    t7PlantingAreaCondition,
-    setT7PlantingAreaCondition,
-    t7CropImages,
-    setT7CropImages,
-    t7CropAgeValue,
-    setT7CropAgeValue,
-    t7CropAgeUnit,
-    setT7CropAgeUnit,
-    t7GrowthStage,
-    setT7GrowthStage,
-    t7CropCondition,
-    setT7CropCondition,
-    t7CropProblemDescription,
-    setT7CropProblemDescription,
-    t7ProductResponse,
-    setT7ProductResponse,
-    t7ProblemDescription,
-    setT7ProblemDescription,
-    t7PlotImages,
-    setT7PlotImages,
-    t7PlotStatus,
-    setT7PlotStatus,
-    t7NextFollowUpDate,
-    setT7NextFollowUpDate,
-    t7FinalYieldKg,
-    setT7FinalYieldKg,
-    t7ControlYieldKg,
-    setT7ControlYieldKg,
-    t7YieldIncreasePercent,
-    setT7YieldIncreasePercent,
-    t7FarmerSatisfaction,
-    setT7FarmerSatisfaction,
-    t7CommercialPotential,
-    setT7CommercialPotential,
-    t7FinalSummaryNotes,
-    setT7FinalSummaryNotes,
-    t7VisitHistory,
-    t7DemoPlotData,
-    t7DemoPlotId,
-    setT7DemoPlotId,
     planProvince,
-    t7FarmerProvince,
-    setT7FarmerProvince,
-    t7FarmerCustomerId,
-    setT7FarmerCustomerId,
-    t7FarmerName,
-    setT7FarmerName,
-    t7FarmerPhone,
-    setT7FarmerPhone,
-    t7IsUnregisteredFarmer,
-    setT7IsUnregisteredFarmer,
-    t7DealerName,
-    setT7DealerName,
-    t7DealerCode,
-    t7Latitude,
-    setT7Latitude,
-    t7Longitude,
-    setT7Longitude,
-    t7District,
-    setT7District,
-    t7CropCategory,
-    setT7CropCategory,
-    t7CropName,
-    setT7CropName,
-    t7CustomCropName,
-    setT7CustomCropName,
-    t7AreaRai,
-    setT7AreaRai,
-    t7TreeCount,
-    setT7TreeCount,
-    t7ExperimentDetail,
-    setT7ExperimentDetail,
-    t7MainCropInfo,
-    setT7MainCropInfo,
-    t7Irrigations,
-    setT7Irrigations,
-    t7InitialSprayDate,
-    setT7InitialSprayDate,
-    t7NextSprayDate,
-    setT7NextSprayDate,
-    t7DemoProducts,
-    setT7DemoProducts,
-    t7SprayMethod,
-    setT7SprayMethod,
-    t7HasExternalChemicals,
-    setT7HasExternalChemicals,
-    t7ExternalProducts,
-    setT7ExternalProducts,
-    t7InitialPhotos,
-    setT7InitialPhotos,
-    t7DaysAfterSpray,
-    setT7DaysAfterSpray,
-    t7bProductRates,
-    setT7bProductRates,
-    t7SprayEquipment,
-    setT7SprayEquipment,
-    t7OtherEquipment,
-    setOtherEquipment,
-    t7bSprayingRounds,
-    setT7bSprayingRounds,
-    t8ActualAttendees,
-    setT8ActualAttendees,
-    t8FeedbackQnA,
-    setT8FeedbackQnA,
-    t8ProductSalesDetails,
-    setT8ProductSalesDetails,
-    t8Images,
-    setT8Images,
-    t9Formats,
-    setT9Formats,
-    t9ActualSales,
-    setT9ActualSales,
-    t9ProductSalesDetails,
-    setT9ProductSalesDetails,
-    t9ActualAttendees,
-    setT9ActualAttendees,
-    t9Images,
-    setT9Images,
-    t10ActualAttendees,
-    setT10ActualAttendees,
-    t10ActualSalesOrBooking,
-    setT10ActualSalesOrBooking,
-    t10TargetFarmersList,
-    setT10TargetFarmersList,
-    t10FarmerFeedback,
-    setT10FarmerFeedback,
-    t10Images,
-    setT10Images,
-    t11StockItems,
-    setT11StockItems,
-    t11ProductList,
-    setT11ProductList,
-    t11RemainingQty,
-    setT11RemainingQty,
-    t11Remarks,
-    setT11Remarks,
-    t11StockStatus,
-    setT11StockStatus,
-    t11ReorderOpportunity,
-    setT11ReorderOpportunity,
-    t11NextAction,
-    setT11NextAction,
+    typeHooks,
   } = props;
+
+  const defaultCreateUploadHandler = (
+    setter: React.Dispatch<React.SetStateAction<ImageFile[]>>,
+  ) => {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!e.target.files?.length) return;
+      const files = Array.from(e.target.files);
+      const newItems = files.map((file, idx) => ({
+        id: `img-${Date.now()}-${idx}`,
+        url: URL.createObjectURL(file),
+        name: file.name,
+      }));
+      setter((prev) => [...prev, ...newItems]);
+    };
+  };
+
+  const defaultRemoveImage = (
+    setter: React.Dispatch<React.SetStateAction<ImageFile[]>>,
+    id: string,
+  ) => {
+    setter((prev) => prev.filter((img) => img.id !== id));
+  };
+
+  const createUploadHandler =
+    props.createUploadHandler || defaultCreateUploadHandler;
+  const removeImage = props.removeImage || defaultRemoveImage;
+
+  // TYPE 1
+  const t1 = typeHooks?.type1;
+  const t1ProductAdvice = t1 ? t1.t1ProductAdvice : (props.t1ProductAdvice ?? "");
+  const setT1ProductAdvice = t1 ? t1.setT1ProductAdvice : (props.setT1ProductAdvice || (() => {}));
+  const t1SalesOpportunity = t1 ? t1.t1SalesOpportunity : (props.t1SalesOpportunity ?? "");
+  const setT1SalesOpportunity = t1 ? t1.setT1SalesOpportunity : (props.setT1SalesOpportunity || (() => {}));
+  const t1DiscussionResult = t1 ? t1.t1DiscussionResult : (props.t1DiscussionResult ?? "");
+  const setT1DiscussionResult = t1 ? t1.setT1DiscussionResult : (props.setT1DiscussionResult || (() => {}));
+  const t1Detail = t1 ? t1.t1Detail : (props.t1Detail ?? "");
+  const setT1Detail = t1 ? t1.setT1Detail : (props.setT1Detail || (() => {}));
+  const t1NextAction = t1 ? t1.t1NextAction : (props.t1NextAction ?? "");
+  const setT1NextAction = t1 ? t1.setT1NextAction : (props.setT1NextAction || (() => {}));
+  const t1NextMeetingDate = t1 ? t1.t1NextMeetingDate : (props.t1NextMeetingDate ?? "");
+  const setT1NextMeetingDate = t1 ? t1.setT1NextMeetingDate : (props.setT1NextMeetingDate || (() => {}));
+  const t1FarmerHomeAddress = t1 ? t1.t1FarmerHomeAddress : (props.t1FarmerHomeAddress ?? "");
+  const setT1FarmerHomeAddress = t1 ? t1.setT1FarmerHomeAddress : (props.setT1FarmerHomeAddress || (() => {}));
+  const t1PlotLatitude = t1 ? t1.t1PlotLatitude : (props.t1PlotLatitude ?? "");
+  const setT1PlotLatitude = t1 ? t1.setT1PlotLatitude : (props.setT1PlotLatitude || props.setPlotLatitude || (() => {}));
+  const t1PlotLongitude = t1 ? t1.t1PlotLongitude : (props.t1PlotLongitude ?? "");
+  const setT1PlotLongitude = t1 ? t1.setT1PlotLongitude : (props.setT1PlotLongitude || props.setPlotLongitude || (() => {}));
+  const t1PlotImages = t1 ? t1.t1PlotImages : (props.t1PlotImages ?? []);
+  const setT1PlotImages = t1 ? t1.setT1PlotImages : (props.setT1PlotImages || props.setPlotImages || (() => {}));
+
+  // TYPE 2
+  const t2 = typeHooks?.type2;
+  const t2CustomerName = t2 ? t2.t2CustomerName : (props.t2CustomerName ?? "");
+  const setT2CustomerName = t2 ? t2.setT2CustomerName : (props.setT2CustomerName || (() => {}));
+  const t2FollowupDetail = t2 ? t2.t2FollowupDetail : (props.t2FollowupDetail ?? "");
+  const setT2FollowupDetail = t2 ? t2.setT2FollowupDetail : (props.setT2FollowupDetail || (() => {}));
+  const t2Detail = t2 ? t2.t2Detail : (props.t2Detail ?? "");
+  const setT2Detail = t2 ? t2.setT2Detail : (props.setT2Detail || (() => {}));
+  const t2UsageResult = t2 ? t2.t2UsageResult : (props.t2UsageResult ?? "");
+  const setT2UsageResult = t2 ? t2.setT2UsageResult : (props.setT2UsageResult || (() => {}));
+  const t2ProblemDetail = t2 ? t2.t2ProblemDetail : (props.t2ProblemDetail ?? "");
+  const setT2ProblemDetail = t2 ? t2.setT2ProblemDetail : (props.setT2ProblemDetail || (() => {}));
+  const t2FollowupResults = t2 ? t2.t2FollowupResults : (props.t2FollowupResults ?? []);
+  const setT2FollowupResults = t2 ? t2.setT2FollowupResults : (props.setT2FollowupResults || (() => {}));
+  const t2Images = t2 ? t2.t2Images : (props.t2Images ?? []);
+  const setT2Images = t2 ? t2.setT2Images : (props.setT2Images || (() => {}));
+
+  // TYPE 3
+  const t3 = typeHooks?.type3;
+  const t3SoldProducts = t3 ? t3.t3SoldProducts : (props.t3SoldProducts ?? "");
+  const setT3SoldProducts = t3 ? t3.setT3SoldProducts : (props.setT3SoldProducts || (() => {}));
+  const t3ActualSales = t3 ? t3.t3ActualSales : (props.t3ActualSales ?? "");
+  const setT3ActualSales = t3 ? t3.setT3ActualSales : (props.setT3ActualSales || (() => {}));
+  const t3ActualQuantity = t3 ? t3.t3ActualQuantity : (props.t3ActualQuantity ?? "");
+  const setT3ActualQuantity = t3 ? t3.setT3ActualQuantity : (props.setT3ActualQuantity || (() => {}));
+  const t3UnclosedReason = t3 ? t3.t3UnclosedReason : (props.t3UnclosedReason ?? "");
+  const setT3UnclosedReason = t3 ? t3.setT3UnclosedReason : (props.setT3UnclosedReason || (() => {}));
+  const t3ProductSalesDetails = t3 ? t3.t3ProductSalesDetails : (props.t3ProductSalesDetails ?? []);
+  const setT3ProductSalesDetails = t3 ? t3.setT3ProductSalesDetails : (props.setT3ProductSalesDetails || props.setProductSalesDetails || (() => {}));
+
+  // TYPE 4
+  const t4 = typeHooks?.type4;
+  const t4OrderNo = t4 ? t4.t4OrderNo : (props.t4OrderNo ?? "");
+  const setT4OrderNo = t4 ? t4.setT4OrderNo : (props.setT4OrderNo || (() => {}));
+  const t4ReceivedAmount = t4 ? t4.t4ReceivedAmount : (props.t4ReceivedAmount ?? "");
+  const setT4ReceivedAmount = t4 ? t4.setT4ReceivedAmount : (props.setT4ReceivedAmount || (() => {}));
+  const t4BillingStatus = t4 ? t4.t4BillingStatus : (props.t4BillingStatus ?? "");
+  const setT4BillingStatus = t4 ? t4.setT4BillingStatus : (props.setT4BillingStatus || (() => {}));
+  const t4Detail = t4 ? t4.t4Detail : (props.t4Detail ?? "");
+  const setT4Detail = t4 ? t4.setT4Detail : (props.setT4Detail || (() => {}));
+  const t4PaymentImages = t4 ? t4.t4PaymentImages : (props.t4PaymentImages ?? []);
+  const setT4PaymentImages = t4 ? t4.setT4PaymentImages : (props.setT4PaymentImages || (() => {}));
+
+  // TYPE 5
+  const t5 = typeHooks?.type5;
+  const t5SurveyDetails = t5 ? t5.t5SurveyDetails : (props.t5SurveyDetails ?? []);
+  const onUpdateT5SurveyItem = t5 ? t5.handleUpdateT5SurveyItem : (props.onUpdateT5SurveyItem || (() => {}));
+  const t5CompetitorBrand = t5 ? t5.t5CompetitorBrand : (props.t5CompetitorBrand ?? "");
+  const setT5CompetitorBrand = t5 ? t5.setT5CompetitorBrand : (props.setT5CompetitorBrand || (() => {}));
+  const t5CompetitorProduct = t5 ? t5.t5CompetitorProduct : (props.t5CompetitorProduct ?? "");
+  const setT5CompetitorProduct = t5 ? t5.setT5CompetitorProduct : (props.setT5CompetitorProduct || (() => {}));
+
+  // TYPE 6
+  const t6 = typeHooks?.type6;
+  const t6ProductId = t6 ? t6.t6ProductId : (props.t6ProductId ?? null);
+  const setT6ProductId = t6 ? t6.setT6ProductId : (props.setT6ProductId || (() => {}));
+  const t6ProductName = t6 ? t6.t6ProductName : (props.t6ProductName ?? null);
+  const setT6ProductName = t6 ? t6.setT6ProductName : (props.setT6ProductName || (() => {}));
+  const t6LotNumber = t6 ? t6.t6LotNumber : (props.t6LotNumber ?? "");
+  const setT6LotNumber = t6 ? t6.setT6LotNumber : (props.setT6LotNumber || (() => {}));
+  const t6PurchaseChannel = t6 ? t6.t6PurchaseChannel : (props.t6PurchaseChannel ?? "ร้านค้าตัวแทนจำหน่าย");
+  const setT6PurchaseChannel = t6 ? ((v: any) => t6.setT6PurchaseChannel(v)) : (props.setT6PurchaseChannel || (() => {}));
+  const t6StoreId = t6 ? t6.t6StoreId : (props.t6StoreId ?? null);
+  const setT6StoreId = t6 ? t6.setT6StoreId : (props.setT6StoreId || (() => {}));
+  const t6StoreName = t6 ? t6.t6StoreName : (props.t6StoreName ?? null);
+  const setT6StoreName = t6 ? t6.setT6StoreName : (props.setT6StoreName || (() => {}));
+  const t6IssueType = t6 ? t6.t6IssueType : (props.t6IssueType ?? "");
+  const setT6IssueType = t6 ? t6.setT6IssueType : (props.setT6IssueType || (() => {}));
+  const t6Detail = t6 ? t6.t6Detail : (props.t6Detail ?? "");
+  const setT6Detail = t6 ? t6.setT6Detail : (props.setT6Detail || (() => {}));
+  const t6Status = t6 ? t6.t6Status : (props.t6Status ?? "");
+  const setT6Status = t6 ? t6.setT6Status : (props.setT6Status || (() => {}));
+  const t6Images = t6 ? t6.t6Images : (props.t6Images ?? []);
+  const setT6Images = t6 ? t6.setT6Images : (props.setT6Images || (() => {}));
+  const t6ProblemDetail = t6 ? t6.t6ProblemDetail : (props.t6ProblemDetail ?? "");
+  const setT6ProblemDetail = t6 ? t6.setT6ProblemDetail : (props.setT6ProblemDetail || (() => {}));
+  const t6InitialSolution = t6 ? t6.t6InitialSolution : (props.t6InitialSolution ?? "");
+  const setT6InitialSolution = t6 ? t6.setT6InitialSolution : (props.setT6InitialSolution || (() => {}));
+
+  // TYPE 7A & 7B
+  const t7a = typeHooks?.type7a;
+  const t7b = typeHooks?.type7b;
+
+  const t7FarmerProvince = t7a ? t7a.t7FarmerProvince : (props.t7FarmerProvince ?? "");
+  const setT7FarmerProvince = t7a ? t7a.setT7FarmerProvince : (props.setT7FarmerProvince || (() => {}));
+  const t7FarmerCustomerId = t7a ? t7a.t7FarmerCustomerId : (props.t7FarmerCustomerId ?? null);
+  const setT7FarmerCustomerId = t7a ? t7a.setT7FarmerCustomerId : (props.setT7FarmerCustomerId || (() => {}));
+  const t7FarmerName = t7a ? t7a.t7FarmerName : (props.t7FarmerName ?? "");
+  const setT7FarmerName = t7a ? t7a.setT7FarmerName : (props.setT7FarmerName || (() => {}));
+  const t7FarmerPhone = t7a ? t7a.t7FarmerPhone : (props.t7FarmerPhone ?? "");
+  const setT7FarmerPhone = t7a ? t7a.setT7FarmerPhone : (props.setT7FarmerPhone || (() => {}));
+  const t7IsUnregisteredFarmer = t7a ? t7a.t7IsUnregisteredFarmer : (props.t7IsUnregisteredFarmer ?? false);
+  const setT7IsUnregisteredFarmer = t7a ? t7a.setT7IsUnregisteredFarmer : (props.setT7IsUnregisteredFarmer || (() => {}));
+  const t7DealerName = t7a ? t7a.t7DealerName : (props.t7DealerName ?? "");
+  const setT7DealerName = t7a ? t7a.setT7DealerName : (props.setT7DealerName || (() => {}));
+  const t7DealerCode = t7a ? t7a.t7DealerCode : (props.t7DealerCode ?? "");
+  const t7Latitude = t7a ? t7a.t7Latitude : (props.t7Latitude ?? "");
+  const setT7Latitude = t7a ? t7a.setT7Latitude : (props.setT7Latitude || props.setLatitude || (() => {}));
+  const t7Longitude = t7a ? t7a.t7Longitude : (props.t7Longitude ?? "");
+  const setT7Longitude = t7a ? t7a.setT7Longitude : (props.setT7Longitude || props.setLongitude || (() => {}));
+  const t7District = t7a ? t7a.t7District : (props.t7District ?? "");
+  const setT7District = t7a ? t7a.setT7District : (props.setT7District || props.setDistrict || (() => {}));
+  const t7CropCategory = t7a ? t7a.t7CropCategory : (props.t7CropCategory ?? "");
+  const setT7CropCategory = t7a ? t7a.setT7CropCategory : (props.setT7CropCategory || props.setCropCategory || (() => {}));
+  const t7CropName = t7a ? t7a.t7CropName : (props.t7CropName ?? "");
+  const setT7CropName = t7a ? t7a.setT7CropName : (props.setT7CropName || props.setCropName || (() => {}));
+  const t7CustomCropName = t7a ? t7a.t7CustomCropName : (props.t7CustomCropName ?? "");
+  const setT7CustomCropName = t7a ? t7a.setT7CustomCropName : (props.setT7CustomCropName || props.setCustomCropName || (() => {}));
+  const t7AreaRai = t7a ? t7a.t7AreaRai : (props.t7AreaRai ?? "");
+  const setT7AreaRai = t7a ? t7a.setT7AreaRai : (props.setT7AreaRai || props.setAreaRai || (() => {}));
+  const t7TreeCount = t7a ? t7a.t7TreeCount : (props.t7TreeCount ?? "");
+  const setT7TreeCount = t7a ? t7a.setT7TreeCount : (props.setT7TreeCount || props.setTreeCount || (() => {}));
+  const t7ExperimentDetail = t7a ? t7a.t7ExperimentDetail : (props.t7ExperimentDetail ?? "");
+  const setT7ExperimentDetail = t7a ? t7a.setT7ExperimentDetail : (props.setT7ExperimentDetail || props.setExperimentDetail || (() => {}));
+  const t7MainCropInfo = t7a ? t7a.t7MainCropInfo : (props.t7MainCropInfo ?? "");
+  const setT7MainCropInfo = t7a ? t7a.setT7MainCropInfo : (props.setT7MainCropInfo || props.setMainCropInfo || (() => {}));
+  const t7Irrigations = t7a ? t7a.t7Irrigations : (props.t7Irrigations ?? []);
+  const setT7Irrigations = t7a ? t7a.setT7Irrigations : (props.setT7Irrigations || props.setIrrigations || (() => {}));
+  const t7InitialSprayDate = t7a ? t7a.t7InitialSprayDate : (props.t7InitialSprayDate ?? "");
+  const setT7InitialSprayDate = t7a ? t7a.setT7InitialSprayDate : (props.setT7InitialSprayDate || props.setInitialSprayDate || (() => {}));
+  const t7DemoProducts = t7a ? t7a.t7DemoProducts : (props.t7DemoProducts ?? []);
+  const setT7DemoProducts = t7a ? t7a.setT7DemoProducts : (props.setT7DemoProducts || props.setDemoProducts || (() => {}));
+  const t7InitialPhotos = t7a ? t7a.t7InitialPhotos : (props.t7InitialPhotos ?? []);
+  const setT7InitialPhotos = t7a ? t7a.setT7InitialPhotos : (props.setT7InitialPhotos || props.setInitialPhotos || (() => {}));
+
+  const t7PlotName = t7a ? t7a.t7PlotName : (props.t7PlotName ?? "");
+  const setT7PlotName = t7a ? t7a.setT7PlotName : (props.setT7PlotName || props.setPlotName || (() => {}));
+  const t7PlotObjective = t7a ? t7a.t7PlotObjective : (props.t7PlotObjective ?? "");
+  const setT7PlotObjective = t7a ? t7a.setT7PlotObjective : (props.setT7PlotObjective || props.setPlotObjective || (() => {}));
+  const t7CustomPlotDetail = t7a ? t7a.t7CustomPlotDetail : (props.t7CustomPlotDetail ?? "");
+  const setT7CustomPlotDetail = t7a ? t7a.setT7CustomPlotDetail : (props.setT7CustomPlotDetail || props.setCustomPlotDetail || (() => {}));
+  const t7UsageMethod = t7a ? t7a.t7UsageMethod : (t7b ? t7b.t7UsageMethod : (props.t7UsageMethod ?? ""));
+  const setT7UsageMethod = t7a ? t7a.setT7UsageMethod : (t7b ? t7b.setT7UsageMethod : (props.setT7UsageMethod || props.setUsageMethod || (() => {})));
+  const t7SprayMethod = t7a ? t7a.t7SprayMethod : (t7b ? t7b.t7SprayMethod : (props.t7SprayMethod ?? "SINGLE"));
+  const setT7SprayMethod = t7a ? t7a.setT7SprayMethod : (t7b ? t7b.setT7SprayMethod : (props.setT7SprayMethod || props.setSprayMethod || (() => {})));
+  const t7HasExternalChemicals = t7a ? t7a.t7HasExternalChemicals : (t7b ? t7b.t7HasExternalChemicals : (props.t7HasExternalChemicals ?? false));
+  const setT7HasExternalChemicals = t7a ? t7a.setT7HasExternalChemicals : (t7b ? t7b.setT7HasExternalChemicals : (props.setT7HasExternalChemicals || props.setHasExternalChemicals || (() => {})));
+  const t7ExternalProducts = t7a ? t7a.t7ExternalProducts : (t7b ? t7b.t7ExternalProducts : (props.t7ExternalProducts ?? []));
+  const setT7ExternalProducts = t7a ? t7a.setT7ExternalProducts : (t7b ? t7b.setT7ExternalProducts : (props.setT7ExternalProducts || props.setExternalProducts || (() => {})));
+  const t7DemoPlotId = t7a ? t7a.t7DemoPlotId : (t7b ? t7b.t7DemoPlotId : props.t7DemoPlotId);
+  const setT7DemoPlotId = t7a ? t7a.setT7DemoPlotId : (t7b ? t7b.setT7DemoPlotId : (props.setT7DemoPlotId || props.setDemoPlotId || (() => {})));
+  const t7DemoPlotData = t7a ? t7a.t7DemoPlotData : (t7b ? t7b.t7DemoPlotData : props.t7DemoPlotData);
+
+  const t7StartDate = t7b ? t7b.t7StartDate : (props.t7StartDate ?? "");
+  const setT7StartDate = t7b ? t7b.setT7StartDate : (props.setT7StartDate || (() => {}));
+  const t7ProductPrice = t7b ? t7b.t7ProductPrice : (props.t7ProductPrice ?? 0);
+  const t7PlannedProductId = t7b ? t7b.t7PlannedProductId : props.t7PlannedProductId;
+  const setT7PlannedProductId = t7b ? t7b.setT7PlannedProductId : (props.setT7PlannedProductId || props.setPlannedProductId || (() => {}));
+  const t7ActualProductId = t7b ? t7b.t7ActualProductId : props.t7ActualProductId;
+  const setT7ActualProductId = t7b ? t7b.setT7ActualProductId : (props.setT7ActualProductId || props.setActualProductId || (() => {}));
+  const t7ActualQuantity = t7b ? t7b.t7ActualQuantity : (props.t7ActualQuantity ?? "");
+  const setT7ActualQuantity = t7b ? t7b.setT7ActualQuantity : (props.setT7ActualQuantity || props.setActualQuantity || (() => {}));
+  const t7ChangeReason = t7b ? t7b.t7ChangeReason : (props.t7ChangeReason ?? "");
+  const setT7ChangeReason = t7b ? t7b.setT7ChangeReason : (props.setT7ChangeReason || props.setChangeReason || (() => {}));
+  const t7PlantingDate = t7b ? t7b.t7PlantingDate : (props.t7PlantingDate ?? "");
+  const setT7PlantingDate = t7b ? t7b.setT7PlantingDate : (props.setT7PlantingDate || props.setPlantingDate || (() => {}));
+  const t7PlantingAreaCondition = t7b ? t7b.t7PlantingAreaCondition : (props.t7PlantingAreaCondition ?? "");
+  const setT7PlantingAreaCondition = t7b ? t7b.setT7PlantingAreaCondition : (props.setT7PlantingAreaCondition || props.setPlantingAreaCondition || (() => {}));
+  const t7CropImages = t7b ? t7b.t7CropImages : (props.t7CropImages ?? []);
+  const setT7CropImages = t7b ? t7b.setT7CropImages : (props.setT7CropImages || props.setCropImages || (() => {}));
+  const t7CropAgeValue = t7b ? t7b.t7CropAgeValue : (props.t7CropAgeValue ?? "");
+  const setT7CropAgeValue = t7b ? t7b.setT7CropAgeValue : (props.setT7CropAgeValue || props.setCropAgeValue || (() => {}));
+  const t7CropAgeUnit = t7b ? t7b.t7CropAgeUnit : (props.t7CropAgeUnit ?? "");
+  const setT7CropAgeUnit = t7b ? t7b.setT7CropAgeUnit : (props.setT7CropAgeUnit || props.setCropAgeUnit || (() => {}));
+  const t7GrowthStage = t7b ? t7b.t7GrowthStage : (props.t7GrowthStage ?? "");
+  const setT7GrowthStage = t7b ? t7b.setT7GrowthStage : (props.setT7GrowthStage || props.setGrowthStage || (() => {}));
+  const t7CropCondition = t7b ? t7b.t7CropCondition : (props.t7CropCondition ?? "");
+  const setT7CropCondition = t7b ? t7b.setT7CropCondition : (props.setT7CropCondition || props.setCropCondition || (() => {}));
+  const t7CropProblemDescription = t7b ? t7b.t7CropProblemDescription : (props.t7CropProblemDescription ?? "");
+  const setT7CropProblemDescription = t7b ? t7b.setT7CropProblemDescription : (props.setT7CropProblemDescription || props.setCropProblemDescription || (() => {}));
+  const t7ProductResponse = t7b ? t7b.t7ProductResponse : (props.t7ProductResponse ?? "");
+  const setT7ProductResponse = t7b ? t7b.setT7ProductResponse : (props.setT7ProductResponse || props.setProductResponse || (() => {}));
+  const t7ProblemDescription = t7b ? t7b.t7ProblemDescription : (props.t7ProblemDescription ?? "");
+  const setT7ProblemDescription = t7b ? t7b.setT7ProblemDescription : (props.setT7ProblemDescription || props.setProblemDescription || (() => {}));
+  const t7PlotImages = t7b ? t7b.t7PlotImages : (props.t7PlotImages ?? []);
+  const setT7PlotImages = t7b ? t7b.setT7PlotImages : (props.setT7PlotImages || props.setPlotImages || (() => {}));
+  const t7PlotStatus = t7b ? t7b.t7PlotStatus : (props.t7PlotStatus ?? "IN_PROGRESS");
+  const setT7PlotStatus = t7b ? t7b.setT7PlotStatus : (props.setT7PlotStatus || props.setPlotStatus || (() => {}));
+  const t7NextFollowUpDate = t7b ? t7b.t7NextFollowUpDate : (props.t7NextFollowUpDate ?? "");
+  const setT7NextFollowUpDate = t7b ? t7b.setT7NextFollowUpDate : (props.setT7NextFollowUpDate || props.setNextFollowUpDate || (() => {}));
+  const t7NextSprayDate = t7b ? t7b.t7NextSprayDate : (t7a ? t7a.t7NextSprayDate : (props.t7NextSprayDate ?? ""));
+  const setT7NextSprayDate = t7b ? t7b.setT7NextSprayDate : (t7a ? t7a.setT7NextSprayDate : (props.setT7NextSprayDate || props.setNextSprayDate || (() => {})));
+  const t7FinalYieldKg = t7b ? t7b.t7FinalYieldKg : (props.t7FinalYieldKg ?? "");
+  const setT7FinalYieldKg = t7b ? t7b.setT7FinalYieldKg : (props.setT7FinalYieldKg || props.setFinalYieldKg || (() => {}));
+  const t7ControlYieldKg = t7b ? t7b.t7ControlYieldKg : (props.t7ControlYieldKg ?? "");
+  const setT7ControlYieldKg = t7b ? t7b.setT7ControlYieldKg : (props.setT7ControlYieldKg || props.setControlYieldKg || (() => {}));
+  const t7YieldIncreasePercent = t7b ? t7b.t7YieldIncreasePercent : (props.t7YieldIncreasePercent ?? "");
+  const setT7YieldIncreasePercent = t7b ? t7b.setT7YieldIncreasePercent : (props.setT7YieldIncreasePercent || props.setYieldIncreasePercent || (() => {}));
+  const t7FarmerSatisfaction = t7b ? t7b.t7FarmerSatisfaction : (props.t7FarmerSatisfaction ?? 0);
+  const setT7FarmerSatisfaction = t7b ? t7b.setT7FarmerSatisfaction : (props.setT7FarmerSatisfaction || props.setFarmerSatisfaction || (() => {}));
+  const t7CommercialPotential = t7b ? t7b.t7CommercialPotential : (props.t7CommercialPotential ?? "");
+  const setT7CommercialPotential = t7b ? t7b.setT7CommercialPotential : (props.setT7CommercialPotential || props.setCommercialPotential || (() => {}));
+  const t7FinalSummaryNotes = t7b ? t7b.t7FinalSummaryNotes : (props.t7FinalSummaryNotes ?? "");
+  const setT7FinalSummaryNotes = t7b ? t7b.setT7FinalSummaryNotes : (props.setT7FinalSummaryNotes || props.setFinalSummaryNotes || (() => {}));
+  const t7VisitHistory = t7b ? t7b.t7VisitHistory : (props.t7VisitHistory ?? []);
+  const t7DaysAfterSpray = t7b ? t7b.t7DaysAfterSpray : (props.t7DaysAfterSpray ?? "");
+  const setT7DaysAfterSpray = t7b ? t7b.setT7DaysAfterSpray : (props.setT7DaysAfterSpray || props.setDaysAfterSpray || (() => {}));
+  const t7bProductRates = t7b ? t7b.t7bProductRates : (props.t7bProductRates ?? []);
+  const setT7bProductRates = t7b ? t7b.setT7bProductRates : (props.setT7bProductRates || props.setBProductRates || (() => {}));
+  const t7SprayEquipment = t7b ? t7b.t7SprayEquipment : (props.t7SprayEquipment ?? "");
+  const setT7SprayEquipment = t7b ? t7b.setT7SprayEquipment : (props.setT7SprayEquipment || props.setSprayEquipment || (() => {}));
+  const t7OtherEquipment = t7b ? t7b.t7OtherEquipment : (props.t7OtherEquipment ?? "");
+  const setOtherEquipment = t7b ? t7b.setT7OtherEquipment : (props.setOtherEquipment || (() => {}));
+  const t7bSprayingRounds = t7b ? t7b.t7bSprayingRounds : (props.t7bSprayingRounds ?? []);
+  const setT7bSprayingRounds = t7b ? t7b.setT7bSprayingRounds : (props.setT7bSprayingRounds || (() => {}));
+
+  // TYPE 8
+  const t8 = typeHooks?.type8;
+  const t8ActualAttendees = t8 ? t8.t8ActualAttendees : (props.t8ActualAttendees ?? "");
+  const setT8ActualAttendees = t8 ? t8.setT8ActualAttendees : (props.setT8ActualAttendees || (() => {}));
+  const t8FeedbackQnA = t8 ? t8.t8FeedbackQnA : (props.t8FeedbackQnA ?? "");
+  const setT8FeedbackQnA = t8 ? t8.setT8FeedbackQnA : (props.setT8FeedbackQnA || props.setFeedbackQnA || (() => {}));
+  const t8ProductSalesDetails = t8 ? t8.t8ProductSalesDetails : (props.t8ProductSalesDetails ?? []);
+  const setT8ProductSalesDetails = t8 ? t8.setT8ProductSalesDetails : (props.setT8ProductSalesDetails || props.setProductSalesDetails || (() => {}));
+  const t8Images = t8 ? t8.t8Images : (props.t8Images ?? []);
+  const setT8Images = t8 ? t8.setT8Images : (props.setT8Images || props.setImages || (() => {}));
+
+  // TYPE 9
+  const t9 = typeHooks?.type9;
+  const t9Formats = t9 ? t9.t9Formats : (props.t9Formats ?? []);
+  const setT9Formats = t9 ? t9.setT9Formats : (props.setT9Formats || props.setFormats || (() => {}));
+  const t9ActualSales = t9 ? t9.t9ActualSales : (props.t9ActualSales ?? "");
+  const setT9ActualSales = t9 ? t9.setT9ActualSales : (props.setT9ActualSales || props.setActualSales || (() => {}));
+  const t9ProductSalesDetails = t9 ? t9.t9ProductSalesDetails : (props.t9ProductSalesDetails ?? []);
+  const setT9ProductSalesDetails = t9 ? t9.setT9ProductSalesDetails : (props.setT9ProductSalesDetails || props.setProductSalesDetails || (() => {}));
+  const t9ActualAttendees = t9 ? t9.t9ActualAttendees : (props.t9ActualAttendees ?? "");
+  const setT9ActualAttendees = t9 ? t9.setT9ActualAttendees : (props.setT9ActualAttendees || props.setActualAttendees || (() => {}));
+  const t9Images = t9 ? t9.t9Images : (props.t9Images ?? []);
+  const setT9Images = t9 ? t9.setT9Images : (props.setT9Images || props.setImages || (() => {}));
+
+  // TYPE 10
+  const t10 = typeHooks?.type10;
+  const t10ActualAttendees = t10 ? t10.t10ActualAttendees : (props.t10ActualAttendees ?? "");
+  const setT10ActualAttendees = t10 ? t10.setT10ActualAttendees : (props.setT10ActualAttendees || (() => {}));
+  const t10ActualSalesOrBooking = t10 ? t10.t10ActualSalesOrBooking : (props.t10ActualSalesOrBooking ?? "");
+  const setT10ActualSalesOrBooking = t10 ? t10.setT10ActualSalesOrBooking : (props.setT10ActualSalesOrBooking || (() => {}));
+  const t10TargetFarmersList = t10 ? t10.t10TargetFarmersList : (props.t10TargetFarmersList ?? "");
+  const setT10TargetFarmersList = t10 ? t10.setT10TargetFarmersList : (props.setT10TargetFarmersList || (() => {}));
+  const t10FarmerFeedback = t10 ? t10.t10FarmerFeedback : (props.t10FarmerFeedback ?? "");
+  const setT10FarmerFeedback = t10 ? t10.setT10FarmerFeedback : (props.setT10FarmerFeedback || props.setFarmerFeedback || (() => {}));
+  const t10Images = t10 ? t10.t10Images : (props.t10Images ?? []);
+  const setT10Images = t10 ? t10.setT10Images : (props.setT10Images || props.setImages || (() => {}));
+
+  // TYPE 11
+  const t11 = typeHooks?.type11;
+  const t11StockItems = t11 ? t11.t11StockItems : (props.t11StockItems ?? []);
+  const setT11StockItems = t11 ? t11.setT11StockItems : (props.setT11StockItems || props.setStockItems || (() => {}));
+  const t11ProductList = t11 ? t11.t11ProductList : (props.t11ProductList ?? "");
+  const setT11ProductList = t11 ? t11.setT11ProductList : (props.setT11ProductList || props.setProductList || (() => {}));
+  const t11RemainingQty = t11 ? t11.t11RemainingQty : (props.t11RemainingQty ?? "");
+  const setT11RemainingQty = t11 ? t11.setT11RemainingQty : (props.setT11RemainingQty || props.setRemainingQty || (() => {}));
+  const t11Remarks = t11 ? t11.t11Remarks : (props.t11Remarks ?? "");
+  const setT11Remarks = t11 ? t11.setT11Remarks : (props.setT11Remarks || props.setRemarks || (() => {}));
+  const t11StockStatus = t11 ? t11.t11StockStatus : (props.t11StockStatus ?? "");
+  const setT11StockStatus = t11 ? t11.setT11StockStatus : (props.setT11StockStatus || props.setStockStatus || (() => {}));
+  const t11ReorderOpportunity = t11 ? t11.t11ReorderOpportunity : (props.t11ReorderOpportunity ?? "");
+  const setT11ReorderOpportunity = t11 ? t11.setT11ReorderOpportunity : (props.setT11ReorderOpportunity || props.setReorderOpportunity || (() => {}));
+  const t11NextAction = t11 ? t11.t11NextAction : (props.t11NextAction ?? "");
+  const setT11NextAction = t11 ? t11.setT11NextAction : (props.setNextAction || (() => {}));
 
   const hasAnyActualWorkType = WORK_TYPES.slice(0, 11).some((wt) =>
     isTypeVisible(wt),

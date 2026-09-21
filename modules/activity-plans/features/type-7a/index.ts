@@ -26,3 +26,4 @@ export {
   type ActualType7NewDemoProps,
   type TargetDemoItem,
 } from "./actual/actual-type7-new-demo";
+export { useType7aActual } from "./actual/use-type7a-actual";

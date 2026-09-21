@@ -12,3 +12,4 @@ export {
   ActualType11Stock,
   type StockCheckItem as ActualStockCheckItem,
 } from "./actual/actual-type11-stock";
+export { useType11Actual } from "./actual/use-type11-actual";

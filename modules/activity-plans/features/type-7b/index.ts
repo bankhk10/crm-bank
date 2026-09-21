@@ -20,3 +20,4 @@ export {
   type DemoPlotVisitHistoryItem,
 } from "./actual/actual-type7-follow-up";
 export { DemoPlotHistoryModal } from "./actual/demo-plot-history-modal";
+export { useType7bActual } from "./actual/use-type7b-actual";
