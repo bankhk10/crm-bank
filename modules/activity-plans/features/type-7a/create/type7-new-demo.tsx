@@ -170,7 +170,6 @@ export function Type7NewDemo({
         c.code && c.description
           ? `${c.code} - ${c.description}`
           : c.description || c.name || c.code,
-      subLabel: c.code ? `รหัส: ${c.code}` : undefined,
     }));
   }, [productCategories, chemicalGroups]);
 
@@ -546,7 +545,152 @@ export function Type7NewDemo({
           )}
         </div>
 
-        {/* Objective Textarea */}
+        {/* SECTION 3: ตารางสินค้าที่จะสาธิต (ActivityPlanProduct) */}
+        <div>
+          <div className="flex items-center justify-between">
+            <div>
+              <h6 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <span>สินค้าที่จะสาธิต</span>
+                <span className="text-red-500">*</span>
+              </h6>
+              <p className="text-[11px] text-slate-500">
+                ระบุรายการสินค้าและจำนวนที่จะใช้สาธิต
+                (ต้องตรงกับหมวดสินค้าที่เลือก)
+              </p>
+            </div>
+            {!readonly && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={addProductRow}
+                disabled={!selectedCategoryId}
+                className="h-7 px-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>เพิ่มสินค้า</span>
+              </Button>
+            )}
+          </div>
+
+          {!selectedCategoryId ? (
+            <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-lg text-xs text-amber-700 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+              <span>
+                กรุณาเลือกหมวดสินค้าในหัวข้อด้านบนก่อน
+                เพื่อเลือกสินค้าที่จะสาธิต
+              </span>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600">
+                  <tr>
+                    <th className="py-2.5 px-3 w-12 text-center font-semibold">
+                      ลำดับ
+                    </th>
+                    <th className="py-2.5 px-3 font-semibold">
+                      รายการสินค้า <span className="text-red-500">*</span>
+                    </th>
+                    <th className="py-2.5 px-3 w-36 sm:w-44 font-semibold text-center">
+                      จำนวน <span className="text-red-500">*</span>
+                    </th>
+                    {!readonly && (
+                      <th className="py-2.5 px-3 w-12 text-center font-semibold">
+                        จัดการ
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {demoProducts.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={readonly ? 3 : 4}
+                        className="py-6 text-center text-slate-400 text-xs"
+                      >
+                        ยังไม่มีรายการสินค้า กดปุ่ม "เพิ่มสินค้า" เพื่อเริ่มต้น
+                      </td>
+                    </tr>
+                  ) : (
+                    demoProducts.map((pLine, idx) => (
+                      <tr
+                        key={pLine.id}
+                        className="hover:bg-slate-50/50 transition-colors"
+                      >
+                        {/* ลำดับ */}
+                        <td className="py-2 px-3 text-center font-medium text-slate-500 align-middle">
+                          {idx + 1}
+                        </td>
+
+                        {/* เลือกสินค้า */}
+                        <td className="py-2 px-3 align-middle">
+                          <FormCombobox
+                            id={`demo-prod-${item.id}-${pLine.id}`}
+                            label=""
+                            triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500 w-full"
+                            value={pLine.productId || ""}
+                            onChange={(val) =>
+                              updateProductRow(pLine.id, "productId", val)
+                            }
+                            options={productOptionsForCategory}
+                            placeholder="เลือกสินค้า..."
+                            searchPlaceholder="ค้นหาสินค้าในหมวดหมู่นี้..."
+                            emptyText="ไม่พบสินค้าในหมวดหมู่นี้"
+                            disabled={readonly}
+                          />
+                        </td>
+
+                        {/* จำนวนและหน่วย */}
+                        <td className="py-2 px-3 align-middle">
+                          <div className="flex items-center gap-1.5 justify-center">
+                            <input
+                              type="number"
+                              min={1}
+                              value={pLine.quantity ?? ""}
+                              onChange={(e) => {
+                                const val = Math.max(
+                                  1,
+                                  parseInt(e.target.value) || 1,
+                                );
+                                updateProductRow(pLine.id, "quantity", val);
+                              }}
+                              disabled={readonly}
+                              placeholder="จำนวน"
+                              className="w-20 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                            />
+                            {pLine.unit && (
+                              <span className="text-[11px] text-slate-500 whitespace-nowrap min-w-[28px]">
+                                {pLine.unit}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* ปุ่มลบ */}
+                        {!readonly && (
+                          <td className="py-2 px-3 text-center align-middle">
+                            <button
+                              type="button"
+                              onClick={() => deleteProductRow(pLine.id)}
+                              className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                              title="ลบแถวสินค้านี้"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Objective Textarea */}
+      <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200/80 space-y-3">
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1">
             วัตถุประสงค์การทำแปลง <span className="text-red-500">*</span>
@@ -562,148 +706,6 @@ export function Type7NewDemo({
             className="w-full p-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
           />
         </div>
-      </div>
-
-      {/* SECTION 3: ตารางสินค้าที่จะสาธิต (ActivityPlanProduct) */}
-      <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200/80 space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h6 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <span>สินค้าที่จะสาธิต</span>
-              <span className="text-red-500">*</span>
-            </h6>
-            <p className="text-[11px] text-slate-500">
-              ระบุรายการสินค้าและจำนวนที่จะใช้สาธิต
-              (ต้องตรงกับหมวดสินค้าที่เลือก)
-            </p>
-          </div>
-          {!readonly && (
-            <Button
-              type="button"
-              size="sm"
-              onClick={addProductRow}
-              disabled={!selectedCategoryId}
-              className="h-7 px-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span>เพิ่มสินค้า</span>
-            </Button>
-          )}
-        </div>
-
-        {!selectedCategoryId ? (
-          <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-lg text-xs text-amber-700 flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
-            <span>
-              กรุณาเลือกหมวดสินค้าในหัวข้อด้านบนก่อน เพื่อเลือกสินค้าที่จะสาธิต
-            </span>
-          </div>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600">
-                <tr>
-                  <th className="py-2.5 px-3 w-12 text-center font-semibold">
-                    ลำดับ
-                  </th>
-                  <th className="py-2.5 px-3 font-semibold">
-                    รายการสินค้า <span className="text-red-500">*</span>
-                  </th>
-                  <th className="py-2.5 px-3 w-36 sm:w-44 font-semibold text-center">
-                    จำนวน <span className="text-red-500">*</span>
-                  </th>
-                  {!readonly && (
-                    <th className="py-2.5 px-3 w-12 text-center font-semibold">
-                      จัดการ
-                    </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {demoProducts.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={readonly ? 3 : 4}
-                      className="py-6 text-center text-slate-400 text-xs"
-                    >
-                      ยังไม่มีรายการสินค้า กดปุ่ม "เพิ่มสินค้า" เพื่อเริ่มต้น
-                    </td>
-                  </tr>
-                ) : (
-                  demoProducts.map((pLine, idx) => (
-                    <tr
-                      key={pLine.id}
-                      className="hover:bg-slate-50/50 transition-colors"
-                    >
-                      {/* ลำดับ */}
-                      <td className="py-2 px-3 text-center font-medium text-slate-500 align-middle">
-                        {idx + 1}
-                      </td>
-
-                      {/* เลือกสินค้า */}
-                      <td className="py-2 px-3 align-middle">
-                        <FormCombobox
-                          id={`demo-prod-${item.id}-${pLine.id}`}
-                          label=""
-                          triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500 w-full"
-                          value={pLine.productId || ""}
-                          onChange={(val) =>
-                            updateProductRow(pLine.id, "productId", val)
-                          }
-                          options={productOptionsForCategory}
-                          placeholder="เลือกสินค้า..."
-                          searchPlaceholder="ค้นหาสินค้าในหมวดหมู่นี้..."
-                          emptyText="ไม่พบสินค้าในหมวดหมู่นี้"
-                          disabled={readonly}
-                        />
-                      </td>
-
-                      {/* จำนวนและหน่วย */}
-                      <td className="py-2 px-3 align-middle">
-                        <div className="flex items-center gap-1.5 justify-center">
-                          <input
-                            type="number"
-                            min={1}
-                            value={pLine.quantity ?? ""}
-                            onChange={(e) => {
-                              const val = Math.max(
-                                1,
-                                parseInt(e.target.value) || 1,
-                              );
-                              updateProductRow(pLine.id, "quantity", val);
-                            }}
-                            disabled={readonly}
-                            placeholder="จำนวน"
-                            className="w-20 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                          />
-                          {pLine.unit && (
-                            <span className="text-[11px] text-slate-500 whitespace-nowrap min-w-[28px]">
-                              {pLine.unit}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* ปุ่มลบ */}
-                      {!readonly && (
-                        <td className="py-2 px-3 text-center align-middle">
-                          <button
-                            type="button"
-                            onClick={() => deleteProductRow(pLine.id)}
-                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                            title="ลบแถวสินค้านี้"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
     </div>
   );
