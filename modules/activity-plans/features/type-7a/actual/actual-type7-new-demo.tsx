@@ -653,43 +653,20 @@ export function ActualType7NewDemo({
               1. ข้อมูลตั้งต้นของแปลงสาธิต (Demo Plot Details)
             </h3>
           </div>
-          {/* ยังไม่เรียนใช้งานทำเผื่อไว้ */}
-          {/* <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-3 py-1.5 rounded-xl border border-slate-200 hover:border-emerald-300 transition-colors shadow-2xs">
-            <input
-              type="checkbox"
-              id="edit-baseline-toggle"
-              checked={isEditingBaseline}
-              onChange={(e) => setIsEditingBaseline(e.target.checked)}
-              className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
-            />
-            <span className="text-xs font-semibold text-slate-700 flex items-center gap-1">
-              <Edit3 className="w-3.5 h-3.5 text-emerald-600" />
-              แก้ไขข้อมูล (Actual Baseline)
-            </span>
-          </label> */}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* ชื่อแปลงสาธิต */}
           <div className="md:col-span-2 space-y-1">
             <label className="block text-xs font-bold text-slate-700">
-              ชื่อแปลงสาธิต <span className="text-rose-500">*</span>
+              ชื่อแปลงสาธิต
             </label>
-            <Input
-              value={plotName}
-              onChange={(e) => handlePlotNameChange(e.target.value)}
-              disabled={!isEditingBaseline}
-              placeholder="เช่น แปลงสาธิตทุเรียนหมอนทอง นายสมชาย..."
-              className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
-                !isEditingBaseline
-                  ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
-                  : "bg-white border-slate-200"
-              }`}
-              required
-            />
+            <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-800 font-medium">
+              {plotName || "-"}
+            </div>
           </div>
 
-          {/* ข้อมูลร้านค้าตัวแทนจำหน่ายที่ผูกกับแปลงสาธิต (Dealer Baseline - Read Only) */}
+          {/* ร้านค้าตัวแทนจำหน่าย */}
           <div className="md:col-span-2 space-y-1">
             <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
               <Store className="w-3.5 h-3.5 text-emerald-600" />
@@ -697,20 +674,14 @@ export function ActualType7NewDemo({
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div className="sm:col-span-2">
-                <Input
-                  value={dealerName || "-"}
-                  disabled
-                  placeholder="ชื่อร้านค้าตัวแทนจำหน่าย..."
-                  className="h-10 text-xs sm:text-sm bg-slate-100/90 text-slate-700 border-slate-200 rounded-xl cursor-not-allowed font-medium"
-                />
+                <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-800 font-medium">
+                  {dealerName || "-"}
+                </div>
               </div>
               <div>
-                <Input
-                  value={dealerCode ? `รหัส: ${dealerCode}` : "-"}
-                  disabled
-                  placeholder="รหัสร้านค้า..."
-                  className="h-10 text-xs sm:text-sm bg-slate-100/90 text-slate-600 border-slate-200 rounded-xl cursor-not-allowed font-mono text-xs"
-                />
+                <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-600 font-mono">
+                  {dealerCode ? `รหัส: ${dealerCode}` : "-"}
+                </div>
               </div>
             </div>
             <span className="text-[10px] text-slate-400">
@@ -718,16 +689,14 @@ export function ActualType7NewDemo({
             </span>
           </div>
 
-          {/* จังหวัดของแปลง ดึงจาก ActivityPlan */}
+          {/* จังหวัดของแปลง */}
           <div className="space-y-1">
             <label className="block text-xs font-bold text-slate-700">
               จังหวัดของแปลงสาธิต (จากแผนงาน)
             </label>
-            <Input
-              value={planProvince || "-"}
-              disabled
-              className="h-10 text-xs sm:text-sm bg-slate-100/90 text-slate-600 border-slate-200 rounded-xl cursor-not-allowed font-medium"
-            />
+            <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700">
+              {planProvince || "-"}
+            </div>
           </div>
 
           {/* อำเภอ */}
@@ -735,153 +704,42 @@ export function ActualType7NewDemo({
             <label className="block text-xs font-bold text-slate-700">
               อำเภอ / เขต
             </label>
-            <Input
-              value={district}
-              onChange={(e) => setDistrict?.(e.target.value)}
-              disabled={!isEditingBaseline}
-              placeholder="เช่น ท่าใหม่, บางกรวย, เมือง..."
-              className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
-                !isEditingBaseline
-                  ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
-                  : "bg-white border-slate-200"
-              }`}
-            />
+            <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700">
+              {district || "-"}
+            </div>
           </div>
 
           {/* หมวดหมู่พืช */}
           <div className="space-y-1">
             <label className="block text-xs font-bold text-slate-700">
-              หมวดหมู่พืช <span className="text-rose-500">*</span>
+              หมวดหมู่พืช
             </label>
-            <Select
-              value={cropCategory}
-              onValueChange={(val) => {
-                setCropCategory?.(val);
-                setCropName?.("");
-              }}
-              disabled={!isEditingBaseline}
-            >
-              <SelectTrigger
-                className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
-                  !isEditingBaseline
-                    ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
-                    : "bg-white border-slate-200"
-                }`}
-              >
-                <SelectValue placeholder="เลือกหมวดหมู่พืช..." />
-              </SelectTrigger>
-              <SelectContent>
-                {CROP_CATEGORIES.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700">
+              {cropCategory || "-"}
+            </div>
           </div>
 
           {/* พืชที่ทดสอบ */}
           <div className="space-y-1">
             <label className="block text-xs font-bold text-slate-700">
-              พืชที่ทดสอบ <span className="text-rose-500">*</span>
+              พืชที่ทดสอบ
             </label>
-            {cropCategory && availableCrops.length > 0 ? (
-              <Select
-                value={cropName}
-                onValueChange={(val) => setCropName?.(val)}
-                disabled={!isEditingBaseline}
-              >
-                <SelectTrigger
-                  className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
-                    !isEditingBaseline
-                      ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
-                      : "bg-white border-slate-200"
-                  }`}
-                >
-                  <SelectValue placeholder="เลือกพืชที่ทดสอบ..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableCrops.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="อื่นๆ">อื่นๆ (ระบุเอง)</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <Input
-                value={cropName}
-                onChange={(e) => setCropName?.(e.target.value)}
-                disabled={!isEditingBaseline}
-                placeholder="ระบุชื่อพืช เช่น ทุเรียน, ข้าว..."
-                className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
-                  !isEditingBaseline
-                    ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
-                    : "bg-white border-slate-200"
-                }`}
-                required
-              />
-            )}
+            <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700">
+              {isCustomCropName
+                ? customCropName || cropName || "-"
+                : cropName || "-"}
+            </div>
           </div>
 
-          {/* พืชอื่นๆ ถ้าเลือก อื่นๆ */}
-          {isCustomCropName && (
-            <div className="md:col-span-2 space-y-1">
-              <label className="block text-xs font-bold text-slate-700">
-                ระบุชื่อพืชเพิ่มเติม <span className="text-rose-500">*</span>
-              </label>
-              <Input
-                value={customCropName}
-                onChange={(e) => setCustomCropName?.(e.target.value)}
-                disabled={!isEditingBaseline}
-                placeholder="พิมพ์ชื่อพืชที่ทดสอบ..."
-                className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
-                  !isEditingBaseline
-                    ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
-                    : "bg-white border-slate-200"
-                }`}
-              />
-            </div>
-          )}
-
-          {/* แสดง "ขนาดพื้นที่ (ไร่)" หรือ "จำนวนต้น" เพียงช่องเดียว ตาม Business Rule */}
+          {/* ขนาดพื้นที่ / จำนวนต้น */}
           <div className="space-y-1">
             <label className="block text-xs font-bold text-slate-700">
-              {isRaiUnit ? "ขนาดพื้นที่ (ไร่)" : "จำนวนต้น"}{" "}
-              <span className="text-rose-500">*</span>
+              {isRaiUnit ? "ขนาดพื้นที่ (ไร่)" : "จำนวนต้น"}
             </label>
-            {isRaiUnit ? (
-              <Input
-                type="number"
-                step="any"
-                min={0}
-                value={areaRai}
-                onChange={(e) => setAreaRai?.(e.target.value)}
-                disabled={!isEditingBaseline}
-                placeholder="เช่น 5 หรือ 2.5"
-                className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
-                  !isEditingBaseline
-                    ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
-                    : "bg-white border-slate-200"
-                }`}
-              />
-            ) : (
-              <Input
-                type="number"
-                step="any"
-                min={0}
-                value={treeCount}
-                onChange={(e) => setTreeCount?.(e.target.value)}
-                disabled={!isEditingBaseline}
-                placeholder="เช่น 100"
-                className={`h-10 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 ${
-                  !isEditingBaseline
-                    ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
-                    : "bg-white border-slate-200"
-                }`}
-              />
-            )}
+            <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700">
+              {isRaiUnit ? areaRai || "-" : treeCount || "-"}
+              {isRaiUnit && areaRai ? " ไร่" : ""}
+            </div>
           </div>
 
           {/* วัตถุประสงค์แปลง */}
@@ -889,18 +747,9 @@ export function ActualType7NewDemo({
             <label className="block text-xs font-bold text-slate-700">
               วัตถุประสงค์ของแปลงสาธิต
             </label>
-            <Textarea
-              rows={2}
-              value={plotObjective}
-              onChange={(e) => setPlotObjective?.(e.target.value)}
-              disabled={!isEditingBaseline}
-              placeholder="ระบุวัตถุประสงค์ของการทำแปลงสาธิต เช่น ทดสอบการแตกยอด ลดอาการใบไหม้..."
-              className={`text-xs sm:text-sm rounded-xl ${
-                !isEditingBaseline
-                  ? "bg-slate-100/90 text-slate-700 border-slate-200 cursor-not-allowed"
-                  : "bg-white border-slate-200"
-              }`}
-            />
+            <div className="min-h-20 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700 whitespace-pre-wrap">
+              {plotObjective || "-"}
+            </div>
           </div>
         </div>
       </div>

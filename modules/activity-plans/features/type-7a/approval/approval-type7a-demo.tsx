@@ -55,21 +55,11 @@ export function ApprovalType7aDemo({
 
       <div className="space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          <div className="bg-green-50/40 p-3 rounded-xl border border-green-100/80 sm:col-span-3">
-            <span className="text-green-700 block text-[11px] font-bold mb-1">
-              วัตถุประสงค์การทำแปลง
-            </span>
-            <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-              {target.objective ||
-                "ทดสอบและสาธิตประสิทธิภาพผลิตภัณฑ์ในแปลงจริง"}
-            </span>
-          </div>
-
           <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
             <span className="text-slate-500 block text-[11px] font-medium mb-1">
               ชื่อแปลง
             </span>
-            <span className="font-bold text-slate-800 block text-xs sm:text-sm">
+            <span className="font-medium block text-xs sm:text-sm">
               {target.plotName || target.owner || "-"}
             </span>
           </div>
@@ -78,7 +68,7 @@ export function ApprovalType7aDemo({
             <span className="text-slate-500 block text-[11px] font-medium mb-1">
               ร้าน Dealer
             </span>
-            <span className="font-bold text-slate-800 block text-xs sm:text-sm">
+            <span className="font-medium block text-xs sm:text-sm">
               {target.dealerName || target.owner || "-"}
             </span>
           </div>
@@ -87,8 +77,17 @@ export function ApprovalType7aDemo({
             <span className="text-slate-500 block text-[11px] font-medium mb-1">
               จังหวัด / อำเภอ
             </span>
-            <span className="font-bold text-slate-800 block text-xs sm:text-sm">
+            <span className="font-medium block text-xs sm:text-sm">
               {locationText || "-"}
+            </span>
+          </div>
+
+          <div className="bg-green-50/40 p-3 rounded-xl border border-green-100/80 sm:col-span-3">
+            <span className="text-green-700 block text-[11px] mb-1 font-medium">
+              วัตถุประสงค์การทำแปลง
+            </span>
+            <span className="font-medium block text-xs sm:text-sm">
+              {target.objective || ""}
             </span>
           </div>
 
@@ -96,7 +95,7 @@ export function ApprovalType7aDemo({
             <span className="text-slate-500 block text-[11px] font-medium mb-1">
               หมวดสินค้า
             </span>
-            <span className="font-bold text-emerald-700 block text-xs sm:text-sm">
+            <span className="font-medium block text-xs sm:text-sm">
               {categoryLabel}
             </span>
           </div>
@@ -105,10 +104,9 @@ export function ApprovalType7aDemo({
             <span className="text-slate-500 block text-[11px] font-medium mb-1">
               หมวดพืช & ชื่อพืช
             </span>
-            <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-              {[target.cropCategory, target.crop]
-                .filter(Boolean)
-                .join(" • ") || "-"}
+            <span className="font-medium block text-xs sm:text-sm">
+              {[target.cropCategory, target.crop].filter(Boolean).join(" • ") ||
+                "-"}
             </span>
           </div>
 
@@ -116,7 +114,7 @@ export function ApprovalType7aDemo({
             <span className="text-slate-500 block text-[11px] font-medium mb-1">
               ขนาดพื้นที่ / จำนวนต้น
             </span>
-            <span className="font-bold text-slate-800 block text-xs sm:text-sm">
+            <span className="font-medium block text-xs sm:text-sm">
               {areaOrTree}
             </span>
           </div>
