@@ -224,11 +224,7 @@ export function Type7NewDemo({
     return availableProductsForCategory.map((p) => ({
       value: p.id,
       label: p.name,
-      subLabel: p.unit
-        ? `หน่วย: ${p.unit}`
-        : p.productCode
-          ? `รหัส: ${p.productCode}`
-          : undefined,
+      subLabel: p.productCode ? `รหัส: ${p.productCode}` : undefined,
     }));
   }, [availableProductsForCategory]);
 
@@ -604,67 +600,109 @@ export function Type7NewDemo({
             </span>
           </div>
         ) : (
-          <div className="space-y-2">
-            {demoProducts.map((pLine, idx) => (
-              <div
-                key={pLine.id}
-                className="grid grid-cols-12 gap-2 p-2 bg-white rounded-lg border border-slate-200 items-center"
-              >
-                <div className="col-span-1 text-center font-bold text-xs text-slate-500">
-                  {idx + 1}
-                </div>
-
-                <div className="col-span-6 sm:col-span-7">
-                  <FormCombobox
-                    id={`demo-prod-${item.id}-${pLine.id}`}
-                    label=""
-                    triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
-                    value={pLine.productId || ""}
-                    onChange={(val) =>
-                      updateProductRow(pLine.id, "productId", val)
-                    }
-                    options={productOptionsForCategory}
-                    placeholder="เลือกสินค้า..."
-                    searchPlaceholder="ค้นหาสินค้าในหมวดหมู่นี้..."
-                    emptyText="ไม่พบสินค้าในหมวดหมู่นี้"
-                    disabled={readonly}
-                  />
-                </div>
-
-                <div className="col-span-4 sm:col-span-3 flex items-center gap-1.5">
-                  <input
-                    type="number"
-                    min={1}
-                    value={pLine.quantity ?? ""}
-                    onChange={(e) => {
-                      const val = Math.max(1, parseInt(e.target.value) || 1);
-                      updateProductRow(pLine.id, "quantity", val);
-                    }}
-                    disabled={readonly}
-                    placeholder="จำนวน"
-                    className="w-full h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                  />
-                  {pLine.unit && (
-                    <span className="text-[11px] text-slate-500 whitespace-nowrap">
-                      {pLine.unit}
-                    </span>
-                  )}
-                </div>
-
-                <div className="col-span-1 text-right">
+          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600">
+                <tr>
+                  <th className="py-2.5 px-3 w-12 text-center font-semibold">
+                    ลำดับ
+                  </th>
+                  <th className="py-2.5 px-3 font-semibold">
+                    รายการสินค้า <span className="text-red-500">*</span>
+                  </th>
+                  <th className="py-2.5 px-3 w-36 sm:w-44 font-semibold text-center">
+                    จำนวน <span className="text-red-500">*</span>
+                  </th>
                   {!readonly && (
-                    <button
-                      type="button"
-                      onClick={() => deleteProductRow(pLine.id)}
-                      className="p-1 text-slate-400 hover:text-red-500 transition-colors"
-                      title="ลบแถวสินค้านี้"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                    <th className="py-2.5 px-3 w-12 text-center font-semibold">
+                      จัดการ
+                    </th>
                   )}
-                </div>
-              </div>
-            ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {demoProducts.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={readonly ? 3 : 4}
+                      className="py-6 text-center text-slate-400 text-xs"
+                    >
+                      ยังไม่มีรายการสินค้า กดปุ่ม "เพิ่มสินค้า" เพื่อเริ่มต้น
+                    </td>
+                  </tr>
+                ) : (
+                  demoProducts.map((pLine, idx) => (
+                    <tr
+                      key={pLine.id}
+                      className="hover:bg-slate-50/50 transition-colors"
+                    >
+                      {/* ลำดับ */}
+                      <td className="py-2 px-3 text-center font-medium text-slate-500 align-middle">
+                        {idx + 1}
+                      </td>
+
+                      {/* เลือกสินค้า */}
+                      <td className="py-2 px-3 align-middle">
+                        <FormCombobox
+                          id={`demo-prod-${item.id}-${pLine.id}`}
+                          label=""
+                          triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500 w-full"
+                          value={pLine.productId || ""}
+                          onChange={(val) =>
+                            updateProductRow(pLine.id, "productId", val)
+                          }
+                          options={productOptionsForCategory}
+                          placeholder="เลือกสินค้า..."
+                          searchPlaceholder="ค้นหาสินค้าในหมวดหมู่นี้..."
+                          emptyText="ไม่พบสินค้าในหมวดหมู่นี้"
+                          disabled={readonly}
+                        />
+                      </td>
+
+                      {/* จำนวนและหน่วย */}
+                      <td className="py-2 px-3 align-middle">
+                        <div className="flex items-center gap-1.5 justify-center">
+                          <input
+                            type="number"
+                            min={1}
+                            value={pLine.quantity ?? ""}
+                            onChange={(e) => {
+                              const val = Math.max(
+                                1,
+                                parseInt(e.target.value) || 1,
+                              );
+                              updateProductRow(pLine.id, "quantity", val);
+                            }}
+                            disabled={readonly}
+                            placeholder="จำนวน"
+                            className="w-20 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                          />
+                          {pLine.unit && (
+                            <span className="text-[11px] text-slate-500 whitespace-nowrap min-w-[28px]">
+                              {pLine.unit}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* ปุ่มลบ */}
+                      {!readonly && (
+                        <td className="py-2 px-3 text-center align-middle">
+                          <button
+                            type="button"
+                            onClick={() => deleteProductRow(pLine.id)}
+                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                            title="ลบแถวสินค้านี้"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
