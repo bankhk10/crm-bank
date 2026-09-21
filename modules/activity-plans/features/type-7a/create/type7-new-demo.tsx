@@ -125,7 +125,6 @@ export function Type7NewDemo({
       .map((c) => ({
         value: c.id,
         label: c.name,
-        subLabel: c.customerCode ? `รหัส: ${c.customerCode}` : undefined,
       }));
   }, [customers]);
 
