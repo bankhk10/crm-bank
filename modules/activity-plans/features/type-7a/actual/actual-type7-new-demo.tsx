@@ -1217,7 +1217,7 @@ export function ActualType7NewDemo({
                   <div className="sm:col-span-12 md:col-span-5">
                     <FormCombobox
                       id={`demo-product-combobox-${idx}`}
-                      label="สินค้าจากระบบ *"
+                      label="สินค้าจากระบบ"
                       labelClassName="block text-xs font-bold text-slate-700 mb-1"
                       triggerClassName="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                       value={item.productId}
@@ -1233,7 +1233,7 @@ export function ActualType7NewDemo({
                   </div>
 
                   {/* จำนวนที่เบิก (Read Only) */}
-                  <div className="sm:col-span-6 md:col-span-2">
+                  <div className="sm:col-span-6 md:col-span-2 mt-1">
                     <label className="block text-xs font-bold text-slate-700 mb-1">
                       จำนวนที่เบิก {item.unit ? `(${item.unit})` : ""}
                     </label>
@@ -1258,7 +1258,7 @@ export function ActualType7NewDemo({
 
                     return (
                       <div className="sm:col-span-6 md:col-span-2">
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                        <label className="block text-xs font-bold text-slate-700 mb-1 mt-1">
                           จำนวนที่ใช้จริง {item.unit ? `(${item.unit})` : ""} *
                         </label>
                         <Input
@@ -1294,7 +1294,7 @@ export function ActualType7NewDemo({
 
                   {/* อัตราการใช้ (Single Source of Truth) */}
                   <div className="sm:col-span-12 md:col-span-3">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                    <label className="block text-xs font-bold text-slate-700 mb-1 mt-1">
                       อัตราการใช้ *
                     </label>
                     <Input
