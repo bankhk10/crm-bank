@@ -1409,7 +1409,7 @@ export function ActualType7NewDemo({
                       >
                         <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
                           <span className="text-xs font-bold text-slate-800">
-                            สารเคมีภายนอก #{eIdx + 1}
+                            สารเคมีภายนอก {eIdx + 1}
                           </span>
                           <button
                             type="button"
@@ -1424,7 +1424,7 @@ export function ActualType7NewDemo({
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                           <div>
                             <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                              บริษัท (Company) *
+                              บริษัท *
                             </label>
                             <Input
                               value={ep.company}
@@ -1443,7 +1443,7 @@ export function ActualType7NewDemo({
 
                           <div>
                             <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                              ชื่อสินค้า / สารเคมี *
+                              ชื่อสินค้า *
                             </label>
                             <Input
                               value={ep.productName}
@@ -1462,7 +1462,7 @@ export function ActualType7NewDemo({
 
                           <div>
                             <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                              สารสำคัญ (Active Ingredient)
+                              สารออกฤทธิ์
                             </label>
                             <Input
                               value={ep.activeIngredient || ""}
@@ -1480,7 +1480,7 @@ export function ActualType7NewDemo({
 
                           <div>
                             <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                              สูตรยา (Formula) *
+                              สูตร *
                             </label>
                             <Select
                               value={ep.formula}
@@ -1492,7 +1492,7 @@ export function ActualType7NewDemo({
                                 )
                               }
                             >
-                              <SelectTrigger className="h-9 text-xs bg-white border-slate-200 rounded-lg">
+                              <SelectTrigger className="!h-9 text-xs bg-white border-slate-200 rounded-lg w-full">
                                 <SelectValue placeholder="เลือกสูตรยา..." />
                               </SelectTrigger>
                               <SelectContent>
