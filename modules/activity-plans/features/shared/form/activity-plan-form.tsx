@@ -144,7 +144,7 @@ import { Type6Issue } from "@/modules/activity-plans/features/type-6/create/type
 import { Type7Demo } from "./components/work-types/type7-demo";
 import { Type8Meeting } from "@/modules/activity-plans/features/type-8/create/type8-meeting";
 import { Type9Store } from "@/modules/activity-plans/features/type-9/create/type9-store";
-import { Type10FieldDay } from "@/modules/activity-plans/features/type-10/form/type10-field-day";
+import { Type10FieldDay } from "@/modules/activity-plans/features/type-10/create/type10-field-day";
 import { Type11Stock } from "@/modules/activity-plans/features/type-11/form/type11-stock";
 import { Type12Tour } from "./components/work-types/type12-tour";
 import {
