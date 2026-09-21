@@ -13,7 +13,7 @@ import { ActualType7NewDemo, TargetDemoItem, CustomerOption } from "@/modules/ac
 import {
   ActualType7FollowUp,
   DemoPlotVisitHistoryItem,
-} from "./actual-type7-follow-up";
+} from "@/modules/activity-plans/features/type-7b/actual/actual-type7-follow-up";
 
 export type { TargetDemoItem, DemoPlotVisitHistoryItem };
 

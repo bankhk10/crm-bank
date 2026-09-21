@@ -9,4 +9,4 @@ export * from "@/modules/activity-plans/features/type-8/actual/actual-type8-meet
 export * from "@/modules/activity-plans/features/type-9/actual/actual-type9-store";
 export * from "@/modules/activity-plans/features/type-10/actual/actual-type10-field-day";
 export * from "@/modules/activity-plans/features/type-11/actual/actual-type11-stock";
-export * from "./demo-plot-history-modal";
+export * from "@/modules/activity-plans/features/type-7b/actual/demo-plot-history-modal";

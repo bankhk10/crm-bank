@@ -6,7 +6,7 @@ import {
   DetailType7NewDemo,
   DemoResultItemData,
 } from "@/modules/activity-plans/features/type-7a/detail/detail-type7-new-demo";
-import { DetailType7FollowUp } from "./detail-type7-follow-up";
+import { DetailType7FollowUp } from "@/modules/activity-plans/features/type-7b/detail/detail-type7-follow-up";
 
 export type { DemoResultItemData };
 
