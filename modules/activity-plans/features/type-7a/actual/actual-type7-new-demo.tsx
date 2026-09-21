@@ -520,55 +520,77 @@ export function ActualType7NewDemo({
     setIrrigations(Array.from(current));
   };
 
-  // Demo Products handlers
-  const handleAddProduct = () => {
-    if (!setDemoProducts) return;
-    const firstProd = products[0];
-    const newItems: DemoPlotProductItem[] = [
-      ...demoProducts,
-      {
-        productId: firstProd?.id || "",
-        productName: firstProd?.name || "",
-        quantity: 1,
-        unit: firstProd?.unit || firstProd?.packageSizeUnit || "",
-        applicationRate: "",
-      },
-    ];
-    setDemoProducts(newItems);
-  };
+  // Demo Products separation (Planned Baseline vs Additional Products)
+  const plannedProducts = useMemo(
+    () => demoProducts.filter((p) => !p.isAdditional && p.plannedQuantity != null),
+    [demoProducts],
+  );
 
-  const handleUpdateProduct = (
-    index: number,
+  const additionalProducts = useMemo(
+    () => demoProducts.filter((p) => p.isAdditional || p.plannedQuantity == null),
+    [demoProducts],
+  );
+
+  const handleUpdateProductByIdx = (
+    originalIndex: number,
     field: keyof DemoPlotProductItem,
     val: any,
   ) => {
     if (!setDemoProducts) return;
+    const current = demoProducts[originalIndex];
+    if (!current) return;
+
+    // Business rule: planned product cannot change productId
+    if (field === "productId" && !current.isAdditional && current.plannedQuantity != null) {
+      return;
+    }
+
     const updated = [...demoProducts];
-    const current = { ...updated[index] };
+    const item = { ...current };
+
     if (field === "productId") {
       const matched = products.find((p) => p.id === val);
-      current.productId = val;
-      current.productName = matched?.name || "";
-      current.unit = matched?.unit || matched?.packageSizeUnit || "";
+      item.productId = val;
+      item.productName = matched?.name || "";
+      item.unit = matched?.unit || matched?.packageSizeUnit || "";
     } else if (field === "quantity") {
-      current.quantity = val;
-      if (current.plannedQuantity != null) {
-        const planned = Number(current.plannedQuantity);
+      item.quantity = val;
+      if (item.plannedQuantity != null) {
+        const planned = Number(item.plannedQuantity);
         const used = val === "" ? 0 : Number(val);
         if (!isNaN(planned) && !isNaN(used)) {
-          current.remainingQuantity = Math.max(0, planned - used);
+          item.remainingQuantity = Math.max(0, planned - used);
         }
       }
     } else {
-      (current as any)[field] = val;
+      (item as any)[field] = val;
     }
-    updated[index] = current;
+    updated[originalIndex] = item;
     setDemoProducts(updated);
   };
 
-  const handleRemoveProduct = (index: number) => {
+  const handleAddAdditionalProduct = () => {
     if (!setDemoProducts) return;
-    const updated = demoProducts.filter((_, i) => i !== index);
+    const firstProd = products[0];
+    const newItem: DemoPlotProductItem = {
+      id: `add-${Date.now()}`,
+      productId: firstProd?.id || "",
+      productName: firstProd?.name || "",
+      plannedQuantity: null,
+      quantity: 1,
+      unit: firstProd?.unit || firstProd?.packageSizeUnit || "",
+      applicationRate: "",
+      isAdditional: true,
+    };
+    setDemoProducts([...demoProducts, newItem]);
+  };
+
+  const handleRemoveAdditionalProduct = (originalIndex: number) => {
+    if (!setDemoProducts) return;
+    const target = demoProducts[originalIndex];
+    // Safety guard: only additional products can be deleted
+    if (!target?.isAdditional && target?.plannedQuantity != null) return;
+    const updated = demoProducts.filter((_, i) => i !== originalIndex);
     setDemoProducts(updated);
   };
 
@@ -1153,106 +1175,93 @@ export function ActualType7NewDemo({
               <span className="text-rose-500">*</span>
             </h3>
           </div>
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleAddProduct}
-            className="h-8 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl gap-1.5 shadow-xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            เพิ่มสินค้าสาธิต
-          </Button>
+          <span className="text-xs text-slate-500 font-medium">
+            (รายการสินค้าอ้างอิงจากแผนงาน Trip Plan และสินค้าเพิ่มเติม)
+          </span>
         </div>
 
-        {demoProducts.length === 0 ? (
-          <div className="p-6 text-center bg-white rounded-xl border border-dashed border-slate-300 space-y-2">
-            <Package className="w-8 h-8 text-slate-400 mx-auto" />
-            <p className="text-xs text-slate-500">
-              ยังไม่มีรายการสินค้าสาธิต กรุณากดปุ่มเพิ่มสินค้า
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleAddProduct}
-              className="text-xs rounded-xl border-emerald-300 text-emerald-800 bg-emerald-50"
-            >
-              + เพิ่มสินค้าสาธิตรายการแรก
-            </Button>
+        {/* 4.1 สินค้าตามแผน (Planned Products) */}
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between border-b border-slate-200/70 pb-2 gap-2">
+            <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <span>📦 สินค้าตามแผน (Planned Products)</span>
+              <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                {plannedProducts.length} รายการ
+              </span>
+            </h4>
+            <span className="text-[11px] text-slate-500 font-medium">
+              สินค้าตั้งต้นจาก Trip Plan (ไม่สามารถเปลี่ยนหรือลบได้)
+            </span>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {demoProducts.map((item, idx) => (
-              <div
-                key={idx}
-                className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-3 shadow-2xs"
-              >
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-bold">
-                      {idx + 1}
-                    </span>
-                    สินค้าสาธิต {idx + 1}
-                  </span>
-                  {demoProducts.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveProduct(idx)}
-                      className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      ลบ
-                    </button>
-                  )}
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                  {/* สินค้า */}
-                  <div className="sm:col-span-12 md:col-span-5">
-                    <FormCombobox
-                      id={`demo-product-combobox-${idx}`}
-                      label="สินค้าจากระบบ"
-                      labelClassName="block text-xs font-bold text-slate-700"
-                      triggerClassName="text-xs sm:text-sm bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                      value={item.productId}
-                      onChange={(val) =>
-                        handleUpdateProduct(idx, "productId", val)
-                      }
-                      options={productOptions}
-                      placeholder="เลือกสินค้าสาธิต..."
-                      searchPlaceholder="พิมพ์ชื่อสินค้าหรือรหัส..."
-                      emptyText="ไม่พบสินค้า"
-                      required
-                    />
-                  </div>
+          {plannedProducts.length === 0 ? (
+            <div className="p-4 text-center bg-white rounded-xl border border-dashed border-slate-300 text-xs text-slate-400">
+              ไม่พบรายการสินค้าสาธิตที่ระบุไว้ในแผนงาน Trip Plan
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {plannedProducts.map((item) => {
+                const origIdx = demoProducts.indexOf(item);
+                const isExceeded =
+                  item.plannedQuantity != null &&
+                  item.plannedQuantity !== "" &&
+                  item.quantity !== undefined &&
+                  item.quantity !== null &&
+                  item.quantity !== "" &&
+                  Number(item.quantity) > Number(item.plannedQuantity);
 
-                  {/* จำนวนที่เบิก (Read Only) */}
-                  <div className="sm:col-span-6 md:col-span-2 mt-1">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      จำนวนที่เบิก {item.unit ? `(${item.unit})` : ""}
-                    </label>
-                    <div className="h-10 px-3 flex items-center bg-slate-100/90 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 select-none">
-                      {item.plannedQuantity !== null &&
-                      item.plannedQuantity !== undefined &&
-                      item.plannedQuantity !== ""
-                        ? item.plannedQuantity
-                        : "-"}
+                return (
+                  <div
+                    key={item.id || `planned-${origIdx}`}
+                    className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-3 shadow-2xs"
+                  >
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-bold">
+                          {plannedProducts.indexOf(item) + 1}
+                        </span>
+                        สินค้าตามแผน {plannedProducts.indexOf(item) + 1}
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                        🔒 ตั้งต้นจากแผนงาน
+                      </span>
                     </div>
-                  </div>
 
-                  {/* จำนวนที่ใช้จริง */}
-                  {(() => {
-                    const isExceeded =
-                      item.plannedQuantity != null &&
-                      item.plannedQuantity !== "" &&
-                      item.quantity !== undefined &&
-                      item.quantity !== null &&
-                      item.quantity !== "" &&
-                      Number(item.quantity) > Number(item.plannedQuantity);
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                      {/* สินค้า (Read-only Baseline Display) */}
+                      <div className="sm:col-span-12 md:col-span-5">
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          สินค้าที่ใช้สาธิต (จากแผนงาน)
+                        </label>
+                        <div className="h-10 px-3 flex items-center justify-between bg-slate-100/90 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 select-none">
+                          <span className="truncate">
+                            {item.productName ||
+                              products.find((p) => p.id === item.productId)?.name ||
+                              "ไม่ระบุชื่อสินค้า"}
+                          </span>
+                          <span className="shrink-0 ml-2 text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
+                            จากแผนงาน
+                          </span>
+                        </div>
+                      </div>
 
-                    return (
+                      {/* จำนวนที่เบิก (Read Only) */}
                       <div className="sm:col-span-6 md:col-span-2">
-                        <label className="block text-xs font-bold text-slate-700 mb-1 mt-1">
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          จำนวนที่เบิก {item.unit ? `(${item.unit})` : ""}
+                        </label>
+                        <div className="h-10 px-3 flex items-center bg-slate-100/90 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 select-none">
+                          {item.plannedQuantity !== null &&
+                          item.plannedQuantity !== undefined &&
+                          item.plannedQuantity !== ""
+                            ? item.plannedQuantity
+                            : "-"}
+                        </div>
+                      </div>
+
+                      {/* จำนวนที่ใช้จริง */}
+                      <div className="sm:col-span-6 md:col-span-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
                           จำนวนที่ใช้จริง {item.unit ? `(${item.unit})` : ""} *
                         </label>
                         <Input
@@ -1266,7 +1275,7 @@ export function ActualType7NewDemo({
                               : ""
                           }
                           onChange={(e) =>
-                            handleUpdateProduct(idx, "quantity", e.target.value)
+                            handleUpdateProductByIdx(origIdx, "quantity", e.target.value)
                           }
                           placeholder="เช่น 10"
                           className={cn(
@@ -1278,38 +1287,170 @@ export function ActualType7NewDemo({
                         />
                         {isExceeded && (
                           <p className="text-[11px] text-rose-600 font-semibold mt-1">
-                            จำนวนที่ใช้จริงต้องไม่เกินจำนวนที่เบิก (
-                            {item.plannedQuantity})
+                            จำนวนที่ใช้จริงต้องไม่เกินจำนวนที่เบิก ({item.plannedQuantity})
                           </p>
                         )}
                       </div>
-                    );
-                  })()}
 
-                  {/* อัตราการใช้ (Single Source of Truth) */}
-                  <div className="sm:col-span-12 md:col-span-3">
-                    <label className="block text-xs font-bold text-slate-700 mb-1 mt-1">
-                      อัตราการใช้ *
-                    </label>
-                    <Input
-                      value={item.applicationRate || ""}
-                      onChange={(e) =>
-                        handleUpdateProduct(
-                          idx,
-                          "applicationRate",
-                          e.target.value,
-                        )
-                      }
-                      placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
-                      className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                      required
-                    />
+                      {/* อัตราการใช้ (Single Source of Truth) */}
+                      <div className="sm:col-span-12 md:col-span-3">
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          อัตราการใช้ *
+                        </label>
+                        <Input
+                          value={item.applicationRate || ""}
+                          onChange={(e) =>
+                            handleUpdateProductByIdx(
+                              origIdx,
+                              "applicationRate",
+                              e.target.value,
+                            )
+                          }
+                          placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
+                          className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                          required
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* 4.2 สินค้าเพิ่มเติมในการปฏิบัติงาน (Additional Products) */}
+        <div className="space-y-3 pt-4 border-t border-slate-200/80">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/70 pb-2">
+            <div>
+              <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <span>➕ สินค้าเพิ่มเติมในการปฏิบัติงาน (Additional Products)</span>
+                {additionalProducts.length > 0 && (
+                  <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                    {additionalProducts.length} รายการ
+                  </span>
+                )}
+              </h4>
+              <p className="text-[11px] text-slate-500 font-medium">
+                รายการสินค้าที่ใช้เพิ่มเติมในการปฏิบัติงานจริง (ไม่กระทบแผนงานเดิม)
+              </p>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleAddAdditionalProduct}
+              className="h-8 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl gap-1.5 shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              เพิ่มสินค้าสาธิต
+            </Button>
           </div>
-        )}
+
+          {additionalProducts.length === 0 ? (
+            <div className="p-4 text-center bg-white rounded-xl border border-dashed border-slate-300 space-y-1">
+              <p className="text-xs text-slate-500">
+                ยังไม่มีรายการสินค้าเพิ่มเติม
+              </p>
+              <p className="text-[11px] text-slate-400">
+                หากมีการนำสินค้าอื่นมาใช้สาธิตเพิ่มเติม สามารถกดปุ่ม "+ เพิ่มสินค้าสาธิต" ได้
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {additionalProducts.map((item, addIdx) => {
+                const origIdx = demoProducts.indexOf(item);
+                return (
+                  <div
+                    key={item.id || `additional-${origIdx}`}
+                    className="p-3.5 bg-white border border-blue-200 rounded-xl space-y-3 shadow-2xs"
+                  >
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-bold">
+                          +{addIdx + 1}
+                        </span>
+                        สินค้าเพิ่มเติม {addIdx + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAdditionalProduct(origIdx)}
+                        className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 transition-colors font-medium px-2 py-1 rounded-md hover:bg-rose-50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        ลบ
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                      {/* เลือกสินค้าสำหรับรายการเพิ่มเติม */}
+                      <div className="sm:col-span-12 md:col-span-6">
+                        <FormCombobox
+                          id={`add-demo-product-${origIdx}`}
+                          label="เลือกสินค้าจากระบบ"
+                          labelClassName="block text-xs font-bold text-slate-700"
+                          triggerClassName="text-xs sm:text-sm bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                          value={item.productId}
+                          onChange={(val) =>
+                            handleUpdateProductByIdx(origIdx, "productId", val)
+                          }
+                          options={productOptions}
+                          placeholder="เลือกสินค้าที่ใช้เพิ่มเติม..."
+                          searchPlaceholder="พิมพ์ชื่อสินค้าหรือรหัส..."
+                          emptyText="ไม่พบสินค้า"
+                          required
+                        />
+                      </div>
+
+                      {/* จำนวนที่ใช้จริง */}
+                      <div className="sm:col-span-6 md:col-span-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          จำนวนที่ใช้จริง {item.unit ? `(${item.unit})` : ""} *
+                        </label>
+                        <Input
+                          type="number"
+                          min={0.01}
+                          step="any"
+                          value={
+                            item.quantity !== undefined &&
+                            item.quantity !== null
+                              ? item.quantity
+                              : ""
+                          }
+                          onChange={(e) =>
+                            handleUpdateProductByIdx(origIdx, "quantity", e.target.value)
+                          }
+                          placeholder="เช่น 5"
+                          className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 font-medium"
+                          required
+                        />
+                      </div>
+
+                      {/* อัตราการใช้ */}
+                      <div className="sm:col-span-12 md:col-span-4">
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          อัตราการใช้ *
+                        </label>
+                        <Input
+                          value={item.applicationRate || ""}
+                          onChange={(e) =>
+                            handleUpdateProductByIdx(
+                              origIdx,
+                              "applicationRate",
+                              e.target.value,
+                            )
+                          }
+                          placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
+                          className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* วิธีการฉีดพ่น SINGLE vs TANK_MIXED */}
         <div className="space-y-2 pt-3 border-t border-slate-200/80">

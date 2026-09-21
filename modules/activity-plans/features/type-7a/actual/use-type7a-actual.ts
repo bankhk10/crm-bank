@@ -161,6 +161,7 @@ export function useType7aActual() {
               remainingQuantity: remainingQty,
               unit: dpr.product?.unit || dpr.product?.packageSizeUnit || dpr.unit || "",
               applicationRate: dpr.applicationRate || "",
+              isAdditional: !matchedPlan,
             };
           }),
         );
@@ -190,6 +191,7 @@ export function useType7aActual() {
                 remainingQuantity: remainingQty,
                 unit: pr.product?.unit || pr.product?.packageSizeUnit || pr.unit || "",
                 applicationRate: "",
+                isAdditional: false,
               };
             }),
           );
@@ -206,6 +208,7 @@ export function useType7aActual() {
                 remainingQuantity: 0,
                 unit: pr.unit || "",
                 applicationRate: "",
+                isAdditional: false,
               };
             }),
           );

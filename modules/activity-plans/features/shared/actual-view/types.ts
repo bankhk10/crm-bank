@@ -300,6 +300,7 @@ export interface DemoPlotProductItem {
   remainingQuantity?: number | string | null; // Actual Remaining Quantity
   unit?: string | null;
   applicationRate: string; // Single Source of Truth for product application rate
+  isAdditional?: boolean; // Flag to differentiate additional products from planned baseline products
 }
 
 export interface DemoPlotExternalProductItem {
