@@ -979,10 +979,10 @@ export function ActualType7NewDemo({
             />
           </div>
 
-          {/* วิธีการทดลอง / แผนการทดสอบ (Rule 9: strictly experimentDetail) */}
+          {/* วิธีการทดลอง  (Rule 9: strictly experimentDetail) */}
           <div className="md:col-span-2 space-y-1">
             <label className="block text-xs font-bold text-slate-700">
-              วิธีการทดลอง / แผนการทดสอบ
+              วิธีการทดลอง
             </label>
             <Textarea
               rows={2}
@@ -1087,7 +1087,7 @@ export function ActualType7NewDemo({
                 value={cropAgeUnit}
                 onValueChange={(v) => setCropAgeUnit?.(v)}
               >
-                <SelectTrigger className="w-24 h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl">
+                <SelectTrigger className="w-24 !h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl">
                   <SelectValue placeholder="หน่วย" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1100,10 +1100,10 @@ export function ActualType7NewDemo({
             </div>
           </div>
 
-          {/* ระยะการเจริญเติบโต (Stage) */}
+          {/* ระยะการเจริญเติบโต */}
           <div className="md:col-span-2 space-y-1">
             <label className="block text-xs font-bold text-slate-700">
-              ระยะการเจริญเติบโต (Stage)
+              ระยะการเจริญเติบโต
             </label>
             <Input
               value={growthStage}
@@ -1130,9 +1130,9 @@ export function ActualType7NewDemo({
           {/* ภาพถ่ายสภาพแปลงเริ่มต้น (Max 10 รูป) */}
           <div className="md:col-span-2 space-y-2 pt-2 border-t border-slate-200/80">
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5 mt-2">
                 <ImageIcon className="w-4 h-4 text-emerald-700" />
-                ภาพถ่ายสภาพแปลงเริ่มต้น (Initial Plot Photos)
+                ภาพถ่ายสภาพแปลงเริ่มต้น
               </label>
               <span className="text-[11px] text-slate-500 font-medium">
                 แนบได้สูงสุด 10 รูป
@@ -1198,7 +1198,7 @@ export function ActualType7NewDemo({
                     <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-bold">
                       {idx + 1}
                     </span>
-                    สินค้าสาธิต #{idx + 1}
+                    สินค้าสาธิต {idx + 1}
                   </span>
                   {demoProducts.length > 1 && (
                     <button
