@@ -920,9 +920,6 @@ export function ActualType7NewDemo({
                   className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 font-mono"
                   required
                 />
-                <span className="text-[10px] text-slate-400">
-                  เก็บค่าเป็นตัวเลขทศนิยม 7 ตำแหน่ง (Decimal)
-                </span>
               </div>
 
               <div className="space-y-1">
@@ -942,9 +939,6 @@ export function ActualType7NewDemo({
                   className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 font-mono"
                   required
                 />
-                <span className="text-[10px] text-slate-400">
-                  เก็บค่าเป็นตัวเลขทศนิยม 7 ตำแหน่ง (Decimal)
-                </span>
               </div>
             </div>
           </div>
