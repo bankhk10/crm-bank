@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ActivityStatusBadge, canUserPerformApproval } from "@/modules/activity-plans/ui/activity-status-badge";
 import { DetailViewHeader } from "../../detail-view/components/detail-view-header";
-import { DetailType12Tour } from "../../detail-view/components/work-types/detail-type12-tour";
+import { DetailType12Tour } from "@/modules/activity-plans/features/type-12/detail/detail-type12-tour";
 import { getWorkTypeName } from "@/modules/activity-plans/constants";
 import type { ActivityPlanWithRelations } from "@/modules/activity-plans/types";
 import {

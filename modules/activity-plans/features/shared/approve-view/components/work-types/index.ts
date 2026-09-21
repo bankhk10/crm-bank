@@ -9,4 +9,4 @@ export * from "@/modules/activity-plans/features/type-8/approval/approval-type8-
 export * from "@/modules/activity-plans/features/type-9/approval/approval-type9-store";
 export * from "@/modules/activity-plans/features/type-10/approval/approval-type10-field-day";
 export * from "@/modules/activity-plans/features/type-11/approval/approval-type11-stock";
-export * from "./approval-type12-tour";
+export * from "@/modules/activity-plans/features/type-12/approval/approval-type12-tour";
