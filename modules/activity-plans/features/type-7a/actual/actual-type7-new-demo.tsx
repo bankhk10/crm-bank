@@ -522,12 +522,14 @@ export function ActualType7NewDemo({
 
   // Demo Products separation (Planned Baseline vs Additional Products)
   const plannedProducts = useMemo(
-    () => demoProducts.filter((p) => !p.isAdditional && p.plannedQuantity != null),
+    () =>
+      demoProducts.filter((p) => !p.isAdditional && p.plannedQuantity != null),
     [demoProducts],
   );
 
   const additionalProducts = useMemo(
-    () => demoProducts.filter((p) => p.isAdditional || p.plannedQuantity == null),
+    () =>
+      demoProducts.filter((p) => p.isAdditional || p.plannedQuantity == null),
     [demoProducts],
   );
 
@@ -541,7 +543,11 @@ export function ActualType7NewDemo({
     if (!current) return;
 
     // Business rule: planned product cannot change productId
-    if (field === "productId" && !current.isAdditional && current.plannedQuantity != null) {
+    if (
+      field === "productId" &&
+      !current.isAdditional &&
+      current.plannedQuantity != null
+    ) {
       return;
     }
 
@@ -1236,7 +1242,8 @@ export function ActualType7NewDemo({
                         <div className="h-10 px-3 flex items-center justify-between bg-slate-100/90 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 select-none">
                           <span className="truncate">
                             {item.productName ||
-                              products.find((p) => p.id === item.productId)?.name ||
+                              products.find((p) => p.id === item.productId)
+                                ?.name ||
                               "ไม่ระบุชื่อสินค้า"}
                           </span>
                           <span className="shrink-0 ml-2 text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
@@ -1275,7 +1282,11 @@ export function ActualType7NewDemo({
                               : ""
                           }
                           onChange={(e) =>
-                            handleUpdateProductByIdx(origIdx, "quantity", e.target.value)
+                            handleUpdateProductByIdx(
+                              origIdx,
+                              "quantity",
+                              e.target.value,
+                            )
                           }
                           placeholder="เช่น 10"
                           className={cn(
@@ -1287,7 +1298,8 @@ export function ActualType7NewDemo({
                         />
                         {isExceeded && (
                           <p className="text-[11px] text-rose-600 font-semibold mt-1">
-                            จำนวนที่ใช้จริงต้องไม่เกินจำนวนที่เบิก ({item.plannedQuantity})
+                            จำนวนที่ใช้จริงต้องไม่เกินจำนวนที่เบิก (
+                            {item.plannedQuantity})
                           </p>
                         )}
                       </div>
@@ -1324,7 +1336,9 @@ export function ActualType7NewDemo({
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/70 pb-2">
             <div>
               <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <span>➕ สินค้าเพิ่มเติมในการปฏิบัติงาน (Additional Products)</span>
+                <span>
+                  ➕ สินค้าเพิ่มเติมในการปฏิบัติงาน (Additional Products)
+                </span>
                 {additionalProducts.length > 0 && (
                   <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
                     {additionalProducts.length} รายการ
@@ -1332,7 +1346,8 @@ export function ActualType7NewDemo({
                 )}
               </h4>
               <p className="text-[11px] text-slate-500 font-medium">
-                รายการสินค้าที่ใช้เพิ่มเติมในการปฏิบัติงานจริง (ไม่กระทบแผนงานเดิม)
+                รายการสินค้าที่ใช้เพิ่มเติมในการปฏิบัติงานจริง
+                (ไม่กระทบแผนงานเดิม)
               </p>
             </div>
             <Button
@@ -1352,7 +1367,8 @@ export function ActualType7NewDemo({
                 ยังไม่มีรายการสินค้าเพิ่มเติม
               </p>
               <p className="text-[11px] text-slate-400">
-                หากมีการนำสินค้าอื่นมาใช้สาธิตเพิ่มเติม สามารถกดปุ่ม "+ เพิ่มสินค้าสาธิต" ได้
+                หากมีการนำสินค้าอื่นมาใช้สาธิตเพิ่มเติม สามารถกดปุ่ม "+
+                เพิ่มสินค้าสาธิต" ได้
               </p>
             </div>
           ) : (
@@ -1417,7 +1433,11 @@ export function ActualType7NewDemo({
                               : ""
                           }
                           onChange={(e) =>
-                            handleUpdateProductByIdx(origIdx, "quantity", e.target.value)
+                            handleUpdateProductByIdx(
+                              origIdx,
+                              "quantity",
+                              e.target.value,
+                            )
                           }
                           placeholder="เช่น 5"
                           className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 font-medium"

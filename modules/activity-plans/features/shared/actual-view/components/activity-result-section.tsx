@@ -314,8 +314,10 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
   const setT7PlotStatus = t7b ? t7b.setT7PlotStatus : (props.setT7PlotStatus || props.setPlotStatus || (() => {}));
   const t7NextFollowUpDate = t7b ? t7b.t7NextFollowUpDate : (props.t7NextFollowUpDate ?? "");
   const setT7NextFollowUpDate = t7b ? t7b.setT7NextFollowUpDate : (props.setT7NextFollowUpDate || props.setNextFollowUpDate || (() => {}));
-  const t7NextSprayDate = t7b ? t7b.t7NextSprayDate : (t7a ? t7a.t7NextSprayDate : (props.t7NextSprayDate ?? ""));
-  const setT7NextSprayDate = t7b ? t7b.setT7NextSprayDate : (t7a ? t7a.setT7NextSprayDate : (props.setT7NextSprayDate || props.setNextSprayDate || (() => {})));
+  const t7aNextSprayDate = t7a ? t7a.t7NextSprayDate : (props.t7NextSprayDate ?? "");
+  const setT7aNextSprayDate = t7a ? t7a.setT7NextSprayDate : (props.setT7NextSprayDate || props.setNextSprayDate || (() => {}));
+  const t7bNextSprayDate = t7b ? t7b.t7NextSprayDate : (props.t7NextSprayDate ?? "");
+  const setT7bNextSprayDate = t7b ? t7b.setT7NextSprayDate : (props.setT7NextSprayDate || props.setNextSprayDate || (() => {}));
   const t7FinalYieldKg = t7b ? t7b.t7FinalYieldKg : (props.t7FinalYieldKg ?? "");
   const setT7FinalYieldKg = t7b ? t7b.setT7FinalYieldKg : (props.setT7FinalYieldKg || props.setFinalYieldKg || (() => {}));
   const t7ControlYieldKg = t7b ? t7b.t7ControlYieldKg : (props.t7ControlYieldKg ?? "");
@@ -586,8 +588,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setPlantingDate={setT7PlantingDate}
           initialSprayDate={t7InitialSprayDate}
           setInitialSprayDate={setT7InitialSprayDate}
-          nextSprayDate={t7NextSprayDate || t7NextFollowUpDate}
-          setNextSprayDate={setT7NextSprayDate}
+          nextSprayDate={t7aNextSprayDate}
+          setNextSprayDate={setT7aNextSprayDate}
           demoProducts={t7DemoProducts}
           setDemoProducts={setT7DemoProducts}
           sprayMethod={t7SprayMethod}
@@ -693,8 +695,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setOtherEquipment={setOtherEquipment}
           t7bSprayingRounds={t7bSprayingRounds}
           setT7bSprayingRounds={setT7bSprayingRounds}
-          nextSprayDate={t7NextSprayDate}
-          setNextSprayDate={setT7NextSprayDate}
+          nextSprayDate={t7bNextSprayDate}
+          setNextSprayDate={setT7bNextSprayDate}
           productPrice={t7ProductPrice}
           plotName={t7PlotName}
           setPlotName={setT7PlotName}
