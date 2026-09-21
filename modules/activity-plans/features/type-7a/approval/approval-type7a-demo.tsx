@@ -45,12 +45,6 @@ export function ApprovalType7aDemo({
             ทำแปลงสาธิต
           </h4>
         </div>
-        <Badge
-          variant="outline"
-          className="text-[11px] font-bold bg-green-50 text-green-800 border-green-200"
-        >
-          TYPE_7A
-        </Badge>
       </div>
 
       <div className="space-y-3">
