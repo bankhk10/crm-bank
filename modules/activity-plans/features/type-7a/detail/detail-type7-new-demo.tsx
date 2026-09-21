@@ -182,7 +182,8 @@ export function DetailType7NewDemo({
   const firstResult = effectiveDemoResults[0];
 
   // Planned Product & Unit resolution
-  const effectivePlannedId = firstResult?.plannedProductId || plannedProductId || null;
+  const effectivePlannedId =
+    firstResult?.plannedProductId || plannedProductId || null;
   const rawPlannedName =
     firstResult?.plannedProduct?.name ||
     plannedProductName ||
@@ -198,11 +199,12 @@ export function DetailType7NewDemo({
     : rawPlannedName;
 
   // Actual Product & Unit resolution
-  const effectiveActualId = firstResult?.actualProductId || actualProductId || effectivePlannedId;
+  const effectiveActualId =
+    firstResult?.actualProductId || actualProductId || effectivePlannedId;
   const isProductChanged = Boolean(
     effectivePlannedId &&
-      effectiveActualId &&
-      effectivePlannedId !== effectiveActualId,
+    effectiveActualId &&
+    effectivePlannedId !== effectiveActualId,
   );
 
   const rawActualName =
@@ -221,7 +223,9 @@ export function DetailType7NewDemo({
 
   // Actual Quantity resolution (strictly do not fallback to planned target)
   const resolvedActualQuantity =
-    actualQuantity !== undefined && actualQuantity !== null && actualQuantity !== ""
+    actualQuantity !== undefined &&
+    actualQuantity !== null &&
+    actualQuantity !== ""
       ? String(actualQuantity)
       : "";
   const actualQuantityDisplay = resolvedActualQuantity
@@ -238,7 +242,9 @@ export function DetailType7NewDemo({
     demoPlotData?.visits?.[0]?.cropAgeValue !== null &&
     demoPlotData?.visits?.[0]?.cropAgeValue !== undefined
       ? String(demoPlotData.visits[0].cropAgeValue)
-      : cropAgeValue !== null && cropAgeValue !== undefined && cropAgeValue !== ""
+      : cropAgeValue !== null &&
+          cropAgeValue !== undefined &&
+          cropAgeValue !== ""
         ? String(cropAgeValue)
         : null;
 
@@ -375,10 +381,7 @@ export function DetailType7NewDemo({
       const pName = act.product?.name || act.productName || "-";
       const pCode = act.product?.productCode;
       const pUnit =
-        act.unit ||
-        act.product?.unit ||
-        act.product?.packageSizeUnit ||
-        "";
+        act.unit || act.product?.unit || act.product?.packageSizeUnit || "";
 
       const plannedQtyVal =
         aIdx === 0 &&
@@ -427,7 +430,10 @@ export function DetailType7NewDemo({
     });
 
     // 3. Fallback for single product plan/actual
-    if (rows.length === 0 && (rawActualName !== "-" || rawPlannedName !== "-")) {
+    if (
+      rows.length === 0 &&
+      (rawActualName !== "-" || rawPlannedName !== "-")
+    ) {
       rows.push({
         id: "single-product",
         productName: rawActualName !== "-" ? rawActualName : rawPlannedName,
@@ -497,7 +503,8 @@ export function DetailType7NewDemo({
               ทำแปลงสาธิต (เริ่มทำแปลงใหม่)
             </h2>
             <span className="text-xs text-emerald-700 font-medium">
-              บันทึกผลการจัดทำแปลงสาธิตใหม่ สินค้าที่ใช้จริง และภาพถ่ายสภาพแปลงเริ่มต้น
+              บันทึกผลการจัดทำแปลงสาธิตใหม่ สินค้าที่ใช้จริง
+              และภาพถ่ายสภาพแปลงเริ่มต้น
             </span>
           </div>
         </div>
@@ -549,39 +556,53 @@ export function DetailType7NewDemo({
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">ชื่อแปลงสาธิต:</span>
+                <span className="text-slate-500 font-medium block">
+                  ชื่อแปลงสาธิต:
+                </span>
                 <span className="font-bold text-slate-900">
                   {demoPlotData.name || plotName || "-"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">ที่ตั้งแปลง:</span>
+                <span className="text-slate-500 font-medium block">
+                  ที่ตั้งแปลง:
+                </span>
                 <span className="font-bold text-slate-900">
                   {demoPlotData.district ? `อ.${demoPlotData.district} ` : ""}
                   {demoPlotData.province ? `จ.${demoPlotData.province}` : "-"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">หมวดหมู่พืช:</span>
+                <span className="text-slate-500 font-medium block">
+                  หมวดหมู่พืช:
+                </span>
                 <span className="font-bold text-slate-900">
                   {demoPlotData.cropCategory || "-"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">พืชที่ทดสอบ:</span>
+                <span className="text-slate-500 font-medium block">
+                  พืชที่ทดสอบ:
+                </span>
                 <span className="font-bold text-slate-900">
                   {demoPlotData.cropName || "-"}
-                  {demoPlotData.customCropName ? ` (${demoPlotData.customCropName})` : ""}
+                  {demoPlotData.customCropName
+                    ? ` (${demoPlotData.customCropName})`
+                    : ""}
                 </span>
               </div>
               <div>
                 <span className="text-slate-500 font-medium block">
-                  {["พืชไร่", "ผักและพืชล้มลุก"].includes(demoPlotData.cropCategory)
+                  {["พืชไร่", "ผักและพืชล้มลุก"].includes(
+                    demoPlotData.cropCategory,
+                  )
                     ? "ขนาดพื้นที่:"
                     : "จำนวนต้น:"}
                 </span>
                 <span className="font-bold text-slate-900">
-                  {["พืชไร่", "ผักและพืชล้มลุก"].includes(demoPlotData.cropCategory)
+                  {["พืชไร่", "ผักและพืชล้มลุก"].includes(
+                    demoPlotData.cropCategory,
+                  )
                     ? demoPlotData.areaRai
                       ? `${demoPlotData.areaRai} ไร่`
                       : "-"
@@ -591,25 +612,37 @@ export function DetailType7NewDemo({
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">วัตถุประสงค์:</span>
+                <span className="text-slate-500 font-medium block">
+                  วัตถุประสงค์:
+                </span>
                 <span className="font-bold text-slate-900">
                   {demoPlotData.objective || plotObjective || "-"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">ข้อมูลพืชประธาน:</span>
+                <span className="text-slate-500 font-medium block">
+                  ข้อมูลพืชประธาน:
+                </span>
                 <span className="font-bold text-slate-900">
-                  {demoPlotData.mainCropInfo || demoPlotData.plantingAreaCondition || "-"}
+                  {demoPlotData.mainCropInfo ||
+                    demoPlotData.plantingAreaCondition ||
+                    "-"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">วันที่เริ่มปลูกจริง:</span>
+                <span className="text-slate-500 font-medium block">
+                  วันที่เริ่มปลูกจริง:
+                </span>
                 <span className="font-bold text-slate-900">
-                  {demoPlotData.plantingDate ? formatThaiDate(demoPlotData.plantingDate) : "-"}
+                  {demoPlotData.plantingDate
+                    ? formatThaiDate(demoPlotData.plantingDate)
+                    : "-"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">วันที่ฉีดพ่น:</span>
+                <span className="text-slate-500 font-medium block">
+                  วันที่ฉีดพ่น:
+                </span>
                 <span className="font-bold text-slate-900">
                   {demoPlotData.initialSprayDate
                     ? formatThaiDate(demoPlotData.initialSprayDate)
@@ -617,7 +650,9 @@ export function DetailType7NewDemo({
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">กำหนดฉีดพ่นครั้งต่อไป:</span>
+                <span className="text-slate-500 font-medium block">
+                  กำหนดฉีดพ่นครั้งต่อไป:
+                </span>
                 <span className="font-bold text-slate-900">
                   {demoPlotData.nextSprayDate
                     ? formatThaiDate(demoPlotData.nextSprayDate)
@@ -625,7 +660,9 @@ export function DetailType7NewDemo({
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">วิธีการฉีดพ่น:</span>
+                <span className="text-slate-500 font-medium block">
+                  วิธีการฉีดพ่น:
+                </span>
                 <span className="font-bold text-slate-900">
                   {demoPlotData.sprayMethod === "SINGLE"
                     ? "ฉีดเดี่ยว (Single)"
@@ -635,27 +672,40 @@ export function DetailType7NewDemo({
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">ระบบน้ำ:</span>
+                <span className="text-slate-500 font-medium block">
+                  ระบบน้ำ:
+                </span>
                 <span className="font-bold text-slate-900">
-                  {demoPlotData.irrigations && demoPlotData.irrigations.length > 0
-                    ? demoPlotData.irrigations.map((i: any) => i.method).join(", ")
+                  {demoPlotData.irrigations &&
+                  demoPlotData.irrigations.length > 0
+                    ? demoPlotData.irrigations
+                        .map((i: any) => i.method)
+                        .join(", ")
                     : "-"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">อายุพืช:</span>
+                <span className="text-slate-500 font-medium block">
+                  อายุพืช:
+                </span>
                 <span className="font-bold text-slate-900">
-                  {resolvedCropAge ? `${resolvedCropAge} ${resolvedCropAgeUnit}` : "-"}
+                  {resolvedCropAge
+                    ? `${resolvedCropAge} ${resolvedCropAgeUnit}`
+                    : "-"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">ระยะการเจริญเติบโต (Stage):</span>
+                <span className="text-slate-500 font-medium block">
+                  ระยะการเจริญเติบโต (Stage):
+                </span>
                 <span className="font-bold text-slate-900">
                   {resolvedGrowthStage || "-"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">เกษตรกรเจ้าของแปลง:</span>
+                <span className="text-slate-500 font-medium block">
+                  เกษตรกรเจ้าของแปลง:
+                </span>
                 <span className="font-bold text-slate-900">
                   {demoPlotData.ownerName ||
                     demoPlotData.farmerName ||
@@ -671,7 +721,9 @@ export function DetailType7NewDemo({
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">จังหวัดเกษตรกร:</span>
+                <span className="text-slate-500 font-medium block">
+                  จังหวัดเกษตรกร:
+                </span>
                 <span className="font-bold text-slate-900">
                   {demoPlotData.ownerProvince ||
                     demoPlotData.farmerCustomer?.province ||
@@ -681,9 +733,12 @@ export function DetailType7NewDemo({
               </div>
               {(demoPlotData.latitude || demoPlotData.longitude) && (
                 <div>
-                  <span className="text-slate-500 font-medium block">พิกัดแปลง (Lat, Long):</span>
+                  <span className="text-slate-500 font-medium block">
+                    พิกัดแปลง (Lat, Long):
+                  </span>
                   <span className="font-bold text-slate-900 font-mono text-[11px]">
-                    {demoPlotData.latitude || "-"}, {demoPlotData.longitude || "-"}
+                    {demoPlotData.latitude || "-"},{" "}
+                    {demoPlotData.longitude || "-"}
                   </span>
                 </div>
               )}
@@ -724,7 +779,9 @@ export function DetailType7NewDemo({
                     <span className="font-semibold text-slate-700 block mb-0.5">
                       รายละเอียดแปลง:
                     </span>
-                    <span className="whitespace-pre-wrap">{resolvedCustomDetail}</span>
+                    <span className="whitespace-pre-wrap">
+                      {resolvedCustomDetail}
+                    </span>
                   </div>
                 )}
                 {!isOtherPlot && demoPlotData?.code && (
@@ -767,7 +824,9 @@ export function DetailType7NewDemo({
               อายุพืช
             </span>
             <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-              {resolvedCropAge ? `${resolvedCropAge} ${resolvedCropAgeUnit}` : "-"}
+              {resolvedCropAge
+                ? `${resolvedCropAge} ${resolvedCropAgeUnit}`
+                : "-"}
             </span>
           </div>
 
@@ -780,13 +839,17 @@ export function DetailType7NewDemo({
             </span>
           </div>
 
-          {(demoPlotData?.objective || firstResult?.plotObjective || plotObjective) && (
+          {(demoPlotData?.objective ||
+            firstResult?.plotObjective ||
+            plotObjective) && (
             <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2 md:col-span-3">
               <span className="text-xs text-slate-500 font-medium block">
                 วัตถุประสงค์ของแปลง
               </span>
               <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-                {demoPlotData?.objective || firstResult?.plotObjective || plotObjective}
+                {demoPlotData?.objective ||
+                  firstResult?.plotObjective ||
+                  plotObjective}
               </span>
             </div>
           )}
@@ -920,76 +983,81 @@ export function DetailType7NewDemo({
           </div>
 
           {/* ยาภายนอก / สารเคมีร่วม (External Products) */}
-          {demoPlotData?.externalProducts && demoPlotData.externalProducts.length > 0 && (
-            <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5 sm:col-span-2 md:col-span-3">
-              <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
-                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <FlaskConical className="w-4 h-4 text-amber-700" />
-                  ยาภายนอก / สารเคมีร่วม (External Products)
-                </span>
-                <Badge
-                  variant="outline"
-                  className="bg-amber-50 text-amber-800 border-amber-300 text-[11px] font-medium"
-                >
-                  {demoPlotData.externalProducts.length} รายการ
-                </Badge>
-              </div>
+          {demoPlotData?.externalProducts &&
+            demoPlotData.externalProducts.length > 0 && (
+              <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5 sm:col-span-2 md:col-span-3">
+                <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <FlaskConical className="w-4 h-4 text-amber-700" />
+                    ยาภายนอก / สารเคมีร่วม (External Products)
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className="bg-amber-50 text-amber-800 border-amber-300 text-[11px] font-medium"
+                  >
+                    {demoPlotData.externalProducts.length} รายการ
+                  </Badge>
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {demoPlotData.externalProducts.map((ext: any, idx: number) => {
-                  const formulaDisplay =
-                    ext.formula === "OTHER"
-                      ? ext.customFormula
-                        ? `อื่นๆ (${ext.customFormula})`
-                        : "อื่นๆ"
-                      : ext.formula || "-";
-                  return (
-                    <div
-                      key={ext.id || idx}
-                      className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1.5 text-xs"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-900 text-sm">
-                          {ext.productName || "-"}
-                        </span>
-                        {ext.company && (
-                          <span className="text-[11px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                            {ext.company}
-                          </span>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-slate-600 pt-1 border-t border-slate-100">
-                        <div>
-                          <span className="text-slate-400 block text-[11px]">
-                            สารออกฤทธิ์:
-                          </span>
-                          <span className="font-medium text-slate-800">
-                            {ext.activeIngredient || "-"}
-                          </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {demoPlotData.externalProducts.map(
+                    (ext: any, idx: number) => {
+                      const formulaDisplay =
+                        ext.formula === "OTHER"
+                          ? ext.customFormula
+                            ? `อื่นๆ (${ext.customFormula})`
+                            : "อื่นๆ"
+                          : ext.formula || "-";
+                      return (
+                        <div
+                          key={ext.id || idx}
+                          className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1.5 text-xs"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-slate-900 text-sm">
+                              {ext.productName || "-"}
+                            </span>
+                            {ext.company && (
+                              <span className="text-[11px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                                {ext.company}
+                              </span>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-slate-600 pt-1 border-t border-slate-100">
+                            <div>
+                              <span className="text-slate-400 block text-[11px]">
+                                สารออกฤทธิ์:
+                              </span>
+                              <span className="font-medium text-slate-800">
+                                {ext.activeIngredient || "-"}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 block text-[11px]">
+                                สูตร:
+                              </span>
+                              <span className="font-medium text-slate-800">
+                                {formulaDisplay}
+                              </span>
+                            </div>
+                          </div>
+                          {ext.applicationRate && (
+                            <div className="pt-1 text-slate-600">
+                              <span className="text-slate-400 text-[11px]">
+                                อัตราการใช้:{" "}
+                              </span>
+                              <span className="font-semibold text-slate-800">
+                                {ext.applicationRate}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        <div>
-                          <span className="text-slate-400 block text-[11px]">
-                            สูตร:
-                          </span>
-                          <span className="font-medium text-slate-800">
-                            {formulaDisplay}
-                          </span>
-                        </div>
-                      </div>
-                      {ext.applicationRate && (
-                        <div className="pt-1 text-slate-600">
-                          <span className="text-slate-400 text-[11px]">อัตราการใช้: </span>
-                          <span className="font-semibold text-slate-800">
-                            {ext.applicationRate}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                      );
+                    },
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* วิธีการทดลอง / แผนการทดสอบ */}
           <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2 md:col-span-3">
@@ -1098,4 +1166,3 @@ export function DetailType7NewDemo({
     </div>
   );
 }
-
