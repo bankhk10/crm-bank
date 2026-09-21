@@ -53,20 +53,6 @@ export function PlanBasicInfoCard({
 }: PlanBasicInfoCardProps) {
   return (
     <>
-      <div className="text-center">
-        <h5 className="font-semibold text-lg sm:text-2xl md:text-3xl border-b pb-4 md:pb-6 leading-snug">
-          <span className="hidden sm:inline">
-            {isEdit
-              ? "แก้ไขแผนงาน ( Trip Plan )"
-              : "สร้างแผนงาน ( Trip Plan )"}
-          </span>
-          <span className="inline sm:hidden">
-            {isEdit ? "แก้ไขแผนงาน" : "สร้างแผนงาน"}
-            <br />( Trip Plan )
-          </span>
-        </h5>
-      </div>
-
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
           <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-500" />
