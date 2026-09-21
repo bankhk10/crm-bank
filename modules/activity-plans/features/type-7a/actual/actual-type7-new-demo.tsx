@@ -645,111 +645,87 @@ export function ActualType7NewDemo({
       </div>
 
       {/* GROUP 1: ข้อมูลตั้งต้นของแปลงสาธิต (Demo Plot Details) */}
-      <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
-        <div className="flex flex-wrap items-center justify-between border-b border-slate-200/80 pb-2.5 gap-2">
-          <div className="flex items-center gap-2">
+      <div className="bg-white border border-emerald-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
+        <div className="flex items-center gap-2 border-b border-emerald-100 pb-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 border border-emerald-100">
             <Layers className="w-4 h-4 text-emerald-700" />
-            <h3 className="text-sm font-bold text-slate-900">
-              1. ข้อมูลตั้งต้นของแปลงสาธิต (Demo Plot Details)
-            </h3>
           </div>
+          <h3 className="text-sm font-bold text-slate-900">
+            ข้อมูลตั้งต้นของแปลงสาธิต
+          </h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* ชื่อแปลงสาธิต */}
-          <div className="md:col-span-2 space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              ชื่อแปลงสาธิต
-            </label>
-            <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-800 font-medium">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {/* ชื่อแปลง */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+            <div className="text-[11px] text-slate-500 mb-1">ชื่อแปลง</div>
+            <span className="font-medium block text-xs sm:text-sm">
               {plotName || "-"}
-            </div>
-          </div>
-
-          {/* ร้านค้าตัวแทนจำหน่าย */}
-          <div className="md:col-span-2 space-y-1">
-            <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <Store className="w-3.5 h-3.5 text-emerald-600" />
-              ร้านค้าตัวแทนจำหน่ายที่ดูแลแปลง (Dealer / Store)
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <div className="sm:col-span-2">
-                <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-800 font-medium">
-                  {dealerName || "-"}
-                </div>
-              </div>
-              <div>
-                <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-600 font-mono">
-                  {dealerCode ? `รหัส: ${dealerCode}` : "-"}
-                </div>
-              </div>
-            </div>
-            <span className="text-[10px] text-slate-400">
-              ข้อมูลตั้งต้นจากร้านค้าที่ผูกกับแปลงสาธิต (Read-Only จากแผนงาน)
             </span>
           </div>
 
-          {/* จังหวัดของแปลง */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              จังหวัดของแปลงสาธิต (จากแผนงาน)
-            </label>
-            <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700">
-              {planProvince || "-"}
-            </div>
+          {/* ร้าน Dealer */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+            <div className="text-[11px] text-slate-500 mb-1">ร้าน Dealer</div>
+            <span className="font-medium block text-xs sm:text-sm">
+              {dealerName || "-"}
+            </span>
           </div>
 
-          {/* อำเภอ */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              อำเภอ / เขต
-            </label>
-            <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700">
-              {district || "-"}
+          {/* จังหวัด / อำเภอ */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+            <div className="text-[11px] text-slate-500 mb-1">
+              จังหวัด / อำเภอ
             </div>
+            <span className="font-medium block text-xs sm:text-sm">
+              {[planProvince, district].filter(Boolean).join(" / ") || "-"}
+            </span>
           </div>
 
-          {/* หมวดหมู่พืช */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              หมวดหมู่พืช
-            </label>
-            <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700">
+          {/* วัตถุประสงค์ */}
+          <div className="md:col-span-3 rounded-2xl border border-emerald-100 bg-emerald-50/30 px-3 py-3">
+            <div className="text-[11px] text-emerald-700 mb-1">
+              วัตถุประสงค์การทำแปลง
+            </div>
+            <span className="font-medium block text-xs sm:text-sm">
+              {plotObjective || "-"}
+            </span>
+          </div>
+
+          {/* หมวดสินค้า */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+            <div className="text-[11px] text-slate-500 mb-1">หมวดสินค้า</div>
+            <span className="font-medium block text-xs sm:text-sm">
               {cropCategory || "-"}
-            </div>
+            </span>
           </div>
 
-          {/* พืชที่ทดสอบ */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              พืชที่ทดสอบ
-            </label>
-            <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700">
+          {/* หมวดพืช & ชื่อพืช */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+            <div className="text-[11px] text-slate-500 mb-1">
+              หมวดพืช & ชื่อพืช
+            </div>
+            <span className="font-medium block text-xs sm:text-sm">
               {isCustomCropName
                 ? customCropName || cropName || "-"
                 : cropName || "-"}
-            </div>
+            </span>
           </div>
 
           {/* ขนาดพื้นที่ / จำนวนต้น */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              {isRaiUnit ? "ขนาดพื้นที่ (ไร่)" : "จำนวนต้น"}
-            </label>
-            <div className="min-h-10 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700">
-              {isRaiUnit ? areaRai || "-" : treeCount || "-"}
-              {isRaiUnit && areaRai ? " ไร่" : ""}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+            <div className="text-[11px] text-slate-500 mb-1">
+              ขนาดพื้นที่ / จำนวนต้น
             </div>
-          </div>
-
-          {/* วัตถุประสงค์แปลง */}
-          <div className="md:col-span-2 space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              วัตถุประสงค์ของแปลงสาธิต
-            </label>
-            <div className="min-h-20 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700 whitespace-pre-wrap">
-              {plotObjective || "-"}
-            </div>
+            <span className="font-medium block text-xs sm:text-sm">
+              {isRaiUnit
+                ? areaRai
+                  ? `${areaRai} ไร่`
+                  : "-"
+                : treeCount
+                  ? `${treeCount} ต้น`
+                  : "-"}
+            </span>
           </div>
         </div>
       </div>
@@ -1021,7 +997,7 @@ export function ActualType7NewDemo({
 
           {/* ระบบน้ำ (Multiple Checkboxes) */}
           <div className="md:col-span-2 space-y-2 pt-1 border-t border-slate-200/80">
-            <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <label className="block text-xs font-bold text-slate-700 flex items-center gap-1. mt-2">
               <Droplets className="w-3.5 h-3.5 text-blue-600" />
               ระบบน้ำ (เลือกได้มากกว่า 1 ข้อ)
             </label>
