@@ -668,8 +668,8 @@ export function ActualType7FollowUp({
           {demoPlotData.demoProducts &&
             demoPlotData.demoProducts.length > 0 && (
               <div className="pt-2 border-t border-slate-200/80 space-y-2">
-                <span className="text-xs font-bold text-slate-800 block">
-                  ตารางรายการยาที่ใช้สาธิตของแปลง (Baseline Products):
+                <span className="text-xs font-bold text-slate-800 block mt-2">
+                  รายการยาที่ใช้สาธิตของแปลง
                 </span>
                 <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white">
                   <table className="w-full text-left text-xs border-collapse">
@@ -841,9 +841,6 @@ export function ActualType7FollowUp({
                 วัน
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">
-              ระบุจำนวนวันหลังจากการฉีดพ่นยาครั้งล่าสุด
-            </p>
           </div>
         </div>
 
@@ -949,9 +946,6 @@ export function ActualType7FollowUp({
                       1. รายการสินค้าสาธิตและอัตราการใช้จริงในรอบนี้{" "}
                       <span className="text-rose-500">*</span>
                     </label>
-                    <span className="text-[11px] text-emerald-700 font-medium">
-                      อัตราตามเกณฑ์ (Baseline) คือข้อมูลอ้างอิงจากแปลงสาธิต
-                    </span>
                   </div>
 
                   <div className="space-y-2.5">
@@ -963,12 +957,6 @@ export function ActualType7FollowUp({
                         <div className="sm:w-1/3">
                           <span className="text-xs font-bold text-slate-900 block">
                             {pIdx + 1}. {pr.productName}
-                          </span>
-                          <span className="text-[11px] text-slate-500 block mt-0.5">
-                            อัตราตามเกณฑ์:{" "}
-                            <b className="text-slate-700">
-                              {pr.baselineRate || "ไม่ระบุ"}
-                            </b>
                           </span>
                         </div>
 
@@ -1000,7 +988,7 @@ export function ActualType7FollowUp({
 
                         <div className="sm:w-1/3 space-y-1">
                           <label className="text-[11px] font-semibold text-slate-600 block">
-                            อัตราการฉีดพ่นในรอบนี้ *
+                            อัตราการใช้รอบนี้ *
                           </label>
                           <Input
                             value={pr.actualRate}
