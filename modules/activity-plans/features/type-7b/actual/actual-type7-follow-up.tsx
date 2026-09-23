@@ -1210,7 +1210,7 @@ export function ActualType7FollowUp({
                                 </div>
                                 <div>
                                   <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                    ชื่อสินค้า / สารเคมี *
+                                    ชื่อสินค้า *
                                   </label>
                                   <Input
                                     value={ep.productName}
@@ -1229,7 +1229,7 @@ export function ActualType7FollowUp({
                                 </div>
                                 <div>
                                   <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                    สารสำคัญ (Active Ingredient)
+                                    สารออกฤทธิ์
                                   </label>
                                   <Input
                                     value={ep.activeIngredient || ""}
@@ -1247,7 +1247,7 @@ export function ActualType7FollowUp({
                                 </div>
                                 <div>
                                   <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                    สูตรยา *
+                                    สูตร *
                                   </label>
                                   <Select
                                     value={ep.formula}
@@ -1260,7 +1260,7 @@ export function ActualType7FollowUp({
                                       )
                                     }
                                   >
-                                    <SelectTrigger className="h-8 text-xs bg-white border-slate-200 rounded-lg">
+                                    <SelectTrigger className="!h-8 text-xs bg-white border-slate-200 rounded-lg w-full">
                                       <SelectValue placeholder="เลือกสูตรยา..." />
                                     </SelectTrigger>
                                     <SelectContent>

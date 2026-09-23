@@ -406,7 +406,7 @@ export function DetailType7FollowUp({
                       <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
                         <th className="p-2.5 w-12 text-center">#</th>
                         <th className="p-2.5">บริษัท</th>
-                        <th className="p-2.5">ชื่อสินค้า / สารเคมี</th>
+                        <th className="p-2.5">ชื่อสินค้า</th>
                         <th className="p-2.5">สารสำคัญ</th>
                         <th className="p-2.5">สูตรเคมี</th>
                         <th className="p-2.5">อัตราการใช้</th>
