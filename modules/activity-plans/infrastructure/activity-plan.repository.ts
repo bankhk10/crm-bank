@@ -3802,6 +3802,17 @@ export async function findDemoPlotByIdOrName(demoPlotIdOrName: string) {
                 select: {
                   id: true,
                   resultStatus: true,
+                  resultSummary: true,
+                  sprayRounds: {
+                    select: {
+                      id: true,
+                      roundNumber: true,
+                      sprayDate: true,
+                      sprayMethod: true,
+                      sprayEquipment: true,
+                      productResponse: true,
+                    },
+                  },
                 },
               },
             },
@@ -3854,6 +3865,17 @@ export async function findDemoPlotByOwnerAndCrop(
                 select: {
                   id: true,
                   resultStatus: true,
+                  resultSummary: true,
+                  sprayRounds: {
+                    select: {
+                      id: true,
+                      roundNumber: true,
+                      sprayDate: true,
+                      sprayMethod: true,
+                      sprayEquipment: true,
+                      productResponse: true,
+                    },
+                  },
                 },
               },
             },

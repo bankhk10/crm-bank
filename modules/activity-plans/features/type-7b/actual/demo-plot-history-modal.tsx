@@ -83,6 +83,7 @@ interface DemoPlotHistoryModalProps {
     cropImageUrls?: string[];
     plotImageUrls?: string[];
     baselineVisit?: any;
+    sprayRounds?: any[];
     notes?: string | null;
     visits?: Array<{
       id: string;
@@ -122,6 +123,9 @@ interface DemoPlotHistoryModalProps {
         result?: {
           id?: string;
           resultStatus?: string;
+          resultSummary?: string;
+          sprayRounds?: any[];
+          [key: string]: any;
         } | null;
       } | null;
     }>;
@@ -915,6 +919,77 @@ export function DemoPlotHistoryModal({
                         : []);
                     const totalPhotos = cropPhotos.length + plotPhotos.length;
 
+                    // 1. จำนวนวันหลังฉีดพ่น
+                    const summaryText =
+                      v.activityPlan?.result?.resultSummary || "";
+                    const daysMatch = summaryText.match(
+                      /จำนวนวันหลังฉีดพ่น:\s*(\d+)/,
+                    );
+                    const daysAfterSprayDisplay =
+                      (v as any).daysAfterSpray != null &&
+                      (v as any).daysAfterSpray !== ""
+                        ? `${(v as any).daysAfterSpray} วัน`
+                        : daysMatch && daysMatch[1]
+                          ? `${daysMatch[1]} วัน`
+                          : v.daysSinceStart !== null &&
+                              v.daysSinceStart !== undefined &&
+                              v.daysSinceStart !== ""
+                            ? `${v.daysSinceStart} วัน`
+                            : "-";
+
+                    // 2. กำหนดฉีดพ่น / ติดตามครั้งต่อไป
+                    const nextDateMatch = summaryText.match(
+                      /(?:กำหนดฉีดพ่นครั้งต่อไป|กำหนดติดตามครั้งต่อไป|กำหนดฉีดพ่น \/ ติดตามครั้งต่อไป):\s*([^\n\r]+)/,
+                    );
+                    const nextSprayOrFollowUpDateDisplay = (v as any)
+                      .nextSprayDate
+                      ? formatDate((v as any).nextSprayDate)
+                      : (v as any).nextFollowUpDate
+                        ? formatDate((v as any).nextFollowUpDate)
+                        : nextDateMatch && nextDateMatch[1]
+                          ? formatDate(nextDateMatch[1].trim())
+                          : plot.nextSprayDate
+                            ? formatDate(plot.nextSprayDate)
+                            : "-";
+
+                    // 3. จำนวนรอบการฉีดพ่น
+                    const roundsInPlan =
+                      v.activityPlan?.result?.sprayRounds || [];
+                    const matchedRoundsInPlot =
+                      plot.sprayRounds && v.activityPlan?.result?.id
+                        ? plot.sprayRounds.filter(
+                            (sr: any) =>
+                              sr.activityResultId ===
+                              v.activityPlan?.result?.id,
+                          )
+                        : [];
+                    const roundsMatch = summaryText.match(
+                      /(?:การฉีดพ่น \(|จำนวนรอบการฉีดพ่น:\s*|ฉีดพ่น\s*)(\d+)\s*รอบ/,
+                    );
+                    const sprayRoundsCountDisplay =
+                      roundsInPlan.length > 0
+                        ? `${roundsInPlan.length} รอบ`
+                        : matchedRoundsInPlot.length > 0
+                          ? `${matchedRoundsInPlot.length} รอบ`
+                          : roundsMatch && roundsMatch[1]
+                            ? `${roundsMatch[1]} รอบ`
+                            : (v as any).sprayRounds &&
+                                Array.isArray((v as any).sprayRounds) &&
+                                (v as any).sprayRounds.length > 0
+                              ? `${(v as any).sprayRounds.length} รอบ`
+                              : "1 รอบ";
+
+                    // ผลการใช้ผลิตภัณฑ์
+                    const responseMatch = summaryText.match(
+                      /ผล:\s*(พืชตอบสนองดี|พบปัญหา|ยังไม่เห็นผลชัดเจน)/,
+                    );
+                    const resolvedResponse =
+                      v.productResponse ||
+                      (roundsInPlan.length > 0 &&
+                        roundsInPlan[0].productResponse) ||
+                      (responseMatch && responseMatch[1]) ||
+                      "พืชตอบสนองดี";
+
                     return (
                       <div
                         key={v.id || idx}
@@ -979,102 +1054,59 @@ export function DemoPlotHistoryModal({
                             <div className="p-4 pt-0 border-t border-slate-100 space-y-3.5 text-xs text-slate-700">
                               {/* Observation Status Badges */}
                               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3">
-                                <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                                   <span className="text-slate-400 block text-[10px] font-semibold">
-                                    อายุพืช
+                                    จำนวนวันหลังฉีดพ่น
                                   </span>
                                   <span className="font-bold text-slate-800">
-                                    {v.cropAgeValue
-                                      ? `${v.cropAgeValue} ${v.cropAgeUnit || "วัน"}`
-                                      : "-"}
+                                    {daysAfterSprayDisplay}
                                   </span>
                                 </div>
-                                <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                                   <span className="text-slate-400 block text-[10px] font-semibold">
-                                    ระยะเจริญเติบโต
+                                    กำหนดฉีดพ่น / ติดตามครั้งต่อไป
                                   </span>
                                   <span className="font-bold text-slate-800">
-                                    {v.growthStage || "-"}
+                                    {nextSprayOrFollowUpDateDisplay}
                                   </span>
                                 </div>
-                                <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                                   <span className="text-slate-400 block text-[10px] font-semibold">
-                                    สภาพพืช
+                                    จำนวนรอบการฉีดพ่น
                                   </span>
-                                  <span
-                                    className={cn(
-                                      "font-bold flex items-center gap-1",
-                                      v.cropCondition === "สมบูรณ์"
-                                        ? "text-emerald-700"
-                                        : "text-amber-700",
-                                    )}
-                                  >
-                                    {v.cropCondition === "สมบูรณ์" ? (
-                                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                                    ) : (
-                                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                                    )}
-                                    {v.cropCondition || "-"}
+                                  <span className="font-bold text-slate-800">
+                                    {sprayRoundsCountDisplay}
                                   </span>
                                 </div>
-                                <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                                   <span className="text-slate-400 block text-[10px] font-semibold">
                                     ผลการใช้ผลิตภัณฑ์
                                   </span>
                                   <span
                                     className={cn(
                                       "font-bold flex items-center gap-1",
-                                      v.productResponse === "พืชตอบสนองดี"
+                                      resolvedResponse === "พืชตอบสนองดี"
                                         ? "text-emerald-700"
                                         : "text-amber-700",
                                     )}
                                   >
-                                    {v.productResponse || "-"}
+                                    {resolvedResponse === "พืชตอบสนองดี" ? (
+                                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                    ) : (
+                                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                                    )}
+                                    {resolvedResponse}
                                   </span>
                                 </div>
                               </div>
 
                               {/* Problem Details */}
-                              {(v.cropProblemDesc || v.productProblemDesc) && (
-                                <div className="bg-amber-50/70 border border-amber-200/80 rounded-lg p-2.5 text-xs text-amber-900 space-y-1">
-                                  {v.cropProblemDesc && (
-                                    <div>
-                                      <span className="font-semibold">
-                                        ปัญหาของสภาพพืช:{" "}
-                                      </span>
-                                      <span>{v.cropProblemDesc}</span>
-                                    </div>
-                                  )}
-                                  {v.productProblemDesc && (
-                                    <div>
-                                      <span className="font-semibold">
-                                        ปัญหาการใช้ผลิตภัณฑ์:{" "}
-                                      </span>
-                                      <span>{v.productProblemDesc}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* Usage Method & Notes */}
-                              {v.usageMethod && (
-                                <div>
-                                  <span className="font-semibold text-slate-500">
-                                    วิธีการใช้รอบนี้:{" "}
+                              {v.productProblemDesc && (
+                                <div className="bg-amber-50/70 border border-amber-200/80 rounded-lg p-2.5 text-xs text-amber-900">
+                                  <span className="font-semibold">
+                                    ปัญหาการใช้ผลิตภัณฑ์:{" "}
                                   </span>
-                                  <span className="text-slate-800">
-                                    {v.usageMethod}
-                                  </span>
-                                </div>
-                              )}
-                              {v.notes && (
-                                <div>
-                                  <span className="font-semibold text-slate-500">
-                                    หมายเหตุ:{" "}
-                                  </span>
-                                  <span className="text-slate-800">
-                                    {v.notes}
-                                  </span>
+                                  <span>{v.productProblemDesc}</span>
                                 </div>
                               )}
 
@@ -1145,9 +1177,6 @@ export function DemoPlotHistoryModal({
                                     <strong className="font-semibold text-slate-700">
                                       {v.activityPlan.code || "-"}
                                     </strong>
-                                    {v.activityPlan.title
-                                      ? ` (${v.activityPlan.title})`
-                                      : ""}
                                   </span>
                                   <a
                                     href={`/activity-plans/${v.activityPlan.id}`}
@@ -1157,7 +1186,7 @@ export function DemoPlotHistoryModal({
                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
                                   >
                                     <ExternalLink className="w-3.5 h-3.5" />
-                                    <span>เปิดดูรายละเอียด Trip Plan</span>
+                                    <span>ดูรายละเอียด</span>
                                   </a>
                                 </div>
                               )}
