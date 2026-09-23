@@ -996,7 +996,7 @@ export function DemoPlotHistoryModal({
                         className="relative pl-8 transition-all"
                       >
                         {/* Timeline Node Icon */}
-                        <div className="absolute left-1.5 top-3 -translate-x-1/2 w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-extrabold shadow-xs z-10 ring-4 ring-slate-50">
+                        <div className="absolute left-3.5 top-3 -translate-x-1/2 w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-extrabold shadow-xs z-10 ring-4 ring-slate-50">
                           {idx + 1}
                         </div>
 
