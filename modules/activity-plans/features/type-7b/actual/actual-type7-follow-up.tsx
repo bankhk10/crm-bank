@@ -532,15 +532,8 @@ export function ActualType7FollowUp({
       <ActualTargetCard
         iconColorClass="text-blue-700"
         badgeColorClass="bg-blue-50 text-blue-800 border border-blue-200"
-        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
+        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-1"
         items={[
-          { label: "ประเภทงาน:", value: "ติดตามแปลงสาธิต" },
-          {
-            label: "แปลงสาธิตที่เลือก:",
-            value: demoPlotData?.code
-              ? `[${demoPlotData.code}] ${demoPlotData.name || demoPlotData.plotName || target.owner}`
-              : target.owner || "-",
-          },
           {
             label: "สิ่งที่ตั้งใจไปติดตาม:",
             value: target.detail || target.experimentDetail || "-",
@@ -1585,7 +1578,8 @@ export function ActualType7FollowUp({
 
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-700">
-                รายละเอียดสาเหตุที่ยุติการทดลอง <span className="text-rose-500">*</span>
+                รายละเอียดสาเหตุที่ยุติการทดลอง{" "}
+                <span className="text-rose-500">*</span>
               </label>
               <Textarea
                 rows={3}
