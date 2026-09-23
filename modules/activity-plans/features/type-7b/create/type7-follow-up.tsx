@@ -372,7 +372,7 @@ export function Type7FollowUp({
       {/* Details / Follow-up Notes */}
       <div>
         <label className="block text-xs font-medium text-slate-700 mb-1">
-          รายละเอียดเพิ่มเติม / สิ่งที่ตั้งใจจะไปติดตามรอบนี้
+          สิ่งที่ตั้งใจจะไปติดตามรอบนี้
         </label>
         <textarea
           rows={2}
