@@ -677,11 +677,9 @@ export function ActualType7FollowUp({
                       <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
                         <th className="p-2.5 w-12 text-center">#</th>
                         <th className="p-2.5">ชื่อสินค้าสาธิต</th>
-                        <th className="p-2.5">
-                          อัตราการใช้ตามเกณฑ์ (Baseline Rate)
-                        </th>
-                        <th className="p-2.5 text-right">ปริมาณที่ใช้สาธิต</th>
+                        <th className="p-2.5 text-center">จำนวนที่ใช้</th>
                         <th className="p-2.5">หน่วย</th>
+                        <th className="p-2.5">อัตราการใช้</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -693,6 +691,12 @@ export function ActualType7FollowUp({
                           <td className="p-2.5 font-bold text-slate-900">
                             {p.product?.name || p.productName || "-"}
                           </td>
+                          <td className="p-2.5 text-center font-semibold text-slate-800">
+                            {p.quantity ?? "-"}
+                          </td>
+                          <td className="p-2.5 text-slate-600">
+                            {p.product?.unit || p.unit || ""}
+                          </td>
                           <td className="p-2.5 text-slate-700">
                             {p.applicationRate ? (
                               <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-medium border border-blue-200">
@@ -701,12 +705,6 @@ export function ActualType7FollowUp({
                             ) : (
                               "-"
                             )}
-                          </td>
-                          <td className="p-2.5 text-right font-semibold text-slate-800">
-                            {p.quantity ?? "-"}
-                          </td>
-                          <td className="p-2.5 text-slate-600">
-                            {p.product?.unit || p.unit || ""}
                           </td>
                         </tr>
                       ))}
