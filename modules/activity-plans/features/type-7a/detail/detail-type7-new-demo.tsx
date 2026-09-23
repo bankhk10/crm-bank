@@ -162,62 +162,6 @@ export function DetailType7NewDemo({
     return raw.filter(isType7bCompletedFollowUpVisit);
   }, [historyPlotData?.visits, demoPlotData?.visits]);
   const followUpVisitsCount = followUpVisits.length;
-
-  const modalPlotData = useMemo(() => {
-    const raw = historyPlotData || demoPlotData;
-    if (!raw) {
-      if (demoPlotId || plotName || target.owner) {
-        return {
-          id: demoPlotId || undefined,
-          name: plotName || target.plots || "แปลงสาธิต",
-          ownerName: target.owner || "-",
-          cropName: target.crop || "-",
-          primaryProductName: target.product || "-",
-          plantingDate: plantingDate || null,
-          plantingAreaCondition: plantingAreaCondition || null,
-          usageMethod: usageMethod || null,
-          experimentDetail: experimentDetail || null,
-          visits: [],
-        };
-      }
-      return null;
-    }
-    return {
-      ...raw,
-      name: raw.name || plotName || raw.code || "แปลงสาธิต",
-      ownerName:
-        raw.ownerName ||
-        raw.farmerCustomer?.name ||
-        raw.customer?.name ||
-        target.owner ||
-        "-",
-      cropName: raw.cropName || raw.targetCrop || target.crop || "-",
-      primaryProductName:
-        raw.primaryProductName ||
-        raw.showcase ||
-        raw.productName ||
-        target.product ||
-        "-",
-      plantingDate: raw.plantingDate || raw.startDate || plantingDate || null,
-      plantingAreaCondition:
-        raw.plantingAreaCondition || plantingAreaCondition || null,
-      usageMethod: raw.usageMethod || usageMethod || null,
-      experimentDetail: raw.experimentDetail || experimentDetail || null,
-      visits: followUpVisits,
-    };
-  }, [
-    historyPlotData,
-    demoPlotData,
-    demoPlotId,
-    plotName,
-    target,
-    plantingDate,
-    plantingAreaCondition,
-    usageMethod,
-    experimentDetail,
-    followUpVisits,
-  ]);
-
   const [lightboxState, setLightboxState] = useState<{
     isOpen: boolean;
     title: string;
@@ -565,8 +509,100 @@ export function DetailType7NewDemo({
     actualCode,
     plannedCode,
     actualUnit,
-    plannedUnit,
-    resolvedActualQuantity,
+  ]);
+
+  const allVisits = useMemo(() => {
+    return historyPlotData?.visits || demoPlotData?.visits || [];
+  }, [historyPlotData?.visits, demoPlotData?.visits]);
+
+  const rawBaselineVisit = useMemo(() => {
+    return (
+      allVisits.find((v: any) => !isType7bCompletedFollowUpVisit(v)) ||
+      allVisits[0] ||
+      null
+    );
+  }, [allVisits]);
+
+  const modalPlotData = useMemo(() => {
+    const raw = historyPlotData || demoPlotData;
+    if (!raw) {
+      if (demoPlotId || plotName || target.owner) {
+        return {
+          id: demoPlotId || undefined,
+          name: plotName || target.plots || "แปลงสาธิต",
+          ownerName: target.owner || "-",
+          cropName: target.crop || "-",
+          primaryProductName: target.product || "-",
+          plantingDate: plantingDate || null,
+          plantingAreaCondition: plantingAreaCondition || null,
+          usageMethod: usageMethod || null,
+          experimentDetail: resolvedExperimentDetail || experimentDetail || null,
+          notes: resolvedNotes || notes || null,
+          cropAgeValue: resolvedCropAge,
+          cropAgeUnit: resolvedCropAgeUnit,
+          growthStage: resolvedGrowthStage,
+          cropImages,
+          plotImages,
+          unifiedProducts,
+          baselineVisit: rawBaselineVisit,
+          visits: [],
+        };
+      }
+      return null;
+    }
+    return {
+      ...raw,
+      name: raw.name || plotName || raw.code || "แปลงสาธิต",
+      ownerName:
+        raw.ownerName ||
+        raw.farmerCustomer?.name ||
+        raw.customer?.name ||
+        target.owner ||
+        "-",
+      cropName: raw.cropName || raw.targetCrop || target.crop || "-",
+      primaryProductName:
+        raw.primaryProductName ||
+        raw.showcase ||
+        raw.productName ||
+        target.product ||
+        "-",
+      plantingDate: raw.plantingDate || raw.startDate || plantingDate || null,
+      plantingAreaCondition:
+        raw.plantingAreaCondition || plantingAreaCondition || null,
+      usageMethod: raw.usageMethod || usageMethod || null,
+      experimentDetail:
+        raw.experimentDetail || resolvedExperimentDetail || experimentDetail || null,
+      notes: raw.notes || resolvedNotes || notes || null,
+      cropAgeValue: raw.cropAgeValue || resolvedCropAge,
+      cropAgeUnit: raw.cropAgeUnit || resolvedCropAgeUnit,
+      growthStage: raw.growthStage || resolvedGrowthStage,
+      cropImages: raw.cropImages || cropImages,
+      plotImages: raw.plotImages || plotImages,
+      unifiedProducts,
+      baselineVisit: raw.baselineVisit || rawBaselineVisit,
+      visits: followUpVisits,
+    };
+  }, [
+    historyPlotData,
+    demoPlotData,
+    demoPlotId,
+    plotName,
+    target,
+    plantingDate,
+    plantingAreaCondition,
+    usageMethod,
+    experimentDetail,
+    resolvedExperimentDetail,
+    notes,
+    resolvedNotes,
+    resolvedCropAge,
+    resolvedCropAgeUnit,
+    resolvedGrowthStage,
+    cropImages,
+    plotImages,
+    unifiedProducts,
+    rawBaselineVisit,
+    followUpVisits,
   ]);
 
   // Planned Target Items (strictly preserved in state/memory, UI hidden per requirement)

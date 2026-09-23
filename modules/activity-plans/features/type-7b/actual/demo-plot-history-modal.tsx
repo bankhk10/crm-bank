@@ -17,7 +17,9 @@ import {
   Package,
   User,
   ExternalLink,
+  FlaskConical,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -53,6 +55,35 @@ interface DemoPlotHistoryModalProps {
     visitsCount?: number;
     daysSinceStart?: number;
     totalCost?: number;
+    plotName?: string;
+    customer?: any;
+    dealerName?: string | null;
+    farmerCustomer?: any;
+    farmerName?: string | null;
+    farmerPhone?: string | null;
+    customCropName?: string | null;
+    mainCropInfo?: string | null;
+    initialSprayDate?: string | Date | null;
+    nextSprayDate?: string | Date | null;
+    sprayMethod?: string | null;
+    irrigations?: any[];
+    cropAgeValue?: number | string | null;
+    cropAgeUnit?: string | null;
+    growthStage?: string | null;
+    ownerPhone?: string | null;
+    ownerProvince?: string | null;
+    province?: string | null;
+    latitude?: number | string | null;
+    longitude?: number | string | null;
+    demoProducts?: any[];
+    externalProducts?: any[];
+    unifiedProducts?: any[];
+    cropImages?: any[];
+    plotImages?: any[];
+    cropImageUrls?: string[];
+    plotImageUrls?: string[];
+    baselineVisit?: any;
+    notes?: string | null;
     visits?: Array<{
       id: string;
       visitNumber: number;
@@ -106,12 +137,128 @@ export function DemoPlotHistoryModal({
   const [expandedVisits, setExpandedVisits] = useState<Record<string, boolean>>(
     {},
   );
+  const [isInitialSetupExpanded, setIsInitialSetupExpanded] =
+    useState<boolean>(true);
 
   const visits = useMemo(() => {
     if (!plot?.visits) return [];
     return (plot.visits as any[]).filter(isType7bCompletedFollowUpVisit);
   }, [plot?.visits]);
   const totalVisits = visits.length;
+
+  const baselineVisit = useMemo(() => {
+    if (!plot) return null;
+    if (plot.baselineVisit) return plot.baselineVisit;
+    const all = (plot.visits as any[]) || [];
+    return (
+      all.find(
+        (v: any) =>
+          v.workTypeCode === "TYPE_7A" ||
+          v.activityPlan?.workTypes?.some(
+            (wt: any) =>
+              wt.activityType?.code === "TYPE_7A" ||
+              wt.workTypeCode === "TYPE_7A",
+          ) ||
+          v.activityPlan?.activityType?.code === "TYPE_7A",
+      ) ||
+      all.find((v: any) => !isType7bCompletedFollowUpVisit(v)) ||
+      all[0] ||
+      null
+    );
+  }, [plot]);
+
+  const productRows = useMemo(() => {
+    if (!plot) return [];
+    if (plot.unifiedProducts && plot.unifiedProducts.length > 0) {
+      return plot.unifiedProducts;
+    }
+    const demoProds = (plot.demoProducts as any[]) || [];
+    if (demoProds.length > 0) {
+      return demoProds.map((dp: any, idx: number) => ({
+        id: dp.id || `prod-${idx}`,
+        productName: dp.product?.name || dp.productName || "-",
+        productCode: dp.product?.productCode || dp.productCode,
+        unit: dp.unit || dp.product?.unit || dp.product?.packageSizeUnit || "",
+        plannedQty: dp.plannedQuantity ?? dp.plannedQty ?? null,
+        actualQty: dp.actualQuantity ?? dp.quantity ?? dp.actualQty ?? null,
+        remainingQty: dp.remainingQuantity ?? dp.remainingQty ?? null,
+        applicationRate: dp.applicationRate || "-",
+      }));
+    }
+    if (plot.primaryProductName || plot.productName || plot.showcase) {
+      return [
+        {
+          id: "single-product",
+          productName:
+            plot.primaryProductName || plot.productName || plot.showcase || "-",
+          productCode: undefined,
+          unit: "",
+          plannedQty: null,
+          actualQty: null,
+          remainingQty: null,
+          applicationRate: "-",
+        },
+      ];
+    }
+    return [];
+  }, [plot]);
+
+  const externalProductsList = useMemo(() => {
+    return (plot?.externalProducts as any[]) || [];
+  }, [plot?.externalProducts]);
+
+  const initialCropPhotos: string[] = useMemo(() => {
+    if (!plot) return [];
+    if (plot.cropImages && plot.cropImages.length > 0) {
+      return plot.cropImages.map((img: any) => img.url || img.fileUrl || img);
+    }
+    if (plot.cropImageUrls && plot.cropImageUrls.length > 0) {
+      return plot.cropImageUrls;
+    }
+    if (baselineVisit?.cropImageUrls && baselineVisit.cropImageUrls.length > 0) {
+      return baselineVisit.cropImageUrls;
+    }
+    return [];
+  }, [plot, baselineVisit]);
+
+  const initialPlotPhotos: string[] = useMemo(() => {
+    if (!plot) return [];
+    if (plot.plotImages && plot.plotImages.length > 0) {
+      return plot.plotImages.map((img: any) => img.url || img.fileUrl || img);
+    }
+    if (plot.plotImageUrls && plot.plotImageUrls.length > 0) {
+      return plot.plotImageUrls;
+    }
+    if (baselineVisit?.plotImageUrls && baselineVisit.plotImageUrls.length > 0) {
+      return baselineVisit.plotImageUrls;
+    }
+    if (baselineVisit?.imageUrls && baselineVisit.imageUrls.length > 0) {
+      return baselineVisit.imageUrls;
+    }
+    return [];
+  }, [plot, baselineVisit]);
+
+  const resolvedCropAge =
+    plot?.cropAgeValue !== null &&
+    plot?.cropAgeValue !== undefined &&
+    plot?.cropAgeValue !== ""
+      ? String(plot.cropAgeValue)
+      : baselineVisit?.cropAgeValue !== null &&
+          baselineVisit?.cropAgeValue !== undefined
+        ? String(baselineVisit.cropAgeValue)
+        : null;
+
+  const resolvedCropAgeUnit =
+    plot?.cropAgeUnit || baselineVisit?.cropAgeUnit || "วัน";
+
+  const resolvedGrowthStage =
+    plot?.growthStage || baselineVisit?.growthStage || null;
+
+  const resolvedExperimentDetail =
+    plot?.experimentDetail || baselineVisit?.experimentDetail || null;
+
+  const resolvedNotes =
+    plot?.notes || baselineVisit?.notes || plot?.usageMethod || null;
 
   if (!plot) return null;
 
@@ -216,53 +363,524 @@ export function DemoPlotHistoryModal({
 
           {/* Scrollable Timeline Content */}
           <div className="flex-1 overflow-y-auto p-5 space-y-4">
-            {/* Master Initial Setup Card */}
-            <div className="bg-white rounded-xl border border-emerald-200/80 p-4 shadow-xs space-y-2.5">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
-                  <Info className="w-4 h-4 text-emerald-600" />
-                  ข้อมูลตั้งต้นตอนเริ่มทำแปลง (Initial Setup)
-                </span>
-                <span className="text-[11px] text-slate-500 font-medium">
-                  {formatDate(plot.plantingDate || plot.startDate)}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-700">
-                <div>
-                  <span className="font-semibold text-slate-500">
-                    สภาพพื้นที่ปลูกตอนเริ่ม:{" "}
-                  </span>
-                  <span className="font-medium text-slate-800">
-                    {plot.plantingAreaCondition || "-"}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-semibold text-slate-500">
-                    วิธีใช้ / อัตราการใช้เริ่มต้น:{" "}
-                  </span>
-                  <span className="font-medium text-slate-800">
-                    {plot.usageMethod || "-"}
-                  </span>
-                </div>
-                {plot.objective && (
-                  <div className="sm:col-span-2">
-                    <span className="font-semibold text-slate-500">
-                      วัตถุประสงค์:{" "}
-                    </span>
-                    <span className="text-slate-800">{plot.objective}</span>
+            {/* Master Initial Setup Card (Actual Baseline) */}
+            <div className="bg-white rounded-2xl border border-emerald-200/90 shadow-xs overflow-hidden">
+              {/* Card Header with Collapse Toggle */}
+              <div
+                onClick={() =>
+                  setIsInitialSetupExpanded(!isInitialSetupExpanded)
+                }
+                className="p-4 bg-emerald-50/70 border-b border-emerald-100 flex items-center justify-between cursor-pointer hover:bg-emerald-100/50 transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-800 shrink-0">
+                    <Sprout className="w-4 h-4" />
                   </div>
-                )}
-                {plot.experimentDetail && (
-                  <div className="sm:col-span-2">
-                    <span className="font-semibold text-slate-500">
-                      รายละเอียดการทดลอง:{" "}
-                    </span>
-                    <span className="text-slate-800">
-                      {plot.experimentDetail}
-                    </span>
+                  <div>
+                    <h3 className="font-bold text-emerald-950 text-sm flex items-center gap-2 flex-wrap">
+                      <span>ข้อมูลตั้งต้นตอนเริ่มทำแปลง (Initial Setup)</span>
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-200/70 text-emerald-850 text-[10px] font-bold border border-emerald-300">
+                        ACTUAL BASELINE
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-emerald-700">
+                      ข้อมูลแปลงสาธิตจริง สินค้าที่ใช้จริง และภาพถ่ายสภาพแปลงเริ่มต้น
+                    </p>
                   </div>
-                )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-emerald-800 font-medium hidden sm:inline">
+                    {formatDate(plot.plantingDate || plot.startDate)}
+                  </span>
+                  <button
+                    type="button"
+                    className="p-1.5 rounded-lg text-emerald-700 hover:bg-emerald-200/50 transition-colors"
+                  >
+                    {isInitialSetupExpanded ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </div>
+
+              {/* Collapsible Content */}
+              {isInitialSetupExpanded && (
+                <div className="p-4 sm:p-5 space-y-4">
+                  {/* ข้อมูลแปลงสาธิตจริง (Demo Plot Actual Baseline) */}
+                  <div className="bg-emerald-50/40 border border-emerald-200/70 rounded-xl p-3.5 space-y-3">
+                    <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                      <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                        <Sprout className="w-4 h-4 text-emerald-700" />
+                        ข้อมูลแปลงสาธิตจริง (Demo Plot Actual Baseline)
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          ชื่อแปลงสาธิต:
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {plot.name || plot.plotName || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          ร้านค้าตัวแทนจำหน่าย (Dealer):
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {plot.customer?.name || plot.dealerName || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          หมวดหมู่พืช:
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {plot.cropCategory || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          พืชที่ทดสอบ:
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {plot.cropName || plot.targetCrop || "-"}
+                          {plot.customCropName
+                            ? ` (${plot.customCropName})`
+                            : ""}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          {["พืชไร่", "ผักและพืชล้มลุก"].includes(
+                            plot.cropCategory || "",
+                          )
+                            ? "ขนาดพื้นที่:"
+                            : "จำนวนต้น:"}
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {["พืชไร่", "ผักและพืชล้มลุก"].includes(
+                            plot.cropCategory || "",
+                          )
+                            ? plot.areaRai
+                              ? `${plot.areaRai} ไร่`
+                              : "-"
+                            : plot.treeCount
+                              ? `${plot.treeCount} ต้น`
+                              : "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          ข้อมูลพืชประธาน:
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {plot.mainCropInfo ||
+                            plot.plantingAreaCondition ||
+                            "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          วันที่เริ่มปลูกจริง:
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {formatDate(plot.plantingDate)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          วันที่ฉีดพ่น:
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {formatDate(
+                            plot.initialSprayDate || baselineVisit?.visitDate,
+                          )}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          กำหนดฉีดพ่นครั้งต่อไป:
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {formatDate(plot.nextSprayDate)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          วิธีการฉีดพ่น:
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {plot.sprayMethod === "SINGLE"
+                            ? "ฉีดเดี่ยว (Single)"
+                            : plot.sprayMethod === "TANK_MIXED"
+                              ? "ผสมถัง (Tank-mixed)"
+                              : plot.sprayMethod || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          ระบบน้ำ:
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {plot.irrigations && plot.irrigations.length > 0
+                            ? plot.irrigations
+                                .map((i: any) => i.method)
+                                .join(", ")
+                            : "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          อายุพืช:
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {resolvedCropAge
+                            ? `${resolvedCropAge} ${resolvedCropAgeUnit}`
+                            : "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          ระยะการเจริญเติบโต (Stage):
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {resolvedGrowthStage || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          เกษตรกรเจ้าของแปลง:
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {plot.ownerName ||
+                            plot.farmerCustomer?.name ||
+                            plot.farmerName ||
+                            "-"}
+                          {plot.ownerPhone ||
+                          plot.farmerCustomer?.phone ||
+                          plot.farmerPhone
+                            ? ` (${plot.ownerPhone || plot.farmerCustomer?.phone || plot.farmerPhone})`
+                            : ""}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-medium block">
+                          จังหวัดเกษตรกร:
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {plot.ownerProvince ||
+                            plot.farmerCustomer?.province ||
+                            plot.province ||
+                            "-"}
+                        </span>
+                      </div>
+                      {(plot.latitude || plot.longitude) && (
+                        <div>
+                          <span className="text-slate-500 font-medium block">
+                            พิกัดแปลง (Lat, Long):
+                          </span>
+                          <span className="font-bold text-slate-900 font-mono text-[11px]">
+                            {plot.latitude || "-"}, {plot.longitude || "-"}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* สินค้าที่จะสาธิต (Demonstration Products) */}
+                  <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <Package className="w-4 h-4 text-emerald-700" />
+                        สินค้าที่จะสาธิต
+                      </span>
+                      {productRows.length > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="bg-emerald-50 text-emerald-800 border-emerald-300 font-medium text-xs"
+                        >
+                          {productRows.length} รายการ
+                        </Badge>
+                      )}
+                    </div>
+
+                    {productRows.length > 0 ? (
+                      <div className="w-full overflow-x-auto rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                        <table className="w-full min-w-[560px] text-xs divide-y divide-slate-200/70 text-left">
+                          <thead className="bg-slate-50/90 text-slate-600 font-semibold">
+                            <tr>
+                              <th
+                                scope="col"
+                                className="py-2.5 px-3 w-12 text-center"
+                              >
+                                ลำดับ
+                              </th>
+                              <th
+                                scope="col"
+                                className="py-2.5 px-3 min-w-[170px]"
+                              >
+                                สินค้า
+                              </th>
+                              <th
+                                scope="col"
+                                className="py-2.5 px-3 text-right whitespace-nowrap min-w-[90px]"
+                              >
+                                จำนวนที่เบิก
+                              </th>
+                              <th
+                                scope="col"
+                                className="py-2.5 px-3 text-right whitespace-nowrap min-w-[90px]"
+                              >
+                                จำนวนที่ใช้จริง
+                              </th>
+                              <th
+                                scope="col"
+                                className="py-2.5 px-3 text-right whitespace-nowrap min-w-[90px]"
+                              >
+                                จำนวนคงเหลือ
+                              </th>
+                              <th
+                                scope="col"
+                                className="py-2.5 px-3 min-w-[130px]"
+                              >
+                                อัตราการใช้
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-slate-800">
+                            {productRows.map((prod: any, idx: number) => {
+                              const plannedDisplay =
+                                prod.plannedQty != null &&
+                                prod.plannedQty !== ""
+                                  ? `${prod.plannedQty} ${prod.unit || ""}`.trim()
+                                  : "-";
+                              const actualDisplay =
+                                prod.actualQty != null && prod.actualQty !== ""
+                                  ? `${prod.actualQty} ${prod.unit || ""}`.trim()
+                                  : "-";
+                              const remainingDisplay =
+                                prod.remainingQty != null &&
+                                prod.remainingQty !== ""
+                                  ? `${prod.remainingQty} ${prod.unit || ""}`.trim()
+                                  : "-";
+
+                              return (
+                                <tr
+                                  key={prod.id || idx}
+                                  className="hover:bg-slate-50/50 transition-colors"
+                                >
+                                  <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
+                                    {idx + 1}
+                                  </td>
+                                  <td className="py-2.5 px-3">
+                                    <div className="font-bold text-slate-900">
+                                      {prod.productName}
+                                    </div>
+                                    {prod.productCode && (
+                                      <div className="text-[10px] text-slate-400 font-mono">
+                                        {prod.productCode}
+                                      </div>
+                                    )}
+                                  </td>
+                                  <td className="py-2.5 px-3 text-right font-semibold text-slate-700 whitespace-nowrap">
+                                    {plannedDisplay}
+                                  </td>
+                                  <td className="py-2.5 px-3 text-right font-bold text-emerald-700 whitespace-nowrap">
+                                    {actualDisplay}
+                                  </td>
+                                  <td className="py-2.5 px-3 text-right font-bold text-blue-700 whitespace-nowrap">
+                                    {remainingDisplay}
+                                  </td>
+                                  <td className="py-2.5 px-3 text-emerald-800 font-medium">
+                                    {prod.applicationRate || "-"}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-6 text-slate-400 text-xs">
+                        ไม่มีรายการสินค้าที่บันทึก
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ยาภายนอก / สารเคมีร่วม (External Products) */}
+                  {externalProductsList.length > 0 && (
+                    <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5">
+                      <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
+                        <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                          <FlaskConical className="w-4 h-4 text-amber-700" />
+                          ยาภายนอก / สารเคมีร่วม (External Products)
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className="bg-amber-50 text-amber-800 border-amber-300 text-[11px] font-medium"
+                        >
+                          {externalProductsList.length} รายการ
+                        </Badge>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {externalProductsList.map((ext: any, idx: number) => {
+                          const formulaDisplay =
+                            ext.formula === "OTHER"
+                              ? ext.customFormula
+                                ? `อื่นๆ (${ext.customFormula})`
+                                : "อื่นๆ"
+                              : ext.formula || "-";
+                          return (
+                            <div
+                              key={ext.id || idx}
+                              className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1.5 text-xs"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-slate-900 text-sm">
+                                  {ext.productName || "-"}
+                                </span>
+                                {ext.company && (
+                                  <span className="text-[11px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                                    {ext.company}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-slate-600 pt-1 border-t border-slate-100">
+                                <div>
+                                  <span className="text-slate-400 block text-[11px]">
+                                    สารออกฤทธิ์:
+                                  </span>
+                                  <span className="font-medium text-slate-800">
+                                    {ext.activeIngredient || "-"}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-400 block text-[11px]">
+                                    สูตร:
+                                  </span>
+                                  <span className="font-medium text-slate-800">
+                                    {formulaDisplay}
+                                  </span>
+                                </div>
+                              </div>
+                              {ext.applicationRate && (
+                                <div className="pt-1 text-slate-600">
+                                  <span className="text-slate-400 text-[11px]">
+                                    อัตราการใช้:{" "}
+                                  </span>
+                                  <span className="font-semibold text-slate-800">
+                                    {ext.applicationRate}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* วิธีการทดลอง & ข้อมูลเพิ่มเติม */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                      <span className="text-xs text-slate-500 font-medium block">
+                        วิธีการทดลอง
+                      </span>
+                      <p className="text-xs sm:text-sm text-slate-800 font-medium whitespace-pre-wrap leading-relaxed">
+                        {resolvedExperimentDetail || "-"}
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                      <span className="text-xs text-slate-500 font-medium block">
+                        ข้อมูลเพิ่มเติม
+                      </span>
+                      <p className="text-xs sm:text-sm text-slate-800 font-medium whitespace-pre-wrap leading-relaxed">
+                        {resolvedNotes || "-"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* ภาพถ่ายสภาพแปลงเริ่มต้น (Initial Demonstration Photos) */}
+                  {(initialCropPhotos.length > 0 ||
+                    initialPlotPhotos.length > 0) && (
+                    <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-4 space-y-3">
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <ImageIcon className="w-4 h-4 text-emerald-600" />
+                        ภาพถ่ายสภาพแปลงเริ่มต้น (Initial Demonstration Photos)
+                      </span>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {initialCropPhotos.length > 0 && (
+                          <div className="space-y-2 bg-white p-3 rounded-lg border border-slate-200/70">
+                            <span className="text-xs font-semibold text-slate-700 block">
+                              🌿 ภาพถ่ายสภาพพืชเริ่มต้น (
+                              {initialCropPhotos.length} รูป)
+                            </span>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                              {initialCropPhotos.map(
+                                (url: string, pIdx: number) => (
+                                  <div
+                                    key={pIdx}
+                                    onClick={() => setSelectedPhoto(url)}
+                                    className="group relative aspect-square rounded-lg overflow-hidden border border-slate-200 bg-slate-100 cursor-pointer hover:ring-2 hover:ring-emerald-500"
+                                  >
+                                    <img
+                                      src={url}
+                                      alt={`Initial Crop Photo ${pIdx + 1}`}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                      loading="lazy"
+                                    />
+                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                      <Maximize2 className="w-4 h-4 text-white" />
+                                    </div>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {initialPlotPhotos.length > 0 && (
+                          <div className="space-y-2 bg-white p-3 rounded-lg border border-slate-200/70">
+                            <span className="text-xs font-semibold text-slate-700 block">
+                              📷 ภาพถ่ายสภาพแปลงเริ่มต้น (
+                              {initialPlotPhotos.length} รูป)
+                            </span>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                              {initialPlotPhotos.map(
+                                (url: string, pIdx: number) => (
+                                  <div
+                                    key={pIdx}
+                                    onClick={() => setSelectedPhoto(url)}
+                                    className="group relative aspect-square rounded-lg overflow-hidden border border-slate-200 bg-slate-100 cursor-pointer hover:ring-2 hover:ring-emerald-500"
+                                  >
+                                    <img
+                                      src={url}
+                                      alt={`Initial Plot Photo ${pIdx + 1}`}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                      loading="lazy"
+                                    />
+                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                      <Maximize2 className="w-4 h-4 text-white" />
+                                    </div>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Visits Timeline */}
