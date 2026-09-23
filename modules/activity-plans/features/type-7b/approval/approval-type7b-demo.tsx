@@ -38,8 +38,19 @@ export function ApprovalType7bDemo({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-        <div className="bg-green-50/40 p-3 rounded-xl border border-green-100/80 sm:col-span-1">
-          <span className="text-green-700 block text-[11px] font-bold mb-1">
+        {/* สิ่งที่ตั้งใจจะไปติดตามรอบนี้ */}
+        <div className="bg-emerald-50/60 p-3 rounded-xl border border-emerald-100/80 sm:col-span-3">
+          <span className="text-emerald-700 block text-[11px] font-bold mb-1">
+            สิ่งที่ตั้งใจจะไปติดตามรอบนี้
+          </span>
+          <span className="font-bold text-slate-800 block text-xs sm:text-sm whitespace-pre-wrap">
+            {target.detail || target.t7bObjective || "-"}
+          </span>
+        </div>
+
+        {/* วัตถุประสงค์ของแปลง */}
+        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
+          <span className="text-slate-500 block text-[11px] font-medium mb-1">
             วัตถุประสงค์ของแปลง
           </span>
           <span className="font-bold text-slate-800 block text-xs sm:text-sm">
@@ -48,6 +59,7 @@ export function ApprovalType7bDemo({
           </span>
         </div>
 
+        {/* เจ้าของแปลง */}
         <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
           <span className="text-slate-500 block text-[11px] font-medium mb-1">
             เจ้าของแปลง
@@ -57,6 +69,19 @@ export function ApprovalType7bDemo({
           </span>
         </div>
 
+        {/* ร้าน Dealer */}
+        {target.dealerName && (
+          <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
+            <span className="text-slate-500 block text-[11px] font-medium mb-1">
+              ร้าน Dealer
+            </span>
+            <span className="font-bold text-slate-800 block text-xs sm:text-sm">
+              {target.dealerName}
+            </span>
+          </div>
+        )}
+
+        {/* พืชปลูก & ผลิตภัณฑ์ */}
         <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
           <span className="text-slate-500 block text-[11px] font-medium mb-1">
             พืชปลูก & ผลิตภัณฑ์
@@ -77,13 +102,13 @@ export function ApprovalType7bDemo({
           </div>
         )}
 
-        {(target.experimentDetail || target.detail) && (
+        {target.experimentDetail && (
           <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-2">
             <span className="text-slate-500 block text-[11px] font-medium mb-1">
               รายละเอียด / วิธีการทดลอง
             </span>
             <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-              {target.experimentDetail || target.detail}
+              {target.experimentDetail}
             </span>
           </div>
         )}

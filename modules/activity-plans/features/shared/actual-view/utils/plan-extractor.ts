@@ -757,10 +757,18 @@ export function extractPlanData(
     const firstT7aProduct = t7aProducts[0];
     const t7aCategory = (firstT7aProduct?.product as any)?.category;
 
+    const t7bDetail =
+      (hasT7B ? (p.objective || p.notes) : "") ||
+      prevTargets.t7b?.detail ||
+      "";
+
     targets.t7 = {
       ...prevTargets.t7,
       ...commonT7Data,
       activityType: hasT7B || t7Visit ? "FOLLOW_UP" : "CREATE",
+      detail: hasT7B ? t7bDetail : commonT7Data.detail,
+      dealerName: (t7Plot as any)?.customer?.name || "",
+      dealerCode: (t7Plot as any)?.customer?.customerCode || "",
       demoProducts: (hasT7B ? t7bProducts : t7aProducts).map((pr) => ({
         productId: pr.productId,
         productName: pr.productName || (pr.product as any)?.name || "",
@@ -792,16 +800,14 @@ export function extractPlanData(
       })),
     };
 
-    const t7bDetail =
-      (hasT7B ? (p.objective || p.notes) : "") ||
-      prevTargets.t7b?.detail ||
-      "";
     targets.t7b = {
       ...(prevTargets.t7b || prevTargets.t7),
       ...commonT7Data,
       activityType: "FOLLOW_UP",
       plotName: t7Plot?.name || "",
       plotCode: t7Plot?.code || "",
+      dealerName: (t7Plot as any)?.customer?.name || "",
+      dealerCode: (t7Plot as any)?.customer?.customerCode || "",
       detail: t7bDetail,
       demoProducts: t7bProducts.map((pr) => ({
         productId: pr.productId,
