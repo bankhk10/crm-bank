@@ -242,9 +242,34 @@ export function useType7bActual() {
         );
       }
       if (parsed.t7bSprayingRounds && parsed.t7bSprayingRounds.length > 0) {
-        setT7bSprayingRounds(parsed.t7bSprayingRounds);
+        const withdrawnProducts: any[] =
+          extractedTargets?.t7b?.demoProducts ||
+          extractedTargets?.t7?.demoProducts ||
+          [];
+
+        const roundsWithWithdrawn = parsed.t7bSprayingRounds.map(
+          (round: Type7bSprayingRoundItem) => {
+            if (!round.productRates || round.productRates.length === 0) return round;
+            return {
+              ...round,
+              productRates: round.productRates.map((pr) => {
+                const matchedWithdrawn = withdrawnProducts.find(
+                  (wp) => wp.productId === pr.productId,
+                );
+                return {
+                  ...pr,
+                  withdrawnQuantity: matchedWithdrawn
+                    ? (matchedWithdrawn.quantity ?? null)
+                    : (pr.withdrawnQuantity ?? null),
+                };
+              }),
+            };
+          },
+        );
+
+        setT7bSprayingRounds(roundsWithWithdrawn);
         initialT7bSprayingRoundsRef.current = JSON.parse(
-          JSON.stringify(parsed.t7bSprayingRounds),
+          JSON.stringify(roundsWithWithdrawn),
         );
       }
     }

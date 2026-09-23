@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Sprout,
   Clock,
@@ -93,6 +93,13 @@ export interface ActualType7FollowUpProps {
     objective?: string;
     experimentDetail?: string;
     detail?: string;
+    followUpObjective?: string;
+    demoProducts?: Array<{
+      productId: string;
+      productName: string;
+      quantity?: number | string | null;
+      unit?: string | null;
+    }>;
   };
   plotName: string;
   usageMethod: string;
@@ -215,6 +222,65 @@ export function ActualType7FollowUp({
 }: ActualType7FollowUpProps) {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
+  // Helper to resolve round products by merging demo plot baseline and withdrawn products
+  const resolveRoundProducts = useCallback((): Type7bSprayProductRateItem[] => {
+    const baselineProducts = demoPlotData?.demoProducts || [];
+    const withdrawnProducts = target?.demoProducts || [];
+
+    const productMap = new Map<string, Type7bSprayProductRateItem>();
+
+    // 1. Add Demo Plot baseline products first (preserving original baseline order)
+    baselineProducts.forEach((dp: any) => {
+      const pId = dp.productId;
+      if (!pId) return;
+
+      const pName = dp.product?.name || dp.productName || "สินค้าสาธิต";
+      const bRate = dp.applicationRate || "";
+      const pUnit =
+        dp.product?.unit || dp.product?.packageSizeUnit || dp.unit || "";
+
+      productMap.set(pId, {
+        productId: pId,
+        productName: pName,
+        baselineRate: bRate,
+        withdrawnQuantity: null,
+        actualRate: "",
+        quantityUsed: 1,
+        unit: pUnit,
+      });
+    });
+
+    // 2. Merge TYPE_7B withdrawn products
+    withdrawnProducts.forEach((wp: any) => {
+      const pId = wp.productId;
+      if (!pId) return;
+
+      const wQty = wp.quantity != null ? wp.quantity : null;
+      const existing = productMap.get(pId);
+
+      if (existing) {
+        // If product already exists in baseline: attach withdrawnQuantity (Read-only reference)
+        existing.withdrawnQuantity = wQty;
+        if (!existing.unit && wp.unit) {
+          existing.unit = wp.unit;
+        }
+      } else {
+        // If withdrawn product is not in baseline: append as new item
+        productMap.set(pId, {
+          productId: pId,
+          productName: wp.productName || "สินค้าสาธิต",
+          baselineRate: "",
+          withdrawnQuantity: wQty,
+          actualRate: "",
+          quantityUsed: 1,
+          unit: wp.unit || "",
+        });
+      }
+    });
+
+    return Array.from(productMap.values());
+  }, [target?.demoProducts, demoPlotData?.demoProducts]);
+
   // Auto-initialize first spraying round if empty and demoPlotData loaded
   useEffect(() => {
     if (
@@ -230,16 +296,7 @@ export function ActualType7FollowUp({
           : 0;
       const nextRoundNum = maxExisting + 1;
 
-      const defaultProducts: Type7bSprayProductRateItem[] = (
-        demoPlotData.demoProducts || []
-      ).map((dp: any) => ({
-        productId: dp.productId,
-        productName: dp.product?.name || dp.productName || "สินค้าสาธิต",
-        baselineRate: dp.applicationRate || "",
-        actualRate: dp.applicationRate || "",
-        quantityUsed: dp.quantity ?? 1,
-        unit: dp.product?.unit || dp.product?.packageSizeUnit || dp.unit || "",
-      }));
+      const defaultProducts = resolveRoundProducts();
 
       const initialRound: Type7bSprayingRoundItem = {
         roundNumber: nextRoundNum,
@@ -257,7 +314,13 @@ export function ActualType7FollowUp({
 
       setT7bSprayingRounds?.([initialRound]);
     }
-  }, [demoPlotData, t7bSprayingRounds, setT7bSprayingRounds, actualStartDate]);
+  }, [
+    demoPlotData,
+    t7bSprayingRounds,
+    setT7bSprayingRounds,
+    actualStartDate,
+    resolveRoundProducts,
+  ]);
 
   // Handler for adding a new spraying round
   const handleAddSprayingRound = () => {
@@ -275,16 +338,7 @@ export function ActualType7FollowUp({
         : maxExisting;
     const nextRoundNum = maxCurrent + 1;
 
-    const defaultProducts: Type7bSprayProductRateItem[] = (
-      demoPlotData?.demoProducts || []
-    ).map((dp: any) => ({
-      productId: dp.productId,
-      productName: dp.product?.name || dp.productName || "สินค้าสาธิต",
-      baselineRate: dp.applicationRate || "",
-      actualRate: dp.applicationRate || "",
-      quantityUsed: dp.quantity ?? 1,
-      unit: dp.product?.unit || dp.product?.packageSizeUnit || dp.unit || "",
-    }));
+    const defaultProducts = resolveRoundProducts();
 
     const newRound: Type7bSprayingRoundItem = {
       roundNumber: nextRoundNum,
@@ -523,7 +577,7 @@ export function ActualType7FollowUp({
         items={[
           {
             label: "สิ่งที่ตั้งใจไปติดตาม:",
-            value: target.detail || target.experimentDetail || "-",
+            value: target.followUpObjective || target.detail || "-",
           },
         ]}
       />
@@ -954,10 +1008,20 @@ export function ActualType7FollowUp({
                         key={pr.productId || pIdx}
                         className="p-3 bg-white border border-slate-200 rounded-xl space-y-2 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4 shadow-2xs"
                       >
-                        <div className="sm:w-1/3">
+                        <div className="sm:w-1/3 space-y-1">
                           <span className="text-xs font-bold text-slate-900 block">
                             {pIdx + 1}. {pr.productName}
                           </span>
+                          {pr.withdrawnQuantity != null && (
+                            <div className="text-[11px] text-slate-600 flex items-center gap-1">
+                              <span className="font-semibold text-slate-500">
+                                จำนวนที่เบิก:
+                              </span>
+                              <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-800 font-bold rounded border border-emerald-200 text-[11px]">
+                                {pr.withdrawnQuantity} {pr.unit || ""}
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         <div className="sm:w-1/4 space-y-1">

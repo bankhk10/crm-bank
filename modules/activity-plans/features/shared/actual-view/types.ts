@@ -156,7 +156,15 @@ export interface ActualTargetsState {
     objective: string;
     experimentDetail: string;
     detail: string;
-    targetCondition: string;
+    dealerName?: string;
+    dealerCode?: string;
+    demoProducts?: Array<{
+      productId: string;
+      productName: string;
+      quantity: number;
+      unit?: string | null;
+    }>;
+    targetCondition?: string;
     items: any[];
   };
   t7a?: {
@@ -188,7 +196,7 @@ export interface ActualTargetsState {
     objective: string;
     experimentDetail: string;
     detail: string;
-    targetCondition: string;
+    targetCondition?: string;
     items: any[];
   };
   t7b?: {
@@ -200,6 +208,12 @@ export interface ActualTargetsState {
     crop: string;
     plots: string;
     demoProductQuantity: string;
+    demoProducts?: Array<{
+      productId: string;
+      productName: string;
+      quantity: number;
+      unit?: string | null;
+    }>;
     objective: string;
     experimentDetail: string;
     detail: string;
@@ -207,6 +221,8 @@ export interface ActualTargetsState {
     items: any[];
     plotName?: string;
     plotCode?: string;
+    dealerName?: string;
+    dealerCode?: string;
   };
   t8: {
     topic: string;
