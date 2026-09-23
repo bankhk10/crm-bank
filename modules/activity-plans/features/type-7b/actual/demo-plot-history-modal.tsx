@@ -138,7 +138,7 @@ export function DemoPlotHistoryModal({
     {},
   );
   const [isInitialSetupExpanded, setIsInitialSetupExpanded] =
-    useState<boolean>(true);
+    useState<boolean>(false);
 
   const visits = useMemo(() => {
     if (!plot?.visits) return [];
