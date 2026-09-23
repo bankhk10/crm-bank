@@ -539,7 +539,6 @@ export function ActualType7FollowUp({
               </h3>
             </div>
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-slate-700">
             <div>
               <span className="text-slate-400 block text-[11px]">
@@ -617,7 +616,7 @@ export function ActualType7FollowUp({
               <span className="text-slate-400 block text-[11px]">
                 วัตถุประสงค์แปลงสาธิต
               </span>
-              <span className="font-medium text-slate-800">
+              <span className="font-semibold text-slate-900">
                 {demoPlotData.objective || "-"}
               </span>
             </div>
@@ -625,7 +624,7 @@ export function ActualType7FollowUp({
               <span className="text-slate-400 block text-[11px]">
                 รายละเอียดการทดสอบ
               </span>
-              <span className="font-medium text-slate-800">
+              <span className="font-semibold text-slate-900">
                 {demoPlotData.experimentDetail || "-"}
               </span>
             </div>
@@ -633,7 +632,7 @@ export function ActualType7FollowUp({
               <span className="text-slate-400 block text-[11px]">
                 ข้อมูลพืชประธาน
               </span>
-              <span className="font-medium text-slate-800">
+              <span className="font-semibold text-slate-900">
                 {demoPlotData.mainCropInfo ||
                   demoPlotData.plantingAreaCondition ||
                   "-"}
@@ -643,7 +642,7 @@ export function ActualType7FollowUp({
               <span className="text-slate-400 block text-[11px]">
                 แหล่งน้ำ / ระบบการให้น้ำ
               </span>
-              <span className="font-medium text-slate-800">
+              <span className="font-semibold text-slate-900">
                 {demoPlotData.irrigations && demoPlotData.irrigations.length > 0
                   ? demoPlotData.irrigations
                       .map((i: any) => i.method || i.methodName)
