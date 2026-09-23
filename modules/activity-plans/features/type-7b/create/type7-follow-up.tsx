@@ -294,76 +294,129 @@ export function Type7FollowUp({
             <p className="text-[11px] text-slate-500">
               ระบุรายการสินค้าสาธิตและจำนวนที่ต้องการขอเบิกสำหรับงานติดตามแปลงครั้งนี้
             </p>
-            <div className="space-y-1.5">
-              {withdrawnProducts.map((pLine, idx) => (
-                <div
-                  key={pLine.id}
-                  className="grid grid-cols-12 gap-2 p-2 bg-white rounded-lg border border-slate-200 items-center shadow-2xs"
-                >
-                  <div className="col-span-1 text-center font-bold text-xs text-slate-500">
-                    {idx + 1}
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-6">
-                    <FormCombobox
-                      id={`withdrawn-prod-${item.id}-${pLine.id}`}
-                      label=""
-                      triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
-                      value={pLine.productId || ""}
-                      onChange={(val) =>
-                        updateWithdrawnProductRow(pLine.id, "productId", val)
-                      }
-                      options={productOptions}
-                      placeholder="เลือกสินค้าที่ต้องการเบิก..."
-                      searchPlaceholder="ค้นหาสินค้า..."
-                      emptyText="ไม่พบสินค้า"
-                      disabled={readonly}
-                    />
-                  </div>
-
-                  <div className="col-span-4 sm:col-span-4 flex items-center gap-1.5">
-                    <input
-                      type="number"
-                      min={1}
-                      value={pLine.quantity ?? ""}
-                      onChange={(e) => {
-                        const val = Math.max(1, parseInt(e.target.value) || 1);
-                        updateWithdrawnProductRow(pLine.id, "quantity", val);
-                      }}
-                      disabled={readonly}
-                      placeholder="จำนวน"
-                      className="w-full h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
-                    />
-                    <input
-                      type="text"
-                      value={pLine.unit || ""}
-                      onChange={(e) =>
-                        updateWithdrawnProductRow(
-                          pLine.id,
-                          "unit",
-                          e.target.value,
-                        )
-                      }
-                      disabled={readonly}
-                      placeholder="หน่วย"
-                      className="w-16 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-700 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                    />
-                  </div>
-
-                  <div className="col-span-1 text-right">
+            <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600">
+                  <tr>
+                    <th className="py-2.5 px-3 w-12 text-center font-semibold">
+                      ลำดับ
+                    </th>
+                    <th className="py-2.5 px-3 font-semibold">
+                      รายการสินค้า <span className="text-red-500">*</span>
+                    </th>
+                    <th className="py-2.5 px-3 w-40 sm:w-48 font-semibold text-center">
+                      จำนวน <span className="text-red-500">*</span>
+                    </th>
                     {!readonly && (
-                      <button
-                        type="button"
-                        onClick={() => deleteWithdrawnProductRow(pLine.id)}
-                        className="p-1 text-slate-400 hover:text-red-500 transition-colors"
-                        title="ลบแถวสินค้านี้"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      <th className="py-2.5 px-3 w-12 text-center font-semibold">
+                        จัดการ
+                      </th>
                     )}
-                  </div>
-                </div>
-              ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {withdrawnProducts.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={readonly ? 3 : 4}
+                        className="py-6 text-center text-slate-400 text-xs"
+                      >
+                        ยังไม่มีรายการสินค้า กดปุ่ม "เพิ่มสินค้าที่เบิก"
+                        เพื่อเริ่มต้น
+                      </td>
+                    </tr>
+                  ) : (
+                    withdrawnProducts.map((pLine, idx) => (
+                      <tr
+                        key={pLine.id}
+                        className="hover:bg-slate-50/50 transition-colors"
+                      >
+                        {/* ลำดับ */}
+                        <td className="py-2 px-3 text-center font-medium text-slate-500 align-middle">
+                          {idx + 1}
+                        </td>
+
+                        {/* เลือกสินค้า */}
+                        <td className="py-2 px-3 align-middle">
+                          <FormCombobox
+                            id={`withdrawn-prod-${item.id}-${pLine.id}`}
+                            label=""
+                            triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500 w-full"
+                            value={pLine.productId || ""}
+                            onChange={(val) =>
+                              updateWithdrawnProductRow(
+                                pLine.id,
+                                "productId",
+                                val,
+                              )
+                            }
+                            options={productOptions}
+                            placeholder="เลือกสินค้าที่ต้องการเบิก..."
+                            searchPlaceholder="ค้นหาสินค้า..."
+                            emptyText="ไม่พบสินค้า"
+                            disabled={readonly}
+                          />
+                        </td>
+
+                        {/* จำนวนและหน่วย */}
+                        <td className="py-2 px-3 align-middle">
+                          <div className="flex items-center gap-1.5 justify-center">
+                            <input
+                              type="number"
+                              min={1}
+                              value={pLine.quantity ?? ""}
+                              onChange={(e) => {
+                                const val = Math.max(
+                                  1,
+                                  parseInt(e.target.value) || 1,
+                                );
+                                updateWithdrawnProductRow(
+                                  pLine.id,
+                                  "quantity",
+                                  val,
+                                );
+                              }}
+                              disabled={readonly}
+                              placeholder="จำนวน"
+                              className="w-20 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
+                            />
+                            <input
+                              type="text"
+                              value={pLine.unit || ""}
+                              onChange={(e) =>
+                                updateWithdrawnProductRow(
+                                  pLine.id,
+                                  "unit",
+                                  e.target.value,
+                                )
+                              }
+                              disabled={true}
+                              placeholder="หน่วย"
+                              className="w-16 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-700 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                            />
+                          </div>
+                        </td>
+
+                        {/* จัดการ */}
+                        {!readonly && (
+                          <td className="py-2 px-3 text-center align-middle">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                deleteWithdrawnProductRow(pLine.id)
+                              }
+                              className="p-1 text-slate-400 hover:text-red-500 transition-colors inline-flex items-center justify-center rounded"
+                              title="ลบแถวสินค้านี้"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
