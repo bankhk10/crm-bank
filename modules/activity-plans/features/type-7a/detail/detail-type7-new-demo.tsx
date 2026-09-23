@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Sprout,
   AlertTriangle,
@@ -11,14 +11,19 @@ import {
   Calendar,
   CheckCircle2,
   FlaskConical,
+  History,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
 import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
 import {
   ImageLightboxModal,
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
+import { DemoPlotHistoryModal } from "@/modules/activity-plans/features/actual-view/components/work-types/demo-plot-history-modal";
+import { getDemoPlotHistoryAction } from "@/modules/activity-plans/server/actions";
+import { isType7bCompletedFollowUpVisit } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 export interface DemoResultItemData {
   id?: string;
@@ -112,6 +117,107 @@ export function DetailType7NewDemo({
   plotImages = [],
   demoPlotData,
 }: DetailType7NewDemoProps) {
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyPlotData, setHistoryPlotData] = useState<any>(
+    demoPlotData || null,
+  );
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  useEffect(() => {
+    if (demoPlotData) {
+      setHistoryPlotData(demoPlotData);
+    }
+  }, [demoPlotData]);
+
+  const handleOpenHistory = async () => {
+    setHistoryOpen(true);
+    const identifier =
+      historyPlotData?.id ||
+      demoPlotData?.id ||
+      demoPlotId ||
+      historyPlotData?.name ||
+      demoPlotData?.name ||
+      plotName;
+
+    if (
+      identifier &&
+      (!historyPlotData?.visits || historyPlotData.visits.length === 0)
+    ) {
+      setIsLoadingHistory(true);
+      try {
+        const res = await getDemoPlotHistoryAction(identifier);
+        if (res.success && res.plot) {
+          setHistoryPlotData(res.plot);
+        }
+      } catch (err) {
+        console.error("Failed to load demo plot history:", err);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    }
+  };
+
+  const followUpVisits = useMemo(() => {
+    const raw = historyPlotData?.visits || demoPlotData?.visits || [];
+    return raw.filter(isType7bCompletedFollowUpVisit);
+  }, [historyPlotData?.visits, demoPlotData?.visits]);
+  const followUpVisitsCount = followUpVisits.length;
+
+  const modalPlotData = useMemo(() => {
+    const raw = historyPlotData || demoPlotData;
+    if (!raw) {
+      if (demoPlotId || plotName || target.owner) {
+        return {
+          id: demoPlotId || undefined,
+          name: plotName || target.plots || "แปลงสาธิต",
+          ownerName: target.owner || "-",
+          cropName: target.crop || "-",
+          primaryProductName: target.product || "-",
+          plantingDate: plantingDate || null,
+          plantingAreaCondition: plantingAreaCondition || null,
+          usageMethod: usageMethod || null,
+          experimentDetail: experimentDetail || null,
+          visits: [],
+        };
+      }
+      return null;
+    }
+    return {
+      ...raw,
+      name: raw.name || plotName || raw.code || "แปลงสาธิต",
+      ownerName:
+        raw.ownerName ||
+        raw.farmerCustomer?.name ||
+        raw.customer?.name ||
+        target.owner ||
+        "-",
+      cropName: raw.cropName || raw.targetCrop || target.crop || "-",
+      primaryProductName:
+        raw.primaryProductName ||
+        raw.showcase ||
+        raw.productName ||
+        target.product ||
+        "-",
+      plantingDate: raw.plantingDate || raw.startDate || plantingDate || null,
+      plantingAreaCondition:
+        raw.plantingAreaCondition || plantingAreaCondition || null,
+      usageMethod: raw.usageMethod || usageMethod || null,
+      experimentDetail: raw.experimentDetail || experimentDetail || null,
+      visits: followUpVisits,
+    };
+  }, [
+    historyPlotData,
+    demoPlotData,
+    demoPlotId,
+    plotName,
+    target,
+    plantingDate,
+    plantingAreaCondition,
+    usageMethod,
+    experimentDetail,
+    followUpVisits,
+  ]);
+
   const [lightboxState, setLightboxState] = useState<{
     isOpen: boolean;
     title: string;
@@ -508,6 +614,23 @@ export function DetailType7NewDemo({
             </span>
           </div>
         </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleOpenHistory}
+            className="h-8 gap-1.5 text-xs font-semibold text-emerald-800 border-emerald-300 bg-emerald-50/60 hover:bg-emerald-100 rounded-xl"
+          >
+            <History className="w-3.5 h-3.5 text-emerald-700" />
+            <span>
+              {isLoadingHistory
+                ? "กำลังโหลดประวัติ..."
+                : `ประวัติการติดตามแปลง (${followUpVisitsCount} ครั้ง)`}
+            </span>
+          </Button>
+        </div>
       </div>
 
       {/* SECTION 2: READ-ONLY RESULT DISPLAY */}
@@ -525,6 +648,16 @@ export function DetailType7NewDemo({
                 <Sprout className="w-4 h-4 text-emerald-700" />
                 ข้อมูลแปลงสาธิตจริง (Demo Plot Actual Baseline)
               </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleOpenHistory}
+                className="h-7 gap-1.5 text-xs font-semibold text-emerald-800 border-emerald-300 bg-white hover:bg-emerald-50 rounded-lg shadow-2xs"
+              >
+                <History className="w-3.5 h-3.5 text-emerald-700" />
+                <span>ประวัติการติดตามแปลง ({followUpVisitsCount} ครั้ง)</span>
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
@@ -1030,6 +1163,13 @@ export function DetailType7NewDemo({
         images={lightboxState.images}
         initialIndex={lightboxState.initialIndex}
         title={lightboxState.title}
+      />
+
+      {/* History Modal */}
+      <DemoPlotHistoryModal
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        plot={modalPlotData}
       />
     </div>
   );

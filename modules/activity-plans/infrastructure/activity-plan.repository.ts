@@ -3779,6 +3779,31 @@ export async function findDemoPlotByIdOrName(demoPlotIdOrName: string) {
               code: true,
               title: true,
               startDate: true,
+              status: true,
+              activityType: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                },
+              },
+              workTypes: {
+                select: {
+                  activityType: {
+                    select: {
+                      id: true,
+                      code: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+              result: {
+                select: {
+                  id: true,
+                  resultStatus: true,
+                },
+              },
             },
           },
         },
@@ -3806,6 +3831,31 @@ export async function findDemoPlotByOwnerAndCrop(
               code: true,
               title: true,
               startDate: true,
+              status: true,
+              activityType: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                },
+              },
+              workTypes: {
+                select: {
+                  activityType: {
+                    select: {
+                      id: true,
+                      code: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+              result: {
+                select: {
+                  id: true,
+                  resultStatus: true,
+                },
+              },
             },
           },
         },

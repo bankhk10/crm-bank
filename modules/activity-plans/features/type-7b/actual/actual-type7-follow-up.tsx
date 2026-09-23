@@ -52,6 +52,7 @@ import {
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
 } from "@/modules/activity-plans/features/actual-view/utils";
+import { isType7bCompletedFollowUpVisit } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 export interface DemoPlotVisitHistoryItem {
   id: string;
@@ -475,17 +476,17 @@ export function ActualType7FollowUp({
     }
   };
 
-  // Past follow-up visits count (Problem 3.1 fix):
-  // Exclude baseline visit (visitNumber <= 1) and only count completed visits with recorded responses
+  // Past follow-up visits count:
+  // Only count completed TYPE_7B follow-up visits
   const completedVisits = (demoPlotData?.visits || visitHistory || []).filter(
-    (v: any) => v.visitNumber > 1 && v.productResponse != null,
+    isType7bCompletedFollowUpVisit,
   );
   const completedVisitsCount = completedVisits.length;
 
   const modalPlotData = demoPlotData
     ? {
         ...demoPlotData,
-        visits: demoPlotData.visits || visitHistory,
+        visits: completedVisits,
       }
     : null;
 

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { isType7bCompletedFollowUpVisit } from "@/modules/activity-plans/features/shared/actual-view/utils";
 import {
   X,
   Calendar,
@@ -15,6 +16,7 @@ import {
   Info,
   Package,
   User,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -73,6 +75,23 @@ interface DemoPlotHistoryModalProps {
         code?: string;
         title?: string;
         startDate?: string | Date;
+        status?: string;
+        activityType?: {
+          id?: string;
+          code?: string;
+          name?: string;
+        } | null;
+        workTypes?: Array<{
+          activityType?: {
+            id?: string;
+            code?: string;
+            name?: string;
+          } | null;
+        }>;
+        result?: {
+          id?: string;
+          resultStatus?: string;
+        } | null;
       } | null;
     }>;
   } | null;
@@ -88,10 +107,13 @@ export function DemoPlotHistoryModal({
     {},
   );
 
-  if (!plot) return null;
-
-  const visits = plot.visits || [];
+  const visits = useMemo(() => {
+    if (!plot?.visits) return [];
+    return (plot.visits as any[]).filter(isType7bCompletedFollowUpVisit);
+  }, [plot?.visits]);
   const totalVisits = visits.length;
+
+  if (!plot) return null;
 
   const toggleVisit = (id: string) => {
     setExpandedVisits((prev) => ({
@@ -279,8 +301,8 @@ export function DemoPlotHistoryModal({
                 <div className="space-y-3 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-200">
                   {visits.map((v, idx) => {
                     const isExpanded = expandedVisits[v.id] !== false; // Default expanded
-                    const cropPhotos = v.cropImageUrls || [];
-                    const plotPhotos =
+                    const cropPhotos: string[] = v.cropImageUrls || [];
+                    const plotPhotos: string[] =
                       v.plotImageUrls ||
                       (v.imageUrls && v.imageUrls.length > 0 ? v.imageUrls : []);
                     const totalPhotos = cropPhotos.length + plotPhotos.length;
@@ -292,7 +314,7 @@ export function DemoPlotHistoryModal({
                       >
                         {/* Timeline Node Icon */}
                         <div className="absolute left-1.5 top-3 -translate-x-1/2 w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-extrabold shadow-xs z-10 ring-4 ring-slate-50">
-                          {v.visitNumber || idx + 1}
+                          {idx + 1}
                         </div>
 
                         {/* Visit Card */}
@@ -304,7 +326,7 @@ export function DemoPlotHistoryModal({
                           >
                             <div className="flex items-center gap-2.5 flex-wrap">
                               <span className="font-bold text-xs text-emerald-950">
-                                การติดตามครั้งที่ {v.visitNumber || idx + 1}
+                                การติดตามครั้งที่ {idx + 1}
                               </span>
                               <span className="text-xs text-slate-500 font-medium">
                                 📅 {formatDate(v.visitDate)}
@@ -315,9 +337,23 @@ export function DemoPlotHistoryModal({
                                 </span>
                               )}
                               {v.activityPlan?.code && (
-                                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-mono font-medium">
-                                  {v.activityPlan.code}
-                                </span>
+                                v.activityPlan?.id ? (
+                                  <a
+                                    href={`/activity-plans/${v.activityPlan.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    title="คลิกเพื่อเปิดดูรายละเอียด Trip Plan ในแท็บใหม่"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold border border-emerald-300 transition-colors"
+                                  >
+                                    <span>{v.activityPlan.code}</span>
+                                    <ExternalLink className="w-2.5 h-2.5" />
+                                  </a>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-mono font-medium">
+                                    {v.activityPlan.code}
+                                  </span>
+                                )
                               )}
                             </div>
 
@@ -447,8 +483,8 @@ export function DemoPlotHistoryModal({
                                   <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
                                     🌿 รูปสภาพพืช ({cropPhotos.length} รูป)
                                   </span>
-                                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                                    {cropPhotos.map((url, pIdx) => (
+                                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                                    {cropPhotos.map((url: string, pIdx: number) => (
                                       <div
                                         key={pIdx}
                                         onClick={() => setSelectedPhoto(url)}
@@ -474,8 +510,8 @@ export function DemoPlotHistoryModal({
                                   <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
                                     📷 รูปภาพสภาพแปลง ({plotPhotos.length} รูป)
                                   </span>
-                                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                                    {plotPhotos.map((url, pIdx) => (
+                                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                                    {plotPhotos.map((url: string, pIdx: number) => (
                                       <div
                                         key={pIdx}
                                         onClick={() => setSelectedPhoto(url)}
@@ -492,6 +528,29 @@ export function DemoPlotHistoryModal({
                                       </div>
                                     ))}
                                   </div>
+                                </div>
+                              )}
+
+                              {/* Link to Trip Plan Details */}
+                              {v.activityPlan?.id && (
+                                <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                                  <span className="text-[11px] text-slate-500">
+                                    บันทึกผลผ่านแผนงาน:{" "}
+                                    <strong className="font-semibold text-slate-700">
+                                      {v.activityPlan.code || "-"}
+                                    </strong>
+                                    {v.activityPlan.title ? ` (${v.activityPlan.title})` : ""}
+                                  </span>
+                                  <a
+                                    href={`/activity-plans/${v.activityPlan.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                    <span>เปิดดูรายละเอียด Trip Plan</span>
+                                  </a>
                                 </div>
                               )}
                             </div>
