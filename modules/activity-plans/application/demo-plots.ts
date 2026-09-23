@@ -102,6 +102,8 @@ function mapDemoPlotToOption(
     mainCropInfo: p.mainCropInfo || undefined,
     sprayMethod: p.sprayMethod || undefined,
     hasExternalChemicals: p.hasExternalChemicals || false,
+    dealerId: p.customerId || p.customer?.id || undefined,
+    dealerName: p.customer?.name || (p as any).dealerName || undefined,
     demoProducts: p.demoProducts,
     externalProducts: p.externalProducts,
     irrigations: (p.irrigations || []).map((ir: any) => ir.method),

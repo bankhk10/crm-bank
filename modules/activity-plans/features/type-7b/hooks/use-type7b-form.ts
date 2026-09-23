@@ -213,7 +213,9 @@ export function useType7bForm({
                 item.productName ||
                 "",
               ownerName:
-                dp.customer?.name || dp.ownerName || item.ownerName || "",
+                dp.ownerName || dp.farmerCustomer?.name || item.ownerName || "",
+              dealerId: dp.customerId || dp.customer?.id || undefined,
+              dealerName: dp.customer?.name || dp.dealerName || undefined,
               cropCategory: dp.cropCategory || item.cropCategory || "",
               cropName: dp.cropName || item.cropName || "",
               customCropName: dp.customCropName || item.customCropName || "",

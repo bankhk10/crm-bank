@@ -3586,6 +3586,9 @@ export async function findMasterDemoPlots() {
       status: { not: DemoPlotStatus.CANCELLED },
     },
     include: {
+      customer: {
+        select: { id: true, name: true, customerCode: true },
+      },
       demoProducts: {
         include: { product: true },
         orderBy: { sortOrder: "asc" },
@@ -3631,6 +3634,9 @@ export async function findFollowUpDemoPlots() {
       },
     },
     include: {
+      customer: {
+        select: { id: true, name: true, customerCode: true },
+      },
       demoProducts: {
         include: { product: true },
         orderBy: { sortOrder: "asc" },

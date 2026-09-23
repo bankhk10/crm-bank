@@ -209,10 +209,10 @@ export function Type7FollowUp({
             </div>
             <div>
               <span className="font-semibold text-slate-500">
-                สินค้าสาธิต:{" "}
+                ร้าน Dealer:{" "}
               </span>
-              <span className="font-bold text-emerald-800">
-                {selectedPlot.showcase || selectedPlot.productName || "-"}
+              <span className="font-bold text-slate-800">
+                {selectedPlot.dealerName || "-"}
               </span>
             </div>
             <div>
