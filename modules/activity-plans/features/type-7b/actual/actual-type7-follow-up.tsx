@@ -353,7 +353,8 @@ export function ActualType7FollowUp({
         if (fieldOrUpdates === "sprayMethod") setSprayMethod?.(value);
         if (fieldOrUpdates === "sprayEquipment") setSprayEquipment?.(value);
         if (fieldOrUpdates === "otherEquipment") setOtherEquipment?.(value);
-        if (fieldOrUpdates === "hasExternalChemicals") setHasExternalChemicals?.(value);
+        if (fieldOrUpdates === "hasExternalChemicals")
+          setHasExternalChemicals?.(value);
         if (fieldOrUpdates === "externalProducts") setExternalProducts?.(value);
       }
     }
@@ -1317,7 +1318,9 @@ export function ActualType7FollowUp({
                           onChange={() => {
                             handleUpdateRound(rIdx, {
                               sprayEquipment: eq,
-                              ...(eq !== "อื่นๆ ระบุ.." ? { otherEquipment: "" } : {}),
+                              ...(eq !== "อื่นๆ ระบุ.."
+                                ? { otherEquipment: "" }
+                                : {}),
                             });
                           }}
                           className="w-3.5 h-3.5 text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer"
@@ -1478,7 +1481,7 @@ export function ActualType7FollowUp({
                   🔄 อยู่ระหว่างการทดลอง (ต้องติดตามต่อ)
                 </SelectItem>
                 <SelectItem value="COMPLETED">
-                  ✅ เก็บเกี่ยว / สิ้นสุดการทดลอง (ปิดแปลง)
+                  ✅ สิ้นสุดการทดลอง (ปิดแปลง)
                 </SelectItem>
                 <SelectItem value="FAILED">
                   ❌ ยุติการทดลอง (แปลงเสียหาย / ล้มเหลว)
@@ -1496,49 +1499,6 @@ export function ActualType7FollowUp({
               <h4 className="text-xs font-bold text-emerald-950 uppercase tracking-wider">
                 สรุปผลการเก็บเกี่ยวและความพึงพอใจของเกษตรกร
               </h4>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700">
-                  ผลผลิตแปลงสาธิต (กก./ไร่)
-                </label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={finalYieldKg}
-                  onChange={(e) =>
-                    handleYieldChange(e.target.value, controlYieldKg)
-                  }
-                  placeholder="เช่น 1200"
-                  className="h-9 text-xs bg-white border-slate-200 rounded-lg font-medium"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700">
-                  ผลผลิตแปลงควบคุม (กก./ไร่)
-                </label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={controlYieldKg}
-                  onChange={(e) =>
-                    handleYieldChange(finalYieldKg, e.target.value)
-                  }
-                  placeholder="เช่น 1000"
-                  className="h-9 text-xs bg-white border-slate-200 rounded-lg font-medium"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-emerald-800">
-                  ผลผลิตเพิ่มขึ้น (%)
-                </label>
-                <div className="h-9 px-3 rounded-lg border border-emerald-200 bg-emerald-50 flex items-center font-bold text-emerald-800 text-xs">
-                  {yieldIncreasePercent ? `+${yieldIncreasePercent} %` : "-"}
-                </div>
-              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
