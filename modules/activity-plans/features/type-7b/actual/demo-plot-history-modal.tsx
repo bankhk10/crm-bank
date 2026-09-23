@@ -215,7 +215,10 @@ export function DemoPlotHistoryModal({
     if (plot.cropImageUrls && plot.cropImageUrls.length > 0) {
       return plot.cropImageUrls;
     }
-    if (baselineVisit?.cropImageUrls && baselineVisit.cropImageUrls.length > 0) {
+    if (
+      baselineVisit?.cropImageUrls &&
+      baselineVisit.cropImageUrls.length > 0
+    ) {
       return baselineVisit.cropImageUrls;
     }
     return [];
@@ -229,7 +232,10 @@ export function DemoPlotHistoryModal({
     if (plot.plotImageUrls && plot.plotImageUrls.length > 0) {
       return plot.plotImageUrls;
     }
-    if (baselineVisit?.plotImageUrls && baselineVisit.plotImageUrls.length > 0) {
+    if (
+      baselineVisit?.plotImageUrls &&
+      baselineVisit.plotImageUrls.length > 0
+    ) {
       return baselineVisit.plotImageUrls;
     }
     if (baselineVisit?.imageUrls && baselineVisit.imageUrls.length > 0) {
@@ -380,19 +386,14 @@ export function DemoPlotHistoryModal({
                     <h3 className="font-bold text-emerald-950 text-sm flex items-center gap-2 flex-wrap">
                       <span>ข้อมูลตั้งต้นตอนเริ่มทำแปลง (Initial Setup)</span>
                       <span className="px-2 py-0.5 rounded-full bg-emerald-200/70 text-emerald-850 text-[10px] font-bold border border-emerald-300">
-                        ACTUAL BASELINE
+                        วันเริ่มแปลง{" "}
+                        {formatDate(plot.plantingDate || plot.startDate)}
                       </span>
                     </h3>
-                    <p className="text-[11px] text-emerald-700">
-                      ข้อมูลแปลงสาธิตจริง สินค้าที่ใช้จริง และภาพถ่ายสภาพแปลงเริ่มต้น
-                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-emerald-800 font-medium hidden sm:inline">
-                    {formatDate(plot.plantingDate || plot.startDate)}
-                  </span>
                   <button
                     type="button"
                     className="p-1.5 rounded-lg text-emerald-700 hover:bg-emerald-200/50 transition-colors"
