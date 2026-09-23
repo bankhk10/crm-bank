@@ -192,11 +192,6 @@ export function DetailType7FollowUp({
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-2xs bg-blue-50 text-blue-800 border border-blue-200">
-            <Search className="w-3.5 h-3.5 text-blue-600" />
-            <span>ประเภท: ติดตามแปลงสาธิต</span>
-          </span>
-
           {demoPlotData && (
             <Button
               type="button"
@@ -212,19 +207,6 @@ export function DetailType7FollowUp({
         </div>
       </div>
 
-      {/* PLANNED TARGET CARD (Problem 3.2 Fix: Selected Plot + Planned Detail) */}
-      <ActualTargetCard
-        iconColorClass="text-blue-700"
-        badgeColorClass="bg-blue-50 text-blue-800 border border-blue-200"
-        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-1"
-        items={[
-          {
-            label: "สิ่งที่ตั้งใจไปติดตาม:",
-            value: target.followUpObjective || target.detail || "-",
-          },
-        ]}
-      />
-
       {/* READ-ONLY INITIAL DATA CARD FOR TYPE_7B (Problem 3.3 Fix: Complete Baseline Plot Data) */}
       {demoPlotData && (
         <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 text-xs shadow-2xs">
@@ -232,23 +214,11 @@ export function DetailType7FollowUp({
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-emerald-700" />
               <h3 className="text-sm font-bold text-slate-800">
-                ข้อมูลตั้งต้นของแปลงสาธิต (Initial Plot Data - Read Only)
+                ข้อมูลตั้งต้นของแปลงสาธิต (Initial Plot Data)
               </h3>
             </div>
-            <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[10px]">
-              BASELINE
-            </span>
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-slate-700">
-            <div>
-              <span className="text-slate-400 block text-[11px]">
-                รหัสแปลงสาธิต
-              </span>
-              <span className="font-semibold text-slate-900 font-mono">
-                {demoPlotData.code || "-"}
-              </span>
-            </div>
             <div>
               <span className="text-slate-400 block text-[11px]">
                 ชื่อแปลงสาธิต
@@ -321,27 +291,27 @@ export function DetailType7FollowUp({
                   : ""}
               </span>
             </div>
-            <div className="sm:col-span-2">
+            <div>
               <span className="text-slate-400 block text-[11px]">
                 วัตถุประสงค์แปลงสาธิต
               </span>
-              <span className="font-medium text-slate-800">
+              <span className="font-semibold text-slate-900">
                 {demoPlotData.objective || "-"}
               </span>
             </div>
-            <div className="sm:col-span-2">
+            <div>
               <span className="text-slate-400 block text-[11px]">
                 รายละเอียดการทดสอบ
               </span>
-              <span className="font-medium text-slate-800">
+              <span className="font-semibold text-slate-900">
                 {demoPlotData.experimentDetail || "-"}
               </span>
             </div>
-            <div className="sm:col-span-2">
+            <div>
               <span className="text-slate-400 block text-[11px]">
-                ข้อมูลแปลงหลัก / สภาพพื้นที่ปลูก
+                ข้อมูลพืชประธาน
               </span>
-              <span className="font-medium text-slate-800">
+              <span className="font-semibold text-slate-900">
                 {demoPlotData.mainCropInfo ||
                   demoPlotData.plantingAreaCondition ||
                   "-"}
@@ -351,7 +321,7 @@ export function DetailType7FollowUp({
               <span className="text-slate-400 block text-[11px]">
                 แหล่งน้ำ / ระบบการให้น้ำ
               </span>
-              <span className="font-medium text-slate-800">
+              <span className="font-semibold text-slate-900">
                 {demoPlotData.irrigations && demoPlotData.irrigations.length > 0
                   ? demoPlotData.irrigations
                       .map((i: any) => i.method || i.methodName)
@@ -377,30 +347,34 @@ export function DetailType7FollowUp({
           {demoPlotData.demoProducts &&
             demoPlotData.demoProducts.length > 0 && (
               <div className="pt-2 border-t border-slate-200/80 space-y-2">
-                <span className="text-xs font-bold text-slate-800 block">
-                  ตารางรายการยาที่ใช้สาธิตของแปลง (Baseline Products):
+                <span className="text-xs font-bold text-slate-800 block mt-2">
+                  รายการยาที่ใช้สาธิตของแปลง
                 </span>
                 <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-                        <th className="p-2.5 w-12 text-center">#</th>
+                        <th className="p-2.5 w-12 text-center">ลำดับ</th>
                         <th className="p-2.5">ชื่อสินค้าสาธิต</th>
-                        <th className="p-2.5">
-                          อัตราการใช้ตามเกณฑ์ (Baseline Rate)
-                        </th>
-                        <th className="p-2.5 text-right">ปริมาณที่ใช้สาธิต</th>
+                        <th className="p-2.5 text-center">จำนวนที่ใช้</th>
                         <th className="p-2.5">หน่วย</th>
+                        <th className="p-2.5">อัตราการใช้</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {demoPlotData.demoProducts.map((p: any, pIdx: number) => (
                         <tr key={p.id || pIdx} className="hover:bg-slate-50/50">
-                          <td className="p-2.5 text-center text-slate-400">
+                          <td className="p-2.5 text-center text-slate-700">
                             {pIdx + 1}
                           </td>
                           <td className="p-2.5 font-bold text-slate-900">
                             {p.product?.name || p.productName || "-"}
+                          </td>
+                          <td className="p-2.5 text-center font-semibold text-slate-800">
+                            {p.quantity ?? "-"}
+                          </td>
+                          <td className="p-2.5 text-slate-600">
+                            {p.product?.unit || p.unit || ""}
                           </td>
                           <td className="p-2.5 text-slate-700">
                             {p.applicationRate ? (
@@ -410,12 +384,6 @@ export function DetailType7FollowUp({
                             ) : (
                               "-"
                             )}
-                          </td>
-                          <td className="p-2.5 text-right font-semibold text-slate-800">
-                            {p.quantity ?? "-"}
-                          </td>
-                          <td className="p-2.5 text-slate-600">
-                            {p.product?.unit || p.unit || ""}
                           </td>
                         </tr>
                       ))}
@@ -488,16 +456,11 @@ export function DetailType7FollowUp({
               </span>
               <div className="flex flex-wrap gap-2">
                 {demoPlotData.attachments.map((att: any, attIdx: number) => (
-                  <button
+                  <a
                     key={att.id || attIdx}
-                    type="button"
-                    onClick={() =>
-                      openLightbox(
-                        "รูปถ่ายแปลงเริ่มต้น",
-                        demoPlotData.attachments,
-                        attIdx,
-                      )
-                    }
+                    href={att.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
                     className="block relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 hover:opacity-90 transition-opacity shadow-xs"
                   >
                     <img
@@ -505,7 +468,7 @@ export function DetailType7FollowUp({
                       alt={att.fileName || "Baseline Photo"}
                       className="w-full h-full object-cover"
                     />
-                  </button>
+                  </a>
                 ))}
               </div>
             </div>
@@ -657,38 +620,32 @@ export function DetailType7FollowUp({
                         <table className="w-full text-left text-xs border-collapse">
                           <thead>
                             <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-                              <th className="p-2.5 w-12 text-center">#</th>
-                              <th className="p-2.5">ชื่อสินค้าสาธิต</th>
-                              <th className="p-2.5">
-                                อัตราตามเกณฑ์ (Baseline)
-                              </th>
-                              <th className="p-2.5">อัตราการใช้จริงรอบนี้</th>
-                              <th className="p-2.5 text-right">ปริมาณที่ใช้</th>
+                              <th className="p-2.5 w-12 text-center">ลำดับ</th>
+                              <th className="p-2.5">ชื่อสินค้า</th>
+                              <th className="p-2.5 text-center">จำนวน</th>
                               <th className="p-2.5">หน่วย</th>
+                              <th className="p-2.5">อัตราการใช้รอบนี้</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
                             {rProducts.map((p: any, pIdx: number) => (
                               <tr key={p.productId || pIdx}>
-                                <td className="p-2.5 text-center text-slate-400">
+                                <td className="p-2.5 text-center text-slate-800">
                                   {pIdx + 1}
                                 </td>
                                 <td className="p-2.5 font-bold text-slate-900">
                                   {p.productName || p.product?.name || "-"}
                                 </td>
-                                <td className="p-2.5 text-slate-500">
-                                  {p.baselineRate || "-"}
-                                </td>
-                                <td className="p-2.5 font-semibold text-emerald-800">
-                                  {p.actualRate || "-"}
-                                </td>
-                                <td className="p-2.5 text-right font-semibold text-slate-800">
+                                <td className="p-2.5 text-center font-semibold text-slate-800">
                                   {p.quantityUsed != null
                                     ? p.quantityUsed
                                     : (p.quantity ?? "-")}
                                 </td>
                                 <td className="p-2.5 text-slate-600">
                                   {p.unit || p.product?.unit || ""}
+                                </td>
+                                <td className="p-2.5 font-semibold text-emerald-800">
+                                  {p.actualRate || "-"}
                                 </td>
                               </tr>
                             ))}
