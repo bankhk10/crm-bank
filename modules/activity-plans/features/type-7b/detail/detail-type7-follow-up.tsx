@@ -705,7 +705,9 @@ export function DetailType7FollowUp({
                           <table className="w-full text-left text-xs border-collapse">
                             <thead>
                               <tr className="bg-amber-50/70 border-b border-amber-200 text-amber-900 font-semibold">
-                                <th className="p-2.5 w-12 text-center">#</th>
+                                <th className="p-2.5 w-12 text-center">
+                                  ลำดับ
+                                </th>
                                 <th className="p-2.5">บริษัท</th>
                                 <th className="p-2.5">ชื่อสารเคมีภายนอก</th>
                                 <th className="p-2.5">สารสำคัญ</th>
@@ -716,13 +718,13 @@ export function DetailType7FollowUp({
                             <tbody className="divide-y divide-amber-100">
                               {rExternals.map((ep: any, eIdx: number) => (
                                 <tr key={ep.id || eIdx}>
-                                  <td className="p-2.5 text-center text-slate-400">
+                                  <td className="p-2.5 text-center text-slate-800">
                                     {eIdx + 1}
                                   </td>
                                   <td className="p-2.5 font-medium text-slate-800">
                                     {ep.company || "-"}
                                   </td>
-                                  <td className="p-2.5 font-bold text-slate-900">
+                                  <td className="p-2.5 font-medium text-slate-900">
                                     {ep.productName || "-"}
                                   </td>
                                   <td className="p-2.5 text-slate-600">
@@ -733,7 +735,7 @@ export function DetailType7FollowUp({
                                       ? ep.customFormula
                                       : ep.formula}
                                   </td>
-                                  <td className="p-2.5 font-semibold text-slate-800">
+                                  <td className="p-2.5 font-medium text-slate-800">
                                     {ep.applicationRate || "-"}
                                   </td>
                                 </tr>
@@ -796,7 +798,7 @@ export function DetailType7FollowUp({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-3 border-t border-slate-100">
           <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
             <span className="text-xs text-slate-500 font-medium block">
-              กำหนดฉีดพ่น / ติดตามครั้งต่อไป
+              กำหนดฉีดพ่นครั้งต่อไป
             </span>
             <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
               {formatThaiDate(nextSprayDate || nextFollowUpDate)}
@@ -807,7 +809,7 @@ export function DetailType7FollowUp({
             <span className="text-xs text-slate-500 font-medium block">
               ข้อสังเกตหรือข้อมูลเพิ่มเติม
             </span>
-            <span className="text-xs sm:text-sm text-slate-800 block">
+            <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
               {usageMethod || "-"}
             </span>
           </div>
