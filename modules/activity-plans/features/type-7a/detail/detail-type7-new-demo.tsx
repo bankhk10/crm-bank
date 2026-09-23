@@ -648,16 +648,6 @@ export function DetailType7NewDemo({
                 <Sprout className="w-4 h-4 text-emerald-700" />
                 ข้อมูลแปลงสาธิตจริง (Demo Plot Actual Baseline)
               </span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleOpenHistory}
-                className="h-7 gap-1.5 text-xs font-semibold text-emerald-800 border-emerald-300 bg-white hover:bg-emerald-50 rounded-lg shadow-2xs"
-              >
-                <History className="w-3.5 h-3.5 text-emerald-700" />
-                <span>ประวัติการติดตามแปลง ({followUpVisitsCount} ครั้ง)</span>
-              </Button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
