@@ -939,11 +939,6 @@ export function DemoPlotHistoryModal({
                               <span className="text-xs text-slate-500 font-medium">
                                 📅 {formatDate(v.visitDate)}
                               </span>
-                              {v.daysSinceStart > 0 && (
-                                <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-semibold">
-                                  +{v.daysSinceStart} วัน
-                                </span>
-                              )}
                               {v.activityPlan?.code &&
                                 (v.activityPlan?.id ? (
                                   <a
