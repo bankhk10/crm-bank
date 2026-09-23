@@ -709,9 +709,9 @@ export function DetailType7FollowUp({
                                   ลำดับ
                                 </th>
                                 <th className="p-2.5">บริษัท</th>
-                                <th className="p-2.5">ชื่อสารเคมีภายนอก</th>
-                                <th className="p-2.5">สารสำคัญ</th>
-                                <th className="p-2.5">สูตรเคมี</th>
+                                <th className="p-2.5">ชื่อสินค้า</th>
+                                <th className="p-2.5">สารออกฤทธิ์</th>
+                                <th className="p-2.5">สูตร</th>
                                 <th className="p-2.5">อัตราการใช้</th>
                               </tr>
                             </thead>
