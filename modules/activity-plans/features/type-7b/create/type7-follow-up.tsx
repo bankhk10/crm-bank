@@ -178,11 +178,6 @@ export function Type7FollowUp({
               ข้อมูลแปลงสาธิตเดิม (Read-only)
             </span>
             <div className="flex items-center gap-1.5">
-              {selectedPlot.code && (
-                <span className="font-mono text-[10px] text-slate-500 font-semibold">
-                  {selectedPlot.code}
-                </span>
-              )}
               <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold text-[11px]">
                 {selectedPlot.status === "COMPLETED"
                   ? "ปิดแปลงแล้ว"
@@ -209,14 +204,6 @@ export function Type7FollowUp({
             </div>
             <div>
               <span className="font-semibold text-slate-500">
-                ร้าน Dealer:{" "}
-              </span>
-              <span className="font-bold text-slate-800">
-                {selectedPlot.dealerName || "-"}
-              </span>
-            </div>
-            <div>
-              <span className="font-semibold text-slate-500">
                 พื้นที่ / จำนวน:{" "}
               </span>
               <span className="font-bold text-slate-800">
@@ -234,6 +221,14 @@ export function Type7FollowUp({
                 })()}
               </span>
             </div>
+            <div>
+              <span className="font-semibold text-slate-500">
+                ร้าน Dealer:{" "}
+              </span>
+              <span className="font-bold text-slate-800">
+                {selectedPlot.dealerName || "-"}
+              </span>
+            </div>
           </div>
 
           {(selectedPlot.objective || selectedPlot.experimentDetail) && (
@@ -241,7 +236,7 @@ export function Type7FollowUp({
               {selectedPlot.objective && (
                 <div>
                   <span className="font-semibold text-slate-500">
-                    วัตถุประสงค์:{" "}
+                    วัตถุประสงค์การทำแปลง:{" "}
                   </span>
                   <span>{selectedPlot.objective}</span>
                 </div>
