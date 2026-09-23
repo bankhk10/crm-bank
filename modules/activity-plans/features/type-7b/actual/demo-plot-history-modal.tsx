@@ -144,11 +144,6 @@ export function DemoPlotHistoryModal({
           <div className="p-5 bg-gradient-to-r from-emerald-800 to-teal-900 text-white flex items-start justify-between">
             <div className="space-y-1.5">
               <div className="flex items-center gap-2 flex-wrap">
-                {plot.code && (
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-700/80 text-emerald-100 font-mono text-xs font-bold border border-emerald-500/30">
-                    {plot.code}
-                  </span>
-                )}
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 text-xs font-semibold border border-emerald-400/20">
                   {plot.status === "COMPLETED"
                     ? "ปิดแปลงสมบูรณ์"
@@ -162,24 +157,16 @@ export function DemoPlotHistoryModal({
                 </span>
               </div>
               <DialogTitle className="text-lg font-bold tracking-tight text-white">
-                {plot.name || `แปลงสาธิต ${plot.ownerName || ""}`}
+                ชื่อแปลง : {plot.name || ""}
               </DialogTitle>
               <DialogDescription className="sr-only">
                 ประวัติการติดตามแปลงสาธิตและผลการตรวจแปลง
               </DialogDescription>
             </div>
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </div>
 
           {/* Master Plot Reference Strip */}
-          <div className="bg-white border-b border-slate-200 px-5 py-3 text-xs grid grid-cols-2 sm:grid-cols-4 gap-3 text-slate-700 shadow-xs">
+          <div className="bg-white border-b border-slate-200 px-5 py-3 text-xs grid grid-cols-2 sm:grid-cols-2 gap-3 text-slate-700 shadow-xs">
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-emerald-600 shrink-0" />
               <div className="truncate">
@@ -304,7 +291,9 @@ export function DemoPlotHistoryModal({
                     const cropPhotos: string[] = v.cropImageUrls || [];
                     const plotPhotos: string[] =
                       v.plotImageUrls ||
-                      (v.imageUrls && v.imageUrls.length > 0 ? v.imageUrls : []);
+                      (v.imageUrls && v.imageUrls.length > 0
+                        ? v.imageUrls
+                        : []);
                     const totalPhotos = cropPhotos.length + plotPhotos.length;
 
                     return (
@@ -336,8 +325,8 @@ export function DemoPlotHistoryModal({
                                   +{v.daysSinceStart} วัน
                                 </span>
                               )}
-                              {v.activityPlan?.code && (
-                                v.activityPlan?.id ? (
+                              {v.activityPlan?.code &&
+                                (v.activityPlan?.id ? (
                                   <a
                                     href={`/activity-plans/${v.activityPlan.id}`}
                                     target="_blank"
@@ -353,8 +342,7 @@ export function DemoPlotHistoryModal({
                                   <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-mono font-medium">
                                     {v.activityPlan.code}
                                   </span>
-                                )
-                              )}
+                                ))}
                             </div>
 
                             <div className="flex items-center gap-2">
@@ -483,23 +471,25 @@ export function DemoPlotHistoryModal({
                                   <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
                                     🌿 รูปสภาพพืช ({cropPhotos.length} รูป)
                                   </span>
-                                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                                    {cropPhotos.map((url: string, pIdx: number) => (
-                                      <div
-                                        key={pIdx}
-                                        onClick={() => setSelectedPhoto(url)}
-                                        className="group relative aspect-square rounded-lg overflow-hidden border border-slate-200 bg-slate-100 cursor-pointer hover:ring-2 hover:ring-emerald-500"
-                                      >
-                                        <img
-                                          src={url}
-                                          alt={`Crop Photo ${pIdx + 1}`}
-                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                                        />
-                                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                          <Maximize2 className="w-4 h-4 text-white" />
+                                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                                    {cropPhotos.map(
+                                      (url: string, pIdx: number) => (
+                                        <div
+                                          key={pIdx}
+                                          onClick={() => setSelectedPhoto(url)}
+                                          className="group relative aspect-square rounded-lg overflow-hidden border border-slate-200 bg-slate-100 cursor-pointer hover:ring-2 hover:ring-emerald-500"
+                                        >
+                                          <img
+                                            src={url}
+                                            alt={`Crop Photo ${pIdx + 1}`}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                          />
+                                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                            <Maximize2 className="w-4 h-4 text-white" />
+                                          </div>
                                         </div>
-                                      </div>
-                                    ))}
+                                      ),
+                                    )}
                                   </div>
                                 </div>
                               )}
@@ -510,23 +500,25 @@ export function DemoPlotHistoryModal({
                                   <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
                                     📷 รูปภาพสภาพแปลง ({plotPhotos.length} รูป)
                                   </span>
-                                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                                    {plotPhotos.map((url: string, pIdx: number) => (
-                                      <div
-                                        key={pIdx}
-                                        onClick={() => setSelectedPhoto(url)}
-                                        className="group relative aspect-square rounded-lg overflow-hidden border border-slate-200 bg-slate-100 cursor-pointer hover:ring-2 hover:ring-emerald-500"
-                                      >
-                                        <img
-                                          src={url}
-                                          alt={`Plot Photo ${pIdx + 1}`}
-                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                                        />
-                                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                          <Maximize2 className="w-4 h-4 text-white" />
+                                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                                    {plotPhotos.map(
+                                      (url: string, pIdx: number) => (
+                                        <div
+                                          key={pIdx}
+                                          onClick={() => setSelectedPhoto(url)}
+                                          className="group relative aspect-square rounded-lg overflow-hidden border border-slate-200 bg-slate-100 cursor-pointer hover:ring-2 hover:ring-emerald-500"
+                                        >
+                                          <img
+                                            src={url}
+                                            alt={`Plot Photo ${pIdx + 1}`}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                          />
+                                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                            <Maximize2 className="w-4 h-4 text-white" />
+                                          </div>
                                         </div>
-                                      </div>
-                                    ))}
+                                      ),
+                                    )}
                                   </div>
                                 </div>
                               )}
@@ -539,7 +531,9 @@ export function DemoPlotHistoryModal({
                                     <strong className="font-semibold text-slate-700">
                                       {v.activityPlan.code || "-"}
                                     </strong>
-                                    {v.activityPlan.title ? ` (${v.activityPlan.title})` : ""}
+                                    {v.activityPlan.title
+                                      ? ` (${v.activityPlan.title})`
+                                      : ""}
                                   </span>
                                   <a
                                     href={`/activity-plans/${v.activityPlan.id}`}
