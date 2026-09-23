@@ -151,6 +151,8 @@ export async function findActivityPlanById(id: string) {
               name: true,
               productCode: true,
               price: true,
+              unit: true,
+              packageSizeUnit: true,
               categoryId: true,
               category: {
                 select: { id: true, code: true, description: true },

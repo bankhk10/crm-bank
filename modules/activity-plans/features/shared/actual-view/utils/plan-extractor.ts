@@ -748,17 +748,26 @@ export function extractPlanData(
         : [],
     };
 
-    targets.t7 = {
-      ...prevTargets.t7,
-      ...commonT7Data,
-      activityType: hasT7B || t7Visit ? "FOLLOW_UP" : "CREATE",
-    };
-
+    const t7bProducts = products.filter(
+      (pr) => pr.workTypeCode === "TYPE_7B",
+    );
     const t7aProducts = products.filter(
       (pr) => pr.workTypeCode === "TYPE_7A" || pr.workTypeCode === "TYPE_7",
     );
     const firstT7aProduct = t7aProducts[0];
     const t7aCategory = (firstT7aProduct?.product as any)?.category;
+
+    targets.t7 = {
+      ...prevTargets.t7,
+      ...commonT7Data,
+      activityType: hasT7B || t7Visit ? "FOLLOW_UP" : "CREATE",
+      demoProducts: (hasT7B ? t7bProducts : t7aProducts).map((pr) => ({
+        productId: pr.productId,
+        productName: pr.productName || (pr.product as any)?.name || "",
+        quantity: pr.targetQuantity ?? 1,
+        unit: (pr.product as any)?.unit || null,
+      })),
+    };
 
     targets.t7a = {
       ...(prevTargets.t7a || prevTargets.t7),
@@ -794,6 +803,12 @@ export function extractPlanData(
       plotName: t7Plot?.name || "",
       plotCode: t7Plot?.code || "",
       detail: t7bDetail,
+      demoProducts: t7bProducts.map((pr) => ({
+        productId: pr.productId,
+        productName: pr.productName || (pr.product as any)?.name || "",
+        quantity: pr.targetQuantity ?? 1,
+        unit: (pr.product as any)?.unit || null,
+      })),
     };
   }
 
