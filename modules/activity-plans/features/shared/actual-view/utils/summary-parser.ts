@@ -905,7 +905,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (comMatch && comMatch[1]) {
       result.t7CommercialPotential = comMatch[1].split("\n")[0].trim();
     }
-    const finalNotesMatch = summaryText.match(/สรุปผลสัมฤทธิ์แปลง:\s*(.+)/);
+    const finalNotesMatch = summaryText.match(
+      /(?:สรุปผลสัมฤทธิ์(?:แปลง)?|รายละเอียดการยุติการทดลอง|สาเหตุการยุติการทดลอง):\s*(.+)/,
+    );
     if (finalNotesMatch && finalNotesMatch[1]) {
       result.t7FinalSummaryNotes = finalNotesMatch[1].split("\n")[0].trim();
     }

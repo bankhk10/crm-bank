@@ -1570,6 +1570,33 @@ export function ActualType7FollowUp({
             </div>
           </div>
         )}
+
+        {/* Plot Termination Reason (เมื่อเลือก ยุติการทดลอง FAILED) */}
+        {plotStatus === "FAILED" && (
+          <div className="pt-3 border-t border-rose-200/80 space-y-3 bg-rose-50/40 p-4 rounded-xl border border-rose-200">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-600" />
+              <h4 className="text-xs font-bold text-rose-950 uppercase tracking-wider">
+                รายละเอียดการยุติการทดลอง (แปลงเสียหาย / ล้มเหลว){" "}
+                <span className="text-rose-500">*</span>
+              </h4>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700">
+                รายละเอียดสาเหตุที่ยุติการทดลอง <span className="text-rose-500">*</span>
+              </label>
+              <Textarea
+                rows={3}
+                value={finalSummaryNotes}
+                onChange={(e) => setFinalSummaryNotes?.(e.target.value)}
+                placeholder="ระบุสาเหตุ เช่น แปลงเสียหายจากภัยธรรมชาติ/น้ำท่วม, โรคระบาดรุนแรง, เกษตรกรไถทิ้ง/ยกเลิกแปลงทดลอง..."
+                className="text-xs bg-white border-rose-300 rounded-lg focus-visible:ring-rose-500 text-slate-800"
+                required
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* History Modal */}

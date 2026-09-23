@@ -670,6 +670,18 @@ export function buildResultSummary(
         }
       }
     }
+
+    if (
+      t7PlotStatus === "FAILED" &&
+      (!input.t7FinalSummaryNotes || !input.t7FinalSummaryNotes.trim())
+    ) {
+      return {
+        validationError:
+          "กรุณาระบุรายละเอียดสาเหตุที่ยุติการทดลอง (Work Type 7B)",
+        summaryParts: [],
+        payload: null,
+      };
+    }
   }
 
   // Validate Type 1 Plot Images (Max 5 files)
@@ -808,6 +820,14 @@ export function buildResultSummary(
               ? `กำหนดฉีดพ่นครั้งต่อไป: ${t7NextFollowUpDate}`
               : null,
           t7UsageMethod ? `ข้อมูลเพิ่มเติม: ${t7UsageMethod}` : null,
+          t7PlotStatus ? `สถานะแปลง: ${t7PlotStatus}` : null,
+          t7FarmerSatisfaction ? `ความพึงพอใจเกษตรกร: ${t7FarmerSatisfaction}` : null,
+          t7CommercialPotential ? `โอกาสสั่งซื้อจริง: ${t7CommercialPotential}` : null,
+          t7FinalSummaryNotes
+            ? t7PlotStatus === "FAILED"
+              ? `รายละเอียดการยุติการทดลอง: ${t7FinalSummaryNotes.trim()}`
+              : `สรุปผลสัมฤทธิ์แปลง: ${t7FinalSummaryNotes.trim()}`
+            : null,
         ]
       : [
           // TYPE_7A Initial Summary (Rule 8 Labels)

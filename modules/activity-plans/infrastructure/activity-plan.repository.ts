@@ -3534,9 +3534,10 @@ export async function recordDemoPlotVisit(data: {
       if (data.commercialPotential) {
         plotUpdateData.commercialPotential = data.commercialPotential;
       }
-      if (data.finalSummaryNotes) {
-        plotUpdateData.finalSummaryNotes = data.finalSummaryNotes;
-      }
+    }
+
+    if (data.finalSummaryNotes !== undefined) {
+      plotUpdateData.finalSummaryNotes = data.finalSummaryNotes;
     }
 
     if (Object.keys(plotUpdateData).length > 0) {

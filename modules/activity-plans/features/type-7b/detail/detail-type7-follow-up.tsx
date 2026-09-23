@@ -823,6 +823,27 @@ export function DetailType7FollowUp({
         </div>
       )}
 
+      {/* SECTION 3.2: รายละเอียดการยุติการทดลองเมื่อแปลงเสียหาย/ล้มเหลว */}
+      {plotStatus === "FAILED" && (
+        <div className="pt-4 border-t border-rose-200 space-y-3 bg-rose-50/40 p-5 rounded-2xl border border-rose-200">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-rose-600" />
+            <h4 className="text-xs font-bold text-rose-950 uppercase tracking-wider">
+              รายละเอียดการยุติการทดลอง (แปลงเสียหาย / ล้มเหลว)
+            </h4>
+          </div>
+
+          <div className="p-3 bg-white rounded-xl border border-rose-200 space-y-1">
+            <span className="text-xs text-slate-500 block">
+              สาเหตุและรายละเอียดที่ยุติการทดลอง
+            </span>
+            <p className="text-xs text-rose-950 font-medium whitespace-pre-line">
+              {finalSummaryNotes || "-"}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Modals */}
       <DemoPlotHistoryModal
         isOpen={historyOpen}
