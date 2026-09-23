@@ -541,14 +541,6 @@ export function ActualType7FollowUp({
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-slate-700">
             <div>
               <span className="text-slate-400 block text-[11px]">
-                รหัสแปลงสาธิต
-              </span>
-              <span className="font-semibold text-slate-900 font-mono">
-                {demoPlotData.code || "-"}
-              </span>
-            </div>
-            <div>
-              <span className="text-slate-400 block text-[11px]">
                 ชื่อแปลงสาธิต
               </span>
               <span className="font-semibold text-slate-900">
@@ -637,7 +629,7 @@ export function ActualType7FollowUp({
             </div>
             <div className="sm:col-span-2">
               <span className="text-slate-400 block text-[11px]">
-                ข้อมูลแปลงหลัก / สภาพพื้นที่ปลูก
+                ข้อมูลพืชประธาน
               </span>
               <span className="font-medium text-slate-800">
                 {demoPlotData.mainCropInfo ||
