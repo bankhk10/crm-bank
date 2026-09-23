@@ -513,19 +513,6 @@ export function ActualType7FollowUp({
             </p>
           </div>
         </div>
-
-        <div className="flex items-center gap-2 self-end sm:self-auto">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setIsHistoryModalOpen(true)}
-            className="h-8 gap-1.5 text-xs text-blue-700 border-blue-200 bg-blue-50/50 hover:bg-blue-100 font-semibold"
-          >
-            <History className="w-3.5 h-3.5" />
-            <span>ดูประวัติการติดตาม ({completedVisitsCount} ครั้ง)</span>
-          </Button>
-        </div>
       </div>
 
       {/* SECTION 1: PLANNED TARGET CARD (Problem 3.2 Fix: Selected Plot + Planned Detail only) */}
@@ -548,12 +535,9 @@ export function ActualType7FollowUp({
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-emerald-700" />
               <h3 className="text-sm font-bold text-slate-800">
-                ข้อมูลตั้งต้นของแปลงสาธิต (Initial Plot Data - Read Only)
+                ข้อมูลตั้งต้นของแปลงสาธิต (Initial Plot Data)
               </h3>
             </div>
-            <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[10px]">
-              BASELINE
-            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-slate-700">
