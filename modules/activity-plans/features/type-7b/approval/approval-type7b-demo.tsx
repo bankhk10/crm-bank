@@ -61,7 +61,7 @@ export function ApprovalType7bDemo({
                 <tr className="bg-slate-100/75 border-b border-slate-200 text-[11px] font-bold text-slate-600">
                   <th className="py-2 px-3 w-12 text-center">ลำดับ</th>
                   <th className="py-2 px-3">ชื่อสินค้า</th>
-                  <th className="py-2 px-3 text-right">จำนวน</th>
+                  <th className="py-2 px-3 text-right">จำนวนที่เบิก</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
