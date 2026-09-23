@@ -1392,28 +1392,27 @@ export function ActualType7FollowUp({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-slate-700">
-              กำหนดฉีดพ่น / ติดตามครั้งต่อไป
+              กำหนดฉีดพ่นครั้งต่อไป
             </label>
             <DatePicker
               value={effectiveNextDate}
               onChange={(v) => handleNextDateChange(v || "")}
-              placeholder="เลือกกำหนดฉีดพ่น / ติดตามครั้งต่อไป"
+              placeholder="เลือกกำหนดฉีดพ่นครั้งต่อไป"
               className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
             />
           </div>
-
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">
-              ข้อสังเกตหรือข้อมูลเพิ่มเติม
-            </label>
-            <Textarea
-              rows={2}
-              value={usageMethod}
-              onChange={(e) => setUsageMethod(e.target.value)}
-              placeholder="บันทึกข้อสังเกตเพิ่มเติม สภาพอากาศ หรือหมายเหตุอื่นๆ..."
-              className="text-xs bg-white border-slate-200 rounded-lg"
-            />
-          </div>
+        </div>
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold text-slate-700">
+            ข้อสังเกตหรือข้อมูลเพิ่มเติม
+          </label>
+          <Textarea
+            rows={2}
+            value={usageMethod}
+            onChange={(e) => setUsageMethod(e.target.value)}
+            placeholder="บันทึกข้อสังเกตเพิ่มเติม สภาพอากาศ หรือหมายเหตุอื่นๆ..."
+            className="text-xs bg-white border-slate-200 rounded-lg"
+          />
         </div>
       </div>
 
@@ -1436,7 +1435,7 @@ export function ActualType7FollowUp({
               value={plotStatus}
               onValueChange={(v: DemoPlotStatus) => setPlotStatus?.(v)}
             >
-              <SelectTrigger className="h-9 text-xs bg-white border-slate-200 rounded-lg font-medium">
+              <SelectTrigger className="h-9 text-xs bg-white border-slate-200 rounded-lg font-medium w-full">
                 <SelectValue placeholder="เลือกสถานะแปลง" />
               </SelectTrigger>
               <SelectContent>
