@@ -612,7 +612,7 @@ export function ActualType7FollowUp({
                   : ""}
               </span>
             </div>
-            <div className="sm:col-span-2">
+            <div>
               <span className="text-slate-400 block text-[11px]">
                 วัตถุประสงค์แปลงสาธิต
               </span>
@@ -620,7 +620,7 @@ export function ActualType7FollowUp({
                 {demoPlotData.objective || "-"}
               </span>
             </div>
-            <div className="sm:col-span-2">
+            <div>
               <span className="text-slate-400 block text-[11px]">
                 รายละเอียดการทดสอบ
               </span>
@@ -628,7 +628,7 @@ export function ActualType7FollowUp({
                 {demoPlotData.experimentDetail || "-"}
               </span>
             </div>
-            <div className="sm:col-span-2">
+            <div>
               <span className="text-slate-400 block text-[11px]">
                 ข้อมูลพืชประธาน
               </span>
