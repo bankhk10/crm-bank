@@ -675,7 +675,7 @@ export function ActualType7FollowUp({
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-                        <th className="p-2.5 w-12 text-center">#</th>
+                        <th className="p-2.5 w-12 text-center">ลำดับ</th>
                         <th className="p-2.5">ชื่อสินค้าสาธิต</th>
                         <th className="p-2.5 text-center">จำนวนที่ใช้</th>
                         <th className="p-2.5">หน่วย</th>
@@ -685,7 +685,7 @@ export function ActualType7FollowUp({
                     <tbody className="divide-y divide-slate-100">
                       {demoPlotData.demoProducts.map((p: any, pIdx: number) => (
                         <tr key={p.id || pIdx} className="hover:bg-slate-50/50">
-                          <td className="p-2.5 text-center text-slate-400">
+                          <td className="p-2.5 text-center text-slate-700">
                             {pIdx + 1}
                           </td>
                           <td className="p-2.5 font-bold text-slate-900">
