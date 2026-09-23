@@ -163,6 +163,11 @@ export interface ParsedSummaryValues {
   t7SprayEquipment?: string;
   t7OtherEquipment?: string;
   t7NextSprayDate?: string;
+  actualStartDate?: string;
+  t7StartDate?: string;
+  t7SprayMethod?: "SINGLE" | "TANK_MIXED";
+  t7HasExternalChemicals?: boolean;
+  t7ExternalProducts?: any[];
 
   // Type 8
   t8ActualAttendees?: string;
@@ -861,6 +866,11 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (nextVisitMatch && nextVisitMatch[1]) {
       result.t7NextFollowUpDate = nextVisitMatch[1].split("\n")[0].trim();
       result.t7NextSprayDate = result.t7NextFollowUpDate;
+    }
+    const actualVisitDateMatch = summaryText.match(/วันที่ติดตามจริง:\s*(.+)/);
+    if (actualVisitDateMatch && actualVisitDateMatch[1]) {
+      result.actualStartDate = actualVisitDateMatch[1].split("\n")[0].trim();
+      result.t7StartDate = result.actualStartDate;
     }
     const daysAfterSprayMatch = summaryText.match(/จำนวนวันหลังฉีดพ่น:\s*(\d+)/);
     if (daysAfterSprayMatch && daysAfterSprayMatch[1]) {

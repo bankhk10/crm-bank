@@ -265,14 +265,26 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
   const setT7PlotObjective = t7a ? t7a.setT7PlotObjective : (props.setT7PlotObjective || props.setPlotObjective || (() => {}));
   const t7CustomPlotDetail = t7a ? t7a.t7CustomPlotDetail : (props.t7CustomPlotDetail ?? "");
   const setT7CustomPlotDetail = t7a ? t7a.setT7CustomPlotDetail : (props.setT7CustomPlotDetail || props.setCustomPlotDetail || (() => {}));
-  const t7UsageMethod = t7a ? t7a.t7UsageMethod : (t7b ? t7b.t7UsageMethod : (props.t7UsageMethod ?? ""));
-  const setT7UsageMethod = t7a ? t7a.setT7UsageMethod : (t7b ? t7b.setT7UsageMethod : (props.setT7UsageMethod || props.setUsageMethod || (() => {})));
-  const t7SprayMethod = t7a ? t7a.t7SprayMethod : (t7b ? t7b.t7SprayMethod : (props.t7SprayMethod ?? "SINGLE"));
-  const setT7SprayMethod = t7a ? t7a.setT7SprayMethod : (t7b ? t7b.setT7SprayMethod : (props.setT7SprayMethod || props.setSprayMethod || (() => {})));
-  const t7HasExternalChemicals = t7a ? t7a.t7HasExternalChemicals : (t7b ? t7b.t7HasExternalChemicals : (props.t7HasExternalChemicals ?? false));
-  const setT7HasExternalChemicals = t7a ? t7a.setT7HasExternalChemicals : (t7b ? t7b.setT7HasExternalChemicals : (props.setT7HasExternalChemicals || props.setHasExternalChemicals || (() => {})));
-  const t7ExternalProducts = t7a ? t7a.t7ExternalProducts : (t7b ? t7b.t7ExternalProducts : (props.t7ExternalProducts ?? []));
-  const setT7ExternalProducts = t7a ? t7a.setT7ExternalProducts : (t7b ? t7b.setT7ExternalProducts : (props.setT7ExternalProducts || props.setExternalProducts || (() => {})));
+  const t7aUsageMethod = t7a ? t7a.t7UsageMethod : (props.t7UsageMethod ?? "");
+  const setT7aUsageMethod = t7a ? t7a.setT7UsageMethod : (props.setT7UsageMethod || props.setUsageMethod || (() => {}));
+  const t7bUsageMethod = t7b ? t7b.t7UsageMethod : (props.t7UsageMethod ?? "");
+  const setT7bUsageMethod = t7b ? t7b.setT7UsageMethod : (props.setT7UsageMethod || props.setUsageMethod || (() => {}));
+
+  const t7aSprayMethod = t7a ? t7a.t7SprayMethod : (props.t7SprayMethod ?? "SINGLE");
+  const setT7aSprayMethod = t7a ? t7a.setT7SprayMethod : (props.setT7SprayMethod || props.setSprayMethod || (() => {}));
+  const t7bSprayMethod = t7b ? t7b.t7SprayMethod : (props.t7SprayMethod ?? "SINGLE");
+  const setT7bSprayMethod = t7b ? t7b.setT7SprayMethod : (props.setT7SprayMethod || props.setSprayMethod || (() => {}));
+
+  const t7aHasExternalChemicals = t7a ? t7a.t7HasExternalChemicals : (props.t7HasExternalChemicals ?? false);
+  const setT7aHasExternalChemicals = t7a ? t7a.setT7HasExternalChemicals : (props.setT7HasExternalChemicals || props.setHasExternalChemicals || (() => {}));
+  const t7bHasExternalChemicals = t7b ? t7b.t7HasExternalChemicals : (props.t7HasExternalChemicals ?? false);
+  const setT7bHasExternalChemicals = t7b ? t7b.setT7HasExternalChemicals : (props.setT7HasExternalChemicals || props.setHasExternalChemicals || (() => {}));
+
+  const t7aExternalProducts = t7a ? t7a.t7ExternalProducts : (props.t7ExternalProducts ?? []);
+  const setT7aExternalProducts = t7a ? t7a.setT7ExternalProducts : (props.setT7ExternalProducts || props.setExternalProducts || (() => {}));
+  const t7bExternalProducts = t7b ? t7b.t7ExternalProducts : (props.t7ExternalProducts ?? []);
+  const setT7bExternalProducts = t7b ? t7b.setT7ExternalProducts : (props.setT7ExternalProducts || props.setExternalProducts || (() => {}));
+
   const t7DemoPlotId = t7a ? t7a.t7DemoPlotId : (t7b ? t7b.t7DemoPlotId : props.t7DemoPlotId);
   const setT7DemoPlotId = t7a ? t7a.setT7DemoPlotId : (t7b ? t7b.setT7DemoPlotId : (props.setT7DemoPlotId || props.setDemoPlotId || (() => {})));
   const t7DemoPlotData = t7a ? t7a.t7DemoPlotData : (t7b ? t7b.t7DemoPlotData : props.t7DemoPlotData);
@@ -592,20 +604,20 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setNextSprayDate={setT7aNextSprayDate}
           demoProducts={t7DemoProducts}
           setDemoProducts={setT7DemoProducts}
-          sprayMethod={t7SprayMethod}
-          setSprayMethod={setT7SprayMethod}
-          hasExternalChemicals={t7HasExternalChemicals}
-          setHasExternalChemicals={setT7HasExternalChemicals}
-          externalProducts={t7ExternalProducts}
-          setExternalProducts={setT7ExternalProducts}
+          sprayMethod={t7aSprayMethod}
+          setSprayMethod={setT7aSprayMethod}
+          hasExternalChemicals={t7aHasExternalChemicals}
+          setHasExternalChemicals={setT7aHasExternalChemicals}
+          externalProducts={t7aExternalProducts}
+          setExternalProducts={setT7aExternalProducts}
           cropAgeValue={t7CropAgeValue}
           setCropAgeValue={setT7CropAgeValue}
           cropAgeUnit={t7CropAgeUnit}
           setCropAgeUnit={setT7CropAgeUnit}
           growthStage={t7GrowthStage}
           setGrowthStage={setT7GrowthStage}
-          usageMethod={t7UsageMethod}
-          setUsageMethod={setT7UsageMethod}
+          usageMethod={t7aUsageMethod}
+          setUsageMethod={setT7aUsageMethod}
           initialPhotos={t7InitialPhotos}
           setInitialPhotos={setT7InitialPhotos}
           plannedProductId={t7PlannedProductId}
@@ -679,12 +691,12 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setDaysAfterSpray={setT7DaysAfterSpray}
           bProductRates={t7bProductRates}
           setBProductRates={setT7bProductRates}
-          sprayMethod={t7SprayMethod}
-          setSprayMethod={setT7SprayMethod}
-          hasExternalChemicals={t7HasExternalChemicals}
-          setHasExternalChemicals={setT7HasExternalChemicals}
-          externalProducts={t7ExternalProducts}
-          setExternalProducts={setT7ExternalProducts}
+          sprayMethod={t7bSprayMethod}
+          setSprayMethod={setT7bSprayMethod}
+          hasExternalChemicals={t7bHasExternalChemicals}
+          setHasExternalChemicals={setT7bHasExternalChemicals}
+          externalProducts={t7bExternalProducts}
+          setExternalProducts={setT7bExternalProducts}
           sprayEquipment={t7SprayEquipment}
           setSprayEquipment={setT7SprayEquipment}
           otherEquipment={t7OtherEquipment}
@@ -696,8 +708,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           productPrice={t7ProductPrice}
           plotName={t7PlotName}
           setPlotName={setT7PlotName}
-          usageMethod={t7UsageMethod}
-          setUsageMethod={setT7UsageMethod}
+          usageMethod={t7bUsageMethod}
+          setUsageMethod={setT7bUsageMethod}
           plantingDate={t7PlantingDate}
           setPlantingDate={setT7PlantingDate}
           plantingAreaCondition={t7PlantingAreaCondition}

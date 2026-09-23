@@ -45,6 +45,7 @@ import {
 import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
 import { DemoPlotHistoryModal } from "@/modules/activity-plans/features/actual-view/components/work-types/demo-plot-history-modal";
 import GalleryUpload from "@/components/custom/gallery-upload";
+import DatePicker from "@/components/custom/DatePicker";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
 import {
   convertToFileMetadata,
@@ -200,32 +201,18 @@ export function ActualType7FollowUp({
   demoPlotData,
   visitHistory = [],
   startDate = "",
+  sprayMethod,
+  setSprayMethod,
+  sprayEquipment,
+  setSprayEquipment,
+  otherEquipment,
+  setOtherEquipment,
+  hasExternalChemicals,
+  setHasExternalChemicals,
+  externalProducts,
+  setExternalProducts,
 }: ActualType7FollowUpProps) {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-
-  // Auto calculate days after spray from baseline initialSprayDate and actualStartDate
-  useEffect(() => {
-    if (
-      (daysAfterSpray === "" || daysAfterSpray == null) &&
-      demoPlotData?.initialSprayDate &&
-      actualStartDate
-    ) {
-      const dSpray = new Date(demoPlotData.initialSprayDate).getTime();
-      const dVisit = new Date(actualStartDate).getTime();
-      if (!isNaN(dSpray) && !isNaN(dVisit)) {
-        const diff = Math.max(
-          0,
-          Math.floor((dVisit - dSpray) / (1000 * 60 * 60 * 24)),
-        );
-        setDaysAfterSpray?.(String(diff));
-      }
-    }
-  }, [
-    demoPlotData?.initialSprayDate,
-    actualStartDate,
-    daysAfterSpray,
-    setDaysAfterSpray,
-  ]);
 
   // Auto-initialize first spraying round if empty and demoPlotData loaded
   useEffect(() => {
@@ -323,16 +310,52 @@ export function ActualType7FollowUp({
 
   const handleUpdateRound = (
     idx: number,
-    field: keyof Type7bSprayingRoundItem,
-    value: any,
+    fieldOrUpdates:
+      | keyof Type7bSprayingRoundItem
+      | Partial<Type7bSprayingRoundItem>,
+    value?: any,
   ) => {
     const currentRounds = [...(t7bSprayingRounds || [])];
     if (currentRounds[idx]) {
-      currentRounds[idx] = {
-        ...currentRounds[idx],
-        [field]: value,
-      };
+      if (typeof fieldOrUpdates === "object" && fieldOrUpdates !== null) {
+        currentRounds[idx] = {
+          ...currentRounds[idx],
+          ...fieldOrUpdates,
+        };
+      } else {
+        currentRounds[idx] = {
+          ...currentRounds[idx],
+          [fieldOrUpdates]: value,
+        };
+      }
       setT7bSprayingRounds?.(currentRounds);
+    }
+
+    // Sync round 0 to visit-level props
+    if (idx === 0) {
+      if (typeof fieldOrUpdates === "object" && fieldOrUpdates !== null) {
+        if (fieldOrUpdates.sprayMethod) {
+          setSprayMethod?.(fieldOrUpdates.sprayMethod as any);
+        }
+        if (fieldOrUpdates.sprayEquipment) {
+          setSprayEquipment?.(fieldOrUpdates.sprayEquipment);
+        }
+        if (fieldOrUpdates.otherEquipment !== undefined) {
+          setOtherEquipment?.(fieldOrUpdates.otherEquipment);
+        }
+        if (fieldOrUpdates.hasExternalChemicals !== undefined) {
+          setHasExternalChemicals?.(fieldOrUpdates.hasExternalChemicals);
+        }
+        if (fieldOrUpdates.externalProducts !== undefined) {
+          setExternalProducts?.(fieldOrUpdates.externalProducts as any);
+        }
+      } else {
+        if (fieldOrUpdates === "sprayMethod") setSprayMethod?.(value);
+        if (fieldOrUpdates === "sprayEquipment") setSprayEquipment?.(value);
+        if (fieldOrUpdates === "otherEquipment") setOtherEquipment?.(value);
+        if (fieldOrUpdates === "hasExternalChemicals") setHasExternalChemicals?.(value);
+        if (fieldOrUpdates === "externalProducts") setExternalProducts?.(value);
+      }
     }
   };
 
@@ -815,11 +838,11 @@ export function ActualType7FollowUp({
             <label className="block text-xs font-bold text-slate-700">
               วันที่ติดตามจริง <span className="text-rose-500">*</span>
             </label>
-            <Input
-              type="date"
+            <DatePicker
               value={actualStartDate}
-              onChange={(e) => setActualStartDate?.(e.target.value)}
-              className="h-9 text-xs bg-white border-slate-200 rounded-lg"
+              onChange={(v) => setActualStartDate?.(v || "")}
+              placeholder="เลือกวันที่ติดตามจริง"
+              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
               required
             />
           </div>
@@ -835,7 +858,7 @@ export function ActualType7FollowUp({
                 value={daysAfterSpray}
                 onChange={(e) => setDaysAfterSpray?.(e.target.value)}
                 placeholder="เช่น 7, 14..."
-                className="h-9 text-xs bg-white border-slate-200 rounded-lg flex-1"
+                className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl flex-1"
                 required
               />
               <span className="text-xs text-slate-500 whitespace-nowrap">
@@ -843,7 +866,7 @@ export function ActualType7FollowUp({
               </span>
             </div>
             <p className="text-[11px] text-slate-400">
-              คำนวณอัตโนมัติจากวันที่เริ่มฉีดพ่นครั้งแรกของแปลง
+              ระบุจำนวนวันหลังจากการฉีดพ่นยาครั้งล่าสุด
             </p>
           </div>
         </div>
@@ -1044,14 +1067,16 @@ export function ActualType7FollowUp({
                           value={m.value}
                           checked={round.sprayMethod === m.value}
                           onChange={() => {
-                            handleUpdateRound(rIdx, "sprayMethod", m.value);
                             if (m.value === "SINGLE") {
-                              handleUpdateRound(
-                                rIdx,
-                                "hasExternalChemicals",
-                                false,
-                              );
-                              handleUpdateRound(rIdx, "externalProducts", []);
+                              handleUpdateRound(rIdx, {
+                                sprayMethod: "SINGLE",
+                                hasExternalChemicals: false,
+                                externalProducts: [],
+                              });
+                            } else {
+                              handleUpdateRound(rIdx, {
+                                sprayMethod: "TANK_MIXED",
+                              });
                             }
                           }}
                           className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer"
@@ -1290,10 +1315,10 @@ export function ActualType7FollowUp({
                           value={eq}
                           checked={round.sprayEquipment === eq}
                           onChange={() => {
-                            handleUpdateRound(rIdx, "sprayEquipment", eq);
-                            if (eq !== "อื่นๆ ระบุ..") {
-                              handleUpdateRound(rIdx, "otherEquipment", "");
-                            }
+                            handleUpdateRound(rIdx, {
+                              sprayEquipment: eq,
+                              ...(eq !== "อื่นๆ ระบุ.." ? { otherEquipment: "" } : {}),
+                            });
                           }}
                           className="w-3.5 h-3.5 text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer"
                         />
@@ -1403,11 +1428,11 @@ export function ActualType7FollowUp({
             <label className="block text-xs font-bold text-slate-700">
               กำหนดฉีดพ่น / ติดตามครั้งต่อไป
             </label>
-            <Input
-              type="date"
+            <DatePicker
               value={effectiveNextDate}
-              onChange={(e) => handleNextDateChange(e.target.value)}
-              className="h-9 text-xs bg-white border-slate-200 rounded-lg"
+              onChange={(v) => handleNextDateChange(v || "")}
+              placeholder="เลือกกำหนดฉีดพ่น / ติดตามครั้งต่อไป"
+              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
             />
           </div>
 

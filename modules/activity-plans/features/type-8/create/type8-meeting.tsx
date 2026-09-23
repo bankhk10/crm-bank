@@ -132,8 +132,7 @@ export function Type8Meeting({
                                     const updatedIds = (
                                       item.targetProductIds || []
                                     ).filter(
-                                      (id) =>
-                                        id !== prodObj?.id && id !== prod,
+                                      (id) => id !== prodObj?.id && id !== prod,
                                     );
                                     updateType8Row(
                                       item.id,

@@ -101,7 +101,12 @@ export function useType7bActual() {
         setT7bProductRates(rates);
       }
 
+      const currentPlanVisit = (plan?.demoPlotVisits || []).find(
+        (v: any) => v.activityPlanId === plan?.id,
+      );
+
       const latestVisit =
+        currentPlanVisit ||
         (dp.visits && dp.visits.length > 0
           ? dp.visits[dp.visits.length - 1]
           : null) ||
@@ -137,8 +142,11 @@ export function useType7bActual() {
           setT7SprayEquipment(latestVisit.sprayEquipment);
         if (latestVisit.otherEquipment)
           setT7OtherEquipment(latestVisit.otherEquipment);
-        if (latestVisit.notes)
-          setT7UsageMethod(latestVisit.notes);
+
+        // Only hydrate visit notes if they belong to this current plan visit, never from baseline 7A
+        if (currentPlanVisit && (currentPlanVisit.notes || currentPlanVisit.usageMethod)) {
+          setT7UsageMethod(currentPlanVisit.notes || currentPlanVisit.usageMethod);
+        }
       }
     }
 
@@ -205,6 +213,18 @@ export function useType7bActual() {
       }
       if (parsed.t7OtherEquipment) {
         setT7OtherEquipment(parsed.t7OtherEquipment);
+      }
+      if (parsed.actualStartDate || parsed.t7StartDate) {
+        setT7StartDate(parsed.actualStartDate || parsed.t7StartDate);
+      }
+      if (parsed.t7SprayMethod) {
+        setT7SprayMethod(parsed.t7SprayMethod);
+      }
+      if (parsed.t7HasExternalChemicals !== undefined) {
+        setT7HasExternalChemicals(Boolean(parsed.t7HasExternalChemicals));
+      }
+      if (parsed.t7ExternalProducts && parsed.t7ExternalProducts.length > 0) {
+        setT7ExternalProducts(parsed.t7ExternalProducts);
       }
       if (parsed.t7NextSprayDate) {
         setT7NextSprayDate(parsed.t7NextSprayDate);
@@ -480,6 +500,11 @@ export function useType7bActual() {
         t7OtherEquipment,
         actualStartDate: t7StartDate,
         t7bSprayingRounds: cleanRounds,
+        t7UsageMethod,
+        t7NextSprayDate,
+        t7SprayMethod,
+        t7HasExternalChemicals,
+        t7ExternalProducts,
       };
     },
     [
@@ -512,6 +537,11 @@ export function useType7bActual() {
       t7OtherEquipment,
       t7StartDate,
       t7bSprayingRounds,
+      t7UsageMethod,
+      t7NextSprayDate,
+      t7SprayMethod,
+      t7HasExternalChemicals,
+      t7ExternalProducts,
     ],
   );
 
