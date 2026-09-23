@@ -247,7 +247,7 @@ export function ActualType7FollowUp({
         sprayMethod: (demoPlotData.sprayMethod as any) || "SINGLE",
         hasExternalChemicals: false,
         externalProducts: [],
-        sprayEquipment: "โดรน",
+        sprayEquipment: "เป้สะพายหลัง",
         otherEquipment: "",
         productResponse: "พืชตอบสนองดี",
         problemDetail: "",
