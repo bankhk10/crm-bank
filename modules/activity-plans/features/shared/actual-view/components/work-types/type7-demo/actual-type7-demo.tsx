@@ -31,6 +31,7 @@ export interface ActualType7DemoProps {
     objective?: string;
     experimentDetail?: string;
     detail?: string;
+    followUpObjective?: string;
     items?: any[];
   };
   products?: Array<{

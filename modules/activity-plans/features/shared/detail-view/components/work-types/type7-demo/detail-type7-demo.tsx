@@ -24,6 +24,7 @@ export interface DetailType7DemoProps {
     objective?: string;
     experimentDetail?: string;
     detail?: string;
+    followUpObjective?: string;
     items?: any[];
   };
   demoResults?: DemoResultItemData[];
