@@ -29,12 +29,6 @@ export function ApprovalType7bDemo({
             ติดตามแปลงสาธิต
           </h4>
         </div>
-        <Badge
-          variant="outline"
-          className="text-[11px] font-bold bg-green-50 text-green-800 border-green-200"
-        >
-          TYPE_7B
-        </Badge>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
@@ -47,71 +41,6 @@ export function ApprovalType7bDemo({
             {target.detail || target.t7bObjective || "-"}
           </span>
         </div>
-
-        {/* วัตถุประสงค์ของแปลง */}
-        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-          <span className="text-slate-500 block text-[11px] font-medium mb-1">
-            วัตถุประสงค์ของแปลง
-          </span>
-          <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-            {target.objective ||
-              "ทดสอบและสาธิตประสิทธิภาพผลิตภัณฑ์ในแปลงจริง"}
-          </span>
-        </div>
-
-        {/* เจ้าของแปลง */}
-        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-          <span className="text-slate-500 block text-[11px] font-medium mb-1">
-            เจ้าของแปลง
-          </span>
-          <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-            {target.owner || "-"}
-          </span>
-        </div>
-
-        {/* ร้าน Dealer */}
-        {target.dealerName && (
-          <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-            <span className="text-slate-500 block text-[11px] font-medium mb-1">
-              ร้าน Dealer
-            </span>
-            <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-              {target.dealerName}
-            </span>
-          </div>
-        )}
-
-        {/* พืชปลูก & ผลิตภัณฑ์ */}
-        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-          <span className="text-slate-500 block text-[11px] font-medium mb-1">
-            พืชปลูก & ผลิตภัณฑ์
-          </span>
-          <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-            {[target.crop, target.product].filter(Boolean).join(" • ") || "-"}
-          </span>
-        </div>
-
-        {target.plots && (
-          <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-            <span className="text-slate-500 block text-[11px] font-medium mb-1">
-              ขนาดพื้นที่ / จำนวน
-            </span>
-            <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-              {target.plots}
-            </span>
-          </div>
-        )}
-
-        {target.experimentDetail && (
-          <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-2">
-            <span className="text-slate-500 block text-[11px] font-medium mb-1">
-              รายละเอียด / วิธีการทดลอง
-            </span>
-            <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-              {target.experimentDetail}
-            </span>
-          </div>
-        )}
       </div>
 
       {demoProducts.length > 0 && (
@@ -119,7 +48,10 @@ export function ApprovalType7bDemo({
           <div className="flex items-center justify-between">
             <span className="text-slate-800 text-[11px] font-bold flex items-center gap-1.5">
               <PackageCheck className="h-3.5 w-3.5 text-emerald-600" />
-              รายการสินค้าที่ขอเบิกสำหรับงานติดตามแปลง ({demoProducts.length} รายการ)
+              รายการสินค้าที่ขอเบิกสำหรับงานติดตามแปลง ({
+                demoProducts.length
+              }{" "}
+              รายการ)
             </span>
           </div>
 
@@ -145,7 +77,8 @@ export function ApprovalType7bDemo({
                       {p.productName || p.product?.name || "-"}
                     </td>
                     <td className="py-2 px-3 text-right font-bold text-emerald-700 whitespace-nowrap">
-                      {p.quantity ?? p.targetQuantity ?? "-"} {p.unit || p.product?.unit || ""}
+                      {p.quantity ?? p.targetQuantity ?? "-"}{" "}
+                      {p.unit || p.product?.unit || ""}
                     </td>
                   </tr>
                 ))}

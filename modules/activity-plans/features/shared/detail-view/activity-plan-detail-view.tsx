@@ -220,7 +220,7 @@ export default function ActivityPlanDetailView({
       raw: log,
     }));
 
-    const actualLogs = (((plan as any).result)?.logs || []).map((log: any) => ({
+    const actualLogs = ((plan as any).result?.logs || []).map((log: any) => ({
       id: `actual-${log.id}`,
       isActual: true as const,
       user: log.user,
@@ -240,7 +240,7 @@ export default function ActivityPlanDetailView({
   const type13Plots: Type13PlotItem[] = useMemo(() => {
     if (!plan?.demoPlotVisits || plan.demoPlotVisits.length === 0) return [];
     const visits = plan.demoPlotVisits.filter(
-      (v) => v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK"
+      (v) => v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK",
     );
     if (visits.length === 0) return [];
 
@@ -259,7 +259,11 @@ export default function ActivityPlanDetailView({
           productId: prod.productId,
           productName: prod.productName || prod.product?.name || "",
           quantity: Number(prod.quantity) || 1,
-          unit: prod.unit || prod.product?.unit || prod.product?.packageSizeUnit || "ขวด",
+          unit:
+            prod.unit ||
+            prod.product?.unit ||
+            prod.product?.packageSizeUnit ||
+            "ขวด",
         })),
       });
     });
@@ -286,8 +290,7 @@ export default function ActivityPlanDetailView({
   const type14Data: Type14PlanInput | null = useMemo(() => {
     if (!plan?.demoPlotVisits || plan.demoPlotVisits.length === 0) return null;
     const visits = plan.demoPlotVisits.filter(
-      (v) =>
-        v.workTypeCode === "TYPE_14" || v.demoPlot?.plotType === "HATTACK",
+      (v) => v.workTypeCode === "TYPE_14" || v.demoPlot?.plotType === "HATTACK",
     );
     if (visits.length === 0) return null;
 
@@ -481,7 +484,6 @@ export default function ActivityPlanDetailView({
                 <span>เลขที่แผน: {plan.code || planSummary.planNo}</span>
               </div>
             )}
-            <ActivityStatusBadge status={plan.status} />
           </div>
         </div>
 
@@ -866,7 +868,11 @@ export default function ActivityPlanDetailView({
               (plan as any)?.demoPlot
             }
             visitHistory={t7VisitHistory || (plan as any)?.demoPlotVisits || []}
-            currentVisit={(plan as any)?.demoPlotVisits?.[0] || t7VisitHistory?.find((v: any) => v.activityPlanId === plan?.id) || t7VisitHistory?.[0]}
+            currentVisit={
+              (plan as any)?.demoPlotVisits?.[0] ||
+              t7VisitHistory?.find((v: any) => v.activityPlanId === plan?.id) ||
+              t7VisitHistory?.[0]
+            }
           />
         )}
 
@@ -954,9 +960,7 @@ export default function ActivityPlanDetailView({
                           </div>
                         )}
                         {log.action === "UPDATE_ACTUAL" && (
-                          <div className="font-medium">
-                            แก้ไขผลการทำกิจกรรม
-                          </div>
+                          <div className="font-medium">แก้ไขผลการทำกิจกรรม</div>
                         )}
                         {log.action === "CHANGE_ACTUAL_STATUS" && (
                           <div>
@@ -965,8 +969,8 @@ export default function ActivityPlanDetailView({
                             </div>
                             {log.previousStatus && log.newStatus && (
                               <div className="text-[11px] text-slate-500 font-normal">
-                                {formatActivityResultStatus(log.previousStatus)} →{" "}
-                                {formatActivityResultStatus(log.newStatus)}
+                                {formatActivityResultStatus(log.previousStatus)}{" "}
+                                → {formatActivityResultStatus(log.newStatus)}
                               </div>
                             )}
                           </div>
