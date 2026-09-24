@@ -230,7 +230,7 @@ export default function ActivityPlanApprovalDetailView({
   const type13Plots: Type13PlotItem[] = useMemo(() => {
     if (!plan?.demoPlotVisits || plan.demoPlotVisits.length === 0) return [];
     const visits = plan.demoPlotVisits.filter(
-      (v) => v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK"
+      (v) => v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK",
     );
     if (visits.length === 0) return [];
 
@@ -249,7 +249,11 @@ export default function ActivityPlanApprovalDetailView({
           productId: prod.productId,
           productName: prod.productName || prod.product?.name || "",
           quantity: Number(prod.quantity) || 1,
-          unit: prod.unit || prod.product?.unit || prod.product?.packageSizeUnit || "ขวด",
+          unit:
+            prod.unit ||
+            prod.product?.unit ||
+            prod.product?.packageSizeUnit ||
+            "ขวด",
         })),
       });
     });
@@ -260,8 +264,7 @@ export default function ActivityPlanApprovalDetailView({
   const type14Data: Type14PlanInput | null = useMemo(() => {
     if (!plan?.demoPlotVisits || plan.demoPlotVisits.length === 0) return null;
     const visits = plan.demoPlotVisits.filter(
-      (v) =>
-        v.workTypeCode === "TYPE_14" || v.demoPlot?.plotType === "HATTACK",
+      (v) => v.workTypeCode === "TYPE_14" || v.demoPlot?.plotType === "HATTACK",
     );
     if (visits.length === 0) return null;
 
@@ -498,7 +501,6 @@ export default function ActivityPlanApprovalDetailView({
                 <span>เลขที่แผน: {plan.code || planSummary.planNo}</span>
               </div>
             )}
-            <ActivityStatusBadge status={plan.status} />
           </div>
         </div>
 
