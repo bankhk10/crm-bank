@@ -789,17 +789,17 @@ export function ActualType7FollowUp({
             demoPlotData.externalProducts.length > 0 && (
               <div className="pt-2 border-t border-slate-200/80 space-y-2">
                 <span className="text-xs font-bold text-slate-800 block">
-                  ตารางสารเคมีภายนอกตั้งต้น (Baseline External Chemicals):
+                  ตารางสารเคมีภายนอกตั้งต้น (Baseline External Chemicals)
                 </span>
                 <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-                        <th className="p-2.5 w-12 text-center">#</th>
+                        <th className="p-2.5 w-12 text-center">ลำดับ</th>
                         <th className="p-2.5">บริษัท</th>
-                        <th className="p-2.5">ชื่อสินค้า / สารเคมี</th>
-                        <th className="p-2.5">สารสำคัญ</th>
-                        <th className="p-2.5">สูตรเคมี</th>
+                        <th className="p-2.5">ชื่อสินค้า</th>
+                        <th className="p-2.5">สารออกฤทธิ์</th>
+                        <th className="p-2.5">สูตร</th>
                         <th className="p-2.5">อัตราการใช้</th>
                       </tr>
                     </thead>
