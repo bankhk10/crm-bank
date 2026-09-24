@@ -90,7 +90,7 @@ export function ActivityStatusBadge({
       <span
         className={cn(
           "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium bg-slate-100 text-slate-700",
-          className
+          className,
         )}
       >
         <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
@@ -104,10 +104,12 @@ export function ActivityStatusBadge({
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium shadow-2xs transition-colors whitespace-nowrap",
         info.className,
-        className
+        className,
       )}
     >
-      <span className={cn("h-1.5 w-1.5 rounded-full animate-pulse", info.dot)} />
+      <span
+        className={cn("h-1.5 w-1.5 rounded-full animate-pulse", info.dot)}
+      />
       {info.label}
     </span>
   );
@@ -142,7 +144,9 @@ let cachedDirectory: ApproverDirectory | null = null;
 let directoryPromise: Promise<ApproverDirectory> | null = null;
 
 export function useApproverDirectory(): ApproverDirectory | null {
-  const [directory, setDirectory] = useState<ApproverDirectory | null>(cachedDirectory);
+  const [directory, setDirectory] = useState<ApproverDirectory | null>(
+    cachedDirectory,
+  );
 
   useEffect(() => {
     if (cachedDirectory) return;
@@ -176,7 +180,9 @@ export function useApproverDirectory(): ApproverDirectory | null {
   return directory;
 }
 
-export function formatApproverRole(positionTitleOrRole?: string | null): string {
+export function formatApproverRole(
+  positionTitleOrRole?: string | null,
+): string {
   if (!positionTitleOrRole) return "ไม่ระบุ";
   const title = positionTitleOrRole.trim();
 
@@ -223,16 +229,10 @@ export function formatApproverRole(positionTitleOrRole?: string | null): string 
   ) {
     return "Sales (พนักงานขาย)";
   }
-  if (
-    title.includes("พนักงานส่งเสริมการขาย") ||
-    title === "sales_promotion"
-  ) {
+  if (title.includes("พนักงานส่งเสริมการขาย") || title === "sales_promotion") {
     return "Sales Promotion";
   }
-  if (
-    title.includes("พนักงานการตลาด") ||
-    title === "employee_mk"
-  ) {
+  if (title.includes("พนักงานการตลาด") || title === "employee_mk") {
     return "Marketing Staff";
   }
 
@@ -292,7 +292,7 @@ export function resolveCurrentOperator(
   // 2. Waiting for correction -> Creator
   if (plan.status === "WAITING_FOR_CORRECTION") {
     const creatorName = formatEmployeeName(
-      (plan as any).employee?.name || (plan as any).createdBy?.name
+      (plan as any).employee?.name || (plan as any).createdBy?.name,
     );
     return {
       roleName: "Creator",
@@ -328,8 +328,7 @@ export function resolveCurrentOperator(
   if (plan.status === "PENDING_BUDGET_APPROVAL") {
     const hasSalesPromotion =
       Number(plan.salesPromotionBudgetRequested || 0) > 0;
-    const hasMarketing =
-      Number(plan.marketingBudgetRequested || 0) > 0;
+    const hasMarketing = Number(plan.marketingBudgetRequested || 0) > 0;
 
     const spPending = hasSalesPromotion && plan.salesPromotionApproved !== true;
     const mktPending = hasMarketing && plan.marketingApproved !== true;
@@ -375,7 +374,8 @@ export function resolveCurrentOperator(
         roleName: "Sales Admin Manager",
         roleTitleTh: "ผู้จัดการแผนกบริหารงานขาย",
         displayRole: "Sales Admin Manager",
-        operatorName: precomputedOperatorName || opName || "Sales Admin Manager",
+        operatorName:
+          precomputedOperatorName || opName || "Sales Admin Manager",
         stepDescription: "อนุมัติงบส่งเสริมการขาย",
       };
     }
@@ -389,7 +389,10 @@ export function resolveCurrentOperator(
         roleName: "Sales Admin & Marketing Manager",
         roleTitleTh: "ผจก.แผนกบริหารงานขาย และ ผจก.แผนกการตลาด",
         displayRole: "Sales Admin Manager, Marketing Manager",
-        operatorName: precomputedOperatorName || opName || "Sales Admin Manager, Marketing Manager",
+        operatorName:
+          precomputedOperatorName ||
+          opName ||
+          "Sales Admin Manager, Marketing Manager",
         stepDescription: "อนุมัติงบส่งเสริมการขายและการตลาดคู่ขนาน",
       };
     }
@@ -438,7 +441,8 @@ export function resolveCurrentOperator(
           roleName: "Sales Admin Manager",
           roleTitleTh: "ผู้จัดการแผนกบริหารงานขาย",
           displayRole: "Sales Admin Manager",
-          operatorName: precomputedOperatorName || opName || "Sales Admin Manager",
+          operatorName:
+            precomputedOperatorName || opName || "Sales Admin Manager",
           stepDescription: "อนุมัติพนักงานช่วยงานฝ่ายขาย",
         };
       }
@@ -449,7 +453,8 @@ export function resolveCurrentOperator(
           roleName: "Marketing Manager",
           roleTitleTh: "ผู้จัดการแผนกการตลาด",
           displayRole: "Marketing Manager",
-          operatorName: precomputedOperatorName || opName || "Marketing Manager",
+          operatorName:
+            precomputedOperatorName || opName || "Marketing Manager",
           stepDescription: "อนุมัติพนักงานช่วยงานฝ่ายการตลาด",
         };
       }
@@ -462,7 +467,10 @@ export function resolveCurrentOperator(
           roleName: "Sales Admin & Marketing Manager",
           roleTitleTh: "ผจก.แผนกบริหารงานขาย และ ผจก.แผนกการตลาด",
           displayRole: "Sales Admin Manager, Marketing Manager",
-          operatorName: precomputedOperatorName || opName || "Sales Admin Manager, Marketing Manager",
+          operatorName:
+            precomputedOperatorName ||
+            opName ||
+            "Sales Admin Manager, Marketing Manager",
           stepDescription: "อนุมัติพนักงานช่วยงานทั้งฝ่ายขายและการตลาด",
         };
       }
@@ -473,7 +481,10 @@ export function resolveCurrentOperator(
       roleName: "Department Manager",
       roleTitleTh: "ผู้จัดการต้นสังกัดของผู้ช่วยงาน",
       displayRole: "ผู้จัดการต้นสังกัดของผู้ช่วย",
-      operatorName: precomputedOperatorName || fallbackEmp || "ผู้จัดการต้นสังกัดของผู้ช่วย",
+      operatorName:
+        precomputedOperatorName ||
+        fallbackEmp ||
+        "ผู้จัดการต้นสังกัดของผู้ช่วย",
       stepDescription: "อนุมัติพนักงานช่วยงาน",
     };
   }
@@ -497,7 +508,12 @@ export function ActivityStatusWithOperator({
   const operator = resolveCurrentOperator(plan, approverDirectory);
 
   return (
-    <div className={cn("flex flex-col items-start gap-0.5 py-0.5 min-w-[120px]", className)}>
+    <div
+      className={cn(
+        "flex flex-col items-start gap-0.5 py-0.5 min-w-[120px]",
+        className,
+      )}
+    >
       <ActivityStatusBadge
         status={plan.status}
         resultStatus={resultStatus}
@@ -507,7 +523,7 @@ export function ActivityStatusWithOperator({
         <div className="text-[11px] text-slate-500 leading-tight flex flex-wrap items-center gap-1 font-normal mt-0.5">
           <span>ผู้ดำเนินการ:</span>
           <span className="font-semibold text-slate-700">
-            {operator.operatorName || operator.displayRole}
+            {operator.roleTitleTh || operator.displayRole}
           </span>
         </div>
       )}
@@ -525,7 +541,3 @@ export {
   type ApproverUserContext,
   type ActionScopeBadge,
 } from "../application/can-approve";
-
-
-
-
