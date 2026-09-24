@@ -31,8 +31,18 @@ export function useType7aActual() {
   const [t7ExperimentDetail, setT7ExperimentDetail] = useState("");
   const [t7MainCropInfo, setT7MainCropInfo] = useState("");
   const [t7Irrigations, setT7Irrigations] = useState<string[]>([]);
+  const [t7PlantingDate, setT7PlantingDate] = useState("");
   const [t7InitialSprayDate, setT7InitialSprayDate] = useState("");
   const [t7NextSprayDate, setT7NextSprayDate] = useState("");
+  const [t7CropAgeValue, setT7CropAgeValue] = useState("");
+  const [t7CropAgeUnit, setT7CropAgeUnit] = useState("วัน");
+  const [t7GrowthStage, setT7GrowthStage] = useState("");
+  const [t7CropCondition, setT7CropCondition] = useState<
+    "สมบูรณ์" | "มีปัญหา" | "ปานกลาง" | "ทรุดโทรม" | ""
+  >("");
+  const [t7ProductResponse, setT7ProductResponse] = useState<
+    "พืชตอบสนองดี" | "พบปัญหา" | ""
+  >("");
   const [t7DemoProducts, setT7DemoProducts] = useState<DemoPlotProductItem[]>([]);
   const [t7SprayMethod, setT7SprayMethod] = useState<"SINGLE" | "TANK_MIXED">("SINGLE");
   const [t7HasExternalChemicals, setT7HasExternalChemicals] = useState(false);
@@ -97,6 +107,11 @@ export function useType7aActual() {
       if (dp.irrigations && dp.irrigations.length > 0) {
         setT7Irrigations(dp.irrigations.map((ir: any) => ir.method || ir.methodName));
       }
+      if (dp.plantingDate) {
+        setT7PlantingDate(
+          new Date(dp.plantingDate).toISOString().split("T")[0],
+        );
+      }
       if (dp.initialSprayDate) {
         setT7InitialSprayDate(
           new Date(dp.initialSprayDate).toISOString().split("T")[0],
@@ -121,6 +136,21 @@ export function useType7aActual() {
             applicationRate: ep.applicationRate,
           })),
         );
+      }
+
+      const visit1 =
+        (dp.visits &&
+          dp.visits.find(
+            (v: any) => v.visitNumber === 1 || v.activityPlanId === plan?.id,
+          )) ||
+        (plan?.demoPlotVisits && plan.demoPlotVisits[0]);
+      if (visit1) {
+        if (visit1.cropAgeValue != null)
+          setT7CropAgeValue(String(visit1.cropAgeValue));
+        if (visit1.cropAgeUnit) setT7CropAgeUnit(visit1.cropAgeUnit);
+        if (visit1.growthStage) setT7GrowthStage(visit1.growthStage);
+        if (visit1.cropCondition) setT7CropCondition(visit1.cropCondition);
+        if (visit1.productResponse) setT7ProductResponse(visit1.productResponse);
       }
       if (dp.demoProducts && dp.demoProducts.length > 0) {
         const planT7aProducts = (
@@ -309,7 +339,18 @@ export function useType7aActual() {
       if (parsed.t7CustomPlotDetail) setT7CustomPlotDetail(parsed.t7CustomPlotDetail);
       if (parsed.t7DemoPlotId) setT7DemoPlotId(parsed.t7DemoPlotId);
       if (parsed.t7UsageMethod) setT7UsageMethod(parsed.t7UsageMethod);
+      if (parsed.t7PlantingDate) setT7PlantingDate(parsed.t7PlantingDate);
       if (parsed.t7NextSprayDate) setT7NextSprayDate(parsed.t7NextSprayDate);
+      if (parsed.t7CropAgeValue) setT7CropAgeValue(parsed.t7CropAgeValue);
+      if (parsed.t7CropAgeUnit) setT7CropAgeUnit(parsed.t7CropAgeUnit);
+      if (parsed.t7GrowthStage) setT7GrowthStage(parsed.t7GrowthStage);
+      if (parsed.t7CropCondition) setT7CropCondition(parsed.t7CropCondition);
+      if (parsed.t7ProductResponse) setT7ProductResponse(parsed.t7ProductResponse);
+      if (parsed.t7SprayMethod) setT7SprayMethod(parsed.t7SprayMethod);
+      if (parsed.t7HasExternalChemicals != null)
+        setT7HasExternalChemicals(Boolean(parsed.t7HasExternalChemicals));
+      if (parsed.t7ExternalProducts && parsed.t7ExternalProducts.length > 0)
+        setT7ExternalProducts(parsed.t7ExternalProducts);
 
       if ((parsed as any).type7aDemoPlot) {
         const dp = (parsed as any).type7aDemoPlot;
@@ -340,6 +381,11 @@ export function useType7aActual() {
         if (dp.mainCropInfo) setT7MainCropInfo(dp.mainCropInfo);
         if (dp.irrigations && dp.irrigations.length > 0)
           setT7Irrigations(dp.irrigations);
+        if (dp.plantingDate) {
+          setT7PlantingDate(
+            new Date(dp.plantingDate).toISOString().split("T")[0],
+          );
+        }
         if (dp.initialSprayDate) {
           setT7InitialSprayDate(
             new Date(dp.initialSprayDate).toISOString().split("T")[0],
@@ -350,6 +396,11 @@ export function useType7aActual() {
             new Date(dp.nextSprayDate).toISOString().split("T")[0],
           );
         }
+        if (dp.cropAgeValue != null) setT7CropAgeValue(String(dp.cropAgeValue));
+        if (dp.cropAgeUnit) setT7CropAgeUnit(dp.cropAgeUnit);
+        if (dp.growthStage) setT7GrowthStage(dp.growthStage);
+        if (dp.cropCondition) setT7CropCondition(dp.cropCondition);
+        if (dp.productResponse) setT7ProductResponse(dp.productResponse);
         if (dp.sprayMethod) setT7SprayMethod(dp.sprayMethod);
         if (dp.hasExternalChemicals != null)
           setT7HasExternalChemicals(Boolean(dp.hasExternalChemicals));
@@ -426,7 +477,7 @@ export function useType7aActual() {
         t7PlotObjective,
         t7CustomPlotDetail,
         t7DemoPlotId,
-        t7UsageMethod,
+        t7UsageMethod: t7UsageMethod || "",
         t7FarmerProvince,
         t7FarmerCustomerId,
         t7FarmerName,
@@ -445,8 +496,25 @@ export function useType7aActual() {
         t7ExperimentDetail,
         t7MainCropInfo,
         t7Irrigations,
+        t7PlantingDate: t7PlantingDate || "",
+        t7PlantingAreaCondition: t7MainCropInfo || "",
         t7InitialSprayDate,
-        t7NextSprayDate,
+        t7NextSprayDate: t7NextSprayDate || "",
+        t7NextFollowUpDate: t7NextSprayDate || "",
+        t7CropAgeValue: t7CropAgeValue || "",
+        t7CropAgeUnit: t7CropAgeUnit || "วัน",
+        t7GrowthStage: t7GrowthStage || "",
+        t7CropCondition: t7CropCondition || ("" as const),
+        t7CropProblemDescription: "",
+        t7ProductResponse: t7ProductResponse || ("" as const),
+        t7ProblemDescription: "",
+        t7PlotStatus: "IN_PROGRESS" as const,
+        t7FinalYieldKg: "",
+        t7ControlYieldKg: "",
+        t7YieldIncreasePercent: "",
+        t7FarmerSatisfaction: 5,
+        t7CommercialPotential: "",
+        t7FinalSummaryNotes: "",
         t7DemoProducts,
         t7SprayMethod,
         t7HasExternalChemicals,
@@ -478,8 +546,14 @@ export function useType7aActual() {
       t7ExperimentDetail,
       t7MainCropInfo,
       t7Irrigations,
+      t7PlantingDate,
       t7InitialSprayDate,
       t7NextSprayDate,
+      t7CropAgeValue,
+      t7CropAgeUnit,
+      t7GrowthStage,
+      t7CropCondition,
+      t7ProductResponse,
       t7DemoProducts,
       t7SprayMethod,
       t7HasExternalChemicals,
@@ -527,10 +601,22 @@ export function useType7aActual() {
     setT7MainCropInfo,
     t7Irrigations,
     setT7Irrigations,
+    t7PlantingDate,
+    setT7PlantingDate,
     t7InitialSprayDate,
     setT7InitialSprayDate,
     t7NextSprayDate,
     setT7NextSprayDate,
+    t7CropAgeValue,
+    setT7CropAgeValue,
+    t7CropAgeUnit,
+    setT7CropAgeUnit,
+    t7GrowthStage,
+    setT7GrowthStage,
+    t7CropCondition,
+    setT7CropCondition,
+    t7ProductResponse,
+    setT7ProductResponse,
     t7DemoProducts,
     setT7DemoProducts,
     t7SprayMethod,

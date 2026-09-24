@@ -241,6 +241,8 @@ export function useActualSubmit({
             t13Payload = typeHooks.type13.buildType13ActualPayload();
           }
 
+          const activeType7Payload = isType7A ? t7aPayload : t7bPayload;
+
           const buildResult = buildResultSummary({
             activityResultStatus: statusState.activityResultStatus,
             cancelReason: statusState.cancelReason,
@@ -257,8 +259,7 @@ export function useActualSubmit({
             ...t4Payload,
             ...t5Payload,
             ...t6Payload,
-            ...t7aPayload,
-            ...t7bPayload,
+            ...activeType7Payload,
             ...t8Payload,
             ...t9Payload,
             ...t10Payload,

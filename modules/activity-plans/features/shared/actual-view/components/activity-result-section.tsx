@@ -300,18 +300,26 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
   const setT7ActualQuantity = t7b ? t7b.setT7ActualQuantity : (props.setT7ActualQuantity || props.setActualQuantity || (() => {}));
   const t7ChangeReason = t7b ? t7b.t7ChangeReason : (props.t7ChangeReason ?? "");
   const setT7ChangeReason = t7b ? t7b.setT7ChangeReason : (props.setT7ChangeReason || props.setChangeReason || (() => {}));
-  const t7PlantingDate = t7b ? t7b.t7PlantingDate : (props.t7PlantingDate ?? "");
-  const setT7PlantingDate = t7b ? t7b.setT7PlantingDate : (props.setT7PlantingDate || props.setPlantingDate || (() => {}));
+  const t7aPlantingDate = t7a ? t7a.t7PlantingDate : (props.t7PlantingDate ?? "");
+  const setT7aPlantingDate = t7a ? t7a.setT7PlantingDate : (props.setT7PlantingDate || props.setPlantingDate || (() => {}));
+  const t7bPlantingDate = t7b ? t7b.t7PlantingDate : (props.t7PlantingDate ?? "");
+  const setT7bPlantingDate = t7b ? t7b.setT7PlantingDate : (props.setT7PlantingDate || props.setPlantingDate || (() => {}));
   const t7PlantingAreaCondition = t7b ? t7b.t7PlantingAreaCondition : (props.t7PlantingAreaCondition ?? "");
   const setT7PlantingAreaCondition = t7b ? t7b.setT7PlantingAreaCondition : (props.setT7PlantingAreaCondition || props.setPlantingAreaCondition || (() => {}));
   const t7CropImages = t7b ? t7b.t7CropImages : (props.t7CropImages ?? []);
   const setT7CropImages = t7b ? t7b.setT7CropImages : (props.setT7CropImages || props.setCropImages || (() => {}));
-  const t7CropAgeValue = t7b ? t7b.t7CropAgeValue : (props.t7CropAgeValue ?? "");
-  const setT7CropAgeValue = t7b ? t7b.setT7CropAgeValue : (props.setT7CropAgeValue || props.setCropAgeValue || (() => {}));
-  const t7CropAgeUnit = t7b ? t7b.t7CropAgeUnit : (props.t7CropAgeUnit ?? "");
-  const setT7CropAgeUnit = t7b ? t7b.setT7CropAgeUnit : (props.setT7CropAgeUnit || props.setCropAgeUnit || (() => {}));
-  const t7GrowthStage = t7b ? t7b.t7GrowthStage : (props.t7GrowthStage ?? "");
-  const setT7GrowthStage = t7b ? t7b.setT7GrowthStage : (props.setT7GrowthStage || props.setGrowthStage || (() => {}));
+  const t7aCropAgeValue = t7a ? t7a.t7CropAgeValue : (props.t7CropAgeValue ?? "");
+  const setT7aCropAgeValue = t7a ? t7a.setT7CropAgeValue : (props.setT7CropAgeValue || props.setCropAgeValue || (() => {}));
+  const t7bCropAgeValue = t7b ? t7b.t7CropAgeValue : (props.t7CropAgeValue ?? "");
+  const setT7bCropAgeValue = t7b ? t7b.setT7CropAgeValue : (props.setT7CropAgeValue || props.setCropAgeValue || (() => {}));
+  const t7aCropAgeUnit = t7a ? t7a.t7CropAgeUnit : (props.t7CropAgeUnit ?? "วัน");
+  const setT7aCropAgeUnit = t7a ? t7a.setT7CropAgeUnit : (props.setT7CropAgeUnit || props.setCropAgeUnit || (() => {}));
+  const t7bCropAgeUnit = t7b ? t7b.t7CropAgeUnit : (props.t7CropAgeUnit ?? "วัน");
+  const setT7bCropAgeUnit = t7b ? t7b.setT7CropAgeUnit : (props.setT7CropAgeUnit || props.setCropAgeUnit || (() => {}));
+  const t7aGrowthStage = t7a ? t7a.t7GrowthStage : (props.t7GrowthStage ?? "");
+  const setT7aGrowthStage = t7a ? t7a.setT7GrowthStage : (props.setT7GrowthStage || props.setGrowthStage || (() => {}));
+  const t7bGrowthStage = t7b ? t7b.t7GrowthStage : (props.t7GrowthStage ?? "");
+  const setT7bGrowthStage = t7b ? t7b.setT7GrowthStage : (props.setT7GrowthStage || props.setGrowthStage || (() => {}));
   const t7CropCondition = t7b ? t7b.t7CropCondition : (props.t7CropCondition ?? "");
   const setT7CropCondition = t7b ? t7b.setT7CropCondition : (props.setT7CropCondition || props.setCropCondition || (() => {}));
   const t7CropProblemDescription = t7b ? t7b.t7CropProblemDescription : (props.t7CropProblemDescription ?? "");
@@ -596,8 +604,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setMainCropInfo={setT7MainCropInfo}
           irrigations={t7Irrigations}
           setIrrigations={setT7Irrigations}
-          plantingDate={t7PlantingDate}
-          setPlantingDate={setT7PlantingDate}
+          plantingDate={t7aPlantingDate}
+          setPlantingDate={setT7aPlantingDate}
           initialSprayDate={t7InitialSprayDate}
           setInitialSprayDate={setT7InitialSprayDate}
           nextSprayDate={t7aNextSprayDate}
@@ -610,12 +618,12 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setHasExternalChemicals={setT7aHasExternalChemicals}
           externalProducts={t7aExternalProducts}
           setExternalProducts={setT7aExternalProducts}
-          cropAgeValue={t7CropAgeValue}
-          setCropAgeValue={setT7CropAgeValue}
-          cropAgeUnit={t7CropAgeUnit}
-          setCropAgeUnit={setT7CropAgeUnit}
-          growthStage={t7GrowthStage}
-          setGrowthStage={setT7GrowthStage}
+          cropAgeValue={t7aCropAgeValue}
+          setCropAgeValue={setT7aCropAgeValue}
+          cropAgeUnit={t7aCropAgeUnit}
+          setCropAgeUnit={setT7aCropAgeUnit}
+          growthStage={t7aGrowthStage}
+          setGrowthStage={setT7aGrowthStage}
           usageMethod={t7aUsageMethod}
           setUsageMethod={setT7aUsageMethod}
           initialPhotos={t7InitialPhotos}
@@ -710,18 +718,18 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setPlotName={setT7PlotName}
           usageMethod={t7bUsageMethod}
           setUsageMethod={setT7bUsageMethod}
-          plantingDate={t7PlantingDate}
-          setPlantingDate={setT7PlantingDate}
+          plantingDate={t7bPlantingDate}
+          setPlantingDate={setT7bPlantingDate}
           plantingAreaCondition={t7PlantingAreaCondition}
           setPlantingAreaCondition={setT7PlantingAreaCondition}
           cropImages={t7CropImages}
           setCropImages={setT7CropImages}
-          cropAgeValue={t7CropAgeValue}
-          setCropAgeValue={setT7CropAgeValue}
-          cropAgeUnit={t7CropAgeUnit}
-          setCropAgeUnit={setT7CropAgeUnit}
-          growthStage={t7GrowthStage}
-          setGrowthStage={setT7GrowthStage}
+          cropAgeValue={t7bCropAgeValue}
+          setCropAgeValue={setT7bCropAgeValue}
+          cropAgeUnit={t7bCropAgeUnit}
+          setCropAgeUnit={setT7bCropAgeUnit}
+          growthStage={t7bGrowthStage}
+          setGrowthStage={setT7bGrowthStage}
           cropCondition={t7CropCondition}
           setCropCondition={setT7CropCondition}
           cropProblemDescription={t7CropProblemDescription}

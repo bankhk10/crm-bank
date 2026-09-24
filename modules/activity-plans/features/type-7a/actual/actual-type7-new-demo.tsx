@@ -1165,7 +1165,6 @@ export function ActualType7NewDemo({
             </div>
             <div className="bg-white p-4 rounded-xl border border-slate-200/90">
               <GalleryUpload
-                key={effectivePhotos.map((f) => f.url || f.id).join(",") || "empty"}
                 initialFiles={convertToFileMetadata(effectivePhotos)}
                 onFilesChange={handlePhotosChange}
                 maxFiles={10}

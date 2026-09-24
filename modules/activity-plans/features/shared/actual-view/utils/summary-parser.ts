@@ -885,6 +885,39 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         result.t7OtherEquipment = sprayEquipMatch[2].trim();
       }
     }
+    const sprayMethodMatch = summaryText.match(
+      /(?:วิธีการฉีดพ่น|รูปแบบการฉีดพ่น):\s*(.+)/,
+    );
+    if (sprayMethodMatch && sprayMethodMatch[1]) {
+      const sVal = sprayMethodMatch[1].split("\n")[0].trim();
+      if (
+        sVal.includes("ผสมถัง") ||
+        sVal.includes("TANK_MIXED") ||
+        sVal.includes("Tank-mixed")
+      ) {
+        result.t7SprayMethod = "TANK_MIXED";
+      } else if (
+        sVal.includes("ฉีดเดี่ยว") ||
+        sVal.includes("SINGLE") ||
+        sVal.includes("Single")
+      ) {
+        result.t7SprayMethod = "SINGLE";
+      }
+    }
+    const extChemMatch = summaryText.match(
+      /(?:ยาภายนอก|สารเคมีภายนอก):\s*(.+)/,
+    );
+    if (extChemMatch && extChemMatch[1]) {
+      result.t7HasExternalChemicals = true;
+      const extStr = extChemMatch[1].split("\n")[0].trim();
+      if (extStr.startsWith("[") && extStr.endsWith("]")) {
+        try {
+          result.t7ExternalProducts = JSON.parse(extStr);
+        } catch {
+          // not json
+        }
+      }
+    }
     const yieldMatch = summaryText.match(/ผลผลิตแปลงสาธิต:\s*(.+)/);
     if (yieldMatch && yieldMatch[1]) {
       result.t7FinalYieldKg = yieldMatch[1].replace(/[^0-9.]/g, "");
