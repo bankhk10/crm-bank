@@ -493,6 +493,7 @@ export function useType7bActual() {
         null;
 
       return {
+        t7DemoPlotId,
         t7PlannedProductId: plannedProdId,
         t7ActualProductId: actualProdId,
         t7PlannedProductName: plannedProdName,
@@ -533,6 +534,7 @@ export function useType7bActual() {
       };
     },
     [
+      t7DemoPlotId,
       t7PlannedProductId,
       t7ActualProductId,
       t7ActualQuantity,
