@@ -1,0 +1,806 @@
+import { z } from "zod";
+
+export const planStoreInputSchema = z
+  .object({
+    workTypeCode: z.string(),
+    visitPurpose: z.enum(["FARMER", "STORE"]).optional().nullable(),
+    storeId: z.string().optional().nullable(),
+    storeName: z.string().optional().nullable(),
+    province: z.string().optional().nullable(),
+    isUnregisteredFarmer: z.boolean().optional().default(false),
+    unregisteredFarmerName: z.string().optional().nullable(),
+    unregisteredFarmerPhone: z.string().optional().nullable(),
+    targetAmount: z.number().optional().nullable(),
+    subDealerStore: z.string().optional().nullable(),
+    remarks: z.string().optional().nullable(),
+    notes: z.string().optional().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.workTypeCode === "TYPE_1" || data.workTypeCode === "TYPE_2") {
+      const purpose = data.visitPurpose || "FARMER";
+      if (purpose === "FARMER") {
+        if (!data.province || !data.province.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "กรุณาเลือกจังหวัดสำหรับเข้าพบเกษตรกร",
+            path: ["province"],
+          });
+        }
+        if (data.isUnregisteredFarmer) {
+          if (
+            !data.unregisteredFarmerName ||
+            !data.unregisteredFarmerName.trim()
+          ) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "กรุณาระบุชื่อ - สกุล เกษตรกร",
+              path: ["unregisteredFarmerName"],
+            });
+          }
+          const cleanedPhone = (data.unregisteredFarmerPhone || "").replace(
+            /[-\s]/g,
+            "",
+          );
+          if (cleanedPhone && !/^[0-9]{9,10}$/.test(cleanedPhone)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "กรุณาระบุเบอร์โทรศัพท์ที่ถูกต้อง (9-10 หลัก)",
+              path: ["unregisteredFarmerPhone"],
+            });
+          }
+        } else {
+          if (!data.storeId || !data.storeId.trim()) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "กรุณาเลือกเกษตรกรจากรายชื่อ",
+              path: ["storeId"],
+            });
+          }
+        }
+      } else if (purpose === "STORE") {
+        if (data.isUnregisteredFarmer) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "เข้าพบร้านค้าไม่อนุญาตให้เลือกไม่มีในระบบ",
+            path: ["isUnregisteredFarmer"],
+          });
+        }
+        if (!data.storeId || !data.storeId.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "กรุณาเลือกร้านค้า",
+            path: ["storeId"],
+          });
+        }
+      }
+    } else if (data.workTypeCode === "TYPE_6") {
+      const hasStoreId = Boolean(data.storeId && data.storeId.trim());
+      const hasStoreName = Boolean(data.storeName && data.storeName.trim());
+      if (!hasStoreId && !hasStoreName) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "กรุณาระบุรายชื่อลูกค้า / ร้านค้า หรือเลือกจากรายชื่อ",
+          path: ["storeId"],
+        });
+      }
+      if (!data.remarks || !data.remarks.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "กรุณาเลือกประเภทปัญหา",
+          path: ["remarks"],
+        });
+      } else if (
+        data.remarks === "อื่นๆ ระบุ" &&
+        (!data.notes || !data.notes.trim())
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "กรุณาระบุรายละเอียดเพิ่มเติมสำหรับประเภทปัญหาอื่นๆ",
+          path: ["notes"],
+        });
+      }
+    } else {
+      if (!data.storeId || !data.storeId.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "กรุณาเลือกร้านค้า",
+          path: ["storeId"],
+        });
+      }
+    }
+  });
+
+export const planProductInputSchema = z.object({
+  workTypeCode: z.string(),
+  storeId: z.string().optional().nullable(),
+  productId: z.string(),
+  productName: z.string().optional().nullable(),
+  masterPrice: z.number().optional().nullable(),
+  unitPrice: z.number().optional().nullable(),
+  isPriceOverridden: z.boolean().optional(),
+  targetQuantity: z.number().optional().nullable(),
+  targetAmount: z.number().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+export const planMarketingItemInputSchema = z.object({
+  category: z.string(),
+  materialName: z.string(),
+  unit: z.string().optional().nullable(),
+  unitPrice: z.number().default(0),
+  quantity: z.number().int().default(1),
+  totalAmount: z.number().default(0),
+});
+
+export const planPromotionItemInputSchema = z.object({
+  budgetType: z.string(),
+  detail: z.string(),
+  amount: z.number().default(0),
+});
+
+export const tourDataInputSchema = z.object({
+  tourType: z.enum(["CENTRAL", "STORE"]),
+  tourSize: z.enum(["SMALL", "LARGE"]).optional().nullable(),
+  country: z.string().optional().nullable(),
+  storeId: z.string().optional().nullable(),
+  destination: z.string().optional().nullable(),
+});
+
+export const demoPlotDataInputSchema = z.object({
+  id: z.string().optional().nullable(),
+  name: z.string().min(1, "กรุณากรอกชื่อแปลง"),
+  customerId: z.string().optional().nullable(),
+  ownerName: z.string().default(""),
+  cropCategory: z.string().min(1, "กรุณาเลือกหมวดพืช"),
+  cropName: z.string().min(1, "กรุณาเลือกหรือระบุพืช"),
+  customCropName: z.string().optional().nullable(),
+  areaRai: z.number().optional().nullable(),
+  treeCount: z.number().optional().nullable(),
+  location: z.string().optional().nullable(),
+  province: z.string().min(1, "กรุณาเลือกจังหวัด"),
+  district: z.string().min(1, "กรุณาเลือกอำเภอ"),
+  categoryId: z.string().min(1, "กรุณาเลือกหมวดสินค้า"),
+  objective: z.string().min(1, "กรุณากรอกวัตถุประสงค์"),
+});
+
+// ── TYPE_13 ("ฉีดแปลงแฮตแทค") Validations ─────────────────────────────
+export const type13ProductLineSchema = z.object({
+  id: z.string().optional(),
+  productId: z.string().min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
+  productName: z.string().optional().nullable(),
+  quantity: z.number().min(1, "จำนวนต้องอย่างน้อย 1"),
+  unit: z.string().optional().nullable(),
+});
+
+export const type13PlotItemSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, "กรุณาระบุชื่อแปลง"),
+  storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),
+  ownerName: z.string().optional().nullable(),
+  province: z.string().min(1, "กรุณาเลือกจังหวัด"),
+  district: z.string().min(1, "กรุณาเลือกอำเภอ"),
+  products: z
+    .array(type13ProductLineSchema)
+    .min(1, "ต้องระบุตัวยา/ผลิตภัณฑ์อย่างน้อย 1 รายการ"),
+});
+
+export const type13PlanInputSchema = z.object({
+  plots: z
+    .array(type13PlotItemSchema)
+    .min(1, "ต้องมีแปลงอย่างน้อย 1 แปลง")
+    .max(10, "เพิ่มแปลงได้สูงสุดไม่เกิน 10 แปลง"),
+});
+
+export const type13SprayProductSchema = z.object({
+  productId: z.string().min(1, "กรุณาเลือกสินค้า"),
+  productName: z.string().optional().nullable(),
+  actualRate: z.string().min(1, "กรุณาระบุอัตราการฉีดพ่นจริง"),
+  quantityUsed: z.number().min(0, "จำนวนที่ใช้ต้องไม่ติดลบ"),
+  unit: z.string().optional().nullable(),
+});
+
+export const type13SprayExternalSchema = z.object({
+  company: z.string().min(1, "กรุณาระบุบริษัท"),
+  productName: z.string().min(1, "กรุณาระบุชื่อยา/สารเคมี"),
+  activeIngredient: z.string().optional().nullable(),
+  formula: z.string().min(1, "กรุณาเลือกสูตรยา"),
+  customFormula: z.string().optional().nullable(),
+  applicationRate: z.string().min(1, "กรุณาระบุอัตราการใช้"),
+});
+
+export const type13SprayingRoundSchema = z.object({
+  id: z.string().optional(),
+  demoPlotId: z.string().min(1),
+  roundNumber: z.number().min(1),
+  sprayDate: z.union([z.string(), z.date()]),
+  sprayMethod: z.enum(["SINGLE", "TANK_MIXED"]),
+  sprayEquipment: z.string().min(1, "กรุณาระบุอุปกรณ์ที่ใช้"),
+  otherEquipment: z.string().optional().nullable(),
+  productResponse: z.string().min(1, "กรุณาระบุผลหลังการฉีดพ่น"),
+  problemDetail: z.string().optional().nullable(),
+  products: z.array(type13SprayProductSchema),
+  externalProducts: z.array(type13SprayExternalSchema).optional().default([]),
+  attachments: z
+    .array(z.any())
+    .max(2, "รูปภาพก่อนฉีดพ่นต้องไม่เกิน 2 รูปต่อรอบ")
+    .optional()
+    .default([]),
+});
+
+export const type13PlotActualSchema = z.object({
+  demoPlotId: z.string().min(1),
+  latitude: z.string().min(1, "กรุณาระบุละติจูด (Latitude) ของแปลง"),
+  longitude: z.string().min(1, "กรุณาระบุลองจิจูด (Longitude) ของแปลง"),
+  sprayRounds: z
+    .array(type13SprayingRoundSchema)
+    .min(1, "ต้องมีรอบการฉีดพ่นอย่างน้อย 1 รอบ"),
+});
+
+// ── TYPE_14 ("ติดตามแปลงแฮทแทค") Validations ────────────────────────────
+export const type14TrackingItemSchema = z.object({
+  id: z.string().optional(),
+  visitDate: z.union([z.string(), z.date()]),
+  daysSinceStart: z.number().min(0, "จำนวนวันหลังฉีดพ่นต้องไม่ติดลบ"),
+  notes: z.string().optional().nullable(),
+  attachments: z
+    .array(z.any())
+    .max(5, "รูปผลหลังการฉีดพ่นต้องไม่เกิน 5 รูปต่อครั้ง")
+    .optional()
+    .default([]),
+});
+
+export const type14PlanInputSchema = z.object({
+  mode: z.enum(["EXISTING_PLOT", "NEW_PLOT"]),
+  demoPlotId: z.string().optional().nullable(),
+  name: z.string().min(1, "กรุณาระบุชื่อแปลง"),
+  storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),
+  ownerName: z.string().optional().nullable(),
+  province: z.string().min(1, "กรุณาเลือกจังหวัด"),
+  district: z.string().min(1, "กรุณาเลือกอำเภอ"),
+  latitude: z.string().min(1, "กรุณาระบุละติจูด (Latitude)"),
+  longitude: z.string().min(1, "กรุณาระบุลองจิจูด (Longitude)"),
+  trackings: z
+    .array(type14TrackingItemSchema)
+    .min(1, "ต้องมีข้อมูลการติดตามแปลงอย่างน้อย 1 รายการ"),
+});
+
+export type Type13ProductLine = z.infer<typeof type13ProductLineSchema>;
+export type Type13PlotItem = z.infer<typeof type13PlotItemSchema>;
+export type Type13PlanInput = z.infer<typeof type13PlanInputSchema>;
+export type Type13SprayingRound = z.infer<typeof type13SprayingRoundSchema>;
+export type Type13PlotActual = z.infer<typeof type13PlotActualSchema>;
+export type Type14TrackingItem = z.infer<typeof type14TrackingItemSchema>;
+export type Type14PlanInput = z.infer<typeof type14PlanInputSchema>;
+
+export const activityPlanSchema = z
+  .object({
+    title: z.string().min(1, "กรุณากรอกชื่อกิจกรรม"),
+    startDate: z.coerce.date({
+      required_error: "กรุณาระบุวันและเวลาเริ่มต้น",
+      invalid_type_error: "รูปแบบวันที่เริ่มต้นไม่ถูกต้อง",
+    }),
+    endDate: z.coerce.date({
+      required_error: "กรุณาระบุวันและเวลาสิ้นสุด",
+      invalid_type_error: "รูปแบบวันที่สิ้นสุดไม่ถูกต้อง",
+    }),
+    activityTypeId: z.string().min(1, "กรุณาเลือกประเภทกิจกรรม"),
+    workTypeCodes: z.array(z.string()).optional(),
+    location: z
+      .string()
+      .trim()
+      .nullable()
+      .optional()
+      .transform((val) => (val && val.trim() ? val.trim() : null)),
+    province: z.string().optional().nullable(),
+    district: z.string().optional().nullable(),
+    objective: z.string().optional().default(""),
+    description: z.string().optional().nullable(),
+    notes: z.string().optional().nullable(),
+    // Target metrics (TYPE_8, TYPE_10)
+    targetAttendeesCount: z.number().int().optional().nullable(),
+    targetBookingSales: z.number().optional().nullable(),
+    demoPlotId: z.string().optional().nullable(),
+    demoPlotData: demoPlotDataInputSchema.optional().nullable(),
+    // งบประมาณ (ที่ขอ)
+    salesPromotionBudgetRequested: z
+      .number()
+      .nonnegative("งบส่งเสริมการขายต้องมีค่ามากกว่าหรือเท่ากับ 0")
+      .optional()
+      .nullable(),
+    marketingBudgetRequested: z
+      .number()
+      .nonnegative("งบการตลาดต้องมีค่ามากกว่าหรือเท่ากับ 0")
+      .optional()
+      .nullable(),
+    totalBudgetRequested: z.number().optional().nullable(),
+    // Normalized child collections
+    planStores: z.array(planStoreInputSchema).default([]),
+    planProducts: z.array(planProductInputSchema).default([]),
+    marketingItems: z.array(planMarketingItemInputSchema).default([]),
+    promotionItems: z.array(planPromotionItemInputSchema).default([]),
+    tourData: tourDataInputSchema.optional().nullable(),
+    helperEmployeeIds: z.array(z.string()).default([]),
+    type13Plots: z.array(type13PlotItemSchema).optional(),
+    type14Data: type14PlanInputSchema.optional(),
+    // For transition: raw form items payload (will be normalized in application mapper)
+    items: z.array(z.record(z.any())).optional().default([]),
+  })
+  .refine((data) => data.endDate > data.startDate, {
+    message: "วันเวลาสิ้นสุดต้องหลังจากวันเวลาเริ่มต้น",
+    path: ["endDate"],
+  });
+
+export const activityApprovalSchema = z.object({
+  action: z.enum(["APPROVE", "REJECT", "REQUEST_CORRECTION"], {
+    required_error: "กรุณาระบุการดำเนินการ",
+  }),
+  comment: z.string().optional().nullable(),
+  selectedHelperEmployeeIds: z.array(z.string()).optional(),
+});
+
+export const actualRecordSchema = z.object({
+  planId: z.string().optional(),
+  plotName: z.string().min(1, "กรุณากรอกชื่อแปลงสาธิต"),
+  usageMethod: z.string().min(1, "กรุณากรอกวิธีการใช้ / อัตราการใช้"),
+  cropAgeValue: z.coerce.number().min(0, "อายุพืชต้องไม่ติดลบ"),
+  cropAgeUnit: z.string().default("วัน"),
+  growthStage: z.string().min(1, "กร้าเลือกระยะการเจริญเติบโต"),
+  cropCondition: z.enum(["สมบูรณ์", "ไม่เปลี่ยนแปลง", "มีปัญหา"], {
+    required_error: "กรุณาเลือกสภาพพืช",
+  }),
+  cropProblemDescription: z
+    .string()
+    .max(500, "ระบุปัญหาที่พบ (สภาพพืช) ต้องไม่เกิน 500 ตัวอักษร")
+    .optional()
+    .nullable(),
+  productResponse: z.enum(["พืชตอบสนองดี", "ยังไม่เห็นผลชัดเจน", "พบปัญหา"], {
+    required_error: "กรุณาเลือกผลการใช้ผลิตภัณฑ์",
+  }),
+  problemDescription: z
+    .string()
+    .max(500, "ระบุปัญหาที่พบต้องไม่เกิน 500 ตัวอักษร")
+    .optional()
+    .nullable(),
+  plotImageUrls: z.array(z.string()).default([]),
+  activityFormat: z.string().min(1, "กรุณาเลือกรูปแบบกิจกรรม"),
+  actualSales: z.coerce.number().min(0, "ยอดขายต้องไม่ติดลบ"),
+  actualAttendees: z.coerce.number().min(0, "จำนวนลูกค้าต้องไม่ติดลบ"),
+  atmosphereImageUrls: z.array(z.string()).default([]),
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// TYPE_7A Demo Plot Input Schemas
+// ────────────────────────────────────────────────────────────────────────────
+export const type7aDemoPlotProductInputSchema = z.object({
+  productId: z.string().min(1, "กรุณาเลือกสินค้าสาธิต"),
+  productName: z.string().optional().nullable(),
+  quantity: z.coerce.number().min(0.01, "จำนวนสินค้าต้องมากกว่า 0"),
+  unit: z.string().optional().nullable(),
+  applicationRate: z.string().min(1, "กรุณาระบุอัตราการใช้ (application rate)"),
+});
+
+export const type7aDemoPlotExternalProductInputSchema = z.object({
+  company: z.string().min(1, "กรุณาระบุบริษัท"),
+  productName: z.string().min(1, "กรุณาระบุชื่อยา/เคมี"),
+  activeIngredient: z.string().optional().nullable(),
+  formula: z.string().min(1, "กรุณาเลือกสูตรยา"),
+  customFormula: z.string().optional().nullable(),
+  applicationRate: z.string().min(1, "กรุณาระบุอัตราการใช้"),
+});
+
+export const type7aDemoPlotInputSchema = z
+  .object({
+    customerId: z.string().optional().nullable(),
+    farmerCustomerId: z.string().optional().nullable(),
+    ownerName: z.string().min(1, "กรุณาระบุชื่อเกษตรกรเจ้าของแปลง"),
+    ownerPhone: z.string().optional().nullable(),
+    ownerProvince: z.string().optional().nullable(),
+    isUnregisteredFarmer: z.boolean().default(false),
+    province: z.string().min(1, "กรุณาเลือกจังหวัด"),
+    district: z.string().optional().nullable(),
+    latitude: z.coerce.number({ required_error: "กรุณาระบุละติจูด" }),
+    longitude: z.coerce.number({ required_error: "กรุณาระบุลองจิจูด" }),
+    plotName: z.string().min(1, "กรุณากรอกชื่อแปลงสาธิต"),
+    dealerName: z.string().optional().nullable(),
+    cropCategory: z.string().min(1, "กรุณาระบุหมวดพืช"),
+    cropName: z.string().min(1, "กรุณาระบุชื่อพืช"),
+    customCropName: z.string().optional().nullable(),
+    areaRai: z.coerce.number().optional().nullable(),
+    treeCount: z.coerce.number().int().optional().nullable(),
+    objective: z.string().optional().nullable(),
+    experimentDetail: z.string().optional().nullable(),
+    mainCropInfo: z.string().optional().nullable(),
+    plantingDate: z.coerce.date().optional().nullable(),
+    initialSprayDate: z.coerce.date().optional().nullable(),
+    nextSprayDate: z.coerce.date().optional().nullable(),
+    sprayMethod: z.enum(["SINGLE", "TANK_MIXED"]),
+    hasExternalChemicals: z.boolean().default(false),
+    demoProducts: z
+      .array(type7aDemoPlotProductInputSchema)
+      .min(1, "กรุณาระบุสินค้าสาธิตอย่างน้อย 1 รายการ"),
+    externalProducts: z
+      .array(type7aDemoPlotExternalProductInputSchema)
+      .max(4, "ยาภายนอกระบุได้สูงสุด 4 รายการ")
+      .optional()
+      .default([]),
+    irrigations: z.array(z.string()).default([]),
+    usageMethod: z.string().optional().nullable(),
+    notes: z.string().optional().nullable(),
+    cropAgeValue: z.coerce.number().int().optional().nullable(),
+    cropAgeUnit: z.string().default("วัน"),
+    growthStage: z.string().optional().nullable(),
+    cropCondition: z.string().optional().nullable(),
+    productResponse: z.string().optional().nullable(),
+  })
+  .refine(
+    (data) => {
+      if (data.isUnregisteredFarmer) {
+        return (
+          typeof data.ownerName === "string" &&
+          data.ownerName.trim().length > 0 &&
+          typeof data.ownerPhone === "string" &&
+          data.ownerPhone.trim().length > 0
+        );
+      }
+      return true;
+    },
+    {
+      message: "กรณีไม่มีเกษตรกรในระบบ กรุณากรอกชื่อและเบอร์โทรศัพท์",
+      path: ["ownerPhone"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.sprayMethod === "TANK_MIXED" && data.hasExternalChemicals) {
+        for (const ep of data.externalProducts || []) {
+          if (
+            ep.formula === "อื่นๆ" &&
+            (!ep.customFormula || !ep.customFormula.trim())
+          ) {
+            return false;
+          }
+        }
+      }
+      return true;
+    },
+    {
+      message: "กรณีเลือกสูตรยา 'อื่นๆ' กรุณาระบุรายละเอียด",
+      path: ["externalProducts"],
+    },
+  );
+
+/**
+ * Schema สำหรับบันทึกผลหลังกิจกรรม (ActivityResult)
+ * สร้างได้เฉพาะเมื่อ ActivityPlan.status = APPROVED
+ */
+export const activityResultSchema = z
+  .object({
+    type7aDemoPlot: type7aDemoPlotInputSchema.optional().nullable(),
+    actualStartDate: z.coerce.date({
+      required_error: "กรุณาระบุวันที่เริ่มต้นจริง",
+    }),
+    actualEndDate: z.coerce.date({
+      required_error: "กรุณาระบุวันที่สิ้นสุดจริง",
+    }),
+    actualAttendeesCount: z.coerce.number().int().min(0).optional().nullable(),
+    resultStatus: z
+      .enum(["PARTIAL", "COMPLETED", "POSTPONED", "CANCELLED", "FAILED"], {
+        required_error: "กรุณาเลือกผลการดำเนินงาน",
+      })
+      .default("COMPLETED"),
+    resultSummary: z.string().optional().nullable(),
+    discussionResult: z.string().optional().nullable(),
+    productAdvice: z.string().optional().nullable(),
+    salesOpportunity: z.string().optional().nullable(),
+    problemFound: z.string().optional().nullable(),
+    nextAction: z.string().optional().nullable(),
+    nextMeetingDate: z.coerce.date().optional().nullable(),
+    farmerHomeAddress: z.string().optional().nullable(),
+    plotLatitude: z.coerce
+      .number()
+      .min(-90, "ละติจูดต้องอยู่ระหว่าง -90 ถึง 90")
+      .max(90, "ละติจูดต้องอยู่ระหว่าง -90 ถึง 90")
+      .optional()
+      .nullable(),
+    plotLongitude: z.coerce
+      .number()
+      .min(-180, "ลองจิจูดต้องอยู่ระหว่าง -180 ถึง 180")
+      .max(180, "ลองจิจูดต้องอยู่ระหว่าง -180 ถึง 180")
+      .optional()
+      .nullable(),
+    // กรณีเลื่อน หรือ ยกเลิก
+    cancelReason: z.string().optional().nullable(),
+    postponedDate: z.coerce.date().optional().nullable(),
+    postponedTime: z.string().optional().nullable(),
+    postponedReason: z.string().optional().nullable(),
+    postponedNotes: z.string().optional().nullable(),
+    // งบประมาณที่ใช้จริง
+    actualSalesPromotionSpent: z.coerce.number().min(0).optional().nullable(),
+    actualMarketingSpent: z.coerce.number().min(0).optional().nullable(),
+    actualTotalSpent: z.coerce.number().min(0).optional().nullable(),
+    // KPI ตามประเภทงาน
+    salesResultAmount: z.coerce.number().min(0).optional().nullable(),
+    salesOrdersCount: z.coerce.number().int().min(0).optional().nullable(),
+    collectResultAmount: z.coerce.number().min(0).optional().nullable(),
+    demoPlotsCreated: z.coerce.number().int().min(0).optional().nullable(),
+    demoPlotsFollowedUp: z.coerce.number().int().min(0).optional().nullable(),
+    distributorsCount: z.coerce.number().int().min(0).optional().nullable(),
+    farmersCount: z.coerce.number().int().min(0).optional().nullable(),
+    // Normalized arrays
+    saleResults: z
+      .array(
+        z.object({
+          workTypeCode: z.string(),
+          storeId: z.string().optional().nullable(),
+          productId: z.string(),
+          productName: z.string().optional().nullable(),
+          actualQuantity: z.coerce.number().int().min(0),
+          actualUnitPrice: z.coerce.number().min(0),
+          actualTotal: z.coerce.number().min(0),
+          unclosedReason: z.string().optional().nullable(),
+          isAdditional: z.boolean().optional(),
+        }),
+      )
+      .optional(),
+    stockResults: z
+      .array(
+        z.object({
+          storeId: z.string(),
+          productId: z.string(),
+          remainingQuantity: z.coerce.number().int().min(0),
+          stockStatus: z.string().optional().nullable(),
+          reorderOpportunity: z.string().optional().nullable(),
+          remarks: z.string().optional().nullable(),
+        }),
+      )
+      .optional(),
+    surveyResults: z
+      .array(
+        z.object({
+          storeId: z.string(),
+          productId: z.string().optional().nullable(),
+          competitorBrand: z.string(),
+          competitorProduct: z.string(),
+          // Normalized 4-tier pricing & product highlights (TYPE_5)
+          posPrice: z.coerce.number().optional().nullable(),
+          dealerPrice: z.coerce.number().optional().nullable(),
+          subdealerPrice: z.coerce.number().optional().nullable(),
+          farmerPrice: z.coerce.number().optional().nullable(),
+          sellingPoints: z.string().optional().nullable(),
+          // Legacy fields
+          competitorPrice: z.coerce.number().optional().nullable(),
+          competitorUnit: z.string().optional().nullable(),
+          promotionDetail: z.string().optional().nullable(),
+        }),
+      )
+      .optional(),
+    demoResults: z
+      .array(
+        z
+          .object({
+            demoPlotId: z.string().optional().nullable(),
+            plannedProductId: z.string().optional().nullable(),
+            actualProductId: z.string().optional().nullable(),
+            changeReason: z.string().optional().nullable(),
+            plotObjective: z.string().optional().nullable(),
+            cropAgeValue: z.string().optional().nullable(),
+            cropAgeUnit: z.string().optional().nullable(),
+            growthStage: z.string().optional().nullable(),
+            cropCondition: z.string().optional().nullable(),
+            productResponse: z.string().optional().nullable(),
+            problemDescription: z.string().optional().nullable(),
+            finalYieldKg: z.coerce.number().optional().nullable(),
+            controlYieldKg: z.coerce.number().optional().nullable(),
+            satisfactionScore: z.coerce.number().int().optional().nullable(),
+          })
+          .refine(
+            (data) => {
+              if (
+                data.plannedProductId &&
+                data.actualProductId &&
+                data.plannedProductId !== data.actualProductId
+              ) {
+                return (
+                  typeof data.changeReason === "string" &&
+                  data.changeReason.trim().length > 0
+                );
+              }
+              return true;
+            },
+            {
+              message: "กรุณาระบุเหตุผลการเปลี่ยนสินค้าหน้างาน",
+              path: ["changeReason"],
+            },
+          ),
+      )
+      .optional(),
+    followupResults: z
+      .array(
+        z.object({
+          storeId: z.string().optional().nullable(),
+          productId: z.string(),
+          productName: z.string().optional().nullable(),
+          usageResult: z.string().optional().nullable(),
+          followupDetail: z.string().optional().nullable(),
+          problemDetail: z.string().optional().nullable(),
+          isAdditional: z.boolean().default(false),
+        }),
+      )
+      .optional(),
+    issueResults: z
+      .array(
+        z.object({
+          id: z.string().optional(),
+          productId: z.string().optional().nullable(),
+          productName: z.string().optional().nullable(),
+          lotNumber: z.string().optional().nullable(),
+          purchaseChannel: z.string(),
+          storeId: z.string().optional().nullable(),
+          storeName: z.string().optional().nullable(),
+          issueType: z.string(),
+          detail: z.string().optional().nullable(),
+          status: z.string().default("เสร็จสิ้น"),
+        }),
+      )
+      .optional(),
+    sprayRounds: z
+      .array(
+        z.object({
+          demoPlotId: z.string(),
+          roundNumber: z.coerce.number().int(),
+          sprayDate: z.coerce.date().or(z.string()),
+          sprayMethod: z.string(),
+          sprayEquipment: z.string(),
+          otherEquipment: z.string().optional().nullable(),
+          productResponse: z.string(),
+          problemDetail: z.string().optional().nullable(),
+          workTypeCode: z.string().optional().nullable(),
+          products: z.array(
+            z.object({
+              productId: z.string(),
+              productName: z.string().optional().nullable(),
+              baselineRate: z.string().optional().nullable(),
+              actualRate: z.string(),
+              quantityUsed: z.coerce.number(),
+              unit: z.string().optional().nullable(),
+            }),
+          ),
+          externalProducts: z
+            .array(
+              z.object({
+                company: z.string(),
+                productName: z.string(),
+                activeIngredient: z.string().optional().nullable(),
+                formula: z.string(),
+                customFormula: z.string().optional().nullable(),
+                applicationRate: z.string(),
+              }),
+            )
+            .optional()
+            .default([]),
+          attachments: z
+            .array(
+              z.object({
+                fileUrl: z.string(),
+                fileName: z.string().optional(),
+                fileSize: z.number().optional(),
+                mimeType: z.string().optional(),
+              }),
+            )
+            .optional()
+            .default([]),
+        }),
+      )
+      .optional(),
+    type13PlotsActual: z
+      .array(
+        z.object({
+          demoPlotId: z.string(),
+          latitude: z.union([z.string(), z.number()]),
+          longitude: z.union([z.string(), z.number()]),
+        }),
+      )
+      .optional(),
+    attachments: z
+      .array(
+        z.object({
+          workTypeCode: z.string().optional().nullable(),
+          storeId: z.string().optional().nullable(),
+          productId: z.string().optional().nullable(),
+          surveyItemId: z.string().optional().nullable(),
+          issueItemId: z.string().optional().nullable(),
+          demoPlotId: z.string().optional().nullable(),
+          category: z.any().optional(),
+          fileUrl: z.string(),
+          fileName: z.string(),
+          fileSize: z.number().optional().nullable(),
+          mimeType: z.string().optional().nullable(),
+        }),
+      )
+      .refine(
+        (items) => {
+          const type1PlotPhotos = items.filter(
+            (a) =>
+              (a.workTypeCode === "TYPE_1" ||
+                a.workTypeCode === "เข้าพบเกษตรกร") &&
+              String(a.category) === "PLOT",
+          );
+          return type1PlotPhotos.length <= 5;
+        },
+        {
+          message: "รูปภาพแปลงสำหรับเข้าพบเกษตรกรต้องไม่เกิน 5 รูป",
+          path: ["attachments"],
+        },
+      )
+      .refine(
+        (items) => {
+          const type6Photos = items.filter(
+            (a) =>
+              a.workTypeCode === "TYPE_6" ||
+              a.workTypeCode === "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา",
+          );
+          return type6Photos.length <= 5;
+        },
+        {
+          message:
+            "รูปภาพสำหรับตรวจสอบเรื่องร้องเรียน / แก้ปัญหา ต้องไม่เกิน 5 รูป",
+          path: ["attachments"],
+        },
+      )
+      .refine(
+        (items) => {
+          const type7aPhotos = items.filter(
+            (a) =>
+              a.workTypeCode === "TYPE_7A" ||
+              a.workTypeCode === "ทำแปลงสาธิต",
+          );
+          return type7aPhotos.length <= 10;
+        },
+        {
+          message: "ภาพถ่ายสภาพแปลงเริ่มต้นต้องไม่เกิน 10 รูป",
+          path: ["attachments"],
+        },
+      )
+      .optional(),
+  })
+  .refine((data) => data.actualEndDate >= data.actualStartDate, {
+    message: "วันเวลาสิ้นสุดต้องไม่ก่อนวันเวลาเริ่มต้น",
+    path: ["actualEndDate"],
+  });
+
+// ────────────────────────────────────────────────────────────────────────────
+// Utility: คำนวณ Fiscal Dimensions จาก startDate (ใช้ใน application layer)
+// ────────────────────────────────────────────────────────────────────────────
+
+export function computeFiscalFields(startDate: Date, endDate: Date) {
+  const year = startDate.getFullYear();
+  const month = startDate.getMonth() + 1; // 1–12
+  const quarter = Math.ceil(month / 3); // 1–4
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const durationDays = Math.max(
+    1,
+    Math.ceil((endDate.getTime() - startDate.getTime()) / msPerDay),
+  );
+  return {
+    fiscalYear: year,
+    fiscalMonth: month,
+    fiscalQuarter: quarter,
+    durationDays,
+  };
+}
+
+/**
+ * คำนวณยอดงบรวม (auto-sum)
+ */
+export function computeTotalBudget(
+  salesPromotion?: number | null,
+  marketing?: number | null,
+): number {
+  return (salesPromotion ?? 0) + (marketing ?? 0);
+}
+
+export type ActivityPlanFormValues = z.input<typeof activityPlanSchema>;
+export type ActivityApprovalFormValues = z.infer<typeof activityApprovalSchema>;
+export type ActivityActualFormValues = z.infer<typeof actualRecordSchema>;
+export type ActivityResultFormValues = z.infer<typeof activityResultSchema>;
+

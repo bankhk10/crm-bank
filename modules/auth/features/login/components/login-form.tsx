@@ -51,7 +51,10 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
         });
 
         if (result?.error) {
-          if (result.error === "InactiveAccount" || result.error?.includes("InactiveAccount")) {
+          if (
+            result.error === "InactiveAccount" ||
+            result.error?.includes("InactiveAccount")
+          ) {
             setError("บัญชีของคุณไม่ได้อยู่ในสถานะใช้งาน");
           } else {
             setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
@@ -67,7 +70,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
         setError("เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
       }
     },
-    [router, remember, callbackUrl, isSubmitting]
+    [router, remember, callbackUrl, isSubmitting],
   );
 
   const handleAdminLogin = async () => {
@@ -87,7 +90,14 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
       });
 
       if (result?.error) {
-        setError("Admin dev login ล้มเหลว");
+        if (
+          result.error === "InactiveAccount" ||
+          result.error?.includes("InactiveAccount")
+        ) {
+          setError("บัญชีของคุณไม่ได้อยู่ในสถานะใช้งาน");
+        } else {
+          setError("Admin dev login ล้มเหลว: อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+        }
         setIsSubmitting(false); // Only stop loading on error
         return;
       }

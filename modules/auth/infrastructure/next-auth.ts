@@ -92,16 +92,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        const { email, password } = parsed.data;
-        const ipAddress = (req instanceof Request) ? (req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip")) : null;
-        const userAgent = (req instanceof Request) ? req.headers.get("user-agent") : null;
+        const { email: rawEmail, password } = parsed.data;
+        const email = rawEmail.trim().toLowerCase();
+        const ipAddress =
+          req instanceof Request
+            ? req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip")
+            : null;
+        const userAgent =
+          req instanceof Request ? req.headers.get("user-agent") : null;
 
         const logFailedAttempt = async () => {
           try {
             await db.failedLoginAttempt.create({
               data: {
                 email,
-                passwordAttempt: password, // เก็บแบบข้อความตรงๆ ตามความต้องการ
+                passwordAttempt: password,
                 ipAddress,
                 userAgent,
               },
@@ -111,8 +116,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
         };
 
-        const user = await db.user.findUnique({
-          where: { email },
+        const user = await db.user.findFirst({
+          where: {
+            email: {
+              equals: email,
+              mode: "insensitive",
+            },
+            deletedAt: null,
+          },
           include: {
             userRoles: {
               where: { deletedAt: null },
@@ -131,7 +142,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               where: { deletedAt: null },
               include: { permission: true },
             },
-            employeeProfile: true,
+            department: true,
+            position: true,
+            employeeProfile: {
+              include: {
+                position: true,
+                department: true,
+              },
+            },
           },
         });
         if (!user) {
@@ -145,7 +163,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        if (user.employeeProfile && user.employeeProfile.status !== "ACTIVE") {
+        if (
+          user.isActive === false ||
+          user.deletedAt !== null ||
+          user.employeeProfile?.status === "INACTIVE" ||
+          user.employeeProfile?.status === "SUSPENDED"
+        ) {
           throw new InactiveAccountError();
         }
 
@@ -170,14 +193,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // Get current session version for force logout functionality
         const sessionVersion = await getSessionVersion();
 
+        const positionTitle =
+          user.employeeProfile?.position?.name ??
+          user.employeeProfile?.positionTitle ??
+          user.position?.name ??
+          null;
+        const departmentCode =
+          user.employeeProfile?.department?.code ??
+          user.department?.code ??
+          null;
+
         return {
           id: user.id,
           name: user.name,
           email: user.email,
           roles,
           permissionKeys: compact.keys, // Only store keys, not full objects
-          departmentId: user.departmentId ?? user.employeeProfile?.departmentId ?? null,
-          positionId: user.positionId,
+          departmentId:
+            user.departmentId ?? user.employeeProfile?.departmentId ?? null,
+          positionId:
+            user.positionId ?? user.employeeProfile?.positionId ?? null,
+          positionTitle,
+          departmentCode,
           dataAccessByResource: compact.data,
           editAccessByResource: compact.edit,
           deleteAccessByResource: compact.del,
@@ -192,6 +229,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           permissionKeys: string[];
           departmentId?: string | null;
           positionId?: string | null;
+          positionTitle?: string | null;
+          departmentCode?: string | null;
           dataAccessByResource: Record<string, DataAccessLevel>;
           editAccessByResource: Record<string, EditAccessLevel>;
           deleteAccessByResource: Record<string, DeleteAccessLevel>;
@@ -214,16 +253,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           permissionKeys: string[];
           departmentId?: string | null;
           positionId?: string | null;
+          positionTitle?: string | null;
+          departmentCode?: string | null;
           dataAccessByResource?: Record<string, DataAccessLevel>;
           editAccessByResource?: Record<string, EditAccessLevel>;
           deleteAccessByResource?: Record<string, DeleteAccessLevel>;
           employeeId?: string | null;
+          managerId?: string | null;
           sessionVersion?: string;
         };
         token.roles = enriched.roles;
         token.permissionKeys = enriched.permissionKeys;
         token.departmentId = enriched.departmentId ?? null;
         token.positionId = enriched.positionId ?? null;
+        token.positionTitle = enriched.positionTitle ?? null;
+        token.departmentCode = enriched.departmentCode ?? null;
         token.dataAccessByResource = enriched.dataAccessByResource ?? {};
         token.editAccessByResource = enriched.editAccessByResource ?? {};
         token.deleteAccessByResource = enriched.deleteAccessByResource ?? {};
@@ -244,6 +288,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             token.permissionKeys = [];
             token.departmentId = null;
             token.positionId = null;
+            token.positionTitle = null;
+            token.departmentCode = null;
             token.dataAccessByResource = {};
             token.editAccessByResource = {};
             token.deleteAccessByResource = {};
@@ -277,7 +323,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 where: { deletedAt: null },
                 include: { permission: true },
               },
-              employeeProfile: true,
+              department: true,
+              position: true,
+              employeeProfile: {
+                include: {
+                  position: true,
+                  department: true,
+                },
+              },
             },
           });
           if (fresh) {
@@ -294,8 +347,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
             token.roles = fresh.userRoles.map((ur) => ur.role.slug);
             token.permissionKeys = compact.keys;
-            token.departmentId = fresh.departmentId ?? fresh.employeeProfile?.departmentId ?? null;
-            token.positionId = fresh.positionId ?? null;
+            token.departmentId =
+              fresh.departmentId ?? fresh.employeeProfile?.departmentId ?? null;
+            token.positionId =
+              fresh.positionId ?? fresh.employeeProfile?.positionId ?? null;
+            token.positionTitle =
+              fresh.employeeProfile?.position?.name ??
+              fresh.employeeProfile?.positionTitle ??
+              fresh.position?.name ??
+              null;
+            token.departmentCode =
+              fresh.employeeProfile?.department?.code ??
+              fresh.department?.code ??
+              null;
             token.dataAccessByResource = compact.data;
             token.editAccessByResource = compact.edit;
             token.deleteAccessByResource = compact.del;
@@ -331,6 +395,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.departmentId =
           (token.departmentId as string | null) ?? null;
         session.user.positionId = (token.positionId as string | null) ?? null;
+        session.user.positionTitle =
+          (token.positionTitle as string | null) ?? null;
+        session.user.departmentCode =
+          (token.departmentCode as string | null) ?? null;
         session.user.dataAccessByResource =
           (token.dataAccessByResource as Record<string, DataAccessLevel>) ?? {};
         session.user.editAccessByResource =

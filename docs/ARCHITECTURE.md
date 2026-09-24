@@ -1,78 +1,223 @@
 # Architecture - CRM System
 
-> **Version**: 2.0.0 | **Updated**: 2026-02-24  
-> **Related**: [AI_CONTEXT.md](./AI_CONTEXT.md) | [CODING_STANDARDS.md](./CODING_STANDARDS.md)
+> **Version**: 3.0.0  
+> **Updated**: 2026-08-28  
+> **Related**: [AI_CONTEXT.md](./AI_CONTEXT.md) | [CODING_STANDARDS.md](./CODING_STANDARDS.md) | [MODULE_ARCHITECTURE.md](./MODULE_ARCHITECTURE.md)
 
 ---
 
-## 1. System Overview
+# 1. System Overview
 
+The CRM system follows a modular layered architecture.
+
+The system is divided into:
+
+1. Application Layer
+2. Module Layer
+3. Data Layer
+4. Shared Infrastructure
+
+The primary application flow is:
+
+```text
+User
+  ↓
+Next.js UI
+  ↓
+Module Features
+  ↓
+Server Actions
+  ↓
+Application / Business Logic
+  ↓
+Infrastructure / Repository
+  ↓
+Prisma
+  ↓
+PostgreSQL
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                            CLIENT LAYER                                │
-│                      (Next.js React Components)                        │
-│                         Mobile-First Design                            │
-└────────────────────────────────┬────────────────────────────────────────┘
-                                 │
-                                 ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                       MODULE LAYER (modules/)                          │
-│   ┌─────────────┐  ┌──────────────┐  ┌────────┐  ┌────────────────┐   │
-│   │  features/  │→ │ server/      │→ │ app/   │→ │ infrastructure/│   │
-│   │  (UI)       │  │ (actions.ts) │  │ (logic)│  │ (repository)   │   │
-│   └─────────────┘  └──────────────┘  └────────┘  └────────────────┘   │
-└────────────────────────────────┬────────────────────────────────────────┘
-                                 │
-                                 ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           DATA LAYER                                   │
-│                      (Prisma ORM + PostgreSQL)                         │
-│                       prisma/schema.prisma                             │
-└─────────────────────────────────────────────────────────────────────────┘
+
+High-level architecture:
+
+```text
+┌───────────────────────────────────────────────────────────────────────┐
+│                           CLIENT / UI                                │
+│                     Next.js + React + Tailwind                       │
+│                         Mobile-First                                │
+└──────────────────────────────────┬────────────────────────────────────┘
+                                   │
+                                   ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│                         MODULE LAYER                                 │
+│                                                                       │
+│  ┌────────────┐    ┌────────────┐    ┌─────────────┐                 │
+│  │  features/ │ →  │  server/   │ →  │ application/│                 │
+│  │    UI      │    │  Actions   │    │ Business    │                 │
+│  └────────────┘    └────────────┘    └──────┬──────┘                 │
+│                                              │                        │
+│                                              ▼                        │
+│                                      ┌───────────────┐                │
+│                                      │ infrastructure│                │
+│                                      │  Repository   │                │
+│                                      └───────┬───────┘                │
+└─────────────────────────────────────────────┼────────────────────────┘
+                                              │
+                                              ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│                           DATA LAYER                                  │
+│                    Prisma + PostgreSQL                                │
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Tech Stack
+# 2. Architecture Principles
 
-| Layer         | Technology                                   |
-| ------------- | -------------------------------------------- |
-| Frontend      | Next.js 16.1.5, React 19.2.0, Tailwind CSS 4 |
-| UI Components | shadcn/ui, Radix UI, Lucide Icons            |
-| Backend       | Next.js Server Actions + API Routes (legacy) |
-| ORM           | Prisma 7.x                                   |
-| Database      | PostgreSQL 15+                               |
-| Auth          | NextAuth.js v5 (5.0.0-beta.30)               |
-| Container     | Docker + Docker Compose                      |
+The following principles apply across the entire project.
+
+## 2.1 Modular Architecture
+
+Business domains are organized under:
+
+```text
+modules/
+```
+
+Each module is responsible for its own:
+
+- UI features
+- Business logic
+- Server actions
+- Data access
+- Module-specific types
+- Module-specific UI
+- Documentation
 
 ---
 
-## 3. Folder Structure
+## 2.2 Consistent Module Architecture
 
+Every module MUST follow the same architectural principles and dependency direction.
+
+Modules may differ in:
+
+- Business rules
+- Features
+- Data relationships
+- Required components
+- Domain-specific logic
+
+However, their architectural responsibilities MUST remain consistent.
+
+The project MUST NOT create a different layer architecture for each module.
+
+The standard module architecture is defined in:
+
+```text
+docs/MODULE_ARCHITECTURE.md
 ```
+
+This document defines the structure and responsibilities of module layers.
+
+---
+
+## 2.3 Separation of Concerns
+
+Each layer has one primary responsibility.
+
+```text
+features/
+    ↓
+server/
+    ↓
+application/
+    ↓
+infrastructure/
+    ↓
+database
+```
+
+Responsibilities:
+
+```text
+features/
+    UI and user interaction
+
+server/
+    Authentication
+    Authorization
+    Server transport
+    Revalidation
+
+application/
+    Business logic
+    Validation
+    Use-case orchestration
+
+infrastructure/
+    Database access
+    Repository operations
+
+database/
+    Persistent data
+```
+
+---
+
+# 3. Tech Stack
+
+| Layer          | Technology                                   |
+| -------------- | -------------------------------------------- |
+| Frontend       | Next.js 16.1.5, React 19.2.0, Tailwind CSS 4 |
+| UI Components  | shadcn/ui, Radix UI, Lucide Icons            |
+| Backend        | Next.js Server Actions + API Routes (legacy) |
+| ORM            | Prisma 7.x                                   |
+| Database       | PostgreSQL 15+                               |
+| Authentication | NextAuth.js v5                               |
+| Authorization  | Custom RBAC                                  |
+| Container      | Docker + Docker Compose                      |
+
+---
+
+# 4. Project Folder Structure
+
+```text
 crm-bank/
-├── app/                          # Next.js App Router
-│   ├── (auth)/                   # Auth pages (login, register)
-│   ├── (main)/                   # Main app pages (protected)
-│   │   ├── customers/            # Customer management pages
-│   │   ├── products/             # Product management pages
-│   │   ├── sales/                # Sales management pages
-│   │   ├── employee/             # Employee management pages
-│   │   ├── companies/            # Company management pages
-│   │   ├── credit-limits/        # Credit limits pages
-│   │   ├── temporary-credit-limits/
-│   │   ├── fulfillment/          # Fulfillment pages
-│   │   ├── sales-targets/        # Sales targets pages
-│   │   ├── reports/              # Reports & analytics
-│   │   ├── notifications/        # Notifications
-│   │   └── admin/                # System settings
-│   ├── api/                      # API Routes (legacy, some still in use)
-│   ├── actions/                  # Standalone Server Actions (dashboard, reports)
-│   ├── layout.tsx                # Root layout
-│   └── globals.css               # Global styles
+├── .agents/                         # AI Agent configuration
+│   ├── skills/
+│   │   ├── crm-coding-standards/
+│   │   │   └── SKILL.md
+│   │   └── vercel-react-best-practices/
+│   │       ├── SKILL.md
+│   │       ├── AGENTS.md
+│   │       └── rules/
+│   │
+│   └── workflows/
+│       ├── create-feature-ui-first.md
+│       └── refactor-module-structure.md
 │
-├── modules/                      # ⭐ Enterprise Modules (primary pattern)
-│   ├── employee/                 # Reference implementation
+├── app/                             # Next.js App Router
+│   ├── (auth)/
+│   ├── (main)/
+│   │   ├── customers/
+│   │   ├── products/
+│   │   ├── sales/
+│   │   ├── employee/
+│   │   ├── companies/
+│   │   ├── credit-limits/
+│   │   ├── temporary-credit-limits/
+│   │   ├── fulfillment/
+│   │   ├── sales-targets/
+│   │   ├── reports/
+│   │   ├── notifications/
+│   │   └── admin/
+│   ├── api/                         # Legacy API routes
+│   ├── actions/                     # Standalone actions
+│   ├── layout.tsx
+│   └── globals.css
+│
+├── modules/                         # Business modules
+│   ├── employee/
 │   ├── customers/
 │   ├── companies/
 │   ├── products/
@@ -86,294 +231,839 @@ crm-bank/
 │   ├── notifications/
 │   └── layout/
 │
-├── components/                   # Shared UI components
-│   ├── ui/                       # shadcn/ui components
-│   ├── custom/                   # Project-wide reusable (TruncatedCell, ActionButton, DetailItem)
-│   ├── forms/                    # Form components
-│   └── layout/                   # Layout components
+├── components/                      # Shared UI
+│   ├── ui/
+│   ├── custom/
+│   ├── forms/
+│   └── layout/
 │
-├── lib/                          # Library utilities
-│   ├── db.ts                     # Prisma client instance
-│   ├── auth.ts                   # NextAuth config
-│   └── rbac.ts                   # RBAC helpers
+├── lib/                             # Shared infrastructure utilities
+│   ├── db.ts
+│   ├── auth.ts
+│   └── rbac.ts
 │
-├── prisma/                       # Database schema
-│   └── schema.prisma             # Source of truth for data
+├── prisma/
+│   └── schema.prisma
 │
-├── types/                        # Global TypeScript definitions
+├── types/                           # Global TypeScript types
 │
-└── docs/                         # Documentation (this folder)
+└── docs/                            # Project documentation
 ```
 
 ---
 
-## 4. Module Architecture (Enterprise Pattern)
+# 5. Module Architecture
 
-> **Reference**: `modules/employee/` — ตัวอย่างเต็มที่ทำเสร็จแล้ว
+All business modules under:
 
-### 4.1 Module Structure
-
-```
-modules/[MODULE_NAME]/
- ┣ features/                      ← UI screens
- ┃ ┣ detail-view/
- ┃ ┃ ┗ [MODULE]-detail-view.tsx
- ┃ ┣ form/
- ┃ ┃ ┣ [MODULE]-form.tsx
- ┃ ┃ ┗ [MODULE]-form-wrapper.tsx
- ┃ ┗ list-view/
- ┃   ┣ [MODULE]-table.tsx          (toolbar inline)
- ┃   ┣ [MODULE]-cards.tsx
- ┃   ┗ use-[MODULE]-columns.tsx
- ┃
- ┣ application/                   ← use cases (business logic)
- ┃ ┣ create-[MODULE].ts           (complex use case → แยกไฟล์)
- ┃ ┣ update-[MODULE].ts           (complex use case → แยกไฟล์)
- ┃ ┣ validations.ts               (Zod schemas ใช้ร่วม client/server)
- ┃ ┗ index.ts                     (facade + inline thin use cases)
- ┃
- ┣ server/                        ← transport (server actions only)
- ┃ ┗ actions.ts
- ┃
- ┣ infrastructure/                ← prisma / db access
- ┃ ┗ [MODULE].repository.ts
- ┃
- ┣ ui/                            ← module-specific ui (เช่น status badge)
- ┃ ┗ [MODULE]-status-badge.tsx
- ┃
- ┣ types/
- ┃ ┗ index.ts
- ┃
- ┣ constants.ts
- ┣ index.ts                       (barrel exports)
- ┗ README.md
+```text
+modules/
 ```
 
-### 4.2 Layer Responsibilities
+follow the Module Architecture Contract defined in:
 
-#### Infrastructure Layer (`infrastructure/[MODULE].repository.ts`)
-
-```typescript
-// Pure database operations only — no auth, no validation, no business logic
-// Export pure functions
-
-import prisma from "@/lib/db";
-
-export async function findEmployeeById(id: string) {
-  return prisma.employee.findFirst({
-    where: { id, deletedAt: null },
-    include: { /* relations */ }
-  });
-}
-
-export async function findAllEmployees(params: FilterParams) { ... }
-export async function createEmployee(data: CreateData) { ... }
-export async function updateEmployee(id: string, data: UpdateData) { ... }
-export async function softDeleteEmployee(id: string) { ... }
+```text
+docs/MODULE_ARCHITECTURE.md
 ```
 
-#### Application Layer (`application/`)
+Standard structure:
 
-```typescript
-// Business logic: validation, uniqueness checks, data mapping
-// Complex use cases → separate files (create-[MODULE].ts, update-[MODULE].ts)
-// Thin use cases → inline in index.ts (get detail, list)
-// validations.ts → Zod schemas shared between client form and server
-
-// application/index.ts (facade)
-export { createEmployeeUseCase } from "./create-employee";
-export { updateEmployeeUseCase } from "./update-employee";
-
-export async function getEmployeeDetailUseCase(id: string) {
-  return repo.findEmployeeById(id);
-}
-
-export async function listEmployeesUseCase(params: ListParams) {
-  return repo.findAllEmployees(params);
-}
+```text
+modules/<module-name>/
+├── application/
+├── features/
+├── infrastructure/
+├── server/
+├── types/
+├── ui/
+├── constants.ts
+├── index.ts
+└── README.md
 ```
 
-#### Server Layer (`server/actions.ts`)
+Not every module must contain every folder or file.
 
-```typescript
-"use server";
-// Thin layer — does ONLY 3 things:
-// 1. Auth / Permission check
-// 2. Call use case from application layer
-// 3. revalidatePath
+A folder or file is created only when required by the module.
 
-import { auth } from "@/lib/auth";
-import { createEmployeeUseCase } from "../application";
+The goal is:
 
-export async function createEmployeeAction(formData: FormData) {
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
-  // check permission...
+> Same architecture, different domain.
 
-  const result = await createEmployeeUseCase(data);
-  revalidatePath("/employee");
-  return result;
-}
+---
+
+# 6. Module Layer Responsibilities
+
+## 6.1 features/
+
+UI and feature-specific presentation logic.
+
+Typical structure:
+
+```text
+features/
+├── list-view/
+├── form/
+└── detail-view/
 ```
 
-#### Features Layer (`features/`)
+Responsibilities:
 
-```typescript
-// UI screens grouped by screen type: detail-view/, form/, list-view/
-// Toolbar that's used in one place → inline in table file
-// Uses shared components from @/components/custom/:
-//   TruncatedCell, ActionButton, DetailItem
+- Rendering UI
+- User interaction
+- Local UI state
+- Calling Server Actions through the established pattern
+- Loading and error presentation
+
+Must NOT:
+
+- Access Database directly
+- Import Repository directly
+- Contain Infrastructure logic
+- Bypass Server/Application architecture
+
+---
+
+## 6.2 server/
+
+Server transport layer.
+
+Typical structure:
+
+```text
+server/
+└── actions.ts
+```
+
+Responsibilities:
+
+- Authentication
+- Permission checks
+- Calling Application logic
+- Revalidation
+
+Server Actions must remain thin.
+
+Flow:
+
+```text
+Authentication
+    ↓
+Permission
+    ↓
+Application
+    ↓
+Revalidate
+```
+
+Business logic MUST NOT be duplicated here.
+
+---
+
+## 6.3 application/
+
+Business logic and use-case orchestration.
+
+Responsibilities:
+
+- Business rules
+- Validation
+- Uniqueness checks
+- Data mapping
+- Use-case orchestration
+
+Typical structure:
+
+```text
+application/
+├── create-<module>.ts
+├── update-<module>.ts
+├── validations.ts
+└── index.ts
+```
+
+Files are split according to complexity and project conventions.
+
+---
+
+## 6.4 infrastructure/
+
+Database and external data access.
+
+Typical structure:
+
+```text
+infrastructure/
+└── <module>.repository.ts
+```
+
+Responsibilities:
+
+- Database queries
+- Database writes
+- Repository operations
+- Persistence-specific behavior
+
+Infrastructure MUST NOT contain:
+
+- Authentication
+- Authorization
+- Business rules
+- UI logic
+
+---
+
+## 6.5 types/
+
+Module-specific TypeScript types.
+
+Example:
+
+```text
+types/
+└── index.ts
 ```
 
 ---
 
-## 5. Layer Dependencies
+## 6.6 ui/
 
+Reusable UI components that are specific to the module.
+
+Examples:
+
+```text
+ui/
+├── <module>-status-badge.tsx
+└── <module>-type-badge.tsx
 ```
-features/ ──→ server/actions.ts ──→ application/ ──→ infrastructure/
-   │                                     │                  │
-   │                                     ▼                  ▼
-   │                              validations.ts        prisma/db
-   └── uses: @/components/custom/, @/components/ui/
+
+Components shared across modules should be placed in:
+
+```text
+components/custom/
 ```
 
-**Rules**:
-
-- `features/` imports from `server/` and `application/validations.ts`
-- `server/` imports from `application/`
-- `application/` imports from `infrastructure/`
-- `infrastructure/` imports from `@/lib/db` only
-- **No** circular dependencies between layers
+when appropriate.
 
 ---
 
-## 6. Key Flows
+## 6.7 constants.ts
 
-### 6.1 Sale Creation Flow
-
-```
-1. User fills SaleForm (features/form/)
-2. Form calls createSaleAction (server/actions.ts)
-3. Action: auth check → permission check
-4. Action calls createSaleUseCase (application/)
-5. Use case:
-   a. Validate with Zod schema
-   b. Check customer credit
-   c. Call repository to create Sale + SaleItems
-   d. Update stock (reserve)
-6. Action: revalidatePath("/sales")
-7. Return result to client
-```
-
-### 6.2 Sale Approval Flow
-
-```
-1. Manager clicks Approve (features/detail-view/)
-2. Calls approveSaleAction (server/actions.ts)
-3. Action: auth + APPROVE permission check
-4. Use case validates status transition
-5. Repository updates status → APPROVED
-6. Creates SaleStatusHistory
-7. Sends notification
-8. revalidatePath
-```
-
-### 6.3 Point Calculation Flow
-
-```
-1. Sale status → COMPLETED
-2. PointService.calculatePoints() triggered
-3. For each SaleItem:
-   a. Get Product.pointPerUnit
-   b. Calculate: quantity × pointPerUnit
-   c. Create EmployeePointHistory
-4. Update EmployeePointSummary.totalPoints
-```
+Contains constants specific to the module.
 
 ---
 
-## 7. Design Principles
+## 6.8 index.ts
 
-### 7.1 Separation of Concerns (Module Layers)
+The module's public export entry point.
 
-- **Infrastructure**: Database access only
-- **Application**: Business logic only
-- **Server**: Auth + transport only
-- **Features**: UI only
+Only expose APIs that other parts of the application legitimately need.
 
-### 7.2 Soft Delete Pattern
+---
 
-```typescript
-model Entity {
-  deletedAt DateTime?  // null = active, date = deleted
+## 6.9 README.md
+
+Each module must contain:
+
+```text
+README.md
+```
+
+The README should describe:
+
+- Module purpose
+- Main features
+- Architecture
+- Important business behavior
+- Important implementation notes
+
+---
+
+# 7. Layer Dependencies
+
+The preferred dependency direction is:
+
+```text
+features/
+    ↓
+server/
+    ↓
+application/
+    ↓
+infrastructure/
+    ↓
+database
+```
+
+Detailed rules:
+
+```text
+features/
+    ↓
+server/
+    ↓
+application/
+    ↓
+infrastructure/
+    ↓
+@/lib/db
+```
+
+Rules:
+
+- `features/` MUST NOT access the database directly.
+- `features/` MUST NOT import repositories.
+- `features/` SHOULD NOT import application use-cases directly unless an established project pattern explicitly requires it.
+- `server/` imports from `application/`.
+- `application/` imports from `infrastructure/`.
+- `infrastructure/` uses the shared database client.
+- Infrastructure MUST NOT depend on UI.
+- Application MUST NOT depend on UI.
+- No circular dependencies.
+- No layer bypassing.
+
+---
+
+# 8. Database Architecture
+
+The database layer uses:
+
+```text
+Prisma
+    ↓
+PostgreSQL
+```
+
+Database schema source of truth:
+
+```text
+prisma/schema.prisma
+```
+
+Database access from modules must go through the Infrastructure layer.
+
+Use:
+
+```ts
+import { db } from "@/lib/db";
+```
+
+Do not create independent database clients inside modules.
+
+---
+
+# 9. Soft Delete
+
+Entities that support deletion should use Soft Delete.
+
+Pattern:
+
+```prisma
+deletedAt DateTime?
+```
+
+Meaning:
+
+```text
+deletedAt = null
+    → Active
+
+deletedAt = date
+    → Deleted
+```
+
+Queries must exclude deleted records when appropriate:
+
+```ts
+where: {
+  deletedAt: null,
 }
-// Always include in queries
-where: { deletedAt: null }
 ```
 
-### 7.3 Transaction Safety
+Permanent deletion is not allowed unless explicitly defined and justified by the domain.
 
-```typescript
-await prisma.$transaction(async (tx) => {
-  // All operations here are atomic
+---
+
+# 10. Transaction Safety
+
+Use Prisma transactions when multiple database writes must succeed or fail together.
+
+Example:
+
+```ts
+await db.$transaction(async (tx) => {
+  // Atomic operations
 });
 ```
 
-### 7.4 Error Handling
+Transactions are required when data integrity depends on multiple related writes.
 
-```typescript
+---
+
+# 11. Server Action Architecture
+
+All Server Actions should follow:
+
+```text
+Client
+  ↓
+Server Action
+  ↓
+Authentication
+  ↓
+Permission
+  ↓
+Application Use Case
+  ↓
+Infrastructure
+  ↓
+Database
+  ↓
+Revalidate
+```
+
+The Server layer acts as the transport boundary.
+
+It must not become another Business Logic layer.
+
+---
+
+# 12. Data Flow
+
+## 12.1 Read Flow
+
+Typical read flow:
+
+```text
+UI
+ ↓
+Server / Application
+ ↓
+Repository
+ ↓
+Database
+ ↓
+Repository
+ ↓
+Application
+ ↓
+UI
+```
+
+## 12.2 Write Flow
+
+Typical write flow:
+
+```text
+UI
+ ↓
+Server Action
+ ↓
+Authentication
+ ↓
+Permission
+ ↓
+Application
+ ↓
+Validation
+ ↓
+Business Rules
+ ↓
+Repository
+ ↓
+Database
+ ↓
+Revalidate
+ ↓
+UI
+```
+
+The exact implementation may vary according to the operation, but layer responsibilities must remain consistent.
+
+---
+
+# 13. UI Architecture
+
+The UI uses:
+
+- Next.js
+- React
+- Tailwind CSS
+- shadcn/ui
+- Radix UI
+- Lucide Icons
+
+UI design must be:
+
+- Mobile-first
+- Responsive
+- Consistent with the project design system
+- Reusable where appropriate
+
+Shared components should be preferred over duplicate implementations.
+
+---
+
+# 14. Shared Components
+
+Project-wide reusable components are located under:
+
+```text
+components/custom/
+```
+
+Examples:
+
+```text
+TruncatedCell
+ActionButton
+DetailItem
+```
+
+Before creating a new reusable component:
+
+1. Search existing shared components.
+2. Search similar implementations.
+3. Reuse existing components when possible.
+4. Create a new shared component only when the existing components cannot reasonably satisfy the requirement.
+
+---
+
+# 15. Legacy Architecture
+
+Some legacy patterns may still exist in the project.
+
+Examples:
+
+```text
+app/api/
+app/actions/
+```
+
+These may continue to exist when required by existing functionality.
+
+However, new module development should follow the current Module Architecture Contract unless a specific exception is required.
+
+Legacy code should be migrated gradually rather than being rewritten unnecessarily.
+
+---
+
+# 16. Security Architecture
+
+## Authentication
+
+Authentication uses:
+
+```text
+NextAuth.js
+```
+
+Authentication is enforced in server-side operations.
+
+## Authorization
+
+Authorization uses the project's RBAC system.
+
+Permissions must be checked before protected mutations.
+
+Typical flow:
+
+```text
+auth()
+ ↓
+permission check
+ ↓
+application logic
+```
+
+## Data Access
+
+Data access must remain within the appropriate infrastructure boundaries.
+
+Do not expose unrestricted database access to the UI.
+
+---
+
+# 17. Error Handling
+
+Errors should be handled consistently across the system.
+
+Application and Server layers should return or propagate meaningful error information according to the project's established patterns.
+
+Do not:
+
+- Silently swallow errors
+- Expose sensitive internal errors
+- Introduce a second error-handling architecture without justification
+
+Example response shape when applicable:
+
+```json
 {
   "error": "ERROR_CODE",
   "message": "Human readable message",
-  "details": {} // Optional additional info
+  "details": {}
 }
 ```
 
 ---
 
-## 8. Shared Components
+# 18. Module Creation Principles
 
-| Component       | Path                                   | Used by                                                                           |
-| --------------- | -------------------------------------- | --------------------------------------------------------------------------------- |
-| `TruncatedCell` | `components/custom/truncated-cell.tsx` | employee, products, sales, fulfillment, customers                                 |
-| `ActionButton`  | `components/custom/action-button.tsx`  | employee, products, sales, fulfillment, customers, temporary-credit-limits        |
-| `DetailItem`    | `components/custom/detail-item.tsx`    | employee, companies, shipping-companies, sales, products, temporary-credit-limits |
+When creating a new module:
 
----
-
-## 9. Infrastructure
-
-### 9.1 Docker Setup
-
-```yaml
-services:
-  app:
-    build: .
-    ports: ["3000:3000"]
-    depends_on: [db]
-  db:
-    image: postgres:15
-    volumes: [postgres_data:/var/lib/postgresql/data]
+```text
+Requirement
+    ↓
+Inspect Existing Patterns
+    ↓
+Read Module Architecture Contract
+    ↓
+Define Required Features
+    ↓
+Create Module Structure
+    ↓
+Implement
+    ↓
+Validate
+    ↓
+Document
 ```
 
-### 9.2 Environment Variables
+The AI Agent MUST inspect existing project patterns before implementing.
 
-```bash
-DATABASE_URL=postgresql://user:pass@host:5432/db
-NEXTAUTH_SECRET=...
-NEXTAUTH_URL=http://localhost:3000
+However:
+
+> No existing module is the permanent architectural authority.
+
+The architecture is defined by the project standards and Module Architecture Contract.
+
+Existing modules should be treated as implementation references, not as the source of architectural truth.
+
+---
+
+# 19. Module Refactoring Principles
+
+When refactoring an existing module:
+
+1. Read the Module Architecture Contract.
+2. Audit the current structure.
+3. Identify deviations.
+4. Preserve business behavior.
+5. Move responsibilities into the correct layers.
+6. Update imports.
+7. Remove obsolete files only after references are checked.
+8. Update documentation.
+9. Run validation.
+
+The goal is architectural consistency without unnecessary behavioral changes.
+
+---
+
+# 20. Documentation Architecture
+
+Documentation is divided into two levels.
+
+## Global Documentation
+
+Located under:
+
+```text
+docs/
+```
+
+Global documentation includes:
+
+- System Architecture
+- Coding Standards
+- Data Model
+- RBAC Policy
+- Domain Glossary
+- Decisions
+- AI Context
+- Development standards
+
+## Module Documentation
+
+Documentation specific to a module belongs under:
+
+```text
+modules/<module-name>/
+```
+
+and may include:
+
+```text
+modules/<module-name>/
+├── README.md
+└── docs/
+```
+
+when detailed module documentation is required.
+
+Do not duplicate global documentation inside individual modules.
+
+---
+
+# 21. AI Agent Architecture
+
+AI development rules are maintained under:
+
+```text
+.agents/
+```
+
+Structure:
+
+```text
+.agents/
+├── skills/
+│   ├── crm-coding-standards/
+│   │   └── SKILL.md
+│   │
+│   └── vercel-react-best-practices/
+│       ├── SKILL.md
+│       ├── AGENTS.md
+│       └── rules/
+│
+└── workflows/
+    ├── create-feature-ui-first.md
+    └── refactor-module-structure.md
+```
+
+Responsibilities:
+
+```text
+Skills
+    ↓
+Rules and standards
+
+Workflows
+    ↓
+Development procedures
+
+docs/
+    ↓
+Project knowledge and source documentation
 ```
 
 ---
 
-## 10. Security Considerations
+# 22. Architecture Governance
 
-- **Authentication**: NextAuth.js session-based
-- **Authorization**: Custom RBAC with permissions (checked in server actions)
-- **Data Access**: Multi-level (OWN, DEPARTMENT, ALL)
-- **Audit Trail**: All mutations logged
-- **Soft Delete**: No data permanently removed
+The project should evolve according to the following rule:
+
+```text
+Existing implementation
+        ↓
+Compare with standards
+        ↓
+Identify deviations
+        ↓
+Refactor when necessary
+        ↓
+Align with project architecture
+```
+
+Do NOT change the architecture simply to match an existing module.
+
+Do NOT create a new architecture for each domain.
+
+When the project requires an architectural change:
+
+1. Document the reason.
+2. Update the appropriate architecture documentation.
+3. Update the AI coding rules if necessary.
+4. Update relevant workflows.
+5. Gradually migrate affected modules.
 
 ---
 
-**See Also**: [CODING_STANDARDS.md](./CODING_STANDARDS.md) | [RBAC_POLICY.md](./RBAC_POLICY.md)
+# 23. Key Architectural Rules
+
+The following rules are mandatory:
+
+1. One project-wide architecture.
+
+2. All modules follow the same layer responsibilities.
+
+3. Modules are domain-specific, not architecture-specific.
+
+4. No module is the permanent source of architectural truth.
+
+5. Global architecture is defined by project documentation.
+
+6. AI Agents must follow project skills and workflows.
+
+7. Existing patterns should be reused before creating new patterns.
+
+8. Layer boundaries must not be bypassed.
+
+9. Business logic belongs in application.
+
+10. Database access belongs in infrastructure.
+
+11. Server Actions remain thin.
+
+12. UI remains separate from business logic and database access.
+
+13. Architecture changes must be deliberate and documented.
+
+---
+
+# 24. Validation
+
+Before considering an architectural change complete, verify:
+
+## Structure
+
+- [ ] Module follows Module Architecture Contract.
+- [ ] Layer responsibilities are correct.
+- [ ] No unnecessary folders.
+- [ ] No unnecessary files.
+
+## Dependencies
+
+- [ ] Correct dependency direction.
+- [ ] No circular dependencies.
+- [ ] No layer bypass.
+
+## Data
+
+- [ ] Database access is in infrastructure.
+- [ ] Soft Delete handled when applicable.
+- [ ] Transactions used when required.
+
+## Server
+
+- [ ] Authentication handled.
+- [ ] Permission handled.
+- [ ] Application logic called.
+- [ ] Revalidation handled.
+
+## UI
+
+- [ ] Mobile-first.
+- [ ] Shared components reused.
+- [ ] No direct database access.
+
+## Code Quality
+
+- [ ] Naming conventions followed.
+- [ ] No unnecessary duplication.
+- [ ] No unrelated refactoring.
+
+## Documentation
+
+- [ ] Relevant documentation updated.
+- [ ] Module README updated when required.
+- [ ] Architecture documentation remains consistent.
+
+---
+
+# 25. See Also
+
+- [AI_CONTEXT.md](./AI_CONTEXT.md)
+- [CODING_STANDARDS.md](./CODING_STANDARDS.md)
+- [MODULE_ARCHITECTURE.md](./MODULE_ARCHITECTURE.md)
+- [RBAC_POLICY.md](./RBAC_POLICY.md)

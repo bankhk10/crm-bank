@@ -41,10 +41,12 @@ interface FormComboboxProps {
   triggerClassName?: string;
   labelClassName?: string;
   containerClassName?: string;
+  showSubLabelInTrigger?: boolean;
 }
 
 const defaultLabelClass = "text-base font-medium mx-2";
-const defaultTriggerClass = "mt-1 min-h-[44px] h-auto py-2 text-base w-full justify-between";
+const defaultTriggerClass =
+  "min-h-[44px] h-auto py-2 text-base w-full justify-between";
 
 export function FormCombobox({
   id,
@@ -62,10 +64,13 @@ export function FormCombobox({
   triggerClassName,
   labelClassName,
   containerClassName,
+  showSubLabelInTrigger = false,
 }: FormComboboxProps) {
   const [open, setOpen] = useState(false);
 
-  const selectedOption = options.find((option) => option.value === value);
+  const selectedOption = options.find(
+    (option) => option.value === value || option.label === value,
+  );
 
   return (
     <div className={cn(containerClassName)}>
@@ -87,13 +92,17 @@ export function FormCombobox({
               className,
               !value && "text-gray-500",
               "font-normal",
-              error && "border-red-500 focus:ring-red-500 bg-red-50/10"
+              error && "border-red-500 focus:ring-red-500 bg-red-50/10",
             )}
           >
             <span className="text-left flex-1 flex flex-col justify-center min-w-0">
-              <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
-              {selectedOption?.subLabel && (
-                <span className="text-xs text-gray-500 truncate">{selectedOption.subLabel}</span>
+              <span className="truncate">
+                {selectedOption ? selectedOption.label : placeholder}
+              </span>
+              {showSubLabelInTrigger && selectedOption?.subLabel && (
+                <span className="text-xs text-gray-500 truncate">
+                  {selectedOption.subLabel}
+                </span>
               )}
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -109,14 +118,16 @@ export function FormCombobox({
             <CommandList className="max-h-[300px]">
               <CommandEmpty>{emptyText}</CommandEmpty>
               <CommandGroup>
-                {options.map((option) => (
+                {options.map((option, index) => (
                   <CommandItem
-                    key={option.value}
+                    key={`${option.value}-${index}`}
                     value={option.value}
                     keywords={[
-                      option.label, 
+                      option.label,
                       option.label.replace(/\s+/g, ""),
-                      ...(option.subLabel ? [option.subLabel, option.subLabel.replace(/\s+/g, "")] : [])
+                      ...(option.subLabel
+                        ? [option.subLabel, option.subLabel.replace(/\s+/g, "")]
+                        : []),
                     ]}
                     onSelect={(currentValue) => {
                       onChange(currentValue === value ? "" : currentValue);
@@ -126,13 +137,15 @@ export function FormCombobox({
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4 shrink-0",
-                        value === option.value ? "opacity-100" : "opacity-0"
+                        value === option.value ? "opacity-100" : "opacity-0",
                       )}
                     />
                     <div className="flex flex-col min-w-0 flex-1">
                       <span className="truncate">{option.label}</span>
                       {option.subLabel && (
-                        <span className="text-xs text-gray-500 truncate">{option.subLabel}</span>
+                        <span className="text-xs text-gray-500 truncate">
+                          {option.subLabel}
+                        </span>
                       )}
                     </div>
                   </CommandItem>
