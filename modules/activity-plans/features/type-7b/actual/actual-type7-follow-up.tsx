@@ -584,7 +584,7 @@ export function ActualType7FollowUp({
 
       {/* READ-ONLY INITIAL DATA CARD FOR TYPE_7B (Problem 3.3 Fix: Complete Baseline Plot Data) */}
       {demoPlotData && (
-        <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 text-xs shadow-2xs">
+        <div className="bg-green-50/90 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 text-xs shadow-2xs">
           <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-emerald-700" />
@@ -595,7 +595,7 @@ export function ActualType7FollowUp({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-slate-700">
             <div>
-              <span className="text-slate-400 block text-[11px]">
+              <span className="text-slate-500 font-medium block">
                 ชื่อแปลงสาธิต
               </span>
               <span className="font-semibold text-slate-900">
@@ -603,7 +603,7 @@ export function ActualType7FollowUp({
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">
+              <span className="text-slate-500 font-medium block">
                 เกษตรกรเจ้าของแปลง
               </span>
               <span className="font-semibold text-slate-900">
@@ -622,7 +622,7 @@ export function ActualType7FollowUp({
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">
+              <span className="text-slate-500 font-medium block">
                 จังหวัด / อำเภอ ของเกษตรกร
               </span>
               <span className="font-semibold text-slate-900">
@@ -639,7 +639,7 @@ export function ActualType7FollowUp({
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">
+              <span className="text-slate-500 font-medium block">
                 ร้านค้าตัวแทนจำหน่าย
               </span>
               <span className="font-semibold text-slate-900">
@@ -647,18 +647,17 @@ export function ActualType7FollowUp({
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">
+              <span className="text-slate-500 font-medium block">
                 พิกัดแปลง (Lat, Lng)
               </span>
               <span className="font-semibold text-slate-900 flex items-center gap-1">
-                <MapPin className="w-3 h-3 text-emerald-600" />
                 {demoPlotData.latitude && demoPlotData.longitude
                   ? `${demoPlotData.latitude}, ${demoPlotData.longitude}`
                   : "-"}
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">
+              <span className="text-slate-500 font-medium block">
                 พืช / หมวดหมู่
               </span>
               <span className="font-semibold text-slate-900">
@@ -672,7 +671,7 @@ export function ActualType7FollowUp({
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">
+              <span className="text-slate-500 font-medium block">
                 ขนาดพื้นที่
               </span>
               <span className="font-semibold text-slate-900">
@@ -683,7 +682,7 @@ export function ActualType7FollowUp({
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">
+              <span className="text-slate-500 font-medium block">
                 วัตถุประสงค์แปลงสาธิต
               </span>
               <span className="font-semibold text-slate-900">
@@ -691,7 +690,7 @@ export function ActualType7FollowUp({
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">
+              <span className="text-slate-500 font-medium block">
                 รายละเอียดการทดสอบ
               </span>
               <span className="font-semibold text-slate-900">
@@ -699,7 +698,7 @@ export function ActualType7FollowUp({
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">
+              <span className="text-slate-500 font-medium block">
                 ข้อมูลพืชประธาน
               </span>
               <span className="font-semibold text-slate-900">
@@ -709,7 +708,7 @@ export function ActualType7FollowUp({
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">
+              <span className="text-slate-500 font-medium block">
                 แหล่งน้ำ / ระบบการให้น้ำ
               </span>
               <span className="font-semibold text-slate-900">
@@ -721,7 +720,7 @@ export function ActualType7FollowUp({
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">
+              <span className="text-slate-500 font-medium block">
                 วันที่เริ่มฉีดพ่นครั้งแรก
               </span>
               <span className="font-semibold text-slate-900">
