@@ -569,6 +569,57 @@ export async function generateActivityPlanCode(
   return `${prefix}${seqStr}`;
 }
 
+/**
+ * Helper to generate Demo Plot Code (format: DPYYMMXXXX)
+ * Uses strict regex parsing, transaction advisory lock, and collision protection.
+ */
+export async function generateDemoPlotCode(
+  tx: Prisma.TransactionClient | typeof db,
+  date: Date = new Date(),
+  offset: number = 0,
+): Promise<string> {
+  const d = date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
+  const yearStr = String(d.getFullYear()).slice(-2);
+  const monthStr = String(d.getMonth() + 1).padStart(2, "0");
+  const prefix = `DP${yearStr}${monthStr}`;
+
+  // 1. Transaction-level advisory lock to serialize concurrent code generation for the same monthly prefix
+  try {
+    await (tx as any)
+      .$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${prefix}))`;
+  } catch {
+    // If not supported or outside transaction, proceed with regex-based scan
+  }
+
+  // 2. Fetch all existing demo plots matching the prefix
+  const existingPlots = await tx.demoPlot.findMany({
+    where: {
+      code: { startsWith: prefix },
+    },
+    select: { code: true },
+  });
+
+  // 3. Extract max numeric sequence strictly matching DPYYMM\\d{4}
+  let maxSeq = 0;
+  const codeRegex = new RegExp(`^${prefix}(\\d{4})$`);
+
+  for (const p of existingPlots) {
+    if (p.code) {
+      const match = p.code.match(codeRegex);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (!isNaN(num) && num > maxSeq) {
+          maxSeq = num;
+        }
+      }
+    }
+  }
+
+  const nextSeq = maxSeq + 1 + offset;
+  const seqStr = String(nextSeq).padStart(4, "0");
+  return `${prefix}${seqStr}`;
+}
+
 export type CreateActivityPlanInput = {
   code?: string;
   title: string;
@@ -892,11 +943,10 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
         if (input.demoPlotData) {
           let plotId = input.demoPlotData.id;
           if (!plotId) {
-            const d = new Date(input.startDate);
-            const year = String(d.getFullYear()).slice(-2);
-            const month = String(d.getMonth() + 1).padStart(2, "0");
-            const count = await tx.demoPlot.count();
-            const code = `DP${year}${month}${String(count + 1).padStart(4, "0")}`;
+            const code = await generateDemoPlotCode(
+              tx,
+              input.startDate ? new Date(input.startDate) : new Date(),
+            );
 
             const plot = await tx.demoPlot.create({
               data: {
@@ -977,11 +1027,11 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
 
           for (let i = 0; i < input.type13Plots.length; i++) {
             const plotItem = input.type13Plots[i];
-            const d = new Date(input.startDate);
-            const year = String(d.getFullYear()).slice(-2);
-            const month = String(d.getMonth() + 1).padStart(2, "0");
-            const count = await tx.demoPlot.count();
-            const code = `DP${year}${month}${String(count + 1 + i).padStart(4, "0")}`;
+            const code = await generateDemoPlotCode(
+              tx,
+              input.startDate ? new Date(input.startDate) : new Date(),
+              i,
+            );
 
             const plot = await tx.demoPlot.create({
               data: {
@@ -1089,11 +1139,10 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
               },
             });
           } else {
-            const d = new Date(input.startDate);
-            const year = String(d.getFullYear()).slice(-2);
-            const month = String(d.getMonth() + 1).padStart(2, "0");
-            const count = await tx.demoPlot.count();
-            const code = `DP${year}${month}${String(count + 1).padStart(4, "0")}`;
+            const code = await generateDemoPlotCode(
+              tx,
+              input.startDate ? new Date(input.startDate) : new Date(),
+            );
 
             const newPlot = await tx.demoPlot.create({
               data: {
@@ -1502,11 +1551,10 @@ export async function updateActivityPlan(
           });
         }
       } else {
-        const d = new Date(updatedPlan.startDate);
-        const year = String(d.getFullYear()).slice(-2);
-        const month = String(d.getMonth() + 1).padStart(2, "0");
-        const count = await tx.demoPlot.count();
-        const code = `DP${year}${month}${String(count + 1).padStart(4, "0")}`;
+        const code = await generateDemoPlotCode(
+          tx,
+          updatedPlan.startDate ? new Date(updatedPlan.startDate) : new Date(),
+        );
 
         const newPlot = await tx.demoPlot.create({
           data: {
@@ -1601,11 +1649,13 @@ export async function updateActivityPlan(
               },
             });
           } else {
-            const d = new Date(updatedPlan.startDate);
-            const year = String(d.getFullYear()).slice(-2);
-            const month = String(d.getMonth() + 1).padStart(2, "0");
-            const count = await tx.demoPlot.count();
-            const code = `DP${year}${month}${String(count + 1 + i).padStart(4, "0")}`;
+            const code = await generateDemoPlotCode(
+              tx,
+              updatedPlan.startDate
+                ? new Date(updatedPlan.startDate)
+                : new Date(),
+              i,
+            );
 
             const newPlot = await tx.demoPlot.create({
               data: {
@@ -1718,11 +1768,12 @@ export async function updateActivityPlan(
             },
           });
         } else if (!targetPlotId) {
-          const d = new Date(updatedPlan.startDate);
-          const year = String(d.getFullYear()).slice(-2);
-          const month = String(d.getMonth() + 1).padStart(2, "0");
-          const count = await tx.demoPlot.count();
-          const code = `DP${year}${month}${String(count + 1).padStart(4, "0")}`;
+          const code = await generateDemoPlotCode(
+            tx,
+            updatedPlan.startDate
+              ? new Date(updatedPlan.startDate)
+              : new Date(),
+          );
 
           const newPlot = await tx.demoPlot.create({
             data: {
@@ -2680,12 +2731,14 @@ export async function upsertActivityResult(
           },
         });
       } else {
-        const d =
-          demoData.initialSprayDate || demoData.plantingDate || new Date();
-        const year = String(d.getFullYear()).slice(-2);
-        const month = String(d.getMonth() + 1).padStart(2, "0");
-        const count = await tx.demoPlot.count();
-        const code = `DP${year}${month}${String(count + 1).padStart(4, "0")}`;
+        const code = await generateDemoPlotCode(
+          tx,
+          demoData.initialSprayDate
+            ? new Date(demoData.initialSprayDate)
+            : demoData.plantingDate
+              ? new Date(demoData.plantingDate)
+              : new Date(),
+        );
 
         const newPlot = await tx.demoPlot.create({
           data: {
@@ -3218,11 +3271,10 @@ export async function createDemoPlotRecord(data: {
 }) {
   let code = data.code;
   if (!code) {
-    const d = new Date(data.startDate);
-    const year = String(d.getFullYear()).slice(-2);
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const count = await db.demoPlot.count();
-    code = `DP${year}${month}${String(count + 1).padStart(4, "0")}`;
+    code = await generateDemoPlotCode(
+      db,
+      data.startDate ? new Date(data.startDate) : new Date(),
+    );
   }
 
   return db.demoPlot.create({
@@ -3342,8 +3394,14 @@ export async function recordDemoPlotVisit(data: {
       });
 
       if (!plot) {
-        const count = await db.demoPlot.count();
-        const code = `DP-${new Date().getFullYear().toString().slice(-2)}${(count + 1).toString().padStart(4, "0")}`;
+        const code = await generateDemoPlotCode(
+          db,
+          plan?.startDate
+            ? new Date(plan.startDate)
+            : data.visitDate
+              ? new Date(data.visitDate)
+              : new Date(),
+        );
 
         plot = await db.demoPlot.create({
           data: {
