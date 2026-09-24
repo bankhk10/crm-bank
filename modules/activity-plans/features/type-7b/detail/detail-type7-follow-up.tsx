@@ -825,36 +825,6 @@ export function DetailType7FollowUp({
               สรุปผลการเก็บเกี่ยวและความพึงพอใจของเกษตรกร
             </h4>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-3 bg-white rounded-xl border border-emerald-200 space-y-1">
-              <span className="text-xs text-slate-500 block">
-                ผลผลิตแปลงสาธิต
-              </span>
-              <span className="text-sm font-bold text-slate-900 block">
-                {finalYieldKg ? `${finalYieldKg} กก./ไร่` : "-"}
-              </span>
-            </div>
-
-            <div className="p-3 bg-white rounded-xl border border-emerald-200 space-y-1">
-              <span className="text-xs text-slate-500 block">
-                ผลผลิตแปลงควบคุม
-              </span>
-              <span className="text-sm font-bold text-slate-900 block">
-                {controlYieldKg ? `${controlYieldKg} กก./ไร่` : "-"}
-              </span>
-            </div>
-
-            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
-              <span className="text-xs text-emerald-800 font-medium block">
-                ผลผลิตเพิ่มขึ้น
-              </span>
-              <span className="text-sm font-bold text-emerald-900 block">
-                {yieldIncreasePercent ? `+${yieldIncreasePercent} %` : "-"}
-              </span>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div className="p-3 bg-white rounded-xl border border-emerald-200 space-y-1">
               <span className="text-xs text-slate-500 block">
