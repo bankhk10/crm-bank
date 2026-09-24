@@ -607,19 +607,35 @@ export function ActualType7FollowUp({
                 เกษตรกรเจ้าของแปลง
               </span>
               <span className="font-semibold text-slate-900">
-                {demoPlotData.ownerName || target.owner || "-"}{" "}
-                {demoPlotData.ownerPhone ? `(${demoPlotData.ownerPhone})` : ""}
+                {demoPlotData.ownerName ||
+                  demoPlotData.farmerName ||
+                  demoPlotData.farmer?.name ||
+                  demoPlotData.farmerCustomer?.name ||
+                  target.owner ||
+                  "-"}{" "}
+                {demoPlotData.ownerPhone ||
+                demoPlotData.farmerPhone ||
+                demoPlotData.farmer?.phone ||
+                demoPlotData.farmerCustomer?.phone
+                  ? `(${demoPlotData.ownerPhone || demoPlotData.farmerPhone || demoPlotData.farmer?.phone || demoPlotData.farmerCustomer?.phone})`
+                  : ""}
               </span>
             </div>
             <div>
               <span className="text-slate-400 block text-[11px]">
-                จังหวัด / อำเภอ
+                จังหวัด / อำเภอ ของเกษตรกร
               </span>
               <span className="font-semibold text-slate-900">
                 {demoPlotData.ownerProvince ||
                   demoPlotData.farmerCustomer?.province ||
-                  "-"}{" "}
-                {demoPlotData.district ? `/ ${demoPlotData.district}` : ""}
+                  demoPlotData.farmer?.province ||
+                  "-"}
+                {demoPlotData.ownerDistrict ||
+                demoPlotData.farmerCustomer?.district ||
+                demoPlotData.farmer?.district ||
+                demoPlotData.district
+                  ? ` / ${demoPlotData.ownerDistrict || demoPlotData.farmerCustomer?.district || demoPlotData.farmer?.district || demoPlotData.district}`
+                  : ""}
               </span>
             </div>
             <div>
