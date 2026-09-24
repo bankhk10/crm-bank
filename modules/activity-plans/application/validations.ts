@@ -687,9 +687,9 @@ export const activityResultSchema = z
             .array(
               z.object({
                 fileUrl: z.string(),
-                fileName: z.string().optional(),
-                fileSize: z.number().optional(),
-                mimeType: z.string().optional(),
+                fileName: z.string().optional().nullable(),
+                fileSize: z.number().optional().nullable(),
+                mimeType: z.string().optional().nullable(),
               }),
             )
             .optional()
