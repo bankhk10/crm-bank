@@ -999,6 +999,42 @@ export function DemoPlotHistoryModal({
                       (responseMatch && responseMatch[1]) ||
                       "พืชตอบสนองดี";
 
+                    // สถานะแปลงหลังการตรวจรอบนี้
+                    const statusMatch = summaryText.match(
+                      /สถานะแปลง(?:\s*หลังการตรวจรอบนี้)?:\s*([^\n\r]+)/,
+                    );
+                    const rawPlotStatus =
+                      (v as any).plotStatus ||
+                      (v as any).status ||
+                      (v.activityPlan?.result as any)?.plotStatus ||
+                      (v.activityPlan?.result as any)?.t7PlotStatus ||
+                      (statusMatch && statusMatch[1]?.trim()) ||
+                      (idx === visits.length - 1 ? plot.status : undefined) ||
+                      "IN_PROGRESS";
+
+                    const isCompleted =
+                      rawPlotStatus === "COMPLETED" ||
+                      rawPlotStatus === "ปิดแปลงแล้ว" ||
+                      rawPlotStatus === "ปิดแปลงสมบูรณ์" ||
+                      rawPlotStatus.includes("สิ้นสุด");
+                    const isFailed =
+                      rawPlotStatus === "FAILED" ||
+                      rawPlotStatus === "ยุติการทดลอง" ||
+                      rawPlotStatus.includes("ล้มเหลว") ||
+                      rawPlotStatus.includes("เสียหาย");
+
+                    const visitPlotStatus = isCompleted
+                      ? "COMPLETED"
+                      : isFailed
+                        ? "FAILED"
+                        : "IN_PROGRESS";
+
+                    const visitPlotStatusLabel = isCompleted
+                      ? "✅ สิ้นสุดการทดลอง (ปิดแปลง)"
+                      : isFailed
+                        ? "❌ ยุติการทดลอง (แปลงเสียหาย / ล้มเหลว)"
+                        : "🔄 อยู่ระหว่างการทดลอง (ต้องติดตามต่อ)";
+
                     return (
                       <div
                         key={v.id || idx}
@@ -1178,27 +1214,39 @@ export function DemoPlotHistoryModal({
                                 </div>
                               )}
 
-                              {/* Link to Trip Plan Details */}
-                              {v.activityPlan?.id && (
-                                <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                                  <span className="text-[11px] text-slate-500">
-                                    บันทึกผลผ่านแผนงาน:{" "}
-                                    <strong className="font-semibold text-slate-700">
-                                      {v.activityPlan.code || "-"}
-                                    </strong>
+                              {/* Plot Status After This Inspection & Link to Trip Plan Details */}
+                              <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[11px] text-slate-500 font-medium">
+                                    สถานะแปลงรอบนี้:
                                   </span>
+                                  <Badge
+                                    variant="outline"
+                                    className={cn(
+                                      "text-[11px] font-bold px-2 py-0.5 rounded-md",
+                                      visitPlotStatus === "COMPLETED"
+                                        ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                                        : visitPlotStatus === "FAILED"
+                                          ? "bg-rose-50 text-rose-800 border-rose-300"
+                                          : "bg-blue-50 text-blue-800 border-blue-300",
+                                    )}
+                                  >
+                                    {visitPlotStatusLabel}
+                                  </Badge>
+                                </div>
+                                {v.activityPlan?.id && (
                                   <a
                                     href={`/activity-plans/${v.activityPlan.id}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={(e) => e.stopPropagation()}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors ml-auto"
                                   >
                                     <ExternalLink className="w-3.5 h-3.5" />
                                     <span>ดูรายละเอียด</span>
                                   </a>
-                                </div>
-                              )}
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
