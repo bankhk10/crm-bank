@@ -2171,6 +2171,7 @@ export type CreateActivityResultInput = {
     ownerName: string;
     ownerPhone?: string | null;
     ownerProvince?: string | null;
+    ownerDistrict?: string | null;
     isUnregisteredFarmer: boolean;
     province: string;
     district?: string | null;
@@ -2649,6 +2650,7 @@ export async function upsertActivityResult(
             ownerName: demoData.ownerName,
             ownerPhone: demoData.ownerPhone ?? null,
             ownerProvince: demoData.ownerProvince ?? null,
+            ownerDistrict: demoData.ownerDistrict ?? null,
             isUnregisteredFarmer: demoData.isUnregisteredFarmer,
             farmerCustomerId: demoData.farmerCustomerId ?? null,
             province: demoData.province,
@@ -2692,6 +2694,7 @@ export async function upsertActivityResult(
             ownerName: demoData.ownerName,
             ownerPhone: demoData.ownerPhone ?? null,
             ownerProvince: demoData.ownerProvince ?? null,
+            ownerDistrict: demoData.ownerDistrict ?? null,
             isUnregisteredFarmer: demoData.isUnregisteredFarmer,
             customerId:
               demoData.customerId || plan?.stores?.[0]?.storeId || null,

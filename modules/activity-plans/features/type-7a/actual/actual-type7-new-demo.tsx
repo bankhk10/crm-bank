@@ -105,6 +105,8 @@ export interface ActualType7NewDemoProps {
   // 1. Farmer Owner
   farmerProvince?: string;
   setFarmerProvince?: (v: string) => void;
+  farmerDistrict?: string;
+  setFarmerDistrict?: (v: string) => void;
   farmerCustomerId?: string | null;
   setFarmerCustomerId?: (v: string | null) => void;
   farmerName?: string;
@@ -215,6 +217,8 @@ export function ActualType7NewDemo({
   // 1. Farmer Owner
   farmerProvince = "",
   setFarmerProvince,
+  farmerDistrict = "",
+  setFarmerDistrict,
   farmerCustomerId = null,
   setFarmerCustomerId,
   farmerName = "",
@@ -411,6 +415,50 @@ export function ActualType7NewDemo({
     };
   }, [farmerProvince]);
 
+  // Address data from API for province -> district cascading
+  const [provincesData, setProvincesData] = useState<any[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadAddresses() {
+      try {
+        const res = await fetch("/api/thai-addresses");
+        if (!res.ok) return;
+        const json = await res.json();
+        if (isMounted && Array.isArray(json)) {
+          const normalized = json.map((p: any) => ({
+            id: p.id,
+            name: p.name_th,
+            districts: (p.districts || []).map((d: any) => ({
+              id: d.id,
+              name: d.name_th,
+            })),
+          }));
+          setProvincesData(normalized);
+        }
+      } catch (err) {
+        console.error("Failed to load thai addresses for TYPE_7A:", err);
+      }
+    }
+    loadAddresses();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // District options filtered by selected farmer province
+  const farmerDistrictOptions = useMemo(() => {
+    if (!farmerProvince) return [];
+    const matched = provincesData.find(
+      (p) => p.name?.trim() === farmerProvince.trim(),
+    );
+    if (!matched) return [];
+    return matched.districts.map((d: any) => ({
+      value: d.name,
+      label: d.name,
+    }));
+  }, [farmerProvince, provincesData]);
+
   // Province dropdown options
   const provinceOptions = useMemo(
     () => ALL_THAI_PROVINCES.map((p) => ({ value: p, label: p })),
@@ -474,9 +522,10 @@ export function ActualType7NewDemo({
     district,
   ]);
 
-  // Handle Province Change: reset farmer selection
+  // Handle Province Change: reset farmer selection & district
   const handleProvinceChange = (newProvince: string) => {
     setFarmerProvince?.(newProvince);
+    setFarmerDistrict?.("");
     setFarmerCustomerId?.(null);
     if (!isUnregisteredFarmer) {
       setFarmerName?.("");
@@ -487,6 +536,7 @@ export function ActualType7NewDemo({
   // Handle Unregistered Toggle
   const handleToggleUnregistered = (checked: boolean) => {
     setIsUnregisteredFarmer?.(checked);
+    setFarmerDistrict?.("");
     if (checked) {
       setFarmerCustomerId?.(null);
       setFarmerName?.("");
@@ -865,6 +915,33 @@ export function ActualType7NewDemo({
           {/* Form fields for Unregistered Farmer */}
           {isUnregisteredFarmer && (
             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3 p-3.5 bg-amber-50/60 border border-amber-200/90 rounded-xl">
+              <div>
+                <FormCombobox
+                  id="farmer-district-combobox"
+                  label="อำเภอของเกษตรกรเจ้าของแปลง"
+                  labelClassName="block text-xs font-bold text-amber-950 mb-1"
+                  triggerClassName="h-10 text-xs sm:text-sm bg-white border-amber-300 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100 disabled:text-slate-400"
+                  value={farmerDistrict}
+                  onChange={(val) => setFarmerDistrict?.(val)}
+                  options={farmerDistrictOptions}
+                  placeholder={
+                    !farmerProvince
+                      ? "กรุณาเลือกจังหวัดก่อน"
+                      : "เลือกอำเภอ..."
+                  }
+                  searchPlaceholder="ค้นหาอำเภอ..."
+                  emptyText={
+                    !farmerProvince
+                      ? "กรุณาเลือกจังหวัดก่อน"
+                      : "ไม่พบอำเภอ"
+                  }
+                  disabled={!farmerProvince}
+                  required
+                />
+              </div>
+
+              <div className="hidden md:block" />
+
               <div>
                 <label className="block text-xs font-bold text-amber-950 mb-1">
                   ชื่อ - สกุล เกษตรกร <span className="text-rose-500">*</span>

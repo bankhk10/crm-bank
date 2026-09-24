@@ -851,13 +851,18 @@ export function DetailType7NewDemo({
               </div>
               <div>
                 <span className="text-slate-500 font-medium block">
-                  จังหวัดเกษตรกร:
+                  จังหวัด / อำเภอ ของเกษตรกร:
                 </span>
                 <span className="font-bold text-slate-900">
                   {demoPlotData.ownerProvince ||
                     demoPlotData.farmerCustomer?.province ||
                     demoPlotData.farmer?.province ||
                     "-"}
+                  {demoPlotData.ownerDistrict ||
+                  demoPlotData.farmerCustomer?.district ||
+                  demoPlotData.farmer?.district
+                    ? ` / ${demoPlotData.ownerDistrict || demoPlotData.farmerCustomer?.district || demoPlotData.farmer?.district}`
+                    : ""}
                 </span>
               </div>
               {(demoPlotData.latitude || demoPlotData.longitude) && (

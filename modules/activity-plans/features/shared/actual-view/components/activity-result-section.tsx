@@ -219,6 +219,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
 
   const t7FarmerProvince = t7a ? t7a.t7FarmerProvince : (props.t7FarmerProvince ?? "");
   const setT7FarmerProvince = t7a ? t7a.setT7FarmerProvince : (props.setT7FarmerProvince || (() => {}));
+  const t7FarmerDistrict = t7a ? t7a.t7FarmerDistrict : (props.t7FarmerDistrict ?? "");
+  const setT7FarmerDistrict = t7a ? t7a.setT7FarmerDistrict : (props.setT7FarmerDistrict || (() => {}));
   const t7FarmerCustomerId = t7a ? t7a.t7FarmerCustomerId : (props.t7FarmerCustomerId ?? null);
   const setT7FarmerCustomerId = t7a ? t7a.setT7FarmerCustomerId : (props.setT7FarmerCustomerId || (() => {}));
   const t7FarmerName = t7a ? t7a.t7FarmerName : (props.t7FarmerName ?? "");
@@ -567,6 +569,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           planProvince={planProvince}
           farmerProvince={t7FarmerProvince}
           setFarmerProvince={setT7FarmerProvince}
+          farmerDistrict={t7FarmerDistrict}
+          setFarmerDistrict={setT7FarmerDistrict}
           farmerCustomerId={t7FarmerCustomerId}
           setFarmerCustomerId={setT7FarmerCustomerId}
           farmerName={t7FarmerName}

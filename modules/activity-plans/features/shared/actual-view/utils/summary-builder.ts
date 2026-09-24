@@ -1386,6 +1386,8 @@ export function buildResultSummary(
       "กรุงเทพมหานคร";
     const farmerProvinceVal =
       input.t7FarmerProvince?.trim() || null;
+    const farmerDistrictVal =
+      input.t7FarmerDistrict?.trim() || null;
 
     type7aDemoPlot = {
       farmerCustomerId: input.t7IsUnregisteredFarmer
@@ -1394,6 +1396,7 @@ export function buildResultSummary(
       ownerName: farmerName,
       ownerPhone: input.t7FarmerPhone?.trim() || null,
       ownerProvince: farmerProvinceVal,
+      ownerDistrict: farmerDistrictVal,
       isUnregisteredFarmer: Boolean(input.t7IsUnregisteredFarmer),
       province: plotProvinceVal,
       district: input.t7District?.trim() || input.planSummary?.district || null,

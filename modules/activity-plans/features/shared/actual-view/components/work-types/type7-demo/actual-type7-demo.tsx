@@ -46,6 +46,8 @@ export interface ActualType7DemoProps {
   // 1. Farmer / Customer Identification
   farmerProvince?: string;
   setFarmerProvince?: (v: string) => void;
+  farmerDistrict?: string;
+  setFarmerDistrict?: (v: string) => void;
   farmerCustomerId?: string | null;
   setFarmerCustomerId?: (id: string | null) => void;
   farmerName?: string;
@@ -284,6 +286,8 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
       customers={props.customers}
       farmerProvince={props.farmerProvince}
       setFarmerProvince={props.setFarmerProvince}
+      farmerDistrict={props.farmerDistrict}
+      setFarmerDistrict={props.setFarmerDistrict}
       farmerCustomerId={props.farmerCustomerId}
       setFarmerCustomerId={props.setFarmerCustomerId}
       farmerName={props.farmerName}

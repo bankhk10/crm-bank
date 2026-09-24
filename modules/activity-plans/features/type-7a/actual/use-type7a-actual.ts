@@ -13,6 +13,7 @@ import {
 
 export function useType7aActual() {
   const [t7FarmerProvince, setT7FarmerProvince] = useState("");
+  const [t7FarmerDistrict, setT7FarmerDistrict] = useState("");
   const [t7FarmerCustomerId, setT7FarmerCustomerId] = useState<string | null>(null);
   const [t7FarmerName, setT7FarmerName] = useState("");
   const [t7FarmerPhone, setT7FarmerPhone] = useState("");
@@ -68,6 +69,11 @@ export function useType7aActual() {
         setT7FarmerProvince(dp.ownerProvince);
       } else if (dp.farmerCustomer?.province) {
         setT7FarmerProvince(dp.farmerCustomer.province);
+      }
+      if (dp.farmerCustomer?.district) {
+        setT7FarmerDistrict(dp.farmerCustomer.district);
+      } else if (dp.ownerDistrict) {
+        setT7FarmerDistrict(dp.ownerDistrict);
       }
       if (dp.district) setT7District(dp.district);
       if (dp.farmerCustomerId) {
@@ -355,6 +361,7 @@ export function useType7aActual() {
       if ((parsed as any).type7aDemoPlot) {
         const dp = (parsed as any).type7aDemoPlot;
         if (dp.ownerProvince) setT7FarmerProvince(dp.ownerProvince);
+        if (dp.ownerDistrict) setT7FarmerDistrict(dp.ownerDistrict);
         if (dp.district) setT7District(dp.district);
         if (dp.farmerCustomerId) {
           setT7FarmerCustomerId(dp.farmerCustomerId);
@@ -479,6 +486,7 @@ export function useType7aActual() {
         t7DemoPlotId,
         t7UsageMethod: t7UsageMethod || "",
         t7FarmerProvince,
+        t7FarmerDistrict,
         t7FarmerCustomerId,
         t7FarmerName,
         t7FarmerPhone,
@@ -529,6 +537,7 @@ export function useType7aActual() {
       t7DemoPlotId,
       t7UsageMethod,
       t7FarmerProvince,
+      t7FarmerDistrict,
       t7FarmerCustomerId,
       t7FarmerName,
       t7FarmerPhone,
@@ -565,6 +574,8 @@ export function useType7aActual() {
   return {
     t7FarmerProvince,
     setT7FarmerProvince,
+    t7FarmerDistrict,
+    setT7FarmerDistrict,
     t7FarmerCustomerId,
     setT7FarmerCustomerId,
     t7FarmerName,

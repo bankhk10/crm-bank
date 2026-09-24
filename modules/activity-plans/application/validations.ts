@@ -395,6 +395,7 @@ export const type7aDemoPlotInputSchema = z
     ownerName: z.string().min(1, "กรุณาระบุชื่อเกษตรกรเจ้าของแปลง"),
     ownerPhone: z.string().optional().nullable(),
     ownerProvince: z.string().optional().nullable(),
+    ownerDistrict: z.string().optional().nullable(),
     isUnregisteredFarmer: z.boolean().default(false),
     province: z.string().min(1, "กรุณาเลือกจังหวัด"),
     district: z.string().optional().nullable(),
@@ -439,14 +440,18 @@ export const type7aDemoPlotInputSchema = z
           typeof data.ownerName === "string" &&
           data.ownerName.trim().length > 0 &&
           typeof data.ownerPhone === "string" &&
-          data.ownerPhone.trim().length > 0
+          data.ownerPhone.trim().length > 0 &&
+          typeof data.ownerProvince === "string" &&
+          data.ownerProvince.trim().length > 0 &&
+          typeof data.ownerDistrict === "string" &&
+          data.ownerDistrict.trim().length > 0
         );
       }
       return true;
     },
     {
-      message: "กรณีไม่มีเกษตรกรในระบบ กรุณากรอกชื่อและเบอร์โทรศัพท์",
-      path: ["ownerPhone"],
+      message: "กรณีไม่มีเกษตรกรในระบบ กรุณากรอกชื่อ เบอร์โทรศัพท์ จังหวัด และอำเภอของเกษตรกร",
+      path: ["ownerDistrict"],
     },
   )
   .refine(
