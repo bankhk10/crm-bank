@@ -71,54 +71,7 @@ export function Type7NewDemo({
   chemicalGroups = [],
   readonly = false,
 }: Type7NewDemoProps) {
-  // 1. Thai Address Cascading
-  const [provincesData, setProvincesData] = useState<any[]>([]);
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadAddresses() {
-      try {
-        const res = await fetch("/api/thai-addresses");
-        if (!res.ok) return;
-        const json = await res.json();
-        if (isMounted && Array.isArray(json)) {
-          const normalized = json.map((p: any) => ({
-            id: p.id,
-            name: p.name_th,
-            districts: (p.districts || []).map((d: any) => ({
-              id: d.id,
-              name: d.name_th,
-            })),
-          }));
-          setProvincesData(normalized);
-        }
-      } catch (err) {
-        console.error("Failed to load thai addresses:", err);
-      }
-    }
-    loadAddresses();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const provinceOptions = useMemo(() => {
-    return provincesData.map((p) => ({
-      value: p.name,
-      label: p.name,
-    }));
-  }, [provincesData]);
-
-  const districtOptions = useMemo(() => {
-    const matched = provincesData.find((p) => p.name === item.province);
-    if (!matched) return [];
-    return matched.districts.map((d: any) => ({
-      value: d.name,
-      label: d.name,
-    }));
-  }, [item.province, provincesData]);
-
-  // 2. Dealer Customer Options (Strictly DEALER)
+  // 1. Dealer Customer Options (Strictly DEALER)
   const dealerOptions = useMemo(() => {
     return customers
       .filter((c) => !c.customerType || c.customerType === "DEALER")
@@ -133,13 +86,9 @@ export function Type7NewDemo({
     updateType7Row(item.id, "storeId", dealerId);
     updateType7Row(item.id, "ownerName", dealer?.name || "");
 
-    // Autofill province and district from dealer if currently empty
-    if (dealer?.province && !item.province) {
-      updateType7Row(item.id, "province", dealer.province);
-      if (dealer.district && !item.district) {
-        updateType7Row(item.id, "district", dealer.district);
-      }
-    }
+    // Autofill province and district strictly from selected dealer
+    updateType7Row(item.id, "province", dealer?.province || "");
+    updateType7Row(item.id, "district", dealer?.district || "");
   };
 
   // 3. Crop options
@@ -356,44 +305,33 @@ export function Type7NewDemo({
           </div>
         </div>
 
-        {/* Row 2: จังหวัด + อำเภอ */}
+        {/* Row 2: จังหวัด + อำเภอ (อ้างอิงตามร้านค้า Dealer - อ่านอย่างเดียว) */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           <div className="md:col-span-6">
-            <FormCombobox
-              id={`province-combobox-${item.id}`}
-              label="จังหวัด"
-              labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
-              triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              จังหวัด <span className="text-slate-400 font-normal">(อ้างอิงตามร้านค้า)</span>
+            </label>
+            <input
+              type="text"
               value={item.province || ""}
-              onChange={(val) => {
-                updateType7Row(item.id, "province", val);
-                updateType7Row(item.id, "district", "");
-              }}
-              options={provinceOptions}
-              placeholder="เลือกจังหวัด..."
-              searchPlaceholder="ค้นหาจังหวัด..."
-              emptyText="ไม่พบจังหวัด"
-              disabled={readonly}
-              required
+              readOnly
+              disabled
+              placeholder="ระบุอัตโนมัติตามร้านค้า Dealer..."
+              className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-700 bg-slate-100/90 font-medium cursor-not-allowed select-none"
             />
           </div>
 
           <div className="md:col-span-6">
-            <FormCombobox
-              id={`district-combobox-${item.id}`}
-              label="อำเภอ"
-              labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
-              triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              อำเภอ <span className="text-slate-400 font-normal">(อ้างอิงตามร้านค้า)</span>
+            </label>
+            <input
+              type="text"
               value={item.district || ""}
-              onChange={(val) => updateType7Row(item.id, "district", val)}
-              options={districtOptions}
-              placeholder={
-                item.province ? "เลือกอำเภอ..." : "กรุณาเลือกจังหวัดก่อน"
-              }
-              searchPlaceholder="ค้นหาอำเภอ..."
-              emptyText="ไม่พบอำเภอ"
-              disabled={readonly || !item.province}
-              required
+              readOnly
+              disabled
+              placeholder="ระบุอัตโนมัติตามร้านค้า Dealer..."
+              className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-700 bg-slate-100/90 font-medium cursor-not-allowed select-none"
             />
           </div>
         </div>
