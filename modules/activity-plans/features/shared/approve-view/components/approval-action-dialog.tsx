@@ -241,10 +241,14 @@ export function ApprovalActionDialog({
         <DialogHeader>
           <div className="flex items-center gap-2">
             {getIcon()}
-            <DialogTitle className="text-lg font-bold">{getTitle()}</DialogTitle>
+            <DialogTitle className="text-lg font-bold">
+              {getTitle()}
+            </DialogTitle>
           </div>
           <DialogDescription className="text-xs text-slate-500">
-            เลขที่แผน: <span className="font-semibold text-slate-700">{planCode}</span> — {plan.title}
+            เลขที่แผน:{" "}
+            <span className="font-semibold text-slate-700">{planCode}</span> —{" "}
+            {plan.title}
           </DialogDescription>
         </DialogHeader>
 
@@ -271,7 +275,10 @@ export function ApprovalActionDialog({
                   <li>
                     อนุมัติงบส่งเสริมการขาย:{" "}
                     <strong>
-                      {Number(plan.salesPromotionBudgetRequested).toLocaleString()} บาท
+                      {Number(
+                        plan.salesPromotionBudgetRequested,
+                      ).toLocaleString()}{" "}
+                      บาท
                     </strong>
                   </li>
                 )}
@@ -279,7 +286,8 @@ export function ApprovalActionDialog({
                   <li>
                     อนุมัติงบการตลาด:{" "}
                     <strong>
-                      {Number(plan.marketingBudgetRequested).toLocaleString()} บาท
+                      {Number(plan.marketingBudgetRequested).toLocaleString()}{" "}
+                      บาท
                     </strong>
                   </li>
                 )}
@@ -287,7 +295,8 @@ export function ApprovalActionDialog({
                   <li>
                     อนุมัติงบประมาณภาพรวมทั้งหมด:{" "}
                     <strong>
-                      {Number(plan.totalBudgetRequested || 0).toLocaleString()} บาท
+                      {Number(plan.totalBudgetRequested || 0).toLocaleString()}{" "}
+                      บาท
                     </strong>
                   </li>
                 )}
@@ -295,7 +304,8 @@ export function ApprovalActionDialog({
                   <li>
                     พิจารณาพนักงานช่วยงานในสังกัด:{" "}
                     <strong>
-                      เลือก {selectedHelperIds.length} / {helpersInScope.length} คน
+                      เลือก {selectedHelperIds.length} / {helpersInScope.length}{" "}
+                      คน
                     </strong>
                   </li>
                 )}
@@ -309,7 +319,9 @@ export function ApprovalActionDialog({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
                   <Users className="h-4 w-4 text-purple-600 shrink-0" />
-                  <span>พนักงานช่วยงานในสังกัด ({helpersInScope.length} คน)</span>
+                  <span>
+                    พนักงานช่วยงานในสังกัด ({helpersInScope.length} คน)
+                  </span>
                 </div>
                 <Badge variant="outline" className="text-[10px] font-semibold">
                   เลือก {selectedHelperIds.length} คน
@@ -319,13 +331,17 @@ export function ApprovalActionDialog({
               <div className="bg-amber-50 text-amber-800 text-[11px] p-2 rounded-lg border border-amber-200/60 flex items-start gap-1.5">
                 <Info className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
                 <span>
-                  <strong>ข้อแนะนำ:</strong> ติ๊กถูก = อนุมัติ / เอาเครื่องหมายออก = คงสถานะรออนุมัติ (Pending) ไม่ได้หมายถึงปฏิเสธ
+                  <strong>ข้อแนะนำ:</strong> ติ๊กถูก = อนุมัติ /
+                  เอาเครื่องหมายออก = คงสถานะรออนุมัติ (Pending)
+                  ไม่ได้หมายถึงปฏิเสธ
                 </span>
               </div>
 
               <div className="divide-y divide-slate-200/70 border border-slate-200/80 rounded-lg bg-white overflow-hidden">
                 {helpersInScope.map((helper, idx) => {
-                  const isChecked = selectedHelperIds.includes(helper.employeeId);
+                  const isChecked = selectedHelperIds.includes(
+                    helper.employeeId,
+                  );
                   return (
                     <div
                       key={helper.id || idx}
@@ -335,7 +351,9 @@ export function ApprovalActionDialog({
                         <Checkbox
                           id={`helper-${helper.employeeId}`}
                           checked={isChecked}
-                          onCheckedChange={() => toggleHelper(helper.employeeId)}
+                          onCheckedChange={() =>
+                            toggleHelper(helper.employeeId)
+                          }
                           disabled={loading}
                         />
                         <label
@@ -346,8 +364,7 @@ export function ApprovalActionDialog({
                             {idx + 1}. {helper.employee?.name || "พนักงาน"}
                           </div>
                           <div className="text-[11px] text-slate-500 truncate">
-                            {helper.employee?.positionTitle || "-"}{" "}
-                            •{" "}
+                            {helper.employee?.positionTitle || "-"} •{" "}
                             {helper.departmentName ||
                               helper.employee?.department?.code ||
                               "ฝ่ายขาย"}
@@ -363,7 +380,9 @@ export function ApprovalActionDialog({
                             : "bg-amber-50 text-amber-700 border-amber-200"
                         }`}
                       >
-                        {isChecked ? "จะอนุมัติ (Approved)" : "รออนุมัติ (Pending)"}
+                        {isChecked
+                          ? "จะอนุมัติ (Approved)"
+                          : "รออนุมัติ (Pending)"}
                       </Badge>
                     </div>
                   );
@@ -376,7 +395,8 @@ export function ApprovalActionDialog({
             <div className="bg-red-50 text-red-800 text-xs p-3 rounded-lg border border-red-100 flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
               <div>
-                การปฏิเสธจะทำให้แผนงานนี้สิ้นสุดลงทันที และแจ้งเตือนให้ผู้สร้างทราบ
+                การปฏิเสธจะทำให้แผนงานนี้สิ้นสุดลงทันที
+                และแจ้งเตือนให้ผู้สร้างทราบ
               </div>
             </div>
           )}
@@ -385,14 +405,20 @@ export function ApprovalActionDialog({
             <div className="bg-amber-50 text-amber-800 text-xs p-3 rounded-lg border border-amber-100 flex items-start gap-2">
               <RotateCcw className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <div>
-                ระบบจะเปลี่ยนสถานะเป็น &quot;รอแก้ไข&quot; เพื่อให้ผู้สร้างปรับปรุงข้อมูลและส่งใหม่
+                ระบบจะเปลี่ยนสถานะเป็น &quot;รอแก้ไข&quot;
+                เพื่อให้ผู้สร้างปรับปรุงข้อมูลและส่งใหม่
               </div>
             </div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="approval-comment" className="text-xs font-semibold text-slate-700">
-              {isApprove ? "หมายเหตุ / คำแนะนำ (ถ้ามี)" : "เหตุผล / สิ่งที่ต้องแก้ไข *"}
+            <Label
+              htmlFor="approval-comment"
+              className="text-xs font-semibold text-slate-700"
+            >
+              {isApprove
+                ? "หมายเหตุ / คำแนะนำ (ถ้ามี)"
+                : "เหตุผล / สิ่งที่ต้องแก้ไข *"}
             </Label>
             <Textarea
               id="approval-comment"
@@ -400,8 +426,8 @@ export function ApprovalActionDialog({
                 isApprove
                   ? "ระบุความเห็นเพิ่มเติม..."
                   : isReject
-                  ? "ระบุเหตุผลที่ไม่อนุมัติ..."
-                  : "ระบุรายการที่ต้องการให้แก้ไข..."
+                    ? "ระบุเหตุผลที่ไม่อนุมัติ..."
+                    : "ระบุรายการที่ต้องการให้แก้ไข..."
               }
               value={comment}
               onChange={(e) => setComment(e.target.value)}
@@ -411,7 +437,7 @@ export function ApprovalActionDialog({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0 pt-2">
+        <DialogFooter className="gap-2 sm:gap-2 pt-2">
           <Button
             type="button"
             variant="outline"
@@ -430,20 +456,19 @@ export function ApprovalActionDialog({
               isApprove
                 ? "bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
                 : isReject
-                ? "bg-red-600 hover:bg-red-700 text-white"
-                : "bg-amber-600 hover:bg-amber-700 text-white"
+                  ? "bg-red-600 hover:bg-red-700 text-white"
+                  : "bg-amber-600 hover:bg-amber-700 text-white"
             }`}
           >
             {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             {isApprove
-              ? "ยืนยันการอนุมัติในรอบนี้"
+              ? "ยืนยันการอนุมัติ"
               : isReject
-              ? "ยืนยันปฏิเสธ"
-              : "ส่งกลับแก้ไข"}
+                ? "ยืนยันปฏิเสธ"
+                : "ส่งกลับแก้ไข"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-
