@@ -810,7 +810,7 @@ export function ActualType7FollowUp({
                             key={ep.id || epIdx}
                             className="hover:bg-slate-50/50"
                           >
-                            <td className="p-2.5 text-center text-slate-400">
+                            <td className="p-2.5 text-center text-slate-700">
                               {epIdx + 1}
                             </td>
                             <td className="p-2.5 text-slate-800 font-medium">
