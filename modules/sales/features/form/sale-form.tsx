@@ -679,7 +679,10 @@ export function SaleForm({
           options={[
             { value: "CREDIT_90", label: "ส่งสินค้าก่อน (เครดิต 90 วัน)" },
             { value: "CASH_7", label: "ชำระเงินสด ไม่ลด (เครดิต 7 วัน )" },
-            { value: "CASH_DISCOUNT_3_7", label: "ชำระเงินสด ลด 3% (เครดิต 7 วัน)" },
+            {
+              value: "CASH_DISCOUNT_3_7",
+              label: "ชำระเงินสด ลด 3% (เครดิต 7 วัน)",
+            },
             {
               value: "PREPAID",
               label: "ชำระเงินก่อนส่งสินค้า (โอนเงินก่อนส่งสินค้า)",
@@ -962,6 +965,9 @@ export function SaleForm({
         onConfirm={handleConfirm}
         onClose={() => setConfirmOpen(false)}
       />
+      <br></br>
+      <br></br>
+      <br></br>
     </form>
   );
 }
