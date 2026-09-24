@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   FileText,
   Image as ImageIcon,
+  ExternalLink,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -544,6 +545,28 @@ export function ActualType7FollowUp({
       }
     : null;
 
+  const baselineVisit =
+    (demoPlotData?.visits || []).find(
+      (v: any) =>
+        v.workTypeCode === "TYPE_7A" ||
+        v.activityPlan?.workTypes?.some(
+          (wt: any) =>
+            wt.activityType?.code === "TYPE_7A" ||
+            wt.workTypeCode === "TYPE_7A",
+        ) ||
+        v.activityPlan?.activityType?.code === "TYPE_7A",
+    ) ||
+    (demoPlotData?.visits || [])[0] ||
+    null;
+
+  const baselinePlanId =
+    demoPlotData?.activityPlanId ||
+    demoPlotData?.activityPlan?.id ||
+    demoPlotData?.createdPlanId ||
+    baselineVisit?.activityPlan?.id ||
+    baselineVisit?.activityPlanId ||
+    null;
+
   const effectiveNextDate = nextSprayDate || nextFollowUpDate;
   const handleNextDateChange = (val: string) => {
     setNextSprayDate?.(val);
@@ -598,9 +621,22 @@ export function ActualType7FollowUp({
               <span className="text-slate-500 font-medium block">
                 ชื่อแปลงสาธิต
               </span>
-              <span className="font-semibold text-slate-900">
-                {demoPlotData.plotName || demoPlotData.name || "-"}
-              </span>
+              {baselinePlanId ? (
+                <a
+                  href={`/activity-plans/${baselinePlanId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-blue-700 hover:text-blue-900 hover:underline inline-flex items-center gap-1 group transition-colors"
+                  title="คลิกเพื่อเปิดดูรายละเอียดแผนงานของแปลงสาธิตนี้ในแท็บใหม่"
+                >
+                  <span>{demoPlotData.plotName || demoPlotData.name || "-"}</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-blue-600 group-hover:text-blue-800 transition-colors" />
+                </a>
+              ) : (
+                <span className="font-semibold text-slate-900">
+                  {demoPlotData.plotName || demoPlotData.name || "-"}
+                </span>
+              )}
             </div>
             <div>
               <span className="text-slate-500 font-medium block">
