@@ -301,7 +301,16 @@ export function DemoPlotHistoryModal({
           <div className="p-5 bg-gradient-to-r from-emerald-800 to-teal-900 text-white flex items-start justify-between">
             <div className="space-y-1.5">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 text-xs font-semibold border border-emerald-400/20">
+                <span
+                  className={cn(
+                    "px-2.5 py-0.5 rounded-full text-xs font-semibold border shadow-2xs",
+                    plot.status === "COMPLETED"
+                      ? "bg-emerald-700 text-emerald-100 border-emerald-400/40"
+                      : plot.status === "FAILED"
+                        ? "bg-red-700 text-red-100 border-red-400/40"
+                        : "bg-sky-700 text-sky-100 border-sky-400/35",
+                  )}
+                >
                   {plot.status === "COMPLETED"
                     ? "ปิดแปลงสมบูรณ์"
                     : plot.status === "FAILED"
