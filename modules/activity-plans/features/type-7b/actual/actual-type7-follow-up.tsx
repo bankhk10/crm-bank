@@ -272,7 +272,7 @@ export function ActualType7FollowUp({
           baselineRate: "",
           withdrawnQuantity: wQty,
           actualRate: "",
-          quantityUsed: 1,
+          quantityUsed: 0,
           unit: wp.unit || "",
         });
       }
