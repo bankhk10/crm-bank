@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, AlertTriangle, Check, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -115,6 +115,12 @@ export function ActivityPlanActualView({
   );
 
   // 4. Hydration Orchestration
+  const [isHydrated, setIsHydrated] = useState(!id);
+
+  useEffect(() => {
+    setIsHydrated(!id);
+  }, [id]);
+
   useEffect(() => {
     if (!plan) return;
     statusState.hydrateStatus(parsedResult);
@@ -131,6 +137,7 @@ export function ActivityPlanActualView({
     type10.hydrate(parsedResult);
     type11.hydrate(parsedResult);
     type13.hydrate(plan, parsedResult, targets);
+    setIsHydrated(true);
   }, [plan, parsedResult]);
 
   // 5. Submit Handler
@@ -159,22 +166,7 @@ export function ActivityPlanActualView({
   };
 
   // Permission & Loading Guards
-  if (loadingPlan) {
-    return (
-      <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
-        <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto text-center">
-          <div className="py-12 flex flex-col items-center justify-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-            <p className="text-sm text-slate-500 font-medium">
-              กำลังโหลดข้อมูลแผนงาน...
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (!loadingPlan && unauthorizedError) {
+  if (unauthorizedError) {
     return (
       <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
         <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto">
@@ -214,7 +206,22 @@ export function ActivityPlanActualView({
     );
   }
 
-  if (!loadingPlan && id && planStatus && planStatus !== "APPROVED") {
+  if (loadingPlan || (!isHydrated && id)) {
+    return (
+      <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
+        <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto text-center">
+          <div className="py-12 flex flex-col items-center justify-center gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+            <p className="text-sm text-slate-500 font-medium">
+              กำลังโหลดข้อมูลแผนงาน...
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (id && planStatus && planStatus !== "APPROVED") {
     return (
       <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
         <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto">
