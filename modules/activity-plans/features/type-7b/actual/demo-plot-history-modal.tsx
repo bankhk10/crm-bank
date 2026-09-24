@@ -745,11 +745,13 @@ export function DemoPlotHistoryModal({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         {externalProductsList.map((ext: any, idx: number) => {
                           const formulaDisplay =
-                            ext.formula === "OTHER"
+                            ext.formula === "OTHER" || ext.formula === "อื่นๆ"
                               ? ext.customFormula
                                 ? `อื่นๆ (${ext.customFormula})`
                                 : "อื่นๆ"
-                              : ext.formula || "-";
+                              : ext.customFormula
+                                ? `${ext.formula || "-"} (${ext.customFormula})`
+                                : ext.formula || "-";
                           return (
                             <div
                               key={ext.id || idx}

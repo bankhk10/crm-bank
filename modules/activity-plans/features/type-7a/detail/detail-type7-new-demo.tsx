@@ -1034,11 +1034,13 @@ export function DetailType7NewDemo({
                   {demoPlotData.externalProducts.map(
                     (ext: any, idx: number) => {
                       const formulaDisplay =
-                        ext.formula === "OTHER"
+                        ext.formula === "OTHER" || ext.formula === "อื่นๆ"
                           ? ext.customFormula
                             ? `อื่นๆ (${ext.customFormula})`
                             : "อื่นๆ"
-                          : ext.formula || "-";
+                          : ext.customFormula
+                            ? `${ext.formula || "-"} (${ext.customFormula})`
+                            : ext.formula || "-";
                       return (
                         <div
                           key={ext.id || idx}
