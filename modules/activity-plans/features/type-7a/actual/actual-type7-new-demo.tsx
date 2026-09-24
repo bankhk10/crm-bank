@@ -635,7 +635,8 @@ export function ActualType7NewDemo({
   };
 
   // Photos handler (Max 10)
-  const effectivePhotos = initialPhotos.length > 0 ? initialPhotos : (plotImages || []);
+  const effectivePhotos =
+    initialPhotos.length > 0 ? initialPhotos : plotImages || [];
   const handlePhotosChange = (files: FileWithPreview[]) => {
     const newImageFiles = filesWithPreviewToImageFiles(files);
     if (setInitialPhotos) {
@@ -1051,6 +1052,18 @@ export function ActualType7NewDemo({
             </div>
           </div>
 
+          {/* วันที่เริ่มปลูกจริง */}
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-700">
+              วันที่เริ่มปลูกจริง
+            </label>
+            <DatePicker
+              value={plantingDate}
+              onChange={(v) => setPlantingDate?.(v || "")}
+              placeholder="เลือกวันที่เริ่มปลูกจริง"
+              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
+            />
+          </div>
           {/* วันที่ฉีดพ่น */}
           <div className="space-y-1">
             <label className="block text-xs font-bold text-slate-700">
@@ -1077,19 +1090,6 @@ export function ActualType7NewDemo({
                 setNextFollowUpDate?.(v || "");
               }}
               placeholder="เลือกกำหนดฉีดพ่นครั้งต่อไป"
-              className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
-            />
-          </div>
-
-          {/* วันที่เริ่มปลูกจริง */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">
-              วันที่เริ่มปลูกจริง
-            </label>
-            <DatePicker
-              value={plantingDate}
-              onChange={(v) => setPlantingDate?.(v || "")}
-              placeholder="เลือกวันที่เริ่มปลูกจริง"
               className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
             />
           </div>
