@@ -701,7 +701,7 @@ export function DetailType7NewDemo({
               </div>
               <div>
                 <span className="text-slate-500 font-medium block">
-                  ร้านค้าตัวแทนจำหน่าย (Dealer):
+                  ร้านค้า (Dealer):
                 </span>
                 <span className="font-bold text-slate-900">
                   {demoPlotData.customer?.name
@@ -825,7 +825,7 @@ export function DetailType7NewDemo({
               </div>
               <div>
                 <span className="text-slate-500 font-medium block">
-                  ระยะการเจริญเติบโต (Stage):
+                  ระยะการเจริญเติบโต :
                 </span>
                 <span className="font-bold text-slate-900">
                   {resolvedGrowthStage || "-"}
