@@ -286,7 +286,10 @@ export function Type7NewDemo({
               className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
             />
           </div>
+        </div>
 
+        {/* Row 2: จังหวัด + อำเภอ (อ้างอิงตามร้านค้า Dealer - อ่านอย่างเดียว) */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           <div className="md:col-span-6">
             <FormCombobox
               id={`dealer-combobox-${item.id}`}
@@ -303,13 +306,12 @@ export function Type7NewDemo({
               required
             />
           </div>
-        </div>
-
-        {/* Row 2: จังหวัด + อำเภอ (อ้างอิงตามร้านค้า Dealer - อ่านอย่างเดียว) */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-          <div className="md:col-span-6">
+          <div className="md:col-span-3">
             <label className="block text-xs font-medium text-slate-700 mb-1">
-              จังหวัด <span className="text-slate-400 font-normal">(อ้างอิงตามร้านค้า)</span>
+              จังหวัด{" "}
+              <span className="text-slate-400 font-normal">
+                (อ้างอิงตามร้านค้า)
+              </span>
             </label>
             <input
               type="text"
@@ -321,9 +323,12 @@ export function Type7NewDemo({
             />
           </div>
 
-          <div className="md:col-span-6">
+          <div className="md:col-span-3">
             <label className="block text-xs font-medium text-slate-700 mb-1">
-              อำเภอ <span className="text-slate-400 font-normal">(อ้างอิงตามร้านค้า)</span>
+              อำเภอ{" "}
+              <span className="text-slate-400 font-normal">
+                (อ้างอิงตามร้านค้า)
+              </span>
             </label>
             <input
               type="text"
