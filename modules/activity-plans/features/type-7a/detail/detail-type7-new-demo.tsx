@@ -536,7 +536,8 @@ export function DetailType7NewDemo({
           plantingDate: plantingDate || null,
           plantingAreaCondition: plantingAreaCondition || null,
           usageMethod: usageMethod || null,
-          experimentDetail: resolvedExperimentDetail || experimentDetail || null,
+          experimentDetail:
+            resolvedExperimentDetail || experimentDetail || null,
           notes: resolvedNotes || notes || null,
           cropAgeValue: resolvedCropAge,
           cropAgeUnit: resolvedCropAgeUnit,
@@ -571,7 +572,10 @@ export function DetailType7NewDemo({
         raw.plantingAreaCondition || plantingAreaCondition || null,
       usageMethod: raw.usageMethod || usageMethod || null,
       experimentDetail:
-        raw.experimentDetail || resolvedExperimentDetail || experimentDetail || null,
+        raw.experimentDetail ||
+        resolvedExperimentDetail ||
+        experimentDetail ||
+        null,
       notes: raw.notes || resolvedNotes || notes || null,
       cropAgeValue: raw.cropAgeValue || resolvedCropAge,
       cropAgeUnit: raw.cropAgeUnit || resolvedCropAgeUnit,
@@ -1042,11 +1046,11 @@ export function DetailType7NewDemo({
                         >
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-slate-900 text-sm">
-                              {ext.productName || "-"}
+                              ชื่อสินค้า {ext.productName || "-"}
                             </span>
                             {ext.company && (
                               <span className="text-[11px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                                {ext.company}
+                                บริษัท : {ext.company}
                               </span>
                             )}
                           </div>

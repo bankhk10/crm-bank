@@ -757,11 +757,11 @@ export function DemoPlotHistoryModal({
                             >
                               <div className="flex items-center justify-between">
                                 <span className="font-bold text-slate-900 text-sm">
-                                  {ext.productName || "-"}
+                                  ชื่อสินค้า: {ext.productName || "-"}
                                 </span>
                                 {ext.company && (
                                   <span className="text-[11px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                                    {ext.company}
+                                    บริษัท : {ext.company}
                                   </span>
                                 )}
                               </div>
