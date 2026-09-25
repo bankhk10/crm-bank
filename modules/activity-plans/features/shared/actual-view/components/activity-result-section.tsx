@@ -424,7 +424,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
   const t11NextAction = t11 ? t11.t11NextAction : (props.t11NextAction ?? "");
   const setT11NextAction = t11 ? t11.setT11NextAction : (props.setNextAction || (() => {}));
 
-  const hasAnyActualWorkType = WORK_TYPES.slice(0, 11).some((wt) =>
+  const hasAnyActualWorkType = WORK_TYPES.some((wt) =>
     isTypeVisible(wt),
   );
   if (!hasAnyActualWorkType) return null;

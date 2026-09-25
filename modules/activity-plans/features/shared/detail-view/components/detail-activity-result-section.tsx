@@ -36,7 +36,7 @@ export function DetailActivityResultSection({
   visitHistory = [],
   currentVisit,
 }: DetailActivityResultSectionProps) {
-  const hasAnyActualWorkType = WORK_TYPES.slice(0, 11).some((wt) =>
+  const hasAnyActualWorkType = WORK_TYPES.some((wt) =>
     isTypeVisible(wt),
   );
   if (!hasAnyActualWorkType) return null;
