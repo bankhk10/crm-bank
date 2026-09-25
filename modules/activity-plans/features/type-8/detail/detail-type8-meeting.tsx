@@ -24,6 +24,7 @@ interface DetailType8MeetingProps {
     customer?: string;
     dealerName?: string;
     subDealerStore?: string;
+    detail?: string;
     targetProducts?: string[];
     promotionalProducts?: Array<{
       productName: string;
@@ -122,6 +123,9 @@ export function DetailType8Meeting({
             ? [{ label: "ร้านค้า / ตัวแทนจำหน่าย:", value: target.customer }]
             : []),
           { label: "สินค้าเป้าหมาย:", value: targetProductsList.join(", ") || target.products || "-" },
+          ...(target.detail
+            ? [{ label: "รายละเอียดเพิ่มเติม:", value: target.detail }]
+            : []),
           {
             label: "เป้าหมายผู้เข้าร่วม:",
             value: target.targetAttendees ? `${target.targetAttendees} คน` : "-",

@@ -42,11 +42,12 @@ export interface UseType8FormResult {
     targetAttendees: number;
     planStores: Array<{
       workTypeCode: string;
-      storeId: string;
+      storeId: string | null;
       storeName: string | null;
       subDealerStore: string | null;
       visitPurpose: "FARMER" | "STORE" | null;
       remarks: string | null;
+      notes: string | null;
     }>;
     planProducts: Array<{
       workTypeCode: string;
@@ -82,7 +83,8 @@ export function useType8Form({
     const existingStores = (initial as any)?.stores?.filter(
       (s: any) => s.workTypeCode === "TYPE_8",
     );
-    const primaryStore = existingStores && existingStores.length > 0 ? existingStores[0] : null;
+    const primaryStore =
+      existingStores && existingStores.length > 0 ? existingStores[0] : null;
 
     // Separate Target Products vs Promotional Products by workTypeCode
     const allProds = (initial as any)?.products || [];
@@ -92,15 +94,71 @@ export function useType8Form({
     );
 
     if (primaryStore || targetProds.length > 0 || promoProds.length > 0) {
-      const meetingTarget: Type8MeetingTarget =
-        primaryStore?.visitPurpose === "DEALER" ||
-        primaryStore?.visitPurpose === "SUBDEALER" ||
-        primaryStore?.visitPurpose === "FARMER"
-          ? primaryStore.visitPurpose
-          : "FARMER";
+      // Find customer in Customer Master (or from primaryStore.store relation)
+      const matchedCustomer =
+        (customersList || []).find((c: any) => c.id === primaryStore?.storeId) ||
+        primaryStore?.store;
 
-      const farmerChannel: Type8FarmerChannel =
-        primaryStore?.remarks === "SUBDEALER" ? "SUBDEALER" : "DEALER";
+      const isSubdealerCustomer =
+        matchedCustomer?.customerType === "SUBDEALER" ||
+        matchedCustomer?.customerType === "Subdealer";
+
+      let isUnregisteredSubdealer = false;
+      let subdealerId = "";
+      let subDealerStore = "";
+      let dealerId = "";
+      let dealerName = "";
+
+      if (isSubdealerCustomer) {
+        // CASE A: Registered Subdealer
+        isUnregisteredSubdealer = false;
+        subdealerId = matchedCustomer?.id || primaryStore?.storeId || "";
+        const parentId = matchedCustomer?.parentDealerId;
+        if (parentId) {
+          const parentCustomer = (customersList || []).find(
+            (c: any) => c.id === parentId,
+          );
+          dealerId = parentId;
+          dealerName = parentCustomer?.name || "";
+        }
+      } else if (primaryStore?.subDealerStore) {
+        // CASE B: Unregistered Subdealer
+        isUnregisteredSubdealer = true;
+        subDealerStore = primaryStore.subDealerStore;
+        dealerId = primaryStore.storeId || "";
+        dealerName = matchedCustomer?.name || primaryStore.storeName || "";
+      } else {
+        // Dealer target or Farmer via Dealer
+        isUnregisteredSubdealer = false;
+        dealerId = primaryStore?.storeId || "";
+        dealerName = matchedCustomer?.name || primaryStore?.storeName || "";
+      }
+
+      // Determine meetingTarget & farmerChannel
+      let meetingTarget: Type8MeetingTarget = "FARMER";
+      let farmerChannel: Type8FarmerChannel = "DEALER";
+
+      if (primaryStore?.visitPurpose === "FARMER") {
+        meetingTarget = "FARMER";
+        farmerChannel =
+          isSubdealerCustomer || Boolean(primaryStore?.subDealerStore)
+            ? "SUBDEALER"
+            : "DEALER";
+      } else if (
+        primaryStore?.visitPurpose === "STORE" ||
+        primaryStore?.visitPurpose === "DEALER" ||
+        primaryStore?.visitPurpose === "SUBDEALER"
+      ) {
+        if (
+          primaryStore.visitPurpose === "SUBDEALER" ||
+          isSubdealerCustomer ||
+          Boolean(primaryStore?.subDealerStore)
+        ) {
+          meetingTarget = "SUBDEALER";
+        } else {
+          meetingTarget = "DEALER";
+        }
+      }
 
       const promotionProducts: Type8PromotionProductItem[] = promoProds.map(
         (p: any, idx: number) => ({
@@ -114,7 +172,8 @@ export function useType8Form({
       );
 
       const venueType: Type8VenueType =
-        primaryStore?.storeId && (initial as any)?.location?.includes(primaryStore?.storeName || "")
+        primaryStore?.storeId &&
+        (initial as any)?.location?.includes(primaryStore?.storeName || "")
           ? "STORE"
           : (initial as any)?.location
             ? "OTHER"
@@ -125,10 +184,13 @@ export function useType8Form({
           id: "1",
           meetingTarget,
           farmerChannel,
-          dealerId: primaryStore?.storeId || "",
-          dealerName: primaryStore?.store?.name || primaryStore?.storeName || "",
-          subDealerStore: primaryStore?.subDealerStore || "",
-          topic: (initial as any)?.title || "",
+          dealerId,
+          dealerName,
+          subdealerId,
+          subDealerStore,
+          isUnregisteredSubdealer,
+          // SSoT for Topic: ActivityPlanStore.remarks ONLY! (NO fallback to ActivityPlan.title)
+          topic: primaryStore?.remarks || "",
           targetProducts: targetProds.map(
             (p: any) => p.product?.name || p.productName || "",
           ),
@@ -139,7 +201,8 @@ export function useType8Form({
             (initial as any)?.targetAttendeesCount != null
               ? Number((initial as any).targetAttendeesCount)
               : 1,
-          detail: (initial as any)?.description || (initial as any)?.notes || "",
+          // SSoT for Detail: ActivityPlanStore.notes, with READ fallback to initial.description
+          detail: primaryStore?.notes || (initial as any)?.description || "",
           promotionProducts,
           venueType,
         },
@@ -153,7 +216,9 @@ export function useType8Form({
         farmerChannel: "DEALER",
         dealerId: "",
         dealerName: "",
+        subdealerId: "",
         subDealerStore: "",
+        isUnregisteredSubdealer: false,
         topic: "",
         targetProducts: [],
         targetProductIds: [],
@@ -174,7 +239,9 @@ export function useType8Form({
         farmerChannel: "DEALER",
         dealerId: "",
         dealerName: "",
+        subdealerId: "",
         subDealerStore: "",
+        isUnregisteredSubdealer: false,
         topic: "",
         targetProducts: [],
         targetProductIds: [],
@@ -288,32 +355,62 @@ export function useType8Form({
           };
         }
       } else if (item.meetingTarget === "SUBDEALER") {
-        if (!item.subDealerStore || !item.subDealerStore.trim()) {
-          return {
-            isValid: false,
-            error: `กรุณากรอกชื่อร้านค้า Subdealer (รายการที่ ${rowNum})`,
-          };
-        }
-        if (!item.dealerId) {
-          return {
-            isValid: false,
-            error: `กรุณาเลือก Dealer ต้นสังกัดของร้านค้า Subdealer (รายการที่ ${rowNum})`,
-          };
-        }
-      } else {
-        // FARMER
-        if (item.farmerChannel === "SUBDEALER") {
+        if (item.isUnregisteredSubdealer) {
           if (!item.subDealerStore || !item.subDealerStore.trim()) {
             return {
               isValid: false,
-              error: `กรุณากรอกชื่อร้านค้า Subdealer สำหรับการจัดประชุมฟาร์มเมอร์ (รายการที่ ${rowNum})`,
+              error: `กรุณากรอกชื่อร้านค้า Subdealer (รายการที่ ${rowNum})`,
             };
           }
           if (!item.dealerId) {
             return {
               isValid: false,
-              error: `กรุณาเลือก Dealer ต้นสังกัดของร้าน Subdealer (รายการที่ ${rowNum})`,
+              error: `กรุณาเลือก Dealer ต้นสังกัดของร้านค้า Subdealer (รายการที่ ${rowNum})`,
             };
+          }
+        } else {
+          if (!item.subdealerId) {
+            return {
+              isValid: false,
+              error: `กรุณาเลือกร้านค้า Subdealer จาก Customer Master (รายการที่ ${rowNum})`,
+            };
+          }
+          if (!item.dealerId) {
+            return {
+              isValid: false,
+              error: `กรุณาเลือก Dealer ต้นสังกัดของร้านค้า Subdealer (รายการที่ ${rowNum})`,
+            };
+          }
+        }
+      } else {
+        // FARMER
+        if (item.farmerChannel === "SUBDEALER") {
+          if (item.isUnregisteredSubdealer) {
+            if (!item.subDealerStore || !item.subDealerStore.trim()) {
+              return {
+                isValid: false,
+                error: `กรุณากรอกชื่อร้านค้า Subdealer สำหรับการจัดประชุมฟาร์มเมอร์ (รายการที่ ${rowNum})`,
+              };
+            }
+            if (!item.dealerId) {
+              return {
+                isValid: false,
+                error: `กรุณาเลือก Dealer ต้นสังกัดของร้าน Subdealer (รายการที่ ${rowNum})`,
+              };
+            }
+          } else {
+            if (!item.subdealerId) {
+              return {
+                isValid: false,
+                error: `กรุณาเลือกร้านค้า Subdealer จาก Customer Master สำหรับการจัดประชุมฟาร์มเมอร์ (รายการที่ ${rowNum})`,
+              };
+            }
+            if (!item.dealerId) {
+              return {
+                isValid: false,
+                error: `กรุณาเลือก Dealer ต้นสังกัดของร้าน Subdealer (รายการที่ ${rowNum})`,
+              };
+            }
           }
         } else {
           // DEALER channel
@@ -388,11 +485,12 @@ export function useType8Form({
     let targetAttendees = 0;
     const planStores: Array<{
       workTypeCode: string;
-      storeId: string;
+      storeId: string | null;
       storeName: string | null;
       subDealerStore: string | null;
       visitPurpose: "FARMER" | "STORE" | null;
       remarks: string | null;
+      notes: string | null;
     }> = [];
 
     const planProducts: Array<{
@@ -412,29 +510,53 @@ export function useType8Form({
         targetAttendees += Number(item.attendeesCount);
       }
 
-      // Resolve Dealer Store info
-      const dealer = (customers || []).find(
-        (c) => c.id === item.dealerId || c.name === item.dealerName,
-      );
-      const storeId = item.dealerId || dealer?.id || null;
-      const storeName = dealer?.name || item.dealerName || null;
+      const isSubdealerTarget =
+        item.meetingTarget === "SUBDEALER" ||
+        (item.meetingTarget === "FARMER" && item.farmerChannel === "SUBDEALER");
+
+      let storeId: string | null = null;
+      let storeName: string | null = null;
+      let subDealerStore: string | null = null;
+
+      if (isSubdealerTarget) {
+        if (!item.isUnregisteredSubdealer && item.subdealerId) {
+          // Registered Subdealer (Case A)
+          const subdealer = (customers || []).find(
+            (c) => c.id === item.subdealerId,
+          );
+          storeId = item.subdealerId;
+          storeName = subdealer?.name || null;
+          subDealerStore = null;
+        } else {
+          // Unregistered Subdealer (Case B)
+          const dealer = (customers || []).find(
+            (c) => c.id === item.dealerId || c.name === item.dealerName,
+          );
+          storeId = item.dealerId || dealer?.id || null;
+          storeName = dealer?.name || item.dealerName || null;
+          subDealerStore = item.subDealerStore?.trim() || null;
+        }
+      } else {
+        // Dealer target or Farmer via Dealer
+        const dealer = (customers || []).find(
+          (c) => c.id === item.dealerId || c.name === item.dealerName,
+        );
+        storeId = item.dealerId || dealer?.id || null;
+        storeName = dealer?.name || item.dealerName || null;
+        subDealerStore = null;
+      }
 
       // 1. Map ActivityPlanStore for TYPE_8
-      if (storeId) {
+      // SSoT: remarks = topic, notes = detail
+      if (storeId || subDealerStore) {
         planStores.push({
           workTypeCode: "TYPE_8",
           storeId,
           storeName,
-          subDealerStore:
-            item.meetingTarget === "SUBDEALER" ||
-            (item.meetingTarget === "FARMER" && item.farmerChannel === "SUBDEALER")
-              ? item.subDealerStore?.trim() || null
-              : null,
+          subDealerStore,
           visitPurpose: item.meetingTarget === "FARMER" ? "FARMER" : "STORE",
-          remarks:
-            item.meetingTarget === "FARMER"
-              ? (item.farmerChannel || "DEALER")
-              : (item.meetingTarget || null),
+          remarks: item.topic?.trim() || null,
+          notes: item.detail?.trim() || null,
         });
       }
 

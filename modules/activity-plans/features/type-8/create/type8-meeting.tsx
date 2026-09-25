@@ -63,6 +63,19 @@ export function Type8Meeting({
   products = [],
   onDealerSelect,
 }: Props) {
+  // Filter Subdealer customer master options
+  const subdealerCustomers = (customers || []).filter(
+    (c) =>
+      c.customerType === "SUBDEALER" ||
+      c.customerType === "Subdealer",
+  );
+
+  const subdealerOptions = subdealerCustomers.map((c) => ({
+    value: c.name,
+    label: c.name,
+    subLabel: c.customerCode || undefined,
+  }));
+
   // Filter Dealer customer master options
   const dealerCustomers = (customers || []).filter(
     (c) =>
@@ -181,6 +194,8 @@ export function Type8Meeting({
                           onChange={() => {
                             updateType8Row(item.id, "meetingTarget", "DEALER");
                             updateType8Row(item.id, "subDealerStore", "");
+                            updateType8Row(item.id, "subdealerId", "");
+                            updateType8Row(item.id, "isUnregisteredSubdealer", false);
                           }}
                           disabled={readonly}
                           className="text-blue-600 focus:ring-blue-500 h-4 w-4"
@@ -221,6 +236,8 @@ export function Type8Meeting({
                             onChange={() => {
                               updateType8Row(item.id, "farmerChannel", "DEALER");
                               updateType8Row(item.id, "subDealerStore", "");
+                              updateType8Row(item.id, "subdealerId", "");
+                              updateType8Row(item.id, "isUnregisteredSubdealer", false);
                             }}
                             disabled={readonly}
                             className="text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
@@ -270,19 +287,86 @@ export function Type8Meeting({
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <div>
-                            <label className="block text-xs font-medium text-slate-700 mb-1">
-                              ระบุชื่อร้านค้า Subdealer <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={item.subDealerStore || ""}
-                              onChange={(e) =>
-                                updateType8Row(item.id, "subDealerStore", e.target.value)
-                              }
-                              disabled={readonly}
-                              placeholder="ระบุชื่อร้านค้า Subdealer..."
-                              className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
-                            />
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="block text-xs font-medium text-slate-700">
+                                {item.isUnregisteredSubdealer
+                                  ? "ชื่อร้านค้า Subdealer"
+                                  : "เลือกร้านค้า Subdealer จาก Customer Master"}{" "}
+                                <span className="text-red-500">*</span>
+                              </label>
+                              <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={Boolean(item.isUnregisteredSubdealer)}
+                                  onChange={(e) => {
+                                    const isChecked = e.target.checked;
+                                    updateType8Row(
+                                      item.id,
+                                      "isUnregisteredSubdealer",
+                                      isChecked,
+                                    );
+                                    if (isChecked) {
+                                      updateType8Row(item.id, "subdealerId", "");
+                                    } else {
+                                      updateType8Row(item.id, "subDealerStore", "");
+                                    }
+                                  }}
+                                  disabled={readonly}
+                                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
+                                />
+                                <span>ไม่มีในระบบ</span>
+                              </label>
+                            </div>
+                            {item.isUnregisteredSubdealer ? (
+                              <input
+                                type="text"
+                                value={item.subDealerStore || ""}
+                                onChange={(e) =>
+                                  updateType8Row(item.id, "subDealerStore", e.target.value)
+                                }
+                                disabled={readonly}
+                                placeholder="ระบุชื่อร้านค้า Subdealer..."
+                                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
+                              />
+                            ) : (
+                              <FormCombobox
+                                id={`farmer-subdealer-combobox-${item.id}`}
+                                label=""
+                                labelClassName="hidden"
+                                triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
+                                value={
+                                  subdealerCustomers.find(
+                                    (c) => c.id === item.subdealerId,
+                                  )?.name || ""
+                                }
+                                onChange={(val) => {
+                                  const foundSub = subdealerCustomers.find(
+                                    (c) => c.name === val || c.id === val,
+                                  );
+                                  if (foundSub) {
+                                    updateType8Row(item.id, "subdealerId", foundSub.id);
+                                    if (foundSub.parentDealerId) {
+                                      const parent = customers.find(
+                                        (c) => c.id === foundSub.parentDealerId,
+                                      );
+                                      if (parent) {
+                                        updateType8Row(item.id, "dealerId", parent.id);
+                                        updateType8Row(item.id, "dealerName", parent.name);
+                                        if (onDealerSelect) onDealerSelect(parent);
+                                      }
+                                    }
+                                  } else {
+                                    updateType8Row(item.id, "subdealerId", "");
+                                  }
+                                }}
+                                options={subdealerOptions}
+                                placeholder="เลือกร้านค้า Subdealer..."
+                                searchPlaceholder="ค้นหาร้านค้า Subdealer..."
+                                emptyText="ไม่พบร้านค้า Subdealer ในระบบ"
+                                disabled={readonly}
+                                required
+                              />
+                            )}
                           </div>
                           <div>
                             <FormCombobox
@@ -343,19 +427,86 @@ export function Type8Meeting({
                   {meetingTarget === "SUBDEALER" && (
                     <div className="pt-2 border-t border-slate-200/60 grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-medium text-slate-700 mb-1">
-                          ระบุชื่อร้านค้า Subdealer <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={item.subDealerStore || ""}
-                          onChange={(e) =>
-                            updateType8Row(item.id, "subDealerStore", e.target.value)
-                          }
-                          disabled={readonly}
-                          placeholder="ระบุชื่อร้านค้า Subdealer..."
-                          className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
-                        />
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-xs font-medium text-slate-700">
+                            {item.isUnregisteredSubdealer
+                              ? "ชื่อร้านค้า Subdealer"
+                              : "เลือกร้านค้า Subdealer จาก Customer Master"}{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(item.isUnregisteredSubdealer)}
+                              onChange={(e) => {
+                                const isChecked = e.target.checked;
+                                updateType8Row(
+                                  item.id,
+                                  "isUnregisteredSubdealer",
+                                  isChecked,
+                                );
+                                if (isChecked) {
+                                  updateType8Row(item.id, "subdealerId", "");
+                                } else {
+                                  updateType8Row(item.id, "subDealerStore", "");
+                                }
+                              }}
+                              disabled={readonly}
+                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
+                            />
+                            <span>ไม่มีในระบบ</span>
+                          </label>
+                        </div>
+                        {item.isUnregisteredSubdealer ? (
+                          <input
+                            type="text"
+                            value={item.subDealerStore || ""}
+                            onChange={(e) =>
+                              updateType8Row(item.id, "subDealerStore", e.target.value)
+                            }
+                            disabled={readonly}
+                            placeholder="ระบุชื่อร้านค้า Subdealer..."
+                            className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
+                          />
+                        ) : (
+                          <FormCombobox
+                            id={`subdealer-target-combobox-${item.id}`}
+                            label=""
+                            labelClassName="hidden"
+                            triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
+                            value={
+                              subdealerCustomers.find(
+                                (c) => c.id === item.subdealerId,
+                              )?.name || ""
+                            }
+                            onChange={(val) => {
+                              const foundSub = subdealerCustomers.find(
+                                (c) => c.name === val || c.id === val,
+                              );
+                              if (foundSub) {
+                                updateType8Row(item.id, "subdealerId", foundSub.id);
+                                if (foundSub.parentDealerId) {
+                                  const parent = customers.find(
+                                    (c) => c.id === foundSub.parentDealerId,
+                                  );
+                                  if (parent) {
+                                    updateType8Row(item.id, "dealerId", parent.id);
+                                    updateType8Row(item.id, "dealerName", parent.name);
+                                    if (onDealerSelect) onDealerSelect(parent);
+                                  }
+                                }
+                              } else {
+                                updateType8Row(item.id, "subdealerId", "");
+                              }
+                            }}
+                            options={subdealerOptions}
+                            placeholder="เลือกร้านค้า Subdealer..."
+                            searchPlaceholder="ค้นหาร้านค้า Subdealer..."
+                            emptyText="ไม่พบร้านค้า Subdealer ในระบบ"
+                            disabled={readonly}
+                            required
+                          />
+                        )}
                       </div>
                       <div>
                         <FormCombobox

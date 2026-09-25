@@ -614,11 +614,16 @@ export function ActivityPlanForm({
 
   const type8Item = type8Items[0];
   const type8DealerId = type8Item?.dealerId;
+  const type8SubdealerId = type8Item?.subdealerId;
 
   const type8SelectedDealer = useMemo(() => {
+    if (type8SubdealerId) {
+      const sub = customersList.find((c: any) => c.id === type8SubdealerId);
+      if (sub && (sub.addressLine || sub.province)) return sub;
+    }
     if (!type8DealerId) return null;
     return customersList.find((c: any) => c.id === type8DealerId) ?? null;
-  }, [type8DealerId, customersList]);
+  }, [type8SubdealerId, type8DealerId, customersList]);
 
   const type8VenueType: "STORE" | "OTHER" = type8Item?.venueType ?? "STORE";
 

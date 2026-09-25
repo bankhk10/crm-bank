@@ -836,10 +836,11 @@ export function extractPlanData(
 
     targets.t8 = {
       ...prevTargets.t8,
-      topic: p.title || "",
+      topic: t8Store?.remarks || p.objective || "",
       customer: storeDisplay,
       dealerName: t8Store?.storeName || "",
       subDealerStore: t8Store?.subDealerStore || "",
+      detail: t8Store?.notes || p.description || "",
       targetProducts: targetProductNames,
       products: targetProductNames.join(", "),
       promotionalProducts: t8PromoProducts.map((pr) => ({

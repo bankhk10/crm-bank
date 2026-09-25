@@ -73,6 +73,17 @@ export function ApprovalType8Meeting({
             {target.targetAttendees ? `${target.targetAttendees} คน` : "-"}
           </span>
         </div>
+
+        {target.detail ? (
+          <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-3">
+            <span className="text-slate-500 block text-[11px] font-medium mb-1">
+              รายละเอียดเพิ่มเติม
+            </span>
+            <span className="font-medium text-slate-800 block text-xs whitespace-pre-wrap">
+              {target.detail}
+            </span>
+          </div>
+        ) : null}
       </div>
 
       {/* Target Products (สินค้าเป้าหมาย) */}

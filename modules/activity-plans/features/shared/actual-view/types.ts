@@ -231,6 +231,7 @@ export interface ActualTargetsState {
     customer?: string;
     dealerName?: string;
     subDealerStore?: string;
+    detail?: string;
     targetProducts?: string[];
     promotionalProducts?: Array<{
       productName: string;

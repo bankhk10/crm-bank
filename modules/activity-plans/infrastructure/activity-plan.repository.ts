@@ -3787,6 +3787,7 @@ export async function findDealerAndSubdealerCustomerOptions() {
       addressLine: true,
       subdistrict: true,
       postalCode: true,
+      parentDealerId: true,
     },
     orderBy: { name: "asc" },
   });

@@ -180,7 +180,9 @@ export interface Type8MeetingItem {
   farmerChannel?: Type8FarmerChannel;
   dealerId?: string;
   dealerName?: string;
+  subdealerId?: string;
   subDealerStore?: string;
+  isUnregisteredSubdealer?: boolean;
   topic: string;
   targetProductIds?: string[];
   targetProducts?: string[];
