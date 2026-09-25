@@ -1354,5 +1354,24 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }));
   }
 
+  // Structured Type 11 Stock Results from DB (Normalized Source of Truth)
+  if (
+    resData.stockResults &&
+    Array.isArray(resData.stockResults) &&
+    resData.stockResults.length > 0
+  ) {
+    result.t11StockItems = resData.stockResults.map((sr: any) => ({
+      id: sr.id,
+      storeId: sr.storeId,
+      storeName: sr.store?.name || sr.storeName || "ร้านค้า",
+      productId: sr.productId,
+      productName: sr.product?.name || sr.productName || "สินค้า",
+      productCode: sr.product?.productCode || sr.productCode || undefined,
+      remainingQty: String(sr.remainingQuantity ?? 0),
+      reorderOpportunity: (sr.reorderOpportunity as any) || "",
+      remarks: sr.remarks || "",
+    }));
+  }
+
   return result;
 }

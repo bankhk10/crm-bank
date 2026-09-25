@@ -10,7 +10,9 @@ import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-
 
 export interface StockCheckItem {
   id?: string;
+  storeId?: string | null;
   storeName?: string;
+  productId?: string;
   productName: string;
   productCode?: string;
   remainingQty: string;
@@ -48,12 +50,31 @@ export function DetailType11Stock({
 }: DetailType11StockProps) {
   const groupedByStore = React.useMemo(() => {
     if (!stockItems || stockItems.length === 0) return null;
-    const groups: Record<string, StockCheckItem[]> = {};
+    const groups: Array<{
+      storeId?: string | null;
+      storeName: string;
+      items: StockCheckItem[];
+    }> = [];
+    const map = new Map<
+      string,
+      { storeId?: string | null; storeName: string; items: StockCheckItem[] }
+    >();
+
     stockItems.forEach((item) => {
+      const key = item.storeId || item.storeName || "default";
       const sName = item.storeName || "ร้านค้า";
-      if (!groups[sName]) groups[sName] = [];
-      groups[sName].push(item);
+      if (!map.has(key)) {
+        const groupObj = {
+          storeId: item.storeId,
+          storeName: sName,
+          items: [] as StockCheckItem[],
+        };
+        map.set(key, groupObj);
+        groups.push(groupObj);
+      }
+      map.get(key)!.items.push(item);
     });
+
     return groups;
   }, [stockItems]);
 
@@ -90,17 +111,17 @@ export function DetailType11Stock({
         </div>
 
         {/* STOCK TABLE OR FALLBACK */}
-        {groupedByStore ? (
+        {groupedByStore && groupedByStore.length > 0 ? (
           <div className="space-y-4">
-            {Object.entries(groupedByStore).map(([storeName, items], gIdx) => (
+            {groupedByStore.map((group, gIdx) => (
               <div
-                key={`${storeName}-${gIdx}`}
+                key={`${group.storeId || group.storeName}-${gIdx}`}
                 className="space-y-2 rounded-xl border border-slate-200 p-3.5 bg-slate-50/50"
               >
                 <div className="flex items-center justify-between pb-1">
                   <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-600" />
-                    ร้าน: {storeName} ({items.length} รายการ)
+                    ร้าน: {group.storeName} ({group.items.length} รายการ)
                   </span>
                 </div>
                 <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white">
@@ -119,8 +140,8 @@ export function DetailType11Stock({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {items.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/40">
+                      {group.items.map((item, idx) => (
+                        <tr key={item.id || idx} className="hover:bg-slate-50/40">
                           <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
                             {idx + 1}
                           </td>

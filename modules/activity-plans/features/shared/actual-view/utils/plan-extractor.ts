@@ -951,7 +951,7 @@ export function extractPlanData(
   if (isWorkTypePresent("TYPE_11")) {
     const t11Stores = stores.filter((s) => s.workTypeCode === "TYPE_11");
     const t11StoreNames = t11Stores
-      .map((s) => s.storeName)
+      .map((s) => s.storeName || s.store?.name)
       .filter(Boolean)
       .join(", ");
     targets.t11 = {
@@ -963,7 +963,8 @@ export function extractPlanData(
           .filter(Boolean)
           .join(" | ") || "",
       items: t11Stores.map((s) => ({
-        store: s.storeName || "",
+        storeId: s.storeId || s.id,
+        store: s.storeName || s.store?.name || "",
         detail: s.remarks || s.notes || "",
       })),
     };

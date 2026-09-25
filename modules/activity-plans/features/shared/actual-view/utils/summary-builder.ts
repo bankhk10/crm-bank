@@ -1185,16 +1185,25 @@ export function buildResultSummary(
   const stockResults: any[] = [];
   if (input.t11StockItems && Array.isArray(input.t11StockItems)) {
     input.t11StockItems.forEach((item) => {
+      // 1. Resolve storeId strictly:
+      // Priority 1: item.storeId
+      // Priority 2: match item.storeName with planSummary / stores
       const sId =
         item.storeId ||
         (item.store && item.store.id) ||
         (input.planSummary as any)?.stores?.find(
           (s: any) =>
-            s.workTypeCode === "TYPE_11" ||
-            (item.storeName && s.storeName === item.storeName),
+            item.storeName &&
+            (s.storeName?.trim().toLowerCase() ===
+              item.storeName.trim().toLowerCase() ||
+              s.store?.name?.trim().toLowerCase() ===
+                item.storeName.trim().toLowerCase()),
         )?.storeId ||
-        (input.planSummary as any)?.stores?.[0]?.storeId ||
         null;
+
+      // 2. Resolve productId strictly:
+      // Priority 1: item.productId
+      // Priority 2: match item.productName in input.products
       const pId =
         item.productId ||
         (item.product && item.product.id) ||
@@ -1204,6 +1213,7 @@ export function buildResultSummary(
             (item.productName || "").trim().toLowerCase(),
         )?.id ||
         null;
+
       if (sId && pId) {
         stockResults.push({
           storeId: sId,
