@@ -234,11 +234,14 @@ export interface ActualTargetsState {
     detail?: string;
     targetProducts?: string[];
     promotionalProducts?: Array<{
+      id?: string;
+      productId: string;
       productName: string;
       quantity: number;
       unitPrice: number;
       totalAmount: number;
       notes?: string;
+      storeId?: string | null;
     }>;
   };
   t9: {

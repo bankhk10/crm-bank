@@ -374,6 +374,12 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
   const setT8ProductSalesDetails = t8 ? t8.setT8ProductSalesDetails : (props.setT8ProductSalesDetails || props.setProductSalesDetails || (() => {}));
   const t8Images = t8 ? t8.t8Images : (props.t8Images ?? []);
   const setT8Images = t8 ? t8.setT8Images : (props.setT8Images || props.setImages || (() => {}));
+  const t8RegistrationImages = t8
+    ? t8.t8RegistrationImages
+    : (props.t8RegistrationImages ?? []);
+  const setT8RegistrationImages = t8
+    ? t8.setT8RegistrationImages
+    : (props.setT8RegistrationImages || props.setRegistrationImages || (() => {}));
 
   // TYPE 9
   const t9 = typeHooks?.type9;
@@ -778,6 +784,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setProductSalesDetails={setT8ProductSalesDetails}
           images={t8Images}
           setImages={setT8Images}
+          registrationImages={t8RegistrationImages}
+          setRegistrationImages={setT8RegistrationImages}
         />
 
         {/* WORK TYPE 9 */}

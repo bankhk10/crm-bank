@@ -766,6 +766,26 @@ export const activityResultSchema = z
           path: ["attachments"],
         },
       )
+      .refine(
+        (items) => {
+          const t8RegPhotos = items.filter(
+            (a) =>
+              (a.workTypeCode === "TYPE_8" ||
+                a.workTypeCode === "จัดประชุม" ||
+                a.workTypeCode ===
+                  "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์") &&
+              (a.surveyItemId === "registration" ||
+                (a.fileUrl && a.fileUrl.includes("/registration/")) ||
+                (a.fileName &&
+                  a.fileName.toLowerCase().includes("registration"))),
+          );
+          return t8RegPhotos.length <= 5;
+        },
+        {
+          message: "รูปใบลงทะเบียนผู้เข้าร่วมงานต้องไม่เกิน 5 รูป",
+          path: ["attachments"],
+        },
+      )
       .optional(),
   })
   .refine((data) => data.actualEndDate >= data.actualStartDate, {

@@ -844,11 +844,14 @@ export function extractPlanData(
       targetProducts: targetProductNames,
       products: targetProductNames.join(", "),
       promotionalProducts: t8PromoProducts.map((pr) => ({
+        id: pr.id,
+        productId: pr.productId,
         productName: pr.productName || (pr as any).product?.name || "สินค้าโปรโมชัน",
         quantity: pr.targetQuantity ?? 1,
         unitPrice: pr.unitPrice ? Number(pr.unitPrice) : 0,
         totalAmount: pr.targetAmount ? Number(pr.targetAmount) : 0,
         notes: pr.notes || "",
+        storeId: pr.storeId || null,
       })),
       targetAttendees: p.targetAttendeesCount
         ? `${p.targetAttendeesCount} คน`

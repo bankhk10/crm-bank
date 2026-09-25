@@ -171,6 +171,7 @@ export interface BuildSummaryInput {
   t8FeedbackQnA: string;
   t8ProductSalesDetails: any[];
   t8Images?: ImageFile[];
+  t8RegistrationImages?: ImageFile[];
 
   // Type 9
   t9ActualSales: string;
@@ -287,6 +288,7 @@ export function buildResultSummary(
     t8FeedbackQnA,
     t8ProductSalesDetails,
     t8Images,
+    t8RegistrationImages,
     t9ActualSales,
     t9ProductSalesDetails,
     t9ActualAttendees,
@@ -325,6 +327,34 @@ export function buildResultSummary(
     if (!postponedReason) {
       return {
         validationError: "กรุณาเลือกเหตุผลที่เลื่อนกิจกรรม",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+  }
+
+  // Validate TYPE_8 Registration Images
+  const isType8Active =
+    (input.planWorkTypes || []).some(
+      (wt: any) =>
+        wt === "TYPE_8" ||
+        wt?.code === "TYPE_8" ||
+        wt?.name === "จัดประชุม" ||
+        wt?.name === "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+    ) || Boolean(t8ActualAttendees);
+
+  if (isType8Active && activityResultStatus === "COMPLETED") {
+    const regImagesCount = (t8RegistrationImages || []).length;
+    if (regImagesCount === 0) {
+      return {
+        validationError: "กรุณาแนบรูปใบลงทะเบียนผู้เข้าร่วมงานอย่างน้อย 1 รูป",
+        summaryParts: [],
+        payload: null,
+      };
+    }
+    if (regImagesCount > 5) {
+      return {
+        validationError: "รูปใบลงทะเบียนผู้เข้าร่วมงานต้องไม่เกิน 5 รูป",
         summaryParts: [],
         payload: null,
       };
@@ -906,6 +936,9 @@ export function buildResultSummary(
     t8Images && t8Images.length > 0
       ? `รูปภาพบรรยากาศการประชุม: มีแนบ ${t8Images.length} รูป`
       : null,
+    t8RegistrationImages && t8RegistrationImages.length > 0
+      ? `รูปใบลงทะเบียนผู้เข้าร่วมงาน: มีแนบ ${t8RegistrationImages.length} รูป`
+      : null,
 
     // Type 9
     t9ActualSales ? `ยอดขายหน้าร้านจริง: ${t9ActualSales}` : null,
@@ -1116,11 +1149,15 @@ export function buildResultSummary(
       const pId = d.productId || d.id;
       const qty = Number(d.actualQty || 0);
       const uPrice = Number(d.unitPrice || 0);
-      const total = Number(d.actualSales || qty * uPrice);
+      const rawSales =
+        d.actualSales != null && d.actualSales !== ""
+          ? Number(String(d.actualSales).replace(/,/g, ""))
+          : qty * uPrice;
+      const total = isNaN(rawSales) ? 0 : rawSales;
       if (pId && (qty > 0 || total > 0)) {
         saleResults.push({
-          workTypeCode: "TYPE_8",
-          storeId: null,
+          workTypeCode: "TYPE_8_PROMOTION",
+          storeId: d.storeId || null,
           productId: pId,
           productName: d.productName || null,
           actualQuantity: qty,
@@ -1353,8 +1390,13 @@ export function buildResultSummary(
   }
 
   (input.t8Images || [])
+    .slice(0, 10)
+    .forEach((img) => addAttachment(img, "TYPE_8", "ATMOSPHERE", "meeting"));
+  (input.t8RegistrationImages || [])
     .slice(0, 5)
-    .forEach((img) => addAttachment(img, "TYPE_8"));
+    .forEach((img) =>
+      addAttachment(img, "TYPE_8", "GENERAL", "registration"),
+    );
   (input.t9Images || [])
     .slice(0, 5)
     .forEach((img) => addAttachment(img, "TYPE_9"));

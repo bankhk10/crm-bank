@@ -174,6 +174,7 @@ export interface ParsedSummaryValues {
   t8FeedbackQnA?: string;
   t8ProductSalesDetails?: any[];
   t8Images?: ImageFile[];
+  t8RegistrationImages?: ImageFile[];
 
   // Type 9
   t9ActualSales?: string;
@@ -276,15 +277,17 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       }));
     }
     const t8Sales = resData.saleResults.filter(
-      (s: any) => s.workTypeCode === "TYPE_8",
+      (s: any) =>
+        s.workTypeCode === "TYPE_8_PROMOTION" || s.workTypeCode === "TYPE_8",
     );
     if (t8Sales.length > 0) {
       result.t8ProductSalesDetails = t8Sales.map((s: any) => ({
+        id: s.id,
         productId: s.productId,
         productName: s.productName || s.product?.name || "",
-        actualQty: Number(s.actualQuantity || 0),
+        actualQty: String(s.actualQuantity ?? ""),
         unitPrice: Number(s.actualUnitPrice || 0),
-        actualSales: Number(s.actualTotal || 0),
+        actualSales: String(s.actualTotal ?? ""),
       }));
     }
   }
@@ -473,10 +476,29 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     );
     if (t7PlotAtt.length > 0) result.t7PlotImages = t7PlotAtt.map(toImage);
 
-    const t8Att = resData.attachments.filter(
-      (a: any) => a.workTypeCode === "TYPE_8",
+    const t8RegAtt = resData.attachments.filter(
+      (a: any) =>
+        a.workTypeCode === "TYPE_8" &&
+        (a.surveyItemId === "registration" ||
+          (a.fileUrl && a.fileUrl.includes("/registration/")) ||
+          (a.fileName && a.fileName.toLowerCase().includes("registration"))),
     );
-    if (t8Att.length > 0) result.t8Images = t8Att.map(toImage);
+    if (t8RegAtt.length > 0) {
+      result.t8RegistrationImages = t8RegAtt.map(toImage);
+    }
+
+    const t8MeetingAtt = resData.attachments.filter(
+      (a: any) =>
+        a.workTypeCode === "TYPE_8" &&
+        !(
+          a.surveyItemId === "registration" ||
+          (a.fileUrl && a.fileUrl.includes("/registration/")) ||
+          (a.fileName && a.fileName.toLowerCase().includes("registration"))
+        ),
+    );
+    if (t8MeetingAtt.length > 0) {
+      result.t8Images = t8MeetingAtt.map(toImage);
+    }
 
     const t9Att = resData.attachments.filter(
       (a: any) => a.workTypeCode === "TYPE_9",
@@ -978,15 +1000,20 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (qnaMatch && qnaMatch[1]) {
       result.t8FeedbackQnA = qnaMatch[1].split("\n")[0].trim();
     }
-    const t8SalesMatch = summaryText.match(/ยอดขายแยกสินค้าประชุม:\s*(.+)/);
+    const t8SalesMatch = summaryText.match(
+      /(?:ยอดขายแยกสินค้าประชุม|t8ProductSalesDetails):\s*(\[.+\])/,
+    );
     if (t8SalesMatch && t8SalesMatch[1]) {
       try {
-        const parsed = JSON.parse(t8SalesMatch[1].trim());
-        if (Array.isArray(parsed)) {
-          result.t8ProductSalesDetails = parsed;
+        const trimmed = t8SalesMatch[1].trim();
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            result.t8ProductSalesDetails = parsed;
+          }
         }
-      } catch (e) {
-        console.error("Failed to parse t8ProductSalesDetails", e);
+      } catch {
+        // Ignore fallback text parse error
       }
     }
     const t8ImagesMatch = summaryText.match(
@@ -1000,6 +1027,17 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         console.error("Failed to parse t8Images JSON:", e);
       }
     }
+    const t8RegMatch = summaryText.match(
+      /(?:รูปใบลงทะเบียนผู้เข้าร่วมงาน|ภาพใบลงทะเบียน|รูปใบลงทะเบียน|t8RegistrationImages):\s*(\[.+\])/,
+    );
+    if (t8RegMatch && t8RegMatch[1]) {
+      try {
+        const parsed = JSON.parse(t8RegMatch[1]);
+        if (Array.isArray(parsed)) result.t8RegistrationImages = parsed;
+      } catch (e) {
+        console.error("Failed to parse t8RegistrationImages JSON:", e);
+      }
+    }
 
     // Type 9
     const t9SalesMatch = summaryText.match(/ยอดขายหน้าร้านจริง:\s*(.+)/);
@@ -1007,16 +1045,19 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       result.t9ActualSales = t9SalesMatch[1].split("\n")[0].trim();
     }
     const t9ProductsMatch = summaryText.match(
-      /ยอดขายแยกสินค้าหน้าร้าน:\s*(.+)/,
+      /(?:ยอดขายแยกสินค้าหน้าร้าน|t9ProductSalesDetails):\s*(\[.+\])/,
     );
     if (t9ProductsMatch && t9ProductsMatch[1]) {
       try {
-        const parsed = JSON.parse(t9ProductsMatch[1].trim());
-        if (Array.isArray(parsed)) {
-          result.t9ProductSalesDetails = parsed;
+        const trimmed = t9ProductsMatch[1].trim();
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            result.t9ProductSalesDetails = parsed;
+          }
         }
-      } catch (e) {
-        console.error("Failed to parse t9ProductSalesDetails", e);
+      } catch {
+        // Ignore fallback text parse error
       }
     }
     const t9AttendeesMatch = summaryText.match(

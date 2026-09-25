@@ -167,8 +167,11 @@ export function useActualSubmit({
           }
 
           let cleanT8Images = type8.t8Images;
+          let cleanT8RegistrationImages = type8.t8RegistrationImages;
           if (isTypeVisible("TYPE_8")) {
-            cleanT8Images = await type8.uploadImages(id, allNewlyUploadedUrls);
+            const res = await type8.uploadImages(id, allNewlyUploadedUrls);
+            cleanT8Images = res.cleanImages;
+            cleanT8RegistrationImages = res.cleanRegistrationImages;
           }
 
           let cleanT9Images = type9.t9Images;
@@ -193,7 +196,10 @@ export function useActualSubmit({
               cleanT7PlotImages,
               cleanT7bRounds,
             ),
-            ...type8.collectOldImageUrlsToDelete(cleanT8Images),
+            ...type8.collectOldImageUrlsToDelete(
+              cleanT8Images,
+              cleanT8RegistrationImages,
+            ),
             ...type9.collectOldImageUrlsToDelete(cleanT9Images),
             ...type10.collectOldImageUrlsToDelete(cleanT10Images),
           ];
@@ -218,7 +224,10 @@ export function useActualSubmit({
             products,
             targets,
           });
-          const t8Payload = type8.collectPayload(cleanT8Images);
+          const t8Payload = type8.collectPayload(
+            cleanT8Images,
+            cleanT8RegistrationImages,
+          );
           const t9Payload = type9.collectPayload(cleanT9Images);
           const t10Payload = type10.collectPayload(cleanT10Images);
           const t11Payload = type11.collectPayload();
@@ -316,7 +325,7 @@ export function useActualSubmit({
             cleanT7PlotImages,
             cleanT7bRounds,
           );
-          type8.commitSavedImages(cleanT8Images);
+          type8.commitSavedImages(cleanT8Images, cleanT8RegistrationImages);
           type9.commitSavedImages(cleanT9Images);
           type10.commitSavedImages(cleanT10Images);
 

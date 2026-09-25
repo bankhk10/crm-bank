@@ -621,6 +621,38 @@ export async function recordActivityResultUseCase(
     return { success: false as const, error: errorMsg };
   }
 
+  // Business Rule: TYPE_8 Actual requires 1-5 Registration Images on completion
+  const isType8Plan =
+    plan.workTypes?.some((wt) => wt.activityType?.code === "TYPE_8") ||
+    plan.activityType?.code === "TYPE_8";
+
+  if (
+    isType8Plan &&
+    (parsed.data.resultStatus === "COMPLETED" || !parsed.data.resultStatus)
+  ) {
+    const regAttachments = (parsed.data.attachments || []).filter(
+      (a: any) =>
+        (a.workTypeCode === "TYPE_8" ||
+          a.workTypeCode === "จัดประชุม" ||
+          a.workTypeCode === "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์") &&
+        (a.surveyItemId === "registration" ||
+          (a.fileUrl && a.fileUrl.includes("/registration/")) ||
+          (a.fileName && a.fileName.toLowerCase().includes("registration"))),
+    );
+    if (regAttachments.length === 0) {
+      return {
+        success: false as const,
+        error: "กรุณาแนบรูปใบลงทะเบียนผู้เข้าร่วมงานอย่างน้อย 1 รูป",
+      };
+    }
+    if (regAttachments.length > 5) {
+      return {
+        success: false as const,
+        error: "รูปใบลงทะเบียนผู้เข้าร่วมงานต้องไม่เกิน 5 รูป",
+      };
+    }
+  }
+
   const resultInput: CreateActivityResultInput = {
     activityPlanId: planId,
     actualStartDate: parsed.data.actualStartDate,

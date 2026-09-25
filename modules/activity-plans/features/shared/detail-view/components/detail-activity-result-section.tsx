@@ -227,6 +227,7 @@ export function DetailActivityResultSection({
           feedbackQnA={parsedResults.t8FeedbackQnA}
           productSalesDetails={parsedResults.t8ProductSalesDetails}
           images={parsedResults.t8Images}
+          registrationImages={parsedResults.t8RegistrationImages}
         />
 
         {/* WORK TYPE 9 */}

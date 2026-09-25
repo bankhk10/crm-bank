@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { Users, ShoppingBag, ImageIcon, Camera, Eye } from "lucide-react";
+import {
+  Users,
+  ShoppingBag,
+  ImageIcon,
+  Camera,
+  Eye,
+  ClipboardCheck,
+  Package,
+} from "lucide-react";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
@@ -10,6 +18,8 @@ import {
 } from "@/components/custom/image-lightbox-modal";
 
 export interface ProductSaleDetail {
+  id?: string;
+  productId?: string;
   productName: string;
   actualQty: string;
   actualSales: string;
@@ -27,6 +37,8 @@ interface DetailType8MeetingProps {
     detail?: string;
     targetProducts?: string[];
     promotionalProducts?: Array<{
+      id?: string;
+      productId?: string;
       productName: string;
       quantity: number;
       unitPrice: number;
@@ -39,6 +51,7 @@ interface DetailType8MeetingProps {
   feedbackQnA?: string;
   productSalesDetails?: ProductSaleDetail[];
   images?: ImageFile[];
+  registrationImages?: ImageFile[];
 }
 
 export function DetailType8Meeting({
@@ -48,6 +61,7 @@ export function DetailType8Meeting({
   feedbackQnA,
   productSalesDetails = [],
   images = [],
+  registrationImages = [],
 }: DetailType8MeetingProps) {
   const [lightboxState, setLightboxState] = useState<{
     isOpen: boolean;
@@ -122,7 +136,10 @@ export function DetailType8Meeting({
           ...(target.customer
             ? [{ label: "ร้านค้า / ตัวแทนจำหน่าย:", value: target.customer }]
             : []),
-          { label: "สินค้าเป้าหมาย:", value: targetProductsList.join(", ") || target.products || "-" },
+          {
+            label: "สินค้าเป้าหมาย:",
+            value: targetProductsList.join(", ") || target.products || "-",
+          },
           ...(target.detail
             ? [{ label: "รายละเอียดเพิ่มเติม:", value: target.detail }]
             : []),
@@ -156,16 +173,26 @@ export function DetailType8Meeting({
               <tbody className="divide-y divide-purple-50">
                 {promotionalProducts.map((p, idx) => (
                   <tr key={idx} className="hover:bg-purple-50/20">
-                    <td className="py-2 px-3 text-center text-slate-500">{idx + 1}</td>
-                    <td className="py-2 px-3 font-semibold text-slate-800">{p.productName}</td>
-                    <td className="py-2 px-3 text-center text-slate-700">{p.quantity}</td>
+                    <td className="py-2 px-3 text-center text-slate-500">
+                      {idx + 1}
+                    </td>
+                    <td className="py-2 px-3 font-semibold text-slate-800">
+                      {p.productName}
+                    </td>
+                    <td className="py-2 px-3 text-center text-slate-700">
+                      {p.quantity}
+                    </td>
                     <td className="py-2 px-3 text-right text-slate-700">
                       {p.unitPrice ? `฿${p.unitPrice.toLocaleString()}` : "-"}
                     </td>
                     <td className="py-2 px-3 text-right font-bold text-purple-900">
-                      {p.totalAmount ? `฿${p.totalAmount.toLocaleString()}` : "-"}
+                      {p.totalAmount
+                        ? `฿${p.totalAmount.toLocaleString()}`
+                        : "-"}
                     </td>
-                    <td className="py-2 px-3 text-slate-600">{p.notes || "-"}</td>
+                    <td className="py-2 px-3 text-slate-600">
+                      {p.notes || "-"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -175,7 +202,7 @@ export function DetailType8Meeting({
       )}
 
       {/* READ-ONLY RESULT DISPLAY */}
-      <div className="space-y-3 pt-1 border-t border-slate-100">
+      <div className="space-y-4 pt-1 border-t border-slate-100">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
           <span className="w-2 h-2 rounded-full bg-purple-500"></span>
           <span>ผลการจัดประชุมจริง</span>
@@ -200,12 +227,13 @@ export function DetailType8Meeting({
             </span>
           </div>
 
-          {/* PRODUCT SALES BREAKDOWN TABLE (IF ANY) */}
-          {productSalesDetails.length > 0 && (
+          {/* PROMOTION ACTUAL SALES BREAKDOWN TABLE */}
+          {(promotionalProducts.length > 0 ||
+            productSalesDetails.length > 0) && (
             <div className="sm:col-span-2 space-y-2">
               <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                 <ShoppingBag className="w-3.5 h-3.5 text-purple-600" />
-                รายละเอียดการขายสินค้าในงาน
+                สรุปผลการขายสินค้าโปรโมชัน (เป้าหมาย vs ขายจริง)
               </span>
               <div className="overflow-x-auto border border-slate-200 rounded-xl">
                 <table className="w-full text-left text-xs">
@@ -213,29 +241,94 @@ export function DetailType8Meeting({
                     <tr>
                       <th className="py-2.5 px-3 text-center w-10">ลำดับ</th>
                       <th className="py-2.5 px-3">ชื่อสินค้า</th>
-                      <th className="py-2.5 px-3 text-center w-28">จำนวนที่ขายได้</th>
-                      <th className="py-2.5 px-3 text-right w-36">ยอดขาย (บาท)</th>
+                      <th className="py-2.5 px-3 text-center w-24">
+                        เป้าจำนวน (ลัง)
+                      </th>
+                      <th className="py-2.5 px-3 text-right w-28">
+                        เป้ายอดขาย (บาท)
+                      </th>
+                      <th className="py-2.5 px-3 text-center w-28 bg-purple-50/50">
+                        ขายได้จริง (ลัง)
+                      </th>
+                      <th className="py-2.5 px-3 text-right w-36 bg-purple-50/50">
+                        ยอดขายจริง (บาท)
+                      </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {productSalesDetails.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/40">
-                        <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
-                          {idx + 1}
-                        </td>
-                        <td className="py-2.5 px-3 font-semibold text-slate-800">
-                          {item.productName}
-                        </td>
-                        <td className="py-2.5 px-3 text-center text-slate-700 font-medium">
-                          {item.actualQty || "-"}
-                        </td>
-                        <td className="py-2.5 px-3 text-right font-extrabold text-purple-900">
-                          {item.actualSales
-                            ? `฿${Number(item.actualSales.replace(/,/g, "")).toLocaleString()}`
-                            : "-"}
-                        </td>
-                      </tr>
-                    ))}
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {promotionalProducts.length > 0
+                      ? promotionalProducts.map((p, idx) => {
+                          const actual =
+                            productSalesDetails.find(
+                              (d) =>
+                                (p.productId &&
+                                  (d as any).productId === p.productId) ||
+                                (p.id && (d as any).id === p.id) ||
+                                d.productName === p.productName,
+                            ) || productSalesDetails[idx];
+
+                          return (
+                            <tr key={p.id || idx} className="hover:bg-slate-50/40">
+                              <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
+                                {idx + 1}
+                              </td>
+                              <td className="py-2.5 px-3 font-semibold text-slate-800">
+                                <div className="flex items-center gap-1.5">
+                                  <Package className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                                  <span>{p.productName}</span>
+                                </div>
+                                {p.unitPrice ? (
+                                  <span className="text-[10px] text-slate-400 font-normal block pl-5">
+                                    ฿{p.unitPrice.toLocaleString()} / ลัง
+                                  </span>
+                                ) : null}
+                              </td>
+                              <td className="py-2.5 px-3 text-center text-slate-600 font-medium">
+                                {p.quantity != null ? `${p.quantity} ลัง` : "-"}
+                              </td>
+                              <td className="py-2.5 px-3 text-right text-slate-600 font-semibold">
+                                {p.totalAmount != null
+                                  ? `฿${p.totalAmount.toLocaleString()}`
+                                  : "-"}
+                              </td>
+                              <td className="py-2.5 px-3 text-center font-bold text-purple-900 bg-purple-50/20">
+                                {actual?.actualQty
+                                  ? `${actual.actualQty} ลัง`
+                                  : "-"}
+                              </td>
+                              <td className="py-2.5 px-3 text-right font-extrabold text-purple-900 bg-purple-50/20">
+                                {actual?.actualSales &&
+                                Number(actual.actualSales.replace(/,/g, "")) > 0
+                                  ? `฿${Number(actual.actualSales.replace(/,/g, "")).toLocaleString()}`
+                                  : "-"}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      : productSalesDetails.map((item, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50/40">
+                            <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
+                              {idx + 1}
+                            </td>
+                            <td className="py-2.5 px-3 font-semibold text-slate-800">
+                              {item.productName}
+                            </td>
+                            <td className="py-2.5 px-3 text-center text-slate-500">
+                              -
+                            </td>
+                            <td className="py-2.5 px-3 text-right text-slate-500">
+                              -
+                            </td>
+                            <td className="py-2.5 px-3 text-center font-bold text-purple-900 bg-purple-50/20">
+                              {item.actualQty || "-"}
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-extrabold text-purple-900 bg-purple-50/20">
+                              {item.actualSales
+                                ? `฿${Number(item.actualSales.replace(/,/g, "")).toLocaleString()}`
+                                : "-"}
+                            </td>
+                          </tr>
+                        ))}
                   </tbody>
                 </table>
               </div>
@@ -254,7 +347,59 @@ export function DetailType8Meeting({
           )}
         </div>
 
-        {/* MEETING IMAGES (READ-ONLY LIGHTBOX) */}
+        {/* 1. REGISTRATION IMAGES (READ-ONLY LIGHTBOX) */}
+        <div className="bg-purple-50/20 border border-purple-200/70 rounded-2xl p-4 sm:p-4.5 space-y-3 pt-2">
+          <div className="flex items-center justify-between border-b border-purple-100/80 pb-2">
+            <span className="text-xs sm:text-sm font-bold text-purple-950 flex items-center gap-1.5">
+              <ClipboardCheck className="w-4 h-4 text-purple-600" />
+              รูปใบลงทะเบียนผู้เข้าร่วมงาน
+            </span>
+            {registrationImages && registrationImages.length > 0 ? (
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                {registrationImages.length} รูป
+              </span>
+            ) : null}
+          </div>
+
+          {registrationImages && registrationImages.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+              {registrationImages.map((img, imgIdx) => (
+                <button
+                  key={img.id || imgIdx}
+                  type="button"
+                  onClick={() =>
+                    openLightbox(
+                      `รูปใบลงทะเบียนผู้เข้าร่วมงาน - ${target.topic || "ประชุม"}`,
+                      registrationImages,
+                      imgIdx,
+                    )
+                  }
+                  className="group relative rounded-xl border border-purple-200/80 overflow-hidden bg-slate-100 aspect-video flex items-center justify-center shadow-2xs hover:shadow-md hover:border-purple-400 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-purple-500"
+                  aria-label={`คลิกเพื่อดูรูปใบลงทะเบียนที่ ${imgIdx + 1} ขนาดใหญ่`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={img.url}
+                    alt={img.name || `รูปใบลงทะเบียน ${imgIdx + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full bg-black/60 text-white backdrop-blur-xs shadow-md">
+                      <Eye className="w-4 h-4" />
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 p-3.5 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-slate-400 text-xs font-medium">
+              <ImageIcon className="w-4 h-4 opacity-50 text-slate-400" />
+              <span>ไม่มีรูปใบลงทะเบียนผู้เข้าร่วมงาน</span>
+            </div>
+          )}
+        </div>
+
+        {/* 2. MEETING ATMOSPHERE IMAGES (READ-ONLY LIGHTBOX) */}
         <div className="bg-purple-50/20 border border-purple-200/70 rounded-2xl p-4 sm:p-4.5 space-y-3 pt-2">
           <div className="flex items-center justify-between border-b border-purple-100/80 pb-2">
             <span className="text-xs sm:text-sm font-bold text-purple-950 flex items-center gap-1.5">
