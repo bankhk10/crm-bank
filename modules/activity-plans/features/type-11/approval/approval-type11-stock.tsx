@@ -37,15 +37,6 @@ export function ApprovalType11Stock({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
         <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-          <span className="text-slate-700 block text-[11px] font-bold mb-1">
-            วัตถุประสงค์ของประเภทงาน
-          </span>
-          <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-            ตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน
-          </span>
-        </div>
-
-        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 sm:col-span-1">
           <span className="text-slate-500 block text-[11px] font-medium mb-1">
             รายชื่อร้านค้าที่ตรวจเช็กสต็อก
           </span>
@@ -53,17 +44,6 @@ export function ApprovalType11Stock({
             {target.store || "-"}
           </span>
         </div>
-
-        {target.detail && (
-          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 sm:col-span-2">
-            <span className="text-slate-500 block text-[11px] font-medium mb-1">
-              รายละเอียดเพิ่มเติม
-            </span>
-            <span className="text-slate-700 block text-xs whitespace-pre-line">
-              {target.detail}
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );
