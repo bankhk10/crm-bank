@@ -50,6 +50,21 @@ const STATUS_STYLES: Record<
     className: "bg-rose-50 text-rose-700 border-rose-200",
     dot: "bg-rose-500",
   },
+  PENDING_REVIEW: {
+    label: "รอตรวจสอบ",
+    className: "bg-amber-50 text-amber-700 border-amber-200",
+    dot: "bg-amber-500",
+  },
+  REVIEWED: {
+    label: "ตรวจสอบแล้ว",
+    className: "bg-green-50 text-green-700 border-green-200",
+    dot: "bg-green-500",
+  },
+  RETURNED: {
+    label: "ส่งกลับแก้ไข",
+    className: "bg-orange-50 text-orange-700 border-orange-200",
+    dot: "bg-orange-500",
+  },
   // Actual Result statuses
   COMPLETED: {
     label: ACTIVITY_RESULT_STATUS_LABELS.COMPLETED,

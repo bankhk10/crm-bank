@@ -28,6 +28,14 @@ import {
   getDemoPlotHistoryUseCase,
   recordDemoPlotVisitUseCase,
   getApproverDirectoryUseCase,
+  createUnplannedActivityUseCase,
+  updateUnplannedActivityUseCase,
+  submitUnplannedActivityUseCase,
+  reviewUnplannedActivityUseCase,
+  getUnplannedReviewQueueUseCase,
+  type CreateUnplannedActivityInput,
+  type UpdateUnplannedActivityInput,
+  type UnplannedReviewQueueFilter,
   type ListActivityPlansParams,
 } from "../application";
 
@@ -1096,3 +1104,252 @@ export async function getActivityCalendarEventsAction(
     });
   }
 }
+
+// ────────────────────────────────────────────────────────
+// UNPLANNED ACTIVITY SERVER ACTIONS
+// ────────────────────────────────────────────────────────
+
+/**
+ * Action: Create an Unplanned Activity (with atomic ActivityResult)
+ */
+export async function createUnplannedActivityAction(rawData: unknown) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const permissions = session.user.permissionKeys ?? [];
+  const roles = (session.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session.user as any)?.role === "administrator" ||
+    (session.user as any)?.role === "ADMIN";
+
+  if (
+    !isAdmin &&
+    !permissions.includes("activity.create") &&
+    !permissions.includes("activity.manage")
+  ) {
+    return {
+      success: false,
+      error: "Forbidden: คุณไม่มีสิทธิ์สร้างกิจกรรมนอกแผนงาน",
+    };
+  }
+
+  try {
+    const result = await createUnplannedActivityUseCase(
+      session.user.id,
+      rawData as CreateUnplannedActivityInput,
+      {
+        name: session.user.name ?? undefined,
+        email: session.user.email ?? undefined,
+      },
+    );
+
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
+}
+export const createUnplannedActivity = createUnplannedActivityAction;
+
+/**
+ * Action: Update an Unplanned Activity
+ */
+export async function updateUnplannedActivityAction(
+  id: string,
+  rawData: unknown,
+) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const permissions = session.user.permissionKeys ?? [];
+  const roles = (session.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    (session.user as any)?.role === "administrator" ||
+    (session.user as any)?.role === "ADMIN";
+
+  if (
+    !isAdmin &&
+    !permissions.includes("activity.edit") &&
+    !permissions.includes("activity.manage")
+  ) {
+    return {
+      success: false,
+      error: "Forbidden: คุณไม่มีสิทธิ์แก้ไขกิจกรรมนอกแผนงาน",
+    };
+  }
+
+  try {
+    const input = {
+      ...(rawData as any),
+      planId: id,
+    } as UpdateUnplannedActivityInput;
+
+    const result = await updateUnplannedActivityUseCase(
+      session.user.id,
+      input,
+    );
+
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${id}`);
+      revalidatePath(`/activity-plans/unplanned/${id}/edit`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
+}
+export const updateUnplannedActivity = updateUnplannedActivityAction;
+
+/**
+ * Action: Submit an Unplanned Activity for Review
+ */
+export async function submitUnplannedActivityAction(
+  id: string,
+  comment?: string,
+) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const result = await submitUnplannedActivityUseCase(
+      id,
+      session.user.id,
+      comment,
+    );
+
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${id}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
+}
+export const submitUnplannedActivity = submitUnplannedActivityAction;
+
+/**
+ * Action: Review an Unplanned Activity (Approve or Return)
+ */
+export async function reviewUnplannedActivityAction(
+  id: string,
+  action: "APPROVE" | "REQUEST_CORRECTION",
+  comment?: string,
+) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const permissions = session.user.permissionKeys ?? [];
+  const roles = session.user.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo");
+
+  if (
+    !isAdmin &&
+    !permissions.includes("activity.approve") &&
+    !permissions.includes("activity.manage")
+  ) {
+    return {
+      success: false,
+      error: "Forbidden: คุณไม่มีสิทธิ์ตรวจสอบกิจกรรมนอกแผนงาน",
+    };
+  }
+
+  try {
+    const result = await reviewUnplannedActivityUseCase({
+      planId: id,
+      userId: session.user.id,
+      action,
+      comment,
+    });
+
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${id}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
+}
+export const reviewUnplannedActivity = reviewUnplannedActivityAction;
+
+/**
+ * Action: Get Unplanned Review Queue Data
+ */
+export async function getUnplannedReviewQueueAction(
+  filter?: UnplannedReviewQueueFilter,
+) {
+  const session = await auth();
+  if (!session?.user) {
+    return serialize({ success: false, error: "Unauthorized" });
+  }
+
+  const permissions = session.user.permissionKeys ?? [];
+  const roles = session.user.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo");
+
+  if (
+    !isAdmin &&
+    !permissions.includes("activity.approve") &&
+    !permissions.includes("activity.manage") &&
+    !session.user.employeeId
+  ) {
+    return serialize({
+      success: false,
+      error: "Forbidden: คุณไม่มีสิทธิ์เข้าถึงคิวตรวจสอบกิจกรรมนอกแผนงาน",
+    });
+  }
+
+  try {
+    const result = await getUnplannedReviewQueueUseCase(
+      {
+        userId: session.user.id,
+        employeeId: session.user.employeeId,
+        roles,
+        permissions,
+      },
+      filter,
+    );
+
+    return serialize({
+      success: true,
+      plans: result.plans,
+      counts: result.counts,
+      currentUser: result.currentUser,
+    });
+  } catch (err: any) {
+    return serialize({
+      success: false,
+      error: err.message || "เกิดข้อผิดพลาดในการโหลดคิวตรวจสอบกิจกรรมนอกแผนงาน",
+    });
+  }
+}
+export const getUnplannedReviewQueue = getUnplannedReviewQueueAction;
+

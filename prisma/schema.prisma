@@ -1516,6 +1516,11 @@ model LoginAnnouncement {
 // ACTIVITY FEATURE ENUMS
 // ==========================================
 
+enum ActivityPlanType {
+  PLANNED
+  UNPLANNED
+}
+
 enum ActivityStatus {
   DRAFT // แผนร่าง
   PENDING_LINE_APPROVAL // รออนุมัติตามสายงาน (Step 2: Line Approval)
@@ -1525,6 +1530,9 @@ enum ActivityStatus {
   REJECTED // ถูกปฏิเสธ (ปัดตกแผนงาน)
   WAITING_FOR_CORRECTION // ถูกส่งกลับแก้ไข/ขอข้อมูลเพิ่มเติม (ตีกลับ)
   CANCELLED // ยกเลิกแผนงานโดยผู้สร้าง
+  PENDING_REVIEW // รอตีกลับ/ตรวจสอบผลปฏิบัติงานหลังเสร็จสิ้น (Unplanned)
+  REVIEWED // ตรวจสอบผลปฏิบัติงานแล้ว (Unplanned)
+  RETURNED // ส่งกลับให้แก้ไขผลการปฏิบัติงาน (Unplanned)
 }
 
 enum ActivityHelperStatus {
@@ -1545,6 +1553,7 @@ enum ActivityApprovalStep {
   LINE_APPROVAL // ตรวจสอบเบื้องต้นตามสายงาน (Step 2)
   BUDGET_APPROVAL // ตรวจสอบเงื่อนไขงบประมาณ (Step 3)
   HELPER_APPROVAL // ตรวจสอบการช่วยงาน (Step 4)
+  POST_ACTIVITY_REVIEW // ตรวจสอบผลการปฏิบัติงานนอกแผนงาน
 }
 
 enum ActivityResultStatus {
@@ -1671,7 +1680,8 @@ model ActivityPlan {
   totalBudgetApproved          Decimal? @map("total_budget_approved") @db.Decimal(15, 2)
 
   // ──── WORKFLOW STATUS ──────────────────────────────────
-  status                    ActivityStatus @default(DRAFT)
+  planType                  ActivityPlanType @default(PLANNED) @map("plan_type")
+  status                    ActivityStatus   @default(DRAFT)
   currentApproverEmployeeId String?        @map("current_approver_employee_id")
 
   // ──── APPROVAL FLAGS (Step 3 parallel tracking) ────────

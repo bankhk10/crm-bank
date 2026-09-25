@@ -15,6 +15,7 @@ import {
   ClipboardList,
   CheckCircle2,
   ShieldCheck,
+  FileCheck,
   Copy,
   Calendar as CalendarIcon,
 } from "lucide-react";
@@ -69,6 +70,9 @@ const STATUS_OPTIONS = [
   { value: "PARTIAL", label: "ผลกิจกรรม: สำเร็จบางส่วน" },
   { value: "POSTPONED", label: `ผลกิจกรรม: ${ACTIVITY_RESULT_STATUS_LABELS.POSTPONED}` },
   { value: "WAITING_FOR_CORRECTION", label: "รอแก้ไข/ข้อมูลเพิ่ม" },
+  { value: "PENDING_REVIEW", label: "รอตรวจสอบ" },
+  { value: "REVIEWED", label: "ตรวจสอบแล้ว" },
+  { value: "RETURNED", label: "ส่งกลับแก้ไข" },
   { value: "REJECTED", label: "ปฏิเสธ" },
   { value: "CANCELLED", label: "ยกเลิก" },
 ];
@@ -245,9 +249,13 @@ export function ActivityPlanTable({
         header: "การจัดการ",
         cell: ({ row }) => {
           const item = row.original;
+          const isUnplanned = item.planType === "UNPLANNED";
           const isDraft = item.status === "DRAFT";
           const isCorrection = item.status === "WAITING_FOR_CORRECTION";
-          const editable = isDraft || isCorrection;
+          const isReturned = item.status === "RETURNED";
+          const editable = isUnplanned
+            ? isDraft || isReturned
+            : isDraft || isCorrection;
           const deletable = editable || item.status === "CANCELLED";
           const isApproved = item.status === "APPROVED";
 
@@ -275,16 +283,25 @@ export function ActivityPlanTable({
             (currentUserId && item.createdById === currentUserId)
           );
 
+          const editHref = isUnplanned
+            ? `/activity-plans/unplanned/${item.id}/edit`
+            : `/activity-plans/${item.id}/edit`;
+
+          const detailHref =
+            isUnplanned && editable
+              ? `/activity-plans/unplanned/${item.id}/edit`
+              : `/activity-plans/${item.id}`;
+
           return (
             <div className="flex items-center justify-center gap-2">
               <ActionButton
-                href={`/activity-plans/${item.id}`}
+                href={detailHref}
                 icon={Eye}
                 label="ดูรายละเอียด"
                 colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
               />
 
-              {isApproved && hasActualWorkType && isCreator && (
+              {!isUnplanned && isApproved && hasActualWorkType && isCreator && (
                 <ActionButton
                   href={`/activity-plans/${item.id}/actual`}
                   icon={ClipboardList}
@@ -295,10 +312,14 @@ export function ActivityPlanTable({
 
               {canApprove && isPending && (
                 <ActionButton
-                  href="/activity-plans/approvals"
-                  icon={ShieldCheck}
-                  label="อนุมัติแผนงาน"
-                  colorClass="text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-md"
+                  href={isUnplanned ? `/activity-plans/${item.id}` : "/activity-plans/approvals"}
+                  icon={isUnplanned ? FileCheck : ShieldCheck}
+                  label={isUnplanned ? "ตรวจกิจกรรม" : "อนุมัติแผนงาน"}
+                  colorClass={
+                    isUnplanned
+                      ? "text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
+                      : "text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-md"
+                  }
                 />
               )}
 
@@ -310,7 +331,7 @@ export function ActivityPlanTable({
                 ) : (
                   <ActionButton
                     icon={Send}
-                    label="ส่งขออนุมัติ"
+                    label={isUnplanned ? "ส่งตรวจสอบ" : "ส่งขออนุมัติ"}
                     colorClass="text-teal-600 border-teal-100 hover:bg-teal-50 rounded-md"
                     onClick={() => onSubmitApproval(item)}
                   />
@@ -318,7 +339,7 @@ export function ActivityPlanTable({
 
               {canEdit && editable && isCreator && (
                 <ActionButton
-                  href={`/activity-plans/${item.id}/edit`}
+                  href={editHref}
                   icon={Edit}
                   label="แก้ไข"
                   colorClass="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
@@ -393,12 +414,20 @@ export function ActivityPlanTable({
       />
       <div className="flex flex-wrap items-center justify-end gap-3">
         {canCreate ? (
-          <Link href="/activity-plans/new" className="w-full sm:w-auto">
-            <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 font-semibold shadow-xs">
-              <PlusCircle className="h-4 w-4" />
-              สร้างแผนงานใหม่
-            </Button>
-          </Link>
+          <>
+            <Link href="/activity-plans/unplanned/new" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-2 font-semibold shadow-xs">
+                <PlusCircle className="h-4 w-4" />
+                บันทึกกิจกรรมนอกแผน
+              </Button>
+            </Link>
+            <Link href="/activity-plans/new" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 font-semibold shadow-xs">
+                <PlusCircle className="h-4 w-4" />
+                สร้างแผนงานใหม่
+              </Button>
+            </Link>
+          </>
         ) : (
           <Button
             className="w-full sm:w-auto font-semibold"
@@ -419,15 +448,26 @@ export function ActivityPlanTable({
           </Button>
         </Link>
         {canApprove && (
-          <Link href="/activity-plans/approvals" className="w-full sm:w-auto">
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto border-emerald-600 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 flex items-center gap-2 font-semibold shadow-xs"
-            >
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              อนุมัติแผนงาน
-            </Button>
-          </Link>
+          <>
+            <Link href="/activity-plans/approvals" className="w-full sm:w-auto">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto border-emerald-600 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 flex items-center gap-2 font-semibold shadow-xs"
+              >
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                อนุมัติแผนงาน
+              </Button>
+            </Link>
+            <Link href="/activity-plans/unplanned/reviews" className="w-full sm:w-auto">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto border-blue-600 text-blue-700 hover:bg-blue-50 hover:text-blue-800 flex items-center gap-2 font-semibold shadow-xs"
+              >
+                <FileCheck className="h-4 w-4 text-blue-600" />
+                คิวตรวจกิจกรรมนอกแผน
+              </Button>
+            </Link>
+          </>
         )}
       </div>
     </div>

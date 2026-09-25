@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import {
   Prisma,
+  ActivityPlanType,
   ActivityStatus,
   ActivityHelperStatus,
   ActivityApprovalAction,
@@ -655,6 +656,7 @@ export type CreateActivityPlanInput = {
   salesPromotionBudgetRequested?: number | null;
   marketingBudgetRequested?: number | null;
   totalBudgetRequested?: number | null;
+  planType?: ActivityPlanType;
   status?: ActivityStatus;
   employeeId: string;
   createdById: string;
@@ -749,50 +751,47 @@ export type CreateActivityPlanInput = {
 /**
  * Create a new ActivityPlan inside a transaction with automatic retry on collision
  */
-export async function createActivityPlan(input: CreateActivityPlanInput) {
-  const maxRetries = 5;
-  let attempt = 0;
-  let lastError: any = null;
+export async function createActivityPlan(
+  input: CreateActivityPlanInput,
+  txClient?: Prisma.TransactionClient,
+) {
+  const executeInTx = async (tx: Prisma.TransactionClient) => {
+    const code =
+      input.code || (await generateActivityPlanCode(tx, input.startDate));
+    const fiscal = computeFiscalFields(input.startDate, input.endDate);
 
-  while (attempt < maxRetries) {
-    attempt++;
-    try {
-      return await db.$transaction(async (tx) => {
-        const code =
-          input.code || (await generateActivityPlanCode(tx, input.startDate));
-        const fiscal = computeFiscalFields(input.startDate, input.endDate);
+    const spRequested = input.salesPromotionBudgetRequested ?? 0;
+    const mktRequested = input.marketingBudgetRequested ?? 0;
+    const totalRequested =
+      input.totalBudgetRequested ?? spRequested + mktRequested;
 
-        const spRequested = input.salesPromotionBudgetRequested ?? 0;
-        const mktRequested = input.marketingBudgetRequested ?? 0;
-        const totalRequested =
-          input.totalBudgetRequested ?? spRequested + mktRequested;
+    let primaryCode = "TYPE_1";
+    if (input.workTypeCodes && input.workTypeCodes.length > 0) {
+      primaryCode = getWorkTypeCode(input.workTypeCodes[0]);
+    } else if (input.activityTypeId) {
+      primaryCode = getWorkTypeCode(input.activityTypeId);
+    }
+    const resolvedPrimaryTypeId = await resolveActivityTypeId(
+      primaryCode,
+      tx,
+    );
 
-        let primaryCode = "TYPE_1";
-        if (input.workTypeCodes && input.workTypeCodes.length > 0) {
-          primaryCode = getWorkTypeCode(input.workTypeCodes[0]);
-        } else if (input.activityTypeId) {
-          primaryCode = getWorkTypeCode(input.activityTypeId);
-        }
-        const resolvedPrimaryTypeId = await resolveActivityTypeId(
-          primaryCode,
-          tx,
-        );
-
-        // 1. Create main ActivityPlan
-        const plan = await tx.activityPlan.create({
-          data: {
-            code,
-            title: input.title,
-            startDate: input.startDate,
-            endDate: input.endDate,
-            durationDays: fiscal.durationDays,
-            fiscalYear: fiscal.fiscalYear,
-            fiscalMonth: fiscal.fiscalMonth,
-            fiscalQuarter: fiscal.fiscalQuarter,
-            activityTypeId: resolvedPrimaryTypeId,
-            location: input.location ? input.location.trim() || null : null,
-            province: input.province ?? null,
-            district: input.district ?? null,
+    // 1. Create main ActivityPlan
+    const plan = await tx.activityPlan.create({
+      data: {
+        code,
+        title: input.title,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        durationDays: fiscal.durationDays,
+        fiscalYear: fiscal.fiscalYear,
+        fiscalMonth: fiscal.fiscalMonth,
+        fiscalQuarter: fiscal.fiscalQuarter,
+        activityTypeId: resolvedPrimaryTypeId,
+        planType: input.planType ?? ActivityPlanType.PLANNED,
+        location: input.location ? input.location.trim() || null : null,
+        province: input.province ?? null,
+        district: input.district ?? null,
             objective: input.objective,
             description: input.description ?? null,
             notes: input.notes ?? null,
@@ -1225,19 +1224,34 @@ export async function createActivityPlan(input: CreateActivityPlanInput) {
           });
         }
 
-        // 4. Create initial approval log
-        await tx.activityApprovalLog.create({
-          data: {
-            activityPlanId: plan.id,
-            userId: input.createdById,
-            action: ActivityApprovalAction.SUBMIT,
-            step: ActivityApprovalStep.LINE_APPROVAL,
-            comment: "บันทึกแผนงานร่างแรก",
-          },
-        });
+        // 4. Create initial approval log (Planned only)
+        if (input.planType !== ActivityPlanType.UNPLANNED) {
+          await tx.activityApprovalLog.create({
+            data: {
+              activityPlanId: plan.id,
+              userId: input.createdById,
+              action: ActivityApprovalAction.SUBMIT,
+              step: ActivityApprovalStep.LINE_APPROVAL,
+              comment: "บันทึกแผนงานร่างแรก",
+            },
+          });
+        }
 
         return plan;
-      });
+      };
+
+  if (txClient) {
+    return executeInTx(txClient);
+  }
+
+  const maxRetries = 5;
+  let attempt = 0;
+  let lastError: any = null;
+
+  while (attempt < maxRetries) {
+    attempt++;
+    try {
+      return await db.$transaction(executeInTx);
     } catch (err: any) {
       lastError = err;
       if (err?.code === "P2002" && !input.code && attempt < maxRetries) {

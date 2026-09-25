@@ -14,7 +14,7 @@ import {
   type ListActivityPlansParams,
   type CreateActivityResultInput,
 } from "../infrastructure/activity-plan.repository";
-import { ActivityStatus } from "@prisma/client";
+import { ActivityPlanType, ActivityStatus } from "@prisma/client";
 import { isActivityPlanTestMode } from "../config";
 import { syncActivityResultToCalendarUseCase } from "./calendar-integration";
 
@@ -492,10 +492,13 @@ export async function updateActivityPlanUseCase(
     }
   }
 
-  if (
-    plan.status !== ActivityStatus.DRAFT &&
-    plan.status !== ActivityStatus.WAITING_FOR_CORRECTION
-  ) {
+  const canEdit =
+    plan.status === ActivityStatus.DRAFT ||
+    plan.status === ActivityStatus.WAITING_FOR_CORRECTION ||
+    (plan.planType === ActivityPlanType.UNPLANNED &&
+      plan.status === ActivityStatus.RETURNED);
+
+  if (!canEdit) {
     return {
       success: false as const,
       error: "สามารถแก้ไขได้เฉพาะ Trip Plan ในสถานะร่างหรือรอแก้ไขเท่านั้น",
@@ -790,4 +793,29 @@ export {
 
 export { normalizePlanInput, type NormalizedPlanData } from "./plan-mapper";
 
+export {
+  createUnplannedActivityUseCase,
+  updateUnplannedActivityUseCase,
+  submitUnplannedActivityUseCase,
+  reviewUnplannedActivityUseCase,
+  getUnplannedReviewQueueUseCase,
+  UNPLANNED_SUPPORTED_WORK_TYPES,
+  UNPLANNED_DISALLOWED_WORK_TYPES,
+  validateUnplannedWorkTypes,
+  type CreateUnplannedActivityInput,
+  type UpdateUnplannedActivityInput,
+  type ReviewUnplannedActivityInput,
+  type UnplannedReviewQueueUserContext,
+  type UnplannedReviewQueueFilter,
+} from "./unplanned-activity-flow";
+
+export {
+  canUserPerformApproval,
+  getPlanActionScopes,
+  isUserAdmin,
+  type ApproverUserContext,
+  type ActionScopeBadge,
+} from "./can-approve";
+
 export type { ListActivityPlansParams };
+

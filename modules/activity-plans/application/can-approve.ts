@@ -122,8 +122,21 @@ function isMarketingHelperEmployee(helper: any): boolean {
 
 export function canUserPerformApproval(
   plan?: {
+    planType?: string;
     status?: string;
     currentApproverEmployeeId?: string | null;
+    employeeId?: string | null;
+    employee?: {
+      id?: string;
+      managerId?: string | null;
+    } | null;
+    creator?: {
+      employeeId?: string | null;
+      employee?: {
+        id?: string;
+        managerId?: string | null;
+      } | null;
+    } | null;
     salesPromotionBudgetRequested?: any;
     marketingBudgetRequested?: any;
     salesPromotionApproved?: boolean | null;
@@ -142,6 +155,7 @@ export function canUserPerformApproval(
     }> | null;
   } | null,
   user?: ApproverUserContext | null,
+  step?: string,
 ): boolean {
   if (!plan || !plan.status || !user) return false;
 
@@ -154,9 +168,33 @@ export function canUserPerformApproval(
     plan.status === "REJECTED" ||
     plan.status === "CANCELLED" ||
     plan.status === "DRAFT" ||
-    plan.status === "WAITING_FOR_CORRECTION"
+    plan.status === "WAITING_FOR_CORRECTION" ||
+    plan.status === "REVIEWED" ||
+    plan.status === "RETURNED"
   ) {
     return false;
+  }
+
+  // 2.5 Unplanned Activity Review (Post-Activity Review)
+  if (plan.status === "PENDING_REVIEW") {
+    if (plan.planType && plan.planType !== "UNPLANNED") return false;
+    if (step && step !== "POST_ACTIVITY_REVIEW") return false;
+
+    const userEmpId = user.employeeId;
+    if (!userEmpId) return false;
+
+    // Creator employee cannot review their own activity
+    const creatorEmployeeId = plan.employeeId || plan.employee?.id;
+    if (creatorEmployeeId && userEmpId === creatorEmployeeId) {
+      return false;
+    }
+
+    const directManagerId =
+      plan.currentApproverEmployeeId ||
+      plan.employee?.managerId ||
+      plan.creator?.employee?.managerId;
+
+    return Boolean(directManagerId && directManagerId === userEmpId);
   }
 
   // 3. Step 2: Line Approval
@@ -282,6 +320,16 @@ export function getPlanActionScopes(
   const isSalesAdmin = isUserSalesAdminManager(user);
   const isMkt = isUserMarketingManager(user);
   const isDirector = isUserSalesDirector(user);
+
+  // 0. Post-Activity Review (Unplanned)
+  if (plan.status === "PENDING_REVIEW") {
+    badges.push({
+      id: "post_activity_review",
+      label: "ตรวจสอบผลการปฏิบัติงาน",
+      variant: "line",
+    });
+    return badges;
+  }
 
   // 1. Line Approval
   if (plan.status === "PENDING_LINE_APPROVAL") {

@@ -307,6 +307,17 @@ export default function ActivityPlanApprovalListView() {
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
+          <Link href="/activity-plans/unplanned/reviews">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50 text-xs font-semibold h-9 md:h-10 px-3"
+            >
+              <FileCheck className="h-4 w-4 mr-1.5 text-blue-600" />
+              <span className="hidden sm:inline">คิวตรวจกิจกรรมนอกแผน</span>
+              <span className="sm:hidden">ตรวจนอกแผน</span>
+            </Button>
+          </Link>
           <Button
             variant="outline"
             size="icon"

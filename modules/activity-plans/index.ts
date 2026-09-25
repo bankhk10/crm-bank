@@ -8,6 +8,12 @@ export { default as ActivityPlanApprovalDetailView } from "./features/shared/app
 export { default as ActivityPlanActualView } from "./features/shared/actual-view/activity-plan-actual-view";
 export { default as PromotionalMaterialsView } from "./features/shared/promotional-materials/promotional-materials-view";
 export { ActivityCalendarView } from "./features/shared/calendar-view/activity-calendar-view";
+export {
+  UnplannedCreateView,
+  UnplannedEditView,
+  UnplannedReviewQueueView,
+  UnplannedReviewDetailView,
+} from "./features/unplanned";
 
 // Export UI components
 export {
@@ -20,5 +26,14 @@ export {
 export { FormActionButtons } from "./ui/form-action-buttons";
 
 // Export types & constants
-export type { ActivityPlanWithRelations } from "./types";
+export type {
+  ActivityPlanWithRelations,
+  ActivityPlanType,
+  ActivityStatus,
+  ActivityApprovalStep,
+  ActivityHelperStatus,
+  ActivityApprovalAction,
+} from "./types";
 export * from "./constants";
+
+

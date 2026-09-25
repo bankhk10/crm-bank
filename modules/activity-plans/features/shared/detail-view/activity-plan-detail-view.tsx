@@ -56,6 +56,7 @@ import { Type13Detail } from "@/modules/activity-plans/features/type-13";
 import type { Type13PlotItem } from "../../../application/validations";
 import { Type14Detail } from "@/modules/activity-plans/features/type-14";
 import type { Type14PlanInput } from "../../../application/validations";
+import { UnplannedReviewDetailView } from "../../unplanned";
 import {
   BudgetSection,
   PromotionalMaterialsSection,
@@ -367,6 +368,11 @@ export default function ActivityPlanDetailView({
         </Button>
       </div>
     );
+  }
+
+  // Delegate to UnplannedReviewDetailView if this is an Unplanned Activity
+  if (plan.planType === "UNPLANNED") {
+    return <UnplannedReviewDetailView id={id} onBack={onBack} />;
   }
 
   // Tour (TYPE_12) resolution from Normalized Relational Source of Truth
