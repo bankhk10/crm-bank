@@ -1100,9 +1100,10 @@ export function buildResultSummary(
   ) {
     input.t3ProductSalesDetails.forEach((d) => {
       const pId = d.productId || d.id;
-      const qty = Number(d.actualQty || d.quantity || 0);
-      const uPrice = Number(d.unitPrice || d.price || 0);
-      const total = Number(d.actualSales || qty * uPrice);
+      const qty = Math.round(parseCleanNumber(d.actualQty ?? d.quantity) ?? 0);
+      const uPrice = parseCleanNumber(d.unitPrice ?? d.price) ?? 0;
+      const parsedSales = parseCleanNumber(d.actualSales);
+      const total = parsedSales != null ? parsedSales : qty * uPrice;
       const reason = d.unclosedReason || input.t3UnclosedReason || null;
       if (pId && (qty > 0 || total > 0 || reason || d.isAdditional)) {
         saleResults.push({
@@ -1110,9 +1111,9 @@ export function buildResultSummary(
           storeId: d.storeId || null,
           productId: pId,
           productName: d.productName || null,
-          actualQuantity: qty,
-          actualUnitPrice: uPrice,
-          actualTotal: total,
+          actualQuantity: isNaN(qty) ? 0 : Math.max(0, qty),
+          actualUnitPrice: isNaN(uPrice) ? 0 : Math.max(0, uPrice),
+          actualTotal: isNaN(total) ? 0 : Math.max(0, total),
           unclosedReason: reason,
           isAdditional: Boolean(d.isAdditional),
         });
@@ -1124,19 +1125,29 @@ export function buildResultSummary(
     Array.isArray(input.t9ProductSalesDetails)
   ) {
     input.t9ProductSalesDetails.forEach((d) => {
-      const pId = d.productId || d.id;
-      const qty = Number(d.actualQuantityCases || d.quantityCases || 0);
-      const uPrice = Number(d.pricePerCase || 0);
-      const total = Number(d.actualSales || qty * uPrice);
+      const pId =
+        d.productId ||
+        (input.products || []).find(
+          (p: any) =>
+            p.name?.trim().toLowerCase() ===
+            (d.productName || "").trim().toLowerCase(),
+        )?.id ||
+        d.id;
+      const qty = Math.round(
+        parseCleanNumber(d.actualQuantityCases ?? d.quantityCases) ?? 0,
+      );
+      const uPrice = parseCleanNumber(d.pricePerCase) ?? 0;
+      const parsedSales = parseCleanNumber(d.actualSales);
+      const total = parsedSales != null ? parsedSales : qty * uPrice;
       if (pId && (qty > 0 || total > 0)) {
         saleResults.push({
           workTypeCode: "TYPE_9",
           storeId: d.storeId || null,
           productId: pId,
           productName: d.productName || null,
-          actualQuantity: qty,
-          actualUnitPrice: uPrice,
-          actualTotal: total,
+          actualQuantity: isNaN(qty) ? 0 : Math.max(0, qty),
+          actualUnitPrice: isNaN(uPrice) ? 0 : Math.max(0, uPrice),
+          actualTotal: isNaN(total) ? 0 : Math.max(0, total),
         });
       }
     });
@@ -1147,22 +1158,19 @@ export function buildResultSummary(
   ) {
     input.t8ProductSalesDetails.forEach((d) => {
       const pId = d.productId || d.id;
-      const qty = Number(d.actualQty || 0);
-      const uPrice = Number(d.unitPrice || 0);
-      const rawSales =
-        d.actualSales != null && d.actualSales !== ""
-          ? Number(String(d.actualSales).replace(/,/g, ""))
-          : qty * uPrice;
-      const total = isNaN(rawSales) ? 0 : rawSales;
+      const qty = Math.round(parseCleanNumber(d.actualQty) ?? 0);
+      const uPrice = parseCleanNumber(d.unitPrice) ?? 0;
+      const parsedSales = parseCleanNumber(d.actualSales);
+      const total = parsedSales != null ? parsedSales : qty * uPrice;
       if (pId && (qty > 0 || total > 0)) {
         saleResults.push({
           workTypeCode: "TYPE_8_PROMOTION",
           storeId: d.storeId || null,
           productId: pId,
           productName: d.productName || null,
-          actualQuantity: qty,
-          actualUnitPrice: uPrice,
-          actualTotal: total,
+          actualQuantity: isNaN(qty) ? 0 : Math.max(0, qty),
+          actualUnitPrice: isNaN(uPrice) ? 0 : Math.max(0, uPrice),
+          actualTotal: isNaN(total) ? 0 : Math.max(0, total),
         });
       }
     });

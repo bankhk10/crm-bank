@@ -15,6 +15,8 @@ import {
 
 export interface Type9TargetProductItem {
   id?: string;
+  productId?: string;
+  storeId?: string | null;
   productName: string;
   quantityCases?: number;
   pricePerCase?: number;
@@ -25,7 +27,12 @@ export interface Type9TargetProductItem {
 
 export interface Type9ProductSaleDetail {
   id?: string;
+  productId?: string;
+  storeId?: string | null;
   productName: string;
+  pricePerCase?: number;
+  quantityCases?: number;
+  totalAmount?: number;
   actualQuantityCases?: string;
   actualSales?: string;
 }
@@ -65,28 +72,27 @@ export function ActualType9Store({
   images = [],
   setImages,
 }: ActualType9StoreProps) {
-  const [localItems, setLocalItems] = useState<Type9TargetProductItem[]>(
-    () => {
-      if (target.items && target.items.length > 0) {
-        return target.items.map((item, idx) => {
-          const saved =
-            productSalesDetails?.find(
-              (d) =>
-                (item.id && d.id === item.id) ||
-                d.productName === item.productName,
-            ) || productSalesDetails?.[idx];
+  const [localItems, setLocalItems] = useState<Type9TargetProductItem[]>(() => {
+    if (target.items && target.items.length > 0) {
+      return target.items.map((item, idx) => {
+        const saved =
+          productSalesDetails?.find(
+            (d) =>
+              (item.id && d.id === item.id) ||
+              (item.productId && (d.productId === item.productId || d.id === item.productId)) ||
+              d.productName === item.productName,
+          ) || productSalesDetails?.[idx];
 
-          return {
-            ...item,
-            actualQuantityCases:
-              saved?.actualQuantityCases ?? item.actualQuantityCases ?? "",
-            actualSales: saved?.actualSales ?? item.actualSales ?? "",
-          };
-        });
-      }
-      return [];
-    },
-  );
+        return {
+          ...item,
+          actualQuantityCases:
+            saved?.actualQuantityCases ?? item.actualQuantityCases ?? "",
+          actualSales: saved?.actualSales ?? item.actualSales ?? "",
+        };
+      });
+    }
+    return [];
+  });
 
   if (!isVisible) return null;
 
@@ -120,7 +126,12 @@ export function ActualType9Store({
       setProductSalesDetails(
         updated.map((item) => ({
           id: item.id,
+          productId: item.productId || item.id,
+          storeId: item.storeId,
           productName: item.productName,
+          pricePerCase: item.pricePerCase,
+          quantityCases: item.quantityCases,
+          totalAmount: item.totalAmount,
           actualQuantityCases: String(item.actualQuantityCases ?? ""),
           actualSales: String(item.actualSales ?? ""),
         })),
@@ -278,7 +289,10 @@ export function ActualType9Store({
               </tbody>
               <tfoot className="bg-slate-50 border-t border-slate-200 text-xs font-bold">
                 <tr>
-                  <td colSpan={4} className="py-2.5 px-3 text-right text-slate-700">
+                  <td
+                    colSpan={4}
+                    className="py-2.5 px-3 text-right text-slate-700"
+                  >
                     ยอดขายจริงรวมทั้งหมด:
                   </td>
                   <td
@@ -324,7 +338,8 @@ export function ActualType9Store({
               รูปภาพบรรยากาศหน้าร้าน
             </h4>
             <p className="text-[11px] text-blue-700/80">
-              อัปโหลดรูปภาพบรรยากาศการจัดกิจกรรมส่งเสริมการขายหน้าร้าน (สูงสุด 10 รูป)
+              อัปโหลดรูปภาพบรรยากาศการจัดกิจกรรมส่งเสริมการขายหน้าร้าน (สูงสุด
+              10 รูป)
             </p>
           </div>
         </div>

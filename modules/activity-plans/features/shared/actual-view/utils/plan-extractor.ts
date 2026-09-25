@@ -875,6 +875,8 @@ export function extractPlanData(
     const t9Products = products.filter((pr) => pr.workTypeCode === "TYPE_9");
     const t9ItemsFromDb = t9Products.map((pr, idx) => ({
       id: pr.id || String(idx + 1),
+      productId: pr.productId,
+      storeId: pr.storeId || t9FirstStore?.storeId || null,
       productName: pr.productName || "",
       quantityCases: pr.targetQuantity || 0,
       pricePerCase: pr.unitPrice ? Number(pr.unitPrice) : 0,
