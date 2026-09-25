@@ -882,10 +882,16 @@ export function extractPlanData(
         ? Number(pr.targetAmount)
         : (pr.targetQuantity || 0) * (Number(pr.unitPrice) || 0),
     }));
-    const t9TotalSales = t9ItemsFromDb.reduce(
+    const t9ProductTotalSales = t9ItemsFromDb.reduce(
       (sum, item) => sum + item.totalAmount,
       0,
     );
+    const t9TotalSales =
+      t9ItemsFromDb.length > 0
+        ? t9ProductTotalSales
+        : t9FirstStore?.targetAmount != null
+          ? Number(t9FirstStore.targetAmount)
+          : 0;
     const t9ProductSummary = t9ItemsFromDb
       .map((prod) => `${prod.productName} (${prod.quantityCases} ลัง)`)
       .join(", ");

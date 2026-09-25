@@ -35,17 +35,8 @@ export function ApprovalType9Store({
         </Badge>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs mb-3">
-        <div className="bg-orange-50/40 p-3 rounded-xl border border-orange-100/80 sm:col-span-1">
-          <span className="text-orange-700 block text-[11px] font-bold mb-1">
-            วัตถุประสงค์ของประเภทงาน
-          </span>
-          <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-            จัดกิจกรรมส่งเสริมการขายหน้าร้านและกระตุ้นยอดซื้อ
-          </span>
-        </div>
-
-        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs mb-3">
+        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
           <span className="text-slate-500 block text-[11px] font-medium mb-1">
             ร้านค้าที่จัดกิจกรรม
           </span>
@@ -59,12 +50,12 @@ export function ApprovalType9Store({
           )}
         </div>
 
-        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-          <span className="text-slate-500 block text-[11px] font-medium mb-1">
-            เป้าหมายผู้เข้าร่วม
+        <div className="bg-orange-50/40 p-3 rounded-xl border border-orange-100/80">
+          <span className="text-orange-700 block text-[11px] font-bold mb-1">
+            เป้ายอดขายกิจกรรม
           </span>
-          <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-            {target.targetAttendees ? `${target.targetAttendees} คน` : "-"}
+          <span className="font-extrabold text-orange-900 block text-xs sm:text-sm">
+            {target.targetSales || "-"}
           </span>
         </div>
       </div>
