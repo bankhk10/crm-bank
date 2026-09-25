@@ -184,6 +184,17 @@ export function useActualSubmit({
             cleanT10Images = await type10.uploadImages(id, allNewlyUploadedUrls);
           }
 
+          let cleanT11Images = type11.t11Images;
+          if (isTypeVisible("TYPE_11")) {
+            const t11ValidationError = type11.validate();
+            if (t11ValidationError) {
+              setFormError(t11ValidationError);
+              setIsSubmitting(false);
+              return;
+            }
+            cleanT11Images = await type11.uploadImages(id, allNewlyUploadedUrls);
+          }
+
           // --- 2. CALCULATE OLD REMOVED URLS ACROSS ALL WORK TYPES ---
           const allOldUrlsToDelete = [
             ...type1.collectOldImageUrlsToDelete(cleanT1Images),
@@ -202,6 +213,7 @@ export function useActualSubmit({
             ),
             ...type9.collectOldImageUrlsToDelete(cleanT9Images),
             ...type10.collectOldImageUrlsToDelete(cleanT10Images),
+            ...type11.collectOldImageUrlsToDelete(cleanT11Images),
           ];
 
           // --- 3. BUILD RESULT PAYLOAD & VALIDATE ---
@@ -230,7 +242,7 @@ export function useActualSubmit({
           );
           const t9Payload = type9.collectPayload(cleanT9Images);
           const t10Payload = type10.collectPayload(cleanT10Images);
-          const t11Payload = type11.collectPayload();
+          const t11Payload = type11.collectPayload(cleanT11Images);
 
           // TYPE_13: ฉีดแปลงแฮตแทค
           const isType13 =
@@ -328,6 +340,7 @@ export function useActualSubmit({
           type8.commitSavedImages(cleanT8Images, cleanT8RegistrationImages);
           type9.commitSavedImages(cleanT9Images);
           type10.commitSavedImages(cleanT10Images);
+          type11.commitSavedImages(cleanT11Images);
 
           // Record TYPE-7B DemoPlotVisit if applicable
           if (

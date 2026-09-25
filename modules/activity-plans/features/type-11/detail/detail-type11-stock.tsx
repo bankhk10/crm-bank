@@ -1,9 +1,12 @@
 "use client";
 
 import React from "react";
-import { Package, ArrowRight } from "lucide-react";
+import { Package, ArrowRight, Camera } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
+import GalleryUpload from "@/components/custom/gallery-upload";
+import { convertToFileMetadata } from "@/modules/activity-plans/features/shared/actual-view/utils";
+import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 
 export interface StockCheckItem {
   id?: string;
@@ -11,6 +14,7 @@ export interface StockCheckItem {
   productName: string;
   productCode?: string;
   remainingQty: string;
+  reorderOpportunity?: "สูง" | "ยังไม่แน่ใจ" | "ต่ำ" | "";
   remarks: string;
   isCustom?: boolean;
 }
@@ -29,6 +33,7 @@ interface DetailType11StockProps {
   stockStatus?: "ใกล้หมด" | "ขาดสต็อก" | "";
   reorderOpportunity?: "สูง" | "ยังไม่แน่ใจ" | "ต่ำ" | "";
   nextAction?: string;
+  images?: ImageFile[];
 }
 
 export function DetailType11Stock({
@@ -38,9 +43,8 @@ export function DetailType11Stock({
   remainingQty = "",
   remarks = "",
   stockItems = [],
-  stockStatus,
-  reorderOpportunity,
   nextAction,
+  images = [],
 }: DetailType11StockProps) {
   const groupedByStore = React.useMemo(() => {
     if (!stockItems || stockItems.length === 0) return null;
@@ -79,7 +83,7 @@ export function DetailType11Stock({
       />
 
       {/* READ-ONLY RESULT DISPLAY */}
-      <div className="space-y-3 pt-1 border-t border-slate-100">
+      <div className="space-y-4 pt-1 border-t border-slate-100">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
           <span className="w-2 h-2 rounded-full bg-slate-600"></span>
           <span>ผลการตรวจเช็กสต็อกจริง</span>
@@ -105,10 +109,13 @@ export function DetailType11Stock({
                       <tr>
                         <th className="py-2.5 px-3 text-center w-10">ลำดับ</th>
                         <th className="py-2.5 px-3">ชื่อสินค้า</th>
-                        <th className="py-2.5 px-3 text-center w-36">
+                        <th className="py-2.5 px-3 text-center w-32">
                           จำนวนคงเหลือ
                         </th>
-                        <th className="py-2.5 px-3">หมายเหตุ</th>
+                        <th className="py-2.5 px-3 text-center w-36">
+                          โอกาสสั่งซื้อรอบใหม่
+                        </th>
+                        <th className="py-2.5 px-3">ข้อสังเกต / หมายเหตุ</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -127,6 +134,24 @@ export function DetailType11Stock({
                           </td>
                           <td className="py-2.5 px-3 text-center font-bold text-slate-800">
                             {item.remainingQty ? `${item.remainingQty} ลัง` : "-"}
+                          </td>
+                          <td className="py-2.5 px-3 text-center">
+                            {item.reorderOpportunity ? (
+                              <Badge
+                                variant="outline"
+                                className={
+                                  item.reorderOpportunity === "สูง"
+                                    ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs"
+                                    : item.reorderOpportunity === "ยังไม่แน่ใจ"
+                                      ? "bg-amber-50 text-amber-800 border-amber-300 font-bold text-xs"
+                                      : "bg-slate-100 text-slate-800 border-slate-300 font-bold text-xs"
+                                }
+                              >
+                                {item.reorderOpportunity}
+                              </Badge>
+                            ) : (
+                              <span className="text-slate-400 font-normal">-</span>
+                            )}
                           </td>
                           <td className="py-2.5 px-3 text-slate-600">
                             {item.remarks || "-"}
@@ -168,60 +193,39 @@ export function DetailType11Stock({
           </div>
         ) : null}
 
-        {/* STATUS & NEXT ACTION */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 pt-1">
+        {/* NEXT ACTION (OPTIONAL) */}
+        {nextAction ? (
           <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
-            <span className="text-xs text-slate-500 font-medium block">
-              สถานะสต็อกโดยรวม
-            </span>
-            {stockStatus ? (
-              <Badge
-                variant="outline"
-                className={
-                  stockStatus === "ใกล้หมด"
-                    ? "bg-amber-50 text-amber-800 border-amber-300 font-bold text-xs"
-                    : "bg-rose-50 text-rose-800 border-rose-300 font-bold text-xs"
-                }
-              >
-                {stockStatus}
-              </Badge>
-            ) : (
-              <span className="text-xs text-slate-700 font-semibold">-</span>
-            )}
-          </div>
-
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
-            <span className="text-xs text-slate-500 font-medium block">
-              โอกาสการสั่งซื้อซ้ำ
-            </span>
-            {reorderOpportunity ? (
-              <Badge
-                variant="outline"
-                className={
-                  reorderOpportunity === "สูง"
-                    ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs"
-                    : reorderOpportunity === "ยังไม่แน่ใจ"
-                      ? "bg-amber-50 text-amber-800 border-amber-300 font-bold text-xs"
-                      : "bg-slate-100 text-slate-800 border-slate-300 font-bold text-xs"
-                }
-              >
-                {reorderOpportunity}
-              </Badge>
-            ) : (
-              <span className="text-xs text-slate-700 font-semibold">-</span>
-            )}
-          </div>
-
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2 md:col-span-1">
             <span className="text-xs text-slate-500 font-medium block flex items-center gap-1">
               <ArrowRight className="w-3 h-3 text-slate-400" />
               สิ่งที่ต้องดำเนินการต่อ
             </span>
             <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-              {nextAction || "-"}
+              {nextAction}
             </span>
           </div>
-        </div>
+        ) : null}
+
+        {/* READ-ONLY GALLERY FOR STOCK CHECK PHOTOS */}
+        {images && images.length > 0 && (
+          <div className="bg-slate-50/50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-2.5">
+              <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200">
+                <Camera className="w-4 h-4 text-slate-700" />
+              </div>
+              <div>
+                <h4 className="text-xs sm:text-sm font-bold text-slate-900">
+                  รูปภาพการตรวจเช็กสต็อกหน้าร้าน ({images.length} รูป)
+                </h4>
+              </div>
+            </div>
+            <GalleryUpload
+              maxFiles={5}
+              isReadOnly={true}
+              initialFiles={convertToFileMetadata(images)}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

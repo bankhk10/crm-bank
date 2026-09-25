@@ -265,15 +265,8 @@ export function DetailActivityResultSection({
           productList={parsedResults.t11ProductList}
           remainingQty={parsedResults.t11RemainingQty}
           remarks={parsedResults.t11Remarks}
-          stockStatus={
-            parsedResults.t11StockStatus === "สินค้าขาดสต็อก"
-              ? "ขาดสต็อก"
-              : parsedResults.t11StockStatus === "ใกล้หมด"
-                ? "ใกล้หมด"
-                : ""
-          }
-          reorderOpportunity={parsedResults.t11ReorderOpportunity}
           nextAction={parsedResults.t11NextAction || parsedResults.nextAction}
+          images={parsedResults.t11Images}
         />
       </div>
     </div>

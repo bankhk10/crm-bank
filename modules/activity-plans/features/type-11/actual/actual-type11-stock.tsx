@@ -1,11 +1,19 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Trash2, Package, Store } from "lucide-react";
+import { Trash2, Package, Store, Camera } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { FormCombobox } from "@/components/custom/form-components";
+import GalleryUpload from "@/components/custom/gallery-upload";
+import type { FileWithPreview } from "@/hooks/use-file-upload";
+import {
+  convertToFileMetadata,
+  filesWithPreviewToImageFiles,
+  isImageFilesEqual,
+} from "@/modules/activity-plans/features/shared/actual-view/utils";
+import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
@@ -13,11 +21,13 @@ import { listProductsAction } from "@/modules/products/server/actions";
 
 export interface StockCheckItem {
   id?: string;
+  storeId?: string | null;
   storeName: string;
   productId?: string;
   productName: string;
   productCode?: string;
   remainingQty: string;
+  reorderOpportunity?: "สูง" | "ยังไม่แน่ใจ" | "ต่ำ" | "";
   remarks: string;
   isCustom?: boolean;
 }
@@ -28,6 +38,7 @@ interface ActualType11StockProps {
     store: string;
     detail: string;
     targetOpportunity: string;
+    items?: Array<{ storeId?: string; store?: string; detail?: string }>;
   };
   products?: Array<{ id: string; name: string; productCode?: string | null } | string>;
   productList?: string;
@@ -38,12 +49,10 @@ interface ActualType11StockProps {
   setRemarks?: (v: string) => void;
   stockItems?: StockCheckItem[];
   setStockItems?: (items: StockCheckItem[]) => void;
-  stockStatus: "ใกล้หมด" | "ขาดสต็อก" | "";
-  setStockStatus: (v: "ใกล้หมด" | "ขาดสต็อก" | "") => void;
-  reorderOpportunity: "สูง" | "ยังไม่แน่ใจ" | "ต่ำ" | "";
-  setReorderOpportunity: (v: "สูง" | "ยังไม่แน่ใจ" | "ต่ำ" | "") => void;
-  nextAction: string;
-  setNextAction: (v: string) => void;
+  nextAction?: string;
+  setNextAction?: (v: string) => void;
+  images?: ImageFile[];
+  setImages?: (v: ImageFile[]) => void;
 }
 
 export function ActualType11Stock({
@@ -58,12 +67,10 @@ export function ActualType11Stock({
   setRemarks,
   stockItems,
   setStockItems,
-  stockStatus,
-  setStockStatus,
-  reorderOpportunity,
-  setReorderOpportunity,
-  nextAction,
+  nextAction = "",
   setNextAction,
+  images = [],
+  setImages,
 }: ActualType11StockProps) {
   const [dbProducts, setDbProducts] = useState<
     Array<{ id: string; name: string; productCode?: string | null }>
@@ -105,6 +112,7 @@ export function ActualType11Stock({
 
   // Options for FormCombobox
   const productOptions: Array<{
+    id?: string;
     value: string;
     label: string;
     subLabel?: string;
@@ -115,6 +123,7 @@ export function ActualType11Stock({
           return { value: p, label: p };
         }
         return {
+          id: p.id,
           value: p.name,
           label: p.name,
           subLabel: p.productCode || undefined,
@@ -123,6 +132,7 @@ export function ActualType11Stock({
     }
     if (dbProducts.length > 0) {
       return dbProducts.map((p) => ({
+        id: p.id,
         value: p.name,
         label: p.name,
         subLabel: p.productCode || undefined,
@@ -143,6 +153,7 @@ export function ActualType11Stock({
         id: item.id || crypto.randomUUID(),
         storeName: item.storeName || primaryStore,
         remainingQty: item.remainingQty || "",
+        reorderOpportunity: item.reorderOpportunity || "",
         remarks: item.remarks || "",
       }));
     }
@@ -164,6 +175,7 @@ export function ActualType11Stock({
             storeName: primaryStore,
             productName: pList[i] || "",
             remainingQty: qList[i] || "",
+            reorderOpportunity: "",
             remarks: rList[i] || "",
             isCustom: false,
           });
@@ -225,12 +237,19 @@ export function ActualType11Stock({
       (p) => p.value === productName || p.label === productName,
     );
 
+    const matchedStore = (target.items || []).find(
+      (s) => s.store?.trim() === storeName.trim(),
+    );
+
     const newItem: StockCheckItem = {
       id: crypto.randomUUID(),
+      storeId: matchedStore?.storeId || undefined,
       storeName,
+      productId: matchedOpt?.id || undefined,
       productName: matchedOpt ? matchedOpt.label : productName.trim(),
       productCode: matchedOpt?.subLabel || undefined,
       remainingQty: "",
+      reorderOpportunity: "",
       remarks: "",
       isCustom: false,
     };
@@ -246,7 +265,7 @@ export function ActualType11Stock({
 
   const handleItemChange = (
     id: string,
-    field: "remainingQty" | "remarks" | "productName",
+    field: "remainingQty" | "remarks" | "productName" | "reorderOpportunity",
     value: string,
   ) => {
     const newItems = items.map((item) => {
@@ -256,6 +275,13 @@ export function ActualType11Stock({
       return item;
     });
     updateItems(newItems);
+  };
+
+  const handleFilesChange = (files: FileWithPreview[]) => {
+    const converted = filesWithPreviewToImageFiles(files);
+    if (!isImageFilesEqual(images, converted) && setImages) {
+      setImages(converted);
+    }
   };
 
   if (!isVisible) return null;
@@ -400,24 +426,58 @@ export function ActualType11Stock({
                           </div>
                         </div>
 
-                        {/* Remarks */}
+                        {/* Reorder Opportunity (Per Item) */}
                         <div className="space-y-1.5">
                           <label className="text-xs font-semibold text-slate-700">
-                            หมายเหตุ
+                            โอกาสการสั่งซื้อรอบใหม่ <span className="text-rose-500">*</span>
                           </label>
-                          <Input
-                            value={item.remarks}
-                            onChange={(e) =>
-                              handleItemChange(
-                                item.id!,
-                                "remarks",
-                                e.target.value,
-                              )
-                            }
-                            placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
-                            className="bg-white border-slate-300 text-xs h-9"
-                          />
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {(["สูง", "ยังไม่แน่ใจ", "ต่ำ"] as const).map((opp) => (
+                              <button
+                                key={opp}
+                                type="button"
+                                onClick={() =>
+                                  handleItemChange(
+                                    item.id!,
+                                    "reorderOpportunity",
+                                    opp,
+                                  )
+                                }
+                                className={cn(
+                                  "py-1.5 px-1 rounded-lg border text-xs font-semibold cursor-pointer transition-all",
+                                  item.reorderOpportunity === opp
+                                    ? opp === "สูง"
+                                      ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
+                                      : opp === "ยังไม่แน่ใจ"
+                                        ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
+                                        : "bg-slate-100 border-slate-400 text-slate-800 font-bold"
+                                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
+                                )}
+                              >
+                                {opp}
+                              </button>
+                            ))}
+                          </div>
                         </div>
+                      </div>
+
+                      {/* Remarks (Optional) */}
+                      <div className="space-y-1.5 pt-1">
+                        <label className="text-xs font-semibold text-slate-700">
+                          ข้อสังเกต / หมายเหตุ
+                        </label>
+                        <Input
+                          value={item.remarks}
+                          onChange={(e) =>
+                            handleItemChange(
+                              item.id!,
+                              "remarks",
+                              e.target.value,
+                            )
+                          }
+                          placeholder="ระบุข้อสังเกตหรือข้อมูลเพิ่มเติม (ถ้ามี)"
+                          className="bg-white border-slate-300 text-xs h-9"
+                        />
                       </div>
                     </div>
                   ))}
@@ -428,73 +488,42 @@ export function ActualType11Stock({
         })}
       </div>
 
-      {/* Stock Status & Reorder Opportunity */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-        <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-slate-800">
-            สถานะสต็อกภาพรวม
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {(["ใกล้หมด", "ขาดสต็อก"] as const).map((status) => (
-              <button
-                key={status}
-                type="button"
-                onClick={() =>
-                  setStockStatus(stockStatus === status ? "" : status)
-                }
-                className={cn(
-                  "py-2.5 px-1 rounded-xl border text-xs font-semibold cursor-pointer transition-all",
-                  stockStatus === status
-                    ? status === "ใกล้หมด"
-                      ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
-                      : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20"
-                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
-                )}
-              >
-                {status}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-slate-800">
-            โอกาสการสั่งซื้อรอบใหม่ <span className="text-rose-500">*</span>
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {(["สูง", "ยังไม่แน่ใจ", "ต่ำ"] as const).map((opp) => (
-              <button
-                key={opp}
-                type="button"
-                onClick={() => setReorderOpportunity(opp)}
-                className={cn(
-                  "py-2.5 px-1 rounded-xl border text-xs font-semibold cursor-pointer transition-all",
-                  reorderOpportunity === opp
-                    ? opp === "สูง"
-                      ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
-                      : opp === "ยังไม่แน่ใจ"
-                        ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
-                        : "bg-slate-100 border-slate-400 text-slate-800"
-                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
-                )}
-              >
-                {opp}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
+      {/* Things to do next (Optional) */}
+      <div className="space-y-1.5 pt-1">
         <label className="text-sm font-semibold text-slate-800">
-          สิ่งที่ต้องดำเนินการต่อ <span className="text-rose-500">*</span>
+          สิ่งที่ต้องดำเนินการต่อ
         </label>
         <Textarea
           rows={2}
           value={nextAction}
-          onChange={(e) => setNextAction(e.target.value)}
-          placeholder="เช่น ออกใบเสนอราคาสินค้าเพิ่มสต็อก หรือประสานงานฝ่ายจัดส่ง"
+          onChange={(e) => setNextAction && setNextAction(e.target.value)}
+          placeholder="เช่น ออกใบเสนอราคาสินค้าเพิ่มสต็อก หรือประสานงานฝ่ายจัดส่ง (ถ้ามี)"
           className="bg-white border-slate-300"
+        />
+      </div>
+
+      {/* GalleryUpload for Stock Check Photos */}
+      <div className="bg-slate-50/50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
+        <div className="flex items-center gap-2 border-b border-slate-200 pb-2.5">
+          <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200">
+            <Camera className="w-4 h-4 text-slate-700" />
+          </div>
+          <div>
+            <h4 className="text-xs sm:text-sm font-bold text-slate-900">
+              รูปภาพการตรวจเช็กสต็อกหน้าร้าน
+            </h4>
+            <p className="text-[11px] text-slate-500">
+              อัปโหลดรูปภาพการตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน (สูงสุด 5 รูป)
+            </p>
+          </div>
+        </div>
+        <GalleryUpload
+          maxFiles={5}
+          maxSize={20 * 1024 * 1024}
+          accept="image/*"
+          multiple={true}
+          initialFiles={convertToFileMetadata(images || [])}
+          onFilesChange={handleFilesChange}
         />
       </div>
     </div>

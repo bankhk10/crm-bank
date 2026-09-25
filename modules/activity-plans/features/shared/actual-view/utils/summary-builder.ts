@@ -191,9 +191,10 @@ export interface BuildSummaryInput {
   t11ProductList: string;
   t11RemainingQty: string;
   t11Remarks: string;
-  t11StockStatus: "ใกล้หมด" | "ขาดสต็อก" | "";
-  t11ReorderOpportunity: "สูง" | "ต่ำ" | "ยังไม่แน่ใจ" | "";
-  t11NextAction: string;
+  t11StockStatus?: "ใกล้หมด" | "ขาดสต็อก" | "";
+  t11ReorderOpportunity?: "สูง" | "ต่ำ" | "ยังไม่แน่ใจ" | "";
+  t11NextAction?: string;
+  t11Images?: ImageFile[];
 }
 
 export interface BuildSummaryResult {
@@ -305,6 +306,7 @@ export function buildResultSummary(
     t11StockStatus,
     t11ReorderOpportunity,
     t11NextAction,
+    t11Images,
   } = input;
 
   // Validate Cancel / Postponed fields
@@ -980,7 +982,10 @@ export function buildResultSummary(
     t11Remarks ? `ข้อสังเกตสต็อก: ${t11Remarks}` : null,
     t11StockStatus ? `สถานะสต็อก: ${t11StockStatus}` : null,
     t11ReorderOpportunity ? `โอกาสสั่งซื้อซ้ำ: ${t11ReorderOpportunity}` : null,
-    t11NextAction ? `แผนการติดตามสต็อก: ${t11NextAction}` : null,
+    t11NextAction ? `สิ่งที่ต้องดำเนินการต่อ: ${t11NextAction}` : null,
+    t11Images && t11Images.length > 0
+      ? `รูปภาพการตรวจเช็กสต็อกหน้าร้าน: มีแนบ ${t11Images.length} รูป`
+      : null,
   ].filter(Boolean) as string[];
 
   const t2HasProblem =
@@ -1180,18 +1185,36 @@ export function buildResultSummary(
   const stockResults: any[] = [];
   if (input.t11StockItems && Array.isArray(input.t11StockItems)) {
     input.t11StockItems.forEach((item) => {
-      const sId = item.storeId || (item.store && item.store.id);
-      const pId = item.productId || (item.product && item.product.id);
+      const sId =
+        item.storeId ||
+        (item.store && item.store.id) ||
+        (input.planSummary as any)?.stores?.find(
+          (s: any) =>
+            s.workTypeCode === "TYPE_11" ||
+            (item.storeName && s.storeName === item.storeName),
+        )?.storeId ||
+        (input.planSummary as any)?.stores?.[0]?.storeId ||
+        null;
+      const pId =
+        item.productId ||
+        (item.product && item.product.id) ||
+        (input.products || []).find(
+          (p: any) =>
+            p.name?.trim().toLowerCase() ===
+            (item.productName || "").trim().toLowerCase(),
+        )?.id ||
+        null;
       if (sId && pId) {
         stockResults.push({
           storeId: sId,
           productId: pId,
-          remainingQuantity: Number(
-            item.remainingQuantity ??
-              item.remainingStockQty ??
-              item.remainingQty ??
-              item.quantity ??
-              0,
+          remainingQuantity: Math.round(
+            parseCleanNumber(
+              item.remainingQuantity ??
+                item.remainingStockQty ??
+                item.remainingQty ??
+                item.quantity,
+            ) ?? 0,
           ),
           stockStatus: item.stockStatus || null,
           reorderOpportunity: item.reorderOpportunity || null,
@@ -1411,6 +1434,9 @@ export function buildResultSummary(
   (input.t10Images || [])
     .slice(0, 5)
     .forEach((img) => addAttachment(img, "TYPE_10"));
+  (input.t11Images || [])
+    .slice(0, 5)
+    .forEach((img) => addAttachment(img, "TYPE_11"));
 
   // Build TYPE_7A DemoPlot Initial Data
   let type7aDemoPlot = undefined;

@@ -423,6 +423,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
   const setT11ReorderOpportunity = t11 ? t11.setT11ReorderOpportunity : (props.setT11ReorderOpportunity || props.setReorderOpportunity || (() => {}));
   const t11NextAction = t11 ? t11.t11NextAction : (props.t11NextAction ?? "");
   const setT11NextAction = t11 ? t11.setT11NextAction : (props.setNextAction || (() => {}));
+  const t11Images = t11 ? t11.t11Images : (props.t11Images ?? []);
+  const setT11Images = t11 ? t11.setT11Images : (props.setT11Images || props.setImages || (() => {}));
 
   const hasAnyActualWorkType = WORK_TYPES.some((wt) =>
     isTypeVisible(wt),
@@ -833,12 +835,10 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           setRemainingQty={setT11RemainingQty}
           remarks={t11Remarks}
           setRemarks={setT11Remarks}
-          stockStatus={t11StockStatus}
-          setStockStatus={setT11StockStatus}
-          reorderOpportunity={t11ReorderOpportunity}
-          setReorderOpportunity={setT11ReorderOpportunity}
           nextAction={t11NextAction}
           setNextAction={setT11NextAction}
+          images={t11Images}
+          setImages={setT11Images}
         />
 
         {/* WORK TYPE 13: ฉีดแปลงแฮตแทค */}

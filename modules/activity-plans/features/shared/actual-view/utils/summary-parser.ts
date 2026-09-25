@@ -195,8 +195,9 @@ export interface ParsedSummaryValues {
   t11RemainingQty?: string;
   t11Remarks?: string;
   t11StockStatus?: "เพียงพอ" | "ใกล้หมด" | "สินค้าขาดสต็อก";
-  t11ReorderOpportunity?: "สูง" | "ต่ำ";
+  t11ReorderOpportunity?: "สูง" | "ต่ำ" | "ยังไม่แน่ใจ";
   t11NextAction?: string;
+  t11Images?: ImageFile[];
 }
 
 export function parseResultSummary(resData: any): ParsedSummaryValues {
@@ -509,6 +510,11 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       (a: any) => a.workTypeCode === "TYPE_10",
     );
     if (t10Att.length > 0) result.t10Images = t10Att.map(toImage);
+
+    const t11Att = resData.attachments.filter(
+      (a: any) => a.workTypeCode === "TYPE_11",
+    );
+    if (t11Att.length > 0) result.t11Images = t11Att.map(toImage);
   }
 
   if (resData.resultSummary) {
@@ -1165,9 +1171,22 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         .split("\n")[0]
         .trim() as any;
     }
-    const t11NextActionMatch = summaryText.match(/แผนการติดตามสต็อก:\s*(.+)/);
+    const t11NextActionMatch = summaryText.match(
+      /(?:สิ่งที่ต้องดำเนินการต่อ|แผนการติดตามสต็อก):\s*(.+)/,
+    );
     if (t11NextActionMatch && t11NextActionMatch[1]) {
       result.t11NextAction = t11NextActionMatch[1].split("\n")[0].trim();
+    }
+    const t11ImagesMatch = summaryText.match(
+      /(?:รูปภาพการตรวจเช็กสต็อกหน้าร้าน|ภาพถ่ายการตรวจเช็กสต็อก|รูปภาพสต็อก|t11Images):\s*(\[.+\])/,
+    );
+    if (t11ImagesMatch && t11ImagesMatch[1]) {
+      try {
+        const parsed = JSON.parse(t11ImagesMatch[1]);
+        if (Array.isArray(parsed)) result.t11Images = parsed;
+      } catch (e) {
+        console.error("Failed to parse t11Images JSON:", e);
+      }
     }
   }
 
