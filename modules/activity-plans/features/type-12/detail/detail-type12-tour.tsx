@@ -127,7 +127,7 @@ export function DetailType12Tour({
           </div>
         </div>
       ) : (
-        /* CASE 2: ทัวร์ร้านค้า (STORE) -> แสดง: ประเภททัวร์, ร้านค้า, สถานที่จะไป */
+        /* CASE 2: ทัวร์ร้านค้า (STORE) -> แสดง: ประเภททัวร์, ร้านค้า, ประเทศที่จะไป */
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           {/* ประเภททัวร์ */}
           <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
@@ -151,11 +151,11 @@ export function DetailType12Tour({
             </span>
           </div>
 
-          {/* สถานที่จะไป */}
+          {/* ประเทศที่จะไป */}
           <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2">
             <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-slate-400" />
-              สถานที่จะไป
+              ประเทศที่จะไป
             </span>
             <span className="text-sm font-bold text-slate-900 block">
               {destinationValue}

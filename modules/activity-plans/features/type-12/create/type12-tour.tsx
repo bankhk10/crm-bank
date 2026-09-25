@@ -163,17 +163,17 @@ export function Type12Tour({
             />
           </div>
 
-          {/* สถานที่จะไป */}
+          {/* ประเทศที่จะไป */}
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-slate-700">
-              สถานที่จะไป <span className="text-red-500">*</span>
+              ประเทศที่จะไป <span className="text-red-500">*</span>
             </label>
             <Input
               type="text"
               disabled={readonly}
               value={type12Destination}
               onChange={(e) => setType12Destination(e.target.value)}
-              placeholder="ระบุสถานที่ เช่น โรงงาน ABC จังหวัดชลบุรี"
+              placeholder="ระบุประเทศที่จะไป เช่น จีน"
               className="bg-white border-slate-200 text-xs h-10 rounded-xl"
             />
           </div>
