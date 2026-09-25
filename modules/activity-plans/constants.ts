@@ -74,7 +74,7 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
   },
   TYPE_8: {
     code: "TYPE_8",
-    name: "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+    name: "จัดประชุม",
     shortName: "Meeting",
     sortOrder: 9,
     hasActual: true,
@@ -157,6 +157,14 @@ export function getWorkTypeCode(nameOrCode: string): string {
   if (nameOrCode === "ติดตามแปลงสาธิต / ทำแปลง" || nameOrCode === "TYPE_7") {
     return "TYPE_7A";
   }
+  if (
+    nameOrCode === "จัดประชุม" ||
+    nameOrCode === "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์" ||
+    nameOrCode === "จัดประชุมการเกษตร" ||
+    nameOrCode === "TYPE_8"
+  ) {
+    return "TYPE_8";
+  }
   if (nameOrCode === "ฉีดแปลงแฮตแทค" || nameOrCode === "TYPE_13") {
     return "TYPE_13";
   }
@@ -196,6 +204,14 @@ export function getWorkTypeName(codeOrName: string): string {
   if (codeOrName === "ติดตามแปลงสาธิต" || codeOrName === "TYPE_7B") {
     return WORK_TYPE_CONFIG.TYPE_7B.name;
   }
+  if (
+    codeOrName === "จัดประชุม" ||
+    codeOrName === "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์" ||
+    codeOrName === "จัดประชุมการเกษตร" ||
+    codeOrName === "TYPE_8"
+  ) {
+    return WORK_TYPE_CONFIG.TYPE_8.name;
+  }
   if (codeOrName === "ฉีดแปลงแฮตแทค" || codeOrName === "TYPE_13") {
     return WORK_TYPE_CONFIG.TYPE_13.name;
   }
@@ -208,7 +224,7 @@ export function getWorkTypeName(codeOrName: string): string {
 
 /**
  * Work Type codes that require/display Location and Team section:
- * - TYPE_8: จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์
+ * - TYPE_8: จัดประชุม
  * - TYPE_9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน
  * - TYPE_10: จัดงาน Field Day
  */

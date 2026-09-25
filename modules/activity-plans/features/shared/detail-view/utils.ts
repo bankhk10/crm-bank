@@ -236,13 +236,39 @@ export function extractWorkTypeSections(
     });
   }
 
-  // ── 8. จัดประชุมการเกษตร ────────────────────────────────
+  // ── 8. จัดประชุม ────────────────────────────────
   const type8Products = products.filter((pr) => pr.workTypeCode === "TYPE_8");
-  const t8Line = objectiveLines.find(
-    (l) => l.includes("[จัดประชุม") || l.includes("ประชุมการเกษตร"),
+  const type8PromoProducts = products.filter(
+    (pr) => pr.workTypeCode === "TYPE_8_PROMOTION",
   );
-  if (type8Products.length > 0 || plan.targetAttendeesCount || t8Line) {
+  const type8Stores = stores.filter((s) => s.workTypeCode === "TYPE_8");
+  const t8Line = objectiveLines.find(
+    (l) => l.includes("[จัดประชุม") || l.includes("ประชุม"),
+  );
+  if (
+    type8Products.length > 0 ||
+    type8PromoProducts.length > 0 ||
+    type8Stores.length > 0 ||
+    plan.targetAttendeesCount ||
+    t8Line
+  ) {
     const extraFields: Array<{ label: string; value: string }> = [];
+    if (type8Stores.length > 0) {
+      const storeStr = type8Stores
+        .map((s) =>
+          s.subDealerStore
+            ? `${s.subDealerStore} (Dealer: ${s.storeName || "-"})`
+            : s.storeName,
+        )
+        .filter(Boolean)
+        .join(", ");
+      if (storeStr) {
+        extraFields.push({
+          label: "ร้านค้า / ตัวแทนจำหน่าย",
+          value: storeStr,
+        });
+      }
+    }
     if (plan.targetAttendeesCount) {
       extraFields.push({
         label: "ผู้เข้าร่วมเป้าหมาย",
@@ -255,13 +281,26 @@ export function extractWorkTypeSections(
         value: type8Products.map((p) => p.productName).join(", "),
       });
     }
+    if (type8PromoProducts.length > 0) {
+      extraFields.push({
+        label: "รายการสินค้าโปรโมชัน",
+        value: type8PromoProducts
+          .map(
+            (p) =>
+              `${p.productName || "สินค้า"} (${p.targetQuantity ?? 1} ชิ้น${
+                p.notes ? ` - ${p.notes}` : ""
+              })`,
+          )
+          .join(", "),
+      });
+    }
     sections.push({
       typeIndex: 8,
       title: WORK_TYPES[7],
       badge: "ประชุม",
       items: [
         {
-          title: plan.title || "จัดประชุมเกษตรกร",
+          title: plan.title || "จัดประชุม",
           extraFields: extraFields.length > 0 ? extraFields : undefined,
         },
       ],

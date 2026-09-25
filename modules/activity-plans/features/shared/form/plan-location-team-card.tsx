@@ -21,6 +21,11 @@ export interface PlanLocationTeamCardProps {
   setProvince: (val: string) => void;
   district: string;
   setDistrict: (val: string) => void;
+  // Optional TYPE_8 specific props
+  isType8Active?: boolean;
+  selectedDealer?: any;
+  venueType?: "STORE" | "OTHER";
+  onVenueTypeChange?: (val: "STORE" | "OTHER") => void;
 }
 
 export function PlanLocationTeamCard({
@@ -42,6 +47,10 @@ export function PlanLocationTeamCard({
   setProvince,
   district,
   setDistrict,
+  isType8Active = false,
+  selectedDealer,
+  venueType,
+  onVenueTypeChange,
 }: PlanLocationTeamCardProps) {
   if (!isVisible) return null;
 
@@ -64,6 +73,10 @@ export function PlanLocationTeamCard({
       setProvince={setProvince}
       district={district}
       setDistrict={setDistrict}
+      isType8Active={isType8Active}
+      selectedDealer={selectedDealer}
+      venueType={venueType}
+      onVenueTypeChange={onVenueTypeChange}
     />
   );
 }

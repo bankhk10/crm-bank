@@ -228,6 +228,17 @@ export interface ActualTargetsState {
     topic: string;
     products: string;
     targetAttendees: string;
+    customer?: string;
+    dealerName?: string;
+    subDealerStore?: string;
+    targetProducts?: string[];
+    promotionalProducts?: Array<{
+      productName: string;
+      quantity: number;
+      unitPrice: number;
+      totalAmount: number;
+      notes?: string;
+    }>;
   };
   t9: {
     store: string;

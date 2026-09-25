@@ -218,9 +218,10 @@ export function DetailActivityResultSection({
 
         {/* WORK TYPE 8 */}
         <DetailType8Meeting
-          isVisible={isTypeVisible(
-            "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
-          )}
+          isVisible={
+            isTypeVisible("จัดประชุม") ||
+            isTypeVisible("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")
+          }
           target={targets.t8}
           actualAttendees={parsedResults.t8ActualAttendees}
           feedbackQnA={parsedResults.t8FeedbackQnA}

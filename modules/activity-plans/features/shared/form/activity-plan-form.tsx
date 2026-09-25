@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/custom/section-header";
@@ -418,11 +418,15 @@ export function ActivityPlanForm({
     addType8Row,
     updateType8Row,
     deleteType8Row,
+    addPromotionProduct,
+    updatePromotionProduct,
+    deletePromotionProduct,
     validateType8,
     mapType8Payload,
   } = useType8Form({
     initial,
     initDetails,
+    customersList,
     productsList,
     selectedWorkTypes,
   });
@@ -599,6 +603,61 @@ export function ActivityPlanForm({
 
   // Section 7: Additional Info State
   const [notes, setNotes] = useState(initial.notes ?? "");
+
+  // TYPE_8 Location & Venue Helpers
+  const isType8Active = selectedWorkTypes.some(
+    (t) =>
+      getWorkTypeCode(t) === "TYPE_8" ||
+      t === "จัดประชุม" ||
+      t === "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+  );
+
+  const type8Item = type8Items[0];
+  const type8DealerId = type8Item?.dealerId;
+
+  const type8SelectedDealer = useMemo(() => {
+    if (!type8DealerId) return null;
+    return customersList.find((c: any) => c.id === type8DealerId) ?? null;
+  }, [type8DealerId, customersList]);
+
+  const type8VenueType: "STORE" | "OTHER" = type8Item?.venueType ?? "STORE";
+
+  const handleType8VenueTypeChange = (newVenueType: "STORE" | "OTHER") => {
+    if (type8Item) {
+      updateType8Row(type8Item.id, "venueType", newVenueType);
+      if (newVenueType === "STORE" && type8SelectedDealer) {
+        if (type8SelectedDealer.province) setProvince(type8SelectedDealer.province);
+        if (type8SelectedDealer.district) setDistrict(type8SelectedDealer.district);
+        const storeAddr = [
+          type8SelectedDealer.addressLine,
+          type8SelectedDealer.subdistrict,
+          type8SelectedDealer.district,
+          type8SelectedDealer.province,
+          type8SelectedDealer.postalCode,
+        ]
+          .filter(Boolean)
+          .join(" ");
+        if (storeAddr) setLocationText(storeAddr);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (isType8Active && type8VenueType === "STORE" && type8SelectedDealer) {
+      if (type8SelectedDealer.province) setProvince(type8SelectedDealer.province);
+      if (type8SelectedDealer.district) setDistrict(type8SelectedDealer.district);
+      const storeAddr = [
+        type8SelectedDealer.addressLine,
+        type8SelectedDealer.subdistrict,
+        type8SelectedDealer.district,
+        type8SelectedDealer.province,
+        type8SelectedDealer.postalCode,
+      ]
+        .filter(Boolean)
+        .join(" ");
+      if (storeAddr) setLocationText(storeAddr);
+    }
+  }, [isType8Active, type8VenueType, type8SelectedDealer, setProvince, setDistrict, setLocationText]);
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -872,10 +931,11 @@ export function ActivityPlanForm({
       let submittedTargetAttendees: number | null = null;
       let submittedTargetBookingSales: number | null = null;
 
-      const type8Payload = mapType8Payload(productsList);
+      const type8Payload = mapType8Payload(customersList, productsList);
       if (type8Payload.targetAttendees > 0) {
         submittedTargetAttendees = (submittedTargetAttendees || 0) + type8Payload.targetAttendees;
       }
+      planStores.push(...type8Payload.planStores);
       planProducts.push(...type8Payload.planProducts);
 
       // 9. TYPE_9
@@ -1135,9 +1195,12 @@ export function ActivityPlanForm({
                     />
                   )}
 
-                  {/* Work Type 8: จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์ */}
-                  {selectedWorkTypes.includes(
-                    "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+                  {/* Work Type 8: จัดประชุม */}
+                  {selectedWorkTypes.some(
+                    (t) =>
+                      getWorkTypeCode(t) === "TYPE_8" ||
+                      t === "จัดประชุม" ||
+                      t === "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
                   ) && (
                     <Type8Meeting
                       readonly={readonly}
@@ -1146,6 +1209,10 @@ export function ActivityPlanForm({
                       updateType8Row={updateType8Row}
                       deleteType8Row={deleteType8Row}
                       products={productsList}
+                      customers={customersList}
+                      addPromotionProduct={addPromotionProduct}
+                      updatePromotionProduct={updatePromotionProduct}
+                      deletePromotionProduct={deletePromotionProduct}
                     />
                   )}
 
@@ -1271,6 +1338,10 @@ export function ActivityPlanForm({
               setProvince={setProvince}
               district={district}
               setDistrict={setDistrict}
+              isType8Active={isType8Active}
+              selectedDealer={type8SelectedDealer}
+              venueType={type8VenueType}
+              onVenueTypeChange={handleType8VenueTypeChange}
             />
 
             {/* SECTION 5: งบประมาณและค่าใช้จ่าย (Budget & Expenses) */}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { Users, ShoppingBag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -125,7 +125,7 @@ export function ActualType8Meeting({
       <div className="flex items-center justify-between border-b border-purple-100 pb-3">
         <div className="flex items-center gap-2.5">
           <h2 className="font-bold text-purple-900 text-base md:text-lg">
-            จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์
+            จัดประชุม
           </h2>
         </div>
       </div>

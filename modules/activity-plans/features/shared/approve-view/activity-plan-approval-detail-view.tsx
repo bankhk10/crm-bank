@@ -785,9 +785,13 @@ export default function ActivityPlanApprovalDetailView({
             target={targets.t7b || targets.t7}
           />
 
-          {/* TYPE_8: จัดประชุมการเกษตร */}
+          {/* TYPE_8: จัดประชุม */}
           <ApprovalType8Meeting
-            isVisible={isTypeActive("TYPE_8", "จัดประชุมการเกษตร")}
+            isVisible={
+              isTypeActive("TYPE_8", "จัดประชุม") ||
+              isTypeActive("TYPE_8", "จัดประชุมการเกษตร") ||
+              isTypeActive("TYPE_8", "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")
+            }
             target={targets.t8}
           />
 

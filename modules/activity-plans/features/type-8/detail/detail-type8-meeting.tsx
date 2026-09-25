@@ -21,6 +21,17 @@ interface DetailType8MeetingProps {
     topic: string;
     products: string;
     targetAttendees: string;
+    customer?: string;
+    dealerName?: string;
+    subDealerStore?: string;
+    targetProducts?: string[];
+    promotionalProducts?: Array<{
+      productName: string;
+      quantity: number;
+      unitPrice: number;
+      totalAmount: number;
+      notes?: string;
+    }>;
     items?: { productName: string; targetQty?: string }[];
   };
   actualAttendees?: string;
@@ -78,6 +89,15 @@ export function DetailType8Meeting({
     0,
   );
 
+  const targetProductsList =
+    target.targetProducts && target.targetProducts.length > 0
+      ? target.targetProducts
+      : target.products
+        ? target.products.split(", ").filter(Boolean)
+        : [];
+
+  const promotionalProducts = target.promotionalProducts || [];
+
   return (
     <div className="border border-purple-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-4 shadow-xs">
       <div className="flex items-center justify-between border-b border-purple-100 pb-3">
@@ -86,7 +106,7 @@ export function DetailType8Meeting({
             <Users className="w-4 h-4" />
           </div>
           <h2 className="font-bold text-purple-900 text-base md:text-lg">
-            จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์
+            จัดประชุม
           </h2>
         </div>
       </div>
@@ -98,7 +118,10 @@ export function DetailType8Meeting({
         gridColsClass="grid-cols-1 sm:grid-cols-3"
         items={[
           { label: "หัวข้อการประชุม:", value: target.topic || "-" },
-          { label: "สินค้าแนะนำ:", value: target.products || "-" },
+          ...(target.customer
+            ? [{ label: "ร้านค้า / ตัวแทนจำหน่าย:", value: target.customer }]
+            : []),
+          { label: "สินค้าเป้าหมาย:", value: targetProductsList.join(", ") || target.products || "-" },
           {
             label: "เป้าหมายผู้เข้าร่วม:",
             value: target.targetAttendees ? `${target.targetAttendees} คน` : "-",
@@ -106,6 +129,46 @@ export function DetailType8Meeting({
           },
         ]}
       />
+
+      {/* PROMOTIONAL PRODUCTS (PLANNED) */}
+      {promotionalProducts.length > 0 && (
+        <div className="space-y-2 pt-1 border-t border-purple-100/60">
+          <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <ShoppingBag className="w-3.5 h-3.5 text-purple-600" />
+            รายการสินค้าโปรโมชันที่วางแผนไว้ ({promotionalProducts.length} รายการ)
+          </span>
+          <div className="overflow-x-auto border border-purple-100 rounded-xl">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-purple-50/50 text-purple-950 font-bold border-b border-purple-100">
+                <tr>
+                  <th className="py-2 px-3 text-center w-10">ลำดับ</th>
+                  <th className="py-2 px-3">ชื่อสินค้า</th>
+                  <th className="py-2 px-3 text-center w-20">จำนวน</th>
+                  <th className="py-2 px-3 text-right w-24">ราคา</th>
+                  <th className="py-2 px-3 text-right w-28">รวม</th>
+                  <th className="py-2 px-3">รายละเอียด</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-purple-50">
+                {promotionalProducts.map((p, idx) => (
+                  <tr key={idx} className="hover:bg-purple-50/20">
+                    <td className="py-2 px-3 text-center text-slate-500">{idx + 1}</td>
+                    <td className="py-2 px-3 font-semibold text-slate-800">{p.productName}</td>
+                    <td className="py-2 px-3 text-center text-slate-700">{p.quantity}</td>
+                    <td className="py-2 px-3 text-right text-slate-700">
+                      {p.unitPrice ? `฿${p.unitPrice.toLocaleString()}` : "-"}
+                    </td>
+                    <td className="py-2 px-3 text-right font-bold text-purple-900">
+                      {p.totalAmount ? `฿${p.totalAmount.toLocaleString()}` : "-"}
+                    </td>
+                    <td className="py-2 px-3 text-slate-600">{p.notes || "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-3 pt-1 border-t border-slate-100">

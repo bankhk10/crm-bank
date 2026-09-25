@@ -821,13 +821,34 @@ export function extractPlanData(
   // TYPE 8: Meeting / Attendees
   if (isWorkTypePresent("TYPE_8")) {
     const t8Products = products.filter((pr) => pr.workTypeCode === "TYPE_8");
+    const t8PromoProducts = products.filter(
+      (pr) => pr.workTypeCode === "TYPE_8_PROMOTION",
+    );
+    const t8Stores = stores.filter((s) => s.workTypeCode === "TYPE_8");
+    const t8Store = t8Stores[0];
+    const storeDisplay = t8Store?.subDealerStore
+      ? `${t8Store.subDealerStore} (Dealer: ${t8Store.storeName || "-"})`
+      : t8Store?.storeName || "";
+
+    const targetProductNames = t8Products
+      .map((pr) => pr.productName)
+      .filter(Boolean) as string[];
+
     targets.t8 = {
       ...prevTargets.t8,
       topic: p.title || "",
-      products: t8Products
-        .map((pr) => pr.productName)
-        .filter(Boolean)
-        .join(", "),
+      customer: storeDisplay,
+      dealerName: t8Store?.storeName || "",
+      subDealerStore: t8Store?.subDealerStore || "",
+      targetProducts: targetProductNames,
+      products: targetProductNames.join(", "),
+      promotionalProducts: t8PromoProducts.map((pr) => ({
+        productName: pr.productName || (pr as any).product?.name || "สินค้าโปรโมชัน",
+        quantity: pr.targetQuantity ?? 1,
+        unitPrice: pr.unitPrice ? Number(pr.unitPrice) : 0,
+        totalAmount: pr.targetAmount ? Number(pr.targetAmount) : 0,
+        notes: pr.notes || "",
+      })),
       targetAttendees: p.targetAttendeesCount
         ? `${p.targetAttendeesCount} คน`
         : "",

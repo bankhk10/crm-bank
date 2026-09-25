@@ -67,7 +67,7 @@ const ACTIVITY_TYPES = [
   },
   {
     code: "TYPE_8",
-    name: "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+    name: "จัดประชุม",
     shortName: "Meeting",
     sortOrder: 9,
     hasActual: true,
