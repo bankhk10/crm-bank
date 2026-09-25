@@ -116,6 +116,16 @@ export function usePlanLocationTeam({
   };
 
   const validateLocationTeam = () => {
+    const isType9Active = selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน");
+    const hasOtherLocationWorkType = selectedWorkTypes.some(
+      (wt) => wt.includes("Field Day") || wt.includes("จัดประชุม"),
+    );
+
+    // If TYPE_9 is active and no other work type requires location text, bypass locationText check
+    if (isLocationTeamVisible && isType9Active && !hasOtherLocationWorkType) {
+      return { isValid: true };
+    }
+
     if (isLocationTeamVisible && !locationText.trim()) {
       return {
         isValid: false,

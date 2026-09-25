@@ -1,16 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Store, Package, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormCombobox } from "@/components/custom/form-components";
 import type { Type9ProductItem } from "@/modules/activity-plans/features/shared/form/types";
-import { STORES_LIST } from "@/modules/activity-plans/constants";
 
 export interface CustomerOption {
   id: string;
   name: string;
   customerCode?: string | null;
+  customerType?: string | null;
+  phone?: string | null;
+  province?: string | null;
+  district?: string | null;
+  subdistrict?: string | null;
+  addressLine?: string | null;
+  postalCode?: string | null;
+  parentDealerId?: string | null;
+  parentDealer?: {
+    id: string;
+    customerCode?: string | null;
+    name: string;
+  } | null;
   responsibleEmployeeId?: string | null;
+  [key: string]: any;
 }
 
 export interface ProductOption {
@@ -23,12 +36,31 @@ export interface ProductOption {
 
 interface Props {
   readonly?: boolean;
-  type9Store: string;
-  setType9Store: (val: string) => void;
-  isSubDealer?: boolean;
-  setIsSubDealer?: (val: boolean) => void;
+  // Sub Dealer state & handlers
+  subdealerId?: string;
+  setSubdealerId?: (val: string) => void;
+  subdealerName?: string;
+  setSubdealerName?: (val: string) => void;
+  isUnregisteredSubdealer?: boolean;
+  setIsUnregisteredSubdealer?: (val: boolean) => void;
   subDealerStore?: string;
   setSubDealerStore?: (val: string) => void;
+  province?: string;
+  setProvince?: (val: string) => void;
+  district?: string;
+  setDistrict?: (val: string) => void;
+  parentDealerId?: string;
+  setParentDealerId?: (val: string) => void;
+  parentDealerName?: string;
+  setParentDealerName?: (val: string) => void;
+
+  // Backward compatibility
+  type9Store?: string;
+  setType9Store?: (val: string) => void;
+  isSubDealer?: boolean;
+  setIsSubDealer?: (val: boolean) => void;
+
+  // Sales & products
   type9Sales: number;
   setType9Sales: (val: number) => void;
   type9ProductItems: Type9ProductItem[];
@@ -39,18 +71,33 @@ interface Props {
     val: any,
   ) => void;
   deleteType9ProductItem: (id: string) => void;
+
   customers?: CustomerOption[];
   products?: ProductOption[];
 }
 
 export function Type9Store({
   readonly = false,
+  subdealerId,
+  setSubdealerId,
+  subdealerName,
+  setSubdealerName,
+  isUnregisteredSubdealer,
+  setIsUnregisteredSubdealer,
+  subDealerStore,
+  setSubDealerStore,
+  province,
+  setProvince,
+  district,
+  setDistrict,
+  parentDealerId,
+  setParentDealerId,
+  parentDealerName,
+  setParentDealerName,
   type9Store,
   setType9Store,
   isSubDealer,
   setIsSubDealer,
-  subDealerStore,
-  setSubDealerStore,
   type9Sales,
   setType9Sales,
   type9ProductItems,
@@ -60,28 +107,143 @@ export function Type9Store({
   customers = [],
   products = [],
 }: Props) {
-  const [internalIsSubDealer, setInternalIsSubDealer] = useState(false);
+  // Local fallback state if not passed from hook
+  const [internalIsUnregistered, setInternalIsUnregistered] = useState(false);
+  const [internalSubdealerId, setInternalSubdealerId] = useState("");
+  const [internalSubdealerName, setInternalSubdealerName] = useState("");
   const [internalSubDealerStore, setInternalSubDealerStore] = useState("");
+  const [internalProvince, setInternalProvince] = useState("");
+  const [internalDistrict, setInternalDistrict] = useState("");
+  const [internalParentDealerId, setInternalParentDealerId] = useState("");
+  const [internalParentDealerName, setInternalParentDealerName] = useState("");
 
-  const activeIsSubDealer = isSubDealer ?? internalIsSubDealer;
-  const activeSetIsSubDealer = setIsSubDealer ?? setInternalIsSubDealer;
+  const activeIsUnregistered = isUnregisteredSubdealer ?? internalIsUnregistered;
+  const activeSetIsUnregistered = setIsUnregisteredSubdealer ?? setInternalIsUnregistered;
+  const activeSubdealerId = subdealerId ?? internalSubdealerId;
+  const activeSetSubdealerId = setSubdealerId ?? setInternalSubdealerId;
+  const activeSubdealerName = subdealerName ?? internalSubdealerName;
+  const activeSetSubdealerName = setSubdealerName ?? setInternalSubdealerName;
   const activeSubDealerStore = subDealerStore ?? internalSubDealerStore;
-  const activeSetSubDealerStore =
-    setSubDealerStore ?? setInternalSubDealerStore;
+  const activeSetSubDealerStore = setSubDealerStore ?? setInternalSubDealerStore;
+  const activeProvince = province ?? internalProvince;
+  const activeSetProvince = setProvince ?? setInternalProvince;
+  const activeDistrict = district ?? internalDistrict;
+  const activeSetDistrict = setDistrict ?? setInternalDistrict;
+  const activeParentDealerId = parentDealerId ?? internalParentDealerId;
+  const activeSetParentDealerId = setParentDealerId ?? setInternalParentDealerId;
+  const activeParentDealerName = parentDealerName ?? internalParentDealerName;
+  const activeSetParentDealerName = setParentDealerName ?? setInternalParentDealerName;
 
-  const customerOptions = (
-    customers && customers.length > 0
-      ? customers
-      : STORES_LIST.map((store) => ({
-          id: store,
-          name: store,
-          customerCode: null,
-        }))
-  ).map((c) => ({
-    value: c.name,
-    label: c.name,
-  }));
+  // Load Thai Addresses for Unregistered Sub Dealer province/district dropdowns
+  const [provincesData, setProvincesData] = useState<any[]>([]);
 
+  useEffect(() => {
+    let isMounted = true;
+    async function loadAddresses() {
+      try {
+        const res = await fetch("/api/thai-addresses");
+        if (!res.ok) return;
+        const json = await res.json();
+        if (isMounted && Array.isArray(json)) {
+          const normalized = json.map((p: any) => ({
+            id: p.id,
+            name: p.name_th,
+            districts: (p.districts || []).map((d: any) => ({
+              id: d.id,
+              name: d.name_th,
+            })),
+          }));
+          setProvincesData(normalized);
+        }
+      } catch (err) {
+        console.error("Failed to load thai addresses for TYPE_9:", err);
+      }
+    }
+    loadAddresses();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const provinceOptions = useMemo(() => {
+    return provincesData.map((p) => ({
+      value: p.name,
+      label: p.name,
+    }));
+  }, [provincesData]);
+
+  const districtOptions = useMemo(() => {
+    const matched = provincesData.find((p) => p.name === activeProvince);
+    if (!matched) return [];
+    return matched.districts.map((d: any) => ({
+      value: d.name,
+      label: d.name,
+    }));
+  }, [activeProvince, provincesData]);
+
+  const handleProvinceChange = (newProvince: string) => {
+    activeSetProvince(newProvince);
+    activeSetDistrict("");
+  };
+
+  // 1. Filter Subdealer customer master options (customerType === "SUBDEALER")
+  const subdealerCustomers = useMemo(() => {
+    return (customers || []).filter(
+      (c) =>
+        c.customerType === "SUBDEALER" ||
+        c.customerType === "Subdealer",
+    );
+  }, [customers]);
+
+  const subdealerOptions = useMemo(() => {
+    return subdealerCustomers.map((c) => ({
+      value: c.name,
+      label: c.name,
+      subLabel: c.customerCode ? `รหัส: ${c.customerCode}` : undefined,
+    }));
+  }, [subdealerCustomers]);
+
+  // 2. Filter Dealer customer master options (for optional parent dealer)
+  const dealerCustomers = useMemo(() => {
+    return (customers || []).filter(
+      (c) =>
+        c.customerType === "DEALER" ||
+        c.customerType === "Dealer" ||
+        !c.customerType,
+    );
+  }, [customers]);
+
+  const dealerOptions = useMemo(() => {
+    return dealerCustomers.map((c) => ({
+      value: c.name,
+      label: c.name,
+      subLabel: c.customerCode ? `รหัส: ${c.customerCode}` : undefined,
+    }));
+  }, [dealerCustomers]);
+
+  // Selected registered Subdealer object
+  const selectedSubdealerCustomer = useMemo(() => {
+    return subdealerCustomers.find(
+      (c) => c.id === activeSubdealerId || c.name === activeSubdealerName,
+    );
+  }, [subdealerCustomers, activeSubdealerId, activeSubdealerName]);
+
+  // Resolved Parent Dealer Name
+  const resolvedParentDealerName = useMemo(() => {
+    if (activeParentDealerName) return activeParentDealerName;
+    if (selectedSubdealerCustomer?.parentDealer?.name) {
+      return selectedSubdealerCustomer.parentDealer.name;
+    }
+    if (selectedSubdealerCustomer?.parentDealerId) {
+      const parent = customers.find(
+        (c) => c.id === selectedSubdealerCustomer.parentDealerId,
+      );
+      if (parent) return parent.name;
+    }
+    return "";
+  }, [activeParentDealerName, selectedSubdealerCustomer, customers]);
+
+  // Products
   const boxProducts = products.filter(
     (p) => !p.unit || p.unit.trim() === "กล่อง",
   );
@@ -108,67 +270,210 @@ export function Type9Store({
         </div>
       </div>
 
-      <div className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
+      <div className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
           <span className="text-xs font-bold text-teal-800 flex items-center gap-1.5">
             <Store className="h-4 w-4 text-teal-600" />
-            ข้อมูลร้านค้าและเป้ายอดขาย
+            ข้อมูลร้านค้า Sub Dealer และเป้ายอดขาย
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          {/* Left Column: Sub Dealer Section */}
           <div className="space-y-3">
-            <FormCombobox
-              id="type9-store-combobox"
-              label="ร้านค้าที่จะไปจัดงาน"
-              labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
-              triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
-              value={type9Store}
-              onChange={setType9Store}
-              options={customerOptions}
-              placeholder="เลือกร้านค้าที่จะไปจัดงาน..."
-              searchPlaceholder="ค้นหาร้านค้า..."
-              emptyText="ไม่พบร้านค้า"
-              disabled={readonly}
-              required
-            />
-
-            <div className="flex items-center gap-2 pt-0.5">
-              <label className="inline-flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer select-none">
-                <Checkbox
-                  id="type9-is-sub-dealer-checkbox"
-                  checked={activeIsSubDealer}
-                  onCheckedChange={(checked) => {
-                    const isChecked = !!checked;
-                    activeSetIsSubDealer(isChecked);
-                    if (!isChecked) {
-                      activeSetSubDealerStore("");
-                    }
-                  }}
-                  disabled={readonly}
-                  className="border-slate-300 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
-                />
-                <span>จัดกิจกรรมให้ร้าน Sub Dealer</span>
+            {/* Header with Checkbox: ไม่มีข้อมูลในระบบ */}
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-slate-700">
+                {activeIsUnregistered
+                  ? "ชื่อร้านค้า Sub Dealer"
+                  : "ร้านค้า Sub Dealer (จาก Customer Master)"}{" "}
+                <span className="text-red-500">*</span>
               </label>
+
+              {!readonly && (
+                <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer select-none">
+                  <Checkbox
+                    id="type9-unregistered-subdealer-checkbox"
+                    checked={activeIsUnregistered}
+                    onCheckedChange={(checked) => {
+                      const isChecked = !!checked;
+                      activeSetIsUnregistered(isChecked);
+                      if (isChecked) {
+                        // Switch to unregistered: clear registered subdealer selection
+                        activeSetSubdealerId("");
+                        activeSetSubdealerName("");
+                      } else {
+                        // Switch to registered: clear manual inputs
+                        activeSetSubDealerStore("");
+                      }
+                    }}
+                    className="rounded border-slate-300 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
+                  />
+                  <span>ไม่มีข้อมูลในระบบ</span>
+                </label>
+              )}
             </div>
 
-            {activeIsSubDealer && (
-              <div className="space-y-1.5 pt-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                <label className="block text-xs font-medium text-slate-700">
-                  ชื่อร้านค้า Sub Dealer <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={activeSubDealerStore}
-                  onChange={(e) => activeSetSubDealerStore(e.target.value)}
+            {/* Case A: Registered Sub Dealer */}
+            {!activeIsUnregistered ? (
+              <div className="space-y-2.5">
+                <FormCombobox
+                  id="type9-subdealer-combobox"
+                  label=""
+                  labelClassName="hidden"
+                  triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
+                  value={selectedSubdealerCustomer?.name || activeSubdealerName || ""}
+                  onChange={(val) => {
+                    const found = subdealerCustomers.find(
+                      (c) => c.name === val || c.id === val,
+                    );
+                    if (found) {
+                      activeSetSubdealerId(found.id);
+                      activeSetSubdealerName(found.name);
+                      if (setType9Store) setType9Store(found.name);
+                      activeSetProvince(found.province || "");
+                      activeSetDistrict(found.district || "");
+                      if (found.parentDealerId) {
+                        activeSetParentDealerId(found.parentDealerId);
+                        const pDealer = customers.find((c) => c.id === found.parentDealerId);
+                        activeSetParentDealerName(pDealer?.name || "");
+                      } else {
+                        activeSetParentDealerId("");
+                        activeSetParentDealerName("");
+                      }
+                    } else {
+                      activeSetSubdealerId("");
+                      activeSetSubdealerName(val);
+                      if (setType9Store) setType9Store(val);
+                    }
+                  }}
+                  options={subdealerOptions}
+                  placeholder="เลือกร้านค้า Sub Dealer จาก Customer Master..."
+                  searchPlaceholder="ค้นหาร้านค้า Sub Dealer..."
+                  emptyText="ไม่พบร้านค้า Sub Dealer ในระบบ"
                   disabled={readonly}
-                  placeholder="กรอกชื่อร้านค้า Sub Dealer..."
-                  className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-slate-400"
+                  required
                 />
+
+                {/* READ-ONLY Card for Customer Master Details */}
+                {selectedSubdealerCustomer && (
+                  <div className="p-3 bg-teal-50/60 rounded-xl border border-teal-100/80 text-xs space-y-1.5 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between text-teal-900 font-semibold">
+                      <span className="truncate">{selectedSubdealerCustomer.name}</span>
+                      {selectedSubdealerCustomer.customerCode && (
+                        <span className="text-[11px] bg-teal-100 text-teal-800 px-2 py-0.5 rounded-md font-mono">
+                          {selectedSubdealerCustomer.customerCode}
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-slate-600 text-[11px] pt-1 border-t border-teal-100/60">
+                      <div>
+                        <span className="text-slate-400">จังหวัด:</span>{" "}
+                        <span className="font-medium text-slate-700">
+                          {selectedSubdealerCustomer.province || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">อำเภอ:</span>{" "}
+                        <span className="font-medium text-slate-700">
+                          {selectedSubdealerCustomer.district || "-"}
+                        </span>
+                      </div>
+                      {resolvedParentDealerName && (
+                        <div className="col-span-2">
+                          <span className="text-slate-400">Dealer ต้นสังกัด:</span>{" "}
+                          <span className="font-medium text-slate-700">
+                            {resolvedParentDealerName}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Case B: Unregistered Sub Dealer */
+              <div className="space-y-3 animate-in fade-in duration-200">
+                <div>
+                  <input
+                    type="text"
+                    value={activeSubDealerStore}
+                    onChange={(e) => {
+                      activeSetSubDealerStore(e.target.value);
+                      if (setType9Store) setType9Store(e.target.value);
+                    }}
+                    disabled={readonly}
+                    placeholder="กรอกชื่อร้านค้า Sub Dealer..."
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-slate-400"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <FormCombobox
+                      id="type9-province-combobox"
+                      label="จังหวัด"
+                      labelClassName="block text-xs font-medium text-slate-700 mb-1"
+                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
+                      value={activeProvince}
+                      onChange={(val) => {
+                        handleProvinceChange(val);
+                      }}
+                      options={provinceOptions}
+                      placeholder="เลือกจังหวัด..."
+                      searchPlaceholder="ค้นหาจังหวัด..."
+                      emptyText="ไม่พบจังหวัด"
+                      disabled={readonly}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <FormCombobox
+                      id="type9-district-combobox"
+                      label="อำเภอ"
+                      labelClassName="block text-xs font-medium text-slate-700 mb-1"
+                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
+                      value={activeDistrict}
+                      onChange={(val) => {
+                        activeSetDistrict(val);
+                      }}
+                      options={districtOptions}
+                      placeholder={activeProvince ? "เลือกอำเภอ..." : "เลือกจังหวัดก่อน"}
+                      searchPlaceholder="ค้นหาอำเภอ..."
+                      emptyText="ไม่พบอำเภอ"
+                      disabled={readonly || !activeProvince}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Optional Dealer Selector */}
+                <div>
+                  <FormCombobox
+                    id="type9-dealer-combobox"
+                    label="ร้านค้า Dealer ต้นสังกัด (ถ้ามี)"
+                    labelClassName="block text-xs font-medium text-slate-600 mb-1"
+                    triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
+                    value={activeParentDealerName}
+                    onChange={(val) => {
+                      const found = dealerCustomers.find((c) => c.name === val || c.id === val);
+                      activeSetParentDealerId(found?.id || "");
+                      activeSetParentDealerName(found?.name || val);
+                    }}
+                    options={dealerOptions}
+                    placeholder="เลือกร้านค้า Dealer ต้นสังกัด (ถ้ามี)..."
+                    searchPlaceholder="ค้นหาร้านค้า Dealer..."
+                    emptyText="ไม่พบร้านค้า Dealer ในระบบ"
+                    disabled={readonly}
+                  />
+                </div>
               </div>
             )}
           </div>
 
+          {/* Right Column: Target Sales */}
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1.5">
               เป้ายอดขายรวมจากกิจกรรม (บาท){" "}

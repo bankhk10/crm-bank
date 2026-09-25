@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { isFieldDayItem, DEMO_PRODUCT_PRICES } from "@/modules/activity-plans/constants";
 import type { Type9ProductItem } from "@/modules/activity-plans/features/shared/form/types";
 
@@ -11,12 +11,33 @@ export interface UseType9FormOptions {
 }
 
 export interface UseType9FormResult {
+  // Sub Dealer state
+  subdealerId: string;
+  setSubdealerId: React.Dispatch<React.SetStateAction<string>>;
+  subdealerName: string;
+  setSubdealerName: React.Dispatch<React.SetStateAction<string>>;
+  isUnregisteredSubdealer: boolean;
+  setIsUnregisteredSubdealer: React.Dispatch<React.SetStateAction<boolean>>;
+  subDealerStore: string;
+  setSubDealerStore: React.Dispatch<React.SetStateAction<string>>;
+  subDealerProvince: string;
+  setSubDealerProvince: React.Dispatch<React.SetStateAction<string>>;
+  subDealerDistrict: string;
+  setSubDealerDistrict: React.Dispatch<React.SetStateAction<string>>;
+  parentDealerId: string;
+  setParentDealerId: React.Dispatch<React.SetStateAction<string>>;
+  parentDealerName: string;
+  setParentDealerName: React.Dispatch<React.SetStateAction<string>>;
+
+  // Backward compatibility
   type9Store: string;
   setType9Store: React.Dispatch<React.SetStateAction<string>>;
   type9IsSubDealer: boolean;
   setType9IsSubDealer: React.Dispatch<React.SetStateAction<boolean>>;
   type9SubDealerStore: string;
   setType9SubDealerStore: React.Dispatch<React.SetStateAction<string>>;
+
+  // Sales & products
   type9Sales: number;
   setType9Sales: React.Dispatch<React.SetStateAction<number>>;
   type9Products: string;
@@ -37,9 +58,10 @@ export interface UseType9FormResult {
   ) => {
     planStores: Array<{
       workTypeCode: string;
-      storeId: string;
+      storeId: string | null;
       storeName: string | null;
       subDealerStore: string | null;
+      province: string | null;
       targetAmount: number | null;
     }>;
     planProducts: Array<{
@@ -62,89 +84,139 @@ export function useType9Form({
   productsList = [],
   selectedWorkTypes = [],
 }: UseType9FormOptions): UseType9FormResult {
-  const [type9Store, setType9Store] = useState<string>(() => {
-    const s = (initial as any)?.stores?.find(
-      (st: any) => st.workTypeCode === "TYPE_9",
-    );
-    if (s) return s.store?.name || s.storeName || "";
-    if (initDetails?.type9Store) return initDetails.type9Store;
-    if (Array.isArray(initDetails)) {
-      const item = initDetails.find(
-        (i: any) =>
-          !isFieldDayItem(i) &&
-          (i.itemType === "TYPE_9" ||
-            (i.itemType !== "MARKETING_PRODUCT" &&
-              i.itemType !== "SALES_PROMOTION" &&
-              i.visitTopic !== "MARKETING_PRODUCT" &&
-              i.visitTopic !== "SALES_PROMOTION" &&
-              i.storeProductName &&
-              !i.plotCropCategory)),
-      );
-      if (item && item.customerName) {
-        const match = item.customerName.match(
-          /^(.*?)\s*\((?:ร้าน\s*)?Sub Dealer:\s*(.*?)\)$/i,
-        );
-        if (match) return match[1].trim();
-        return item.customerName;
-      }
-    }
-    return "";
-  });
+  const primaryStore = (initial as any)?.stores?.find(
+    (st: any) => st.workTypeCode === "TYPE_9",
+  );
 
-  const [type9IsSubDealer, setType9IsSubDealer] = useState<boolean>(() => {
-    const s = (initial as any)?.stores?.find(
-      (st: any) => st.workTypeCode === "TYPE_9",
-    );
-    if (s?.subDealerStore) return true;
-    if (initDetails?.type9IsSubDealer !== undefined)
-      return initDetails.type9IsSubDealer;
-    if (Array.isArray(initDetails)) {
-      const item = initDetails.find(
-        (i: any) =>
-          !isFieldDayItem(i) &&
-          (i.itemType === "TYPE_9" ||
-            (i.itemType !== "MARKETING_PRODUCT" &&
-              i.itemType !== "SALES_PROMOTION" &&
-              i.visitTopic !== "MARKETING_PRODUCT" &&
-              i.visitTopic !== "SALES_PROMOTION" &&
-              i.storeProductName &&
-              !i.plotCropCategory)),
-      );
-      if (item && item.customerName) {
-        return /\((?:ร้าน\s*)?Sub Dealer:/i.test(item.customerName);
-      }
+  const matchedCustomer = customersList.find(
+    (c) => c.id === primaryStore?.storeId,
+  );
+  const isMatchedSubdealer =
+    matchedCustomer &&
+    (matchedCustomer.customerType === "SUBDEALER" ||
+      matchedCustomer.customerType === "Subdealer");
+
+  // 1. Is Unregistered Sub Dealer?
+  const [isUnregisteredSubdealer, setIsUnregisteredSubdealer] = useState<boolean>(() => {
+    if (primaryStore?.subDealerStore && !isMatchedSubdealer) return true;
+    if (isMatchedSubdealer) return false;
+    if (initDetails?.isUnregisteredSubdealer !== undefined) {
+      return Boolean(initDetails.isUnregisteredSubdealer);
     }
     return false;
   });
 
-  const [type9SubDealerStore, setType9SubDealerStore] = useState<string>(() => {
-    const s = (initial as any)?.stores?.find(
-      (st: any) => st.workTypeCode === "TYPE_9",
-    );
-    if (s?.subDealerStore) return s.subDealerStore;
-    if (initDetails?.type9SubDealerStore !== undefined)
-      return initDetails.type9SubDealerStore;
-    if (Array.isArray(initDetails)) {
-      const item = initDetails.find(
-        (i: any) =>
-          !isFieldDayItem(i) &&
-          (i.itemType === "TYPE_9" ||
-            (i.itemType !== "MARKETING_PRODUCT" &&
-              i.itemType !== "SALES_PROMOTION" &&
-              i.visitTopic !== "MARKETING_PRODUCT" &&
-              i.visitTopic !== "SALES_PROMOTION" &&
-              i.storeProductName &&
-              !i.plotCropCategory)),
-      );
-      if (item && item.customerName) {
-        const match = item.customerName.match(
-          /\((?:ร้าน\s*)?Sub Dealer:\s*(.*?)\)/i,
-        );
-        if (match) return match[1].trim();
-      }
-    }
+  // 2. Subdealer ID (Customer Master)
+  const [subdealerId, setSubdealerId] = useState<string>(() => {
+    if (isMatchedSubdealer) return matchedCustomer.id;
+    if (initDetails?.subdealerId) return initDetails.subdealerId;
     return "";
   });
+
+  // 3. Subdealer Name (Customer Master)
+  const [subdealerName, setSubdealerName] = useState<string>(() => {
+    if (isMatchedSubdealer) return matchedCustomer.name;
+    if (initDetails?.subdealerName) return initDetails.subdealerName;
+    return "";
+  });
+
+  // 4. Subdealer Store (Manual text for Unregistered)
+  const [subDealerStore, setSubDealerStore] = useState<string>(() => {
+    if (primaryStore?.subDealerStore) return primaryStore.subDealerStore;
+    if (initDetails?.subDealerStore) return initDetails.subDealerStore;
+    if (initDetails?.type9SubDealerStore) return initDetails.type9SubDealerStore;
+    return "";
+  });
+
+  // 5. Province (for Unregistered or synced from Sub Dealer)
+  const [subDealerProvince, setSubDealerProvince] = useState<string>(() => {
+    if (isMatchedSubdealer) return matchedCustomer.province || "";
+    if (primaryStore?.province) return primaryStore.province;
+    if ((initial as any)?.province) return (initial as any).province;
+    if (initDetails?.province) return initDetails.province;
+    return "";
+  });
+
+  // 6. District (for Unregistered or synced from Sub Dealer)
+  const [subDealerDistrict, setSubDealerDistrict] = useState<string>(() => {
+    if (isMatchedSubdealer) return matchedCustomer.district || "";
+    if ((initial as any)?.district) return (initial as any).district;
+    if (initDetails?.district) return initDetails.district;
+    return "";
+  });
+
+  // 7. Parent Dealer ID
+  const [parentDealerId, setParentDealerId] = useState<string>(() => {
+    if (isMatchedSubdealer && matchedCustomer.parentDealerId) {
+      return matchedCustomer.parentDealerId;
+    }
+    if (primaryStore && !isMatchedSubdealer && primaryStore.storeId) {
+      return primaryStore.storeId;
+    }
+    if (initDetails?.parentDealerId) return initDetails.parentDealerId;
+    return "";
+  });
+
+  // 8. Parent Dealer Name
+  const [parentDealerName, setParentDealerName] = useState<string>(() => {
+    if (isMatchedSubdealer && matchedCustomer.parentDealerId) {
+      const parent = customersList.find((c) => c.id === matchedCustomer.parentDealerId);
+      if (parent) return parent.name;
+    }
+    if (primaryStore && !isMatchedSubdealer) {
+      return primaryStore.store?.name || primaryStore.storeName || "";
+    }
+    if (initDetails?.parentDealerName) return initDetails.parentDealerName;
+    return "";
+  });
+
+  // Backward compatibility: type9Store, type9IsSubDealer, type9SubDealerStore
+  const [type9Store, setType9Store] = useState<string>(() => {
+    if (primaryStore) return primaryStore.store?.name || primaryStore.storeName || "";
+    return "";
+  });
+  const [type9IsSubDealer, setType9IsSubDealer] = useState<boolean>(true);
+  const [type9SubDealerStore, setType9SubDealerStore] = useState<string>(() => {
+    return subDealerStore;
+  });
+
+  // Hydrate when customersList loads asynchronously
+  useEffect(() => {
+    if (!customersList || customersList.length === 0) return;
+    const store = (initial as any)?.stores?.find(
+      (st: any) => st.workTypeCode === "TYPE_9",
+    );
+    if (!store) return;
+
+    const matched = customersList.find((c) => c.id === store.storeId);
+    if (
+      matched &&
+      (matched.customerType === "SUBDEALER" ||
+        matched.customerType === "Subdealer")
+    ) {
+      setIsUnregisteredSubdealer(false);
+      setSubdealerId(matched.id);
+      setSubdealerName(matched.name);
+      setSubDealerProvince(matched.province || "");
+      setSubDealerDistrict(matched.district || "");
+      if (matched.parentDealerId) {
+        setParentDealerId(matched.parentDealerId);
+        const pDealer = customersList.find(
+          (c) => c.id === matched.parentDealerId,
+        );
+        if (pDealer) setParentDealerName(pDealer.name);
+      }
+    } else if (store.subDealerStore) {
+      setIsUnregisteredSubdealer(true);
+      setSubDealerStore(store.subDealerStore);
+      if (store.province) setSubDealerProvince(store.province);
+      if ((initial as any)?.district)
+        setSubDealerDistrict((initial as any).district);
+      if (store.storeId) setParentDealerId(store.storeId);
+      if (store.storeName || store.store?.name)
+        setParentDealerName(store.storeName || store.store?.name);
+    }
+  }, [customersList, initial]);
 
   const [type9Sales, setType9Sales] = useState<number>(() => {
     const s = (initial as any)?.stores?.find(
@@ -277,6 +349,38 @@ export function useType9Form({
   };
 
   const validateType9 = (): { isValid: boolean; error?: string } => {
+    if (!selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")) {
+      return { isValid: true };
+    }
+
+    if (isUnregisteredSubdealer) {
+      if (!subDealerStore || !subDealerStore.trim()) {
+        return {
+          isValid: false,
+          error: "กรุณากรอกชื่อร้านค้า Sub Dealer",
+        };
+      }
+      if (!subDealerProvince || !subDealerProvince.trim()) {
+        return {
+          isValid: false,
+          error: "กรุณาเลือกจังหวัดของร้านค้า Sub Dealer",
+        };
+      }
+      if (!subDealerDistrict || !subDealerDistrict.trim()) {
+        return {
+          isValid: false,
+          error: "กรุณาเลือกอำเภอของร้านค้า Sub Dealer",
+        };
+      }
+    } else {
+      if (!subdealerId) {
+        return {
+          isValid: false,
+          error: "กรุณาเลือกร้านค้า Sub Dealer จาก Customer Master",
+        };
+      }
+    }
+
     return { isValid: true };
   };
 
@@ -287,9 +391,10 @@ export function useType9Form({
 
     const planStores: Array<{
       workTypeCode: string;
-      storeId: string;
+      storeId: string | null;
       storeName: string | null;
       subDealerStore: string | null;
+      province: string | null;
       targetAmount: number | null;
     }> = [];
 
@@ -304,16 +409,33 @@ export function useType9Form({
       isPriceOverridden: boolean;
     }> = [];
 
-    const sId9 = customers.find((c) => c.name === type9Store)?.id;
-    if (sId9) {
+    let storeId: string | null = null;
+    let storeName: string | null = null;
+    let subDealerStoreVal: string | null = null;
+    let storeProvince: string | null = null;
+
+    if (!isUnregisteredSubdealer && subdealerId) {
+      // Case A: Registered Sub Dealer
+      const subdealer = customers.find((c) => c.id === subdealerId);
+      storeId = subdealerId;
+      storeName = subdealer?.name || subdealerName || null;
+      subDealerStoreVal = null;
+      storeProvince = subdealer?.province || subDealerProvince || null;
+    } else {
+      // Case B: Unregistered Sub Dealer
+      storeId = parentDealerId || null;
+      storeName = parentDealerName || null;
+      subDealerStoreVal = subDealerStore?.trim() || null;
+      storeProvince = subDealerProvince?.trim() || null;
+    }
+
+    if (storeId || subDealerStoreVal) {
       planStores.push({
         workTypeCode: "TYPE_9",
-        storeId: sId9,
-        storeName: type9Store || null,
-        subDealerStore:
-          type9IsSubDealer && type9SubDealerStore
-            ? type9SubDealerStore
-            : null,
+        storeId,
+        storeName,
+        subDealerStore: subDealerStoreVal,
+        province: storeProvince,
         targetAmount: type9Sales != null ? Number(type9Sales) : null,
       });
     }
@@ -330,7 +452,7 @@ export function useType9Form({
           const price = p.pricePerCase != null ? Number(p.pricePerCase) : 0;
           planProducts.push({
             workTypeCode: "TYPE_9",
-            storeId: sId9 || null,
+            storeId: storeId || null,
             productId: pId,
             productName: matchedP?.name || p.productName || null,
             targetQuantity: qty,
@@ -345,6 +467,22 @@ export function useType9Form({
   };
 
   return {
+    subdealerId,
+    setSubdealerId,
+    subdealerName,
+    setSubdealerName,
+    isUnregisteredSubdealer,
+    setIsUnregisteredSubdealer,
+    subDealerStore,
+    setSubDealerStore,
+    subDealerProvince,
+    setSubDealerProvince,
+    subDealerDistrict,
+    setSubDealerDistrict,
+    parentDealerId,
+    setParentDealerId,
+    parentDealerName,
+    setParentDealerName,
     type9Store,
     setType9Store,
     type9IsSubDealer,

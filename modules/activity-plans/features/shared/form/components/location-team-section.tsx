@@ -433,7 +433,29 @@ export function LocationTeamSection({
     );
   }
 
-  // DEFAULT (Non-TYPE_8, e.g. TYPE_9 or TYPE_10 alone): Keep original 2-column layout unchanged
+  // TYPE_9 (Alone): Show only Helpers, hide Location text / observation points
+  const isType9Active = selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน");
+  const hasOtherLocationWorkType = selectedWorkTypes.some(
+    (wt) => wt.includes("Field Day") || wt.includes("จัดประชุม"),
+  );
+  const isType9Only = isType9Active && !hasOtherLocationWorkType;
+
+  if (isType9Only) {
+    return (
+      <div className="space-y-4 relative z-20">
+        <SectionHeader
+          title="สถานที่และทีมงาน"
+          className="rounded-xl"
+          accentColor="#808080"
+        />
+        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+          {renderHelpersCard()}
+        </div>
+      </div>
+    );
+  }
+
+  // DEFAULT (Non-TYPE_8, e.g. TYPE_10 alone): Keep original 2-column layout unchanged
   return (
     <div className="space-y-4 relative z-20">
       <SectionHeader

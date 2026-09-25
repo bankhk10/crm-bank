@@ -432,12 +432,26 @@ export function ActivityPlanForm({
   });
 
   const {
+    subdealerId: type9SubdealerId,
+    setSubdealerId: setType9SubdealerId,
+    subdealerName: type9SubdealerName,
+    setSubdealerName: setType9SubdealerName,
+    isUnregisteredSubdealer: type9IsUnregisteredSubdealer,
+    setIsUnregisteredSubdealer: setType9IsUnregisteredSubdealer,
+    subDealerStore: type9SubDealerStore,
+    setSubDealerStore: setType9SubDealerStore,
+    subDealerProvince: type9SubDealerProvince,
+    setSubDealerProvince: setType9SubDealerProvince,
+    subDealerDistrict: type9SubDealerDistrict,
+    setSubDealerDistrict: setType9SubDealerDistrict,
+    parentDealerId: type9ParentDealerId,
+    setParentDealerId: setType9ParentDealerId,
+    parentDealerName: type9ParentDealerName,
+    setParentDealerName: setType9ParentDealerName,
     type9Store,
     setType9Store,
     type9IsSubDealer,
     setType9IsSubDealer,
-    type9SubDealerStore,
-    setType9SubDealerStore,
     type9Sales,
     setType9Sales,
     type9Products,
@@ -1000,9 +1014,24 @@ export function ActivityPlanForm({
         targetAttendeesCount: submittedTargetAttendees,
         targetBookingSales: submittedTargetBookingSales,
         demoPlotId: submittedDemoPlotId,
-        province: isLocationTeamVisible ? province.trim() || null : null,
-        district: isLocationTeamVisible ? district.trim() || null : null,
-        location: isLocationTeamVisible ? locationText.trim() || null : null,
+        province: (() => {
+          const isType9Active = selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน");
+          if (isType9Active && type9SubDealerProvince?.trim()) return type9SubDealerProvince.trim();
+          return isLocationTeamVisible ? province.trim() || null : null;
+        })(),
+        district: (() => {
+          const isType9Active = selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน");
+          if (isType9Active && type9SubDealerDistrict?.trim()) return type9SubDealerDistrict.trim();
+          return isLocationTeamVisible ? district.trim() || null : null;
+        })(),
+        location: (() => {
+          const isType9Active = selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน");
+          const hasOtherLocationWorkType = selectedWorkTypes.some(
+            (wt) => wt.includes("Field Day") || wt.includes("จัดประชุม"),
+          );
+          if (isType9Active && !hasOtherLocationWorkType) return null;
+          return isLocationTeamVisible ? locationText.trim() || null : null;
+        })(),
         objective: cleanObjective,
         description: cleanDescription,
         salesPromotionBudgetRequested,
@@ -1227,12 +1256,26 @@ export function ActivityPlanForm({
                   ) && (
                     <Type9Store
                       readonly={readonly}
+                      subdealerId={type9SubdealerId}
+                      setSubdealerId={setType9SubdealerId}
+                      subdealerName={type9SubdealerName}
+                      setSubdealerName={setType9SubdealerName}
+                      isUnregisteredSubdealer={type9IsUnregisteredSubdealer}
+                      setIsUnregisteredSubdealer={setType9IsUnregisteredSubdealer}
+                      subDealerStore={type9SubDealerStore}
+                      setSubDealerStore={setType9SubDealerStore}
+                      province={type9SubDealerProvince}
+                      setProvince={setType9SubDealerProvince}
+                      district={type9SubDealerDistrict}
+                      setDistrict={setType9SubDealerDistrict}
+                      parentDealerId={type9ParentDealerId}
+                      setParentDealerId={setType9ParentDealerId}
+                      parentDealerName={type9ParentDealerName}
+                      setParentDealerName={setType9ParentDealerName}
                       type9Store={type9Store}
                       setType9Store={setType9Store}
                       isSubDealer={type9IsSubDealer}
                       setIsSubDealer={setType9IsSubDealer}
-                      subDealerStore={type9SubDealerStore}
-                      setSubDealerStore={setType9SubDealerStore}
                       type9Sales={type9Sales}
                       setType9Sales={setType9Sales}
                       type9ProductItems={type9ProductItems}
