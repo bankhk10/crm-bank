@@ -180,6 +180,7 @@ export default function ActivityPlanEditView({ id }: Props) {
             helperEmployeeIds,
             planCode: plan.code || plan.id,
             employeeName: plan.employee?.name,
+            drugWithdrawal: (plan as any).drugWithdrawal || null,
           });
         } else {
           setLoadError(planRes.error || "ไม่สามารถดึงข้อมูล Trip Plan ได้");

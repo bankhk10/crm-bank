@@ -5,6 +5,7 @@ import {
   ActivityHelperStatus,
   ActivityApprovalAction,
   ActivityApprovalStep,
+  DrugWithdrawalStatus,
 } from "@prisma/client";
 import {
   syncActivityPlanToCalendarUseCase,
@@ -320,6 +321,13 @@ async function notifyBudgetApprovers(plan: any, tx: Prisma.TransactionClient) {
   const hasMarketing =
     plan.marketingBudgetRequested && plan.marketingBudgetRequested.toNumber() > 0;
 
+  const withdrawal = await tx.drugWithdrawal.findUnique({
+    where: { activityPlanId: plan.id },
+  });
+  const hasWithdrawalPending = Boolean(
+    withdrawal && withdrawal.status !== DrugWithdrawalStatus.APPROVED,
+  );
+
   if (hasSalesPromotion && plan.salesPromotionApproved !== true) {
     const managers = await getSalesAdminManagers(tx);
     for (const mgr of managers) {
@@ -346,15 +354,31 @@ async function notifyBudgetApprovers(plan: any, tx: Prisma.TransactionClient) {
         tx,
       );
     }
+  } else if (hasWithdrawalPending) {
+    // If no marketing budget pending, but withdrawal is pending, notify Marketing Manager about withdrawal
+    const managers = await getMarketingManagers(tx);
+    for (const mgr of managers) {
+      await sendNotificationHelper(
+        mgr.userId,
+        "มีรายการเบิกยารออนุมัติ",
+        `แผนกิจกรรม "${plan.title}" โดย ${plan.employee?.name || "พนักงาน"} รออนุมัติรายการเบิกยาจากคุณ`,
+        "INFO",
+        `/activity-plans/${plan.id}`,
+        tx,
+      );
+    }
   }
 
   const requiredSalesPromotionOk =
     !hasSalesPromotion || plan.salesPromotionApproved === true;
   const requiredMarketingOk = !hasMarketing || plan.marketingApproved === true;
+  const requiredWithdrawalOk = !hasWithdrawalPending;
 
   if (
+    (hasSalesPromotion || hasMarketing) &&
     requiredSalesPromotionOk &&
     requiredMarketingOk &&
+    requiredWithdrawalOk &&
     plan.salesManagerApproved !== true
   ) {
     const directors = await getSalesDirectors(tx);
@@ -468,6 +492,17 @@ export async function submitActivityPlanUseCase(
       };
     }
 
+    // Phase 5: Transition DrugWithdrawal (if DRAFT or RETURNED) to PENDING_APPROVAL on submit
+    await tx.drugWithdrawal.updateMany({
+      where: {
+        activityPlanId: planId,
+        status: { in: [DrugWithdrawalStatus.DRAFT, DrugWithdrawalStatus.RETURNED] },
+      },
+      data: {
+        status: DrugWithdrawalStatus.PENDING_APPROVAL,
+      },
+    });
+
     const creator = plan.employee;
     const isTerminalCreator = isTerminalLineManager(creator);
 
@@ -566,6 +601,7 @@ export async function approveActivityPlanUseCase(
             },
           },
         },
+        drugWithdrawal: true,
       },
     });
 
@@ -642,11 +678,13 @@ export async function approveActivityPlanUseCase(
     let didApproveSPBudget = false;
     let didApproveMKTBudget = false;
     let didApproveDirectorBudget = false;
+    let didApproveWithdrawal = false;
     const approvedHelpers: typeof plan.helpers = [];
     const unselectedPendingHelpers: typeof plan.helpers = [];
 
     const hasSP = Number(plan.salesPromotionBudgetRequested || 0) > 0;
     const hasMKT = Number(plan.marketingBudgetRequested || 0) > 0;
+    const hasWithdrawal = Boolean(plan.drugWithdrawal);
 
     // 1. Line Approval
     if (isCurrentLineApprover) {
@@ -673,14 +711,33 @@ export async function approveActivityPlanUseCase(
       }
     }
 
+    // 3.5 Drug Withdrawal Approval (Marketing Manager or Admin)
+    if (
+      hasWithdrawal &&
+      plan.drugWithdrawal?.status !== DrugWithdrawalStatus.APPROVED &&
+      (isAdmin || isMkt)
+    ) {
+      if (
+        plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL ||
+        (plan.status === ActivityStatus.PENDING_LINE_APPROVAL && isTerminal)
+      ) {
+        didApproveWithdrawal = true;
+      }
+    }
+
     // 4. Overall Budget Approval (Sales Director)
     const effectiveSPApproved = !hasSP || plan.salesPromotionApproved === true || didApproveSPBudget;
     const effectiveMKTApproved = !hasMKT || plan.marketingApproved === true || didApproveMKTBudget;
+    const effectiveWithdrawalApproved =
+      !hasWithdrawal ||
+      plan.drugWithdrawal?.status === DrugWithdrawalStatus.APPROVED ||
+      didApproveWithdrawal;
 
     if (
       (hasSP || hasMKT) &&
       effectiveSPApproved &&
       effectiveMKTApproved &&
+      effectiveWithdrawalApproved &&
       plan.salesManagerApproved !== true &&
       (isAdmin || isDirector)
     ) {
@@ -724,6 +781,7 @@ export async function approveActivityPlanUseCase(
       didApproveSPBudget ||
       didApproveMKTBudget ||
       didApproveDirectorBudget ||
+      didApproveWithdrawal ||
       approvedHelpers.length > 0 ||
       unselectedPendingHelpers.length > 0;
 
@@ -737,6 +795,18 @@ export async function approveActivityPlanUseCase(
     // ────────────────────────────────────────────────────────
     // Execute Updates & Logs in Transaction
     // ────────────────────────────────────────────────────────
+
+    // 0. Update Approved Drug Withdrawal
+    if (didApproveWithdrawal && plan.drugWithdrawal) {
+      await tx.drugWithdrawal.update({
+        where: { id: plan.drugWithdrawal.id },
+        data: {
+          status: DrugWithdrawalStatus.APPROVED,
+          approvedById: approverEmployee?.id || null,
+          approvedAt: new Date(),
+        },
+      });
+    }
 
     // 1. Update Approved Helpers
     for (const h of approvedHelpers) {
@@ -780,7 +850,12 @@ export async function approveActivityPlanUseCase(
       });
     }
 
-    if (didApproveSPBudget || didApproveMKTBudget || didApproveDirectorBudget) {
+    if (
+      didApproveSPBudget ||
+      didApproveMKTBudget ||
+      didApproveDirectorBudget ||
+      didApproveWithdrawal
+    ) {
       const budgetNotes: string[] = [];
       if (didApproveSPBudget) {
         budgetNotes.push(
@@ -794,6 +869,9 @@ export async function approveActivityPlanUseCase(
       }
       if (didApproveDirectorBudget) {
         budgetNotes.push("อนุมัติงบประมาณในภาพรวมทั้งหมด");
+      }
+      if (didApproveWithdrawal) {
+        budgetNotes.push("อนุมัติรายการเบิกยา");
       }
 
       await tx.activityApprovalLog.create({
@@ -836,11 +914,13 @@ export async function approveActivityPlanUseCase(
     const newSPApproved = didApproveSPBudget ? true : plan.salesPromotionApproved;
     const newMKTApproved = didApproveMKTBudget ? true : plan.marketingApproved;
     const newDirectorApproved = didApproveDirectorBudget ? true : plan.salesManagerApproved;
+    const isWithdrawalApproved = effectiveWithdrawalApproved;
 
     const isAllBudgetFinished =
       (!hasSP || newSPApproved === true) &&
       (!hasMKT || newMKTApproved === true) &&
-      ((!hasSP && !hasMKT) || newDirectorApproved === true);
+      ((!hasSP && !hasMKT) || newDirectorApproved === true) &&
+      isWithdrawalApproved;
 
     const spApprovedAmount =
       (!hasSP || newSPApproved === true) && hasSP
@@ -867,7 +947,7 @@ export async function approveActivityPlanUseCase(
     let nextStatus: ActivityStatus;
     let nextApproverId: string | null = null;
 
-    if (hasSP || hasMKT) {
+    if (hasSP || hasMKT || hasWithdrawal) {
       if (isAllBudgetFinished) {
         if (unreviewedHelpers.length > 0) {
           nextStatus = ActivityStatus.PENDING_HELPER_APPROVAL;
@@ -888,6 +968,15 @@ export async function approveActivityPlanUseCase(
         nextStatus = ActivityStatus.APPROVED;
         nextApproverId = null;
       }
+    }
+
+    // Gate: Server-side check that DrugWithdrawal is approved before reaching APPROVED
+    if (nextStatus === ActivityStatus.APPROVED && hasWithdrawal && !isWithdrawalApproved) {
+      return {
+        success: false,
+        error:
+          "ไม่สามารถอนุมัติแผนกิจกรรมสมบูรณ์ได้ เนื่องจากรายการเบิกยายังไม่ได้รับการอนุมัติจากผู้จัดการแผนกการตลาด",
+      };
     }
 
     // Update ActivityPlan
@@ -1171,6 +1260,20 @@ export async function requestCorrectionPlanUseCase(
       },
     });
 
+    // Check if DrugWithdrawal exists and transition to RETURNED
+    const withdrawal = await tx.drugWithdrawal.findUnique({
+      where: { activityPlanId: planId },
+    });
+    if (withdrawal) {
+      await tx.drugWithdrawal.update({
+        where: { id: withdrawal.id },
+        data: {
+          status: DrugWithdrawalStatus.RETURNED,
+          rejectionReason: comment,
+        },
+      });
+    }
+
     await tx.activityApprovalLog.create({
       data: {
         activityPlanId: planId,
@@ -1267,7 +1370,12 @@ async function initiateBudgetApproval(
   const hasMarketing =
     Number(plan.marketingBudgetRequested || 0) > 0;
 
-  if (hasSalesPromotion || hasMarketing) {
+  const withdrawal = await tx.drugWithdrawal.findUnique({
+    where: { activityPlanId: plan.id },
+  });
+  const hasWithdrawal = Boolean(withdrawal);
+
+  if (hasSalesPromotion || hasMarketing || hasWithdrawal) {
     const updatedPlan = await tx.activityPlan.update({
       where: { id: plan.id },
       data: {
@@ -1275,7 +1383,7 @@ async function initiateBudgetApproval(
         currentApproverEmployeeId: null,
         salesPromotionApproved: hasSalesPromotion ? false : null,
         marketingApproved: hasMarketing ? false : null,
-        salesManagerApproved: false,
+        salesManagerApproved: (hasSalesPromotion || hasMarketing) ? false : null,
       },
       include: { employee: true },
     });
@@ -1293,7 +1401,7 @@ async function initiateBudgetApproval(
     // Notify Budget Approvers
     await notifyBudgetApprovers(updatedPlan, tx);
   } else {
-    // No budget, skip to helpers
+    // No budget and no withdrawal, skip to helpers
     await initiateHelperApproval(plan, tx, userId);
   }
 }
@@ -1352,6 +1460,15 @@ async function initiateHelperApproval(
       await notifyHelperApprovers(updatedPlan, tx);
     } else {
       // All helpers are already approved (or reviewed) -> complete to APPROVED!
+      const withdrawal = await tx.drugWithdrawal.findUnique({
+        where: { activityPlanId: plan.id },
+      });
+      if (withdrawal && withdrawal.status !== DrugWithdrawalStatus.APPROVED) {
+        throw new Error(
+          "ไม่สามารถอนุมัติแผนกิจกรรมสมบูรณ์ได้ เนื่องจากรายการเบิกยายังไม่ได้รับการอนุมัติจากผู้จัดการแผนกการตลาด",
+        );
+      }
+
       const updatedPlan = await tx.activityPlan.update({
         where: { id: plan.id },
         data: {
@@ -1387,6 +1504,15 @@ async function initiateHelperApproval(
     }
   } else {
     // No helpers, fully approved!
+    const withdrawal = await tx.drugWithdrawal.findUnique({
+      where: { activityPlanId: plan.id },
+    });
+    if (withdrawal && withdrawal.status !== DrugWithdrawalStatus.APPROVED) {
+      throw new Error(
+        "ไม่สามารถอนุมัติแผนกิจกรรมสมบูรณ์ได้ เนื่องจากรายการเบิกยายังไม่ได้รับการอนุมัติจากผู้จัดการแผนกการตลาด",
+      );
+    }
+
     const updatedPlan = await tx.activityPlan.update({
       where: { id: plan.id },
       data: {
@@ -1530,6 +1656,18 @@ export async function reviewSingleActivityHelperUseCase(
       );
 
       if (unreviewed.length === 0) {
+        // Server-side gate check for withdrawal
+        const withdrawal = await tx.drugWithdrawal.findUnique({
+          where: { activityPlanId },
+        });
+        if (withdrawal && withdrawal.status !== DrugWithdrawalStatus.APPROVED) {
+          return {
+            success: false,
+            error:
+              "ไม่สามารถอนุมัติแผนกิจกรรมสมบูรณ์ได้ เนื่องจากรายการเบิกยายังไม่ได้รับการอนุมัติจากผู้จัดการแผนกการตลาด",
+          };
+        }
+
         const updatedPlan = await tx.activityPlan.update({
           where: { id: activityPlanId },
           data: {

@@ -27,6 +27,7 @@ export interface UseActivityPlanMasterDataResult {
   productCategoriesList: any[];
   demoPlotsList: UserDemoPlotOption[];
   fetchedFollowUpDemoPlots: UserDemoPlotOption[];
+  fetchedHattackDemoPlots: UserDemoPlotOption[];
   activeWorkTypeOptions: Array<any & { displayName: string }>;
   fetchedMaterialsByCategory:
     | Record<string, Array<{ name: string; price: number; unit?: string }>>
@@ -48,6 +49,9 @@ export function useActivityPlanMasterData({
   const [fetchedActivityTypes, setFetchedActivityTypes] = useState<any[]>([]);
   const [fetchedDemoPlots, setFetchedDemoPlots] = useState<UserDemoPlotOption[]>([]);
   const [fetchedFollowUpDemoPlots, setFetchedFollowUpDemoPlots] = useState<
+    UserDemoPlotOption[]
+  >([]);
+  const [fetchedHattackDemoPlots, setFetchedHattackDemoPlots] = useState<
     UserDemoPlotOption[]
   >([]);
   const [fetchedMaterialsByCategory, setFetchedMaterialsByCategory] = useState<
@@ -214,6 +218,28 @@ export function useActivityPlanMasterData({
     };
   }, []);
 
+  // 6b. Hattack follow-up demo plots (for TYPE_14)
+  useEffect(() => {
+    let isMounted = true;
+    async function loadHattackPlots() {
+      try {
+        const { getHattackFollowUpDemoPlotsAction } = await import(
+          "@/modules/activity-plans/server/actions"
+        );
+        const res = await getHattackFollowUpDemoPlotsAction();
+        if (isMounted && res.success && res.demoPlots) {
+          setFetchedHattackDemoPlots(res.demoPlots);
+        }
+      } catch (err) {
+        console.error("Failed to load Hattack demo plots for Trip Plan:", err);
+      }
+    }
+    loadHattackPlots();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // 7. Activity Types
   useEffect(() => {
     if (initialActivityTypes !== undefined) return;
@@ -263,6 +289,7 @@ export function useActivityPlanMasterData({
     productCategoriesList,
     demoPlotsList,
     fetchedFollowUpDemoPlots,
+    fetchedHattackDemoPlots,
     activeWorkTypeOptions,
     fetchedMaterialsByCategory,
   };

@@ -103,6 +103,21 @@ export interface NormalizedPlanData {
   } | null;
   type13Plots?: any[];
   type14Data?: any;
+  drugWithdrawal?: {
+    hasDrugWithdrawal: boolean;
+    workTypeCode?: string | null;
+    notes?: string | null;
+    items: Array<{
+      id?: string;
+      demoPlotId?: string | null;
+      plotIdentifier: string;
+      productId: string;
+      productName?: string | null;
+      quantity: number;
+      unit?: string | null;
+      sortOrder?: number;
+    }>;
+  } | null;
   helperEmployeeIds: string[];
 }
 
@@ -305,6 +320,28 @@ export function normalizePlanInput(
     rawInput.salesPromotionBudgetRequested ?? promotionBudget,
   );
 
+  let normalizedDrugWithdrawal: NormalizedPlanData["drugWithdrawal"] = null;
+  if (rawInput.drugWithdrawal) {
+    normalizedDrugWithdrawal = {
+      hasDrugWithdrawal: Boolean(rawInput.drugWithdrawal.hasDrugWithdrawal),
+      workTypeCode: rawInput.drugWithdrawal.workTypeCode ?? null,
+      notes: rawInput.drugWithdrawal.notes ?? null,
+      items: (rawInput.drugWithdrawal.items || []).map((item, idx) => ({
+        id: item.id,
+        demoPlotId: item.demoPlotId ?? null,
+        plotIdentifier: item.plotIdentifier,
+        productId: item.productId,
+        productName: item.productName ?? null,
+        quantity:
+          typeof item.quantity === "number"
+            ? item.quantity
+            : parseFloat(String(item.quantity)) || 0,
+        unit: item.unit ?? null,
+        sortOrder: item.sortOrder ?? idx,
+      })),
+    };
+  }
+
   return {
     title: rawInput.title,
     startDate: rawInput.startDate,
@@ -335,6 +372,7 @@ export function normalizePlanInput(
     demoPlotData: (rawInput.demoPlotData as any) || null,
     type13Plots: rawInput.type13Plots || undefined,
     type14Data: rawInput.type14Data || undefined,
+    drugWithdrawal: normalizedDrugWithdrawal,
     helperEmployeeIds: rawInput.helperEmployeeIds || [],
   };
 }

@@ -142,6 +142,10 @@ export function canUserPerformApproval(
     salesPromotionApproved?: boolean | null;
     marketingApproved?: boolean | null;
     salesManagerApproved?: boolean | null;
+    drugWithdrawal?: {
+      status?: string | null;
+      [key: string]: any;
+    } | null;
     helpers?: Array<{
       status?: string;
       approvedById?: string | null;
@@ -211,6 +215,9 @@ export function canUserPerformApproval(
   if (plan.status === "PENDING_BUDGET_APPROVAL") {
     const hasSalesPromotion = Number(plan.salesPromotionBudgetRequested || 0) > 0;
     const hasMarketing = Number(plan.marketingBudgetRequested || 0) > 0;
+    const hasWithdrawalPending = Boolean(
+      plan.drugWithdrawal && plan.drugWithdrawal.status !== "APPROVED"
+    );
 
     // Unreviewed pending helpers
     const unreviewedHelpers = (plan.helpers || []).filter(
@@ -224,17 +231,21 @@ export function canUserPerformApproval(
       hasPendingSalesHelpers;
     const mktPending =
       (hasMarketing && plan.marketingApproved !== true) ||
-      hasPendingMktHelpers;
+      hasPendingMktHelpers ||
+      hasWithdrawalPending;
 
     const requiredSalesPromotionOk =
       !hasSalesPromotion || plan.salesPromotionApproved === true;
     const requiredMarketingOk =
       !hasMarketing || plan.marketingApproved === true;
+    const requiredWithdrawalOk = !hasWithdrawalPending;
 
-    // Director only acts when Stage 1 (SP + MKT budgets) is complete
+    // Director only acts when Stage 1 (SP + MKT budgets + Withdrawal) is complete, AND there is budget requested
     const directorPending =
+      (hasSalesPromotion || hasMarketing) &&
       requiredSalesPromotionOk &&
       requiredMarketingOk &&
+      requiredWithdrawalOk &&
       plan.salesManagerApproved !== true;
 
     // Stage 2: Final Budget Approval (Sales Director)
@@ -247,7 +258,7 @@ export function canUserPerformApproval(
       return isUserSalesAdminManager(user) || isUserMarketingManager(user);
     }
 
-    // Stage 1: Marketing only
+    // Stage 1: Marketing only (including Withdrawal only!)
     if (mktPending && !spPending) {
       return isUserMarketingManager(user);
     }
@@ -257,7 +268,11 @@ export function canUserPerformApproval(
       return isUserSalesAdminManager(user);
     }
 
-    return isUserSalesDirector(user);
+    if (hasSalesPromotion || hasMarketing) {
+      return isUserSalesDirector(user);
+    }
+
+    return false;
   }
 
   // 5. Step 4: Helper Approval (When plan had no budget requested)
@@ -299,6 +314,10 @@ export function getPlanActionScopes(
     salesPromotionApproved?: boolean | null;
     marketingApproved?: boolean | null;
     salesManagerApproved?: boolean | null;
+    drugWithdrawal?: {
+      status?: string | null;
+      [key: string]: any;
+    } | null;
     helpers?: Array<{
       status?: string;
       approvedById?: string | null;
@@ -353,12 +372,16 @@ export function getPlanActionScopes(
     const salesHelpers = unreviewedHelpers.filter(isSalesHelperEmployee);
     const mktHelpers = unreviewedHelpers.filter(isMarketingHelperEmployee);
 
+    const hasWithdrawalPending = Boolean(
+      plan.drugWithdrawal && plan.drugWithdrawal.status !== "APPROVED"
+    );
 
     const stage1Complete =
       (sp === 0 || plan.salesPromotionApproved === true) &&
-      (mkt === 0 || plan.marketingApproved === true);
+      (mkt === 0 || plan.marketingApproved === true) &&
+      !hasWithdrawalPending;
 
-    const directorTurn = stage1Complete && plan.salesManagerApproved !== true;
+    const directorTurn = (sp > 0 || mkt > 0) && stage1Complete && plan.salesManagerApproved !== true;
 
     // Specific user scopes
     if (!isAdmin && user) {
@@ -394,6 +417,13 @@ export function getPlanActionScopes(
           badges.push({
             id: "mkt_budget",
             label: `งบการตลาด ${mkt.toLocaleString()} บาท`,
+            variant: "mkt_budget",
+          });
+        }
+        if (hasWithdrawalPending) {
+          badges.push({
+            id: "withdrawal",
+            label: "รายการเบิกยา",
             variant: "mkt_budget",
           });
         }
@@ -434,6 +464,13 @@ export function getPlanActionScopes(
         badges.push({
           id: "mkt_budget",
           label: `งบการตลาด ${mkt.toLocaleString()} บาท`,
+          variant: "mkt_budget",
+        });
+      }
+      if (hasWithdrawalPending) {
+        badges.push({
+          id: "withdrawal",
+          label: "รายการเบิกยา",
           variant: "mkt_budget",
         });
       }

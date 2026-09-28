@@ -162,6 +162,15 @@ import { useType12Form } from "@/modules/activity-plans/features/type-12/hooks/u
 import { useType13Form } from "@/modules/activity-plans/features/type-13/hooks/use-type13-form";
 import { useType14Form } from "@/modules/activity-plans/features/type-14/hooks/use-type14-form";
 
+// Shared Drug Withdrawal (Phase 6 Integration)
+import { DrugWithdrawalCard } from "../drug-withdrawal/drug-withdrawal-card";
+import { isDrugWithdrawalSupported } from "../drug-withdrawal";
+import {
+  validateDrugWithdrawal,
+  type DrugWithdrawalInput,
+} from "../../../application/validations";
+import type { DrugWithdrawalPlotOption } from "../drug-withdrawal/types";
+
 
 export function ActivityPlanForm({
   initial = {},
@@ -186,6 +195,7 @@ export function ActivityPlanForm({
     productCategoriesList,
     demoPlotsList,
     fetchedFollowUpDemoPlots,
+    fetchedHattackDemoPlots,
     activeWorkTypeOptions,
     fetchedMaterialsByCategory,
   } = useActivityPlanMasterData({
@@ -615,6 +625,205 @@ export function ActivityPlanForm({
     initDetails,
   });
 
+  // ── Drug Withdrawal State & Logic (Phase 6 Integration) ───────────
+  const [drugWithdrawal, setDrugWithdrawal] = useState<DrugWithdrawalInput>(() => {
+    const rawDw = (initial as any)?.drugWithdrawal;
+    if (!rawDw) {
+      return {
+        hasDrugWithdrawal: false,
+        items: [],
+      };
+    }
+    return {
+      hasDrugWithdrawal: Boolean(
+        rawDw.hasDrugWithdrawal ?? (rawDw.items && rawDw.items.length > 0),
+      ),
+      notes: rawDw.notes ?? undefined,
+      items: (rawDw.items || []).map((it: any, idx: number) => ({
+        id: it.id,
+        demoPlotId: it.demoPlotId ?? undefined,
+        plotIdentifier: it.plotIdentifier || it.demoPlot?.name || "",
+        productId: it.productId,
+        productName: it.productName || it.product?.name || "",
+        quantity:
+          typeof it.quantity === "number"
+            ? it.quantity
+            : parseFloat(String(it.quantity)) || 0,
+        unit: it.unit || it.product?.unit || "",
+        sortOrder: it.sortOrder ?? idx,
+      })),
+    };
+  });
+
+  useEffect(() => {
+    if ((initial as any)?.drugWithdrawal) {
+      const rawDw = (initial as any).drugWithdrawal;
+      setDrugWithdrawal({
+        hasDrugWithdrawal: Boolean(
+          rawDw.hasDrugWithdrawal ?? (rawDw.items && rawDw.items.length > 0),
+        ),
+        notes: rawDw.notes ?? undefined,
+        items: (rawDw.items || []).map((it: any, idx: number) => ({
+          id: it.id,
+          demoPlotId: it.demoPlotId ?? undefined,
+          plotIdentifier: it.plotIdentifier || it.demoPlot?.name || "",
+          productId: it.productId,
+          productName: it.productName || it.product?.name || "",
+          quantity:
+            typeof it.quantity === "number"
+              ? it.quantity
+              : parseFloat(String(it.quantity)) || 0,
+          unit: it.unit || it.product?.unit || "",
+          sortOrder: it.sortOrder ?? idx,
+        })),
+      });
+    }
+  }, [(initial as any)?.drugWithdrawal]);
+
+  // Drug Withdrawal Eligibility based on selected work types
+  const isDrugWithdrawalEligible = useMemo(() => {
+    return selectedWorkTypes.some((t) =>
+      isDrugWithdrawalSupported(getWorkTypeCode(t)),
+    );
+  }, [selectedWorkTypes]);
+
+  // Available Plots for Drug Withdrawal
+  const availableWithdrawalPlots = useMemo<DrugWithdrawalPlotOption[]>(() => {
+    const plots: DrugWithdrawalPlotOption[] = [];
+    const seenKeys = new Set<string>();
+
+    const addPlot = (p: DrugWithdrawalPlotOption) => {
+      const key = p.demoPlotId || p.plotIdentifier || p.name;
+      if (!key || seenKeys.has(key)) return;
+      seenKeys.add(key);
+      plots.push(p);
+    };
+
+    const hasType7A = selectedWorkTypes.some(
+      (t) => getWorkTypeCode(t) === "TYPE_7A",
+    );
+    const hasType7B = selectedWorkTypes.some(
+      (t) => getWorkTypeCode(t) === "TYPE_7B",
+    );
+    const hasType13 = selectedWorkTypes.some(
+      (t) => getWorkTypeCode(t) === "TYPE_13",
+    );
+    const hasType14 = selectedWorkTypes.some(
+      (t) => getWorkTypeCode(t) === "TYPE_14",
+    );
+
+    // 1. TYPE_7A plots from current form items
+    if (hasType7A && Array.isArray(type7aItems)) {
+      type7aItems.forEach((item, idx) => {
+        const plotName = item.plotName?.trim() || `แปลงสาธิตที่ ${idx + 1}`;
+        addPlot({
+          id: item.demoPlotId || item.id || `plot-7a-${idx + 1}`,
+          name: plotName,
+          subLabel:
+            [item.ownerName, item.cropName || item.customCropName]
+              .filter(Boolean)
+              .join(" - ") || undefined,
+          plotIdentifier: plotName,
+          demoPlotId: item.demoPlotId || null,
+        });
+      });
+    }
+
+    // 2. TYPE_7B plots from current form items and/or follow-up plots
+    if (hasType7B) {
+      if (Array.isArray(type7bItems)) {
+        type7bItems.forEach((item, idx) => {
+          const plotName =
+            item.plotName?.trim() ||
+            item.existingPlotName?.trim() ||
+            `แปลงติดตาม ${idx + 1}`;
+          addPlot({
+            id:
+              item.demoPlotId ||
+              item.existingPlotId ||
+              item.id ||
+              `plot-7b-${idx + 1}`,
+            name: plotName,
+            subLabel:
+              [item.ownerName, item.cropName || item.customCropName]
+                .filter(Boolean)
+                .join(" - ") || undefined,
+            plotIdentifier: plotName,
+            demoPlotId: item.demoPlotId || item.existingPlotId || null,
+          });
+        });
+      }
+      if (Array.isArray(followUpPlotsForType7B)) {
+        followUpPlotsForType7B.forEach((plot) => {
+          addPlot({
+            id: plot.id,
+            name: plot.name,
+            subLabel:
+              [plot.ownerName, plot.location].filter(Boolean).join(" - ") ||
+              undefined,
+            plotIdentifier: plot.name,
+            demoPlotId: plot.id,
+          });
+        });
+      }
+    }
+
+    // 3. TYPE_13 plots from current form items
+    if (hasType13 && Array.isArray(type13Plots)) {
+      type13Plots.forEach((plot, idx) => {
+        const plotName = plot.name?.trim() || `แปลงแฮตแทค ${idx + 1}`;
+        addPlot({
+          id: plot.id || `plot-13-${idx + 1}`,
+          name: plotName,
+          subLabel:
+            [plot.ownerName, plot.province].filter(Boolean).join(" - ") ||
+            undefined,
+          plotIdentifier: plotName,
+          demoPlotId: null,
+        });
+      });
+    }
+
+    // 4. TYPE_14 plots from Hattack demo plots
+    if (hasType14) {
+      if (type14Data?.name?.trim()) {
+        addPlot({
+          id: type14Data.demoPlotId || `type14-${type14Data.name}`,
+          name: type14Data.name.trim(),
+          subLabel:
+            [type14Data.ownerName, type14Data.province]
+              .filter(Boolean)
+              .join(" - ") || undefined,
+          plotIdentifier: type14Data.name.trim(),
+          demoPlotId: type14Data.demoPlotId || null,
+        });
+      }
+      if (Array.isArray(fetchedHattackDemoPlots)) {
+        fetchedHattackDemoPlots.forEach((plot) => {
+          addPlot({
+            id: plot.id,
+            name: plot.name,
+            subLabel:
+              [plot.ownerName, plot.location].filter(Boolean).join(" - ") ||
+              undefined,
+            plotIdentifier: plot.name,
+            demoPlotId: plot.id,
+          });
+        });
+      }
+    }
+
+    return plots;
+  }, [
+    selectedWorkTypes,
+    type7aItems,
+    type7bItems,
+    followUpPlotsForType7B,
+    type13Plots,
+    type14Data,
+    fetchedHattackDemoPlots,
+  ]);
+
   // Section 7: Additional Info State
   const [notes, setNotes] = useState(initial.notes ?? "");
 
@@ -840,6 +1049,20 @@ export function ActivityPlanForm({
       return;
     }
 
+    // Phase 6: Drug Withdrawal Validation
+    if (isDrugWithdrawalEligible && drugWithdrawal.hasDrugWithdrawal) {
+      const activeDwType = selectedWorkTypes.find((t) =>
+        isDrugWithdrawalSupported(getWorkTypeCode(t)),
+      );
+      const dwCode = activeDwType ? getWorkTypeCode(activeDwType) : undefined;
+      const dwValidation = validateDrugWithdrawal(drugWithdrawal, dwCode);
+      if (!dwValidation.isValid) {
+        setError(dwValidation.errors[0] || "ข้อมูลการเบิกยาไม่ถูกต้อง");
+        setLoading(false);
+        return;
+      }
+    }
+
     let cleanObjective = (initial as any)?.objective ?? "";
     const cleanDescription = (initial as any)?.description ?? null;
 
@@ -1007,6 +1230,10 @@ export function ActivityPlanForm({
         demoPlotData: submittedDemoPlotData,
         type13Plots: type13Payload.type13Plots,
         type14Data: type14Payload.type14Data,
+        drugWithdrawal:
+          isDrugWithdrawalEligible && drugWithdrawal.hasDrugWithdrawal
+            ? drugWithdrawal
+            : { hasDrugWithdrawal: false, items: [] },
         planStores,
         planProducts,
         marketingItems,
@@ -1364,6 +1591,30 @@ export function ActivityPlanForm({
                   )}
                 </div>
               </div>
+            )}
+
+            {/* SECTION 3.5: การเบิกยา (Drug Withdrawal) - TYPE_7A, TYPE_7B, TYPE_13, TYPE_14 */}
+            {isDrugWithdrawalEligible && (
+              <DrugWithdrawalCard
+                value={drugWithdrawal}
+                onChange={setDrugWithdrawal}
+                availablePlots={availableWithdrawalPlots}
+                products={productsList}
+                workTypeCode={
+                  selectedWorkTypes.find((t) =>
+                    isDrugWithdrawalSupported(getWorkTypeCode(t)),
+                  )
+                    ? getWorkTypeCode(
+                        selectedWorkTypes.find((t) =>
+                          isDrugWithdrawalSupported(getWorkTypeCode(t)),
+                        )!,
+                      )
+                    : undefined
+                }
+                editable={!readonly}
+                disabled={readonly}
+                allowCustomPlot={true}
+              />
             )}
 
             {/* SECTION 4: สถานที่และทีมงาน (Location & Team) */}

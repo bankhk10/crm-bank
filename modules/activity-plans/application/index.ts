@@ -14,7 +14,12 @@ import {
   type ListActivityPlansParams,
   type CreateActivityResultInput,
 } from "../infrastructure/activity-plan.repository";
-import { ActivityPlanType, ActivityStatus } from "@prisma/client";
+import {
+  ActivityPlanType,
+  ActivityStatus,
+  DrugWithdrawalStatus,
+} from "@prisma/client";
+import { isDrugWithdrawalSupported } from "../constants";
 import { isActivityPlanTestMode } from "../config";
 import { syncActivityResultToCalendarUseCase } from "./calendar-integration";
 
@@ -278,6 +283,19 @@ export async function createActivityPlanUseCase(
     return { success: false as const, error: type7aValidation.error };
   }
 
+  if (normalized.drugWithdrawal && normalized.drugWithdrawal.hasDrugWithdrawal) {
+    const isSupported = normalized.workTypeCodes.some((wt) =>
+      isDrugWithdrawalSupported(wt),
+    );
+    if (!isSupported) {
+      return {
+        success: false as const,
+        error:
+          "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7A, TYPE_7B, TYPE_13, TYPE_14)",
+      };
+    }
+  }
+
   const {
     helperEmployeeIds,
     items,
@@ -285,6 +303,7 @@ export async function createActivityPlanUseCase(
     planStores,
     planProducts,
     workTypeCodes,
+    drugWithdrawal,
     ...planFields
   } = parsed.data;
 
@@ -308,6 +327,7 @@ export async function createActivityPlanUseCase(
     type13Plots: normalized.type13Plots,
     type14Data: normalized.type14Data,
     workTypeCodes: normalized.workTypeCodes,
+    drugWithdrawal: normalized.drugWithdrawal,
     status: ActivityStatus.DRAFT,
     employeeId: employee.id,
     createdById: userId,
@@ -453,6 +473,23 @@ export async function duplicateActivityPlanUseCase(
     marketingItems,
     promotionItems,
     helperEmployeeIds,
+    drugWithdrawal: (originalPlan as any).drugWithdrawal
+      ? {
+          hasDrugWithdrawal: true,
+          notes: (originalPlan as any).drugWithdrawal.notes ?? null,
+          items: ((originalPlan as any).drugWithdrawal.items || []).map(
+            (it: any) => ({
+              demoPlotId: it.demoPlotId ?? null,
+              plotIdentifier: it.plotIdentifier,
+              productId: it.productId,
+              productName: it.productName ?? null,
+              quantity: Number(it.quantity) || 0,
+              unit: it.unit ?? null,
+              sortOrder: it.sortOrder ?? 0,
+            }),
+          ),
+        }
+      : null,
   };
 
   const plan = await createActivityPlan(data);
@@ -536,6 +573,41 @@ export async function updateActivityPlanUseCase(
     return { success: false as const, error: type7aValidation.error };
   }
 
+  if (normalized.drugWithdrawal && normalized.drugWithdrawal.hasDrugWithdrawal) {
+    const isSupported = normalized.workTypeCodes.some((wt) =>
+      isDrugWithdrawalSupported(wt),
+    );
+    if (!isSupported) {
+      return {
+        success: false as const,
+        error:
+          "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7A, TYPE_7B, TYPE_13, TYPE_14)",
+      };
+    }
+  }
+
+  if (
+    (!normalized.drugWithdrawal ||
+      !normalized.drugWithdrawal.hasDrugWithdrawal) &&
+    (plan as any).drugWithdrawal
+  ) {
+    const dwStatus = (plan as any).drugWithdrawal.status;
+    if (dwStatus === DrugWithdrawalStatus.PENDING_APPROVAL) {
+      return {
+        success: false as const,
+        error:
+          "ไม่สามารถยกเลิกคำขอเบิกยาที่อยู่ในสถานะรออนุมัติ (PENDING_APPROVAL) ได้",
+      };
+    }
+    if (dwStatus === DrugWithdrawalStatus.APPROVED) {
+      return {
+        success: false as const,
+        error:
+          "ไม่สามารถยกเลิกคำขอเบิกยาที่ได้รับการอนุมัติแล้ว (APPROVED) ได้",
+      };
+    }
+  }
+
   const {
     helperEmployeeIds,
     items,
@@ -543,6 +615,7 @@ export async function updateActivityPlanUseCase(
     planStores,
     planProducts,
     workTypeCodes,
+    drugWithdrawal,
     ...planFields
   } = parsed.data;
 
@@ -566,11 +639,19 @@ export async function updateActivityPlanUseCase(
     type13Plots: normalized.type13Plots,
     type14Data: normalized.type14Data,
     workTypeCodes: normalized.workTypeCodes,
+    drugWithdrawal: normalized.drugWithdrawal,
     updatedUserId: userId,
   };
 
-  const updated = await updateActivityPlan(id, data);
-  return { success: true as const, plan: updated };
+  try {
+    const updated = await updateActivityPlan(id, data);
+    return { success: true as const, plan: updated };
+  } catch (err: any) {
+    return {
+      success: false as const,
+      error: err.message || "เกิดข้อผิดพลาดในการแก้ไขข้อมูล",
+    };
+  }
 }
 
 /**
@@ -819,4 +900,13 @@ export {
 } from "./can-approve";
 
 export type { ListActivityPlansParams };
+
+export {
+  drugWithdrawalItemSchema,
+  drugWithdrawalInputSchema,
+  type DrugWithdrawalItemInput,
+  type DrugWithdrawalInput,
+  type ValidateDrugWithdrawalResult,
+  validateDrugWithdrawal,
+} from "./validations";
 

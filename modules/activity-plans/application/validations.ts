@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isDrugWithdrawalSupported } from "../constants";
 
 export const planStoreInputSchema = z
   .object({
@@ -272,6 +273,103 @@ export type Type13PlotActual = z.infer<typeof type13PlotActualSchema>;
 export type Type14TrackingItem = z.infer<typeof type14TrackingItemSchema>;
 export type Type14PlanInput = z.infer<typeof type14PlanInputSchema>;
 
+// ── Drug Withdrawal ("การเบิกยา") Validations ─────────────────────────
+
+export const drugWithdrawalItemSchema = z.object({
+  id: z.string().optional(),
+  demoPlotId: z.string().optional().nullable(),
+  plotIdentifier: z
+    .string({ required_error: "กรุณาระบุแปลงที่ใช้ยา" })
+    .trim()
+    .min(1, "กรุณาระบุแปลงที่ใช้ยา"),
+  productId: z
+    .string({ required_error: "กรุณาเลือกตัวยา/ผลิตภัณฑ์" })
+    .trim()
+    .min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
+  productName: z.string().optional().nullable(),
+  quantity: z.coerce
+    .number({
+      required_error: "กรุณาระบุจำนวนยาที่ต้องการเบิก",
+      invalid_type_error: "จำนวนยาต้องเป็นตัวเลข",
+    })
+    .refine((val) => !isNaN(val) && val > 0, {
+      message: "จำนวนยาต้องมากกว่า 0",
+    }),
+  unit: z.string().optional().nullable(),
+  sortOrder: z.number().int().optional().default(0),
+});
+
+export const drugWithdrawalInputSchema = z
+  .object({
+    hasDrugWithdrawal: z.boolean().default(false),
+    workTypeCode: z.string().optional().nullable(),
+    notes: z.string().optional().nullable(),
+    items: z.array(drugWithdrawalItemSchema).optional().default([]),
+  })
+  .superRefine((data, ctx) => {
+    if (data.hasDrugWithdrawal) {
+      if (data.workTypeCode && !isDrugWithdrawalSupported(data.workTypeCode)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `ประเภทกิจกรรม '${data.workTypeCode}' ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7A, TYPE_7B, TYPE_13, TYPE_14)`,
+          path: ["workTypeCode"],
+        });
+      }
+
+      if (!data.items || data.items.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "ต้องระบุรายการเบิกยาอย่างน้อย 1 รายการเมื่อเลือกเบิกยา",
+          path: ["items"],
+        });
+      }
+    }
+  });
+
+export type DrugWithdrawalItemInput = z.infer<typeof drugWithdrawalItemSchema>;
+export type DrugWithdrawalInput = z.infer<typeof drugWithdrawalInputSchema>;
+
+export interface ValidateDrugWithdrawalResult {
+  isValid: boolean;
+  errors: string[];
+  data?: DrugWithdrawalInput;
+}
+
+export function validateDrugWithdrawal(
+  input: unknown,
+  workTypeCode?: string | null,
+): ValidateDrugWithdrawalResult {
+  const payload =
+    typeof input === "object" && input !== null
+      ? { workTypeCode: workTypeCode ?? (input as any).workTypeCode, ...input }
+      : input;
+
+  const result = drugWithdrawalInputSchema.safeParse(payload);
+  if (!result.success) {
+    return {
+      isValid: false,
+      errors: result.error.errors.map((e) => e.message),
+    };
+  }
+
+  if (result.data.hasDrugWithdrawal && workTypeCode && !isDrugWithdrawalSupported(workTypeCode)) {
+    return {
+      isValid: false,
+      errors: [
+        `ประเภทกิจกรรม '${workTypeCode}' ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7A, TYPE_7B, TYPE_13, TYPE_14)`,
+      ],
+      data: result.data,
+    };
+  }
+
+  return {
+    isValid: true,
+    errors: [],
+    data: result.data,
+  };
+}
+
+
 export const activityPlanSchema = z
   .object({
     title: z.string().min(1, "กรุณากรอกชื่อกิจกรรม"),
@@ -322,6 +420,7 @@ export const activityPlanSchema = z
     helperEmployeeIds: z.array(z.string()).default([]),
     type13Plots: z.array(type13PlotItemSchema).optional(),
     type14Data: type14PlanInputSchema.optional(),
+    drugWithdrawal: drugWithdrawalInputSchema.optional().nullable(),
     // For transition: raw form items payload (will be normalized in application mapper)
     items: z.array(z.record(z.any())).optional().default([]),
   })

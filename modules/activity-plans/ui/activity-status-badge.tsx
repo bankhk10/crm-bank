@@ -276,6 +276,10 @@ export function resolveCurrentOperator(
     salesPromotionApproved?: boolean | null;
     marketingApproved?: boolean | null;
     salesManagerApproved?: boolean | null;
+    drugWithdrawal?: {
+      status?: string | null;
+      [key: string]: any;
+    } | null;
     helpers?: Array<{
       status?: string;
       respondedAt?: Date | string | null;
@@ -345,17 +349,27 @@ export function resolveCurrentOperator(
       Number(plan.salesPromotionBudgetRequested || 0) > 0;
     const hasMarketing = Number(plan.marketingBudgetRequested || 0) > 0;
 
+    const hasWithdrawalPending = Boolean(
+      (plan as any).drugWithdrawal &&
+        (plan as any).drugWithdrawal.status !== "APPROVED",
+    );
+
     const spPending = hasSalesPromotion && plan.salesPromotionApproved !== true;
-    const mktPending = hasMarketing && plan.marketingApproved !== true;
+    const mktPending =
+      (hasMarketing && plan.marketingApproved !== true) ||
+      hasWithdrawalPending;
 
     const requiredSalesPromotionOk =
       !hasSalesPromotion || plan.salesPromotionApproved === true;
     const requiredMarketingOk =
       !hasMarketing || plan.marketingApproved === true;
+    const requiredWithdrawalOk = !hasWithdrawalPending;
 
     const directorPending =
+      (hasSalesPromotion || hasMarketing) &&
       requiredSalesPromotionOk &&
       requiredMarketingOk &&
+      requiredWithdrawalOk &&
       plan.salesManagerApproved !== true;
 
     if (directorPending) {
@@ -378,7 +392,9 @@ export function resolveCurrentOperator(
         roleTitleTh: "ผู้จัดการแผนกการตลาด",
         displayRole: "Marketing Manager",
         operatorName: precomputedOperatorName || opName || "Marketing Manager",
-        stepDescription: "อนุมัติงบการตลาด",
+        stepDescription: hasMarketing
+          ? (hasWithdrawalPending ? "อนุมัติงบการตลาดและรายการเบิกยา" : "อนุมัติงบการตลาด")
+          : "อนุมัติรายการเบิกยา",
       };
     }
 
@@ -408,7 +424,9 @@ export function resolveCurrentOperator(
           precomputedOperatorName ||
           opName ||
           "Sales Admin Manager, Marketing Manager",
-        stepDescription: "อนุมัติงบส่งเสริมการขายและการตลาดคู่ขนาน",
+        stepDescription: hasWithdrawalPending
+          ? "อนุมัติงบส่งเสริมการขาย การตลาด และรายการเบิกยา"
+          : "อนุมัติงบส่งเสริมการขายและการตลาดคู่ขนาน",
       };
     }
 

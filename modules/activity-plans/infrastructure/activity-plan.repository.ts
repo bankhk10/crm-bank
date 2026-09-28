@@ -12,8 +12,13 @@ import {
   TourType,
   TourSize,
   AttachmentCategory,
+  DrugWithdrawalStatus,
 } from "@prisma/client";
-import { WORK_TYPE_CONFIG, getWorkTypeCode } from "../constants";
+import {
+  WORK_TYPE_CONFIG,
+  getWorkTypeCode,
+  isDrugWithdrawalSupported,
+} from "../constants";
 
 export type ListActivityPlansParams = {
   page?: number;
@@ -379,6 +384,36 @@ export async function findActivityPlanById(id: string) {
         },
       },
       attachments: true,
+      drugWithdrawal: {
+        include: {
+          items: {
+            orderBy: { sortOrder: "asc" },
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  productCode: true,
+                  unit: true,
+                },
+              },
+              demoPlot: {
+                select: {
+                  id: true,
+                  name: true,
+                  code: true,
+                },
+              },
+            },
+          },
+          requestedBy: {
+            select: { id: true, name: true, employeeCode: true },
+          },
+          approvedBy: {
+            select: { id: true, name: true, employeeCode: true },
+          },
+        },
+      },
     },
   });
 
@@ -746,6 +781,21 @@ export type CreateActivityPlanInput = {
       }>;
     }>;
   };
+  drugWithdrawal?: {
+    hasDrugWithdrawal: boolean;
+    workTypeCode?: string | null;
+    notes?: string | null;
+    items: Array<{
+      id?: string;
+      demoPlotId?: string | null;
+      plotIdentifier: string;
+      productId: string;
+      productName?: string | null;
+      quantity: number | Prisma.Decimal;
+      unit?: string | null;
+      sortOrder?: number;
+    }>;
+  } | null;
 };
 
 /**
@@ -1237,6 +1287,93 @@ export async function createActivityPlan(
           });
         }
 
+        // 5. Create Drug Withdrawal if requested
+        if (input.drugWithdrawal && input.drugWithdrawal.hasDrugWithdrawal) {
+          const supported =
+            (input.workTypeCodes &&
+              input.workTypeCodes.some((wt) => isDrugWithdrawalSupported(wt))) ||
+            (input.activityTypeId &&
+              isDrugWithdrawalSupported(input.activityTypeId));
+          if (!supported) {
+            throw new Error(
+              "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7A, TYPE_7B, TYPE_13, TYPE_14)",
+            );
+          }
+
+          const items = input.drugWithdrawal.items || [];
+          if (items.length === 0) {
+            throw new Error(
+              "ต้องระบุรายการเบิกยาอย่างน้อย 1 รายการเมื่อเลือกเบิกยา",
+            );
+          }
+
+          const productIds = Array.from(
+            new Set(items.map((it) => it.productId).filter(Boolean)),
+          );
+          const existingProducts = await tx.product.findMany({
+            where: { id: { in: productIds } },
+            select: { id: true, name: true, unit: true },
+          });
+          const productMap = new Map<
+            string,
+            { id: string; name: string; unit: string | null }
+          >(existingProducts.map((p) => [p.id, p]));
+          for (const item of items) {
+            if (!productMap.has(item.productId)) {
+              throw new Error(
+                `ไม่พบข้อมูลผลิตภัณฑ์ (Product ID: ${item.productId}) ในระบบ`,
+              );
+            }
+          }
+
+          const plotIds = Array.from(
+            new Set(
+              items
+                .map((it) => it.demoPlotId)
+                .filter((id): id is string => Boolean(id)),
+            ),
+          );
+          if (plotIds.length > 0) {
+            const existingPlots = await tx.demoPlot.findMany({
+              where: { id: { in: plotIds } },
+              select: { id: true },
+            });
+            const plotIdSet = new Set(existingPlots.map((p) => p.id));
+            for (const item of items) {
+              if (item.demoPlotId && !plotIdSet.has(item.demoPlotId)) {
+                throw new Error(
+                  `ไม่พบข้อมูลแปลงสาธิต (DemoPlot ID: ${item.demoPlotId}) ในระบบ`,
+                );
+              }
+            }
+          }
+
+          const dw = await tx.drugWithdrawal.create({
+            data: {
+              activityPlanId: plan.id,
+              status: DrugWithdrawalStatus.DRAFT,
+              requestedById: input.employeeId,
+              notes: input.drugWithdrawal.notes ?? null,
+            },
+          });
+
+          await tx.drugWithdrawalItem.createMany({
+            data: items.map((item, idx) => {
+              const prod = productMap.get(item.productId)!;
+              return {
+                drugWithdrawalId: dw.id,
+                demoPlotId: item.demoPlotId ?? null,
+                plotIdentifier: item.plotIdentifier,
+                productId: item.productId,
+                productName: item.productName || prod.name,
+                quantity: new Prisma.Decimal(item.quantity),
+                unit: item.unit || prod.unit || "หน่วย",
+                sortOrder: item.sortOrder ?? idx,
+              };
+            }),
+          });
+        }
+
         return plan;
       };
 
@@ -1301,6 +1438,7 @@ export async function updateActivityPlan(
     delete updateFields.planProducts;
     delete updateFields.demoPlotId;
     delete updateFields.demoPlotData;
+    delete updateFields.drugWithdrawal;
 
     // Build update dataset
     const dataToUpdate: Prisma.ActivityPlanUncheckedUpdateInput = {};
@@ -1899,6 +2037,161 @@ export async function updateActivityPlan(
             },
           });
         }
+      }
+    }
+
+    // 4. Sync Drug Withdrawal if provided
+    if (planData.drugWithdrawal !== undefined) {
+      if (
+        planData.drugWithdrawal &&
+        planData.drugWithdrawal.hasDrugWithdrawal
+      ) {
+        // Validate work type code support
+        const currentWorkTypes =
+          planData.workTypeCodes ||
+          (
+            await tx.activityPlanWorkType.findMany({
+              where: { activityPlanId: id },
+              include: { activityType: true },
+            })
+          ).map((wt) => wt.activityType.code);
+
+        const supported =
+          currentWorkTypes.some((wt) => isDrugWithdrawalSupported(wt)) ||
+          isDrugWithdrawalSupported(updatedPlan.activityTypeId);
+
+        if (!supported) {
+          throw new Error(
+            "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7A, TYPE_7B, TYPE_13, TYPE_14)",
+          );
+        }
+
+        const items = planData.drugWithdrawal.items || [];
+        if (items.length === 0) {
+          throw new Error(
+            "ต้องระบุรายการเบิกยาอย่างน้อย 1 รายการเมื่อเลือกเบิกยา",
+          );
+        }
+
+        const productIds = Array.from(
+          new Set(items.map((it) => it.productId).filter(Boolean)),
+        );
+        const existingProducts = await tx.product.findMany({
+          where: { id: { in: productIds } },
+          select: { id: true, name: true, unit: true },
+        });
+        const productMap = new Map<
+          string,
+          { id: string; name: string; unit: string | null }
+        >(existingProducts.map((p) => [p.id, p]));
+        for (const item of items) {
+          if (!productMap.has(item.productId)) {
+            throw new Error(
+              `ไม่พบข้อมูลผลิตภัณฑ์ (Product ID: ${item.productId}) ในระบบ`,
+            );
+          }
+        }
+
+        const plotIds = Array.from(
+          new Set(
+            items
+              .map((it) => it.demoPlotId)
+              .filter((pId): pId is string => Boolean(pId)),
+          ),
+        );
+        if (plotIds.length > 0) {
+          const existingPlots = await tx.demoPlot.findMany({
+            where: { id: { in: plotIds } },
+            select: { id: true },
+          });
+          const plotIdSet = new Set(existingPlots.map((p) => p.id));
+          for (const item of items) {
+            if (item.demoPlotId && !plotIdSet.has(item.demoPlotId)) {
+              throw new Error(
+                `ไม่พบข้อมูลแปลงสาธิต (DemoPlot ID: ${item.demoPlotId}) ในระบบ`,
+              );
+            }
+          }
+        }
+
+        const existingDw = await tx.drugWithdrawal.findUnique({
+          where: { activityPlanId: id },
+        });
+
+        let dwId: string;
+        if (existingDw) {
+          // CRITICAL: Preserve existing status! Do NOT overwrite with DRAFT or PENDING_APPROVAL
+          await tx.drugWithdrawal.update({
+            where: { id: existingDw.id },
+            data: {
+              notes: planData.drugWithdrawal.notes ?? existingDw.notes,
+              updatedAt: new Date(),
+            },
+          });
+          dwId = existingDw.id;
+
+          // Delete existing items to replace with synchronized items
+          await tx.drugWithdrawalItem.deleteMany({
+            where: { drugWithdrawalId: dwId },
+          });
+        } else {
+          // New withdrawal on existing plan -> status = DRAFT
+          const createdDw = await tx.drugWithdrawal.create({
+            data: {
+              activityPlanId: id,
+              status: DrugWithdrawalStatus.DRAFT,
+              requestedById: updatedPlan.employeeId,
+              notes: planData.drugWithdrawal.notes ?? null,
+            },
+          });
+          dwId = createdDw.id;
+        }
+
+        await tx.drugWithdrawalItem.createMany({
+          data: items.map((item, idx) => {
+            const prod = productMap.get(item.productId)!;
+            return {
+              drugWithdrawalId: dwId,
+              demoPlotId: item.demoPlotId ?? null,
+              plotIdentifier: item.plotIdentifier,
+              productId: item.productId,
+              productName: item.productName || prod.name,
+              quantity: new Prisma.Decimal(item.quantity),
+              unit: item.unit || prod.unit || "หน่วย",
+              sortOrder: item.sortOrder ?? idx,
+            };
+          }),
+        });
+      } else {
+        // User unchecks "มีการเบิกยา" (hasDrugWithdrawal = false or null)
+        const existingDw = await tx.drugWithdrawal.findUnique({
+          where: { activityPlanId: id },
+        });
+
+        if (existingDw) {
+          if (
+            existingDw.status === DrugWithdrawalStatus.DRAFT ||
+            existingDw.status === DrugWithdrawalStatus.RETURNED
+          ) {
+            // Case A & B: Delete DrugWithdrawal and all DrugWithdrawalItems (via cascade)
+            await tx.drugWithdrawal.delete({
+              where: { id: existingDw.id },
+            });
+          } else if (
+            existingDw.status === DrugWithdrawalStatus.PENDING_APPROVAL
+          ) {
+            // Case C: Reject attempt rather than deleting
+            throw new Error(
+              "ไม่สามารถยกเลิกคำขอเบิกยาที่อยู่ในสถานะรออนุมัติ (PENDING_APPROVAL) ได้",
+            );
+          } else if (existingDw.status === DrugWithdrawalStatus.APPROVED) {
+            // Case D: Reject attempt rather than deleting
+            throw new Error(
+              "ไม่สามารถยกเลิกคำขอเบิกยาที่ได้รับการอนุมัติแล้ว (APPROVED) ได้",
+            );
+          }
+        }
+        // Case E: No existing withdrawal + unchecked -> do nothing, remains no withdrawal
       }
     }
 
@@ -3224,6 +3517,11 @@ export async function findApprovalQueueData() {
     demoPlotVisits: {
       include: {
         demoPlot: true,
+      },
+    },
+    drugWithdrawal: {
+      include: {
+        items: true,
       },
     },
     helpers: {
