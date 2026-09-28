@@ -198,6 +198,10 @@ export interface ParsedSummaryValues {
   t11ReorderOpportunity?: "สูง" | "ต่ำ" | "ยังไม่แน่ใจ";
   t11NextAction?: string;
   t11Images?: ImageFile[];
+
+  // Type 13 / Shared Spray Rounds
+  sprayRounds?: any[];
+  type13PlotsActual?: Array<{ demoPlotId: string; latitude: any; longitude: any }>;
 }
 
 export function parseResultSummary(resData: any): ParsedSummaryValues {
@@ -1350,6 +1354,42 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         name: att.fileName || "spray-round-photo.jpg",
         size: att.fileSize || undefined,
         type: att.mimeType || undefined,
+      })),
+    }));
+
+    // General / TYPE_13 spray rounds mapping
+    result.sprayRounds = resData.sprayRounds.map((sr: any) => ({
+      id: sr.id,
+      demoPlotId: sr.demoPlotId,
+      roundNumber: sr.roundNumber,
+      sprayDate: sr.sprayDate
+        ? new Date(sr.sprayDate).toISOString().split("T")[0]
+        : undefined,
+      sprayMethod: sr.sprayMethod,
+      sprayEquipment: sr.sprayEquipment,
+      otherEquipment: sr.otherEquipment || null,
+      productResponse: sr.productResponse,
+      problemDetail: sr.problemDetail || null,
+      products: (sr.products || []).map((p: any) => ({
+        productId: p.productId,
+        productName: p.productName || p.product?.name || null,
+        actualRate: p.actualRate || "",
+        quantityUsed: p.quantityUsed != null ? Number(p.quantityUsed) : 0,
+        unit: p.unit || p.product?.unit || null,
+      })),
+      externalProducts: (sr.externalProducts || []).map((ep: any) => ({
+        company: ep.company || "",
+        productName: ep.productName || "",
+        activeIngredient: ep.activeIngredient || null,
+        formula: ep.formula || "EC",
+        customFormula: ep.customFormula || null,
+        applicationRate: ep.applicationRate || "",
+      })),
+      attachments: (sr.attachments || []).map((att: any) => ({
+        fileUrl: att.fileUrl,
+        fileName: att.fileName || "spray-round-photo.jpg",
+        fileSize: att.fileSize,
+        mimeType: att.mimeType,
       })),
     }));
   }

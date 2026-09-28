@@ -67,21 +67,41 @@ export function useType13ActualState() {
       }));
     }
 
-    // 2. Hydrate existing spray rounds from parsedResult
-    if (parsedResult) {
-      const existingRounds: any[] = parsedResult.sprayRounds || [];
-      const plotCoords: any[] = parsedResult.type13PlotsActual || [];
+    // 2. Hydrate existing spray rounds from parsedResult or plan.result normalized relation
+    if (parsedResult || (plan as any)?.result) {
+      const existingRounds: any[] =
+        parsedResult?.sprayRounds && parsedResult.sprayRounds.length > 0
+          ? parsedResult.sprayRounds
+          : (plan as any)?.result?.sprayRounds || [];
+
+      const plotCoords: any[] =
+        parsedResult?.type13PlotsActual && parsedResult.type13PlotsActual.length > 0
+          ? parsedResult.type13PlotsActual
+          : (plan?.demoPlotVisits || [])
+              .filter(
+                (v: any) =>
+                  v.workTypeCode === "TYPE_13" ||
+                  v.demoPlot?.plotType === "HATTACK",
+              )
+              .map((v: any) => ({
+                demoPlotId: v.demoPlotId || v.demoPlot?.id,
+                latitude:
+                  v.demoPlot?.latitude != null ? String(v.demoPlot.latitude) : "",
+                longitude:
+                  v.demoPlot?.longitude != null ? String(v.demoPlot.longitude) : "",
+              }))
+              .filter((c: any) => c.latitude || c.longitude);
 
       basePlots = basePlots.map((plot) => {
         // Coords
-        const matchedCoord = plotCoords.find((c) => c.demoPlotId === plot.demoPlotId);
+        const matchedCoord = plotCoords.find((c: any) => c.demoPlotId === plot.demoPlotId);
         const lat = matchedCoord ? String(matchedCoord.latitude) : plot.latitude;
         const lng = matchedCoord ? String(matchedCoord.longitude) : plot.longitude;
 
         // Rounds
         const plotRounds = existingRounds
-          .filter((r) => r.demoPlotId === plot.demoPlotId)
-          .map((r) => ({
+          .filter((r: any) => r.demoPlotId === plot.demoPlotId)
+          .map((r: any) => ({
             id: r.id,
             demoPlotId: r.demoPlotId,
             roundNumber: r.roundNumber,
@@ -93,10 +113,10 @@ export function useType13ActualState() {
             problemDetail: r.problemDetail || null,
             products: (r.products || []).map((p: any) => ({
               productId: p.productId,
-              productName: p.productName || null,
+              productName: p.productName || p.product?.name || null,
               actualRate: p.actualRate || "",
               quantityUsed: Number(p.quantityUsed) || 0,
-              unit: p.unit || null,
+              unit: p.unit || p.product?.unit || null,
             })),
             externalProducts: (r.externalProducts || []).map((ep: any) => ({
               company: ep.company || "",

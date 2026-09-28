@@ -277,20 +277,66 @@ export default function ActivityPlanDetailView({
   }, [plan?.demoPlotVisits]);
 
   const type13ActualData = useMemo(() => {
-    if (!plan?.result?.resultSummary) return undefined;
-    try {
-      const parsed =
-        typeof plan.result.resultSummary === "string"
-          ? JSON.parse(plan.result.resultSummary)
-          : plan.result.resultSummary;
-      return {
-        type13PlotsActual: parsed.type13PlotsActual,
-        sprayRounds: parsed.sprayRounds,
-      };
-    } catch {
+    if (!plan?.result) return undefined;
+
+    const rawRounds = (plan.result as any)?.sprayRounds || [];
+
+    const type13PlotsActual = (plan.demoPlotVisits || [])
+      .filter(
+        (v: any) =>
+          v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK",
+      )
+      .map((v: any) => ({
+        demoPlotId: v.demoPlotId || v.demoPlot?.id,
+        latitude:
+          v.demoPlot?.latitude != null ? String(v.demoPlot.latitude) : "",
+        longitude:
+          v.demoPlot?.longitude != null ? String(v.demoPlot.longitude) : "",
+      }))
+      .filter((c: any) => c.latitude || c.longitude);
+
+    const sprayRounds = rawRounds.map((sr: any) => ({
+      id: sr.id,
+      demoPlotId: sr.demoPlotId,
+      roundNumber: sr.roundNumber,
+      sprayDate: sr.sprayDate
+        ? new Date(sr.sprayDate).toISOString().split("T")[0]
+        : "",
+      sprayMethod: sr.sprayMethod,
+      sprayEquipment: sr.sprayEquipment,
+      otherEquipment: sr.otherEquipment || null,
+      productResponse: sr.productResponse,
+      problemDetail: sr.problemDetail || null,
+      products: (sr.products || []).map((p: any) => ({
+        productId: p.productId,
+        productName: p.productName || p.product?.name || "",
+        actualRate: p.actualRate || "",
+        quantityUsed: p.quantityUsed != null ? Number(p.quantityUsed) : 0,
+        unit: p.unit || p.product?.unit || "",
+      })),
+      externalProducts: (sr.externalProducts || []).map((ep: any) => ({
+        company: ep.company || "",
+        productName: ep.productName || "",
+        activeIngredient: ep.activeIngredient || null,
+        formula: ep.formula || "EC",
+        customFormula: ep.customFormula || null,
+        applicationRate: ep.applicationRate || "",
+      })),
+      attachments: (sr.attachments || []).map((att: any) => ({
+        fileUrl: att.fileUrl,
+        fileName: att.fileName || "spray-round-photo.jpg",
+      })),
+    }));
+
+    if (type13PlotsActual.length === 0 && sprayRounds.length === 0) {
       return undefined;
     }
-  }, [plan?.result?.resultSummary]);
+
+    return {
+      type13PlotsActual,
+      sprayRounds,
+    };
+  }, [plan?.result, plan?.demoPlotVisits]);
 
   const type14Data: Type14PlanInput | null = useMemo(() => {
     if (!plan?.demoPlotVisits || plan.demoPlotVisits.length === 0) return null;
