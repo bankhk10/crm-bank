@@ -6,11 +6,13 @@ import type { Type13SprayingRound, Type13PlotActual } from "../../../application
 export interface Type13PlotActualState {
   demoPlotId: string;
   plotName: string;
+  storeId?: string;
   dealerName?: string;
   province?: string;
   district?: string;
   latitude: string;
   longitude: string;
+  isNew?: boolean;
   plannedProducts?: Array<{ productId: string; productName?: string; quantity?: number; unit?: string }>;
   sprayRounds: Type13SprayingRound[];
 }
@@ -29,10 +31,20 @@ export function useType13ActualState() {
       (v: any) => v.demoPlot?.plotType === "HATTACK" || v.workTypeCode === "TYPE_13",
     );
 
+    // Deduplicate visits by demoPlotId to ensure each plot only appears once
+    const seenPlotIds = new Set<string>();
+    const uniqueHattackVisits = hattackVisits.filter((v: any) => {
+      const pId = v.demoPlot?.id || v.demoPlotId;
+      if (!pId) return true;
+      if (seenPlotIds.has(pId)) return false;
+      seenPlotIds.add(pId);
+      return true;
+    });
+
     let basePlots: Type13PlotActualState[] = [];
 
-    if (hattackVisits.length > 0) {
-      basePlots = hattackVisits.map((v: any, idx: number) => {
+    if (uniqueHattackVisits.length > 0) {
+      basePlots = uniqueHattackVisits.map((v: any, idx: number) => {
         const plot = v.demoPlot;
         const pProducts = (plot?.demoProducts || []).map((dp: any) => ({
           productId: dp.productId,
@@ -42,13 +54,15 @@ export function useType13ActualState() {
         }));
 
         return {
-          demoPlotId: plot?.id || `plot-${idx}`,
+          demoPlotId: plot?.id || v.demoPlotId || `plot-${idx}`,
           plotName: plot?.name || `แปลงที่ ${idx + 1}`,
           dealerName: plot?.customer?.name || undefined,
+          storeId: plot?.customerId || undefined,
           province: plot?.province || undefined,
           district: plot?.district || undefined,
-          latitude: plot?.latitude ? String(plot.latitude) : "",
-          longitude: plot?.longitude ? String(plot.longitude) : "",
+          latitude: plot?.latitude != null ? String(plot.latitude) : "",
+          longitude: plot?.longitude != null ? String(plot.longitude) : "",
+          isNew: false,
           plannedProducts: pProducts,
           sprayRounds: [],
         };
@@ -58,10 +72,12 @@ export function useType13ActualState() {
         demoPlotId: p.demoPlotId || p.id || `plot-${idx}`,
         plotName: p.name || `แปลงที่ ${idx + 1}`,
         dealerName: p.dealerName || undefined,
+        storeId: p.storeId || undefined,
         province: p.province || undefined,
         district: p.district || undefined,
         latitude: p.latitude ? String(p.latitude) : "",
         longitude: p.longitude ? String(p.longitude) : "",
+        isNew: false,
         plannedProducts: p.products || [],
         sprayRounds: [],
       }));
@@ -73,6 +89,29 @@ export function useType13ActualState() {
         parsedResult?.sprayRounds && parsedResult.sprayRounds.length > 0
           ? parsedResult.sprayRounds
           : (plan as any)?.result?.sprayRounds || [];
+
+      // Account for any plots that exist in rounds but weren't in visits
+      if (existingRounds.length > 0) {
+        const existingPlotIdsInBase = new Set(basePlots.map((p) => p.demoPlotId));
+        const orphanPlotIds = Array.from(
+          new Set(
+            existingRounds
+              .map((r: any) => r.demoPlotId)
+              .filter((id: string) => id && !existingPlotIdsInBase.has(id)),
+          ),
+        );
+
+        orphanPlotIds.forEach((pId) => {
+          basePlots.push({
+            demoPlotId: pId,
+            plotName: `แปลงที่ ${basePlots.length + 1}`,
+            isNew: false,
+            latitude: "",
+            longitude: "",
+            sprayRounds: [],
+          });
+        });
+      }
 
       const plotCoords: any[] =
         parsedResult?.type13PlotsActual && parsedResult.type13PlotsActual.length > 0
@@ -95,8 +134,14 @@ export function useType13ActualState() {
       basePlots = basePlots.map((plot) => {
         // Coords
         const matchedCoord = plotCoords.find((c: any) => c.demoPlotId === plot.demoPlotId);
-        const lat = matchedCoord ? String(matchedCoord.latitude) : plot.latitude;
-        const lng = matchedCoord ? String(matchedCoord.longitude) : plot.longitude;
+        const lat =
+          matchedCoord && matchedCoord.latitude != null && String(matchedCoord.latitude).trim() !== ""
+            ? String(matchedCoord.latitude)
+            : plot.latitude;
+        const lng =
+          matchedCoord && matchedCoord.longitude != null && String(matchedCoord.longitude).trim() !== ""
+            ? String(matchedCoord.longitude)
+            : plot.longitude;
 
         // Rounds
         const plotRounds = existingRounds
@@ -111,13 +156,23 @@ export function useType13ActualState() {
             otherEquipment: r.otherEquipment || null,
             productResponse: r.productResponse || "ปกติ",
             problemDetail: r.problemDetail || null,
-            products: (r.products || []).map((p: any) => ({
-              productId: p.productId,
-              productName: p.productName || p.product?.name || null,
-              actualRate: p.actualRate || "",
-              quantityUsed: Number(p.quantityUsed) || 0,
-              unit: p.unit || p.product?.unit || null,
-            })),
+            products: (r.products && r.products.length > 0)
+              ? r.products.map((p: any) => ({
+                  productId: p.productId,
+                  productName: p.productName || p.product?.name || null,
+                  actualRate: p.actualRate || "",
+                  quantityUsed: Number(p.quantityUsed) || 0,
+                  unit: p.unit || p.product?.unit || null,
+                }))
+              : [
+                  {
+                    productId: "",
+                    productName: null,
+                    actualRate: "",
+                    quantityUsed: 1,
+                    unit: null,
+                  },
+                ],
             externalProducts: (r.externalProducts || []).map((ep: any) => ({
               company: ep.company || "",
               productName: ep.productName || "",
@@ -148,13 +203,23 @@ export function useType13ActualState() {
                   otherEquipment: null,
                   productResponse: "ปกติ",
                   problemDetail: null,
-                  products: (plot.plannedProducts || []).map((pp) => ({
-                    productId: pp.productId,
-                    productName: pp.productName || null,
-                    actualRate: "",
-                    quantityUsed: pp.quantity ? Number(pp.quantity) : 1,
-                    unit: pp.unit || null,
-                  })),
+                  products: (plot.plannedProducts && plot.plannedProducts.length > 0)
+                    ? plot.plannedProducts.map((pp) => ({
+                        productId: pp.productId,
+                        productName: pp.productName || null,
+                        actualRate: "",
+                        quantityUsed: pp.quantity ? Number(pp.quantity) : 1,
+                        unit: pp.unit || null,
+                      }))
+                    : [
+                        {
+                          productId: "",
+                          productName: null,
+                          actualRate: "",
+                          quantityUsed: 1,
+                          unit: null,
+                        },
+                      ],
                   externalProducts: [],
                   attachments: [],
                 },
@@ -167,6 +232,42 @@ export function useType13ActualState() {
           sprayRounds: defaultRounds,
         };
       });
+    }
+
+    if (basePlots.length === 0) {
+      const defaultTempId = `temp-plot-${Date.now()}-1`;
+      basePlots = [
+        {
+          demoPlotId: defaultTempId,
+          plotName: "แปลงที่ 1",
+          isNew: true,
+          latitude: "",
+          longitude: "",
+          sprayRounds: [
+            {
+              demoPlotId: defaultTempId,
+              roundNumber: 1,
+              sprayDate: new Date().toISOString().split("T")[0],
+              sprayMethod: "SINGLE",
+              sprayEquipment: "เครื่องยนต์พ่นยา",
+              otherEquipment: null,
+              productResponse: "ปกติ",
+              problemDetail: null,
+              products: [
+                {
+                  productId: "",
+                  productName: null,
+                  actualRate: "",
+                  quantityUsed: 1,
+                  unit: null,
+                },
+              ],
+              externalProducts: [],
+              attachments: [],
+            },
+          ],
+        },
+      ];
     }
 
     setPlotsActual(basePlots);
@@ -185,6 +286,67 @@ export function useType13ActualState() {
     [],
   );
 
+  // Add new plot on-the-fly (max 10)
+  const addPlot = useCallback(() => {
+    setPlotsActual((prev) => {
+      if (prev.length >= 10) return prev;
+      const nextPlotNum = prev.length + 1;
+      const tempId = `temp-plot-${Date.now()}-${nextPlotNum}`;
+      const newPlot: Type13PlotActualState = {
+        demoPlotId: tempId,
+        plotName: `แปลงที่ ${nextPlotNum}`,
+        isNew: true,
+        latitude: "",
+        longitude: "",
+        sprayRounds: [
+          {
+            demoPlotId: tempId,
+            roundNumber: 1,
+            sprayDate: new Date().toISOString().split("T")[0],
+            sprayMethod: "SINGLE",
+            sprayEquipment: "เครื่องยนต์พ่นยา",
+            otherEquipment: null,
+            productResponse: "ปกติ",
+            problemDetail: null,
+            products: [
+              {
+                productId: "",
+                productName: null,
+                actualRate: "",
+                quantityUsed: 1,
+                unit: null,
+              },
+            ],
+            externalProducts: [],
+            attachments: [],
+          },
+        ],
+      };
+      return [...prev, newPlot];
+    });
+  }, []);
+
+  // Remove plot (minimum 1 plot must remain)
+  const removePlot = useCallback((plotIndex: number) => {
+    setPlotsActual((prev) => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((_, idx) => idx !== plotIndex);
+    });
+  }, []);
+
+  // Update plot info (name, storeId, province, district)
+  const updatePlotInfo = useCallback(
+    (plotIndex: number, field: keyof Type13PlotActualState, value: any) => {
+      setPlotsActual((prev) => {
+        const next = [...prev];
+        if (!next[plotIndex]) return prev;
+        next[plotIndex] = { ...next[plotIndex], [field]: value };
+        return next;
+      });
+    },
+    [],
+  );
+
   // Add spraying round to a plot
   const addSprayingRound = useCallback(
     (plotIndex: number) => {
@@ -193,6 +355,25 @@ export function useType13ActualState() {
         const plot = next[plotIndex];
         const currentRounds = plot.sprayRounds || [];
         const nextRoundNumber = currentRounds.length + 1;
+
+        const defaultProducts =
+          plot.plannedProducts && plot.plannedProducts.length > 0
+            ? (plot.plannedProducts || []).map((pp) => ({
+                productId: pp.productId,
+                productName: pp.productName || null,
+                actualRate: "",
+                quantityUsed: pp.quantity ? Number(pp.quantity) : 1,
+                unit: pp.unit || null,
+              }))
+            : [
+                {
+                  productId: "",
+                  productName: null,
+                  actualRate: "",
+                  quantityUsed: 1,
+                  unit: null,
+                },
+              ];
 
         const newRound: Type13SprayingRound = {
           demoPlotId: plot.demoPlotId,
@@ -203,13 +384,7 @@ export function useType13ActualState() {
           otherEquipment: null,
           productResponse: "ปกติ",
           problemDetail: null,
-          products: (plot.plannedProducts || []).map((pp) => ({
-            productId: pp.productId,
-            productName: pp.productName || null,
-            actualRate: "",
-            quantityUsed: pp.quantity ? Number(pp.quantity) : 1,
-            unit: pp.unit || null,
-          })),
+          products: defaultProducts,
           externalProducts: [],
           attachments: [],
         };
@@ -278,6 +453,54 @@ export function useType13ActualState() {
         const prods = [...round.products];
         prods[productIndex] = { ...prods[productIndex], [field]: value };
         round.products = prods;
+        rounds[roundIndex] = round;
+        next[plotIndex] = { ...plot, sprayRounds: rounds };
+        return next;
+      });
+    },
+    [],
+  );
+
+  // Add a product line to a spray round
+  const addRoundProduct = useCallback(
+    (
+      plotIndex: number,
+      roundIndex: number,
+      product?: { productId?: string; productName?: string; unit?: string },
+    ) => {
+      setPlotsActual((prev) => {
+        const next = [...prev];
+        const plot = next[plotIndex];
+        const rounds = [...plot.sprayRounds];
+        const round = { ...rounds[roundIndex] };
+        round.products = [
+          ...(round.products || []),
+          {
+            productId: product?.productId || "",
+            productName: product?.productName || null,
+            actualRate: "",
+            quantityUsed: 1,
+            unit: product?.unit || null,
+          },
+        ];
+        rounds[roundIndex] = round;
+        next[plotIndex] = { ...plot, sprayRounds: rounds };
+        return next;
+      });
+    },
+    [],
+  );
+
+  // Remove a product line from a spray round
+  const removeRoundProduct = useCallback(
+    (plotIndex: number, roundIndex: number, productIndex: number) => {
+      setPlotsActual((prev) => {
+        const next = [...prev];
+        const plot = next[plotIndex];
+        const rounds = [...plot.sprayRounds];
+        const round = { ...rounds[roundIndex] };
+        if (round.products.length <= 1) return prev;
+        round.products = round.products.filter((_, idx) => idx !== productIndex);
         rounds[roundIndex] = round;
         next[plotIndex] = { ...plot, sprayRounds: rounds };
         return next;
@@ -397,14 +620,29 @@ export function useType13ActualState() {
 
   // Build payload for submission
   const buildType13ActualPayload = useCallback(() => {
-    // 1. Plot GPS coordinates
-    const type13PlotsActual = plotsActual.map((p) => ({
-      demoPlotId: p.demoPlotId,
-      latitude: p.latitude.trim(),
-      longitude: p.longitude.trim(),
-    }));
+    // 1. Existing plot GPS coordinates
+    const type13PlotsActual = plotsActual
+      .filter((p) => !p.isNew && !p.demoPlotId.startsWith("temp-"))
+      .map((p) => ({
+        demoPlotId: p.demoPlotId,
+        latitude: p.latitude.trim(),
+        longitude: p.longitude.trim(),
+      }));
 
-    // 2. Flatten all spray rounds across all plots
+    // 2. New plots on-the-fly metadata and GPS
+    const type13NewPlots = plotsActual
+      .filter((p) => p.isNew || p.demoPlotId.startsWith("temp-"))
+      .map((p) => ({
+        clientPlotId: p.demoPlotId,
+        plotName: p.plotName.trim() || `แปลงแฮตแทค`,
+        storeId: p.storeId || null,
+        province: p.province || null,
+        district: p.district || null,
+        latitude: p.latitude.trim(),
+        longitude: p.longitude.trim(),
+      }));
+
+    // 3. Flatten all spray rounds across all plots
     const sprayRounds: any[] = [];
     plotsActual.forEach((plot) => {
       (plot.sprayRounds || []).forEach((round) => {
@@ -448,6 +686,7 @@ export function useType13ActualState() {
 
     return {
       type13PlotsActual,
+      type13NewPlots,
       sprayRounds,
     };
   }, [plotsActual]);
@@ -456,11 +695,16 @@ export function useType13ActualState() {
     plotsActual,
     setPlotsActual,
     hydrate,
+    addPlot,
+    removePlot,
+    updatePlotInfo,
     updatePlotCoordinates,
     addSprayingRound,
     removeSprayingRound,
     updateRoundField,
     updateRoundProduct,
+    addRoundProduct,
+    removeRoundProduct,
     addExternalProduct,
     removeExternalProduct,
     updateExternalProduct,

@@ -696,6 +696,7 @@ export async function recordActivityResultUseCase(
     issueResults: parsed.data.issueResults as any,
     sprayRounds: parsed.data.sprayRounds as any,
     type13PlotsActual: (parsed.data as any).type13PlotsActual,
+    type13NewPlots: (parsed.data as any).type13NewPlots,
     attachments: parsed.data.attachments as any,
   };
 

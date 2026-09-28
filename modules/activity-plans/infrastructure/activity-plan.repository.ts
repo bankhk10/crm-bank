@@ -2209,6 +2209,15 @@ export type CreateActivityResultInput = {
     latitude: number | string | Prisma.Decimal;
     longitude: number | string | Prisma.Decimal;
   }>;
+  type13NewPlots?: Array<{
+    clientPlotId: string;
+    plotName: string;
+    storeId?: string | null;
+    province?: string | null;
+    district?: string | null;
+    latitude: number | string | Prisma.Decimal;
+    longitude: number | string | Prisma.Decimal;
+  }>;
   followupResults?: Array<{
     storeId?: string | null;
     productId: string;
@@ -2580,17 +2589,155 @@ export async function upsertActivityResult(
       }
     }
 
-    // 6.2. Sync TYPE_7B Multiple Spraying Rounds
+    // 6.1. Process TYPE_13 Plots (Existing Update & New On-the-fly Discovery)
+    const clientPlotMap = new Map<string, string>();
+
+    // 6.1.1. Validate and Create New TYPE_13 Plots discovered on-the-fly
+    if (input.type13NewPlots && input.type13NewPlots.length > 0) {
+      // Validate uniqueness of clientPlotId
+      const seenClientPlotIds = new Set<string>();
+      for (const newPlotItem of input.type13NewPlots) {
+        if (!newPlotItem.clientPlotId) {
+          throw new Error("TYPE_13 new plot missing clientPlotId");
+        }
+        if (seenClientPlotIds.has(newPlotItem.clientPlotId)) {
+          throw new Error(
+            `Duplicate clientPlotId: ${newPlotItem.clientPlotId}`,
+          );
+        }
+        seenClientPlotIds.add(newPlotItem.clientPlotId);
+
+        // Latitude & Longitude validation
+        const latNum = Number(newPlotItem.latitude);
+        const lngNum = Number(newPlotItem.longitude);
+        if (
+          newPlotItem.latitude == null ||
+          newPlotItem.longitude == null ||
+          newPlotItem.latitude === "" ||
+          newPlotItem.longitude === "" ||
+          isNaN(latNum) ||
+          isNaN(lngNum)
+        ) {
+          throw new Error(
+            `New plot "${newPlotItem.plotName || newPlotItem.clientPlotId}" has invalid or missing coordinates`,
+          );
+        }
+      }
+
+      // Fetch activity plan for employeeId and startDate
+      const plan = await tx.activityPlan.findUnique({
+        where: { id: input.activityPlanId },
+        select: {
+          employeeId: true,
+          startDate: true,
+        },
+      });
+
+      for (let i = 0; i < input.type13NewPlots.length; i++) {
+        const item = input.type13NewPlots[i];
+        const code = await generateDemoPlotCode(
+          tx,
+          plan?.startDate ? new Date(plan.startDate) : new Date(),
+          0,
+        );
+
+        const createdPlot = await tx.demoPlot.create({
+          data: {
+            code,
+            name:
+              item.plotName && item.plotName.trim()
+                ? item.plotName.trim()
+                : "แปลงแฮตแทค",
+            ownerName: "",
+            customerId:
+              item.storeId && item.storeId.trim() ? item.storeId.trim() : null,
+            employeeId: plan?.employeeId || "emp-system",
+            province:
+              item.province && item.province.trim()
+                ? item.province.trim()
+                : null,
+            district:
+              item.district && item.district.trim()
+                ? item.district.trim()
+                : null,
+            plotType: "HATTACK",
+            startDate: plan?.startDate || input.actualStartDate || new Date(),
+            latitude: new Prisma.Decimal(item.latitude),
+            longitude: new Prisma.Decimal(item.longitude),
+            status: DemoPlotStatus.IN_PROGRESS,
+          },
+        });
+
+        // DemoPlotVisit creation for new plot
+        const existingVisit = await tx.demoPlotVisit.findFirst({
+          where: {
+            demoPlotId: createdPlot.id,
+            activityPlanId: input.activityPlanId,
+          },
+        });
+        if (!existingVisit) {
+          await tx.demoPlotVisit.create({
+            data: {
+              demoPlotId: createdPlot.id,
+              activityPlanId: input.activityPlanId,
+              workTypeCode: "TYPE_13",
+              visitNumber: 1,
+              visitDate: input.actualStartDate || plan?.startDate || new Date(),
+            },
+          });
+        }
+
+        clientPlotMap.set(item.clientPlotId, createdPlot.id);
+      }
+    }
+
+    // 6.1.2. Update Existing TYPE_13 Plots GPS coordinates
+    if (input.type13PlotsActual && input.type13PlotsActual.length > 0) {
+      for (const plotItem of input.type13PlotsActual) {
+        if (
+          plotItem.demoPlotId &&
+          plotItem.latitude != null &&
+          plotItem.longitude != null
+        ) {
+          await tx.demoPlot.update({
+            where: { id: plotItem.demoPlotId },
+            data: {
+              latitude: new Prisma.Decimal(plotItem.latitude),
+              longitude: new Prisma.Decimal(plotItem.longitude),
+            },
+          });
+        }
+      }
+    }
+
+    // 6.2. Sync Spraying Rounds (TYPE_7B / TYPE_13)
     if (input.sprayRounds !== undefined) {
       await tx.activityResultSprayRound.deleteMany({
         where: { activityResultId: result.id },
       });
       if (input.sprayRounds.length > 0) {
         for (const round of input.sprayRounds) {
+          let targetPlotId = round.demoPlotId;
+          if (targetPlotId && clientPlotMap.has(targetPlotId)) {
+            targetPlotId = clientPlotMap.get(targetPlotId)!;
+          } else if (
+            targetPlotId &&
+            (targetPlotId.startsWith("temp-") ||
+              targetPlotId.startsWith("client-"))
+          ) {
+            throw new Error(
+              `Unable to resolve TYPE_13 client plot ID: ${targetPlotId}`,
+            );
+          }
+
+          if (!targetPlotId || !targetPlotId.trim()) {
+            throw new Error("Spray round is missing demoPlotId");
+          }
+
           const createdRound = await tx.activityResultSprayRound.create({
             data: {
               activityResultId: result.id,
-              demoPlotId: round.demoPlotId,
+              demoPlotId: targetPlotId,
               roundNumber: round.roundNumber,
               sprayDate: round.sprayDate
                 ? new Date(round.sprayDate)
@@ -2630,7 +2777,7 @@ export async function upsertActivityResult(
                 activityPlanId: input.activityPlanId,
                 activityResultId: result.id,
                 workTypeCode: round.workTypeCode || "TYPE_7B",
-                demoPlotId: round.demoPlotId,
+                demoPlotId: targetPlotId,
                 sprayRoundId: createdRound.id,
                 category: AttachmentCategory.PLOT,
                 fileUrl: att.fileUrl,
@@ -2640,25 +2787,6 @@ export async function upsertActivityResult(
               })),
             });
           }
-        }
-      }
-    }
-
-    // 6.3. Sync TYPE_13 Demo Plots GPS Coordinates
-    if (input.type13PlotsActual && input.type13PlotsActual.length > 0) {
-      for (const plotItem of input.type13PlotsActual) {
-        if (
-          plotItem.demoPlotId &&
-          plotItem.latitude != null &&
-          plotItem.longitude != null
-        ) {
-          await tx.demoPlot.update({
-            where: { id: plotItem.demoPlotId },
-            data: {
-              latitude: new Prisma.Decimal(plotItem.latitude),
-              longitude: new Prisma.Decimal(plotItem.longitude),
-            },
-          });
         }
       }
     }
@@ -2941,12 +3069,26 @@ export async function upsertActivityResult(
               att.issueItemId && validIssueItemIds.has(att.issueItemId)
                 ? att.issueItemId
                 : null,
-            demoPlotId:
-              att.demoPlotId ||
-              (att.workTypeCode === "TYPE_7A" ||
-              att.workTypeCode === "ทำแปลงสาธิต"
-                ? createdDemoPlotId
-                : null),
+            demoPlotId: (() => {
+              let plotId = att.demoPlotId;
+              if (plotId && clientPlotMap.has(plotId)) {
+                plotId = clientPlotMap.get(plotId);
+              } else if (
+                plotId &&
+                (plotId.startsWith("temp-") || plotId.startsWith("client-"))
+              ) {
+                throw new Error(
+                  `Unable to resolve attachment client plot ID: ${plotId}`,
+                );
+              }
+              return (
+                plotId ||
+                (att.workTypeCode === "TYPE_7A" ||
+                att.workTypeCode === "ทำแปลงสาธิต"
+                  ? createdDemoPlotId
+                  : null)
+              );
+            })(),
             category: att.category ?? AttachmentCategory.GENERAL,
             fileUrl: att.fileUrl,
             fileName: att.fileName,

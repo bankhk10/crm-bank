@@ -281,6 +281,7 @@ export default function ActivityPlanDetailView({
 
     const rawRounds = (plan.result as any)?.sprayRounds || [];
 
+    const seenCoordPlotIds = new Set<string>();
     const type13PlotsActual = (plan.demoPlotVisits || [])
       .filter(
         (v: any) =>
@@ -293,7 +294,12 @@ export default function ActivityPlanDetailView({
         longitude:
           v.demoPlot?.longitude != null ? String(v.demoPlot.longitude) : "",
       }))
-      .filter((c: any) => c.latitude || c.longitude);
+      .filter((c: any) => {
+        if (!c.latitude && !c.longitude) return false;
+        if (seenCoordPlotIds.has(c.demoPlotId)) return false;
+        seenCoordPlotIds.add(c.demoPlotId);
+        return true;
+      });
 
     const sprayRounds = rawRounds.map((sr: any) => ({
       id: sr.id,

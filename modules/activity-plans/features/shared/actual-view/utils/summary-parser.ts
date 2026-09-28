@@ -1394,6 +1394,15 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }));
   }
 
+  // Type 13 Plots Actual (GPS coordinates)
+  if (resData.type13PlotsActual && Array.isArray(resData.type13PlotsActual)) {
+    result.type13PlotsActual = resData.type13PlotsActual.map((item: any) => ({
+      demoPlotId: item.demoPlotId,
+      latitude: item.latitude != null ? String(item.latitude) : "",
+      longitude: item.longitude != null ? String(item.longitude) : "",
+    }));
+  }
+
   // Structured Type 11 Stock Results from DB (Normalized Source of Truth)
   if (
     resData.stockResults &&

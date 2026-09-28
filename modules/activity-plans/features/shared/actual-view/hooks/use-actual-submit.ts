@@ -310,6 +310,9 @@ export function useActualSubmit({
             ...(t13Payload.type13PlotsActual?.length
               ? { type13PlotsActual: t13Payload.type13PlotsActual }
               : {}),
+            ...(t13Payload.type13NewPlots?.length
+              ? { type13NewPlots: t13Payload.type13NewPlots }
+              : {}),
           };
           const res = await recordActivityResultAction(id, combinedPayload);
           if (!res.success) {

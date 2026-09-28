@@ -706,6 +706,19 @@ export const activityResultSchema = z
         }),
       )
       .optional(),
+    type13NewPlots: z
+      .array(
+        z.object({
+          clientPlotId: z.string(),
+          plotName: z.string(),
+          storeId: z.string().optional().nullable(),
+          province: z.string().optional().nullable(),
+          district: z.string().optional().nullable(),
+          latitude: z.union([z.string(), z.number()]),
+          longitude: z.union([z.string(), z.number()]),
+        }),
+      )
+      .optional(),
     attachments: z
       .array(
         z.object({

@@ -636,6 +636,9 @@ export function UnplannedForm({
         ...(t13Payload.type13PlotsActual?.length
           ? { type13PlotsActual: t13Payload.type13PlotsActual }
           : {}),
+        ...(t13Payload.type13NewPlots?.length
+          ? { type13NewPlots: t13Payload.type13NewPlots }
+          : {}),
       };
 
       // 6. Final Update / Submit to Database

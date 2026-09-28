@@ -58,11 +58,16 @@ export function Type13Actual({
 }: Type13ActualProps) {
   const {
     plotsActual,
+    addPlot,
+    removePlot,
+    updatePlotInfo,
     updatePlotCoordinates,
     addSprayingRound,
     removeSprayingRound,
     updateRoundField,
     updateRoundProduct,
+    addRoundProduct,
+    removeRoundProduct,
     addExternalProduct,
     removeExternalProduct,
     updateExternalProduct,
@@ -76,6 +81,31 @@ export function Type13Actual({
   if (!isVisible || plotsActual.length === 0) return null;
 
   const currentPlot = plotsActual[activePlotIdx] || plotsActual[0];
+
+  // Handler: Add new plot on-the-fly
+  const handleAddPlot = () => {
+    if (plotsActual.length >= 10 || readonly) return;
+    addPlot();
+    setActivePlotIdx(plotsActual.length);
+  };
+
+  // Handler: Remove plot (only new plots)
+  const handleRemovePlot = (idxToRemove: number) => {
+    if (plotsActual.length <= 1 || readonly) return;
+    const targetPlot = plotsActual[idxToRemove];
+    if (!targetPlot?.isNew) return;
+    if (
+      !window.confirm(
+        `คุณต้องการลบ "${targetPlot.plotName || `แปลงที่ ${idxToRemove + 1}`}" ใช่หรือไม่?`,
+      )
+    ) {
+      return;
+    }
+    removePlot(idxToRemove);
+    if (activePlotIdx >= idxToRemove && activePlotIdx > 0) {
+      setActivePlotIdx(activePlotIdx - 1);
+    }
+  };
 
   // Handler: Get GPS Location
   const handleGetCurrentLocation = () => {
@@ -164,24 +194,39 @@ export function Type13Actual({
         </div>
       </div>
 
-      {/* Plot Tabs (if multiple plots) */}
-      {plotsActual.length > 1 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      {/* Plot Tabs & Add Plot Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+        {/* Plot Tabs List */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
           {plotsActual.map((plot, pIdx) => {
             const isActive = pIdx === activePlotIdx;
-            const hasGps = Boolean(plot.latitude && plot.longitude);
+            const hasGps = Boolean(plot.latitude?.trim() && plot.longitude?.trim());
+            const displayName =
+              plot.plotName || (plot.isNew ? `แปลงใหม่ #${pIdx + 1}` : `แปลงที่ ${pIdx + 1}`);
+
             return (
               <button
                 key={plot.demoPlotId || pIdx}
                 type="button"
                 onClick={() => setActivePlotIdx(pIdx)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 border ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 border shrink-0 ${
                   isActive
                     ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
                     : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                 }`}
               >
-                <span>{plot.plotName || `แปลงที่ ${pIdx + 1}`}</span>
+                <span>{displayName}</span>
+                {plot.isNew && (
+                  <span
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-normal ${
+                      isActive
+                        ? "bg-emerald-700 text-emerald-100"
+                        : "bg-purple-100 text-purple-700"
+                    }`}
+                  >
+                    ใหม่
+                  </span>
+                )}
                 {hasGps && (
                   <CheckCircle2
                     className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-emerald-600"}`}
@@ -191,17 +236,101 @@ export function Type13Actual({
             );
           })}
         </div>
-      )}
+
+        {/* Add Plot Button */}
+        {!readonly && (
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAddPlot}
+              disabled={plotsActual.length >= 10}
+              className="h-9 px-3 rounded-xl text-xs font-semibold text-emerald-700 border-dashed border-emerald-300 bg-emerald-50/60 hover:bg-emerald-100 flex items-center gap-1.5 transition-all shadow-2xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>เพิ่มแปลงแฮตแทคใหม่</span>
+            </Button>
+            {plotsActual.length >= 10 && (
+              <span className="text-[11px] text-amber-600 font-medium">
+                (ครบ 10 แปลงแล้ว)
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Current Plot Card */}
       <div className="bg-slate-50/60 rounded-2xl border border-slate-200/80 p-4 sm:p-5 space-y-6">
-        {/* Plot Info Banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white rounded-xl border border-slate-200">
-          <div>
-            <h5 className="font-bold text-slate-800 text-sm">
-              {currentPlot.plotName}
-            </h5>
-            <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
+        {/* Plot Info Banner / Form */}
+        <div className="p-3.5 sm:p-4 bg-white rounded-xl border border-slate-200 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-slate-800 text-sm">
+                {currentPlot.isNew ? "แปลงพบหน้างาน (สร้างใหม่)" : currentPlot.plotName}
+              </span>
+              <span
+                className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                  currentPlot.isNew
+                    ? "bg-purple-100 text-purple-800"
+                    : "bg-slate-100 text-slate-600"
+                }`}
+              >
+                {currentPlot.isNew ? "แปลงใหม่" : "แปลงตามแผน"}
+              </span>
+            </div>
+
+            {/* Remove button for new plots */}
+            {currentPlot.isNew && !readonly && plotsActual.length > 1 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => handleRemovePlot(activePlotIdx)}
+                className="h-8 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg flex items-center gap-1.5 self-start sm:self-auto"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>ลบแปลงนี้</span>
+              </Button>
+            )}
+          </div>
+
+          {currentPlot.isNew ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  ชื่อแปลง / รายละเอียดแปลง <span className="text-slate-400 font-normal">(ถ้ามี)</span>
+                </label>
+                <input
+                  type="text"
+                  value={currentPlot.plotName}
+                  onChange={(e) =>
+                    updatePlotInfo(activePlotIdx, "plotName", e.target.value)
+                  }
+                  placeholder="เช่น แปลงริมคลอง 7, แปลงหญ้าข้างสวนนายเอ"
+                  disabled={readonly}
+                  className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  หมายเหตุ / จุดสังเกต <span className="text-slate-400 font-normal">(ถ้ามี)</span>
+                </label>
+                <input
+                  type="text"
+                  value={currentPlot.district || ""}
+                  onChange={(e) =>
+                    updatePlotInfo(activePlotIdx, "district", e.target.value)
+                  }
+                  placeholder="เช่น ใกล้สะพานไม้, จุดสังเกต"
+                  disabled={readonly}
+                  className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-xs text-slate-500">
               {currentPlot.dealerName && (
                 <span>ร้านค้า Dealer: {currentPlot.dealerName}</span>
               )}
@@ -209,7 +338,7 @@ export function Type13Actual({
                 <span>• {currentPlot.district || ""}, {currentPlot.province}</span>
               )}
             </div>
-          </div>
+          )}
         </div>
 
         {/* GPS Section (Required) */}
@@ -482,19 +611,59 @@ export function Type13Actual({
 
                 {/* Company Products in Round */}
                 <div className="pt-2 border-t border-slate-100 space-y-2">
-                  <label className="block text-xs font-bold text-slate-700">
-                    รายการสินค้าของบริษัทและอัตราที่ใช้จริง:
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-slate-700">
+                      รายการสินค้าของบริษัทและอัตราที่ใช้จริง:
+                    </label>
+                    {!readonly && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addRoundProduct(activePlotIdx, rIdx)}
+                        className="h-7 px-2 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50 rounded-lg flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>เพิ่มสินค้า</span>
+                      </Button>
+                    )}
+                  </div>
+
                   <div className="space-y-2">
                     {round.products.map((prod, pIdx) => (
                       <div
                         key={prod.productId || pIdx}
                         className="grid grid-cols-12 gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-200 items-center text-xs"
                       >
-                        <div className="col-span-4 font-medium text-slate-800 truncate">
-                          {prod.productName || "สินค้าไม่ระบุชื่อ"}
+                        <div className="col-span-12 sm:col-span-5">
+                          {currentPlot.isNew || !prod.productId ? (
+                            <FormCombobox
+                              id={`product-${activePlotIdx}-${rIdx}-${pIdx}`}
+                              label=""
+                              value={prod.productId || ""}
+                              onChange={(val) => {
+                                const selected = products.find((p) => p.id === val);
+                                updateRoundProduct(activePlotIdx, rIdx, pIdx, "productId", val);
+                                if (selected) {
+                                  updateRoundProduct(activePlotIdx, rIdx, pIdx, "productName", selected.name);
+                                  if (selected.unit) {
+                                    updateRoundProduct(activePlotIdx, rIdx, pIdx, "unit", selected.unit);
+                                  }
+                                }
+                              }}
+                              options={productOptions}
+                              placeholder="เลือกสินค้า..."
+                              disabled={readonly}
+                              triggerClassName="h-8 min-h-[32px] text-xs bg-white"
+                            />
+                          ) : (
+                            <div className="font-medium text-slate-800 truncate">
+                              {prod.productName || "สินค้าไม่ระบุชื่อ"}
+                            </div>
+                          )}
                         </div>
-                        <div className="col-span-4">
+
+                        <div className="col-span-6 sm:col-span-4">
                           <input
                             type="text"
                             value={prod.actualRate}
@@ -506,7 +675,8 @@ export function Type13Actual({
                             className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
                           />
                         </div>
-                        <div className="col-span-4 flex items-center gap-1.5">
+
+                        <div className="col-span-6 sm:col-span-3 flex items-center gap-1.5">
                           <input
                             type="number"
                             min={0}
@@ -515,12 +685,22 @@ export function Type13Actual({
                               updateRoundProduct(activePlotIdx, rIdx, pIdx, "quantityUsed", e.target.value)
                             }
                             disabled={readonly}
-                            placeholder="จำนวนที่ใช้"
+                            placeholder="จำนวน"
                             className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
                           />
                           <span className="text-[11px] text-slate-500 whitespace-nowrap">
                             {prod.unit || "หน่วย"}
                           </span>
+                          {!readonly && round.products.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeRoundProduct(activePlotIdx, rIdx, pIdx)}
+                              className="text-slate-400 hover:text-red-500 p-1 shrink-0"
+                              title="ลบสินค้ารายการนี้"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
