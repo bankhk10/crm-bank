@@ -167,6 +167,7 @@ export default function ActivityPlanEditView({ id }: Props) {
             marketingItems: plan.marketingItems || [],
             promotionItems: plan.promotionItems || [],
             tour: plan.tour || null,
+            demoPlotVisits: plan.demoPlotVisits || [],
             demoPlotId:
               (plan as any).demoPlotVisits?.[0]?.demoPlotId ||
               (plan as any).demoPlotId ||
