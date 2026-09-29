@@ -26,7 +26,12 @@ import type { useType13ActualState } from "./use-type13-actual-state";
 export interface Type13ActualProps {
   isVisible?: boolean;
   actualState: ReturnType<typeof useType13ActualState>;
-  products: Array<{ id: string; name: string; unit?: string | null; productCode?: string | null }>;
+  products: Array<{
+    id: string;
+    name: string;
+    unit?: string | null;
+    productCode?: string | null;
+  }>;
   readonly?: boolean;
 }
 
@@ -205,9 +210,12 @@ export function Type13Actual({
         <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
           {plotsActual.map((plot, pIdx) => {
             const isActive = pIdx === activePlotIdx;
-            const hasGps = Boolean(plot.latitude?.trim() && plot.longitude?.trim());
+            const hasGps = Boolean(
+              plot.latitude?.trim() && plot.longitude?.trim(),
+            );
             const displayName =
-              plot.plotName || (plot.isNew ? `แปลงใหม่ #${pIdx + 1}` : `แปลงที่ ${pIdx + 1}`);
+              plot.plotName ||
+              (plot.isNew ? `แปลงใหม่ #${pIdx + 1}` : `แปลงที่ ${pIdx + 1}`);
 
             return (
               <button
@@ -272,7 +280,9 @@ export function Type13Actual({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="font-bold text-slate-800 text-sm">
-                {currentPlot.isNew ? "แปลงพบหน้างาน (สร้างใหม่)" : currentPlot.plotName}
+                {currentPlot.isNew
+                  ? "แปลงพบหน้างาน (สร้างใหม่)"
+                  : currentPlot.plotName}
               </span>
               <span
                 className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
@@ -304,7 +314,8 @@ export function Type13Actual({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-100">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  ชื่อแปลง / รายละเอียดแปลง <span className="text-slate-400 font-normal">(ถ้ามี)</span>
+                  ชื่อแปลง / รายละเอียดแปลง{" "}
+                  <span className="text-slate-400 font-normal">(ถ้ามี)</span>
                 </label>
                 <input
                   type="text"
@@ -320,7 +331,8 @@ export function Type13Actual({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  หมายเหตุ / จุดสังเกต <span className="text-slate-400 font-normal">(ถ้ามี)</span>
+                  หมายเหตุ / จุดสังเกต{" "}
+                  <span className="text-slate-400 font-normal">(ถ้ามี)</span>
                 </label>
                 <input
                   type="text"
@@ -340,7 +352,9 @@ export function Type13Actual({
                 <span>ร้านค้า Dealer: {currentPlot.dealerName}</span>
               )}
               {currentPlot.province && (
-                <span>• {currentPlot.district || ""}, {currentPlot.province}</span>
+                <span>
+                  • {currentPlot.district || ""}, {currentPlot.province}
+                </span>
               )}
             </div>
           )}
@@ -352,7 +366,8 @@ export function Type13Actual({
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-emerald-600" />
               <h6 className="font-bold text-xs text-slate-800">
-                พิกัด GPS ของแปลง <span className="text-red-500">* (บังคับระบุ)</span>
+                พิกัด GPS ของแปลง{" "}
+                <span className="text-red-500">* (บังคับระบุ)</span>
               </h6>
             </div>
 
@@ -365,8 +380,12 @@ export function Type13Actual({
                 disabled={gpsLoading}
                 className="h-8 px-2.5 text-xs text-emerald-700 border-emerald-200 hover:bg-emerald-50 rounded-lg flex items-center gap-1.5"
               >
-                <Compass className={`w-3.5 h-3.5 ${gpsLoading ? "animate-spin" : ""}`} />
-                <span>{gpsLoading ? "กำลังดึงพิกัด..." : "ดึงตำแหน่งปัจจุบัน (GPS)"}</span>
+                <Compass
+                  className={`w-3.5 h-3.5 ${gpsLoading ? "animate-spin" : ""}`}
+                />
+                <span>
+                  {gpsLoading ? "กำลังดึงพิกัด..." : "ดึงตำแหน่งปัจจุบัน (GPS)"}
+                </span>
               </Button>
             )}
           </div>
@@ -380,7 +399,11 @@ export function Type13Actual({
                 type="text"
                 value={currentPlot.latitude}
                 onChange={(e) =>
-                  updatePlotCoordinates(activePlotIdx, e.target.value, currentPlot.longitude)
+                  updatePlotCoordinates(
+                    activePlotIdx,
+                    e.target.value,
+                    currentPlot.longitude,
+                  )
                 }
                 disabled={readonly}
                 placeholder="เช่น 13.756331"
@@ -396,7 +419,11 @@ export function Type13Actual({
                 type="text"
                 value={currentPlot.longitude}
                 onChange={(e) =>
-                  updatePlotCoordinates(activePlotIdx, currentPlot.latitude, e.target.value)
+                  updatePlotCoordinates(
+                    activePlotIdx,
+                    currentPlot.latitude,
+                    e.target.value,
+                  )
                 }
                 disabled={readonly}
                 placeholder="เช่น 100.501765"
@@ -408,7 +435,10 @@ export function Type13Actual({
           {!currentPlot.latitude || !currentPlot.longitude ? (
             <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-200">
               <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
-              <span>จำเป็นต้องระบุพิกัด Latitude และ Longitude ให้ครบถ้วนก่อนบันทึกผลงาน</span>
+              <span>
+                จำเป็นต้องระบุพิกัด Latitude และ Longitude
+                ให้ครบถ้วนก่อนบันทึกผลงาน
+              </span>
             </div>
           ) : (
             <div className="flex items-center gap-2 text-xs text-emerald-600">
@@ -494,11 +524,18 @@ export function Type13Actual({
                       type="date"
                       value={
                         round.sprayDate
-                          ? new Date(round.sprayDate).toISOString().split("T")[0]
+                          ? new Date(round.sprayDate)
+                              .toISOString()
+                              .split("T")[0]
                           : ""
                       }
                       onChange={(e) =>
-                        updateRoundField(activePlotIdx, rIdx, "sprayDate", e.target.value)
+                        updateRoundField(
+                          activePlotIdx,
+                          rIdx,
+                          "sprayDate",
+                          e.target.value,
+                        )
                       }
                       disabled={readonly}
                       className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
@@ -514,7 +551,12 @@ export function Type13Actual({
                       <button
                         type="button"
                         onClick={() =>
-                          updateRoundField(activePlotIdx, rIdx, "sprayMethod", "SINGLE")
+                          updateRoundField(
+                            activePlotIdx,
+                            rIdx,
+                            "sprayMethod",
+                            "SINGLE",
+                          )
                         }
                         disabled={readonly}
                         className={`rounded-lg text-xs font-semibold transition-all border ${
@@ -528,7 +570,12 @@ export function Type13Actual({
                       <button
                         type="button"
                         onClick={() =>
-                          updateRoundField(activePlotIdx, rIdx, "sprayMethod", "TANK_MIXED")
+                          updateRoundField(
+                            activePlotIdx,
+                            rIdx,
+                            "sprayMethod",
+                            "TANK_MIXED",
+                          )
                         }
                         disabled={readonly}
                         className={`rounded-lg text-xs font-semibold transition-all border ${
@@ -551,7 +598,12 @@ export function Type13Actual({
                       triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
                       value={round.sprayEquipment || ""}
                       onChange={(val) =>
-                        updateRoundField(activePlotIdx, rIdx, "sprayEquipment", val)
+                        updateRoundField(
+                          activePlotIdx,
+                          rIdx,
+                          "sprayEquipment",
+                          val,
+                        )
                       }
                       options={SPRAY_EQUIPMENT_OPTIONS}
                       placeholder="เลือกอุปกรณ์..."
@@ -569,7 +621,12 @@ export function Type13Actual({
                         type="text"
                         value={round.otherEquipment || ""}
                         onChange={(e) =>
-                          updateRoundField(activePlotIdx, rIdx, "otherEquipment", e.target.value)
+                          updateRoundField(
+                            activePlotIdx,
+                            rIdx,
+                            "otherEquipment",
+                            e.target.value,
+                          )
                         }
                         disabled={readonly}
                         placeholder="ระบุชื่ออุปกรณ์..."
@@ -587,7 +644,12 @@ export function Type13Actual({
                       triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
                       value={round.productResponse || ""}
                       onChange={(val) =>
-                        updateRoundField(activePlotIdx, rIdx, "productResponse", val)
+                        updateRoundField(
+                          activePlotIdx,
+                          rIdx,
+                          "productResponse",
+                          val,
+                        )
                       }
                       options={PRODUCT_RESPONSE_OPTIONS}
                       placeholder="เลือกผลหลังฉีด..."
@@ -605,7 +667,12 @@ export function Type13Actual({
                       type="text"
                       value={round.problemDetail || ""}
                       onChange={(e) =>
-                        updateRoundField(activePlotIdx, rIdx, "problemDetail", e.target.value)
+                        updateRoundField(
+                          activePlotIdx,
+                          rIdx,
+                          "problemDetail",
+                          e.target.value,
+                        )
                       }
                       disabled={readonly}
                       placeholder="เช่น ใบเหลืองเล็กน้อย หรือ ยาละลายช้า..."
@@ -643,7 +710,7 @@ export function Type13Actual({
                     {round.products.map((prod, pIdx) => {
                       const isWithdrawn = Boolean(
                         prod.drugWithdrawalItemId ||
-                          (prod.withdrawnQuantity != null && !prod.isAdditional),
+                        (prod.withdrawnQuantity != null && !prod.isAdditional),
                       );
 
                       return (
@@ -671,7 +738,8 @@ export function Type13Actual({
                                 <div className="flex items-center gap-2 flex-1 max-w-md flex-wrap sm:flex-nowrap">
                                   {readonly ? (
                                     <span className="font-bold text-slate-800 text-xs sm:text-sm">
-                                      {prod.productName || "สินค้าเพิ่มเติม (ไม่ระบุ)"}
+                                      {prod.productName ||
+                                        "สินค้าเพิ่มเติม (ไม่ระบุ)"}
                                     </span>
                                   ) : (
                                     <div className="w-full sm:w-64">
@@ -680,12 +748,32 @@ export function Type13Actual({
                                         label=""
                                         value={prod.productId || ""}
                                         onChange={(val) => {
-                                          const selected = products.find((p) => p.id === val);
-                                          updateRoundProduct(activePlotIdx, rIdx, pIdx, "productId", val);
+                                          const selected = products.find(
+                                            (p) => p.id === val,
+                                          );
+                                          updateRoundProduct(
+                                            activePlotIdx,
+                                            rIdx,
+                                            pIdx,
+                                            "productId",
+                                            val,
+                                          );
                                           if (selected) {
-                                            updateRoundProduct(activePlotIdx, rIdx, pIdx, "productName", selected.name);
+                                            updateRoundProduct(
+                                              activePlotIdx,
+                                              rIdx,
+                                              pIdx,
+                                              "productName",
+                                              selected.name,
+                                            );
                                             if (selected.unit) {
-                                              updateRoundProduct(activePlotIdx, rIdx, pIdx, "unit", selected.unit);
+                                              updateRoundProduct(
+                                                activePlotIdx,
+                                                rIdx,
+                                                pIdx,
+                                                "unit",
+                                                selected.unit,
+                                              );
                                             }
                                           }
                                         }}
@@ -706,16 +794,27 @@ export function Type13Actual({
                             </div>
 
                             <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                              {isWithdrawn && prod.withdrawnQuantity != null && (
-                                <span className="text-xs text-slate-600 bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs">
-                                  จำนวนที่เบิก: <strong className="text-emerald-700 font-bold">{prod.withdrawnQuantity}</strong> {prod.unit || "หน่วย"}
-                                </span>
-                              )}
+                              {isWithdrawn &&
+                                prod.withdrawnQuantity != null && (
+                                  <span className="text-xs text-slate-600 bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs">
+                                    จำนวนที่เบิก:{" "}
+                                    <strong className="text-emerald-700 font-bold">
+                                      {prod.withdrawnQuantity}
+                                    </strong>{" "}
+                                    {prod.unit || "หน่วย"}
+                                  </span>
+                                )}
 
                               {!readonly && round.products.length > 1 && (
                                 <button
                                   type="button"
-                                  onClick={() => removeRoundProduct(activePlotIdx, rIdx, pIdx)}
+                                  onClick={() =>
+                                    removeRoundProduct(
+                                      activePlotIdx,
+                                      rIdx,
+                                      pIdx,
+                                    )
+                                  }
                                   className="text-slate-400 hover:text-red-500 p-1 rounded-md hover:bg-white transition-colors"
                                   title="ลบสินค้ารายการนี้ออกจากรอบ"
                                 >
@@ -730,7 +829,8 @@ export function Type13Actual({
                             {/* จำนวนที่ใช้จริง */}
                             <div className="sm:col-span-3">
                               <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                                จำนวนที่ใช้จริง <span className="text-red-500">*</span>
+                                จำนวนที่ใช้จริง{" "}
+                                <span className="text-red-500">*</span>
                               </label>
                               <div className="flex items-center gap-1.5">
                                 <input
@@ -744,7 +844,9 @@ export function Type13Actual({
                                       rIdx,
                                       pIdx,
                                       "quantityUsed",
-                                      e.target.value === "" ? "" : parseFloat(e.target.value) || 0,
+                                      e.target.value === ""
+                                        ? ""
+                                        : parseFloat(e.target.value) || 0,
                                     )
                                   }
                                   disabled={readonly}
@@ -760,7 +862,8 @@ export function Type13Actual({
                             {/* อัตราการใช้ */}
                             <div className="sm:col-span-4">
                               <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                                อัตราการใช้ <span className="text-red-500">*</span>
+                                อัตราการใช้{" "}
+                                <span className="text-red-500">*</span>
                               </label>
                               <input
                                 type="text"
@@ -779,29 +882,6 @@ export function Type13Actual({
                                 className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
                               />
                             </div>
-
-                            {/* รายละเอียด */}
-                            <div className="sm:col-span-5">
-                              <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                                รายละเอียด <span className="text-slate-400 font-normal">(ถ้ามี)</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={prod.detail || ""}
-                                onChange={(e) =>
-                                  updateRoundProduct(
-                                    activePlotIdx,
-                                    rIdx,
-                                    pIdx,
-                                    "detail",
-                                    e.target.value,
-                                  )
-                                }
-                                disabled={readonly}
-                                placeholder="ระบุรายละเอียดการใช้ / ข้อสังเกต..."
-                                className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                              />
-                            </div>
                           </div>
                         </div>
                       );
@@ -815,14 +895,18 @@ export function Type13Actual({
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-bold text-indigo-800 flex items-center gap-1.5">
                         <Beaker className="w-3.5 h-3.5 text-indigo-600" />
-                        <span>สารเคมีภายนอกที่นำมาผสมถัง (External Chemicals):</span>
+                        <span>
+                          สารเคมีภายนอกที่นำมาผสมถัง (External Chemicals):
+                        </span>
                       </label>
                       {!readonly && (
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => addExternalProduct(activePlotIdx, rIdx)}
+                          onClick={() =>
+                            addExternalProduct(activePlotIdx, rIdx)
+                          }
                           className="h-7 px-2 text-xs text-indigo-600 border-indigo-200 hover:bg-indigo-50 rounded-lg flex items-center gap-1"
                         >
                           <Plus className="w-3 h-3" />
@@ -833,7 +917,8 @@ export function Type13Actual({
 
                     {(round.externalProducts || []).length === 0 ? (
                       <p className="text-[11px] text-slate-400 italic py-1">
-                        ยังไม่มีรายการสารเคมีภายนอก กดปุ่มเพิ่มเพื่อระบุสารที่นำมาผสมถัง
+                        ยังไม่มีรายการสารเคมีภายนอก
+                        กดปุ่มเพิ่มเพื่อระบุสารที่นำมาผสมถัง
                       </p>
                     ) : (
                       <div className="space-y-2">
@@ -847,7 +932,13 @@ export function Type13Actual({
                                 type="text"
                                 value={ext.company}
                                 onChange={(e) =>
-                                  updateExternalProduct(activePlotIdx, rIdx, eIdx, "company", e.target.value)
+                                  updateExternalProduct(
+                                    activePlotIdx,
+                                    rIdx,
+                                    eIdx,
+                                    "company",
+                                    e.target.value,
+                                  )
                                 }
                                 disabled={readonly}
                                 placeholder="บริษัทผู้ผลิต"
@@ -859,7 +950,13 @@ export function Type13Actual({
                                 type="text"
                                 value={ext.productName}
                                 onChange={(e) =>
-                                  updateExternalProduct(activePlotIdx, rIdx, eIdx, "productName", e.target.value)
+                                  updateExternalProduct(
+                                    activePlotIdx,
+                                    rIdx,
+                                    eIdx,
+                                    "productName",
+                                    e.target.value,
+                                  )
                                 }
                                 disabled={readonly}
                                 placeholder="ชื่อสารเคมี/ตัวยา"
@@ -873,7 +970,13 @@ export function Type13Actual({
                                 triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-md"
                                 value={ext.formula}
                                 onChange={(val) =>
-                                  updateExternalProduct(activePlotIdx, rIdx, eIdx, "formula", val)
+                                  updateExternalProduct(
+                                    activePlotIdx,
+                                    rIdx,
+                                    eIdx,
+                                    "formula",
+                                    val,
+                                  )
                                 }
                                 options={FORMULA_OPTIONS}
                                 placeholder="สูตร..."
@@ -885,7 +988,13 @@ export function Type13Actual({
                                 type="text"
                                 value={ext.applicationRate}
                                 onChange={(e) =>
-                                  updateExternalProduct(activePlotIdx, rIdx, eIdx, "applicationRate", e.target.value)
+                                  updateExternalProduct(
+                                    activePlotIdx,
+                                    rIdx,
+                                    eIdx,
+                                    "applicationRate",
+                                    e.target.value,
+                                  )
                                 }
                                 disabled={readonly}
                                 placeholder="อัตราการใช้"
@@ -897,7 +1006,11 @@ export function Type13Actual({
                                 <button
                                   type="button"
                                   onClick={() =>
-                                    removeExternalProduct(activePlotIdx, rIdx, eIdx)
+                                    removeExternalProduct(
+                                      activePlotIdx,
+                                      rIdx,
+                                      eIdx,
+                                    )
                                   }
                                   className="p-1 text-slate-400 hover:text-rose-500 rounded"
                                 >
@@ -958,7 +1071,9 @@ export function Type13Actual({
                           {!readonly && (
                             <button
                               type="button"
-                              onClick={() => removeRoundAttachment(activePlotIdx, rIdx, aIdx)}
+                              onClick={() =>
+                                removeRoundAttachment(activePlotIdx, rIdx, aIdx)
+                              }
                               className="absolute top-1.5 right-1.5 p-1 bg-rose-600 text-white rounded-md opacity-90 hover:opacity-100 transition-opacity shadow-xs"
                               title="ลบรูปนี้"
                             >
