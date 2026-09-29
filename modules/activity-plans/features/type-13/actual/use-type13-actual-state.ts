@@ -1022,11 +1022,12 @@ export function useType13ActualState() {
   // Build payload for submission
   const buildType13ActualPayload = useCallback(
     (targetPlots: Type13PlotActualState[] = plotsActual) => {
-      // 1. Existing plot GPS coordinates
+      // 1. Existing plot GPS coordinates and Plot Name
       const type13PlotsActual = targetPlots
         .filter((p) => !p.isNew && !p.demoPlotId.startsWith("temp-"))
         .map((p) => ({
           demoPlotId: p.demoPlotId,
+          plotName: p.plotName.trim() || undefined,
           latitude: p.latitude.trim(),
           longitude: p.longitude.trim(),
         }));

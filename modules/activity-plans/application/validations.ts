@@ -195,7 +195,7 @@ export const type13PlotItemSchema = z
   .object({
     id: z.string(),
     demoPlotId: z.string().optional().nullable(),
-    name: z.string().min(1, "กรุณาระบุชื่อแปลง"),
+    name: z.string().optional().default(""),
     storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),
     ownerName: z.string().optional().nullable(),
     province: z.string().min(1, "กรุณาเลือกจังหวัด"),
@@ -209,7 +209,7 @@ export const type13PlotItemSchema = z
       if (!data.withdrawalItems || data.withdrawalItems.length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `กรุณาระบุรายการยาที่ต้องการเบิกอย่างน้อย 1 รายการสำหรับแปลง "${data.name}"`,
+          message: `กรุณาระบุรายการยาที่ต้องการเบิกอย่างน้อย 1 รายการสำหรับแปลง "${data.name || "นี้"}"`,
           path: ["withdrawalItems"],
         });
       }

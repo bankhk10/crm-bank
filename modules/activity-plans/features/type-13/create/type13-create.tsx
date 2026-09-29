@@ -84,7 +84,7 @@ export function Type13Create({
     const nextPlotNumber = plots.length + 1;
     const newPlot: Type13PlotItem = {
       id: `temp-${Date.now()}-${nextPlotNumber}`,
-      name: `แปลงแฮตแทค ${nextPlotNumber}`,
+      name: "",
       storeId: "",
       ownerName: "",
       province: "",
@@ -279,7 +279,7 @@ export function Type13Create({
                   </div>
                   <div>
                     <h5 className="font-bold text-slate-800 text-sm">
-                      {plot.name || `แปลงที่ ${plotIdx + 1}`}
+                      แปลงที่ {plotIdx + 1}
                     </h5>
                   </div>
                 </div>
@@ -298,25 +298,10 @@ export function Type13Create({
                 )}
               </div>
 
-              {/* Form Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5">
-                {/* ชื่อแปลง */}
-                <div className="md:col-span-6">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    ชื่อแปลง <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={plot.name}
-                    onChange={(e) => handleUpdatePlot(plotIdx, "name", e.target.value)}
-                    disabled={readonly}
-                    placeholder="เช่น แปลงนายสมชาย หรือ แปลงทุเรียนโซน A"
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                  />
-                </div>
-
+              {/* Form Grid: ร้านค้า Dealer, จังหวัด, อำเภอ */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                 {/* ร้านค้า Dealer */}
-                <div className="md:col-span-6">
+                <div>
                   <FormCombobox
                     id={`type13-dealer-${plotIdx}`}
                     label="ร้านค้า Dealer"
@@ -334,7 +319,7 @@ export function Type13Create({
                 </div>
 
                 {/* จังหวัด */}
-                <div className="md:col-span-6">
+                <div>
                   <FormCombobox
                     id={`type13-prov-${plotIdx}`}
                     label="จังหวัด"
@@ -352,7 +337,7 @@ export function Type13Create({
                 </div>
 
                 {/* อำเภอ */}
-                <div className="md:col-span-6">
+                <div>
                   <FormCombobox
                     id={`type13-dist-${plotIdx}`}
                     label="อำเภอ"

@@ -450,9 +450,11 @@ export function Type13Actual({
                       {plotIdx + 1}
                     </div>
                     <span className="font-bold text-slate-800 text-sm">
-                      {plot.isNew
-                        ? `แปลงพบหน้างาน (สร้างใหม่) #${plotIdx + 1}`
-                        : plotDisplayName}
+                      {plot.plotName?.trim()
+                        ? plot.plotName
+                        : plot.isNew
+                          ? `แปลงพบหน้างาน #${plotIdx + 1}`
+                          : `แปลงที่ ${plotIdx + 1}`}
                     </span>
                     <span
                       className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
@@ -480,58 +482,70 @@ export function Type13Actual({
                   )}
                 </div>
 
-                {plot.isNew ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-100">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        ชื่อแปลง / รายละเอียดแปลง{" "}
-                        <span className="text-slate-400 font-normal">
-                          (ถ้ามี)
-                        </span>
-                      </label>
-                      <input
-                        type="text"
-                        value={plot.plotName}
-                        onChange={(e) =>
-                          updatePlotInfo(plotIdx, "plotName", e.target.value)
-                        }
-                        placeholder="เช่น แปลงริมคลอง 7, แปลงหญ้าข้างสวนนายเอ"
-                        disabled={readonly}
-                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                      />
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 border-t border-slate-100">
+                  {/* ชื่อแปลง (กรอก/แก้ไขได้ทุกแปลง) */}
+                  <div className="sm:col-span-6">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      ชื่อแปลง <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={plot.plotName}
+                      onChange={(e) =>
+                        updatePlotInfo(plotIdx, "plotName", e.target.value)
+                      }
+                      placeholder="เช่น แปลงนายสมชาย หรือ แปลงทุเรียนโซน A"
+                      disabled={readonly}
+                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
+                    />
+                  </div>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        หมายเหตุ / จุดสังเกต{" "}
-                        <span className="text-slate-400 font-normal">
-                          (ถ้ามี)
-                        </span>
-                      </label>
-                      <input
-                        type="text"
-                        value={plot.district || ""}
-                        onChange={(e) =>
-                          updatePlotInfo(plotIdx, "district", e.target.value)
-                        }
-                        placeholder="เช่น ใกล้สะพานไม้, จุดสังเกต"
-                        disabled={readonly}
-                        className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
-                    {plot.dealerName && (
-                      <span>ร้านค้า Dealer: {plot.dealerName}</span>
+                  {/* ข้อมูลร้านค้า / หมายเหตุ */}
+                  <div className="sm:col-span-6">
+                    {plot.isNew ? (
+                      <>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          หมายเหตุ / จุดสังเกต{" "}
+                          <span className="text-slate-400 font-normal">
+                            (ถ้ามี)
+                          </span>
+                        </label>
+                        <input
+                          type="text"
+                          value={plot.district || ""}
+                          onChange={(e) =>
+                            updatePlotInfo(plotIdx, "district", e.target.value)
+                          }
+                          placeholder="เช่น ใกล้สะพานไม้, จุดสังเกต"
+                          disabled={readonly}
+                          className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                        />
+                      </>
+                    ) : (
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">
+                          ร้านค้า Dealer ตามแผน
+                        </label>
+                        <div className="h-9 px-3 rounded-lg border border-slate-200 bg-slate-50/80 text-xs text-slate-700 flex items-center gap-1.5 truncate">
+                          {plot.dealerName ? (
+                            <>
+                              <span className="font-semibold text-slate-800 truncate">
+                                {plot.dealerName}
+                              </span>
+                              {plot.province && (
+                                <span className="text-slate-500 text-[11px] shrink-0">
+                                  ({plot.district ? `${plot.district}, ` : ""}{plot.province})
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            <span className="text-slate-400">ไม่ระบุร้านค้า</span>
+                          )}
+                        </div>
+                      </div>
                     )}
-                    {plot.province && (
-                      <span>
-                        • {plot.district || ""}, {plot.province}
-                      </span>
-                    )}
                   </div>
-                )}
+                </div>
               </div>
 
               {/* GPS Section (Required) */}

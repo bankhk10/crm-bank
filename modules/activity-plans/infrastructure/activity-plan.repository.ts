@@ -1085,7 +1085,7 @@ export async function createActivityPlan(
             const plot = await tx.demoPlot.create({
               data: {
                 code,
-                name: plotItem.name,
+                name: plotItem.name?.trim() || `แปลงแฮตแทค ${i + 1}`,
                 ownerName: plotItem.ownerName || "",
                 customerId: plotItem.storeId || null,
                 employeeId: input.employeeId,
@@ -1103,6 +1103,8 @@ export async function createActivityPlan(
             if (plotItem.name) {
               createdType13PlotMap.set(plotItem.name, plot.id);
             }
+            createdType13PlotMap.set(`แปลงที่ ${i + 1}`, plot.id);
+            createdType13PlotMap.set(`แปลงแฮตแทค ${i + 1}`, plot.id);
 
             await tx.demoPlotVisit.create({
               data: {
@@ -1754,7 +1756,9 @@ export async function updateActivityPlan(
             await tx.demoPlot.update({
               where: { id: plotId },
               data: {
-                name: plotItem.name,
+                ...(plotItem.name && plotItem.name.trim() !== ""
+                  ? { name: plotItem.name.trim() }
+                  : {}),
                 ownerName: plotItem.ownerName || "",
                 customerId: plotItem.storeId || null,
                 province: plotItem.province,
@@ -1773,7 +1777,7 @@ export async function updateActivityPlan(
             const newPlot = await tx.demoPlot.create({
               data: {
                 code,
-                name: plotItem.name,
+                name: plotItem.name?.trim() || `แปลงแฮตแทค ${i + 1}`,
                 ownerName: plotItem.ownerName || "",
                 customerId: plotItem.storeId || null,
                 employeeId: updatedPlan.employeeId,
@@ -2439,6 +2443,7 @@ export type CreateActivityResultInput = {
   }>;
   type13PlotsActual?: Array<{
     demoPlotId: string;
+    plotName?: string | null;
     latitude: number | string | Prisma.Decimal;
     longitude: number | string | Prisma.Decimal;
   }>;
@@ -2924,21 +2929,29 @@ export async function upsertActivityResult(
       }
     }
 
-    // 6.1.2. Update Existing TYPE_13 Plots GPS coordinates
+    // 6.1.2. Update Existing TYPE_13 Plots GPS coordinates & Plot Name
     if (input.type13PlotsActual && input.type13PlotsActual.length > 0) {
       for (const plotItem of input.type13PlotsActual) {
-        if (
-          plotItem.demoPlotId &&
-          plotItem.latitude != null &&
-          plotItem.longitude != null
-        ) {
-          await tx.demoPlot.update({
-            where: { id: plotItem.demoPlotId },
-            data: {
-              latitude: new Prisma.Decimal(plotItem.latitude),
-              longitude: new Prisma.Decimal(plotItem.longitude),
-            },
-          });
+        if (plotItem.demoPlotId) {
+          const updateData: any = {};
+          if (
+            plotItem.latitude != null &&
+            plotItem.latitude !== "" &&
+            plotItem.longitude != null &&
+            plotItem.longitude !== ""
+          ) {
+            updateData.latitude = new Prisma.Decimal(plotItem.latitude);
+            updateData.longitude = new Prisma.Decimal(plotItem.longitude);
+          }
+          if (plotItem.plotName && plotItem.plotName.trim() !== "") {
+            updateData.name = plotItem.plotName.trim();
+          }
+          if (Object.keys(updateData).length > 0) {
+            await tx.demoPlot.update({
+              where: { id: plotItem.demoPlotId },
+              data: updateData,
+            });
+          }
         }
       }
     }

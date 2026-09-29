@@ -261,9 +261,14 @@ export function useActualSubmit({
             const currentPlots = cleanT13Plots || typeHooks.type13.plotsActual;
             for (let i = 0; i < currentPlots.length; i++) {
               const p = currentPlots[i];
+              if (!p.plotName?.trim()) {
+                setFormError(`กรุณาระบุชื่อแปลง (แปลงที่ ${i + 1})`);
+                setIsSubmitting(false);
+                return;
+              }
               if (!p.latitude?.trim() || !p.longitude?.trim()) {
                 setFormError(
-                  `กรุณาระบุพิกัด Latitude และ Longitude ให้ครบถ้วน (${p.plotName || `แปลงที่ ${i + 1}`})`,
+                  `กรุณาระบุพิกัด Latitude และ Longitude ให้ครบถ้วน (${p.plotName})`,
                 );
                 setIsSubmitting(false);
                 return;
