@@ -343,12 +343,22 @@ export function useType13ActualState() {
       });
     }
 
-    // 3. Hydrate after-spray attachments for each plot
-    const allAttachments: any[] = [
+    // 3. Hydrate after-spray attachments for each plot (Deduplicated to prevent React key & data duplication)
+    const rawAttachments: any[] = [
       ...((plan as any)?.result?.attachments || []),
       ...((plan as any)?.attachments || []),
       ...(parsedResult?.attachments || []),
     ];
+
+    const uniqueAttachmentMap = new Map<string, any>();
+    for (const att of rawAttachments) {
+      if (!att) continue;
+      const dedupeKey = att.id ? `id-${att.id}` : `url-${att.fileUrl}`;
+      if (!uniqueAttachmentMap.has(dedupeKey)) {
+        uniqueAttachmentMap.set(dedupeKey, att);
+      }
+    }
+    const allAttachments = Array.from(uniqueAttachmentMap.values());
 
     basePlots = basePlots.map((plot) => {
       const plotAttachments = allAttachments.filter((att: any) => {
@@ -361,15 +371,24 @@ export function useType13ActualState() {
         return isMatchPlot && isAfterSpray && isType13;
       });
 
-      const plotAfterSprayImages: ImageFile[] = plotAttachments
-        .slice(0, 5)
-        .map((att: any) => ({
-          id: att.id || att.fileUrl,
+      const seenUrls = new Set<string>();
+      const plotAfterSprayImages: ImageFile[] = [];
+
+      for (const att of plotAttachments) {
+        const url = att.fileUrl;
+        if (!url || seenUrls.has(url)) continue;
+        seenUrls.add(url);
+
+        plotAfterSprayImages.push({
+          id: att.id || `att-${plot.demoPlotId}-${plotAfterSprayImages.length}`,
           url: att.fileUrl,
           name: att.fileName || "after-spray.jpg",
           size: att.fileSize || 0,
           type: att.mimeType || "image/jpeg",
-        }));
+        });
+
+        if (plotAfterSprayImages.length >= 5) break;
+      }
 
       return {
         ...plot,
@@ -875,11 +894,17 @@ export function useType13ActualState() {
       const plot = next[plotIndex];
       if (!plot) return prev;
       const current = plot.afterSprayImages || [];
+      const existingKeys = new Set(
+        current.map((img) => `${img.name}_${img.size}`),
+      );
+      const uniqueNewFiles = newFiles.filter(
+        (f) => !existingKeys.has(`${f.name}_${f.size}`),
+      );
       const remaining = 5 - current.length;
-      if (remaining <= 0) return prev;
+      if (remaining <= 0 || uniqueNewFiles.length === 0) return prev;
 
-      const toAdd: ImageFile[] = newFiles.slice(0, remaining).map((file) => ({
-        id: `temp-img-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      const toAdd: ImageFile[] = uniqueNewFiles.slice(0, remaining).map((file, idx) => ({
+        id: `temp-img-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 9)}`,
         url: typeof window !== "undefined" ? URL.createObjectURL(file) : "",
         name: file.name,
         size: file.size,
@@ -1042,8 +1067,13 @@ export function useType13ActualState() {
 
       // 4. Attachments (รูปหลังฉีดพ่น - สูงสุด 5 รูปต่อแปลง)
       const attachments: any[] = [];
+      const seenAttachmentKeys = new Set<string>();
       targetPlots.forEach((plot) => {
         (plot.afterSprayImages || []).slice(0, 5).forEach((img) => {
+          if (!img.url) return;
+          const compositeKey = `${plot.demoPlotId}_${img.url}`;
+          if (seenAttachmentKeys.has(compositeKey)) return;
+          seenAttachmentKeys.add(compositeKey);
           attachments.push({
             workTypeCode: "TYPE_13",
             demoPlotId: plot.demoPlotId,

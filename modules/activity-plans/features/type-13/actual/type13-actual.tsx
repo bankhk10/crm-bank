@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   MapPin,
   Compass,
@@ -18,6 +18,8 @@ import {
   Eye,
   X,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { formatBytes } from "@/hooks/use-file-upload";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
 import { EXTERNAL_CHEMICAL_FORMULAS } from "../../../constants";
@@ -87,6 +89,8 @@ export function Type13Actual({
   const [activePlotIdx, setActivePlotIdx] = useState(0);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [previewModalUrl, setPreviewModalUrl] = useState<string | null>(null);
+  const [isDraggingAfterSpray, setIsDraggingAfterSpray] = useState(false);
+  const afterSprayFileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isVisible || plotsActual.length === 0) return null;
 
@@ -1091,7 +1095,8 @@ export function Type13Actual({
         </div>
 
         {/* Section: รูปหลังฉีดพ่น */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-2xs">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4 shadow-2xs">
+          {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2">
               <Camera className="w-4 h-4 text-emerald-600" />
@@ -1103,74 +1108,175 @@ export function Type13Actual({
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
-              {!readonly && (currentPlot.afterSprayImages || []).length < 5 ? (
-                <label className="cursor-pointer h-8 px-3 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1.5 font-medium transition-colors shadow-2xs">
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>เพิ่มรูป</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) {
-                        const filesArray = Array.from(e.target.files);
-                        addPlotAfterSprayImages(activePlotIdx, filesArray);
-                        e.target.value = "";
-                      }
-                    }}
-                    className="hidden"
-                  />
-                </label>
-              ) : (
-                !readonly && (
-                  <span className="text-xs text-amber-600 font-medium bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+            {!readonly && (
+              <div>
+                {(currentPlot.afterSprayImages || []).length < 5 ? (
+                  <button
+                    type="button"
+                    onClick={() => afterSprayFileInputRef.current?.click()}
+                    className="h-8 px-3 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1.5 font-medium transition-colors shadow-2xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>เพิ่มรูป</span>
+                  </button>
+                ) : (
+                  <span className="text-xs text-amber-700 font-medium bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
                     ครบ 5 รูปแล้ว
                   </span>
-                )
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Photo Thumbnails */}
+          {/* Upload Drop Zone (product-form / GalleryUpload style) */}
+          {!readonly && (currentPlot.afterSprayImages || []).length < 5 && (
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDraggingAfterSpray(true);
+              }}
+              onDragLeave={() => setIsDraggingAfterSpray(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDraggingAfterSpray(false);
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                  const filesArray = Array.from(e.dataTransfer.files).filter((f) =>
+                    f.type.startsWith("image/"),
+                  );
+                  if (filesArray.length > 0) {
+                    addPlotAfterSprayImages(activePlotIdx, filesArray);
+                  }
+                }
+              }}
+              onClick={() => afterSprayFileInputRef.current?.click()}
+              className={cn(
+                "border-2 border-dashed rounded-xl p-4 sm:p-5 transition-all cursor-pointer flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left",
+                isDraggingAfterSpray
+                  ? "border-emerald-500 bg-emerald-50/50"
+                  : "border-slate-200 hover:border-emerald-400 bg-slate-50/50 hover:bg-emerald-50/20",
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                  <UploadCloud className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm font-semibold text-slate-800">
+                    คลิกเพื่อเลือกรูปภาพ หรือลากไฟล์มาวางที่นี่
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    รองรับ JPG, PNG, WEBP ขนาดไม่เกิน 20MB (สูงสุด 5 รูปต่อแปลง)
+                  </p>
+                </div>
+              </div>
+
+              <span className="h-8 px-3.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1.5 font-medium transition-colors shadow-2xs shrink-0 pointer-events-none">
+                <Plus className="w-3.5 h-3.5" />
+                <span>เลือกไฟล์รูปภาพ</span>
+              </span>
+
+              <input
+                ref={afterSprayFileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    const filesArray = Array.from(e.target.files);
+                    addPlotAfterSprayImages(activePlotIdx, filesArray);
+                    e.target.value = "";
+                  }
+                }}
+                className="hidden"
+              />
+            </div>
+          )}
+
+          {/* Photo List (Stacked vertically, patterned after type7-demo.tsx) */}
           {(currentPlot.afterSprayImages || []).length === 0 ? (
             <div className="p-6 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-xs text-slate-400">
               ยังไม่มีรูปหลังฉีดพ่นสำหรับแปลงนี้ (สามารถอัปโหลดได้สูงสุด 5 รูป)
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            <div className="space-y-3">
               {(currentPlot.afterSprayImages || []).map((img, imgIdx) => (
                 <div
-                  key={img.id || imgIdx}
-                  className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 shadow-2xs"
+                  key={
+                    img.id
+                      ? `${currentPlot.demoPlotId}-${img.id}`
+                      : `${currentPlot.demoPlotId}-after-spray-${imgIdx}`
+                  }
+                  className="p-3 sm:p-4 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-3 hover:border-emerald-300 transition-all"
                 >
-                  <img
-                    src={img.url}
-                    alt={img.name || `after-spray-${imgIdx + 1}`}
-                    className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
-                    onClick={() => setPreviewModalUrl(img.url)}
-                  />
-                  <div
-                    className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
-                    onClick={() => setPreviewModalUrl(img.url)}
-                  >
-                    <Eye className="w-4 h-4 text-white drop-shadow-md" />
+                  {/* Header bar matching type7-demo */}
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                    <span className="text-xs font-bold flex items-center gap-1.5 text-emerald-800">
+                      <span className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-extrabold bg-emerald-100 text-emerald-700">
+                        {imgIdx + 1}
+                      </span>
+                      รูปที่ {imgIdx + 1}
+                    </span>
+                    {!readonly && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removePlotAfterSprayImage(activePlotIdx, imgIdx)
+                        }
+                        className="p-1 rounded-md text-red-500 hover:bg-red-50 text-xs font-medium flex items-center gap-1 transition-colors"
+                        title="ลบรูปนี้"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>ลบรูป</span>
+                      </button>
+                    )}
                   </div>
-                  {!readonly && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removePlotAfterSprayImage(activePlotIdx, imgIdx);
-                      }}
-                      className="absolute top-1.5 right-1.5 p-1 bg-rose-600 hover:bg-rose-700 text-white rounded-md shadow-xs transition-colors z-10"
-                      title="ลบรูปนี้"
+
+                  {/* Content row: [Preview] [Info] */}
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    {/* Thumbnail Preview */}
+                    <div
+                      className="relative group w-24 h-20 sm:w-32 sm:h-24 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 shrink-0 cursor-pointer"
+                      onClick={() => setPreviewModalUrl(img.url)}
+                      title="คลิกเพื่อดูรูปขนาดเต็ม"
                     >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  )}
-                  <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-0.5 text-[10px] text-white truncate pointer-events-none">
-                    รูป {imgIdx + 1}
+                      <img
+                        src={img.url}
+                        alt={img.name || `after-spray-${imgIdx + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                        <Eye className="w-4 h-4 text-white drop-shadow-md" />
+                      </div>
+                    </div>
+
+                    {/* Photo Information & Status */}
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      <p
+                        className="text-xs sm:text-sm font-semibold text-slate-800 truncate"
+                        title={img.name}
+                      >
+                        {img.name || `รูปที่ ${imgIdx + 1}`}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+                        {img.size > 0 && <span>{formatBytes(img.size)}</span>}
+                        {img.type && (
+                          <span className="uppercase text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 font-medium">
+                            {img.type.replace("image/", "")}
+                          </span>
+                        )}
+                        {img.rawFile ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-full">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            พร้อมบันทึก
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            อัปโหลดแล้ว
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
