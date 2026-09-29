@@ -125,7 +125,7 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
     name: "ติดตามแปลงแฮทแทค",
     shortName: "HattackFollow",
     sortOrder: 15,
-    hasActual: false,
+    hasActual: true,
     requiresApproval: true,
   },
 };
@@ -168,7 +168,12 @@ export function getWorkTypeCode(nameOrCode: string): string {
   if (nameOrCode === "ฉีดแปลงแฮตแทค" || nameOrCode === "TYPE_13") {
     return "TYPE_13";
   }
-  if (nameOrCode === "ติดตามแปลงแฮทแทค" || nameOrCode === "TYPE_14") {
+  if (
+    nameOrCode === "ติดตามแปลงแฮทแทค" ||
+    nameOrCode === "ติดตามแปลงแฮตแทค" ||
+    nameOrCode === "TYPE_14" ||
+    nameOrCode === "TYPE14"
+  ) {
     return "TYPE_14";
   }
   const entry = Object.values(WORK_TYPE_CONFIG).find(
@@ -215,7 +220,12 @@ export function getWorkTypeName(codeOrName: string): string {
   if (codeOrName === "ฉีดแปลงแฮตแทค" || codeOrName === "TYPE_13") {
     return WORK_TYPE_CONFIG.TYPE_13.name;
   }
-  if (codeOrName === "ติดตามแปลงแฮทแทค" || codeOrName === "TYPE_14") {
+  if (
+    codeOrName === "ติดตามแปลงแฮทแทค" ||
+    codeOrName === "ติดตามแปลงแฮตแทค" ||
+    codeOrName === "TYPE_14" ||
+    codeOrName === "TYPE14"
+  ) {
     return WORK_TYPE_CONFIG.TYPE_14.name;
   }
   if (WORK_TYPE_CONFIG[codeOrName]) return WORK_TYPE_CONFIG[codeOrName].name;

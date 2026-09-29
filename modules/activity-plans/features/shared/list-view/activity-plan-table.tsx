@@ -22,7 +22,12 @@ import {
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations } from "../../../types";
 import { ActivityStatusWithOperator } from "../../../ui/activity-status-badge";
-import { WORK_TYPE_CONFIG, getWorkTypeName, ACTIVITY_RESULT_STATUS_LABELS } from "../../../constants";
+import {
+  WORK_TYPE_CONFIG,
+  getWorkTypeName,
+  getWorkTypeCode,
+  ACTIVITY_RESULT_STATUS_LABELS,
+} from "../../../constants";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { ActionButton } from "@/components/custom/action-button";
@@ -267,7 +272,12 @@ export function ActivityPlanTable({
           const hasActualWorkType =
             (item as any).workTypes && (item as any).workTypes.length > 0
               ? (item as any).workTypes.some((wt: any) => {
-                  const code = wt.workTypeCode || wt.activityType?.code;
+                  const raw =
+                    wt.workTypeCode ||
+                    wt.activityType?.code ||
+                    wt.activityType?.name ||
+                    "";
+                  const code = getWorkTypeCode(raw);
                   return code
                     ? WORK_TYPE_CONFIG[code as keyof typeof WORK_TYPE_CONFIG]
                         ?.hasActual
