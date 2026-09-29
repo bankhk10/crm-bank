@@ -21,6 +21,15 @@ import {
 import { cn } from "@/lib/utils";
 import { formatBytes } from "@/hooks/use-file-upload";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import DatePicker from "@/components/custom/DatePicker";
 import { FormCombobox } from "@/components/custom/form-components";
 import { EXTERNAL_CHEMICAL_FORMULAS } from "../../../constants";
 import type {
@@ -707,24 +716,25 @@ export function Type13Actual({
 
                       {/* Round Metadata Grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                        {/* วันที่ฉีดพ่น */}
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-600 mb-1">
-                            วันที่ฉีดพ่น <span className="text-red-500">*</span>
+                        {/* วันที่ปฏิบัติงานจริง */}
+                        <div className="space-y-1.5">
+                          <label className="block text-xs font-bold text-slate-700">
+                            วันที่ปฏิบัติงานจริง <span className="text-rose-500">*</span>
                           </label>
-                          <input
-                            type="date"
+                          <DatePicker
                             value={round.sprayDate}
-                            onChange={(e) =>
+                            onChange={(v) =>
                               updateRoundField(
                                 plotIdx,
                                 rIdx,
                                 "sprayDate",
-                                e.target.value,
+                                v || "",
                               )
                             }
+                            placeholder="เลือกวันที่ปฏิบัติงานจริง"
+                            className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
                             disabled={readonly}
-                            className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                            required
                           />
                         </div>
 
@@ -1223,143 +1233,255 @@ export function Type13Actual({
                         );
                       })()}
 
-                      {/* Tank-mixed External Chemicals Section */}
-                      {round.sprayMethod === "TANK_MIXED" && (
-                        <div className="pt-3 border-t border-slate-100 space-y-2.5">
-                          <div className="flex items-center justify-between">
-                            <label className="block text-xs font-bold text-indigo-800 flex items-center gap-1.5">
-                              <Beaker className="w-3.5 h-3.5 text-indigo-600" />
-                              <span>
-                                สารเคมีภายนอกที่นำมาผสมถัง (External Chemicals):
-                              </span>
-                            </label>
-                            {!readonly && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  addExternalProduct(plotIdx, rIdx)
-                                }
-                                className="h-7 px-2 text-xs text-indigo-600 border-indigo-200 hover:bg-indigo-50 rounded-lg flex items-center gap-1"
-                              >
-                                <Plus className="w-3 h-3" />
-                                <span>เพิ่มสารเคมีผสม</span>
-                              </Button>
+                      {/* สารเคมีภายนอกเมื่อเลือก TANK_MIXED */}
+                      {round.sprayMethod === "TANK_MIXED" && (() => {
+                        const hasExternalChemicals =
+                          (round as any).hasExternalChemicals !== undefined
+                            ? Boolean((round as any).hasExternalChemicals)
+                            : (round.externalProducts &&
+                                round.externalProducts.length > 0);
+
+                        return (
+                          <div className="mt-3 p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  id={`plot-${plotIdx}-round-${round.roundNumber}-external-toggle`}
+                                  checked={Boolean(hasExternalChemicals)}
+                                  onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    updateRoundField(
+                                      plotIdx,
+                                      rIdx,
+                                      "hasExternalChemicals",
+                                      checked,
+                                    );
+                                    if (
+                                      checked &&
+                                      (!round.externalProducts ||
+                                        round.externalProducts.length === 0)
+                                    ) {
+                                      addExternalProduct(plotIdx, rIdx);
+                                    }
+                                  }}
+                                  disabled={readonly}
+                                  className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer"
+                                />
+                                <label
+                                  htmlFor={`plot-${plotIdx}-round-${round.roundNumber}-external-toggle`}
+                                  className="text-xs font-bold text-amber-950 cursor-pointer select-none"
+                                >
+                                  มีสารเคมีภายนอกร่วมด้วย (External Chemicals)
+                                </label>
+                              </div>
+
+                              {hasExternalChemicals &&
+                                (round.externalProducts?.length || 0) < 4 &&
+                                !readonly && (
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={() =>
+                                      addExternalProduct(plotIdx, rIdx)
+                                    }
+                                    className="h-7 text-xs bg-amber-700 hover:bg-amber-800 text-white rounded-lg shadow-xs"
+                                  >
+                                    <Plus className="w-3.5 h-3.5 mr-1" />
+                                    เพิ่มสารเคมี (
+                                    {round.externalProducts?.length || 0}/4)
+                                  </Button>
+                                )}
+                            </div>
+
+                            {hasExternalChemicals && (
+                              <div className="space-y-2.5">
+                                {(round.externalProducts || []).map(
+                                  (ep, eIdx) => (
+                                    <div
+                                      key={eIdx}
+                                      className="p-3 bg-white border border-amber-200 rounded-xl space-y-2 shadow-2xs"
+                                    >
+                                      <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+                                        <span className="text-xs font-bold text-slate-800">
+                                          สารเคมีภายนอก #{eIdx + 1}
+                                        </span>
+                                        {!readonly && (
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              removeExternalProduct(
+                                                plotIdx,
+                                                rIdx,
+                                                eIdx,
+                                              );
+                                              if (
+                                                (round.externalProducts || [])
+                                                  .length <= 1
+                                              ) {
+                                                updateRoundField(
+                                                  plotIdx,
+                                                  rIdx,
+                                                  "hasExternalChemicals",
+                                                  false,
+                                                );
+                                              }
+                                            }}
+                                            className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 transition-colors"
+                                          >
+                                            <Trash2 className="w-3 h-3" />
+                                            ลบ
+                                          </button>
+                                        )}
+                                      </div>
+
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                                        <div>
+                                          <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                            บริษัท *
+                                          </label>
+                                          <Input
+                                            value={ep.company}
+                                            onChange={(e) =>
+                                              updateExternalProduct(
+                                                plotIdx,
+                                                rIdx,
+                                                eIdx,
+                                                "company",
+                                                e.target.value,
+                                              )
+                                            }
+                                            disabled={readonly}
+                                            placeholder="เช่น บริษัท ไบเออร์..."
+                                            className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                            required
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                            ชื่อสินค้า *
+                                          </label>
+                                          <Input
+                                            value={ep.productName}
+                                            onChange={(e) =>
+                                              updateExternalProduct(
+                                                plotIdx,
+                                                rIdx,
+                                                eIdx,
+                                                "productName",
+                                                e.target.value,
+                                              )
+                                            }
+                                            disabled={readonly}
+                                            placeholder="เช่น คอนฟิดอร์..."
+                                            className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                            required
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                            สารออกฤทธิ์
+                                          </label>
+                                          <Input
+                                            value={ep.activeIngredient || ""}
+                                            onChange={(e) =>
+                                              updateExternalProduct(
+                                                plotIdx,
+                                                rIdx,
+                                                eIdx,
+                                                "activeIngredient",
+                                                e.target.value,
+                                              )
+                                            }
+                                            disabled={readonly}
+                                            placeholder="เช่น อิมิดาโคลพริด..."
+                                            className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                            สูตร *
+                                          </label>
+                                          <Select
+                                            value={ep.formula}
+                                            onValueChange={(val) =>
+                                              updateExternalProduct(
+                                                plotIdx,
+                                                rIdx,
+                                                eIdx,
+                                                "formula",
+                                                val,
+                                              )
+                                            }
+                                            disabled={readonly}
+                                          >
+                                            <SelectTrigger className="!h-8 text-xs bg-white border-slate-200 rounded-lg w-full">
+                                              <SelectValue placeholder="เลือกสูตรยา..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              {EXTERNAL_CHEMICAL_FORMULAS.map(
+                                                (f) => (
+                                                  <SelectItem key={f} value={f}>
+                                                    {f}
+                                                  </SelectItem>
+                                                ),
+                                              )}
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                        {ep.formula === "อื่นๆ" && (
+                                          <div>
+                                            <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                              ระบุสูตรยา *
+                                            </label>
+                                            <Input
+                                              value={ep.customFormula || ""}
+                                              onChange={(e) =>
+                                                updateExternalProduct(
+                                                  plotIdx,
+                                                  rIdx,
+                                                  eIdx,
+                                                  "customFormula",
+                                                  e.target.value,
+                                                )
+                                              }
+                                              disabled={readonly}
+                                              placeholder="ระบุสูตรยา..."
+                                              className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                              required
+                                            />
+                                          </div>
+                                        )}
+                                        <div>
+                                          <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                            อัตราการใช้ *
+                                          </label>
+                                          <Input
+                                            value={ep.applicationRate}
+                                            onChange={(e) =>
+                                              updateExternalProduct(
+                                                plotIdx,
+                                                rIdx,
+                                                eIdx,
+                                                "applicationRate",
+                                                e.target.value,
+                                              )
+                                            }
+                                            disabled={readonly}
+                                            placeholder="เช่น 10 ซีซี / น้ำ 20 ลิตร"
+                                            className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                            required
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ),
+                                )}
+                              </div>
                             )}
                           </div>
-
-                          {(round.externalProducts || []).length === 0 ? (
-                            <p className="text-[11px] text-slate-400 italic py-1">
-                              ยังไม่มีรายการสารเคมีภายนอก
-                              กดปุ่มเพิ่มเพื่อระบุสารที่นำมาผสมถัง
-                            </p>
-                          ) : (
-                            <div className="space-y-2">
-                              {(round.externalProducts || []).map(
-                                (ext, eIdx) => (
-                                  <div
-                                    key={eIdx}
-                                    className="p-2.5 bg-indigo-50/40 rounded-xl border border-indigo-100 grid grid-cols-1 sm:grid-cols-12 gap-2 items-center text-xs"
-                                  >
-                                    <div className="sm:col-span-3">
-                                      <input
-                                        type="text"
-                                        value={ext.company}
-                                        onChange={(e) =>
-                                          updateExternalProduct(
-                                            plotIdx,
-                                            rIdx,
-                                            eIdx,
-                                            "company",
-                                            e.target.value,
-                                          )
-                                        }
-                                        disabled={readonly}
-                                        placeholder="บริษัทผู้ผลิต"
-                                        className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs bg-white"
-                                      />
-                                    </div>
-                                    <div className="sm:col-span-3">
-                                      <input
-                                        type="text"
-                                        value={ext.productName}
-                                        onChange={(e) =>
-                                          updateExternalProduct(
-                                            plotIdx,
-                                            rIdx,
-                                            eIdx,
-                                            "productName",
-                                            e.target.value,
-                                          )
-                                        }
-                                        disabled={readonly}
-                                        placeholder="ชื่อสารเคมี/ตัวยา"
-                                        className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs bg-white font-medium"
-                                      />
-                                    </div>
-                                    <div className="sm:col-span-2">
-                                      <FormCombobox
-                                        id={`formula-${plotIdx}-${rIdx}-${eIdx}`}
-                                        label=""
-                                        triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-md"
-                                        value={ext.formula}
-                                        onChange={(val) =>
-                                          updateExternalProduct(
-                                            plotIdx,
-                                            rIdx,
-                                            eIdx,
-                                            "formula",
-                                            val,
-                                          )
-                                        }
-                                        options={FORMULA_OPTIONS}
-                                        placeholder="สูตร..."
-                                        disabled={readonly}
-                                      />
-                                    </div>
-                                    <div className="sm:col-span-3">
-                                      <input
-                                        type="text"
-                                        value={ext.applicationRate}
-                                        onChange={(e) =>
-                                          updateExternalProduct(
-                                            plotIdx,
-                                            rIdx,
-                                            eIdx,
-                                            "applicationRate",
-                                            e.target.value,
-                                          )
-                                        }
-                                        disabled={readonly}
-                                        placeholder="อัตราการใช้"
-                                        className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs bg-white"
-                                      />
-                                    </div>
-                                    {!readonly && (
-                                      <div className="sm:col-span-1 flex justify-center">
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            removeExternalProduct(
-                                              plotIdx,
-                                              rIdx,
-                                              eIdx,
-                                            )
-                                          }
-                                          className="p-1 text-slate-400 hover:text-rose-500 rounded"
-                                        >
-                                          <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                ),
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                        );
+                      })()}
 
                       {/* Before-spray Photos (Max 2 per round) */}
                       <div className="pt-3 border-t border-slate-100 space-y-2">
