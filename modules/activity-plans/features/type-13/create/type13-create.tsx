@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-import { Plus, Trash2, MapPin, Package, Store, AlertCircle, Info, Layers } from "lucide-react";
+import { Plus, Trash2, MapPin, Package, Store, AlertCircle, Info, Layers, Pill } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { FormCombobox } from "@/components/custom/form-components";
-import type { Type13PlotItem, Type13ProductLine } from "../../../application/validations";
+import type { Type13PlotItem, Type13WithdrawalItem } from "../../../application/validations";
 
 export interface Type13CreateProps {
   plots: Type13PlotItem[];
@@ -85,17 +86,12 @@ export function Type13Create({
       id: `temp-${Date.now()}-${nextPlotNumber}`,
       name: `แปลงแฮตแทค ${nextPlotNumber}`,
       storeId: "",
+      ownerName: "",
       province: "",
       district: "",
-      products: [
-        {
-          id: `p-${Date.now()}-1`,
-          productId: "",
-          productName: "",
-          quantity: 1,
-          unit: "",
-        },
-      ],
+      products: [],
+      hasDrugWithdrawal: false,
+      withdrawalItems: [],
     };
     onChange([...plots, newPlot]);
   };
@@ -134,95 +130,99 @@ export function Type13Create({
     onChange(updated);
   };
 
-  // Handler: Add product line to plot
-  const handleAddProductLine = (plotIndex: number) => {
+  // Handler: Toggle Drug Withdrawal for a plot
+  const handleToggleWithdrawal = (plotIndex: number, checked: boolean) => {
     if (readonly) return;
     const updated = [...plots];
-    const currentProducts = updated[plotIndex].products || [];
-    const newLine: Type13ProductLine = {
-      id: `p-${Date.now()}-${currentProducts.length + 1}`,
-      productId: "",
-      productName: "",
-      quantity: 1,
-      unit: "",
-    };
-    updated[plotIndex] = {
-      ...updated[plotIndex],
-      products: [...currentProducts, newLine],
-    };
-    onChange(updated);
-  };
+    const plot = updated[plotIndex];
+    let items = plot.withdrawalItems || [];
 
-  // Handler: Update product line
-  const handleUpdateProductLine = (
-    plotIndex: number,
-    prodIndex: number,
-    field: keyof Type13ProductLine,
-    value: any,
-  ) => {
-    if (readonly) return;
-    const updated = [...plots];
-    const prods = [...(updated[plotIndex].products || [])];
-    const targetProd = { ...prods[prodIndex], [field]: value };
-
-    if (field === "productId" && value) {
-      const matched = products.find((p) => p.id === value);
-      if (matched) {
-        targetProd.productName = matched.name;
-        targetProd.unit = matched.unit || "";
-      }
-    }
-
-    prods[prodIndex] = targetProd;
-    updated[plotIndex] = { ...updated[plotIndex], products: prods };
-    onChange(updated);
-  };
-
-  // Handler: Remove product line
-  const handleRemoveProductLine = (plotIndex: number, prodIndex: number) => {
-    if (readonly) return;
-    const updated = [...plots];
-    const prods = (updated[plotIndex].products || []).filter((_, idx) => idx !== prodIndex);
-    updated[plotIndex] = {
-      ...updated[plotIndex],
-      products: prods.length > 0 ? prods : [
+    if (checked && items.length === 0) {
+      items = [
         {
-          id: `p-${Date.now()}-1`,
+          id: `w-${Date.now()}-1`,
           productId: "",
           productName: "",
           quantity: 1,
           unit: "",
+          sortOrder: 0,
+        },
+      ];
+    }
+
+    updated[plotIndex] = {
+      ...plot,
+      hasDrugWithdrawal: checked,
+      withdrawalItems: items,
+    };
+    onChange(updated);
+  };
+
+  // Handler: Add withdrawal item row to a plot
+  const handleAddWithdrawalItem = (plotIndex: number) => {
+    if (readonly) return;
+    const updated = [...plots];
+    const currentItems = updated[plotIndex].withdrawalItems || [];
+    const newItem: Type13WithdrawalItem = {
+      id: `w-${Date.now()}-${currentItems.length + 1}`,
+      productId: "",
+      productName: "",
+      quantity: 1,
+      unit: "",
+      sortOrder: currentItems.length,
+    };
+    updated[plotIndex] = {
+      ...updated[plotIndex],
+      withdrawalItems: [...currentItems, newItem],
+    };
+    onChange(updated);
+  };
+
+  // Handler: Update withdrawal item row
+  const handleUpdateWithdrawalItem = (
+    plotIndex: number,
+    itemIndex: number,
+    field: keyof Type13WithdrawalItem,
+    value: any,
+  ) => {
+    if (readonly) return;
+    const updated = [...plots];
+    const items = [...(updated[plotIndex].withdrawalItems || [])];
+    const targetItem = { ...items[itemIndex], [field]: value };
+
+    if (field === "productId" && value) {
+      const matched = products.find((p) => p.id === value);
+      if (matched) {
+        targetItem.productName = matched.name;
+        targetItem.unit = matched.unit || "";
+      }
+    }
+
+    items[itemIndex] = targetItem;
+    updated[plotIndex] = { ...updated[plotIndex], withdrawalItems: items };
+    onChange(updated);
+  };
+
+  // Handler: Remove withdrawal item row
+  const handleRemoveWithdrawalItem = (plotIndex: number, itemIndex: number) => {
+    if (readonly) return;
+    const updated = [...plots];
+    const items = (updated[plotIndex].withdrawalItems || []).filter((_, idx) => idx !== itemIndex);
+    updated[plotIndex] = {
+      ...updated[plotIndex],
+      withdrawalItems: items.length > 0 ? items : [
+        {
+          id: `w-${Date.now()}-1`,
+          productId: "",
+          productName: "",
+          quantity: 1,
+          unit: "",
+          sortOrder: 0,
         },
       ],
     };
     onChange(updated);
   };
-
-  // Computed Roll-up across all plots (Architecture Rule 3)
-  const rollUpSummary = useMemo(() => {
-    const map = new Map<string, { productId: string; productName: string; quantity: number; unit?: string }>();
-
-    plots.forEach((plot) => {
-      (plot.products || []).forEach((prod) => {
-        if (!prod.productId && !prod.productName) return;
-        const key = prod.productId || prod.productName || "unknown";
-        const existing = map.get(key);
-        const qty = Number(prod.quantity) || 0;
-        if (existing) {
-          existing.quantity += qty;
-        } else {
-          map.set(key, {
-            productId: prod.productId,
-            productName: prod.productName || "สินค้าไม่ระบุชื่อ",
-            quantity: qty,
-            unit: prod.unit || undefined,
-          });
-        }
-      });
-    });
-
-    return Array.from(map.values());
-  }, [plots]);
 
   return (
     <div className="space-y-6">
@@ -239,7 +239,7 @@ export function Type13Create({
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            ระบุรายละเอียดแปลงแฮตแทค ร้านค้า Dealer และรายการตัวยา/สินค้าที่ใช้ในแต่ละแปลง (สูงสุด 10 แปลง)
+            ระบุรายละเอียดแปลงแฮตแทค ร้านค้า Dealer และการเบิกยาแยกตามแต่ละแปลง (สูงสุด 10 แปลง)
           </p>
         </div>
 
@@ -370,22 +370,30 @@ export function Type13Create({
                 </div>
               </div>
 
-              {/* Products Table */}
-              <div className="mt-4 pt-3 border-t border-slate-100 space-y-2.5">
+              {/* ── Drug Withdrawal Section Inside Each Plot ───────────── */}
+              <div className="mt-4 pt-3.5 border-t border-slate-100 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <Package className="w-4 h-4 text-emerald-600" />
-                    <h6 className="text-xs font-bold text-slate-800">
-                      รายการตัวยา/สินค้าสำหรับแปลงนี้ <span className="text-red-500">*</span>
-                    </h6>
-                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <Checkbox
+                      checked={Boolean(plot.hasDrugWithdrawal)}
+                      onCheckedChange={(checked) =>
+                        handleToggleWithdrawal(plotIdx, Boolean(checked))
+                      }
+                      disabled={readonly}
+                      className="data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+                    />
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <Pill className="w-4 h-4 text-emerald-600" />
+                      <span>มีการเบิกยาสำหรับแปลงนี้</span>
+                    </span>
+                  </label>
 
-                  {!readonly && (
+                  {plot.hasDrugWithdrawal && !readonly && (
                     <Button
                       type="button"
                       size="sm"
-                      onClick={() => handleAddProductLine(plotIdx)}
-                      className="h-7 px-2 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg flex items-center gap-1"
+                      onClick={() => handleAddWithdrawalItem(plotIdx)}
+                      className="h-7 px-2.5 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg flex items-center gap-1"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>เพิ่มตัวยา</span>
@@ -393,129 +401,87 @@ export function Type13Create({
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  {(plot.products || []).map((prod, pIdx) => (
-                    <div
-                      key={prod.id || `p-${plotIdx}-${pIdx}`}
-                      className="grid grid-cols-12 gap-2 p-2 bg-slate-50/70 rounded-xl border border-slate-200/60 items-center"
-                    >
-                      <div className="col-span-1 text-center font-bold text-xs text-slate-400">
-                        {pIdx + 1}
-                      </div>
+                {plot.hasDrugWithdrawal && (
+                  <div className="space-y-2 pt-1">
+                    {/* Header Row for MD+ */}
+                    <div className="hidden sm:grid grid-cols-12 gap-2 px-3 py-1.5 bg-slate-100/80 rounded-lg text-[11px] font-bold text-slate-600">
+                      <div className="col-span-1 text-center">#</div>
+                      <div className="col-span-6">สินค้า (Product Master) *</div>
+                      <div className="col-span-2 text-right">จำนวนที่เบิก *</div>
+                      <div className="col-span-2 text-center">หน่วย</div>
+                      <div className="col-span-1 text-center">ลบ</div>
+                    </div>
 
-                      <div className="col-span-6 sm:col-span-7">
-                        <FormCombobox
-                          id={`prod-combo-${plotIdx}-${pIdx}`}
-                          label=""
-                          triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
-                          value={prod.productId || ""}
-                          onChange={(val) => handleUpdateProductLine(plotIdx, pIdx, "productId", val)}
-                          options={productOptions}
-                          placeholder="เลือกตัวยา/สินค้า..."
-                          searchPlaceholder="ค้นหาสินค้า..."
-                          emptyText="ไม่พบสินค้า"
-                          disabled={readonly}
-                        />
-                      </div>
+                    {(plot.withdrawalItems || []).map((item, itemIdx) => (
+                      <div
+                        key={item.id || `w-${plotIdx}-${itemIdx}`}
+                        className="grid grid-cols-12 gap-2 p-2 bg-slate-50/70 rounded-xl border border-slate-200/60 items-center"
+                      >
+                        <div className="col-span-1 text-center font-bold text-xs text-slate-400">
+                          {itemIdx + 1}
+                        </div>
 
-                      <div className="col-span-4 sm:col-span-3 flex items-center gap-1.5">
-                        <input
-                          type="number"
-                          min={1}
-                          value={prod.quantity ?? ""}
-                          onChange={(e) => {
-                            const val = Math.max(1, parseInt(e.target.value) || 1);
-                            handleUpdateProductLine(plotIdx, pIdx, "quantity", val);
-                          }}
-                          disabled={readonly}
-                          placeholder="จำนวน"
-                          className="w-full h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
-                        />
-                        {prod.unit && (
-                          <span className="text-[11px] text-slate-500 whitespace-nowrap">
-                            {prod.unit}
-                          </span>
+                        {/* Product Master Combobox */}
+                        <div className="col-span-6 sm:col-span-6">
+                          <FormCombobox
+                            id={`dw-prod-${plotIdx}-${itemIdx}`}
+                            label=""
+                            triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
+                            value={item.productId || ""}
+                            onChange={(val) =>
+                              handleUpdateWithdrawalItem(plotIdx, itemIdx, "productId", val)
+                            }
+                            options={productOptions}
+                            placeholder="เลือกตัวยา/สินค้าจาก Master..."
+                            searchPlaceholder="ค้นหาสินค้า..."
+                            emptyText="ไม่พบสินค้า"
+                            disabled={readonly}
+                          />
+                        </div>
+
+                        {/* Quantity (decimal allowed) */}
+                        <div className="col-span-3 sm:col-span-2">
+                          <input
+                            type="number"
+                            step="any"
+                            min={0.01}
+                            value={item.quantity ?? ""}
+                            onChange={(e) => {
+                              const val = e.target.value === "" ? "" : parseFloat(e.target.value);
+                              handleUpdateWithdrawalItem(plotIdx, itemIdx, "quantity", val);
+                            }}
+                            disabled={readonly}
+                            placeholder="จำนวน"
+                            className="w-full h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
+                          />
+                        </div>
+
+                        {/* Unit (read-only auto-filled from Master) */}
+                        <div className="col-span-2 sm:col-span-2 text-center text-xs text-slate-600 font-medium">
+                          {item.unit || "-"}
+                        </div>
+
+                        {/* Remove button */}
+                        {!readonly && (plot.withdrawalItems || []).length > 1 && (
+                          <div className="col-span-1 flex justify-center">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveWithdrawalItem(plotIdx, itemIdx)}
+                              className="p-1 text-slate-400 hover:text-rose-500 hover:bg-white rounded-md transition-colors"
+                              title="ลบตัวยานี้"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         )}
                       </div>
-
-                      {!readonly && (plot.products || []).length > 1 && (
-                        <div className="col-span-1 flex justify-center">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveProductLine(plotIdx, pIdx)}
-                            className="p-1 text-slate-400 hover:text-rose-500 hover:bg-white rounded-md transition-colors"
-                            title="ลบตัวยานี้"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           );
         })}
-      </div>
-
-      {/* Roll-up Summary Card (Architecture Rule 3) */}
-      <div className="p-4 sm:p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
-          <div className="flex items-center gap-2">
-            <Package className="w-4 h-4 text-emerald-600" />
-            <h5 className="font-bold text-slate-800 text-xs sm:text-sm">
-              สรุปรายการสินค้ารวมทุกแปลง (Computed Roll-up)
-            </h5>
-          </div>
-          <span className="text-xs font-semibold text-slate-500">
-            รวม {plots.length} แปลง
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-          <Info className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-          <span>
-            รายการสินค้านี้คำนวณอัตโนมัติจากทุกแปลง (Source of Truth คือสินค้าในแต่ละแปลง) ผู้ใช้ไม่สามารถแก้ไขตารางสรุปนี้โดยตรง
-          </span>
-        </div>
-
-        {rollUpSummary.length === 0 ? (
-          <p className="text-xs text-slate-400 italic text-center py-2">
-            ยังไม่มีรายการสินค้าที่เลือก
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-500 font-medium">
-                  <th className="py-2 px-3 w-12 text-center">ลำดับ</th>
-                  <th className="py-2 px-3">ชื่อสินค้า/ตัวยา</th>
-                  <th className="py-2 px-3 text-right">จำนวนรวม</th>
-                  <th className="py-2 px-3 w-20">หน่วย</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {rollUpSummary.map((item, idx) => (
-                  <tr key={item.productId || idx} className="hover:bg-white/60">
-                    <td className="py-2 px-3 text-center text-slate-400 font-medium">
-                      {idx + 1}
-                    </td>
-                    <td className="py-2 px-3 font-semibold text-slate-700">
-                      {item.productName}
-                    </td>
-                    <td className="py-2 px-3 text-right font-bold text-emerald-600">
-                      {item.quantity.toLocaleString()}
-                    </td>
-                    <td className="py-2 px-3 text-slate-500">
-                      {item.unit || "-"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
     </div>
   );

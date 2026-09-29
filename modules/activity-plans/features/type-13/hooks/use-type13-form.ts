@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
-import type { Type13PlotItem } from "@/modules/activity-plans/application/validations";
+import type {
+  Type13PlotItem,
+  DrugWithdrawalInput,
+} from "@/modules/activity-plans/application/validations";
 
 export interface UseType13FormOptions {
   initial?: any;
@@ -22,6 +25,7 @@ export interface UseType13FormResult {
       remarks: string;
       notes: string;
     }>;
+    drugWithdrawal?: DrugWithdrawalInput;
   };
 }
 
@@ -30,54 +34,104 @@ export function useType13Form({
   selectedWorkTypes = [],
 }: UseType13FormOptions): UseType13FormResult {
   const [type13Plots, setType13Plots] = useState<Type13PlotItem[]>(() => {
+    const rawDw = (initial as any)?.drugWithdrawal;
+    const existingDwItems: any[] = rawDw?.items && Array.isArray(rawDw.items) ? rawDw.items : [];
+
+    // Helper to find withdrawal items for a given plot
+    const findWithdrawalForPlot = (demoPlotId?: string | null, plotName?: string | null) => {
+      const matched = existingDwItems.filter((item) => {
+        if (demoPlotId && item.demoPlotId && item.demoPlotId === demoPlotId) {
+          return true;
+        }
+        if (plotName && item.plotIdentifier && item.plotIdentifier.trim() === plotName.trim()) {
+          return true;
+        }
+        return false;
+      });
+      return matched.map((item, idx) => ({
+        id: item.id,
+        productId: item.productId,
+        productName: item.productName || item.product?.name || null,
+        quantity: Number(item.quantity) || 1,
+        unit: item.unit || item.product?.unit || null,
+        sortOrder: item.sortOrder ?? idx,
+      }));
+    };
+
     if (
       (initial as any)?.type13Plots &&
       Array.isArray((initial as any).type13Plots)
     ) {
-      return (initial as any).type13Plots;
+      return (initial as any).type13Plots.map((p: any, idx: number) => {
+        const plotName = p.name || `แปลงแฮตแทค ${idx + 1}`;
+        const plotId = p.demoPlotId || p.id || null;
+        let withdrawalItems = p.withdrawalItems || [];
+        let hasDrugWithdrawal = Boolean(p.hasDrugWithdrawal);
+
+        // If not explicitly set in p, check if there are matching existing DW items
+        if (!p.withdrawalItems && existingDwItems.length > 0) {
+          const matched = findWithdrawalForPlot(plotId, plotName);
+          if (matched.length > 0) {
+            hasDrugWithdrawal = true;
+            withdrawalItems = matched;
+          }
+        }
+
+        return {
+          id: p.id || `plot-${idx + 1}`,
+          demoPlotId: p.demoPlotId || null,
+          name: plotName,
+          storeId: p.storeId || "",
+          ownerName: p.ownerName || "",
+          province: p.province || "",
+          district: p.district || "",
+          products: [],
+          hasDrugWithdrawal,
+          withdrawalItems,
+        };
+      });
     }
+
     const visits = (initial as any)?.demoPlotVisits || [];
     const hattackPlots = visits.filter(
       (v: any) =>
         v.demoPlot?.plotType === "HATTACK" || v.workTypeCode === "TYPE_13",
     );
+
     if (hattackPlots.length > 0) {
       return hattackPlots.map((v: any, idx: number) => {
         const plot = v.demoPlot;
+        const plotName = plot?.name || `แปลงแฮตแทค ${idx + 1}`;
+        const plotId = plot?.id || null;
+        const matched = findWithdrawalForPlot(plotId, plotName);
+
         return {
           id: plot?.id || `plot-${idx + 1}`,
-          demoPlotId: plot?.id,
-          name: plot?.name || `แปลงแฮตแทค ${idx + 1}`,
+          demoPlotId: plot?.id || null,
+          name: plotName,
           storeId: plot?.customerId || "",
           ownerName: plot?.customer?.name || plot?.ownerName || "",
           province: plot?.province || "",
           district: plot?.district || "",
-          products: (plot?.demoProducts || []).map((dp: any, pIdx: number) => ({
-            id: dp.id || `p-${idx}-${pIdx}`,
-            productId: dp.productId,
-            productName: dp.product?.name || dp.productName || "",
-            quantity: dp.quantity ? Number(dp.quantity) : 1,
-            unit: dp.unit || dp.product?.unit || "",
-          })),
+          products: [],
+          hasDrugWithdrawal: matched.length > 0,
+          withdrawalItems: matched,
         };
       });
     }
+
     return [
       {
         id: `plot-${Date.now()}-1`,
+        demoPlotId: null,
         name: "แปลงแฮตแทค 1",
         storeId: "",
+        ownerName: "",
         province: "",
         district: "",
-        products: [
-          {
-            id: `p-${Date.now()}-1`,
-            productId: "",
-            productName: "",
-            quantity: 1,
-            unit: "",
-          },
-        ],
+        products: [],
+        hasDrugWithdrawal: false,
+        withdrawalItems: [],
       },
     ];
   });
@@ -105,6 +159,8 @@ export function useType13Form({
     for (let i = 0; i < type13Plots.length; i++) {
       const plot = type13Plots[i];
       const plotNum = i + 1;
+      const plotLabel = plot.name?.trim() || `แปลงที่ ${plotNum}`;
+
       if (!plot.name?.trim()) {
         return {
           isValid: false,
@@ -114,29 +170,45 @@ export function useType13Form({
       if (!plot.storeId?.trim()) {
         return {
           isValid: false,
-          error: `กรุณาเลือกร้านค้า Dealer สำหรับแปลงที่ ${plotNum}`,
+          error: `กรุณาเลือกร้านค้า Dealer สำหรับ ${plotLabel}`,
         };
       }
       if (!plot.province?.trim()) {
         return {
           isValid: false,
-          error: `กรุณาเลือกจังหวัดสำหรับแปลงที่ ${plotNum}`,
+          error: `กรุณาเลือกจังหวัดสำหรับ ${plotLabel}`,
         };
       }
       if (!plot.district?.trim()) {
         return {
           isValid: false,
-          error: `กรุณาเลือกอำเภอสำหรับแปลงที่ ${plotNum}`,
+          error: `กรุณาเลือกอำเภอสำหรับ ${plotLabel}`,
         };
       }
-      const validProds = (plot.products || []).filter(
-        (p) => p.productId && p.productId.trim() !== "",
-      );
-      if (validProds.length === 0) {
-        return {
-          isValid: false,
-          error: `กรุณาเลือกตัวยา/สินค้าอย่างน้อย 1 รายการสำหรับแปลงที่ ${plotNum}`,
-        };
+
+      // If plot has drug withdrawal enabled, validate withdrawal items
+      if (plot.hasDrugWithdrawal) {
+        const validWithdrawalItems = (plot.withdrawalItems || []).filter(
+          (item) => item.productId && item.productId.trim() !== "",
+        );
+
+        if (validWithdrawalItems.length === 0) {
+          return {
+            isValid: false,
+            error: `กรุณาระบุรายการยาที่ต้องการเบิกอย่างน้อย 1 รายการสำหรับ ${plotLabel}`,
+          };
+        }
+
+        for (let j = 0; j < validWithdrawalItems.length; j++) {
+          const item = validWithdrawalItems[j];
+          const qty = Number(item.quantity);
+          if (isNaN(qty) || qty <= 0) {
+            return {
+              isValid: false,
+              error: `จำนวนยาที่ต้องการเบิกต้องมากกว่า 0 สำหรับ ${plotLabel}`,
+            };
+          }
+        }
       }
     }
 
@@ -176,9 +248,40 @@ export function useType13Form({
       }
     });
 
+    // Synthesize Drug Withdrawal payload from checked plots
+    const checkedPlots = type13Plots.filter(
+      (p) => p.hasDrugWithdrawal && p.withdrawalItems && p.withdrawalItems.length > 0,
+    );
+
+    let runningSortOrder = 0;
+    const synthesizedDwItems = checkedPlots.flatMap((plot) =>
+      (plot.withdrawalItems || [])
+        .filter((item) => item.productId && item.productId.trim() !== "")
+        .map((item) => ({
+          id: item.id,
+          demoPlotId: plot.demoPlotId || null,
+          plotIdentifier: plot.name.trim(),
+          productId: item.productId,
+          productName: item.productName || null,
+          quantity:
+            typeof item.quantity === "number"
+              ? item.quantity
+              : parseFloat(String(item.quantity)) || 0,
+          unit: item.unit || null,
+          sortOrder: runningSortOrder++,
+        })),
+    );
+
+    const drugWithdrawal: DrugWithdrawalInput = {
+      hasDrugWithdrawal: synthesizedDwItems.length > 0,
+      notes: (initial as any)?.drugWithdrawal?.notes || null,
+      items: synthesizedDwItems,
+    };
+
     return {
       type13Plots,
       planStores,
+      drugWithdrawal,
     };
   };
 

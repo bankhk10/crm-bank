@@ -1062,18 +1062,9 @@ export async function createActivityPlan(
           });
         }
 
-        // 1.8 TYPE_13 ("ฉีดแปลงแฮตแทค"): Create up to 10 DemoPlots + DemoPlotProducts + DemoPlotVisit + Roll-up
+        // 1.8 TYPE_13 ("ฉีดแปลงแฮตแทค"): Create up to 10 DemoPlots + DemoPlotVisit
+        const createdType13PlotMap = new Map<string, string>();
         if (input.type13Plots && input.type13Plots.length > 0) {
-          const rollUpMap = new Map<
-            string,
-            {
-              productId: string;
-              productName?: string;
-              quantity: number;
-              unit?: string;
-            }
-          >();
-
           for (let i = 0; i < input.type13Plots.length; i++) {
             const plotItem = input.type13Plots[i];
             const code = await generateDemoPlotCode(
@@ -1097,32 +1088,11 @@ export async function createActivityPlan(
               },
             });
 
-            if (plotItem.products && plotItem.products.length > 0) {
-              await tx.demoPlotProduct.createMany({
-                data: plotItem.products.map((prod, pIdx) => ({
-                  demoPlotId: plot.id,
-                  productId: prod.productId,
-                  productName: prod.productName ?? null,
-                  quantity: new Prisma.Decimal(prod.quantity),
-                  unit: prod.unit ?? null,
-                  applicationRate: "-",
-                  sortOrder: pIdx,
-                })),
-              });
-
-              for (const prod of plotItem.products) {
-                const existing = rollUpMap.get(prod.productId);
-                if (existing) {
-                  existing.quantity += Number(prod.quantity) || 0;
-                } else {
-                  rollUpMap.set(prod.productId, {
-                    productId: prod.productId,
-                    productName: prod.productName || undefined,
-                    quantity: Number(prod.quantity) || 0,
-                    unit: prod.unit || undefined,
-                  });
-                }
-              }
+            if (plotItem.id) {
+              createdType13PlotMap.set(plotItem.id, plot.id);
+            }
+            if (plotItem.name) {
+              createdType13PlotMap.set(plotItem.name, plot.id);
             }
 
             await tx.demoPlotVisit.create({
@@ -1147,24 +1117,6 @@ export async function createActivityPlan(
                 },
               });
             }
-          }
-
-          // Auto Roll-up into ActivityPlanProduct
-          if (rollUpMap.size > 0) {
-            await tx.activityPlanProduct.createMany({
-              data: Array.from(rollUpMap.values()).map((item) => ({
-                activityPlanId: plan.id,
-                workTypeCode: "TYPE_13",
-                productId: item.productId,
-                productName: item.productName ?? null,
-                targetQuantity: item.quantity,
-                unitPrice: null,
-                masterPrice: null,
-                isPriceOverridden: false,
-                targetAmount: null,
-                notes: "Roll-up from Hattack plots",
-              })),
-            });
           }
         }
 
@@ -1323,6 +1275,15 @@ export async function createActivityPlan(
               throw new Error(
                 `ไม่พบข้อมูลผลิตภัณฑ์ (Product ID: ${item.productId}) ในระบบ`,
               );
+            }
+          }
+
+          // Link demoPlotId for TYPE_13 created plots if not yet assigned
+          if (createdType13PlotMap.size > 0 && items.length > 0) {
+            for (const item of items) {
+              if (!item.demoPlotId && createdType13PlotMap.has(item.plotIdentifier)) {
+                item.demoPlotId = createdType13PlotMap.get(item.plotIdentifier);
+              }
             }
           }
 
@@ -1756,7 +1717,8 @@ export async function updateActivityPlan(
       await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: id } });
     }
 
-    // 1.8 Sync TYPE_13 Plots & Roll-up
+    // 1.8 Sync TYPE_13 Plots
+    const resolvedType13PlotMap = new Map<string, string>();
     if (planData.type13Plots !== undefined) {
       const existingVisits = await tx.demoPlotVisit.findMany({
         where: { activityPlanId: id, workTypeCode: "TYPE_13" },
@@ -1770,16 +1732,6 @@ export async function updateActivityPlan(
       await tx.activityPlanStore.deleteMany({
         where: { activityPlanId: id, workTypeCode: "TYPE_13" },
       });
-
-      const rollUpMap = new Map<
-        string,
-        {
-          productId: string;
-          productName?: string;
-          quantity: number;
-          unit?: string;
-        }
-      >();
 
       if (planData.type13Plots && planData.type13Plots.length > 0) {
         for (let i = 0; i < planData.type13Plots.length; i++) {
@@ -1836,36 +1788,17 @@ export async function updateActivityPlan(
             });
           }
 
+          if (plotItem.id) {
+            resolvedType13PlotMap.set(plotItem.id, plotId);
+          }
+          if (plotItem.name) {
+            resolvedType13PlotMap.set(plotItem.name, plotId);
+          }
+
+          // Clean up legacy demoPlotProduct if any exists
           await tx.demoPlotProduct.deleteMany({
             where: { demoPlotId: plotId },
           });
-          if (plotItem.products && plotItem.products.length > 0) {
-            await tx.demoPlotProduct.createMany({
-              data: plotItem.products.map((prod, pIdx) => ({
-                demoPlotId: plotId,
-                productId: prod.productId,
-                productName: prod.productName ?? null,
-                quantity: new Prisma.Decimal(prod.quantity),
-                unit: prod.unit ?? null,
-                applicationRate: "-",
-                sortOrder: pIdx,
-              })),
-            });
-
-            for (const prod of plotItem.products) {
-              const existing = rollUpMap.get(prod.productId);
-              if (existing) {
-                existing.quantity += Number(prod.quantity) || 0;
-              } else {
-                rollUpMap.set(prod.productId, {
-                  productId: prod.productId,
-                  productName: prod.productName || undefined,
-                  quantity: Number(prod.quantity) || 0,
-                  unit: prod.unit || undefined,
-                });
-              }
-            }
-          }
 
           if (plotItem.storeId) {
             await tx.activityPlanStore.create({
@@ -1878,23 +1811,6 @@ export async function updateActivityPlan(
               },
             });
           }
-        }
-
-        if (rollUpMap.size > 0) {
-          await tx.activityPlanProduct.createMany({
-            data: Array.from(rollUpMap.values()).map((item) => ({
-              activityPlanId: id,
-              workTypeCode: "TYPE_13",
-              productId: item.productId,
-              productName: item.productName ?? null,
-              targetQuantity: item.quantity,
-              unitPrice: null,
-              masterPrice: null,
-              isPriceOverridden: false,
-              targetAmount: null,
-              notes: "Roll-up from Hattack plots",
-            })),
-          });
         }
       }
     }
@@ -2089,6 +2005,19 @@ export async function updateActivityPlan(
             throw new Error(
               `ไม่พบข้อมูลผลิตภัณฑ์ (Product ID: ${item.productId}) ในระบบ`,
             );
+          }
+        }
+
+        // Link demoPlotId for TYPE_13 plots if not yet assigned or resolved
+        if (resolvedType13PlotMap.size > 0 && items.length > 0) {
+          for (const item of items) {
+            if (!item.demoPlotId) {
+              if (resolvedType13PlotMap.has(item.plotIdentifier)) {
+                item.demoPlotId = resolvedType13PlotMap.get(item.plotIdentifier);
+              }
+            } else if (resolvedType13PlotMap.has(item.demoPlotId)) {
+              item.demoPlotId = resolvedType13PlotMap.get(item.demoPlotId);
+            }
           }
         }
 

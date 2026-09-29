@@ -60,32 +60,6 @@ export function Type13Detail({ plots = [], planSummary, actualData }: Type13Deta
   const [activePlotIdx, setActivePlotIdx] = useState(0);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  // Computed Roll-up across all plots
-  const rollUpSummary = useMemo(() => {
-    const map = new Map<string, { productId: string; productName: string; quantity: number; unit?: string }>();
-
-    plots.forEach((plot) => {
-      (plot.products || []).forEach((prod) => {
-        if (!prod.productId && !prod.productName) return;
-        const key = prod.productId || prod.productName || "unknown";
-        const existing = map.get(key);
-        const qty = Number(prod.quantity) || 0;
-        if (existing) {
-          existing.quantity += qty;
-        } else {
-          map.set(key, {
-            productId: prod.productId,
-            productName: prod.productName || "สินค้าไม่ระบุชื่อ",
-            quantity: qty,
-            unit: prod.unit || undefined,
-          });
-        }
-      });
-    });
-
-    return Array.from(map.values());
-  }, [plots]);
-
   if (!plots || plots.length === 0) {
     return (
       <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">
@@ -198,40 +172,59 @@ export function Type13Detail({ plots = [], planSummary, actualData }: Type13Deta
           )}
         </div>
 
-        {/* Products in this plot */}
+        {/* Drug Withdrawal in this plot */}
         <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <Package className="w-4 h-4 text-emerald-600" />
-            <h6 className="font-bold text-xs text-slate-800">
-              รายการตัวยา/สินค้าตามแผนสำหรับแปลงนี้ ({currentPlot.products?.length || 0} รายการ)
-            </h6>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Package className="w-4 h-4 text-emerald-600" />
+              <h6 className="font-bold text-xs text-slate-800">
+                รายการเบิกยาสำหรับแปลงนี้
+              </h6>
+            </div>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                currentPlot.hasDrugWithdrawal &&
+                currentPlot.withdrawalItems &&
+                currentPlot.withdrawalItems.length > 0
+                  ? "bg-emerald-100 text-emerald-800"
+                  : "bg-slate-100 text-slate-500"
+              }`}
+            >
+              {currentPlot.hasDrugWithdrawal &&
+              currentPlot.withdrawalItems &&
+              currentPlot.withdrawalItems.length > 0
+                ? `เบิกยา ${currentPlot.withdrawalItems.length} รายการ`
+                : "ไม่มีการเบิกยาสำหรับแปลงนี้"}
+            </span>
           </div>
 
-          {currentPlot.products && currentPlot.products.length > 0 ? (
+          {currentPlot.hasDrugWithdrawal &&
+          currentPlot.withdrawalItems &&
+          currentPlot.withdrawalItems.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-500 font-medium">
                     <th className="py-2 px-3 w-12 text-center">ลำดับ</th>
                     <th className="py-2 px-3">ชื่อสินค้า/ตัวยา</th>
-                    <th className="py-2 px-3 text-right">จำนวน</th>
+                    <th className="py-2 px-3 text-right">จำนวนที่ขอเบิก</th>
                     <th className="py-2 px-3 w-20">หน่วย</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {currentPlot.products.map((prod, pIdx) => (
-                    <tr key={prod.id || pIdx} className="hover:bg-slate-50/60">
+                  {currentPlot.withdrawalItems.map((item, pIdx) => (
+                    <tr key={item.id || pIdx} className="hover:bg-slate-50/60">
                       <td className="py-2 px-3 text-center text-slate-400">
                         {pIdx + 1}
                       </td>
                       <td className="py-2 px-3 font-semibold text-slate-700">
-                        {prod.productName || "สินค้าไม่ระบุชื่อ"}
+                        {item.productName || "สินค้าไม่ระบุชื่อ"}
                       </td>
                       <td className="py-2 px-3 text-right font-bold text-emerald-600">
-                        {Number(prod.quantity).toLocaleString()}
+                        {Number(item.quantity).toLocaleString()}
                       </td>
                       <td className="py-2 px-3 text-slate-500">
-                        {prod.unit || "-"}
+                        {item.unit || "-"}
                       </td>
                     </tr>
                   ))}
@@ -239,8 +232,8 @@ export function Type13Detail({ plots = [], planSummary, actualData }: Type13Deta
               </table>
             </div>
           ) : (
-            <p className="text-xs text-slate-500 py-1">
-              แปลงนี้ถูกเพิ่มระหว่างลงพื้นที่จริง (ไม่มีรายการสินค้าตามแผนตั้งต้น — ตรวจสอบสินค้าที่ใช้จริงในประวัติการฉีดพ่นด้านล่าง)
+            <p className="text-xs text-slate-400 py-1 italic">
+              ไม่มีการขอเบิกยาสำหรับแปลงนี้
             </p>
           )}
         </div>
@@ -408,52 +401,6 @@ export function Type13Detail({ plots = [], planSummary, actualData }: Type13Deta
             </div>
           </div>
         )}
-      </div>
-
-      {/* Roll-up Summary Card */}
-      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Package className="w-4 h-4 text-emerald-600" />
-            <h5 className="font-bold text-xs sm:text-sm text-slate-800">
-              สรุปรายการสินค้ารวมทุกแปลง (Computed Roll-up)
-            </h5>
-          </div>
-          <span className="text-xs font-semibold text-slate-500">
-            รวม {plots.length} แปลง
-          </span>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left">
-            <thead>
-              <tr className="border-b border-slate-200 text-slate-500 font-medium">
-                <th className="py-2 px-3 w-12 text-center">ลำดับ</th>
-                <th className="py-2 px-3">ชื่อสินค้า/ตัวยา</th>
-                <th className="py-2 px-3 text-right">จำนวนรวม</th>
-                <th className="py-2 px-3 w-20">หน่วย</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {rollUpSummary.map((item, idx) => (
-                <tr key={item.productId || idx} className="hover:bg-white/60">
-                  <td className="py-2 px-3 text-center text-slate-400 font-medium">
-                    {idx + 1}
-                  </td>
-                  <td className="py-2 px-3 font-semibold text-slate-700">
-                    {item.productName}
-                  </td>
-                  <td className="py-2 px-3 text-right font-bold text-emerald-600">
-                    {item.quantity.toLocaleString()}
-                  </td>
-                  <td className="py-2 px-3 text-slate-500">
-                    {item.unit || "-"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
 
       {/* Image Preview Modal */}

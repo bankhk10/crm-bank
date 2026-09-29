@@ -632,11 +632,15 @@ export function Type13Actual({
                   <div className="space-y-2">
                     {round.products.map((prod, pIdx) => (
                       <div
-                        key={prod.productId || pIdx}
+                        key={pIdx}
                         className="grid grid-cols-12 gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-200 items-center text-xs"
                       >
                         <div className="col-span-12 sm:col-span-5">
-                          {currentPlot.isNew || !prod.productId ? (
+                          {readonly ? (
+                            <div className="font-medium text-slate-800 truncate">
+                              {prod.productName || "สินค้าไม่ระบุชื่อ"}
+                            </div>
+                          ) : (
                             <FormCombobox
                               id={`product-${activePlotIdx}-${rIdx}-${pIdx}`}
                               label=""
@@ -656,10 +660,6 @@ export function Type13Actual({
                               disabled={readonly}
                               triggerClassName="h-8 min-h-[32px] text-xs bg-white"
                             />
-                          ) : (
-                            <div className="font-medium text-slate-800 truncate">
-                              {prod.productName || "สินค้าไม่ระบุชื่อ"}
-                            </div>
                           )}
                         </div>
 
@@ -680,6 +680,7 @@ export function Type13Actual({
                           <input
                             type="number"
                             min={0}
+                            step="any"
                             value={prod.quantityUsed ?? ""}
                             onChange={(e) =>
                               updateRoundProduct(activePlotIdx, rIdx, pIdx, "quantityUsed", e.target.value)

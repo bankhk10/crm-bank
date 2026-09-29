@@ -249,17 +249,37 @@ export default function ActivityPlanDetailView({
     );
     if (visits.length === 0) return [];
 
+    const withdrawalItems = (plan as any)?.drugWithdrawal?.items || [];
+
     const plotMap = new Map<string, Type13PlotItem>();
     visits.forEach((v) => {
       const dp = v.demoPlot;
       if (!dp || plotMap.has(dp.id)) return;
+
+      const plotWithdrawalItems = withdrawalItems.filter(
+        (it: any) =>
+          (it.demoPlotId && it.demoPlotId === dp.id) ||
+          (!it.demoPlotId &&
+            it.plotIdentifier &&
+            it.plotIdentifier.trim() === dp.name?.trim()),
+      );
+
       plotMap.set(dp.id, {
         id: dp.id,
+        demoPlotId: dp.id,
         name: dp.name || `แปลง #${v.visitNumber || 1}`,
         storeId: dp.customerId || "",
         ownerName: dp.ownerName || dp.farmerCustomer?.name || "",
         province: dp.province || "",
         district: dp.district || "",
+        hasDrugWithdrawal: plotWithdrawalItems.length > 0,
+        withdrawalItems: plotWithdrawalItems.map((w: any) => ({
+          id: w.id,
+          productId: w.productId,
+          productName: w.productName || w.product?.name || "",
+          quantity: Number(w.quantity),
+          unit: w.unit || w.product?.unit || "",
+        })),
         products: (dp.demoProducts || []).map((prod) => ({
           productId: prod.productId,
           productName: prod.productName || prod.product?.name || "",
@@ -274,7 +294,7 @@ export default function ActivityPlanDetailView({
     });
 
     return Array.from(plotMap.values());
-  }, [plan?.demoPlotVisits]);
+  }, [plan?.demoPlotVisits, (plan as any)?.drugWithdrawal]);
 
   const type13ActualData = useMemo(() => {
     if (!plan?.result) return undefined;

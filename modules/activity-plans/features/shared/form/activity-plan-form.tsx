@@ -687,7 +687,15 @@ export function ActivityPlanForm({
     );
   }, [selectedWorkTypes]);
 
-  // Available Plots for Drug Withdrawal
+  // Global Drug Withdrawal Card is only for TYPE_7A, TYPE_7B, TYPE_14 (TYPE_13 has its own per-plot withdrawal)
+  const hasGlobalDrugWithdrawal = useMemo(() => {
+    return selectedWorkTypes.some((t) => {
+      const code = getWorkTypeCode(t);
+      return isDrugWithdrawalSupported(code) && code !== "TYPE_13";
+    });
+  }, [selectedWorkTypes]);
+
+  // Available Plots for Drug Withdrawal (for Global Card)
   const availableWithdrawalPlots = useMemo<DrugWithdrawalPlotOption[]>(() => {
     const plots: DrugWithdrawalPlotOption[] = [];
     const seenKeys = new Set<string>();
@@ -704,9 +712,6 @@ export function ActivityPlanForm({
     );
     const hasType7B = selectedWorkTypes.some(
       (t) => getWorkTypeCode(t) === "TYPE_7B",
-    );
-    const hasType13 = selectedWorkTypes.some(
-      (t) => getWorkTypeCode(t) === "TYPE_13",
     );
     const hasType14 = selectedWorkTypes.some(
       (t) => getWorkTypeCode(t) === "TYPE_14",
@@ -766,22 +771,6 @@ export function ActivityPlanForm({
           });
         });
       }
-    }
-
-    // 3. TYPE_13 plots from current form items
-    if (hasType13 && Array.isArray(type13Plots)) {
-      type13Plots.forEach((plot, idx) => {
-        const plotName = plot.name?.trim() || `แปลงแฮตแทค ${idx + 1}`;
-        addPlot({
-          id: plot.id || `plot-13-${idx + 1}`,
-          name: plotName,
-          subLabel:
-            [plot.ownerName, plot.province].filter(Boolean).join(" - ") ||
-            undefined,
-          plotIdentifier: plotName,
-          demoPlotId: null,
-        });
-      });
     }
 
     // 4. TYPE_14 plots from Hattack demo plots
@@ -1049,11 +1038,12 @@ export function ActivityPlanForm({
       return;
     }
 
-    // Phase 6: Drug Withdrawal Validation
-    if (isDrugWithdrawalEligible && drugWithdrawal.hasDrugWithdrawal) {
-      const activeDwType = selectedWorkTypes.find((t) =>
-        isDrugWithdrawalSupported(getWorkTypeCode(t)),
-      );
+    // Phase 6: Drug Withdrawal Validation (for Global Card: TYPE_7A, TYPE_7B, TYPE_14)
+    if (hasGlobalDrugWithdrawal && drugWithdrawal.hasDrugWithdrawal) {
+      const activeDwType = selectedWorkTypes.find((t) => {
+        const c = getWorkTypeCode(t);
+        return isDrugWithdrawalSupported(c) && c !== "TYPE_13";
+      });
       const dwCode = activeDwType ? getWorkTypeCode(activeDwType) : undefined;
       const dwValidation = validateDrugWithdrawal(drugWithdrawal, dwCode);
       if (!dwValidation.isValid) {
@@ -1230,10 +1220,37 @@ export function ActivityPlanForm({
         demoPlotData: submittedDemoPlotData,
         type13Plots: type13Payload.type13Plots,
         type14Data: type14Payload.type14Data,
-        drugWithdrawal:
-          isDrugWithdrawalEligible && drugWithdrawal.hasDrugWithdrawal
-            ? drugWithdrawal
-            : { hasDrugWithdrawal: false, items: [] },
+        drugWithdrawal: (() => {
+          const items: any[] = [];
+          let hasDw = false;
+          let notes: string | null = null;
+
+          const hasType13Selected = selectedWorkTypes.some(
+            (t) => getWorkTypeCode(t) === "TYPE_13",
+          );
+
+          if (hasType13Selected && type13Payload.drugWithdrawal?.hasDrugWithdrawal) {
+            hasDw = true;
+            items.push(...(type13Payload.drugWithdrawal.items || []));
+            notes = type13Payload.drugWithdrawal.notes || null;
+          }
+
+          if (hasGlobalDrugWithdrawal && drugWithdrawal.hasDrugWithdrawal) {
+            hasDw = true;
+            items.push(...(drugWithdrawal.items || []));
+            notes = notes || drugWithdrawal.notes || null;
+          }
+
+          if (hasDw && items.length > 0) {
+            return {
+              hasDrugWithdrawal: true,
+              notes,
+              items,
+            };
+          }
+
+          return { hasDrugWithdrawal: false, items: [] };
+        })(),
         planStores,
         planProducts,
         marketingItems,
@@ -1593,21 +1610,23 @@ export function ActivityPlanForm({
               </div>
             )}
 
-            {/* SECTION 3.5: การเบิกยา (Drug Withdrawal) - TYPE_7A, TYPE_7B, TYPE_13, TYPE_14 */}
-            {isDrugWithdrawalEligible && (
+            {/* SECTION 3.5: การเบิกยา (Drug Withdrawal) - TYPE_7A, TYPE_7B, TYPE_14 (TYPE_13 has its own per-plot withdrawal) */}
+            {hasGlobalDrugWithdrawal && (
               <DrugWithdrawalCard
                 value={drugWithdrawal}
                 onChange={setDrugWithdrawal}
                 availablePlots={availableWithdrawalPlots}
                 products={productsList}
                 workTypeCode={
-                  selectedWorkTypes.find((t) =>
-                    isDrugWithdrawalSupported(getWorkTypeCode(t)),
-                  )
+                  selectedWorkTypes.find((t) => {
+                    const c = getWorkTypeCode(t);
+                    return isDrugWithdrawalSupported(c) && c !== "TYPE_13";
+                  })
                     ? getWorkTypeCode(
-                        selectedWorkTypes.find((t) =>
-                          isDrugWithdrawalSupported(getWorkTypeCode(t)),
-                        )!,
+                        selectedWorkTypes.find((t) => {
+                          const c = getWorkTypeCode(t);
+                          return isDrugWithdrawalSupported(c) && c !== "TYPE_13";
+                        })!,
                       )
                     : undefined
                 }

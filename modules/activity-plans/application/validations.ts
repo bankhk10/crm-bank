@@ -173,17 +173,48 @@ export const type13ProductLineSchema = z.object({
   unit: z.string().optional().nullable(),
 });
 
-export const type13PlotItemSchema = z.object({
-  id: z.string(),
-  name: z.string().min(1, "กรุณาระบุชื่อแปลง"),
-  storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),
-  ownerName: z.string().optional().nullable(),
-  province: z.string().min(1, "กรุณาเลือกจังหวัด"),
-  district: z.string().min(1, "กรุณาเลือกอำเภอ"),
-  products: z
-    .array(type13ProductLineSchema)
-    .min(1, "ต้องระบุตัวยา/ผลิตภัณฑ์อย่างน้อย 1 รายการ"),
+export const type13WithdrawalItemSchema = z.object({
+  id: z.string().optional(),
+  productId: z
+    .string({ required_error: "กรุณาเลือกตัวยา/ผลิตภัณฑ์" })
+    .min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
+  productName: z.string().optional().nullable(),
+  quantity: z.coerce
+    .number({
+      required_error: "กรุณาระบุจำนวนยาที่ต้องการเบิก",
+      invalid_type_error: "จำนวนยาต้องเป็นตัวเลข",
+    })
+    .refine((val) => !isNaN(val) && val > 0, {
+      message: "จำนวนยาต้องมากกว่า 0",
+    }),
+  unit: z.string().optional().nullable(),
+  sortOrder: z.number().int().optional().default(0),
 });
+
+export const type13PlotItemSchema = z
+  .object({
+    id: z.string(),
+    demoPlotId: z.string().optional().nullable(),
+    name: z.string().min(1, "กรุณาระบุชื่อแปลง"),
+    storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),
+    ownerName: z.string().optional().nullable(),
+    province: z.string().min(1, "กรุณาเลือกจังหวัด"),
+    district: z.string().min(1, "กรุณาเลือกอำเภอ"),
+    products: z.array(type13ProductLineSchema).optional().default([]),
+    hasDrugWithdrawal: z.boolean().default(false),
+    withdrawalItems: z.array(type13WithdrawalItemSchema).optional().default([]),
+  })
+  .superRefine((data, ctx) => {
+    if (data.hasDrugWithdrawal) {
+      if (!data.withdrawalItems || data.withdrawalItems.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `กรุณาระบุรายการยาที่ต้องการเบิกอย่างน้อย 1 รายการสำหรับแปลง "${data.name}"`,
+          path: ["withdrawalItems"],
+        });
+      }
+    }
+  });
 
 export const type13PlanInputSchema = z.object({
   plots: z
@@ -266,6 +297,7 @@ export const type14PlanInputSchema = z.object({
 });
 
 export type Type13ProductLine = z.infer<typeof type13ProductLineSchema>;
+export type Type13WithdrawalItem = z.infer<typeof type13WithdrawalItemSchema>;
 export type Type13PlotItem = z.infer<typeof type13PlotItemSchema>;
 export type Type13PlanInput = z.infer<typeof type13PlanInputSchema>;
 export type Type13SprayingRound = z.infer<typeof type13SprayingRoundSchema>;
