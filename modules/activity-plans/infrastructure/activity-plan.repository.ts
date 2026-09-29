@@ -373,6 +373,15 @@ export async function findActivityPlanById(id: string) {
                       packageSizeUnit: true,
                     },
                   },
+                  drugWithdrawalItem: {
+                    select: {
+                      id: true,
+                      quantity: true,
+                      unit: true,
+                      productName: true,
+                      plotIdentifier: true,
+                    },
+                  },
                 },
               },
               externalProducts: true,
@@ -2410,6 +2419,8 @@ export type CreateActivityResultInput = {
       actualRate: string;
       quantityUsed: number | string;
       unit?: string | null;
+      drugWithdrawalItemId?: string | null;
+      detail?: string | null;
     }>;
     externalProducts?: Array<{
       company: string;
@@ -2977,6 +2988,8 @@ export async function upsertActivityResult(
                   actualRate: p.actualRate,
                   quantityUsed: new Prisma.Decimal(Number(p.quantityUsed) || 0),
                   unit: p.unit ?? null,
+                  drugWithdrawalItemId: p.drugWithdrawalItemId ?? null,
+                  detail: p.detail ?? null,
                 })),
               },
               externalProducts: {

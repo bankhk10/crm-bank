@@ -2171,20 +2171,24 @@ model ActivityResultSprayRound {
 }
 
 model ActivityResultSprayProduct {
-  id           String  @id @default(cuid())
-  sprayRoundId String  @map("spray_round_id")
-  productId    String  @map("product_id")
-  productName  String? @map("product_name")
-  baselineRate String? @map("baseline_rate") // อัตราตั้งต้นเดิม (Read-only Snapshot)
-  actualRate   String  @map("actual_rate") // อัตราที่ฉีดพ่นจริงรอบนี้
-  quantityUsed Decimal @map("quantity_used") @db.Decimal(10, 2) // จำนวนที่ใช้ยาในรอบนี้
-  unit         String? @map("unit")
+  id                   String              @id @default(cuid())
+  sprayRoundId         String              @map("spray_round_id")
+  productId            String              @map("product_id")
+  productName          String?             @map("product_name")
+  baselineRate         String?             @map("baseline_rate") // อัตราตั้งต้นเดิม (Read-only Snapshot)
+  actualRate           String              @map("actual_rate") // อัตราที่ฉีดพ่นจริงรอบนี้
+  quantityUsed         Decimal             @map("quantity_used") @db.Decimal(10, 2) // จำนวนที่ใช้ยาในรอบนี้
+  unit                 String?             @map("unit")
+  drugWithdrawalItemId String?             @map("drug_withdrawal_item_id")
+  detail               String?             @map("detail")
 
-  sprayRound ActivityResultSprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
-  product    Product                  @relation("ActivityResultSprayProductRef", fields: [productId], references: [id], onDelete: Restrict)
+  sprayRound         ActivityResultSprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
+  product            Product                  @relation("ActivityResultSprayProductRef", fields: [productId], references: [id], onDelete: Restrict)
+  drugWithdrawalItem DrugWithdrawalItem?      @relation(fields: [drugWithdrawalItemId], references: [id], onDelete: SetNull)
 
   @@index([sprayRoundId])
   @@index([productId])
+  @@index([drugWithdrawalItemId])
   @@map("activity_result_spray_products")
 }
 
@@ -2579,9 +2583,10 @@ model DrugWithdrawalItem {
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
-  drugWithdrawal DrugWithdrawal @relation(fields: [drugWithdrawalId], references: [id], onDelete: Cascade)
-  demoPlot       DemoPlot?      @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
-  product        Product        @relation("DrugWithdrawalItemProductRef", fields: [productId], references: [id], onDelete: Restrict)
+  drugWithdrawal      DrugWithdrawal               @relation(fields: [drugWithdrawalId], references: [id], onDelete: Cascade)
+  demoPlot            DemoPlot?                    @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  product             Product                      @relation("DrugWithdrawalItemProductRef", fields: [productId], references: [id], onDelete: Restrict)
+  actualSprayProducts ActivityResultSprayProduct[]
 
   @@index([drugWithdrawalId])
   @@index([demoPlotId])

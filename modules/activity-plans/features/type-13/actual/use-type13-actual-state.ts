@@ -1,7 +1,19 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import type { Type13SprayingRound, Type13PlotActual } from "../../../application/validations";
+import type { Type13SprayingRound } from "../../../application/validations";
+
+export interface Type13ActualProductState {
+  productId: string;
+  productName?: string | null;
+  actualRate: string;
+  quantityUsed: number | string;
+  unit?: string | null;
+  drugWithdrawalItemId?: string | null;
+  withdrawnQuantity?: number | null;
+  detail?: string | null;
+  isAdditional?: boolean;
+}
 
 export interface Type13PlotActualState {
   demoPlotId: string;
@@ -13,8 +25,18 @@ export interface Type13PlotActualState {
   latitude: string;
   longitude: string;
   isNew?: boolean;
-  plannedProducts?: Array<{ productId: string; productName?: string; quantity?: number; unit?: string }>;
-  sprayRounds: Type13SprayingRound[];
+  withdrawalProducts?: Array<{
+    drugWithdrawalItemId: string;
+    productId: string;
+    productName: string;
+    withdrawnQuantity: number;
+    unit: string;
+  }>;
+  sprayRounds: Array<
+    Omit<Type13SprayingRound, "products"> & {
+      products: Type13ActualProductState[];
+    }
+  >;
 }
 
 export function useType13ActualState() {
@@ -22,8 +44,31 @@ export function useType13ActualState() {
   const initialPlotsRef = useRef<Type13PlotActualState[]>([]);
 
   // Hydrate state from plan and existing actual result
-  const hydrate = useCallback((plan: any, parsedResult: any, targets?: any) => {
+  const hydrate = useCallback((plan: any, parsedResult: any, _targets?: any) => {
     if (!plan) return;
+
+    // Helper: extract withdrawal items for each plot from plan.drugWithdrawal
+    const allWithdrawalItems: any[] = plan.drugWithdrawal?.items || [];
+    const getWithdrawalForPlot = (plotId?: string | null, plotName?: string | null) => {
+      const matched = allWithdrawalItems.filter((item: any) => {
+        if (plotId && item.demoPlotId && item.demoPlotId === plotId) return true;
+        if (
+          plotName &&
+          item.plotIdentifier &&
+          item.plotIdentifier.trim().toLowerCase() === plotName.trim().toLowerCase()
+        ) {
+          return true;
+        }
+        return false;
+      });
+      return matched.map((item: any) => ({
+        drugWithdrawalItemId: item.id,
+        productId: item.productId,
+        productName: item.productName || item.product?.name || "",
+        withdrawnQuantity: Number(item.quantity) || 0,
+        unit: item.unit || item.product?.unit || "",
+      }));
+    };
 
     // 1. Extract plots from demoPlotVisits or type13Plots
     const rawVisits = plan.demoPlotVisits || [];
@@ -46,16 +91,13 @@ export function useType13ActualState() {
     if (uniqueHattackVisits.length > 0) {
       basePlots = uniqueHattackVisits.map((v: any, idx: number) => {
         const plot = v.demoPlot;
-        const pProducts = (plot?.demoProducts || []).map((dp: any) => ({
-          productId: dp.productId,
-          productName: dp.product?.name,
-          quantity: dp.quantity ? Number(dp.quantity) : undefined,
-          unit: dp.unit || undefined,
-        }));
+        const plotId = plot?.id || v.demoPlotId || `plot-${idx}`;
+        const plotName = plot?.name || `แปลงที่ ${idx + 1}`;
+        const wProds = getWithdrawalForPlot(plotId, plotName);
 
         return {
-          demoPlotId: plot?.id || v.demoPlotId || `plot-${idx}`,
-          plotName: plot?.name || `แปลงที่ ${idx + 1}`,
+          demoPlotId: plotId,
+          plotName,
           dealerName: plot?.customer?.name || undefined,
           storeId: plot?.customerId || undefined,
           province: plot?.province || undefined,
@@ -63,24 +105,30 @@ export function useType13ActualState() {
           latitude: plot?.latitude != null ? String(plot.latitude) : "",
           longitude: plot?.longitude != null ? String(plot.longitude) : "",
           isNew: false,
-          plannedProducts: pProducts,
+          withdrawalProducts: wProds,
           sprayRounds: [],
         };
       });
     } else if (plan.type13Plots && Array.isArray(plan.type13Plots)) {
-      basePlots = plan.type13Plots.map((p: any, idx: number) => ({
-        demoPlotId: p.demoPlotId || p.id || `plot-${idx}`,
-        plotName: p.name || `แปลงที่ ${idx + 1}`,
-        dealerName: p.dealerName || undefined,
-        storeId: p.storeId || undefined,
-        province: p.province || undefined,
-        district: p.district || undefined,
-        latitude: p.latitude ? String(p.latitude) : "",
-        longitude: p.longitude ? String(p.longitude) : "",
-        isNew: false,
-        plannedProducts: p.products || [],
-        sprayRounds: [],
-      }));
+      basePlots = plan.type13Plots.map((p: any, idx: number) => {
+        const plotId = p.demoPlotId || p.id || `plot-${idx}`;
+        const plotName = p.name || `แปลงที่ ${idx + 1}`;
+        const wProds = getWithdrawalForPlot(plotId, plotName);
+
+        return {
+          demoPlotId: plotId,
+          plotName,
+          dealerName: p.dealerName || undefined,
+          storeId: p.storeId || undefined,
+          province: p.province || undefined,
+          district: p.district || undefined,
+          latitude: p.latitude ? String(p.latitude) : "",
+          longitude: p.longitude ? String(p.longitude) : "",
+          isNew: false,
+          withdrawalProducts: wProds,
+          sprayRounds: [],
+        };
+      });
     }
 
     // 2. Hydrate existing spray rounds from parsedResult or plan.result normalized relation
@@ -102,12 +150,14 @@ export function useType13ActualState() {
         );
 
         orphanPlotIds.forEach((pId) => {
+          const plotName = `แปลงที่ ${basePlots.length + 1}`;
           basePlots.push({
             demoPlotId: pId,
-            plotName: `แปลงที่ ${basePlots.length + 1}`,
+            plotName,
             isNew: false,
             latitude: "",
             longitude: "",
+            withdrawalProducts: getWithdrawalForPlot(pId, plotName),
             sprayRounds: [],
           });
         });
@@ -146,51 +196,118 @@ export function useType13ActualState() {
         // Rounds
         const plotRounds = existingRounds
           .filter((r: any) => r.demoPlotId === plot.demoPlotId)
-          .map((r: any) => ({
-            id: r.id,
-            demoPlotId: r.demoPlotId,
-            roundNumber: r.roundNumber,
-            sprayDate: r.sprayDate ? new Date(r.sprayDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-            sprayMethod: (r.sprayMethod === "TANK_MIXED" ? "TANK_MIXED" : "SINGLE") as "SINGLE" | "TANK_MIXED",
-            sprayEquipment: r.sprayEquipment || "เครื่องยนต์พ่นยา",
-            otherEquipment: r.otherEquipment || null,
-            productResponse: r.productResponse || "ปกติ",
-            problemDetail: r.problemDetail || null,
-            products: (r.products && r.products.length > 0)
-              ? r.products.map((p: any) => ({
-                  productId: p.productId,
-                  productName: p.productName || p.product?.name || null,
-                  actualRate: p.actualRate || "",
-                  quantityUsed: Number(p.quantityUsed) || 0,
-                  unit: p.unit || p.product?.unit || null,
-                }))
-              : [
-                  {
-                    productId: "",
-                    productName: null,
+          .map((r: any) => {
+            const roundProducts: Type13ActualProductState[] =
+              r.products && r.products.length > 0
+                ? r.products.map((p: any) => {
+                    const matchedWi = (plot.withdrawalProducts || []).find(
+                      (wp) =>
+                        (p.drugWithdrawalItemId && wp.drugWithdrawalItemId === p.drugWithdrawalItemId) ||
+                        (!p.drugWithdrawalItemId && wp.productId === p.productId),
+                    );
+                    const isWithdrawn = Boolean(p.drugWithdrawalItemId || matchedWi);
+                    const dwItemId = p.drugWithdrawalItemId || (matchedWi ? matchedWi.drugWithdrawalItemId : null);
+                    const withdrawnQty = matchedWi
+                      ? matchedWi.withdrawnQuantity
+                      : p.drugWithdrawalItem?.quantity != null
+                      ? Number(p.drugWithdrawalItem.quantity)
+                      : null;
+
+                    return {
+                      productId: p.productId,
+                      productName: p.productName || p.product?.name || (matchedWi ? matchedWi.productName : null),
+                      actualRate: p.actualRate || "",
+                      quantityUsed: p.quantityUsed != null ? p.quantityUsed : "",
+                      unit: p.unit || p.product?.unit || (matchedWi ? matchedWi.unit : null),
+                      drugWithdrawalItemId: dwItemId,
+                      withdrawnQuantity: withdrawnQty,
+                      detail: p.detail || "",
+                      isAdditional: !isWithdrawn,
+                    };
+                  })
+                : (plot.withdrawalProducts && plot.withdrawalProducts.length > 0)
+                ? plot.withdrawalProducts.map((wp) => ({
+                    productId: wp.productId,
+                    productName: wp.productName,
                     actualRate: "",
-                    quantityUsed: 1,
-                    unit: null,
-                  },
-                ],
-            externalProducts: (r.externalProducts || []).map((ep: any) => ({
-              company: ep.company || "",
-              productName: ep.productName || "",
-              activeIngredient: ep.activeIngredient || null,
-              formula: ep.formula || "EC",
-              customFormula: ep.customFormula || null,
-              applicationRate: ep.applicationRate || "",
-            })),
-            attachments: (r.attachments || []).map((a: any) => ({
-              fileUrl: a.fileUrl,
-              fileName: a.fileName || "before-spray.jpg",
-              fileSize: a.fileSize,
-              mimeType: a.mimeType,
-            })),
-          }));
+                    quantityUsed: "",
+                    unit: wp.unit,
+                    drugWithdrawalItemId: wp.drugWithdrawalItemId,
+                    withdrawnQuantity: wp.withdrawnQuantity,
+                    detail: "",
+                    isAdditional: false,
+                  }))
+                : [
+                    {
+                      productId: "",
+                      productName: null,
+                      actualRate: "",
+                      quantityUsed: "",
+                      unit: null,
+                      drugWithdrawalItemId: null,
+                      withdrawnQuantity: null,
+                      detail: "",
+                      isAdditional: true,
+                    },
+                  ];
+
+            return {
+              id: r.id,
+              demoPlotId: r.demoPlotId,
+              roundNumber: r.roundNumber,
+              sprayDate: r.sprayDate ? new Date(r.sprayDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+              sprayMethod: (r.sprayMethod === "TANK_MIXED" ? "TANK_MIXED" : "SINGLE") as "SINGLE" | "TANK_MIXED",
+              sprayEquipment: r.sprayEquipment || "เครื่องยนต์พ่นยา",
+              otherEquipment: r.otherEquipment || null,
+              productResponse: r.productResponse || "ปกติ",
+              problemDetail: r.problemDetail || null,
+              products: roundProducts,
+              externalProducts: (r.externalProducts || []).map((ep: any) => ({
+                company: ep.company || "",
+                productName: ep.productName || "",
+                activeIngredient: ep.activeIngredient || null,
+                formula: ep.formula || "EC",
+                customFormula: ep.customFormula || null,
+                applicationRate: ep.applicationRate || "",
+              })),
+              attachments: (r.attachments || []).map((a: any) => ({
+                fileUrl: a.fileUrl,
+                fileName: a.fileName || "before-spray.jpg",
+                fileSize: a.fileSize,
+                mimeType: a.mimeType,
+              })),
+            };
+          });
 
         // Default initial round if no rounds yet
-        const defaultRounds: Type13SprayingRound[] =
+        const initialRoundProducts: Type13ActualProductState[] =
+          plot.withdrawalProducts && plot.withdrawalProducts.length > 0
+            ? plot.withdrawalProducts.map((wp) => ({
+                productId: wp.productId,
+                productName: wp.productName,
+                actualRate: "",
+                quantityUsed: "",
+                unit: wp.unit,
+                drugWithdrawalItemId: wp.drugWithdrawalItemId,
+                withdrawnQuantity: wp.withdrawnQuantity,
+                detail: "",
+                isAdditional: false,
+              }))
+            : [
+                {
+                  productId: "",
+                  productName: null,
+                  actualRate: "",
+                  quantityUsed: "",
+                  unit: null,
+                  drugWithdrawalItemId: null,
+                  withdrawnQuantity: null,
+                  detail: "",
+                  isAdditional: true,
+                },
+              ];
+
+        const defaultRounds =
           plotRounds.length > 0
             ? plotRounds
             : [
@@ -198,28 +315,12 @@ export function useType13ActualState() {
                   demoPlotId: plot.demoPlotId,
                   roundNumber: 1,
                   sprayDate: new Date().toISOString().split("T")[0],
-                  sprayMethod: "SINGLE",
+                  sprayMethod: "SINGLE" as const,
                   sprayEquipment: "เครื่องยนต์พ่นยา",
                   otherEquipment: null,
                   productResponse: "ปกติ",
                   problemDetail: null,
-                  products: (plot.plannedProducts && plot.plannedProducts.length > 0)
-                    ? plot.plannedProducts.map((pp) => ({
-                        productId: pp.productId,
-                        productName: pp.productName || null,
-                        actualRate: "",
-                        quantityUsed: pp.quantity ? Number(pp.quantity) : 1,
-                        unit: pp.unit || null,
-                      }))
-                    : [
-                        {
-                          productId: "",
-                          productName: null,
-                          actualRate: "",
-                          quantityUsed: 1,
-                          unit: null,
-                        },
-                      ],
+                  products: initialRoundProducts,
                   externalProducts: [],
                   attachments: [],
                 },
@@ -236,6 +337,7 @@ export function useType13ActualState() {
 
     if (basePlots.length === 0) {
       const defaultTempId = `temp-plot-${Date.now()}-1`;
+      const wProds = getWithdrawalForPlot(null, "แปลงที่ 1");
       basePlots = [
         {
           demoPlotId: defaultTempId,
@@ -243,6 +345,7 @@ export function useType13ActualState() {
           isNew: true,
           latitude: "",
           longitude: "",
+          withdrawalProducts: wProds,
           sprayRounds: [
             {
               demoPlotId: defaultTempId,
@@ -253,15 +356,32 @@ export function useType13ActualState() {
               otherEquipment: null,
               productResponse: "ปกติ",
               problemDetail: null,
-              products: [
-                {
-                  productId: "",
-                  productName: null,
-                  actualRate: "",
-                  quantityUsed: 1,
-                  unit: null,
-                },
-              ],
+              products:
+                wProds.length > 0
+                  ? wProds.map((wp) => ({
+                      productId: wp.productId,
+                      productName: wp.productName,
+                      actualRate: "",
+                      quantityUsed: "",
+                      unit: wp.unit,
+                      drugWithdrawalItemId: wp.drugWithdrawalItemId,
+                      withdrawnQuantity: wp.withdrawnQuantity,
+                      detail: "",
+                      isAdditional: false,
+                    }))
+                  : [
+                      {
+                        productId: "",
+                        productName: null,
+                        actualRate: "",
+                        quantityUsed: "",
+                        unit: null,
+                        drugWithdrawalItemId: null,
+                        withdrawnQuantity: null,
+                        detail: "",
+                        isAdditional: true,
+                      },
+                    ],
               externalProducts: [],
               attachments: [],
             },
@@ -298,6 +418,7 @@ export function useType13ActualState() {
         isNew: true,
         latitude: "",
         longitude: "",
+        withdrawalProducts: [],
         sprayRounds: [
           {
             demoPlotId: tempId,
@@ -313,8 +434,12 @@ export function useType13ActualState() {
                 productId: "",
                 productName: null,
                 actualRate: "",
-                quantityUsed: 1,
+                quantityUsed: "",
                 unit: null,
+                drugWithdrawalItemId: null,
+                withdrawnQuantity: null,
+                detail: "",
+                isAdditional: true,
               },
             ],
             externalProducts: [],
@@ -356,30 +481,39 @@ export function useType13ActualState() {
         const currentRounds = plot.sprayRounds || [];
         const nextRoundNumber = currentRounds.length + 1;
 
-        const defaultProducts =
-          plot.plannedProducts && plot.plannedProducts.length > 0
-            ? (plot.plannedProducts || []).map((pp) => ({
-                productId: pp.productId,
-                productName: pp.productName || null,
+        // Round starts with the products withdrawn for that plot
+        const defaultProducts: Type13ActualProductState[] =
+          plot.withdrawalProducts && plot.withdrawalProducts.length > 0
+            ? plot.withdrawalProducts.map((wp) => ({
+                productId: wp.productId,
+                productName: wp.productName,
                 actualRate: "",
-                quantityUsed: pp.quantity ? Number(pp.quantity) : 1,
-                unit: pp.unit || null,
+                quantityUsed: "",
+                unit: wp.unit,
+                drugWithdrawalItemId: wp.drugWithdrawalItemId,
+                withdrawnQuantity: wp.withdrawnQuantity,
+                detail: "",
+                isAdditional: false,
               }))
             : [
                 {
                   productId: "",
                   productName: null,
                   actualRate: "",
-                  quantityUsed: 1,
+                  quantityUsed: "",
                   unit: null,
+                  drugWithdrawalItemId: null,
+                  withdrawnQuantity: null,
+                  detail: "",
+                  isAdditional: true,
                 },
               ];
 
-        const newRound: Type13SprayingRound = {
+        const newRound = {
           demoPlotId: plot.demoPlotId,
           roundNumber: nextRoundNumber,
           sprayDate: new Date().toISOString().split("T")[0],
-          sprayMethod: "SINGLE",
+          sprayMethod: "SINGLE" as const,
           sprayEquipment: "เครื่องยนต์พ่นยา",
           otherEquipment: null,
           productResponse: "ปกติ",
@@ -442,7 +576,7 @@ export function useType13ActualState() {
       plotIndex: number,
       roundIndex: number,
       productIndex: number,
-      field: string,
+      field: keyof Type13ActualProductState,
       value: any,
     ) => {
       setPlotsActual((prev) => {
@@ -461,7 +595,7 @@ export function useType13ActualState() {
     [],
   );
 
-  // Add a product line to a spray round
+  // Add an additional product line to a spray round
   const addRoundProduct = useCallback(
     (
       plotIndex: number,
@@ -479,8 +613,12 @@ export function useType13ActualState() {
             productId: product?.productId || "",
             productName: product?.productName || null,
             actualRate: "",
-            quantityUsed: 1,
+            quantityUsed: "",
             unit: product?.unit || null,
+            drugWithdrawalItemId: null,
+            withdrawnQuantity: null,
+            detail: "",
+            isAdditional: true,
           },
         ];
         rounds[roundIndex] = round;
@@ -656,13 +794,17 @@ export function useType13ActualState() {
           productResponse: round.productResponse,
           problemDetail: round.problemDetail,
           workTypeCode: "TYPE_13",
-          products: round.products.map((prod) => ({
-            productId: prod.productId,
-            productName: prod.productName,
-            actualRate: prod.actualRate,
-            quantityUsed: Number(prod.quantityUsed) || 0,
-            unit: prod.unit,
-          })),
+          products: round.products
+            .filter((prod) => prod.productId && prod.productId.trim() !== "")
+            .map((prod) => ({
+              productId: prod.productId,
+              productName: prod.productName,
+              actualRate: prod.actualRate || "",
+              quantityUsed: Number(prod.quantityUsed) || 0,
+              unit: prod.unit,
+              drugWithdrawalItemId: prod.drugWithdrawalItemId || null,
+              detail: prod.detail || null,
+            })),
           externalProducts:
             round.sprayMethod === "TANK_MIXED"
               ? (round.externalProducts || []).map((ep) => ({

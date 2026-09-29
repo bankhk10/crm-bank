@@ -227,8 +227,10 @@ export const type13SprayProductSchema = z.object({
   productId: z.string().min(1, "กรุณาเลือกสินค้า"),
   productName: z.string().optional().nullable(),
   actualRate: z.string().min(1, "กรุณาระบุอัตราการฉีดพ่นจริง"),
-  quantityUsed: z.number().min(0, "จำนวนที่ใช้ต้องไม่ติดลบ"),
+  quantityUsed: z.coerce.number().min(0, "จำนวนที่ใช้ต้องไม่ติดลบ"),
   unit: z.string().optional().nullable(),
+  drugWithdrawalItemId: z.string().optional().nullable(),
+  detail: z.string().optional().nullable(),
 });
 
 export const type13SprayExternalSchema = z.object({
@@ -799,6 +801,8 @@ export const activityResultSchema = z
               actualRate: z.string(),
               quantityUsed: z.coerce.number(),
               unit: z.string().optional().nullable(),
+              drugWithdrawalItemId: z.string().optional().nullable(),
+              detail: z.string().optional().nullable(),
             }),
           ),
           externalProducts: z
