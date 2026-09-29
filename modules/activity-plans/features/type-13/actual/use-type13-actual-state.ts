@@ -57,18 +57,37 @@ export function useType13ActualState() {
 
     // Helper: extract withdrawal items for each plot from plan.drugWithdrawal
     const allWithdrawalItems: any[] = plan.drugWithdrawal?.items || [];
-    const getWithdrawalForPlot = (plotId?: string | null, plotName?: string | null) => {
-      const matched = allWithdrawalItems.filter((item: any) => {
+    const getWithdrawalForPlot = (
+      plotId?: string | null,
+      plotName?: string | null,
+    ) => {
+      let matched = allWithdrawalItems.filter((item: any) => {
         if (plotId && item.demoPlotId && item.demoPlotId === plotId) return true;
         if (
           plotName &&
           item.plotIdentifier &&
-          item.plotIdentifier.trim().toLowerCase() === plotName.trim().toLowerCase()
+          item.plotIdentifier.trim().toLowerCase() ===
+            plotName.trim().toLowerCase()
         ) {
           return true;
         }
         return false;
       });
+
+      // Fallback: If no explicit match, use plan's withdrawal items
+      // deduplicated by productId (ensuring new plots on-the-fly get the plan's drug withdrawal items as reference)
+      if (matched.length === 0 && allWithdrawalItems.length > 0) {
+        const seenProdIds = new Set<string>();
+        matched = allWithdrawalItems.filter((item: any) => {
+          const key = item.productId || item.id;
+          if (!seenProdIds.has(key)) {
+            seenProdIds.add(key);
+            return true;
+          }
+          return false;
+        });
+      }
+
       return matched.map((item: any) => ({
         drugWithdrawalItemId: item.id,
         productId: item.productId,
@@ -205,71 +224,114 @@ export function useType13ActualState() {
         const plotRounds = existingRounds
           .filter((r: any) => r.demoPlotId === plot.demoPlotId)
           .map((r: any) => {
-            const roundProducts: Type13ActualProductState[] =
-              r.products && r.products.length > 0
-                ? r.products.map((p: any) => {
-                    const matchedWi = (plot.withdrawalProducts || []).find(
-                      (wp) =>
-                        (p.drugWithdrawalItemId && wp.drugWithdrawalItemId === p.drugWithdrawalItemId) ||
-                        (!p.drugWithdrawalItemId && wp.productId === p.productId),
-                    );
-                    const isWithdrawn = Boolean(p.drugWithdrawalItemId || matchedWi);
-                    const dwItemId = p.drugWithdrawalItemId || (matchedWi ? matchedWi.drugWithdrawalItemId : null);
-                    const withdrawnQty = matchedWi
-                      ? matchedWi.withdrawnQuantity
-                      : p.drugWithdrawalItem?.quantity != null
-                      ? Number(p.drugWithdrawalItem.quantity)
-                      : null;
+            const rawProds: any[] = r.products || [];
 
-                    return {
-                      productId: p.productId,
-                      productName: p.productName || p.product?.name || (matchedWi ? matchedWi.productName : null),
-                      actualRate: p.actualRate || "",
-                      quantityUsed: p.quantityUsed != null ? p.quantityUsed : "",
-                      unit: p.unit || p.product?.unit || (matchedWi ? matchedWi.unit : null),
-                      drugWithdrawalItemId: dwItemId,
-                      withdrawnQuantity: withdrawnQty,
-                      detail: p.detail || "",
-                      isAdditional: !isWithdrawn,
-                    };
-                  })
-                : (plot.withdrawalProducts && plot.withdrawalProducts.length > 0)
-                ? plot.withdrawalProducts.map((wp) => ({
-                    productId: wp.productId,
-                    productName: wp.productName,
-                    actualRate: "",
-                    quantityUsed: "",
-                    unit: wp.unit,
-                    drugWithdrawalItemId: wp.drugWithdrawalItemId,
-                    withdrawnQuantity: wp.withdrawnQuantity,
-                    detail: "",
-                    isAdditional: false,
-                  }))
-                : [
-                    {
-                      productId: "",
-                      productName: null,
-                      actualRate: "",
-                      quantityUsed: "",
-                      unit: null,
-                      drugWithdrawalItemId: null,
-                      withdrawnQuantity: null,
-                      detail: "",
-                      isAdditional: true,
-                    },
-                  ];
+            // 1. Process items from DB
+            const savedWithdrawnMap = new Map<string, any>();
+            const additionalProducts: Type13ActualProductState[] = [];
+
+            for (const p of rawProds) {
+              const dwItemId =
+                p.drugWithdrawalItemId || p.drugWithdrawalItem?.id || null;
+              if (dwItemId) {
+                savedWithdrawnMap.set(dwItemId, p);
+              } else {
+                additionalProducts.push({
+                  productId: p.productId,
+                  productName: p.productName || p.product?.name || null,
+                  actualRate: p.actualRate || "",
+                  quantityUsed:
+                    p.quantityUsed != null && p.quantityUsed !== ""
+                      ? p.quantityUsed
+                      : "",
+                  unit: p.unit || p.product?.unit || null,
+                  drugWithdrawalItemId: null,
+                  withdrawnQuantity: null,
+                  detail: p.detail || "",
+                  isAdditional: true,
+                });
+              }
+            }
+
+            // 2. Build Withdrawn Products (from plot.withdrawalProducts, merging saved values if any)
+            const withdrawnProducts: Type13ActualProductState[] = (
+              plot.withdrawalProducts || []
+            ).map((wp) => {
+              const saved = savedWithdrawnMap.get(wp.drugWithdrawalItemId);
+              return {
+                productId: wp.productId,
+                productName: wp.productName,
+                actualRate: saved ? saved.actualRate || "" : "",
+                quantityUsed:
+                  saved &&
+                  saved.quantityUsed != null &&
+                  saved.quantityUsed !== ""
+                    ? saved.quantityUsed
+                    : "",
+                unit: wp.unit,
+                drugWithdrawalItemId: wp.drugWithdrawalItemId,
+                withdrawnQuantity: wp.withdrawnQuantity,
+                detail: saved ? saved.detail || "" : "",
+                isAdditional: false,
+              };
+            });
+
+            // Any other saved items with drugWithdrawalItemId not in plot.withdrawalProducts
+            for (const [dwId, p] of savedWithdrawnMap.entries()) {
+              if (
+                !withdrawnProducts.some(
+                  (wp) => wp.drugWithdrawalItemId === dwId,
+                )
+              ) {
+                const wi = allWithdrawalItems.find(
+                  (item: any) => item.id === dwId,
+                );
+                withdrawnProducts.push({
+                  productId: p.productId,
+                  productName:
+                    p.productName ||
+                    p.product?.name ||
+                    wi?.productName ||
+                    wi?.product?.name ||
+                    null,
+                  actualRate: p.actualRate || "",
+                  quantityUsed:
+                    p.quantityUsed != null && p.quantityUsed !== ""
+                      ? p.quantityUsed
+                      : "",
+                  unit:
+                    p.unit ||
+                    p.product?.unit ||
+                    wi?.unit ||
+                    wi?.product?.unit ||
+                    null,
+                  drugWithdrawalItemId: dwId,
+                  withdrawnQuantity: wi
+                    ? Number(wi.quantity) || 0
+                    : p.drugWithdrawalItem?.quantity != null
+                      ? Number(p.drugWithdrawalItem.quantity)
+                      : null,
+                  detail: p.detail || "",
+                  isAdditional: false,
+                });
+              }
+            }
 
             return {
               id: r.id,
               demoPlotId: r.demoPlotId,
               roundNumber: r.roundNumber,
-              sprayDate: r.sprayDate ? new Date(r.sprayDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-              sprayMethod: (r.sprayMethod === "TANK_MIXED" ? "TANK_MIXED" : "SINGLE") as "SINGLE" | "TANK_MIXED",
+              sprayDate: r.sprayDate
+                ? new Date(r.sprayDate).toISOString().split("T")[0]
+                : new Date().toISOString().split("T")[0],
+              sprayMethod: (r.sprayMethod === "TANK_MIXED"
+                ? "TANK_MIXED"
+                : "SINGLE") as "SINGLE" | "TANK_MIXED",
               sprayEquipment: r.sprayEquipment || "เครื่องยนต์พ่นยา",
               otherEquipment: r.otherEquipment || null,
               productResponse: r.productResponse || "ปกติ",
               problemDetail: r.problemDetail || null,
-              products: roundProducts,
+              products: [...withdrawnProducts, ...additionalProducts],
               externalProducts: (r.externalProducts || []).map((ep: any) => ({
                 company: ep.company || "",
                 productName: ep.productName || "",
@@ -301,19 +363,7 @@ export function useType13ActualState() {
                 detail: "",
                 isAdditional: false,
               }))
-            : [
-                {
-                  productId: "",
-                  productName: null,
-                  actualRate: "",
-                  quantityUsed: "",
-                  unit: null,
-                  drugWithdrawalItemId: null,
-                  withdrawnQuantity: null,
-                  detail: "",
-                  isAdditional: true,
-                },
-              ];
+            : [];
 
         const defaultRounds =
           plotRounds.length > 0
@@ -540,19 +590,7 @@ export function useType13ActualState() {
               detail: "",
               isAdditional: false,
             }))
-          : [
-              {
-                productId: "",
-                productName: null,
-                actualRate: "",
-                quantityUsed: "",
-                unit: null,
-                drugWithdrawalItemId: null,
-                withdrawnQuantity: null,
-                detail: "",
-                isAdditional: true,
-              },
-            ];
+          : [];
 
       const newPlot: Type13PlotActualState = {
         demoPlotId: tempId,
@@ -626,19 +664,7 @@ export function useType13ActualState() {
                 detail: "",
                 isAdditional: false,
               }))
-            : [
-                {
-                  productId: "",
-                  productName: null,
-                  actualRate: "",
-                  quantityUsed: "",
-                  unit: null,
-                  drugWithdrawalItemId: null,
-                  withdrawnQuantity: null,
-                  detail: "",
-                  isAdditional: true,
-                },
-              ];
+            : [];
 
         const newRound = {
           demoPlotId: plot.demoPlotId,
@@ -768,7 +794,6 @@ export function useType13ActualState() {
         const plot = next[plotIndex];
         const rounds = [...plot.sprayRounds];
         const round = { ...rounds[roundIndex] };
-        if (round.products.length <= 1) return prev;
         round.products = round.products.filter((_, idx) => idx !== productIndex);
         rounds[roundIndex] = round;
         next[plotIndex] = { ...plot, sprayRounds: rounds };

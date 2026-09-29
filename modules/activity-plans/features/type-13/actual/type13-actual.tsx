@@ -857,207 +857,357 @@ export function Type13Actual({
                         )}
                       </div>
 
-                      {/* Products Used in this Round */}
-                      <div className="pt-3 border-t border-slate-100 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                            <Package className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>ยา/สารเคมีที่ใช้ในรอบนี้</span>
-                          </label>
-                          {!readonly && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => addRoundProduct(plotIdx, rIdx)}
-                              className="h-7 px-2 text-xs text-emerald-700 border-dashed border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100 rounded-lg flex items-center gap-1"
-                            >
-                              <Plus className="w-3 h-3" />
-                              <span>เพิ่มรายการยา</span>
-                            </Button>
-                          )}
-                        </div>
+                      {/* Products Used in this Round - Split into 2 Tables */}
+                      {(() => {
+                        const withdrawnProducts = round.products
+                          .map((p, idx) => ({ ...p, originalIndex: idx }))
+                          .filter((p) => Boolean(p.drugWithdrawalItemId));
 
-                        {/* Products List Table/Cards */}
-                        <div className="space-y-2.5">
-                          {round.products.map((prod, pIdx) => {
-                            const isWithdrawn = !prod.isAdditional;
+                        const additionalProducts = round.products
+                          .map((p, idx) => ({ ...p, originalIndex: idx }))
+                          .filter((p) => !p.drugWithdrawalItemId);
 
-                            return (
-                              <div
-                                key={pIdx}
-                                className={`p-3 rounded-xl border transition-colors space-y-2.5 ${
-                                  isWithdrawn
-                                    ? "bg-slate-50/80 border-slate-200"
-                                    : "bg-amber-50/30 border-amber-200"
-                                }`}
-                              >
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
-                                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                                    {isWithdrawn ? (
-                                      <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="font-bold text-slate-800 text-xs sm:text-sm">
-                                          {prod.productName ||
-                                            "สินค้าไม่ระบุชื่อ"}
-                                        </span>
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                          จากรายการเบิก
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <div className="flex items-center gap-2 flex-1 max-w-md flex-wrap sm:flex-nowrap">
-                                        {readonly ? (
-                                          <span className="font-bold text-slate-800 text-xs sm:text-sm">
-                                            {prod.productName ||
-                                              "สินค้าเพิ่มเติม (ไม่ระบุ)"}
-                                          </span>
-                                        ) : (
-                                          <div className="w-full sm:w-64">
-                                            <FormCombobox
-                                              id={`product-${plotIdx}-${rIdx}-${pIdx}`}
-                                              label=""
-                                              value={prod.productId || ""}
-                                              onChange={(val) => {
-                                                const selected = products.find(
-                                                  (p) => p.id === val,
-                                                );
-                                                updateRoundProduct(
-                                                  plotIdx,
-                                                  rIdx,
-                                                  pIdx,
-                                                  "productId",
-                                                  val,
-                                                );
-                                                if (selected) {
+                        return (
+                          <div className="pt-3 border-t border-slate-100 space-y-4">
+                            <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                              <Package className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>ยา/สารเคมีที่ใช้ในรอบนี้</span>
+                            </label>
+
+                            {/* 1. สินค้าจากรายการเบิก */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    1. สินค้าจากรายการเบิก
+                                  </span>
+                                  <span className="text-[11px] text-slate-500">
+                                    (แสดงเฉพาะ Product จาก Drug Withdrawal • {withdrawnProducts.length} รายการ)
+                                  </span>
+                                </div>
+                              </div>
+
+                              {withdrawnProducts.length === 0 ? (
+                                <div className="text-center py-4 px-3 rounded-lg border border-dashed border-slate-200 bg-slate-50/60 text-xs text-slate-400">
+                                  ไม่มีสินค้าจากรายการเบิกสำหรับแปลงนี้
+                                </div>
+                              ) : (
+                                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                                  <table className="w-full text-xs text-left border-collapse min-w-[700px]">
+                                    <thead>
+                                      <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold">
+                                        <th className="py-2.5 px-3 w-[28%]">สินค้า</th>
+                                        <th className="py-2.5 px-3 w-[16%]">จำนวนที่เบิก (READ-ONLY)</th>
+                                        <th className="py-2.5 px-3 w-[18%]">
+                                          จำนวนที่ใช้จริง <span className="text-red-500">*</span>
+                                        </th>
+                                        <th className="py-2.5 px-3 w-[18%]">
+                                          อัตราการใช้ <span className="text-red-500">*</span>
+                                        </th>
+                                        <th className="py-2.5 px-3 w-[20%]">รายละเอียด</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                      {withdrawnProducts.map((prod) => (
+                                        <tr key={`withdrawn-${prod.originalIndex}`} className="hover:bg-slate-50/50">
+                                          {/* สินค้า */}
+                                          <td className="py-2.5 px-3 font-medium text-slate-800 align-top">
+                                            <div className="font-semibold text-slate-900">
+                                              {prod.productName || "สินค้าไม่ระบุชื่อ"}
+                                            </div>
+                                            <div className="text-[10px] text-emerald-700 font-medium">
+                                              [จากรายการเบิก]
+                                            </div>
+                                          </td>
+
+                                          {/* จำนวนที่เบิก (READ-ONLY) */}
+                                          <td className="py-2.5 px-3 align-top">
+                                            <div className="inline-flex items-center px-2 py-1 rounded bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-xs">
+                                              {prod.withdrawnQuantity != null ? prod.withdrawnQuantity : "-"} {prod.unit || ""}
+                                            </div>
+                                          </td>
+
+                                          {/* จำนวนที่ใช้จริง */}
+                                          <td className="py-2.5 px-3 align-top">
+                                            <div className="flex items-center gap-1.5">
+                                              <input
+                                                type="number"
+                                                min={0}
+                                                step="any"
+                                                value={prod.quantityUsed ?? ""}
+                                                onChange={(e) =>
                                                   updateRoundProduct(
                                                     plotIdx,
                                                     rIdx,
-                                                    pIdx,
-                                                    "productName",
-                                                    selected.name,
-                                                  );
-                                                  if (selected.unit) {
+                                                    prod.originalIndex,
+                                                    "quantityUsed",
+                                                    e.target.value === ""
+                                                      ? ""
+                                                      : parseFloat(e.target.value) || 0,
+                                                  )
+                                                }
+                                                disabled={readonly}
+                                                placeholder="ระบุจำนวนจริง"
+                                                className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
+                                              />
+                                              <span className="text-[11px] text-slate-500 whitespace-nowrap">
+                                                {prod.unit || "หน่วย"}
+                                              </span>
+                                            </div>
+                                          </td>
+
+                                          {/* อัตราการใช้ */}
+                                          <td className="py-2.5 px-3 align-top">
+                                            <input
+                                              type="text"
+                                              value={prod.actualRate || ""}
+                                              onChange={(e) =>
+                                                updateRoundProduct(
+                                                  plotIdx,
+                                                  rIdx,
+                                                  prod.originalIndex,
+                                                  "actualRate",
+                                                  e.target.value,
+                                                )
+                                              }
+                                              disabled={readonly}
+                                              placeholder="เช่น 20 ซีซี/น้ำ 20 ลิตร"
+                                              className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                                            />
+                                          </td>
+
+                                          {/* รายละเอียด */}
+                                          <td className="py-2.5 px-3 align-top">
+                                            <input
+                                              type="text"
+                                              value={prod.detail || ""}
+                                              onChange={(e) =>
+                                                updateRoundProduct(
+                                                  plotIdx,
+                                                  rIdx,
+                                                  prod.originalIndex,
+                                                  "detail",
+                                                  e.target.value,
+                                                )
+                                              }
+                                              disabled={readonly}
+                                              placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"
+                                              className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                                            />
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* 2. สินค้าเพิ่มเติมที่ใช้จริง */}
+                            <div className="space-y-2 pt-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                                    2. สินค้าเพิ่มเติมที่ใช้จริง
+                                  </span>
+                                  <span className="text-[11px] text-slate-500">
+                                    (แสดงเฉพาะ Product ที่ไม่ได้มาจาก Drug Withdrawal)
+                                  </span>
+                                </div>
+                                {!readonly && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addRoundProduct(plotIdx, rIdx)}
+                                    className="h-7 px-2.5 text-xs text-amber-800 border-dashed border-amber-300 bg-amber-50 hover:bg-amber-100 rounded-lg flex items-center gap-1"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                    <span>เพิ่มสินค้าเพิ่มเติม</span>
+                                  </Button>
+                                )}
+                              </div>
+
+                              {additionalProducts.length === 0 ? (
+                                <div className="text-center py-4 px-3 rounded-lg border border-dashed border-amber-200/80 bg-amber-50/30 text-xs text-slate-400">
+                                  ไม่มีสินค้าเพิ่มเติมที่ใช้จริง (สามารถกดปุ่ม "+ เพิ่มสินค้าเพิ่มเติม" ด้านบน หากมีการใช้ยานอกเหนือจากรายการเบิก)
+                                </div>
+                              ) : (
+                                <div className="overflow-x-auto rounded-lg border border-amber-200/80 bg-white">
+                                  <table className="w-full text-xs text-left border-collapse min-w-[700px]">
+                                    <thead>
+                                      <tr className="bg-amber-50/60 border-b border-amber-200 text-slate-700 font-semibold">
+                                        <th className="py-2.5 px-3 w-[32%]">สินค้า</th>
+                                        <th className="py-2.5 px-3 w-[20%]">
+                                          จำนวนที่ใช้จริง <span className="text-red-500">*</span>
+                                        </th>
+                                        <th className="py-2.5 px-3 w-[20%]">
+                                          อัตราการใช้ <span className="text-red-500">*</span>
+                                        </th>
+                                        <th className="py-2.5 px-3 w-[22%]">รายละเอียด</th>
+                                        {!readonly && <th className="py-2.5 px-3 w-[6%] text-center">จัดการ</th>}
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-amber-100/60">
+                                      {additionalProducts.map((prod) => (
+                                        <tr key={`additional-${prod.originalIndex}`} className="hover:bg-amber-50/20">
+                                          {/* สินค้า */}
+                                          <td className="py-2.5 px-3 align-top">
+                                            {readonly ? (
+                                              <div>
+                                                <span className="font-semibold text-slate-800">
+                                                  {prod.productName || "สินค้าเพิ่มเติม (ไม่ระบุ)"}
+                                                </span>
+                                                <div className="text-[10px] text-amber-700 font-medium">
+                                                  [เพิ่มเติม / ไม่ได้เบิก]
+                                                </div>
+                                              </div>
+                                            ) : (
+                                              <div className="space-y-1">
+                                                <FormCombobox
+                                                  id={`additional-product-${plotIdx}-${rIdx}-${prod.originalIndex}`}
+                                                  label=""
+                                                  value={prod.productId || ""}
+                                                  onChange={(val) => {
+                                                    const selected = products.find((p) => p.id === val);
                                                     updateRoundProduct(
                                                       plotIdx,
                                                       rIdx,
-                                                      pIdx,
-                                                      "unit",
-                                                      selected.unit,
+                                                      prod.originalIndex,
+                                                      "productId",
+                                                      val,
                                                     );
-                                                  }
+                                                    if (selected) {
+                                                      updateRoundProduct(
+                                                        plotIdx,
+                                                        rIdx,
+                                                        prod.originalIndex,
+                                                        "productName",
+                                                        selected.name,
+                                                      );
+                                                      if (selected.unit) {
+                                                        updateRoundProduct(
+                                                          plotIdx,
+                                                          rIdx,
+                                                          prod.originalIndex,
+                                                          "unit",
+                                                          selected.unit,
+                                                        );
+                                                      }
+                                                    }
+                                                  }}
+                                                  options={productOptions}
+                                                  placeholder="เลือกสินค้าจาก Product Master..."
+                                                  searchPlaceholder="ค้นหาสินค้า..."
+                                                  emptyText="ไม่พบสินค้า"
+                                                  disabled={readonly}
+                                                  triggerClassName="h-8 min-h-[32px] text-xs bg-white border-amber-300"
+                                                />
+                                                <div className="text-[10px] text-amber-700 font-medium">
+                                                  [เพิ่มเติม / ไม่ได้เบิก]
+                                                </div>
+                                              </div>
+                                            )}
+                                          </td>
+
+                                          {/* จำนวนที่ใช้จริง */}
+                                          <td className="py-2.5 px-3 align-top">
+                                            <div className="flex items-center gap-1.5">
+                                              <input
+                                                type="number"
+                                                min={0}
+                                                step="any"
+                                                value={prod.quantityUsed ?? ""}
+                                                onChange={(e) =>
+                                                  updateRoundProduct(
+                                                    plotIdx,
+                                                    rIdx,
+                                                    prod.originalIndex,
+                                                    "quantityUsed",
+                                                    e.target.value === ""
+                                                      ? ""
+                                                      : parseFloat(e.target.value) || 0,
+                                                  )
                                                 }
-                                              }}
-                                              options={productOptions}
-                                              placeholder="เลือกสินค้าจาก Product Master..."
-                                              searchPlaceholder="ค้นหาสินค้า..."
-                                              emptyText="ไม่พบสินค้า"
+                                                disabled={readonly}
+                                                placeholder="ระบุจำนวนจริง"
+                                                className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white font-medium"
+                                              />
+                                              <span className="text-[11px] text-slate-500 whitespace-nowrap">
+                                                {prod.unit || "หน่วย"}
+                                              </span>
+                                            </div>
+                                          </td>
+
+                                          {/* อัตราการใช้ */}
+                                          <td className="py-2.5 px-3 align-top">
+                                            <input
+                                              type="text"
+                                              value={prod.actualRate || ""}
+                                              onChange={(e) =>
+                                                updateRoundProduct(
+                                                  plotIdx,
+                                                  rIdx,
+                                                  prod.originalIndex,
+                                                  "actualRate",
+                                                  e.target.value,
+                                                )
+                                              }
                                               disabled={readonly}
-                                              triggerClassName="h-8 min-h-[32px] text-xs bg-white border-amber-300"
+                                              placeholder="เช่น 20 ซีซี/น้ำ 20 ลิตร"
+                                              className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
                                             />
-                                          </div>
-                                        )}
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-200 shrink-0">
-                                          เพิ่มเติม / ไม่ได้เบิก
-                                        </span>
-                                      </div>
-                                    )}
-                                  </div>
+                                          </td>
 
-                                  <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                                    {isWithdrawn &&
-                                      prod.withdrawnQuantity != null && (
-                                        <span className="text-xs text-slate-600 bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs">
-                                          จำนวนที่เบิก:{" "}
-                                          <strong className="text-emerald-700 font-bold">
-                                            {prod.withdrawnQuantity}
-                                          </strong>{" "}
-                                          {prod.unit || "หน่วย"}
-                                        </span>
-                                      )}
+                                          {/* รายละเอียด */}
+                                          <td className="py-2.5 px-3 align-top">
+                                            <input
+                                              type="text"
+                                              value={prod.detail || ""}
+                                              onChange={(e) =>
+                                                updateRoundProduct(
+                                                  plotIdx,
+                                                  rIdx,
+                                                  prod.originalIndex,
+                                                  "detail",
+                                                  e.target.value,
+                                                )
+                                              }
+                                              disabled={readonly}
+                                              placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"
+                                              className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                                            />
+                                          </td>
 
-                                    {!readonly && round.products.length > 1 && (
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          removeRoundProduct(
-                                            plotIdx,
-                                            rIdx,
-                                            pIdx,
-                                          )
-                                        }
-                                        className="text-slate-400 hover:text-red-500 p-1 rounded-md hover:bg-white transition-colors"
-                                        title="ลบสินค้ารายการนี้ออกจากรอบ"
-                                      >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                      </button>
-                                    )}
-                                  </div>
+                                          {/* ปุ่มลบ */}
+                                          {!readonly && (
+                                            <td className="py-2.5 px-3 align-top text-center">
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  removeRoundProduct(
+                                                    plotIdx,
+                                                    rIdx,
+                                                    prod.originalIndex,
+                                                  )
+                                                }
+                                                className="text-slate-400 hover:text-red-500 p-1.5 rounded-md hover:bg-red-50 transition-colors"
+                                                title="ลบสินค้ารายการนี้"
+                                              >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                              </button>
+                                            </td>
+                                          )}
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
                                 </div>
-
-                                {/* Inputs Row: จำนวนที่ใช้จริง, อัตราการใช้ */}
-                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 text-xs">
-                                  {/* จำนวนที่ใช้จริง */}
-                                  <div className="sm:col-span-3">
-                                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                                      จำนวนที่ใช้จริง{" "}
-                                      <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="flex items-center gap-1.5">
-                                      <input
-                                        type="number"
-                                        min={0}
-                                        step="any"
-                                        value={prod.quantityUsed ?? ""}
-                                        onChange={(e) =>
-                                          updateRoundProduct(
-                                            plotIdx,
-                                            rIdx,
-                                            pIdx,
-                                            "quantityUsed",
-                                            e.target.value === ""
-                                              ? ""
-                                              : parseFloat(e.target.value) || 0,
-                                          )
-                                        }
-                                        disabled={readonly}
-                                        placeholder="ระบุจำนวนจริง"
-                                        className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
-                                      />
-                                      <span className="text-[11px] text-slate-500 whitespace-nowrap min-w-[36px]">
-                                        {prod.unit || "หน่วย"}
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  {/* อัตราการใช้ */}
-                                  <div className="sm:col-span-4">
-                                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                                      อัตราการใช้{" "}
-                                      <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={prod.actualRate}
-                                      onChange={(e) =>
-                                        updateRoundProduct(
-                                          plotIdx,
-                                          rIdx,
-                                          pIdx,
-                                          "actualRate",
-                                          e.target.value,
-                                        )
-                                      }
-                                      disabled={readonly}
-                                      placeholder="เช่น 20 ซีซี/น้ำ 20 ลิตร"
-                                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       {/* Tank-mixed External Chemicals Section */}
                       {round.sprayMethod === "TANK_MIXED" && (

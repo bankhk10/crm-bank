@@ -1376,6 +1376,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         actualRate: p.actualRate || "",
         quantityUsed: p.quantityUsed != null ? Number(p.quantityUsed) : 0,
         unit: p.unit || p.product?.unit || null,
+        drugWithdrawalItemId:
+          p.drugWithdrawalItemId || p.drugWithdrawalItem?.id || null,
+        detail: p.detail || null,
       })),
       externalProducts: (sr.externalProducts || []).map((ep: any) => ({
         company: ep.company || "",
