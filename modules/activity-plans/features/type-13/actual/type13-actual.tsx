@@ -15,6 +15,8 @@ import {
   Beaker,
   AlertTriangle,
   Info,
+  Eye,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
@@ -73,10 +75,13 @@ export function Type13Actual({
     updateExternalProduct,
     addRoundAttachment,
     removeRoundAttachment,
+    addPlotAfterSprayImages,
+    removePlotAfterSprayImage,
   } = actualState;
 
   const [activePlotIdx, setActivePlotIdx] = useState(0);
   const [gpsLoading, setGpsLoading] = useState(false);
+  const [previewModalUrl, setPreviewModalUrl] = useState<string | null>(null);
 
   if (!isVisible || plotsActual.length === 0) return null;
 
@@ -969,7 +974,121 @@ export function Type13Actual({
             ))}
           </div>
         </div>
+
+        {/* Section: รูปหลังฉีดพ่น */}
+        <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <Camera className="w-4 h-4 text-emerald-600" />
+              <h5 className="font-bold text-sm text-slate-800">
+                รูปหลังฉีดพ่น
+              </h5>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                รูป {(currentPlot.afterSprayImages || []).length}/5
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {!readonly && (currentPlot.afterSprayImages || []).length < 5 ? (
+                <label className="cursor-pointer h-8 px-3 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1.5 font-medium transition-colors shadow-2xs">
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>เพิ่มรูป</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        const filesArray = Array.from(e.target.files);
+                        addPlotAfterSprayImages(activePlotIdx, filesArray);
+                        e.target.value = "";
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              ) : (
+                !readonly && (
+                  <span className="text-xs text-amber-600 font-medium bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                    ครบ 5 รูปแล้ว
+                  </span>
+                )
+              )}
+            </div>
+          </div>
+
+          {/* Photo Thumbnails */}
+          {(currentPlot.afterSprayImages || []).length === 0 ? (
+            <div className="p-6 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-xs text-slate-400">
+              ยังไม่มีรูปหลังฉีดพ่นสำหรับแปลงนี้ (สามารถอัปโหลดได้สูงสุด 5 รูป)
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              {(currentPlot.afterSprayImages || []).map((img, imgIdx) => (
+                <div
+                  key={img.id || imgIdx}
+                  className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 shadow-2xs"
+                >
+                  <img
+                    src={img.url}
+                    alt={img.name || `after-spray-${imgIdx + 1}`}
+                    className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => setPreviewModalUrl(img.url)}
+                  />
+                  <div
+                    className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
+                    onClick={() => setPreviewModalUrl(img.url)}
+                  >
+                    <Eye className="w-4 h-4 text-white drop-shadow-md" />
+                  </div>
+                  {!readonly && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removePlotAfterSprayImage(activePlotIdx, imgIdx);
+                      }}
+                      className="absolute top-1.5 right-1.5 p-1 bg-rose-600 hover:bg-rose-700 text-white rounded-md shadow-xs transition-colors z-10"
+                      title="ลบรูปนี้"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                  <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-0.5 text-[10px] text-white truncate pointer-events-none">
+                    รูป {imgIdx + 1}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Full Preview Modal */}
+      {previewModalUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-xs"
+          onClick={() => setPreviewModalUrl(null)}
+        >
+          <div
+            className="relative max-w-3xl max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={previewModalUrl}
+              alt="รูปขยาย"
+              className="max-w-full max-h-[85vh] rounded-xl object-contain shadow-2xl"
+            />
+            <button
+              type="button"
+              onClick={() => setPreviewModalUrl(null)}
+              className="absolute top-3 right-3 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

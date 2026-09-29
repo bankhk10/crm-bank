@@ -2,6 +2,11 @@
 
 import { useState, useCallback, useRef } from "react";
 import type { Type13SprayingRound } from "../../../application/validations";
+import type { ImageFile } from "../../shared/actual-view/types";
+import {
+  uploadActivityPlanImageGroup,
+  collectPermanentUrls,
+} from "../../shared/actual-view/utils/image-uploader";
 
 export interface Type13ActualProductState {
   productId: string;
@@ -32,6 +37,7 @@ export interface Type13PlotActualState {
     withdrawnQuantity: number;
     unit: string;
   }>;
+  afterSprayImages?: ImageFile[];
   sprayRounds: Array<
     Omit<Type13SprayingRound, "products"> & {
       products: Type13ActualProductState[];
@@ -42,10 +48,12 @@ export interface Type13PlotActualState {
 export function useType13ActualState() {
   const [plotsActual, setPlotsActual] = useState<Type13PlotActualState[]>([]);
   const initialPlotsRef = useRef<Type13PlotActualState[]>([]);
+  const planRef = useRef<any>(null);
 
   // Hydrate state from plan and existing actual result
   const hydrate = useCallback((plan: any, parsedResult: any, _targets?: any) => {
     if (!plan) return;
+    planRef.current = plan;
 
     // Helper: extract withdrawal items for each plot from plan.drugWithdrawal
     const allWithdrawalItems: any[] = plan.drugWithdrawal?.items || [];
@@ -335,6 +343,40 @@ export function useType13ActualState() {
       });
     }
 
+    // 3. Hydrate after-spray attachments for each plot
+    const allAttachments: any[] = [
+      ...((plan as any)?.result?.attachments || []),
+      ...((plan as any)?.attachments || []),
+      ...(parsedResult?.attachments || []),
+    ];
+
+    basePlots = basePlots.map((plot) => {
+      const plotAttachments = allAttachments.filter((att: any) => {
+        const isMatchPlot = att.demoPlotId === plot.demoPlotId;
+        const isAfterSpray = !att.sprayRoundId;
+        const isType13 =
+          !att.workTypeCode ||
+          att.workTypeCode === "TYPE_13" ||
+          att.workTypeCode === "ฉีดแปลงแฮตแทค";
+        return isMatchPlot && isAfterSpray && isType13;
+      });
+
+      const plotAfterSprayImages: ImageFile[] = plotAttachments
+        .slice(0, 5)
+        .map((att: any) => ({
+          id: att.id || att.fileUrl,
+          url: att.fileUrl,
+          name: att.fileName || "after-spray.jpg",
+          size: att.fileSize || 0,
+          type: att.mimeType || "image/jpeg",
+        }));
+
+      return {
+        ...plot,
+        afterSprayImages: plotAfterSprayImages,
+      };
+    });
+
     if (basePlots.length === 0) {
       const defaultTempId = `temp-plot-${Date.now()}-1`;
       const wProds = getWithdrawalForPlot(null, "แปลงที่ 1");
@@ -346,6 +388,7 @@ export function useType13ActualState() {
           latitude: "",
           longitude: "",
           withdrawalProducts: wProds,
+          afterSprayImages: [],
           sprayRounds: [
             {
               demoPlotId: defaultTempId,
@@ -412,24 +455,73 @@ export function useType13ActualState() {
       if (prev.length >= 10) return prev;
       const nextPlotNum = prev.length + 1;
       const tempId = `temp-plot-${Date.now()}-${nextPlotNum}`;
-      const newPlot: Type13PlotActualState = {
-        demoPlotId: tempId,
-        plotName: `แปลงที่ ${nextPlotNum}`,
-        isNew: true,
-        latitude: "",
-        longitude: "",
-        withdrawalProducts: [],
-        sprayRounds: [
-          {
-            demoPlotId: tempId,
-            roundNumber: 1,
-            sprayDate: new Date().toISOString().split("T")[0],
-            sprayMethod: "SINGLE",
-            sprayEquipment: "เครื่องยนต์พ่นยา",
-            otherEquipment: null,
-            productResponse: "ปกติ",
-            problemDetail: null,
-            products: [
+      const defaultPlotName = `แปลงที่ ${nextPlotNum}`;
+
+      // Extract withdrawal reference products from the Activity Plan
+      const allWithdrawalItems: any[] = planRef.current?.drugWithdrawal?.items || [];
+
+      // 1. Check if there are items explicitly tagged with this plot name
+      const explicitlyMatched = allWithdrawalItems.filter((item: any) => {
+        if (!item.plotIdentifier) return false;
+        const pIdStr = item.plotIdentifier.trim().toLowerCase();
+        const defStr = defaultPlotName.trim().toLowerCase();
+        if (pIdStr === defStr) return true;
+        const cleanPId = pIdStr.replace(/\s+/g, "");
+        const cleanDef = defStr.replace(/\s+/g, "");
+        if (cleanPId === cleanDef) return true;
+        if (cleanPId === `แปลง${nextPlotNum}` && cleanDef === `แปลงที่${nextPlotNum}`) return true;
+        if (cleanPId === `แปลงแฮตแทค${nextPlotNum}`) return true;
+        return false;
+      });
+
+      // 2. If no explicit match, use the Activity Plan's Drug Withdrawal items as reference
+      // (deduplicated by productId so each withdrawn product appears once as reference)
+      let sourceItems: any[] = [];
+      if (explicitlyMatched.length > 0) {
+        sourceItems = explicitlyMatched;
+      } else if (allWithdrawalItems.length > 0) {
+        const seenProdIds = new Set<string>();
+        for (const item of allWithdrawalItems) {
+          const key = item.productId || item.id;
+          if (!seenProdIds.has(key)) {
+            seenProdIds.add(key);
+            sourceItems.push(item);
+          }
+        }
+      } else if (prev.length > 0 && prev[0].withdrawalProducts && prev[0].withdrawalProducts.length > 0) {
+        sourceItems = prev[0].withdrawalProducts.map((wp) => ({
+          id: wp.drugWithdrawalItemId,
+          productId: wp.productId,
+          productName: wp.productName,
+          quantity: wp.withdrawnQuantity,
+          unit: wp.unit,
+        }));
+      }
+
+      const wProds = sourceItems.map((item: any) => ({
+        drugWithdrawalItemId: item.id || item.drugWithdrawalItemId,
+        productId: item.productId,
+        productName: item.productName || item.product?.name || "",
+        withdrawnQuantity: Number(item.quantity ?? item.withdrawnQuantity) || 0,
+        unit: item.unit || item.product?.unit || "",
+      }));
+
+      // Initial products for Round 1 of the new plot:
+      // Starts fresh with empty actual values: quantityUsed: "", actualRate: "", detail: "", isAdditional: false
+      const initialRoundProducts: Type13ActualProductState[] =
+        wProds.length > 0
+          ? wProds.map((wp) => ({
+              productId: wp.productId,
+              productName: wp.productName,
+              actualRate: "",
+              quantityUsed: "",
+              unit: wp.unit,
+              drugWithdrawalItemId: wp.drugWithdrawalItemId,
+              withdrawnQuantity: wp.withdrawnQuantity,
+              detail: "",
+              isAdditional: false,
+            }))
+          : [
               {
                 productId: "",
                 productName: null,
@@ -441,7 +533,27 @@ export function useType13ActualState() {
                 detail: "",
                 isAdditional: true,
               },
-            ],
+            ];
+
+      const newPlot: Type13PlotActualState = {
+        demoPlotId: tempId,
+        plotName: defaultPlotName,
+        isNew: true,
+        latitude: "",
+        longitude: "",
+        withdrawalProducts: wProds,
+        afterSprayImages: [],
+        sprayRounds: [
+          {
+            demoPlotId: tempId,
+            roundNumber: 1,
+            sprayDate: new Date().toISOString().split("T")[0],
+            sprayMethod: "SINGLE",
+            sprayEquipment: "เครื่องยนต์พ่นยา",
+            otherEquipment: null,
+            productResponse: "ปกติ",
+            problemDetail: null,
+            products: initialRoundProducts,
             externalProducts: [],
             attachments: [],
           },
@@ -756,82 +868,204 @@ export function useType13ActualState() {
     [],
   );
 
+  // After-spray photos (Max 5 photos per plot)
+  const addPlotAfterSprayImages = useCallback((plotIndex: number, newFiles: File[]) => {
+    setPlotsActual((prev) => {
+      const next = [...prev];
+      const plot = next[plotIndex];
+      if (!plot) return prev;
+      const current = plot.afterSprayImages || [];
+      const remaining = 5 - current.length;
+      if (remaining <= 0) return prev;
+
+      const toAdd: ImageFile[] = newFiles.slice(0, remaining).map((file) => ({
+        id: `temp-img-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        url: typeof window !== "undefined" ? URL.createObjectURL(file) : "",
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        rawFile: file,
+      }));
+
+      next[plotIndex] = {
+        ...plot,
+        afterSprayImages: [...current, ...toAdd],
+      };
+      return next;
+    });
+  }, []);
+
+  const removePlotAfterSprayImage = useCallback(
+    (plotIndex: number, imageIndex: number) => {
+      setPlotsActual((prev) => {
+        const next = [...prev];
+        const plot = next[plotIndex];
+        if (!plot) return prev;
+        const current = plot.afterSprayImages || [];
+        next[plotIndex] = {
+          ...plot,
+          afterSprayImages: current.filter((_, idx) => idx !== imageIndex),
+        };
+        return next;
+      });
+    },
+    [],
+  );
+
+  // Upload after-spray photos to server storage
+  const uploadImages = useCallback(
+    async (
+      planId: string,
+      newlyUploadedUrls: string[],
+    ): Promise<Type13PlotActualState[]> => {
+      const updatedPlots = await Promise.all(
+        plotsActual.map(async (plot, plotIdx) => {
+          const currentImages = plot.afterSprayImages || [];
+          if (currentImages.length === 0) return plot;
+
+          const res = await uploadActivityPlanImageGroup(
+            planId,
+            currentImages,
+            "type13",
+            plot.demoPlotId || `plot-${plotIdx}`,
+          );
+          newlyUploadedUrls.push(...res.newlyUploadedUrls);
+          return {
+            ...plot,
+            afterSprayImages: res.updatedImages,
+          };
+        }),
+      );
+
+      setPlotsActual(updatedPlots);
+      return updatedPlots;
+    },
+    [plotsActual],
+  );
+
+  // Collect old removed URLs to delete from disk on save
+  const collectOldImageUrlsToDelete = useCallback(
+    (currentPlots: Type13PlotActualState[] = plotsActual): string[] => {
+      const initialUrls: string[] = [];
+      (initialPlotsRef.current || []).forEach((p) => {
+        initialUrls.push(...collectPermanentUrls(p.afterSprayImages || []));
+      });
+
+      const currentUrls = new Set<string>();
+      (currentPlots || []).forEach((p) => {
+        collectPermanentUrls(p.afterSprayImages || []).forEach((u) => currentUrls.add(u));
+      });
+
+      return initialUrls.filter((u) => !currentUrls.has(u));
+    },
+    [plotsActual],
+  );
+
+  // Commit saved state to initial ref
+  const commitSavedImages = useCallback(
+    (savedPlots: Type13PlotActualState[] = plotsActual) => {
+      initialPlotsRef.current = JSON.parse(JSON.stringify(savedPlots));
+    },
+    [plotsActual],
+  );
+
   // Build payload for submission
-  const buildType13ActualPayload = useCallback(() => {
-    // 1. Existing plot GPS coordinates
-    const type13PlotsActual = plotsActual
-      .filter((p) => !p.isNew && !p.demoPlotId.startsWith("temp-"))
-      .map((p) => ({
-        demoPlotId: p.demoPlotId,
-        latitude: p.latitude.trim(),
-        longitude: p.longitude.trim(),
-      }));
+  const buildType13ActualPayload = useCallback(
+    (targetPlots: Type13PlotActualState[] = plotsActual) => {
+      // 1. Existing plot GPS coordinates
+      const type13PlotsActual = targetPlots
+        .filter((p) => !p.isNew && !p.demoPlotId.startsWith("temp-"))
+        .map((p) => ({
+          demoPlotId: p.demoPlotId,
+          latitude: p.latitude.trim(),
+          longitude: p.longitude.trim(),
+        }));
 
-    // 2. New plots on-the-fly metadata and GPS
-    const type13NewPlots = plotsActual
-      .filter((p) => p.isNew || p.demoPlotId.startsWith("temp-"))
-      .map((p) => ({
-        clientPlotId: p.demoPlotId,
-        plotName: p.plotName.trim() || `แปลงแฮตแทค`,
-        storeId: p.storeId || null,
-        province: p.province || null,
-        district: p.district || null,
-        latitude: p.latitude.trim(),
-        longitude: p.longitude.trim(),
-      }));
+      // 2. New plots on-the-fly metadata and GPS
+      const type13NewPlots = targetPlots
+        .filter((p) => p.isNew || p.demoPlotId.startsWith("temp-"))
+        .map((p) => ({
+          clientPlotId: p.demoPlotId,
+          plotName: p.plotName.trim() || `แปลงแฮตแทค`,
+          storeId: p.storeId || null,
+          province: p.province || null,
+          district: p.district || null,
+          latitude: p.latitude.trim(),
+          longitude: p.longitude.trim(),
+        }));
 
-    // 3. Flatten all spray rounds across all plots
-    const sprayRounds: any[] = [];
-    plotsActual.forEach((plot) => {
-      (plot.sprayRounds || []).forEach((round) => {
-        sprayRounds.push({
-          demoPlotId: plot.demoPlotId,
-          roundNumber: round.roundNumber,
-          sprayDate: round.sprayDate,
-          sprayMethod: round.sprayMethod,
-          sprayEquipment: round.sprayEquipment,
-          otherEquipment: round.otherEquipment,
-          productResponse: round.productResponse,
-          problemDetail: round.problemDetail,
-          workTypeCode: "TYPE_13",
-          products: round.products
-            .filter((prod) => prod.productId && prod.productId.trim() !== "")
-            .map((prod) => ({
-              productId: prod.productId,
-              productName: prod.productName,
-              actualRate: prod.actualRate || "",
-              quantityUsed: Number(prod.quantityUsed) || 0,
-              unit: prod.unit,
-              drugWithdrawalItemId: prod.drugWithdrawalItemId || null,
-              detail: prod.detail || null,
+      // 3. Flatten all spray rounds across all plots
+      const sprayRounds: any[] = [];
+      targetPlots.forEach((plot) => {
+        (plot.sprayRounds || []).forEach((round) => {
+          sprayRounds.push({
+            demoPlotId: plot.demoPlotId,
+            roundNumber: round.roundNumber,
+            sprayDate: round.sprayDate,
+            sprayMethod: round.sprayMethod,
+            sprayEquipment: round.sprayEquipment,
+            otherEquipment: round.otherEquipment,
+            productResponse: round.productResponse,
+            problemDetail: round.problemDetail,
+            workTypeCode: "TYPE_13",
+            products: round.products
+              .filter((prod) => prod.productId && prod.productId.trim() !== "")
+              .map((prod) => ({
+                productId: prod.productId,
+                productName: prod.productName,
+                actualRate: prod.actualRate || "",
+                quantityUsed: Number(prod.quantityUsed) || 0,
+                unit: prod.unit,
+                drugWithdrawalItemId: prod.drugWithdrawalItemId || null,
+                detail: prod.detail || null,
+              })),
+            externalProducts:
+              round.sprayMethod === "TANK_MIXED"
+                ? (round.externalProducts || []).map((ep) => ({
+                    company: ep.company,
+                    productName: ep.productName,
+                    activeIngredient: ep.activeIngredient,
+                    formula: ep.formula,
+                    customFormula: ep.customFormula,
+                    applicationRate: ep.applicationRate,
+                  }))
+                : [],
+            attachments: (round.attachments || []).map((att: any) => ({
+              fileUrl: att.fileUrl,
+              fileName: att.fileName || "before-spray.jpg",
+              fileSize: att.fileSize,
+              mimeType: att.mimeType,
             })),
-          externalProducts:
-            round.sprayMethod === "TANK_MIXED"
-              ? (round.externalProducts || []).map((ep) => ({
-                  company: ep.company,
-                  productName: ep.productName,
-                  activeIngredient: ep.activeIngredient,
-                  formula: ep.formula,
-                  customFormula: ep.customFormula,
-                  applicationRate: ep.applicationRate,
-                }))
-              : [],
-          attachments: (round.attachments || []).map((att: any) => ({
-            fileUrl: att.fileUrl,
-            fileName: att.fileName || "before-spray.jpg",
-            fileSize: att.fileSize,
-            mimeType: att.mimeType,
-          })),
+          });
         });
       });
-    });
 
-    return {
-      type13PlotsActual,
-      type13NewPlots,
-      sprayRounds,
-    };
-  }, [plotsActual]);
+      // 4. Attachments (รูปหลังฉีดพ่น - สูงสุด 5 รูปต่อแปลง)
+      const attachments: any[] = [];
+      targetPlots.forEach((plot) => {
+        (plot.afterSprayImages || []).slice(0, 5).forEach((img) => {
+          attachments.push({
+            workTypeCode: "TYPE_13",
+            demoPlotId: plot.demoPlotId,
+            category: "PLOT",
+            fileUrl: img.url,
+            fileName: img.name || "after-spray.jpg",
+            fileSize: img.size,
+            mimeType: img.type,
+            sprayRoundId: null,
+          });
+        });
+      });
+
+      return {
+        type13PlotsActual,
+        type13NewPlots,
+        sprayRounds,
+        attachments,
+      };
+    },
+    [plotsActual],
+  );
 
   return {
     plotsActual,
@@ -852,6 +1086,11 @@ export function useType13ActualState() {
     updateExternalProduct,
     addRoundAttachment,
     removeRoundAttachment,
+    addPlotAfterSprayImages,
+    removePlotAfterSprayImage,
+    uploadImages,
+    collectOldImageUrlsToDelete,
+    commitSavedImages,
     buildType13ActualPayload,
   };
 }

@@ -195,6 +195,14 @@ export function useActualSubmit({
             cleanT11Images = await type11.uploadImages(id, allNewlyUploadedUrls);
           }
 
+          // TYPE_13: ฉีดแปลงแฮตแทค - Upload after-spray photos
+          const isType13 =
+            isTypeVisible("ฉีดแปลงแฮตแทค") || isTypeVisible("TYPE_13");
+          let cleanT13Plots = typeHooks.type13?.plotsActual;
+          if (isType13 && typeHooks.type13) {
+            cleanT13Plots = await typeHooks.type13.uploadImages(id, allNewlyUploadedUrls);
+          }
+
           // --- 2. CALCULATE OLD REMOVED URLS ACROSS ALL WORK TYPES ---
           const allOldUrlsToDelete = [
             ...type1.collectOldImageUrlsToDelete(cleanT1Images),
@@ -214,6 +222,9 @@ export function useActualSubmit({
             ...type9.collectOldImageUrlsToDelete(cleanT9Images),
             ...type10.collectOldImageUrlsToDelete(cleanT10Images),
             ...type11.collectOldImageUrlsToDelete(cleanT11Images),
+            ...(isType13 && typeHooks.type13 && cleanT13Plots
+              ? typeHooks.type13.collectOldImageUrlsToDelete(cleanT13Plots)
+              : []),
           ];
 
           // --- 3. BUILD RESULT PAYLOAD & VALIDATE ---
@@ -244,13 +255,12 @@ export function useActualSubmit({
           const t10Payload = type10.collectPayload(cleanT10Images);
           const t11Payload = type11.collectPayload(cleanT11Images);
 
-          // TYPE_13: ฉีดแปลงแฮตแทค
-          const isType13 =
-            isTypeVisible("ฉีดแปลงแฮตแทค") || isTypeVisible("TYPE_13");
+          // TYPE_13 payload
           let t13Payload: any = {};
           if (isType13 && typeHooks.type13) {
-            for (let i = 0; i < typeHooks.type13.plotsActual.length; i++) {
-              const p = typeHooks.type13.plotsActual[i];
+            const currentPlots = cleanT13Plots || typeHooks.type13.plotsActual;
+            for (let i = 0; i < currentPlots.length; i++) {
+              const p = currentPlots[i];
               if (!p.latitude?.trim() || !p.longitude?.trim()) {
                 setFormError(
                   `กรุณาระบุพิกัด Latitude และ Longitude ให้ครบถ้วน (${p.plotName || `แปลงที่ ${i + 1}`})`,
@@ -259,7 +269,7 @@ export function useActualSubmit({
                 return;
               }
             }
-            t13Payload = typeHooks.type13.buildType13ActualPayload();
+            t13Payload = typeHooks.type13.buildType13ActualPayload(currentPlots);
           }
 
           const activeType7Payload = isType7A ? t7aPayload : t7bPayload;
@@ -313,6 +323,14 @@ export function useActualSubmit({
             ...(t13Payload.type13NewPlots?.length
               ? { type13NewPlots: t13Payload.type13NewPlots }
               : {}),
+            ...(t13Payload.attachments?.length
+              ? {
+                  attachments: [
+                    ...(buildResult.payload.attachments || []),
+                    ...t13Payload.attachments,
+                  ],
+                }
+              : {}),
           };
           const res = await recordActivityResultAction(id, combinedPayload);
           if (!res.success) {
@@ -344,6 +362,9 @@ export function useActualSubmit({
           type9.commitSavedImages(cleanT9Images);
           type10.commitSavedImages(cleanT10Images);
           type11.commitSavedImages(cleanT11Images);
+          if (isType13 && typeHooks.type13 && cleanT13Plots) {
+            typeHooks.type13.commitSavedImages(cleanT13Plots);
+          }
 
           // Record TYPE-7B DemoPlotVisit if applicable
           if (

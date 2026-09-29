@@ -60,6 +60,12 @@ export interface Type13DetailProps {
         fileName?: string;
       }>;
     }>;
+    attachments?: Array<{
+      demoPlotId?: string | null;
+      sprayRoundId?: string | null;
+      fileUrl: string;
+      fileName?: string;
+    }>;
   };
 }
 
@@ -85,6 +91,11 @@ export function Type13Detail({ plots = [], planSummary, actualData }: Type13Deta
   // Check if this plot has spray rounds
   const plotRounds = (actualData?.sprayRounds || []).filter(
     (r) => r.demoPlotId === currentPlot.id,
+  );
+
+  // Check if this plot has after-spray photos
+  const afterSprayAttachments = (actualData?.attachments || []).filter(
+    (att) => att.demoPlotId === currentPlot.id && !att.sprayRoundId,
   );
 
   return (
@@ -432,6 +443,37 @@ export function Type13Detail({ plots = [], planSummary, actualData }: Type13Deta
                       </div>
                     </div>
                   )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* After Spray Photos */}
+        {afterSprayAttachments.length > 0 && (
+          <div className="bg-slate-50/70 rounded-xl border border-slate-200/80 p-4 space-y-3">
+            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <Camera className="w-4 h-4 text-emerald-600" />
+              <span>รูปหลังฉีดพ่น ({afterSprayAttachments.length} รูป)</span>
+            </span>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              {afterSprayAttachments.map((att, aIdx) => (
+                <div
+                  key={aIdx}
+                  onClick={() => setPreviewImage(att.fileUrl)}
+                  className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 cursor-pointer shadow-2xs"
+                >
+                  <img
+                    src={att.fileUrl}
+                    alt={att.fileName || `after-spray-${aIdx + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <Eye className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-0.5 text-[10px] text-white truncate pointer-events-none">
+                    รูป {aIdx + 1}
+                  </div>
                 </div>
               ))}
             </div>

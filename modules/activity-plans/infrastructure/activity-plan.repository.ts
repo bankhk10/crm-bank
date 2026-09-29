@@ -3270,7 +3270,10 @@ export async function upsertActivityResult(
     // 7. Sync Attachments
     if (input.attachments !== undefined) {
       await tx.activityAttachment.deleteMany({
-        where: { activityResultId: result.id },
+        where: {
+          activityResultId: result.id,
+          sprayRoundId: null,
+        },
       });
       if (input.attachments.length > 0) {
         const existingSurveyItems = await tx.activityResultSurveyItem.findMany({

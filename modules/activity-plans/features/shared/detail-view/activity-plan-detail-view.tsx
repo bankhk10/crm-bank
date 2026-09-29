@@ -354,13 +354,20 @@ export default function ActivityPlanDetailView({
       })),
     }));
 
-    if (type13PlotsActual.length === 0 && sprayRounds.length === 0) {
+    const attachments = (plan.result as any)?.attachments || [];
+
+    if (
+      type13PlotsActual.length === 0 &&
+      sprayRounds.length === 0 &&
+      attachments.length === 0
+    ) {
       return undefined;
     }
 
     return {
       type13PlotsActual,
       sprayRounds,
+      attachments,
     };
   }, [plan?.result, plan?.demoPlotVisits]);
 
