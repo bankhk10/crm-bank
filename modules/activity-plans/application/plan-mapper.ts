@@ -329,7 +329,7 @@ export function normalizePlanInput(
       items: (rawInput.drugWithdrawal.items || []).map((item, idx) => ({
         id: item.id,
         demoPlotId: item.demoPlotId ?? null,
-        plotIdentifier: item.plotIdentifier,
+        plotIdentifier: item.plotIdentifier || "",
         productId: item.productId,
         productName: item.productName ?? null,
         quantity:

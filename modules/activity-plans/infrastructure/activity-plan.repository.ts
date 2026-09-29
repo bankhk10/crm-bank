@@ -1137,19 +1137,27 @@ export async function createActivityPlan(
           let targetPlotId = t14.demoPlotId;
 
           if (t14.mode === "EXISTING_PLOT" && targetPlotId) {
-            await tx.demoPlot.update({
-              where: { id: targetPlotId },
-              data: {
-                latitude:
-                  t14.latitude != null
+            const hasLat =
+              t14.latitude != null &&
+              String(t14.latitude).trim() !== "" &&
+              !isNaN(Number(t14.latitude));
+            const hasLng =
+              t14.longitude != null &&
+              String(t14.longitude).trim() !== "" &&
+              !isNaN(Number(t14.longitude));
+            if (hasLat || hasLng) {
+              await tx.demoPlot.update({
+                where: { id: targetPlotId },
+                data: {
+                  latitude: hasLat
                     ? new Prisma.Decimal(Number(t14.latitude))
                     : undefined,
-                longitude:
-                  t14.longitude != null
+                  longitude: hasLng
                     ? new Prisma.Decimal(Number(t14.longitude))
                     : undefined,
-              },
-            });
+                },
+              });
+            }
           } else {
             const code = await generateDemoPlotCode(
               tx,
@@ -1181,36 +1189,49 @@ export async function createActivityPlan(
             targetPlotId = newPlot.id;
           }
 
-          if (targetPlotId && t14.trackings && t14.trackings.length > 0) {
-            for (let tIdx = 0; tIdx < t14.trackings.length; tIdx++) {
-              const tracking = t14.trackings[tIdx];
-              const visit = await tx.demoPlotVisit.create({
+          if (targetPlotId) {
+            if (t14.trackings && t14.trackings.length > 0) {
+              for (let tIdx = 0; tIdx < t14.trackings.length; tIdx++) {
+                const tracking = t14.trackings[tIdx];
+                const visit = await tx.demoPlotVisit.create({
+                  data: {
+                    demoPlotId: targetPlotId,
+                    activityPlanId: plan.id,
+                    workTypeCode: "TYPE_14",
+                    visitNumber: tIdx + 1,
+                    visitDate: new Date(tracking.visitDate),
+                    daysSinceStart: Number(tracking.daysSinceStart) || 0,
+                    notes: tracking.notes ?? null,
+                  },
+                });
+
+                if (tracking.attachments && tracking.attachments.length > 0) {
+                  await tx.activityAttachment.createMany({
+                    data: tracking.attachments.slice(0, 5).map((att) => ({
+                      activityPlanId: plan.id,
+                      demoPlotId: targetPlotId,
+                      demoPlotVisitId: visit.id,
+                      workTypeCode: "TYPE_14",
+                      category: AttachmentCategory.PLOT,
+                      fileUrl: att.fileUrl,
+                      fileName: att.fileName || "hattack-result-photo.jpg",
+                      fileSize: att.fileSize ?? null,
+                      mimeType: att.mimeType ?? null,
+                    })),
+                  });
+                }
+              }
+            } else {
+              await tx.demoPlotVisit.create({
                 data: {
                   demoPlotId: targetPlotId,
                   activityPlanId: plan.id,
                   workTypeCode: "TYPE_14",
-                  visitNumber: tIdx + 1,
-                  visitDate: new Date(tracking.visitDate),
-                  daysSinceStart: Number(tracking.daysSinceStart) || 0,
-                  notes: tracking.notes ?? null,
+                  visitNumber: 1,
+                  visitDate: input.startDate,
+                  daysSinceStart: 0,
                 },
               });
-
-              if (tracking.attachments && tracking.attachments.length > 0) {
-                await tx.activityAttachment.createMany({
-                  data: tracking.attachments.slice(0, 5).map((att) => ({
-                    activityPlanId: plan.id,
-                    demoPlotId: targetPlotId,
-                    demoPlotVisitId: visit.id,
-                    workTypeCode: "TYPE_14",
-                    category: AttachmentCategory.PLOT,
-                    fileUrl: att.fileUrl,
-                    fileName: att.fileName || "hattack-result-photo.jpg",
-                    fileSize: att.fileSize ?? null,
-                    mimeType: att.mimeType ?? null,
-                  })),
-                });
-              }
             }
           }
         }
@@ -1335,7 +1356,7 @@ export async function createActivityPlan(
               return {
                 drugWithdrawalId: dw.id,
                 demoPlotId: item.demoPlotId ?? null,
-                plotIdentifier: item.plotIdentifier,
+                plotIdentifier: item.plotIdentifier || "",
                 productId: item.productId,
                 productName: item.productName || prod.name,
                 quantity: new Prisma.Decimal(item.quantity),
@@ -1835,19 +1856,27 @@ export async function updateActivityPlan(
         let targetPlotId = t14.demoPlotId;
 
         if (t14.mode === "EXISTING_PLOT" && targetPlotId) {
-          await tx.demoPlot.update({
-            where: { id: targetPlotId },
-            data: {
-              latitude:
-                t14.latitude != null
+          const hasLat =
+            t14.latitude != null &&
+            String(t14.latitude).trim() !== "" &&
+            !isNaN(Number(t14.latitude));
+          const hasLng =
+            t14.longitude != null &&
+            String(t14.longitude).trim() !== "" &&
+            !isNaN(Number(t14.longitude));
+          if (hasLat || hasLng) {
+            await tx.demoPlot.update({
+              where: { id: targetPlotId },
+              data: {
+                latitude: hasLat
                   ? new Prisma.Decimal(Number(t14.latitude))
                   : undefined,
-              longitude:
-                t14.longitude != null
+                longitude: hasLng
                   ? new Prisma.Decimal(Number(t14.longitude))
                   : undefined,
-            },
-          });
+              },
+            });
+          }
         } else if (!targetPlotId) {
           const code = await generateDemoPlotCode(
             tx,
@@ -2095,7 +2124,7 @@ export async function updateActivityPlan(
             return {
               drugWithdrawalId: dwId,
               demoPlotId: item.demoPlotId ?? null,
-              plotIdentifier: item.plotIdentifier,
+              plotIdentifier: item.plotIdentifier || "",
               productId: item.productId,
               productName: item.productName || prod.name,
               quantity: new Prisma.Decimal(item.quantity),
@@ -4145,6 +4174,11 @@ export async function findHattackFollowUpDemoPlots() {
         orderBy: { sortOrder: "asc" },
       },
       visits: {
+        include: {
+          activityPlan: {
+            select: { id: true, title: true, code: true },
+          },
+        },
         orderBy: { visitDate: "asc" },
       },
       attachments: true,

@@ -219,10 +219,20 @@ export async function getHattackFollowUpDemoPlotsUseCase() {
       ),
     );
 
+    const type13Visit =
+      (p.visits || []).find((v: any) => v.workTypeCode === "TYPE_13") ||
+      p.visits?.[0];
+    const activityName =
+      type13Visit?.activityPlan?.title || p.name || "";
+    const activityCode = type13Visit?.activityPlan?.code || "";
+
     return {
       id: p.id,
       code: p.code || `HATTACK-${p.id.slice(-4)}`,
       name: p.name,
+      activityName,
+      activityCode,
+      activityType: "ฉีดแปลงแฮตแทค",
       location: [p.district, p.province].filter(Boolean).join(", "),
       targetCrop: p.cropName || "พืชทั่วไป",
       showcase: "",

@@ -82,18 +82,7 @@ export function useType14Form({
       ownerName: "",
       province: (initial as any)?.province || defaultProvince || "",
       district: (initial as any)?.district || defaultDistrict || "",
-      latitude: "",
-      longitude: "",
-      trackings: [
-        {
-          visitDate: (initial as any)?.startDate
-            ? format(new Date((initial as any).startDate), "yyyy-MM-dd")
-            : format(new Date(), "yyyy-MM-dd"),
-          daysSinceStart: 7,
-          notes: "",
-          attachments: [],
-        },
-      ],
+      trackings: [],
     };
   });
 
@@ -105,10 +94,10 @@ export function useType14Form({
       return { isValid: true };
     }
 
-    if (!type14Data.name?.trim()) {
+    if (!type14Data.demoPlotId?.trim()) {
       return {
         isValid: false,
-        error: "กรุณากรอกหรือเลือกชื่อแปลงแฮตแทค (TYPE_14)",
+        error: "กรุณาเลือกแปลงแฮตแทคเดิม (TYPE_14)",
       };
     }
     if (!type14Data.storeId?.trim()) {
@@ -128,27 +117,6 @@ export function useType14Form({
         isValid: false,
         error: "กรุณาระบุอำเภอของแปลงแฮตแทค",
       };
-    }
-    if (!type14Data.latitude?.trim() || !type14Data.longitude?.trim()) {
-      return {
-        isValid: false,
-        error: "กรุณาระบุพิกัด GPS (Latitude และ Longitude) ของแปลงแฮตแทค",
-      };
-    }
-    if (!type14Data.trackings || type14Data.trackings.length === 0) {
-      return {
-        isValid: false,
-        error: "กรุณาระบุข้อมูลการติดตามแปลงอย่างน้อย 1 รายการ",
-      };
-    }
-    for (let i = 0; i < type14Data.trackings.length; i++) {
-      const tr = type14Data.trackings[i];
-      if (!tr.visitDate) {
-        return {
-          isValid: false,
-          error: `กรุณาระบุวันที่ตรวจติดตาม (การติดตามครั้งที่ ${i + 1})`,
-        };
-      }
     }
 
     return { isValid: true };
@@ -179,12 +147,18 @@ export function useType14Form({
       storeId: type14Data.storeId,
       storeName: dealer?.name || type14Data.storeId,
       province: type14Data.province || null,
-      remarks: type14Data.name,
-      notes: `ติดตามแปลงแฮทแทค: ${type14Data.name}`,
+      remarks: type14Data.name || "ติดตามแปลงแฮทแทค",
+      notes: `ติดตามแปลงแฮทแทค: ${type14Data.name || ""}`,
     });
 
     return {
-      type14Data,
+      type14Data: {
+        ...type14Data,
+        mode: "EXISTING_PLOT",
+        latitude: "",
+        longitude: "",
+        trackings: [],
+      },
       planStores,
     };
   };

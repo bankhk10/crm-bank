@@ -284,18 +284,16 @@ export const type14TrackingItemSchema = z.object({
 });
 
 export const type14PlanInputSchema = z.object({
-  mode: z.enum(["EXISTING_PLOT", "NEW_PLOT"]),
+  mode: z.enum(["EXISTING_PLOT", "NEW_PLOT"]).optional().default("EXISTING_PLOT"),
   demoPlotId: z.string().optional().nullable(),
-  name: z.string().min(1, "กรุณาระบุชื่อแปลง"),
+  name: z.string().optional().default(""),
   storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),
   ownerName: z.string().optional().nullable(),
   province: z.string().min(1, "กรุณาเลือกจังหวัด"),
   district: z.string().min(1, "กรุณาเลือกอำเภอ"),
-  latitude: z.string().min(1, "กรุณาระบุละติจูด (Latitude)"),
-  longitude: z.string().min(1, "กรุณาระบุลองจิจูด (Longitude)"),
-  trackings: z
-    .array(type14TrackingItemSchema)
-    .min(1, "ต้องมีข้อมูลการติดตามแปลงอย่างน้อย 1 รายการ"),
+  latitude: z.string().optional().nullable().default(""),
+  longitude: z.string().optional().nullable().default(""),
+  trackings: z.array(type14TrackingItemSchema).optional().default([]),
 });
 
 export type Type13ProductLine = z.infer<typeof type13ProductLineSchema>;
@@ -312,10 +310,7 @@ export type Type14PlanInput = z.infer<typeof type14PlanInputSchema>;
 export const drugWithdrawalItemSchema = z.object({
   id: z.string().optional(),
   demoPlotId: z.string().optional().nullable(),
-  plotIdentifier: z
-    .string({ required_error: "กรุณาระบุแปลงที่ใช้ยา" })
-    .trim()
-    .min(1, "กรุณาระบุแปลงที่ใช้ยา"),
+  plotIdentifier: z.string().optional().default(""),
   productId: z
     .string({ required_error: "กรุณาเลือกตัวยา/ผลิตภัณฑ์" })
     .trim()
@@ -356,6 +351,20 @@ export const drugWithdrawalInputSchema = z
           message: "ต้องระบุรายการเบิกยาอย่างน้อย 1 รายการเมื่อเลือกเบิกยา",
           path: ["items"],
         });
+      } else {
+        const requiresPlot =
+          data.workTypeCode === "TYPE_7A" || data.workTypeCode === "TYPE_7B";
+        if (requiresPlot) {
+          data.items.forEach((item, idx) => {
+            if (!item.plotIdentifier || !item.plotIdentifier.trim()) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `รายการที่ ${idx + 1}: กรุณาระบุแปลงที่ใช้ยา`,
+                path: ["items", idx, "plotIdentifier"],
+              });
+            }
+          });
+        }
       }
     }
   });

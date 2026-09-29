@@ -429,6 +429,9 @@ export interface UserDemoPlotOption {
   hasExternalChemicals?: boolean;
   dealerId?: string;
   dealerName?: string;
+  activityName?: string;
+  activityCode?: string;
+  activityType?: string;
   demoProducts?: any[];
   externalProducts?: any[];
   irrigations?: any[];
