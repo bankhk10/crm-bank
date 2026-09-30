@@ -38,10 +38,11 @@ export interface ProductSaleDetail {
 
 interface ActualType8MeetingProps {
   isVisible: boolean;
-  target: {
-    topic: string;
-    products: string;
-    targetAttendees: string;
+  planType?: "PLANNED" | "UNPLANNED" | string;
+  target?: {
+    topic?: string;
+    products?: string;
+    targetAttendees?: string;
     customer?: string;
     dealerName?: string;
     subDealerStore?: string;
@@ -75,6 +76,7 @@ interface ActualType8MeetingProps {
 
 export function ActualType8Meeting({
   isVisible,
+  planType,
   target,
   actualAttendees,
   setActualAttendees,
@@ -87,7 +89,7 @@ export function ActualType8Meeting({
   registrationImages = [],
   setRegistrationImages,
 }: ActualType8MeetingProps) {
-  const plannedPromoProducts = target.promotionalProducts || [];
+  const plannedPromoProducts = target?.promotionalProducts || [];
 
   const [localPromoItems, setLocalPromoItems] = useState<
     Type8PromotionProductItem[]
@@ -141,7 +143,7 @@ export function ActualType8Meeting({
         }),
       );
     }
-  }, [productSalesDetails, target.promotionalProducts]);
+  }, [productSalesDetails, target?.promotionalProducts]);
 
   if (!isVisible) return null;
 
@@ -231,21 +233,23 @@ export function ActualType8Meeting({
       </div>
 
       {/* Target Plan Information Card */}
-      <ActualTargetCard
-        iconColorClass="text-purple-600"
-        badgeColorClass="bg-purple-100 text-purple-800"
-        gridColsClass="grid-cols-1 sm:grid-cols-3"
-        items={[
-          { label: "หัวข้อการประชุม:", value: target.topic || "-" },
-          { label: "สินค้าแนะนำ:", value: target.products || "-" },
-          {
-            label: "เป้าหมายผู้เข้าร่วม:",
-            value: target.targetAttendees
-              ? `${target.targetAttendees} คน`
-              : "-",
-          },
-        ]}
-      />
+      {planType !== "UNPLANNED" && (
+        <ActualTargetCard
+          iconColorClass="text-purple-600"
+          badgeColorClass="bg-purple-100 text-purple-800"
+          gridColsClass="grid-cols-1 sm:grid-cols-3"
+          items={[
+            { label: "หัวข้อการประชุม:", value: target?.topic || "-" },
+            { label: "สินค้าแนะนำ:", value: target?.products || "-" },
+            {
+              label: "เป้าหมายผู้เข้าร่วม:",
+              value: target?.targetAttendees
+                ? `${target.targetAttendees} คน`
+                : "-",
+            },
+          ]}
+        />
+      )}
 
       {/* Promotional Products Section */}
       <div className="space-y-2.5 pt-1 border-t border-purple-100/60">

@@ -27,10 +27,11 @@ export interface TargetCollectCompanyItem {
 
 interface ActualType4CollectProps {
   isVisible: boolean;
-  target: {
-    customer: string;
-    orderNo: string;
-    targetCollect: string;
+  planType?: "PLANNED" | "UNPLANNED" | string;
+  target?: {
+    customer?: string;
+    orderNo?: string;
+    targetCollect?: string;
     collectType?: "BILLING" | "COLLECT";
     items?: TargetCollectCompanyItem[];
   };
@@ -49,6 +50,7 @@ interface ActualType4CollectProps {
 
 export function ActualType4Collect({
   isVisible,
+  planType,
   target,
   receivedAmount,
   setReceivedAmount,
@@ -60,10 +62,10 @@ export function ActualType4Collect({
   // Local state per company for multi-company support
   const [companyItems, setCompanyItems] = useState<TargetCollectCompanyItem[]>(
     () => {
-      if (target.items && target.items.length > 0) {
+      if (target?.items && target.items.length > 0) {
         return target.items.map((item, idx) => ({
           ...item,
-          collectType: item.collectType || target.collectType || "COLLECT",
+          collectType: item.collectType || target?.collectType || "COLLECT",
           receivedAmount:
             item.receivedAmount ||
             (idx === 0 && receivedAmount ? receivedAmount : ""),
@@ -149,7 +151,7 @@ export function ActualType4Collect({
             วางบิล / เก็บเงิน
           </h2>
         </div>
-        {hasMultipleCompanies && (
+        {planType !== "UNPLANNED" && hasMultipleCompanies && (
           <span className="text-xs bg-indigo-100 text-indigo-800 font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
             <Building2 className="w-3.5 h-3.5" />
             เป้าหมาย {companyItems.length} บริษัท/ร้านค้า
@@ -158,75 +160,77 @@ export function ActualType4Collect({
       </div>
 
       {/* TARGET SUMMARY CARD */}
-      {hasMultipleCompanies ? (
-        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5">
-          <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <Target className="w-4 h-4 text-indigo-600" />
-              เป้าหมายการวางบิล/เก็บเงิน ({companyItems.length} บริษัท/ร้านค้า):
-            </span>
-            {target.targetCollect && (
-              <span className="text-xs font-extrabold text-indigo-800 bg-indigo-100 px-2.5 py-0.5 rounded-md">
-                เป้ายอดรวม {target.targetCollect}
+      {planType !== "UNPLANNED" && target && (
+        hasMultipleCompanies ? (
+          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <Target className="w-4 h-4 text-indigo-600" />
+                เป้าหมายการวางบิล/เก็บเงิน ({companyItems.length} บริษัท/ร้านค้า):
               </span>
-            )}
-          </div>
+              {target.targetCollect && (
+                <span className="text-xs font-extrabold text-indigo-800 bg-indigo-100 px-2.5 py-0.5 rounded-md">
+                  เป้ายอดรวม {target.targetCollect}
+                </span>
+              )}
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            {companyItems.map((item, idx) => {
-              const isBilling = item.collectType === "BILLING";
-              return (
-                <div
-                  key={idx}
-                  className="bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-2xs flex items-center justify-between font-bold text-slate-900"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center text-[10px]">
-                      {idx + 1}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              {companyItems.map((item, idx) => {
+                const isBilling = item.collectType === "BILLING";
+                return (
+                  <div
+                    key={idx}
+                    className="bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-2xs flex items-center justify-between font-bold text-slate-900"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center text-[10px]">
+                        {idx + 1}
+                      </span>
+                      <span>{item.companyName}</span>
+                      <span
+                        className={cn(
+                          "text-[10px] font-semibold px-1.5 py-0.2 rounded ml-1",
+                          isBilling
+                            ? "bg-sky-50 text-sky-700 border border-sky-200"
+                            : "bg-amber-50 text-amber-700 border border-amber-200",
+                        )}
+                      >
+                        {isBilling ? "วางบิล" : "เก็บเงิน"}
+                      </span>
                     </span>
-                    <span>{item.companyName}</span>
-                    <span
-                      className={cn(
-                        "text-[10px] font-semibold px-1.5 py-0.2 rounded ml-1",
-                        isBilling
-                          ? "bg-sky-50 text-sky-700 border border-sky-200"
-                          : "bg-amber-50 text-amber-700 border border-amber-200",
-                      )}
-                    >
-                      {isBilling ? "วางบิล" : "เก็บเงิน"}
-                    </span>
-                  </span>
-                  {item.targetCollect ? (
-                    <span className="text-indigo-700 font-bold">
-                      {item.targetCollect}
-                    </span>
-                  ) : (
-                    <span className="text-slate-400 font-normal">-</span>
-                  )}
-                </div>
-              );
-            })}
+                    {item.targetCollect ? (
+                      <span className="text-indigo-700 font-bold">
+                        {item.targetCollect}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 font-normal">-</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ) : (
-        <ActualTargetCard
-          iconColorClass="text-indigo-600"
-          badgeColorClass="bg-indigo-100 text-indigo-800"
-          gridColsClass="grid-cols-1 sm:grid-cols-2"
-          items={[
-            { label: "ลูกค้า/ร้านค้า:", value: target.customer },
-            {
-              label:
-                target.collectType === "BILLING"
-                  ? "เป้าหมาย:"
-                  : "เป้ายอดเก็บเงิน:",
-              value:
-                target.targetCollect ||
-                (target.collectType === "BILLING" ? "วางบิล" : "-"),
-              highlight: true,
-            },
-          ]}
-        />
+        ) : (
+          <ActualTargetCard
+            iconColorClass="text-indigo-600"
+            badgeColorClass="bg-indigo-100 text-indigo-800"
+            gridColsClass="grid-cols-1 sm:grid-cols-2"
+            items={[
+              { label: "ลูกค้า/ร้านค้า:", value: target.customer || "-" },
+              {
+                label:
+                  target.collectType === "BILLING"
+                    ? "เป้าหมาย:"
+                    : "เป้ายอดเก็บเงิน:",
+                value:
+                  target.targetCollect ||
+                  (target.collectType === "BILLING" ? "วางบิล" : "-"),
+                highlight: true,
+              },
+            ]}
+          />
+        )
       )}
 
       {/* MULTI-COMPANY ACTUAL RECORDING FORM */}
@@ -487,7 +491,7 @@ export function ActualType4Collect({
       ) : (
         /* SINGLE COMPANY FALLBACK FORM */
         <div className="space-y-4 pt-1">
-          {target.collectType === "BILLING" ? (
+          {target?.collectType === "BILLING" ? (
             <div className="bg-indigo-50/30 border border-indigo-200/80 rounded-2xl p-4 space-y-3">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
@@ -574,12 +578,13 @@ export function ActualType4Collect({
                 </div>
               </div>
 
-              {/* ยอดคงค้าง */}
+              {/* ยอดคงค้าง (แสดงเฉพาะเมื่อมีเป้าหมายที่วางแผนไว้) */}
               {(() => {
                 const targetVal =
                   parseFloat(
-                    String(target.targetCollect || "").replace(/[^0-9.]/g, ""),
+                    String(target?.targetCollect || "").replace(/[^0-9.]/g, ""),
                   ) || 0;
+                if (targetVal <= 0) return null;
                 const recVal = parseFloat(String(receivedAmount || "0")) || 0;
                 const remaining = Math.max(0, targetVal - recVal);
                 return (

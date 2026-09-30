@@ -66,6 +66,8 @@ export interface ActivityResultSectionProps {
   customers?: any[];
   planProvince?: string;
   typeHooks?: ActualTypeHooks;
+  planType?: "PLANNED" | "UNPLANNED" | string;
+  plan?: any;
 
   createUploadHandler?: (
     setter: React.Dispatch<React.SetStateAction<ImageFile[]>>,
@@ -449,6 +451,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         {isTypeVisible("TYPE_1") && (
           <ActualType1Visit
             isVisible={true}
+            planType={props.planType || props.plan?.planType}
             target={targets.t1}
             productAdvice={t1ProductAdvice}
             setProductAdvice={setT1ProductAdvice}
@@ -478,6 +481,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         {isTypeVisible("TYPE_2") && (
           <ActualType2Followup
             isVisible={true}
+            planType={props.planType || props.plan?.planType}
             target={targets.t2}
             products={products}
             followupResults={t2FollowupResults}
@@ -501,6 +505,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         {isTypeVisible("TYPE_3") && (
           <ActualType3Sales
             isVisible={true}
+            planType={props.planType || props.plan?.planType}
             target={targets.t3}
             products={products}
             soldProducts={t3SoldProducts}
@@ -520,6 +525,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         {isTypeVisible("TYPE_4") && (
           <ActualType4Collect
             isVisible={true}
+            planType={props.planType || props.plan?.planType}
             target={targets.t4}
             orderNo={t4OrderNo}
             setOrderNo={setT4OrderNo}
@@ -539,6 +545,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         {isTypeVisible("TYPE_5") && (
           <ActualType5Survey
             isVisible={true}
+            planType={props.planType || props.plan?.planType}
             target={targets.t5}
             surveyDetails={t5SurveyDetails}
             onUpdateSurveyItem={onUpdateT5SurveyItem}
@@ -553,6 +560,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         {isTypeVisible("TYPE_6") && (
           <ActualType6Issue
             isVisible={true}
+            planType={props.planType || props.plan?.planType}
             target={targets.t6}
             products={products}
             customers={customers}
@@ -588,6 +596,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           <ActualType7Demo
             isVisible={true}
             mode="TYPE_7A"
+            planType={props.planType || props.plan?.planType}
             target={targets.t7a || targets.t7}
             products={products}
             customers={customers}
@@ -708,6 +717,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
           <ActualType7Demo
             isVisible={true}
             mode="TYPE_7B"
+            planType={props.planType || props.plan?.planType}
             target={targets.t7b || targets.t7}
             products={products}
             plannedProductId={t7PlannedProductId}
@@ -798,6 +808,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         {isTypeVisible("TYPE_8") && (
           <ActualType8Meeting
             isVisible={true}
+            planType={props.planType || props.plan?.planType}
             target={targets.t8}
             actualAttendees={t8ActualAttendees}
             setActualAttendees={setT8ActualAttendees}
@@ -816,6 +827,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         {isTypeVisible("TYPE_9") && (
           <ActualType9Store
             isVisible={true}
+            planType={props.planType || props.plan?.planType}
             target={targets.t9}
             formats={t9Formats}
             setFormats={setT9Formats}
@@ -834,6 +846,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         {isTypeVisible("TYPE_10") && (
           <ActualType10FieldDay
             isVisible={true}
+            planType={props.planType || props.plan?.planType}
             target={targets.t10}
             products={products}
             actualAttendees={t10ActualAttendees}
@@ -853,6 +866,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         {isTypeVisible("TYPE_11") && (
           <ActualType11Stock
             isVisible={true}
+            planType={props.planType || props.plan?.planType}
             target={targets.t11}
             products={products}
             stockItems={t11StockItems}

@@ -100,11 +100,12 @@ function parseProductReason(
 
 interface ActualType3SalesProps {
   isVisible: boolean;
-  target: {
-    product: string;
-    customer: string;
-    targetQty: string;
-    targetSales: string;
+  planType?: "PLANNED" | "UNPLANNED" | string;
+  target?: {
+    product?: string;
+    customer?: string;
+    targetQty?: string;
+    targetSales?: string;
     unitPrice?: string;
     detail?: string;
     isSubDealer?: boolean;
@@ -127,6 +128,7 @@ interface ActualType3SalesProps {
 
 export function ActualType3Sales({
   isVisible,
+  planType,
   target,
   products = [],
   setSoldProducts,
@@ -177,6 +179,8 @@ export function ActualType3Sales({
 
   // 1. Initial Planned items from target
   const initialPlannedItems: TargetProductItem[] = useMemo(() => {
+    if (!target) return [];
+
     if (target.items && target.items.length > 0) {
       return target.items.map((item, idx) => {
         const saved =
@@ -240,7 +244,7 @@ export function ActualType3Sales({
     }
 
     return [];
-  }, [target]);
+  }, [target, productSalesDetails, actualQuantity, actualSales, unclosedReason]);
 
   // State: Planned items (สินค้าตามแผน)
   const [plannedItems, setPlannedItems] = useState<TargetProductItem[]>(() => {
@@ -388,7 +392,7 @@ export function ActualType3Sales({
   // Additional items handlers
   const handleAddAdditionalItem = () => {
     const defaultStoreId = plannedItems[0]?.storeId;
-    const defaultCustomer = plannedItems[0]?.customer || target.customer || "";
+    const defaultCustomer = plannedItems[0]?.customer || target?.customer || "";
 
     const newItem: TargetProductItem = {
       id: crypto.randomUUID(),
@@ -473,7 +477,7 @@ export function ActualType3Sales({
         </div>
 
         <div className="flex items-center gap-2">
-          {plannedItems.length > 0 && (
+          {planType !== "UNPLANNED" && plannedItems.length > 0 && (
             <span className="text-xs bg-emerald-50 text-emerald-800 font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
               ตามแผน {plannedItems.length} รายการ
             </span>
@@ -487,97 +491,99 @@ export function ActualType3Sales({
       </div>
 
       {/* TARGET SUMMARY CARD (PLAN OVERVIEW) */}
-      <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
-        <div className="text-xs border-b border-slate-200/60 pb-2.5">
-          <div className="space-y-0.5">
-            <span className="text-[11px] font-semibold text-slate-500">
-              ชื่อร้านค้า / Key Farmer:
-            </span>
-            <div className="font-bold text-slate-900">
-              {target.subDealerStore ? (
-                <span>
-                  <Badge
-                    variant="outline"
-                    className="mr-1 bg-amber-50 text-amber-800 border-amber-300 text-[10px] font-bold"
-                  >
-                    Subdealer
-                  </Badge>
-                  {target.subDealerStore}{" "}
-                  <span className="text-slate-500 text-xs font-normal">
-                    (Dealer: {target.dealerName || target.customer || "-"})
-                  </span>
-                </span>
-              ) : (
-                <span>
-                  <Badge
-                    variant="outline"
-                    className="mr-1 bg-emerald-50 text-emerald-800 border-emerald-300 text-[10px] font-bold"
-                  >
-                    Dealer
-                  </Badge>
-                  {target.customer || "-"}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Planned Product Target Cards */}
-        {plannedItems.length > 0 ? (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <Target className="w-4 h-4 text-emerald-600" />
-                รายการสินค้าในแผน ({plannedItems.length} รายการ):
+      {planType !== "UNPLANNED" && (
+        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
+          <div className="text-xs border-b border-slate-200/60 pb-2.5">
+            <div className="space-y-0.5">
+              <span className="text-[11px] font-semibold text-slate-500">
+                ชื่อร้านค้า / Key Farmer:
               </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-              {plannedItems.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs space-y-2"
-                >
-                  <div className="flex items-center justify-between font-bold text-slate-900 border-b border-slate-100 pb-1.5">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px]">
-                        {idx + 1}
-                      </span>
-                      <span>{item.productName}</span>
-                    </span>
+              <div className="font-bold text-slate-900">
+                {target?.subDealerStore ? (
+                  <span>
                     <Badge
                       variant="outline"
-                      className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px]"
+                      className="mr-1 bg-amber-50 text-amber-800 border-amber-300 text-[10px] font-bold"
                     >
-                      ตามแผน
+                      Subdealer
                     </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-1.5 text-[11px]">
-                    <div>
-                      <span className="text-slate-400 block">เป้าจำนวน:</span>
-                      <span className="font-bold text-slate-800">
-                        {item.qty ? `${item.qty} หน่วย` : "-"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block">รายละเอียด:</span>
-                      <span className="font-medium text-slate-700 truncate block">
-                        {item.detail || item.notes || "-"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                    {target.subDealerStore}{" "}
+                    <span className="text-slate-500 text-xs font-normal">
+                      (Dealer: {target.dealerName || target.customer || "-"})
+                    </span>
+                  </span>
+                ) : (
+                  <span>
+                    <Badge
+                      variant="outline"
+                      className="mr-1 bg-emerald-50 text-emerald-800 border-emerald-300 text-[10px] font-bold"
+                    >
+                      Dealer
+                    </Badge>
+                    {target?.customer || "-"}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        ) : (
-          <p className="text-xs text-slate-500 italic">ไม่มีรายการสินค้าตามแผนเดิม</p>
-        )}
-      </div>
+
+          {/* Planned Product Target Cards */}
+          {plannedItems.length > 0 ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-emerald-600" />
+                  รายการสินค้าในแผน ({plannedItems.length} รายการ):
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                {plannedItems.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs space-y-2"
+                  >
+                    <div className="flex items-center justify-between font-bold text-slate-900 border-b border-slate-100 pb-1.5">
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px]">
+                          {idx + 1}
+                        </span>
+                        <span>{item.productName}</span>
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px]"
+                      >
+                        ตามแผน
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                      <div>
+                        <span className="text-slate-400 block">เป้าจำนวน:</span>
+                        <span className="font-bold text-slate-800">
+                          {item.qty ? `${item.qty} หน่วย` : "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block">รายละเอียด:</span>
+                        <span className="font-medium text-slate-700 truncate block">
+                          {item.detail || item.notes || "-"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-500 italic">ไม่มีรายการสินค้าตามแผนเดิม</p>
+          )}
+        </div>
+      )}
 
       {/* SECTION 1: สินค้าตามแผน (RECORDING FORM) */}
-      {plannedItems.length > 0 && (
+      {planType !== "UNPLANNED" && plannedItems.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <label className="text-sm font-bold text-slate-900 flex items-center gap-2">

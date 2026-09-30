@@ -34,7 +34,7 @@ export interface FollowupProductItem {
 
 export interface ActualType2FollowupProps {
   isVisible: boolean;
-  target: {
+  target?: {
     product: string;
     customer: string;
     storeName?: string;
@@ -43,6 +43,7 @@ export interface ActualType2FollowupProps {
     expectedResult: string;
     items?: FollowupProductItem[];
   };
+  planType?: "PLANNED" | "UNPLANNED" | string;
   products?: Array<{ id: string; name: string; productCode?: string | null }>;
   followupResults?: FollowupProductItem[];
   onUpdateFollowupResults?: (items: FollowupProductItem[]) => void;
@@ -64,6 +65,7 @@ export interface ActualType2FollowupProps {
 export function ActualType2Followup({
   isVisible,
   target,
+  planType,
   products = [],
   followupResults,
   onUpdateFollowupResults,
@@ -472,186 +474,190 @@ export function ActualType2Followup({
       {/* ───────────────────────────────────────────────────────────── */}
       {/* SECTION 1: ข้อมูลตามแผน (PLAN TARGET SUMMARY - READ ONLY) */}
       {/* ───────────────────────────────────────────────────────────── */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-            <Target className="w-3.5 h-3.5 text-cyan-600" />
-            เป้าหมายที่ตั้งไว้ในแผนงาน (ข้อมูลจากแผน)
-          </label>
-          <span className="text-[11px] text-slate-400 font-normal">
-            * ข้อมูลแผนถูกล็อก ไม่สามารถแก้ไขได้
-          </span>
-        </div>
-
-        {plannedItems.length > 1 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-            {plannedItems.map((item, idx) => (
-              <div
-                key={item.id || idx}
-                className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-2 shadow-2xs"
-              >
-                <div className="flex items-center gap-2 border-b border-slate-200/70 pb-2 font-bold text-cyan-950">
-                  <span className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-800 flex items-center justify-center text-[10px] font-extrabold shrink-0">
-                    {idx + 1}
-                  </span>
-                  <span>{item.productName}</span>
-                </div>
-                <div className="grid grid-cols-1 gap-1.5 text-xs text-slate-600">
-                  <div>
-                    <span className="text-slate-400 font-medium mr-1.5">ชื่อร้านค้า/ลูกค้า:</span>
-                    <span className="font-semibold text-slate-800">{item.customer || target?.customer || "-"}</span>
-                  </div>
-                  {item.detail && (
-                    <div>
-                      <span className="text-slate-400 font-medium mr-1.5">รายละเอียดเพิ่มเติม:</span>
-                      <span className="text-slate-700">{item.detail}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+      {planType !== "UNPLANNED" && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+              <Target className="w-3.5 h-3.5 text-cyan-600" />
+              เป้าหมายที่ตั้งไว้ในแผนงาน (ข้อมูลจากแผน)
+            </label>
+            <span className="text-[11px] text-slate-400 font-normal">
+              * ข้อมูลแผนถูกล็อก ไม่สามารถแก้ไขได้
+            </span>
           </div>
-        ) : (
-          <ActualTargetCard
-            iconColorClass="text-cyan-600"
-            badgeColorClass="bg-cyan-100 text-cyan-800"
-            gridColsClass="grid-cols-1 sm:grid-cols-3"
-            items={[
-              {
-                label: "สินค้าที่ต้องการติดตามผล:",
-                value: target?.product || (plannedItems[0]?.productName ?? "-"),
-              },
-              {
-                label: "ชื่อร้านค้า / ลูกค้า:",
-                value: target?.customer || (plannedItems[0]?.customer ?? "-"),
-              },
-              {
-                label: "รายละเอียดเพิ่มเติมจากแผน:",
-                value: target?.detail || (plannedItems[0]?.detail ?? "-"),
-              },
-            ]}
-          />
-        )}
-      </div>
+
+          {plannedItems.length > 1 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              {plannedItems.map((item, idx) => (
+                <div
+                  key={item.id || idx}
+                  className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-2 shadow-2xs"
+                >
+                  <div className="flex items-center gap-2 border-b border-slate-200/70 pb-2 font-bold text-cyan-950">
+                    <span className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-800 flex items-center justify-center text-[10px] font-extrabold shrink-0">
+                      {idx + 1}
+                    </span>
+                    <span>{item.productName}</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-1.5 text-xs text-slate-600">
+                    <div>
+                      <span className="text-slate-400 font-medium mr-1.5">ชื่อร้านค้า/ลูกค้า:</span>
+                      <span className="font-semibold text-slate-800">{item.customer || target?.customer || "-"}</span>
+                    </div>
+                    {item.detail && (
+                      <div>
+                        <span className="text-slate-400 font-medium mr-1.5">รายละเอียดเพิ่มเติม:</span>
+                        <span className="text-slate-700">{item.detail}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <ActualTargetCard
+              iconColorClass="text-cyan-600"
+              badgeColorClass="bg-cyan-100 text-cyan-800"
+              gridColsClass="grid-cols-1 sm:grid-cols-3"
+              items={[
+                {
+                  label: "สินค้าที่ต้องการติดตามผล:",
+                  value: target?.product || (plannedItems[0]?.productName ?? "-"),
+                },
+                {
+                  label: "ชื่อร้านค้า / ลูกค้า:",
+                  value: target?.customer || (plannedItems[0]?.customer ?? "-"),
+                },
+                {
+                  label: "รายละเอียดเพิ่มเติมจากแผน:",
+                  value: target?.detail || (plannedItems[0]?.detail ?? "-"),
+                },
+              ]}
+            />
+          )}
+        </div>
+      )}
 
       {/* ───────────────────────────────────────────────────────────── */}
       {/* SECTION 2: บันทึกผลการติดตามสินค้าตามแผน (PLAN FOLLOW-UP RECORD) */}
       {/* ───────────────────────────────────────────────────────────── */}
-      <div className="space-y-4 pt-1">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-          <label className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-600"></span>
-            บันทึกผลการติดตามสินค้าตามแผน ({plannedItems.length} รายการ)
-          </label>
-          <span className="text-xs text-slate-500 font-medium">
-            * กรอกผลลัพธ์แยกตามสินค้าในแผน
-          </span>
-        </div>
+      {planType !== "UNPLANNED" && plannedItems.length > 0 && (
+        <div className="space-y-4 pt-1">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <label className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-600"></span>
+              บันทึกผลการติดตามสินค้าตามแผน ({plannedItems.length} รายการ)
+            </label>
+            <span className="text-xs text-slate-500 font-medium">
+              * กรอกผลลัพธ์แยกตามสินค้าในแผน
+            </span>
+          </div>
 
-        <div className="space-y-4">
-          {plannedItems.map((prod, idx) => {
-            const isProblem = prod.usageResult === "พบปัญหา";
+          <div className="space-y-4">
+            {plannedItems.map((prod, idx) => {
+              const isProblem = prod.usageResult === "พบปัญหา";
 
-            return (
-              <div
-                key={prod.id || idx}
-                className="bg-cyan-50/20 border border-cyan-200/80 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs transition-all"
-              >
-                {/* Product Header */}
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyan-100/80 pb-3">
-                  <div className="flex items-center gap-2 font-bold text-sm text-cyan-950">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-600 text-white text-xs font-bold">
-                      {idx + 1}
-                    </span>
-                    <span>สินค้าตามแผน: {prod.productName}</span>
+              return (
+                <div
+                  key={prod.id || idx}
+                  className="bg-cyan-50/20 border border-cyan-200/80 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs transition-all"
+                >
+                  {/* Product Header */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyan-100/80 pb-3">
+                    <div className="flex items-center gap-2 font-bold text-sm text-cyan-950">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-600 text-white text-xs font-bold">
+                        {idx + 1}
+                      </span>
+                      <span>สินค้าตามแผน: {prod.productName}</span>
+                    </div>
+                    {prod.customer && (
+                      <span className="text-xs font-semibold text-cyan-800 bg-cyan-100/80 px-2.5 py-0.5 rounded-full">
+                        ลูกค้า: {prod.customer}
+                      </span>
+                    )}
                   </div>
-                  {prod.customer && (
-                    <span className="text-xs font-semibold text-cyan-800 bg-cyan-100/80 px-2.5 py-0.5 rounded-full">
-                      ลูกค้า: {prod.customer}
-                    </span>
+
+                  {prod.detail && (
+                    <div className="bg-white/90 p-2.5 rounded-xl border border-cyan-100 text-xs text-slate-700">
+                      <span className="font-semibold text-slate-500 mr-1.5">
+                        รายละเอียดจากแผนงาน:
+                      </span>
+                      <span>{prod.detail}</span>
+                    </div>
+                  )}
+
+                  {/* 1. ผลลัพธ์จากการใช้งาน */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-800">
+                      ผลการใช้สินค้า <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["ลูกค้าพึงพอใจ", "พบปัญหา"] as const).map((opt) => {
+                        const isSelected = prod.usageResult === opt;
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => handlePlannedChange(idx, "usageResult", opt)}
+                            className={cn(
+                              "py-2.5 px-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all flex items-center justify-center gap-1.5",
+                              isSelected
+                                ? opt === "ลูกค้าพึงพอใจ"
+                                  ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20 shadow-xs"
+                                  : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20 shadow-xs"
+                                : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300",
+                            )}
+                          >
+                            <span>{opt === "ลูกค้าพึงพอใจ" ? "🟢" : "⚠️"}</span>
+                            <span>{opt}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 2. ถ้าลูกค้าพึงพอใจ -> แสดงรายละเอียดการติดตาม */}
+                  {!isProblem && (
+                    <div className="space-y-1.5 animate-in fade-in-50 duration-150">
+                      <label className="text-xs font-bold text-slate-800">
+                        รายละเอียดการติดตาม
+                      </label>
+                      <Textarea
+                        rows={2}
+                        value={prod.followupDetail || ""}
+                        onChange={(e) =>
+                          handlePlannedChange(idx, "followupDetail", e.target.value)
+                        }
+                        placeholder={`ระบุข้อแนะนำ หรือรายละเอียดการติดตามสำหรับ ${prod.productName}`}
+                        className="bg-white border-slate-300 text-xs rounded-xl focus:border-cyan-500 focus:ring-cyan-500"
+                      />
+                    </div>
+                  )}
+
+                  {/* 3. ถ้าพบปัญหา -> ซ่อนรายละเอียดการติดตาม และแสดงระบุรายละเอียดปัญหาที่พบ */}
+                  {isProblem && (
+                    <div className="bg-rose-50/70 border border-rose-200 rounded-xl p-3.5 space-y-2 animate-in fade-in-50 duration-150">
+                      <label className="text-xs font-bold text-rose-800 flex items-center gap-1.5">
+                        <span>ระบุรายละเอียดปัญหาที่พบสำหรับ {prod.productName}</span>
+                        <span className="text-rose-500">*</span>
+                      </label>
+                      <Textarea
+                        rows={2}
+                        value={prod.problemDetail || ""}
+                        onChange={(e) =>
+                          handlePlannedChange(idx, "problemDetail", e.target.value)
+                        }
+                        placeholder="เช่น ใบเหลือง, เกิดคราบไหม้, อัตราส่วนเข้มข้นเกินไป, พืชไม่ตอบสนอง"
+                        className="bg-white border-rose-200 text-xs rounded-xl focus:border-rose-400 focus:ring-rose-400 text-rose-950 placeholder:text-rose-300"
+                      />
+                    </div>
                   )}
                 </div>
-
-                {prod.detail && (
-                  <div className="bg-white/90 p-2.5 rounded-xl border border-cyan-100 text-xs text-slate-700">
-                    <span className="font-semibold text-slate-500 mr-1.5">
-                      รายละเอียดจากแผนงาน:
-                    </span>
-                    <span>{prod.detail}</span>
-                  </div>
-                )}
-
-                {/* 1. ผลลัพธ์จากการใช้งาน */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-800">
-                    ผลการใช้สินค้า <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(["ลูกค้าพึงพอใจ", "พบปัญหา"] as const).map((opt) => {
-                      const isSelected = prod.usageResult === opt;
-                      return (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => handlePlannedChange(idx, "usageResult", opt)}
-                          className={cn(
-                            "py-2.5 px-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all flex items-center justify-center gap-1.5",
-                            isSelected
-                              ? opt === "ลูกค้าพึงพอใจ"
-                                ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20 shadow-xs"
-                                : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20 shadow-xs"
-                              : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300",
-                          )}
-                        >
-                          <span>{opt === "ลูกค้าพึงพอใจ" ? "🟢" : "⚠️"}</span>
-                          <span>{opt}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* 2. ถ้าลูกค้าพึงพอใจ -> แสดงรายละเอียดการติดตาม */}
-                {!isProblem && (
-                  <div className="space-y-1.5 animate-in fade-in-50 duration-150">
-                    <label className="text-xs font-bold text-slate-800">
-                      รายละเอียดการติดตาม
-                    </label>
-                    <Textarea
-                      rows={2}
-                      value={prod.followupDetail || ""}
-                      onChange={(e) =>
-                        handlePlannedChange(idx, "followupDetail", e.target.value)
-                      }
-                      placeholder={`ระบุข้อแนะนำ หรือรายละเอียดการติดตามสำหรับ ${prod.productName}`}
-                      className="bg-white border-slate-300 text-xs rounded-xl focus:border-cyan-500 focus:ring-cyan-500"
-                    />
-                  </div>
-                )}
-
-                {/* 3. ถ้าพบปัญหา -> ซ่อนรายละเอียดการติดตาม และแสดงระบุรายละเอียดปัญหาที่พบ */}
-                {isProblem && (
-                  <div className="bg-rose-50/70 border border-rose-200 rounded-xl p-3.5 space-y-2 animate-in fade-in-50 duration-150">
-                    <label className="text-xs font-bold text-rose-800 flex items-center gap-1.5">
-                      <span>ระบุรายละเอียดปัญหาที่พบสำหรับ {prod.productName}</span>
-                      <span className="text-rose-500">*</span>
-                    </label>
-                    <Textarea
-                      rows={2}
-                      value={prod.problemDetail || ""}
-                      onChange={(e) =>
-                        handlePlannedChange(idx, "problemDetail", e.target.value)
-                      }
-                      placeholder="เช่น ใบเหลือง, เกิดคราบไหม้, อัตราส่วนเข้มข้นเกินไป, พืชไม่ตอบสนอง"
-                      className="bg-white border-rose-200 text-xs rounded-xl focus:border-rose-400 focus:ring-rose-400 text-rose-950 placeholder:text-rose-300"
-                    />
-                  </div>
-                )}
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ───────────────────────────────────────────────────────────── */}
       {/* SECTION 3: ติดตามผลการใช้สินค้าเพิ่มเติม (ADDITIONAL PRODUCTS) */}

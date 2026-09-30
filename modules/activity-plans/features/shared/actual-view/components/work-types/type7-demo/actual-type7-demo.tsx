@@ -20,6 +20,7 @@ export type { TargetDemoItem, DemoPlotVisitHistoryItem };
 export interface ActualType7DemoProps {
   mode?: "TYPE_7A" | "TYPE_7B";
   isVisible: boolean;
+  planType?: "PLANNED" | "UNPLANNED" | string;
   target: {
     activityType?: string;
     owner: string;
@@ -212,6 +213,7 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
   if (isFollowUp) {
     return (
       <ActualType7FollowUp
+        planType={props.planType}
         target={props.target}
         plotName={props.plotName}
         usageMethod={props.usageMethod}
@@ -281,6 +283,7 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
 
   return (
     <ActualType7NewDemo
+      planType={props.planType}
       target={props.target}
       products={props.products}
       customers={props.customers}

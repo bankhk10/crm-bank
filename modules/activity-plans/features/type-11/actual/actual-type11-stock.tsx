@@ -34,10 +34,11 @@ export interface StockCheckItem {
 
 interface ActualType11StockProps {
   isVisible: boolean;
-  target: {
-    store: string;
-    detail: string;
-    targetOpportunity: string;
+  planType?: "PLANNED" | "UNPLANNED" | string;
+  target?: {
+    store?: string;
+    detail?: string;
+    targetOpportunity?: string;
     items?: Array<{ storeId?: string; store?: string; detail?: string }>;
   };
   products?: Array<{ id: string; name: string; productCode?: string | null } | string>;
@@ -57,6 +58,7 @@ interface ActualType11StockProps {
 
 export function ActualType11Stock({
   isVisible,
+  planType,
   target,
   products = [],
   productList = "",
@@ -102,13 +104,13 @@ export function ActualType11Stock({
 
   // Parse list of planned stores
   const storesList = useMemo(() => {
-    if (!target.store || !target.store.trim()) return ["ร้านค้า"];
+    if (!target?.store || !target.store.trim()) return ["ร้านค้า"];
     const parsed = target.store
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
     return parsed.length > 0 ? parsed : [target.store.trim()];
-  }, [target.store]);
+  }, [target?.store]);
 
   // Options for FormCombobox
   const productOptions: Array<{
@@ -143,7 +145,7 @@ export function ActualType11Stock({
 
   // Local state for stock items
   const [items, setItems] = useState<StockCheckItem[]>(() => {
-    const primaryStore = target.store
+    const primaryStore = target?.store
       ? target.store.split(",")[0]?.trim() || "ร้านค้า"
       : "ร้านค้า";
 
@@ -237,7 +239,7 @@ export function ActualType11Stock({
       (p) => p.value === productName || p.label === productName,
     );
 
-    const matchedStore = (target.items || []).find(
+    const matchedStore = (target?.items || []).find(
       (s) => s.store?.trim() === storeName.trim(),
     );
 
@@ -300,14 +302,16 @@ export function ActualType11Stock({
       </div>
 
       {/* PLANNED TARGET CARD */}
-      <ActualTargetCard
-        iconColorClass="text-slate-600"
-        badgeColorClass="bg-slate-200 text-slate-800"
-        gridColsClass="grid-cols-1"
-        items={[
-          { label: "ร้านค้าที่ตรวจเช็กสต็อก:", value: target.store || "-" },
-        ]}
-      />
+      {planType !== "UNPLANNED" && (
+        <ActualTargetCard
+          iconColorClass="text-slate-600"
+          badgeColorClass="bg-slate-200 text-slate-800"
+          gridColsClass="grid-cols-1"
+          items={[
+            { label: "ร้านค้าที่ตรวจเช็กสต็อก:", value: target?.store || "-" },
+          ]}
+        />
+      )}
 
       {/* PER-STORE STOCK CHECK SECTIONS */}
       <div className="space-y-5 pt-1">

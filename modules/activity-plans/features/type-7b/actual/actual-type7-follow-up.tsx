@@ -83,6 +83,7 @@ export interface DemoPlotVisitHistoryItem {
 }
 
 export interface ActualType7FollowUpProps {
+  planType?: "PLANNED" | "UNPLANNED" | string;
   target: {
     activityType?: string;
     owner: string;
@@ -177,6 +178,7 @@ export interface ActualType7FollowUpProps {
 }
 
 export function ActualType7FollowUp({
+  planType,
   target,
   plotName,
   usageMethod,
@@ -593,17 +595,19 @@ export function ActualType7FollowUp({
       </div>
 
       {/* SECTION 1: PLANNED TARGET CARD (Problem 3.2 Fix: Selected Plot + Planned Detail only) */}
-      <ActualTargetCard
-        iconColorClass="text-blue-700"
-        badgeColorClass="bg-blue-50 text-blue-800 border border-blue-200"
-        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-1"
-        items={[
-          {
-            label: "สิ่งที่ตั้งใจไปติดตาม:",
-            value: target.followUpObjective || target.detail || "-",
-          },
-        ]}
-      />
+      {planType !== "UNPLANNED" && (
+        <ActualTargetCard
+          iconColorClass="text-blue-700"
+          badgeColorClass="bg-blue-50 text-blue-800 border border-blue-200"
+          gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-1"
+          items={[
+            {
+              label: "สิ่งที่ตั้งใจไปติดตาม:",
+              value: target.followUpObjective || target.detail || "-",
+            },
+          ]}
+        />
+      )}
 
       {/* READ-ONLY INITIAL DATA CARD FOR TYPE_7B (Problem 3.3 Fix: Complete Baseline Plot Data) */}
       {demoPlotData && (

@@ -78,6 +78,7 @@ export interface CustomerOption {
 }
 
 export interface ActualType7NewDemoProps {
+  planType?: "PLANNED" | "UNPLANNED" | string;
   target: {
     activityType?: string;
     owner: string;
@@ -210,6 +211,7 @@ export interface ActualType7NewDemoProps {
 }
 
 export function ActualType7NewDemo({
+  planType,
   target,
   products = [],
   customers = [],
@@ -727,90 +729,92 @@ export function ActualType7NewDemo({
       </div>
 
       {/* GROUP 1: ข้อมูลตั้งต้นของแปลงสาธิต (Demo Plot Details) */}
-      <div className="bg-white border border-emerald-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
-        <div className="flex items-center gap-2 border-b border-emerald-100 pb-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 border border-emerald-100">
-            <Layers className="w-4 h-4 text-emerald-700" />
+      {planType !== "UNPLANNED" && (
+        <div className="bg-white border border-emerald-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
+          <div className="flex items-center gap-2 border-b border-emerald-100 pb-3">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 border border-emerald-100">
+              <Layers className="w-4 h-4 text-emerald-700" />
+            </div>
+            <h3 className="text-sm font-bold text-slate-900">
+              ข้อมูลตั้งต้นของแปลงสาธิต
+            </h3>
           </div>
-          <h3 className="text-sm font-bold text-slate-900">
-            ข้อมูลตั้งต้นของแปลงสาธิต
-          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* ชื่อแปลง */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+              <div className="text-[11px] text-slate-500 mb-1">ชื่อแปลง</div>
+              <span className="font-medium block text-xs sm:text-sm">
+                {plotName || "-"}
+              </span>
+            </div>
+
+            {/* ร้าน Dealer */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+              <div className="text-[11px] text-slate-500 mb-1">ร้าน Dealer</div>
+              <span className="font-medium block text-xs sm:text-sm">
+                {dealerName || "-"}
+              </span>
+            </div>
+
+            {/* จังหวัด / อำเภอ */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+              <div className="text-[11px] text-slate-500 mb-1">
+                จังหวัด / อำเภอ
+              </div>
+              <span className="font-medium block text-xs sm:text-sm">
+                {[planProvince, district].filter(Boolean).join(" / ") || "-"}
+              </span>
+            </div>
+
+            {/* วัตถุประสงค์ */}
+            <div className="md:col-span-3 rounded-2xl border border-emerald-100 bg-emerald-50/30 px-3 py-3">
+              <div className="text-[11px] text-emerald-700 mb-1">
+                วัตถุประสงค์การทำแปลง
+              </div>
+              <span className="font-medium block text-xs sm:text-sm">
+                {plotObjective || "-"}
+              </span>
+            </div>
+
+            {/* หมวดสินค้า */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+              <div className="text-[11px] text-slate-500 mb-1">หมวดสินค้า</div>
+              <span className="font-medium block text-xs sm:text-sm">
+                {cropCategory || "-"}
+              </span>
+            </div>
+
+            {/* หมวดพืช & ชื่อพืช */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+              <div className="text-[11px] text-slate-500 mb-1">
+                หมวดพืช & ชื่อพืช
+              </div>
+              <span className="font-medium block text-xs sm:text-sm">
+                {isCustomCropName
+                  ? customCropName || cropName || "-"
+                  : cropName || "-"}
+              </span>
+            </div>
+
+            {/* ขนาดพื้นที่ / จำนวนต้น */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
+              <div className="text-[11px] text-slate-500 mb-1">
+                ขนาดพื้นที่ / จำนวนต้น
+              </div>
+              <span className="font-medium block text-xs sm:text-sm">
+                {isRaiUnit
+                  ? areaRai
+                    ? `${areaRai} ไร่`
+                    : "-"
+                  : treeCount
+                    ? `${treeCount} ต้น`
+                    : "-"}
+              </span>
+            </div>
+          </div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {/* ชื่อแปลง */}
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
-            <div className="text-[11px] text-slate-500 mb-1">ชื่อแปลง</div>
-            <span className="font-medium block text-xs sm:text-sm">
-              {plotName || "-"}
-            </span>
-          </div>
-
-          {/* ร้าน Dealer */}
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
-            <div className="text-[11px] text-slate-500 mb-1">ร้าน Dealer</div>
-            <span className="font-medium block text-xs sm:text-sm">
-              {dealerName || "-"}
-            </span>
-          </div>
-
-          {/* จังหวัด / อำเภอ */}
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
-            <div className="text-[11px] text-slate-500 mb-1">
-              จังหวัด / อำเภอ
-            </div>
-            <span className="font-medium block text-xs sm:text-sm">
-              {[planProvince, district].filter(Boolean).join(" / ") || "-"}
-            </span>
-          </div>
-
-          {/* วัตถุประสงค์ */}
-          <div className="md:col-span-3 rounded-2xl border border-emerald-100 bg-emerald-50/30 px-3 py-3">
-            <div className="text-[11px] text-emerald-700 mb-1">
-              วัตถุประสงค์การทำแปลง
-            </div>
-            <span className="font-medium block text-xs sm:text-sm">
-              {plotObjective || "-"}
-            </span>
-          </div>
-
-          {/* หมวดสินค้า */}
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
-            <div className="text-[11px] text-slate-500 mb-1">หมวดสินค้า</div>
-            <span className="font-medium block text-xs sm:text-sm">
-              {cropCategory || "-"}
-            </span>
-          </div>
-
-          {/* หมวดพืช & ชื่อพืช */}
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
-            <div className="text-[11px] text-slate-500 mb-1">
-              หมวดพืช & ชื่อพืช
-            </div>
-            <span className="font-medium block text-xs sm:text-sm">
-              {isCustomCropName
-                ? customCropName || cropName || "-"
-                : cropName || "-"}
-            </span>
-          </div>
-
-          {/* ขนาดพื้นที่ / จำนวนต้น */}
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3">
-            <div className="text-[11px] text-slate-500 mb-1">
-              ขนาดพื้นที่ / จำนวนต้น
-            </div>
-            <span className="font-medium block text-xs sm:text-sm">
-              {isRaiUnit
-                ? areaRai
-                  ? `${areaRai} ไร่`
-                  : "-"
-                : treeCount
-                  ? `${treeCount} ต้น`
-                  : "-"}
-            </span>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* GROUP 2: เกษตรกรเจ้าของแปลงและพิกัดแปลง (Farmer Owner & Coordinates) */}
       <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">

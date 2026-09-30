@@ -36,12 +36,13 @@ export interface SoldProductItem {
 
 export interface ActualType10FieldDayProps {
   isVisible: boolean;
-  target: {
-    plot: string;
-    location: string;
-    showcase: string;
-    targetAttendees: string;
-    targetSales: string;
+  planType?: "PLANNED" | "UNPLANNED" | string;
+  target?: {
+    plot?: string;
+    location?: string;
+    showcase?: string;
+    targetAttendees?: string;
+    targetSales?: string;
   };
   actualAttendees: string;
   setActualAttendees: (v: string) => void;
@@ -77,6 +78,7 @@ const EMPTY_PRODUCTS: Array<{ id: string; name: string; productCode?: string | n
 
 export function ActualType10FieldDay({
   isVisible,
+  planType,
   target,
   actualAttendees,
   setActualAttendees,
@@ -144,7 +146,7 @@ export function ActualType10FieldDay({
     const options: Array<{ value: string; label: string; subLabel?: string }> = [];
 
     // If showcase product from target exists, prioritize it
-    if (target.showcase && target.showcase.trim() !== "") {
+    if (target?.showcase && target.showcase.trim() !== "") {
       const showcaseName = target.showcase.trim();
       options.push({
         value: showcaseName,
@@ -174,7 +176,7 @@ export function ActualType10FieldDay({
     });
 
     return options;
-  }, [masterProductList, target.showcase]);
+  }, [masterProductList, target?.showcase]);
 
   const normalizeSoldProductItem = (p: any, idx: number): SoldProductItem => {
     const qty = String(p.quantity ?? p.actualQty ?? "");
@@ -209,7 +211,7 @@ export function ActualType10FieldDay({
       return [
         {
           id: "item-1",
-          productName: soldProduct || target.showcase || "",
+          productName: soldProduct || target?.showcase || "",
           quantity: q,
           actualQty: q,
           actualSales: actualSalesOrBooking || "",
@@ -222,7 +224,7 @@ export function ActualType10FieldDay({
     return [
       {
         id: "item-1",
-        productName: target.showcase || "",
+        productName: target?.showcase || "",
         quantity: "",
         actualQty: "",
         actualSales: "",
@@ -521,21 +523,23 @@ export function ActualType10FieldDay({
         </div>
       </div>
 
-      <ActualTargetCard
-        iconColorClass="text-orange-600"
-        badgeColorClass="bg-orange-100 text-orange-800"
-        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
-        items={[
-          { label: "แปลงสาธิตจัดงาน:", value: target.plot || "-" },
-          { label: "สถานที่แปลง:", value: target.location || "-" },
-          { label: "เป้าหมายผู้เข้าร่วม:", value: target.targetAttendees || "-" },
-          {
-            label: "เป้ายอดขาย/จอง:",
-            value: target.targetSales || "-",
-            highlight: true,
-          },
-        ]}
-      />
+      {planType !== "UNPLANNED" && (
+        <ActualTargetCard
+          iconColorClass="text-orange-600"
+          badgeColorClass="bg-orange-100 text-orange-800"
+          gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
+          items={[
+            { label: "แปลงสาธิตจัดงาน:", value: target?.plot || "-" },
+            { label: "สถานที่แปลง:", value: target?.location || "-" },
+            { label: "เป้าหมายผู้เข้าร่วม:", value: target?.targetAttendees || "-" },
+            {
+              label: "เป้ายอดขาย/จอง:",
+              value: target?.targetSales || "-",
+              highlight: true,
+            },
+          ]}
+        />
+      )}
 
       {/* Primary General Metrics: Attendees & Actual Sales */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">

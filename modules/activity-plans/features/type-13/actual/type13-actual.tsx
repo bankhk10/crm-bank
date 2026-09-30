@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   MapPin,
   Compass,
@@ -313,6 +313,12 @@ export function Type13Actual({
   );
   const [previewModalUrl, setPreviewModalUrl] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (isVisible && plotsActual.length === 0) {
+      addPlot();
+    }
+  }, [isVisible, plotsActual.length, addPlot]);
+
   if (!isVisible || plotsActual.length === 0) return null;
 
   // Handler: Add new plot on-the-fly
@@ -448,7 +454,7 @@ export function Type13Actual({
 
           return (
             <div
-              key={plot.demoPlotId || `plot-${plotIdx}`}
+              key={plot.clientPlotId || plot.demoPlotId || `plot-${plotIdx}`}
               className="bg-slate-50/60 rounded-2xl border border-slate-200/80 p-4 sm:p-5 space-y-6 shadow-xs hover:border-emerald-200 transition-colors"
             >
               {/* Plot Info Banner / Form */}
@@ -684,35 +690,46 @@ export function Type13Actual({
 
                 {/* Rounds List */}
                 <div className="space-y-4">
+                  {plot.sprayRounds.length === 0 && (
+                    <div className="py-5 px-4 text-center border border-dashed border-slate-200 rounded-xl bg-white space-y-1">
+                      <p className="text-xs sm:text-sm font-semibold text-slate-700">
+                        ยังไม่มีรอบการฉีดพ่น
+                      </p>
+                      <p className="text-[11px] text-slate-500">
+                        คลิกปุ่ม &quot;+ เพิ่มรอบฉีดพ่น&quot; ด้านบนเพื่อบันทึกผลการฉีดพ่นในแปลงนี้
+                      </p>
+                    </div>
+                  )}
+
                   {plot.sprayRounds.map((round, rIdx) => (
                     <div
                       key={rIdx}
                       className="bg-white rounded-xl border border-slate-200 p-4 space-y-4 shadow-2xs"
                     >
-                      {/* Round Header */}
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">
-                            {round.roundNumber}
-                          </span>
-                          <span className="font-bold text-slate-800 text-xs sm:text-sm">
-                            รอบที่ {round.roundNumber}
-                          </span>
-                        </div>
+                        {/* Round Header */}
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">
+                              {round.roundNumber}
+                            </span>
+                            <span className="font-bold text-slate-800 text-xs sm:text-sm">
+                              รอบที่ {round.roundNumber}
+                            </span>
+                          </div>
 
-                        {!readonly && plot.sprayRounds.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              removeSprayingRound(plotIdx, rIdx)
-                            }
-                            className="p-1 rounded-md text-red-500 hover:bg-red-50 text-xs font-medium flex items-center gap-1 transition-colors"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>ลบรอบนี้</span>
-                          </button>
-                        )}
-                      </div>
+                          {!readonly && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                removeSprayingRound(plotIdx, rIdx)
+                              }
+                              className="p-1 rounded-md text-red-500 hover:bg-red-50 text-xs font-medium flex items-center gap-1 transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>ลบรอบนี้</span>
+                            </button>
+                          )}
+                        </div>
 
                       {/* Round Metadata Grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">

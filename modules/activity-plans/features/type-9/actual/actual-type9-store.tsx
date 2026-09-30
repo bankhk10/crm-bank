@@ -39,6 +39,7 @@ export interface Type9ProductSaleDetail {
 
 interface ActualType9StoreProps {
   isVisible: boolean;
+  planType?: "PLANNED" | "UNPLANNED" | string;
   target: {
     store: string;
     isSubDealer?: boolean;
@@ -64,6 +65,7 @@ interface ActualType9StoreProps {
 
 export function ActualType9Store({
   isVisible,
+  planType,
   target,
   actualSales,
   setActualSales,
@@ -73,7 +75,7 @@ export function ActualType9Store({
   setImages,
 }: ActualType9StoreProps) {
   const [localItems, setLocalItems] = useState<Type9TargetProductItem[]>(() => {
-    if (target.items && target.items.length > 0) {
+    if (target?.items && target.items.length > 0) {
       return target.items.map((item, idx) => {
         const saved =
           productSalesDetails?.find(
@@ -174,30 +176,32 @@ export function ActualType9Store({
         </div>
       </div>
 
-      <ActualTargetCard
-        iconColorClass="text-blue-600"
-        badgeColorClass="bg-blue-100 text-blue-800"
-        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
-        items={[
-          { label: "ร้านค้าเป้าหมาย:", value: target.store || "-" },
-          ...(target.subDealerStore
-            ? [{ label: "ร้านค้าซับดีลเลอร์:", value: target.subDealerStore }]
-            : []),
-          { label: "สินค้าเป้าหมาย:", value: target.product || "-" },
-          {
-            label: "เป้ายอดขาย:",
-            value: target.targetSales ? `฿${target.targetSales}` : "-",
-          },
-          ...(target.targetAttendees
-            ? [
-                {
-                  label: "เป้าหมายผู้เข้าร่วม:",
-                  value: `${target.targetAttendees} คน`,
-                },
-              ]
-            : []),
-        ]}
-      />
+      {planType !== "UNPLANNED" && (
+        <ActualTargetCard
+          iconColorClass="text-blue-600"
+          badgeColorClass="bg-blue-100 text-blue-800"
+          gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
+          items={[
+            { label: "ร้านค้าเป้าหมาย:", value: target.store || "-" },
+            ...(target.subDealerStore
+              ? [{ label: "ร้านค้าซับดีลเลอร์:", value: target.subDealerStore }]
+              : []),
+            { label: "สินค้าเป้าหมาย:", value: target.product || "-" },
+            {
+              label: "เป้ายอดขาย:",
+              value: target.targetSales ? `฿${target.targetSales}` : "-",
+            },
+            ...(target.targetAttendees
+              ? [
+                  {
+                    label: "เป้าหมายผู้เข้าร่วม:",
+                    value: `${target.targetAttendees} คน`,
+                  },
+                ]
+              : []),
+          ]}
+        />
+      )}
 
       {/* MULTI-PRODUCT ACTUAL SALES TABLE (FROM TARGET ITEMS) */}
       {hasMultipleProducts ? (

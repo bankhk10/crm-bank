@@ -22,6 +22,7 @@ export interface TargetSurveyItem {
 
 interface ActualType5SurveyProps {
   isVisible: boolean;
+  planType?: "PLANNED" | "UNPLANNED" | string;
   target: {
     store: string;
     product: string;
@@ -47,6 +48,7 @@ interface ActualType5SurveyProps {
 
 export function ActualType5Survey({
   isVisible,
+  planType,
   target,
   surveyDetails = [],
   onUpdateSurveyItem,
@@ -61,13 +63,13 @@ export function ActualType5Survey({
       if (surveyDetails && surveyDetails.length > 0) {
         return surveyDetails.map((rec, idx) => ({ record: rec, index: idx }));
       }
-      if (target.items && target.items.length > 0) {
+      if (target?.items && target.items.length > 0) {
         return target.items.map((item, idx) => ({
           record: {
             id: item.id,
-            store: item.store || target.store || "",
-            product: item.product || target.product || "",
-            detail: item.detail || target.detail || "",
+            store: item.store || target?.store || "",
+            product: item.product || target?.product || "",
+            detail: item.detail || target?.detail || "",
             competitorBrand: idx === 0 ? competitorBrand : "",
             competitorProduct: idx === 0 ? competitorProduct : "",
             posPrice: "",
@@ -84,9 +86,9 @@ export function ActualType5Survey({
       return [
         {
           record: {
-            store: target.store || "",
-            product: target.product || "",
-            detail: target.detail || "",
+            store: target?.store || "",
+            product: target?.product || "",
+            detail: target?.detail || "",
             competitorBrand,
             competitorProduct,
             posPrice: "",
@@ -243,7 +245,7 @@ export function ActualType5Survey({
                       </span>
                     </div>
 
-                    {record.detail && (
+                    {planType !== "UNPLANNED" && record.detail && (
                       <span className="text-xs text-slate-600 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200/80">
                         <span className="font-semibold text-slate-500">
                           รายละเอียดจากแผน:

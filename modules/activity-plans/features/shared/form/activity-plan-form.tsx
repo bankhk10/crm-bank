@@ -1913,15 +1913,13 @@ export function ActivityPlanForm({
                   <span>ผลการปฏิบัติงานจริง (Actual Results)</span>
                 </div>
                 <ActivityResultSection
+                  planType={currentPlanType}
                   isTypeVisible={(codeOrTitle: string) => {
-                    const normalizedCode = resolveWorkTypeCode(codeOrTitle);
+                    const targetCode = getWorkTypeCode(codeOrTitle);
+                    if (!targetCode) return false;
                     return selectedWorkTypes.some((wt) => {
-                      const wtCode = getWorkTypeCode(wt);
-                      return (
-                        wtCode === normalizedCode ||
-                        wt.toLowerCase().trim() ===
-                          codeOrTitle.toLowerCase().trim()
-                      );
+                      const code = getWorkTypeCode(wt);
+                      return code === targetCode;
                     });
                   }}
                   targets={{}}

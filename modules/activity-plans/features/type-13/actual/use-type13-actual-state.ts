@@ -21,7 +21,8 @@ export interface Type13ActualProductState {
 }
 
 export interface Type13PlotActualState {
-  demoPlotId: string;
+  clientPlotId?: string;
+  demoPlotId?: string | null;
   plotName: string;
   storeId?: string;
   dealerName?: string;
@@ -45,8 +46,25 @@ export interface Type13PlotActualState {
   >;
 }
 
+const createDefaultInitialPlot = (): Type13PlotActualState => {
+  const tempId = `temp-draft-${Date.now()}`;
+  return {
+    clientPlotId: tempId,
+    demoPlotId: null,
+    plotName: "",
+    isNew: true,
+    latitude: "",
+    longitude: "",
+    withdrawalProducts: [],
+    afterSprayImages: [],
+    sprayRounds: [],
+  };
+};
+
 export function useType13ActualState() {
-  const [plotsActual, setPlotsActual] = useState<Type13PlotActualState[]>([]);
+  const [plotsActual, setPlotsActual] = useState<Type13PlotActualState[]>([
+    createDefaultInitialPlot(),
+  ]);
   const initialPlotsRef = useRef<Type13PlotActualState[]>([]);
   const planRef = useRef<any>(null);
 
@@ -523,98 +541,18 @@ export function useType13ActualState() {
     setPlotsActual((prev) => {
       if (prev.length >= 10) return prev;
       const nextPlotNum = prev.length + 1;
-      const tempId = `temp-plot-${Date.now()}-${nextPlotNum}`;
-      const defaultPlotName = `แปลงที่ ${nextPlotNum}`;
-
-      // Extract withdrawal reference products from the Activity Plan
-      const allWithdrawalItems: any[] = planRef.current?.drugWithdrawal?.items || [];
-
-      // 1. Check if there are items explicitly tagged with this plot name
-      const explicitlyMatched = allWithdrawalItems.filter((item: any) => {
-        if (!item.plotIdentifier) return false;
-        const pIdStr = item.plotIdentifier.trim().toLowerCase();
-        const defStr = defaultPlotName.trim().toLowerCase();
-        if (pIdStr === defStr) return true;
-        const cleanPId = pIdStr.replace(/\s+/g, "");
-        const cleanDef = defStr.replace(/\s+/g, "");
-        if (cleanPId === cleanDef) return true;
-        if (cleanPId === `แปลง${nextPlotNum}` && cleanDef === `แปลงที่${nextPlotNum}`) return true;
-        if (cleanPId === `แปลงแฮตแทค${nextPlotNum}`) return true;
-        return false;
-      });
-
-      // 2. If no explicit match, use the Activity Plan's Drug Withdrawal items as reference
-      // (deduplicated by productId so each withdrawn product appears once as reference)
-      let sourceItems: any[] = [];
-      if (explicitlyMatched.length > 0) {
-        sourceItems = explicitlyMatched;
-      } else if (allWithdrawalItems.length > 0) {
-        const seenProdIds = new Set<string>();
-        for (const item of allWithdrawalItems) {
-          const key = item.productId || item.id;
-          if (!seenProdIds.has(key)) {
-            seenProdIds.add(key);
-            sourceItems.push(item);
-          }
-        }
-      } else if (prev.length > 0 && prev[0].withdrawalProducts && prev[0].withdrawalProducts.length > 0) {
-        sourceItems = prev[0].withdrawalProducts.map((wp) => ({
-          id: wp.drugWithdrawalItemId,
-          productId: wp.productId,
-          productName: wp.productName,
-          quantity: wp.withdrawnQuantity,
-          unit: wp.unit,
-        }));
-      }
-
-      const wProds = sourceItems.map((item: any) => ({
-        drugWithdrawalItemId: item.id || item.drugWithdrawalItemId,
-        productId: item.productId,
-        productName: item.productName || item.product?.name || "",
-        withdrawnQuantity: Number(item.quantity ?? item.withdrawnQuantity) || 0,
-        unit: item.unit || item.product?.unit || "",
-      }));
-
-      // Initial products for Round 1 of the new plot:
-      // Starts fresh with empty actual values: quantityUsed: "", actualRate: "", detail: "", isAdditional: false
-      const initialRoundProducts: Type13ActualProductState[] =
-        wProds.length > 0
-          ? wProds.map((wp) => ({
-              productId: wp.productId,
-              productName: wp.productName,
-              actualRate: "",
-              quantityUsed: "",
-              unit: wp.unit,
-              drugWithdrawalItemId: wp.drugWithdrawalItemId,
-              withdrawnQuantity: wp.withdrawnQuantity,
-              detail: "",
-              isAdditional: false,
-            }))
-          : [];
+      const tempId = `temp-draft-${Date.now()}-${nextPlotNum}`;
 
       const newPlot: Type13PlotActualState = {
-        demoPlotId: tempId,
-        plotName: defaultPlotName,
+        clientPlotId: tempId,
+        demoPlotId: null,
+        plotName: "",
         isNew: true,
         latitude: "",
         longitude: "",
-        withdrawalProducts: wProds,
+        withdrawalProducts: [],
         afterSprayImages: [],
-        sprayRounds: [
-          {
-            demoPlotId: tempId,
-            roundNumber: 1,
-            sprayDate: new Date().toISOString().split("T")[0],
-            sprayMethod: "SINGLE",
-            sprayEquipment: "เครื่องยนต์พ่นยา",
-            otherEquipment: null,
-            productResponse: "ปกติ",
-            problemDetail: null,
-            products: initialRoundProducts,
-            externalProducts: [],
-            attachments: [],
-          },
-        ],
+        sprayRounds: [],
       };
       return [...prev, newPlot];
     });
@@ -647,6 +585,7 @@ export function useType13ActualState() {
       setPlotsActual((prev) => {
         const next = [...prev];
         const plot = next[plotIndex];
+        if (!plot) return prev;
         const currentRounds = plot.sprayRounds || [];
         const nextRoundNumber = currentRounds.length + 1;
 
@@ -667,7 +606,8 @@ export function useType13ActualState() {
             : [];
 
         const newRound = {
-          demoPlotId: plot.demoPlotId,
+          demoPlotId: (plot.demoPlotId && !plot.demoPlotId.startsWith("temp-")) ? plot.demoPlotId : null,
+          clientPlotId: plot.clientPlotId || null,
           roundNumber: nextRoundNumber,
           sprayDate: new Date().toISOString().split("T")[0],
           sprayMethod: "SINGLE" as const,
@@ -696,7 +636,7 @@ export function useType13ActualState() {
       setPlotsActual((prev) => {
         const next = [...prev];
         const plot = next[plotIndex];
-        if (plot.sprayRounds.length <= 1) return prev; // Keep at least 1 round
+        if (!plot || !plot.sprayRounds) return prev;
         const updatedRounds = plot.sprayRounds
           .filter((_, idx) => idx !== roundIndex)
           .map((r, idx) => ({ ...r, roundNumber: idx + 1 }));
@@ -1022,21 +962,29 @@ export function useType13ActualState() {
   // Build payload for submission
   const buildType13ActualPayload = useCallback(
     (targetPlots: Type13PlotActualState[] = plotsActual) => {
-      // 1. Existing plot GPS coordinates and Plot Name
+      // 1. Existing plot GPS coordinates and Plot Name (only for real DB demoPlotId)
       const type13PlotsActual = targetPlots
-        .filter((p) => !p.isNew && !p.demoPlotId.startsWith("temp-"))
+        .filter((p) => !p.isNew && p.demoPlotId && !p.demoPlotId.startsWith("temp-"))
         .map((p) => ({
-          demoPlotId: p.demoPlotId,
+          demoPlotId: p.demoPlotId!,
           plotName: p.plotName.trim() || undefined,
           latitude: p.latitude.trim(),
           longitude: p.longitude.trim(),
         }));
 
       // 2. New plots on-the-fly metadata and GPS
+      // Only include new plots if user has entered real information
       const type13NewPlots = targetPlots
-        .filter((p) => p.isNew || p.demoPlotId.startsWith("temp-"))
+        .filter((p) => p.isNew || !p.demoPlotId || p.demoPlotId.startsWith("temp-"))
+        .filter(
+          (p) =>
+            p.plotName.trim() !== "" ||
+            p.latitude.trim() !== "" ||
+            p.longitude.trim() !== "" ||
+            (p.sprayRounds && p.sprayRounds.length > 0),
+        )
         .map((p) => ({
-          clientPlotId: p.demoPlotId,
+          clientPlotId: p.clientPlotId || p.demoPlotId || `client-plot-${Date.now()}`,
           plotName: p.plotName.trim() || `แปลงแฮตแทค`,
           storeId: p.storeId || null,
           province: p.province || null,
@@ -1050,7 +998,13 @@ export function useType13ActualState() {
       targetPlots.forEach((plot) => {
         (plot.sprayRounds || []).forEach((round) => {
           sprayRounds.push({
-            demoPlotId: plot.demoPlotId,
+            demoPlotId:
+              plot.demoPlotId && !plot.demoPlotId.startsWith("temp-")
+                ? plot.demoPlotId
+                : null,
+            clientPlotId:
+              plot.clientPlotId ||
+              (plot.demoPlotId?.startsWith("temp-") ? plot.demoPlotId : null),
             roundNumber: round.roundNumber,
             sprayDate: round.sprayDate,
             sprayMethod: round.sprayMethod,
@@ -1059,7 +1013,7 @@ export function useType13ActualState() {
             productResponse: round.productResponse,
             problemDetail: round.problemDetail,
             workTypeCode: "TYPE_13",
-            products: round.products
+            products: (round.products || [])
               .filter((prod) => prod.productId && prod.productId.trim() !== "")
               .map((prod) => ({
                 productId: prod.productId,
@@ -1097,12 +1051,19 @@ export function useType13ActualState() {
       targetPlots.forEach((plot) => {
         (plot.afterSprayImages || []).slice(0, 5).forEach((img) => {
           if (!img.url) return;
-          const compositeKey = `${plot.demoPlotId}_${img.url}`;
+          const plotKey = plot.clientPlotId || plot.demoPlotId || "plot";
+          const compositeKey = `${plotKey}_${img.url}`;
           if (seenAttachmentKeys.has(compositeKey)) return;
           seenAttachmentKeys.add(compositeKey);
           attachments.push({
             workTypeCode: "TYPE_13",
-            demoPlotId: plot.demoPlotId,
+            demoPlotId:
+              plot.demoPlotId && !plot.demoPlotId.startsWith("temp-")
+                ? plot.demoPlotId
+                : null,
+            clientPlotId:
+              plot.clientPlotId ||
+              (plot.demoPlotId?.startsWith("temp-") ? plot.demoPlotId : null),
             category: "PLOT",
             fileUrl: img.url,
             fileName: img.name || "after-spray.jpg",
