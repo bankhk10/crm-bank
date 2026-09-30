@@ -1,10 +1,10 @@
-import { UnplannedCreateView } from "@/modules/activity-plans";
+import ActivityPlanCreateView from "@/modules/activity-plans/features/shared/form/activity-plan-create-view";
 
 export const metadata = {
   title: "บันทึกกิจกรรมนอกแผน | CRM",
-  description: "บันทึกกิจกรรมและผลการปฏิบัติงานจริงนอกแผนงาน",
+  description: "บันทึกกิจกรรมนอกแผนงาน (Unplanned Activity)",
 };
 
 export default function NewUnplannedActivityPage() {
-  return <UnplannedCreateView />;
+  return <ActivityPlanCreateView planType="UNPLANNED" />;
 }

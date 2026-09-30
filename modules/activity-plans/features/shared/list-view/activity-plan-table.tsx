@@ -288,10 +288,7 @@ export function ActivityPlanTable({
             ? `/activity-plans/unplanned/${item.id}/edit`
             : `/activity-plans/${item.id}/edit`;
 
-          const detailHref =
-            isUnplanned && editable
-              ? `/activity-plans/unplanned/${item.id}/edit`
-              : `/activity-plans/${item.id}`;
+          const detailHref = `/activity-plans/${item.id}`;
 
           return (
             <div className="flex items-center justify-center gap-2">
@@ -313,14 +310,10 @@ export function ActivityPlanTable({
 
               {canApprove && isPending && (
                 <ActionButton
-                  href={isUnplanned ? `/activity-plans/${item.id}` : "/activity-plans/approvals"}
-                  icon={isUnplanned ? FileCheck : ShieldCheck}
-                  label={isUnplanned ? "ตรวจกิจกรรม" : "อนุมัติแผนงาน"}
-                  colorClass={
-                    isUnplanned
-                      ? "text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
-                      : "text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-md"
-                  }
+                  href="/activity-plans/approvals"
+                  icon={ShieldCheck}
+                  label="อนุมัติแผนงาน"
+                  colorClass="text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-md"
                 />
               )}
 

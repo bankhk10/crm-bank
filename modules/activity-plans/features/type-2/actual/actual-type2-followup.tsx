@@ -182,6 +182,8 @@ export function ActualType2Followup({
 
   // 1. Initial Planned items from target
   const initialPlannedItems: FollowupProductItem[] = useMemo(() => {
+    if (!target) return [];
+
     if (target.items && target.items.length > 0) {
       return target.items.map((item, idx) => {
         const parsedUsage = getParsedUsageResult(
@@ -497,7 +499,7 @@ export function ActualType2Followup({
                 <div className="grid grid-cols-1 gap-1.5 text-xs text-slate-600">
                   <div>
                     <span className="text-slate-400 font-medium mr-1.5">ชื่อร้านค้า/ลูกค้า:</span>
-                    <span className="font-semibold text-slate-800">{item.customer || target.customer || "-"}</span>
+                    <span className="font-semibold text-slate-800">{item.customer || target?.customer || "-"}</span>
                   </div>
                   {item.detail && (
                     <div>
@@ -517,15 +519,15 @@ export function ActualType2Followup({
             items={[
               {
                 label: "สินค้าที่ต้องการติดตามผล:",
-                value: target.product || (plannedItems[0]?.productName ?? "-"),
+                value: target?.product || (plannedItems[0]?.productName ?? "-"),
               },
               {
                 label: "ชื่อร้านค้า / ลูกค้า:",
-                value: target.customer || (plannedItems[0]?.customer ?? "-"),
+                value: target?.customer || (plannedItems[0]?.customer ?? "-"),
               },
               {
                 label: "รายละเอียดเพิ่มเติมจากแผน:",
-                value: target.detail || (plannedItems[0]?.detail ?? "-"),
+                value: target?.detail || (plannedItems[0]?.detail ?? "-"),
               },
             ]}
           />

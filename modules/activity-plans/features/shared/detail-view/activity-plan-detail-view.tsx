@@ -56,7 +56,6 @@ import { Type13Detail } from "@/modules/activity-plans/features/type-13";
 import type { Type13PlotItem } from "../../../application/validations";
 import { Type14Detail } from "@/modules/activity-plans/features/type-14";
 import type { Type14PlanInput } from "../../../application/validations";
-import { UnplannedReviewDetailView } from "../../unplanned";
 import {
   BudgetSection,
   PromotionalMaterialsSection,
@@ -449,11 +448,6 @@ export default function ActivityPlanDetailView({
     );
   }
 
-  // Delegate to UnplannedReviewDetailView if this is an Unplanned Activity
-  if (plan.planType === "UNPLANNED") {
-    return <UnplannedReviewDetailView id={id} onBack={onBack} />;
-  }
-
   // Tour (TYPE_12) resolution from Normalized Relational Source of Truth
   const isTourPlan = Boolean(
     plan.tour ||
@@ -560,13 +554,25 @@ export default function ActivityPlanDetailView({
             </div>
             <div>
               <h1 className="font-bold text-lg sm:text-2xl text-slate-800 tracking-tight whitespace-nowrap">
-                รายละเอียดแผนงาน ( Trip Plan Detail )
+                {plan.planType === "UNPLANNED"
+                  ? "รายละเอียดกิจกรรมนอกแผน ( Unplanned Activity Detail )"
+                  : "รายละเอียดแผนงาน ( Trip Plan Detail )"}
               </h1>
             </div>
           </div>
 
-          {/* Right: Plan No & Status */}
+          {/* Right: Plan No, Source Badge & Status */}
           <div className="ml-auto flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            <span
+              className={cn(
+                "inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs border",
+                plan.planType === "UNPLANNED"
+                  ? "bg-purple-50 text-purple-700 border-purple-200"
+                  : "bg-blue-50 text-blue-700 border-blue-200",
+              )}
+            >
+              {plan.planType === "UNPLANNED" ? "นอกแผน" : "ตามแผน"}
+            </span>
             {(plan.code || planSummary.planNo) && (
               <div className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs">
                 <Info className="w-3.5 h-3.5 shrink-0" />

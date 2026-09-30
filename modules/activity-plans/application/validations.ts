@@ -446,6 +446,7 @@ export function validateDrugWithdrawal(
 
 export const activityPlanSchema = z
   .object({
+    planType: z.enum(["PLANNED", "UNPLANNED"]).optional().default("PLANNED"),
     title: z.string().min(1, "กรุณากรอกชื่อกิจกรรม"),
     startDate: z.coerce.date({
       required_error: "กรุณาระบุวันและเวลาเริ่มต้น",
@@ -495,6 +496,8 @@ export const activityPlanSchema = z
     type13Plots: z.array(type13PlotItemSchema).optional(),
     type14Data: type14PlanInputSchema.optional(),
     drugWithdrawal: drugWithdrawalInputSchema.optional().nullable(),
+    // Unplanned Activity: Optional embedded actual results
+    actualData: z.any().optional().nullable(),
     // For transition: raw form items payload (will be normalized in application mapper)
     items: z.array(z.record(z.any())).optional().default([]),
   })

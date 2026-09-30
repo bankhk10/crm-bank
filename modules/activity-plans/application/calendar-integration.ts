@@ -236,6 +236,7 @@ export async function listActivityCalendarEventsUseCase(
         select: {
           id: true,
           code: true,
+          planType: true,
           title: true,
           status: true,
           employeeId: true,

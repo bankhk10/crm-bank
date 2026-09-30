@@ -22,6 +22,7 @@ import {
 } from "../domain/budget-calculator";
 
 export interface NormalizedPlanData {
+  planType?: "PLANNED" | "UNPLANNED";
   title: string;
   startDate: Date;
   endDate: Date;
@@ -343,6 +344,7 @@ export function normalizePlanInput(
   }
 
   return {
+    planType: rawInput.planType || "PLANNED",
     title: rawInput.title,
     startDate: rawInput.startDate,
     endDate: rawInput.endDate,

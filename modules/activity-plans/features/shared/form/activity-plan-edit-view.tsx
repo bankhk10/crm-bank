@@ -181,6 +181,8 @@ export default function ActivityPlanEditView({ id }: Props) {
             planCode: plan.code || plan.id,
             employeeName: plan.employee?.name,
             drugWithdrawal: (plan as any).drugWithdrawal || null,
+            planType: plan.planType || "PLANNED",
+            activityResult: (plan as any).activityResult || null,
           });
         } else {
           setLoadError(planRes.error || "ไม่สามารถดึงข้อมูล Trip Plan ได้");
@@ -198,7 +200,11 @@ export default function ActivityPlanEditView({ id }: Props) {
   const handleSubmit = async (payload: any) => {
     const res = await updateActivityPlanAction(id, payload);
     if (res.success) {
-      toast.success("อัปเดต Trip Plan เรียบร้อยแล้ว");
+      toast.success(
+        initialData?.planType === "UNPLANNED"
+          ? "อัปเดตกิจกรรมนอกแผนเรียบร้อยแล้ว"
+          : "อัปเดต Trip Plan เรียบร้อยแล้ว",
+      );
       router.push("/activity-plans");
       return { success: true };
     }
@@ -213,7 +219,11 @@ export default function ActivityPlanEditView({ id }: Props) {
   if (!canView || !canEdit) {
     return (
       <Alert variant="destructive" className="m-6">
-        <AlertDescription>คุณไม่มีสิทธิ์แก้ไข Trip Plan นี้</AlertDescription>
+        <AlertDescription>
+          {initialData?.planType === "UNPLANNED"
+            ? "คุณไม่มีสิทธิ์แก้ไขกิจกรรมนอกแผนนี้"
+            : "คุณไม่มีสิทธิ์แก้ไข Trip Plan นี้"}
+        </AlertDescription>
       </Alert>
     );
   }
@@ -229,6 +239,7 @@ export default function ActivityPlanEditView({ id }: Props) {
       {initialData && (
         <ActivityPlanForm
           initial={initialData}
+          planType={initialData.planType || "PLANNED"}
           employees={employees}
           customers={customers}
           products={products}

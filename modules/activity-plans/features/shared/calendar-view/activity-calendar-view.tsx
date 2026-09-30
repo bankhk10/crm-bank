@@ -527,28 +527,38 @@ export function ActivityCalendarView() {
 
                 {/* Event Tags */}
                 <div className="space-y-1 mt-1 flex-1 overflow-hidden">
-                  {dayEvents.slice(0, 3).map((ev) => (
-                    <div
-                      key={ev.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedEvent(ev);
-                      }}
-                      className={cn(
-                        "text-[11px] font-medium px-1.5 py-0.5 rounded-md truncate cursor-pointer transition-all border",
-                        ev.status === "CANCELLED"
-                          ? "bg-red-50 text-red-600 border-red-200 line-through"
-                          : ev.status === "COMPLETED"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                            : "bg-blue-50/90 text-blue-700 border-blue-200 hover:bg-blue-100",
-                      )}
-                    >
-                      <span className="font-semibold">
-                        {format(new Date(ev.startDate), "HH:mm")}
-                      </span>{" "}
-                      {ev.title}
-                    </div>
-                  ))}
+                  {dayEvents.slice(0, 3).map((ev) => {
+                    const isUnplanned = ev.activityPlan?.planType === "UNPLANNED";
+                    return (
+                      <div
+                        key={ev.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedEvent(ev);
+                        }}
+                        className={cn(
+                          "text-[11px] font-medium px-1.5 py-0.5 rounded-md truncate cursor-pointer transition-all border",
+                          ev.status === "CANCELLED"
+                            ? "bg-red-50 text-red-600 border-red-200 line-through"
+                            : ev.status === "COMPLETED"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                              : isUnplanned
+                                ? "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                                : "bg-blue-50/90 text-blue-700 border-blue-200 hover:bg-blue-100",
+                        )}
+                      >
+                        <span className="font-semibold">
+                          {format(new Date(ev.startDate), "HH:mm")}
+                        </span>{" "}
+                        {isUnplanned && (
+                          <span className="font-bold text-[10px] mr-0.5 text-purple-600">
+                            [นอกแผน]
+                          </span>
+                        )}
+                        {ev.title}
+                      </div>
+                    );
+                  })}
                   {dayEvents.length > 3 && (
                     <div className="text-[10px] text-slate-500 font-medium text-center">
                       +{dayEvents.length - 3} เพิ่มเติม
@@ -566,25 +576,40 @@ export function ActivityCalendarView() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
-              <div className="space-y-1">
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "text-xs font-semibold",
-                    selectedEvent.status === "COMPLETED" &&
-                      "bg-emerald-50 text-emerald-700 border-emerald-200",
-                    selectedEvent.status === "SCHEDULED" &&
-                      "bg-blue-50 text-blue-700 border-blue-200",
-                    selectedEvent.status === "CANCELLED" &&
-                      "bg-red-50 text-red-700 border-red-200",
-                  )}
-                >
-                  {selectedEvent.status === "COMPLETED"
-                    ? "ดำเนินการเสร็จสิ้น"
-                    : selectedEvent.status === "SCHEDULED"
-                      ? "มีนัดหมายตามกำหนด"
-                      : "ยกเลิกนัดหมาย"}
-                </Badge>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-xs font-semibold",
+                      selectedEvent.status === "COMPLETED" &&
+                        "bg-emerald-50 text-emerald-700 border-emerald-200",
+                      selectedEvent.status === "SCHEDULED" &&
+                        "bg-blue-50 text-blue-700 border-blue-200",
+                      selectedEvent.status === "CANCELLED" &&
+                        "bg-red-50 text-red-700 border-red-200",
+                    )}
+                  >
+                    {selectedEvent.status === "COMPLETED"
+                      ? "ดำเนินการเสร็จสิ้น"
+                      : selectedEvent.status === "SCHEDULED"
+                        ? "มีนัดหมายตามกำหนด"
+                        : "ยกเลิกนัดหมาย"}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-xs font-semibold",
+                      selectedEvent.activityPlan?.planType === "UNPLANNED"
+                        ? "bg-purple-50 text-purple-700 border-purple-200"
+                        : "bg-blue-50 text-blue-700 border-blue-200",
+                    )}
+                  >
+                    {selectedEvent.activityPlan?.planType === "UNPLANNED"
+                      ? "นอกแผน"
+                      : "ตามแผน"}
+                  </Badge>
+                </div>
                 <h3 className="text-lg font-bold text-slate-900">
                   {selectedEvent.title}
                 </h3>

@@ -19,7 +19,13 @@ import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";
 
-export default function ActivityPlanCreateView() {
+interface ActivityPlanCreateViewProps {
+  planType?: "PLANNED" | "UNPLANNED";
+}
+
+export default function ActivityPlanCreateView({
+  planType = "PLANNED",
+}: ActivityPlanCreateViewProps = {}) {
   const router = useRouter();
   const { data: session } = useSession();
   const { hasPermission, allowed, isLoading } = usePermission(
@@ -140,7 +146,11 @@ export default function ActivityPlanCreateView() {
   const handleSubmit = async (payload: any) => {
     const res = await createActivityPlanAction(payload);
     if (res.success) {
-      toast.success("บันทึก Trip Plan เรียบร้อยแล้ว");
+      toast.success(
+        planType === "UNPLANNED"
+          ? "บันทึกกิจกรรมนอกแผนเรียบร้อยแล้ว"
+          : "บันทึก Trip Plan เรียบร้อยแล้ว",
+      );
       router.push("/activity-plans");
       return { success: true };
     }
@@ -155,7 +165,11 @@ export default function ActivityPlanCreateView() {
   if (!canView || !canCreate) {
     return (
       <Alert variant="destructive" className="m-6">
-        <AlertDescription>คุณไม่มีสิทธิ์สร้าง Trip Plan</AlertDescription>
+        <AlertDescription>
+          {planType === "UNPLANNED"
+            ? "คุณไม่มีสิทธิ์สร้างกิจกรรมนอกแผน"
+            : "คุณไม่มีสิทธิ์สร้าง Trip Plan"}
+        </AlertDescription>
       </Alert>
     );
   }
@@ -173,7 +187,8 @@ export default function ActivityPlanCreateView() {
   return (
     <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
       <ActivityPlanForm
-        initial={{ employeeName: currentEmployeeName }}
+        initial={{ employeeName: currentEmployeeName, planType }}
+        planType={planType}
         employees={employees}
         customers={customers}
         products={products}
@@ -183,7 +198,9 @@ export default function ActivityPlanCreateView() {
         promotionalMaterialsByCategory={promotionalMaterialsByCategory}
         onSubmit={handleSubmit}
         onCancel={() => router.push("/activity-plans")}
-        submitLabel="บันทึกแผนงาน"
+        submitLabel={
+          planType === "UNPLANNED" ? "บันทึกกิจกรรมนอกแผน" : "บันทึกแผนงาน"
+        }
       />
     </section>
   );

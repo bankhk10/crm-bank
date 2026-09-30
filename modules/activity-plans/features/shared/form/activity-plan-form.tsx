@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
+import { BarChart3 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/custom/section-header";
 import type { ActivityPlanFormValues } from "../../../application/validations";
@@ -84,6 +85,7 @@ interface Props {
   submitLabel?: string;
   readonly?: boolean;
   isEdit?: boolean;
+  planType?: "PLANNED" | "UNPLANNED";
 }
 
 import {
@@ -171,6 +173,28 @@ import {
 } from "../../../application/validations";
 import type { DrugWithdrawalPlotOption } from "../drug-withdrawal/types";
 
+// Unplanned Activity: Actual Results Sub-systems & Hooks
+import {
+  ActivityResultSection,
+  ActivityStatusSection,
+} from "../actual-view/components";
+import { useActualStatusState } from "../actual-view/hooks/use-actual-status-state";
+import { buildResultSummary } from "../actual-view/utils/summary-builder";
+import { useType1Actual } from "@/modules/activity-plans/features/type-1";
+import { useType2Actual } from "@/modules/activity-plans/features/type-2";
+import { useType3Actual } from "@/modules/activity-plans/features/type-3";
+import { useType4Actual } from "@/modules/activity-plans/features/type-4";
+import { useType5Actual } from "@/modules/activity-plans/features/type-5";
+import { useType6Actual } from "@/modules/activity-plans/features/type-6";
+import { useType7aActual } from "@/modules/activity-plans/features/type-7a";
+import { useType7bActual } from "@/modules/activity-plans/features/type-7b";
+import { useType8Actual } from "@/modules/activity-plans/features/type-8";
+import { useType9Actual } from "@/modules/activity-plans/features/type-9";
+import { useType10Actual } from "@/modules/activity-plans/features/type-10";
+import { useType11Actual } from "@/modules/activity-plans/features/type-11";
+import { useType13ActualState } from "@/modules/activity-plans/features/type-13";
+import { useType14ActualState } from "@/modules/activity-plans/features/type-14";
+
 
 export function ActivityPlanForm({
   initial = {},
@@ -187,6 +211,7 @@ export function ActivityPlanForm({
   submitLabel = "บันทึก",
   readonly = false,
   isEdit = false,
+  planType = "PLANNED",
 }: Props) {
   // Phase 1: Master Data Loading Hook
   const {
@@ -243,6 +268,86 @@ export function ActivityPlanForm({
   const [startTime, setStartTime] = useState(initStart.timeStr);
   const [endDate, setEndDate] = useState(initEnd.dateStr);
   const [endTime, setEndTime] = useState(initEnd.timeStr);
+
+  const currentPlanType = (initial as any)?.planType || planType;
+  const isUnplanned = currentPlanType === "UNPLANNED";
+
+  // Actual Sub-System Hooks (Unplanned Activity)
+  const statusState = useActualStatusState();
+  const type1Actual = useType1Actual();
+  const type2Actual = useType2Actual();
+  const type3Actual = useType3Actual();
+  const type4Actual = useType4Actual();
+  const type5Actual = useType5Actual();
+  const type6Actual = useType6Actual();
+  const type7aActual = useType7aActual();
+  const type7bActual = useType7bActual();
+  const type8Actual = useType8Actual();
+  const type9Actual = useType9Actual();
+  const type10Actual = useType10Actual();
+  const type11Actual = useType11Actual();
+  const type13Actual = useType13ActualState();
+  const type14Actual = useType14ActualState();
+
+  const typeHooks = useMemo(
+    () => ({
+      type1: type1Actual,
+      type2: type2Actual,
+      type3: type3Actual,
+      type4: type4Actual,
+      type5: type5Actual,
+      type6: type6Actual,
+      type7a: type7aActual,
+      type7b: type7bActual,
+      type8: type8Actual,
+      type9: type9Actual,
+      type10: type10Actual,
+      type11: type11Actual,
+      type13: type13Actual,
+      type14: type14Actual,
+    }),
+    [
+      type1Actual,
+      type2Actual,
+      type3Actual,
+      type4Actual,
+      type5Actual,
+      type6Actual,
+      type7aActual,
+      type7bActual,
+      type8Actual,
+      type9Actual,
+      type10Actual,
+      type11Actual,
+      type13Actual,
+      type14Actual,
+    ],
+  );
+
+  // Hydrate actual hooks when editing an Unplanned draft
+  useEffect(() => {
+    const existingResult =
+      (initial as any)?.activityResult ||
+      (initial as any)?.result ||
+      initial?.details?.activityResult;
+    if (isUnplanned && existingResult) {
+      statusState.hydrateStatus(existingResult);
+      type1Actual.hydrate(existingResult);
+      type2Actual.hydrate(existingResult);
+      type3Actual.hydrate(existingResult);
+      type4Actual.hydrate(existingResult);
+      type5Actual.hydrate(existingResult, {});
+      type6Actual.hydrate(existingResult);
+      type7aActual.hydrate(initial as any, existingResult, {});
+      type7bActual.hydrate(initial as any, existingResult, {});
+      type8Actual.hydrate(existingResult);
+      type9Actual.hydrate(existingResult);
+      type10Actual.hydrate(existingResult);
+      type11Actual.hydrate(existingResult);
+      type13Actual.hydrate(initial as any, existingResult, {});
+      type14Actual.hydrate(initial as any, existingResult, {});
+    }
+  }, [initial, isUnplanned]);
 
   // Find the latest correction or rejection log for read-only alert display
   const latestCorrectionLog = useMemo(() => {
@@ -1161,6 +1266,98 @@ export function ActivityPlanForm({
         marketingBudgetRequested,
       } = buildBudgetPayload();
 
+      // Build Actual Data payload if UNPLANNED
+      let actualData: any = undefined;
+      if (isUnplanned) {
+        const isType7A = selectedWorkTypes.some(
+          (wt) => getWorkTypeCode(wt) === "TYPE_7A",
+        );
+        const isType7B = selectedWorkTypes.some(
+          (wt) => getWorkTypeCode(wt) === "TYPE_7B",
+        );
+
+        const t1Payload = type1Actual.getPayload();
+        const t2Payload = type2Actual.getPayload();
+        const t3Payload = type3Actual.getPayload();
+        const t4Payload = type4Actual.getPayload();
+        const t5Payload = type5Actual.getPayload();
+        const t6Payload = type6Actual.getPayload();
+        const t7aPayload = type7aActual.getPayload();
+        const t7bPayload = type7bActual.getPayload();
+        const t8Payload = type8Actual.getPayload();
+        const t9Payload = type9Actual.getPayload();
+        const t10Payload = type10Actual.getPayload();
+        const t11Payload = type11Actual.getPayload();
+        const t13Payload = type13Actual.getPayload();
+        const t14Payload = type14Actual.getPayload();
+
+        const activeType7Payload = isType7A ? t7aPayload : t7bPayload;
+
+        const buildResult = buildResultSummary({
+          activityResultStatus: statusState.activityResultStatus,
+          cancelReason: statusState.cancelReason,
+          postponedDate: statusState.postponedDate,
+          postponedTime: statusState.postponedTime,
+          postponedReason: statusState.postponedReason,
+          postponedNotes: statusState.postponedNotes,
+          planSummary: {
+            planNo: initial?.planCode || "-",
+            title,
+            planDate: format(startDateTime, "dd/MM/yyyy"),
+            activityTime: `${format(startDateTime, "HH:mm")} - ${format(endDateTime, "HH:mm")}`,
+            ownerName: initial?.employeeName || "-",
+            activityTypeTitle: selectedWorkTypes.join(", "),
+          },
+          planWorkTypes: selectedWorkTypes,
+          products: productsList,
+          ...t1Payload,
+          ...t2Payload,
+          ...t3Payload,
+          ...t4Payload,
+          ...t5Payload,
+          ...t6Payload,
+          ...activeType7Payload,
+          ...t8Payload,
+          ...t9Payload,
+          ...t10Payload,
+          ...t11Payload,
+        });
+
+        if (buildResult.validationError) {
+          setError(buildResult.validationError);
+          setLoading(false);
+          return;
+        }
+
+        actualData = {
+          ...buildResult.payload,
+          ...(t13Payload.sprayRounds?.length || t14Payload.sprayRounds?.length
+            ? {
+                sprayRounds: [
+                  ...(buildResult.payload.sprayRounds || []),
+                  ...(t13Payload.sprayRounds || []),
+                  ...(t14Payload.sprayRounds || []),
+                ],
+              }
+            : {}),
+          ...(t13Payload.type13PlotsActual?.length
+            ? { type13PlotsActual: t13Payload.type13PlotsActual }
+            : {}),
+          ...(t13Payload.type13NewPlots?.length
+            ? { type13NewPlots: t13Payload.type13NewPlots }
+            : {}),
+          ...(t13Payload.attachments?.length || t14Payload.attachments?.length
+            ? {
+                attachments: [
+                  ...(buildResult.payload.attachments || []),
+                  ...(t13Payload.attachments || []),
+                  ...(t14Payload.attachments || []),
+                ],
+              }
+            : {}),
+        };
+      }
+
       const res = await onSubmit({
         title,
         startDate: startDateTime,
@@ -1262,6 +1459,8 @@ export function ActivityPlanForm({
         marketingBudgetRequested,
         notes: extraNotes,
         helperEmployeeIds: isLocationTeamVisible ? helperEmployeeIds : [],
+        planType: ((initial as any)?.planType || planType) as "PLANNED" | "UNPLANNED",
+        actualData,
       });
 
       if (res && !res.success) {
@@ -1282,12 +1481,23 @@ export function ActivityPlanForm({
             <h5 className="font-semibold text-lg sm:text-2xl md:text-3xl border-b pb-4 md:pb-6 leading-snug">
               <span className="hidden sm:inline">
                 {isEdit
-                  ? "แก้ไขแผนงาน ( Trip Plan )"
-                  : "สร้างแผนงาน ( Trip Plan )"}
+                  ? isUnplanned
+                    ? "แก้ไขกิจกรรมนอกแผน (Unplanned Activity)"
+                    : "แก้ไขแผนงาน ( Trip Plan )"
+                  : isUnplanned
+                    ? "สร้างกิจกรรมนอกแผน (Unplanned Activity)"
+                    : "สร้างแผนงาน ( Trip Plan )"}
               </span>
               <span className="inline sm:hidden">
-                {isEdit ? "แก้ไขแผนงาน" : "สร้างแผนงาน"}
-                <br />( Trip Plan )
+                {isEdit
+                  ? isUnplanned
+                    ? "แก้ไขกิจกรรมนอกแผน"
+                    : "แก้ไขแผนงาน"
+                  : isUnplanned
+                    ? "สร้างกิจกรรมนอกแผน"
+                    : "สร้างแผนงาน"}
+                <br />
+                {isUnplanned ? "( Unplanned Activity )" : "( Trip Plan )"}
               </span>
             </h5>
           </div>
@@ -1694,6 +1904,35 @@ export function ActivityPlanForm({
               setNotes={setNotes}
               readonly={readonly}
             />
+
+            {/* SECTION 7: ผลการปฏิบัติงานจริง (Actual Results) - เฉพาะ UNPLANNED */}
+            {isUnplanned && selectedWorkTypes.length > 0 && (
+              <div className="space-y-6 pt-6 border-t border-slate-200">
+                <div className="flex items-center gap-2 text-emerald-700 font-bold text-lg">
+                  <BarChart3 className="w-5 h-5" />
+                  <span>ผลการปฏิบัติงานจริง (Actual Results)</span>
+                </div>
+                <ActivityResultSection
+                  isTypeVisible={(codeOrTitle: string) => {
+                    const normalizedCode = resolveWorkTypeCode(codeOrTitle);
+                    return selectedWorkTypes.some((wt) => {
+                      const wtCode = getWorkTypeCode(wt);
+                      return (
+                        wtCode === normalizedCode ||
+                        wt.toLowerCase().trim() ===
+                          codeOrTitle.toLowerCase().trim()
+                      );
+                    });
+                  }}
+                  targets={{}}
+                  products={productsList}
+                  customers={customersList}
+                  planProvince={province}
+                  typeHooks={typeHooks}
+                />
+                <ActivityStatusSection statusState={statusState} />
+              </div>
+            )}
 
             {/* Bottom Action Footer */}
             <FormActionButtons

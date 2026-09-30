@@ -51,19 +51,16 @@ import {
 import type { ActivityPlanWithRelations } from "../../../types";
 import {
   getApprovalQueueDataAction,
-  getUnplannedReviewQueueAction,
 } from "../../../server/actions";
-import UnplannedReviewQueueView from "../../unplanned/review/unplanned-review-queue-view";
 import {
   ApprovalActionDialog,
   type ApprovalActionType,
 } from "./components/approval-action-dialog";
 import { cn } from "@/lib/utils";
 
-// Unified Approval: 3 Main Tabs
-type MainTabType = "plans" | "unplanned" | "history";
+// Unified Approval: 2 Main Tabs
+type MainTabType = "plans" | "history";
 type PlansSubTab = "my_pending" | "all_pending";
-type HistorySubTab = "plans" | "unplanned";
 
 export default function ActivityPlanApprovalListView() {
   const { data: session } = useSession();
@@ -101,18 +98,9 @@ export default function ActivityPlanApprovalListView() {
     totalBudgetRequested: 0,
   });
 
-  // Tab states (3 Main Tabs)
+  // Tab states (2 Main Tabs)
   const [mainTab, setMainTab] = useState<MainTabType>("plans");
   const [plansSubTab, setPlansSubTab] = useState<PlansSubTab>("my_pending");
-  const [historySubTab, setHistorySubTab] = useState<HistorySubTab>("plans");
-
-  // Unplanned review counts state
-  const [unplannedCounts, setUnplannedCounts] = useState({
-    pendingReviewCount: 0,
-    returnedCount: 0,
-    reviewedCount: 0,
-    totalCount: 0,
-  });
 
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState("");
@@ -127,37 +115,13 @@ export default function ActivityPlanApprovalListView() {
   const [actionType, setActionType] = useState<ApprovalActionType>("APPROVE");
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
 
-  // Load unplanned review counts
-  const loadUnplannedCounts = useCallback(async () => {
-    try {
-      const res = await getUnplannedReviewQueueAction({
-        status: "PENDING_REVIEW",
-      });
-      if (res.success && (res as any).counts) {
-        setUnplannedCounts((res as any).counts);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  useEffect(() => {
-    loadUnplannedCounts();
-  }, [loadUnplannedCounts]);
-
   // URL query parameter synchronization
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get("tab");
-      if (tabParam === "unplanned") {
-        setMainTab("unplanned");
-      } else if (tabParam === "history") {
+      if (tabParam === "history") {
         setMainTab("history");
-        const sub = params.get("sub");
-        if (sub === "unplanned" || sub === "plans") {
-          setHistorySubTab(sub as HistorySubTab);
-        }
       } else if (tabParam === "plans") {
         setMainTab("plans");
       }
@@ -169,19 +133,6 @@ export default function ActivityPlanApprovalListView() {
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
       url.searchParams.set("tab", tab);
-      if (tab !== "history") {
-        url.searchParams.delete("sub");
-      }
-      window.history.replaceState(null, "", url.toString());
-    }
-  };
-
-  const handleSelectHistorySubTab = (sub: HistorySubTab) => {
-    setHistorySubTab(sub);
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      url.searchParams.set("tab", "history");
-      url.searchParams.set("sub", sub);
       window.history.replaceState(null, "", url.toString());
     }
   };
@@ -427,10 +378,10 @@ export default function ActivityPlanApprovalListView() {
         </Alert>
       )}
 
-      {/* ─── 2. MAIN TABS (3 Tabs) ─── */}
+      {/* ─── 2. MAIN TABS (2 Tabs) ─── */}
       <div className="flex items-center justify-between gap-2 border-b border-slate-200 -mx-3 px-3 md:mx-0 md:px-0">
         <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-0 scrollbar-hide -mb-px">
-          {/* Tab 1: แผนงานรออนุมัติ */}
+          {/* Tab 1: รายการรออนุมัติ */}
           <button
             type="button"
             onClick={() => handleSelectMainTab("plans")}
@@ -442,7 +393,7 @@ export default function ActivityPlanApprovalListView() {
             )}
           >
             <ShieldCheck className="h-4 w-4 text-blue-600" />
-            <span>แผนงานรออนุมัติ</span>
+            <span>รายการรออนุมัติ</span>
             {pendingPlansCount > 0 && (
               <span
                 className={cn(
@@ -457,34 +408,7 @@ export default function ActivityPlanApprovalListView() {
             )}
           </button>
 
-          {/* Tab 2: กิจกรรมนอกแผนรอตรวจ */}
-          <button
-            type="button"
-            onClick={() => handleSelectMainTab("unplanned")}
-            className={cn(
-              "flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm font-semibold whitespace-nowrap border-b-2 transition-colors cursor-pointer shrink-0",
-              mainTab === "unplanned"
-                ? "text-blue-700 border-blue-600"
-                : "text-slate-500 border-transparent hover:text-slate-700 hover:border-slate-300",
-            )}
-          >
-            <FileCheck className="h-4 w-4 text-blue-600" />
-            <span>กิจกรรมนอกแผนรอตรวจ</span>
-            {unplannedCounts.pendingReviewCount > 0 && (
-              <span
-                className={cn(
-                  "text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 rounded-full font-bold min-w-[20px] text-center",
-                  mainTab === "unplanned"
-                    ? "bg-blue-600 text-white"
-                    : "bg-amber-100 text-amber-800",
-                )}
-              >
-                {unplannedCounts.pendingReviewCount}
-              </span>
-            )}
-          </button>
-
-          {/* Tab 3: ประวัติ */}
+          {/* Tab 2: ประวัติการอนุมัติ */}
           <button
             type="button"
             onClick={() => handleSelectMainTab("history")}
@@ -496,8 +420,8 @@ export default function ActivityPlanApprovalListView() {
             )}
           >
             <Clock className="h-4 w-4 text-slate-500" />
-            <span>ประวัติ</span>
-            {(counts.historyCount + unplannedCounts.reviewedCount) > 0 && (
+            <span>ประวัติการอนุมัติ</span>
+            {counts.historyCount > 0 && (
               <span
                 className={cn(
                   "text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 rounded-full font-bold min-w-[20px] text-center",
@@ -506,7 +430,7 @@ export default function ActivityPlanApprovalListView() {
                     : "bg-slate-100 text-slate-600",
                 )}
               >
-                {counts.historyCount + unplannedCounts.reviewedCount}
+                {counts.historyCount}
               </span>
             )}
           </button>
@@ -587,66 +511,7 @@ export default function ActivityPlanApprovalListView() {
         </>
       )}
 
-      {/* ─── UNPLANNED ACTIVITY REVIEW TAB ─── */}
-      {mainTab === "unplanned" && (
-        <UnplannedReviewQueueView
-          embedded
-          hideHeader
-          initialTab="PENDING_REVIEW"
-          onCountsChange={(newCounts) => setUnplannedCounts(newCounts)}
-        />
-      )}
-
-      {/* ─── HISTORY SUB-TABS ─── */}
-      {mainTab === "history" && (
-        <div className="flex items-center gap-2 pt-1 pb-1">
-          <button
-            type="button"
-            onClick={() => handleSelectHistorySubTab("plans")}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer",
-              historySubTab === "plans"
-                ? "bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-xs"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200 border border-transparent",
-            )}
-          >
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-            <span>แผนงานที่ดำเนินการแล้ว</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white text-emerald-800 font-bold border border-emerald-200">
-              {counts.historyCount}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleSelectHistorySubTab("unplanned")}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer",
-              historySubTab === "unplanned"
-                ? "bg-blue-100 text-blue-900 border border-blue-300 shadow-xs"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200 border border-transparent",
-            )}
-          >
-            <FileCheck className="h-3.5 w-3.5 text-blue-600" />
-            <span>กิจกรรมนอกแผนที่ตรวจแล้ว</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white text-blue-800 font-bold border border-blue-200">
-              {unplannedCounts.reviewedCount}
-            </span>
-          </button>
-        </div>
-      )}
-
-      {mainTab === "history" && historySubTab === "unplanned" && (
-        <UnplannedReviewQueueView
-          embedded
-          hideHeader
-          initialTab="REVIEWED"
-          allowedTabs={["REVIEWED", "ALL"]}
-          onCountsChange={(newCounts) => setUnplannedCounts(newCounts)}
-        />
-      )}
-
-      {/* ─── PLANNED APPROVAL / HISTORY PLANS SECTION ─── */}
+      {/* ─── APPROVAL / HISTORY PLANS SECTION ─── */}
       {isPlansView && (
         <>
 
@@ -899,12 +764,24 @@ export default function ActivityPlanApprovalListView() {
                         )}
                       >
                         <td className="p-3.5 font-mono font-bold text-blue-700">
-                          <Link
-                            href={`/activity-plans/approvals/${plan.id}`}
-                            className="hover:underline"
-                          >
-                            {plan.code || plan.id.slice(0, 8)}
-                          </Link>
+                          <div className="flex items-center gap-1.5">
+                            <Link
+                              href={`/activity-plans/approvals/${plan.id}`}
+                              className="hover:underline"
+                            >
+                              {plan.code || plan.id.slice(0, 8)}
+                            </Link>
+                            <span
+                              className={cn(
+                                "text-[10px] font-bold px-1.5 py-0.2 rounded-md border",
+                                plan.planType === "UNPLANNED"
+                                  ? "bg-purple-50 text-purple-700 border-purple-200"
+                                  : "bg-blue-50 text-blue-700 border-blue-200",
+                              )}
+                            >
+                              {plan.planType === "UNPLANNED" ? "นอกแผน" : "ตามแผน"}
+                            </span>
+                          </div>
                         </td>
                         <td
                           className="p-3.5 font-semibold text-slate-900 max-w-[170px] truncate"
@@ -1376,6 +1253,16 @@ function PlanCard({
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
               {plan.code || plan.id.slice(0, 8)}
+            </span>
+            <span
+              className={cn(
+                "text-[10px] font-bold px-1.5 py-0.2 rounded-md border",
+                plan.planType === "UNPLANNED"
+                  ? "bg-purple-50 text-purple-700 border-purple-200"
+                  : "bg-blue-50 text-blue-700 border-blue-200",
+              )}
+            >
+              {plan.planType === "UNPLANNED" ? "นอกแผน" : "ตามแผน"}
             </span>
             {canApprove && (
               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded-md">

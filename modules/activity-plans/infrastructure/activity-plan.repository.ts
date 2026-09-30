@@ -838,6 +838,7 @@ export type CreateActivityPlanInput = {
       sortOrder?: number;
     }>;
   } | null;
+  actualData?: any;
 };
 
 /**
@@ -1309,18 +1310,19 @@ export async function createActivityPlan(
           });
         }
 
-        // 4. Create initial approval log (Planned only)
-        if (input.planType !== ActivityPlanType.UNPLANNED) {
-          await tx.activityApprovalLog.create({
-            data: {
-              activityPlanId: plan.id,
-              userId: input.createdById,
-              action: ActivityApprovalAction.SUBMIT,
-              step: ActivityApprovalStep.LINE_APPROVAL,
-              comment: "บันทึกแผนงานร่างแรก",
-            },
-          });
-        }
+        // 4. Create initial approval log
+        await tx.activityApprovalLog.create({
+          data: {
+            activityPlanId: plan.id,
+            userId: input.createdById,
+            action: ActivityApprovalAction.SUBMIT,
+            step: ActivityApprovalStep.LINE_APPROVAL,
+            comment:
+              input.planType === ActivityPlanType.UNPLANNED
+                ? "บันทึกกิจกรรมนอกแผนร่างแรก"
+                : "บันทึกแผนงานร่างแรก",
+          },
+        });
 
         // 5. Create Drug Withdrawal if requested
         if (input.drugWithdrawal && input.drugWithdrawal.hasDrugWithdrawal) {
@@ -1416,6 +1418,18 @@ export async function createActivityPlan(
               };
             }),
           });
+        }
+
+        // 6. If Unplanned Activity provides actualData, upsert ActivityResult atomically
+        if (input.actualData) {
+          await upsertActivityResult(
+            {
+              ...input.actualData,
+              activityPlanId: plan.id,
+              recordedById: input.createdById,
+            },
+            tx,
+          );
         }
 
         return plan;
@@ -2236,6 +2250,20 @@ export async function updateActivityPlan(
           }
         }
         // Case E: No existing withdrawal + unchecked -> do nothing, remains no withdrawal
+      }
+    }
+
+    // Upsert actualData if provided for Unplanned drafts
+    if (planData.actualData !== undefined) {
+      if (planData.actualData) {
+        await upsertActivityResult(
+          {
+            ...planData.actualData,
+            activityPlanId: id,
+            recordedById: (planData as any).updatedUserId || undefined,
+          },
+          tx,
+        );
       }
     }
 

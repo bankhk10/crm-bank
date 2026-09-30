@@ -1,9 +1,9 @@
 import { use } from "react";
-import { UnplannedReviewDetailView } from "@/modules/activity-plans";
+import { ActivityPlanDetailView } from "@/modules/activity-plans";
 
 export const metadata = {
-  title: "ตรวจสอบกิจกรรมนอกแผนงาน | CRM Bank",
-  description: "ตรวจสอบรายละเอียดและผลการปฏิบัติงานของกิจกรรมนอกแผนงาน",
+  title: "รายละเอียดกิจกรรมนอกแผน | CRM Bank",
+  description: "รายละเอียดกิจกรรมนอกแผนงาน",
 };
 
 export default function UnplannedReviewDetailPage({
@@ -12,5 +12,5 @@ export default function UnplannedReviewDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  return <UnplannedReviewDetailView id={id} />;
+  return <ActivityPlanDetailView id={id} />;
 }
