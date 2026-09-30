@@ -3,6 +3,7 @@ import {
   findMasterDemoPlots,
   findFollowUpDemoPlots,
   findHattackFollowUpDemoPlots,
+  findHattackPlotContext,
   findFarmerCustomerOptions,
   findDemoPlotOwners,
   findDemoPlotByIdOrName,
@@ -413,4 +414,72 @@ export async function recordDemoPlotVisitUseCase(rawData: any) {
   });
 
   return { success: true as const, visit };
+}
+
+/**
+ * Use Case: Get dedicated plot context for TYPE_14 "ติดตามแปลงแฮทแทค"
+ * Returns plot info, original TYPE_13 withdrawal items (Group A source of truth), and previous actual spray history
+ */
+export async function getHattackPlotContextUseCase(
+  demoPlotId: string,
+  currentPlanId?: string,
+) {
+  if (!demoPlotId || !demoPlotId.trim()) {
+    return {
+      success: false as const,
+      error: "กรุณาระบุรหัสแปลงแฮตแทค",
+    };
+  }
+
+  const { plot, originalWithdrawalItems, sprayHistoryRounds } =
+    await findHattackPlotContext(demoPlotId.trim(), currentPlanId);
+
+  if (!plot) {
+    return {
+      success: false as const,
+      error: "ไม่พบข้อมูลแปลงแฮตแทคที่ระบุ",
+    };
+  }
+
+  return {
+    success: true as const,
+    plot: {
+      id: plot.id,
+      code: plot.code,
+      name: plot.name,
+      dealerId: plot.customerId || undefined,
+      dealerName: plot.customer?.name || (plot as any).dealerName || undefined,
+      province: plot.province || undefined,
+      district: plot.district || undefined,
+    },
+    originalWithdrawalItems: originalWithdrawalItems.map((item) => ({
+      id: item.id,
+      productId: item.productId,
+      productName: item.productName || item.product?.name || "",
+      unit: item.unit || item.product?.unit || "ขวด",
+      quantity: Number(item.quantity) || 0,
+      sourcePlanCode: item.drugWithdrawal?.activityPlan?.code || undefined,
+      sourcePlanTitle: item.drugWithdrawal?.activityPlan?.title || undefined,
+    })),
+    sprayHistory: sprayHistoryRounds.map((sr, idx) => ({
+      id: sr.id,
+      roundNumber: sr.roundNumber || idx + 1,
+      sprayDate: sr.sprayDate ? sr.sprayDate.toISOString() : "",
+      activityPlanCode: sr.activityResult?.activityPlan?.code || "",
+      activityTypeName:
+        sr.activityResult?.activityPlan?.activityType?.name ||
+        (sr.workTypeCode === "TYPE_13" ? "ฉีดแปลงแฮตแทค" : "กิจกรรมก่อนหน้า"),
+      productResponse: sr.productResponse || "",
+      notes: sr.notes || "",
+      products: (sr.products || []).map((p) => ({
+        id: p.id,
+        productId: p.productId,
+        productName: p.productName || p.product?.name || "",
+        quantityUsed: Number(p.quantityUsed) || 0,
+        unit: p.unit || p.product?.unit || "ขวด",
+        actualRate: p.actualRate || "",
+        detail: p.detail || "",
+      })),
+    })),
+  };
 }

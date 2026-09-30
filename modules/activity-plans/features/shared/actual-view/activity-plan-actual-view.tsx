@@ -32,6 +32,7 @@ import { useType9Actual } from "@/modules/activity-plans/features/type-9";
 import { useType10Actual } from "@/modules/activity-plans/features/type-10";
 import { useType11Actual } from "@/modules/activity-plans/features/type-11";
 import { useType13ActualState } from "@/modules/activity-plans/features/type-13";
+import { useType14ActualState } from "@/modules/activity-plans/features/type-14";
 
 interface ActivityPlanActualViewProps {
   id?: string;
@@ -80,6 +81,7 @@ export function ActivityPlanActualView({
   const type10 = useType10Actual();
   const type11 = useType11Actual();
   const type13 = useType13ActualState();
+  const type14 = useType14ActualState();
 
   const typeHooks = useMemo(
     () => ({
@@ -96,6 +98,7 @@ export function ActivityPlanActualView({
       type10,
       type11,
       type13,
+      type14,
     }),
     [
       type1,
@@ -111,6 +114,7 @@ export function ActivityPlanActualView({
       type10,
       type11,
       type13,
+      type14,
     ],
   );
 
@@ -137,6 +141,7 @@ export function ActivityPlanActualView({
     type10.hydrate(parsedResult);
     type11.hydrate(parsedResult);
     type13.hydrate(plan, parsedResult, targets);
+    type14.hydrate(plan, parsedResult, targets);
     setIsHydrated(true);
   }, [plan, parsedResult]);
 
@@ -295,6 +300,7 @@ export function ActivityPlanActualView({
             products={products}
             customers={customers}
             typeHooks={typeHooks}
+            plan={plan}
             planProvince={
               (type7a.t7DemoPlotData as any)?.province ||
               targets.t7a?.province ||

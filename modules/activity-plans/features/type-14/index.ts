@@ -17,3 +17,15 @@ export {
   Type14Approval,
   type Type14ApprovalProps,
 } from "./approval/type14-approval";
+
+export {
+  Type14Actual,
+  type Type14ActualProps,
+} from "./actual/type14-actual";
+
+export {
+  useType14ActualState,
+  type Type14ActualProductState,
+  type Type14ImageState,
+  type Type14SprayRoundState,
+} from "./actual/use-type14-actual-state";

@@ -194,8 +194,10 @@ model Employee {
   approvedHelpers          ActivityHelper[]           @relation("EmployeeApprovedHelpers")
   createdCalendarEvents    ActivityCalendarEvent[]    @relation("EmployeeCreatedCalendarEvents")
   calendarAttendees        ActivityCalendarAttendee[] @relation("EmployeeCalendarAttendees")
-  drugWithdrawalsRequested DrugWithdrawal[]           @relation("DrugWithdrawalRequester")
-  drugWithdrawalsApproved  DrugWithdrawal[]           @relation("DrugWithdrawalApprover")
+  drugWithdrawalsRequested             DrugWithdrawal[]               @relation("DrugWithdrawalRequester")
+  drugWithdrawalsApproved              DrugWithdrawal[]               @relation("DrugWithdrawalApprover")
+  supplementalDrugWithdrawalsRequested SupplementalDrugWithdrawal[]   @relation("SupplementalDrugWithdrawalRequester")
+  supplementalDrugWithdrawalsApproved  SupplementalDrugWithdrawal[]   @relation("SupplementalDrugWithdrawalApprover")
 }
 
 model Department {
@@ -702,7 +704,8 @@ model Product {
   activityAttachments            ActivityAttachment[]         @relation("ActivityAttachmentProductRef")
   demoPlotProducts               DemoPlotProduct[]            @relation("DemoPlotProductRef")
   activityResultSprayProducts    ActivityResultSprayProduct[] @relation("ActivityResultSprayProductRef")
-  drugWithdrawalItems            DrugWithdrawalItem[]         @relation("DrugWithdrawalItemProductRef")
+  drugWithdrawalItems             DrugWithdrawalItem[]             @relation("DrugWithdrawalItemProductRef")
+  supplementalDrugWithdrawalItems SupplementalDrugWithdrawalItem[] @relation("SupplementalDrugWithdrawalItemProductRef")
 
   parentId String?
   parent   Product?  @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
@@ -1729,7 +1732,8 @@ model ActivityPlan {
   demoPlotVisits DemoPlotVisit[]
   attachments    ActivityAttachment[]
   calendarEvent  ActivityCalendarEvent? // 1:1 ปฏิทินนัดหมายกิจกรรม
-  drugWithdrawal DrugWithdrawal?
+  drugWithdrawal              DrugWithdrawal?
+  supplementalDrugWithdrawals SupplementalDrugWithdrawal[]
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -2156,6 +2160,9 @@ model ActivityResultSprayRound {
   otherEquipment   String?  @map("other_equipment") // ระบุอุปกรณ์กรณีเลือกอื่นๆ
   productResponse  String   @map("product_response") // พืชตอบสนองดี / ยังไม่เห็นผลชัดเจน / พบปัญหา
   problemDetail    String?  @map("problem_detail") // รายละเอียดกรณีพบปัญหา
+  daysSinceStart   Int?     @map("days_since_start") // จำนวนวันหลังฉีดของรอบนี้ (Source of Truth)
+  notes            String?  @map("notes") // บันทึกเพิ่มเติมของรอบนี้
+  workTypeCode     String?  @map("work_type_code") // e.g. "TYPE_14", "TYPE_13", "TYPE_7B"
   createdAt        DateTime @default(now()) @map("created_at")
 
   activityResult   ActivityResult                @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
@@ -2167,28 +2174,32 @@ model ActivityResultSprayRound {
   @@index([activityResultId])
   @@index([demoPlotId])
   @@index([roundNumber])
+  @@index([workTypeCode])
   @@map("activity_result_spray_rounds")
 }
 
 model ActivityResultSprayProduct {
-  id                   String              @id @default(cuid())
-  sprayRoundId         String              @map("spray_round_id")
-  productId            String              @map("product_id")
-  productName          String?             @map("product_name")
-  baselineRate         String?             @map("baseline_rate") // อัตราตั้งต้นเดิม (Read-only Snapshot)
-  actualRate           String              @map("actual_rate") // อัตราที่ฉีดพ่นจริงรอบนี้
-  quantityUsed         Decimal             @map("quantity_used") @db.Decimal(10, 2) // จำนวนที่ใช้ยาในรอบนี้
-  unit                 String?             @map("unit")
-  drugWithdrawalItemId String?             @map("drug_withdrawal_item_id")
-  detail               String?             @map("detail")
+  id                               String                          @id @default(cuid())
+  sprayRoundId                     String                          @map("spray_round_id")
+  productId                        String                          @map("product_id")
+  productName                      String?                         @map("product_name")
+  baselineRate                     String?                         @map("baseline_rate") // อัตราตั้งต้นเดิม (Read-only Snapshot)
+  actualRate                       String                          @map("actual_rate") // อัตราที่ฉีดพ่นจริงรอบนี้
+  quantityUsed                     Decimal                         @map("quantity_used") @db.Decimal(10, 2) // จำนวนที่ใช้ยาในรอบนี้
+  unit                             String?                         @map("unit")
+  drugWithdrawalItemId             String?                         @map("drug_withdrawal_item_id")
+  supplementalDrugWithdrawalItemId String?                         @map("supplemental_drug_withdrawal_item_id")
+  detail                           String?                         @map("detail")
 
-  sprayRound         ActivityResultSprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
-  product            Product                  @relation("ActivityResultSprayProductRef", fields: [productId], references: [id], onDelete: Restrict)
-  drugWithdrawalItem DrugWithdrawalItem?      @relation(fields: [drugWithdrawalItemId], references: [id], onDelete: SetNull)
+  sprayRound                     ActivityResultSprayRound        @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
+  product                        Product                         @relation("ActivityResultSprayProductRef", fields: [productId], references: [id], onDelete: Restrict)
+  drugWithdrawalItem             DrugWithdrawalItem?             @relation(fields: [drugWithdrawalItemId], references: [id], onDelete: SetNull)
+  supplementalDrugWithdrawalItem SupplementalDrugWithdrawalItem? @relation(fields: [supplementalDrugWithdrawalItemId], references: [id], onDelete: SetNull)
 
   @@index([sprayRoundId])
   @@index([productId])
   @@index([drugWithdrawalItemId])
+  @@index([supplementalDrugWithdrawalItemId])
   @@map("activity_result_spray_products")
 }
 
@@ -2592,4 +2603,52 @@ model DrugWithdrawalItem {
   @@index([demoPlotId])
   @@index([productId])
   @@map("drug_withdrawal_items")
+}
+
+// ==========================================
+// SUPPLEMENTAL DRUG WITHDRAWAL FEATURE MODELS
+// ==========================================
+
+model SupplementalDrugWithdrawal {
+  id              String               @id @default(cuid())
+  activityPlanId  String               @map("activity_plan_id")
+  status          DrugWithdrawalStatus @default(DRAFT) @map("status")
+  requestedById   String               @map("requested_by_id")
+  approvedById    String?              @map("approved_by_id")
+  approvedAt      DateTime?            @map("approved_at")
+  rejectionReason String?              @map("rejection_reason")
+  notes           String?              @map("notes")
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+
+  activityPlan ActivityPlan                     @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  requestedBy  Employee                         @relation("SupplementalDrugWithdrawalRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  approvedBy   Employee?                        @relation("SupplementalDrugWithdrawalApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  items        SupplementalDrugWithdrawalItem[]
+
+  @@index([activityPlanId])
+  @@index([requestedById])
+  @@index([approvedById])
+  @@index([status])
+  @@map("supplemental_drug_withdrawals")
+}
+
+model SupplementalDrugWithdrawalItem {
+  id                           String   @id @default(cuid())
+  supplementalDrugWithdrawalId String   @map("supplemental_drug_withdrawal_id")
+  productId                    String   @map("product_id")
+  productName                  String   @map("product_name")
+  quantity                     Decimal  @map("quantity") @db.Decimal(10, 2)
+  unit                         String   @map("unit")
+  sortOrder                    Int      @default(0) @map("sort_order")
+  createdAt                    DateTime @default(now()) @map("created_at")
+  updatedAt                    DateTime @updatedAt @map("updated_at")
+
+  supplementalDrugWithdrawal SupplementalDrugWithdrawal   @relation(fields: [supplementalDrugWithdrawalId], references: [id], onDelete: Cascade)
+  product                    Product                      @relation("SupplementalDrugWithdrawalItemProductRef", fields: [productId], references: [id], onDelete: Restrict)
+  actualSprayProducts        ActivityResultSprayProduct[]
+
+  @@index([supplementalDrugWithdrawalId])
+  @@index([productId])
+  @@map("supplemental_drug_withdrawal_items")
 }

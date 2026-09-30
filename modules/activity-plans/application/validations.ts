@@ -378,6 +378,37 @@ export interface ValidateDrugWithdrawalResult {
   data?: DrugWithdrawalInput;
 }
 
+// ── Supplemental Drug Withdrawal Validations ─────────────────────────
+export const supplementalDrugWithdrawalItemInputSchema = z.object({
+  id: z.string().optional(),
+  productId: z
+    .string({ required_error: "กรุณาเลือกตัวยา/ผลิตภัณฑ์" })
+    .trim()
+    .min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
+  productName: z.string().optional().nullable(),
+  quantity: z.coerce
+    .number({ required_error: "กรุณาระบุจำนวนที่ต้องการเบิก" })
+    .min(0.01, "จำนวนที่ขอเบิกต้องมากกว่า 0"),
+  unit: z.string().optional().nullable(),
+  sortOrder: z.number().int().optional().default(0),
+});
+
+export const createSupplementalDrugWithdrawalSchema = z.object({
+  activityPlanId: z.string().min(1, "กรุณาระบุ Activity Plan ID"),
+  notes: z.string().optional().nullable(),
+  items: z
+    .array(supplementalDrugWithdrawalItemInputSchema)
+    .min(1, "ต้องมีรายการยาอย่างน้อย 1 รายการ"),
+  autoSubmit: z.boolean().optional().default(false),
+});
+
+export type SupplementalDrugWithdrawalItemInput = z.infer<
+  typeof supplementalDrugWithdrawalItemInputSchema
+>;
+export type CreateSupplementalDrugWithdrawalInput = z.infer<
+  typeof createSupplementalDrugWithdrawalSchema
+>;
+
 export function validateDrugWithdrawal(
   input: unknown,
   workTypeCode?: string | null,
@@ -796,12 +827,14 @@ export const activityResultSchema = z
           demoPlotId: z.string(),
           roundNumber: z.coerce.number().int(),
           sprayDate: z.coerce.date().or(z.string()),
-          sprayMethod: z.string(),
-          sprayEquipment: z.string(),
+          sprayMethod: z.string().optional().default("FOLLOW_UP"),
+          sprayEquipment: z.string().optional().default("FOLLOW_UP"),
           otherEquipment: z.string().optional().nullable(),
           productResponse: z.string(),
           problemDetail: z.string().optional().nullable(),
           workTypeCode: z.string().optional().nullable(),
+          daysSinceStart: z.coerce.number().optional().nullable(),
+          notes: z.string().optional().nullable(),
           products: z.array(
             z.object({
               productId: z.string(),
@@ -811,6 +844,7 @@ export const activityResultSchema = z
               quantityUsed: z.coerce.number(),
               unit: z.string().optional().nullable(),
               drugWithdrawalItemId: z.string().optional().nullable(),
+              supplementalDrugWithdrawalItemId: z.string().optional().nullable(),
               detail: z.string().optional().nullable(),
             }),
           ),

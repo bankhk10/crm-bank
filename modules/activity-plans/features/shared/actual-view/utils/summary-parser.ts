@@ -244,6 +244,13 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         ? resData.nextMeetingDate.split("T")[0]
         : new Date(resData.nextMeetingDate).toISOString().split("T")[0];
   }
+  if (
+    resData.sprayRounds &&
+    Array.isArray(resData.sprayRounds) &&
+    resData.sprayRounds.length > 0
+  ) {
+    result.sprayRounds = resData.sprayRounds;
+  }
 
   // 2. Direct collections from normalized relations
   if (

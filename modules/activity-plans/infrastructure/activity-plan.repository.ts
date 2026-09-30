@@ -382,6 +382,15 @@ export async function findActivityPlanById(id: string) {
                       plotIdentifier: true,
                     },
                   },
+                  supplementalDrugWithdrawalItem: {
+                    select: {
+                      id: true,
+                      quantity: true,
+                      unit: true,
+                      productName: true,
+                      supplementalDrugWithdrawalId: true,
+                    },
+                  },
                 },
               },
               externalProducts: true,
@@ -411,6 +420,30 @@ export async function findActivityPlanById(id: string) {
                   id: true,
                   name: true,
                   code: true,
+                },
+              },
+            },
+          },
+          requestedBy: {
+            select: { id: true, name: true, employeeCode: true },
+          },
+          approvedBy: {
+            select: { id: true, name: true, employeeCode: true },
+          },
+        },
+      },
+      supplementalDrugWithdrawals: {
+        orderBy: { createdAt: "asc" },
+        include: {
+          items: {
+            orderBy: { sortOrder: "asc" },
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  productCode: true,
+                  unit: true,
                 },
               },
             },
@@ -3017,25 +3050,40 @@ export async function upsertActivityResult(
               sprayDate: round.sprayDate
                 ? new Date(round.sprayDate)
                 : new Date(),
-              sprayMethod: round.sprayMethod,
-              sprayEquipment: round.sprayEquipment,
+              sprayMethod: round.sprayMethod || "FOLLOW_UP",
+              sprayEquipment: round.sprayEquipment || "FOLLOW_UP",
               otherEquipment: round.otherEquipment ?? null,
               productResponse: round.productResponse,
               problemDetail: round.problemDetail ?? null,
+              daysSinceStart:
+                round.daysSinceStart != null
+                  ? Number(round.daysSinceStart)
+                  : null,
+              notes: round.notes ?? null,
+              workTypeCode: round.workTypeCode ?? null,
               products: {
-                create: (round.products || []).map((p) => ({
-                  productId: p.productId,
-                  productName: p.productName ?? null,
-                  baselineRate: p.baselineRate ?? null,
-                  actualRate: p.actualRate,
-                  quantityUsed: new Prisma.Decimal(Number(p.quantityUsed) || 0),
-                  unit: p.unit ?? null,
-                  drugWithdrawalItemId: p.drugWithdrawalItemId ?? null,
-                  detail: p.detail ?? null,
-                })),
+                create: (round.products || []).map((p: any) => {
+                  if (p.drugWithdrawalItemId && p.supplementalDrugWithdrawalItemId) {
+                    throw new Error(
+                      "Cannot set both drugWithdrawalItemId and supplementalDrugWithdrawalItemId simultaneously",
+                    );
+                  }
+                  return {
+                    productId: p.productId,
+                    productName: p.productName ?? null,
+                    baselineRate: p.baselineRate ?? null,
+                    actualRate: p.actualRate,
+                    quantityUsed: new Prisma.Decimal(Number(p.quantityUsed) || 0),
+                    unit: p.unit ?? null,
+                    drugWithdrawalItemId: p.drugWithdrawalItemId ?? null,
+                    supplementalDrugWithdrawalItemId:
+                      p.supplementalDrugWithdrawalItemId ?? null,
+                    detail: p.detail ?? null,
+                  };
+                }),
               },
               externalProducts: {
-                create: (round.externalProducts || []).map((ep) => ({
+                create: (round.externalProducts || []).map((ep: any) => ({
                   company: ep.company,
                   productName: ep.productName,
                   activeIngredient: ep.activeIngredient ?? null,
@@ -3046,6 +3094,52 @@ export async function upsertActivityResult(
               },
             },
           });
+
+          // Update or create DemoPlotVisit for TYPE_14 (per round)
+          if (round.workTypeCode === "TYPE_14") {
+            const existingVisit = await tx.demoPlotVisit.findFirst({
+              where: {
+                activityPlanId: input.activityPlanId,
+                demoPlotId: targetPlotId,
+                visitNumber: round.roundNumber || 1,
+              },
+            });
+            if (existingVisit) {
+              await tx.demoPlotVisit.update({
+                where: { id: existingVisit.id },
+                data: {
+                  workTypeCode: "TYPE_14",
+                  visitDate: round.sprayDate
+                    ? new Date(round.sprayDate)
+                    : new Date(),
+                  daysSinceStart:
+                    round.daysSinceStart != null
+                      ? Number(round.daysSinceStart)
+                      : (existingVisit.daysSinceStart ?? 0),
+                  productResponse: round.productResponse ?? null,
+                  notes: round.notes ?? null,
+                },
+              });
+            } else {
+              await tx.demoPlotVisit.create({
+                data: {
+                  activityPlanId: input.activityPlanId,
+                  demoPlotId: targetPlotId,
+                  workTypeCode: "TYPE_14",
+                  visitNumber: round.roundNumber || 1,
+                  visitDate: round.sprayDate
+                    ? new Date(round.sprayDate)
+                    : new Date(),
+                  daysSinceStart:
+                    round.daysSinceStart != null
+                      ? Number(round.daysSinceStart)
+                      : 0,
+                  productResponse: round.productResponse ?? null,
+                  notes: round.notes ?? null,
+                },
+              });
+            }
+          }
 
           // Link attachments for this spraying round if any
           if (round.attachments && round.attachments.length > 0) {
@@ -4188,6 +4282,115 @@ export async function findHattackFollowUpDemoPlots() {
 }
 
 /**
+ * Fetch HATTACK plot context for TYPE_14 Actual:
+ * - DemoPlot details (dealer, province, district, etc.)
+ * - Original DrugWithdrawalItem records (Group A source of truth)
+ * - Previous spray rounds (ประวัติการฉีดพ่นจริง)
+ */
+export async function findHattackPlotContext(
+  demoPlotId: string,
+  currentPlanId?: string,
+) {
+  const [plot, originalWithdrawalItems, sprayHistoryRounds] = await Promise.all([
+    db.demoPlot.findUnique({
+      where: { id: demoPlotId },
+      include: {
+        customer: { select: { id: true, name: true, customerCode: true } },
+        farmerCustomer: { select: { id: true, name: true } },
+      },
+    }),
+    db.drugWithdrawalItem.findMany({
+      where: {
+        demoPlotId,
+        ...(currentPlanId
+          ? {
+              drugWithdrawal: {
+                activityPlanId: { not: currentPlanId },
+              },
+            }
+          : {}),
+      },
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            productCode: true,
+            unit: true,
+          },
+        },
+        drugWithdrawal: {
+          select: {
+            id: true,
+            activityPlanId: true,
+            status: true,
+            activityPlan: {
+              select: {
+                id: true,
+                code: true,
+                title: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { sortOrder: "asc" },
+    }),
+    db.activityResultSprayRound.findMany({
+      where: {
+        demoPlotId,
+        ...(currentPlanId
+          ? {
+              activityResult: {
+                activityPlanId: { not: currentPlanId },
+              },
+            }
+          : {}),
+      },
+      include: {
+        activityResult: {
+          include: {
+            activityPlan: {
+              select: {
+                id: true,
+                code: true,
+                title: true,
+                activityType: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        products: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                productCode: true,
+                unit: true,
+              },
+            },
+          },
+          orderBy: { id: "asc" },
+        },
+      },
+      orderBy: { sprayDate: "asc" },
+    }),
+  ]);
+
+  return {
+    plot,
+    originalWithdrawalItems,
+    sprayHistoryRounds,
+  };
+}
+
+/**
  * Fetch Farmer customers for selection in Field Day
  */
 export async function findFarmerCustomerOptions(province?: string) {
@@ -4417,5 +4620,136 @@ export async function findProductCategories() {
       code: true,
       description: true,
     },
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPPLEMENTAL DRUG WITHDRAWAL REPOSITORY
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Create a SupplementalDrugWithdrawal record with its items
+ */
+export async function createSupplementalDrugWithdrawal(
+  txOrDb: any,
+  data: {
+    activityPlanId: string;
+    requestedById: string;
+    status?: DrugWithdrawalStatus;
+    notes?: string | null;
+    items: Array<{
+      productId: string;
+      productName?: string | null;
+      quantity: number | Prisma.Decimal;
+      unit?: string | null;
+      sortOrder?: number;
+    }>;
+  },
+) {
+  return txOrDb.supplementalDrugWithdrawal.create({
+    data: {
+      activityPlanId: data.activityPlanId,
+      requestedById: data.requestedById,
+      status: data.status || DrugWithdrawalStatus.DRAFT,
+      notes: data.notes ?? null,
+      items: {
+        create: data.items.map((item, idx) => ({
+          productId: item.productId,
+          productName: item.productName || "",
+          quantity: new Prisma.Decimal(Number(item.quantity) || 0),
+          unit: item.unit || "ขวด",
+          sortOrder: item.sortOrder ?? idx,
+        })),
+      },
+    },
+    include: {
+      items: {
+        include: {
+          product: {
+            select: { id: true, name: true, productCode: true, unit: true },
+          },
+        },
+      },
+      requestedBy: {
+        select: { id: true, name: true, employeeCode: true },
+      },
+    },
+  });
+}
+
+/**
+ * Find SupplementalDrugWithdrawal by ID
+ */
+export async function findSupplementalDrugWithdrawalById(
+  id: string,
+  txOrDb: any = db,
+) {
+  return txOrDb.supplementalDrugWithdrawal.findUnique({
+    where: { id },
+    include: {
+      items: {
+        orderBy: { sortOrder: "asc" },
+        include: {
+          product: {
+            select: { id: true, name: true, productCode: true, unit: true },
+          },
+        },
+      },
+      requestedBy: {
+        select: { id: true, name: true, employeeCode: true },
+      },
+      approvedBy: {
+        select: { id: true, name: true, employeeCode: true },
+      },
+      activityPlan: {
+        select: {
+          id: true,
+          code: true,
+          title: true,
+          status: true,
+          employeeId: true,
+        },
+      },
+    },
+  });
+}
+
+/**
+ * Update SupplementalDrugWithdrawal status
+ */
+export async function updateSupplementalDrugWithdrawalStatus(
+  txOrDb: any,
+  id: string,
+  data: {
+    status: DrugWithdrawalStatus;
+    approvedById?: string | null;
+    approvedAt?: Date | null;
+    rejectionReason?: string | null;
+  },
+) {
+  return txOrDb.supplementalDrugWithdrawal.update({
+    where: { id },
+    data: {
+      status: data.status,
+      approvedById: data.approvedById,
+      approvedAt: data.approvedAt,
+      rejectionReason: data.rejectionReason,
+    },
+    include: {
+      items: true,
+      activityPlan: true,
+    },
+  });
+}
+
+/**
+ * Delete SupplementalDrugWithdrawal (only DRAFT or RETURNED)
+ */
+export async function deleteSupplementalDrugWithdrawal(
+  txOrDb: any,
+  id: string,
+) {
+  return txOrDb.supplementalDrugWithdrawal.delete({
+    where: { id },
   });
 }

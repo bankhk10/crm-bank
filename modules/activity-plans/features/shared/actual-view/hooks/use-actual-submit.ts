@@ -24,6 +24,7 @@ import type { useType9Actual } from "@/modules/activity-plans/features/type-9";
 import type { useType10Actual } from "@/modules/activity-plans/features/type-10";
 import type { useType11Actual } from "@/modules/activity-plans/features/type-11";
 import type { useType13ActualState } from "@/modules/activity-plans/features/type-13";
+import type { useType14ActualState } from "@/modules/activity-plans/features/type-14";
 
 interface UseActualSubmitProps {
   id?: string;
@@ -49,8 +50,8 @@ interface UseActualSubmitProps {
     type8: ReturnType<typeof useType8Actual>;
     type9: ReturnType<typeof useType9Actual>;
     type10: ReturnType<typeof useType10Actual>;
-    type11: ReturnType<typeof useType11Actual>;
     type13?: ReturnType<typeof useType13ActualState>;
+    type14?: ReturnType<typeof useType14ActualState>;
   };
 }
 
@@ -203,6 +204,17 @@ export function useActualSubmit({
             cleanT13Plots = await typeHooks.type13.uploadImages(id, allNewlyUploadedUrls);
           }
 
+          // TYPE_14: ติดตามแปลงแฮทแทค - Upload after-spray photos
+          const isType14 =
+            isTypeVisible("ติดตามแปลงแฮทแทค") || isTypeVisible("TYPE_14");
+          let cleanT14Images = typeHooks.type14?.afterSprayImages;
+          if (isType14 && typeHooks.type14) {
+            cleanT14Images = await typeHooks.type14.uploadImages(
+              id,
+              allNewlyUploadedUrls,
+            );
+          }
+
           // --- 2. CALCULATE OLD REMOVED URLS ACROSS ALL WORK TYPES ---
           const allOldUrlsToDelete = [
             ...type1.collectOldImageUrlsToDelete(cleanT1Images),
@@ -224,6 +236,9 @@ export function useActualSubmit({
             ...type11.collectOldImageUrlsToDelete(cleanT11Images),
             ...(isType13 && typeHooks.type13 && cleanT13Plots
               ? typeHooks.type13.collectOldImageUrlsToDelete(cleanT13Plots)
+              : []),
+            ...(isType14 && typeHooks.type14 && cleanT14Images
+              ? typeHooks.type14.collectOldImageUrlsToDelete(cleanT14Images)
               : []),
           ];
 
@@ -277,6 +292,21 @@ export function useActualSubmit({
             t13Payload = typeHooks.type13.buildType13ActualPayload(currentPlots);
           }
 
+          // TYPE_14 payload
+          let t14Payload: any = {};
+          if (isType14 && typeHooks.type14) {
+            try {
+              t14Payload = typeHooks.type14.buildType14ActualPayload(cleanT14Images);
+            } catch (err: any) {
+              if (allNewlyUploadedUrls.length > 0) {
+                await deleteActivityPlanImagePaths(id, allNewlyUploadedUrls);
+              }
+              setFormError(err.message || "เกิดข้อผิดพลาดในการตรวจสอบข้อมูล TYPE14");
+              setIsSubmitting(false);
+              return;
+            }
+          }
+
           const activeType7Payload = isType7A ? t7aPayload : t7bPayload;
 
           const buildResult = buildResultSummary({
@@ -314,11 +344,12 @@ export function useActualSubmit({
           // --- 4. RECORD TO DATABASE ---
           const combinedPayload = {
             ...buildResult.payload,
-            ...(t13Payload.sprayRounds?.length
+            ...(t13Payload.sprayRounds?.length || t14Payload.sprayRounds?.length
               ? {
                   sprayRounds: [
                     ...(buildResult.payload.sprayRounds || []),
-                    ...t13Payload.sprayRounds,
+                    ...(t13Payload.sprayRounds || []),
+                    ...(t14Payload.sprayRounds || []),
                   ],
                 }
               : {}),
@@ -328,11 +359,12 @@ export function useActualSubmit({
             ...(t13Payload.type13NewPlots?.length
               ? { type13NewPlots: t13Payload.type13NewPlots }
               : {}),
-            ...(t13Payload.attachments?.length
+            ...(t13Payload.attachments?.length || t14Payload.attachments?.length
               ? {
                   attachments: [
                     ...(buildResult.payload.attachments || []),
-                    ...t13Payload.attachments,
+                    ...(t13Payload.attachments || []),
+                    ...(t14Payload.attachments || []),
                   ],
                 }
               : {}),
@@ -369,6 +401,9 @@ export function useActualSubmit({
           type11.commitSavedImages(cleanT11Images);
           if (isType13 && typeHooks.type13 && cleanT13Plots) {
             typeHooks.type13.commitSavedImages(cleanT13Plots);
+          }
+          if (isType14 && typeHooks.type14 && cleanT14Images) {
+            typeHooks.type14.commitSavedImages(cleanT14Images);
           }
 
           // Record TYPE-7B DemoPlotVisit if applicable
