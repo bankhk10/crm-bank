@@ -15,7 +15,6 @@ import {
   ClipboardList,
   CheckCircle2,
   ShieldCheck,
-  FileCheck,
   Copy,
   Calendar as CalendarIcon,
 } from "lucide-react";
@@ -481,26 +480,15 @@ export function ActivityPlanTable({
           </Button>
         </Link>
         {canApprove && (
-          <>
-            <Link href="/activity-plans/approvals" className="w-full sm:w-auto">
-              <Button
-                variant="outline"
-                className="w-full sm:w-auto border-emerald-600 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 flex items-center gap-2 font-semibold shadow-xs"
-              >
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                อนุมัติแผนงาน
-              </Button>
-            </Link>
-            <Link href="/activity-plans/unplanned/reviews" className="w-full sm:w-auto">
-              <Button
-                variant="outline"
-                className="w-full sm:w-auto border-blue-600 text-blue-700 hover:bg-blue-50 hover:text-blue-800 flex items-center gap-2 font-semibold shadow-xs"
-              >
-                <FileCheck className="h-4 w-4 text-blue-600" />
-                คิวตรวจกิจกรรมนอกแผน
-              </Button>
-            </Link>
-          </>
+          <Link href="/activity-plans/approvals" className="w-full sm:w-auto">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto border-emerald-600 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 flex items-center gap-2 font-semibold shadow-xs"
+            >
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              อนุมัติแผนงาน
+            </Button>
+          </Link>
         )}
       </div>
     </div>

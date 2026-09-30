@@ -1,10 +1,10 @@
-import { UnplannedReviewQueueView } from "@/modules/activity-plans";
+import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "คิวตรวจสอบกิจกรรมนอกแผนงาน | CRM Bank",
-  description: "คิวตรวจสอบกิจกรรมนอกแผนงานสำหรับหัวหน้างานและผู้ดูแลระบบ",
+  title: "อนุมัติแผนงาน | CRM Bank",
+  description: "อนุมัติแผนงานและตรวจสอบกิจกรรมนอกแผนงาน",
 };
 
 export default function UnplannedReviewQueuePage() {
-  return <UnplannedReviewQueueView />;
+  redirect("/activity-plans/approvals?tab=unplanned");
 }

@@ -49,15 +49,21 @@ import {
   type ActionScopeBadge,
 } from "../../../ui/activity-status-badge";
 import type { ActivityPlanWithRelations } from "../../../types";
-import { getApprovalQueueDataAction } from "../../../server/actions";
+import {
+  getApprovalQueueDataAction,
+  getUnplannedReviewQueueAction,
+} from "../../../server/actions";
+import UnplannedReviewQueueView from "../../unplanned/review/unplanned-review-queue-view";
 import {
   ApprovalActionDialog,
   type ApprovalActionType,
 } from "./components/approval-action-dialog";
 import { cn } from "@/lib/utils";
 
-// Aggregated Approval: Streamlined 3 Tabs
-type TabType = "my_pending" | "all_pending" | "history";
+// Unified Approval: 3 Main Tabs
+type MainTabType = "plans" | "unplanned" | "history";
+type PlansSubTab = "my_pending" | "all_pending";
+type HistorySubTab = "plans" | "unplanned";
 
 export default function ActivityPlanApprovalListView() {
   const { data: session } = useSession();
@@ -95,8 +101,20 @@ export default function ActivityPlanApprovalListView() {
     totalBudgetRequested: 0,
   });
 
+  // Tab states (3 Main Tabs)
+  const [mainTab, setMainTab] = useState<MainTabType>("plans");
+  const [plansSubTab, setPlansSubTab] = useState<PlansSubTab>("my_pending");
+  const [historySubTab, setHistorySubTab] = useState<HistorySubTab>("plans");
+
+  // Unplanned review counts state
+  const [unplannedCounts, setUnplannedCounts] = useState({
+    pendingReviewCount: 0,
+    returnedCount: 0,
+    reviewedCount: 0,
+    totalCount: 0,
+  });
+
   // Filter & Search states
-  const [activeTab, setActiveTab] = useState<TabType>("my_pending");
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
@@ -108,6 +126,65 @@ export default function ActivityPlanApprovalListView() {
   const [actionPlan, setActionPlan] = useState<ActivityPlanWithRelations | null>(null);
   const [actionType, setActionType] = useState<ApprovalActionType>("APPROVE");
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
+
+  // Load unplanned review counts
+  const loadUnplannedCounts = useCallback(async () => {
+    try {
+      const res = await getUnplannedReviewQueueAction({
+        status: "PENDING_REVIEW",
+      });
+      if (res.success && (res as any).counts) {
+        setUnplannedCounts((res as any).counts);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    loadUnplannedCounts();
+  }, [loadUnplannedCounts]);
+
+  // URL query parameter synchronization
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam === "unplanned") {
+        setMainTab("unplanned");
+      } else if (tabParam === "history") {
+        setMainTab("history");
+        const sub = params.get("sub");
+        if (sub === "unplanned" || sub === "plans") {
+          setHistorySubTab(sub as HistorySubTab);
+        }
+      } else if (tabParam === "plans") {
+        setMainTab("plans");
+      }
+    }
+  }, []);
+
+  const handleSelectMainTab = (tab: MainTabType) => {
+    setMainTab(tab);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("tab", tab);
+      if (tab !== "history") {
+        url.searchParams.delete("sub");
+      }
+      window.history.replaceState(null, "", url.toString());
+    }
+  };
+
+  const handleSelectHistorySubTab = (sub: HistorySubTab) => {
+    setHistorySubTab(sub);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("tab", "history");
+      url.searchParams.set("sub", sub);
+      window.history.replaceState(null, "", url.toString());
+    }
+  };
 
   // Load all queue data
   const loadQueueData = useCallback(async () => {
@@ -135,7 +212,7 @@ export default function ActivityPlanApprovalListView() {
           setCounts(newCounts);
 
           // If no items in my_pending, automatically switch to all_pending if there are other pending plans
-          setActiveTab((prev) =>
+          setPlansSubTab((prev) =>
             newCounts.myPending === 0 && newCounts.totalPending > 0 && prev === "my_pending"
               ? "all_pending"
               : prev,
@@ -150,6 +227,10 @@ export default function ActivityPlanApprovalListView() {
       setLoading(false);
     }
   }, []);
+
+  const handleRefreshAll = useCallback(async () => {
+    await Promise.all([loadQueueData(), loadUnplannedCounts()]);
+  }, [loadQueueData, loadUnplannedCounts]);
 
   useEffect(() => {
     loadQueueData();
@@ -175,15 +256,14 @@ export default function ActivityPlanApprovalListView() {
   }, [session, roles, currentUserContext]);
 
   // Filtered plans based on tab, search, and type
+  // Filtered plans based on tab, search, and type
   const filteredPlans = useMemo(() => {
     let source: ActivityPlanWithRelations[] = [];
 
     // Apply tab filter: Aggregated Approval
-    if (activeTab === "my_pending") {
-      source = myPendingPlans;
-    } else if (activeTab === "all_pending") {
-      source = pendingPlans;
-    } else {
+    if (mainTab === "plans") {
+      source = plansSubTab === "my_pending" ? myPendingPlans : pendingPlans;
+    } else if (mainTab === "history") {
       source = historyPlans;
     }
 
@@ -229,7 +309,7 @@ export default function ActivityPlanApprovalListView() {
     }
 
     return source;
-  }, [activeTab, pendingPlans, myPendingPlans, historyPlans, searchQuery, typeFilter]);
+  }, [mainTab, plansSubTab, pendingPlans, myPendingPlans, historyPlans, searchQuery, typeFilter]);
 
   const handleOpenActionDialog = (
     plan: ActivityPlanWithRelations,
@@ -246,6 +326,15 @@ export default function ActivityPlanApprovalListView() {
     setTypeFilter("ALL");
     setSearchQuery("");
   };
+
+  const isPlansView =
+    mainTab === "plans" || (mainTab === "history" && historySubTab === "plans");
+
+  const pendingPlansCount =
+    counts.myPending > 0 ? counts.myPending : counts.totalPending;
+
+  const totalPendingAll =
+    counts.totalPending + unplannedCounts.pendingReviewCount;
 
   if (permLoading) {
     return (
@@ -286,11 +375,11 @@ export default function ActivityPlanApprovalListView() {
               อนุมัติแผนงาน
             </h1>
             <div className="flex items-center gap-2 flex-wrap">
-              {counts.totalPending > 0 && (
+              {totalPendingAll > 0 && (
                 <span className="text-xs text-slate-500">
-                  รออนุมัติ{" "}
+                  รออนุมัติ/รอตรวจ{" "}
                   <span className="font-bold text-amber-700">
-                    {counts.totalPending}
+                    {totalPendingAll}
                   </span>{" "}
                   รายการ
                 </span>
@@ -307,23 +396,12 @@ export default function ActivityPlanApprovalListView() {
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          <Link href="/activity-plans/unplanned/reviews">
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50 text-xs font-semibold h-9 md:h-10 px-3"
-            >
-              <FileCheck className="h-4 w-4 mr-1.5 text-blue-600" />
-              <span className="hidden sm:inline">คิวตรวจกิจกรรมนอกแผน</span>
-              <span className="sm:hidden">ตรวจนอกแผน</span>
-            </Button>
-          </Link>
           <Button
             variant="outline"
             size="icon"
-            onClick={loadQueueData}
+            onClick={handleRefreshAll}
             disabled={loading}
-            className="rounded-xl h-9 w-9 md:h-10 md:w-10 border-slate-200"
+            className="rounded-xl h-9 w-9 md:h-10 md:w-10 border-slate-200 cursor-pointer"
             title="รีเฟรชคิวงาน"
             aria-label="รีเฟรชคิวงาน"
           >
@@ -349,96 +427,228 @@ export default function ActivityPlanApprovalListView() {
         </Alert>
       )}
 
-      {/* ─── 2. KPI SUMMARY CARDS (3 Cards) ─── */}
-      {/* Mobile: horizontal scroll | Desktop: grid 3 cols */}
-      <div className="lg:hidden -mx-3 px-3">
-        <div className="flex gap-2.5 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-hide">
-          {kpiCards.map((kpi) => (
-            <KpiCard
-              key={kpi.tab}
-              {...kpi}
-              count={getKpiCount(kpi.tab, counts)}
-              subtitle={getKpiSubtitle(kpi.tab, counts)}
-              isActive={activeTab === kpi.tab}
-              onClick={() => setActiveTab(kpi.tab)}
-            />
-          ))}
-        </div>
-      </div>
-      <div className="hidden lg:grid lg:grid-cols-3 gap-3">
-        {kpiCards.map((kpi) => (
-          <KpiCardDesktop
-            key={kpi.tab}
-            {...kpi}
-            count={getKpiCount(kpi.tab, counts)}
-            subtitle={getKpiSubtitle(kpi.tab, counts)}
-            isActive={activeTab === kpi.tab}
-            onClick={() => setActiveTab(kpi.tab)}
-          />
-        ))}
-      </div>
-
-      {/* ─── 3. TABS (3 Tabs) ─── */}
+      {/* ─── 2. MAIN TABS (3 Tabs) ─── */}
       <div className="flex items-center justify-between gap-2 border-b border-slate-200 -mx-3 px-3 md:mx-0 md:px-0">
-        <div className="flex items-center gap-1 overflow-x-auto pb-0 scrollbar-hide -mb-px">
-          {tabItems.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setActiveTab(tab.value)}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 transition-colors cursor-pointer shrink-0",
-                activeTab === tab.value
-                  ? `${tab.activeClass} border-current`
-                  : "text-slate-500 border-transparent hover:text-slate-700 hover:border-slate-300",
-              )}
-            >
-              <tab.icon className="h-3.5 w-3.5" />
-              <span className="md:hidden">{tab.shortLabel}</span>
-              <span className="hidden md:inline">{tab.label}</span>
+        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-0 scrollbar-hide -mb-px">
+          {/* Tab 1: แผนงานรออนุมัติ */}
+          <button
+            type="button"
+            onClick={() => handleSelectMainTab("plans")}
+            className={cn(
+              "flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm font-semibold whitespace-nowrap border-b-2 transition-colors cursor-pointer shrink-0",
+              mainTab === "plans"
+                ? "text-blue-700 border-blue-600"
+                : "text-slate-500 border-transparent hover:text-slate-700 hover:border-slate-300",
+            )}
+          >
+            <ShieldCheck className="h-4 w-4 text-blue-600" />
+            <span>แผนงานรออนุมัติ</span>
+            {pendingPlansCount > 0 && (
               <span
                 className={cn(
-                  "text-[10px] px-1.5 py-0 rounded-full font-bold min-w-[20px] text-center",
-                  activeTab === tab.value
-                    ? tab.badgeActiveClass
+                  "text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 rounded-full font-bold min-w-[20px] text-center",
+                  mainTab === "plans"
+                    ? "bg-blue-600 text-white"
+                    : "bg-slate-100 text-slate-700",
+                )}
+              >
+                {pendingPlansCount}
+              </span>
+            )}
+          </button>
+
+          {/* Tab 2: กิจกรรมนอกแผนรอตรวจ */}
+          <button
+            type="button"
+            onClick={() => handleSelectMainTab("unplanned")}
+            className={cn(
+              "flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm font-semibold whitespace-nowrap border-b-2 transition-colors cursor-pointer shrink-0",
+              mainTab === "unplanned"
+                ? "text-blue-700 border-blue-600"
+                : "text-slate-500 border-transparent hover:text-slate-700 hover:border-slate-300",
+            )}
+          >
+            <FileCheck className="h-4 w-4 text-blue-600" />
+            <span>กิจกรรมนอกแผนรอตรวจ</span>
+            {unplannedCounts.pendingReviewCount > 0 && (
+              <span
+                className={cn(
+                  "text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 rounded-full font-bold min-w-[20px] text-center",
+                  mainTab === "unplanned"
+                    ? "bg-blue-600 text-white"
+                    : "bg-amber-100 text-amber-800",
+                )}
+              >
+                {unplannedCounts.pendingReviewCount}
+              </span>
+            )}
+          </button>
+
+          {/* Tab 3: ประวัติ */}
+          <button
+            type="button"
+            onClick={() => handleSelectMainTab("history")}
+            className={cn(
+              "flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm font-semibold whitespace-nowrap border-b-2 transition-colors cursor-pointer shrink-0",
+              mainTab === "history"
+                ? "text-blue-700 border-blue-600"
+                : "text-slate-500 border-transparent hover:text-slate-700 hover:border-slate-300",
+            )}
+          >
+            <Clock className="h-4 w-4 text-slate-500" />
+            <span>ประวัติ</span>
+            {(counts.historyCount + unplannedCounts.reviewedCount) > 0 && (
+              <span
+                className={cn(
+                  "text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 rounded-full font-bold min-w-[20px] text-center",
+                  mainTab === "history"
+                    ? "bg-slate-800 text-white"
                     : "bg-slate-100 text-slate-600",
                 )}
               >
-                {getTabCount(tab.value, counts)}
+                {counts.historyCount + unplannedCounts.reviewedCount}
               </span>
-            </button>
-          ))}
+            )}
+          </button>
         </div>
 
-        {/* View Mode Toggle — Desktop only */}
-        <div className="hidden lg:flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg shrink-0 ml-2">
+        {/* View Mode Toggle — Desktop only, when viewing plan list */}
+        {isPlansView && (
+          <div className="hidden lg:flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg shrink-0 ml-2">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={cn(
+                "p-1.5 rounded-md text-xs transition-colors cursor-pointer",
+                viewMode === "grid"
+                  ? "bg-white shadow-sm text-slate-900"
+                  : "text-slate-500 hover:text-slate-800",
+              )}
+              title="มุมมองการ์ด"
+              aria-label="มุมมองการ์ด"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              className={cn(
+                "p-1.5 rounded-md text-xs transition-colors cursor-pointer",
+                viewMode === "table"
+                  ? "bg-white shadow-sm text-slate-900"
+                  : "text-slate-500 hover:text-slate-800",
+              )}
+              title="มุมมองตาราง"
+              aria-label="มุมมองตาราง"
+            >
+              <ListIcon className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ─── PLANS KPI CARDS (2 Cards: รอฉันอนุมัติ / ทั้งหมด) ─── */}
+      {mainTab === "plans" && (
+        <>
+          <div className="lg:hidden -mx-3 px-3">
+            <div className="flex gap-2.5 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-hide">
+              {plansKpiCards.map((kpi) => (
+                <KpiCard
+                  key={kpi.subTab}
+                  label={kpi.label}
+                  icon={kpi.icon}
+                  color={kpi.color}
+                  activeColor={kpi.activeColor}
+                  activeBg={kpi.activeBg}
+                  activeBorder={kpi.activeBorder}
+                  count={getPlansKpiCount(kpi.subTab, counts)}
+                  subtitle={getPlansKpiSubtitle(kpi.subTab, counts)}
+                  isActive={plansSubTab === kpi.subTab}
+                  onClick={() => setPlansSubTab(kpi.subTab)}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="hidden lg:grid lg:grid-cols-2 gap-3 max-w-2xl">
+            {plansKpiCards.map((kpi) => (
+              <KpiCardDesktop
+                key={kpi.subTab}
+                label={kpi.label}
+                icon={kpi.icon}
+                color={kpi.color}
+                activeColor={kpi.activeColor}
+                activeBg={kpi.activeBg}
+                activeBorder={kpi.activeBorder}
+                count={getPlansKpiCount(kpi.subTab, counts)}
+                subtitle={getPlansKpiSubtitle(kpi.subTab, counts)}
+                isActive={plansSubTab === kpi.subTab}
+                onClick={() => setPlansSubTab(kpi.subTab)}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* ─── UNPLANNED ACTIVITY REVIEW TAB ─── */}
+      {mainTab === "unplanned" && (
+        <UnplannedReviewQueueView
+          embedded
+          hideHeader
+          initialTab="PENDING_REVIEW"
+          onCountsChange={(newCounts) => setUnplannedCounts(newCounts)}
+        />
+      )}
+
+      {/* ─── HISTORY SUB-TABS ─── */}
+      {mainTab === "history" && (
+        <div className="flex items-center gap-2 pt-1 pb-1">
           <button
-            onClick={() => setViewMode("grid")}
+            type="button"
+            onClick={() => handleSelectHistorySubTab("plans")}
             className={cn(
-              "p-1.5 rounded-md text-xs transition-colors cursor-pointer",
-              viewMode === "grid"
-                ? "bg-white shadow-sm text-slate-900"
-                : "text-slate-500 hover:text-slate-800",
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer",
+              historySubTab === "plans"
+                ? "bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200 border border-transparent",
             )}
-            title="มุมมองการ์ด"
-            aria-label="มุมมองการ์ด"
           >
-            <LayoutGrid className="h-4 w-4" />
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+            <span>แผนงานที่ดำเนินการแล้ว</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white text-emerald-800 font-bold border border-emerald-200">
+              {counts.historyCount}
+            </span>
           </button>
+
           <button
-            onClick={() => setViewMode("table")}
+            type="button"
+            onClick={() => handleSelectHistorySubTab("unplanned")}
             className={cn(
-              "p-1.5 rounded-md text-xs transition-colors cursor-pointer",
-              viewMode === "table"
-                ? "bg-white shadow-sm text-slate-900"
-                : "text-slate-500 hover:text-slate-800",
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer",
+              historySubTab === "unplanned"
+                ? "bg-blue-100 text-blue-900 border border-blue-300 shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200 border border-transparent",
             )}
-            title="มุมมองตาราง"
-            aria-label="มุมมองตาราง"
           >
-            <ListIcon className="h-4 w-4" />
+            <FileCheck className="h-3.5 w-3.5 text-blue-600" />
+            <span>กิจกรรมนอกแผนที่ตรวจแล้ว</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white text-blue-800 font-bold border border-blue-200">
+              {unplannedCounts.reviewedCount}
+            </span>
           </button>
         </div>
-      </div>
+      )}
+
+      {mainTab === "history" && historySubTab === "unplanned" && (
+        <UnplannedReviewQueueView
+          embedded
+          hideHeader
+          initialTab="REVIEWED"
+          allowedTabs={["REVIEWED", "ALL"]}
+          onCountsChange={(newCounts) => setUnplannedCounts(newCounts)}
+        />
+      )}
+
+      {/* ─── PLANNED APPROVAL / HISTORY PLANS SECTION ─── */}
+      {isPlansView && (
+        <>
 
       {/* ─── 4. SEARCH & FILTER ─── */}
       <div className="flex items-center gap-2">
@@ -600,10 +810,10 @@ export default function ActivityPlanApprovalListView() {
           <h3 className="text-sm md:text-base font-bold text-slate-800">
             {searchQuery || hasActiveFilter
               ? "ไม่พบรายการที่ตรงกับเงื่อนไข"
-              : activeTab === "my_pending"
+              : mainTab === "plans" && plansSubTab === "my_pending"
                 ? "ไม่มีงานรอคุณอนุมัติในขณะนี้"
-                : activeTab === "history"
-                  ? "ยังไม่มีประวัติการดำเนินการ"
+                : mainTab === "history"
+                  ? "ยังไม่มีประวัติการดำเนินการของแผนงาน"
                   : "ไม่มีรายการรออนุมัติ"}
           </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -834,6 +1044,8 @@ export default function ActivityPlanApprovalListView() {
           แสดง {filteredPlans.length} รายการ
         </p>
       )}
+        </>
+      )}
 
       {/* Quick Action Confirmation Dialog */}
       <ApprovalActionDialog
@@ -894,10 +1106,10 @@ function ActionScopeBadgeList({ scopes }: { scopes: ActionScopeBadge[] }) {
 }
 
 // ────────────────────────────────────────────────────────
-// KPI Card Configuration (3 Cards)
+// KPI Card Configuration for Plans Tab (2 Cards)
 // ────────────────────────────────────────────────────────
-const kpiCards: Array<{
-  tab: TabType;
+const plansKpiCards: Array<{
+  subTab: PlansSubTab;
   label: string;
   icon: React.ElementType;
   color: string;
@@ -906,7 +1118,7 @@ const kpiCards: Array<{
   activeBorder: string;
 }> = [
   {
-    tab: "my_pending",
+    subTab: "my_pending",
     label: "งานรอฉันอนุมัติ",
     icon: ShieldCheck,
     color: "text-amber-600",
@@ -915,7 +1127,7 @@ const kpiCards: Array<{
     activeBorder: "border-amber-400",
   },
   {
-    tab: "all_pending",
+    subTab: "all_pending",
     label: "รออนุมัติทั้งหมด",
     icon: FileCheck,
     color: "text-slate-600",
@@ -923,55 +1135,40 @@ const kpiCards: Array<{
     activeBg: "bg-slate-50",
     activeBorder: "border-slate-400",
   },
-  {
-    tab: "history",
-    label: "ประวัติการดำเนินการ",
-    icon: Clock,
-    color: "text-emerald-600",
-    activeColor: "text-emerald-900",
-    activeBg: "bg-emerald-50",
-    activeBorder: "border-emerald-400",
-  },
 ];
 
-function getKpiCount(
-  tab: TabType,
+function getPlansKpiCount(
+  subTab: PlansSubTab,
   counts: {
     totalPending: number;
     myPending: number;
-    historyCount: number;
   },
 ): number {
-  switch (tab) {
+  switch (subTab) {
     case "my_pending":
       return counts.myPending;
     case "all_pending":
       return counts.totalPending;
-    case "history":
-      return counts.historyCount;
     default:
       return 0;
   }
 }
 
-function getKpiSubtitle(
-  tab: TabType,
+function getPlansKpiSubtitle(
+  subTab: PlansSubTab,
   counts: {
     totalPending: number;
     myPending: number;
-    historyCount: number;
     totalBudgetRequested: number;
   },
 ): string {
-  switch (tab) {
+  switch (subTab) {
     case "my_pending":
       return counts.myPending > 0 ? "⚡ รอคุณตัดสินใจ" : "ไม่มีงานค้าง";
     case "all_pending":
       return counts.totalPending > 0
         ? `งบรวม ${counts.totalBudgetRequested.toLocaleString()} ฿`
         : "ไม่มีคิวค้าง";
-    case "history":
-      return "อนุมัติ / ตีกลับ / ปฏิเสธ";
     default:
       return "";
   }
@@ -1114,62 +1311,7 @@ function KpiCardDesktop({
   );
 }
 
-// ────────────────────────────────────────────────────────
-// Tab Configuration (3 Tabs)
-// ────────────────────────────────────────────────────────
-const tabItems: Array<{
-  value: TabType;
-  label: string;
-  shortLabel: string;
-  icon: React.ElementType;
-  activeClass: string;
-  badgeActiveClass: string;
-}> = [
-  {
-    value: "my_pending",
-    label: "งานรอฉันอนุมัติ",
-    shortLabel: "รอฉันอนุมัติ",
-    icon: ShieldCheck,
-    activeClass: "text-amber-700",
-    badgeActiveClass: "bg-amber-600 text-white",
-  },
-  {
-    value: "all_pending",
-    label: "รออนุมัติทั้งหมด",
-    shortLabel: "ทั้งหมด",
-    icon: FileCheck,
-    activeClass: "text-slate-900",
-    badgeActiveClass: "bg-slate-800 text-white",
-  },
-  {
-    value: "history",
-    label: "ประวัติการดำเนินการ",
-    shortLabel: "ประวัติ",
-    icon: Clock,
-    activeClass: "text-emerald-700",
-    badgeActiveClass: "bg-emerald-600 text-white",
-  },
-];
 
-function getTabCount(
-  tab: TabType,
-  counts: {
-    totalPending: number;
-    myPending: number;
-    historyCount: number;
-  },
-): number {
-  switch (tab) {
-    case "my_pending":
-      return counts.myPending;
-    case "all_pending":
-      return counts.totalPending;
-    case "history":
-      return counts.historyCount;
-    default:
-      return 0;
-  }
-}
 
 // ────────────────────────────────────────────────────────
 // Subcomponent: Plan Approval Card (Redesigned for Aggregated Approval)

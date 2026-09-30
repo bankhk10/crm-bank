@@ -50,9 +50,28 @@ import {
 import { WORK_TYPE_CONFIG } from "../../../constants";
 import type { ActivityStatus } from "@prisma/client";
 
-type TabStatus = "PENDING_REVIEW" | "RETURNED" | "REVIEWED" | "ALL";
+export type TabStatus = "PENDING_REVIEW" | "RETURNED" | "REVIEWED" | "ALL";
 
-export default function UnplannedReviewQueueView() {
+export interface UnplannedReviewQueueViewProps {
+  embedded?: boolean;
+  hideHeader?: boolean;
+  initialTab?: TabStatus;
+  allowedTabs?: TabStatus[];
+  onCountsChange?: (counts: {
+    pendingReviewCount: number;
+    returnedCount: number;
+    reviewedCount: number;
+    totalCount: number;
+  }) => void;
+}
+
+export default function UnplannedReviewQueueView({
+  embedded = false,
+  hideHeader = false,
+  initialTab = "PENDING_REVIEW",
+  allowedTabs,
+  onCountsChange,
+}: UnplannedReviewQueueViewProps = {}) {
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -68,7 +87,14 @@ export default function UnplannedReviewQueueView() {
     totalCount: 0,
   });
 
-  const [activeTab, setActiveTab] = useState<TabStatus>("PENDING_REVIEW");
+  const [activeTab, setActiveTab] = useState<TabStatus>(initialTab);
+
+  useEffect(() => {
+    if (initialTab && initialTab !== activeTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
   const [searchQuery, setSearchQuery] = useState("");
 
   // Review Dialog State
@@ -95,6 +121,7 @@ export default function UnplannedReviewQueueView() {
           setPlans((res as any).plans || []);
           if ((res as any).counts) {
             setCounts((res as any).counts);
+            onCountsChange?.((res as any).counts);
           }
         } else {
           setError((res as any).error || "เกิดข้อผิดพลาดในการโหลดคิวตรวจสอบกิจกรรมนอกแผนงาน");
@@ -106,7 +133,7 @@ export default function UnplannedReviewQueueView() {
         setRefreshing(false);
       }
     },
-    [activeTab, searchQuery],
+    [activeTab, searchQuery, onCountsChange],
   );
 
   useEffect(() => {
@@ -180,133 +207,143 @@ export default function UnplannedReviewQueueView() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className={embedded ? "space-y-4" : "p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto"}>
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
-              <FileCheck className="w-3.5 h-3.5" />
-              Unplanned Activity
-            </span>
-            <span className="text-xs text-slate-400 font-medium">|</span>
-            <span className="text-xs text-slate-500 font-medium">Post-Activity Review</span>
+      {!hideHeader && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+                <FileCheck className="w-3.5 h-3.5" />
+                Unplanned Activity
+              </span>
+              <span className="text-xs text-slate-400 font-medium">|</span>
+              <span className="text-xs text-slate-500 font-medium">Post-Activity Review</span>
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
+              คิวตรวจสอบกิจกรรมนอกแผนงาน
+            </h1>
+            <p className="text-sm text-slate-500">
+              รายการกิจกรรมนอกแผนงานที่ส่งผลการปฏิบัติงานจริงและรอการตรวจสอบจากหัวหน้างานสายตรง
+            </p>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
-            คิวตรวจสอบกิจกรรมนอกแผนงาน
-          </h1>
-          <p className="text-sm text-slate-500">
-            รายการกิจกรรมนอกแผนงานที่ส่งผลการปฏิบัติงานจริงและรอการตรวจสอบจากหัวหน้างานสายตรง
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <Link href="/activity-plans">
-            <Button variant="outline" size="sm" className="border-slate-300">
-              <ArrowLeft className="w-4 h-4 mr-1.5" />
-              กลับหน้ารายการ
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <Link href="/activity-plans">
+              <Button variant="outline" size="sm" className="border-slate-300">
+                <ArrowLeft className="w-4 h-4 mr-1.5" />
+                กลับหน้ารายการ
+              </Button>
+            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => loadData(true)}
+              disabled={loading || refreshing}
+              className="border-slate-300 text-slate-700"
+            >
+              <RefreshCw className={`w-4 h-4 mr-1.5 ${refreshing ? "animate-spin" : ""}`} />
+              รีเฟรช
             </Button>
-          </Link>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => loadData(true)}
-            disabled={loading || refreshing}
-            className="border-slate-300 text-slate-700"
-          >
-            <RefreshCw className={`w-4 h-4 mr-1.5 ${refreshing ? "animate-spin" : ""}`} />
-            รีเฟรช
-          </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Filter Tabs & Search */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Status Tabs */}
         <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80 overflow-x-auto">
-          <button
-            type="button"
-            onClick={() => setActiveTab("PENDING_REVIEW")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
-              activeTab === "PENDING_REVIEW"
-                ? "bg-white text-blue-700 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5 text-blue-600" />
-            รอตรวจสอบ
-            <Badge
-              variant="secondary"
-              className={`ml-1 text-[11px] px-1.5 py-0 h-5 ${
+          {(!allowedTabs || allowedTabs.includes("PENDING_REVIEW")) && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("PENDING_REVIEW")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
                 activeTab === "PENDING_REVIEW"
-                  ? "bg-blue-100 text-blue-700"
-                  : "bg-slate-200 text-slate-700"
+                  ? "bg-white text-blue-700 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              {counts.pendingReviewCount}
-            </Badge>
-          </button>
+              <Clock className="w-3.5 h-3.5 text-blue-600" />
+              รอตรวจสอบ
+              <Badge
+                variant="secondary"
+                className={`ml-1 text-[11px] px-1.5 py-0 h-5 ${
+                  activeTab === "PENDING_REVIEW"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-slate-200 text-slate-700"
+                }`}
+              >
+                {counts.pendingReviewCount}
+              </Badge>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("RETURNED")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
-              activeTab === "RETURNED"
-                ? "bg-white text-amber-700 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
-            ส่งกลับแก้ไข
-            <Badge
-              variant="secondary"
-              className={`ml-1 text-[11px] px-1.5 py-0 h-5 ${
+          {(!allowedTabs || allowedTabs.includes("RETURNED")) && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("RETURNED")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
                 activeTab === "RETURNED"
-                  ? "bg-amber-100 text-amber-800"
-                  : "bg-slate-200 text-slate-700"
+                  ? "bg-white text-amber-700 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              {counts.returnedCount}
-            </Badge>
-          </button>
+              <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
+              ส่งกลับแก้ไข
+              <Badge
+                variant="secondary"
+                className={`ml-1 text-[11px] px-1.5 py-0 h-5 ${
+                  activeTab === "RETURNED"
+                    ? "bg-amber-100 text-amber-800"
+                    : "bg-slate-200 text-slate-700"
+                }`}
+              >
+                {counts.returnedCount}
+              </Badge>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("REVIEWED")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
-              activeTab === "REVIEWED"
-                ? "bg-white text-emerald-700 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            ตรวจสอบแล้ว
-            <Badge
-              variant="secondary"
-              className={`ml-1 text-[11px] px-1.5 py-0 h-5 ${
+          {(!allowedTabs || allowedTabs.includes("REVIEWED")) && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("REVIEWED")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
                 activeTab === "REVIEWED"
-                  ? "bg-emerald-100 text-emerald-800"
-                  : "bg-slate-200 text-slate-700"
+                  ? "bg-white text-emerald-700 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              {counts.reviewedCount}
-            </Badge>
-          </button>
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              ตรวจสอบแล้ว
+              <Badge
+                variant="secondary"
+                className={`ml-1 text-[11px] px-1.5 py-0 h-5 ${
+                  activeTab === "REVIEWED"
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-slate-200 text-slate-700"
+                }`}
+              >
+                {counts.reviewedCount}
+              </Badge>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("ALL")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
-              activeTab === "ALL"
-                ? "bg-white text-slate-900 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            ทั้งหมด
-            <Badge variant="secondary" className="ml-1 text-[11px] px-1.5 py-0 h-5 bg-slate-200 text-slate-700">
-              {counts.totalCount}
-            </Badge>
-          </button>
+          {(!allowedTabs || allowedTabs.includes("ALL")) && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("ALL")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
+                activeTab === "ALL"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              ทั้งหมด
+              <Badge variant="secondary" className="ml-1 text-[11px] px-1.5 py-0 h-5 bg-slate-200 text-slate-700">
+                {counts.totalCount}
+              </Badge>
+            </button>
+          )}
         </div>
 
         {/* Search Bar */}
