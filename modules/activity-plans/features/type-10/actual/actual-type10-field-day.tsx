@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
@@ -30,6 +31,7 @@ export interface SoldProductItem {
   actualSales: string;
   remarks?: string;
   isCustom?: boolean;
+  isCustomProduct?: boolean;
 }
 
 export interface ActualType10FieldDayProps {
@@ -178,16 +180,22 @@ export function ActualType10FieldDay({
     const qty = String(p.quantity ?? p.actualQty ?? "");
     const sales = String(p.actualSales ?? "");
     const remarks = String(p.remarks || p.unclosedReason || p.notes || "");
+    const isCustom = Boolean(
+      p.isCustomProduct ||
+      p.isCustom ||
+      (!p.productId && p.productName && p.productName.trim() !== ""),
+    );
     return {
       id: p.id || `item-${idx + 1}`,
-      productId: p.productId,
+      productId: isCustom ? undefined : p.productId,
       productName: p.productName || "",
-      productCode: p.productCode,
+      productCode: isCustom ? undefined : p.productCode,
       quantity: qty,
       actualQty: qty,
       actualSales: sales,
       remarks: remarks,
-      isCustom: Boolean(p.isCustom),
+      isCustom,
+      isCustomProduct: isCustom,
     };
   };
 
@@ -206,6 +214,8 @@ export function ActualType10FieldDay({
           actualQty: q,
           actualSales: actualSalesOrBooking || "",
           remarks: soldDetails || "",
+          isCustom: false,
+          isCustomProduct: false,
         },
       ];
     }
@@ -217,6 +227,8 @@ export function ActualType10FieldDay({
         actualQty: "",
         actualSales: "",
         remarks: "",
+        isCustom: false,
+        isCustomProduct: false,
       },
     ];
   });
@@ -329,6 +341,39 @@ export function ActualType10FieldDay({
     }
   };
 
+  // Toggle custom product mode ("กรอกชื่อสินค้าเอง")
+  const handleToggleCustomProduct = (index: number, isCustom: boolean) => {
+    const updated = [...localSoldProducts];
+    const current = { ...updated[index] };
+    current.isCustom = isCustom;
+    current.isCustomProduct = isCustom;
+
+    if (isCustom) {
+      // เมื่อติ๊กเลือก: รีเซ็ตค่า productId และ productCode เพื่อไม่ให้ผูกกับ Master Data
+      current.productId = undefined;
+      current.productCode = undefined;
+    } else {
+      // เมื่อสลับกลับเป็น Master Combobox: ตรวจหาว่าชื่อตรงกับ Master Product หรือไม่
+      const matched = masterProductList.find(
+        (p) => typeof p !== "string" && (p.name === current.productName || p.id === current.productName),
+      );
+      if (matched && typeof matched !== "string") {
+        current.productId = matched.id;
+        current.productCode = matched.productCode || undefined;
+      } else {
+        current.productId = undefined;
+        current.productCode = undefined;
+      }
+    }
+
+    updated[index] = current;
+    setLocalSoldProducts(updated);
+    if (setSoldProducts) setSoldProducts(updated);
+    if (index === 0 && setSoldProduct) {
+      setSoldProduct(current.productName || "");
+    }
+  };
+
   // Handle item change
   const handleItemChange = (
     index: number,
@@ -347,11 +392,11 @@ export function ActualType10FieldDay({
     if (field === "productName") {
       if (value === CUSTOM_PRODUCT_VALUE) {
         current.isCustom = true;
+        current.isCustomProduct = true;
         current.productName = "";
         current.productId = undefined;
         current.productCode = undefined;
-      } else {
-        current.isCustom = false;
+      } else if (!current.isCustom && !current.isCustomProduct) {
         const matched = masterProductList.find(
           (p) => typeof p !== "string" && (p.name === value || p.id === value),
         );
@@ -416,6 +461,8 @@ export function ActualType10FieldDay({
         quantity: "",
         actualSales: "",
         remarks: "",
+        isCustom: false,
+        isCustomProduct: false,
       },
     ];
     setLocalSoldProducts(updated);
@@ -433,6 +480,8 @@ export function ActualType10FieldDay({
           quantity: "",
           actualSales: "",
           remarks: "",
+          isCustom: false,
+          isCustomProduct: false,
         },
       ];
       setLocalSoldProducts(cleared);
@@ -612,70 +661,95 @@ export function ActualType10FieldDay({
         {localHasSales ? (
           <div className="space-y-4 pt-1">
             {localSoldProducts.map((item, idx) => {
-              const isCustomMode = item.isCustom || item.productName === CUSTOM_PRODUCT_VALUE;
-              const comboboxVal = isCustomMode
-                ? CUSTOM_PRODUCT_VALUE
-                : item.productName || "";
+              const isCustomMode = Boolean(item.isCustomProduct || item.isCustom);
+              const comboboxVal = item.productName || "";
 
               return (
                 <div
                   key={item.id || idx}
                   className="bg-white border border-orange-200 rounded-xl p-3.5 sm:p-4 space-y-3 shadow-2xs relative"
                 >
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                     <span className="text-xs font-bold text-orange-900 flex items-center gap-1.5">
                       <Package className="w-3.5 h-3.5 text-orange-600" />
                       รายการสินค้าที่ #{idx + 1}
                     </span>
-                    {localSoldProducts.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveProduct(idx)}
-                        className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-7 px-2 text-xs flex items-center gap-1 cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>ลบ</span>
-                      </Button>
-                    )}
-                  </div>
 
-                  {/* 1. เลือกสินค้าที่ขายได้ */}
-                  <div className="space-y-1.5">
-                    <FormCombobox
-                      label="เลือกสินค้าที่ขายได้"
-                      required
-                      value={comboboxVal}
-                      onChange={(val: string) => {
-                        handleItemChange(idx, "productName", val);
-                      }}
-                      options={productComboboxOptions}
-                      placeholder={
-                        loadingProducts
-                          ? "กำลังโหลดรายการสินค้า..."
-                          : "ค้นหาหรือเลือกสินค้าที่ขายได้..."
-                      }
-                      searchPlaceholder="พิมพ์ชื่อสินค้าหรือรหัสสินค้า..."
-                      emptyText="ไม่พบรายการสินค้าในระบบ"
-                      className="w-full bg-white text-sm"
-                    />
-
-                    {/* If custom product or not in list */}
-                    {isCustomMode && (
-                      <div className="pt-1.5">
-                        <Input
-                          type="text"
-                          value={item.productName === CUSTOM_PRODUCT_VALUE ? "" : item.productName}
-                          onChange={(e) =>
-                            handleItemChange(idx, "productName", e.target.value)
-                          }
-                          placeholder="พิมพ์ระบุชื่อสินค้าที่ขายได้..."
-                          className="bg-white border-orange-300 text-xs sm:text-sm"
+                    <div className="flex items-center gap-2.5">
+                      {/* Checkbox / Switch: กรอกชื่อสินค้าเอง */}
+                      <div className="flex items-center gap-1.5 bg-orange-50/70 hover:bg-orange-100/70 transition-colors px-2.5 py-1 rounded-lg border border-orange-200/80">
+                        <Checkbox
+                          id={`custom-product-${item.id || idx}`}
+                          checked={isCustomMode}
+                          onCheckedChange={(checked) => {
+                            handleToggleCustomProduct(idx, Boolean(checked));
+                          }}
+                          className="data-[state=checked]:bg-orange-600 data-[state=checked]:border-orange-600 cursor-pointer"
                         />
+                        <label
+                          htmlFor={`custom-product-${item.id || idx}`}
+                          className="text-[11px] sm:text-xs font-semibold text-orange-950 cursor-pointer select-none"
+                        >
+                          กรอกชื่อสินค้าเอง
+                        </label>
                       </div>
-                    )}
+
+                      {localSoldProducts.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveProduct(idx)}
+                          className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-7 px-2 text-xs flex items-center gap-1 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>ลบ</span>
+                        </Button>
+                      )}
+                    </div>
                   </div>
+
+                  {/* 1. เลือกสินค้าที่ขายได้ หรือ พิมพ์ชื่อเอง */}
+                  {isCustomMode ? (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-800">
+                        ชื่อสินค้า (กรอกชื่อเอง) <span className="text-rose-500">*</span>
+                      </label>
+                      <Input
+                        type="text"
+                        value={item.productName === CUSTOM_PRODUCT_VALUE ? "" : item.productName || ""}
+                        onChange={(e) =>
+                          handleItemChange(idx, "productName", e.target.value)
+                        }
+                        placeholder="พิมพ์ระบุชื่อสินค้าที่ขายได้ เช่น ปุ๋ยอินทรีย์, ฮอร์โมนพืช, สินค้าอื่นๆ..."
+                        className="bg-white border-orange-300 text-xs sm:text-sm font-medium"
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      <FormCombobox
+                        label="เลือกสินค้าที่ขายได้"
+                        required
+                        value={comboboxVal}
+                        onChange={(val: string) => {
+                          if (val === CUSTOM_PRODUCT_VALUE) {
+                            handleToggleCustomProduct(idx, true);
+                          } else {
+                            handleItemChange(idx, "productName", val);
+                          }
+                        }}
+                        options={productComboboxOptions}
+                        placeholder={
+                          loadingProducts
+                            ? "กำลังโหลดรายการสินค้า..."
+                            : "ค้นหาหรือเลือกสินค้าที่ขายได้..."
+                        }
+                        searchPlaceholder="พิมพ์ชื่อสินค้าหรือรหัสสินค้า..."
+                        emptyText="ไม่พบรายการสินค้าในระบบ"
+                        className="w-full bg-white text-sm"
+                      />
+                    </div>
+                  )}
 
                   {/* 2 & 3. จำนวนที่ขายได้ & ยอดขายจริง (บาท) */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

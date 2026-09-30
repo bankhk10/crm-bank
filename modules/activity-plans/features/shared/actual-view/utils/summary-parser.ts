@@ -1158,25 +1158,26 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
           const parsed = JSON.parse(trimmed);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            if (
-              !result.t10ProductSalesDetails ||
-              result.t10ProductSalesDetails.length === 0
-            ) {
-              result.t10ProductSalesDetails = parsed.map(
-                (item: any, idx: number) => ({
+            result.t10ProductSalesDetails = parsed.map(
+              (item: any, idx: number) => {
+                const isCustom = Boolean(
+                  item.isCustomProduct || item.isCustom || !item.productId,
+                );
+                return {
                   id: item.id || `item-${idx + 1}`,
-                  productId: item.productId,
-                  productName: item.productName || "",
-                  productCode: item.productCode,
+                  productId: isCustom ? undefined : item.productId,
+                  productName: item.productName || item.customProductName || "",
+                  productCode: isCustom ? undefined : item.productCode,
                   quantity: String(item.quantity ?? item.actualQty ?? ""),
                   actualQty: String(item.quantity ?? item.actualQty ?? ""),
                   actualSales: String(item.actualSales ?? ""),
                   remarks:
                     item.remarks || item.notes || item.unclosedReason || "",
-                  isCustom: Boolean(item.isCustom),
-                }),
-              );
-            }
+                  isCustom,
+                  isCustomProduct: isCustom,
+                };
+              },
+            );
           }
         }
       } catch {

@@ -196,3 +196,8 @@ export function useType10Form({
     mapType10Payload,
   };
 }
+
+export {
+  type10SoldProductItemSchema,
+  type Type10SoldProductItem,
+} from "@/modules/activity-plans/application/validations";

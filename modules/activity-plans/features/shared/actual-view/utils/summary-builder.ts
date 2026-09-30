@@ -967,7 +967,13 @@ export function buildResultSummary(
       : null,
     t10ProductSalesDetails &&
     t10ProductSalesDetails.length > 0 &&
-    t10ProductSalesDetails.some((d) => d.quantity || d.actualQty || d.actualSales)
+    t10ProductSalesDetails.some(
+      (d) =>
+        (d.productName && d.productName.trim() !== "") ||
+        d.quantity ||
+        d.actualQty ||
+        d.actualSales,
+    )
       ? `ยอดขายแยกสินค้า Field Day: ${JSON.stringify(t10ProductSalesDetails)}`
       : null,
     t10FarmerFeedback ? `ความสนใจเกษตรกร: ${t10FarmerFeedback}` : null,
@@ -1192,14 +1198,17 @@ export function buildResultSummary(
     Array.isArray(input.t10ProductSalesDetails)
   ) {
     input.t10ProductSalesDetails.forEach((d) => {
+      const isCustom = Boolean(d.isCustom || d.isCustomProduct);
       const pId =
-        d.productId ||
-        (input.products || []).find(
-          (p: any) =>
-            p.name?.trim().toLowerCase() ===
-            (d.productName || "").trim().toLowerCase(),
-        )?.id ||
-        d.id;
+        !isCustom && d.productId
+          ? d.productId
+          : !isCustom
+            ? (input.products || []).find(
+                (p: any) =>
+                  p.name?.trim().toLowerCase() ===
+                  (d.productName || "").trim().toLowerCase(),
+              )?.id
+            : undefined;
       const qty = Math.round(
         parseCleanNumber(d.actualQty ?? d.quantity) ?? 0,
       );

@@ -30,6 +30,7 @@ export interface Type10SoldProductDetail {
   unitPrice?: number;
   remarks?: string;
   isCustom?: boolean;
+  isCustomProduct?: boolean;
 }
 
 export interface DetailType10FieldDayProps {
@@ -290,9 +291,17 @@ export function DetailType10FieldDay({
                             {idx + 1}
                           </td>
                           <td className="py-2.5 px-3 font-semibold text-slate-800">
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               <Package className="w-3.5 h-3.5 text-orange-500 shrink-0" />
                               <span>{item.productName || "ไม่ระบุชื่อสินค้า"}</span>
+                              {(item.isCustom || item.isCustomProduct) && (
+                                <Badge
+                                  variant="outline"
+                                  className="bg-amber-50 text-amber-800 border-amber-300 text-[10px] px-1.5 py-0 font-medium"
+                                >
+                                  กรอกชื่อเอง
+                                </Badge>
+                              )}
                             </div>
                             {item.productCode && (
                               <span className="text-[10px] text-slate-500 font-normal block pl-5 mt-0.5">
