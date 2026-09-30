@@ -307,7 +307,7 @@ export async function createActivityPlanUseCase(
       return {
         success: false as const,
         error:
-          "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7B, TYPE_13, TYPE_14)",
+          "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_13, TYPE_14)",
       };
     }
   }
@@ -597,7 +597,7 @@ export async function updateActivityPlanUseCase(
       return {
         success: false as const,
         error:
-          "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7B, TYPE_13, TYPE_14)",
+          "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_13, TYPE_14)",
       };
     }
   }

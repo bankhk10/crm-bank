@@ -1313,7 +1313,7 @@ export async function createActivityPlan(
               isDrugWithdrawalSupported(input.activityTypeId));
           if (!supported) {
             throw new Error(
-              "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7B, TYPE_13, TYPE_14)",
+              "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_13, TYPE_14)",
             );
           }
 
@@ -2053,7 +2053,7 @@ export async function updateActivityPlan(
 
         if (!supported) {
           throw new Error(
-            "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7B, TYPE_13, TYPE_14)",
+            "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_13, TYPE_14)",
           );
         }
 

@@ -707,51 +707,9 @@ export function ActivityPlanForm({
       plots.push(p);
     };
 
-    const hasType7B = selectedWorkTypes.some(
-      (t) => getWorkTypeCode(t) === "TYPE_7B",
-    );
     const hasType14 = selectedWorkTypes.some(
       (t) => getWorkTypeCode(t) === "TYPE_14",
     );
-
-    // 2. TYPE_7B plots from current form items and/or follow-up plots
-    if (hasType7B) {
-      if (Array.isArray(type7bItems)) {
-        type7bItems.forEach((item, idx) => {
-          const plotName =
-            item.plotName?.trim() ||
-            item.existingPlotName?.trim() ||
-            `แปลงติดตาม ${idx + 1}`;
-          addPlot({
-            id:
-              item.demoPlotId ||
-              item.existingPlotId ||
-              item.id ||
-              `plot-7b-${idx + 1}`,
-            name: plotName,
-            subLabel:
-              [item.ownerName, item.cropName || item.customCropName]
-                .filter(Boolean)
-                .join(" - ") || undefined,
-            plotIdentifier: plotName,
-            demoPlotId: item.demoPlotId || item.existingPlotId || null,
-          });
-        });
-      }
-      if (Array.isArray(followUpPlotsForType7B)) {
-        followUpPlotsForType7B.forEach((plot) => {
-          addPlot({
-            id: plot.id,
-            name: plot.name,
-            subLabel:
-              [plot.ownerName, plot.location].filter(Boolean).join(" - ") ||
-              undefined,
-            plotIdentifier: plot.name,
-            demoPlotId: plot.id,
-          });
-        });
-      }
-    }
 
     // 4. TYPE_14 plots from Hattack demo plots
     if (hasType14) {
@@ -1595,7 +1553,7 @@ export function ActivityPlanForm({
               </div>
             )}
 
-            {/* SECTION 3.5: การเบิกยา (Drug Withdrawal) - TYPE_7B, TYPE_14 (TYPE_13 has its own per-plot withdrawal) */}
+            {/* SECTION 3.5: การเบิกยา (Drug Withdrawal) - TYPE_14 (TYPE_13 has its own per-plot withdrawal) */}
             {hasGlobalDrugWithdrawal && (
               <DrugWithdrawalCard
                 value={drugWithdrawal}

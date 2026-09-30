@@ -340,7 +340,7 @@ export const drugWithdrawalInputSchema = z
       if (data.workTypeCode && !isDrugWithdrawalSupported(data.workTypeCode)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `ประเภทกิจกรรม '${data.workTypeCode}' ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7B, TYPE_13, TYPE_14)`,
+          message: `ประเภทกิจกรรม '${data.workTypeCode}' ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_13, TYPE_14)`,
           path: ["workTypeCode"],
         });
       }
@@ -430,7 +430,7 @@ export function validateDrugWithdrawal(
     return {
       isValid: false,
       errors: [
-        `ประเภทกิจกรรม '${workTypeCode}' ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7B, TYPE_13, TYPE_14)`,
+        `ประเภทกิจกรรม '${workTypeCode}' ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_13, TYPE_14)`,
       ],
       data: result.data,
     };
