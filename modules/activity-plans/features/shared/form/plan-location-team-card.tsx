@@ -6,6 +6,7 @@ export interface PlanLocationTeamCardProps {
   isVisible: boolean;
   selectedWorkTypes: string[];
   readonly?: boolean;
+  isEdit?: boolean;
   helperSearch: string;
   setHelperSearch: (val: string) => void;
   showHelperDropdown: boolean;
@@ -32,6 +33,7 @@ export function PlanLocationTeamCard({
   isVisible,
   selectedWorkTypes,
   readonly = false,
+  isEdit = false,
   helperSearch,
   setHelperSearch,
   showHelperDropdown,
@@ -58,6 +60,7 @@ export function PlanLocationTeamCard({
     <LocationTeamSection
       selectedWorkTypes={selectedWorkTypes}
       readonly={readonly}
+      isEdit={isEdit}
       helperSearch={helperSearch}
       setHelperSearch={setHelperSearch}
       showHelperDropdown={showHelperDropdown}

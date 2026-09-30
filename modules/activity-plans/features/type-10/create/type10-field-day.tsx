@@ -6,6 +6,7 @@ import { getDemoPlotsAction } from "@/modules/activity-plans/server/actions";
 
 interface Props {
   readonly?: boolean;
+  isEdit?: boolean;
   type10DemoPlot: string;
   setType10DemoPlot: (val: string) => void;
   type10Location: string;
@@ -45,10 +46,14 @@ function getPlotCoordinates(plot?: UserDemoPlotOption | null): string {
 
 export function Type10FieldDay({
   readonly = false,
+  isEdit = false,
   type10DemoPlot,
   setType10DemoPlot,
+  type10Location = "",
   setType10Location,
+  type10TargetCrop = "",
   setType10TargetCrop,
+  type10Showcase = "",
   setType10Showcase,
   type10Attendees,
   setType10Attendees,
@@ -86,19 +91,36 @@ export function Type10FieldDay({
 
   // Merge plots fetched from DB and passed from parent props
   const combinedMap = new Map<string, UserDemoPlotOption>();
-  dbPlots.forEach((p) => combinedMap.set(p.name, p));
-  demoPlots.forEach((p) => combinedMap.set(p.name, p));
+  demoPlots.forEach((p) => {
+    if (p.id) combinedMap.set(p.id, p);
+    else if (p.name) combinedMap.set(p.name, p);
+  });
+  dbPlots.forEach((p) => {
+    if (p.id) combinedMap.set(p.id, p);
+    else if (p.name) combinedMap.set(p.name, p);
+  });
 
   const plotList = Array.from(combinedMap.values());
 
   const foundPlot = plotList.find(
-    (p) => p.name === type10DemoPlot || p.id === type10DemoPlot,
+    (p) => p.id === type10DemoPlot || p.name === type10DemoPlot,
   );
+
+  useEffect(() => {
+    if (foundPlot) {
+      if (!type10TargetCrop && (foundPlot.targetCrop || foundPlot.cropName)) {
+        setType10TargetCrop(foundPlot.targetCrop || foundPlot.cropName || "");
+      }
+      if (!type10Showcase && (foundPlot.showcase || foundPlot.productName)) {
+        setType10Showcase(foundPlot.showcase || foundPlot.productName || "");
+      }
+    }
+  }, [foundPlot?.id, foundPlot?.name]);
 
   const plotOptions = plotList.map((plot) => {
     const coords = getPlotCoordinates(plot);
     return {
-      value: plot.name,
+      value: plot.id || plot.name,
       label: plot.name,
       subLabel: coords !== "-" ? `พิกัด/สถานที่: ${coords}` : undefined,
     };
@@ -121,11 +143,13 @@ export function Type10FieldDay({
             labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
             required
             triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-amber-500"
-            value={type10DemoPlot}
-            onChange={(selectedName) => {
-              setType10DemoPlot(selectedName);
-              const selected = plotList.find((p) => p.name === selectedName);
+            value={foundPlot ? (foundPlot.id || foundPlot.name) : type10DemoPlot}
+            onChange={(selectedVal) => {
+              const selected = plotList.find(
+                (p) => p.id === selectedVal || p.name === selectedVal,
+              );
               if (selected) {
+                setType10DemoPlot(selected.id || selected.name);
                 const loc = getPlotCoordinates(selected);
                 setType10Location(loc === "-" ? "" : loc);
                 setType10TargetCrop(
@@ -134,6 +158,8 @@ export function Type10FieldDay({
                 setType10Showcase(
                   selected.showcase || selected.productName || "",
                 );
+              } else {
+                setType10DemoPlot(selectedVal);
               }
             }}
             options={plotOptions}

@@ -1094,14 +1094,32 @@ export async function createActivityPlan(
             },
           });
         } else if (input.demoPlotId) {
-          await tx.demoPlotVisit.create({
-            data: {
-              demoPlotId: input.demoPlotId,
-              activityPlanId: plan.id,
-              workTypeCode: "TYPE_7B",
-              visitDate: input.startDate,
-            },
+          // Check if demoPlot actually exists in database to prevent FK constraint violation
+          const existingPlot = await tx.demoPlot.findUnique({
+            where: { id: input.demoPlotId },
+            select: { id: true },
           });
+
+          if (existingPlot) {
+            const isType10 =
+              workTypeCodes.includes("TYPE_10") || primaryCode === "TYPE_10";
+            const isType7B =
+              workTypeCodes.includes("TYPE_7B") || primaryCode === "TYPE_7B";
+            const visitWorkType = isType10
+              ? "TYPE_10"
+              : isType7B
+                ? "TYPE_7B"
+                : workTypeCodes[0] || null;
+
+            await tx.demoPlotVisit.create({
+              data: {
+                demoPlotId: existingPlot.id,
+                activityPlanId: plan.id,
+                workTypeCode: visitWorkType,
+                visitDate: input.startDate,
+              },
+            });
+          }
         }
 
         // 1.8 TYPE_13 ("ฉีดแปลงแฮตแทค"): Create up to 10 DemoPlots + DemoPlotVisit
@@ -1768,15 +1786,37 @@ export async function updateActivityPlan(
         });
       }
     } else if (demoPlotId !== undefined) {
-      await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: id } });
+      await tx.demoPlotVisit.deleteMany({
+        where: {
+          activityPlanId: id,
+          workTypeCode: { in: ["TYPE_7B", "TYPE_10"] },
+        },
+      });
       if (demoPlotId) {
-        await tx.demoPlotVisit.create({
-          data: {
-            demoPlotId,
-            activityPlanId: id,
-            visitDate: updatedPlan.startDate,
-          },
+        // Check if demoPlot actually exists in database to prevent FK constraint violation
+        const existingPlot = await tx.demoPlot.findUnique({
+          where: { id: demoPlotId },
+          select: { id: true },
         });
+        if (existingPlot) {
+          const currentCodes = workTypeCodes?.map(getWorkTypeCode) ?? [];
+          const isType10 = currentCodes.includes("TYPE_10");
+          const isType7B = currentCodes.includes("TYPE_7B");
+          const visitWorkType = isType10
+            ? "TYPE_10"
+            : isType7B
+              ? "TYPE_7B"
+              : currentCodes[0] || null;
+
+          await tx.demoPlotVisit.create({
+            data: {
+              demoPlotId: existingPlot.id,
+              activityPlanId: id,
+              workTypeCode: visitWorkType,
+              visitDate: updatedPlan.startDate,
+            },
+          });
+        }
       }
     } else if (planData.demoPlotData === null) {
       await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: id } });

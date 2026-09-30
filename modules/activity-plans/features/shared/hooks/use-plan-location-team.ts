@@ -1,5 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { isLocationAndTeamRequired } from "@/modules/activity-plans/constants";
+import {
+  isLocationAndTeamRequired,
+  getWorkTypeCode,
+} from "@/modules/activity-plans/constants";
 
 export interface Employee {
   id: string;
@@ -13,6 +16,7 @@ export interface UsePlanLocationTeamOptions {
   initial?: any;
   selectedWorkTypes: string[];
   employees?: Employee[];
+  isEdit?: boolean;
 }
 
 export interface UsePlanLocationTeamResult {
@@ -39,6 +43,7 @@ export function usePlanLocationTeam({
   initial = {},
   selectedWorkTypes,
   employees = [],
+  isEdit = false,
 }: UsePlanLocationTeamOptions): UsePlanLocationTeamResult {
   const [province, setProvince] = useState<string>(
     (initial as any)?.province ?? "",
@@ -117,13 +122,20 @@ export function usePlanLocationTeam({
 
   const validateLocationTeam = () => {
     const isType9Active = selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน");
-    const hasOtherLocationWorkType = selectedWorkTypes.some(
-      (wt) => wt.includes("Field Day") || wt.includes("จัดประชุม"),
+    const isType10Active = selectedWorkTypes.some(
+      (wt) => wt.includes("Field Day") || getWorkTypeCode(wt) === "TYPE_10",
     );
+    const hasOtherLocationWorkType = selectedWorkTypes.some((wt) => {
+      const code = getWorkTypeCode(wt);
+      if (code === "TYPE_8" || wt.includes("จัดประชุม")) return true;
+      return false;
+    });
 
-    // If TYPE_9 is active and no other work type requires location text, bypass locationText check
-    if (isLocationTeamVisible && isType9Active && !hasOtherLocationWorkType) {
-      return { isValid: true };
+    // TYPE_9 and TYPE_10 do not require locationText validation
+    if (isLocationTeamVisible && !hasOtherLocationWorkType) {
+      if (isType9Active || isType10Active) {
+        return { isValid: true };
+      }
     }
 
     if (isLocationTeamVisible && !locationText.trim()) {

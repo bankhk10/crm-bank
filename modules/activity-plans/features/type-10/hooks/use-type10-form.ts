@@ -35,20 +35,34 @@ export function useType10Form({
   demoPlotsList = [],
   selectedWorkTypes = [],
 }: UseType10FormOptions): UseType10FormResult {
+  const initialPlot =
+    (initial as any)?.demoPlotVisits?.find((v: any) => v.workTypeCode === "TYPE_10")?.demoPlot ||
+    (initial as any)?.demoPlotVisits?.[0]?.demoPlot ||
+    (initial as any)?.demoPlot;
+
   const [type10DemoPlot, setType10DemoPlot] = useState<string>(() => {
+    const type10Visit =
+      (initial as any)?.demoPlotVisits?.find((v: any) => v.workTypeCode === "TYPE_10") ||
+      (initial as any)?.demoPlotVisits?.[0];
+
+    if (type10Visit?.demoPlotId) return type10Visit.demoPlotId;
+    if (type10Visit?.demoPlot?.id) return type10Visit.demoPlot.id;
     if ((initial as any)?.demoPlotId) return (initial as any).demoPlotId;
-    if ((initial as any)?.demoPlotVisits?.[0]?.demoPlotId)
-      return (initial as any).demoPlotVisits[0].demoPlotId;
+    if ((initial as any)?.demoPlot?.id) return (initial as any).demoPlot.id;
+    if (type10Visit?.demoPlot?.name) return type10Visit.demoPlot.name;
+    if ((initial as any)?.demoPlot?.name) return (initial as any).demoPlot.name;
+
     if (initDetails?.type10DemoPlot) return initDetails.type10DemoPlot;
     if (Array.isArray(initDetails)) {
       const item = initDetails.find(isFieldDayItem);
-      if (item) return item.customerName || item.plotOwnerName || "";
+      if (item) return item.demoPlotId || item.customerName || item.plotOwnerName || "";
     }
     return "";
   });
 
   const [type10Location, setType10Location] = useState<string>(() => {
     if (initDetails?.type10Location) return initDetails.type10Location;
+    if (initialPlot?.location) return initialPlot.location;
     if (Array.isArray(initDetails)) {
       const item = initDetails.find(isFieldDayItem);
       if (item?.detail) {
@@ -61,6 +75,7 @@ export function useType10Form({
 
   const [type10TargetCrop, setType10TargetCrop] = useState<string>(() => {
     if (initDetails?.type10TargetCrop) return initDetails.type10TargetCrop;
+    if (initialPlot?.targetCrop || initialPlot?.cropName) return initialPlot.targetCrop || initialPlot.cropName;
     if (Array.isArray(initDetails)) {
       const item = initDetails.find(isFieldDayItem);
       if (item?.plotCropName) return item.plotCropName;
@@ -74,6 +89,7 @@ export function useType10Form({
 
   const [type10Showcase, setType10Showcase] = useState<string>(() => {
     if (initDetails?.type10Showcase) return initDetails.type10Showcase;
+    if (initialPlot?.showcase || initialPlot?.productName) return initialPlot.showcase || initialPlot.productName;
     if (Array.isArray(initDetails)) {
       const item = initDetails.find(isFieldDayItem);
       if (item?.plotProductName) return item.plotProductName;
@@ -126,7 +142,7 @@ export function useType10Form({
     return { isValid: true };
   };
 
-  const mapType10Payload = (demoPlots: any[]) => {
+  const mapType10Payload = (demoPlots: any[] = []) => {
     if (!selectedWorkTypes.includes("จัดงาน Field Day")) {
       return {
         submittedDemoPlotId: null,
@@ -139,15 +155,16 @@ export function useType10Form({
     let targetAttendees: number | null = null;
     let targetBookingSales: number | null = null;
 
-    const plotMatch = demoPlots.find(
-      (dp) =>
-        dp.id === type10DemoPlot ||
-        dp.ownerName === type10DemoPlot ||
-        dp.code === type10DemoPlot,
-    );
-    if (plotMatch?.id || type10DemoPlot) {
-      submittedDemoPlotId = plotMatch?.id || type10DemoPlot || null;
+    if (type10DemoPlot) {
+      const plotMatch = demoPlots.find(
+        (dp) =>
+          dp.id === type10DemoPlot ||
+          dp.name === type10DemoPlot ||
+          dp.code === type10DemoPlot,
+      );
+      submittedDemoPlotId = plotMatch?.id || type10DemoPlot;
     }
+
     if (type10Attendees != null && Number(type10Attendees) > 0) {
       targetAttendees = Number(type10Attendees);
     }

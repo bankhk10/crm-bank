@@ -481,6 +481,18 @@ export function ActivityPlanForm({
     selectedWorkTypes,
   });
 
+  const combinedType10DemoPlots = useMemo(() => {
+    const list = [...(demoPlotsList || [])];
+    const initialPlot =
+      (initial as any)?.demoPlotVisits?.find((v: any) => v.workTypeCode === "TYPE_10")?.demoPlot ||
+      (initial as any)?.demoPlotVisits?.[0]?.demoPlot ||
+      (initial as any)?.demoPlot;
+    if (initialPlot && !list.some((p) => p.id === initialPlot.id || p.name === initialPlot.name)) {
+      list.unshift(initialPlot);
+    }
+    return list;
+  }, [demoPlotsList, initial]);
+
   const {
     type10DemoPlot,
     setType10DemoPlot,
@@ -499,7 +511,7 @@ export function ActivityPlanForm({
   } = useType10Form({
     initial,
     initDetails,
-    demoPlotsList,
+    demoPlotsList: combinedType10DemoPlots,
     selectedWorkTypes,
   });
 
@@ -569,6 +581,7 @@ export function ActivityPlanForm({
     initial,
     selectedWorkTypes,
     employees,
+    isEdit,
   });
 
   const {
@@ -1114,7 +1127,7 @@ export function ActivityPlanForm({
       planProducts.push(...type9Payload.planProducts);
 
       // 10. TYPE_10
-      const type10Payload = mapType10Payload(demoPlotsList);
+      const type10Payload = mapType10Payload(combinedType10DemoPlots);
       if (type10Payload.submittedDemoPlotId) {
         submittedDemoPlotId = type10Payload.submittedDemoPlotId;
       }
@@ -1204,19 +1217,43 @@ export function ActivityPlanForm({
         province: (() => {
           const isType9Active = selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน");
           if (isType9Active && type9SubDealerProvince?.trim()) return type9SubDealerProvince.trim();
+          const isType10Active = selectedWorkTypes.some(
+            (wt) => wt.includes("Field Day") || getWorkTypeCode(wt) === "TYPE_10",
+          );
+          const hasOtherLocationWorkType = selectedWorkTypes.some((wt) => {
+            const code = getWorkTypeCode(wt);
+            if (code === "TYPE_8" || wt.includes("จัดประชุม")) return true;
+            return false;
+          });
+          if (isType10Active && !hasOtherLocationWorkType) return null;
           return isLocationTeamVisible ? province.trim() || null : null;
         })(),
         district: (() => {
           const isType9Active = selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน");
           if (isType9Active && type9SubDealerDistrict?.trim()) return type9SubDealerDistrict.trim();
+          const isType10Active = selectedWorkTypes.some(
+            (wt) => wt.includes("Field Day") || getWorkTypeCode(wt) === "TYPE_10",
+          );
+          const hasOtherLocationWorkType = selectedWorkTypes.some((wt) => {
+            const code = getWorkTypeCode(wt);
+            if (code === "TYPE_8" || wt.includes("จัดประชุม")) return true;
+            return false;
+          });
+          if (isType10Active && !hasOtherLocationWorkType) return null;
           return isLocationTeamVisible ? district.trim() || null : null;
         })(),
         location: (() => {
           const isType9Active = selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน");
-          const hasOtherLocationWorkType = selectedWorkTypes.some(
-            (wt) => wt.includes("Field Day") || wt.includes("จัดประชุม"),
+          const isType10Active = selectedWorkTypes.some(
+            (wt) => wt.includes("Field Day") || getWorkTypeCode(wt) === "TYPE_10",
           );
+          const hasOtherLocationWorkType = selectedWorkTypes.some((wt) => {
+            const code = getWorkTypeCode(wt);
+            if (code === "TYPE_8" || wt.includes("จัดประชุม")) return true;
+            return false;
+          });
           if (isType9Active && !hasOtherLocationWorkType) return null;
+          if (isType10Active && !hasOtherLocationWorkType) return null;
           return isLocationTeamVisible ? locationText.trim() || null : null;
         })(),
         objective: cleanObjective,
@@ -1478,6 +1515,7 @@ export function ActivityPlanForm({
                   {selectedWorkTypes.includes("จัดงาน Field Day") && (
                     <Type10FieldDay
                       readonly={readonly}
+                      isEdit={isEdit}
                       type10DemoPlot={type10DemoPlot}
                       setType10DemoPlot={setType10DemoPlot}
                       type10Location={type10Location}
@@ -1490,7 +1528,7 @@ export function ActivityPlanForm({
                       setType10Attendees={setType10Attendees}
                       type10BookingSales={type10BookingSales}
                       setType10BookingSales={setType10BookingSales}
-                      demoPlots={demoPlotsList}
+                      demoPlots={combinedType10DemoPlots}
                     />
                   )}
 
@@ -1584,6 +1622,7 @@ export function ActivityPlanForm({
               isVisible={isLocationTeamVisible}
               selectedWorkTypes={selectedWorkTypes}
               readonly={readonly}
+              isEdit={isEdit}
               helperSearch={helperSearch}
               setHelperSearch={setHelperSearch}
               showHelperDropdown={showHelperDropdown}

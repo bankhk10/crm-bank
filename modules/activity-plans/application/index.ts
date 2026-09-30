@@ -30,7 +30,7 @@ import {
   ActivityApprovalAction,
   ActivityApprovalStep,
 } from "@prisma/client";
-import { isDrugWithdrawalSupported } from "../constants";
+import { isDrugWithdrawalSupported, getWorkTypeCode } from "../constants";
 import { isActivityPlanTestMode } from "../config";
 import { syncActivityResultToCalendarUseCase } from "./calendar-integration";
 import {
@@ -338,7 +338,12 @@ export async function createActivityPlanUseCase(
     promotionItems: normalized.promotionItems,
     targetAttendeesCount: normalized.targetAttendeesCount,
     targetBookingSales: normalized.targetBookingSales,
-    demoPlotId: normalized.demoPlotId,
+    demoPlotId: normalized.workTypeCodes.some((wt) => {
+      const code = getWorkTypeCode(wt);
+      return code === "TYPE_7B" || code === "TYPE_10";
+    })
+      ? normalized.demoPlotId
+      : null,
     demoPlotData: normalized.demoPlotData,
     type13Plots: normalized.type13Plots,
     type14Data: normalized.type14Data,
@@ -657,7 +662,12 @@ export async function updateActivityPlanUseCase(
     promotionItems: normalized.promotionItems,
     targetAttendeesCount: normalized.targetAttendeesCount,
     targetBookingSales: normalized.targetBookingSales,
-    demoPlotId: normalized.demoPlotId,
+    demoPlotId: normalized.workTypeCodes.some((wt) => {
+      const code = getWorkTypeCode(wt);
+      return code === "TYPE_7B" || code === "TYPE_10";
+    })
+      ? normalized.demoPlotId
+      : null,
     demoPlotData: normalized.demoPlotData,
     type13Plots: normalized.type13Plots,
     type14Data: normalized.type14Data,

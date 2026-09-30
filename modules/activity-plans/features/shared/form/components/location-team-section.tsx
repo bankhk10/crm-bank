@@ -3,6 +3,8 @@ import { Search, X, Users, MapPin, UserCircle2, Store } from "lucide-react";
 import { SectionHeader } from "@/components/custom/section-header";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 
+import { getWorkTypeCode } from "@/modules/activity-plans/constants";
+
 export interface Employee {
   id: string;
   name: string;
@@ -14,6 +16,7 @@ export interface Employee {
 interface Props {
   selectedWorkTypes: string[];
   readonly?: boolean;
+  isEdit?: boolean;
   helperSearch: string;
   setHelperSearch: (val: string) => void;
   showHelperDropdown: boolean;
@@ -39,6 +42,7 @@ interface Props {
 export function LocationTeamSection({
   selectedWorkTypes,
   readonly = false,
+  isEdit = false,
   helperSearch,
   setHelperSearch,
   showHelperDropdown,
@@ -433,14 +437,20 @@ export function LocationTeamSection({
     );
   }
 
-  // TYPE_9 (Alone): Show only Helpers, hide Location text / observation points
+  // TYPE_9 and TYPE_10: Show only Helpers, hide Location text / observation points / province / district
   const isType9Active = selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน");
-  const hasOtherLocationWorkType = selectedWorkTypes.some(
-    (wt) => wt.includes("Field Day") || wt.includes("จัดประชุม"),
+  const isType10Active = selectedWorkTypes.some(
+    (wt) => wt.includes("Field Day") || getWorkTypeCode(wt) === "TYPE_10",
   );
-  const isType9Only = isType9Active && !hasOtherLocationWorkType;
+  const hasOtherLocationWorkType = selectedWorkTypes.some((wt) => {
+    const code = getWorkTypeCode(wt);
+    if (code === "TYPE_8" || wt.includes("จัดประชุม")) return true;
+    return false;
+  });
+  const shouldShowOnlyHelpers =
+    !hasOtherLocationWorkType && (isType9Active || isType10Active);
 
-  if (isType9Only) {
+  if (shouldShowOnlyHelpers) {
     return (
       <div className="space-y-4 relative z-20">
         <SectionHeader
