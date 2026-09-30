@@ -856,6 +856,7 @@ export default function ActivityPlanDetailView({
                 province: plan.province,
                 district: plan.district,
               }}
+              plan={plan}
             />
           )}
         </div>
