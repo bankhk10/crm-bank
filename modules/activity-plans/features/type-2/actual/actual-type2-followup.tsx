@@ -383,7 +383,7 @@ export function ActualType2Followup({
 
   // Handlers for Additional Items
   const handleAddAdditionalItem = () => {
-    const planCustomer = target.customer || "";
+    const planCustomer = target?.customer || "";
     const newItem: FollowupProductItem = {
       id: crypto.randomUUID(),
       productId: "",
@@ -701,7 +701,7 @@ export function ActualType2Followup({
           <div className="space-y-4">
             {additionalItems.map((item, idx) => {
               const isProblem = item.usageResult === "พบปัญหา";
-              const planCustomer = item.customer || target.customer || "-";
+              const planCustomer = item.customer || target?.customer || "-";
 
               return (
                 <div
