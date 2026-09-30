@@ -307,7 +307,7 @@ export async function createActivityPlanUseCase(
       return {
         success: false as const,
         error:
-          "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7A, TYPE_7B, TYPE_13, TYPE_14)",
+          "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7B, TYPE_13, TYPE_14)",
       };
     }
   }
@@ -597,12 +597,19 @@ export async function updateActivityPlanUseCase(
       return {
         success: false as const,
         error:
-          "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7A, TYPE_7B, TYPE_13, TYPE_14)",
+          "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_7B, TYPE_13, TYPE_14)",
       };
     }
   }
 
+  const isWithdrawalSupportedForPlan = normalized.workTypeCodes.some((wt) =>
+    isDrugWithdrawalSupported(wt),
+  );
+
+  // Only evaluate withdrawal cancellation if the plan supports drug withdrawal and the field was provided
   if (
+    isWithdrawalSupportedForPlan &&
+    parsed.data.drugWithdrawal !== undefined &&
     (!normalized.drugWithdrawal ||
       !normalized.drugWithdrawal.hasDrugWithdrawal) &&
     (plan as any).drugWithdrawal
@@ -655,7 +662,10 @@ export async function updateActivityPlanUseCase(
     type13Plots: normalized.type13Plots,
     type14Data: normalized.type14Data,
     workTypeCodes: normalized.workTypeCodes,
-    drugWithdrawal: normalized.drugWithdrawal,
+    drugWithdrawal:
+      isWithdrawalSupportedForPlan && parsed.data.drugWithdrawal !== undefined
+        ? normalized.drugWithdrawal
+        : undefined,
     updatedUserId: userId,
   };
 

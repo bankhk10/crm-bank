@@ -707,32 +707,12 @@ export function ActivityPlanForm({
       plots.push(p);
     };
 
-    const hasType7A = selectedWorkTypes.some(
-      (t) => getWorkTypeCode(t) === "TYPE_7A",
-    );
     const hasType7B = selectedWorkTypes.some(
       (t) => getWorkTypeCode(t) === "TYPE_7B",
     );
     const hasType14 = selectedWorkTypes.some(
       (t) => getWorkTypeCode(t) === "TYPE_14",
     );
-
-    // 1. TYPE_7A plots from current form items
-    if (hasType7A && Array.isArray(type7aItems)) {
-      type7aItems.forEach((item, idx) => {
-        const plotName = item.plotName?.trim() || `แปลงสาธิตที่ ${idx + 1}`;
-        addPlot({
-          id: item.demoPlotId || item.id || `plot-7a-${idx + 1}`,
-          name: plotName,
-          subLabel:
-            [item.ownerName, item.cropName || item.customCropName]
-              .filter(Boolean)
-              .join(" - ") || undefined,
-          plotIdentifier: plotName,
-          demoPlotId: item.demoPlotId || null,
-        });
-      });
-    }
 
     // 2. TYPE_7B plots from current form items and/or follow-up plots
     if (hasType7B) {
@@ -1221,6 +1201,11 @@ export function ActivityPlanForm({
         type13Plots: type13Payload.type13Plots,
         type14Data: type14Payload.type14Data,
         drugWithdrawal: (() => {
+          // If drug withdrawal is NOT eligible for this plan (e.g. TYPE_7A), do not send withdrawal payload
+          if (!isDrugWithdrawalEligible) {
+            return undefined;
+          }
+
           const items: any[] = [];
           let hasDw = false;
           let notes: string | null = null;
@@ -1610,7 +1595,7 @@ export function ActivityPlanForm({
               </div>
             )}
 
-            {/* SECTION 3.5: การเบิกยา (Drug Withdrawal) - TYPE_7A, TYPE_7B, TYPE_14 (TYPE_13 has its own per-plot withdrawal) */}
+            {/* SECTION 3.5: การเบิกยา (Drug Withdrawal) - TYPE_7B, TYPE_14 (TYPE_13 has its own per-plot withdrawal) */}
             {hasGlobalDrugWithdrawal && (
               <DrugWithdrawalCard
                 value={drugWithdrawal}

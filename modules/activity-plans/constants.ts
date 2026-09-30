@@ -246,13 +246,15 @@ export const LOCATION_TEAM_WORK_TYPE_CODES = new Set([
 
 /**
  * Activity / Work Type codes that support Drug Withdrawal (การเบิกยา):
- * - TYPE_7A: ทำแปลงสาธิต
  * - TYPE_7B: ติดตามแปลงสาธิต
  * - TYPE_13: ฉีดแปลงแฮตแทค
  * - TYPE_14: ติดตามแปลงแฮทแทค
+ *
+ * Note: TYPE_7A (ทำแปลงสาธิต) is temporarily disabled for Drug Withdrawal
+ * because demo plot creation represents planning only; drug withdrawal
+ * takes place during subsequent tracking/actual execution.
  */
 export const DRUG_WITHDRAWAL_SUPPORTED_TYPES = [
-  "TYPE_7A",
   "TYPE_7B",
   "TYPE_13",
   "TYPE_14",

@@ -4,7 +4,10 @@ import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import type { ActivityStatus } from "../types";
 import { getApproverDirectoryAction } from "../server/actions";
-import { ACTIVITY_RESULT_STATUS_LABELS } from "../constants";
+import {
+  ACTIVITY_RESULT_STATUS_LABELS,
+  isDrugWithdrawalSupported,
+} from "../constants";
 
 const STATUS_STYLES: Record<
   string,
@@ -349,8 +352,18 @@ export function resolveCurrentOperator(
       Number(plan.salesPromotionBudgetRequested || 0) > 0;
     const hasMarketing = Number(plan.marketingBudgetRequested || 0) > 0;
 
+    const supportsWithdrawal =
+      Array.isArray((plan as any).workTypes) && (plan as any).workTypes.length > 0
+        ? (plan as any).workTypes.some((wt: any) =>
+            isDrugWithdrawalSupported(wt.activityType?.code || wt.workTypeCode || wt),
+          )
+        : (plan as any).activityType?.code
+          ? isDrugWithdrawalSupported((plan as any).activityType.code)
+          : false;
+
     const hasWithdrawalPending = Boolean(
-      (plan as any).drugWithdrawal &&
+      supportsWithdrawal &&
+        (plan as any).drugWithdrawal &&
         (plan as any).drugWithdrawal.status !== "APPROVED",
     );
 

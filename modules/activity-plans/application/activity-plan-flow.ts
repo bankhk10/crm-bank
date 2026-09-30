@@ -11,6 +11,7 @@ import {
   syncActivityPlanToCalendarUseCase,
   cancelActivityPlanCalendarUseCase,
 } from "./calendar-integration";
+import { isDrugWithdrawalSupported } from "../constants";
 
 // ────────────────────────────────────────────────────────
 // Notification Helper Functions (Transaction Safe)
@@ -321,11 +322,28 @@ async function notifyBudgetApprovers(plan: any, tx: Prisma.TransactionClient) {
   const hasMarketing =
     plan.marketingBudgetRequested && plan.marketingBudgetRequested.toNumber() > 0;
 
-  const withdrawal = await tx.drugWithdrawal.findUnique({
+  const workTypes = await tx.activityPlanWorkType.findMany({
     where: { activityPlanId: plan.id },
+    include: { activityType: true },
   });
+  const supportsWithdrawal =
+    workTypes.length > 0
+      ? workTypes.some((wt) => isDrugWithdrawalSupported(wt.activityType?.code))
+      : plan.activityTypeId
+        ? isDrugWithdrawalSupported(
+            (await tx.activityType.findUnique({ where: { id: plan.activityTypeId } }))?.code,
+          )
+        : false;
+
+  const withdrawal = supportsWithdrawal
+    ? await tx.drugWithdrawal.findUnique({
+        where: { activityPlanId: plan.id },
+      })
+    : null;
   const hasWithdrawalPending = Boolean(
-    withdrawal && withdrawal.status !== DrugWithdrawalStatus.APPROVED,
+    supportsWithdrawal &&
+      withdrawal &&
+      withdrawal.status !== DrugWithdrawalStatus.APPROVED,
   );
 
   if (hasSalesPromotion && plan.salesPromotionApproved !== true) {
@@ -492,16 +510,31 @@ export async function submitActivityPlanUseCase(
       };
     }
 
-    // Phase 5: Transition DrugWithdrawal (if DRAFT or RETURNED) to PENDING_APPROVAL on submit
-    await tx.drugWithdrawal.updateMany({
-      where: {
-        activityPlanId: planId,
-        status: { in: [DrugWithdrawalStatus.DRAFT, DrugWithdrawalStatus.RETURNED] },
-      },
-      data: {
-        status: DrugWithdrawalStatus.PENDING_APPROVAL,
-      },
+    const workTypes = await tx.activityPlanWorkType.findMany({
+      where: { activityPlanId: planId },
+      include: { activityType: true },
     });
+    const supportsWithdrawal =
+      workTypes.length > 0
+        ? workTypes.some((wt) => isDrugWithdrawalSupported(wt.activityType?.code))
+        : plan.activityTypeId
+          ? isDrugWithdrawalSupported(
+              (await tx.activityType.findUnique({ where: { id: plan.activityTypeId } }))?.code,
+            )
+          : false;
+
+    // Phase 5: Transition DrugWithdrawal (if DRAFT or RETURNED) to PENDING_APPROVAL on submit only for supported work types
+    if (supportsWithdrawal) {
+      await tx.drugWithdrawal.updateMany({
+        where: {
+          activityPlanId: planId,
+          status: { in: [DrugWithdrawalStatus.DRAFT, DrugWithdrawalStatus.RETURNED] },
+        },
+        data: {
+          status: DrugWithdrawalStatus.PENDING_APPROVAL,
+        },
+      });
+    }
 
     const creator = plan.employee;
     const isTerminalCreator = isTerminalLineManager(creator);
@@ -601,6 +634,11 @@ export async function approveActivityPlanUseCase(
             },
           },
         },
+        workTypes: {
+          include: {
+            activityType: true,
+          },
+        },
         drugWithdrawal: true,
       },
     });
@@ -684,7 +722,17 @@ export async function approveActivityPlanUseCase(
 
     const hasSP = Number(plan.salesPromotionBudgetRequested || 0) > 0;
     const hasMKT = Number(plan.marketingBudgetRequested || 0) > 0;
-    const hasWithdrawal = Boolean(plan.drugWithdrawal);
+    const planSupportsWithdrawal =
+      (plan.workTypes || []).length > 0
+        ? (plan.workTypes || []).some((wt: any) =>
+            isDrugWithdrawalSupported(wt.activityType?.code),
+          )
+        : plan.activityTypeId
+          ? isDrugWithdrawalSupported(
+              (await tx.activityType.findUnique({ where: { id: plan.activityTypeId } }))?.code,
+            )
+          : false;
+    const hasWithdrawal = Boolean(planSupportsWithdrawal && plan.drugWithdrawal);
 
     // 1. Line Approval
     if (isCurrentLineApprover) {
