@@ -963,3 +963,235 @@ export const DEMO_PLOT_SPRAY_EQUIPMENTS = [
 
 export type DemoPlotSprayEquipment = (typeof DEMO_PLOT_SPRAY_EQUIPMENTS)[number];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ACTIVITY STATUS OPTIONS (Single Source of Truth for Filters)
+// ─────────────────────────────────────────────────────────────────────────────
+export const STATUS_OPTIONS = [
+  { value: "DRAFT", label: "ร่าง" },
+  { value: "PENDING_LINE_APPROVAL", label: "รออนุมัติตามสายงาน" },
+  { value: "PENDING_BUDGET_APPROVAL", label: "รออนุมัติงบประมาณ" },
+  { value: "PENDING_HELPER_APPROVAL", label: "รออนุมัติคนช่วยงาน" },
+  { value: "APPROVED", label: "อนุมัติสำเร็จ" },
+  { value: "COMPLETED", label: `ผลกิจกรรม: ${ACTIVITY_RESULT_STATUS_LABELS.COMPLETED}` },
+  { value: "PARTIAL", label: "ผลกิจกรรม: สำเร็จบางส่วน" },
+  { value: "POSTPONED", label: `ผลกิจกรรม: ${ACTIVITY_RESULT_STATUS_LABELS.POSTPONED}` },
+  { value: "WAITING_FOR_CORRECTION", label: "รอแก้ไข/ข้อมูลเพิ่ม" },
+  { value: "PENDING_REVIEW", label: "รอตรวจสอบ" },
+  { value: "REVIEWED", label: "ตรวจสอบแล้ว" },
+  { value: "RETURNED", label: "ส่งกลับแก้ไข" },
+  { value: "REJECTED", label: "ปฏิเสธ" },
+  { value: "CANCELLED", label: "ยกเลิก" },
+];
+
+export interface ActivityFilterCriteria {
+  workTypes?: string[];
+  personIds?: string[];
+  statuses?: string[];
+  searchQuery?: string;
+}
+
+/**
+ * Shared filter evaluation function for Activity Plans and Activity Calendar Events.
+ * Logic:
+ * - Within same filter = OR
+ * - Between filters = AND
+ * - If a filter is empty, it does not restrict.
+ */
+export function matchesActivityFilters(
+  item: any,
+  filters: ActivityFilterCriteria,
+): boolean {
+  if (!item) return false;
+
+  // 1. Work Types filter (OR within filter)
+  if (filters.workTypes && filters.workTypes.length > 0) {
+    const selectedNormalized = filters.workTypes.map(
+      (wt) => getWorkTypeCode(wt) || wt.toUpperCase(),
+    );
+
+    const itemCodes = new Set<string>();
+
+    // ActivityPlan / CalendarEvent workTypes
+    const planWorkTypes = item.activityPlan?.workTypes || item.workTypes;
+    if (Array.isArray(planWorkTypes)) {
+      for (const wt of planWorkTypes) {
+        const rawCode =
+          wt.workTypeCode ||
+          wt.activityType?.code ||
+          resolveWorkTypeCode(wt);
+        if (rawCode) {
+          const canonical = getWorkTypeCode(rawCode) || rawCode;
+          itemCodes.add(canonical.toUpperCase());
+        }
+        if (wt.activityTypeId) {
+          itemCodes.add(wt.activityTypeId);
+        }
+        if (wt.activityType?.id) {
+          itemCodes.add(wt.activityType.id);
+        }
+      }
+    }
+
+    // Primary activityType
+    const primaryType = item.activityPlan?.activityType || item.activityType;
+    if (primaryType) {
+      const rawCode =
+        typeof primaryType === "string"
+          ? resolveWorkTypeCode(primaryType)
+          : primaryType.code || resolveWorkTypeCode(primaryType);
+      if (rawCode) {
+        const canonical = getWorkTypeCode(rawCode) || rawCode;
+        itemCodes.add(canonical.toUpperCase());
+      }
+      if (primaryType.id) {
+        itemCodes.add(primaryType.id);
+      }
+    }
+
+    // Direct activityTypeId
+    const actTypeId = item.activityPlan?.activityTypeId || item.activityTypeId;
+    if (actTypeId) {
+      itemCodes.add(actTypeId);
+      const canonical = resolveWorkTypeCode(actTypeId);
+      if (canonical) itemCodes.add(canonical.toUpperCase());
+    }
+
+    // Tour (TYPE_12)
+    if (item.tour || item.activityPlan?.tour) {
+      itemCodes.add("TYPE_12");
+    }
+
+    let matchesWorkType = false;
+    for (let i = 0; i < filters.workTypes.length; i++) {
+      const orig = filters.workTypes[i];
+      const norm = selectedNormalized[i];
+      if (
+        itemCodes.has(orig) ||
+        itemCodes.has(orig.toUpperCase()) ||
+        itemCodes.has(norm)
+      ) {
+        matchesWorkType = true;
+        break;
+      }
+    }
+
+    if (!matchesWorkType) return false;
+  }
+
+  // 2. Person / Employee filter (OR within filter)
+  if (filters.personIds && filters.personIds.length > 0) {
+    const itemPersonIds = new Set<string>();
+
+    if (item.employeeId) itemPersonIds.add(item.employeeId);
+    if (item.employee?.id) itemPersonIds.add(item.employee.id);
+    if (item.createdById) itemPersonIds.add(item.createdById);
+    if (item.activityPlan?.employeeId) itemPersonIds.add(item.activityPlan.employeeId);
+    if (item.activityPlan?.employee?.id) itemPersonIds.add(item.activityPlan.employee.id);
+
+    // Helpers in ActivityPlan
+    const helpers = item.activityPlan?.helpers || item.helpers;
+    if (Array.isArray(helpers)) {
+      for (const h of helpers) {
+        if (h.employeeId) itemPersonIds.add(h.employeeId);
+        if (h.employee?.id) itemPersonIds.add(h.employee.id);
+      }
+    }
+
+    // Attendees in ActivityCalendarEvent
+    if (Array.isArray(item.attendees)) {
+      for (const att of item.attendees) {
+        if (att.employeeId) itemPersonIds.add(att.employeeId);
+        if (att.employee?.id) itemPersonIds.add(att.employee.id);
+      }
+    }
+
+    let matchesPerson = false;
+    for (const pid of filters.personIds) {
+      if (itemPersonIds.has(pid)) {
+        matchesPerson = true;
+        break;
+      }
+    }
+
+    if (!matchesPerson) return false;
+  }
+
+  // 3. Status filter (OR within filter)
+  if (filters.statuses && filters.statuses.length > 0) {
+    const planStatus = item.activityPlan?.status || item.status;
+    const resultStatus =
+      item.activityPlan?.result?.resultStatus || item.result?.resultStatus;
+    const eventStatus = item.status; // CalendarEventStatus
+
+    let matchesStatus = false;
+    for (const s of filters.statuses) {
+      if (s === "CANCELLED") {
+        if (
+          planStatus === "CANCELLED" ||
+          eventStatus === "CANCELLED" ||
+          resultStatus === "CANCELLED"
+        ) {
+          matchesStatus = true;
+          break;
+        }
+      } else if (["COMPLETED", "PARTIAL", "POSTPONED", "FAILED"].includes(s)) {
+        if (
+          resultStatus === s ||
+          (s === "COMPLETED" && eventStatus === "COMPLETED")
+        ) {
+          matchesStatus = true;
+          break;
+        }
+      } else if (s === "APPROVED") {
+        if (
+          planStatus === "APPROVED" ||
+          (eventStatus === "SCHEDULED" && planStatus !== "CANCELLED")
+        ) {
+          matchesStatus = true;
+          break;
+        }
+      } else {
+        if (planStatus === s || eventStatus === s) {
+          matchesStatus = true;
+          break;
+        }
+      }
+    }
+
+    if (!matchesStatus) return false;
+  }
+
+  // 4. Keyword search (if provided)
+  if (filters.searchQuery && filters.searchQuery.trim()) {
+    const q = filters.searchQuery.trim().toLowerCase();
+    const title = (item.title || item.activityPlan?.title || "").toLowerCase();
+    const code = (
+      item.code ||
+      item.activityPlan?.code ||
+      item.planNo ||
+      ""
+    ).toLowerCase();
+    const loc = (
+      item.location ||
+      item.activityPlan?.location ||
+      ""
+    ).toLowerCase();
+    const empName = (
+      item.employee?.name ||
+      item.activityPlan?.employee?.name ||
+      ""
+    ).toLowerCase();
+
+    if (
+      !title.includes(q) &&
+      !code.includes(q) &&
+      !loc.includes(q) &&
+      !empName.includes(q)
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -13,11 +14,23 @@ import {
   Loader2,
   ExternalLink,
   ArrowLeft,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { getActivityCalendarEventsAction } from "../../../server/actions";
+import { Input } from "@/components/ui/input";
+import { MultiSelect, type MultiSelectOption } from "@/components/custom/multi-select";
+import {
+  getActivityCalendarEventsAction,
+  getActivityTypesAction,
+} from "../../../server/actions";
+import { getAllEmployeesAction } from "@/modules/employee/server/actions";
+import {
+  STATUS_OPTIONS,
+  WORK_TYPE_CONFIG,
+  matchesActivityFilters,
+} from "../../../constants";
 import { cn } from "@/lib/utils";
 import {
   format,
@@ -37,6 +50,9 @@ type CalendarFilter = "ALL" | "MY_EVENTS" | "HELPER_EVENTS";
 
 export function ActivityCalendarView() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const currentEmployeeId = session?.user?.employeeId;
+
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -46,6 +62,93 @@ export function ActivityCalendarView() {
     day: Date;
     events: any[];
   } | null>(null);
+
+  // Multi-select & Search filter states
+  const [workTypeFilters, setWorkTypeFilters] = useState<string[]>([]);
+  const [personFilters, setPersonFilters] = useState<string[]>([]);
+  const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [searchKeyword, setSearchKeyword] = useState<string>("");
+
+  const [workTypeOptions, setWorkTypeOptions] = useState<MultiSelectOption[]>([]);
+  const [personOptions, setPersonOptions] = useState<MultiSelectOption[]>([]);
+
+  // Load Work Type & Employee options
+  useEffect(() => {
+    let isMounted = true;
+
+    getActivityTypesAction()
+      .then((res) => {
+        if (!isMounted) return;
+        if (res.success && Array.isArray(res.types) && res.types.length > 0) {
+          const opts: MultiSelectOption[] = res.types.map((t: any) => ({
+            value: t.code,
+            label: `${t.code?.replace("_", "") || ""} ${t.name || ""}`.trim(),
+          }));
+          setWorkTypeOptions(opts);
+        } else {
+          const opts: MultiSelectOption[] = Object.values(WORK_TYPE_CONFIG).map(
+            (c) => ({
+              value: c.code,
+              label: `${c.code.replace("_", "")} ${c.name}`,
+            }),
+          );
+          setWorkTypeOptions(opts);
+        }
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        const opts: MultiSelectOption[] = Object.values(WORK_TYPE_CONFIG).map(
+          (c) => ({
+            value: c.code,
+            label: `${c.code.replace("_", "")} ${c.name}`,
+          }),
+        );
+        setWorkTypeOptions(opts);
+      });
+
+    getAllEmployeesAction()
+      .then((res) => {
+        if (!isMounted) return;
+        if (res.success && Array.isArray(res.employees)) {
+          const opts: MultiSelectOption[] = res.employees
+            .filter((e: any) => e.name)
+            .map((e: any) => ({
+              value: e.id,
+              label: e.name,
+            }));
+          setPersonOptions(opts);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Merge any attendee/employee from loaded events into personOptions
+  useEffect(() => {
+    if (!events || events.length === 0) return;
+    setPersonOptions((prev) => {
+      const existingIds = new Set(prev.map((o) => o.value));
+      const newOpts: MultiSelectOption[] = [];
+      for (const ev of events) {
+        if (ev.employee?.id && ev.employee?.name && !existingIds.has(ev.employee.id)) {
+          existingIds.add(ev.employee.id);
+          newOpts.push({ value: ev.employee.id, label: ev.employee.name });
+        }
+        if (Array.isArray(ev.attendees)) {
+          for (const att of ev.attendees) {
+            if (att.employee?.id && att.employee?.name && !existingIds.has(att.employee.id)) {
+              existingIds.add(att.employee.id);
+              newOpts.push({ value: att.employee.id, label: att.employee.name });
+            }
+          }
+        }
+      }
+      return newOpts.length > 0 ? [...prev, ...newOpts] : prev;
+    });
+  }, [events]);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -85,21 +188,36 @@ export function ActivityCalendarView() {
   }, [currentDate]);
 
   const filteredEvents = useMemo(() => {
-    if (filter === "ALL") return events;
     return events.filter((e) => {
+      // 1. Tab filter (Preserved!)
       if (filter === "MY_EVENTS") {
-        // Creator
-        return e.attendees?.some(
-          (a: any) => a.role === "CREATOR" && a.employeeId === e.employeeId,
-        );
+        const isCreator =
+          e.attendees?.some(
+            (a: any) => a.role === "CREATOR" && a.employeeId === e.employeeId,
+          ) || (currentEmployeeId && e.employeeId === currentEmployeeId);
+        if (!isCreator) return false;
+      } else if (filter === "HELPER_EVENTS") {
+        const isHelper = e.attendees?.some((a: any) => a.role === "HELPER");
+        if (!isHelper) return false;
       }
-      if (filter === "HELPER_EVENTS") {
-        // Has helper role
-        return e.attendees?.some((a: any) => a.role === "HELPER");
-      }
-      return true;
+
+      // 2. Shared Multi-select and Search logic
+      return matchesActivityFilters(e, {
+        workTypes: workTypeFilters,
+        personIds: personFilters,
+        statuses: statusFilters,
+        searchQuery: searchKeyword,
+      });
     });
-  }, [events, filter]);
+  }, [
+    events,
+    filter,
+    workTypeFilters,
+    personFilters,
+    statusFilters,
+    searchKeyword,
+    currentEmployeeId,
+  ]);
 
   const getEventsForDay = (day: Date) => {
     return filteredEvents.filter((e) => {
@@ -125,6 +243,19 @@ export function ActivityCalendarView() {
     });
   };
 
+  const handleClearAllFilters = () => {
+    setWorkTypeFilters([]);
+    setPersonFilters([]);
+    setStatusFilters([]);
+    setSearchKeyword("");
+  };
+
+  const hasActiveFilters =
+    workTypeFilters.length > 0 ||
+    personFilters.length > 0 ||
+    statusFilters.length > 0 ||
+    searchKeyword.trim().length > 0;
+
   return (
     <div className="space-y-6 pb-12">
       {/* Header & Controls */}
@@ -147,7 +278,10 @@ export function ActivityCalendarView() {
                 variant="outline"
                 className="bg-blue-50 text-blue-700 border-blue-200"
               >
-                {events.length} กิจกรรม
+                {hasActiveFilters
+                  ? `${filteredEvents.length} / ${events.length}`
+                  : events.length}{" "}
+                กิจกรรม
               </Badge>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
@@ -201,7 +335,7 @@ export function ActivityCalendarView() {
             onClick={() => setFilter("ALL")}
             className="rounded-xl text-xs"
           >
-            ทั้งหมด ({events.length})
+            ทั้งหมด ({hasActiveFilters ? filteredEvents.length : events.length})
           </Button>
           <Button
             variant={filter === "MY_EVENTS" ? "default" : "outline"}
@@ -225,6 +359,95 @@ export function ActivityCalendarView() {
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
             กำลังโหลดข้อมูล...
+          </div>
+        )}
+      </div>
+
+      {/* Search & Multi-select Filter Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* 1. ค้นหา */}
+          <div className="space-y-1">
+            <label className="mx-1 text-xs font-semibold text-slate-700 block">
+              ค้นหา
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+              <Input
+                placeholder="ค้นหาชื่อกิจกรรม, รหัส, สถานที่..."
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                className="pl-8 h-9 text-xs bg-white"
+              />
+            </div>
+          </div>
+
+          {/* 2. ประเภทงาน */}
+          <div className="space-y-1">
+            <label className="mx-1 text-xs font-semibold text-slate-700 block">
+              ประเภทงาน
+            </label>
+            <MultiSelect
+              options={workTypeOptions}
+              defaultValue={workTypeFilters}
+              onValueChange={setWorkTypeFilters}
+              placeholder="ทุกประเภทงาน"
+              searchPlaceholder="ค้นหาประเภทงาน..."
+              emptyIndicator="ไม่พบประเภทงาน"
+              maxCount={1}
+              className="bg-white h-9 text-xs"
+            />
+          </div>
+
+          {/* 3. บุคคล */}
+          <div className="space-y-1">
+            <label className="mx-1 text-xs font-semibold text-slate-700 block">
+              บุคคล
+            </label>
+            <MultiSelect
+              options={personOptions}
+              defaultValue={personFilters}
+              onValueChange={setPersonFilters}
+              placeholder="ทุกคน"
+              searchPlaceholder="ค้นหาชื่อบุคคล..."
+              emptyIndicator="ไม่พบบุคคล"
+              maxCount={1}
+              className="bg-white h-9 text-xs"
+            />
+          </div>
+
+          {/* 4. สถานะกิจกรรม */}
+          <div className="space-y-1">
+            <label className="mx-1 text-xs font-semibold text-slate-700 block">
+              สถานะกิจกรรม
+            </label>
+            <MultiSelect
+              options={STATUS_OPTIONS}
+              defaultValue={statusFilters}
+              onValueChange={setStatusFilters}
+              placeholder="ทุกสถานะ"
+              searchPlaceholder="ค้นหาสถานะ..."
+              emptyIndicator="ไม่พบสถานะ"
+              maxCount={1}
+              className="bg-white h-9 text-xs"
+            />
+          </div>
+        </div>
+
+        {/* Active filter summary / Clear button */}
+        {hasActiveFilters && (
+          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
+            <span>
+              พบ {filteredEvents.length} จากทั้งหมด {events.length} กิจกรรม
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearAllFilters}
+              className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 h-7 px-2 cursor-pointer"
+            >
+              ล้างตัวกรองทั้งหมด
+            </Button>
           </div>
         )}
       </div>

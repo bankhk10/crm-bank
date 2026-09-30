@@ -10,7 +10,11 @@ import {
   deleteActivityPlanAction,
   submitActivityPlanAction,
   duplicateActivityPlanAction,
+  getActivityTypesAction,
 } from "../../../server/actions";
+import { getAllEmployeesAction } from "@/modules/employee/server/actions";
+import { WORK_TYPE_CONFIG } from "../../../constants";
+import type { MultiSelectOption } from "@/components/custom/multi-select";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, Copy } from "lucide-react";
 import { toast } from "sonner";
@@ -64,7 +68,12 @@ export default function ActivityPlanListView() {
 
   const [searchDraft, setSearchDraft] = useState<string>("");
   const [appliedSearch, setAppliedSearch] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [workTypeFilter, setWorkTypeFilter] = useState<string[]>([]);
+  const [personFilter, setPersonFilter] = useState<string[]>([]);
+
+  const [workTypeOptions, setWorkTypeOptions] = useState<MultiSelectOption[]>([]);
+  const [personOptions, setPersonOptions] = useState<MultiSelectOption[]>([]);
 
   const [deleteCandidate, setDeleteCandidate] =
     useState<ActivityPlanWithRelations | null>(null);
@@ -73,6 +82,60 @@ export default function ActivityPlanListView() {
   const [actionLoading, setActionLoading] = useState(false);
   const [duplicateLoading, setDuplicateLoading] = useState(false);
   const [submitLoadingId, setSubmitLoadingId] = useState<string | null>(null);
+
+  // Load master options for Work Types and Employees
+  useEffect(() => {
+    let isMounted = true;
+
+    getActivityTypesAction()
+      .then((res) => {
+        if (!isMounted) return;
+        if (res.success && Array.isArray(res.types) && res.types.length > 0) {
+          const opts: MultiSelectOption[] = res.types.map((t: any) => ({
+            value: t.code,
+            label: `${t.code?.replace("_", "") || ""} ${t.name || ""}`.trim(),
+          }));
+          setWorkTypeOptions(opts);
+        } else {
+          const opts: MultiSelectOption[] = Object.values(WORK_TYPE_CONFIG).map(
+            (c) => ({
+              value: c.code,
+              label: `${c.code.replace("_", "")} ${c.name}`,
+            }),
+          );
+          setWorkTypeOptions(opts);
+        }
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        const opts: MultiSelectOption[] = Object.values(WORK_TYPE_CONFIG).map(
+          (c) => ({
+            value: c.code,
+            label: `${c.code.replace("_", "")} ${c.name}`,
+          }),
+        );
+        setWorkTypeOptions(opts);
+      });
+
+    getAllEmployeesAction()
+      .then((res) => {
+        if (!isMounted) return;
+        if (res.success && Array.isArray(res.employees)) {
+          const opts: MultiSelectOption[] = res.employees
+            .filter((e: any) => e.name)
+            .map((e: any) => ({
+              value: e.id,
+              label: e.name,
+            }));
+          setPersonOptions(opts);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Debounce search input
   useEffect(() => {
@@ -94,7 +157,9 @@ export default function ActivityPlanListView() {
         params.set("page", String(page));
         params.set("perPage", String(perPage));
         if (appliedSearch.trim()) params.set("q", appliedSearch.trim());
-        if (statusFilter) params.set("status", statusFilter);
+        if (statusFilter.length > 0) params.set("status", statusFilter.join(","));
+        if (workTypeFilter.length > 0) params.set("workTypes", workTypeFilter.join(","));
+        if (personFilter.length > 0) params.set("employeeIds", personFilter.join(","));
 
         const res = await fetch(`/api/activity-plans?${params.toString()}`, {
           signal,
@@ -110,7 +175,7 @@ export default function ActivityPlanListView() {
         setLoading(false);
       }
     },
-    [page, perPage, appliedSearch, statusFilter],
+    [page, perPage, appliedSearch, statusFilter, workTypeFilter, personFilter],
   );
 
   useEffect(() => {
@@ -118,6 +183,21 @@ export default function ActivityPlanListView() {
     fetchData(controller.signal);
     return () => controller.abort();
   }, [fetchData]);
+
+  const handleStatusFilterChange = (statuses: string[]) => {
+    setStatusFilter(statuses);
+    setPage(1);
+  };
+
+  const handleWorkTypeFilterChange = (workTypes: string[]) => {
+    setWorkTypeFilter(workTypes);
+    setPage(1);
+  };
+
+  const handlePersonFilterChange = (persons: string[]) => {
+    setPersonFilter(persons);
+    setPage(1);
+  };
 
   const handleDeleteRequest = (item: ActivityPlanWithRelations) => {
     setDeleteCandidate(item);
@@ -333,7 +413,13 @@ export default function ActivityPlanListView() {
         onSearchChange={setSearchDraft}
         onSearchSubmit={() => {}}
         statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
+        onStatusFilterChange={handleStatusFilterChange}
+        workTypeFilter={workTypeFilter}
+        onWorkTypeFilterChange={handleWorkTypeFilterChange}
+        workTypeOptions={workTypeOptions}
+        personFilter={personFilter}
+        onPersonFilterChange={handlePersonFilterChange}
+        personOptions={personOptions}
         canCreate={canCreate}
         canEdit={canEdit}
         canDelete={canDelete}

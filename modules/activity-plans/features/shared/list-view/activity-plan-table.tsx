@@ -27,17 +27,12 @@ import {
   getWorkTypeName,
   getWorkTypeCode,
   ACTIVITY_RESULT_STATUS_LABELS,
+  STATUS_OPTIONS,
 } from "../../../constants";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { ActionButton } from "@/components/custom/action-button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { MultiSelect, type MultiSelectOption } from "@/components/custom/multi-select";
 
 interface ActivityPlanTableProps {
   data: ActivityPlanWithRelations[];
@@ -53,8 +48,14 @@ interface ActivityPlanTableProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
   onSearchSubmit: () => void;
-  statusFilter: string;
-  onStatusFilterChange: (status: string) => void;
+  statusFilter: string[];
+  onStatusFilterChange: (status: string[]) => void;
+  workTypeFilter: string[];
+  onWorkTypeFilterChange: (workTypes: string[]) => void;
+  workTypeOptions: MultiSelectOption[];
+  personFilter: string[];
+  onPersonFilterChange: (persons: string[]) => void;
+  personOptions: MultiSelectOption[];
   canCreate: boolean;
   canEdit: boolean;
   canDelete: boolean;
@@ -65,22 +66,7 @@ interface ActivityPlanTableProps {
   submitLoadingId: string | null;
 }
 
-const STATUS_OPTIONS = [
-  { value: "DRAFT", label: "ร่าง" },
-  { value: "PENDING_LINE_APPROVAL", label: "รออนุมัติตามสายงาน" },
-  { value: "PENDING_BUDGET_APPROVAL", label: "รออนุมัติงบประมาณ" },
-  { value: "PENDING_HELPER_APPROVAL", label: "รออนุมัติคนช่วยงาน" },
-  { value: "APPROVED", label: "อนุมัติสำเร็จ" },
-  { value: "COMPLETED", label: `ผลกิจกรรม: ${ACTIVITY_RESULT_STATUS_LABELS.COMPLETED}` },
-  { value: "PARTIAL", label: "ผลกิจกรรม: สำเร็จบางส่วน" },
-  { value: "POSTPONED", label: `ผลกิจกรรม: ${ACTIVITY_RESULT_STATUS_LABELS.POSTPONED}` },
-  { value: "WAITING_FOR_CORRECTION", label: "รอแก้ไข/ข้อมูลเพิ่ม" },
-  { value: "PENDING_REVIEW", label: "รอตรวจสอบ" },
-  { value: "REVIEWED", label: "ตรวจสอบแล้ว" },
-  { value: "RETURNED", label: "ส่งกลับแก้ไข" },
-  { value: "REJECTED", label: "ปฏิเสธ" },
-  { value: "CANCELLED", label: "ยกเลิก" },
-];
+export { STATUS_OPTIONS };
 
 export function ActivityPlanTable({
   data,
@@ -91,6 +77,12 @@ export function ActivityPlanTable({
   onSearchSubmit,
   statusFilter,
   onStatusFilterChange,
+  workTypeFilter,
+  onWorkTypeFilterChange,
+  workTypeOptions,
+  personFilter,
+  onPersonFilterChange,
+  personOptions,
   canCreate,
   canEdit,
   canDelete,
@@ -399,26 +391,57 @@ export function ActivityPlanTable({
         onSearchChange={onSearchChange}
         onSearchSubmit={onSearchSubmit}
         filters={
-          <div className="space-y-1">
-            <label className="mx-1 text-base font-medium block">สถานะ</label>
-            <Select
-              value={statusFilter || "ALL"}
-              onValueChange={(value) =>
-                onStatusFilterChange?.(value === "ALL" ? "" : value)
-              }
-            >
-              <SelectTrigger className="w-full bg-white h-10 text-sm">
-                <SelectValue placeholder="ทุกสถานะ" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">ทุกสถานะ</SelectItem>
-                {STATUS_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+            {/* 1. ประเภทงาน */}
+            <div className="space-y-1">
+              <label className="mx-1 text-sm font-medium text-slate-700 block">
+                ประเภทงาน
+              </label>
+              <MultiSelect
+                options={workTypeOptions}
+                defaultValue={workTypeFilter}
+                onValueChange={onWorkTypeFilterChange}
+                placeholder="เลือกประเภทงาน"
+                searchPlaceholder="ค้นหาประเภทงาน..."
+                emptyIndicator="ไม่พบประเภทงาน"
+                maxCount={1}
+                className="bg-white h-11 text-xs"
+              />
+            </div>
+
+            {/* 2. บุคคล */}
+            <div className="space-y-1">
+              <label className="mx-1 text-sm font-medium text-slate-700 block">
+                บุคคล
+              </label>
+              <MultiSelect
+                options={personOptions}
+                defaultValue={personFilter}
+                onValueChange={onPersonFilterChange}
+                placeholder="เลือกบุคคล"
+                searchPlaceholder="ค้นหาชื่อบุคคล..."
+                emptyIndicator="ไม่พบบุคคล"
+                maxCount={1}
+                className="bg-white h-11 text-xs"
+              />
+            </div>
+
+            {/* 3. สถานะ */}
+            <div className="space-y-1">
+              <label className="mx-1 text-sm font-medium text-slate-700 block">
+                สถานะ
+              </label>
+              <MultiSelect
+                options={STATUS_OPTIONS}
+                defaultValue={statusFilter}
+                onValueChange={onStatusFilterChange}
+                placeholder="เลือกสถานะ"
+                searchPlaceholder="ค้นหาสถานะ..."
+                emptyIndicator="ไม่พบสถานะ"
+                maxCount={1}
+                className="bg-white h-11 text-xs"
+              />
+            </div>
           </div>
         }
       />

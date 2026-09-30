@@ -238,9 +238,18 @@ export async function listActivityCalendarEventsUseCase(
           code: true,
           title: true,
           status: true,
+          employeeId: true,
           totalBudgetApproved: true,
-          activityType: { select: { name: true, code: true } },
-          workTypes: { select: { activityType: { select: { name: true, code: true } } } },
+          activityType: { select: { id: true, name: true, code: true } },
+          workTypes: {
+            select: {
+              id: true,
+              activityTypeId: true,
+              activityType: { select: { id: true, name: true, code: true } },
+            },
+          },
+          tour: true,
+          result: { select: { id: true, resultStatus: true } },
         },
       },
       attendees: {
