@@ -246,6 +246,8 @@ export function DetailActivityResultSection({
           target={targets.t10}
           actualAttendees={parsedResults.t10ActualAttendees}
           actualSalesOrBooking={parsedResults.t10ActualSalesOrBooking}
+          productSalesDetails={parsedResults.t10ProductSalesDetails}
+          soldProducts={parsedResults.t10ProductSalesDetails}
           targetFarmersList={parsedResults.t10TargetFarmersList}
           farmerFeedback={
             parsedResults.t10FarmerFeedback === "น้อย"

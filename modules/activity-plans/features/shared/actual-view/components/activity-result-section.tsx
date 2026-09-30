@@ -406,6 +406,8 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
   const setT10TargetFarmersList = t10 ? t10.setT10TargetFarmersList : (props.setT10TargetFarmersList || (() => {}));
   const t10FarmerFeedback = t10 ? t10.t10FarmerFeedback : (props.t10FarmerFeedback ?? "");
   const setT10FarmerFeedback = t10 ? t10.setT10FarmerFeedback : (props.setT10FarmerFeedback || props.setFarmerFeedback || (() => {}));
+  const t10ProductSalesDetails = t10 ? t10.t10ProductSalesDetails : (props.t10ProductSalesDetails ?? []);
+  const setT10ProductSalesDetails = t10 ? t10.setT10ProductSalesDetails : (props.setT10ProductSalesDetails || (() => {}));
   const t10Images = t10 ? t10.t10Images : (props.t10Images ?? []);
   const setT10Images = t10 ? t10.setT10Images : (props.setT10Images || props.setImages || (() => {}));
 
@@ -812,12 +814,13 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
         <ActualType10FieldDay
           isVisible={isTypeVisible("TYPE_10")}
           target={targets.t10}
+          products={products}
           actualAttendees={t10ActualAttendees}
           setActualAttendees={setT10ActualAttendees}
           actualSalesOrBooking={t10ActualSalesOrBooking}
           setActualSalesOrBooking={setT10ActualSalesOrBooking}
-          targetFarmersList={t10TargetFarmersList}
-          setTargetFarmersList={setT10TargetFarmersList}
+          soldProducts={t10ProductSalesDetails}
+          setSoldProducts={setT10ProductSalesDetails}
           farmerFeedback={t10FarmerFeedback}
           setFarmerFeedback={setT10FarmerFeedback}
           images={t10Images}

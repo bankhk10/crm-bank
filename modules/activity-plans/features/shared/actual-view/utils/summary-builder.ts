@@ -184,6 +184,7 @@ export interface BuildSummaryInput {
   t10ActualSalesOrBooking: string;
   t10FarmerFeedback: "สูง" | "กลาง" | "ต่ำ" | "";
   t10TargetFarmersList: string;
+  t10ProductSalesDetails?: any[];
   t10Images?: ImageFile[];
 
   // Type 11
@@ -298,6 +299,7 @@ export function buildResultSummary(
     t10ActualSalesOrBooking,
     t10FarmerFeedback,
     t10TargetFarmersList,
+    t10ProductSalesDetails,
     t10Images,
     t11StockItems,
     t11ProductList,
@@ -963,6 +965,11 @@ export function buildResultSummary(
     t10ActualSalesOrBooking
       ? `ยอดขายหรือยอดจอง Field Day จริง: ${t10ActualSalesOrBooking}`
       : null,
+    t10ProductSalesDetails &&
+    t10ProductSalesDetails.length > 0 &&
+    t10ProductSalesDetails.some((d) => d.quantity || d.actualQty || d.actualSales)
+      ? `ยอดขายแยกสินค้า Field Day: ${JSON.stringify(t10ProductSalesDetails)}`
+      : null,
     t10FarmerFeedback ? `ความสนใจเกษตรกร: ${t10FarmerFeedback}` : null,
     t10TargetFarmersList
       ? `รายชื่อเกษตรกรเป้าหมาย: ${t10TargetFarmersList}`
@@ -1176,6 +1183,43 @@ export function buildResultSummary(
           actualQuantity: isNaN(qty) ? 0 : Math.max(0, qty),
           actualUnitPrice: isNaN(uPrice) ? 0 : Math.max(0, uPrice),
           actualTotal: isNaN(total) ? 0 : Math.max(0, total),
+        });
+      }
+    });
+  }
+  if (
+    input.t10ProductSalesDetails &&
+    Array.isArray(input.t10ProductSalesDetails)
+  ) {
+    input.t10ProductSalesDetails.forEach((d) => {
+      const pId =
+        d.productId ||
+        (input.products || []).find(
+          (p: any) =>
+            p.name?.trim().toLowerCase() ===
+            (d.productName || "").trim().toLowerCase(),
+        )?.id ||
+        d.id;
+      const qty = Math.round(
+        parseCleanNumber(d.actualQty ?? d.quantity) ?? 0,
+      );
+      const parsedSales = parseCleanNumber(d.actualSales);
+      const uPrice =
+        qty > 0 && parsedSales != null
+          ? parsedSales / qty
+          : parseCleanNumber(d.unitPrice ?? d.price) ?? 0;
+      const total = parsedSales != null ? parsedSales : qty * uPrice;
+      const reason = d.remarks || d.unclosedReason || d.notes || null;
+      if (pId && (qty > 0 || total > 0 || reason)) {
+        saleResults.push({
+          workTypeCode: "TYPE_10",
+          storeId: d.storeId || null,
+          productId: pId,
+          productName: d.productName || null,
+          actualQuantity: isNaN(qty) ? 0 : Math.max(0, qty),
+          actualUnitPrice: isNaN(uPrice) ? 0 : Math.max(0, uPrice),
+          actualTotal: isNaN(total) ? 0 : Math.max(0, total),
+          unclosedReason: reason,
         });
       }
     });

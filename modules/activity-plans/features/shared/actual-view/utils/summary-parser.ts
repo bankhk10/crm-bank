@@ -187,6 +187,7 @@ export interface ParsedSummaryValues {
   t10ActualSalesOrBooking?: string;
   t10FarmerFeedback?: "สูง" | "ปานกลาง" | "น้อย";
   t10TargetFarmersList?: string;
+  t10ProductSalesDetails?: any[];
   t10Images?: ImageFile[];
 
   // Type 11
@@ -300,6 +301,22 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         actualQty: String(s.actualQuantity ?? ""),
         unitPrice: Number(s.actualUnitPrice || 0),
         actualSales: String(s.actualTotal ?? ""),
+      }));
+    }
+    const t10Sales = resData.saleResults.filter(
+      (s: any) => s.workTypeCode === "TYPE_10",
+    );
+    if (t10Sales.length > 0) {
+      result.t10ProductSalesDetails = t10Sales.map((s: any) => ({
+        id: s.id,
+        productId: s.productId,
+        productName: s.productName || s.product?.name || "",
+        productCode: s.product?.productCode || undefined,
+        quantity: String(s.actualQuantity ?? ""),
+        actualQty: String(s.actualQuantity ?? ""),
+        unitPrice: Number(s.actualUnitPrice || 0),
+        actualSales: String(s.actualTotal ?? ""),
+        remarks: s.unclosedReason || "",
       }));
     }
   }
@@ -1131,6 +1148,40 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     const t10FarmersMatch = summaryText.match(/รายชื่อเกษตรกรเป้าหมาย:\s*(.+)/);
     if (t10FarmersMatch && t10FarmersMatch[1]) {
       result.t10TargetFarmersList = t10FarmersMatch[1].split("\n")[0].trim();
+    }
+    const t10ProductsMatch = summaryText.match(
+      /(?:ยอดขายแยกสินค้า Field Day|t10ProductSalesDetails):\s*(\[.+\])/,
+    );
+    if (t10ProductsMatch && t10ProductsMatch[1]) {
+      try {
+        const trimmed = t10ProductsMatch[1].trim();
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            if (
+              !result.t10ProductSalesDetails ||
+              result.t10ProductSalesDetails.length === 0
+            ) {
+              result.t10ProductSalesDetails = parsed.map(
+                (item: any, idx: number) => ({
+                  id: item.id || `item-${idx + 1}`,
+                  productId: item.productId,
+                  productName: item.productName || "",
+                  productCode: item.productCode,
+                  quantity: String(item.quantity ?? item.actualQty ?? ""),
+                  actualQty: String(item.quantity ?? item.actualQty ?? ""),
+                  actualSales: String(item.actualSales ?? ""),
+                  remarks:
+                    item.remarks || item.notes || item.unclosedReason || "",
+                  isCustom: Boolean(item.isCustom),
+                }),
+              );
+            }
+          }
+        }
+      } catch {
+        // Ignore fallback text parse error
+      }
     }
     const t10ImagesMatch = summaryText.match(
       /(?:รูปภาพบรรยากาศงาน Field Day|ภาพถ่ายบรรยากาศงาน Field Day|รูปภาพ Field Day|t10Images):\s*(\[.+\])/,

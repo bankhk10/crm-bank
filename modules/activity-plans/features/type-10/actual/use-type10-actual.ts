@@ -14,6 +14,7 @@ export function useType10Actual() {
   const [t10FarmerFeedback, setT10FarmerFeedback] = useState<
     "สูง" | "กลาง" | "ต่ำ" | ""
   >("");
+  const [t10ProductSalesDetails, setT10ProductSalesDetails] = useState<any[]>([]);
   const [t10Images, setT10Images] = useState<ImageFile[]>([]);
   const initialT10ImagesRef = useRef<ImageFile[]>([]);
 
@@ -35,6 +36,11 @@ export function useType10Actual() {
     }
     if (parsed.t10TargetFarmersList) {
       setT10TargetFarmersList(parsed.t10TargetFarmersList);
+    }
+    if (parsed.t10ProductSalesDetails && Array.isArray(parsed.t10ProductSalesDetails)) {
+      setT10ProductSalesDetails(parsed.t10ProductSalesDetails);
+    } else if (parsed.t10SoldProducts && Array.isArray(parsed.t10SoldProducts)) {
+      setT10ProductSalesDetails(parsed.t10SoldProducts);
     }
     if (parsed.t10Images && parsed.t10Images.length > 0) {
       setT10Images(parsed.t10Images);
@@ -83,6 +89,7 @@ export function useType10Actual() {
         t10ActualSalesOrBooking,
         t10FarmerFeedback,
         t10TargetFarmersList,
+        t10ProductSalesDetails,
         t10Images: cleanImages,
       };
     },
@@ -91,6 +98,7 @@ export function useType10Actual() {
       t10ActualSalesOrBooking,
       t10FarmerFeedback,
       t10TargetFarmersList,
+      t10ProductSalesDetails,
       t10Images,
     ],
   );
@@ -104,6 +112,8 @@ export function useType10Actual() {
     setT10TargetFarmersList,
     t10FarmerFeedback,
     setT10FarmerFeedback,
+    t10ProductSalesDetails,
+    setT10ProductSalesDetails,
     t10Images,
     setT10Images,
     hydrate,
