@@ -82,10 +82,7 @@ export type {
 } from "@/modules/activity-plans/features/type-8/shared/types";
 
 
-export interface Type11StoreItem {
-  storeId: string;
-  storeName: string;
-}
+export type { Type11StoreItem } from "@/modules/activity-plans/features/type-11/shared/types";
 
 export interface MarketingBudgetProductItem {
   id: string;

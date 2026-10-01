@@ -3,12 +3,9 @@
 import React from "react";
 import { Boxes } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type { ApprovalType11StockProps } from "../actual/types";
 
-interface ApprovalType11StockProps {
-  isVisible: boolean;
-  target: ActualTargetsState["t11"];
-}
+export type { ApprovalType11StockProps };
 
 export function ApprovalType11Stock({
   isVisible,

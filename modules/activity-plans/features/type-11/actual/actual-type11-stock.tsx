@@ -19,42 +19,12 @@ import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actua
 import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import { listProductsAction } from "@/modules/products/server/actions";
 
-export interface StockCheckItem {
-  id?: string;
-  storeId?: string | null;
-  storeName: string;
-  productId?: string;
-  productName: string;
-  productCode?: string;
-  remainingQty: string;
-  reorderOpportunity?: "สูง" | "ยังไม่แน่ใจ" | "ต่ำ" | "";
-  remarks: string;
-  isCustom?: boolean;
-}
+import {
+  StockCheckItem,
+  ActualType11StockProps,
+} from "./types";
 
-interface ActualType11StockProps {
-  isVisible: boolean;
-  planType?: "PLANNED" | "UNPLANNED" | string;
-  target?: {
-    store?: string;
-    detail?: string;
-    targetOpportunity?: string;
-    items?: Array<{ storeId?: string; store?: string; detail?: string }>;
-  };
-  products?: Array<{ id: string; name: string; productCode?: string | null } | string>;
-  productList?: string;
-  setProductList?: (v: string) => void;
-  remainingQty?: string;
-  setRemainingQty?: (v: string) => void;
-  remarks?: string;
-  setRemarks?: (v: string) => void;
-  stockItems?: StockCheckItem[];
-  setStockItems?: (items: StockCheckItem[]) => void;
-  nextAction?: string;
-  setNextAction?: (v: string) => void;
-  images?: ImageFile[];
-  setImages?: (v: ImageFile[]) => void;
-}
+export type { StockCheckItem, ActualType11StockProps };
 
 export function ActualType11Stock({
   isVisible,

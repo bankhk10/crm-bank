@@ -1,5 +1,6 @@
 import { useState } from "react";
-import type { Type11StoreItem } from "@/modules/activity-plans/features/shared/form/types";
+import type { Type11StoreItem } from "../shared/types";
+import { validateType11FormItems } from "../create/validation";
 
 export interface UseType11FormOptions {
   initial?: any;
@@ -51,7 +52,10 @@ export function useType11Form({
   });
 
   const validateType11 = (): { isValid: boolean; error?: string } => {
-    return { isValid: true };
+    return validateType11FormItems({
+      selectedWorkTypes,
+      stores: type11Stores,
+    });
   };
 
   const mapType11Payload = (customers: any[]) => {

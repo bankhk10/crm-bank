@@ -8,35 +8,12 @@ import GalleryUpload from "@/components/custom/gallery-upload";
 import { convertToFileMetadata } from "@/modules/activity-plans/features/shared/actual-view/utils";
 import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 
-export interface StockCheckItem {
-  id?: string;
-  storeId?: string | null;
-  storeName?: string;
-  productId?: string;
-  productName: string;
-  productCode?: string;
-  remainingQty: string;
-  reorderOpportunity?: "สูง" | "ยังไม่แน่ใจ" | "ต่ำ" | "";
-  remarks: string;
-  isCustom?: boolean;
-}
+import {
+  StockCheckItem,
+  DetailType11StockProps,
+} from "../actual/types";
 
-interface DetailType11StockProps {
-  isVisible: boolean;
-  target: {
-    store: string;
-    detail: string;
-    targetOpportunity: string;
-  };
-  productList?: string;
-  remainingQty?: string;
-  remarks?: string;
-  stockItems?: StockCheckItem[];
-  stockStatus?: "ใกล้หมด" | "ขาดสต็อก" | "";
-  reorderOpportunity?: "สูง" | "ยังไม่แน่ใจ" | "ต่ำ" | "";
-  nextAction?: string;
-  images?: ImageFile[];
-}
+export type { StockCheckItem, DetailType11StockProps };
 
 export function DetailType11Stock({
   isVisible,

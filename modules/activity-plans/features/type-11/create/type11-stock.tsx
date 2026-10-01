@@ -1,28 +1,21 @@
 import React from "react";
 import { ClipboardList, X } from "lucide-react";
 import { FormCombobox } from "@/components/custom/form-components";
-import type { Type11StoreItem } from "@/modules/activity-plans/features/shared/form/types";
+import type { Type11StoreItem, CustomerOption } from "../shared/types";
+import type { Type11StockProps } from "./types";
 
-export interface CustomerOption {
-  id: string;
-  name: string;
-  customerCode?: string | null;
-  responsibleEmployeeId?: string | null;
-}
-
-interface Props {
-  readonly?: boolean;
-  type11Stores: Type11StoreItem[] | string;
-  setType11Stores: (val: Type11StoreItem[]) => void;
-  customers?: CustomerOption[];
-}
+export type {
+  CustomerOption,
+  Type11StockProps,
+  Type11StockProps as Props,
+};
 
 export function Type11Stock({
   readonly = false,
   type11Stores,
   setType11Stores,
   customers = [],
-}: Props) {
+}: Type11StockProps) {
   // Normalize incoming stores: array of Type11StoreItem is primary
   const selectedStores: Type11StoreItem[] = React.useMemo(() => {
     if (Array.isArray(type11Stores)) {
