@@ -3,12 +3,9 @@
 import React from "react";
 import { Users, ShoppingBag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type { ApprovalType8MeetingProps } from "../actual/types";
 
-interface ApprovalType8MeetingProps {
-  isVisible: boolean;
-  target: ActualTargetsState["t8"];
-}
+export type { ApprovalType8MeetingProps };
 
 export function ApprovalType8Meeting({
   isVisible,

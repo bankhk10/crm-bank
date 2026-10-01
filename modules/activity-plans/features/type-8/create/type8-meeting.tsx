@@ -7,48 +7,17 @@ import type {
   Type8PromotionProductItem,
   Type8MeetingTarget,
   Type8FarmerChannel,
-} from "@/modules/activity-plans/features/shared/form/types";
+  CustomerOption,
+  ProductOption,
+} from "../shared/types";
+import type { Type8MeetingProps } from "./types";
 
-export interface CustomerOption {
-  id: string;
-  name: string;
-  customerCode?: string | null;
-  customerType?: string | null;
-  phone?: string | null;
-  province?: string | null;
-  district?: string | null;
-  subdistrict?: string | null;
-  addressLine?: string | null;
-  postalCode?: string | null;
-  [key: string]: any;
-}
-
-export interface ProductOption {
-  id: string;
-  name: string;
-  productCode?: string | null;
-  price?: number | null;
-  unit?: string | null;
-}
-
-interface Props {
-  readonly?: boolean;
-  type8Items: Type8MeetingItem[];
-  addType8Row?: () => void;
-  updateType8Row: (id: string, field: keyof Type8MeetingItem, val: any) => void;
-  deleteType8Row?: (id: string) => void;
-  addPromotionProduct?: (meetingId: string) => void;
-  updatePromotionProduct?: (
-    meetingId: string,
-    promoId: string,
-    field: keyof Type8PromotionProductItem,
-    val: any,
-  ) => void;
-  deletePromotionProduct?: (meetingId: string, promoId: string) => void;
-  customers?: CustomerOption[];
-  products?: ProductOption[];
-  onDealerSelect?: (dealer: CustomerOption | null) => void;
-}
+export type {
+  CustomerOption,
+  ProductOption,
+  Type8MeetingProps,
+  Type8MeetingProps as Props,
+};
 
 export function Type8Meeting({
   readonly = false,
@@ -62,7 +31,7 @@ export function Type8Meeting({
   customers = [],
   products = [],
   onDealerSelect,
-}: Props) {
+}: Type8MeetingProps) {
   // Filter Subdealer customer master options
   const subdealerCustomers = (customers || []).filter(
     (c) =>

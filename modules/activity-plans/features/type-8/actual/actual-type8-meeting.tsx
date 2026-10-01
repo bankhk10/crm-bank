@@ -14,65 +14,13 @@ import {
   isImageFilesEqual,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
-export interface Type8PromotionProductItem {
-  id?: string;
-  productId: string;
-  productName: string;
-  quantity?: number;
-  unitPrice?: number;
-  totalAmount?: number;
-  notes?: string;
-  storeId?: string | null;
-  actualQty?: string;
-  actualSales?: string;
-}
+import { Type8PromotionProductItem } from "../shared/types";
+import {
+  ProductSaleDetail,
+  ActualType8MeetingProps,
+} from "./types";
 
-export interface ProductSaleDetail {
-  id?: string;
-  productId?: string;
-  productName: string;
-  actualQty: string;
-  actualSales: string;
-  unitPrice?: number;
-}
-
-interface ActualType8MeetingProps {
-  isVisible: boolean;
-  planType?: "PLANNED" | "UNPLANNED" | string;
-  target?: {
-    topic?: string;
-    products?: string;
-    targetAttendees?: string;
-    customer?: string;
-    dealerName?: string;
-    subDealerStore?: string;
-    detail?: string;
-    targetProducts?: string[];
-    promotionalProducts?: Array<{
-      id?: string;
-      productId: string;
-      productName: string;
-      quantity: number;
-      unitPrice: number;
-      totalAmount: number;
-      notes?: string;
-      storeId?: string | null;
-    }>;
-    items?: { productName: string; targetQty?: string }[];
-  };
-  actualAttendees: string;
-  setActualAttendees: (v: string) => void;
-  feedbackQnA: string;
-  setFeedbackQnA: (v: string) => void;
-  productSalesDetails?: ProductSaleDetail[];
-  setProductSalesDetails?: (v: ProductSaleDetail[]) => void;
-  images: ImageFile[];
-  setImages: (v: ImageFile[]) => void;
-  registrationImages?: ImageFile[];
-  setRegistrationImages?: (v: ImageFile[]) => void;
-  onUploadImages?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemoveImage?: (id: string) => void;
-}
+export type { Type8PromotionProductItem, ProductSaleDetail, ActualType8MeetingProps };
 
 export function ActualType8Meeting({
   isVisible,

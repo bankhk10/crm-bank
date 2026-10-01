@@ -17,42 +17,12 @@ import {
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 
-export interface ProductSaleDetail {
-  id?: string;
-  productId?: string;
-  productName: string;
-  actualQty: string;
-  actualSales: string;
-}
+import {
+  ProductSaleDetail,
+  DetailType8MeetingProps,
+} from "../actual/types";
 
-interface DetailType8MeetingProps {
-  isVisible: boolean;
-  target: {
-    topic: string;
-    products: string;
-    targetAttendees: string;
-    customer?: string;
-    dealerName?: string;
-    subDealerStore?: string;
-    detail?: string;
-    targetProducts?: string[];
-    promotionalProducts?: Array<{
-      id?: string;
-      productId?: string;
-      productName: string;
-      quantity: number;
-      unitPrice: number;
-      totalAmount: number;
-      notes?: string;
-    }>;
-    items?: { productName: string; targetQty?: string }[];
-  };
-  actualAttendees?: string;
-  feedbackQnA?: string;
-  productSalesDetails?: ProductSaleDetail[];
-  images?: ImageFile[];
-  registrationImages?: ImageFile[];
-}
+export type { ProductSaleDetail, DetailType8MeetingProps };
 
 export function DetailType8Meeting({
   isVisible,
