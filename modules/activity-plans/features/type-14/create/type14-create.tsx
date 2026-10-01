@@ -3,23 +3,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Layers, Loader2, Store, MapPin } from "lucide-react";
 import { FormCombobox } from "@/components/custom/FormCombobox";
-import type { Type14PlanInput } from "../../../application/validations";
+import type { Type14PlanInput, DealerCustomerOption } from "../shared/types";
 import { getHattackFollowUpDemoPlotsAction } from "../../../server/actions";
+import type { Type14CreateProps } from "./types";
 
-export interface Type14CreateProps {
-  value: Type14PlanInput;
-  onChange: (val: Type14PlanInput) => void;
-  dealerCustomers?: Array<{
-    id: string;
-    name: string;
-    customerCode?: string;
-    province?: string;
-  }>;
-  planDate?: string;
-  defaultProvince?: string;
-  defaultDistrict?: string;
-  readonly?: boolean;
-}
+export type { Type14CreateProps };
 
 export function Type14Create({
   value,

@@ -45,18 +45,9 @@ function formatThaiDate(d?: string | Date | null) {
   return `${day}/${month}/${year}`;
 }
 
-export interface Type14ActualProps {
-  isVisible?: boolean;
-  actualState: ReturnType<typeof useType14ActualState>;
-  products: Array<{
-    id: string;
-    name: string;
-    unit?: string | null;
-    productCode?: string | null;
-  }>;
-  readonly?: boolean;
-  plan?: any;
-}
+import type { Type14ActualProps } from "./types";
+
+export type { Type14ActualProps };
 
 export function Type14Actual({
   isVisible = true,

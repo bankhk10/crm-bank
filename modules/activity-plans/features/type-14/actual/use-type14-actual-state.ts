@@ -15,43 +15,17 @@ import {
   getHattackPlotContextAction,
 } from "../../../server/actions";
 
-export interface Type14ActualProductState {
-  productId: string;
-  productName: string;
-  unit: string;
-  withdrawnQuantity?: number;
-  quantityUsed: number | string;
-  actualRate: string;
-  detail: string;
-  drugWithdrawalItemId?: string | null;
-  supplementalDrugWithdrawalItemId?: string | null;
-  sourceGroup: "ORIGINAL" | "SUPPLEMENTAL" | "ACTUAL_ONLY";
-  supplementalStatus?: string;
-  supplementalWithdrawalId?: string;
-  sortOrder?: number;
-}
+import type {
+  Type14ActualProductState,
+  Type14ImageState,
+  Type14SprayRoundState,
+} from "./types";
 
-export interface Type14ImageState {
-  id: string;
-  url: string;
-  file?: File;
-  name?: string;
-  size?: number;
-  type?: string;
-}
-
-export interface Type14SprayRoundState {
-  id?: string;
-  roundNumber: number; // 1, 2, 3...
-  actualVisitDate: string;
-  daysAfterSpray: string;
-  trackingResult: string;
-  additionalNotes: string;
-  afterSprayImages: Type14ImageState[];
-  originalProducts: Type14ActualProductState[]; // Group A per round
-  supplementalProducts: Type14ActualProductState[]; // Group B per round
-  actualOnlyProducts: Type14ActualProductState[]; // Group C per round
-}
+export type {
+  Type14ActualProductState,
+  Type14ImageState,
+  Type14SprayRoundState,
+};
 
 function createDefaultRound(
   roundNumber: number,

@@ -23,57 +23,15 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Type14PlanInput } from "../../../application/validations";
+import type { Type14PlanInput } from "../shared/types";
 import { getHattackPlotContextAction } from "../../../server/actions";
+import type {
+  FormattedProduct,
+  FormattedFollowUpRound,
+  Type14DetailProps,
+} from "./types";
 
-function formatThaiDate(d?: string | Date | null) {
-  if (!d) return "-";
-  const date = new Date(d);
-  if (isNaN(date.getTime())) return "-";
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear() + 543;
-  return `${day}/${month}/${year}`;
-}
-
-export interface FormattedProduct {
-  productId: string;
-  productName: string;
-  withdrawnQuantity: number | null;
-  quantityUsed: number | string;
-  unit: string;
-  actualRate: string;
-  detail: string;
-  sourceGroup: "ORIGINAL" | "SUPPLEMENTAL" | "ACTUAL_ONLY";
-}
-
-export interface FormattedFollowUpRound {
-  id?: string;
-  roundNumber: number;
-  visitDate: any;
-  daysSinceStart: number;
-  productResponse: string;
-  notes: string;
-  groupA: FormattedProduct[];
-  groupB: FormattedProduct[];
-  groupC: FormattedProduct[];
-  attachments: Array<{
-    id?: string;
-    fileUrl: string;
-    fileName?: string;
-    fileSize?: number;
-    mimeType?: string;
-  }>;
-}
-
-export interface Type14DetailProps {
-  data: Type14PlanInput;
-  planSummary?: {
-    province?: string | null;
-    district?: string | null;
-  };
-  plan?: any;
-}
+export type { FormattedProduct, FormattedFollowUpRound, Type14DetailProps };
 
 export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);

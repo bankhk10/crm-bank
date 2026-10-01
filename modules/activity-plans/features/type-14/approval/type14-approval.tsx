@@ -15,15 +15,10 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { Type14PlanInput } from "../../../application/validations";
+import type { Type14PlanInput } from "../shared/types";
+import type { Type14ApprovalProps } from "./types";
 
-export interface Type14ApprovalProps {
-  data: Type14PlanInput;
-  planSummary?: {
-    province?: string | null;
-    district?: string | null;
-  };
-}
+export type { Type14ApprovalProps };
 
 export function Type14Approval({ data, planSummary }: Type14ApprovalProps) {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
