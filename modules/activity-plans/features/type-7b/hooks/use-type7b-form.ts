@@ -4,7 +4,9 @@ import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 import type {
   Type7DemoPlotItem,
   Type7DemoProductLine,
-} from "@/modules/activity-plans/features/shared/form/types";
+} from "../shared/types";
+import { validateType7bFormItems } from "../create/validation";
+
 
 export interface UseType7bFormOptions {
   initial?: any;
@@ -297,22 +299,12 @@ export function useType7bForm({
   };
 
   const validateType7b = (): { isValid: boolean; error?: string } => {
-    const hasType7BSelected = selectedWorkTypes.some(
-      (t) => getWorkTypeCode(t) === "TYPE_7B",
-    );
-    if (!hasType7BSelected) {
-      return { isValid: true };
-    }
-
-    if (type7bItems.length === 0) {
-      return {
-        isValid: false,
-        error: "กรุณาเพิ่มรายการติดตามแปลงสาธิตอย่างน้อย 1 รายการ",
-      };
-    }
-
-    return { isValid: true };
+    return validateType7bFormItems({
+      items: type7bItems,
+      selectedWorkTypes,
+    });
   };
+
 
   const mapType7bPayload = (products: any[]) => {
     const hasType7BPlan = selectedWorkTypes.some(

@@ -55,127 +55,13 @@ import {
 } from "@/modules/activity-plans/features/actual-view/utils";
 import { isType7bCompletedFollowUpVisit } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
-export interface DemoPlotVisitHistoryItem {
-  id: string;
-  visitNumber: number;
-  visitDate: string | Date;
-  daysSinceStart: number;
-  cropAgeValue?: number | null;
-  cropAgeUnit?: string | null;
-  growthStage?: string | null;
-  cropCondition?: string | null;
-  cropProblemDesc?: string | null;
-  productResponse?: string | null;
-  productProblemDesc?: string | null;
-  usageMethod?: string | null;
-  sprayMethod?: string | null;
-  sprayEquipment?: string | null;
-  otherEquipment?: string | null;
-  totalVisitCost?: number | null;
-  notes?: string | null;
-  cropImageUrls?: string[];
-  plotImageUrls?: string[];
-  imageUrls?: string[];
-  activityPlan?: {
-    code?: string;
-    title?: string;
-  };
-}
+import type {
+  DemoPlotVisitHistoryItem,
+  ActualType7FollowUpProps,
+} from "./types";
 
-export interface ActualType7FollowUpProps {
-  planType?: "PLANNED" | "UNPLANNED" | string;
-  target: {
-    activityType?: string;
-    owner: string;
-    product: string;
-    crop: string;
-    plots: string;
-    targetCondition?: string;
-    demoProductQuantity?: string | number | null;
-    objective?: string;
-    experimentDetail?: string;
-    detail?: string;
-    followUpObjective?: string;
-    demoProducts?: Array<{
-      productId: string;
-      productName: string;
-      quantity?: number | string | null;
-      unit?: string | null;
-    }>;
-  };
-  plotName: string;
-  usageMethod: string;
-  setUsageMethod: (v: string) => void;
+export type { DemoPlotVisitHistoryItem, ActualType7FollowUpProps };
 
-  // Section A: Tracking
-  actualStartDate?: string;
-  setActualStartDate?: (v: string) => void;
-  daysAfterSpray?: string | number;
-  setDaysAfterSpray?: (v: string) => void;
-  cropImages?: ImageFile[];
-  setCropImages?: (imgs: ImageFile[]) => void;
-
-  // Section B: Multiple Spraying Rounds
-  t7bSprayingRounds?: Type7bSprayingRoundItem[];
-  setT7bSprayingRounds?: (rounds: Type7bSprayingRoundItem[]) => void;
-
-  // Backward compatibility / shared props
-  productResponse?: string;
-  setProductResponse?: (v: any) => void;
-  problemDescription?: string;
-  setProblemDescription?: (v: string) => void;
-  bProductRates?: Type7bProductRateItem[];
-  setBProductRates?: (items: Type7bProductRateItem[]) => void;
-  sprayMethod?: "SINGLE" | "TANK_MIXED";
-  setSprayMethod?: (v: "SINGLE" | "TANK_MIXED") => void;
-  hasExternalChemicals?: boolean;
-  setHasExternalChemicals?: (v: boolean) => void;
-  externalProducts?: DemoPlotExternalProductItem[];
-  setExternalProducts?: (items: DemoPlotExternalProductItem[]) => void;
-  sprayEquipment?: string;
-  setSprayEquipment?: (v: string) => void;
-  otherEquipment?: string;
-  setOtherEquipment?: (v: string) => void;
-  nextSprayDate?: string;
-  setNextSprayDate?: (v: string) => void;
-  nextFollowUpDate?: string;
-  setNextFollowUpDate?: (v: string) => void;
-  plotImages?: ImageFile[];
-  setPlotImages?: (imgs: ImageFile[]) => void;
-
-  cropAgeValue?: string;
-  setCropAgeValue?: (v: string) => void;
-  cropAgeUnit?: string;
-  setCropAgeUnit?: (v: string) => void;
-  growthStage?: string;
-  setGrowthStage?: (v: string) => void;
-  cropCondition?: string;
-  setCropCondition?: (v: any) => void;
-  cropProblemDesc?: string;
-  setCropProblemDesc?: (v: string) => void;
-  cropProblemDescription?: string;
-  setCropProblemDescription?: (v: string) => void;
-
-  // Final evaluation
-  plotStatus?: DemoPlotStatus;
-  setPlotStatus?: (v: any) => void;
-  finalYieldKg?: string;
-  setFinalYieldKg?: (v: string) => void;
-  controlYieldKg?: string;
-  setControlYieldKg?: (v: string) => void;
-  yieldIncreasePercent?: string;
-  setYieldIncreasePercent?: (v: string) => void;
-  farmerSatisfaction?: number;
-  setFarmerSatisfaction?: (v: number) => void;
-  commercialPotential?: string;
-  setCommercialPotential?: (v: string) => void;
-  finalSummaryNotes?: string;
-  setFinalSummaryNotes?: (v: string) => void;
-
-  demoPlotData?: any;
-  visitHistory?: DemoPlotVisitHistoryItem[];
-  startDate?: string;
-}
 
 export function ActualType7FollowUp({
   planType,

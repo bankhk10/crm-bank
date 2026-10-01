@@ -33,13 +33,8 @@ export type { Type6IssueItem } from "@/modules/activity-plans/features/type-6/sh
 
 export type PlotActivityType = "CREATE" | "FOLLOW_UP";
 
-export interface Type7DemoProductLine {
-  id: string;
-  productId?: string;
-  productName: string;
-  quantity: number;
-  unit?: string;
-}
+export type { Type7DemoProductLine } from "@/modules/activity-plans/features/type-7a/shared/types";
+export type { Type7bWithdrawnProductLine } from "@/modules/activity-plans/features/type-7b/shared/types";
 
 export interface Type7DemoPlotItem {
   id: string;
@@ -83,14 +78,6 @@ export interface Type7DemoPlotItem {
   plotImages?: string[];
 }
 
-export interface Type7bWithdrawnProductLine {
-  id: string;
-  productId: string;
-  productName: string;
-  quantity: number;
-  unit?: string;
-  notes?: string;
-}
 
 export type Type8MeetingTarget = "FARMER" | "DEALER" | "SUBDEALER";
 export type Type8FarmerChannel = "DEALER" | "SUBDEALER";

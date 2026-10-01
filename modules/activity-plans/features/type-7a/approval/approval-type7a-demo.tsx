@@ -5,10 +5,10 @@ import { Sprout } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
 
-export interface ApprovalType7aDemoProps {
-  isVisible: boolean;
-  target: ActualTargetsState["t7"] | any;
-}
+import type { ApprovalType7aDemoProps } from "../actual/types";
+
+export type { ApprovalType7aDemoProps };
+
 
 export function ApprovalType7aDemo({
   isVisible,

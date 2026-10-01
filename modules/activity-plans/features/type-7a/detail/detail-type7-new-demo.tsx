@@ -25,72 +25,13 @@ import { DemoPlotHistoryModal } from "@/modules/activity-plans/features/actual-v
 import { getDemoPlotHistoryAction } from "@/modules/activity-plans/server/actions";
 import { isType7bCompletedFollowUpVisit } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
-export interface DemoResultItemData {
-  id?: string;
-  plannedProductId?: string | null;
-  actualProductId?: string | null;
-  changeReason?: string | null;
-  plotObjective?: string | null;
-  plannedProduct?: {
-    id: string;
-    name: string;
-    productCode?: string | null;
-    unit?: string | null;
-    packageSizeUnit?: string | null;
-  } | null;
-  actualProduct?: {
-    id: string;
-    name: string;
-    productCode?: string | null;
-    unit?: string | null;
-    packageSizeUnit?: string | null;
-  } | null;
-  demoPlotId?: string | null;
-}
+import type {
+  DetailType7NewDemoProps,
+  DemoResultItemData,
+} from "../actual/types";
 
-export interface DetailType7NewDemoProps {
-  target: {
-    activityType?: "CREATE" | "FOLLOW_UP" | string;
-    owner: string;
-    product: string;
-    crop: string;
-    plots: string;
-    targetCondition?: string;
-    demoProductQuantity?: string | number | null;
-    objective?: string;
-    experimentDetail?: string;
-    detail?: string;
-    items?: any[];
-    demoProducts?: Array<{
-      productId: string;
-      productName?: string | null;
-      quantity?: number | string | null;
-      unit?: string | null;
-    }>;
-  };
-  demoResults?: DemoResultItemData[];
-  plannedProductId?: string | null;
-  actualProductId?: string | null;
-  actualQuantity?: string | number | null;
-  plannedProductName?: string | null;
-  actualProductName?: string | null;
-  changeReason?: string | null;
-  plotObjective?: string;
-  customPlotDetail?: string | null;
-  demoPlotId?: string | null;
-  plotName?: string;
-  usageMethod?: string;
-  cropAgeValue?: string | number | null;
-  cropAgeUnit?: string | null;
-  growthStage?: string | null;
-  experimentDetail?: string | null;
-  notes?: string | null;
-  plantingDate?: string;
-  plantingAreaCondition?: string;
-  cropImages?: ImageFile[];
-  plotImages?: ImageFile[];
-  demoPlotData?: any;
-}
+export type { DetailType7NewDemoProps, DemoResultItemData };
+
 
 export function DetailType7NewDemo({
   target,

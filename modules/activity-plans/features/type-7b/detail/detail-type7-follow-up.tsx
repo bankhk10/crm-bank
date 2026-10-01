@@ -30,59 +30,10 @@ import {
 } from "@/components/custom/image-lightbox-modal";
 import { isType7bCompletedFollowUpVisit } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
-export interface DetailType7FollowUpProps {
-  target: {
-    activityType?: "CREATE" | "FOLLOW_UP" | string;
-    owner: string;
-    product: string;
-    crop: string;
-    plots: string;
-    targetCondition?: string;
-    demoProductQuantity?: string | number | null;
-    objective?: string;
-    experimentDetail?: string;
-    detail?: string;
-    followUpObjective?: string;
-    items?: any[];
-  };
-  plotName?: string;
-  usageMethod?: string;
-  cropAgeValue?: string;
-  cropAgeUnit?: string;
-  growthStage?: string;
-  cropCondition?: "สมบูรณ์" | "มีปัญหา" | "ปานกลาง" | "ทรุดโทรม" | "";
-  cropProblemDescription?: string;
-  productResponse?: "พืชตอบสนองดี" | "พบปัญหา" | "";
-  problemDescription?: string;
-  plotStatus?: "IN_PROGRESS" | "COMPLETED" | "FAILED";
-  nextFollowUpDate?: string;
-  finalYieldKg?: string;
-  controlYieldKg?: string;
-  yieldIncreasePercent?: string;
-  farmerSatisfaction?: number;
-  commercialPotential?: string;
-  finalSummaryNotes?: string;
-  cropImages?: ImageFile[];
-  plotImages?: ImageFile[];
-  visitHistory?: any[];
-  demoPlotData?: any;
-  visitDate?: string;
-  daysAfterSpray?: string | number;
-  sprayMethod?: "SINGLE" | "TANK_MIXED" | string;
-  sprayEquipment?: string;
-  otherEquipment?: string;
-  nextSprayDate?: string;
-  demoResults?: Array<{
-    productId?: string;
-    productName?: string;
-    plannedQty?: number;
-    actualQty?: number;
-    applicationRate?: string;
-    unit?: string;
-  }>;
-  externalProducts?: any[];
-  sprayRounds?: any[];
-}
+import type { DetailType7FollowUpProps } from "../actual/types";
+
+export type { DetailType7FollowUpProps };
+
 
 export function DetailType7FollowUp({
   target,

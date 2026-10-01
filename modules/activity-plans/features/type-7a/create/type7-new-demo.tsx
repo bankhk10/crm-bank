@@ -10,56 +10,23 @@ import type {
 } from "@/modules/activity-plans/features/form/types";
 import { CROPS_BY_CATEGORY } from "@/modules/activity-plans/constants";
 
-export interface CustomerOption {
-  id: string;
-  name: string;
-  customerCode?: string | null;
-  customerType?: string | null;
-  province?: string | null;
-  district?: string | null;
-  responsibleEmployeeId?: string | null;
-}
+import { ActivityInput } from "@/components/activity/activity-input";
+import type {
+  CustomerOption,
+  ProductOption,
+  ProductCategoryOption,
+  ChemicalGroupOption,
+} from "../shared/types";
+import type { Type7NewDemoProps } from "./types";
 
-export interface ProductOption {
-  id: string;
-  name: string;
-  productCode?: string | null;
-  categoryId?: string | null;
-  productGroupId?: string | null;
-  price?: number | null;
-  unit?: string | null;
-}
+export type {
+  CustomerOption,
+  ProductOption,
+  ProductCategoryOption,
+  ChemicalGroupOption,
+  Type7NewDemoProps,
+};
 
-export interface ProductCategoryOption {
-  id: string;
-  code: string;
-  description: string;
-  name?: string;
-}
-
-export interface ChemicalGroupOption {
-  id: string;
-  code: string;
-  name: string;
-  description?: string | null;
-}
-
-interface Type7NewDemoProps {
-  item: Type7DemoPlotItem;
-  updateType7Row: (
-    id: string,
-    field: keyof Type7DemoPlotItem,
-    val: any,
-  ) => void;
-  customerOptions?: Array<{ value: string; label: string; subLabel?: string }>;
-  productOptions?: Array<{ value: string; label: string; subLabel?: string }>;
-  cropCategoryOptions: Array<{ value: string; label: string }>;
-  customers?: CustomerOption[];
-  products?: ProductOption[];
-  productCategories?: ProductCategoryOption[];
-  chemicalGroups?: ChemicalGroupOption[];
-  readonly?: boolean;
-}
 
 export function Type7NewDemo({
   item,
