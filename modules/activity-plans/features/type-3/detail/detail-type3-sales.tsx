@@ -5,41 +5,13 @@ import { ShoppingBag, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 
-export interface TargetProductItem {
-  id?: string;
-  productId?: string;
-  productName: string;
-  customer?: string;
-  isSubDealer?: boolean;
-  subDealerStore?: string;
-  dealerName?: string;
-  qty: string;
-  detail?: string;
-  notes?: string;
-  unit?: string;
-  unitPrice?: string;
-  price?: string;
-  targetSales?: string;
-  actualQty?: string;
-  actualSales?: string;
-  unclosedReason?: string;
-  isAdditional?: boolean;
-}
+import type {
+  TargetProductItem,
+  Type3ProductSaleDetail,
+  DetailType3SalesProps,
+} from "../actual/types";
 
-export interface Type3ProductSaleDetail {
-  id?: string;
-  productId?: string;
-  productName: string;
-  customer?: string;
-  storeId?: string;
-  qty?: string;
-  unitPrice?: string;
-  price?: string;
-  actualQty?: string;
-  actualSales?: string;
-  unclosedReason?: string;
-  isAdditional?: boolean;
-}
+export type { TargetProductItem, Type3ProductSaleDetail, DetailType3SalesProps };
 
 function parseProductQty(
   actualQuantityText: string | undefined,
@@ -77,27 +49,6 @@ function parseProductReason(
     return unclosedReasonText.trim();
   }
   return "";
-}
-
-interface DetailType3SalesProps {
-  isVisible: boolean;
-  target: {
-    product: string;
-    customer: string;
-    isSubDealer?: boolean;
-    subDealerStore?: string;
-    dealerName?: string;
-    targetQty: string;
-    targetSales?: string;
-    unitPrice?: string;
-    detail?: string;
-    items?: TargetProductItem[];
-  };
-  soldProducts?: string;
-  actualSales?: string;
-  actualQuantity?: string;
-  unclosedReason?: string;
-  productSalesDetails?: Type3ProductSaleDetail[];
 }
 
 export function DetailType3Sales({

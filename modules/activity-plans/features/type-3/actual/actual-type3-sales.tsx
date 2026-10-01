@@ -18,41 +18,13 @@ import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actua
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import { listProductsAction } from "@/modules/products/server/actions";
 
-export interface TargetProductItem {
-  id?: string;
-  productId?: string;
-  productName: string;
-  customer?: string;
-  storeId?: string;
-  isSubDealer?: boolean;
-  subDealerStore?: string;
-  dealerName?: string;
-  qty?: string;
-  unitPrice?: string;
-  detail?: string;
-  notes?: string;
-  unit?: string;
-  price?: string;
-  actualQty?: string;
-  actualSales?: string;
-  unclosedReason?: string;
-  isAdditional?: boolean;
-}
+import type {
+  TargetProductItem,
+  Type3ProductSaleDetail,
+  ActualType3SalesProps,
+} from "./types";
 
-export interface Type3ProductSaleDetail {
-  id?: string;
-  productId?: string;
-  productName: string;
-  customer?: string;
-  storeId?: string;
-  qty?: string;
-  unitPrice?: string;
-  price?: string;
-  actualQty?: string;
-  actualSales?: string;
-  unclosedReason?: string;
-  isAdditional?: boolean;
-}
+export type { TargetProductItem, Type3ProductSaleDetail, ActualType3SalesProps };
 
 function extractUnit(qtyStr?: string): string {
   if (!qtyStr) return "ชิ้น";
@@ -96,34 +68,6 @@ function parseProductReason(
     return unclosedReasonText.trim();
   }
   return "";
-}
-
-interface ActualType3SalesProps {
-  isVisible: boolean;
-  planType?: "PLANNED" | "UNPLANNED" | string;
-  target?: {
-    product?: string;
-    customer?: string;
-    targetQty?: string;
-    targetSales?: string;
-    unitPrice?: string;
-    detail?: string;
-    isSubDealer?: boolean;
-    subDealerStore?: string;
-    dealerName?: string;
-    items?: TargetProductItem[];
-  };
-  products?: Array<{ id: string; name: string; productCode?: string | null }>;
-  soldProducts: string;
-  setSoldProducts: (v: string) => void;
-  actualSales: string;
-  setActualSales: (v: string) => void;
-  actualQuantity: string;
-  setActualQuantity: (v: string) => void;
-  unclosedReason: string;
-  setUnclosedReason: (v: string) => void;
-  productSalesDetails?: Type3ProductSaleDetail[];
-  setProductSalesDetails?: (v: Type3ProductSaleDetail[]) => void;
 }
 
 export function ActualType3Sales({

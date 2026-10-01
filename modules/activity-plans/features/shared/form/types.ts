@@ -19,35 +19,10 @@ export type { Type1VisitItem } from "@/modules/activity-plans/features/type-1/sh
 
 export type { Type2ProductFollowupItem } from "@/modules/activity-plans/features/type-2/shared/types";
 
-export interface Type3SalesProductLine {
-  id: string;
-  productId?: string;
-  productName: string;
-  quantity: number;
-  notes?: string;
-  unitPrice?: number;
-  masterPrice?: number;
-  isPriceOverridden?: boolean;
-  price?: number;
-}
-
-export interface Type3SalesItem {
-  id: string;
-  isSubDealer?: boolean;
-  subDealerStore?: string;
-  storeId?: string;
-  customerName: string;
-  products?: Type3SalesProductLine[];
-  productId?: string;
-  productName?: string;
-  quantity?: number;
-  notes?: string;
-  unitPrice?: number;
-  masterPrice?: number;
-  isPriceOverridden?: boolean;
-  price?: number;
-  detail?: string;
-}
+export type {
+  Type3SalesProductLine,
+  Type3SalesItem,
+} from "@/modules/activity-plans/features/type-3/shared/types";
 
 export interface Type4CollectItem {
   id: string;

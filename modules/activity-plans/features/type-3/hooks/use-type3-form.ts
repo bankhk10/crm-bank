@@ -6,7 +6,8 @@ import {
 import type {
   Type3SalesItem,
   Type3SalesProductLine,
-} from "@/modules/activity-plans/features/shared/form/types";
+} from "../shared/types";
+import { validateType3FormItems } from "../create/validation";
 
 export interface UseType3FormOptions {
   initial?: any;
@@ -266,7 +267,11 @@ export function useType3Form({
   };
 
   const validateType3 = () => {
-    return { isValid: true };
+    return validateType3FormItems({
+      items: type3Items,
+      customersList,
+      selectedWorkTypes,
+    });
   };
 
   const mapType3Payload = (customers: any[], products: any[]) => {

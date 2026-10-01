@@ -1,36 +1,20 @@
+"use client";
+
 import React from "react";
-import { ShoppingCart, Plus, Trash2, Store } from "lucide-react";
+import { ShoppingCart, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ActivityInput } from "@/components/activity/activity-input";
 import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
-import type { Type3SalesItem, Type3SalesProductLine } from "@/modules/activity-plans/features/shared/form/types";
+import type {
+  Type3SalesItem,
+  Type3SalesProductLine,
+  CustomerOption,
+  ProductOption,
+} from "../shared/types";
+import type { Type3SalesProps } from "./types";
 
-export interface CustomerOption {
-  id: string;
-  name: string;
-  customerCode?: string | null;
-  customerType?: string | null;
-  responsibleEmployeeId?: string | null;
-  parentDealerId?: string | null;
-}
-
-export interface ProductOption {
-  id: string;
-  name: string;
-  productCode?: string | null;
-  price?: number | null;
-  unit?: string | null;
-}
-
-interface Props {
-  readonly?: boolean;
-  type3Items: Type3SalesItem[];
-  addType3Row: () => void;
-  updateType3Row: (id: string, field: keyof Type3SalesItem, val: any) => void;
-  deleteType3Row: (id: string) => void;
-  customers?: CustomerOption[];
-  products?: ProductOption[];
-}
+export type { CustomerOption, ProductOption };
 
 export function Type3Sales({
   readonly = false,
@@ -40,7 +24,7 @@ export function Type3Sales({
   deleteType3Row,
   customers = [],
   products = [],
-}: Props) {
+}: Type3SalesProps) {
   // Filter only DEALER customer types from Customer Master
   const dealerCustomers = (customers || []).filter(
     (c) =>
@@ -228,7 +212,7 @@ export function Type3Sales({
                     <button
                       type="button"
                       onClick={() => deleteType3Row(item.id)}
-                      className="p-1 rounded-md text-red-500 hover:bg-red-50 text-xs font-medium flex items-center gap-1 transition-colors"
+                      className="p-1 rounded-md text-red-500 hover:bg-red-50 text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       <span>ลบรายการ</span>
@@ -242,7 +226,7 @@ export function Type3Sales({
                     ประเภทลูกค้า / ร้านค้า <span className="text-red-500">*</span>
                   </label>
                   <div className="flex items-center gap-4">
-                    <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer select-none">
                       <input
                         type="radio"
                         name={`customer-type-${item.id}`}
@@ -252,12 +236,12 @@ export function Type3Sales({
                           updateType3Row(item.id, "subDealerStore", "");
                         }}
                         disabled={readonly}
-                        className="text-emerald-600 focus:ring-emerald-500 h-4 w-4"
+                        className="text-emerald-600 focus:ring-emerald-500 h-4 w-4 cursor-pointer"
                       />
                       <span>Dealer (ร้านค้าหลัก)</span>
                     </label>
 
-                    <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer select-none">
                       <input
                         type="radio"
                         name={`customer-type-${item.id}`}
@@ -266,7 +250,7 @@ export function Type3Sales({
                           updateType3Row(item.id, "isSubDealer", true);
                         }}
                         disabled={readonly}
-                        className="text-emerald-600 focus:ring-emerald-500 h-4 w-4"
+                        className="text-emerald-600 focus:ring-emerald-500 h-4 w-4 cursor-pointer"
                       />
                       <span>Subdealer (ร้านค้าย่อย)</span>
                     </label>
@@ -280,7 +264,7 @@ export function Type3Sales({
                     <FormCombobox
                       id={`customer-combobox-${item.id}`}
                       label="ชื่อร้านค้า (Dealer)"
-                      labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                      labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                       triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                       value={item.customerName}
                       onChange={(val) => {
@@ -304,10 +288,10 @@ export function Type3Sales({
                   /* Case SUBDEALER: Input Subdealer name + Select Parent Dealer */
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-amber-50/40 rounded-xl border border-amber-200/70">
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
                         ชื่อร้าน Subdealer <span className="text-red-500">*</span>
                       </label>
-                      <input
+                      <ActivityInput
                         type="text"
                         value={item.subDealerStore || ""}
                         onChange={(e) =>
@@ -315,7 +299,7 @@ export function Type3Sales({
                         }
                         disabled={readonly}
                         placeholder="ระบุชื่อร้านค้า Subdealer..."
-                        className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder:text-slate-400"
+                        required
                       />
                     </div>
 
@@ -323,7 +307,7 @@ export function Type3Sales({
                       <FormCombobox
                         id={`parent-dealer-combobox-${item.id}`}
                         label="Dealer ต้นสังกัด"
-                        labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                        labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                         triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                         value={item.customerName}
                         onChange={(val) => {
@@ -358,7 +342,7 @@ export function Type3Sales({
                         size="sm"
                         variant="outline"
                         onClick={() => addProductLine(item.id)}
-                        className="h-7 text-xs px-2.5 border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 shadow-sm"
+                        className="h-7 text-xs px-2.5 border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 shadow-sm cursor-pointer"
                       >
                         <Plus className="h-3 w-3 mr-1 text-emerald-600" />
                         เพิ่มสินค้า
@@ -376,8 +360,8 @@ export function Type3Sales({
                         <div className="md:col-span-5">
                           <FormCombobox
                             id={`product-combobox-${item.id}-${prodLine.id}`}
-                            label={pIdx === 0 ? "สินค้า" : "สินค้า"}
-                            labelClassName="block text-[11px] font-medium text-slate-600 mb-1 mx-0"
+                            label="สินค้า"
+                            labelClassName="block text-[11px] font-semibold text-slate-600 mb-1 mx-0"
                             triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                             value={prodLine.productName}
                             onChange={(val) =>
@@ -399,12 +383,10 @@ export function Type3Sales({
 
                         {/* Quantity */}
                         <div className="md:col-span-2">
-                          {pIdx === 0 && (
-                            <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                              จำนวน <span className="text-red-500">*</span>
-                            </label>
-                          )}
-                          <input
+                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                            จำนวน <span className="text-red-500">*</span>
+                          </label>
+                          <ActivityInput
                             type="number"
                             min={1}
                             value={prodLine.quantity}
@@ -417,18 +399,17 @@ export function Type3Sales({
                               )
                             }
                             disabled={readonly}
-                            className="w-full h-9 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-white"
+                            className="text-center font-medium"
+                            required
                           />
                         </div>
 
-                        {/* Detail / Notes (แทนที่ช่องราคาเดิม) */}
+                        {/* Detail / Notes */}
                         <div className="md:col-span-4">
-                          {pIdx === 0 && (
-                            <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                              รายละเอียด
-                            </label>
-                          )}
-                          <input
+                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                            รายละเอียด
+                          </label>
+                          <ActivityInput
                             type="text"
                             value={prodLine.notes || ""}
                             onChange={(e) =>
@@ -441,7 +422,6 @@ export function Type3Sales({
                             }
                             disabled={readonly}
                             placeholder="ระบุข้อเสนอหรือรายละเอียดสินค้า..."
-                            className="w-full h-9 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white placeholder:text-slate-400"
                           />
                         </div>
 
@@ -463,7 +443,7 @@ export function Type3Sales({
                                 "h-9 w-9 rounded-lg flex items-center justify-center transition-colors",
                                 prodListLines.length <= 1
                                   ? "text-slate-300 cursor-not-allowed"
-                                  : "text-red-500 hover:bg-red-50 hover:text-red-600",
+                                  : "text-red-500 hover:bg-red-50 hover:text-red-600 cursor-pointer",
                               )}
                             >
                               <Trash2 className="h-4 w-4" />
