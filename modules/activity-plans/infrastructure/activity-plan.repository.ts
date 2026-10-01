@@ -3604,6 +3604,7 @@ export async function findApprovalQueueData() {
     ActivityStatus.PENDING_LINE_APPROVAL,
     ActivityStatus.PENDING_BUDGET_APPROVAL,
     ActivityStatus.PENDING_HELPER_APPROVAL,
+    ActivityStatus.PENDING_REVIEW,
   ];
 
   const fullPlanInclude = {
@@ -3741,6 +3742,8 @@ export async function findApprovalQueueData() {
             ActivityStatus.APPROVED,
             ActivityStatus.REJECTED,
             ActivityStatus.WAITING_FOR_CORRECTION,
+            ActivityStatus.REVIEWED,
+            ActivityStatus.RETURNED,
           ],
         },
       },

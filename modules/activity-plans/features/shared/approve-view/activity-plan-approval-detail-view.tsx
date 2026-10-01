@@ -515,6 +515,15 @@ export default function ActivityPlanApprovalDetailView({
 
           {/* Right: Plan No + Status Badge */}
           <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            {plan.planType === "UNPLANNED" ? (
+              <Badge className="bg-amber-100/80 text-amber-900 border-amber-300 hover:bg-amber-100 font-semibold px-3 py-1 rounded-full shadow-2xs">
+                กิจกรรมนอกแผน
+              </Badge>
+            ) : (
+              <Badge className="bg-emerald-100/80 text-emerald-900 border-emerald-300 hover:bg-emerald-100 font-semibold px-3 py-1 rounded-full shadow-2xs">
+                กิจกรรมตามแผน
+              </Badge>
+            )}
             {(plan.code || planSummary.planNo) && (
               <div className="inline-flex items-center gap-1.5 bg-white/90 border border-blue-200/80 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs backdrop-blur-xs">
                 <Info className="w-3.5 h-3.5 shrink-0 text-blue-500" />

@@ -64,6 +64,21 @@ export function DetailHeader({ plan, canEdit }: DetailHeaderProps) {
             {plan.title}
           </h1>
           <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+            {plan.planType === "UNPLANNED" ? (
+              <Badge
+                variant="outline"
+                className="text-[11px] bg-amber-50 text-amber-800 border-amber-300 font-semibold"
+              >
+                กิจกรรมนอกแผน
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className="text-[11px] bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold"
+              >
+                กิจกรรมตามแผน
+              </Badge>
+            )}
             {displayActivityTypeName && (
               <Badge
                 variant="outline"
@@ -100,7 +115,13 @@ export function DetailHeader({ plan, canEdit }: DetailHeaderProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => router.push(`/activity-plans/${plan.id}/edit`)}
+              onClick={() =>
+                router.push(
+                  plan.planType === "UNPLANNED"
+                    ? `/activity-plans/unplanned/${plan.id}/edit`
+                    : `/activity-plans/${plan.id}/edit`,
+                )
+              }
               className="text-xs font-semibold gap-1.5 border-slate-300"
             >
               <Edit className="h-3.5 w-3.5" />
@@ -108,7 +129,7 @@ export function DetailHeader({ plan, canEdit }: DetailHeaderProps) {
             </Button>
           )}
 
-          {plan.status === "APPROVED" && !isTourOnly && (plan as any).planType !== "UNPLANNED" && (
+          {plan.status === "APPROVED" && !isTourOnly && plan.planType !== "UNPLANNED" && (
             <Button
               size="sm"
               onClick={() => router.push(`/activity-plans/${plan.id}/actual`)}

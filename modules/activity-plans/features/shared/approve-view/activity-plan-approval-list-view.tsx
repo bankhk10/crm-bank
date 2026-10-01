@@ -105,6 +105,7 @@ export default function ActivityPlanApprovalListView() {
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("ALL");
+  const [planTypeFilter, setPlanTypeFilter] = useState<"ALL" | "PLANNED" | "UNPLANNED">("ALL");
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
   // UI-only state for mobile filter sheet
@@ -259,8 +260,13 @@ export default function ActivityPlanApprovalListView() {
       });
     }
 
+    // Apply Plan Type Filter (Planned / Unplanned)
+    if (planTypeFilter !== "ALL") {
+      source = source.filter((p) => (p.planType || "PLANNED") === planTypeFilter);
+    }
+
     return source;
-  }, [mainTab, plansSubTab, pendingPlans, myPendingPlans, historyPlans, searchQuery, typeFilter]);
+  }, [mainTab, plansSubTab, pendingPlans, myPendingPlans, historyPlans, searchQuery, typeFilter, planTypeFilter]);
 
   const handleOpenActionDialog = (
     plan: ActivityPlanWithRelations,
@@ -271,10 +277,11 @@ export default function ActivityPlanApprovalListView() {
     setActionDialogOpen(true);
   };
 
-  const hasActiveFilter = typeFilter !== "ALL";
+  const hasActiveFilter = typeFilter !== "ALL" || planTypeFilter !== "ALL";
 
   const clearFilters = () => {
     setTypeFilter("ALL");
+    setPlanTypeFilter("ALL");
     setSearchQuery("");
   };
 
@@ -557,6 +564,48 @@ export default function ActivityPlanApprovalListView() {
         <span className="text-slate-500 font-medium shrink-0 mr-1 text-xs">
           ประเภท:
         </span>
+        {/* Plan Type (Planned / Unplanned) Filter Pills */}
+        <div className="flex items-center bg-slate-100 p-0.5 rounded-lg shrink-0 mr-1 border border-slate-200">
+          <button
+            type="button"
+            onClick={() => setPlanTypeFilter("ALL")}
+            className={cn(
+              "px-2 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer",
+              planTypeFilter === "ALL"
+                ? "bg-white text-slate-900 shadow-2xs"
+                : "text-slate-500 hover:text-slate-800",
+            )}
+          >
+            แผนงานทั้งหมด
+          </button>
+          <button
+            type="button"
+            onClick={() => setPlanTypeFilter("PLANNED")}
+            className={cn(
+              "px-2 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer",
+              planTypeFilter === "PLANNED"
+                ? "bg-blue-600 text-white shadow-2xs"
+                : "text-slate-500 hover:text-slate-800",
+            )}
+          >
+            ตามแผน
+          </button>
+          <button
+            type="button"
+            onClick={() => setPlanTypeFilter("UNPLANNED")}
+            className={cn(
+              "px-2 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer",
+              planTypeFilter === "UNPLANNED"
+                ? "bg-purple-600 text-white shadow-2xs"
+                : "text-slate-500 hover:text-slate-800",
+            )}
+          >
+            นอกแผน
+          </button>
+        </div>
+
+        <div className="h-4 w-px bg-slate-200 shrink-0 mx-0.5 hidden sm:block" />
+
         <button
           onClick={() => setTypeFilter("ALL")}
           className={cn(
@@ -604,40 +653,84 @@ export default function ActivityPlanApprovalListView() {
               เลือกประเภทกิจกรรมเพื่อกรองรายการ
             </SheetDescription>
           </SheetHeader>
-          <div className="py-4 space-y-3">
-            <p className="text-xs font-semibold text-slate-700">ประเภทกิจกรรม</p>
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                onClick={() => {
-                  setTypeFilter("ALL");
-                  setFilterSheetOpen(false);
-                }}
-                className={cn(
-                  "px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer",
-                  typeFilter === "ALL"
-                    ? "bg-slate-900 text-white"
-                    : "bg-slate-100 text-slate-600",
-                )}
-              >
-                ทั้งหมด
-              </button>
-              {activityTypes.map((t) => (
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-slate-700">รูปแบบกิจกรรม</p>
+              <div className="grid grid-cols-3 gap-1.5">
                 <button
-                  key={t.id || t.code}
-                  onClick={() => {
-                    setTypeFilter(t.code || t.name);
-                    setFilterSheetOpen(false);
-                  }}
+                  type="button"
+                  onClick={() => setPlanTypeFilter("ALL")}
                   className={cn(
-                    "px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer",
-                    typeFilter === (t.code || t.name)
+                    "px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer text-center",
+                    planTypeFilter === "ALL"
                       ? "bg-slate-900 text-white"
                       : "bg-slate-100 text-slate-600",
                   )}
                 >
-                  {t.name}
+                  ทั้งหมด
                 </button>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => setPlanTypeFilter("PLANNED")}
+                  className={cn(
+                    "px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer text-center",
+                    planTypeFilter === "PLANNED"
+                      ? "bg-blue-600 text-white"
+                      : "bg-slate-100 text-slate-600",
+                  )}
+                >
+                  ตามแผน
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPlanTypeFilter("UNPLANNED")}
+                  className={cn(
+                    "px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer text-center",
+                    planTypeFilter === "UNPLANNED"
+                      ? "bg-purple-600 text-white"
+                      : "bg-slate-100 text-slate-600",
+                  )}
+                >
+                  นอกแผน
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <p className="text-xs font-semibold text-slate-700">ประเภทกิจกรรม</p>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  onClick={() => {
+                    setTypeFilter("ALL");
+                    setFilterSheetOpen(false);
+                  }}
+                  className={cn(
+                    "px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer",
+                    typeFilter === "ALL"
+                      ? "bg-slate-900 text-white"
+                      : "bg-slate-100 text-slate-600",
+                  )}
+                >
+                  ทั้งหมด
+                </button>
+                {activityTypes.map((t) => (
+                  <button
+                    key={t.id || t.code}
+                    onClick={() => {
+                      setTypeFilter(t.code || t.name);
+                      setFilterSheetOpen(false);
+                    }}
+                    className={cn(
+                      "px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer",
+                      typeFilter === (t.code || t.name)
+                        ? "bg-slate-900 text-white"
+                        : "bg-slate-100 text-slate-600",
+                    )}
+                  >
+                    {t.name}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </SheetContent>

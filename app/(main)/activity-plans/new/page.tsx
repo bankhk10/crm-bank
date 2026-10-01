@@ -1,5 +1,5 @@
-import { ActivityPlanCreateView } from "@/modules/activity-plans";
+import { PlannedCreateView } from "@/modules/activity-plans";
 
 export default function NewActivityPlanPage() {
-  return <ActivityPlanCreateView />;
+  return <PlannedCreateView />;
 }

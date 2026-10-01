@@ -1,5 +1,5 @@
 import { use } from "react";
-import { ActivityPlanEditView } from "@/modules/activity-plans";
+import { PlannedEditView } from "@/modules/activity-plans";
 
 export default function ActivityPlanEditPage({
   params,
@@ -7,5 +7,5 @@ export default function ActivityPlanEditPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  return <ActivityPlanEditView id={id} />;
+  return <PlannedEditView id={id} />;
 }

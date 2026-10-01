@@ -502,7 +502,8 @@ export async function submitActivityPlanUseCase(
 
     if (
       plan.status !== ActivityStatus.DRAFT &&
-      plan.status !== ActivityStatus.WAITING_FOR_CORRECTION
+      plan.status !== ActivityStatus.WAITING_FOR_CORRECTION &&
+      plan.status !== ActivityStatus.RETURNED
     ) {
       return {
         success: false,
@@ -537,6 +538,44 @@ export async function submitActivityPlanUseCase(
     }
 
     const creator = plan.employee;
+
+    // Unplanned Activity: Directly transitions to PENDING_REVIEW (Post-Activity Review)
+    if (plan.planType === ActivityPlanType.UNPLANNED) {
+      const reviewerId = (await resolveNextLineApprover(creator, tx)) || creator.managerId || null;
+
+      await tx.activityPlan.update({
+        where: { id: planId },
+        data: {
+          status: ActivityStatus.PENDING_REVIEW,
+          currentApproverEmployeeId: reviewerId,
+          submittedAt: new Date(),
+        },
+      });
+
+      await tx.activityApprovalLog.create({
+        data: {
+          activityPlanId: planId,
+          userId,
+          action: ActivityApprovalAction.SUBMIT,
+          step: ActivityApprovalStep.POST_ACTIVITY_REVIEW,
+          comment: "ส่งกิจกรรมนอกแผนเพื่อรอการตรวจสอบผลการปฏิบัติงาน",
+        },
+      });
+
+      if (reviewerId) {
+        await sendNotificationToEmployee(
+          reviewerId,
+          "กิจกรรมนอกแผนรอการตรวจสอบ",
+          `กิจกรรมนอกแผน "${plan.title}" โดย ${plan.employee.name} รอคุณตรวจสอบผลการปฏิบัติงาน`,
+          "INFO",
+          `/activity-plans/approvals/${plan.id}`,
+          tx,
+        );
+      }
+
+      return { success: true };
+    }
+
     const isTerminalCreator = isTerminalLineManager(creator);
 
     if (isTerminalCreator) {
@@ -665,6 +704,69 @@ export async function approveActivityPlanUseCase(
     const isCurrentLineApprover =
       plan.status === ActivityStatus.PENDING_LINE_APPROVAL &&
       (isAdmin || plan.currentApproverEmployeeId === approverEmployee?.id);
+
+    // ────────────────────────────────────────────────────────
+    // Step 0: Post-Activity Review (Unplanned Activity)
+    // ────────────────────────────────────────────────────────
+    if (plan.status === ActivityStatus.PENDING_REVIEW) {
+      const isEligibleReviewer =
+        isAdmin ||
+        plan.currentApproverEmployeeId === approverEmployee?.id ||
+        (approverEmployee && approverEmployee.id === plan.employee?.managerId);
+
+      if (!isEligibleReviewer) {
+        return {
+          success: false,
+          error: "คุณไม่มีสิทธิ์ตรวจสอบผลการปฏิบัติงานนอกแผนนี้",
+        };
+      }
+
+      // If drug withdrawal exists, approve it as well
+      if (plan.drugWithdrawal) {
+        await tx.drugWithdrawal.update({
+          where: { id: plan.drugWithdrawal.id },
+          data: {
+            status: DrugWithdrawalStatus.APPROVED,
+          },
+        });
+      }
+
+      // Transition to REVIEWED
+      await tx.activityPlan.update({
+        where: { id: planId },
+        data: {
+          status: ActivityStatus.REVIEWED,
+          currentApproverEmployeeId: null,
+          approvedAt: new Date(),
+        },
+      });
+
+      await tx.activityApprovalLog.create({
+        data: {
+          activityPlanId: planId,
+          userId,
+          action: ActivityApprovalAction.APPROVE,
+          step: ActivityApprovalStep.POST_ACTIVITY_REVIEW,
+          comment:
+            comment ||
+            (isAdmin
+              ? "ตรวจสอบผลการปฏิบัติงานเรียบร้อยแล้ว (Administrator)"
+              : "ตรวจสอบผลการปฏิบัติงานเรียบร้อยแล้ว"),
+        },
+      });
+
+      // Notify Creator
+      await sendNotificationHelper(
+        plan.employee.userId,
+        "ผลการปฏิบัติงานนอกแผนได้รับการตรวจสอบแล้ว",
+        `กิจกรรมนอกแผน "${plan.title}" ได้รับการตรวจสอบผลการปฏิบัติงานเรียบร้อยแล้ว`,
+        "SUCCESS",
+        `/activity-plans/${plan.id}`,
+        tx,
+      );
+
+      return { success: true };
+    }
 
     // ────────────────────────────────────────────────────────
     // Step 2a: Intermediate Line Approval (e.g. Salesperson, Area Manager)
@@ -1148,6 +1250,13 @@ export async function rejectActivityPlanUseCase(
           isMarketingManager(approverEmployee);
       }
       step = ActivityApprovalStep.HELPER_APPROVAL;
+    } else if (plan.status === ActivityStatus.PENDING_REVIEW) {
+      if (!isAdmin) {
+        hasAuthority =
+          plan.currentApproverEmployeeId === approverEmployee?.id ||
+          (approverEmployee && approverEmployee.id === plan.employee?.managerId);
+      }
+      step = ActivityApprovalStep.POST_ACTIVITY_REVIEW;
     }
 
     if (!hasAuthority)
@@ -1280,6 +1389,13 @@ export async function requestCorrectionPlanUseCase(
           }
         }
       }
+    } else if (plan.status === ActivityStatus.PENDING_REVIEW) {
+      if (!isAdmin) {
+        hasAuthority =
+          plan.currentApproverEmployeeId === approverEmployee?.id ||
+          (approverEmployee && approverEmployee.id === plan.employee?.managerId);
+      }
+      step = ActivityApprovalStep.POST_ACTIVITY_REVIEW;
     }
 
     if (!hasAuthority)
@@ -1288,11 +1404,16 @@ export async function requestCorrectionPlanUseCase(
         error: "คุณไม่มีสิทธิ์ส่งตีกลับแผนกิจกรรมนี้ในขั้นตอนนี้",
       };
 
-    // Reset status back to WAITING_FOR_CORRECTION
+    // Reset status back to WAITING_FOR_CORRECTION or RETURNED for Unplanned
+    const targetStatus =
+      plan.planType === ActivityPlanType.UNPLANNED
+        ? ActivityStatus.RETURNED
+        : ActivityStatus.WAITING_FOR_CORRECTION;
+
     await tx.activityPlan.update({
       where: { id: planId },
       data: {
-        status: ActivityStatus.WAITING_FOR_CORRECTION,
+        status: targetStatus,
         currentApproverEmployeeId: null,
         salesPromotionApproved:
           plan.salesPromotionBudgetRequested &&
@@ -1332,13 +1453,18 @@ export async function requestCorrectionPlanUseCase(
       },
     });
 
+    const editUrl =
+      plan.planType === ActivityPlanType.UNPLANNED
+        ? `/activity-plans/unplanned/${plan.id}/edit`
+        : `/activity-plans/${plan.id}/edit`;
+
     // Notify Creator
     await sendNotificationHelper(
       plan.employee.userId,
       "แผนกิจกรรมถูกส่งกลับให้แก้ไข",
       `แผนกิจกรรม "${plan.title}" ถูกตีกลับส่งแก้ไข: "${comment}"`,
       "WARNING",
-      `/activity-plans/${plan.id}/edit`,
+      editUrl,
       tx,
     );
 
