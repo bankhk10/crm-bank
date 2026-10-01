@@ -1,5 +1,6 @@
 import { useState } from "react";
-import type { Type1VisitItem } from "@/modules/activity-plans/features/shared/form/types";
+import type { Type1VisitItem } from "../shared/types";
+import { validateType1FormItem } from "../create/validation";
 
 export interface UseType1FormOptions {
   initial?: any;
@@ -181,53 +182,11 @@ export function useType1Form({
   };
 
   const validateType1 = () => {
-    const isSelected =
-      selectedWorkTypes.includes("เข้าพบเกษตรกร") ||
-      selectedWorkTypes.includes("เข้าพบร้านค้า / Key Farmer");
-
-    if (!isSelected) return { isValid: true };
-
-    const item = type1Items[0];
-    const purpose = item?.visitPurpose === "STORE" ? "STORE" : "FARMER";
-
-    if (purpose === "STORE") {
-      const sId =
-        item?.storeId ||
-        customersList.find((c) => c.name === item?.customerName)?.id;
-      if (!sId) {
-        return { isValid: false, error: "กรุณาเลือกร้านค้า" };
-      }
-    } else {
-      // purpose === "FARMER"
-      if (!item || !item.province?.trim()) {
-        return { isValid: false, error: "กรุณาเลือกจังหวัดสำหรับเข้าพบเกษตรกร" };
-      }
-      if (item.isUnregisteredFarmer) {
-        if (!item.unregisteredFarmerName?.trim()) {
-          return { isValid: false, error: "กรุณากรอกชื่อ - สกุล เกษตรกร" };
-        }
-        if (item.unregisteredFarmerPhone?.trim()) {
-          const cleanedPhone = item.unregisteredFarmerPhone.replace(
-            /[-\s]/g,
-            "",
-          );
-          if (!/^\d{9,10}$/.test(cleanedPhone)) {
-            return {
-              isValid: false,
-              error: "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก",
-            };
-          }
-        }
-      } else {
-        const sId =
-          item.storeId ||
-          customersList.find((c) => c.name === item.customerName)?.id;
-        if (!sId) {
-          return { isValid: false, error: "กรุณาเลือกเกษตรกร" };
-        }
-      }
-    }
-    return { isValid: true };
+    return validateType1FormItem({
+      item: type1Items[0],
+      customersList,
+      selectedWorkTypes,
+    });
   };
 
   const mapType1Payload = (customers: any[]) => {

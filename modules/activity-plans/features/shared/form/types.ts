@@ -15,18 +15,7 @@ export interface Type9ProductItem {
   pricePerCase: number;
 }
 
-export interface Type1VisitItem {
-  id: string;
-  visitPurpose?: "FARMER" | "STORE";
-  province?: string;
-  isUnregisteredFarmer?: boolean;
-  storeId?: string;
-  customerName?: string;
-  unregisteredFarmerName?: string;
-  unregisteredFarmerPhone?: string;
-  topic: string;
-  detail: string;
-}
+export type { Type1VisitItem } from "@/modules/activity-plans/features/type-1/shared/types";
 
 export interface Type2ProductFollowupItem {
   id: string;

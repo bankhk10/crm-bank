@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import {
   Prisma,
+  ActivityPlanType,
   ActivityStatus,
   ActivityHelperStatus,
   ActivityApprovalAction,

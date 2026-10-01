@@ -2,29 +2,13 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { Users, Store, UserCheck } from "lucide-react";
+import { ActivityInput } from "@/components/activity/activity-input";
 import { FormCombobox } from "@/components/custom/form-components";
 import { ALL_THAI_PROVINCES } from "@/lib/province-region-mapping";
-import type { Type1VisitItem } from "@/modules/activity-plans/features/shared/form/types";
+import type { Type1VisitItem, CustomerOption } from "../shared/types";
+import type { Type1VisitProps } from "./types";
 
-export interface CustomerOption {
-  id: string;
-  name: string;
-  customerCode?: string | null;
-  customerType?: string;
-  province?: string | null;
-  district?: string | null;
-  phone?: string | null;
-  responsibleEmployeeId?: string | null;
-}
-
-interface Props {
-  readonly?: boolean;
-  type1Items: Type1VisitItem[];
-  addType1Row?: () => void;
-  updateType1Row: (id: string, field: keyof Type1VisitItem, val: any) => void;
-  deleteType1Row?: (id: string) => void;
-  customers?: CustomerOption[];
-}
+export type { CustomerOption };
 
 const VISIT_TOPICS = [
   "แจ้งข่าวสาร",
@@ -40,7 +24,7 @@ export function Type1Visit({
   type1Items,
   updateType1Row,
   customers = [],
-}: Props) {
+}: Type1VisitProps) {
   // 1 Plan : 1 Target rule for TYPE_1
   const item = type1Items[0] || {
     id: "1",
@@ -395,7 +379,7 @@ export function Type1Visit({
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     ชื่อ - สกุล เกษตรกร <span className="text-rose-500">*</span>
                   </label>
-                  <input
+                  <ActivityInput
                     type="text"
                     value={item.unregisteredFarmerName || ""}
                     onChange={(e) =>
@@ -407,7 +391,6 @@ export function Type1Visit({
                     }
                     disabled={readonly}
                     placeholder="ระบุชื่อ - สกุล เกษตรกร..."
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
                     required
                   />
                 </div>
@@ -416,8 +399,8 @@ export function Type1Visit({
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     เบอร์โทรศัพท์
                   </label>
-                  <input
-                    type="tel"
+                  <ActivityInput
+                    type="number"
                     value={item.unregisteredFarmerPhone || ""}
                     onChange={(e) =>
                       updateType1Row(
@@ -429,7 +412,6 @@ export function Type1Visit({
                     disabled={readonly}
                     placeholder="เช่น 0812345678"
                     maxLength={12}
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
                   />
                 </div>
               </div>
@@ -495,7 +477,7 @@ export function Type1Visit({
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               รายละเอียดเพิ่มเติม
             </label>
-            <input
+            <ActivityInput
               type="text"
               value={item.detail}
               onChange={(e) =>
@@ -503,7 +485,6 @@ export function Type1Visit({
               }
               disabled={readonly}
               placeholder="ระบุรายละเอียดเพิ่มเติมการเข้าพบ..."
-              className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
             />
           </div>
         </div>
