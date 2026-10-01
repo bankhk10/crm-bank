@@ -34,20 +34,10 @@ import { FormCombobox } from "@/components/custom/form-components";
 import { EXTERNAL_CHEMICAL_FORMULAS } from "../../../constants";
 import type {
   useType13ActualState,
-  Type13PlotActualState,
 } from "./use-type13-actual-state";
+import type { Type13PlotActualState, Type13ActualProps } from "./types";
 
-export interface Type13ActualProps {
-  isVisible?: boolean;
-  actualState: ReturnType<typeof useType13ActualState>;
-  products: Array<{
-    id: string;
-    name: string;
-    unit?: string | null;
-    productCode?: string | null;
-  }>;
-  readonly?: boolean;
-}
+export type { Type13ActualProps };
 
 const SPRAY_EQUIPMENT_OPTIONS = [
   { value: "เครื่องยนต์พ่นยา", label: "เครื่องยนต์พ่นยา" },

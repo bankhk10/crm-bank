@@ -1,4 +1,6 @@
 import { useState } from "react";
+import type { Type12TourDataPayload } from "../shared/types";
+import { validateType12FormValues } from "../create/validation";
 
 export interface UseType12FormOptions {
   initial?: any;
@@ -20,13 +22,7 @@ export interface UseType12FormResult {
   setType12Destination: React.Dispatch<React.SetStateAction<string>>;
   validateType12: () => { isValid: boolean; error?: string };
   mapType12Payload: (customers: any[]) => {
-    tourData: {
-      tourType: "STORE" | "CENTRAL";
-      tourSize: "LARGE" | "SMALL" | null;
-      country: string | null;
-      storeId: string | null;
-      destination: string | null;
-    } | null;
+    tourData: Type12TourDataPayload | null;
   };
 }
 
@@ -136,28 +132,14 @@ export function useType12Form({
   });
 
   const validateType12 = (): { isValid: boolean; error?: string } => {
-    if (!selectedWorkTypes.includes("ทัวร์")) {
-      return { isValid: true };
-    }
-    if (!type12TourType) {
-      return { isValid: false, error: "กรุณาเลือกประเภททัวร์" };
-    }
-    if (type12TourType === "ทัวร์กลาง") {
-      if (!type12TourSize) {
-        return { isValid: false, error: "กรุณาเลือกขนาดทัวร์" };
-      }
-      if (!type12Country.trim()) {
-        return { isValid: false, error: "กรุณากรอกชื่อประเทศ" };
-      }
-    } else if (type12TourType === "ทัวร์ร้านค้า") {
-      if (!type12Store.trim()) {
-        return { isValid: false, error: "กรุณาเลือกร้านค้า" };
-      }
-      if (!type12Destination.trim()) {
-        return { isValid: false, error: "กรุณากรอกสถานที่จะไป" };
-      }
-    }
-    return { isValid: true };
+    return validateType12FormValues({
+      selectedWorkTypes,
+      type12TourType,
+      type12TourSize,
+      type12Country,
+      type12Store,
+      type12Destination,
+    });
   };
 
   const mapType12Payload = (customers: any[]) => {

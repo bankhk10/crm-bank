@@ -14,60 +14,10 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Type13PlotItem } from "../../../application/validations";
+import type { Type13PlotItem } from "../shared/types";
+import type { Type13DetailProps } from "./types";
 
-export interface Type13DetailProps {
-  plots: Type13PlotItem[];
-  planSummary?: {
-    province?: string | null;
-    district?: string | null;
-  };
-  actualData?: {
-    type13PlotsActual?: Array<{ demoPlotId: string; latitude: any; longitude: any }>;
-    sprayRounds?: Array<{
-      demoPlotId: string;
-      roundNumber: number;
-      sprayDate: any;
-      sprayMethod: string;
-      sprayEquipment: string;
-      otherEquipment?: string | null;
-      productResponse: string;
-      problemDetail?: string | null;
-      products: Array<{
-        productId: string;
-        productName?: string | null;
-        actualRate: string;
-        quantityUsed: any;
-        unit?: string | null;
-        drugWithdrawalItemId?: string | null;
-        drugWithdrawalItem?: {
-          id: string;
-          quantity: any;
-          unit?: string | null;
-        } | null;
-        detail?: string | null;
-      }>;
-      externalProducts?: Array<{
-        company: string;
-        productName: string;
-        activeIngredient?: string | null;
-        formula: string;
-        customFormula?: string | null;
-        applicationRate: string;
-      }>;
-      attachments?: Array<{
-        fileUrl: string;
-        fileName?: string;
-      }>;
-    }>;
-    attachments?: Array<{
-      demoPlotId?: string | null;
-      sprayRoundId?: string | null;
-      fileUrl: string;
-      fileName?: string;
-    }>;
-  };
-}
+export type { Type13DetailProps };
 
 export function Type13Detail({ plots = [], planSummary, actualData }: Type13DetailProps) {
   const [activePlotIdx, setActivePlotIdx] = useState(0);

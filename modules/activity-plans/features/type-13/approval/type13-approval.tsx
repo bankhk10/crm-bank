@@ -2,15 +2,10 @@
 
 import React from "react";
 import { Layers, MapPin, Package } from "lucide-react";
-import type { Type13PlotItem } from "../../../application/validations";
+import type { Type13PlotItem } from "../shared/types";
+import type { Type13ApprovalProps } from "./types";
 
-export interface Type13ApprovalProps {
-  plots: Type13PlotItem[];
-  planSummary?: {
-    province?: string | null;
-    district?: string | null;
-  };
-}
+export type { Type13ApprovalProps };
 
 export function Type13Approval({ plots = [], planSummary }: Type13ApprovalProps) {
   if (!plots || plots.length === 0) {

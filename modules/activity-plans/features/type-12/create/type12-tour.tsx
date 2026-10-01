@@ -7,27 +7,11 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { STORES_LIST } from "@/modules/activity-plans/constants";
 
-export interface CustomerOption {
-  id: string;
-  name: string;
-  customerCode?: string | null;
-  responsibleEmployeeId?: string | null;
-}
+import type { CustomerOption } from "../shared/types";
+import type { Type12TourProps } from "./types";
 
-interface Props {
-  readonly?: boolean;
-  type12TourType: string;
-  setType12TourType: (val: string) => void;
-  type12TourSize: string;
-  setType12TourSize: (val: string) => void;
-  type12Country: string;
-  setType12Country: (val: string) => void;
-  type12Store: string;
-  setType12Store: (val: string) => void;
-  type12Destination: string;
-  setType12Destination: (val: string) => void;
-  customers?: CustomerOption[];
-}
+export type { CustomerOption, Type12TourProps };
+export type Props = Type12TourProps;
 
 export function Type12Tour({
   readonly = false,

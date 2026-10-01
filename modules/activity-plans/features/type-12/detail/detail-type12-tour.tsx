@@ -5,14 +5,9 @@ import { Plane, Building2, Globe2, MapPin, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-interface DetailType12TourProps {
-  isVisible: boolean;
-  tourType?: "ทัวร์กลาง" | "ทัวร์ร้านค้า" | "CENTRAL" | "STORE" | string | null;
-  tourSize?: "ทัวร์เล็ก" | "ทัวร์ใหญ่" | "SMALL" | "LARGE" | string | null;
-  country?: string | null;
-  storeName?: string | null;
-  destination?: string | null;
-}
+import type { DetailType12TourProps } from "./types";
+
+export type { DetailType12TourProps };
 
 export function DetailType12Tour({
   isVisible,

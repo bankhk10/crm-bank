@@ -5,15 +5,10 @@ import { Plus, Trash2, MapPin, Package, Store, AlertCircle, Info, Layers, Pill }
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormCombobox } from "@/components/custom/form-components";
-import type { Type13PlotItem, Type13WithdrawalItem } from "../../../application/validations";
+import type { Type13PlotItem, Type13WithdrawalItem, DealerOption, ProductOption } from "../shared/types";
+import type { Type13CreateProps } from "./types";
 
-export interface Type13CreateProps {
-  plots: Type13PlotItem[];
-  onChange: (plots: Type13PlotItem[]) => void;
-  dealers: Array<{ id: string; name: string; customerType?: string; province?: string | null; district?: string | null }>;
-  products: Array<{ id: string; name: string; unit?: string | null; productCode?: string | null; price?: number | null; categoryId?: string | null }>;
-  readonly?: boolean;
-}
+export type { Type13CreateProps };
 
 export function Type13Create({
   plots,
