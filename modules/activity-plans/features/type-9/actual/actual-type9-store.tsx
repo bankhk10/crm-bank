@@ -13,55 +13,17 @@ import {
   isImageFilesEqual,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
-export interface Type9TargetProductItem {
-  id?: string;
-  productId?: string;
-  storeId?: string | null;
-  productName: string;
-  quantityCases?: number;
-  pricePerCase?: number;
-  totalAmount?: number;
-  actualQuantityCases?: number | string;
-  actualSales?: number | string;
-}
+import {
+  Type9TargetProductItem,
+  Type9ProductSaleDetail,
+  ActualType9StoreProps,
+} from "./types";
 
-export interface Type9ProductSaleDetail {
-  id?: string;
-  productId?: string;
-  storeId?: string | null;
-  productName: string;
-  pricePerCase?: number;
-  quantityCases?: number;
-  totalAmount?: number;
-  actualQuantityCases?: string;
-  actualSales?: string;
-}
-
-interface ActualType9StoreProps {
-  isVisible: boolean;
-  planType?: "PLANNED" | "UNPLANNED" | string;
-  target: {
-    store: string;
-    isSubDealer?: boolean;
-    subDealerStore?: string;
-    product?: string;
-    targetSales: string;
-    targetAttendees?: string;
-    items?: Type9TargetProductItem[];
-  };
-  formats?: string[];
-  setFormats?: (v: string[]) => void;
-  actualSales: string;
-  setActualSales: (v: string) => void;
-  productSalesDetails?: Type9ProductSaleDetail[];
-  setProductSalesDetails?: (v: Type9ProductSaleDetail[]) => void;
-  actualAttendees?: string;
-  setActualAttendees?: (v: string) => void;
-  images: ImageFile[];
-  setImages: (v: ImageFile[]) => void;
-  onUploadImages?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemoveImage?: (id: string) => void;
-}
+export type {
+  Type9TargetProductItem,
+  Type9ProductSaleDetail,
+  ActualType9StoreProps,
+};
 
 export function ActualType9Store({
   isVisible,

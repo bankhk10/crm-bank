@@ -3,78 +3,19 @@ import { Store, Package, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormCombobox } from "@/components/custom/form-components";
-import type { Type9ProductItem } from "@/modules/activity-plans/features/shared/form/types";
+import type {
+  Type9ProductItem,
+  CustomerOption,
+  ProductOption,
+} from "../shared/types";
+import type { Type9StoreProps } from "./types";
 
-export interface CustomerOption {
-  id: string;
-  name: string;
-  customerCode?: string | null;
-  customerType?: string | null;
-  phone?: string | null;
-  province?: string | null;
-  district?: string | null;
-  subdistrict?: string | null;
-  addressLine?: string | null;
-  postalCode?: string | null;
-  parentDealerId?: string | null;
-  parentDealer?: {
-    id: string;
-    customerCode?: string | null;
-    name: string;
-  } | null;
-  responsibleEmployeeId?: string | null;
-  [key: string]: any;
-}
-
-export interface ProductOption {
-  id: string;
-  name: string;
-  productCode?: string | null;
-  price?: number | null;
-  unit?: string | null;
-}
-
-interface Props {
-  readonly?: boolean;
-  // Sub Dealer state & handlers
-  subdealerId?: string;
-  setSubdealerId?: (val: string) => void;
-  subdealerName?: string;
-  setSubdealerName?: (val: string) => void;
-  isUnregisteredSubdealer?: boolean;
-  setIsUnregisteredSubdealer?: (val: boolean) => void;
-  subDealerStore?: string;
-  setSubDealerStore?: (val: string) => void;
-  province?: string;
-  setProvince?: (val: string) => void;
-  district?: string;
-  setDistrict?: (val: string) => void;
-  parentDealerId?: string;
-  setParentDealerId?: (val: string) => void;
-  parentDealerName?: string;
-  setParentDealerName?: (val: string) => void;
-
-  // Backward compatibility
-  type9Store?: string;
-  setType9Store?: (val: string) => void;
-  isSubDealer?: boolean;
-  setIsSubDealer?: (val: boolean) => void;
-
-  // Sales & products
-  type9Sales: number;
-  setType9Sales: (val: number) => void;
-  type9ProductItems: Type9ProductItem[];
-  addType9ProductItem: () => void;
-  updateType9ProductItem: (
-    id: string,
-    field: keyof Type9ProductItem,
-    val: any,
-  ) => void;
-  deleteType9ProductItem: (id: string) => void;
-
-  customers?: CustomerOption[];
-  products?: ProductOption[];
-}
+export type {
+  CustomerOption,
+  ProductOption,
+  Type9StoreProps,
+  Type9StoreProps as Props,
+};
 
 export function Type9Store({
   readonly = false,
@@ -106,7 +47,7 @@ export function Type9Store({
   deleteType9ProductItem,
   customers = [],
   products = [],
-}: Props) {
+}: Type9StoreProps) {
   // Local fallback state if not passed from hook
   const [internalIsUnregistered, setInternalIsUnregistered] = useState(false);
   const [internalSubdealerId, setInternalSubdealerId] = useState("");

@@ -9,39 +9,17 @@ import {
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 
-export interface Type9TargetProductItem {
-  id?: string;
-  productName: string;
-  quantityCases?: number;
-  pricePerCase?: number;
-  totalAmount?: number;
-  actualQuantityCases?: number | string;
-  actualSales?: number | string;
-}
+import {
+  Type9TargetProductItem,
+  Type9ProductSaleDetail,
+  DetailType9StoreProps,
+} from "../actual/types";
 
-export interface Type9ProductSaleDetail {
-  id?: string;
-  productName: string;
-  actualQuantityCases?: string;
-  actualSales?: string;
-}
-
-interface DetailType9StoreProps {
-  isVisible: boolean;
-  target: {
-    store: string;
-    isSubDealer?: boolean;
-    subDealerStore?: string;
-    product?: string;
-    targetSales: string;
-    targetAttendees?: string;
-    items?: Type9TargetProductItem[];
-  };
-  actualSales?: string;
-  actualAttendees?: string;
-  productSalesDetails?: Type9ProductSaleDetail[];
-  images?: ImageFile[];
-}
+export type {
+  Type9TargetProductItem,
+  Type9ProductSaleDetail,
+  DetailType9StoreProps,
+};
 
 export function DetailType9Store({
   isVisible,

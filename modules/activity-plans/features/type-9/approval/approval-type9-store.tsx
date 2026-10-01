@@ -3,12 +3,9 @@
 import React from "react";
 import { Store } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type { ApprovalType9StoreProps } from "../actual/types";
 
-interface ApprovalType9StoreProps {
-  isVisible: boolean;
-  target: ActualTargetsState["t9"];
-}
+export type { ApprovalType9StoreProps };
 
 export function ApprovalType9Store({
   isVisible,

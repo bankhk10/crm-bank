@@ -7,13 +7,7 @@ export interface RequisitionItem {
   detail: string;
 }
 
-export interface Type9ProductItem {
-  id: string;
-  productId?: string;
-  productName: string;
-  quantityCases: number;
-  pricePerCase: number;
-}
+export type { Type9ProductItem } from "@/modules/activity-plans/features/type-9/shared/types";
 
 export type { Type1VisitItem } from "@/modules/activity-plans/features/type-1/shared/types";
 

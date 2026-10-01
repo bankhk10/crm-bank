@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { isFieldDayItem, DEMO_PRODUCT_PRICES } from "@/modules/activity-plans/constants";
-import type { Type9ProductItem } from "@/modules/activity-plans/features/shared/form/types";
+import type { Type9ProductItem } from "../shared/types";
+import { validateType9FormItems } from "../create/validation";
 
 export interface UseType9FormOptions {
   initial?: any;
@@ -349,39 +350,14 @@ export function useType9Form({
   };
 
   const validateType9 = (): { isValid: boolean; error?: string } => {
-    if (!selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")) {
-      return { isValid: true };
-    }
-
-    if (isUnregisteredSubdealer) {
-      if (!subDealerStore || !subDealerStore.trim()) {
-        return {
-          isValid: false,
-          error: "กรุณากรอกชื่อร้านค้า Sub Dealer",
-        };
-      }
-      if (!subDealerProvince || !subDealerProvince.trim()) {
-        return {
-          isValid: false,
-          error: "กรุณาเลือกจังหวัดของร้านค้า Sub Dealer",
-        };
-      }
-      if (!subDealerDistrict || !subDealerDistrict.trim()) {
-        return {
-          isValid: false,
-          error: "กรุณาเลือกอำเภอของร้านค้า Sub Dealer",
-        };
-      }
-    } else {
-      if (!subdealerId) {
-        return {
-          isValid: false,
-          error: "กรุณาเลือกร้านค้า Sub Dealer จาก Customer Master",
-        };
-      }
-    }
-
-    return { isValid: true };
+    return validateType9FormItems({
+      selectedWorkTypes,
+      isUnregisteredSubdealer,
+      subDealerStore,
+      subDealerProvince,
+      subDealerDistrict,
+      subdealerId,
+    });
   };
 
   const mapType9Payload = (customers: any[], products: any[]) => {
