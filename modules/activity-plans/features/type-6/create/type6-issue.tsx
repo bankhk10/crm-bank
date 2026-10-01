@@ -1,29 +1,15 @@
+"use client";
+
 import React from "react";
 import { HelpCircle, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ActivityInput } from "@/components/activity/activity-input";
 import { FormCombobox } from "@/components/custom/form-components";
-import type { Type6IssueItem } from "@/modules/activity-plans/features/shared/form/types";
-export interface CustomerOption {
-  id: string;
-  name: string;
-  customerCode?: string | null;
-  responsibleEmployeeId?: string | null;
-}
+import type { Type6IssueItem, CustomerOption } from "../shared/types";
+import { ISSUE_TYPES } from "../shared/types";
+import type { Type6IssueProps } from "./types";
 
-const ISSUE_TYPES = [
-  "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
-  "เกิดความเสียหายหลังการใช้สินค้า",
-  "อื่นๆ ระบุ",
-];
-
-interface Props {
-  readonly?: boolean;
-  type6Items: Type6IssueItem[];
-  addType6Row: () => void;
-  updateType6Row: (id: string, field: keyof Type6IssueItem, val: any) => void;
-  deleteType6Row: (id: string) => void;
-  customers?: CustomerOption[];
-}
+export type { CustomerOption };
 
 export function Type6Issue({
   readonly = false,
@@ -32,7 +18,7 @@ export function Type6Issue({
   updateType6Row,
   deleteType6Row,
   customers = [],
-}: Props) {
+}: Type6IssueProps) {
   const customerOptions = (customers || []).map((c) => ({
     value: c.name,
     label: c.name,
@@ -168,7 +154,7 @@ export function Type6Issue({
                       ชื่อลูกค้า / ร้านค้า{" "}
                       <span className="text-rose-500">*</span>
                     </label>
-                    <input
+                    <ActivityInput
                       type="text"
                       value={item.manualCustomerName || ""}
                       onChange={(e) =>
@@ -209,7 +195,7 @@ export function Type6Issue({
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
                       รายละเอียด <span className="text-rose-500">*</span>
                     </label>
-                    <input
+                    <ActivityInput
                       type="text"
                       value={item.detail || ""}
                       onChange={(e) =>

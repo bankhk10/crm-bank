@@ -28,15 +28,8 @@ export type { Type4CollectItem } from "@/modules/activity-plans/features/type-4/
 
 export type { Type5SurveyItem } from "@/modules/activity-plans/features/type-5/shared/types";
 
-export interface Type6IssueItem {
-  id: string;
-  storeId?: string | null;
-  customerName: string;
-  manualCustomerName?: string;
-  isManualCustomer?: boolean;
-  issueType: string;
-  detail: string;
-}
+export type { Type6IssueItem } from "@/modules/activity-plans/features/type-6/shared/types";
+
 
 export type PlotActivityType = "CREATE" | "FOLLOW_UP";
 

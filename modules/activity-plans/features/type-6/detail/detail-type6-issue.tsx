@@ -18,36 +18,15 @@ import { Badge } from "@/components/ui/badge";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 import {
   ImageFile,
-  Type6IssueRecord,
 } from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   ImageLightboxModal,
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
+import type { DetailType6IssueProps } from "../actual/types";
 
-export interface DetailType6IssueProps {
-  isVisible: boolean;
-  target: {
-    customer: string;
-    issueType: string;
-    detail: string;
-    targetStatus?: string;
-    items?: any[];
-  };
-  issueRecord?: Type6IssueRecord;
-  productName?: string;
-  lotNumber?: string;
-  purchaseChannel?: string;
-  storeName?: string;
-  issueType?: string;
-  detail?: string;
-  status?: "เสร็จสิ้น" | "รอติดตาม" | string;
-  images?: ImageFile[];
+export type { DetailType6IssueProps };
 
-  // Legacy fallback props
-  problemDetail?: string;
-  initialSolution?: string;
-}
 
 export function DetailType6Issue({
   isVisible,

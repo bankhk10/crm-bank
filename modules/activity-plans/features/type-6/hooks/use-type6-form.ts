@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { isFieldDayItem, getWorkTypeCode } from "@/modules/activity-plans/constants";
-import type { Type6IssueItem } from "@/modules/activity-plans/features/shared/form/types";
+import type { Type6IssueItem } from "../shared/types";
+import { validateType6FormItems } from "../create/validation";
 
 export interface UseType6FormOptions {
   initial?: any;
@@ -160,60 +161,11 @@ export function useType6Form({
   };
 
   const validateType6 = (): { isValid: boolean; error?: string } => {
-    const hasType6 = selectedWorkTypes.some(
-      (t) => getWorkTypeCode(t) === "TYPE_6",
-    );
-    if (!hasType6) {
-      return { isValid: true };
-    }
-    if (type6Items.length === 0) {
-      return {
-        isValid: false,
-        error: "กรุณาเพิ่มรายการตรวจสอบเรื่องร้องเรียน / แก้ปัญหาอย่างน้อย 1 รายการ",
-      };
-    }
-    for (let i = 0; i < type6Items.length; i++) {
-      const item = type6Items[i];
-      const rowNum = i + 1;
-      if (item.isManualCustomer) {
-        const manualName = (
-          item.manualCustomerName ||
-          item.customerName ||
-          ""
-        ).trim();
-        if (!manualName) {
-          return {
-            isValid: false,
-            error: `กรุณากรอกชื่อลูกค้า / ร้านค้า (รายการที่ ${rowNum})`,
-          };
-        }
-      } else {
-        const sId =
-          item.storeId ||
-          customersList.find((c) => c.name === item.customerName)?.id;
-        if (!sId) {
-          return {
-            isValid: false,
-            error: `กรุณาเลือกร้านค้า / Key Farmer (รายการที่ ${rowNum})`,
-          };
-        }
-      }
-
-      if (!item.issueType?.trim()) {
-        return {
-          isValid: false,
-          error: `กรุณาเลือกประเภทปัญหา (รายการที่ ${rowNum})`,
-        };
-      }
-
-      if (item.issueType === "อื่นๆ ระบุ" && !item.detail?.trim()) {
-        return {
-          isValid: false,
-          error: `กรุณากรอกรายละเอียดสำหรับประเภทปัญหา "อื่นๆ ระบุ" (รายการที่ ${rowNum})`,
-        };
-      }
-    }
-    return { isValid: true };
+    return validateType6FormItems({
+      items: type6Items,
+      customersList,
+      selectedWorkTypes,
+    });
   };
 
   const mapType6Payload = (customers: any[]) => {

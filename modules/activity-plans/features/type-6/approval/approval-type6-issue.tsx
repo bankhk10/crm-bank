@@ -18,28 +18,15 @@ import { Badge } from "@/components/ui/badge";
 import type {
   ActualTargetsState,
   ImageFile,
-  Type6IssueRecord,
 } from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   ImageLightboxModal,
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
+import type { ApprovalType6IssueProps } from "../actual/types";
 
-interface ApprovalType6IssueProps {
-  isVisible: boolean;
-  target: ActualTargetsState["t6"];
-  issueRecord?: Type6IssueRecord;
-  productName?: string;
-  lotNumber?: string;
-  purchaseChannel?: string;
-  storeName?: string;
-  issueType?: string;
-  detail?: string;
-  status?: "เสร็จสิ้น" | "รอติดตาม" | string;
-  images?: ImageFile[];
-  problemDetail?: string;
-  initialSolution?: string;
-}
+export type { ApprovalType6IssueProps };
+
 
 export function ApprovalType6Issue({
   isVisible,
