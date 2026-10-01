@@ -55,19 +55,25 @@ export function Type1Visit({
     detail: "",
   };
 
-  const currentPurpose: "FARMER" | "STORE" = item.visitPurpose === "STORE" ? "STORE" : "FARMER";
+  const currentPurpose: "FARMER" | "STORE" =
+    item.visitPurpose === "STORE" ? "STORE" : "FARMER";
   const currentProvince = item.province?.trim() || "";
 
   // Server-fetched options for Dealer/Subdealer and Farmer
-  const [storeOptionsFromApi, setStoreOptionsFromApi] = useState<CustomerOption[]>([]);
-  const [farmerOptionsFromApi, setFarmerOptionsFromApi] = useState<CustomerOption[]>([]);
+  const [storeOptionsFromApi, setStoreOptionsFromApi] = useState<
+    CustomerOption[]
+  >([]);
+  const [farmerOptionsFromApi, setFarmerOptionsFromApi] = useState<
+    CustomerOption[]
+  >([]);
 
   // Load Dealer & Subdealer options from server action
   useEffect(() => {
     let isMounted = true;
     async function loadStores() {
       try {
-        const { getDealerAndSubdealerCustomerOptionsAction } = await import("@/modules/activity-plans/server/actions");
+        const { getDealerAndSubdealerCustomerOptionsAction } =
+          await import("@/modules/activity-plans/server/actions");
         const res = await getDealerAndSubdealerCustomerOptionsAction();
         if (isMounted && res && res.success && res.stores) {
           setStoreOptionsFromApi(res.stores as CustomerOption[]);
@@ -91,7 +97,8 @@ export function Type1Visit({
     let isMounted = true;
     async function loadFarmers() {
       try {
-        const { getFarmerCustomerOptionsAction } = await import("@/modules/activity-plans/server/actions");
+        const { getFarmerCustomerOptionsAction } =
+          await import("@/modules/activity-plans/server/actions");
         const res = await getFarmerCustomerOptionsAction(currentProvince);
         if (isMounted && res && res.success && res.farmers) {
           setFarmerOptionsFromApi(res.farmers as CustomerOption[]);
@@ -201,8 +208,13 @@ export function Type1Visit({
     // Preserve selected store if already set
     if (item.storeId && !options.some((o) => o.value === item.storeId)) {
       const matched = (customers || []).find((c) => c.id === item.storeId);
-      if (matched && (matched.customerType === "DEALER" || matched.customerType === "SUBDEALER")) {
-        const typeLabel = matched.customerType === "DEALER" ? "ตัวแทนจำหน่าย" : "ร้านค้าย่อย";
+      if (
+        matched &&
+        (matched.customerType === "DEALER" ||
+          matched.customerType === "SUBDEALER")
+      ) {
+        const typeLabel =
+          matched.customerType === "DEALER" ? "ตัวแทนจำหน่าย" : "ร้านค้าย่อย";
         options.push({
           value: matched.id,
           label: `${matched.name} (${typeLabel})${matched.province ? ` - จ.${matched.province}` : ""}`,
@@ -248,7 +260,9 @@ export function Type1Visit({
           <span>เข้าพบร้านค้า / Key Farmer</span>
         </div>
         <span className="text-[11px] font-medium text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
-          {currentPurpose === "STORE" ? "1 แผน : 1 ร้านค้า" : "1 แผน : 1 เกษตรกร"}
+          {currentPurpose === "STORE"
+            ? "1 แผน : 1 ร้านค้า"
+            : "1 แผน : 1 เกษตรกร"}
         </span>
       </div>
 
@@ -325,7 +339,9 @@ export function Type1Visit({
                     triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100 disabled:text-slate-400"
                     value={item.storeId || ""}
                     onChange={(val) => {
-                      const opt = provinceFarmerOptions.find((o) => o.value === val);
+                      const opt = provinceFarmerOptions.find(
+                        (o) => o.value === val,
+                      );
                       updateType1Row(item.id, "storeId", val || undefined);
                       updateType1Row(
                         item.id,
@@ -368,10 +384,7 @@ export function Type1Visit({
                 htmlFor={`unregistered-farmer-toggle-${item.id}`}
                 className="text-xs font-medium text-slate-700 cursor-pointer select-none"
               >
-                ไม่มีเกษตรกรในระบบ{" "}
-                <span className="text-[11px] text-slate-500">
-                  (กรอกชื่อและเบอร์โทรศัพท์โดยไม่สร้าง Master Data)
-                </span>
+                ไม่มีเกษตรกรในระบบ
               </label>
             </div>
 
@@ -451,7 +464,8 @@ export function Type1Visit({
                 required
               />
               <p className="text-[11px] text-slate-500 mt-1">
-                อนุญาตเฉพาะลูกค้าประเภทตัวแทนจำหน่าย (DEALER) หรือร้านค้าย่อย (SUBDEALER) ในระบบเท่านั้น
+                อนุญาตเฉพาะลูกค้าประเภทตัวแทนจำหน่าย (DEALER) หรือร้านค้าย่อย
+                (SUBDEALER) ในระบบเท่านั้น
               </p>
             </div>
           </div>
