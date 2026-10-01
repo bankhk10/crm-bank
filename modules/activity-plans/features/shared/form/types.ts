@@ -24,14 +24,7 @@ export type {
   Type3SalesItem,
 } from "@/modules/activity-plans/features/type-3/shared/types";
 
-export interface Type4CollectItem {
-  id: string;
-  collectType?: "BILLING" | "COLLECT";
-  storeId?: string;
-  customerName: string;
-  collectAmount: number;
-  detail: string;
-}
+export type { Type4CollectItem } from "@/modules/activity-plans/features/type-4/shared/types";
 
 export interface Type5SurveyItem {
   id: string;

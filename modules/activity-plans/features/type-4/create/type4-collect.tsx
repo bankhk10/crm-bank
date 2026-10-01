@@ -3,24 +3,12 @@
 import React from "react";
 import { Receipt, Plus, Trash2, FileText, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ActivityInput } from "@/components/activity/activity-input";
 import { FormCombobox } from "@/components/custom/form-components";
-import type { Type4CollectItem } from "@/modules/activity-plans/features/shared/form/types";
+import type { Type4CollectItem, CustomerOption } from "../shared/types";
+import type { Type4CollectProps } from "./types";
 
-export interface CustomerOption {
-  id: string;
-  name: string;
-  customerCode?: string | null;
-  responsibleEmployeeId?: string | null;
-}
-
-interface Props {
-  readonly?: boolean;
-  type4Items: Type4CollectItem[];
-  addType4Row: () => void;
-  updateType4Row: (id: string, field: keyof Type4CollectItem, val: any) => void;
-  deleteType4Row: (id: string) => void;
-  customers?: CustomerOption[];
-}
+export type { CustomerOption };
 
 export function Type4Collect({
   readonly = false,
@@ -29,7 +17,7 @@ export function Type4Collect({
   updateType4Row,
   deleteType4Row,
   customers = [],
-}: Props) {
+}: Type4CollectProps) {
   const customerOptions = (customers || []).map((c) => ({
     value: c.name,
     label: c.name,
@@ -53,7 +41,7 @@ export function Type4Collect({
             type="button"
             size="sm"
             onClick={addType4Row}
-            className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm"
+            className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5 mr-1" />
             เพิ่มรายการ
@@ -179,10 +167,10 @@ export function Type4Collect({
                       )}
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-2 text-slate-400 text-xs font-semibold">
+                      <span className="absolute left-3 top-2 text-slate-400 text-xs font-semibold z-10">
                         ฿
                       </span>
-                      <input
+                      <ActivityInput
                         type="number"
                         min={0}
                         value={item.collectAmount || ""}
@@ -195,7 +183,7 @@ export function Type4Collect({
                         }
                         disabled={readonly}
                         placeholder="0"
-                        className="w-full h-9 pl-7 pr-3 rounded-lg border border-slate-200 text-xs text-slate-800 text-right font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                        className="pl-7 pr-3 text-right font-medium"
                         required={currentCollectType !== "BILLING"}
                       />
                     </div>
@@ -206,7 +194,7 @@ export function Type4Collect({
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     รายละเอียดเพิ่มเติม
                   </label>
-                  <input
+                  <ActivityInput
                     type="text"
                     value={item.detail}
                     onChange={(e) =>
@@ -218,7 +206,6 @@ export function Type4Collect({
                         ? "ระบุรายละเอียดการวางบิล เช่น เอกสารที่ต้องเตรียม..."
                         : "ระบุรายละเอียดการเก็บเงิน..."
                     }
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
                   />
                 </div>
               </div>

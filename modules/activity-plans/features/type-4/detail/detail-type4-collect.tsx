@@ -17,27 +17,12 @@ function parseCleanAmount(val: unknown): number | null {
   return isNaN(num) ? null : num;
 }
 
-export interface TargetCollectCompanyItem {
-  companyName: string;
-  targetCollect: string;
-  targetAmountNum?: number;
-  receivedAmount?: string;
-}
+import type {
+  TargetCollectCompanyItem,
+  DetailType4CollectProps,
+} from "../actual/types";
 
-interface DetailType4CollectProps {
-  isVisible: boolean;
-  target: {
-    customer: string;
-    orderNo: string;
-    targetCollect: string;
-    targetAmountNum?: number;
-    collectAmount?: number;
-    items?: TargetCollectCompanyItem[];
-  };
-  orderNo?: string;
-  receivedAmount?: string;
-  paymentImages?: ImageFile[];
-}
+export type { TargetCollectCompanyItem, DetailType4CollectProps };
 
 export function DetailType4Collect({
   isVisible,

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
 
-interface ApprovalType4CollectProps {
+export interface ApprovalType4CollectProps {
   isVisible: boolean;
   target: ActualTargetsState["t4"];
   actualCollectAmount?: number | string | null;

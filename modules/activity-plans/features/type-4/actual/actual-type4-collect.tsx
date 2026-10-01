@@ -13,40 +13,12 @@ import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 
-export interface TargetCollectCompanyItem {
-  id?: string;
-  customer?: string;
-  companyName: string;
-  targetCollect: string;
-  targetAmountNum?: number;
-  collectType?: "BILLING" | "COLLECT";
-  receivedAmount?: string;
-  billingStatus?: "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ" | "";
-  detail?: string;
-}
+import type {
+  TargetCollectCompanyItem,
+  ActualType4CollectProps,
+} from "./types";
 
-interface ActualType4CollectProps {
-  isVisible: boolean;
-  planType?: "PLANNED" | "UNPLANNED" | string;
-  target?: {
-    customer?: string;
-    orderNo?: string;
-    targetCollect?: string;
-    collectType?: "BILLING" | "COLLECT";
-    items?: TargetCollectCompanyItem[];
-  };
-  orderNo: string;
-  setOrderNo: (v: string) => void;
-  receivedAmount: string;
-  setReceivedAmount: (v: string) => void;
-  billingStatus?: string;
-  setBillingStatus?: (v: string) => void;
-  collectDetail?: string;
-  setCollectDetail?: (v: string) => void;
-  paymentImages?: ImageFile[];
-  onUploadImages?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemoveImage?: (id: string) => void;
-}
+export type { TargetCollectCompanyItem, ActualType4CollectProps };
 
 export function ActualType4Collect({
   isVisible,

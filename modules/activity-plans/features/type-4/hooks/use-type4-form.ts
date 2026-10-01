@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { isFieldDayItem } from "@/modules/activity-plans/constants";
-import type { Type4CollectItem } from "@/modules/activity-plans/features/shared/form/types";
+import type { Type4CollectItem } from "../shared/types";
+import { validateType4FormItems } from "../create/validation";
 
 export interface UseType4FormOptions {
   initial?: any;
@@ -129,7 +130,11 @@ export function useType4Form({
   };
 
   const validateType4 = () => {
-    return { isValid: true };
+    return validateType4FormItems({
+      items: type4Items,
+      customersList,
+      selectedWorkTypes,
+    });
   };
 
   const mapType4Payload = (customers: any[]) => {
