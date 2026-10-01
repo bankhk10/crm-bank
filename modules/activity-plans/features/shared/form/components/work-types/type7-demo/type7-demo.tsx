@@ -4,7 +4,7 @@ import React from "react";
 import { Sprout, Plus, Trash2, PlusCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { Type7DemoPlotItem } from "@/modules/activity-plans/features/form/types";
+import type { Type7DemoPlotItem } from "@/modules/activity-plans/features/shared/form/types";
 import {
   CROP_CATEGORIES,
   type UserDemoPlotOption,

@@ -7,24 +7,6 @@ export interface RequisitionItem {
   detail: string;
 }
 
-export type { Type9ProductItem } from "@/modules/activity-plans/features/type-9/shared/types";
-
-export type { Type1VisitItem } from "@/modules/activity-plans/features/type-1/shared/types";
-
-export type { Type2ProductFollowupItem } from "@/modules/activity-plans/features/type-2/shared/types";
-
-export type {
-  Type3SalesProductLine,
-  Type3SalesItem,
-} from "@/modules/activity-plans/features/type-3/shared/types";
-
-export type { Type4CollectItem } from "@/modules/activity-plans/features/type-4/shared/types";
-
-export type { Type5SurveyItem } from "@/modules/activity-plans/features/type-5/shared/types";
-
-export type { Type6IssueItem } from "@/modules/activity-plans/features/type-6/shared/types";
-
-
 export type PlotActivityType = "CREATE" | "FOLLOW_UP";
 
 export type { Type7DemoProductLine } from "@/modules/activity-plans/features/type-7a/shared/types";
@@ -41,7 +23,7 @@ export interface Type7DemoPlotItem {
   district?: string;
   categoryId?: string;
   chemicalGroupId?: string; // Kept for backwards compatibility
-  demoProducts?: Type7DemoProductLine[];
+  demoProducts?: import("@/modules/activity-plans/features/type-7a/shared/types").Type7DemoProductLine[];
   storeId?: string;
   ownerName: string;
   productId?: string;
@@ -62,7 +44,7 @@ export interface Type7DemoPlotItem {
   existingPlotId?: string;
   existingPlotName?: string;
   hasProductWithdrawal?: boolean;
-  withdrawnProducts?: Type7bWithdrawnProductLine[];
+  withdrawnProducts?: import("@/modules/activity-plans/features/type-7b/shared/types").Type7bWithdrawnProductLine[];
   followUpDate?: string;
   growthStage?: string;
   plotStatus?: string;
@@ -71,18 +53,6 @@ export interface Type7DemoPlotItem {
   recommendation?: string;
   plotImages?: string[];
 }
-
-
-export type {
-  Type8MeetingTarget,
-  Type8FarmerChannel,
-  Type8VenueType,
-  Type8PromotionProductItem,
-  Type8MeetingItem,
-} from "@/modules/activity-plans/features/type-8/shared/types";
-
-
-export type { Type11StoreItem } from "@/modules/activity-plans/features/type-11/shared/types";
 
 export interface MarketingBudgetProductItem {
   id: string;

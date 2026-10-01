@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
+import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   DetailType7NewDemo,
   DemoResultItemData,

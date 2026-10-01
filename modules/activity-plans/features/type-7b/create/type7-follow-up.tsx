@@ -7,7 +7,7 @@ import { FormCombobox } from "@/components/custom/form-components";
 import type {
   Type7DemoPlotItem,
   Type7bWithdrawnProductLine,
-} from "@/modules/activity-plans/features/form/types";
+} from "@/modules/activity-plans/features/shared/form/types";
 import type { UserDemoPlotOption } from "@/modules/activity-plans/constants";
 import { ActivityInput } from "@/components/activity/activity-input";
 import type { ProductOption } from "../shared/types";

@@ -37,7 +37,7 @@ import {
   ImageFile,
   DemoPlotProductItem,
   DemoPlotExternalProductItem,
-} from "@/modules/activity-plans/features/actual-view/types";
+} from "@/modules/activity-plans/features/shared/actual-view/types";
 import { ALL_THAI_PROVINCES } from "@/lib/province-region-mapping";
 import {
   CROP_CATEGORIES,
@@ -53,7 +53,7 @@ import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
-} from "@/modules/activity-plans/features/actual-view/utils";
+} from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 import type { CustomerOption } from "../shared/types";
 import type {

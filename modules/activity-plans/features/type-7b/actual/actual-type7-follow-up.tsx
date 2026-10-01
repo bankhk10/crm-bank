@@ -37,14 +37,14 @@ import type {
   Type7bProductRateItem,
   Type7bSprayingRoundItem,
   Type7bSprayProductRateItem,
-} from "@/modules/activity-plans/features/actual-view/types";
+} from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   DEMO_PLOT_SPRAY_METHODS,
   EXTERNAL_CHEMICAL_FORMULAS,
   DEMO_PLOT_SPRAY_EQUIPMENTS,
 } from "@/modules/activity-plans/constants";
-import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
-import { DemoPlotHistoryModal } from "@/modules/activity-plans/features/actual-view/components/work-types/demo-plot-history-modal";
+import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
+import { DemoPlotHistoryModal } from "./demo-plot-history-modal";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import DatePicker from "@/components/custom/DatePicker";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
@@ -52,7 +52,7 @@ import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
-} from "@/modules/activity-plans/features/actual-view/utils";
+} from "@/modules/activity-plans/features/shared/actual-view/utils";
 import { isType7bCompletedFollowUpVisit } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 import type {

@@ -21,9 +21,9 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
-import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
-import { DemoPlotHistoryModal } from "@/modules/activity-plans/features/actual-view/components/work-types/demo-plot-history-modal";
+import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
+import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
+import { DemoPlotHistoryModal } from "@/modules/activity-plans/features/type-7b/actual/demo-plot-history-modal";
 import {
   ImageLightboxModal,
   LightboxImage,

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import type {
   Type7DemoPlotItem,
   Type7DemoProductLine,
-} from "@/modules/activity-plans/features/form/types";
+} from "@/modules/activity-plans/features/shared/form/types";
 import { CROPS_BY_CATEGORY } from "@/modules/activity-plans/constants";
 
 import { ActivityInput } from "@/components/activity/activity-input";

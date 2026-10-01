@@ -15,13 +15,13 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ActualTargetCard } from "@/modules/activity-plans/features/actual-view/components/actual-target-card";
-import { ImageFile } from "@/modules/activity-plans/features/actual-view/types";
+import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
+import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   ImageLightboxModal,
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
-import { DemoPlotHistoryModal } from "@/modules/activity-plans/features/actual-view/components/work-types/demo-plot-history-modal";
+import { DemoPlotHistoryModal } from "@/modules/activity-plans/features/type-7b/actual/demo-plot-history-modal";
 import { getDemoPlotHistoryAction } from "@/modules/activity-plans/server/actions";
 import { isType7bCompletedFollowUpVisit } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
