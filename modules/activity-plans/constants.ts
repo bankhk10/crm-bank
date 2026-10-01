@@ -148,7 +148,11 @@ export function getWorkTypeCode(nameOrCode: string): string {
   ) {
     return "TYPE_6";
   }
-  if (nameOrCode === "ทำแปลงสาธิต" || nameOrCode === "TYPE_7A") {
+  if (
+    nameOrCode === "ทำแปลงสาธิต" ||
+    nameOrCode === "TYPE_7A" ||
+    nameOrCode === "TYPE7A"
+  ) {
     return "TYPE_7A";
   }
   if (nameOrCode === "ติดตามแปลงสาธิต" || nameOrCode === "TYPE_7B") {
@@ -165,6 +169,14 @@ export function getWorkTypeCode(nameOrCode: string): string {
   ) {
     return "TYPE_8";
   }
+  if (
+    nameOrCode === "จัดงาน Field Day" ||
+    nameOrCode === "TYPE_10" ||
+    nameOrCode === "TYPE10" ||
+    nameOrCode === "FieldDay"
+  ) {
+    return "TYPE_10";
+  }
   if (nameOrCode === "ฉีดแปลงแฮตแทค" || nameOrCode === "TYPE_13") {
     return "TYPE_13";
   }
@@ -180,6 +192,27 @@ export function getWorkTypeCode(nameOrCode: string): string {
     (c) => c.name === nameOrCode || c.shortName === nameOrCode,
   );
   return entry ? entry.code : nameOrCode;
+}
+
+/**
+ * Activity / Work Type codes that are disallowed for Unplanned Activity:
+ * - TYPE_7A: ทำแปลงสาธิต
+ * - TYPE_10: จัดงาน Field Day
+ */
+export const UNPLANNED_DISALLOWED_WORK_TYPE_CODES = new Set([
+  "TYPE_7A",
+  "TYPE_10",
+]);
+
+/**
+ * Returns true if the given work type (by code or name) is allowed for Unplanned Activity.
+ */
+export function isWorkTypeAllowedForUnplanned(
+  workTypeCodeOrName?: string | null,
+): boolean {
+  if (!workTypeCodeOrName) return false;
+  const code = getWorkTypeCode(workTypeCodeOrName);
+  return !UNPLANNED_DISALLOWED_WORK_TYPE_CODES.has(code);
 }
 
 // Helper function to resolve name from code

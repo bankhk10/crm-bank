@@ -102,6 +102,7 @@ import {
   USER_DEMO_PLOTS,
   isFieldDayItem,
   isLocationAndTeamRequired,
+  isWorkTypeAllowedForUnplanned,
   type UserDemoPlotOption,
 } from "../../../constants";
 
@@ -386,10 +387,23 @@ export function ActivityPlanForm({
     };
   }, [initial, initialActivityTypes]);
 
+  const filteredActiveWorkTypeOptions = useMemo(() => {
+    if (isUnplanned) {
+      return activeWorkTypeOptions.filter((item) =>
+        isWorkTypeAllowedForUnplanned(item.code || item.id || item.name),
+      );
+    }
+    return activeWorkTypeOptions;
+  }, [activeWorkTypeOptions, isUnplanned]);
+
   // Work types selection state hydrated with Code as Canonical Identifier
   const initialTypes = useMemo(() => {
-    return hydrateWorkTypesFromPlan(initial, initialActivityTypes);
-  }, [initial, initialActivityTypes]);
+    const types = hydrateWorkTypesFromPlan(initial, initialActivityTypes);
+    if (isUnplanned) {
+      return types.filter((t) => isWorkTypeAllowedForUnplanned(t));
+    }
+    return types;
+  }, [initial, initialActivityTypes, isUnplanned]);
 
   const [selectedWorkTypes, setSelectedWorkTypes] =
     useState<string[]>(initialTypes);
@@ -968,6 +982,18 @@ export function ActivityPlanForm({
       return;
     }
 
+    if (isUnplanned) {
+      const invalidUnplannedTypes = selectedWorkTypes.filter(
+        (t) => !isWorkTypeAllowedForUnplanned(t),
+      );
+      if (invalidUnplannedTypes.length > 0) {
+        setError(
+          "ในกิจกรรมนอกแผน ห้ามเลือกประเภทงาน ทำแปลงสาธิต (TYPE7A) หรือ จัดงาน Field Day (TYPE10)",
+        );
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
 
@@ -1434,7 +1460,7 @@ export function ActivityPlanForm({
                 <PlanWorkTypeSelector
                   selectedWorkTypes={selectedWorkTypes}
                   setSelectedWorkTypes={setSelectedWorkTypes}
-                  activeWorkTypeOptions={activeWorkTypeOptions}
+                  activeWorkTypeOptions={filteredActiveWorkTypeOptions}
                   readonly={readonly}
                 />
               }

@@ -13,6 +13,7 @@ import {
   getWorkTypeCode,
   resolveWorkTypeCode,
   hydrateWorkTypesFromPlan,
+  isWorkTypeAllowedForUnplanned,
   type UserDemoPlotOption,
 } from "../../../constants";
 
@@ -234,9 +235,16 @@ export function UnplannedActivityForm({
     };
   }, [initial, initialActivityTypes]);
 
+  const unplannedWorkTypeOptions = useMemo(() => {
+    return activeWorkTypeOptions.filter((item) =>
+      isWorkTypeAllowedForUnplanned(item.code || item.id || item.name),
+    );
+  }, [activeWorkTypeOptions]);
+
   // Work types selection state
   const initialTypes = useMemo(() => {
-    return hydrateWorkTypesFromPlan(initial, initialActivityTypes);
+    const types = hydrateWorkTypesFromPlan(initial, initialActivityTypes);
+    return types.filter((t) => isWorkTypeAllowedForUnplanned(t));
   }, [initial, initialActivityTypes]);
 
   const [selectedWorkTypes, setSelectedWorkTypes] =
@@ -507,6 +515,16 @@ export function UnplannedActivityForm({
 
     if (selectedWorkTypes.length === 0) {
       setError("กรุณาเลือกประเภทงานอย่างน้อย 1 ประเภท");
+      return;
+    }
+
+    const invalidUnplannedTypes = selectedWorkTypes.filter(
+      (t) => !isWorkTypeAllowedForUnplanned(t),
+    );
+    if (invalidUnplannedTypes.length > 0) {
+      setError(
+        "ในกิจกรรมนอกแผน ห้ามเลือกประเภทงาน ทำแปลงสาธิต (TYPE7A) หรือ จัดงาน Field Day (TYPE10)",
+      );
       return;
     }
 
@@ -790,7 +808,7 @@ export function UnplannedActivityForm({
                 <PlanWorkTypeSelector
                   selectedWorkTypes={selectedWorkTypes}
                   setSelectedWorkTypes={setSelectedWorkTypes}
-                  activeWorkTypeOptions={activeWorkTypeOptions}
+                  activeWorkTypeOptions={unplannedWorkTypeOptions}
                   readonly={readonly}
                 />
               }

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isDrugWithdrawalSupported } from "../constants";
+import { isDrugWithdrawalSupported, isWorkTypeAllowedForUnplanned } from "../constants";
 
 export const planStoreInputSchema = z
   .object({
@@ -501,9 +501,33 @@ export const activityPlanSchema = z
     // For transition: raw form items payload (will be normalized in application mapper)
     items: z.array(z.record(z.any())).optional().default([]),
   })
-  .refine((data) => data.endDate > data.startDate, {
-    message: "วันเวลาสิ้นสุดต้องหลังจากวันเวลาเริ่มต้น",
-    path: ["endDate"],
+  .superRefine((data, ctx) => {
+    if (data.endDate <= data.startDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "วันเวลาสิ้นสุดต้องหลังจากวันเวลาเริ่มต้น",
+        path: ["endDate"],
+      });
+    }
+
+    if (data.planType === "UNPLANNED") {
+      const checkDisallowed = (nameOrCode?: string | null) => {
+        if (!nameOrCode) return false;
+        return !isWorkTypeAllowedForUnplanned(nameOrCode);
+      };
+
+      const hasInvalidActivityType = checkDisallowed(data.activityTypeId);
+      const hasInvalidWorkTypeCodes = (data.workTypeCodes || []).some(checkDisallowed);
+
+      if (hasInvalidActivityType || hasInvalidWorkTypeCodes) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "ในกิจกรรมนอกแผน ห้ามเลือกประเภทงาน ทำแปลงสาธิต (TYPE7A) หรือ จัดงาน Field Day (TYPE10)",
+          path: ["workTypeCodes"],
+        });
+      }
+    }
   });
 
 export const activityApprovalSchema = z.object({
