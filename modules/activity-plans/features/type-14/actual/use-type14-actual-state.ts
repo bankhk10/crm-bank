@@ -5,6 +5,7 @@ import {
   uploadActivityPlanImageGroup,
   collectPermanentUrls,
 } from "../../shared/actual-view/utils";
+import type { ImageFile } from "../../shared/actual-view/types";
 import {
   createSupplementalDrugWithdrawalAction,
   submitSupplementalDrugWithdrawalAction,
@@ -434,12 +435,12 @@ export function useType14ActualState() {
       setIsProcessingSupplemental(true);
       setSupplementalActionError(null);
       try {
-        const res = await createSupplementalDrugWithdrawalAction({
+        const res = (await createSupplementalDrugWithdrawalAction({
           activityPlanId: planRef.current.id,
           items,
           autoSubmit,
           notes,
-        });
+        })) as any;
         if (res.success && res.withdrawal) {
           setRawSupplementalWithdrawals((prev) => [...prev, res.withdrawal]);
           rawSupplementalWithdrawalsRef.current = [
@@ -491,10 +492,10 @@ export function useType14ActualState() {
       setIsProcessingSupplemental(true);
       setSupplementalActionError(null);
       try {
-        const res = await submitSupplementalDrugWithdrawalAction(
+        const res = (await submitSupplementalDrugWithdrawalAction(
           withdrawalId,
           planRef.current?.id,
-        );
+        )) as any;
         if (res.success && res.withdrawal) {
           setRawSupplementalWithdrawals((prev) =>
             prev.map((w) => (w.id === withdrawalId ? res.withdrawal : w)),
@@ -533,11 +534,11 @@ export function useType14ActualState() {
       setIsProcessingSupplemental(true);
       setSupplementalActionError(null);
       try {
-        const res = await approveSupplementalDrugWithdrawalAction(
+        const res = (await approveSupplementalDrugWithdrawalAction(
           withdrawalId,
           comment,
           planRef.current?.id,
-        );
+        )) as any;
         if (res.success && res.withdrawal) {
           setRawSupplementalWithdrawals((prev) =>
             prev.map((w) => (w.id === withdrawalId ? res.withdrawal : w)),
@@ -576,11 +577,11 @@ export function useType14ActualState() {
       setIsProcessingSupplemental(true);
       setSupplementalActionError(null);
       try {
-        const res = await returnSupplementalDrugWithdrawalAction(
+        const res = (await returnSupplementalDrugWithdrawalAction(
           withdrawalId,
           reason,
           planRef.current?.id,
-        );
+        )) as any;
         if (res.success && res.withdrawal) {
           setRawSupplementalWithdrawals((prev) =>
             prev.map((w) => (w.id === withdrawalId ? res.withdrawal : w)),
@@ -900,22 +901,42 @@ export function useType14ActualState() {
 
   // ── Upload Images ──
   const uploadImages = useCallback(
-    async (planId: string, newlyUploadedUrls: string[]) => {
+    async (
+      planId: string,
+      newlyUploadedUrls: string[],
+    ): Promise<Type14ImageState[]> => {
       const updatedRounds = await Promise.all(
         rounds.map(async (round, idx) => {
           if (!round.afterSprayImages || round.afterSprayImages.length === 0) {
             return round;
           }
+          const imagesToUpload: ImageFile[] = round.afterSprayImages.map(
+            (img) => ({
+              id: img.id,
+              url: img.url,
+              name: img.name || `type14-image-${img.id}`,
+              size: img.size,
+              type: img.type,
+              rawFile: img.file,
+            }),
+          );
           const res = await uploadActivityPlanImageGroup(
             planId,
-            round.afterSprayImages,
+            imagesToUpload,
             `type14-round-${round.roundNumber || idx + 1}`,
             demoPlotId || "type14-plot",
           );
           newlyUploadedUrls.push(...res.newlyUploadedUrls);
           return {
             ...round,
-            afterSprayImages: res.updatedImages,
+            afterSprayImages: res.updatedImages.map((img) => ({
+              id: img.id,
+              url: img.url,
+              name: img.name,
+              size: img.size,
+              type: img.type,
+              file: img.rawFile,
+            })),
           };
         }),
       );
@@ -929,10 +950,28 @@ export function useType14ActualState() {
   // Collect Old URLs to delete
   const collectOldImageUrlsToDelete = useCallback(
     (allCurrentImages?: Type14ImageState[]): string[] => {
-      const initialUrls = collectPermanentUrls(initialImagesRef.current || []);
+      const initialImages: ImageFile[] = (initialImagesRef.current || []).map(
+        (img) => ({
+          id: img.id,
+          url: img.url,
+          name: img.name || "",
+          size: img.size,
+          type: img.type,
+        }),
+      );
+      const initialUrls = collectPermanentUrls(initialImages);
       const currentImages =
         allCurrentImages || rounds.flatMap((r) => r.afterSprayImages);
-      const currentUrls = new Set(collectPermanentUrls(currentImages || []));
+      const currentImageFiles: ImageFile[] = (currentImages || []).map(
+        (img) => ({
+          id: img.id,
+          url: img.url,
+          name: img.name || "",
+          size: img.size,
+          type: img.type,
+        }),
+      );
+      const currentUrls = new Set(collectPermanentUrls(currentImageFiles));
       return initialUrls.filter((u) => !currentUrls.has(u));
     },
     [rounds],

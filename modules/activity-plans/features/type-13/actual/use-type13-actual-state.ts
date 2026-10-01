@@ -40,7 +40,9 @@ export interface Type13PlotActualState {
   }>;
   afterSprayImages?: ImageFile[];
   sprayRounds: Array<
-    Omit<Type13SprayingRound, "products"> & {
+    Omit<Type13SprayingRound, "products" | "demoPlotId"> & {
+      demoPlotId?: string | null;
+      clientPlotId?: string | null;
       products: Type13ActualProductState[];
     }
   >;
@@ -652,7 +654,7 @@ export function useType13ActualState() {
     (
       plotIndex: number,
       roundIndex: number,
-      field: keyof Type13SprayingRound,
+      field: keyof Type13SprayingRound | string,
       value: any,
     ) => {
       setPlotsActual((prev) => {

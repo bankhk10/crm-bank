@@ -2,6 +2,7 @@
 export { default as ActivityPlanListView } from "./features/shared/list-view/activity-plan-list-view";
 export { default as ActivityPlanCreateView } from "./features/shared/form/activity-plan-create-view";
 export { default as ActivityPlanEditView } from "./features/shared/form/activity-plan-edit-view";
+export { PlannedCreateView, PlannedEditView } from "./features/planned";
 export { default as ActivityPlanDetailView } from "./features/shared/detail-view/activity-plan-detail-view";
 export { default as ActivityPlanApprovalListView } from "./features/shared/approve-view/activity-plan-approval-list-view";
 export { default as ActivityPlanApprovalDetailView } from "./features/shared/approve-view/activity-plan-approval-detail-view";

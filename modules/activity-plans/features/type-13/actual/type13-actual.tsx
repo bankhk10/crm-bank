@@ -253,7 +253,7 @@ function PlotAfterSpraySection({
                     {img.name || `รูปที่ ${imgIdx + 1}`}
                   </p>
                   <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
-                    {img.size > 0 && <span>{formatBytes(img.size)}</span>}
+                    {!!img.size && <span>{formatBytes(img.size)}</span>}
                     {img.type && (
                       <span className="uppercase text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 font-medium">
                         {img.type.replace("image/", "")}

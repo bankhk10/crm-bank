@@ -242,7 +242,7 @@ export function DetailType11Stock({
             </div>
             <GalleryUpload
               maxFiles={5}
-              isReadOnly={true}
+              disabled={true}
               initialFiles={convertToFileMetadata(images)}
             />
           </div>

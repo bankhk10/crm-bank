@@ -1,5 +1,5 @@
 import { use } from "react";
-import ActivityPlanEditView from "@/modules/activity-plans/features/shared/form/activity-plan-edit-view";
+import { UnplannedEditView } from "@/modules/activity-plans/features/unplanned";
 
 export const metadata = {
   title: "แก้ไขกิจกรรมนอกแผน | CRM",
@@ -12,5 +12,6 @@ export default function EditUnplannedActivityPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  return <ActivityPlanEditView id={id} />;
+  return <UnplannedEditView id={id} />;
 }
+

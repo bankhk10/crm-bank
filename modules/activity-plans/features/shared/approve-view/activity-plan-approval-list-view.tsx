@@ -180,8 +180,8 @@ export default function ActivityPlanApprovalListView() {
   }, []);
 
   const handleRefreshAll = useCallback(async () => {
-    await Promise.all([loadQueueData(), loadUnplannedCounts()]);
-  }, [loadQueueData, loadUnplannedCounts]);
+    await loadQueueData();
+  }, [loadQueueData]);
 
   useEffect(() => {
     loadQueueData();
@@ -278,14 +278,12 @@ export default function ActivityPlanApprovalListView() {
     setSearchQuery("");
   };
 
-  const isPlansView =
-    mainTab === "plans" || (mainTab === "history" && historySubTab === "plans");
+  const isPlansView = mainTab === "plans" || mainTab === "history";
 
   const pendingPlansCount =
     counts.myPending > 0 ? counts.myPending : counts.totalPending;
 
-  const totalPendingAll =
-    counts.totalPending + unplannedCounts.pendingReviewCount;
+  const totalPendingAll = counts.totalPending;
 
   if (permLoading) {
     return (

@@ -983,15 +983,51 @@ async function getApproverContextForUser(userId: string): Promise<ApproverUserCo
           department: true,
         },
       },
-      userRoles: { select: { role: { select: { slug: true } } } },
-      userPermissions: { select: { permission: { select: { code: true } } } },
+      userRoles: {
+        select: {
+          role: {
+            select: {
+              slug: true,
+              permissions: {
+                select: {
+                  permission: {
+                    select: {
+                      key: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      permissionOverrides: {
+        select: {
+          permission: {
+            select: {
+              key: true,
+            },
+          },
+        },
+      },
     },
   });
+
+  const rolePermissionKeys =
+    user?.userRoles?.flatMap(
+      (ur) => ur.role.permissions?.map((p) => p.permission.key) || [],
+    ) || [];
+  const overridePermissionKeys =
+    user?.permissionOverrides?.map((p) => p.permission.key) || [];
+  const allPermissions = Array.from(
+    new Set([...rolePermissionKeys, ...overridePermissionKeys]),
+  );
+
   return {
     id: user?.id,
     employeeId: user?.employeeProfile?.id,
     roles: user?.userRoles?.map((r) => r.role.slug) || [],
-    permissions: user?.userPermissions?.map((p) => p.permission.code) || [],
+    permissions: allPermissions,
     positionTitle:
       user?.employeeProfile?.position?.name ||
       user?.employeeProfile?.positionTitle,

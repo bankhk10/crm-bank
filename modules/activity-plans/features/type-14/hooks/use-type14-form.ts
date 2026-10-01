@@ -154,7 +154,7 @@ export function useType14Form({
     return {
       type14Data: {
         ...type14Data,
-        mode: "EXISTING_PLOT",
+        mode: "EXISTING_PLOT" as const,
         latitude: "",
         longitude: "",
         trackings: [],

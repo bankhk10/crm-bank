@@ -3,8 +3,8 @@ import { LocationTeamSection } from "./components/location-team-section";
 import type { Employee } from "../hooks/use-plan-location-team";
 
 export interface PlanLocationTeamCardProps {
-  isVisible: boolean;
-  selectedWorkTypes: string[];
+  isVisible?: boolean;
+  selectedWorkTypes?: string[];
   readonly?: boolean;
   isEdit?: boolean;
   helperSearch: string;
@@ -14,7 +14,7 @@ export interface PlanLocationTeamCardProps {
   filteredEmployees: Employee[];
   addHelper: (id: string) => void;
   helperEmployeeIds: string[];
-  employees: Employee[];
+  employees?: Employee[];
   removeHelper: (id: string) => void;
   locationText: string;
   setLocationText: (val: string) => void;
@@ -30,8 +30,8 @@ export interface PlanLocationTeamCardProps {
 }
 
 export function PlanLocationTeamCard({
-  isVisible,
-  selectedWorkTypes,
+  isVisible = true,
+  selectedWorkTypes = [],
   readonly = false,
   isEdit = false,
   helperSearch,
@@ -41,7 +41,7 @@ export function PlanLocationTeamCard({
   filteredEmployees,
   addHelper,
   helperEmployeeIds,
-  employees,
+  employees = [],
   removeHelper,
   locationText,
   setLocationText,
@@ -68,7 +68,7 @@ export function PlanLocationTeamCard({
       filteredEmployees={filteredEmployees}
       addHelper={addHelper}
       helperEmployeeIds={helperEmployeeIds}
-      employees={employees}
+      employees={employees.length > 0 ? employees : filteredEmployees}
       removeHelper={removeHelper}
       locationText={locationText}
       setLocationText={setLocationText}

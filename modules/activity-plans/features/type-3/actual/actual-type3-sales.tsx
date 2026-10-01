@@ -27,7 +27,7 @@ export interface TargetProductItem {
   isSubDealer?: boolean;
   subDealerStore?: string;
   dealerName?: string;
-  qty: string;
+  qty?: string;
   unitPrice?: string;
   detail?: string;
   notes?: string;

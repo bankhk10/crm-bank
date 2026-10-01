@@ -221,7 +221,7 @@ export function ActualType6Issue({
       </div>
 
       {/* Target Card from Plan */}
-      {planType !== "UNPLANNED" && (
+      {planType !== "UNPLANNED" && target && (
         hasMultipleItems ? (
           <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
             <div className="flex items-center justify-between">

@@ -6,7 +6,7 @@ import type {
 } from "../form/types";
 
 export interface PlanBudgetSectionProps {
-  selectedWorkTypes: string[];
+  selectedWorkTypes?: string[];
   readonly?: boolean;
   isPromotionalMediaSelected: boolean;
   setIsPromotionalMediaSelected: (val: boolean) => void;
@@ -38,8 +38,15 @@ export interface PlanBudgetSectionProps {
 }
 
 export function PlanBudgetSection({
+  selectedWorkTypes = [],
   targetSales = 0,
   ...rest
 }: PlanBudgetSectionProps) {
-  return <BaseBudgetSection targetSales={targetSales} {...rest} />;
+  return (
+    <BaseBudgetSection
+      selectedWorkTypes={selectedWorkTypes}
+      targetSales={targetSales}
+      {...rest}
+    />
+  );
 }

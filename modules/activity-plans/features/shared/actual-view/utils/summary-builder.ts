@@ -15,46 +15,46 @@ import {
 export interface BuildSummaryInput {
   planWorkTypes?: string[];
   activityResultStatus: ActivityResultStatusType;
-  cancelReason: string;
-  postponedDate: string;
-  postponedTime: string;
-  postponedReason: string;
-  postponedNotes: string;
+  cancelReason?: string;
+  postponedDate?: string;
+  postponedTime?: string;
+  postponedReason?: string;
+  postponedNotes?: string;
 
   planSummary: PlanSummaryData;
   products?: Array<{ id: string; name: string; productCode?: string | null }>;
 
   // Type 1
-  t1ProductAdvice: string;
-  t1SalesOpportunity: "สูง" | "ต่ำ" | "";
-  t1DiscussionResult: string;
-  t1Detail: string;
-  t1NextAction: string;
-  t1NextMeetingDate: string;
+  t1ProductAdvice?: string;
+  t1SalesOpportunity?: "สูง" | "ต่ำ" | "";
+  t1DiscussionResult?: string;
+  t1Detail?: string;
+  t1NextAction?: string;
+  t1NextMeetingDate?: string;
   t1FarmerHomeAddress?: string;
   t1PlotLatitude?: string | number | null;
   t1PlotLongitude?: string | number | null;
   t1PlotImages?: ImageFile[];
 
   // Type 2
-  t2CustomerName: string;
-  t2FollowupDetail: string;
-  t2Detail: string;
-  t2UsageResult: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "";
-  t2ProblemDetail: string;
+  t2CustomerName?: string;
+  t2FollowupDetail?: string;
+  t2Detail?: string;
+  t2UsageResult?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "";
+  t2ProblemDetail?: string;
   t2FollowupResults?: FollowupProductItem[];
   t2Images?: ImageFile[];
 
   // Type 3
-  t3SoldProducts: string;
-  t3ActualSales: string;
-  t3ActualQuantity: string;
-  t3UnclosedReason: string;
+  t3SoldProducts?: string;
+  t3ActualSales?: string;
+  t3ActualQuantity?: string;
+  t3UnclosedReason?: string;
   t3ProductSalesDetails?: any[];
 
   // Type 4
-  t4OrderNo: string;
-  t4ReceivedAmount: string;
+  t4OrderNo?: string;
+  t4ReceivedAmount?: string;
   t4BillingStatus?: string;
   t4Detail?: string;
 
@@ -92,24 +92,24 @@ export interface BuildSummaryInput {
   t7PlotObjective?: string;
   t7CustomPlotDetail?: string;
   t7DemoPlotId?: string | null;
-  t7PlantingDate: string;
-  t7PlantingAreaCondition: string;
-  t7UsageMethod: string;
-  t7CropAgeValue: string;
-  t7CropAgeUnit: string;
-  t7GrowthStage: string;
-  t7CropCondition: "สมบูรณ์" | "มีปัญหา" | "ปานกลาง" | "ทรุดโทรม" | "";
-  t7CropProblemDescription: string;
-  t7ProductResponse: "พืชตอบสนองดี" | "พบปัญหา" | "";
-  t7ProblemDescription: string;
-  t7PlotStatus: "IN_PROGRESS" | "COMPLETED" | "FAILED";
-  t7NextFollowUpDate: string;
-  t7FinalYieldKg: string;
-  t7ControlYieldKg: string;
-  t7YieldIncreasePercent: string;
-  t7FarmerSatisfaction: number;
-  t7CommercialPotential: string;
-  t7FinalSummaryNotes: string;
+  t7PlantingDate?: string;
+  t7PlantingAreaCondition?: string;
+  t7UsageMethod?: string;
+  t7CropAgeValue?: string;
+  t7CropAgeUnit?: string;
+  t7GrowthStage?: string;
+  t7CropCondition?: "สมบูรณ์" | "มีปัญหา" | "ปานกลาง" | "ทรุดโทรม" | "";
+  t7CropProblemDescription?: string;
+  t7ProductResponse?: "พืชตอบสนองดี" | "พบปัญหา" | "";
+  t7ProblemDescription?: string;
+  t7PlotStatus?: "IN_PROGRESS" | "COMPLETED" | "FAILED";
+  t7NextFollowUpDate?: string;
+  t7FinalYieldKg?: string;
+  t7ControlYieldKg?: string;
+  t7YieldIncreasePercent?: string;
+  t7FarmerSatisfaction?: number;
+  t7CommercialPotential?: string;
+  t7FinalSummaryNotes?: string;
   t7CropImages?: ImageFile[];
   t7PlotImages?: ImageFile[];
 
@@ -167,31 +167,31 @@ export interface BuildSummaryInput {
   t7bSprayingRounds?: Type7bSprayingRoundItem[];
 
   // Type 8
-  t8ActualAttendees: string;
-  t8FeedbackQnA: string;
-  t8ProductSalesDetails: any[];
+  t8ActualAttendees?: string;
+  t8FeedbackQnA?: string;
+  t8ProductSalesDetails?: any[];
   t8Images?: ImageFile[];
   t8RegistrationImages?: ImageFile[];
 
   // Type 9
-  t9ActualSales: string;
-  t9ProductSalesDetails: any[];
-  t9ActualAttendees: string;
+  t9ActualSales?: string;
+  t9ProductSalesDetails?: any[];
+  t9ActualAttendees?: string;
   t9Images?: ImageFile[];
 
   // Type 10
-  t10ActualAttendees: string;
-  t10ActualSalesOrBooking: string;
-  t10FarmerFeedback: "สูง" | "กลาง" | "ต่ำ" | "";
-  t10TargetFarmersList: string;
+  t10ActualAttendees?: string;
+  t10ActualSalesOrBooking?: string;
+  t10FarmerFeedback?: "สูง" | "กลาง" | "ต่ำ" | "";
+  t10TargetFarmersList?: string;
   t10ProductSalesDetails?: any[];
   t10Images?: ImageFile[];
 
   // Type 11
-  t11StockItems: any[];
-  t11ProductList: string;
-  t11RemainingQty: string;
-  t11Remarks: string;
+  t11StockItems?: any[];
+  t11ProductList?: string;
+  t11RemainingQty?: string;
+  t11Remarks?: string;
   t11StockStatus?: "ใกล้หมด" | "ขาดสต็อก" | "";
   t11ReorderOpportunity?: "สูง" | "ต่ำ" | "ยังไม่แน่ใจ" | "";
   t11NextAction?: string;
@@ -312,7 +312,7 @@ export function buildResultSummary(
   } = input;
 
   // Validate Cancel / Postponed fields
-  if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
+  if (activityResultStatus === "CANCELLED" && !cancelReason?.trim()) {
     return {
       validationError: "กรุณาระบุสาเหตุที่ยกเลิกกิจกรรม",
       summaryParts: [],

@@ -27,7 +27,7 @@ interface ComboboxOption {
 
 interface FormComboboxProps {
   id?: string;
-  label: string;
+  label?: string;
   value: string;
   onChange: (value: string) => void;
   options: ComboboxOption[];
@@ -74,10 +74,12 @@ export function FormCombobox({
 
   return (
     <div className={cn(containerClassName)}>
-      <Label className={cn(defaultLabelClass, labelClassName)}>
-        {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
-      </Label>
+      {label && (
+        <Label className={cn(defaultLabelClass, labelClassName)}>
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </Label>
+      )}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button

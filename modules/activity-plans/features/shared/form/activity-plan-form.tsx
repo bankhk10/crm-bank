@@ -178,6 +178,7 @@ import {
   ActivityResultSection,
   ActivityStatusSection,
 } from "../actual-view/components";
+import { initialTargets } from "../actual-view/constants";
 import { useActualStatusState } from "../actual-view/hooks/use-actual-status-state";
 import { buildResultSummary } from "../actual-view/utils/summary-builder";
 import { useType1Actual } from "@/modules/activity-plans/features/type-1";
@@ -1265,99 +1266,6 @@ export function ActivityPlanForm({
         salesPromotionBudgetRequested,
         marketingBudgetRequested,
       } = buildBudgetPayload();
-
-      // Build Actual Data payload if UNPLANNED
-      let actualData: any = undefined;
-      if (isUnplanned) {
-        const isType7A = selectedWorkTypes.some(
-          (wt) => getWorkTypeCode(wt) === "TYPE_7A",
-        );
-        const isType7B = selectedWorkTypes.some(
-          (wt) => getWorkTypeCode(wt) === "TYPE_7B",
-        );
-
-        const t1Payload = type1Actual.getPayload();
-        const t2Payload = type2Actual.getPayload();
-        const t3Payload = type3Actual.getPayload();
-        const t4Payload = type4Actual.getPayload();
-        const t5Payload = type5Actual.getPayload();
-        const t6Payload = type6Actual.getPayload();
-        const t7aPayload = type7aActual.getPayload();
-        const t7bPayload = type7bActual.getPayload();
-        const t8Payload = type8Actual.getPayload();
-        const t9Payload = type9Actual.getPayload();
-        const t10Payload = type10Actual.getPayload();
-        const t11Payload = type11Actual.getPayload();
-        const t13Payload = type13Actual.getPayload();
-        const t14Payload = type14Actual.getPayload();
-
-        const activeType7Payload = isType7A ? t7aPayload : t7bPayload;
-
-        const buildResult = buildResultSummary({
-          activityResultStatus: statusState.activityResultStatus,
-          cancelReason: statusState.cancelReason,
-          postponedDate: statusState.postponedDate,
-          postponedTime: statusState.postponedTime,
-          postponedReason: statusState.postponedReason,
-          postponedNotes: statusState.postponedNotes,
-          planSummary: {
-            planNo: initial?.planCode || "-",
-            title,
-            planDate: format(startDateTime, "dd/MM/yyyy"),
-            activityTime: `${format(startDateTime, "HH:mm")} - ${format(endDateTime, "HH:mm")}`,
-            ownerName: initial?.employeeName || "-",
-            activityTypeTitle: selectedWorkTypes.join(", "),
-          },
-          planWorkTypes: selectedWorkTypes,
-          products: productsList,
-          ...t1Payload,
-          ...t2Payload,
-          ...t3Payload,
-          ...t4Payload,
-          ...t5Payload,
-          ...t6Payload,
-          ...activeType7Payload,
-          ...t8Payload,
-          ...t9Payload,
-          ...t10Payload,
-          ...t11Payload,
-        });
-
-        if (buildResult.validationError) {
-          setError(buildResult.validationError);
-          setLoading(false);
-          return;
-        }
-
-        actualData = {
-          ...buildResult.payload,
-          ...(t13Payload.sprayRounds?.length || t14Payload.sprayRounds?.length
-            ? {
-                sprayRounds: [
-                  ...(buildResult.payload.sprayRounds || []),
-                  ...(t13Payload.sprayRounds || []),
-                  ...(t14Payload.sprayRounds || []),
-                ],
-              }
-            : {}),
-          ...(t13Payload.type13PlotsActual?.length
-            ? { type13PlotsActual: t13Payload.type13PlotsActual }
-            : {}),
-          ...(t13Payload.type13NewPlots?.length
-            ? { type13NewPlots: t13Payload.type13NewPlots }
-            : {}),
-          ...(t13Payload.attachments?.length || t14Payload.attachments?.length
-            ? {
-                attachments: [
-                  ...(buildResult.payload.attachments || []),
-                  ...(t13Payload.attachments || []),
-                  ...(t14Payload.attachments || []),
-                ],
-              }
-            : {}),
-        };
-      }
-
       const res = await onSubmit({
         title,
         startDate: startDateTime,
@@ -1460,7 +1368,6 @@ export function ActivityPlanForm({
         notes: extraNotes,
         helperEmployeeIds: isLocationTeamVisible ? helperEmployeeIds : [],
         planType: ((initial as any)?.planType || planType) as "PLANNED" | "UNPLANNED",
-        actualData,
       });
 
       if (res && !res.success) {
@@ -1922,13 +1829,26 @@ export function ActivityPlanForm({
                       return code === targetCode;
                     });
                   }}
-                  targets={{}}
+                  targets={initialTargets}
                   products={productsList}
                   customers={customersList}
                   planProvince={province}
                   typeHooks={typeHooks}
                 />
-                <ActivityStatusSection statusState={statusState} />
+                <ActivityStatusSection
+                  activityResultStatus={statusState.activityResultStatus}
+                  setActivityResultStatus={statusState.setActivityResultStatus}
+                  cancelReason={statusState.cancelReason}
+                  setCancelReason={statusState.setCancelReason}
+                  postponedDate={statusState.postponedDate}
+                  setPostponedDate={statusState.setPostponedDate}
+                  postponedTime={statusState.postponedTime}
+                  setPostponedTime={statusState.setPostponedTime}
+                  postponedReason={statusState.postponedReason}
+                  setPostponedReason={statusState.setPostponedReason}
+                  postponedNotes={statusState.postponedNotes}
+                  setPostponedNotes={statusState.setPostponedNotes}
+                />
               </div>
             )}
 

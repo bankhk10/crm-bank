@@ -1174,6 +1174,9 @@ export async function submitSupplementalDrugWithdrawalAction(
       withdrawalId,
       session.user.id,
     );
+    if (!result.success) {
+      return serialize(result);
+    }
     const targetPlanId = planId || result.withdrawal?.activityPlanId;
     if (targetPlanId) {
       revalidatePath(`/activity-plans/${targetPlanId}`);
@@ -1205,6 +1208,9 @@ export async function approveSupplementalDrugWithdrawalAction(
       session.user.id,
       comment,
     );
+    if (!result.success) {
+      return serialize(result);
+    }
     const targetPlanId = planId || result.withdrawal?.activityPlanId;
     if (targetPlanId) {
       revalidatePath(`/activity-plans/${targetPlanId}`);
@@ -1236,6 +1242,9 @@ export async function returnSupplementalDrugWithdrawalAction(
       session.user.id,
       reason,
     );
+    if (!result.success) {
+      return serialize(result);
+    }
     const targetPlanId = planId || result.withdrawal?.activityPlanId;
     if (targetPlanId) {
       revalidatePath(`/activity-plans/${targetPlanId}`);

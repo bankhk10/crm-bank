@@ -2545,6 +2545,8 @@ export type CreateActivityResultInput = {
     otherEquipment?: string | null;
     productResponse: string;
     problemDetail?: string | null;
+    daysSinceStart?: number | null;
+    notes?: string | null;
     workTypeCode?: string | null;
     products: Array<{
       productId: string;

@@ -45,6 +45,7 @@ export interface DrugWithdrawalCardProps {
   workTypeCode?: string;
   editable?: boolean;
   disabled?: boolean;
+  readonly?: boolean;
   allowCustomPlot?: boolean;
   errors?: Array<{ path?: string; message: string }> | Record<string, string>;
   className?: string;

@@ -34,11 +34,12 @@ export function DrugWithdrawalCard({
   workTypeCode,
   editable = true,
   disabled = false,
+  readonly,
   allowCustomPlot = true,
   errors,
   className,
 }: DrugWithdrawalCardProps) {
-  const isReadOnly = !editable || disabled;
+  const isReadOnly = readonly !== undefined ? readonly : (!editable || disabled);
   const isType14 = workTypeCode === "TYPE_14";
 
   // Flat items state for TYPE_14 (direct product withdrawal without plot selection)
@@ -137,7 +138,10 @@ export function DrugWithdrawalCard({
         plotIdentifier: "",
         productId: it.productId,
         productName: it.productName,
-        quantity: it.quantity,
+        quantity:
+          typeof it.quantity === "number"
+            ? it.quantity
+            : parseFloat(String(it.quantity)) || 0,
         unit: it.unit,
         sortOrder: idx,
       }));

@@ -11,20 +11,7 @@ import {
 } from "../utils";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 import type { useActualStatusState } from "./use-actual-status-state";
-import type { useType1Actual } from "@/modules/activity-plans/features/type-1";
-import type { useType2Actual } from "@/modules/activity-plans/features/type-2";
-import type { useType3Actual } from "@/modules/activity-plans/features/type-3";
-import type { useType4Actual } from "@/modules/activity-plans/features/type-4";
-import type { useType5Actual } from "@/modules/activity-plans/features/type-5";
-import type { useType6Actual } from "@/modules/activity-plans/features/type-6";
-import type { useType7aActual } from "@/modules/activity-plans/features/type-7a";
-import type { useType7bActual } from "@/modules/activity-plans/features/type-7b";
-import type { useType8Actual } from "@/modules/activity-plans/features/type-8";
-import type { useType9Actual } from "@/modules/activity-plans/features/type-9";
-import type { useType10Actual } from "@/modules/activity-plans/features/type-10";
-import type { useType11Actual } from "@/modules/activity-plans/features/type-11";
-import type { useType13ActualState } from "@/modules/activity-plans/features/type-13";
-import type { useType14ActualState } from "@/modules/activity-plans/features/type-14";
+import type { ActualTypeHooks } from "./use-actual-orchestrator";
 
 interface UseActualSubmitProps {
   id?: string;
@@ -38,21 +25,7 @@ interface UseActualSubmitProps {
   products: any[];
   customers: any[];
   statusState: ReturnType<typeof useActualStatusState>;
-  typeHooks: {
-    type1: ReturnType<typeof useType1Actual>;
-    type2: ReturnType<typeof useType2Actual>;
-    type3: ReturnType<typeof useType3Actual>;
-    type4: ReturnType<typeof useType4Actual>;
-    type5: ReturnType<typeof useType5Actual>;
-    type6: ReturnType<typeof useType6Actual>;
-    type7a: ReturnType<typeof useType7aActual>;
-    type7b: ReturnType<typeof useType7bActual>;
-    type8: ReturnType<typeof useType8Actual>;
-    type9: ReturnType<typeof useType9Actual>;
-    type10: ReturnType<typeof useType10Actual>;
-    type13?: ReturnType<typeof useType13ActualState>;
-    type14?: ReturnType<typeof useType14ActualState>;
-  };
+  typeHooks: ActualTypeHooks;
 }
 
 export function useActualSubmit({
