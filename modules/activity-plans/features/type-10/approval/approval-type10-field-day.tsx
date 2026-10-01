@@ -3,12 +3,9 @@
 import React from "react";
 import { Layers } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type { ApprovalType10FieldDayProps } from "../actual/types";
 
-interface ApprovalType10FieldDayProps {
-  isVisible: boolean;
-  target: ActualTargetsState["t10"];
-}
+export type { ApprovalType10FieldDayProps };
 
 export function ApprovalType10FieldDay({
   isVisible,

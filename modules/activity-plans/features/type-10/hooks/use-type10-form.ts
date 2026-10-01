@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { isFieldDayItem } from "@/modules/activity-plans/constants";
+import { validateType10FormItems } from "../create/validation";
+import type { Type10SoldProductItem } from "../shared/types";
 
 export interface UseType10FormOptions {
   initial?: any;
@@ -139,7 +141,11 @@ export function useType10Form({
   });
 
   const validateType10 = (): { isValid: boolean; error?: string } => {
-    return { isValid: true };
+    return validateType10FormItems({
+      selectedWorkTypes,
+      type10DemoPlot,
+      type10Attendees,
+    });
   };
 
   const mapType10Payload = (demoPlots: any[] = []) => {
@@ -197,7 +203,5 @@ export function useType10Form({
   };
 }
 
-export {
-  type10SoldProductItemSchema,
-  type Type10SoldProductItem,
-} from "@/modules/activity-plans/application/validations";
+export type { Type10SoldProductItem } from "../shared/types";
+export { type10SoldProductItemSchema } from "@/modules/activity-plans/application/validations";

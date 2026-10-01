@@ -21,57 +21,17 @@ import {
   isImageFilesEqual,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
-export interface SoldProductItem {
-  id?: string;
-  productId?: string;
-  productName: string;
-  productCode?: string;
-  quantity: string;
-  actualQty?: string;
-  actualSales: string;
-  remarks?: string;
-  isCustom?: boolean;
-  isCustomProduct?: boolean;
-}
+import {
+  Type10SoldProductItem,
+  SoldProductItem,
+  ActualType10FieldDayProps,
+} from "./types";
 
-export interface ActualType10FieldDayProps {
-  isVisible: boolean;
-  planType?: "PLANNED" | "UNPLANNED" | string;
-  target?: {
-    plot?: string;
-    location?: string;
-    showcase?: string;
-    targetAttendees?: string;
-    targetSales?: string;
-  };
-  actualAttendees: string;
-  setActualAttendees: (v: string) => void;
-  actualSalesOrBooking: string;
-  setActualSalesOrBooking: (v: string) => void;
-  farmerFeedback: "สูง" | "กลาง" | "ต่ำ" | "";
-  setFarmerFeedback: (v: "สูง" | "กลาง" | "ต่ำ" | "") => void;
-  images: ImageFile[];
-  setImages: (v: ImageFile[]) => void;
-  onUploadImages?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemoveImage?: (id: string) => void;
-
-  // New fields for "เลือกสินค้าที่ขายได้"
-  hasSales?: boolean;
-  setHasSales?: (v: boolean) => void;
-  products?: Array<{ id: string; name: string; productCode?: string | null; price?: number } | string>;
-  soldProducts?: SoldProductItem[];
-  setSoldProducts?: (items: SoldProductItem[]) => void;
-  soldProduct?: string;
-  setSoldProduct?: (v: string) => void;
-  soldQuantity?: string;
-  setSoldQuantity?: (v: string) => void;
-  soldDetails?: string;
-  setSoldDetails?: (v: string) => void;
-
-  // Optional backward compatibility
-  targetFarmersList?: string;
-  setTargetFarmersList?: (v: string) => void;
-}
+export type {
+  Type10SoldProductItem,
+  SoldProductItem,
+  ActualType10FieldDayProps,
+};
 
 const CUSTOM_PRODUCT_VALUE = "__CUSTOM_PRODUCT__";
 const EMPTY_PRODUCTS: Array<{ id: string; name: string; productCode?: string | null; price?: number } | string> = [];

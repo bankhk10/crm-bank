@@ -19,37 +19,15 @@ import {
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 
-export interface Type10SoldProductDetail {
-  id?: string;
-  productId?: string;
-  productName: string;
-  productCode?: string;
-  quantity?: string | number;
-  actualQty?: string | number;
-  actualSales?: string | number;
-  unitPrice?: number;
-  remarks?: string;
-  isCustom?: boolean;
-  isCustomProduct?: boolean;
-}
+import {
+  Type10SoldProductDetail,
+  DetailType10FieldDayProps,
+} from "../actual/types";
 
-export interface DetailType10FieldDayProps {
-  isVisible: boolean;
-  target: {
-    plot: string;
-    location: string;
-    showcase: string;
-    targetAttendees: string;
-    targetSales: string;
-  };
-  actualAttendees?: string;
-  actualSalesOrBooking?: string;
-  targetFarmersList?: string;
-  farmerFeedback?: "สูง" | "กลาง" | "ต่ำ" | "";
-  images?: ImageFile[];
-  productSalesDetails?: Type10SoldProductDetail[];
-  soldProducts?: Type10SoldProductDetail[];
-}
+export type {
+  Type10SoldProductDetail,
+  DetailType10FieldDayProps,
+};
 
 export function DetailType10FieldDay({
   isVisible,
