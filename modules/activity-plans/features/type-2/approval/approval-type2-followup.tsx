@@ -27,33 +27,9 @@ export function ApprovalType2Followup({
             ติดตามผลการใช้สินค้า
           </h4>
         </div>
-        <Badge
-          variant="outline"
-          className="text-[11px] font-bold bg-teal-50 text-teal-800 border-teal-200"
-        >
-          TYPE_2
-        </Badge>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-        <div className="bg-teal-50/40 p-3 rounded-xl border border-teal-100/80 sm:col-span-1">
-          <span className="text-teal-700 block text-[11px] font-bold mb-1">
-            วัตถุประสงค์ของประเภทงาน
-          </span>
-          <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-            ติดตามผลการใช้สินค้าและประสิทธิภาพ
-          </span>
-        </div>
-
-        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-          <span className="text-slate-500 block text-[11px] font-medium mb-1">
-            สินค้าที่ติดตามผล
-          </span>
-          <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-            {target.product || "-"}
-          </span>
-        </div>
-
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
         <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
           <span className="text-slate-500 block text-[11px] font-medium mb-1">
             ร้านค้า / เกษตรกร
@@ -62,7 +38,14 @@ export function ApprovalType2Followup({
             {target.customer || "-"}
           </span>
         </div>
-
+        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
+          <span className="text-slate-500 block text-[11px] font-medium mb-1">
+            สินค้าที่ติดตามผล
+          </span>
+          <span className="font-bold text-slate-800 block text-xs sm:text-sm">
+            {target.product || "-"}
+          </span>
+        </div>
         {target.detail && (
           <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-3">
             <span className="text-slate-500 block text-[11px] font-medium mb-1">

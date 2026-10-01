@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import type {
-  ImageFile,
-  FollowupProductItem,
-} from "@/modules/activity-plans/features/shared/actual-view/types";
+import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type { FollowupProductItem } from "./types";
 import {
   collectPermanentUrls,
   uploadActivityPlanImageGroup,

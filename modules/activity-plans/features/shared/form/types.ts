@@ -17,19 +17,7 @@ export interface Type9ProductItem {
 
 export type { Type1VisitItem } from "@/modules/activity-plans/features/type-1/shared/types";
 
-export interface Type2ProductFollowupItem {
-  id: string;
-  visitPurpose?: "FARMER" | "STORE";
-  province?: string;
-  isUnregisteredFarmer?: boolean;
-  storeId?: string;
-  customerName: string;
-  unregisteredFarmerName?: string;
-  unregisteredFarmerPhone?: string;
-  productId?: string;
-  productName: string;
-  detail: string;
-}
+export type { Type2ProductFollowupItem } from "@/modules/activity-plans/features/type-2/shared/types";
 
 export interface Type3SalesProductLine {
   id: string;

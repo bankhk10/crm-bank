@@ -3,40 +3,17 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { CheckSquare, Plus, Trash2, Store, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ActivityInput } from "@/components/activity/activity-input";
 import { FormCombobox } from "@/components/custom/form-components";
 import { ALL_THAI_PROVINCES } from "@/lib/province-region-mapping";
-import type { Type2ProductFollowupItem } from "@/modules/activity-plans/features/shared/form/types";
+import type {
+  Type2ProductFollowupItem,
+  CustomerOption,
+  ProductOption,
+} from "../shared/types";
+import type { Type2FollowupProps } from "./types";
 
-export interface CustomerOption {
-  id: string;
-  name: string;
-  customerCode?: string | null;
-  customerType?: string;
-  province?: string | null;
-  district?: string | null;
-  phone?: string | null;
-  responsibleEmployeeId?: string | null;
-}
-
-export interface ProductOption {
-  id: string;
-  name: string;
-  productCode?: string | null;
-}
-
-interface Props {
-  readonly?: boolean;
-  type2Items: Type2ProductFollowupItem[];
-  addType2Row: () => void;
-  updateType2Row: (
-    id: string,
-    field: keyof Type2ProductFollowupItem,
-    val: any,
-  ) => void;
-  deleteType2Row: (id: string) => void;
-  customers?: CustomerOption[];
-  products?: ProductOption[];
-}
+export type { CustomerOption, ProductOption };
 
 export function Type2Followup({
   readonly = false,
@@ -46,7 +23,7 @@ export function Type2Followup({
   deleteType2Row,
   customers = [],
   products = [],
-}: Props) {
+}: Type2FollowupProps) {
   // Server-fetched options for Dealer/Subdealer and Farmers per province
   const [storeOptionsFromApi, setStoreOptionsFromApi] = useState<
     CustomerOption[]
@@ -465,7 +442,7 @@ export function Type2Followup({
                             ชื่อ - สกุล เกษตรกร{" "}
                             <span className="text-rose-500">*</span>
                           </label>
-                          <input
+                          <ActivityInput
                             type="text"
                             value={item.unregisteredFarmerName || ""}
                             onChange={(e) =>
@@ -477,7 +454,6 @@ export function Type2Followup({
                             }
                             disabled={readonly}
                             placeholder="ระบุชื่อ - สกุล เกษตรกร..."
-                            className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                             required
                           />
                         </div>
@@ -487,7 +463,7 @@ export function Type2Followup({
                             เบอร์โทรศัพท์{" "}
                             <span className="text-rose-500">*</span>
                           </label>
-                          <input
+                          <ActivityInput
                             type="tel"
                             value={item.unregisteredFarmerPhone || ""}
                             onChange={(e) =>
@@ -500,7 +476,6 @@ export function Type2Followup({
                             disabled={readonly}
                             placeholder="เช่น 0812345678"
                             maxLength={12}
-                            className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                             required
                           />
                         </div>
@@ -572,7 +547,7 @@ export function Type2Followup({
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
                       รายละเอียดเพิ่มเติม
                     </label>
-                    <input
+                    <ActivityInput
                       type="text"
                       value={item.detail}
                       onChange={(e) =>
@@ -580,7 +555,6 @@ export function Type2Followup({
                       }
                       disabled={readonly}
                       placeholder="ระบุรายละเอียดการติดตาม..."
-                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                     />
                   </div>
                 </div>

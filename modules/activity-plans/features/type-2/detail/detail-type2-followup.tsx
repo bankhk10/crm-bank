@@ -10,19 +10,9 @@ import {
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 
-export interface FollowupProductItem {
-  id?: string;
-  productId?: string;
-  productName: string;
-  customer?: string;
-  storeId?: string;
-  expectedResult?: string;
-  usageResult?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "";
-  problemDetail?: string;
-  detail?: string;
-  followupDetail?: string;
-  isAdditional?: boolean;
-}
+import type { FollowupProductItem } from "../actual/types";
+
+export type { FollowupProductItem };
 
 interface DetailType2FollowupProps {
   isVisible: boolean;
