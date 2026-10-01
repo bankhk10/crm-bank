@@ -1,33 +1,18 @@
+"use client";
+
 import React from "react";
 import { BarChart2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ActivityInput } from "@/components/activity/activity-input";
 import { FormCombobox } from "@/components/custom/form-components";
-import type { Type5SurveyItem } from "@/modules/activity-plans/features/shared/form/types";
+import type {
+  Type5SurveyItem,
+  CustomerOption,
+  ProductOption,
+} from "../shared/types";
+import type { Type5SurveyProps } from "./types";
 
-export interface CustomerOption {
-  id: string;
-  name: string;
-  customerCode?: string | null;
-  responsibleEmployeeId?: string | null;
-}
-
-export interface ProductOption {
-  id: string;
-  name: string;
-  productCode?: string | null;
-  price?: number | null;
-  unit?: string | null;
-}
-
-interface Props {
-  readonly?: boolean;
-  type5Items: Type5SurveyItem[];
-  addType5Row: () => void;
-  updateType5Row: (id: string, field: keyof Type5SurveyItem, val: any) => void;
-  deleteType5Row: (id: string) => void;
-  customers?: CustomerOption[];
-  products?: ProductOption[];
-}
+export type { CustomerOption, ProductOption };
 
 export function Type5Survey({
   readonly = false,
@@ -37,7 +22,7 @@ export function Type5Survey({
   deleteType5Row,
   customers = [],
   products = [],
-}: Props) {
+}: Type5SurveyProps) {
   const customerOptions = (customers || []).map((c) => ({
     value: c.name,
     label: c.name,
@@ -68,7 +53,7 @@ export function Type5Survey({
             type="button"
             size="sm"
             onClick={addType5Row}
-            className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm"
+            className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5 mr-1" />
             เพิ่มรายการ
@@ -99,7 +84,7 @@ export function Type5Survey({
                   <button
                     type="button"
                     onClick={() => deleteType5Row(item.id)}
-                    className="p-1 rounded-md text-red-500 hover:bg-red-50 text-xs font-medium flex items-center gap-1 transition-colors"
+                    className="p-1 rounded-md text-red-500 hover:bg-red-50 text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     <span>ลบรายการ</span>
@@ -111,7 +96,7 @@ export function Type5Survey({
                 <FormCombobox
                   id={`store-combobox-${item.id}`}
                   label="ร้านค้า"
-                  labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                  labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-purple-500"
                   value={item.storeName}
                   onChange={(val) => {
@@ -134,7 +119,7 @@ export function Type5Survey({
                 <FormCombobox
                   id={`compared-product-combobox-${item.id}`}
                   label="สินค้าที่นำไปเปรียบเทียบ"
-                  labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
+                  labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-purple-500"
                   value={item.comparedProduct}
                   onChange={(val) => {
@@ -156,10 +141,10 @@ export function Type5Survey({
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   รายละเอียดเพิ่มเติม
                 </label>
-                <input
+                <ActivityInput
                   type="text"
                   value={item.detail}
                   onChange={(e) =>
@@ -167,7 +152,6 @@ export function Type5Survey({
                   }
                   disabled={readonly}
                   placeholder="ระบุรายละเอียดเพิ่มเติมการสำรวจ..."
-                  className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                 />
               </div>
             </div>

@@ -13,38 +13,12 @@ import {
   isImageFilesEqual,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
-export interface TargetSurveyItem {
-  id?: string;
-  store: string;
-  product: string;
-  detail: string;
-}
+import type {
+  TargetSurveyItem,
+  ActualType5SurveyProps,
+} from "./types";
 
-interface ActualType5SurveyProps {
-  isVisible: boolean;
-  planType?: "PLANNED" | "UNPLANNED" | string;
-  target: {
-    store: string;
-    product: string;
-    detail: string;
-    items?: Array<{
-      id?: string;
-      store?: string;
-      product?: string;
-      detail?: string;
-    }>;
-  };
-  surveyDetails?: Type5SurveyRecord[];
-  onUpdateSurveyItem?: (
-    index: number,
-    updated: Partial<Type5SurveyRecord>,
-  ) => void;
-  // Fallback single-item props
-  competitorBrand?: string;
-  setCompetitorBrand?: (v: string) => void;
-  competitorProduct?: string;
-  setCompetitorProduct?: (v: string) => void;
-}
+export type { TargetSurveyItem, ActualType5SurveyProps };
 
 export function ActualType5Survey({
   isVisible,

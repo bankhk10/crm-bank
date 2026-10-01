@@ -19,25 +19,12 @@ import {
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 
-export interface TargetSurveyItem {
-  id?: string;
-  store: string;
-  product: string;
-  detail: string;
-}
+import type {
+  TargetSurveyItem,
+  DetailType5SurveyProps,
+} from "../actual/types";
 
-interface DetailType5SurveyProps {
-  isVisible: boolean;
-  target: {
-    store: string;
-    product: string;
-    detail: string;
-    items?: TargetSurveyItem[];
-  };
-  surveyDetails?: Type5SurveyRecord[];
-  competitorBrand?: string;
-  competitorProduct?: string;
-}
+export type { TargetSurveyItem, DetailType5SurveyProps };
 
 export function DetailType5Survey({
   isVisible,

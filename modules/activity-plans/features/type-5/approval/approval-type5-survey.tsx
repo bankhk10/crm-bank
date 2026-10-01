@@ -21,7 +21,7 @@ import {
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 
-interface ApprovalType5SurveyProps {
+export interface ApprovalType5SurveyProps {
   isVisible: boolean;
   target: ActualTargetsState["t5"];
   surveyDetails?: Type5SurveyRecord[];

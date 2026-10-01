@@ -26,14 +26,7 @@ export type {
 
 export type { Type4CollectItem } from "@/modules/activity-plans/features/type-4/shared/types";
 
-export interface Type5SurveyItem {
-  id: string;
-  storeId?: string;
-  storeName: string;
-  productId?: string;
-  comparedProduct: string;
-  detail: string;
-}
+export type { Type5SurveyItem } from "@/modules/activity-plans/features/type-5/shared/types";
 
 export interface Type6IssueItem {
   id: string;

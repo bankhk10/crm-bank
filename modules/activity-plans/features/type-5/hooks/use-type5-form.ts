@@ -3,7 +3,8 @@ import {
   DEMO_PRODUCTS,
   isFieldDayItem,
 } from "@/modules/activity-plans/constants";
-import type { Type5SurveyItem } from "@/modules/activity-plans/features/shared/form/types";
+import type { Type5SurveyItem } from "../shared/types";
+import { validateType5FormItems } from "../create/validation";
 
 export interface UseType5FormOptions {
   initial?: any;
@@ -143,7 +144,12 @@ export function useType5Form({
   };
 
   const validateType5 = () => {
-    return { isValid: true };
+    return validateType5FormItems({
+      items: type5Items,
+      customersList,
+      productsList,
+      selectedWorkTypes,
+    });
   };
 
   const mapType5Payload = (customers: any[], products: any[]) => {
