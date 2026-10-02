@@ -42,6 +42,26 @@ export function Type1Visit({
 
   const currentPurpose: "FARMER" | "STORE" =
     item.visitPurpose === "STORE" ? "STORE" : "FARMER";
+
+  const handlePurposeChange = (newPurpose: "FARMER" | "STORE") => {
+    if (newPurpose === currentPurpose) return;
+    updateType1Row(item.id, "visitPurpose", newPurpose);
+    if (newPurpose === "STORE") {
+      // Clear all Farmer-specific state
+      updateType1Row(item.id, "province", "");
+      updateType1Row(item.id, "storeId", undefined);
+      updateType1Row(item.id, "customerName", "");
+      updateType1Row(item.id, "isUnregisteredFarmer", false);
+      updateType1Row(item.id, "unregisteredFarmerName", "");
+      updateType1Row(item.id, "unregisteredFarmerPhone", "");
+    } else {
+      // newPurpose === "FARMER"
+      // Clear Store-specific selection
+      updateType1Row(item.id, "storeId", undefined);
+      updateType1Row(item.id, "customerName", "");
+    }
+  };
+
   const handleProvinceChange = (newProvince: string) => {
     updateType1Row(item.id, "province", newProvince);
     // When province changes, clear selected farmer to prevent mismatched data
