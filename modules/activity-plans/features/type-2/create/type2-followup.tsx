@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React from "react";
 import { CheckSquare, Plus, Trash2, Store, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityInput } from "@/components/activity/activity-input";
 import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
 import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
-import { FormCombobox } from "@/components/custom/form-components";
+import { ActivityProductSelect } from "@/components/activity/activity-product-select";
 import type {
   Type2ProductFollowupItem,
   CustomerOption,
@@ -25,15 +25,6 @@ export function Type2Followup({
   customers = [],
   products = [],
 }: Type2FollowupProps) {
-  const productOptions = useMemo(
-    () =>
-      (products || []).map((p) => ({
-        value: p.name,
-        label: p.name,
-        subLabel: p.productCode || undefined,
-      })),
-    [products],
-  );
 
   // Switching purpose with state cleanup
   const handlePurposeChange = (
@@ -157,7 +148,7 @@ export function Type2Followup({
                       />
                       <span className="flex items-center gap-1.5 font-semibold text-slate-800">
                         <UserCheck className="w-3.5 h-3.5 text-indigo-600" />
-                        เข้าพบเกษตรกร
+                        ติดตามจากเกษตรกร
                       </span>
                     </label>
 
@@ -175,7 +166,7 @@ export function Type2Followup({
                       />
                       <span className="flex items-center gap-1.5 font-semibold text-slate-800">
                         <Store className="w-3.5 h-3.5 text-indigo-600" />
-                        เข้าพบร้านค้า
+                        ติดตามจากร้านค้า
                       </span>
                     </label>
                   </div>
@@ -191,7 +182,9 @@ export function Type2Followup({
                         levels="province"
                         triggerClassName="focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         value={item.province || ""}
-                        onChange={(val: string) => handleProvinceChange(item.id, val)}
+                        onChange={(val: string) =>
+                          handleProvinceChange(item.id, val)
+                        }
                         disabled={readonly}
                         required
                       />
@@ -224,7 +217,11 @@ export function Type2Followup({
                         }
                         unregisteredPhone={item.unregisteredFarmerPhone || ""}
                         onUnregisteredPhoneChange={(val) =>
-                          updateType2Row(item.id, "unregisteredFarmerPhone", val)
+                          updateType2Row(
+                            item.id,
+                            "unregisteredFarmerPhone",
+                            val,
+                          )
                         }
                       />
                     </div>
@@ -259,25 +256,19 @@ export function Type2Followup({
 
                 {/* Common Section: สินค้าที่ต้องการติดตามผล & รายละเอียดเพิ่มเติม */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-0.5">
-                  <FormCombobox
-                    id={`product-combobox-${item.id}`}
+                  <ActivityProductSelect
+                    id={`type2-product-combobox-${item.id}`}
                     label="สินค้าที่ต้องการติดตามผล"
-                    labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                    triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500"
-                    value={item.productName}
-                    onChange={(val) => {
-                      const prod = products.find(
-                        (p) => p.name === val || p.id === val,
-                      );
+                    value={item.productName || ""}
+                    valueKey="name"
+                    products={products}
+                    onChange={(val, prod) => {
                       updateType2Row(item.id, "productName", prod?.name || val);
                       if (prod?.id) {
                         updateType2Row(item.id, "productId", prod.id);
                       }
                     }}
-                    options={productOptions}
-                    placeholder="เลือกสินค้า..."
-                    searchPlaceholder="ค้นหาสินค้า..."
-                    emptyText="ไม่พบสินค้า"
+                    triggerClassName="focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     disabled={readonly}
                     required
                   />
