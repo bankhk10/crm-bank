@@ -78,6 +78,13 @@ export function Type2PlanCard({
     (productItems[0].detail === target.detail ||
       productItems[0].notes === target.detail);
 
+  const phone =
+    target.unregisteredFarmerPhone || (target as any)?.phone || undefined;
+
+  const farmerDisplayName = target.isUnregisteredFarmer
+    ? target.unregisteredFarmerName || customerName
+    : customerName;
+
   return (
     <div
       className={cn(
@@ -110,7 +117,7 @@ export function Type2PlanCard({
       {/* SECTION: วัตถุประสงค์ & ข้อมูลลูกค้า / ร้านค้า */}
       {/* ───────────────────────────────────────────────────────────── */}
       <div className="space-y-2">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
           {/* วัตถุประสงค์ของประเภทงาน */}
           <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-200/70 space-y-1">
             <span className="text-slate-400 font-medium block text-[11px]">
@@ -134,13 +141,17 @@ export function Type2PlanCard({
           {/* ชื่อร้านค้า / เกษตรกร */}
           <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-200/70 space-y-1">
             <span className="text-slate-400 font-medium block text-[11px]">
-              {isStore ? "ร้านค้า / ลูกค้า" : "เกษตรกร / ลูกค้า"}
+              {isStore
+                ? "ร้านค้า / ลูกค้า"
+                : target.isUnregisteredFarmer
+                  ? "ชื่อ - สกุล เกษตรกร"
+                  : "เกษตรกร / ลูกค้า"}
             </span>
             <span
               className="font-bold text-slate-800 text-xs sm:text-sm block truncate"
-              title={customerName}
+              title={farmerDisplayName}
             >
-              {customerName}
+              {farmerDisplayName}
             </span>
           </div>
 
@@ -155,14 +166,17 @@ export function Type2PlanCard({
                 <span>{target.province}</span>
               </div>
             </div>
-          ) : target.unregisteredFarmerPhone ? (
+          ) : null}
+
+          {/* เบอร์โทรศัพท์ (ถ้ามี) */}
+          {phone ? (
             <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-200/70 space-y-1">
               <span className="text-slate-400 font-medium block text-[11px]">
                 เบอร์โทรศัพท์
               </span>
               <div className="flex items-center gap-1.5 font-bold text-slate-800 text-xs sm:text-sm">
                 <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span>{target.unregisteredFarmerPhone}</span>
+                <span>{phone}</span>
               </div>
             </div>
           ) : null}

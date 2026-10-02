@@ -104,6 +104,10 @@ export const DEFAULT_TARGETS: ActualTargetsState = {
     customer: "",
     detail: "",
     expectedResult: "",
+    province: "",
+    unregisteredFarmerPhone: "",
+    unregisteredFarmerName: "",
+    isUnregisteredFarmer: false,
     items: [],
   },
   t3: {
@@ -462,9 +466,10 @@ export function extractPlanData(
   if (isWorkTypePresent("TYPE_2")) {
     const t2Stores = stores.filter((s) => s.workTypeCode === "TYPE_2");
     const t2Products = products.filter((pr) => pr.workTypeCode === "TYPE_2");
+    const t2First = t2Stores[0];
     const t2StoreCustomerName =
-      (t2Stores[0] as any)?.store?.name ||
-      t2Stores[0]?.storeName ||
+      (t2First as any)?.store?.name ||
+      t2First?.storeName ||
       (t2Stores.length > 0
         ? t2Stores
             .map((s) => (s as any).store?.name || s.storeName)
@@ -478,14 +483,34 @@ export function extractPlanData(
       productName: pr.productName || (pr as any).product?.name || "สินค้า",
       customer:
         (pr as any)?.store?.name || (pr as any)?.storeName || t2StoreCustomerName,
-      storeId: pr.storeId || t2Stores[0]?.storeId || undefined,
-      detail: (pr as any)?.notes || t2Stores[0]?.notes || "",
+      storeId: pr.storeId || t2First?.storeId || undefined,
+      detail: (pr as any)?.notes || t2First?.notes || "",
       expectedResult: "พืชตอบสนองดี",
       isAdditional: false,
     }));
     const t2CustInfo = extractType2Customers(t2Items, p.location);
+
+    let t2VisitPurpose: "FARMER" | "STORE" = (t2First as any)?.visitPurpose as
+      | "FARMER"
+      | "STORE";
+    if (!t2VisitPurpose) {
+      if (
+        t2First?.isUnregisteredFarmer ||
+        (t2First as any)?.store?.customerType === "FARMER"
+      ) {
+        t2VisitPurpose = "FARMER";
+      } else if (
+        ["DEALER", "SUBDEALER"].includes((t2First as any)?.store?.customerType)
+      ) {
+        t2VisitPurpose = "STORE";
+      } else {
+        t2VisitPurpose = "FARMER";
+      }
+    }
+
     targets.t2 = {
       ...prevTargets.t2,
+      visitPurpose: t2VisitPurpose,
       customer:
         t2Stores
           .map((s) => s.storeName)
@@ -497,7 +522,18 @@ export function extractPlanData(
         .map((pr) => pr.productName)
         .filter(Boolean)
         .join(", "),
-      detail: t2Stores[0]?.notes || "",
+      detail: t2First?.notes || "",
+      province:
+        t2First?.province ||
+        (t2First as any)?.store?.province ||
+        p.province ||
+        undefined,
+      isUnregisteredFarmer: Boolean(t2First?.isUnregisteredFarmer),
+      unregisteredFarmerName: t2First?.unregisteredFarmerName || undefined,
+      unregisteredFarmerPhone:
+        t2First?.unregisteredFarmerPhone ||
+        (t2First as any)?.store?.phone ||
+        undefined,
       expectedResult: "พืชตอบสนองดี",
       items: t2Items,
     };

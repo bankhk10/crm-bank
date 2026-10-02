@@ -105,6 +105,11 @@ export interface ActualTargetsState {
     customer: string;
     storeName?: string;
     keyFarmer?: string;
+    province?: string;
+    visitPurpose?: "FARMER" | "STORE";
+    isUnregisteredFarmer?: boolean;
+    unregisteredFarmerName?: string;
+    unregisteredFarmerPhone?: string;
     detail: string;
     expectedResult: string;
     items: any[];
