@@ -1,14 +1,15 @@
 "use client";
 
-import React from "react";
 import { ShoppingCart, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityInput } from "@/components/activity/activity-input";
 import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
-import { ActivityProductSelect, type ActivityProductItem } from "@/components/activity/activity-product-select";
+import {
+  ActivityProductSelect,
+  type ActivityProductItem,
+} from "@/components/activity/activity-product-select";
 import { cn } from "@/lib/utils";
 import type {
-  Type3SalesItem,
   Type3SalesProductLine,
   CustomerOption,
   ProductOption,
@@ -26,7 +27,6 @@ export function Type3Sales({
   customers = [],
   products = [],
 }: Type3SalesProps) {
-
   // Add a new product line to a specific proposal item
   const addProductLine = (itemId: string) => {
     const currentItem = type3Items.find((i) => i.id === itemId);
@@ -200,7 +200,8 @@ export function Type3Sales({
                 {/* 1. Customer Type Selector (Dealer vs Subdealer) */}
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-slate-700">
-                    ประเภทลูกค้า / ร้านค้า <span className="text-red-500">*</span>
+                    ประเภทลูกค้า / ร้านค้า{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="flex items-center gap-4">
                     <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer select-none">
@@ -266,13 +267,18 @@ export function Type3Sales({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-amber-50/40 rounded-xl border border-amber-200/70">
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        ชื่อร้าน Subdealer <span className="text-red-500">*</span>
+                        ชื่อร้าน Subdealer{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <ActivityInput
                         type="text"
                         value={item.subDealerStore || ""}
                         onChange={(e) =>
-                          updateType3Row(item.id, "subDealerStore", e.target.value)
+                          updateType3Row(
+                            item.id,
+                            "subDealerStore",
+                            e.target.value,
+                          )
                         }
                         disabled={readonly}
                         placeholder="ระบุชื่อร้านค้า Subdealer..."
@@ -311,7 +317,8 @@ export function Type3Sales({
                 <div className="space-y-2.5 bg-slate-50/60 p-3 rounded-lg border border-slate-200/70">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-slate-700">
-                      รายการสินค้าที่จะเสนอขาย <span className="text-red-500">*</span>
+                      รายการสินค้าที่จะเสนอขาย{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     {!readonly && (
                       <Button
@@ -449,17 +456,6 @@ export function Type3Sales({
           })
         )}
       </div>
-
-      {type3Items.length > 0 && (
-        <div className="flex justify-end p-3 rounded-xl bg-emerald-100/70 border border-emerald-200 text-xs font-bold text-emerald-900">
-          <span>
-            รวมจำนวนสินค้าทั้งหมด:{" "}
-            <span className="text-sm font-extrabold text-emerald-700 ml-1.5">
-              {totalAllQuantity.toLocaleString()} หน่วย
-            </span>
-          </span>
-        </div>
-      )}
     </div>
   );
 }
