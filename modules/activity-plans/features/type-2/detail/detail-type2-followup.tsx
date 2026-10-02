@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Layers, AlertCircle, CheckCircle2, Sparkles, Package, Camera, Eye } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Type2PlanCard } from "../shared/type2-plan-card";
 import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
