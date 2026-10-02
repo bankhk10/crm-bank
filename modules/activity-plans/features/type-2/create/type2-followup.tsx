@@ -4,8 +4,8 @@ import React, { useMemo, useState, useEffect } from "react";
 import { CheckSquare, Plus, Trash2, Store, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityInput } from "@/components/activity/activity-input";
+import { ActivityProvinceSelect } from "@/components/activity/activity-province-select";
 import { FormCombobox } from "@/components/custom/form-components";
-import { ALL_THAI_PROVINCES } from "@/lib/province-region-mapping";
 import { useCustomerOptions } from "@/modules/activity-plans/features/shared/hooks/use-customer-options";
 import type {
   Type2ProductFollowupItem,
@@ -49,10 +49,6 @@ export function Type2Followup({
     });
   }, [activeProvinces, loadFarmersForProvince]);
 
-  const provinceOptions = useMemo(
-    () => ALL_THAI_PROVINCES.map((p) => ({ value: p, label: p })),
-    [],
-  );
 
   const productOptions = useMemo(
     () =>
@@ -313,17 +309,11 @@ export function Type2Followup({
                     {/* จังหวัด & รายชื่อเกษตรกร */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {/* จังหวัด Selector */}
-                      <FormCombobox
+                      <ActivityProvinceSelect
                         id={`type2-province-combobox-${item.id}`}
-                        label="จังหวัด"
-                        labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                        triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500"
+                        triggerClassName="focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         value={item.province || ""}
                         onChange={(val) => handleProvinceChange(item.id, val)}
-                        options={provinceOptions}
-                        placeholder="เลือกจังหวัด"
-                        searchPlaceholder="ค้นหาจังหวัด..."
-                        emptyText="ไม่พบจังหวัด"
                         disabled={readonly}
                         required
                       />

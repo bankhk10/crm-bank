@@ -38,7 +38,7 @@ import {
   DemoPlotProductItem,
   DemoPlotExternalProductItem,
 } from "@/modules/activity-plans/features/shared/actual-view/types";
-import { ALL_THAI_PROVINCES } from "@/lib/province-region-mapping";
+import { ActivityProvinceSelect } from "@/components/activity/activity-province-select";
 import { useCustomerOptions } from "@/modules/activity-plans/features/shared/hooks/use-customer-options";
 import {
   CROP_CATEGORIES,
@@ -291,11 +291,6 @@ export function ActualType7NewDemo({
     }));
   }, [farmerProvince, provincesData]);
 
-  // Province dropdown options
-  const provinceOptions = useMemo(
-    () => ALL_THAI_PROVINCES.map((p) => ({ value: p, label: p })),
-    [],
-  );
 
   // Combine farmers from API and customers prop (customerType === "FARMER")
   const allFarmers = useMemo(() => {
@@ -664,14 +659,13 @@ export function ActualType7NewDemo({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* จังหวัดของเกษตรกร REQUIRED และเลือกก่อน (Default ไม่ได้เลือก) */}
           <div>
-            <FormCombobox
+            <ActivityProvinceSelect
               id="farmer-province-combobox"
               label="จังหวัดของเกษตรกรเจ้าของแปลง"
               labelClassName="block text-xs font-bold text-slate-700 mb-1"
               triggerClassName="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
               value={farmerProvince}
               onChange={handleProvinceChange}
-              options={provinceOptions}
               placeholder="เลือกจังหวัด..."
               searchPlaceholder="ค้นหาจังหวัด..."
               emptyText="ไม่พบจังหวัด"

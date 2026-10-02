@@ -3,8 +3,8 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Users, Store, UserCheck } from "lucide-react";
 import { ActivityInput } from "@/components/activity/activity-input";
+import { ActivityProvinceSelect } from "@/components/activity/activity-province-select";
 import { FormCombobox } from "@/components/custom/form-components";
-import { ALL_THAI_PROVINCES } from "@/lib/province-region-mapping";
 import { useCustomerOptions } from "@/modules/activity-plans/features/shared/hooks/use-customer-options";
 import type { Type1VisitItem, CustomerOption } from "../shared/types";
 import type { Type1VisitProps } from "./types";
@@ -166,11 +166,6 @@ export function Type1Visit({
     return options;
   }, [storeOptionsFromApi, customers, item.storeId]);
 
-  const provinceOptions = useMemo(
-    () => ALL_THAI_PROVINCES.map((p) => ({ value: p, label: p })),
-    [],
-  );
-
   const handleProvinceChange = (newProvince: string) => {
     updateType1Row(item.id, "province", newProvince);
     // When province changes, clear selected farmer to prevent mismatched data
@@ -253,17 +248,10 @@ export function Type1Visit({
             {/* จังหวัด & รายชื่อเกษตรกร */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* จังหวัด Selector */}
-              <FormCombobox
+              <ActivityProvinceSelect
                 id={`province-combobox-${item.id}`}
-                label="จังหวัด"
-                labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                 value={item.province || ""}
                 onChange={handleProvinceChange}
-                options={provinceOptions}
-                placeholder="เลือกจังหวัด"
-                searchPlaceholder="ค้นหาจังหวัด..."
-                emptyText="ไม่พบจังหวัด"
                 disabled={readonly}
                 required
               />
