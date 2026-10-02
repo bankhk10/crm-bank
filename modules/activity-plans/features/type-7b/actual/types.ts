@@ -35,14 +35,14 @@ export interface DemoPlotVisitHistoryItem {
 }
 
 export interface ActualType7FollowUpProps {
-  isVisible: boolean;
+  isVisible?: boolean;
   planType?: "PLANNED" | "UNPLANNED" | string;
   target?: {
     activityType?: "CREATE" | "FOLLOW_UP" | string;
-    owner: string;
-    product: string;
-    crop: string;
-    plots: string;
+    owner?: string;
+    product?: string;
+    crop?: string;
+    plots?: string;
     targetCondition?: string;
     demoProductQuantity?: string | number | null;
     objective?: string;
@@ -61,60 +61,74 @@ export interface ActualType7FollowUpProps {
   demoPlotData?: any;
   demoPlotId?: string | null;
   visitHistory?: any[];
+  startDate?: string;
+  plotName?: string;
+  usageMethod?: string;
+  setUsageMethod?: (v: string) => void;
+  actualStartDate?: string;
+  setActualStartDate?: (v: string) => void;
 
   // Form Fields
-  daysAfterSpray: string | number;
-  setDaysAfterSpray: (v: string | number) => void;
-  productRates: Type7bProductRateItem[];
-  setProductRates: (v: Type7bProductRateItem[]) => void;
-  sprayEquipment: string;
-  setSprayEquipment: (v: string) => void;
-  otherEquipment: string;
-  setOtherEquipment: (v: string) => void;
-  nextSprayDate: string;
-  setNextSprayDate: (v: string) => void;
-  sprayMethod: "SINGLE" | "TANK_MIXED";
-  setSprayMethod: (v: "SINGLE" | "TANK_MIXED") => void;
+  daysAfterSpray?: string | number;
+  setDaysAfterSpray?: (v: any) => void;
+  productRates?: any[];
+  setProductRates?: (v: any[]) => void;
+  bProductRates?: any[];
+  setBProductRates?: (v: any[]) => void;
+  sprayEquipment?: string;
+  setSprayEquipment?: (v: any) => void;
+  otherEquipment?: string;
+  setOtherEquipment?: (v: any) => void;
+  t7bSprayingRounds?: any[];
+  setT7bSprayingRounds?: (v: any[]) => void;
+  nextSprayDate?: string;
+  setNextSprayDate?: (v: any) => void;
+  sprayMethod?: "SINGLE" | "TANK_MIXED" | string;
+  setSprayMethod?: (v: any) => void;
+  hasExternalChemicals?: boolean;
+  setHasExternalChemicals?: (v: any) => void;
+  externalProducts?: any[];
+  setExternalProducts?: (v: any[]) => void;
 
-  cropAgeValue: string;
-  setCropAgeValue: (v: string) => void;
-  cropAgeUnit: string;
-  setCropAgeUnit: (v: string) => void;
-  growthStage: string;
-  setGrowthStage: (v: string) => void;
-  cropCondition: "สมบูรณ์" | "มีปัญหา" | "ปานกลาง" | "ทรุดโทรม" | "";
-  setCropCondition: (
-    v: "สมบูรณ์" | "มีปัญหา" | "ปานกลาง" | "ทรุดโทรม" | "",
-  ) => void;
-  cropProblemDescription: string;
-  setCropProblemDescription: (v: string) => void;
-  productResponse: "พืชตอบสนองดี" | "พบปัญหา" | "";
-  setProductResponse: (v: "พืชตอบสนองดี" | "พบปัญหา" | "") => void;
-  problemDescription: string;
-  setProblemDescription: (v: string) => void;
+  cropAgeValue?: string | number;
+  setCropAgeValue?: (v: any) => void;
+  cropAgeUnit?: string;
+  setCropAgeUnit?: (v: any) => void;
+  growthStage?: string;
+  setGrowthStage?: (v: any) => void;
+  cropCondition?: string;
+  setCropCondition?: (v: any) => void;
+  cropProblemDesc?: string;
+  setCropProblemDesc?: (v: any) => void;
+  cropProblemDescription?: string;
+  setCropProblemDescription?: (v: any) => void;
+  productResponse?: string;
+  setProductResponse?: (v: any) => void;
+  problemDescription?: string;
+  setProblemDescription?: (v: any) => void;
 
-  plotStatus: "IN_PROGRESS" | "COMPLETED" | "FAILED";
-  setPlotStatus: (v: "IN_PROGRESS" | "COMPLETED" | "FAILED") => void;
-  nextFollowUpDate: string;
-  setNextFollowUpDate: (v: string) => void;
+  plotStatus?: any;
+  setPlotStatus?: (v: any) => void;
+  nextFollowUpDate?: string;
+  setNextFollowUpDate?: (v: any) => void;
 
-  finalYieldKg: string;
-  setFinalYieldKg: (v: string) => void;
-  controlYieldKg: string;
-  setControlYieldKg: (v: string) => void;
-  yieldIncreasePercent: string;
-  setYieldIncreasePercent: (v: string) => void;
-  farmerSatisfaction: number;
-  setFarmerSatisfaction: (v: number) => void;
-  commercialPotential: string;
-  setCommercialPotential: (v: string) => void;
-  finalSummaryNotes: string;
-  setFinalSummaryNotes: (v: string) => void;
+  finalYieldKg?: string | number;
+  setFinalYieldKg?: (v: any) => void;
+  controlYieldKg?: string | number;
+  setControlYieldKg?: (v: any) => void;
+  yieldIncreasePercent?: string | number;
+  setYieldIncreasePercent?: (v: any) => void;
+  farmerSatisfaction?: number;
+  setFarmerSatisfaction?: (v: any) => void;
+  commercialPotential?: string;
+  setCommercialPotential?: (v: any) => void;
+  finalSummaryNotes?: string;
+  setFinalSummaryNotes?: (v: any) => void;
 
-  plotImages: ImageFile[];
-  setPlotImages: (v: ImageFile[]) => void;
-  cropImages: ImageFile[];
-  setCropImages: (v: ImageFile[]) => void;
+  plotImages?: any[];
+  setPlotImages?: (v: any[]) => void;
+  cropImages?: any[];
+  setCropImages?: (v: any[]) => void;
 
   readonly?: boolean;
 }
@@ -160,8 +174,12 @@ export interface DetailType7FollowUpProps {
   sprayEquipment?: string;
   otherEquipment?: string;
   nextSprayDate?: string;
-  sprayMethod?: "SINGLE" | "TANK_MIXED";
+  sprayMethod?: "SINGLE" | "TANK_MIXED" | string;
   visitHistory?: any[];
+  visitDate?: string;
+  demoResults?: any[];
+  externalProducts?: any[];
+  sprayRounds?: any[];
 }
 
 export interface ApprovalType7bDemoProps {

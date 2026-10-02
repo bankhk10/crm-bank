@@ -372,7 +372,7 @@ export function ActualType7FollowUp({
     const currentRounds = [...(t7bSprayingRounds || [])];
     if (currentRounds[roundIdx]) {
       const externals = (currentRounds[roundIdx].externalProducts || []).filter(
-        (_, i) => i !== extIdx,
+        (_: any, i: number) => i !== extIdx,
       );
       currentRounds[roundIdx].externalProducts = externals;
       if (externals.length === 0) {
@@ -489,7 +489,7 @@ export function ActualType7FollowUp({
           items={[
             {
               label: "สิ่งที่ตั้งใจไปติดตาม:",
-              value: target.followUpObjective || target.detail || "-",
+              value: target?.followUpObjective || target?.detail || "-",
             },
           ]}
         />
@@ -537,7 +537,7 @@ export function ActualType7FollowUp({
                   demoPlotData.farmerName ||
                   demoPlotData.farmer?.name ||
                   demoPlotData.farmerCustomer?.name ||
-                  target.owner ||
+                  target?.owner ||
                   "-"}{" "}
                 {demoPlotData.ownerPhone ||
                 demoPlotData.farmerPhone ||
@@ -589,7 +589,7 @@ export function ActualType7FollowUp({
               <span className="font-semibold text-slate-900">
                 {demoPlotData.cropName ||
                   demoPlotData.targetCrop ||
-                  target.crop ||
+                  target?.crop ||
                   "-"}{" "}
                 {demoPlotData.cropCategory
                   ? `(${demoPlotData.cropCategory})`
@@ -944,7 +944,7 @@ export function ActualType7FollowUp({
                   </div>
 
                   <div className="space-y-2.5">
-                    {round.productRates.map((pr, pIdx) => (
+                    {round.productRates.map((pr: any, pIdx: number) => (
                       <div
                         key={pr.productId || pIdx}
                         className="p-3 bg-white border border-slate-200 rounded-xl space-y-2 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4 shadow-2xs"
@@ -1108,7 +1108,7 @@ export function ActualType7FollowUp({
 
                       {round.hasExternalChemicals && (
                         <div className="space-y-2.5">
-                          {(round.externalProducts || []).map((ep, eIdx) => (
+                          {(round.externalProducts || []).map((ep: any, eIdx: number) => (
                             <div
                               key={eIdx}
                               className="p-3 bg-white border border-amber-200 rounded-xl space-y-2 shadow-2xs"
@@ -1414,7 +1414,7 @@ export function ActualType7FollowUp({
           <Textarea
             rows={2}
             value={usageMethod}
-            onChange={(e) => setUsageMethod(e.target.value)}
+            onChange={(e) => setUsageMethod?.(e.target.value)}
             placeholder="บันทึกข้อสังเกตเพิ่มเติม สภาพอากาศ หรือหมายเหตุอื่นๆ..."
             className="text-xs bg-white border-slate-200 rounded-lg"
           />

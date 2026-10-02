@@ -22,6 +22,21 @@ import {
 
 export type { Type8PromotionProductItem, ProductSaleDetail, ActualType8MeetingProps };
 
+export interface LocalPromoItem {
+  id?: string;
+  productId?: string;
+  productName: string;
+  quantity?: number;
+  quantityCases?: number;
+  unitPrice?: number;
+  pricePerCase?: number;
+  totalAmount?: number;
+  notes?: string;
+  storeId?: string | null;
+  actualQty: string;
+  actualSales: string;
+}
+
 export function ActualType8Meeting({
   isVisible,
   planType,
@@ -39,9 +54,7 @@ export function ActualType8Meeting({
 }: ActualType8MeetingProps) {
   const plannedPromoProducts = target?.promotionalProducts || [];
 
-  const [localPromoItems, setLocalPromoItems] = useState<
-    Type8PromotionProductItem[]
-  >(() => {
+  const [localPromoItems, setLocalPromoItems] = useState<LocalPromoItem[]>(() => {
     if (plannedPromoProducts.length > 0) {
       return plannedPromoProducts.map((item, idx) => {
         // Match with previously saved actual results by productId as primary key

@@ -22,6 +22,7 @@ export interface Type3SalesItem {
   quantity?: number;
   unitPrice?: number;
   price?: number;
+  masterPrice?: number | null;
   notes?: string;
   detail?: string;
 }

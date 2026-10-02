@@ -33,6 +33,21 @@ import type {
 
 export type { FormattedProduct, FormattedFollowUpRound, Type14DetailProps };
 
+function formatThaiDate(d?: string | Date | null): string {
+  if (!d) return "-";
+  try {
+    const date = typeof d === "string" ? new Date(d) : d;
+    if (isNaN(date.getTime())) return String(d);
+    return date.toLocaleDateString("th-TH", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return String(d);
+  }
+}
+
 export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 

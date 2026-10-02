@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
-import type { Type14PlanInput } from "../shared/types";
+import type { Type14PlanInput as FormType14PlanInput } from "../shared/types";
+import type { Type14PlanInput } from "@/modules/activity-plans/application/validations";
 import { validateType14FormValues } from "../create/validation";
 
 export interface UseType14FormOptions {
@@ -12,8 +13,8 @@ export interface UseType14FormOptions {
 }
 
 export interface UseType14FormResult {
-  type14Data: Type14PlanInput;
-  setType14Data: React.Dispatch<React.SetStateAction<Type14PlanInput>>;
+  type14Data: FormType14PlanInput;
+  setType14Data: React.Dispatch<React.SetStateAction<FormType14PlanInput>>;
   validateType14: () => { isValid: boolean; error?: string };
   mapType14Payload: (customers: any[]) => {
     type14Data: Type14PlanInput | undefined;
@@ -35,7 +36,7 @@ export function useType14Form({
   defaultProvince = "",
   defaultDistrict = "",
 }: UseType14FormOptions): UseType14FormResult {
-  const [type14Data, setType14Data] = useState<Type14PlanInput>(() => {
+  const [type14Data, setType14Data] = useState<FormType14PlanInput>(() => {
     if ((initial as any)?.type14Data) {
       return (initial as any).type14Data;
     }
@@ -125,10 +126,15 @@ export function useType14Form({
 
     return {
       type14Data: {
-        ...type14Data,
         mode: "EXISTING_PLOT" as const,
-        latitude: "",
-        longitude: "",
+        demoPlotId: type14Data.demoPlotId || null,
+        name: type14Data.name || "",
+        storeId: type14Data.storeId || "",
+        ownerName: type14Data.ownerName || null,
+        province: type14Data.province || "",
+        district: type14Data.district || "",
+        latitude: type14Data.latitude || "",
+        longitude: type14Data.longitude || "",
         trackings: [],
       },
       planStores,

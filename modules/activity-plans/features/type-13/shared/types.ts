@@ -8,6 +8,7 @@ export interface Type13WithdrawalItem {
 }
 
 export interface Type13PlotProduct {
+  id?: string;
   productId: string;
   productName?: string | null;
   quantity?: number | string | null;
@@ -19,7 +20,7 @@ export interface Type13PlotItem {
   demoPlotId?: string | null;
   name: string;
   storeId: string;
-  ownerName?: string;
+  ownerName?: string | null;
   province: string;
   district: string;
   products?: Type13PlotProduct[];

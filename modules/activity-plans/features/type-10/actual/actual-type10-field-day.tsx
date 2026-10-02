@@ -367,7 +367,7 @@ export function ActualType10FieldDay({
           current.productCode = matched.productCode || undefined;
           // Auto calculate actual sales if qty already entered and actualSales is empty
           if (matched.price && current.quantity && !current.actualSales) {
-            const qtyNum = parseFloat(current.quantity.replace(/,/g, ""));
+            const qtyNum = parseFloat(String(current.quantity).replace(/,/g, ""));
             if (!isNaN(qtyNum) && qtyNum > 0) {
               current.actualSales = (qtyNum * matched.price).toLocaleString();
             }
@@ -398,7 +398,7 @@ export function ActualType10FieldDay({
     }
     if (index === 0) {
       if (setSoldProduct) setSoldProduct(current.productName || "");
-      if (setSoldQuantity) setSoldQuantity(current.quantity || "");
+      if (setSoldQuantity) setSoldQuantity(String(current.quantity ?? ""));
       if (setSoldDetails) setSoldDetails(current.remarks || "");
     }
 

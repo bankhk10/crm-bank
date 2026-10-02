@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
-import type { Type13PlotItem } from "../shared/types";
-import type { DrugWithdrawalInput } from "@/modules/activity-plans/application/validations";
+import type { Type13PlotItem as FormType13PlotItem } from "../shared/types";
+import type { DrugWithdrawalInput, Type13PlotItem } from "@/modules/activity-plans/application/validations";
 import { validateType13FormValues } from "../create/validation";
 
 export interface UseType13FormOptions {
@@ -10,8 +10,8 @@ export interface UseType13FormOptions {
 }
 
 export interface UseType13FormResult {
-  type13Plots: Type13PlotItem[];
-  setType13Plots: React.Dispatch<React.SetStateAction<Type13PlotItem[]>>;
+  type13Plots: FormType13PlotItem[];
+  setType13Plots: React.Dispatch<React.SetStateAction<FormType13PlotItem[]>>;
   validateType13: () => { isValid: boolean; error?: string };
   mapType13Payload: (customers: any[]) => {
     type13Plots: Type13PlotItem[] | undefined;
@@ -32,7 +32,7 @@ export function useType13Form({
   initial = {},
   selectedWorkTypes = [],
 }: UseType13FormOptions): UseType13FormResult {
-  const [type13Plots, setType13Plots] = useState<Type13PlotItem[]>(() => {
+  const [type13Plots, setType13Plots] = useState<FormType13PlotItem[]>(() => {
     const rawDw = (initial as any)?.drugWithdrawal;
     const existingDwItems: any[] = rawDw?.items && Array.isArray(rawDw.items) ? rawDw.items : [];
 
@@ -210,8 +210,34 @@ export function useType13Form({
       items: synthesizedDwItems,
     };
 
+    const mappedType13Plots = type13Plots.map((plot) => ({
+      id: plot.id,
+      demoPlotId: plot.demoPlotId || null,
+      name: plot.name || "",
+      storeId: plot.storeId,
+      ownerName: plot.ownerName || null,
+      province: plot.province,
+      district: plot.district,
+      hasDrugWithdrawal: Boolean(plot.hasDrugWithdrawal),
+      products: (plot.products || []).map((p) => ({
+        id: p.id,
+        productId: p.productId,
+        productName: p.productName || null,
+        quantity: typeof p.quantity === "number" ? p.quantity : Number(p.quantity) || 1,
+        unit: p.unit || null,
+      })),
+      withdrawalItems: (plot.withdrawalItems || []).map((w, idx) => ({
+        id: w.id,
+        productId: w.productId,
+        productName: w.productName || null,
+        quantity: typeof w.quantity === "number" ? w.quantity : Number(w.quantity) || 0,
+        unit: w.unit || null,
+        sortOrder: w.sortOrder ?? idx,
+      })),
+    }));
+
     return {
-      type13Plots,
+      type13Plots: mappedType13Plots,
       planStores,
       drugWithdrawal,
     };

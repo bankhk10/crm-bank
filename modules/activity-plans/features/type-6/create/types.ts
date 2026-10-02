@@ -1,7 +1,7 @@
 import type { Type6IssueItem, CustomerOption } from "../shared/types";
 
 export interface Type6IssueProps {
-  isVisible: boolean;
+  isVisible?: boolean;
   customers: CustomerOption[];
   type6Items: Type6IssueItem[];
   addType6Row: () => void;
@@ -9,4 +9,5 @@ export interface Type6IssueProps {
   deleteType6Row: (id: string) => void;
   title?: string;
   isPlanned?: boolean;
+  readonly?: boolean;
 }

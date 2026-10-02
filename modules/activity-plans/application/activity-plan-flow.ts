@@ -713,7 +713,7 @@ export async function approveActivityPlanUseCase(
       const isEligibleReviewer =
         isAdmin ||
         plan.currentApproverEmployeeId === approverEmployee?.id ||
-        (approverEmployee && approverEmployee.id === plan.employee?.managerId);
+        Boolean(approverEmployee && approverEmployee.id === plan.employee?.managerId);
 
       if (!isEligibleReviewer) {
         return {
@@ -1255,7 +1255,7 @@ export async function rejectActivityPlanUseCase(
       if (!isAdmin) {
         hasAuthority =
           plan.currentApproverEmployeeId === approverEmployee?.id ||
-          (approverEmployee && approverEmployee.id === plan.employee?.managerId);
+          Boolean(approverEmployee && approverEmployee.id === plan.employee?.managerId);
       }
       step = ActivityApprovalStep.POST_ACTIVITY_REVIEW;
     }
@@ -1394,7 +1394,7 @@ export async function requestCorrectionPlanUseCase(
       if (!isAdmin) {
         hasAuthority =
           plan.currentApproverEmployeeId === approverEmployee?.id ||
-          (approverEmployee && approverEmployee.id === plan.employee?.managerId);
+          Boolean(approverEmployee && approverEmployee.id === plan.employee?.managerId);
       }
       step = ActivityApprovalStep.POST_ACTIVITY_REVIEW;
     }

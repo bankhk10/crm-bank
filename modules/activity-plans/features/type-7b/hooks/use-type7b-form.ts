@@ -329,7 +329,7 @@ export function useType7bForm({
         item.withdrawnProducts &&
         item.withdrawnProducts.length > 0
       ) {
-        item.withdrawnProducts.forEach((wp) => {
+        item.withdrawnProducts.forEach((wp: any) => {
           const pId =
             wp.productId ||
             products.find((p) => p.name === wp.productName)?.id;

@@ -6,6 +6,8 @@ export interface CustomerOption {
   province?: string | null;
   district?: string | null;
   responsibleEmployeeId?: string | null;
+  phone?: string | null;
+  telephone?: string | null;
 }
 
 export interface ProductOption {
@@ -16,6 +18,7 @@ export interface ProductOption {
   productGroupId?: string | null;
   price?: number | null;
   unit?: string | null;
+  packageSizeUnit?: string | null;
 }
 
 export interface ProductCategoryOption {
@@ -39,3 +42,5 @@ export interface Type7DemoProductLine {
   quantity: number;
   unit?: string;
 }
+
+export type { Type7DemoPlotItem } from "@/modules/activity-plans/features/shared/form/types";

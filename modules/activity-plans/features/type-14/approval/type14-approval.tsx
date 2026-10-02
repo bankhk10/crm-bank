@@ -107,11 +107,11 @@ export function Type14Approval({ data, planSummary }: Type14ApprovalProps) {
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-slate-500">
-                  {typeof t.visitDate === "string"
-                    ? t.visitDate.split("T")[0]
-                    : t.visitDate instanceof Date
-                      ? t.visitDate.toISOString().split("T")[0]
-                      : "-"}
+                  {t.visitDate
+                    ? typeof t.visitDate === "string"
+                      ? t.visitDate.split("T")[0]
+                      : new Date(t.visitDate as any).toISOString().split("T")[0]
+                    : "-"}
                 </span>
                 <Badge
                   variant="outline"

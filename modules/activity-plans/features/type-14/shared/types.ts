@@ -19,11 +19,11 @@ export interface Type14PlanInput {
   demoPlotId?: string | null;
   name?: string;
   storeId?: string;
-  ownerName?: string;
+  ownerName?: string | null;
   province?: string;
   district?: string;
-  latitude?: string;
-  longitude?: string;
+  latitude?: string | null;
+  longitude?: string | null;
   trackings?: Type14TrackingItem[];
 }
 

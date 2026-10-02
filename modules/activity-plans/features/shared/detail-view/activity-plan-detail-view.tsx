@@ -53,9 +53,9 @@ import {
   ApprovalType12Tour,
 } from "../approve-view/components/work-types";
 import { Type13Detail } from "@/modules/activity-plans/features/type-13";
-import type { Type13PlotItem } from "../../../application/validations";
+import type { Type13PlotItem } from "@/modules/activity-plans/features/type-13/shared/types";
 import { Type14Detail } from "@/modules/activity-plans/features/type-14";
-import type { Type14PlanInput } from "../../../application/validations";
+import type { Type14PlanInput } from "@/modules/activity-plans/features/type-14/shared/types";
 import {
   BudgetSection,
   PromotionalMaterialsSection,

@@ -46,7 +46,7 @@ export function Type10FieldDay({
   type10BookingSales,
   setType10BookingSales,
   demoPlots = [],
-}: Props) {
+}: Type10FieldDayProps) {
   const [dbPlots, setDbPlots] = useState<UserDemoPlotOption[]>([]);
 
   useEffect(() => {
@@ -77,7 +77,7 @@ export function Type10FieldDay({
 
   // Merge plots fetched from DB and passed from parent props
   const combinedMap = new Map<string, UserDemoPlotOption>();
-  demoPlots.forEach((p) => {
+  demoPlots.forEach((p: any) => {
     if (p.id) combinedMap.set(p.id, p);
     else if (p.name) combinedMap.set(p.name, p);
   });
@@ -95,10 +95,10 @@ export function Type10FieldDay({
   useEffect(() => {
     if (foundPlot) {
       if (!type10TargetCrop && (foundPlot.targetCrop || foundPlot.cropName)) {
-        setType10TargetCrop(foundPlot.targetCrop || foundPlot.cropName || "");
+        setType10TargetCrop?.(foundPlot.targetCrop || foundPlot.cropName || "");
       }
       if (!type10Showcase && (foundPlot.showcase || foundPlot.productName)) {
-        setType10Showcase(foundPlot.showcase || foundPlot.productName || "");
+        setType10Showcase?.(foundPlot.showcase || foundPlot.productName || "");
       }
     }
   }, [foundPlot?.id, foundPlot?.name]);
@@ -135,17 +135,17 @@ export function Type10FieldDay({
                 (p) => p.id === selectedVal || p.name === selectedVal,
               );
               if (selected) {
-                setType10DemoPlot(selected.id || selected.name);
+                setType10DemoPlot?.(selected.id || selected.name);
                 const loc = getPlotCoordinates(selected);
-                setType10Location(loc === "-" ? "" : loc);
-                setType10TargetCrop(
+                setType10Location?.(loc === "-" ? "" : loc);
+                setType10TargetCrop?.(
                   selected.targetCrop || selected.cropName || "",
                 );
-                setType10Showcase(
+                setType10Showcase?.(
                   selected.showcase || selected.productName || "",
                 );
               } else {
-                setType10DemoPlot(selectedVal);
+                setType10DemoPlot?.(selectedVal);
               }
             }}
             options={plotOptions}

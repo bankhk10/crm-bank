@@ -290,9 +290,9 @@ export function useType7aForm({
     }> = [];
 
     const prods = (item.demoProducts || []).filter(
-      (p) => p.productId || p.productName,
+      (p: any) => p.productId || p.productName,
     );
-    prods.forEach((dp) => {
+    prods.forEach((dp: any) => {
       const pId =
         dp.productId ||
         products.find((p) => p.name === dp.productName)?.id;
