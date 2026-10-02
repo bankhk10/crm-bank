@@ -8,6 +8,9 @@ export { Type2Followup } from "./create/type2-followup";
 export type { Type2FollowupProps } from "./create/types";
 export {
   validateType2FormItems,
+  type2FollowupProductLineSchema,
+  type2ProductFollowupItemSchema,
+  createType2ValidationSchema,
   type ValidateType2Options,
   type Type2ValidationResult,
 } from "./create/validation";
