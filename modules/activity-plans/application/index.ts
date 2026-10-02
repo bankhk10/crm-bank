@@ -400,8 +400,13 @@ export async function duplicateActivityPlanUseCase(
   // Stores
   const planStores = (originalPlan.stores || []).map((s) => ({
     workTypeCode: s.workTypeCode,
+    visitPurpose: s.visitPurpose ?? null,
     storeId: s.storeId,
     storeName: s.storeName,
+    province: s.province ?? null,
+    isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
+    unregisteredFarmerName: s.unregisteredFarmerName ?? null,
+    unregisteredFarmerPhone: s.unregisteredFarmerPhone ?? null,
     targetAmount: s.targetAmount ? Number(s.targetAmount) : null,
     subDealerStore: s.subDealerStore,
     remarks: s.remarks,
