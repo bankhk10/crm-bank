@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { X, UserCheck, Store, MapPin, Camera, Navigation, Phone, CheckCircle2 } from "lucide-react";
+import {
+  X,
+  UserCheck,
+  Store,
+  MapPin,
+  Camera,
+  Navigation,
+  Phone,
+  CheckCircle2,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +21,10 @@ import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import DatePicker from "@/components/custom/DatePicker";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
-import type { ImageFile, ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type {
+  ImageFile,
+  ActualTargetsState,
+} from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
@@ -151,7 +163,11 @@ export function ActualType1Visit({
       <div className="flex items-center justify-between pb-1 border-b border-emerald-100">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
-            {isStore ? <Store className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+            {isStore ? (
+              <Store className="w-4 h-4" />
+            ) : (
+              <UserCheck className="w-4 h-4" />
+            )}
           </div>
           <div>
             <h2 className="font-bold text-emerald-900 text-base md:text-lg">
@@ -162,12 +178,6 @@ export function ActualType1Visit({
             </p>
           </div>
         </div>
-        <Badge
-          variant="outline"
-          className="text-xs font-bold bg-emerald-50 text-emerald-800 border-emerald-200"
-        >
-          TYPE_1
-        </Badge>
       </div>
 
       {/* PLAN DETAILS SECTION */}
@@ -188,7 +198,9 @@ export function ActualType1Visit({
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                 {/* วัตถุประสงค์ของประเภทงาน */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-                  <span className="text-slate-400 font-medium block">วัตถุประสงค์ของประเภทงาน</span>
+                  <span className="text-slate-400 font-medium block">
+                    วัตถุประสงค์ของประเภทงาน555555
+                  </span>
                   <span className="font-bold text-slate-800 text-sm block">
                     เข้าพบร้านค้า
                   </span>
@@ -196,15 +208,22 @@ export function ActualType1Visit({
 
                 {/* ร้านค้า */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-                  <span className="text-slate-400 font-medium block">ร้านค้า (Customer Master)</span>
-                  <span className="font-bold text-slate-800 text-sm block truncate" title={target?.customer || "-"}>
+                  <span className="text-slate-400 font-medium block">
+                    ร้านค้า (Customer Master)
+                  </span>
+                  <span
+                    className="font-bold text-slate-800 text-sm block truncate"
+                    title={target?.customer || "-"}
+                  >
                     {target?.customer || "-"}
                   </span>
                 </div>
 
                 {/* ประเภทลูกค้า */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-                  <span className="text-slate-400 font-medium block">ประเภทลูกค้า</span>
+                  <span className="text-slate-400 font-medium block">
+                    ประเภทลูกค้า
+                  </span>
                   <div>
                     <Badge
                       variant="outline"
@@ -214,14 +233,16 @@ export function ActualType1Visit({
                         ? "ตัวแทนจำหน่าย"
                         : target?.customerType === "SUBDEALER"
                           ? "ร้านค้าย่อย"
-                          : (target?.customerType || "ร้านค้า")}
+                          : target?.customerType || "ร้านค้า"}
                     </Badge>
                   </div>
                 </div>
 
                 {/* วัตถุประสงค์ (ประเด็นหลัก) */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-                  <span className="text-slate-400 font-medium block">วัตถุประสงค์ (ประเด็นหลัก)</span>
+                  <span className="text-slate-400 font-medium block">
+                    วัตถุประสงค์ (ประเด็นหลัก)
+                  </span>
                   <span className="font-bold text-slate-800 text-sm block">
                     {target?.topic || "-"}
                   </span>
@@ -231,7 +252,9 @@ export function ActualType1Visit({
               {/* รายละเอียดเพิ่มเติม */}
               <div className="text-xs">
                 <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-                  <span className="text-slate-400 font-medium block">รายละเอียดเพิ่มเติม</span>
+                  <span className="text-slate-400 font-medium block">
+                    รายละเอียดเพิ่มเติม
+                  </span>
                   <p className="font-normal text-slate-700 whitespace-pre-wrap">
                     {target?.detail || "-"}
                   </p>
@@ -240,18 +263,27 @@ export function ActualType1Visit({
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-xs">
-                {/* วัตถุประสงค์ของประเภทงาน */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                {/* เกษตรกร / ชื่อ */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-                  <span className="text-slate-400 font-medium block">วัตถุประสงค์ของประเภทงาน</span>
-                  <span className="font-bold text-slate-800 text-sm block">
-                    เข้าพบเกษตรกร
+                  <span className="text-slate-400 font-medium block">
+                    {isUnregistered
+                      ? "ชื่อ - สกุล เกษตรกร"
+                      : "เกษตรกร (Customer Master)"}
+                  </span>
+                  <span
+                    className="font-bold text-slate-800 text-sm block truncate"
+                    title={farmerDisplayName}
+                  >
+                    {farmerDisplayName}
                   </span>
                 </div>
 
                 {/* จังหวัด */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-                  <span className="text-slate-400 font-medium block">จังหวัด</span>
+                  <span className="text-slate-400 font-medium block">
+                    จังหวัด
+                  </span>
                   <span className="font-bold text-slate-800 text-sm block">
                     {target?.province || "-"}
                   </span>
@@ -259,7 +291,9 @@ export function ActualType1Visit({
 
                 {/* สถานะเกษตรกร */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-                  <span className="text-slate-400 font-medium block">สถานะเกษตรกร</span>
+                  <span className="text-slate-400 font-medium block">
+                    สถานะเกษตรกร
+                  </span>
                   <div>
                     {isUnregistered ? (
                       <Badge
@@ -280,16 +314,6 @@ export function ActualType1Visit({
                   </div>
                 </div>
 
-                {/* เกษตรกร / ชื่อ */}
-                <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-                  <span className="text-slate-400 font-medium block">
-                    {isUnregistered ? "ชื่อ - สกุล เกษตรกร" : "เกษตรกร (Customer Master)"}
-                  </span>
-                  <span className="font-bold text-slate-800 text-sm block truncate" title={farmerDisplayName}>
-                    {farmerDisplayName}
-                  </span>
-                </div>
-
                 {/* เบอร์โทร (กรณีไม่มีในระบบ) */}
                 {isUnregistered ? (
                   <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
@@ -303,7 +327,9 @@ export function ActualType1Visit({
                   </div>
                 ) : (
                   <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-                    <span className="text-slate-400 font-medium block">วัตถุประสงค์ (ประเด็นหลัก)</span>
+                    <span className="text-slate-400 font-medium block">
+                      วัตถุประสงค์ (ประเด็นหลัก)
+                    </span>
                     <span className="font-bold text-slate-800 text-sm block">
                       {target?.topic || "-"}
                     </span>
@@ -315,17 +341,26 @@ export function ActualType1Visit({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
                 {isUnregistered && (
                   <div className="bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-                    <span className="text-slate-400 font-medium block">วัตถุประสงค์ (ประเด็นหลัก)</span>
+                    <span className="text-slate-400 font-medium block">
+                      วัตถุประสงค์ (ประเด็นหลัก)
+                    </span>
                     <span className="font-semibold text-slate-800 block">
                       {target?.topic || "-"}
                     </span>
                   </div>
                 )}
-                <div className={cn("bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1", !isUnregistered && "sm:col-span-2")}>
-                  <span className="text-slate-400 font-medium block">รายละเอียดเพิ่มเติม</span>
-                  <p className="font-normal text-slate-700 whitespace-pre-wrap">
+                <div
+                  className={cn(
+                    "bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1",
+                    !isUnregistered && "sm:col-span-2",
+                  )}
+                >
+                  <span className="text-slate-400 font-medium block">
+                    รายละเอียดเพิ่มเติม
+                  </span>
+                  <span className="font-semibold text-slate-800 block">
                     {target?.detail || "-"}
-                  </p>
+                  </span>
                 </div>
               </div>
             </>
@@ -354,7 +389,9 @@ export function ActualType1Visit({
               <Textarea
                 rows={2}
                 value={farmerHomeAddress}
-                onChange={(e) => setFarmerHomeAddress && setFarmerHomeAddress(e.target.value)}
+                onChange={(e) =>
+                  setFarmerHomeAddress && setFarmerHomeAddress(e.target.value)
+                }
                 placeholder="ระบุที่อยู่บ้านเกษตรกร เช่น เลขที่ หมู่ที่ ตำบล อำเภอ"
                 className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm"
               />
@@ -375,7 +412,12 @@ export function ActualType1Visit({
                   disabled={geoLoading}
                   className="h-8 text-xs font-semibold bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50"
                 >
-                  <Navigation className={cn("w-3 h-3 mr-1 text-emerald-600", geoLoading && "animate-spin")} />
+                  <Navigation
+                    className={cn(
+                      "w-3 h-3 mr-1 text-emerald-600",
+                      geoLoading && "animate-spin",
+                    )}
+                  />
                   {geoLoading ? "กำลังดึงพิกัด..." : "ใช้ตำแหน่งปัจจุบัน"}
                 </Button>
               </div>
@@ -395,7 +437,9 @@ export function ActualType1Visit({
                     type="number"
                     step="any"
                     value={plotLatitude}
-                    onChange={(e) => setPlotLatitude && setPlotLatitude(e.target.value)}
+                    onChange={(e) =>
+                      setPlotLatitude && setPlotLatitude(e.target.value)
+                    }
                     placeholder="เช่น 13.7563309"
                     className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
                   />
@@ -408,7 +452,9 @@ export function ActualType1Visit({
                     type="number"
                     step="any"
                     value={plotLongitude}
-                    onChange={(e) => setPlotLongitude && setPlotLongitude(e.target.value)}
+                    onChange={(e) =>
+                      setPlotLongitude && setPlotLongitude(e.target.value)
+                    }
                     placeholder="เช่น 100.5017651"
                     className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
                   />
@@ -528,7 +574,11 @@ export function ActualType1Visit({
             rows={2}
             value={discussionResult}
             onChange={(e) => setDiscussionResult(e.target.value)}
-            placeholder={isStore ? "สรุปประเด็นสำคัญจากการพูดคุยกับร้านค้า" : "สรุปประเด็นสำคัญจากการพูดคุยกับเกษตรกร"}
+            placeholder={
+              isStore
+                ? "สรุปประเด็นสำคัญจากการพูดคุยกับร้านค้า"
+                : "สรุปประเด็นสำคัญจากการพูดคุยกับเกษตรกร"
+            }
             className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm"
           />
         </div>
