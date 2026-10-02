@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Layers, Plus, Trash2, Sparkles, Package, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Type2PlanCard } from "../shared/type2-plan-card";
-import { FormCombobox } from "@/components/custom/FormCombobox";
+import {
+  ActivityProductSelect,
+  type ActivityProductItem,
+} from "@/components/activity/activity-product-select";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { Badge } from "@/components/ui/badge";
 import GalleryUpload from "@/components/custom/gallery-upload";
@@ -67,14 +70,6 @@ export function ActualType2Followup({
     if (products && products.length > 0) return products;
     return dbProducts;
   }, [products, dbProducts]);
-
-  const productComboboxOptions = useMemo(() => {
-    return masterProductList.map((p) => ({
-      value: p.name,
-      label: p.name,
-      subLabel: p.productCode || undefined,
-    }));
-  }, [masterProductList]);
 
   // Helper to parse product-specific followup detail from combined string e.g. "Prod1: detail1 | Prod2: detail2"
   const getParsedFollowupDetail = (
@@ -396,16 +391,21 @@ export function ActualType2Followup({
     index: number,
     field: "productName" | "usageResult" | "problemDetail" | "followupDetail",
     value: string,
+    productItem?: ActivityProductItem,
   ) => {
     const updated = [...additionalItems];
     if (field === "productName") {
-      const foundProduct = masterProductList.find(
-        (p) => p.name.trim().toLowerCase() === value.trim().toLowerCase(),
-      );
+      const foundProduct =
+        productItem ||
+        masterProductList.find(
+          (p) =>
+            p.name.trim().toLowerCase() === value.trim().toLowerCase() ||
+            p.id === value,
+        );
       updated[index] = {
         ...updated[index],
-        productName: value,
-        productId: foundProduct?.id || updated[index].productId || "",
+        productName: value ? (foundProduct?.name || value) : "",
+        productId: value ? (foundProduct?.id || "") : "",
       };
     } else if (field === "usageResult") {
       const nextUsage = value as "ลูกค้าพึงพอใจ" | "พบปัญหา";
@@ -673,19 +673,20 @@ export function ActualType2Followup({
 
                   {/* Customer (Auto from Plan) & Product Combobox (from Master) */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Product Master Combobox */}
+                    {/* Product Master Select */}
                     <div className="space-y-1">
-                      <FormCombobox
+                      <ActivityProductSelect
                         id={`additional-product-${idx}`}
                         label="เลือกสินค้าจาก Product Master"
                         required
                         labelClassName="block text-xs font-bold text-slate-700 mb-1 mx-0"
                         triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-amber-200 rounded-xl text-slate-900 font-medium focus:ring-2 focus:ring-amber-500 shadow-2xs"
+                        valueKey="name"
                         value={item.productName || ""}
-                        onChange={(val) =>
-                          handleAdditionalChange(idx, "productName", val)
+                        onChange={(val, prod) =>
+                          handleAdditionalChange(idx, "productName", val, prod)
                         }
-                        options={productComboboxOptions}
+                        products={masterProductList}
                         placeholder="-- ค้นหาและเลือกสินค้าที่ติดตามเพิ่มเติม --"
                         searchPlaceholder="พิมพ์ชื่อ หรือรหัสสินค้าเพื่อค้นหา..."
                         emptyText="ไม่พบสินค้าในระบบ"
