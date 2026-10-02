@@ -371,6 +371,16 @@ export function buildResultSummary(
     (wt) => wt === "ทำแปลงสาธิต" || getWorkTypeCode(wt) === "TYPE_7A",
   );
 
+  const isT7ProductChanged = Boolean(
+    (input.t7ActualProductId &&
+      input.t7PlannedProductId &&
+      input.t7ActualProductId !== input.t7PlannedProductId) ||
+    (input.t7ActualProductName &&
+      input.t7PlannedProductName &&
+      input.t7ActualProductName !== input.t7PlannedProductName) ||
+    input.t7ChangeReason?.trim(),
+  );
+
   // Validate TYPE_7A fields if COMPLETED
   if (isType7A && !isType7B) {
     const t7aValidation = validateType7aActual(input);

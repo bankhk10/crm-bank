@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ActivityCustomerSelect, type ActivityCustomerItem } from "@/components/activity/activity-customer-select";
 import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
-import { ActivityProductSelect } from "@/components/activity/activity-product-select";
+import { ActivityProductSelect, type ActivityProductItem } from "@/components/activity/activity-product-select";
 import type { Type13PlotItem, Type13WithdrawalItem, DealerOption, ProductOption } from "../shared/types";
 import type { Type13CreateProps } from "./types";
 

@@ -17,11 +17,14 @@ export interface ActivityCustomerItem {
   id: string;
   name: string;
   customerCode?: string | null;
-  customerType: "DEALER" | "SUBDEALER" | "FARMER" | "BROKER";
+  customerType?: "DEALER" | "SUBDEALER" | "FARMER" | "BROKER" | string | null;
   province?: string | null;
   district?: string | null;
   phoneNumber?: string | null;
+  phone?: string | null;
   parentDealerId?: string | null;
+  responsibleEmployeeId?: string | null;
+  [key: string]: any;
 }
 
 export interface UseActivityCustomersOptions {
@@ -76,7 +79,8 @@ async function fetchFarmersData(province: string): Promise<ActivityCustomerItem[
   const cleanProv = province?.trim();
   if (!cleanProv) return [];
   if (cachedFarmersByProvince[cleanProv]) return cachedFarmersByProvince[cleanProv];
-  if (fetchFarmersPromises[cleanProv]) return fetchFarmersPromises[cleanProv];
+  const existingPromise = fetchFarmersPromises[cleanProv];
+  if (existingPromise) return existingPromise;
 
   fetchFarmersPromises[cleanProv] = getFarmerCustomerOptionsAction(cleanProv)
     .then((res) => {
