@@ -27,3 +27,9 @@ export {
   type UseType2FormOptions,
   type UseType2FormResult,
 } from "./hooks/use-type2-form";
+export {
+  Type2PlanCard,
+  type Type2PlanCardProps,
+  type Type2PlanCardTarget,
+  type Type2PlanCardTargetItem,
+} from "./shared/type2-plan-card";

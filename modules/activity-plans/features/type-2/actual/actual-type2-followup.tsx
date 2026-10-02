@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
-  Target,
   Layers,
   Plus,
   Trash2,
@@ -13,7 +12,7 @@ import {
   Camera,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
+import { Type2PlanCard } from "../shared/type2-plan-card";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { Badge } from "@/components/ui/badge";
@@ -469,76 +468,7 @@ export function ActualType2Followup({
       {/* ───────────────────────────────────────────────────────────── */}
       {/* SECTION 1: ข้อมูลตามแผน (PLAN TARGET SUMMARY - READ ONLY) */}
       {/* ───────────────────────────────────────────────────────────── */}
-      {planType !== "UNPLANNED" && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-              <Target className="w-3.5 h-3.5 text-cyan-600" />
-              เป้าหมายที่ตั้งไว้ในแผนงาน (ข้อมูลจากแผน)
-            </label>
-            <span className="text-[11px] text-slate-400 font-normal">
-              * ข้อมูลแผนถูกล็อก ไม่สามารถแก้ไขได้
-            </span>
-          </div>
-
-          {plannedItems.length > 1 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-              {plannedItems.map((item, idx) => (
-                <div
-                  key={item.id || idx}
-                  className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-2 shadow-2xs"
-                >
-                  <div className="flex items-center gap-2 border-b border-slate-200/70 pb-2 font-bold text-cyan-950">
-                    <span className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-800 flex items-center justify-center text-[10px] font-extrabold shrink-0">
-                      {idx + 1}
-                    </span>
-                    <span>{item.productName}</span>
-                  </div>
-                  <div className="grid grid-cols-1 gap-1.5 text-xs text-slate-600">
-                    <div>
-                      <span className="text-slate-400 font-medium mr-1.5">
-                        ชื่อร้านค้า/ลูกค้า:
-                      </span>
-                      <span className="font-semibold text-slate-800">
-                        {item.customer || target?.customer || "-"}
-                      </span>
-                    </div>
-                    {item.detail && (
-                      <div>
-                        <span className="text-slate-400 font-medium mr-1.5">
-                          รายละเอียดเพิ่มเติม:
-                        </span>
-                        <span className="text-slate-700">{item.detail}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <ActualTargetCard
-              iconColorClass="text-cyan-600"
-              badgeColorClass="bg-cyan-100 text-cyan-800"
-              gridColsClass="grid-cols-1 sm:grid-cols-3"
-              items={[
-                {
-                  label: "สินค้าที่ต้องการติดตามผล:",
-                  value:
-                    target?.product || (plannedItems[0]?.productName ?? "-"),
-                },
-                {
-                  label: "ชื่อร้านค้า / ลูกค้า:",
-                  value: target?.customer || (plannedItems[0]?.customer ?? "-"),
-                },
-                {
-                  label: "รายละเอียดเพิ่มเติมจากแผน:",
-                  value: target?.detail || (plannedItems[0]?.detail ?? "-"),
-                },
-              ]}
-            />
-          )}
-        </div>
-      )}
+      <Type2PlanCard planType={planType} target={target} />
 
       {/* ───────────────────────────────────────────────────────────── */}
       {/* SECTION 2: บันทึกผลการติดตามสินค้าตามแผน (PLAN FOLLOW-UP RECORD) */}
