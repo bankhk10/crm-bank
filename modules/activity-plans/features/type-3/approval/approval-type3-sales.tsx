@@ -18,8 +18,8 @@ export function ApprovalType3Sales({
   if (!isVisible) return null;
 
   return (
-    <div className="border border-blue-200/80 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
-      <div className="flex items-center justify-between border-b border-blue-100 pb-2.5">
+    <div className="mt-6">
+      <div className="flex items-center justify-between border-blue-100 pb-2.5">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200">
             <Tag className="w-4 h-4" />
@@ -40,4 +40,3 @@ export function ApprovalType3Sales({
     </div>
   );
 }
-
