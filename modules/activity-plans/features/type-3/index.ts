@@ -33,3 +33,10 @@ export {
   type UseType3FormOptions,
   type UseType3FormResult,
 } from "./hooks/use-type3-form";
+export {
+  Type3PlanCard,
+  type Type3PlanCardProps,
+  type Type3PlanCardTarget,
+  type Type3PlanCardTargetItem,
+} from "./shared/type3-plan-card";
+

@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import { listProductsAction } from "@/modules/products/server/actions";
+import { Type3PlanCard } from "../shared/type3-plan-card";
 
 import type {
   TargetProductItem,
@@ -435,96 +436,7 @@ export function ActualType3Sales({
       </div>
 
       {/* TARGET SUMMARY CARD (PLAN OVERVIEW) */}
-      {planType !== "UNPLANNED" && (
-        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
-          <div className="text-xs border-b border-slate-200/60 pb-2.5">
-            <div className="space-y-0.5">
-              <span className="text-[11px] font-semibold text-slate-500">
-                ชื่อร้านค้า / Key Farmer:
-              </span>
-              <div className="font-bold text-slate-900">
-                {target?.subDealerStore ? (
-                  <span>
-                    <Badge
-                      variant="outline"
-                      className="mr-1 bg-amber-50 text-amber-800 border-amber-300 text-[10px] font-bold"
-                    >
-                      Subdealer
-                    </Badge>
-                    {target.subDealerStore}{" "}
-                    <span className="text-slate-500 text-xs font-normal">
-                      (Dealer: {target.dealerName || target.customer || "-"})
-                    </span>
-                  </span>
-                ) : (
-                  <span>
-                    <Badge
-                      variant="outline"
-                      className="mr-1 bg-emerald-50 text-emerald-800 border-emerald-300 text-[10px] font-bold"
-                    >
-                      Dealer
-                    </Badge>
-                    {target?.customer || "-"}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Planned Product Target Cards */}
-          {plannedItems.length > 0 ? (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                  <Target className="w-4 h-4 text-emerald-600" />
-                  รายการสินค้าในแผน ({plannedItems.length} รายการ):
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-                {plannedItems.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs space-y-2"
-                  >
-                    <div className="flex items-center justify-between font-bold text-slate-900 border-b border-slate-100 pb-1.5">
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px]">
-                          {idx + 1}
-                        </span>
-                        <span>{item.productName}</span>
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px]"
-                      >
-                        ตามแผน
-                      </Badge>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-1.5 text-[11px]">
-                      <div>
-                        <span className="text-slate-400 block">เป้าจำนวน:</span>
-                        <span className="font-bold text-slate-800">
-                          {item.qty ? `${item.qty} หน่วย` : "-"}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block">รายละเอียด:</span>
-                        <span className="font-medium text-slate-700 truncate block">
-                          {item.detail || item.notes || "-"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="text-xs text-slate-500 italic">ไม่มีรายการสินค้าตามแผนเดิม</p>
-          )}
-        </div>
-      )}
+      <Type3PlanCard planType={planType} target={target} />
 
       {/* SECTION 1: สินค้าตามแผน (RECORDING FORM) */}
       {planType !== "UNPLANNED" && plannedItems.length > 0 && (
