@@ -5,8 +5,8 @@ import { CheckSquare, Plus, Trash2, Store, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityInput } from "@/components/activity/activity-input";
 import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
+import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
 import { FormCombobox } from "@/components/custom/form-components";
-import { useCustomerOptions } from "@/modules/activity-plans/features/shared/hooks/use-customer-options";
 import type {
   Type2ProductFollowupItem,
   CustomerOption,
@@ -25,31 +25,6 @@ export function Type2Followup({
   customers = [],
   products = [],
 }: Type2FollowupProps) {
-  // Server-fetched options for Dealer/Subdealer and Farmers per province via shared hook
-  const {
-    storeOptions: storeOptionsFromApi,
-    loadFarmersForProvince,
-    farmerOptionsByProvince: farmersByProvince,
-  } = useCustomerOptions();
-
-  // Track unique provinces currently selected across all TYPE_2 rows
-  const activeProvinces = useMemo(() => {
-    const provs = new Set<string>();
-    type2Items.forEach((it) => {
-      const p = it.province?.trim();
-      if (p) provs.add(p);
-    });
-    return Array.from(provs);
-  }, [type2Items]);
-
-  // Load Farmer options per active province
-  useEffect(() => {
-    activeProvinces.forEach((prov) => {
-      loadFarmersForProvince(prov);
-    });
-  }, [activeProvinces, loadFarmersForProvince]);
-
-
   const productOptions = useMemo(
     () =>
       (products || []).map((p) => ({
@@ -59,100 +34,6 @@ export function Type2Followup({
       })),
     [products],
   );
-
-  // Store Customers: ONLY DEALER or SUBDEALER
-  const storeCustomerOptions = useMemo(() => {
-    const list = [...storeOptionsFromApi];
-    const existingIds = new Set(list.map((c) => c.id));
-    (customers || []).forEach((c) => {
-      if (
-        (c.customerType === "DEALER" || c.customerType === "SUBDEALER") &&
-        !existingIds.has(c.id)
-      ) {
-        list.push(c);
-        existingIds.add(c.id);
-      }
-    });
-
-    return list.map((c) => {
-      const typeLabel =
-        c.customerType === "DEALER"
-          ? "ตัวแทนจำหน่าย"
-          : c.customerType === "SUBDEALER"
-            ? "ร้านค้าย่อย"
-            : "";
-      const provinceInfo = c.province ? ` - จ.${c.province}` : "";
-      return {
-        value: c.id,
-        label: `${c.name} (${typeLabel})${provinceInfo}`,
-        customerName: c.name,
-        customerType: c.customerType,
-      };
-    });
-  }, [storeOptionsFromApi, customers]);
-
-  // Helper for Store options preserving selected store
-  const getStoreOptionsForItem = (item: Type2ProductFollowupItem) => {
-    const options = [...storeCustomerOptions];
-    if (item.storeId && !options.some((o) => o.value === item.storeId)) {
-      const matched = (customers || []).find((c) => c.id === item.storeId);
-      if (
-        matched &&
-        (matched.customerType === "DEALER" ||
-          matched.customerType === "SUBDEALER")
-      ) {
-        const typeLabel =
-          matched.customerType === "DEALER" ? "ตัวแทนจำหน่าย" : "ร้านค้าย่อย";
-        options.push({
-          value: matched.id,
-          label: `${matched.name} (${typeLabel})${matched.province ? ` - จ.${matched.province}` : ""}`,
-          customerName: matched.name,
-          customerType: matched.customerType,
-        });
-      }
-    }
-    return options;
-  };
-
-  // Helper for Farmer options preserving selected farmer
-  const getFarmerOptionsForItem = (item: Type2ProductFollowupItem) => {
-    const currentProvince = item.province?.trim();
-    if (!currentProvince) return [];
-
-    const apiFarmers = farmersByProvince[currentProvince] || [];
-    const list = [...apiFarmers];
-    const existingIds = new Set(list.map((c) => c.id));
-
-    (customers || []).forEach((c) => {
-      if (
-        c.customerType === "FARMER" &&
-        c.province?.trim() === currentProvince &&
-        !existingIds.has(c.id)
-      ) {
-        list.push(c);
-        existingIds.add(c.id);
-      }
-    });
-
-    const options = list.map((c) => ({
-      value: c.id,
-      label: `${c.name}${c.customerCode ? ` (${c.customerCode})` : ""}`,
-      customerName: c.name,
-    }));
-
-    if (item.storeId && !options.some((o) => o.value === item.storeId)) {
-      const matched = (customers || []).find((c) => c.id === item.storeId);
-      if (matched) {
-        options.push({
-          value: matched.id,
-          label: `${matched.name}${matched.customerCode ? ` (${matched.customerCode})` : ""}`,
-          customerName: matched.name,
-        });
-      }
-    }
-
-    return options;
-  };
 
   // Switching purpose with state cleanup
   const handlePurposeChange = (
@@ -229,9 +110,6 @@ export function Type2Followup({
           type2Items.map((item, index) => {
             const currentPurpose: "FARMER" | "STORE" =
               item.visitPurpose === "STORE" ? "STORE" : "FARMER";
-            const currentProvince = item.province?.trim() || "";
-            const itemFarmerOptions = getFarmerOptionsForItem(item);
-            const itemStoreOptions = getStoreOptionsForItem(item);
 
             return (
               <div
@@ -306,8 +184,7 @@ export function Type2Followup({
                 {/* CASE 1: เข้าพบเกษตรกร (FARMER) */}
                 {currentPurpose === "FARMER" && (
                   <div className="space-y-3 border-b border-slate-100 pb-3">
-                    {/* จังหวัด & รายชื่อเกษตรกร */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
                       {/* จังหวัด Selector */}
                       <ActivityAddressSelect
                         id={`type2-province-combobox-${item.id}`}
@@ -319,148 +196,57 @@ export function Type2Followup({
                         required
                       />
 
-                      {/* รายชื่อเกษตรกร (เมื่ออยู่ในระบบ) */}
-                      {!item.isUnregisteredFarmer ? (
-                        <div>
-                          <FormCombobox
-                            id={`type2-farmer-combobox-${item.id}`}
-                            label="เกษตรกร"
-                            labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                            triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-400"
-                            value={item.storeId || ""}
-                            onChange={(val) => {
-                              const opt = itemFarmerOptions.find(
-                                (o) => o.value === val,
-                              );
-                              updateType2Row(
-                                item.id,
-                                "storeId",
-                                val || undefined,
-                              );
-                              updateType2Row(
-                                item.id,
-                                "customerName",
-                                opt?.customerName || "",
-                              );
-                            }}
-                            options={itemFarmerOptions}
-                            placeholder={
-                              !currentProvince
-                                ? "กรุณาเลือกจังหวัดก่อน"
-                                : "เลือกเกษตรกร (Customer Master)"
-                            }
-                            searchPlaceholder="ค้นหาชื่อ หรือรหัสเกษตรกร..."
-                            emptyText={
-                              !currentProvince
-                                ? "กรุณาเลือกจังหวัดก่อน"
-                                : "ไม่พบเกษตรกรในจังหวัดนี้"
-                            }
-                            disabled={readonly || !currentProvince}
-                            required
-                          />
-                        </div>
-                      ) : (
-                        <div className="hidden md:block" />
-                      )}
-                    </div>
-
-                    {/* Toggle: ไม่มีเกษตรกรในระบบ */}
-                    <div className="flex items-center gap-2 pt-0.5">
-                      <input
-                        type="checkbox"
-                        id={`type2-unregistered-farmer-toggle-${item.id}`}
-                        checked={Boolean(item.isUnregisteredFarmer)}
-                        onChange={(e) =>
-                          handleToggleUnregistered(item.id, e.target.checked)
-                        }
+                      {/* รายชื่อเกษตรกร (พร้อม Unregistered) */}
+                      <ActivityCustomerSelect
+                        id={`type2-farmer-combobox-${item.id}`}
+                        type="FARMER"
+                        province={item.province}
+                        value={item.storeId || ""}
+                        onChange={(val, cust) => {
+                          updateType2Row(item.id, "storeId", val || undefined);
+                          updateType2Row(
+                            item.id,
+                            "customerName",
+                            cust?.name || "",
+                          );
+                        }}
+                        customers={customers}
                         disabled={readonly}
-                        className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer disabled:cursor-not-allowed"
+                        required
+                        allowUnregistered
+                        isUnregistered={Boolean(item.isUnregisteredFarmer)}
+                        onUnregisteredToggle={(chk) =>
+                          handleToggleUnregistered(item.id, chk)
+                        }
+                        unregisteredName={item.unregisteredFarmerName || ""}
+                        onUnregisteredNameChange={(val) =>
+                          updateType2Row(item.id, "unregisteredFarmerName", val)
+                        }
+                        unregisteredPhone={item.unregisteredFarmerPhone || ""}
+                        onUnregisteredPhoneChange={(val) =>
+                          updateType2Row(item.id, "unregisteredFarmerPhone", val)
+                        }
                       />
-                      <label
-                        htmlFor={`type2-unregistered-farmer-toggle-${item.id}`}
-                        className="text-xs font-medium text-slate-700 cursor-pointer select-none"
-                      >
-                        ไม่มีเกษตรกรในระบบ{" "}
-                        <span className="text-[11px] text-slate-500">
-                          (กรอกชื่อและเบอร์โทรศัพท์โดยไม่สร้าง Master Data)
-                        </span>
-                      </label>
                     </div>
-
-                    {/* Form fields for Unregistered Farmer */}
-                    {item.isUnregisteredFarmer && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-amber-50/50 border border-amber-200/80 rounded-lg">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-700 mb-1">
-                            ชื่อ - สกุล เกษตรกร{" "}
-                            <span className="text-rose-500">*</span>
-                          </label>
-                          <ActivityInput
-                            type="text"
-                            value={item.unregisteredFarmerName || ""}
-                            onChange={(e) =>
-                              updateType2Row(
-                                item.id,
-                                "unregisteredFarmerName",
-                                e.target.value,
-                              )
-                            }
-                            disabled={readonly}
-                            placeholder="ระบุชื่อ - สกุล เกษตรกร..."
-                            required
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-700 mb-1">
-                            เบอร์โทรศัพท์{" "}
-                            <span className="text-rose-500">*</span>
-                          </label>
-                          <ActivityInput
-                            type="tel"
-                            value={item.unregisteredFarmerPhone || ""}
-                            onChange={(e) =>
-                              updateType2Row(
-                                item.id,
-                                "unregisteredFarmerPhone",
-                                e.target.value,
-                              )
-                            }
-                            disabled={readonly}
-                            placeholder="เช่น 0812345678"
-                            maxLength={12}
-                            required
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
 
                 {/* CASE 2: เข้าพบร้านค้า (STORE) */}
                 {currentPurpose === "STORE" && (
                   <div className="space-y-2 border-b border-slate-100 pb-3">
-                    <FormCombobox
+                    <ActivityCustomerSelect
                       id={`type2-store-combobox-${item.id}`}
-                      label="ร้านค้า (ตัวแทนจำหน่าย / ร้านค้าย่อย)"
-                      labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500"
+                      type="STORE"
                       value={item.storeId || ""}
-                      onChange={(val) => {
-                        const opt = itemStoreOptions.find(
-                          (o) => o.value === val,
-                        );
+                      onChange={(val, cust) => {
                         updateType2Row(item.id, "storeId", val || undefined);
                         updateType2Row(
                           item.id,
                           "customerName",
-                          opt?.customerName || "",
+                          cust?.name || "",
                         );
                       }}
-                      options={itemStoreOptions}
-                      placeholder="เลือกร้านค้า (Customer Master)"
-                      searchPlaceholder="ค้นหาชื่อร้านค้า..."
-                      emptyText="ไม่พบร้านค้าในระบบ"
+                      customers={customers}
                       disabled={readonly}
                       required
                     />

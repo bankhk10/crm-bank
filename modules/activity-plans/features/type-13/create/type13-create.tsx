@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React from "react";
 import { Plus, Trash2, MapPin, Package, Store, AlertCircle, Info, Layers, Pill } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FormCombobox } from "@/components/custom/form-components";
+import { ActivityCustomerSelect, type ActivityCustomerItem } from "@/components/activity/activity-customer-select";
+import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
+import { ActivityProductSelect } from "@/components/activity/activity-product-select";
 import type { Type13PlotItem, Type13WithdrawalItem, DealerOption, ProductOption } from "../shared/types";
 import type { Type13CreateProps } from "./types";
 
@@ -17,61 +19,6 @@ export function Type13Create({
   products,
   readonly = false,
 }: Type13CreateProps) {
-  // Load thai addresses (provinces & districts)
-  const [provincesData, setProvincesData] = useState<any[]>([]);
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadAddresses() {
-      try {
-        const res = await fetch("/api/thai-addresses");
-        if (!res.ok) return;
-        const json = await res.json();
-        if (isMounted && Array.isArray(json)) {
-          const normalized = json.map((p: any) => ({
-            id: p.id,
-            name: p.name_th,
-            districts: (p.districts || []).map((d: any) => ({
-              id: d.id,
-              name: d.name_th,
-            })),
-          }));
-          setProvincesData(normalized);
-        }
-      } catch (err) {
-        console.error("Failed to load thai addresses:", err);
-      }
-    }
-    loadAddresses();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const provinceOptions = useMemo(() => {
-    return provincesData.map((p) => ({
-      value: p.name,
-      label: p.name,
-    }));
-  }, [provincesData]);
-
-  const dealerOptions = useMemo(() => {
-    return dealers
-      .filter((d) => !d.customerType || d.customerType === "DEALER" || d.customerType === "SUBDEALER")
-      .map((d) => ({
-        value: d.id,
-        label: d.name,
-        subLabel: [d.district, d.province].filter(Boolean).join(", ") || undefined,
-      }));
-  }, [dealers]);
-
-  const productOptions = useMemo(() => {
-    return products.map((p) => ({
-      value: p.id,
-      label: p.name,
-      subLabel: p.unit ? `หน่วย: ${p.unit}` : p.productCode ? `รหัส: ${p.productCode}` : undefined,
-    }));
-  }, [products]);
 
   // Handler: Add new plot (max 10)
   const handleAddPlot = () => {
@@ -99,15 +46,23 @@ export function Type13Create({
   };
 
   // Handler: Update plot field
-  const handleUpdatePlot = (index: number, field: keyof Type13PlotItem, value: any) => {
+  const handleUpdatePlot = (
+    index: number,
+    field: keyof Type13PlotItem,
+    value: any,
+    customerItem?: ActivityCustomerItem,
+  ) => {
     if (readonly) return;
     const updated = [...plots];
     const target = { ...updated[index], [field]: value };
 
-    // Auto-fill province & district if dealer selected and dealer has location info
+    // Auto-fill ownerName, province & district if dealer selected and dealer has location info
     if (field === "storeId" && value) {
-      const selectedDealer = dealers.find((d) => d.id === value);
+      const selectedDealer = customerItem || (dealers || []).find((d) => d.id === value);
       if (selectedDealer) {
+        if (selectedDealer.name && !target.ownerName) {
+          target.ownerName = selectedDealer.name;
+        }
         if (selectedDealer.province && !target.province) {
           target.province = selectedDealer.province;
         }
@@ -179,6 +134,7 @@ export function Type13Create({
     itemIndex: number,
     field: keyof Type13WithdrawalItem,
     value: any,
+    productItem?: ActivityProductItem,
   ) => {
     if (readonly) return;
     const updated = [...plots];
@@ -186,7 +142,7 @@ export function Type13Create({
     const targetItem = { ...items[itemIndex], [field]: value };
 
     if (field === "productId" && value) {
-      const matched = products.find((p) => p.id === value);
+      const matched = productItem || products.find((p) => p.id === value);
       if (matched) {
         targetItem.productName = matched.name;
         targetItem.unit = matched.unit || "";
@@ -255,12 +211,6 @@ export function Type13Create({
       {/* Plots List */}
       <div className="space-y-4">
         {plots.map((plot, plotIdx) => {
-          const matchedProvince = provincesData.find((p) => p.name === plot.province);
-          const districtOptions = (matchedProvince?.districts || []).map((d: any) => ({
-            value: d.name,
-            label: d.name,
-          }));
-
           return (
             <div
               key={plot.id || `plot-${plotIdx}`}
@@ -294,17 +244,18 @@ export function Type13Create({
               </div>
 
               {/* Form Grid: ร้านค้า Dealer, จังหวัด, อำเภอ */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 items-start">
                 {/* ร้านค้า Dealer */}
                 <div>
-                  <FormCombobox
+                  <ActivityCustomerSelect
                     id={`type13-dealer-${plotIdx}`}
+                    type="STORE"
                     label="ร้านค้า Dealer"
                     labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                     triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
                     value={plot.storeId || ""}
-                    onChange={(val) => handleUpdatePlot(plotIdx, "storeId", val)}
-                    options={dealerOptions}
+                    onChange={(val, cust) => handleUpdatePlot(plotIdx, "storeId", val, cust)}
+                    customers={dealers}
                     placeholder="เลือกร้านค้า Dealer..."
                     searchPlaceholder="ค้นหาร้านค้า Dealer..."
                     emptyText="ไม่พบร้านค้า Dealer"
@@ -313,38 +264,29 @@ export function Type13Create({
                   />
                 </div>
 
-                {/* จังหวัด */}
-                <div>
-                  <FormCombobox
-                    id={`type13-prov-${plotIdx}`}
-                    label="จังหวัด"
+                {/* ที่อยู่แปลง: จังหวัด และ อำเภอ */}
+                <div className="md:col-span-2">
+                  <ActivityAddressSelect
+                    id={`type13-address-${plotIdx}`}
+                    levels="province-district"
+                    districtLabel="อำเภอ"
                     labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                     triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
-                    value={plot.province || ""}
-                    onChange={(val) => handleUpdatePlot(plotIdx, "province", val)}
-                    options={provinceOptions}
-                    placeholder="เลือกจังหวัด..."
-                    searchPlaceholder="ค้นหาจังหวัด..."
-                    emptyText="ไม่พบจังหวัด"
+                    value={{
+                      province: plot.province || "",
+                      district: plot.district || "",
+                    }}
+                    onChange={(val) => {
+                      if (readonly) return;
+                      const updated = [...plots];
+                      updated[plotIdx] = {
+                        ...updated[plotIdx],
+                        province: val.province || "",
+                        district: val.district || "",
+                      };
+                      onChange(updated);
+                    }}
                     disabled={readonly}
-                    required
-                  />
-                </div>
-
-                {/* อำเภอ */}
-                <div>
-                  <FormCombobox
-                    id={`type13-dist-${plotIdx}`}
-                    label="อำเภอ"
-                    labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                    triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
-                    value={plot.district || ""}
-                    onChange={(val) => handleUpdatePlot(plotIdx, "district", val)}
-                    options={districtOptions}
-                    placeholder={plot.province ? "เลือกอำเภอ..." : "กรุณาเลือกจังหวัดก่อน"}
-                    searchPlaceholder="ค้นหาอำเภอ..."
-                    emptyText="ไม่พบอำเภอ"
-                    disabled={readonly || !plot.province}
                     required
                   />
                 </div>
@@ -403,15 +345,22 @@ export function Type13Create({
 
                         {/* Product Master Combobox */}
                         <div className="col-span-6 sm:col-span-6">
-                          <FormCombobox
+                          <ActivityProductSelect
                             id={`dw-prod-${plotIdx}-${itemIdx}`}
-                            label=""
                             triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
                             value={item.productId || ""}
-                            onChange={(val) =>
-                              handleUpdateWithdrawalItem(plotIdx, itemIdx, "productId", val)
+                            valueKey="id"
+                            subLabelType="unit"
+                            onChange={(val, prod) =>
+                              handleUpdateWithdrawalItem(
+                                plotIdx,
+                                itemIdx,
+                                "productId",
+                                val,
+                                prod,
+                              )
                             }
-                            options={productOptions}
+                            products={products}
                             placeholder="เลือกตัวยา/สินค้าจาก Master..."
                             searchPlaceholder="ค้นหาสินค้า..."
                             emptyText="ไม่พบสินค้า"

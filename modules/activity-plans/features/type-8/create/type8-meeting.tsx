@@ -1,7 +1,8 @@
 import React from "react";
 import { Users, Plus, Trash2, X, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FormCombobox } from "@/components/custom/form-components";
+import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
+import { ActivityProductSelect } from "@/components/activity/activity-product-select";
 import type {
   Type8MeetingItem,
   Type8PromotionProductItem,
@@ -32,40 +33,6 @@ export function Type8Meeting({
   products = [],
   onDealerSelect,
 }: Type8MeetingProps) {
-  // Filter Subdealer customer master options
-  const subdealerCustomers = (customers || []).filter(
-    (c) =>
-      c.customerType === "SUBDEALER" ||
-      c.customerType === "Subdealer",
-  );
-
-  const subdealerOptions = subdealerCustomers.map((c) => ({
-    value: c.name,
-    label: c.name,
-    subLabel: c.customerCode || undefined,
-  }));
-
-  // Filter Dealer customer master options
-  const dealerCustomers = (customers || []).filter(
-    (c) =>
-      c.customerType === "DEALER" ||
-      c.customerType === "Dealer" ||
-      !c.customerType,
-  );
-
-  const dealerOptions = (
-    dealerCustomers.length > 0 ? dealerCustomers : customers || []
-  ).map((c) => ({
-    value: c.name,
-    label: c.name,
-    subLabel: c.customerCode || undefined,
-  }));
-
-  const productOptions = (products || []).map((p) => ({
-    value: p.name,
-    label: p.name,
-    subLabel: p.productCode || undefined,
-  }));
 
   return (
     <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4">
@@ -102,10 +69,6 @@ export function Type8Meeting({
               item.farmerChannel || "DEALER";
 
             const selectedProducts = item.targetProducts || [];
-            const availableTargetProductOptions = productOptions.filter(
-              (p) => !selectedProducts.includes(p.value),
-            );
-
             const promoItems = item.promotionProducts || [];
 
             return (
@@ -231,21 +194,19 @@ export function Type8Meeting({
 
                       {farmerChannel === "DEALER" ? (
                         <div>
-                          <FormCombobox
+                          <ActivityCustomerSelect
                             id={`dealer-combobox-${item.id}`}
+                            type="DEALER"
                             label="เลือกร้านค้า Dealer จาก Customer Master"
                             labelClassName="block text-xs font-medium text-slate-700 mb-1"
                             triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
-                            value={item.dealerName || ""}
-                            onChange={(val) => {
-                              const found = customers.find(
-                                (c) => c.name === val || c.id === val,
-                              );
-                              updateType8Row(item.id, "dealerName", found?.name || val);
-                              updateType8Row(item.id, "dealerId", found?.id || "");
-                              if (onDealerSelect) onDealerSelect(found || null);
+                            value={item.dealerId || ""}
+                            onChange={(val, cust) => {
+                              updateType8Row(item.id, "dealerName", cust?.name || "");
+                              updateType8Row(item.id, "dealerId", cust?.id || "");
+                              if (onDealerSelect) onDealerSelect(cust ? (customers.find((c) => c.id === cust.id) || null) : null);
                             }}
-                            options={dealerOptions}
+                            customers={customers}
                             placeholder="เลือกร้านค้า Dealer..."
                             searchPlaceholder="ค้นหาร้านค้า Dealer..."
                             emptyText="ไม่พบร้านค้า Dealer ในระบบ"
@@ -298,25 +259,19 @@ export function Type8Meeting({
                                 className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
                               />
                             ) : (
-                              <FormCombobox
+                              <ActivityCustomerSelect
                                 id={`farmer-subdealer-combobox-${item.id}`}
+                                type="SUBDEALER"
                                 label=""
                                 labelClassName="hidden"
                                 triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
-                                value={
-                                  subdealerCustomers.find(
-                                    (c) => c.id === item.subdealerId,
-                                  )?.name || ""
-                                }
-                                onChange={(val) => {
-                                  const foundSub = subdealerCustomers.find(
-                                    (c) => c.name === val || c.id === val,
-                                  );
-                                  if (foundSub) {
-                                    updateType8Row(item.id, "subdealerId", foundSub.id);
-                                    if (foundSub.parentDealerId) {
+                                value={item.subdealerId || ""}
+                                onChange={(val, cust) => {
+                                  if (cust) {
+                                    updateType8Row(item.id, "subdealerId", cust.id);
+                                    if (cust.parentDealerId) {
                                       const parent = customers.find(
-                                        (c) => c.id === foundSub.parentDealerId,
+                                        (c) => c.id === cust.parentDealerId,
                                       );
                                       if (parent) {
                                         updateType8Row(item.id, "dealerId", parent.id);
@@ -328,7 +283,7 @@ export function Type8Meeting({
                                     updateType8Row(item.id, "subdealerId", "");
                                   }
                                 }}
-                                options={subdealerOptions}
+                                customers={customers}
                                 placeholder="เลือกร้านค้า Subdealer..."
                                 searchPlaceholder="ค้นหาร้านค้า Subdealer..."
                                 emptyText="ไม่พบร้านค้า Subdealer ในระบบ"
@@ -338,21 +293,19 @@ export function Type8Meeting({
                             )}
                           </div>
                           <div>
-                            <FormCombobox
+                            <ActivityCustomerSelect
                               id={`parent-dealer-combobox-${item.id}`}
+                              type="DEALER"
                               label="เลือก Dealer ต้นสังกัด จาก Customer Master"
                               labelClassName="block text-xs font-medium text-slate-700 mb-1"
                               triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
-                              value={item.dealerName || ""}
-                              onChange={(val) => {
-                                const found = customers.find(
-                                  (c) => c.name === val || c.id === val,
-                                );
-                                updateType8Row(item.id, "dealerName", found?.name || val);
-                                updateType8Row(item.id, "dealerId", found?.id || "");
-                                if (onDealerSelect) onDealerSelect(found || null);
+                              value={item.dealerId || ""}
+                              onChange={(val, cust) => {
+                                updateType8Row(item.id, "dealerName", cust?.name || "");
+                                updateType8Row(item.id, "dealerId", cust?.id || "");
+                                if (onDealerSelect) onDealerSelect(cust ? (customers.find((c) => c.id === cust.id) || null) : null);
                               }}
-                              options={dealerOptions}
+                              customers={customers}
                               placeholder="เลือกร้านค้า Dealer ต้นสังกัด..."
                               searchPlaceholder="ค้นหา Dealer..."
                               emptyText="ไม่พบร้านค้า Dealer ในระบบ"
@@ -368,21 +321,19 @@ export function Type8Meeting({
                   {/* Case 2: ดีลเลอร์ */}
                   {meetingTarget === "DEALER" && (
                     <div className="pt-2 border-t border-slate-200/60">
-                      <FormCombobox
+                      <ActivityCustomerSelect
                         id={`dealer-only-combobox-${item.id}`}
+                        type="DEALER"
                         label="เลือกร้านค้า Dealer จาก Customer Master"
                         labelClassName="block text-xs font-medium text-slate-700 mb-1"
                         triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
-                        value={item.dealerName || ""}
-                        onChange={(val) => {
-                          const found = customers.find(
-                            (c) => c.name === val || c.id === val,
-                          );
-                          updateType8Row(item.id, "dealerName", found?.name || val);
-                          updateType8Row(item.id, "dealerId", found?.id || "");
-                          if (onDealerSelect) onDealerSelect(found || null);
+                        value={item.dealerId || ""}
+                        onChange={(val, cust) => {
+                          updateType8Row(item.id, "dealerName", cust?.name || "");
+                          updateType8Row(item.id, "dealerId", cust?.id || "");
+                          if (onDealerSelect) onDealerSelect(cust ? (customers.find((c) => c.id === cust.id) || null) : null);
                         }}
-                        options={dealerOptions}
+                        customers={customers}
                         placeholder="เลือกร้านค้า Dealer..."
                         searchPlaceholder="ค้นหาร้านค้า Dealer..."
                         emptyText="ไม่พบร้านค้า Dealer ในระบบ"
@@ -438,25 +389,19 @@ export function Type8Meeting({
                             className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
                           />
                         ) : (
-                          <FormCombobox
+                          <ActivityCustomerSelect
                             id={`subdealer-target-combobox-${item.id}`}
+                            type="SUBDEALER"
                             label=""
                             labelClassName="hidden"
                             triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
-                            value={
-                              subdealerCustomers.find(
-                                (c) => c.id === item.subdealerId,
-                              )?.name || ""
-                            }
-                            onChange={(val) => {
-                              const foundSub = subdealerCustomers.find(
-                                (c) => c.name === val || c.id === val,
-                              );
-                              if (foundSub) {
-                                updateType8Row(item.id, "subdealerId", foundSub.id);
-                                if (foundSub.parentDealerId) {
+                            value={item.subdealerId || ""}
+                            onChange={(val, cust) => {
+                              if (cust) {
+                                updateType8Row(item.id, "subdealerId", cust.id);
+                                if (cust.parentDealerId) {
                                   const parent = customers.find(
-                                    (c) => c.id === foundSub.parentDealerId,
+                                    (c) => c.id === cust.parentDealerId,
                                   );
                                   if (parent) {
                                     updateType8Row(item.id, "dealerId", parent.id);
@@ -468,7 +413,7 @@ export function Type8Meeting({
                                 updateType8Row(item.id, "subdealerId", "");
                               }
                             }}
-                            options={subdealerOptions}
+                            customers={customers}
                             placeholder="เลือกร้านค้า Subdealer..."
                             searchPlaceholder="ค้นหาร้านค้า Subdealer..."
                             emptyText="ไม่พบร้านค้า Subdealer ในระบบ"
@@ -478,21 +423,19 @@ export function Type8Meeting({
                         )}
                       </div>
                       <div>
-                        <FormCombobox
+                        <ActivityCustomerSelect
                           id={`subdealer-parent-dealer-combobox-${item.id}`}
+                          type="DEALER"
                           label="เลือก Dealer ต้นสังกัด จาก Customer Master"
                           labelClassName="block text-xs font-medium text-slate-700 mb-1"
                           triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
-                          value={item.dealerName || ""}
-                          onChange={(val) => {
-                            const found = customers.find(
-                              (c) => c.name === val || c.id === val,
-                            );
-                            updateType8Row(item.id, "dealerName", found?.name || val);
-                            updateType8Row(item.id, "dealerId", found?.id || "");
-                            if (onDealerSelect) onDealerSelect(found || null);
+                          value={item.dealerId || ""}
+                          onChange={(val, cust) => {
+                            updateType8Row(item.id, "dealerName", cust?.name || "");
+                            updateType8Row(item.id, "dealerId", cust?.id || "");
+                            if (onDealerSelect) onDealerSelect(cust ? (customers.find((c) => c.id === cust.id) || null) : null);
                           }}
-                          options={dealerOptions}
+                          customers={customers}
                           placeholder="เลือกร้านค้า Dealer ต้นสังกัด..."
                           searchPlaceholder="ค้นหา Dealer..."
                           emptyText="ไม่พบร้านค้า Dealer ในระบบ"
@@ -600,23 +543,20 @@ export function Type8Meeting({
                     )}
 
                     {!readonly && selectedProducts.length < 5 && (
-                      <FormCombobox
+                      <ActivityProductSelect
                         id={`target-product-combobox-${item.id}`}
-                        label=""
-                        labelClassName="hidden"
                         triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
                         value=""
-                        onChange={(val) => {
+                        valueKey="name"
+                        excludeValues={selectedProducts}
+                        onChange={(val, prod) => {
                           if (!val) return;
                           if (
                             selectedProducts.length < 5 &&
                             !selectedProducts.includes(val)
                           ) {
-                            const foundProd = (products || []).find(
-                              (p) => p.name === val || p.id === val,
-                            );
-                            const newProdName = foundProd?.name || val;
-                            const newProdId = foundProd?.id || val;
+                            const newProdName = prod?.name || val;
+                            const newProdId = prod?.id || val;
                             updateType8Row(item.id, "targetProducts", [
                               ...selectedProducts,
                               newProdName,
@@ -627,7 +567,7 @@ export function Type8Meeting({
                             ]);
                           }
                         }}
-                        options={availableTargetProductOptions}
+                        products={products}
                         placeholder={`+ เพิ่มสินค้าเป้าหมาย (${selectedProducts.length}/5)`}
                         searchPlaceholder="ค้นหาสินค้าเป้าหมาย..."
                         emptyText="ไม่พบสินค้า"
@@ -711,12 +651,11 @@ export function Type8Meeting({
                                   {pIdx + 1}
                                 </td>
                                 <td className="py-1.5 px-2.5">
-                                  <FormCombobox
+                                  <ActivityProductSelect
                                     id={`t8-promo-product-${item.id}-${promo.id}`}
-                                    label=""
-                                    labelClassName="hidden"
                                     triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-md text-slate-800 focus:ring-2 focus:ring-teal-500"
                                     value={promo.productName}
+                                    valueKey="name"
                                     onChange={(val) => {
                                       if (updatePromotionProduct) {
                                         updatePromotionProduct(
@@ -727,7 +666,7 @@ export function Type8Meeting({
                                         );
                                       }
                                     }}
-                                    options={productOptions}
+                                    products={products}
                                     placeholder="เลือกสินค้า..."
                                     searchPlaceholder="ค้นหาสินค้า..."
                                     emptyText="ไม่พบสินค้า"

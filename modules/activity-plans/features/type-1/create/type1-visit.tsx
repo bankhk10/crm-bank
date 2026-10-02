@@ -4,8 +4,8 @@ import React, { useMemo, useState, useEffect } from "react";
 import { Users, Store, UserCheck } from "lucide-react";
 import { ActivityInput } from "@/components/activity/activity-input";
 import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
+import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
 import { FormCombobox } from "@/components/custom/form-components";
-import { useCustomerOptions } from "@/modules/activity-plans/features/shared/hooks/use-customer-options";
 import type { Type1VisitItem, CustomerOption } from "../shared/types";
 import type { Type1VisitProps } from "./types";
 
@@ -42,130 +42,6 @@ export function Type1Visit({
 
   const currentPurpose: "FARMER" | "STORE" =
     item.visitPurpose === "STORE" ? "STORE" : "FARMER";
-  const currentProvince = item.province?.trim() || "";
-
-  // Server-fetched options for Dealer/Subdealer and Farmer via shared hook
-  const { storeOptions: storeOptionsFromApi, getFarmersForProvince } =
-    useCustomerOptions(currentProvince);
-  const farmerOptionsFromApi = useMemo(
-    () => getFarmersForProvince(currentProvince),
-    [getFarmersForProvince, currentProvince],
-  );
-
-  // Handle Switching Purpose with state cleanup
-  const handlePurposeChange = (newPurpose: "FARMER" | "STORE") => {
-    if (newPurpose === currentPurpose) return;
-    updateType1Row(item.id, "visitPurpose", newPurpose);
-    if (newPurpose === "STORE") {
-      // Clear all Farmer-specific state
-      updateType1Row(item.id, "province", "");
-      updateType1Row(item.id, "storeId", undefined);
-      updateType1Row(item.id, "customerName", "");
-      updateType1Row(item.id, "isUnregisteredFarmer", false);
-      updateType1Row(item.id, "unregisteredFarmerName", "");
-      updateType1Row(item.id, "unregisteredFarmerPhone", "");
-    } else {
-      // newPurpose === "FARMER"
-      // Clear Store-specific selection
-      updateType1Row(item.id, "storeId", undefined);
-      updateType1Row(item.id, "customerName", "");
-    }
-  };
-
-  // Farmer Customers: ONLY CustomerType.FARMER (Strictly exclude DEALER, SUBDEALER, BROKER)
-  const allFarmerCustomers = useMemo(() => {
-    const list = [...farmerOptionsFromApi];
-    const existingIds = new Set(list.map((c) => c.id));
-    (customers || []).forEach((c) => {
-      if (c.customerType === "FARMER" && !existingIds.has(c.id)) {
-        list.push(c);
-        existingIds.add(c.id);
-      }
-    });
-    return list;
-  }, [farmerOptionsFromApi, customers]);
-
-  // Filter Farmers by selected Province
-  const provinceFarmerOptions = useMemo(() => {
-    if (!currentProvince) return [];
-
-    const filtered = allFarmerCustomers.filter(
-      (c) => c.province?.trim() === currentProvince,
-    );
-
-    const options = filtered.map((c) => ({
-      value: c.id,
-      label: `${c.name}${c.customerCode ? ` (${c.customerCode})` : ""}`,
-      customerName: c.name,
-    }));
-
-    // Preserve selected registered farmer in options if already set
-    if (item.storeId && !options.some((o) => o.value === item.storeId)) {
-      const matched = allFarmerCustomers.find((c) => c.id === item.storeId);
-      if (matched) {
-        options.push({
-          value: matched.id,
-          label: `${matched.name}${matched.customerCode ? ` (${matched.customerCode})` : ""}`,
-          customerName: matched.name,
-        });
-      }
-    }
-
-    return options;
-  }, [allFarmerCustomers, currentProvince, item.storeId]);
-
-  // Store Customers: ONLY CustomerType.DEALER or CustomerType.SUBDEALER (Strictly exclude FARMER, BROKER)
-  const storeCustomerOptions = useMemo(() => {
-    const list = [...storeOptionsFromApi];
-    const existingIds = new Set(list.map((c) => c.id));
-    (customers || []).forEach((c) => {
-      if (
-        (c.customerType === "DEALER" || c.customerType === "SUBDEALER") &&
-        !existingIds.has(c.id)
-      ) {
-        list.push(c);
-        existingIds.add(c.id);
-      }
-    });
-
-    const options = list.map((c) => {
-      const typeLabel =
-        c.customerType === "DEALER"
-          ? "ตัวแทนจำหน่าย"
-          : c.customerType === "SUBDEALER"
-            ? "ร้านค้าย่อย"
-            : "";
-      const provinceInfo = c.province ? ` - จ.${c.province}` : "";
-      return {
-        value: c.id,
-        label: `${c.name} (${typeLabel})${provinceInfo}`,
-        customerName: c.name,
-        customerType: c.customerType,
-      };
-    });
-
-    // Preserve selected store if already set
-    if (item.storeId && !options.some((o) => o.value === item.storeId)) {
-      const matched = (customers || []).find((c) => c.id === item.storeId);
-      if (
-        matched &&
-        (matched.customerType === "DEALER" ||
-          matched.customerType === "SUBDEALER")
-      ) {
-        const typeLabel =
-          matched.customerType === "DEALER" ? "ตัวแทนจำหน่าย" : "ร้านค้าย่อย";
-        options.push({
-          value: matched.id,
-          label: `${matched.name} (${typeLabel})${matched.province ? ` - จ.${matched.province}` : ""}`,
-          customerName: matched.name,
-          customerType: matched.customerType,
-        });
-      }
-    }
-
-    return options;
-  }, [storeOptionsFromApi, customers, item.storeId]);
-
   const handleProvinceChange = (newProvince: string) => {
     updateType1Row(item.id, "province", newProvince);
     // When province changes, clear selected farmer to prevent mismatched data
@@ -245,9 +121,8 @@ export function Type1Visit({
         {/* CASE 1: เข้าพบเกษตรกร (FARMER) */}
         {currentPurpose === "FARMER" && (
           <div className="space-y-3">
-            {/* จังหวัด & รายชื่อเกษตรกร */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {/* จังหวัด Selector */}
+            {/* จังหวัด Selector */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
               <ActivityAddressSelect
                 id={`province-combobox-${item.id}`}
                 levels="province"
@@ -257,109 +132,36 @@ export function Type1Visit({
                 required
               />
 
-              {/* รายชื่อเกษตรกร (เมื่ออยู่ในระบบ) */}
-              {!item.isUnregisteredFarmer ? (
-                <div>
-                  <FormCombobox
-                    id={`farmer-combobox-${item.id}`}
-                    label="เกษตรกร"
-                    labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                    triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100 disabled:text-slate-400"
-                    value={item.storeId || ""}
-                    onChange={(val) => {
-                      const opt = provinceFarmerOptions.find(
-                        (o) => o.value === val,
-                      );
-                      updateType1Row(item.id, "storeId", val || undefined);
-                      updateType1Row(
-                        item.id,
-                        "customerName",
-                        opt?.customerName || "",
-                      );
-                    }}
-                    options={provinceFarmerOptions}
-                    placeholder={
-                      !currentProvince
-                        ? "กรุณาเลือกจังหวัดก่อน"
-                        : "เลือกเกษตรกร (Customer Master)"
-                    }
-                    searchPlaceholder="ค้นหาชื่อ หรือรหัสเกษตรกร..."
-                    emptyText={
-                      !currentProvince
-                        ? "กรุณาเลือกจังหวัดก่อน"
-                        : "ไม่พบเกษตรกรในจังหวัดนี้"
-                    }
-                    disabled={readonly || !currentProvince}
-                    required
-                  />
-                </div>
-              ) : (
-                <div className="hidden md:block" />
-              )}
-            </div>
-
-            {/* Toggle: ไม่มีเกษตรกรในระบบ */}
-            <div className="flex items-center gap-2 pt-0.5">
-              <input
-                type="checkbox"
-                id={`unregistered-farmer-toggle-${item.id}`}
-                checked={Boolean(item.isUnregisteredFarmer)}
-                onChange={(e) => handleToggleUnregistered(e.target.checked)}
+              {/* เกษตรกร Selector with Unregistered support */}
+              <ActivityCustomerSelect
+                id={`farmer-combobox-${item.id}`}
+                type="FARMER"
+                province={item.province}
+                value={item.storeId || ""}
+                onChange={(val, cust) => {
+                  updateType1Row(item.id, "storeId", val || undefined);
+                  updateType1Row(
+                    item.id,
+                    "customerName",
+                    cust?.name || "",
+                  );
+                }}
+                customers={customers}
                 disabled={readonly}
-                className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer disabled:cursor-not-allowed"
+                required
+                allowUnregistered
+                isUnregistered={Boolean(item.isUnregisteredFarmer)}
+                onUnregisteredToggle={handleToggleUnregistered}
+                unregisteredName={item.unregisteredFarmerName || ""}
+                onUnregisteredNameChange={(val) =>
+                  updateType1Row(item.id, "unregisteredFarmerName", val)
+                }
+                unregisteredPhone={item.unregisteredFarmerPhone || ""}
+                onUnregisteredPhoneChange={(val) =>
+                  updateType1Row(item.id, "unregisteredFarmerPhone", val)
+                }
               />
-              <label
-                htmlFor={`unregistered-farmer-toggle-${item.id}`}
-                className="text-xs font-medium text-slate-700 cursor-pointer select-none"
-              >
-                ไม่มีเกษตรกรในระบบ
-              </label>
             </div>
-
-            {/* Form fields for Unregistered Farmer */}
-            {item.isUnregisteredFarmer && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-amber-50/50 border border-amber-200/80 rounded-lg">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    ชื่อ - สกุล เกษตรกร <span className="text-rose-500">*</span>
-                  </label>
-                  <ActivityInput
-                    type="text"
-                    value={item.unregisteredFarmerName || ""}
-                    onChange={(e) =>
-                      updateType1Row(
-                        item.id,
-                        "unregisteredFarmerName",
-                        e.target.value,
-                      )
-                    }
-                    disabled={readonly}
-                    placeholder="ระบุชื่อ - สกุล เกษตรกร..."
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    เบอร์โทรศัพท์
-                  </label>
-                  <ActivityInput
-                    type="number"
-                    value={item.unregisteredFarmerPhone || ""}
-                    onChange={(e) =>
-                      updateType1Row(
-                        item.id,
-                        "unregisteredFarmerPhone",
-                        e.target.value,
-                      )
-                    }
-                    disabled={readonly}
-                    placeholder="เช่น 0812345678"
-                    maxLength={12}
-                  />
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -367,25 +169,19 @@ export function Type1Visit({
         {currentPurpose === "STORE" && (
           <div className="space-y-3">
             <div>
-              <FormCombobox
+              <ActivityCustomerSelect
                 id={`store-combobox-${item.id}`}
-                label="ร้านค้า (ตัวแทนจำหน่าย / ร้านค้าย่อย)"
-                labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                type="STORE"
                 value={item.storeId || ""}
-                onChange={(val) => {
-                  const opt = storeCustomerOptions.find((o) => o.value === val);
+                onChange={(val, cust) => {
                   updateType1Row(item.id, "storeId", val || undefined);
                   updateType1Row(
                     item.id,
                     "customerName",
-                    opt?.customerName || "",
+                    cust?.name || "",
                   );
                 }}
-                options={storeCustomerOptions}
-                placeholder="เลือกร้านค้า (Customer Master)"
-                searchPlaceholder="ค้นหาชื่อร้านค้า..."
-                emptyText="ไม่พบร้านค้าในระบบ"
+                customers={customers}
                 disabled={readonly}
                 required
               />

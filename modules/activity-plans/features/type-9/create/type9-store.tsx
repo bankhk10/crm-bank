@@ -2,7 +2,9 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Store, Package, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FormCombobox } from "@/components/custom/form-components";
+import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
+import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
+import { ActivityProductSelect } from "@/components/activity/activity-product-select";
 import type {
   Type9ProductItem,
   CustomerOption,
@@ -75,99 +77,12 @@ export function Type9Store({
   const activeParentDealerName = parentDealerName ?? internalParentDealerName;
   const activeSetParentDealerName = setParentDealerName ?? setInternalParentDealerName;
 
-  // Load Thai Addresses for Unregistered Sub Dealer province/district dropdowns
-  const [provincesData, setProvincesData] = useState<any[]>([]);
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadAddresses() {
-      try {
-        const res = await fetch("/api/thai-addresses");
-        if (!res.ok) return;
-        const json = await res.json();
-        if (isMounted && Array.isArray(json)) {
-          const normalized = json.map((p: any) => ({
-            id: p.id,
-            name: p.name_th,
-            districts: (p.districts || []).map((d: any) => ({
-              id: d.id,
-              name: d.name_th,
-            })),
-          }));
-          setProvincesData(normalized);
-        }
-      } catch (err) {
-        console.error("Failed to load thai addresses for TYPE_9:", err);
-      }
-    }
-    loadAddresses();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const provinceOptions = useMemo(() => {
-    return provincesData.map((p) => ({
-      value: p.name,
-      label: p.name,
-    }));
-  }, [provincesData]);
-
-  const districtOptions = useMemo(() => {
-    const matched = provincesData.find((p) => p.name === activeProvince);
-    if (!matched) return [];
-    return matched.districts.map((d: any) => ({
-      value: d.name,
-      label: d.name,
-    }));
-  }, [activeProvince, provincesData]);
-
-  const handleProvinceChange = (newProvince: string) => {
-    activeSetProvince(newProvince);
-    activeSetDistrict("");
-  };
-
-  // 1. Filter Subdealer customer master options (customerType === "SUBDEALER")
-  const subdealerCustomers = useMemo(() => {
-    return (customers || []).filter(
-      (c) =>
-        c.customerType === "SUBDEALER" ||
-        c.customerType === "Subdealer",
-    );
-  }, [customers]);
-
-  const subdealerOptions = useMemo(() => {
-    return subdealerCustomers.map((c) => ({
-      value: c.name,
-      label: c.name,
-      subLabel: c.customerCode ? `รหัส: ${c.customerCode}` : undefined,
-    }));
-  }, [subdealerCustomers]);
-
-  // 2. Filter Dealer customer master options (for optional parent dealer)
-  const dealerCustomers = useMemo(() => {
-    return (customers || []).filter(
-      (c) =>
-        c.customerType === "DEALER" ||
-        c.customerType === "Dealer" ||
-        !c.customerType,
-    );
-  }, [customers]);
-
-  const dealerOptions = useMemo(() => {
-    return dealerCustomers.map((c) => ({
-      value: c.name,
-      label: c.name,
-      subLabel: c.customerCode ? `รหัส: ${c.customerCode}` : undefined,
-    }));
-  }, [dealerCustomers]);
-
-  // Selected registered Subdealer object
+  // Selected registered Subdealer object from customers prop
   const selectedSubdealerCustomer = useMemo(() => {
-    return subdealerCustomers.find(
-      (c) => c.id === activeSubdealerId || c.name === activeSubdealerName,
+    return (customers || []).find(
+      (c) => c.id === activeSubdealerId || (c.name === activeSubdealerName && (c.customerType === "SUBDEALER" || c.customerType === "Subdealer")),
     );
-  }, [subdealerCustomers, activeSubdealerId, activeSubdealerName]);
+  }, [customers, activeSubdealerId, activeSubdealerName]);
 
   // Resolved Parent Dealer Name
   const resolvedParentDealerName = useMemo(() => {
@@ -183,19 +98,6 @@ export function Type9Store({
     }
     return "";
   }, [activeParentDealerName, selectedSubdealerCustomer, customers]);
-
-  // Products
-  const boxProducts = products.filter(
-    (p) => !p.unit || p.unit.trim() === "กล่อง",
-  );
-
-  const productOptions = (
-    boxProducts.length > 0 ? boxProducts : products || []
-  ).map((p) => ({
-    value: p.name,
-    label: p.name,
-    subLabel: p.productCode || undefined,
-  }));
 
   const calculatedSales = type9ProductItems.reduce(
     (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
@@ -258,25 +160,23 @@ export function Type9Store({
             {/* Case A: Registered Sub Dealer */}
             {!activeIsUnregistered ? (
               <div className="space-y-2.5">
-                <FormCombobox
+                <ActivityCustomerSelect
                   id="type9-subdealer-combobox"
+                  type="SUBDEALER"
                   label=""
                   labelClassName="hidden"
                   triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
-                  value={selectedSubdealerCustomer?.name || activeSubdealerName || ""}
-                  onChange={(val) => {
-                    const found = subdealerCustomers.find(
-                      (c) => c.name === val || c.id === val,
-                    );
-                    if (found) {
-                      activeSetSubdealerId(found.id);
-                      activeSetSubdealerName(found.name);
-                      if (setType9Store) setType9Store(found.name);
-                      activeSetProvince(found.province || "");
-                      activeSetDistrict(found.district || "");
-                      if (found.parentDealerId) {
-                        activeSetParentDealerId(found.parentDealerId);
-                        const pDealer = customers.find((c) => c.id === found.parentDealerId);
+                  value={activeSubdealerId || ""}
+                  onChange={(val, cust) => {
+                    if (cust) {
+                      activeSetSubdealerId(cust.id);
+                      activeSetSubdealerName(cust.name);
+                      if (setType9Store) setType9Store(cust.name);
+                      activeSetProvince(cust.province || "");
+                      activeSetDistrict(cust.district || "");
+                      if (cust.parentDealerId) {
+                        activeSetParentDealerId(cust.parentDealerId);
+                        const pDealer = customers.find((c) => c.id === cust.parentDealerId);
                         activeSetParentDealerName(pDealer?.name || "");
                       } else {
                         activeSetParentDealerId("");
@@ -288,7 +188,7 @@ export function Type9Store({
                       if (setType9Store) setType9Store(val);
                     }
                   }}
-                  options={subdealerOptions}
+                  customers={customers}
                   placeholder="เลือกร้านค้า Sub Dealer จาก Customer Master..."
                   searchPlaceholder="ค้นหาร้านค้า Sub Dealer..."
                   emptyText="ไม่พบร้านค้า Sub Dealer ในระบบ"
@@ -350,60 +250,38 @@ export function Type9Store({
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5">
-                  <div>
-                    <FormCombobox
-                      id="type9-province-combobox"
-                      label="จังหวัด"
-                      labelClassName="block text-xs font-medium text-slate-700 mb-1"
-                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
-                      value={activeProvince}
-                      onChange={(val) => {
-                        handleProvinceChange(val);
-                      }}
-                      options={provinceOptions}
-                      placeholder="เลือกจังหวัด..."
-                      searchPlaceholder="ค้นหาจังหวัด..."
-                      emptyText="ไม่พบจังหวัด"
-                      disabled={readonly}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <FormCombobox
-                      id="type9-district-combobox"
-                      label="อำเภอ"
-                      labelClassName="block text-xs font-medium text-slate-700 mb-1"
-                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
-                      value={activeDistrict}
-                      onChange={(val) => {
-                        activeSetDistrict(val);
-                      }}
-                      options={districtOptions}
-                      placeholder={activeProvince ? "เลือกอำเภอ..." : "เลือกจังหวัดก่อน"}
-                      searchPlaceholder="ค้นหาอำเภอ..."
-                      emptyText="ไม่พบอำเภอ"
-                      disabled={readonly || !activeProvince}
-                      required
-                    />
-                  </div>
+                <div>
+                  <ActivityAddressSelect
+                    id="type9-address-select"
+                    levels="province-district"
+                    triggerClassName="focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    value={{
+                      province: activeProvince,
+                      district: activeDistrict,
+                    }}
+                    onChange={(val) => {
+                      activeSetProvince(val.province || "");
+                      activeSetDistrict(val.district || "");
+                    }}
+                    disabled={readonly}
+                    required
+                  />
                 </div>
 
                 {/* Optional Dealer Selector */}
                 <div>
-                  <FormCombobox
+                  <ActivityCustomerSelect
                     id="type9-dealer-combobox"
+                    type="DEALER"
                     label="ร้านค้า Dealer ต้นสังกัด (ถ้ามี)"
                     labelClassName="block text-xs font-medium text-slate-600 mb-1"
                     triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
-                    value={activeParentDealerName}
-                    onChange={(val) => {
-                      const found = dealerCustomers.find((c) => c.name === val || c.id === val);
-                      activeSetParentDealerId(found?.id || "");
-                      activeSetParentDealerName(found?.name || val);
+                    value={activeParentDealerId || ""}
+                    onChange={(val, cust) => {
+                      activeSetParentDealerId(cust?.id || "");
+                      activeSetParentDealerName(cust?.name || val);
                     }}
-                    options={dealerOptions}
+                    customers={customers}
                     placeholder="เลือกร้านค้า Dealer ต้นสังกัด (ถ้ามี)..."
                     searchPlaceholder="ค้นหาร้านค้า Dealer..."
                     emptyText="ไม่พบร้านค้า Dealer ในระบบ"
@@ -499,17 +377,27 @@ export function Type9Store({
                         {index + 1}
                       </td>
                       <td className="py-1.5 px-3 min-w-[200px]">
-                        <FormCombobox
+                        <ActivityProductSelect
                           id={`type9-product-combobox-${item.id}`}
-                          label=""
-                          labelClassName="hidden"
                           triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-md text-slate-800 focus:ring-2 focus:ring-teal-500"
                           value={item.productName}
-                          onChange={(val) => {
-                            const found = products.find((p) => p.name === val || p.id === val);
-                            updateType9ProductItem(item.id, "productName", found?.name || val);
+                          valueKey="name"
+                          unitFilter="box"
+                          onChange={(val, prod) => {
+                            const found =
+                              prod ||
+                              products.find((p) => p.name === val || p.id === val);
+                            updateType9ProductItem(
+                              item.id,
+                              "productName",
+                              found?.name || val,
+                            );
                             if (found?.id) {
-                              updateType9ProductItem(item.id, "productId", found.id);
+                              updateType9ProductItem(
+                                item.id,
+                                "productId",
+                                found.id,
+                              );
                             }
                             if (found && found.price != null) {
                               updateType9ProductItem(
@@ -525,7 +413,7 @@ export function Type9Store({
                               );
                             }
                           }}
-                          options={productOptions}
+                          products={products}
                           placeholder="เลือกสินค้า..."
                           searchPlaceholder="ค้นหาสินค้า..."
                           emptyText="ไม่พบสินค้า"

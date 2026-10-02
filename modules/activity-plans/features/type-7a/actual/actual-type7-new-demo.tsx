@@ -39,7 +39,7 @@ import {
   DemoPlotExternalProductItem,
 } from "@/modules/activity-plans/features/shared/actual-view/types";
 import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
-import { useCustomerOptions } from "@/modules/activity-plans/features/shared/hooks/use-customer-options";
+import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
 import {
   CROP_CATEGORIES,
   CROPS_BY_CATEGORY,
@@ -239,14 +239,6 @@ export function ActualType7NewDemo({
     cropName === "อื่นๆ" ||
     ["ผักและพืชล้มลุกอื่นๆ", "พืชไร่อื่นๆ", "พืชสวนอื่นๆ"].includes(cropName);
 
-  // Server-fetched farmers for the selected province via shared hook
-  const { getFarmersForProvince, loadingFarmers } =
-    useCustomerOptions(farmerProvince);
-  const farmersFromApi = useMemo(
-    () => getFarmersForProvince(farmerProvince),
-    [getFarmersForProvince, farmerProvince],
-  );
-
   // Address data from API for province -> district cascading
   const [provincesData, setProvincesData] = useState<any[]>([]);
 
@@ -290,64 +282,6 @@ export function ActualType7NewDemo({
       label: d.name,
     }));
   }, [farmerProvince, provincesData]);
-
-
-  // Combine farmers from API and customers prop (customerType === "FARMER")
-  const allFarmers = useMemo(() => {
-    const map = new Map<string, CustomerOption>();
-    farmersFromApi.forEach((f) => map.set(f.id, f));
-    (customers || []).forEach((c) => {
-      if (c.customerType === "FARMER" && !map.has(c.id)) {
-        map.set(c.id, c);
-      }
-    });
-    return Array.from(map.values());
-  }, [farmersFromApi, customers]);
-
-  // Farmer options filtered by selected province
-  const provinceFarmerOptions = useMemo(() => {
-    if (!farmerProvince) return [];
-    const filtered = allFarmers.filter(
-      (f) => f.province?.trim() === farmerProvince.trim(),
-    );
-    const opts = filtered.map((f) => ({
-      value: f.id,
-      label: `${f.name}${f.customerCode ? ` (${f.customerCode})` : ""}`,
-      customerName: f.name,
-      phone: f.phone || "",
-      district: f.district || "",
-    }));
-
-    // Preserve selected farmer if already set
-    if (farmerCustomerId && !opts.some((o) => o.value === farmerCustomerId)) {
-      const matched = allFarmers.find((f) => f.id === farmerCustomerId);
-      if (matched) {
-        opts.push({
-          value: matched.id,
-          label: `${matched.name}${matched.customerCode ? ` (${matched.customerCode})` : ""}`,
-          customerName: matched.name,
-          phone: matched.phone || "",
-          district: matched.district || "",
-        });
-      } else if (farmerName) {
-        opts.push({
-          value: farmerCustomerId,
-          label: farmerName,
-          customerName: farmerName,
-          phone: farmerPhone || "",
-          district: district || "",
-        });
-      }
-    }
-    return opts;
-  }, [
-    allFarmers,
-    farmerProvince,
-    farmerCustomerId,
-    farmerName,
-    farmerPhone,
-    district,
-  ]);
 
   // Handle Province Change: reset farmer selection & district
   const handleProvinceChange = (newProvince: string) => {
@@ -676,35 +610,32 @@ export function ActualType7NewDemo({
           {/* เกษตรกรในระบบ */}
           {!isUnregisteredFarmer ? (
             <div>
-              <FormCombobox
+              <ActivityCustomerSelect
                 id="farmer-master-combobox"
-                label="เกษตรกร (Customer Master: FARMER)"
-                labelClassName="block text-xs font-bold text-slate-700 mb-1"
-                triggerClassName="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100 disabled:text-slate-400"
+                type="FARMER"
+                province={farmerProvince}
                 value={farmerCustomerId || ""}
-                onChange={(val) => {
+                onChange={(val, cust) => {
                   setFarmerCustomerId?.(val || null);
-                  const matched = provinceFarmerOptions.find(
-                    (o) => o.value === val,
-                  );
-                  if (matched) {
-                    setFarmerName?.(matched.customerName);
-                    if (matched.phone) setFarmerPhone?.(matched.phone);
-                    if (matched.district && setDistrict && !district) {
-                      setDistrict(matched.district);
+                  if (cust) {
+                    setFarmerName?.(cust.name || "");
+                    if (cust.phoneNumber) setFarmerPhone?.(cust.phoneNumber);
+                    if (cust.district && setDistrict && !district) {
+                      setDistrict(cust.district);
                     }
                   } else {
                     setFarmerName?.("");
                     setFarmerPhone?.("");
                   }
                 }}
-                options={provinceFarmerOptions}
+                customers={customers}
+                label="เกษตรกร (Customer Master: FARMER)"
+                labelClassName="block text-xs font-bold text-slate-700 mb-1"
+                triggerClassName="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100 disabled:text-slate-400"
                 placeholder={
                   !farmerProvince
                     ? "กรุณาเลือกจังหวัดก่อน"
-                    : loadingFarmers
-                      ? "กำลังโหลดรายชื่อเกษตรกร..."
-                      : "เลือกเกษตรกร..."
+                    : "เลือกเกษตรกร..."
                 }
                 searchPlaceholder="ค้นหาชื่อ หรือรหัสเกษตรกร..."
                 emptyText={
@@ -712,7 +643,7 @@ export function ActualType7NewDemo({
                     ? "กรุณาเลือกจังหวัดก่อน"
                     : "ไม่พบเกษตรกรในจังหวัดนี้"
                 }
-                disabled={!farmerProvince || loadingFarmers}
+                disabled={!farmerProvince}
                 required
               />
             </div>

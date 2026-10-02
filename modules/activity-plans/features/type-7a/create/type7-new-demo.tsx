@@ -11,6 +11,10 @@ import type {
 import { CROPS_BY_CATEGORY } from "@/modules/activity-plans/constants";
 
 import { ActivityInput } from "@/components/activity/activity-input";
+import {
+  ActivityCustomerSelect,
+  type ActivityCustomerItem,
+} from "@/components/activity/activity-customer-select";
 import type {
   CustomerOption,
   ProductOption,
@@ -38,18 +42,11 @@ export function Type7NewDemo({
   chemicalGroups = [],
   readonly = false,
 }: Type7NewDemoProps) {
-  // 1. Dealer Customer Options (Strictly DEALER)
-  const dealerOptions = useMemo(() => {
-    return customers
-      .filter((c) => !c.customerType || c.customerType === "DEALER")
-      .map((c) => ({
-        value: c.id,
-        label: c.name,
-      }));
-  }, [customers]);
-
-  const handleDealerChange = (dealerId: string) => {
-    const dealer = customers.find((c) => c.id === dealerId);
+  const handleDealerChange = (
+    dealerId: string,
+    dealerCustomer?: ActivityCustomerItem,
+  ) => {
+    const dealer = dealerCustomer || customers.find((c) => c.id === dealerId);
     updateType7Row(item.id, "storeId", dealerId);
     updateType7Row(item.id, "ownerName", dealer?.name || "");
 
@@ -258,17 +255,15 @@ export function Type7NewDemo({
         {/* Row 2: จังหวัด + อำเภอ (อ้างอิงตามร้านค้า Dealer - อ่านอย่างเดียว) */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           <div className="md:col-span-6">
-            <FormCombobox
+            <ActivityCustomerSelect
               id={`dealer-combobox-${item.id}`}
+              type="DEALER"
               label="ร้านค้า Dealer"
               labelClassName="block text-xs font-medium text-slate-700 mb-1 mx-0"
               triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
               value={item.storeId || ""}
-              onChange={handleDealerChange}
-              options={dealerOptions}
-              placeholder="เลือกร้านค้า Dealer..."
-              searchPlaceholder="ค้นหาร้านค้า Dealer..."
-              emptyText="ไม่พบร้านค้า Dealer"
+              onChange={(val, cust) => handleDealerChange(val, cust)}
+              customers={customers}
               disabled={readonly}
               required
             />

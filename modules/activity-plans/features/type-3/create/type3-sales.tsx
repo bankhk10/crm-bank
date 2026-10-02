@@ -4,7 +4,8 @@ import React from "react";
 import { ShoppingCart, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityInput } from "@/components/activity/activity-input";
-import { FormCombobox } from "@/components/custom/form-components";
+import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
+import { ActivityProductSelect, type ActivityProductItem } from "@/components/activity/activity-product-select";
 import { cn } from "@/lib/utils";
 import type {
   Type3SalesItem,
@@ -25,33 +26,6 @@ export function Type3Sales({
   customers = [],
   products = [],
 }: Type3SalesProps) {
-  // Filter only DEALER customer types from Customer Master
-  const dealerCustomers = (customers || []).filter(
-    (c) =>
-      c.customerType === "DEALER" ||
-      c.customerType === "Dealer" ||
-      !c.customerType, // fallback if not tagged
-  );
-
-  const dealerOptions = (
-    dealerCustomers.length > 0 ? dealerCustomers : customers || []
-  ).map((c) => ({
-    value: c.name,
-    label: c.name,
-    subLabel: c.customerCode || undefined,
-  }));
-
-  const boxProducts = products.filter(
-    (p) => !p.unit || p.unit.trim() === "กล่อง",
-  );
-
-  const productOptions = (
-    boxProducts.length > 0 ? boxProducts : products || []
-  ).map((p) => ({
-    value: p.name,
-    label: p.name,
-    subLabel: p.productCode || undefined,
-  }));
 
   // Add a new product line to a specific proposal item
   const addProductLine = (itemId: string) => {
@@ -87,6 +61,7 @@ export function Type3Sales({
     prodId: string,
     field: keyof Type3SalesProductLine,
     val: any,
+    productItem?: ActivityProductItem,
   ) => {
     const currentItem = type3Items.find((i) => i.id === itemId);
     if (!currentItem) return;
@@ -110,9 +85,11 @@ export function Type3Sales({
         if (!val) {
           updated.productId = undefined;
         } else {
-          const foundProd = (products || []).find(
-            (prod) => prod.name === val || prod.id === val,
-          );
+          const foundProd =
+            productItem ||
+            (products || []).find(
+              (prod) => prod.name === val || prod.id === val,
+            );
           if (foundProd) {
             updated.productId = foundProd.id;
             updated.productName = foundProd.name;
@@ -261,22 +238,22 @@ export function Type3Sales({
                 {!isSubDealer ? (
                   /* Case DEALER: Select Dealer from Customer Master */
                   <div>
-                    <FormCombobox
+                    <ActivityCustomerSelect
                       id={`customer-combobox-${item.id}`}
+                      type="DEALER"
                       label="ชื่อร้านค้า (Dealer)"
                       labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                       triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                      value={item.customerName}
-                      onChange={(val) => {
-                        const cust = customers.find(
-                          (c) => c.name === val || c.id === val,
+                      value={item.storeId || ""}
+                      onChange={(val, cust) => {
+                        updateType3Row(item.id, "storeId", val || undefined);
+                        updateType3Row(
+                          item.id,
+                          "customerName",
+                          cust?.name || "",
                         );
-                        updateType3Row(item.id, "customerName", cust?.name || val);
-                        if (cust?.id) {
-                          updateType3Row(item.id, "storeId", cust.id);
-                        }
                       }}
-                      options={dealerOptions}
+                      customers={customers}
                       placeholder="เลือกร้านค้า Dealer..."
                       searchPlaceholder="ค้นหาร้านค้า Dealer..."
                       emptyText="ไม่พบร้านค้า Dealer ในระบบ"
@@ -304,22 +281,22 @@ export function Type3Sales({
                     </div>
 
                     <div>
-                      <FormCombobox
+                      <ActivityCustomerSelect
                         id={`parent-dealer-combobox-${item.id}`}
+                        type="DEALER"
                         label="Dealer ต้นสังกัด"
                         labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                         triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                        value={item.customerName}
-                        onChange={(val) => {
-                          const cust = customers.find(
-                            (c) => c.name === val || c.id === val,
+                        value={item.storeId || ""}
+                        onChange={(val, cust) => {
+                          updateType3Row(item.id, "storeId", val || undefined);
+                          updateType3Row(
+                            item.id,
+                            "customerName",
+                            cust?.name || "",
                           );
-                          updateType3Row(item.id, "customerName", cust?.name || val);
-                          if (cust?.id) {
-                            updateType3Row(item.id, "storeId", cust.id);
-                          }
                         }}
-                        options={dealerOptions}
+                        customers={customers}
                         placeholder="เลือก Dealer ต้นสังกัด..."
                         searchPlaceholder="ค้นหา Dealer ต้นสังกัด..."
                         emptyText="ไม่พบ Dealer ในระบบ"
@@ -358,21 +335,24 @@ export function Type3Sales({
                       >
                         {/* Product Combobox */}
                         <div className="md:col-span-5">
-                          <FormCombobox
+                          <ActivityProductSelect
                             id={`product-combobox-${item.id}-${prodLine.id}`}
                             label="สินค้า"
                             labelClassName="block text-[11px] font-semibold text-slate-600 mb-1 mx-0"
                             triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                             value={prodLine.productName}
-                            onChange={(val) =>
+                            valueKey="name"
+                            unitFilter="box"
+                            onChange={(val, prod) =>
                               updateProductLine(
                                 item.id,
                                 prodLine.id,
                                 "productName",
                                 val,
+                                prod,
                               )
                             }
-                            options={productOptions}
+                            products={products}
                             placeholder="เลือกสินค้า..."
                             searchPlaceholder="ค้นหาสินค้า..."
                             emptyText="ไม่พบสินค้า"
