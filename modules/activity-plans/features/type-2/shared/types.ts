@@ -1,3 +1,10 @@
+export interface Type2FollowupProductLine {
+  id: string;
+  productId?: string;
+  productName: string;
+  notes?: string;
+}
+
 export interface Type2ProductFollowupItem {
   id: string;
   visitPurpose?: "FARMER" | "STORE";
@@ -7,8 +14,9 @@ export interface Type2ProductFollowupItem {
   customerName: string;
   unregisteredFarmerName?: string;
   unregisteredFarmerPhone?: string;
+  products?: Type2FollowupProductLine[];
   productId?: string;
-  productName: string;
+  productName?: string;
   detail: string;
 }
 

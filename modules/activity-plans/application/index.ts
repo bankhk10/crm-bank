@@ -424,6 +424,7 @@ export async function duplicateActivityPlanUseCase(
     isPriceOverridden: p.isPriceOverridden,
     targetQuantity: p.targetQuantity,
     targetAmount: p.targetAmount ? Number(p.targetAmount) : null,
+    notes: p.notes ?? null,
   }));
 
   // Marketing Items

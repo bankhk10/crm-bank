@@ -1,5 +1,6 @@
 export type {
   Type2ProductFollowupItem,
+  Type2FollowupProductLine,
   CustomerOption,
   ProductOption,
 } from "./shared/types";

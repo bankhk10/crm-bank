@@ -36,11 +36,32 @@ export function validateType2FormItems({
     const item = items[i];
     const rowNum = i + 1;
 
-    if (!item.productName?.trim() && !item.productId?.trim()) {
+    const prodLines =
+      item.products && item.products.length > 0
+        ? item.products
+        : [
+            {
+              id: "p-0",
+              productName: item.productName || "",
+              productId: item.productId,
+            },
+          ];
+
+    if (prodLines.length === 0) {
       return {
         isValid: false,
-        error: `กรุณาเลือกสินค้าที่ต้องการติดตามผล (รายการที่ ${rowNum})`,
+        error: `กรุณาเพิ่มสินค้าที่ต้องการติดตามผลอย่างน้อย 1 รายการ (รายการที่ ${rowNum})`,
       };
+    }
+
+    for (let pIdx = 0; pIdx < prodLines.length; pIdx++) {
+      const p = prodLines[pIdx];
+      if (!p.productName?.trim() && !p.productId?.trim()) {
+        return {
+          isValid: false,
+          error: `กรุณาเลือกสินค้าที่ต้องการติดตามผล (รายการที่ ${rowNum}${prodLines.length > 1 ? ` สินค้าลำดับที่ ${pIdx + 1}` : ""})`,
+        };
+      }
     }
 
     const purpose = item.visitPurpose === "STORE" ? "STORE" : "FARMER";

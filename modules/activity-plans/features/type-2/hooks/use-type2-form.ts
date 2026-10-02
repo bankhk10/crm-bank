@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
-import type { Type2ProductFollowupItem } from "../shared/types";
+import type {
+  Type2ProductFollowupItem,
+  Type2FollowupProductLine,
+} from "../shared/types";
 import { validateType2FormItems } from "../create/validation";
 
 export interface UseType2FormOptions {
@@ -45,6 +48,7 @@ export interface UseType2FormResult {
       productId: string;
       productName?: string | null;
       isPriceOverridden?: boolean;
+      notes?: string | null;
     }>;
   };
 }
@@ -75,41 +79,94 @@ export function useType2Form({
         (type2Prods && type2Prods.length > 0) ||
         (type2Stores && type2Stores.length > 0)
       ) {
-        const count = Math.max(
-          type2Prods?.length || 0,
-          type2Stores?.length || 0,
-        );
-        return Array.from({ length: count }).map((_, idx) => {
-          const p = type2Prods?.[idx];
-          const s =
-            type2Stores?.find((st: any) => st.storeId === p?.storeId) ||
-            type2Stores?.[idx];
-          const inferredPurpose: "FARMER" | "STORE" =
-            s?.visitPurpose === "STORE"
-              ? "STORE"
-              : s?.visitPurpose === "FARMER"
-                ? "FARMER"
-                : ["DEALER", "SUBDEALER"].includes(s?.store?.customerType)
-                  ? "STORE"
-                  : "FARMER";
+        if (type2Stores && type2Stores.length > 0) {
+          return type2Stores.map((s: any, idx: number) => {
+            const inferredPurpose: "FARMER" | "STORE" =
+              s?.visitPurpose === "STORE"
+                ? "STORE"
+                : s?.visitPurpose === "FARMER"
+                  ? "FARMER"
+                  : ["DEALER", "SUBDEALER"].includes(s?.store?.customerType)
+                    ? "STORE"
+                    : "FARMER";
 
-          return {
-            id: p?.id || s?.id || String(idx + 1),
-            visitPurpose: inferredPurpose,
-            province: s?.province || s?.store?.province || "",
-            isUnregisteredFarmer: Boolean(s?.isUnregisteredFarmer),
-            unregisteredFarmerName: s?.unregisteredFarmerName || "",
-            unregisteredFarmerPhone: s?.unregisteredFarmerPhone || "",
-            storeId: s?.storeId || p?.storeId || undefined,
-            customerName: s?.isUnregisteredFarmer
-              ? s?.unregisteredFarmerName || ""
-              : s?.store?.name || s?.storeName || "",
-            productId: p?.productId || "",
-            productName:
-              p?.product?.name || p?.productName || DEMO_PRODUCTS[0] || "",
-            detail: s?.notes || "",
-          };
-        });
+            let matchingProds = (type2Prods || []).filter(
+              (p: any) => s.storeId && p.storeId && p.storeId === s.storeId,
+            );
+            if (matchingProds.length === 0 && type2Stores.length === 1) {
+              matchingProds = type2Prods || [];
+            }
+            if (matchingProds.length === 0 && type2Prods && type2Prods[idx]) {
+              matchingProds = [type2Prods[idx]];
+            }
+
+            const prodLines: Type2FollowupProductLine[] = matchingProds.map(
+              (p: any, pIdx: number) => ({
+                id: p.id || `p-${idx}-${pIdx}`,
+                productId: p.productId,
+                productName: p.product?.name || p.productName || "",
+                notes: p.notes || "",
+              }),
+            );
+
+            const firstProd = prodLines[0];
+
+            return {
+              id: s?.id || String(idx + 1),
+              visitPurpose: inferredPurpose,
+              province: s?.province || s?.store?.province || "",
+              isUnregisteredFarmer: Boolean(s?.isUnregisteredFarmer),
+              unregisteredFarmerName: s?.unregisteredFarmerName || "",
+              unregisteredFarmerPhone: s?.unregisteredFarmerPhone || "",
+              storeId: s?.storeId || undefined,
+              customerName: s?.isUnregisteredFarmer
+                ? s?.unregisteredFarmerName || ""
+                : s?.store?.name || s?.storeName || "",
+              products:
+                prodLines.length > 0
+                  ? prodLines
+                  : [
+                      {
+                        id: `p-${idx}-0`,
+                        productName: "",
+                        notes: "",
+                      },
+                    ],
+              productId: firstProd?.productId,
+              productName: firstProd?.productName || "",
+              detail: s?.notes || "",
+            };
+          });
+        }
+
+        // If only products exist without stores
+        if (type2Prods && type2Prods.length > 0) {
+          const prodLines: Type2FollowupProductLine[] = type2Prods.map(
+            (p: any, pIdx: number) => ({
+              id: p.id || `p-0-${pIdx}`,
+              productId: p.productId,
+              productName: p.product?.name || p.productName || "",
+              notes: p.notes || "",
+            }),
+          );
+          const firstProd = prodLines[0];
+          return [
+            {
+              id: "1",
+              visitPurpose: "FARMER",
+              province: "",
+              isUnregisteredFarmer: false,
+              storeId: undefined,
+              customerName: "",
+              unregisteredFarmerName: "",
+              unregisteredFarmerPhone: "",
+              products: prodLines,
+              productId: firstProd?.productId,
+              productName: firstProd?.productName || "",
+              detail: "",
+            },
+          ];
+        }
       }
       if (Array.isArray(initDetails) && initDetails.length > 0) {
         const items = initDetails.filter(
@@ -121,25 +178,40 @@ export function useType2Form({
             (item.followupProductName || item.itemType === "TYPE_2"),
         );
         if (items.length > 0) {
-          return items.map((item: any, idx: number) => ({
-            id: item.id || String(idx + 1),
-            visitPurpose: (item.visitPurpose === "STORE"
-              ? "STORE"
-              : "FARMER") as "FARMER" | "STORE",
-            province: item.province || "",
-            isUnregisteredFarmer: Boolean(item.isUnregisteredFarmer),
-            unregisteredFarmerName: item.unregisteredFarmerName || "",
-            unregisteredFarmerPhone: item.unregisteredFarmerPhone || "",
-            storeId: item.storeId,
-            productId: item.productId,
-            productName:
+          return items.map((item: any, idx: number) => {
+            const pName =
               item.followupProductName ||
               item.productName ||
               DEMO_PRODUCTS[0] ||
-              "",
-            customerName: item.customerName || item.ownerName || "",
-            detail: item.detail || "",
-          }));
+              "";
+            const prodLines: Type2FollowupProductLine[] =
+              item.products && Array.isArray(item.products) && item.products.length > 0
+                ? item.products
+                : [
+                    {
+                      id: `p-${idx}-0`,
+                      productId: item.productId,
+                      productName: pName,
+                      notes: item.notes || "",
+                    },
+                  ];
+            return {
+              id: item.id || String(idx + 1),
+              visitPurpose: (item.visitPurpose === "STORE"
+                ? "STORE"
+                : "FARMER") as "FARMER" | "STORE",
+              province: item.province || "",
+              isUnregisteredFarmer: Boolean(item.isUnregisteredFarmer),
+              unregisteredFarmerName: item.unregisteredFarmerName || "",
+              unregisteredFarmerPhone: item.unregisteredFarmerPhone || "",
+              storeId: item.storeId,
+              productId: prodLines[0]?.productId || item.productId,
+              productName: prodLines[0]?.productName || pName,
+              customerName: item.customerName || item.ownerName || "",
+              products: prodLines,
+              detail: item.detail || "",
+            };
+          });
         }
       }
       return [
@@ -152,6 +224,13 @@ export function useType2Form({
           customerName: "",
           unregisteredFarmerName: "",
           unregisteredFarmerPhone: "",
+          products: [
+            {
+              id: "p-1",
+              productName: "",
+              notes: "",
+            },
+          ],
           productName: "",
           detail: "",
         },
@@ -169,6 +248,13 @@ export function useType2Form({
       customerName: "",
       unregisteredFarmerName: "",
       unregisteredFarmerPhone: "",
+      products: [
+        {
+          id: `p-${Date.now()}-0`,
+          productName: "",
+          notes: "",
+        },
+      ],
       productName: "",
       detail: "",
     };
@@ -250,13 +336,24 @@ export function useType2Form({
       productId: string;
       productName?: string | null;
       isPriceOverridden?: boolean;
+      notes?: string | null;
     }> = [];
 
     type2Items.forEach((item) => {
       const purpose = item.visitPurpose === "STORE" ? "STORE" : "FARMER";
-      const pId =
-        item.productId ||
-        products.find((p) => p.name === item.productName)?.id;
+      const productLines: Type2FollowupProductLine[] =
+        item.products && item.products.length > 0
+          ? item.products
+          : item.productName || item.productId
+            ? [
+                {
+                  id: `p-${item.id}-0`,
+                  productId: item.productId,
+                  productName: item.productName || "",
+                  notes: "",
+                },
+              ]
+            : [];
 
       if (purpose === "STORE") {
         const sId =
@@ -275,15 +372,21 @@ export function useType2Form({
             unregisteredFarmerPhone: null,
           });
         }
-        if (pId) {
-          planProducts.push({
-            workTypeCode: "TYPE_2",
-            storeId: sId || null,
-            productId: pId,
-            productName: item.productName || null,
-            isPriceOverridden: false,
-          });
-        }
+        productLines.forEach((p) => {
+          const pId =
+            p.productId ||
+            products.find((prod) => prod.name === p.productName)?.id;
+          if (pId) {
+            planProducts.push({
+              workTypeCode: "TYPE_2",
+              storeId: sId || null,
+              productId: pId,
+              productName: p.productName || null,
+              isPriceOverridden: false,
+              notes: p.notes || null,
+            });
+          }
+        });
       } else {
         // FARMER
         if (item.isUnregisteredFarmer) {
@@ -298,15 +401,21 @@ export function useType2Form({
             unregisteredFarmerName: item.unregisteredFarmerName || null,
             unregisteredFarmerPhone: item.unregisteredFarmerPhone || null,
           });
-          if (pId) {
-            planProducts.push({
-              workTypeCode: "TYPE_2",
-              storeId: null,
-              productId: pId,
-              productName: item.productName || null,
-              isPriceOverridden: false,
-            });
-          }
+          productLines.forEach((p) => {
+            const pId =
+              p.productId ||
+              products.find((prod) => prod.name === p.productName)?.id;
+            if (pId) {
+              planProducts.push({
+                workTypeCode: "TYPE_2",
+                storeId: null,
+                productId: pId,
+                productName: p.productName || null,
+                isPriceOverridden: false,
+                notes: p.notes || null,
+              });
+            }
+          });
         } else {
           const sId =
             item.storeId ||
@@ -324,15 +433,21 @@ export function useType2Form({
               unregisteredFarmerPhone: null,
             });
           }
-          if (pId) {
-            planProducts.push({
-              workTypeCode: "TYPE_2",
-              storeId: sId || null,
-              productId: pId,
-              productName: item.productName || null,
-              isPriceOverridden: false,
-            });
-          }
+          productLines.forEach((p) => {
+            const pId =
+              p.productId ||
+              products.find((prod) => prod.name === p.productName)?.id;
+            if (pId) {
+              planProducts.push({
+                workTypeCode: "TYPE_2",
+                storeId: sId || null,
+                productId: pId,
+                productName: p.productName || null,
+                isPriceOverridden: false,
+                notes: p.notes || null,
+              });
+            }
+          });
         }
       }
     });

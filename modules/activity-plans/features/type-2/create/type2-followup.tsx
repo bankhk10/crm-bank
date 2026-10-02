@@ -1,20 +1,31 @@
 "use client";
 
 import React from "react";
-import { CheckSquare, Plus, Trash2, Store, UserCheck } from "lucide-react";
+import {
+  CheckSquare,
+  Plus,
+  Trash2,
+  Store,
+  UserCheck,
+  Package,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityInput } from "@/components/activity/activity-input";
 import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
 import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
-import { ActivityProductSelect } from "@/components/activity/activity-product-select";
+import {
+  ActivityProductSelect,
+  type ActivityProductItem,
+} from "@/components/activity/activity-product-select";
 import type {
   Type2ProductFollowupItem,
+  Type2FollowupProductLine,
   CustomerOption,
   ProductOption,
 } from "../shared/types";
 import type { Type2FollowupProps } from "./types";
 
-export type { CustomerOption, ProductOption };
+export type { CustomerOption, ProductOption, Type2FollowupProductLine };
 
 export function Type2Followup({
   readonly = false,
@@ -25,6 +36,123 @@ export function Type2Followup({
   customers = [],
   products = [],
 }: Type2FollowupProps) {
+  // Add a new product line to a specific followup item
+  const addProductLine = (itemId: string) => {
+    const currentItem = type2Items.find((i) => i.id === itemId);
+    if (!currentItem) return;
+
+    const currentProducts: Type2FollowupProductLine[] =
+      currentItem.products && currentItem.products.length > 0
+        ? currentItem.products
+        : [
+            {
+              id: "p-1",
+              productId: currentItem.productId,
+              productName: currentItem.productName || "",
+              notes: "",
+            },
+          ];
+
+    const newProdLine: Type2FollowupProductLine = {
+      id: Date.now().toString(),
+      productName: "",
+      notes: "",
+    };
+
+    const updatedProducts = [...currentProducts, newProdLine];
+    updateType2Row(itemId, "products", updatedProducts);
+    if (updatedProducts[0]) {
+      updateType2Row(
+        itemId,
+        "productName",
+        updatedProducts[0].productName || "",
+      );
+      updateType2Row(itemId, "productId", updatedProducts[0].productId);
+    }
+  };
+
+  // Update a field inside a specific product line
+  const updateProductLine = (
+    itemId: string,
+    prodId: string,
+    field: keyof Type2FollowupProductLine,
+    val: any,
+    productItem?: ActivityProductItem,
+  ) => {
+    const currentItem = type2Items.find((i) => i.id === itemId);
+    if (!currentItem) return;
+
+    const currentProducts: Type2FollowupProductLine[] =
+      currentItem.products && currentItem.products.length > 0
+        ? currentItem.products
+        : [
+            {
+              id: "p-1",
+              productId: currentItem.productId,
+              productName: currentItem.productName || "",
+              notes: "",
+            },
+          ];
+
+    const updatedProducts = currentProducts.map((p) => {
+      if (p.id !== prodId) return p;
+      const updated = { ...p, [field]: val };
+      if (field === "productName") {
+        if (!val) {
+          updated.productId = undefined;
+          updated.productName = "";
+        } else {
+          const foundProd =
+            productItem ||
+            (products || []).find(
+              (prod) => prod.name === val || prod.id === val,
+            );
+          if (foundProd) {
+            updated.productId = foundProd.id;
+            updated.productName = foundProd.name;
+          } else {
+            updated.productName = val;
+          }
+        }
+      }
+      return updated;
+    });
+
+    updateType2Row(itemId, "products", updatedProducts);
+    if (updatedProducts[0]) {
+      updateType2Row(
+        itemId,
+        "productName",
+        updatedProducts[0].productName || "",
+      );
+      updateType2Row(itemId, "productId", updatedProducts[0].productId);
+    }
+  };
+
+  // Delete a specific product line from a followup item
+  const deleteProductLine = (itemId: string, prodId: string) => {
+    const currentItem = type2Items.find((i) => i.id === itemId);
+    if (!currentItem) return;
+
+    const currentProducts: Type2FollowupProductLine[] =
+      currentItem.products && currentItem.products.length > 0
+        ? currentItem.products
+        : [];
+
+    const updatedProducts = currentProducts.filter((p) => p.id !== prodId);
+    updateType2Row(itemId, "products", updatedProducts);
+    if (updatedProducts.length > 0) {
+      updateType2Row(
+        itemId,
+        "productName",
+        updatedProducts[0].productName || "",
+      );
+      updateType2Row(itemId, "productId", updatedProducts[0].productId);
+    } else {
+      updateType2Row(itemId, "productName", "");
+      updateType2Row(itemId, "productId", undefined);
+    }
+  };
 
   // Switching purpose with state cleanup
   const handlePurposeChange = (
@@ -101,6 +229,18 @@ export function Type2Followup({
           type2Items.map((item, index) => {
             const currentPurpose: "FARMER" | "STORE" =
               item.visitPurpose === "STORE" ? "STORE" : "FARMER";
+
+            const prodListLines: Type2FollowupProductLine[] =
+              item.products && item.products.length > 0
+                ? item.products
+                : [
+                    {
+                      id: `p-${index}-0`,
+                      productId: item.productId,
+                      productName: item.productName || "",
+                      notes: "",
+                    },
+                  ];
 
             return (
               <div
@@ -254,39 +394,127 @@ export function Type2Followup({
                   </div>
                 )}
 
-                {/* Common Section: สินค้าที่ต้องการติดตามผล & รายละเอียดเพิ่มเติม */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-0.5">
-                  <ActivityProductSelect
-                    id={`type2-product-combobox-${item.id}`}
-                    label="สินค้าที่ต้องการติดตามผล"
-                    value={item.productName || ""}
-                    valueKey="name"
-                    products={products}
-                    onChange={(val, prod) => {
-                      updateType2Row(item.id, "productName", prod?.name || val);
-                      if (prod?.id) {
-                        updateType2Row(item.id, "productId", prod.id);
-                      }
-                    }}
-                    triggerClassName="focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    disabled={readonly}
-                    required
-                  />
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      รายละเอียดเพิ่มเติม
+                {/* 3. Product Lines Section: รายการสินค้าที่จะติดตามผล */}
+                <div className="space-y-2.5 bg-slate-50/60 p-3 rounded-lg border border-slate-200/70">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700">
+                      รายการสินค้าที่จะติดตามผล{" "}
+                      <span className="text-red-500">*</span>
                     </label>
-                    <ActivityInput
-                      type="text"
-                      value={item.detail}
-                      onChange={(e) =>
-                        updateType2Row(item.id, "detail", e.target.value)
-                      }
-                      disabled={readonly}
-                      placeholder="ระบุรายละเอียดการติดตาม..."
-                    />
+                    {!readonly && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => addProductLine(item.id)}
+                        className="h-7 text-xs px-2.5 border-indigo-300 text-indigo-700 bg-white hover:bg-indigo-50 shadow-sm cursor-pointer"
+                      >
+                        <Plus className="h-3 w-3 mr-1 text-indigo-600" />
+                        เพิ่มสินค้า
+                      </Button>
+                    )}
                   </div>
+
+                  {prodListLines.map((prodLine) => {
+                    return (
+                      <div
+                        key={prodLine.id}
+                        className="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-end bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs"
+                      >
+                        {/* Product Combobox */}
+                        <div
+                          className={
+                            prodListLines.length > 1 && !readonly
+                              ? "md:col-span-6"
+                              : "md:col-span-6"
+                          }
+                        >
+                          <ActivityProductSelect
+                            id={`type2-product-combobox-${item.id}-${prodLine.id}`}
+                            label="สินค้า"
+                            labelClassName="block text-[11px] font-semibold text-slate-600 mb-1 mx-0"
+                            triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500"
+                            value={prodLine.productName}
+                            valueKey="name"
+                            onChange={(val, prod) =>
+                              updateProductLine(
+                                item.id,
+                                prodLine.id,
+                                "productName",
+                                val,
+                                prod,
+                              )
+                            }
+                            products={products}
+                            placeholder="เลือกสินค้า..."
+                            searchPlaceholder="ค้นหาสินค้า..."
+                            emptyText="ไม่พบสินค้า"
+                            disabled={readonly}
+                            required
+                          />
+                        </div>
+
+                        {/* Notes / Detail for this specific product */}
+                        <div
+                          className={
+                            prodListLines.length > 1 && !readonly
+                              ? "md:col-span-5"
+                              : "md:col-span-6"
+                          }
+                        >
+                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                            รายละเอียด
+                          </label>
+                          <ActivityInput
+                            type="text"
+                            value={prodLine.notes || ""}
+                            onChange={(e) =>
+                              updateProductLine(
+                                item.id,
+                                prodLine.id,
+                                "notes",
+                                e.target.value,
+                              )
+                            }
+                            disabled={readonly}
+                            placeholder="ระบุข้อสังเกต หรือผลที่คาดหวัง..."
+                          />
+                        </div>
+
+                        {/* Delete Button (when more than 1 product) */}
+                        {prodListLines.length > 1 && !readonly && (
+                          <div className="md:col-span-1 flex justify-center pb-1">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                deleteProductLine(item.id, prodLine.id)
+                              }
+                              className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                              title="ลบสินค้านี้"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* 4. Common Detail for the Followup Target */}
+                <div className="pt-0.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    รายละเอียดเพิ่มเติม (ภาพรวมการติดตาม)
+                  </label>
+                  <ActivityInput
+                    type="text"
+                    value={item.detail || ""}
+                    onChange={(e) =>
+                      updateType2Row(item.id, "detail", e.target.value)
+                    }
+                    disabled={readonly}
+                    placeholder="ระบุรายละเอียดภาพรวมการติดตาม..."
+                  />
                 </div>
               </div>
             );

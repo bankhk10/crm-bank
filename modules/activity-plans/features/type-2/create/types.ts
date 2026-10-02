@@ -1,8 +1,11 @@
 import type {
   Type2ProductFollowupItem,
+  Type2FollowupProductLine,
   CustomerOption,
   ProductOption,
 } from "../shared/types";
+
+export type { Type2FollowupProductLine };
 
 export interface Type2FollowupProps {
   readonly?: boolean;
