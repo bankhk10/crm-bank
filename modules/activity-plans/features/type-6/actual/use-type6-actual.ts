@@ -6,6 +6,9 @@ import {
   collectPermanentUrls,
   uploadActivityPlanImageGroup,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
+import { validateType6Actual } from "./validation";
+
+export { validateType6Actual };
 
 export function useType6Actual() {
   const [t6ProductId, setT6ProductId] = useState<string | null>(null);
@@ -29,25 +32,15 @@ export function useType6Actual() {
   const initialT6ImagesRef = useRef<ImageFile[]>([]);
 
   const validate = useCallback((): string | null => {
-    if (!t6PurchaseChannel) {
-      return "กรุณาระบุช่องทางการซื้อสินค้าสำหรับตรวจสอบเรื่องร้องเรียน";
-    }
-    if (t6PurchaseChannel === "ร้านค้าตัวแทนจำหน่าย" && !t6StoreId) {
-      return "กรุณาเลือกร้านค้าตัวแทนจำหน่าย";
-    }
-    if (!t6ProductId) {
-      return "กรุณาเลือกชื่อสินค้าสำหรับตรวจสอบเรื่องร้องเรียน";
-    }
-    if (!t6LotNumber?.trim()) {
-      return "กรุณาระบุเลข Lot";
-    }
-    if (!t6IssueType) {
-      return "กรุณาเลือกประเภทปัญหา";
-    }
-    if (t6IssueType === "อื่นๆ ระบุ" && !t6Detail?.trim()) {
-      return "กรุณาระบุรายละเอียดปัญหา";
-    }
-    return null;
+    const res = validateType6Actual({
+      t6PurchaseChannel,
+      t6StoreId,
+      t6ProductId,
+      t6LotNumber,
+      t6IssueType,
+      t6Detail,
+    });
+    return res.isValid ? null : (res.error || "ข้อมูลเรื่องร้องเรียนไม่ถูกต้อง");
   }, [
     t6PurchaseChannel,
     t6StoreId,

@@ -11,6 +11,9 @@ import {
   getActivityResultStatusLabel,
   getWorkTypeCode,
 } from "@/modules/activity-plans/constants";
+import { validateType7aActual } from "@/modules/activity-plans/features/type-7a/actual/validation";
+import { validateType7bActual } from "@/modules/activity-plans/features/type-7b/actual/validation";
+import { validateType8Actual } from "@/modules/activity-plans/features/type-8/actual/validation";
 
 export interface BuildSummaryInput {
   planWorkTypes?: string[];
@@ -347,18 +350,14 @@ export function buildResultSummary(
         wt?.name === "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
     ) || Boolean(t8ActualAttendees);
 
-  if (isType8Active && activityResultStatus === "COMPLETED") {
-    const regImagesCount = (t8RegistrationImages || []).length;
-    if (regImagesCount === 0) {
+  if (isType8Active) {
+    const t8Validation = validateType8Actual({
+      activityResultStatus,
+      t8RegistrationImages,
+    });
+    if (!t8Validation.isValid) {
       return {
-        validationError: "กรุณาแนบรูปใบลงทะเบียนผู้เข้าร่วมงานอย่างน้อย 1 รูป",
-        summaryParts: [],
-        payload: null,
-      };
-    }
-    if (regImagesCount > 5) {
-      return {
-        validationError: "รูปใบลงทะเบียนผู้เข้าร่วมงานต้องไม่เกิน 5 รูป",
+        validationError: t8Validation.error,
         summaryParts: [],
         payload: null,
       };
@@ -373,345 +372,23 @@ export function buildResultSummary(
   );
 
   // Validate TYPE_7A fields if COMPLETED
-  if (isType7A && !isType7B && activityResultStatus === "COMPLETED") {
-    // 1. Farmer Owner
-    if (!input.t7FarmerProvince?.trim()) {
+  if (isType7A && !isType7B) {
+    const t7aValidation = validateType7aActual(input);
+    if (!t7aValidation.isValid) {
       return {
-        validationError: "กรุณาเลือกจังหวัดของเกษตรกรเจ้าของแปลง (Work Type 7A)",
-        summaryParts: [],
-        payload: null,
-      };
-    }
-    if (input.t7IsUnregisteredFarmer) {
-      if (!input.t7FarmerName?.trim()) {
-        return {
-          validationError: "กรุณาระบุชื่อเกษตรกรเจ้าของแปลง (Work Type 7A)",
-          summaryParts: [],
-          payload: null,
-        };
-      }
-      if (!input.t7FarmerPhone?.trim()) {
-        return {
-          validationError: "กรุณาระบุเบอร์โทรศัพท์เกษตรกรเจ้าของแปลง (Work Type 7A)",
-          summaryParts: [],
-          payload: null,
-        };
-      }
-    } else {
-      if (!input.t7FarmerCustomerId && !input.t7FarmerName?.trim()) {
-        return {
-          validationError: "กรุณาเลือกเกษตรกรจากระบบ Customer Master (Work Type 7A)",
-          summaryParts: [],
-          payload: null,
-        };
-      }
-    }
-
-    // 2. Plot Location (Latitude & Longitude REQUIRED numeric)
-    const lat = parseCleanNumber(input.t7Latitude);
-    const lng = parseCleanNumber(input.t7Longitude);
-    if (lat === null || isNaN(lat)) {
-      return {
-        validationError: "กรุณาระบุพิกัดละติจูด (Latitude) ของแปลงสาธิตเป็นตัวเลข",
-        summaryParts: [],
-        payload: null,
-      };
-    }
-    if (lng === null || isNaN(lng)) {
-      return {
-        validationError: "กรุณาระบุพิกัดลองจิจูด (Longitude) ของแปลงสาธิตเป็นตัวเลข",
-        summaryParts: [],
-        payload: null,
-      };
-    }
-
-    // 3. Demo Plot Initial Data
-    if (!input.t7PlotName?.trim()) {
-      return {
-        validationError: "กรุณาระบุชื่อแปลงสาธิต (Work Type 7A)",
-        summaryParts: [],
-        payload: null,
-      };
-    }
-    if (!input.t7CropCategory?.trim()) {
-      return {
-        validationError: "กรุณาระบุหมวดหมู่พืช (Work Type 7A)",
-        summaryParts: [],
-        payload: null,
-      };
-    }
-    if (!input.t7CropName?.trim()) {
-      return {
-        validationError: "กรุณาระบุชื่อพืชที่ทดสอบ (Work Type 7A)",
-        summaryParts: [],
-        payload: null,
-      };
-    }
-
-    // 4. Planting / Spray Date
-    if (!input.t7InitialSprayDate) {
-      return {
-        validationError: "กรุณาระบุวันที่ฉีดพ่น (Work Type 7A)",
-        summaryParts: [],
-        payload: null,
-      };
-    }
-
-    // 5. Demo Products
-    if (!input.t7DemoProducts || input.t7DemoProducts.length === 0) {
-      return {
-        validationError: "กรุณาระบุสินค้าสาธิตอย่างน้อย 1 รายการ (Work Type 7A)",
-        summaryParts: [],
-        payload: null,
-      };
-    }
-    for (const p of input.t7DemoProducts) {
-      if (!p.productId) {
-        return {
-          validationError: "กรุณาเลือกสินค้าสาธิตจากระบบ (Work Type 7A)",
-          summaryParts: [],
-          payload: null,
-        };
-      }
-      if (
-        p.quantity === undefined ||
-        p.quantity === null ||
-        p.quantity === "" ||
-        isNaN(Number(p.quantity)) ||
-        Number(p.quantity) < 0
-      ) {
-        return {
-          validationError: `กรุณาระบุจำนวนที่ใช้จริงของสินค้า ${p.productName || ""}`,
-          summaryParts: [],
-          payload: null,
-        };
-      }
-      if (
-        p.plannedQuantity !== undefined &&
-        p.plannedQuantity !== null &&
-        p.plannedQuantity !== ""
-      ) {
-        const planned = Number(p.plannedQuantity);
-        const used = Number(p.quantity);
-        if (!isNaN(planned) && !isNaN(used) && used > planned) {
-          return {
-            validationError: `จำนวนที่ใช้จริงของสินค้า ${p.productName || ""} (${used}) ต้องไม่เกินจำนวนที่เบิก (${planned})`,
-            summaryParts: [],
-            payload: null,
-          };
-        }
-      }
-      if (!p.applicationRate || !p.applicationRate.trim()) {
-        return {
-          validationError: `กรุณาระบุอัตราการใช้ (Application Rate) ของสินค้า ${p.productName || ""}`,
-          summaryParts: [],
-          payload: null,
-        };
-      }
-    }
-
-    // 6. Spray Method & External Chemicals
-    if (input.t7SprayMethod === "TANK_MIXED" && input.t7HasExternalChemicals) {
-      if (!input.t7ExternalProducts || input.t7ExternalProducts.length === 0) {
-        return {
-          validationError: "กรุณาระบุสารเคมีภายนอกอย่างน้อย 1 รายการ หรือยกเลิกการเลือกมียาภายนอก",
-          summaryParts: [],
-          payload: null,
-        };
-      }
-      if (input.t7ExternalProducts.length > 4) {
-        return {
-          validationError: "สามารถระบุสารเคมีภายนอกได้สูงสุด 4 รายการ",
-          summaryParts: [],
-          payload: null,
-        };
-      }
-      for (const ep of input.t7ExternalProducts) {
-        if (!ep.company?.trim() || !ep.productName?.trim()) {
-          return {
-            validationError: "กรุณากรอกชื่อบริษัทและชื่อสินค้าของสารเคมีภายนอกให้ครบถ้วน",
-            summaryParts: [],
-            payload: null,
-          };
-        }
-        if (!ep.formula) {
-          return {
-            validationError: "กรุณาเลือกสูตรยาของสารเคมีภายนอก",
-            summaryParts: [],
-            payload: null,
-          };
-        }
-        if (ep.formula === "อื่นๆ" && !ep.customFormula?.trim()) {
-          return {
-            validationError: "กรุณาระบุรายละเอียดสูตรยาเมื่อเลือก 'อื่นๆ'",
-            summaryParts: [],
-            payload: null,
-          };
-        }
-        if (!ep.applicationRate?.trim()) {
-          return {
-            validationError: "กรุณาระบุอัตราการใช้ของสารเคมีภายนอก",
-            summaryParts: [],
-            payload: null,
-          };
-        }
-      }
-    }
-
-    // 10. Initial Photos (Max 10)
-    if (input.t7InitialPhotos && input.t7InitialPhotos.length > 10) {
-      return {
-        validationError: "ภาพถ่ายสภาพแปลงเริ่มต้นสามารถแนบได้สูงสุด 10 รูป (Work Type 7A)",
+        validationError: t7aValidation.error,
         summaryParts: [],
         payload: null,
       };
     }
   }
 
-  // Validate Type 7 Product Change (TYPE_7B / Legacy)
-  const isT7ProductChanged =
-    Boolean(input.t7ActualProductId) &&
-    Boolean(input.t7PlannedProductId) &&
-    input.t7ActualProductId !== input.t7PlannedProductId;
-
-  if (
-    isType7B &&
-    isT7ProductChanged &&
-    (!input.t7ChangeReason || !input.t7ChangeReason.trim())
-  ) {
-    return {
-      validationError: "กรุณาระบุเหตุผลการเปลี่ยนสินค้าหน้างาน (Work Type 7)",
-      summaryParts: [],
-      payload: null,
-    };
-  }
-
-  if (isType7B && activityResultStatus === "COMPLETED") {
-    if (!input.actualStartDate) {
+  // Validate TYPE_7B fields
+  if (isType7B) {
+    const t7bValidation = validateType7bActual(input);
+    if (!t7bValidation.isValid) {
       return {
-        validationError: "กรุณาระบุวันที่ติดตามจริง (Work Type 7B)",
-        summaryParts: [],
-        payload: null,
-      };
-    }
-    if (
-      input.t7DaysAfterSpray === undefined ||
-      input.t7DaysAfterSpray === null ||
-      input.t7DaysAfterSpray === ""
-    ) {
-      return {
-        validationError: "กรุณาระบุจำนวนวันหลังฉีดพ่น (Work Type 7B)",
-        summaryParts: [],
-        payload: null,
-      };
-    }
-    if (input.t7CropImages && input.t7CropImages.length > 5) {
-      return {
-        validationError:
-          "รูปผลหลังการฉีดพ่น (รูปภาพสภาพพืช) สามารถแนบได้สูงสุด 5 รูป (Work Type 7B)",
-        summaryParts: [],
-        payload: null,
-      };
-    }
-
-    if (input.t7bSprayingRounds && input.t7bSprayingRounds.length > 0) {
-      for (const sr of input.t7bSprayingRounds) {
-        if (!sr.productRates || sr.productRates.length === 0) {
-          return {
-            validationError: `รอบการฉีดพ่นที่ ${sr.roundNumber} ต้องมีรายการผลิตภัณฑ์อย่างน้อย 1 รายการ`,
-            summaryParts: [],
-            payload: null,
-          };
-        }
-        for (const pr of sr.productRates) {
-          if (!pr.actualRate || !pr.actualRate.trim()) {
-            return {
-              validationError: `กรุณาระบุอัตราการฉีดพ่นจริงของ ${pr.productName || "สินค้า"} ในรอบที่ ${sr.roundNumber}`,
-              summaryParts: [],
-              payload: null,
-            };
-          }
-          if (
-            pr.quantityUsed === undefined ||
-            pr.quantityUsed === null ||
-            pr.quantityUsed === "" ||
-            isNaN(Number(pr.quantityUsed)) ||
-            Number(pr.quantityUsed) < 0
-          ) {
-            return {
-              validationError: `กรุณาระบุจำนวนที่ใช้ยาในรอบนี้ของ ${pr.productName || "สินค้า"} ในรอบที่ ${sr.roundNumber}`,
-              summaryParts: [],
-              payload: null,
-            };
-          }
-        }
-        if (sr.sprayMethod === "TANK_MIXED" && sr.hasExternalChemicals) {
-          if (!sr.externalProducts || sr.externalProducts.length === 0) {
-            return {
-              validationError: `กรุณาระบุสารเคมีภายนอกอย่างน้อย 1 รายการ หรือยกเลิกการเลือกมียาภายนอก ในรอบที่ ${sr.roundNumber}`,
-              summaryParts: [],
-              payload: null,
-            };
-          }
-          if (sr.externalProducts.length > 4) {
-            return {
-              validationError: `สามารถระบุสารเคมีภายนอกได้สูงสุด 4 รายการ ในรอบที่ ${sr.roundNumber}`,
-              summaryParts: [],
-              payload: null,
-            };
-          }
-        }
-        if (!sr.sprayEquipment) {
-          return {
-            validationError: `กรุณาเลือกอุปกรณ์ที่ใช้ฉีดพ่นในรอบที่ ${sr.roundNumber}`,
-            summaryParts: [],
-            payload: null,
-          };
-        }
-        if (
-          sr.sprayEquipment === "อื่นๆ ระบุ.." &&
-          (!sr.otherEquipment || !sr.otherEquipment.trim())
-        ) {
-          return {
-            validationError: `กรุณาระบุอุปกรณ์ฉีดพ่นอื่นๆ ในรอบที่ ${sr.roundNumber}`,
-            summaryParts: [],
-            payload: null,
-          };
-        }
-        if (!sr.productResponse) {
-          return {
-            validationError: `กรุณาเลือกผลหลังการฉีดพ่นในรอบที่ ${sr.roundNumber}`,
-            summaryParts: [],
-            payload: null,
-          };
-        }
-        if (
-          sr.productResponse === "พบปัญหา" &&
-          (!sr.problemDetail || !sr.problemDetail.trim())
-        ) {
-          return {
-            validationError: `กรุณาระบุรายละเอียดปัญหาที่พบหลังการฉีดพ่นในรอบที่ ${sr.roundNumber}`,
-            summaryParts: [],
-            payload: null,
-          };
-        }
-        if (sr.plotImages && sr.plotImages.length > 5) {
-          return {
-            validationError: `รูปการฉีดพ่นในรอบที่ ${sr.roundNumber} สามารถแนบได้สูงสุด 5 รูป`,
-            summaryParts: [],
-            payload: null,
-          };
-        }
-      }
-    }
-
-    if (
-      t7PlotStatus === "FAILED" &&
-      (!input.t7FinalSummaryNotes || !input.t7FinalSummaryNotes.trim())
-    ) {
-      return {
-        validationError:
-          "กรุณาระบุรายละเอียดสาเหตุที่ยุติการทดลอง (Work Type 7B)",
+        validationError: t7bValidation.error,
         summaryParts: [],
         payload: null,
       };

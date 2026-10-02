@@ -8,8 +8,10 @@ import {
   collectPermanentUrls,
 } from "../../shared/actual-view/utils/image-uploader";
 import type { Type13ActualProductState, Type13PlotActualState } from "./types";
+import { validateType13Actual } from "./validation";
 
 export type { Type13ActualProductState, Type13PlotActualState };
+export { validateType13Actual };
 
 const createDefaultInitialPlot = (): Type13PlotActualState => {
   const tempId = `temp-draft-${Date.now()}`;
@@ -1049,6 +1051,11 @@ export function useType13ActualState() {
     [plotsActual],
   );
 
+  const validate = useCallback((): string | null => {
+    const res = validateType13Actual(plotsActual);
+    return res.isValid ? null : (res.error || "ข้อมูลแปลงไม่ถูกต้อง");
+  }, [plotsActual]);
+
   return {
     plotsActual,
     setPlotsActual,
@@ -1074,6 +1081,7 @@ export function useType13ActualState() {
     collectOldImageUrlsToDelete,
     commitSavedImages,
     buildType13ActualPayload,
+    validate,
   };
 }
 

@@ -20,12 +20,14 @@ import type {
   Type14ImageState,
   Type14SprayRoundState,
 } from "./types";
+import { validateType14Actual } from "./validation";
 
 export type {
   Type14ActualProductState,
   Type14ImageState,
   Type14SprayRoundState,
 };
+export { validateType14Actual };
 
 function createDefaultRound(
   roundNumber: number,
@@ -963,12 +965,10 @@ export function useType14ActualState() {
   // ── Build Payload for Submission ──
   const buildType14ActualPayload = useCallback(
     (_cleanImages?: Type14ImageState[]) => {
-      // 1. Required validations
-      if (!demoPlotId || !demoPlotId.trim()) {
-        throw new Error("กรุณาเลือกแปลงที่ต้องการติดตาม");
-      }
-      if (!rounds || rounds.length === 0) {
-        throw new Error("ต้องมีรอบการฉีดพ่นอย่างน้อย 1 รอบ");
+      // 1. Required validations using centralized validation helper
+      const validationRes = validateType14Actual({ demoPlotId, rounds });
+      if (!validationRes.isValid) {
+        throw new Error(validationRes.error || "ข้อมูลการติดตามแปลงไม่ถูกต้อง");
       }
 
       const sprayRoundsPayload: any[] = [];
@@ -1140,6 +1140,10 @@ export function useType14ActualState() {
     collectOldImageUrlsToDelete,
     commitSavedImages,
     buildType14ActualPayload,
+    validate: useCallback((): string | null => {
+      const res = validateType14Actual({ demoPlotId, rounds });
+      return res.isValid ? null : (res.error || "ข้อมูลการติดตามแปลงไม่ถูกต้อง");
+    }, [demoPlotId, rounds]),
 
     // Backwards-compatible aliases for single-round queries
     actualVisitDate: rounds[0]?.actualVisitDate || "",

@@ -5,6 +5,7 @@ import { Users, Store, UserCheck } from "lucide-react";
 import { ActivityInput } from "@/components/activity/activity-input";
 import { FormCombobox } from "@/components/custom/form-components";
 import { ALL_THAI_PROVINCES } from "@/lib/province-region-mapping";
+import { useCustomerOptions } from "@/modules/activity-plans/features/shared/hooks/use-customer-options";
 import type { Type1VisitItem, CustomerOption } from "../shared/types";
 import type { Type1VisitProps } from "./types";
 
@@ -43,59 +44,13 @@ export function Type1Visit({
     item.visitPurpose === "STORE" ? "STORE" : "FARMER";
   const currentProvince = item.province?.trim() || "";
 
-  // Server-fetched options for Dealer/Subdealer and Farmer
-  const [storeOptionsFromApi, setStoreOptionsFromApi] = useState<
-    CustomerOption[]
-  >([]);
-  const [farmerOptionsFromApi, setFarmerOptionsFromApi] = useState<
-    CustomerOption[]
-  >([]);
-
-  // Load Dealer & Subdealer options from server action
-  useEffect(() => {
-    let isMounted = true;
-    async function loadStores() {
-      try {
-        const { getDealerAndSubdealerCustomerOptionsAction } =
-          await import("@/modules/activity-plans/server/actions");
-        const res = await getDealerAndSubdealerCustomerOptionsAction();
-        if (isMounted && res && res.success && res.stores) {
-          setStoreOptionsFromApi(res.stores as CustomerOption[]);
-        }
-      } catch (err) {
-        console.error("Failed to load stores for TYPE_1:", err);
-      }
-    }
-    loadStores();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Load Farmer options from server action when province is selected
-  useEffect(() => {
-    if (!currentProvince) {
-      setFarmerOptionsFromApi([]);
-      return;
-    }
-    let isMounted = true;
-    async function loadFarmers() {
-      try {
-        const { getFarmerCustomerOptionsAction } =
-          await import("@/modules/activity-plans/server/actions");
-        const res = await getFarmerCustomerOptionsAction(currentProvince);
-        if (isMounted && res && res.success && res.farmers) {
-          setFarmerOptionsFromApi(res.farmers as CustomerOption[]);
-        }
-      } catch (err) {
-        console.error("Failed to load farmers for TYPE_1:", err);
-      }
-    }
-    loadFarmers();
-    return () => {
-      isMounted = false;
-    };
-  }, [currentProvince]);
+  // Server-fetched options for Dealer/Subdealer and Farmer via shared hook
+  const { storeOptions: storeOptionsFromApi, getFarmersForProvince } =
+    useCustomerOptions(currentProvince);
+  const farmerOptionsFromApi = useMemo(
+    () => getFarmersForProvince(currentProvince),
+    [getFarmersForProvince, currentProvince],
+  );
 
   // Handle Switching Purpose with state cleanup
   const handlePurposeChange = (newPurpose: "FARMER" | "STORE") => {

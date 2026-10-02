@@ -9,6 +9,7 @@ import {
   buildResultSummary,
   deleteActivityPlanImagePaths,
 } from "../utils";
+import { validateType13Actual } from "@/modules/activity-plans/features/type-13/actual/validation";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 import type { useActualStatusState } from "./use-actual-status-state";
 import type { ActualTypeHooks } from "./use-actual-orchestrator";
@@ -247,20 +248,14 @@ export function useActualSubmit({
           let t13Payload: any = {};
           if (isType13 && typeHooks.type13) {
             const currentPlots = cleanT13Plots || typeHooks.type13.plotsActual;
-            for (let i = 0; i < currentPlots.length; i++) {
-              const p = currentPlots[i];
-              if (!p.plotName?.trim()) {
-                setFormError(`กรุณาระบุชื่อแปลง (แปลงที่ ${i + 1})`);
-                setIsSubmitting(false);
-                return;
+            const t13Validation = validateType13Actual(currentPlots);
+            if (!t13Validation.isValid) {
+              if (allNewlyUploadedUrls.length > 0) {
+                await deleteActivityPlanImagePaths(id, allNewlyUploadedUrls);
               }
-              if (!p.latitude?.trim() || !p.longitude?.trim()) {
-                setFormError(
-                  `กรุณาระบุพิกัด Latitude และ Longitude ให้ครบถ้วน (${p.plotName})`,
-                );
-                setIsSubmitting(false);
-                return;
-              }
+              setFormError(t13Validation.error || "ข้อมูลแปลงไม่ถูกต้อง");
+              setIsSubmitting(false);
+              return;
             }
             t13Payload = typeHooks.type13.buildType13ActualPayload(currentPlots);
           }

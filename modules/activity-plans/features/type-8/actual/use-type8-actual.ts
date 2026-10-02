@@ -6,6 +6,9 @@ import {
   collectPermanentUrls,
   uploadActivityPlanImageGroup,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
+import { validateType8Actual } from "./validation";
+
+export { validateType8Actual };
 
 export function useType8Actual() {
   const [t8ActualAttendees, setT8ActualAttendees] = useState("");
@@ -144,6 +147,17 @@ export function useType8Actual() {
     ],
   );
 
+  const validate = useCallback(
+    (activityResultStatus: string = "COMPLETED"): string | null => {
+      const res = validateType8Actual({
+        activityResultStatus,
+        t8RegistrationImages,
+      });
+      return res.isValid ? null : (res.error || "ข้อมูลการประชุมไม่ถูกต้อง");
+    },
+    [t8RegistrationImages],
+  );
+
   return {
     t8ActualAttendees,
     setT8ActualAttendees,
@@ -160,5 +174,6 @@ export function useType8Actual() {
     collectOldImageUrlsToDelete,
     commitSavedImages,
     collectPayload,
+    validate,
   };
 }

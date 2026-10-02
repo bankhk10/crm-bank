@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ActivityInput } from "@/components/activity/activity-input";
 import { FormCombobox } from "@/components/custom/form-components";
 import { ALL_THAI_PROVINCES } from "@/lib/province-region-mapping";
+import { useCustomerOptions } from "@/modules/activity-plans/features/shared/hooks/use-customer-options";
 import type {
   Type2ProductFollowupItem,
   CustomerOption,
@@ -24,34 +25,12 @@ export function Type2Followup({
   customers = [],
   products = [],
 }: Type2FollowupProps) {
-  // Server-fetched options for Dealer/Subdealer and Farmers per province
-  const [storeOptionsFromApi, setStoreOptionsFromApi] = useState<
-    CustomerOption[]
-  >([]);
-  const [farmersByProvince, setFarmersByProvince] = useState<
-    Record<string, CustomerOption[]>
-  >({});
-
-  // Load Dealer & Subdealer options from server action
-  useEffect(() => {
-    let isMounted = true;
-    async function loadStores() {
-      try {
-        const { getDealerAndSubdealerCustomerOptionsAction } =
-          await import("@/modules/activity-plans/server/actions");
-        const res = await getDealerAndSubdealerCustomerOptionsAction();
-        if (isMounted && res && res.success && res.stores) {
-          setStoreOptionsFromApi(res.stores as CustomerOption[]);
-        }
-      } catch (err) {
-        console.error("Failed to load stores for TYPE_2:", err);
-      }
-    }
-    loadStores();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  // Server-fetched options for Dealer/Subdealer and Farmers per province via shared hook
+  const {
+    storeOptions: storeOptionsFromApi,
+    loadFarmersForProvince,
+    farmerOptionsByProvince: farmersByProvince,
+  } = useCustomerOptions();
 
   // Track unique provinces currently selected across all TYPE_2 rows
   const activeProvinces = useMemo(() => {
@@ -63,29 +42,12 @@ export function Type2Followup({
     return Array.from(provs);
   }, [type2Items]);
 
-  // Load Farmer options per province
+  // Load Farmer options per active province
   useEffect(() => {
-    let isMounted = true;
-    activeProvinces.forEach(async (prov) => {
-      if (farmersByProvince[prov]) return;
-      try {
-        const { getFarmerCustomerOptionsAction } =
-          await import("@/modules/activity-plans/server/actions");
-        const res = await getFarmerCustomerOptionsAction(prov);
-        if (isMounted && res && res.success && res.farmers) {
-          setFarmersByProvince((prev) => ({
-            ...prev,
-            [prov]: res.farmers as CustomerOption[],
-          }));
-        }
-      } catch (err) {
-        console.error("Failed to load farmers for TYPE_2 province:", prov, err);
-      }
+    activeProvinces.forEach((prov) => {
+      loadFarmersForProvince(prov);
     });
-    return () => {
-      isMounted = false;
-    };
-  }, [activeProvinces, farmersByProvince]);
+  }, [activeProvinces, loadFarmersForProvince]);
 
   const provinceOptions = useMemo(
     () => ALL_THAI_PROVINCES.map((p) => ({ value: p, label: p })),

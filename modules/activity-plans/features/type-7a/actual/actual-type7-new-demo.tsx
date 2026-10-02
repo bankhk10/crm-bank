@@ -39,6 +39,7 @@ import {
   DemoPlotExternalProductItem,
 } from "@/modules/activity-plans/features/shared/actual-view/types";
 import { ALL_THAI_PROVINCES } from "@/lib/province-region-mapping";
+import { useCustomerOptions } from "@/modules/activity-plans/features/shared/hooks/use-customer-options";
 import {
   CROP_CATEGORIES,
   CROPS_BY_CATEGORY,
@@ -238,38 +239,13 @@ export function ActualType7NewDemo({
     cropName === "อื่นๆ" ||
     ["ผักและพืชล้มลุกอื่นๆ", "พืชไร่อื่นๆ", "พืชสวนอื่นๆ"].includes(cropName);
 
-  // Server-fetched farmers for the selected province (customerType === "FARMER")
-  const [farmersFromApi, setFarmersFromApi] = useState<CustomerOption[]>([]);
-  const [loadingFarmers, setLoadingFarmers] = useState(false);
-
-  // Fetch farmers by province
-  useEffect(() => {
-    if (!farmerProvince) {
-      setFarmersFromApi([]);
-      return;
-    }
-    let isMounted = true;
-    setLoadingFarmers(true);
-    import("@/modules/activity-plans/server/actions")
-      .then(({ getFarmerCustomerOptionsAction }) =>
-        getFarmerCustomerOptionsAction(farmerProvince),
-      )
-      .then((res) => {
-        if (isMounted && res && res.success && res.farmers) {
-          setFarmersFromApi(res.farmers as CustomerOption[]);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to load farmers for TYPE_7A:", err);
-      })
-      .finally(() => {
-        if (isMounted) setLoadingFarmers(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [farmerProvince]);
+  // Server-fetched farmers for the selected province via shared hook
+  const { getFarmersForProvince, loadingFarmers } =
+    useCustomerOptions(farmerProvince);
+  const farmersFromApi = useMemo(
+    () => getFarmersForProvince(farmerProvince),
+    [getFarmersForProvince, farmerProvince],
+  );
 
   // Address data from API for province -> district cascading
   const [provincesData, setProvincesData] = useState<any[]>([]);

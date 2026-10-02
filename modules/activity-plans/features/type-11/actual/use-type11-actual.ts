@@ -6,6 +6,9 @@ import {
   collectPermanentUrls,
   uploadActivityPlanImageGroup,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
+import { validateType11Actual } from "./validation";
+
+export { validateType11Actual };
 
 export function useType11Actual() {
   const [t11StockItems, setT11StockItems] = useState<any[]>([]);
@@ -55,17 +58,8 @@ export function useType11Actual() {
   }, []);
 
   const validate = useCallback((): string | null => {
-    if (t11StockItems && t11StockItems.length > 0) {
-      for (const item of t11StockItems) {
-        if (!item.remainingQty || String(item.remainingQty).trim() === "") {
-          return `กรุณาระบุจำนวนคงเหลือสำหรับสินค้า "${item.productName || "ที่ตรวจเช็ก"}"`;
-        }
-        if (!item.reorderOpportunity || !String(item.reorderOpportunity).trim()) {
-          return `กรุณาเลือกโอกาสการสั่งซื้อรอบใหม่สำหรับสินค้า "${item.productName || "ที่ตรวจเช็ก"}"`;
-        }
-      }
-    }
-    return null;
+    const res = validateType11Actual(t11StockItems);
+    return res.isValid ? null : (res.error || "ข้อมูลสต็อกไม่ถูกต้อง");
   }, [t11StockItems]);
 
   const uploadImages = useCallback(
