@@ -4,7 +4,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { CheckSquare, Plus, Trash2, Store, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityInput } from "@/components/activity/activity-input";
-import { ActivityProvinceSelect } from "@/components/activity/activity-province-select";
+import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
 import { FormCombobox } from "@/components/custom/form-components";
 import { useCustomerOptions } from "@/modules/activity-plans/features/shared/hooks/use-customer-options";
 import type {
@@ -309,11 +309,12 @@ export function Type2Followup({
                     {/* จังหวัด & รายชื่อเกษตรกร */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {/* จังหวัด Selector */}
-                      <ActivityProvinceSelect
+                      <ActivityAddressSelect
                         id={`type2-province-combobox-${item.id}`}
+                        levels="province"
                         triggerClassName="focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         value={item.province || ""}
-                        onChange={(val) => handleProvinceChange(item.id, val)}
+                        onChange={(val: string) => handleProvinceChange(item.id, val)}
                         disabled={readonly}
                         required
                       />

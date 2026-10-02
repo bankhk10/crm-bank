@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Search, X, Users, MapPin, UserCircle2, Store } from "lucide-react";
 import { SectionHeader } from "@/components/custom/section-header";
-import { ActivityAddressPicker } from "@/components/activity/activity-address-picker";
+import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
 
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 
@@ -297,10 +297,10 @@ export function LocationTeamSection({
             ) : (
               /* Case OTHER: กรอก จังหวัด, อำเภอ, รายละเอียด */
               <div className="space-y-3 pt-1 border-t border-slate-100">
-                <ActivityAddressPicker
+                <ActivityAddressSelect
                   levels="province-district"
                   value={{ province, district }}
-                  onChange={(next) => {
+                  onChange={(next: { province?: string; district?: string }) => {
                     if (setProvince) setProvince(next.province || "");
                     if (setDistrict) setDistrict(next.district || "");
                   }}
@@ -413,10 +413,10 @@ export function LocationTeamSection({
         {/* รายละเอียดพื้นที่จัดกิจกรรม & จังหวัด / อำเภอ */}
         <div className="lg:col-span-8 space-y-3">
           {/* Province & District dropdowns */}
-          <ActivityAddressPicker
+          <ActivityAddressSelect
             levels="province-district"
             value={{ province, district }}
-            onChange={(next) => {
+            onChange={(next: { province?: string; district?: string }) => {
               if (setProvince) setProvince(next.province || "");
               if (setDistrict) setDistrict(next.district || "");
             }}

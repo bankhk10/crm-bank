@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Users, Store, UserCheck } from "lucide-react";
 import { ActivityInput } from "@/components/activity/activity-input";
-import { ActivityProvinceSelect } from "@/components/activity/activity-province-select";
+import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
 import { FormCombobox } from "@/components/custom/form-components";
 import { useCustomerOptions } from "@/modules/activity-plans/features/shared/hooks/use-customer-options";
 import type { Type1VisitItem, CustomerOption } from "../shared/types";
@@ -248,8 +248,9 @@ export function Type1Visit({
             {/* จังหวัด & รายชื่อเกษตรกร */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* จังหวัด Selector */}
-              <ActivityProvinceSelect
+              <ActivityAddressSelect
                 id={`province-combobox-${item.id}`}
+                levels="province"
                 value={item.province || ""}
                 onChange={handleProvinceChange}
                 disabled={readonly}
