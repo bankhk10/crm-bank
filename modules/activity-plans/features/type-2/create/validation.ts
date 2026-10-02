@@ -104,25 +104,6 @@ export const createType2ValidationSchema = (
                 path: [i, "unregisteredFarmerName"],
               });
             }
-            if (!item.unregisteredFarmerPhone?.trim()) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: `กรุณากรอกเบอร์โทรศัพท์เกษตรกร (รายการที่ ${rowNum})`,
-                path: [i, "unregisteredFarmerPhone"],
-              });
-            } else {
-              const cleanedPhone = item.unregisteredFarmerPhone.replace(
-                /[-\s]/g,
-                "",
-              );
-              if (!/^\d{9,10}$/.test(cleanedPhone)) {
-                ctx.addIssue({
-                  code: z.ZodIssueCode.custom,
-                  message: `เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (รายการที่ ${rowNum})`,
-                  path: [i, "unregisteredFarmerPhone"],
-                });
-              }
-            }
           } else {
             const sId =
               item.storeId ||
