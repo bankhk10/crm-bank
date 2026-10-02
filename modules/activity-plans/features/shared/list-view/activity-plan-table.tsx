@@ -232,11 +232,21 @@ export function ActivityPlanTable({
         cell: ({ row }) => {
           const item = row.original;
           const resultStatus = (item as any).result?.resultStatus;
+          const isUnplanned = item.planType === "UNPLANNED";
           return (
-            <ActivityStatusWithOperator
-              plan={item}
-              resultStatus={resultStatus}
-            />
+            <div className="flex flex-col items-start gap-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <ActivityStatusWithOperator
+                  plan={item}
+                  resultStatus={resultStatus}
+                />
+                {isUnplanned && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200 shadow-2xs whitespace-nowrap self-start mt-0.5">
+                    นอกแผน
+                  </span>
+                )}
+              </div>
+            </div>
           );
         },
       },
