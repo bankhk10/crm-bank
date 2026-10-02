@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { Layers, AlertCircle, CheckCircle2, Sparkles, Package, Camera, Eye } from "lucide-react";
+import {
+  Layers,
+  AlertCircle,
+  CheckCircle2,
+  Sparkles,
+  Package,
+  Camera,
+  Eye,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Type2PlanCard } from "../shared/type2-plan-card";
 import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
@@ -84,7 +92,8 @@ const getParsedUsageResult = (
   fallback?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "",
 ): "ลูกค้าพึงพอใจ" | "พบปัญหา" | "" => {
   if (!text) {
-    if (fallback === "พืชตอบสนองดี" || fallback === "ลูกค้าพึงพอใจ") return "ลูกค้าพึงพอใจ";
+    if (fallback === "พืชตอบสนองดี" || fallback === "ลูกค้าพึงพอใจ")
+      return "ลูกค้าพึงพอใจ";
     if (fallback === "พบปัญหา") return "พบปัญหา";
     return "";
   }
@@ -93,14 +102,23 @@ const getParsedUsageResult = (
   const match = text.match(regex);
   if (match && match[1]) {
     const val = match[1].trim();
-    if (val === "พืชตอบสนองดี" || val === "ลูกค้าพึงพอใจ" || val === "พบปัญหา") {
+    if (
+      val === "พืชตอบสนองดี" ||
+      val === "ลูกค้าพึงพอใจ" ||
+      val === "พบปัญหา"
+    ) {
       return val === "พบปัญหา" ? "พบปัญหา" : "ลูกค้าพึงพอใจ";
     }
   }
-  if (text === "พืชตอบสนองดี" || text === "ลูกค้าพึงพอใจ" || text === "พบปัญหา") {
+  if (
+    text === "พืชตอบสนองดี" ||
+    text === "ลูกค้าพึงพอใจ" ||
+    text === "พบปัญหา"
+  ) {
     return text === "พบปัญหา" ? "พบปัญหา" : "ลูกค้าพึงพอใจ";
   }
-  if (fallback === "พืชตอบสนองดี" || fallback === "ลูกค้าพึงพอใจ") return "ลูกค้าพึงพอใจ";
+  if (fallback === "พืชตอบสนองดี" || fallback === "ลูกค้าพึงพอใจ")
+    return "ลูกค้าพึงพอใจ";
   if (fallback === "พบปัญหา") return "พบปัญหา";
   return "";
 };
@@ -191,12 +209,7 @@ export function DetailType2Followup({
       </div>
 
       {/* ───────────────────────────────────────────────────────────── */}
-      {/* SECTION 1: PLANNED TARGET CARD (ข้อมูลตามแผน) */}
-      {/* ───────────────────────────────────────────────────────────── */}
-      <Type2PlanCard target={target} />
-
-      {/* ───────────────────────────────────────────────────────────── */}
-      {/* SECTION 2: ACTUAL RESULTS (ผลการติดตามสินค้าตามแผน) */}
+      {/* ACTUAL RESULTS (ผลการติดตามสินค้าตามแผน) */}
       {/* ───────────────────────────────────────────────────────────── */}
       <div className="space-y-3 pt-1">
         <label className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -239,8 +252,7 @@ export function DetailType2Followup({
                   );
 
               const isSatisfied =
-                itemResult === "ลูกค้าพึงพอใจ" ||
-                itemResult === "พืชตอบสนองดี";
+                itemResult === "ลูกค้าพึงพอใจ" || itemResult === "พืชตอบสนองดี";
 
               return (
                 <div
@@ -388,7 +400,10 @@ export function DetailType2Followup({
           <div className="flex items-center justify-between">
             <label className="text-sm font-bold text-amber-900 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-500" />
-              รายการติดตามผลการใช้สินค้าเพิ่มเติม ({normalizedAdditional.length} รายการ)
+              รายการติดตามผลการใช้สินค้าเพิ่มเติม ({
+                normalizedAdditional.length
+              }{" "}
+              รายการ)
             </label>
             <Badge
               variant="outline"
