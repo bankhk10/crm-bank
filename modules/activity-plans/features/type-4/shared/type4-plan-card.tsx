@@ -17,6 +17,7 @@ export interface Type4PlanCardTargetItem {
   collectAmount?: number;
   detail?: string;
   notes?: string;
+  [key: string]: any;
 }
 
 export interface Type4PlanCardTarget {
@@ -30,6 +31,7 @@ export interface Type4PlanCardTarget {
   detail?: string;
   notes?: string;
   items?: Type4PlanCardTargetItem[];
+  [key: string]: any;
 }
 
 export interface Type4PlanCardProps {

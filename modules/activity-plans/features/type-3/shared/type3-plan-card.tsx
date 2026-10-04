@@ -11,6 +11,7 @@ export interface Type3PlanCardTargetItem {
   productName: string;
   quantity?: number | string;
   targetQuantity?: number | string;
+  targetQty?: number | string;
   qty?: number | string;
   unitPrice?: number | string;
   price?: number | string;
@@ -20,11 +21,12 @@ export interface Type3PlanCardTargetItem {
   storeId?: string;
   detail?: string;
   notes?: string;
-  unit?: string;
+  unit?: string | null;
   isSubDealer?: boolean;
   subDealerStore?: string;
   dealerName?: string;
   isAdditional?: boolean;
+  [key: string]: any;
 }
 
 export interface Type3PlanCardTarget {

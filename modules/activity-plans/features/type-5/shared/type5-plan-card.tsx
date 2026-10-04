@@ -15,6 +15,7 @@ export interface Type5PlanCardTargetItem {
   productName?: string;
   detail?: string;
   notes?: string;
+  [key: string]: any;
 }
 
 export interface Type5PlanCardTarget {
@@ -25,6 +26,7 @@ export interface Type5PlanCardTarget {
   detail?: string;
   notes?: string;
   items?: Type5PlanCardTargetItem[];
+  [key: string]: any;
 }
 
 export interface Type5PlanCardProps {

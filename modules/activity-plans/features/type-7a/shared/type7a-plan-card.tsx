@@ -22,9 +22,10 @@ export interface Type7aPlanTarget {
   treeCount?: number | string | null;
   plots?: string;
   demoProducts?: Array<{
-    productName: string;
-    quantity: number | string;
-    unit?: string;
+    productName?: string;
+    quantity?: number | string;
+    unit?: string | null;
+    [key: string]: any;
   }>;
   items?: any[];
   [key: string]: any;

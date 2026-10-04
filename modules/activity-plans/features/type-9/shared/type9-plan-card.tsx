@@ -14,7 +14,7 @@ export interface Type9PlanTarget {
   items?: Array<{
     id?: string;
     productId?: string;
-    productName: string;
+    productName?: string;
     quantityCases?: number | string;
     pricePerCase?: number;
     totalAmount?: number;

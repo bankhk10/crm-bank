@@ -16,7 +16,7 @@ export interface Type8PlanTarget {
   promotionalProducts?: Array<{
     id?: string;
     productId?: string;
-    productName: string;
+    productName?: string;
     quantity?: number | string;
     quantityCases?: number | string;
     unitPrice?: number;
@@ -24,6 +24,7 @@ export interface Type8PlanTarget {
     totalAmount?: number;
     notes?: string;
     storeId?: string | null;
+    [key: string]: any;
   }>;
   items?: any[];
   [key: string]: any;

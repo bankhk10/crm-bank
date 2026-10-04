@@ -13,6 +13,7 @@ export interface Type6PlanCardTargetItem {
   issueType?: string;
   detail?: string;
   notes?: string;
+  [key: string]: any;
 }
 
 export interface Type6PlanCardTarget {
@@ -21,6 +22,7 @@ export interface Type6PlanCardTarget {
   detail?: string;
   notes?: string;
   items?: Type6PlanCardTargetItem[];
+  [key: string]: any;
 }
 
 export interface Type6PlanCardProps {

@@ -13,6 +13,7 @@ export interface Type2PlanCardTargetItem {
   notes?: string;
   expectedResult?: string;
   isAdditional?: boolean;
+  [key: string]: any;
 }
 
 export interface Type2PlanCardTarget {
@@ -28,6 +29,7 @@ export interface Type2PlanCardTarget {
   detail?: string;
   expectedResult?: string;
   items?: Type2PlanCardTargetItem[];
+  [key: string]: any;
 }
 
 export interface Type2PlanCardProps {

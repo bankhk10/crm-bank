@@ -16,19 +16,21 @@ export interface Type7bPlanTarget {
     id?: string;
     productId?: string;
     productName?: string;
-    product?: { name?: string; unit?: string };
+    product?: { name?: string; unit?: string | null };
     quantity?: number | string;
     targetQuantity?: number | string;
-    unit?: string;
+    unit?: string | null;
+    [key: string]: any;
   }>;
   withdrawnProducts?: Array<{
     id?: string;
     productId?: string;
     productName?: string;
-    product?: { name?: string; unit?: string };
+    product?: { name?: string; unit?: string | null };
     quantity?: number | string;
     targetQuantity?: number | string;
-    unit?: string;
+    unit?: string | null;
+    [key: string]: any;
   }>;
   items?: any[];
   [key: string]: any;

@@ -8,9 +8,9 @@ import type { TourType, TourSize } from "./types";
 
 export interface Type12PlanCardProps {
   isVisible?: boolean;
-  planType?: string;
-  tourType?: TourType;
-  tourSize?: TourSize | null;
+  planType?: string | null;
+  tourType?: TourType | string | null;
+  tourSize?: TourSize | string | null;
   country?: string | null;
   storeName?: string | null;
   destination?: string | null;
